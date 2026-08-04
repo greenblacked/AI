@@ -1,0 +1,38 @@
+[project]
+name = "skillcheck"
+version = "0.1.0"
+description = "Validation for the Claude Code skills in this repository"
+requires-python = ">=3.10"
+# Intentionally empty, and enforced by the CI matrix: the validator has to run on a
+# bare interpreter, because that is what a fresh runner gives you.
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/skillcheck"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q --strict-markers --import-mode=importlib"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+# "S" is flake8-bandit: the security rules CI relies on in the python job.
+select = ["E", "F", "I", "UP", "B", "SIM", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests assert; that is the whole point of them.
+"tests/*" = ["S101"]
+
+[tool.codespell]
+skip = "./.git,./node_modules,*.lock"
+quiet-level = 3
