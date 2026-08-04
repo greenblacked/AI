@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "engineering",
-      "description": "Platform and DevOps skills: scaffold production-ready code, triage a red pipeline, review a Terraform plan, debug a Kubernetes workload or run an incident, harden a container image, and build or audit a website.",
+      "description": "Platform and DevOps skills: scaffold production-ready code, triage a red pipeline, review a Terraform plan, debug Kubernetes, harden images, plan platform migrations, and build or audit websites.",
       "source": "./",
       "strict": false,
       "category": "devops",
@@ -19,6 +19,7 @@
         "kubernetes",
         "ci",
         "containers",
+        "migrations",
         "sre"
       ],
       "skills": [
@@ -27,6 +28,7 @@
         "./skills/engineering/iac-review",
         "./skills/engineering/image-hardening",
         "./skills/engineering/k8s-triage",
+        "./skills/engineering/plan-platform-migration",
         "./skills/engineering/website-builder"
       ],
       "agents": [
@@ -38,13 +40,14 @@
     },
     {
       "name": "manager",
-      "description": "Engineering-leadership skills: write a decision record or design doc, write a status update an executive can act on, run a blameless postmortem, review delivery health, and assess AI-assisted-engineering adoption.",
+      "description": "Engineering-leadership skills: assess AI adoption, write decisions and status, review delivery, design team operating cadences, and run blameless postmortems.",
       "source": "./",
       "strict": false,
       "category": "productivity",
       "tags": [
         "leadership",
         "adr",
+        "cadence",
         "postmortem",
         "dora",
         "okr"
@@ -53,13 +56,14 @@
         "./skills/manager/ai-enablement",
         "./skills/manager/decision-record",
         "./skills/manager/delivery-review",
+        "./skills/manager/design-team-cadence",
         "./skills/manager/postmortem",
         "./skills/manager/status-update"
       ]
     },
     {
       "name": "personal",
-      "description": "Personal skills: estimate calories and macros from a photo or description and coach toward a goal, turn what you read into durable notes, and tailor a CV and interview preparation from a real history.",
+      "description": "Personal skills: coach nutrition, tailor a CV and interview preparation, turn sources into durable notes, and write evidence-backed technical articles from real experience.",
       "source": "./",
       "strict": false,
       "category": "productivity",
@@ -67,12 +71,14 @@
         "health",
         "notes",
         "learning",
-        "career"
+        "career",
+        "writing"
       ],
       "skills": [
         "./skills/personal/health-coach",
         "./skills/personal/job-search",
-        "./skills/personal/learning-notes"
+        "./skills/personal/learning-notes",
+        "./skills/personal/write-technical-article"
       ]
     }
   ]
