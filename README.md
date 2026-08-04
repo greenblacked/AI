@@ -1,6 +1,14 @@
-# AI
+# Agent skills for platform engineering
 
-Agent skills and subagents I use daily, kept in one place and validated by CI.
+[![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
+[![Security](https://github.com/greenblacked/AI/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/security.yml)
+[![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
+[![Skills](https://img.shields.io/badge/skills-17-7c3aed)](#skills)
+[![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
+
+A focused library of 17 agent skills and four read-only specialist subagents, built from
+real platform engineering, DevOps, engineering-management, and technical-writing work.
+Everything is installable through a three-plugin marketplace and validated before it ships.
 
 A skill is a Markdown procedure an agent loads when it recognises the situation. Most of
 what is here comes out of platform and DevOps work — triaging a red pipeline, reading a
@@ -10,6 +18,17 @@ container image — plus the leadership side of the same job and a few personal 
 Nothing here is a wrapper around a model's general knowledge. The useful part of a skill
 is the opinionated part: the gate that stops you, the ordering that saves an hour, the
 command with the flag that actually produces the evidence.
+
+## What is included
+
+| Plugin | Focus | Contents |
+| --- | --- | --- |
+| `engineering` | Platform delivery and operations | 7 skills and 4 specialist subagents |
+| `manager` | Engineering leadership | 6 skills |
+| `personal` | Health, career, learning and writing | 4 skills |
+
+Install one plugin or all three. Only the `engineering` plugin includes subagents; the
+other plugins contain skills alone.
 
 ## Install
 
@@ -40,6 +59,7 @@ git clone https://github.com/greenblacked/AI.git && cd AI
 | [`iac-review`](skills/engineering/iac-review/SKILL.md) | Review a Terraform change against the plan JSON rather than the plan text, so replacements and destroys surface first instead of being skimmed past. |
 | [`image-hardening`](skills/engineering/image-hardening/SKILL.md) | Build or audit a container image: minimal base, digest pinning, numeric non-root UID, no secrets in layers, SBOM, a scan gate that will not get bypassed, signing that is actually verified. |
 | [`k8s-triage`](skills/engineering/k8s-triage/SKILL.md) | Mitigate first, diagnose second. The deploy-related question, the fixed evidence order, and a decode table for the failure modes that account for most of them. |
+| [`plan-platform-migration`](skills/engineering/plan-platform-migration/SKILL.md) | Plan a production migration around invariants, state authority, phased evidence gates, rehearsed rollback, controlled cutover, and explicit legacy retirement. |
 | [`website-builder`](skills/engineering/website-builder/SKILL.md) | Build a site that looks designed for its subject and can still be hosted and maintained afterwards — or audit one that already exists. |
 
 ### Manager
@@ -49,6 +69,7 @@ git clone https://github.com/greenblacked/AI.git && cd AI
 | [`ai-enablement`](skills/manager/ai-enablement/SKILL.md) | Assess how a team actually uses AI-assisted engineering and produce a rollout plan, including the metrics that help and the ones that quietly destroy honest feedback. |
 | [`decision-record`](skills/manager/decision-record/SKILL.md) | Turn a decision into a MADR-format ADR or a design doc, with at least two genuinely considered options and a confirmation step that names a real check. |
 | [`delivery-review`](skills/manager/delivery-review/SKILL.md) | Read delivery health honestly: DORA as a property of the system rather than of people, flow and queue time, and prioritisation frameworks applied only where they belong. |
+| [`design-team-cadence`](skills/manager/design-team-cadence/SKILL.md) | Design a minimal management operating rhythm where every recurring forum has a decision or relationship purpose, explicit inputs and outputs, and a cancellation rule. |
 | [`postmortem`](skills/manager/postmortem/SKILL.md) | Write a blameless postmortem in the Google SRE shape, where "human error" is a prompt for a better question and every action item has an owner. |
 | [`status-update`](skills/manager/status-update/SKILL.md) | Bottom line up front for status, Minto for persuasion, and never the two mixed. Numbers are sourced or marked as missing. |
 
@@ -59,6 +80,7 @@ git clone https://github.com/greenblacked/AI.git && cd AI
 | [`health-coach`](skills/personal/health-coach/SKILL.md) | Estimate calories and macros from a photo or a description, as a range with the uncertainty named, then suggest one thing worth changing. |
 | [`job-search`](skills/personal/job-search/SKILL.md) | Tailor a CV and prepare for interviews from a real history. Selection and evidence, never embellishment. |
 | [`learning-notes`](skills/personal/learning-notes/SKILL.md) | Turn something read into a note that is still useful in a year, on the principle that a summary is not a note. |
+| [`write-technical-article`](skills/personal/write-technical-article/SKILL.md) | Turn real engineering experience and verifiable sources into a publishable technical article with a defensible thesis and no invented authority. |
 
 ## Subagents
 
