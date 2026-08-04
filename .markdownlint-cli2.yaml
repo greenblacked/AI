@@ -1,0 +1,13 @@
+---
+config:
+  # Skills are prose. Hard-wrapping them at a fixed column makes diffs worse, not
+  # better, and the frontmatter block is not a heading.
+  MD013: false
+  MD024:
+    siblings_only: true
+  MD033: false
+  MD041: false
+globs:
+  - "**/*.md"
+ignores:
+  - "node_modules/**"

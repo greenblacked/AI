@@ -1,0 +1,184 @@
+---
+# Actions are pinned to a full-length commit SHA, which is the only immutable
+# reference — a tag can be moved. The trailing `# vN` comment is what lets
+# Dependabot still recognise and bump them.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Deliberately no `paths:` filter. A workflow skipped by a path filter leaves its
+# check Pending forever, and a pull request that requires that check can then never
+# merge. This repository is small enough that running everything is cheaper than the
+# failure mode.
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-skills:
+    name: validate skills
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        with:
+          python-version: '3.13'
+      - name: Validate every skill and the marketplace manifest
+        run: PYTHONPATH=src python -m skillcheck .
+
+  validate-plugin:
+    name: validate plugin manifest
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7
+        with:
+          node-version: '22'
+      - name: Validate the marketplace and plugin manifests
+        # The schema's source of truth is the Zod definition inside the CLI itself, so
+        # this checks against the real thing rather than against a copy of it that
+        # would silently fall behind. The version is pinned for the same reason the
+        # scanners are: a validator that changes underneath you turns a green build
+        # into a statement about the validator.
+        run: npx --yes "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" plugin validate .
+        env:
+          CLAUDE_CODE_VERSION: '2.1.221'
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        # The validator claims to need nothing but the standard library. Running it
+        # on four interpreters is the cheapest way to keep that claim true.
+        python-version: ['3.10', '3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m pip install --upgrade pip pytest
+      - run: PYTHONPATH=src python -m pytest
+
+  lint-markdown:
+    name: lint markdown
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+      - uses: DavidAnson/markdownlint-cli2-action@21c1be1b93ad9ed58fa840aacc3f279cde2a72ff  # v24
+        with:
+          globs: '**/*.md'
+
+  lint-yaml:
+    name: lint yaml
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --upgrade pip yamllint
+      - run: yamllint --strict --format github .
+
+  lint-actions:
+    name: lint workflows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+      - name: Run actionlint
+        # actionlint also runs shellcheck over every inline `run:` block, which is
+        # where all of this repository's shell actually lives.
+        run: |
+          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          ./actionlint -color
+
+  links:
+    name: check links
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+      - name: Check in-repository links
+        # `--offline` only resolves local paths. External links flake, and a gate
+        # that flakes is a gate people learn to ignore; the network check runs
+        # weekly in scheduled.yml instead.
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8  # v2
+        with:
+          args: --offline --no-progress './**/*.md'
+          fail: true
+
+  package:
+    name: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        with:
+          python-version: '3.13'
+      - name: Build a .skill archive for every skill
+        run: PYTHONPATH=src python scripts/package_skills.py
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: skills
+          path: dist/*.skill
+          if-no-files-found: error
+
+  ci:
+    # One of the two required status checks; `security` in security.yml is the
+    # other. Requiring the individual jobs instead would break the moment the test
+    # matrix changes, because a matrix job's check name carries its parameters.
+    name: ci
+    if: always()
+    needs:
+      - validate-skills
+      - validate-plugin
+      - test
+      - lint-markdown
+      - lint-yaml
+      - lint-actions
+      - links
+      - package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any job failed or was cancelled
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
