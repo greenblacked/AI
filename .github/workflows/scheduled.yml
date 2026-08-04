@@ -1,0 +1,42 @@
+---
+# Checks that depend on the network or on a wordlist, kept out of the required gate.
+# A gate that fails because someone else's site was briefly down is a gate people
+# learn to override.
+name: Scheduled checks
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  external-links:
+    name: external links
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+      - uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8  # v2
+        with:
+          args: --cache --max-cache-age 1d --no-progress './**/*.md'
+          fail: true
+          jobSummary: true
+
+  spelling:
+    name: spelling
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+      - uses: codespell-project/actions-codespell@406322ec52dd7b488e48c1c4b82e2a8b3a1bf630  # v2
+        with:
+          skip: ./.git,./node_modules,*.lock
+          only_warn: 1

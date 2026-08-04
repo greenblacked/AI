@@ -1,0 +1,3 @@
+# Example and placeholder hosts that appear inside skill instructions.
+^https?://example\.(com|org)
+^https?://.*\.example\.com
