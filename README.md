@@ -1,4 +1,4 @@
-# AI
+# Claude Code skills and subagents
 
 Agent skills and subagents I use daily, kept in one place and validated by CI.
 
@@ -11,6 +11,21 @@ Nothing here is a wrapper around a model's general knowledge. The useful part of
 is the opinionated part: the gate that stops you, the ordering that saves an hour, the
 command with the flag that actually produces the evidence.
 
+## What is included
+
+The marketplace is split into three plugins so that an installation only adds the
+context relevant to its work.
+
+| Plugin | Contents | Subagents |
+| --- | --- | --- |
+| `engineering` | Six skills for CI, code scaffolding, Terraform, containers, Kubernetes and websites | Four agents for CI logs, Terraform plans, incident notes and skill review |
+| `manager` | Five skills for AI enablement, decisions, delivery, postmortems and status updates | None |
+| `personal` | Three skills for health coaching, job searches and learning notes | None |
+
+Skills are loaded when their descriptions match the task. Subagents are separate,
+focused workers used to keep large inputs and intermediate analysis out of the main
+conversation.
+
 ## Install
 
 ```shell
@@ -20,6 +35,9 @@ command with the flag that actually produces the evidence.
 /plugin install personal@greenblacked-ai
 /reload-plugins
 ```
+
+Install one plugin or all three. The `engineering` plugin includes the four subagents;
+the other two contain skills only.
 
 Or, to work on them locally and have edits take effect immediately:
 
@@ -68,12 +86,13 @@ classification, `plan-reviewer` reads a Terraform plan and returns the blast rad
 `incident-scribe` turns triage notes into a postmortem draft, and `skill-reviewer` audits
 a candidate skill against this repository's rules.
 
-## CI is the source of truth
+## Validate a checkout
 
 Every skill is validated on every push. The validator is standard library only, and the
 test matrix runs it on Python 3.10 through 3.13 to keep it that way.
 
 ```bash
+python -m pip install pytest   # only needed for the test suite
 make validate   # frontmatter contract, dangling references, marketplace cross-check
 make test       # the validator's own test suite
 make package    # a .skill archive per skill
@@ -90,11 +109,12 @@ SHA.
 
 ## Documentation
 
+- [Contributing](CONTRIBUTING.md) — local checks and the expectations for changes
 - [Writing a skill](docs/writing-skills.md) — the contract, every validator code, and how to write a description that actually triggers
 - [Writing a subagent](docs/writing-agents.md) — when a subagent beats doing the work inline
 - [AGENTS.md](docs/agents-md.md) — the standard, and how it relates to `CLAUDE.md`
 - [CI](docs/ci.md) — what each check means and how to make it required
-- [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
+- [Security](SECURITY.md) — how to report a vulnerability
 
 Repository conventions for agents live in [`AGENTS.md`](AGENTS.md).
 
