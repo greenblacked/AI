@@ -1,6 +1,6 @@
 # AI
 
-Claude Code Skills and subagents I use daily, kept in one place and validated by CI.
+Agent skills and subagents I use daily, kept in one place and validated by CI.
 
 A skill is a Markdown procedure an agent loads when it recognises the situation. Most of
 what is here comes out of platform and DevOps work — triaging a red pipeline, reading a
