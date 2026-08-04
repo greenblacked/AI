@@ -55,7 +55,7 @@ jobs:
         # would silently fall behind. The version is pinned for the same reason the
         # scanners are: a validator that changes underneath you turns a green build
         # into a statement about the validator.
-        run: npx --yes @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION} plugin validate .
+        run: npx --yes "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" plugin validate .
         env:
           CLAUDE_CODE_VERSION: '2.1.221'
 
@@ -89,7 +89,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
         with:
           persist-credentials: false
-      - uses: DavidAnson/markdownlint-cli2-action@28a7e8bdb81fd8ad675883de92c758ab78e0ce10  # v24
+      - uses: DavidAnson/markdownlint-cli2-action@21c1be1b93ad9ed58fa840aacc3f279cde2a72ff  # v24
         with:
           globs: '**/*.md'
 
