@@ -9,9 +9,9 @@ that in the human README clutters it; putting it nowhere means every agent sessi
 rediscovers it, usually badly.
 
 The format is open and is now stewarded under the Linux Foundation's Agentic AI
-Foundation. It is read by a long list of agents and editors — Codex, Cursor, Jules,
-Gemini CLI, Aider, Zed, GitHub Copilot coding agent, and others — which is the whole
-point: one file instead of one file per vendor.
+Foundation. It is read by a long list of agents and editors — Cursor, Jules, Gemini CLI,
+Aider, Zed, GitHub Copilot coding agent, and others — which is the whole point: one file
+instead of one file per vendor.
 
 There are no required fields and no required headings. It is Markdown, and agents read it
 as prose. The headings that have become conventional through use are:
@@ -114,12 +114,12 @@ is the agent spending its first several tool calls reconstructing the layout, an
 sometimes reconstructing it wrong. For this repository the map is short: `skills/` by
 category, `agents/`, `src/skillcheck/`, `scripts/`, `template/`.
 
-**The one shortcut that saves a wasted cycle.** `openai/codex`'s file names the fast path
-explicitly — the narrow test command to run instead of the full suite, and the exact
-formatting invocation — because an agent that guesses will run the slow thing, or run the
-wrong thing and get a confusing failure. Find the place in your repository where an agent
-predictably burns a cycle and write the command down. Here it is that the validator needs
-`PYTHONPATH=src`, and that `make validate` already handles it.
+**The one shortcut that saves a wasted cycle.** Strong repository instructions name the
+fast path explicitly — the narrow test command to run instead of the full suite, and the
+exact formatting invocation — because an agent that guesses will run the slow thing, or
+run the wrong thing and get a confusing failure. Find the place in your repository where
+an agent predictably burns a cycle and write the command down. Here it is that the
+validator needs `PYTHONPATH=src`, and that `make validate` already handles it.
 
 **A closing review checklist.** `temporalio/sdk-java`'s file ends with a list the agent
 verifies its own work against before declaring done. This works better than the same
