@@ -1,8 +1,8 @@
 # Writing a subagent
 
 Subagents live in the `agents/` directory as single Markdown files with YAML
-frontmatter — see [`skill-reviewer.md`](../agents/skill-reviewer.md) for the one this
-repository has today. A subagent is a separate Claude instance with its own context window,
+frontmatter — see [`skill-reviewer.md`](../agents/skill-reviewer.md) for one of the four
+this repository has today. A subagent is a separate Claude instance with its own context window,
 its own system prompt, and its own tool allowlist, invoked by the main agent and
 returning a result to it.
 
