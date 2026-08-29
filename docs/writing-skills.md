@@ -283,10 +283,16 @@ the mechanical checks, hand the draft to the `skill-reviewer` subagent described
 
 ## Validator codes
 
-Run directly with `PYTHONPATH=src python -m skillcheck .`. Useful flags: `--strict`
-(warnings become failures), `--skip-marketplace` (skip the manifest cross-check),
-`--github` (emit annotations and a job summary; implied under Actions). Exit code 1 means
-findings, 2 means the repository layout was unusable.
+Run directly with `PYTHONPATH=src python -m skillcheck .`. One run covers every skill
+under `skills/`, every subagent under `agents/`, and the marketplace manifest; the last
+line reports how many of each were checked. Useful flags: `--strict` (warnings become
+failures, which is how `make validate` and CI both run it), `--skip-marketplace` (skip the
+manifest cross-check), `--github` (emit annotations and a job summary; implied under
+Actions). Exit code 1 means findings, 2 means the repository layout was unusable.
+
+Every code the validator can emit is below, grouped by what it is looking at.
+
+### Frontmatter and body
 
 | Code | Level | Meaning | Fix |
 | --- | --- | --- | --- |
@@ -301,19 +307,55 @@ findings, 2 means the repository layout was unusable.
 | `missing-description` | error | No `description`. | Add it. |
 | `empty-description` | error | `description` present but blank. | Fill it in. |
 | `angle-brackets` | error | `<` or `>` in the description. | Remove them; upload rejects them. |
-| `long-description` | error | Over 1024 characters. | Cut the least load-bearing phrasings, not the trigger list. |
+| `long-description` | error | Over 1024 characters, measured on the folded value. | Cut the least load-bearing phrasings, not the trigger list. |
 | `description-headroom` | warning | Within 50 characters of the cap. | Trim now, before an edit crosses it. |
 | `no-trigger` | warning | No explicit "use when…" clause. | Add one naming the situations. |
 | `long-compatibility` | error | `compatibility` over 500 characters. | Shorten it. |
-| `dangling-reference` | error | A `references/`, `scripts/` or `assets/` path in the body does not exist. | Write the file, or remove the pointer. |
+| `dangling-reference` | error | A `references/`, `scripts/` or `assets/` path named in prose does not exist. | Write the file, remove the pointer, or fence it if it was only an illustration. |
 | `no-shebang` | error | A `scripts/*.sh` file has no `#!` line. | Add `#!/usr/bin/env bash`. |
 | `not-executable` | error | A `scripts/*.sh` file is not executable. | `chmod +x` it. |
 | `long-skill` | warning | `SKILL.md` over 500 lines. | Push depth into `references/`. |
 | `no-toc` | warning | A reference over 300 lines with no contents heading. | Add a `## Contents` (or "Table of contents", or "In this file") heading. |
 | `shouting` | warning | `ALWAYS` or `NEVER` in capitals. | Replace with the reason the rule exists. |
+
+### Eval sets
+
+| Code | Level | Meaning | Fix |
+| --- | --- | --- | --- |
+| `no-evals` | warning | The skill has no `evals/trigger-eval.json`. | Write one: twenty queries, ten each way. |
+| `bad-eval-json` | error | The file is not valid JSON. | Fix the syntax; the message carries the parser's reason. |
+| `bad-eval-shape` | error | The top level is not a JSON array. | Wrap the entries in `[ … ]`. |
+| `bad-eval-entry` | error | An entry is not an object, has no usable `query`, has a `should_trigger` that is not a real boolean, or carries a key other than those two. | The message names the entry's index. |
+| `duplicate-eval-query` | error | The same query string appears twice. | Replace one of them; a duplicate inflates the count without testing anything. |
+| `thin-eval-set` | error | Fewer than 16 queries. | Add more. Below that the pass rate moves too far on one result. |
+| `unbalanced-eval-set` | error | Fewer than 8 on either side. | Add to the short side — usually the negatives, which are what catch a description that fires on everything. |
+
+### Subagents
+
+These run over every `agents/*.md`. The key set differs from a skill's; see [writing a
+subagent](writing-agents.md) for why.
+
+| Code | Level | Meaning | Fix |
+| --- | --- | --- | --- |
+| `frontmatter` | error | The block could not be parsed, as above. | Follow the message. |
+| `unknown-key` | error | A key outside `name`, `description`, `tools`, `model`. | Rename or delete it. `allowed-tools` here is the usual cause; the subagent key is `tools`. |
+| `missing-name` | error | No `name`, or blank. | Add it. |
+| `bad-name` | error | Not lowercase letters, digits and single hyphens, or over 64 characters. | Rewrite it in kebab-case. |
+| `name-mismatch` | error | `name` differs from the filename stem. | Change one to match the other. |
+| `missing-description` | error | No `description`, or blank. | Add it. The main agent has nothing else to choose on. |
+| `angle-brackets` | error | `<` or `>` in the description. | Remove them. |
+| `long-description` | error | Over 1024 characters. | Shorten it. |
+| `bad-tools` | error | `tools` is present but empty, or has a blank entry — a trailing comma is the usual cause. | Write it as a comma-separated list, or omit the key entirely. |
+
+### Marketplace manifest
+
+| Code | Level | Meaning | Fix |
+| --- | --- | --- | --- |
 | `no-marketplace` | error | `.claude-plugin/marketplace.json` is missing. | Restore it. |
 | `bad-json` | error | The manifest is not valid JSON. | Fix the syntax at the reported line. |
 | `missing-listed-skill` | error | A plugin lists a path with no `SKILL.md`. | Write the skill, or remove the entry. |
 | `unlisted-skill` | error | A skill on disk is in no plugin. | Add it to a plugin's `skills` array. |
+| `missing-listed-agent` | error | A plugin lists an agent file that does not exist. | Write the file, or remove the entry. |
+| `unlisted-agent` | error | An `agents/*.md` file is in no plugin. | Add it to a plugin's `agents` array. |
 
 CI runs the same validator on every push and pull request; see [what CI checks](ci.md).
