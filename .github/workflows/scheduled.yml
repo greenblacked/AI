@@ -15,6 +15,7 @@ jobs:
   external-links:
     name: external links
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -30,6 +31,7 @@ jobs:
   spelling:
     name: spelling
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
