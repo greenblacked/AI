@@ -1,0 +1,22 @@
+[
+  {"query": "yesterday's outage ran 52 minutes and marketing noticed before pagerduty did. i owe a writeup", "should_trigger": true},
+  {"query": "draft the RCA for the payments incident, i have the slack log and the deploy timeline", "should_trigger": true},
+  {"query": "is this worth a postmortem? about 200 users got 503s for six minutes and it recovered on its own", "should_trigger": true},
+  {"query": "read this before i publish it, i think it is far too soft on the actual cause", "should_trigger": true},
+  {"query": "we restored from a snapshot saturday and lost roughly twenty minutes of writes. what does the document need to cover", "should_trigger": true},
+  {"query": "my draft says root cause: human error and my SRE lead bounced it. how should that section read instead", "should_trigger": true},
+  {"query": "the action items are all improve monitoring with nobody's name on them. help me fix that part", "should_trigger": true},
+  {"query": "incident 2026-114 writeup. service was back in ten minutes but only because tom happened to be staring at the dashboard", "should_trigger": true},
+  {"query": "turn this incident timeline into something the exec review will accept, without anyone's name in it", "should_trigger": true},
+  {"query": "we failed over to the secondary region wednesday night. everything is fine now but i owe a document", "should_trigger": true},
+  {"query": "pods are crashlooping in prod right now, OOMKilled, what do i do first", "should_trigger": false},
+  {"query": "fifteen minutes into an incident, api is throwing 502s and i am the IC. talk me through the next moves", "should_trigger": false},
+  {"query": "our failed deployment recovery time looks awful across every team. is the team unhealthy or is the metric wrong", "should_trigger": false},
+  {"query": "help me prioritise the reliability backlog for next quarter, there are about thirty items", "should_trigger": false},
+  {"query": "the engineer who ran the migration has done this twice now. how do i handle that conversation", "should_trigger": false},
+  {"query": "customers are asking what is happening. write the status page update while we are still fixing it", "should_trigger": false},
+  {"query": "write an ADR for moving to blue green deploys, the options and why we rejected the others", "should_trigger": false},
+  {"query": "compliance wants a routine change record for the friday config push", "should_trigger": false},
+  {"query": "process the google SRE postmortem chapter into my vault as a note", "should_trigger": false},
+  {"query": "i want alerting that catches this class of failure next time. what should the alert actually fire on", "should_trigger": false}
+]

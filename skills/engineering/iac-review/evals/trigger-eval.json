@@ -1,0 +1,22 @@
+[
+  {"query": "is this safe to apply? plan says 3 to add, 1 to change, 2 to destroy and it's the prod account", "should_trigger": true},
+  {"query": "why is it recreating my database, the only thing i changed was a tag", "should_trigger": true},
+  {"query": "can you sanity check this tfplan before i approve it", "should_trigger": true},
+  {"query": "PR 482 moves half of modules/network into a new module with moved blocks. does that actually avoid a destroy", "should_trigger": true},
+  {"query": "someone ran terraform state rm on the aurora cluster last week. what is the next apply going to do", "should_trigger": true},
+  {"query": "attached the plan.json from opentofu, anything in there worth blocking the merge on", "should_trigger": true},
+  {"query": "we're bumping the aws provider from 5.31 to 6.2, what's the blast radius across our plan", "should_trigger": true},
+  {"query": "reviewing an ansible change that rewrites sudoers, how do i tell whether it's actually idempotent", "should_trigger": true},
+  {"query": "the tfvars diff changes instance_class and multi_az. what does that do to the running db", "should_trigger": true},
+  {"query": "does this terraform PR leak anything into state? it pulls a secret from vault and passes it as the rds password", "should_trigger": true},
+  {"query": "write a terraform module for an internal ALB with sane defaults", "should_trigger": false},
+  {"query": "scaffold the terraform for a new eks cluster, greenfield account, nothing exists yet", "should_trigger": false},
+  {"query": "write me an ansible playbook that hardens sshd on the bastion hosts", "should_trigger": false},
+  {"query": "terraform apply crashed with Plugin did not respond and a stack trace out of the aws provider", "should_trigger": false},
+  {"query": "should we go multi region for ordering or is a warm standby enough", "should_trigger": false},
+  {"query": "the job that runs terraform plan has been failing at init with a 403 against the s3 backend", "should_trigger": false},
+  {"query": "our terraform apply went out fine and now pods are ImagePullBackOff in prod", "should_trigger": false},
+  {"query": "review this Dockerfile, mainly whether the base image should be distroless", "should_trigger": false},
+  {"query": "explain the difference between terraform workspaces and separate state files, the team is arguing about it", "should_trigger": false},
+  {"query": "document our module conventions for the team wiki so new people stop inventing their own layout", "should_trigger": false}
+]

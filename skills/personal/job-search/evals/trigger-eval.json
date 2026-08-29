@@ -1,0 +1,22 @@
+[
+  {"query": "here is the JD for a principal SRE role, what are they actually hiring someone to fix", "should_trigger": true},
+  {"query": "my CV is three pages and i am told that is too long for a staff role. what comes out", "should_trigger": true},
+  {"query": "onsite loop thursday, four rounds and one of them is system design. grill me", "should_trigger": true},
+  {"query": "i was made redundant in january and have not worked since. how do i put that in the cover note without sounding defensive", "should_trigger": true},
+  {"query": "they offered 105 and i wanted 120. what do i actually say back", "should_trigger": true},
+  {"query": "rewrite this bullet for me, it says responsible for kubernetes infrastructure and i know that is weak", "should_trigger": true},
+  {"query": "going from IC to management, does the whole CV need to look different", "should_trigger": true},
+  {"query": "behavioural round tomorrow and they always ask about conflict. help me build an answer from something that actually happened", "should_trigger": true},
+  {"query": "should i even bother applying? title says lead but every responsibility listed is delivery work", "should_trigger": true},
+  {"query": "cover note for this platform engineering role, i have got about half an hour before it closes", "should_trigger": true},
+  {"query": "write the job description for the senior platform engineer req we just opened", "should_trigger": false},
+  {"query": "putting together my promo case for staff engineer, what evidence do i need in it", "should_trigger": false},
+  {"query": "i have five end of year reviews to write by friday and i am dreading it", "should_trigger": false},
+  {"query": "add three years of terraform to my CV, i have only really dabbled but i can pick it up", "should_trigger": false},
+  {"query": "i am interviewing candidates next week, what questions actually separate a senior from a staff", "should_trigger": false},
+  {"query": "quiz me on my kubernetes notes before i forget all of it", "should_trigger": false},
+  {"query": "how do i tell my manager i am leaving, he has been good to me", "should_trigger": false},
+  {"query": "my visa is tied to my employer, what happens if i switch jobs mid sponsorship", "should_trigger": false},
+  {"query": "build me a small go service for the take home exercise they sent over", "should_trigger": false},
+  {"query": "draft a linkedin post announcing i have started the new job", "should_trigger": false}
+]
