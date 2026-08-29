@@ -1,0 +1,22 @@
+[
+  {"query": "shipping feels slow and i cannot articulate why. sprint after sprint we commit eight things and land five", "should_trigger": true},
+  {"query": "director asked for a delivery health readout on my two teams before the quarterly. what goes in it", "should_trigger": true},
+  {"query": "twenty three things in the backlog and one team. help me rank them, everyone thinks theirs is urgent", "should_trigger": true},
+  {"query": "our OKRs last quarter all scored 1.0 and apparently that is bad. can you grade these ones", "should_trigger": true},
+  {"query": "RICE or WSJF here? i have never been clear on when one beats the other", "should_trigger": true},
+  {"query": "we keep missing dates and i have stopped believing our estimates. where do i even start looking", "should_trigger": true},
+  {"query": "change failure rate is 3 percent and we deploy once a month. my VP is calling that elite performance", "should_trigger": true},
+  {"query": "roadmap has eight parallel workstreams and eleven engineers, four of them on the on call rota. sanity check this for me", "should_trigger": true},
+  {"query": "half our tickets sit in review for days. is that the real bottleneck or am i guessing", "should_trigger": true},
+  {"query": "i need the platform team to stop doing something next quarter, we say yes to everything and finish nothing", "should_trigger": true},
+  {"query": "write the RCA for tuesday's outage, exec team wants it friday", "should_trigger": false},
+  {"query": "assess whether my team is ready to hand agents write access to the repos", "should_trigger": false},
+  {"query": "we rolled out AI code assistants in may and usage looks flat. what should i actually be measuring", "should_trigger": false},
+  {"query": "sonia's cycle time is double everyone else's on the dashboard. how do i bring that up in her one to one", "should_trigger": false},
+  {"query": "draft the friday note for stakeholders, green on two workstreams and amber on the third", "should_trigger": false},
+  {"query": "document why we are standardising on trunk based development, including what we rejected", "should_trigger": false},
+  {"query": "the rollout is stuck, kubectl rollout status has been hanging for twenty minutes", "should_trigger": false},
+  {"query": "we have had a staff engineer req open for five months and recruiting keeps sending juniors", "should_trigger": false},
+  {"query": "review my CV, i am going for an engineering manager role at a fintech", "should_trigger": false},
+  {"query": "the on call rotation is brutal and two people have asked to come off it. how do i restructure it", "should_trigger": false}
+]

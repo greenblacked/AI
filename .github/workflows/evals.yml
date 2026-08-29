@@ -1,0 +1,95 @@
+---
+# Trigger evaluation. Manual only, and deliberately not part of the required gate: it
+# costs money, it is sampled rather than deterministic, and a gate that is occasionally
+# wrong is a gate people learn to override. The schema of every eval set is checked on
+# every push by `skillcheck`; this workflow is what scores the queries.
+name: Trigger evals
+
+on:
+  workflow_dispatch:
+    inputs:
+      skill:
+        description: 'Skill directory to score, or "all"'
+        required: true
+        default: all
+        type: string
+      runs:
+        description: Samples per query; a majority vote across them decides
+        required: false
+        default: '3'
+        type: string
+      threshold:
+        description: Minimum pass rate before the run is considered a failure
+        required: false
+        default: '0.8'
+        type: string
+
+permissions: {}
+
+jobs:
+  evaluate:
+    name: score descriptions
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7
+        with:
+          node-version: '22'
+      - name: Check credentials are configured
+        # Failing here with a sentence beats failing forty API calls later with a stack
+        # trace, and this workflow is opt-in precisely because it needs a key.
+        run: |
+          set -Eeuo pipefail
+          if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+            echo "::error title=no credentials::Set the ANTHROPIC_API_KEY repository secret to run trigger evals"
+            exit 1
+          fi
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - name: Score the eval sets
+        run: |
+          set -Eeuo pipefail
+          npm install --global "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
+          if [ "$SKILL" = "all" ]; then
+            target=(--all)
+          else
+            target=(--skill "$SKILL")
+          fi
+          python scripts/run_trigger_eval.py "${target[@]}" \
+            --runs "$RUNS" --threshold "$THRESHOLD" --json evals.json --verbose
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_VERSION: '2.1.221'
+          SKILL: ${{ inputs.skill }}
+          RUNS: ${{ inputs.runs }}
+          THRESHOLD: ${{ inputs.threshold }}
+      - name: Publish the scores
+        if: always()
+        run: |
+          set -Eeuo pipefail
+          [ -f evals.json ] || exit 0
+          {
+            echo "### Trigger evaluation"
+            echo ""
+            echo "| Skill | Pass rate | Recall | Specificity |"
+            echo "| --- | --- | --- | --- |"
+            python -c "
+          import json
+          for r in json.load(open('evals.json')):
+              print(f\"| \`{r['skill']}\` | {r['rate']:.0%} | {r['recall']:.0%} | {r['specificity']:.0%} |\")
+          "
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        if: always()
+        with:
+          name: trigger-evals
+          path: evals.json
+          if-no-files-found: ignore

@@ -1,0 +1,22 @@
+[
+  {"query": "is this Dockerfile any good? FROM python:3.12 and it comes out around 900MB", "should_trigger": true},
+  {"query": "make my image smaller, node app, 1.4gb and we ship it thirty times a day", "should_trigger": true},
+  {"query": "we're on :latest everywhere. help me move to digests without breaking the rebuild story", "should_trigger": true},
+  {"query": "kubernetes refuses to schedule it, runAsNonRoot is set but the image just says USER appuser. fix the image side", "should_trigger": true},
+  {"query": "set up trivy in the build so criticals fail, but i don't want people bypassing it with a skip label", "should_trigger": true},
+  {"query": "we need an SBOM and a cosign signature on our images, plus verification at admission. where do i start", "should_trigger": true},
+  {"query": "the container takes a full 30s to die on every rollout, i think it's the shell form entrypoint", "should_trigger": true},
+  {"query": "rewrite this Containerfile as multi stage, the whole go toolchain is ending up in the runtime layer", "should_trigger": true},
+  {"query": "how do i pass a private pypi token into the build without it sticking around in a layer", "should_trigger": true},
+  {"query": "audit ghcr.io/acme/api:2.9 against CIS, security asked for evidence by friday", "should_trigger": true},
+  {"query": "write the deployment.yaml and set securityContext with readOnlyRootFilesystem", "should_trigger": false},
+  {"query": "our helm chart sets the image tag in two different places, tidy that up", "should_trigger": false},
+  {"query": "harden the ubuntu hosts themselves, sysctl and auditd and ssh config", "should_trigger": false},
+  {"query": "falco is alerting on a shell spawning inside the api container in prod, what now", "should_trigger": false},
+  {"query": "sort out who can push to our harbor registry, robot accounts and per project quotas", "should_trigger": false},
+  {"query": "the docker build step in ci fails intermittently with failed to solve: rpc error: code = Unavailable", "should_trigger": false},
+  {"query": "pods keep hitting ImagePullBackOff in staging since this morning", "should_trigger": false},
+  {"query": "review the terraform for our ECR repos, lifecycle policy and the cross account access", "should_trigger": false},
+  {"query": "write a script that prunes old tags from the registry, keep the last 20 per repo", "should_trigger": false},
+  {"query": "our lint workflow is slow, cache the pip wheels so it isn't four minutes every push", "should_trigger": false}
+]
