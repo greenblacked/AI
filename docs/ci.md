@@ -100,6 +100,13 @@ workflow runs when a person asks for it and at no other time. One job, `evaluate
 name `score descriptions`, with a 45-minute timeout because it makes one model call per
 query per sample.
 
+| Job | Check name | Failing means |
+| --- | --- | --- |
+| `evaluate` | `score descriptions` | A skill scored below the threshold, or the credentials are absent. Nothing depends on this job and no branch rule requires it. |
+
+Three inputs. `skill` is marked required and the other two are not, but all three carry a
+default, so dispatching the form unchanged scores everything:
+
 | Input | Default | What it does |
 | --- | --- | --- |
 | `skill` | `all` | A skill directory to score, such as `skills/engineering/ci-triage`, or `all` for every skill that has an eval set. |
@@ -113,12 +120,20 @@ calls later with a stack trace. The job then installs the pinned `claude` CLI an
 recall and specificity table into the job summary, and uploads the full results as the
 `trigger-evals` artifact.
 
-Nothing here gates anything, and that is the design rather than an omission. The schema of
-every `evals/trigger-eval.json` is checked by `validate-skills` on every push, because
-that check is deterministic and free. Scoring the queries is sampled and costs money, so
-it stays manual: a required check that is occasionally wrong is a check people learn to
-override. What the run measures, and how to read the three numbers, is in [writing a
-skill](writing-skills.md).
+Nothing here gates anything, and that is the design rather than an omission. A trigger
+eval has two halves that cost different amounts. The schema — twenty queries, at least
+eight on each side, no duplicates, `should_trigger` a real boolean — is deterministic and
+free, so `validate-skills` checks it on every push. The score is sampled and costs money
+per run, so it stays manual: a required check that is occasionally wrong is a check people
+learn to override, and once they learn that, the checks that matter stop working too.
+
+What the run measures is discrimination rather than recall alone. Each query is put to the
+model alongside the descriptions of every skill in the repository at once, so a skill
+counts as having fired only when the model picks it by name out of that catalogue — which
+means a description that fires on everything passes its positives and fails its negatives.
+Three numbers come back per skill: pass rate over all queries, recall over the positives,
+and specificity over the negatives. Reading them, and writing the queries in the first
+place, is covered in [writing a skill](writing-skills.md).
 
 ## Why the aggregator jobs exist
 
