@@ -13,7 +13,15 @@ import os
 import sys
 from pathlib import Path
 
-from .rules import WARNING, Finding, check_marketplace, check_skill, find_skills
+from .rules import (
+    WARNING,
+    Finding,
+    check_agent,
+    check_marketplace,
+    check_skill,
+    find_agents,
+    find_skills,
+)
 
 
 def _annotate(finding: Finding) -> str:
@@ -87,6 +95,9 @@ def main(argv: list[str] | None = None) -> int:
     findings: list[Finding] = []
     for skill in skills:
         findings.extend(check_skill(skill, root))
+    agents = find_agents(root / "agents")
+    for agent in agents:
+        findings.extend(check_agent(agent, root))
     if not args.skip_marketplace:
         findings.extend(check_marketplace(root))
 
@@ -101,7 +112,10 @@ def main(argv: list[str] | None = None) -> int:
         if github:
             print(_annotate(item))
 
-    print(f"\n{len(skills)} skill(s) checked — {len(errors)} error(s), {len(warnings)} warning(s)")
+    print(
+        f"\n{len(skills)} skill(s) and {len(agents)} subagent(s) checked — "
+        f"{len(errors)} error(s), {len(warnings)} warning(s)"
+    )
 
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if github and summary_path:

@@ -6,6 +6,8 @@ failure names the rule that broke rather than "something is wrong with validatio
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from skillcheck.rules import ERROR, WARNING, check_marketplace, check_skill, find_skills
@@ -16,12 +18,21 @@ GOOD_DESCRIPTION = (
 )
 
 
-def write_skill(root, name, *, description=GOOD_DESCRIPTION, front=None, body="# Demo\n"):
+def write_skill(
+    root, name, *, description=GOOD_DESCRIPTION, front=None, body="# Demo\n", evals=True
+):
     directory = root / "skills" / "engineering" / name
     directory.mkdir(parents=True, exist_ok=True)
     if front is None:
         front = f"name: {name}\ndescription: {description}"
     (directory / "SKILL.md").write_text(f"---\n{front}\n---\n\n{body}", encoding="utf-8")
+    if evals:
+        # A fixture skill is otherwise incomplete, and every assertion of "produces
+        # nothing" would trip over the missing-eval-set warning instead.
+        (directory / "evals").mkdir(exist_ok=True)
+        cases = [{"query": f"positive {i}", "should_trigger": True} for i in range(10)]
+        cases += [{"query": f"negative {i}", "should_trigger": False} for i in range(10)]
+        (directory / "evals" / "trigger-eval.json").write_text(json.dumps(cases), encoding="utf-8")
     return directory
 
 
@@ -164,3 +175,34 @@ def test_invalid_marketplace_json_is_an_error(tmp_path):
     manifest.mkdir()
     (manifest / "marketplace.json").write_text("{ not json", encoding="utf-8")
     assert "bad-json" in codes(check_marketplace(tmp_path), ERROR)
+
+
+def test_a_path_inside_a_fenced_block_is_not_a_pointer(tmp_path):
+    # Skills document layouts. Treating an illustrative path as a dangling pointer made
+    # it impossible to show one without failing the build.
+    body = (
+        "Another project lays itself out like this:\n\n"
+        "```text\ntheirs/\n  references/other.md\n```\n"
+    )
+    directory = write_skill(tmp_path, "demo", body=body)
+    assert check_skill(directory, tmp_path) == []
+
+
+def test_a_tilde_fence_is_masked_too(tmp_path):
+    body = "Example:\n\n~~~text\nreferences/other.md\n~~~\n"
+    directory = write_skill(tmp_path, "demo", body=body)
+    assert check_skill(directory, tmp_path) == []
+
+
+def test_a_pointer_after_a_fence_is_still_checked(tmp_path):
+    body = "```text\nsome/example\n```\n\nNow read `references/deep.md`.\n"
+    directory = write_skill(tmp_path, "demo", body=body)
+    assert "dangling-reference" in codes(check_skill(directory, tmp_path), ERROR)
+
+
+def test_the_reported_line_points_at_the_pointer(tmp_path):
+    body = "one\ntwo\n\nRead `references/deep.md` now.\n"
+    directory = write_skill(tmp_path, "demo", body=body)
+    finding = next(f for f in check_skill(directory, tmp_path) if f.code == "dangling-reference")
+    lines = (directory / "SKILL.md").read_text().split("\n")
+    assert "references/deep.md" in lines[finding.line - 1]

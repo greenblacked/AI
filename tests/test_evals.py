@@ -1,0 +1,80 @@
+"""The eval-set schema is checked on every run because it is free and deterministic.
+
+Scoring the queries needs a model and costs money, so that lives in a manual workflow.
+Validating the shape does not, and a malformed eval set is worse than none: it looks
+like measurement while measuring nothing.
+"""
+
+from __future__ import annotations
+
+import json
+
+from skillcheck.rules import ERROR, WARNING, check_evals
+
+
+def write_evals(root, entries, raw=None):
+    directory = root / "skills" / "engineering" / "demo"
+    (directory / "evals").mkdir(parents=True, exist_ok=True)
+    path = directory / "evals" / "trigger-eval.json"
+    path.write_text(raw if raw is not None else json.dumps(entries), encoding="utf-8")
+    return directory
+
+
+def balanced(positives=10, negatives=10):
+    return [{"query": f"positive {i}", "should_trigger": True} for i in range(positives)] + [
+        {"query": f"negative {i}", "should_trigger": False} for i in range(negatives)
+    ]
+
+
+def codes(findings, level=ERROR):
+    return {f.code for f in findings if f.level == level}
+
+
+def test_a_balanced_set_produces_nothing(tmp_path):
+    assert check_evals(write_evals(tmp_path, balanced()), tmp_path) == []
+
+
+def test_a_missing_eval_set_warns_but_does_not_fail(tmp_path):
+    directory = tmp_path / "skills" / "engineering" / "demo"
+    directory.mkdir(parents=True)
+    findings = check_evals(directory, tmp_path)
+    assert codes(findings, WARNING) == {"no-evals"}
+    assert not any(f.failed for f in findings)
+
+
+def test_too_few_queries_is_an_error(tmp_path):
+    assert "thin-eval-set" in codes(check_evals(write_evals(tmp_path, balanced(4, 4)), tmp_path))
+
+
+def test_a_set_with_no_real_negatives_is_an_error(tmp_path):
+    # The negatives are the whole point: they are what catches a description that
+    # fires on everything.
+    assert "unbalanced-eval-set" in codes(
+        check_evals(write_evals(tmp_path, balanced(18, 2)), tmp_path)
+    )
+
+
+def test_duplicate_queries_are_an_error(tmp_path):
+    entries = balanced()
+    entries[1]["query"] = entries[0]["query"]
+    assert "duplicate-eval-query" in codes(check_evals(write_evals(tmp_path, entries), tmp_path))
+
+
+def test_malformed_entries_are_reported(tmp_path):
+    entries = balanced()
+    entries[0] = {"query": "", "should_trigger": True}
+    entries[1] = {"query": "x", "should_trigger": "yes"}
+    entries[2] = {"query": "y", "should_trigger": True, "note": "extra"}
+    assert "bad-eval-entry" in codes(check_evals(write_evals(tmp_path, entries), tmp_path))
+
+
+def test_invalid_json_is_an_error(tmp_path):
+    assert "bad-eval-json" in codes(
+        check_evals(write_evals(tmp_path, None, raw="{ nope"), tmp_path)
+    )
+
+
+def test_a_json_object_instead_of_an_array_is_an_error(tmp_path):
+    assert "bad-eval-shape" in codes(
+        check_evals(write_evals(tmp_path, None, raw='{"queries": []}'), tmp_path)
+    )
