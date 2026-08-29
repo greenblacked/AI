@@ -89,16 +89,18 @@ Two things narrow what counts as a pointer.
 A path is only treated as a pointer when its last segment contains a dot. A generic
 mention such as "put helpers in `scripts/`" is prose, not a pointer, and is ignored.
 
-Fenced code blocks are skipped entirely, backtick and tilde fences alike, wherever on the
-line the fence starts. A path inside a fence is almost always an illustration: a directory tree
-showing how some other project is laid out, or a command the skill tells the user to run
-against their own repository. Treating those as pointers made it impossible to document a
-layout without failing the build, which is a poor trade for a check whose purpose is to
-catch pointers written in prose. So the rule for an author is: a path in prose is a
-promise the file exists, including one in inline backticks — `references/x.md` in a
-sentence is checked — and a path in a fence is a picture. If you are showing a layout,
-fence it. If you are telling the model to read something, do not. Note that only fenced
-blocks are exempt; a four-space-indented code block is still scanned.
+Fenced code blocks are skipped entirely, backtick and tilde fences alike. A path inside a
+fence is almost always an illustration — a directory tree showing how some other project
+is laid out, or a command the skill tells the user to run against their own repository —
+not a pointer the model is expected to follow. Treating those as pointers made it
+impossible to document a layout without failing the build, a poor trade for a check whose
+purpose is to catch pointers written in prose.
+
+For an author that means: a path in prose is a promise that the file exists, and that
+includes one in inline backticks — `references/x.md` in a sentence is checked. A path in a
+fence is a picture, and nothing is checked. If you are showing a layout, fence it; if you
+are telling the model to read something, do not. Only fenced blocks are exempt, so a
+four-space-indented code block is still scanned.
 
 **Shell scripts (`no-shebang`, `not-executable`).** Every `*.sh` under `scripts/` must
 start with `#!` and have the executable bit set. A script the model is told to run and
