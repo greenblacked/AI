@@ -11,6 +11,7 @@ A skill is a directory containing exactly one `SKILL.md`:
 ```text
 skills/<category>/<name>/
 ├── SKILL.md          # required: frontmatter + the procedure
+├── evals/            # trigger-eval.json: the queries that prove the description fires
 ├── references/       # optional: depth loaded on demand
 ├── scripts/          # optional: executable helpers
 └── assets/           # optional: templates and files the skill emits
@@ -30,6 +31,15 @@ Frontmatter is a flat block of scalar keys between two `---` lines, at the very 
 the file. It is read by [a hand-written parser](../src/skillcheck/frontmatter.py) rather
 than PyYAML, which makes it stricter than real YAML — tabs, a leading byte-order mark,
 indentation and duplicate keys are all rejected rather than silently resolved.
+
+Block scalars are the one place strictness is not enough, and the parser folds them the
+way YAML does: both indicators (`>` and `|`), all three chomping modes (`>-`, `|+` and
+the bare form), and relative indentation preserved inside a literal block. This is not
+pedantry. The 1024-character cap on `description` is measured against the folded string,
+so a parser that disagrees with YAML about where the newlines go polices a string the
+runtime never sees — which is what happened before, on any block containing a paragraph
+break. Explicit indentation indicators (`|2`) are not supported; use a quoted scalar if
+you need one.
 
 The key set is closed. Only these six are allowed:
 
@@ -65,16 +75,30 @@ The specification does not catch everything that makes a skill broken. These rul
 because a skill can be perfectly valid and still do nothing.
 
 **Dangling pointers (`dangling-reference`).** Every `references/…`, `scripts/…` or
-`assets/…` path named in the body must exist on disk. This is the check the validator
-was written for. Two of this repository's oldest skills shipped for months pointing at
-reference files nobody had written: `code-scaffold` names `references/terraform.md`, and
-`ci-triage` names `scripts/bisect-probe.sh`. Neither file exists. Nothing errors when
+`assets/…` path named in the prose of the body must exist on disk. This is the check the
+validator was written for. Two of this repository's oldest skills shipped for months
+pointing at files nobody had written: `code-scaffold` named `references/terraform.md`,
+`ci-triage` named `scripts/bisect-probe.sh`, and neither existed. Nothing errors when
 this happens — the model reads the pointer, the read fails or is never attempted, and
 the skill quietly operates without the depth its author believed it had. A silent
-capability gap is the worst defect a skill can carry, because nothing surfaces it.
+capability gap is the worst defect a skill can carry, because nothing surfaces it. Both
+files exist today because the check made their absence loud.
+
+Two things narrow what counts as a pointer.
 
 A path is only treated as a pointer when its last segment contains a dot. A generic
 mention such as "put helpers in `scripts/`" is prose, not a pointer, and is ignored.
+
+Fenced code blocks are skipped entirely, backtick and tilde fences alike, wherever on the
+line the fence starts. A path inside a fence is almost always an illustration: a directory tree
+showing how some other project is laid out, or a command the skill tells the user to run
+against their own repository. Treating those as pointers made it impossible to document a
+layout without failing the build, which is a poor trade for a check whose purpose is to
+catch pointers written in prose. So the rule for an author is: a path in prose is a
+promise the file exists, including one in inline backticks — `references/x.md` in a
+sentence is checked — and a path in a fence is a picture. If you are showing a layout,
+fence it. If you are telling the model to read something, do not. Note that only fenced
+blocks are exempt; a four-space-indented code block is still scanned.
 
 **Shell scripts (`no-shebang`, `not-executable`).** Every `*.sh` under `scripts/` must
 start with `#!` and have the executable bit set. A script the model is told to run and
@@ -83,20 +107,28 @@ cannot is the same silent failure in a different costume.
 **Marketplace consistency (`unlisted-skill`, `missing-listed-skill`).** A skill on disk
 that no plugin lists installs for nobody; a plugin entry pointing at a directory with no
 `SKILL.md` breaks installation for everybody. Both are errors, checked against
-[`marketplace.json`](../.claude-plugin/marketplace.json).
+[`marketplace.json`](../.claude-plugin/marketplace.json). The same cross-check runs in
+both directions over each plugin's `agents` array; see [writing a
+subagent](writing-agents.md).
 
 ## The warnings, and why they are warnings
 
-Warnings do not fail the build unless you pass `--strict`. Each is a judgement call
-where a false positive is plausible, so it reports rather than blocks.
+A warning is a judgement call where a false positive is plausible, so the level exists to
+say "this is an opinion, not a rule". It does not mean you can leave it standing: both
+`make validate` and CI run with `--strict`, which turns every warning into a build
+failure. A warning nobody has to clear is one that accumulates until the whole category
+is ignored, and a category everyone ignores is worse than no check at all. If a warning
+is genuinely wrong for a skill, the answer is to fix the skill or fix the check — not to
+walk past it.
 
-| Code | What it means | Why not an error |
+| Code | What it means | Why it is a warning and not an error |
 | --- | --- | --- |
 | `description-headroom` | Description is within 50 characters of the 1024 cap. | It works today. The point is that the next edit breaks it invisibly. |
 | `no-trigger` | Description has no "use when / whenever / for / any time" clause. | A description can trigger without the exact phrasing; the heuristic is a prompt, not a proof. |
 | `long-skill` | `SKILL.md` is over 500 lines. | Length is a signal that depth belongs in `references/`, not a defect in itself. |
 | `no-toc` | A reference file is over 300 lines with no table of contents. | Some long references are genuinely linear. |
 | `shouting` | `ALWAYS` or `NEVER` in capitals in the body. | Occasionally the emphasis is earned. Reported once per file, not once per occurrence. |
+| `no-evals` | The skill has no `evals/trigger-eval.json`. | A skill can be correct before anyone has written its eval set; the rest of the eval rules are errors once the file exists. |
 
 ## Writing a description that triggers
 
@@ -127,6 +159,57 @@ Two skills whose descriptions both plausibly match the same request means neithe
 reliably. Before adding one, read the descriptions of the skills already in its
 category and decide which one owns the overlapping case.
 
+## Trigger eval sets
+
+A description that reads well and never fires is indistinguishable from a good one until
+something measures it. That is what `evals/trigger-eval.json` is for: a JSON array of
+twenty queries, ten that should fire the skill and ten that should not.
+
+```json
+[
+  {"query": "CI is red again on the payments service, third time today", "should_trigger": true},
+  {"query": "add a new github actions workflow that publishes to npm on tag", "should_trigger": false}
+]
+```
+
+The validator checks the schema of that file on every run, and nothing more: at least 16
+queries, at least 8 on each side, no query string appearing twice, no keys beyond `query`
+and `should_trigger`, and `should_trigger` a real boolean rather than the string `"true"`.
+The codes are `no-evals` (a warning, the only one), `bad-eval-json`, `bad-eval-shape`,
+`bad-eval-entry`, `duplicate-eval-query`, `thin-eval-set` and `unbalanced-eval-set`.
+Twenty and ten are the house convention; sixteen and eight are the floor below which the
+result stops meaning anything.
+
+Scoring the queries needs a model, so it lives somewhere else:
+[`scripts/run_trigger_eval.py`](../scripts/run_trigger_eval.py), driven manually by the
+`.github/workflows/evals.yml` workflow. The split is the whole design. The schema check is
+deterministic and free, so it gates every push; the scoring is sampled and costs money, so
+it gates nothing at all. A gate that is occasionally wrong is a gate people learn to
+override, and once they learn that, the gates that matter stop working too.
+
+What the runner measures is discrimination, not recall. Every query is put to the model
+alongside the descriptions of *every* skill in this repository, and the skill counts as
+having fired only when the model picks it by name out of that catalogue. A description
+broad enough to fire on everything therefore passes all ten positives and fails the
+negatives — which is exactly the failure a test of one skill in isolation cannot see, and
+the reason the negatives are worth more effort than the positives. Take them from the
+adjacent skills: the queries that should land on `k8s-triage` or `image-hardening` are the
+ones that reveal whether `ci-triage` is stealing them.
+
+Three numbers come back per skill: the pass rate over all queries, recall over the
+positives, and specificity over the negatives. A skill at 100% recall and 40%
+specificity is not a good skill with a rough edge; it is a skill that fires on everything.
+
+Run it locally with the `claude` CLI on `PATH`:
+
+```bash
+python scripts/run_trigger_eval.py --skill skills/engineering/ci-triage --verbose
+python scripts/run_trigger_eval.py --all --runs 3 --threshold 0.8
+```
+
+`--runs` samples each query more than once and takes the majority, which is how you tell a
+description that genuinely fails from one that sits on the model's decision boundary.
+
 ## Writing the body
 
 The body is the procedure the model follows once the skill has fired.
@@ -156,7 +239,7 @@ it. "The approach we discussed" and unexplained internal names are dead weight.
 ## Adding a new skill
 
 ```bash
-mkdir -p skills/engineering/log-shipping
+mkdir -p skills/engineering/log-shipping/evals
 cp template/SKILL.md skills/engineering/log-shipping/SKILL.md
 ```
 
@@ -167,7 +250,11 @@ with "use for" and "do not use for", a numbered workflow, and an anti-patterns s
 1. Set `name: log-shipping` in the frontmatter. It must match the directory.
 2. Write the description last, after the body exists — you will know what triggers it
    only once you know what it does.
-3. Add the skill to the right plugin's `skills` array in
+3. Write `evals/trigger-eval.json` alongside it: twenty queries, ten `true` and ten
+   `false`. Write them in the user's words rather than the skill's, and draw the
+   negatives from the skills this one sits next to. Doing this straight after the
+   description is what turns "this reads well" into a number.
+4. Add the skill to the right plugin's `skills` array in
    [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json), keeping the
    array alphabetical:
 
@@ -175,15 +262,16 @@ with "use for" and "do not use for", a numbered workflow, and an anti-patterns s
    "./skills/engineering/log-shipping"
    ```
 
-4. Validate:
+5. Validate:
 
    ```bash
    make validate
    ```
 
-5. Optionally check that it packages and installs:
+6. Optionally score the description, and check that the skill packages and installs:
 
    ```bash
+   python scripts/run_trigger_eval.py --skill skills/engineering/log-shipping --verbose
    make package
    make install
    ```

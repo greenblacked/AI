@@ -79,6 +79,12 @@ make test       # the validator's own test suite
 make package    # a .skill archive per skill
 ```
 
+Subagents are held to the same contract, and every skill carries a trigger eval set —
+twenty queries it should fire on and near-misses it should not. The schema is checked on
+every push because that is free; scoring the queries needs a model, so it runs on demand
+rather than gating anything. Each query is judged against the whole catalogue of
+descriptions, which is what catches a skill that fires on everything.
+
 The check that earns its place is the dangling-pointer one. Two of these skills shipped
 for months naming `references/*.md` files nobody had written — the model loaded nothing
 where it expected depth, and no error was ever raised. CI now fails on it.

@@ -20,8 +20,12 @@ are installed and tells you the install command when they are not.
 Follow [`docs/writing-skills.md`](docs/writing-skills.md). In short: copy
 `template/SKILL.md`, name the directory and the `name` field identically, write the
 `description` last and make it explicit about when the skill should fire, put depth in
-`references/` and write every file you name, then list the skill in
-[`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json).
+`references/` and write every file you name, write `evals/trigger-eval.json`, then list
+the skill in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json).
+
+The eval set is twenty queries — ten the skill should fire on, ten near-misses it should
+not. Spend the effort on the negatives: a positive only shows the description is not
+inert, while a negative drawn from a neighbouring skill shows it actually discriminates.
 
 The validator will catch every mechanical mistake. What it cannot catch is a skill that
 restates general good practice — if a capable model would already do what the skill says,
