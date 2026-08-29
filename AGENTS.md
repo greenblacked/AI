@@ -20,13 +20,14 @@ Everything here is prose and configuration. There is no application. The only co
 | `skills/engineering/` | Platform and DevOps skills |
 | `skills/manager/` | Engineering-leadership skills |
 | `skills/personal/` | Personal skills |
-| `agents/` | Subagent definitions |
+| `agents/` | Subagent definitions, validated on the same run as the skills |
 | `src/skillcheck/` | The validator: `frontmatter.py` parses, `rules.py` decides, `cli.py` reports |
 | `tests/` | pytest over the validator, including a check that this repository validates clean |
+| `skills/*/*/evals/` | Trigger eval sets: the queries a skill should and should not fire on |
 | `docs/` | How to write skills, subagents, `AGENTS.md`, and what CI checks |
 | `template/SKILL.md` | Starting point for a new skill |
 | `.claude-plugin/marketplace.json` | Groups the skills into three installable plugins |
-| `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml` |
+| `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml` |
 
 ## Setup commands
 
@@ -36,7 +37,7 @@ needs anything installed.
 
 ```bash
 python -m pip install pytest   # only for `make test`
-make validate                  # every skill and the marketplace manifest
+make validate                  # every skill, subagent and the marketplace manifest
 make test                      # the validator's own test suite
 make package                   # build a .skill archive per skill into dist/
 make install                   # symlink every skill into ~/.claude/skills
@@ -47,6 +48,10 @@ make install                   # symlink every skill into ~/.claude/skills
 `make validate` and `make test` are the same commands CI runs. Run both before
 finishing; a change to `rules.py` that does not also change `tests/` is almost always
 missing a case.
+
+`make validate` runs with `--strict`, so warnings fail too. They are warnings because
+each is a judgement call rather than a rule, but a warning nobody has to clear is one
+that accumulates until the whole category stops being read.
 
 CI additionally runs markdownlint, yamllint, actionlint, an offline link check, gitleaks,
 zizmor, ruff (with the flake8-bandit rules) and CodeQL. `make lint` runs the first three
@@ -64,9 +69,13 @@ in `src/skillcheck/` breaks the guarantee CI is built on, so do not add one.
 3. Put depth in `references/*.md` and name each one in the body with a line saying when
    to read it. If you name a path, write the file: the validator fails on a pointer to
    something that does not exist, which is the defect that motivated it.
-4. Add the skill to the right plugin in `.claude-plugin/marketplace.json`. A skill that
+4. Write `evals/trigger-eval.json`: twenty queries, ten the skill should fire on and
+   ten near-misses it should not. The negatives are the useful half — they are what
+   catches a description that fires on everything. Draw several from the skills next
+   door, because that is where the real collisions are.
+5. Add the skill to the right plugin in `.claude-plugin/marketplace.json`. A skill that
    is not listed installs for nobody, and the validator will tell you so.
-5. Run `make validate && make test`.
+6. Run `make validate && make test`.
 
 `docs/writing-skills.md` has the full contract, including every validator code and how to
 fix it.
@@ -99,6 +108,10 @@ Shell in this repository, including inline `run:` blocks in workflows, uses
   because a secret that was committed and later removed is still leaked.
 - Every workflow sets a top-level `permissions:` block. An absent one inherits the
   repository default, which is usually write access to everything.
+- Every job sets `timeout-minutes:`. Without one a hung job runs to the six-hour
+  platform default, which reads as slow CI rather than broken CI.
+- Nothing in a workflow pipes a downloaded script into a shell. Tools are fetched at a
+  pinned version and checked against a recorded digest.
 - Every action is pinned to a full-length commit SHA with a trailing `# vN` comment. The
   SHA is what makes it immutable; the comment is what lets Dependabot bump it.
 - Checkouts set `persist-credentials: false`. Nothing here pushes from CI.
@@ -125,6 +138,6 @@ Before finishing, confirm each of these and say so honestly if one does not hold
 - [ ] `make validate` exits 0
 - [ ] `make test` passes
 - [ ] Every `references/`, `scripts/` or `assets/` path named in prose exists
-- [ ] Any new skill is listed in `.claude-plugin/marketplace.json`
+- [ ] Any new skill is listed in `.claude-plugin/marketplace.json` and has an eval set
 - [ ] No secrets, tokens or personal data added
 - [ ] Commit messages carry no tool attribution
