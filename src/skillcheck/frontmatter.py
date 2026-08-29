@@ -58,6 +58,60 @@ def _unquote(raw: str) -> str:
     return raw
 
 
+def _block_scalar(indicator: str, raw: list[str]) -> str:
+    """Resolve a YAML block scalar the way a real YAML parser would.
+
+    This matters more than it looks. The 1024-character cap on ``description`` is
+    enforced on whatever string this returns, so if the folding rules differ from the
+    runtime's, the validator polices a string nobody ever loads. The earlier
+    implementation joined every line with a single space or newline and dropped blank
+    lines entirely, which disagreed with YAML on any block containing a paragraph
+    break.
+
+    Handles the two indicators and the three chomping modes. Explicit indentation
+    indicators (``|2``) are not supported; they are vanishingly rare in frontmatter and
+    a caller who needs one is better served by a quoted scalar.
+    """
+    literal = indicator.startswith("|")
+    chomp = "clip"
+    if indicator.endswith("-"):
+        chomp = "strip"
+    elif indicator.endswith("+"):
+        chomp = "keep"
+
+    content = [line for line in raw]
+    while content and not content[-1].strip():
+        if chomp == "keep":
+            break
+        content.pop()
+    if not content:
+        return ""
+
+    # Strip the block's own indentation, set by its first non-empty line, rather than
+    # each line's leading whitespace: relative indentation inside a literal block is
+    # content.
+    indents = [len(line) - len(line.lstrip()) for line in content if line.strip()]
+    base = min(indents) if indents else 0
+    stripped = [line[base:] if len(line) > base else line.strip() for line in content]
+
+    if literal:
+        body = "\n".join(stripped)
+    else:
+        paragraphs, current = [], []
+        for line in stripped:
+            if line.strip():
+                current.append(line.strip())
+            else:
+                paragraphs.append(" ".join(current))
+                current = []
+        paragraphs.append(" ".join(current))
+        body = "\n".join(paragraphs)
+
+    if chomp == "strip":
+        return body
+    return body + "\n"
+
+
 def parse(text: str) -> Frontmatter:
     """Parse the frontmatter block at the top of ``text``.
 
@@ -109,17 +163,15 @@ def parse(text: str) -> Frontmatter:
             raise FrontmatterError(f"duplicate frontmatter key {key!r}", number)
 
         if rest in BLOCK_INDICATORS or rest == "":
-            folded = rest.startswith(">")
-            collected: list[str] = []
+            collected = []
             index += 1
             while index < closing:
                 following = lines[index]
                 if following.strip() and not following[0].isspace():
                     break
-                collected.append(following.strip())
+                collected.append(following)
                 index += 1
-            joined = (" " if folded else "\n").join(part for part in collected if part)
-            values[key] = joined
+            values[key] = _block_scalar(rest, collected)
             key_lines[key] = number
             continue
 

@@ -123,11 +123,13 @@ def check_skill(directory: Path, repo_root: Path) -> list[Finding]:
     findings.extend(_check_description(front, add))
     findings.extend(_check_compatibility(front, add))
 
-    body = "\n".join(text.split("\n")[front.end_line :])
-    findings.extend(_check_bundled_paths(body, directory, repo_root, text, add))
+    body_lines = text.split("\n")[front.end_line :]
+    body = "\n".join(body_lines)
+    findings.extend(_check_bundled_paths(body_lines, front.end_line + 1, directory, add))
     findings.extend(_check_scripts(directory, repo_root, add))
     findings.extend(_check_length(text, directory, repo_root, add))
     findings.extend(_check_tone(body, text, add))
+    findings.extend(check_evals(directory, repo_root))
 
     return findings
 
@@ -235,30 +237,56 @@ def _check_compatibility(front: Frontmatter, add) -> list[Finding]:
     return []
 
 
-def _check_bundled_paths(body: str, directory: Path, repo_root: Path, text: str, add):
+def _mask_fenced_blocks(lines: list[str]) -> list[str]:
+    """Blank out fenced code blocks, keeping the line count so line numbers survive.
+
+    A path inside a fence is almost always an illustration — a directory tree showing
+    how some other project is laid out, or a command run against the user's repository —
+    not a pointer this skill expects the model to follow. Treating those as dangling
+    pointers made it impossible to document a layout without failing the build, which is
+    a poor trade for a check whose whole purpose is to catch pointers written in prose.
+    """
+    masked, fence = [], None
+    for line in lines:
+        marker = line.lstrip()
+        if fence is None and (marker.startswith("```") or marker.startswith("~~~")):
+            fence = marker[:3]
+            masked.append("")
+            continue
+        if fence is not None:
+            masked.append("")
+            if marker.startswith(fence):
+                fence = None
+            continue
+        masked.append(line)
+    return masked
+
+
+def _check_bundled_paths(body_lines: list[str], first_line: int, directory: Path, add):
     """Every references/, scripts/ or assets/ path named in prose must exist.
 
     A dangling pointer is the worst kind of skill defect: nothing errors, the model
     simply never loads the depth the author thought it was loading.
     """
     seen: set[str] = set()
-    for match in BUNDLED_PATH_RE.finditer(body):
-        candidate = match.group(0).rstrip(".,;:")
-        if candidate in seen:
-            continue
-        seen.add(candidate)
-        tail = candidate.rsplit("/", 1)[-1]
-        if "." not in tail:
-            # A directory mentioned generically ("put helpers in scripts/") is prose,
-            # not a pointer to a specific file.
-            continue
-        if not (directory / candidate).exists():
-            add(
-                ERROR,
-                "dangling-reference",
-                f"SKILL.md points at {candidate!r}, which does not exist",
-                _line_of(text, candidate),
-            )
+    for offset, line in enumerate(_mask_fenced_blocks(body_lines)):
+        for match in BUNDLED_PATH_RE.finditer(line):
+            candidate = match.group(0).rstrip(".,;:")
+            if candidate in seen:
+                continue
+            seen.add(candidate)
+            tail = candidate.rsplit("/", 1)[-1]
+            if "." not in tail:
+                # A directory mentioned generically ("put helpers in scripts/") is
+                # prose, not a pointer to a specific file.
+                continue
+            if not (directory / candidate).exists():
+                add(
+                    ERROR,
+                    "dangling-reference",
+                    f"SKILL.md points at {candidate!r}, which does not exist",
+                    first_line + offset,
+                )
     return []
 
 
@@ -326,7 +354,22 @@ def check_marketplace(repo_root: Path) -> list[Finding]:
 
     findings: list[Finding] = []
     listed: set[Path] = set()
+    listed_agents: set[Path] = set()
     for plugin in data.get("plugins", []):
+        for entry in plugin.get("agents", []):
+            path = (repo_root / entry).resolve()
+            if not path.is_file():
+                findings.append(
+                    Finding(
+                        ERROR,
+                        relative,
+                        1,
+                        "missing-listed-agent",
+                        f"plugin {plugin.get('name', '?')!r} lists agent {entry!r}, "
+                        "which does not exist",
+                    )
+                )
+            listed_agents.add(path)
         for entry in plugin.get("skills", []):
             path = (repo_root / entry).resolve()
             if not (path / "SKILL.md").exists():
@@ -342,6 +385,19 @@ def check_marketplace(repo_root: Path) -> list[Finding]:
                 )
             listed.add(path)
 
+    for agent in find_agents(repo_root / "agents"):
+        if agent.resolve() not in listed_agents:
+            findings.append(
+                Finding(
+                    ERROR,
+                    agent.relative_to(repo_root),
+                    1,
+                    "unlisted-agent",
+                    "subagent is not listed in any plugin in marketplace.json, so it "
+                    "installs for nobody",
+                )
+            )
+
     for directory in find_skills(repo_root / "skills"):
         if directory.resolve() not in listed:
             findings.append(
@@ -354,4 +410,185 @@ def check_marketplace(repo_root: Path) -> list[Finding]:
                     "installs for nobody",
                 )
             )
+    return findings
+
+
+# Subagent frontmatter is a different contract from a skill's: `tools` is meaningful
+# here and would be rejected in a SKILL.md, while `allowed-tools` is the reverse. They
+# are validated separately for that reason rather than sharing one key set.
+AGENT_ALLOWED_KEYS = frozenset({"name", "description", "tools", "model"})
+
+
+def find_agents(root: Path) -> list[Path]:
+    """Return every subagent definition under ``root``, sorted by path."""
+    return sorted(root.glob("*.md"))
+
+
+def check_agent(path: Path, repo_root: Path) -> list[Finding]:
+    """Validate one subagent definition.
+
+    Nothing else in the pipeline reads these files, so a misspelled key or a name that
+    disagrees with the filename fails the same silent way a dangling skill reference
+    does: delegation simply never happens, and no error is raised anywhere.
+    """
+    findings: list[Finding] = []
+    relative = path.relative_to(repo_root)
+
+    def add(level: str, code: str, message: str, line: int = 1) -> None:
+        findings.append(Finding(level, relative, line, code, message))
+
+    try:
+        front = parse(path.read_text(encoding="utf-8"))
+    except FrontmatterError as error:
+        add(ERROR, "frontmatter", error.message, error.line)
+        return findings
+
+    for key in sorted(front.values):
+        if key not in AGENT_ALLOWED_KEYS:
+            add(
+                ERROR,
+                "unknown-key",
+                f"unexpected subagent frontmatter key {key!r} — allowed keys are "
+                + ", ".join(sorted(AGENT_ALLOWED_KEYS)),
+                front.line_of(key),
+            )
+
+    name = (front.get("name") or "").strip()
+    if not name:
+        add(ERROR, "missing-name", "subagent frontmatter has no usable 'name'")
+    else:
+        if not NAME_RE.match(name) or len(name) > NAME_MAX:
+            add(
+                ERROR,
+                "bad-name",
+                f"name {name!r} must be lowercase letters, digits and single hyphens, "
+                f"at most {NAME_MAX} characters",
+                front.line_of("name"),
+            )
+        if name != path.stem:
+            add(
+                ERROR,
+                "name-mismatch",
+                f"name {name!r} must equal the filename {path.stem!r}",
+                front.line_of("name"),
+            )
+
+    description = (front.get("description") or "").strip()
+    line = front.line_of("description")
+    if not description:
+        add(ERROR, "missing-description", "subagent frontmatter has no usable 'description'")
+    else:
+        if "<" in description or ">" in description:
+            add(ERROR, "angle-brackets", "description cannot contain '<' or '>'", line)
+        if len(description) > DESCRIPTION_MAX:
+            add(
+                ERROR,
+                "long-description",
+                f"description is {len(description)} characters; the cap is {DESCRIPTION_MAX}",
+                line,
+            )
+
+    tools = front.get("tools")
+    if tools is not None:
+        entries = [item.strip() for item in tools.split(",")]
+        if not tools.strip() or any(not item for item in entries):
+            add(
+                ERROR,
+                "bad-tools",
+                "'tools' must be a non-empty comma-separated list with no blank entries",
+                front.line_of("tools"),
+            )
+    return findings
+
+
+# A trigger eval is the only way to find out whether a description actually fires,
+# rather than assuming it does because it reads well. The schema is checked on every
+# run because it is deterministic and free; the queries themselves are scored by a
+# model, which is why that part is a manual workflow rather than a gate.
+EVAL_MIN_QUERIES = 16
+EVAL_MIN_PER_SIDE = 8
+
+
+def check_evals(directory: Path, repo_root: Path) -> list[Finding]:
+    """Validate a skill's trigger-eval set, if it has one."""
+    path = directory / "evals" / "trigger-eval.json"
+    findings: list[Finding] = []
+
+    def add(level: str, code: str, message: str, target: Path) -> None:
+        findings.append(Finding(level, target.relative_to(repo_root), 1, code, message))
+
+    if not path.exists():
+        add(
+            WARNING,
+            "no-evals",
+            "skill has no evals/trigger-eval.json, so nothing measures whether its "
+            "description triggers",
+            directory / "SKILL.md",
+        )
+        return findings
+
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        add(ERROR, "bad-eval-json", f"invalid JSON: {error.msg}", path)
+        return findings
+
+    if not isinstance(data, list):
+        add(ERROR, "bad-eval-shape", "eval set must be a JSON array of query objects", path)
+        return findings
+
+    queries: list[str] = []
+    positives = 0
+    for index, entry in enumerate(data):
+        where = f"entry {index}"
+        if not isinstance(entry, dict):
+            add(ERROR, "bad-eval-entry", f"{where} is not an object", path)
+            continue
+        query = entry.get("query")
+        trigger = entry.get("should_trigger")
+        extra = set(entry) - {"query", "should_trigger"}
+        if extra:
+            add(
+                ERROR,
+                "bad-eval-entry",
+                f"{where} has unexpected key(s): {', '.join(sorted(extra))}",
+                path,
+            )
+        if not isinstance(query, str) or not query.strip():
+            add(ERROR, "bad-eval-entry", f"{where} has no usable 'query'", path)
+            continue
+        if not isinstance(trigger, bool):
+            add(
+                ERROR,
+                "bad-eval-entry",
+                f"{where} 'should_trigger' must be true or false",
+                path,
+            )
+            continue
+        queries.append(query.strip())
+        positives += trigger
+
+    duplicates = {q for q in queries if queries.count(q) > 1}
+    for duplicate in sorted(duplicates):
+        add(ERROR, "duplicate-eval-query", f"query appears more than once: {duplicate!r}", path)
+
+    total = len(queries)
+    negatives = total - positives
+    if total < EVAL_MIN_QUERIES:
+        add(
+            ERROR,
+            "thin-eval-set",
+            f"{total} queries; at least {EVAL_MIN_QUERIES} are needed for the result to "
+            "mean anything",
+            path,
+        )
+    if total and (positives < EVAL_MIN_PER_SIDE or negatives < EVAL_MIN_PER_SIDE):
+        add(
+            ERROR,
+            "unbalanced-eval-set",
+            f"{positives} should-trigger and {negatives} should-not-trigger queries; at "
+            f"least {EVAL_MIN_PER_SIDE} of each are needed, and the negatives are what "
+            "catch a description that fires on everything",
+            path,
+        )
     return findings
