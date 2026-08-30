@@ -65,6 +65,15 @@ while IFS= read -r -d '' skill_md; do
       skipped=$((skipped + 1))
       continue
     fi
+    if ((FORCE == 0)); then
+      # A symlink pointing somewhere else is somebody's deliberate arrangement - their
+      # own working copy, most likely. Replacing it silently is the one outcome nobody
+      # would want from an install script, and the help already promises --force here.
+      log "skipping $name: $link points at $current (use --force)"
+      skipped=$((skipped + 1))
+      conflicts=$((conflicts + 1))
+      continue
+    fi
   elif [[ -d "$link" && ! -L "$link" ]]; then
     # `ln -sfn` onto a real directory creates the link *inside* it, which leaves the
     # skill uninstalled while the script reports success. Removing a directory of

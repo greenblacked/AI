@@ -16,7 +16,7 @@ import re
 from dataclasses import dataclass
 
 DELIMITER = "---"
-KEY_RE = re.compile(r"^([A-Za-z0-9_.-]+):[ \t]*(.*)$")
+KEY_RE = re.compile(r"^([A-Za-z0-9_.-]+):(?:[ \t]+(.*))?$")
 BLOCK_INDICATORS = {">", "|", ">-", "|-", ">+", "|+"}
 
 
@@ -46,6 +46,37 @@ class Frontmatter:
 
     def line_of(self, key: str) -> int:
         return self.lines.get(key, 1)
+
+
+def _strip_comment(value: str) -> str:
+    """Drop a trailing ``# comment`` from an unquoted scalar, as YAML does.
+
+    Keeping it meant the length and angle-bracket checks measured a string the runtime
+    never sees, and a comment after ``name:`` produced a bogus name-mismatch.
+    """
+    if value[:1] in "\"'":
+        return value
+    cut = value.find(" #")
+    return value[:cut].rstrip() if cut >= 0 else value
+
+
+def _reject_unquotable(value: str, line: int) -> None:
+    """Refuse a plain scalar that YAML would read as a nested mapping.
+
+    ``description: the answer is: red`` parses here as a plain string and is rejected by
+    every real YAML parser, so the file validates clean and then fails on upload — the
+    opposite of what a stricter-than-YAML scanner is for. A colon is only a problem when
+    followed by a space or ending the value, which is why ``https://x`` and ``10:30``
+    are fine.
+    """
+    if value[:1] in "\"'":
+        return
+    if ": " in value or value.endswith(":"):
+        raise FrontmatterError(
+            "unquoted ':' followed by a space in a value; YAML reads that as a nested "
+            "key. Quote the value, or use a '>' block.",
+            line,
+        )
 
 
 def _unquote(raw: str) -> str:
@@ -195,7 +226,8 @@ def parse(text: str) -> Frontmatter:
             continue
         if raw[0].isspace():
             raise FrontmatterError(
-                "unexpected indentation: frontmatter must be a flat key/value block",
+                "a value has to fit on one line; YAML allows a wrapped plain scalar but "
+                "this reader does not. Use a '>' block to wrap.",
                 number,
             )
 
@@ -203,7 +235,9 @@ def parse(text: str) -> Frontmatter:
         if not match:
             raise FrontmatterError(f"cannot read frontmatter line: {raw!r}", number)
 
-        key, rest = match.group(1), match.group(2).strip()
+        key, rest = match.group(1), (match.group(2) or "").strip()
+        rest = _strip_comment(rest)
+        _reject_unquotable(rest, number)
         if key in values:
             raise FrontmatterError(f"duplicate frontmatter key {key!r}", number)
 

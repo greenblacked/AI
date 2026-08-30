@@ -284,3 +284,48 @@ def test_a_malformed_manifest_reports_rather_than_crashes(tmp_path, manifest, re
     (tmp_path / ".claude-plugin").mkdir()
     (tmp_path / ".claude-plugin" / "marketplace.json").write_text(manifest, encoding="utf-8")
     assert "bad-marketplace-shape" in codes(check_marketplace(tmp_path), ERROR), reason
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "Read ./references/deep.md first.\n",
+        "Read `./references/deep.md` first.\n",
+        "Read [deep](./references/deep.md) first.\n",
+        "Run ./scripts/run.sh afterwards.\n",
+    ],
+)
+def test_a_relative_pointer_written_with_a_dot_slash_is_caught(tmp_path, body):
+    # The lookbehind that stopped URLs matching also excluded '.' and '/', which killed
+    # the ordinary ./references/x.md form - the commonest way to link a bundled file.
+    directory = write_skill(tmp_path, "demo", body=body)
+    assert "dangling-reference" in codes(check_skill(directory, tmp_path), ERROR)
+
+
+def test_a_file_that_is_not_utf8_reports_rather_than_crashing(tmp_path):
+    directory = write_skill(tmp_path, "demo")
+    (directory / "SKILL.md").write_bytes(
+        "---\nname: demo\ndescription: caf\xe9.\n---\n".encode("latin-1")
+    )
+    assert codes(check_skill(directory, tmp_path), ERROR) == {"not-utf8"}
+
+
+def test_two_skills_may_not_share_a_name(tmp_path):
+    from skillcheck.rules import check_duplicate_names, find_skills
+
+    write_skill(tmp_path, "demo")
+    other = tmp_path / "skills" / "personal" / "demo"
+    other.mkdir(parents=True)
+    (other / "SKILL.md").write_text(
+        f"---\nname: demo\ndescription: {GOOD_DESCRIPTION}\n---\n", encoding="utf-8"
+    )
+    skills = find_skills(tmp_path / "skills")
+    assert "duplicate-skill-name" in codes(check_duplicate_names(skills, tmp_path), ERROR)
+
+
+def test_a_nested_script_is_checked_too(tmp_path):
+    directory = write_skill(tmp_path, "demo")
+    nested = directory / "scripts" / "helpers"
+    nested.mkdir(parents=True)
+    (nested / "inner.sh").write_text("echo hi\n", encoding="utf-8")
+    assert {"no-shebang", "not-executable"} <= codes(check_skill(directory, tmp_path), ERROR)
