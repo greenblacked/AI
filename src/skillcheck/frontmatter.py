@@ -58,6 +58,56 @@ def _unquote(raw: str) -> str:
     return raw
 
 
+def _fold(lines: list[str]) -> str:
+    """Fold a folded block the way YAML folds one.
+
+    Two rules do the work. Consecutive line breaks collapse to one fewer newline, so a
+    single break between ordinary lines becomes a space and a blank line becomes a
+    newline. A line indented further than the block is *more-indented*: it is kept
+    verbatim, and the breaks on either side of it stay newlines rather than folding.
+
+    Missing that second rule is how the earlier version diverged: it folded a
+    more-indented line into the surrounding text and produced a string shorter than the
+    one the runtime loads, which meant the 1024-character cap was measured against the
+    wrong thing.
+    """
+    result: list[str] = []
+    previous: str | None = None
+    previous_indented = False
+
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        if not line.strip():
+            run = 0
+            while index < len(lines) and not lines[index].strip():
+                run += 1
+                index += 1
+            # A break next to a more-indented line is never folded, so one survives
+            # on top of the newlines the blank lines themselves contribute. One,
+            # not one per side: a run between two more-indented lines still only
+            # has the single unfolded break.
+            following_indented = index < len(lines) and lines[index][:1].isspace()
+            trailing = index >= len(lines)
+            extra = int((previous_indented and not trailing) or following_indented)
+            result.append("\n" * (run + extra))
+            previous, previous_indented = "blank", False
+            continue
+
+        indented = line[:1].isspace()
+        if previous is None or previous == "blank":
+            separator = ""
+        elif indented or previous_indented:
+            separator = "\n"
+        else:
+            separator = " "
+        result.append(separator + (line if indented else line.strip()))
+        previous, previous_indented = "line", indented
+        index += 1
+
+    return "".join(result)
+
+
 def _block_scalar(indicator: str, raw: list[str]) -> str:
     """Resolve a YAML block scalar the way a real YAML parser would.
 
@@ -94,18 +144,12 @@ def _block_scalar(indicator: str, raw: list[str]) -> str:
     base = min(indents) if indents else 0
     stripped = [line[base:] if len(line) > base else line.strip() for line in content]
 
-    if literal:
-        body = "\n".join(stripped)
-    else:
-        paragraphs, current = [], []
-        for line in stripped:
-            if line.strip():
-                current.append(line.strip())
-            else:
-                paragraphs.append(" ".join(current))
-                current = []
-        paragraphs.append(" ".join(current))
-        body = "\n".join(paragraphs)
+    if not any(line.strip() for line in stripped):
+        # A block of nothing but blank lines has no final line break to clip or keep,
+        # so chomping does not apply to it.
+        return "\n" * len(stripped) if chomp == "keep" else ""
+
+    body = "\n".join(stripped) if literal else _fold(stripped)
 
     if chomp == "strip":
         return body

@@ -237,6 +237,9 @@ def _check_compatibility(front: Frontmatter, add) -> list[Finding]:
     return []
 
 
+FENCE_RE = re.compile(r"^(`{3,}|~{3,})")
+
+
 def _mask_fenced_blocks(lines: list[str]) -> list[str]:
     """Blank out fenced code blocks, keeping the line count so line numbers survive.
 
@@ -245,20 +248,32 @@ def _mask_fenced_blocks(lines: list[str]) -> list[str]:
     not a pointer this skill expects the model to follow. Treating those as dangling
     pointers made it impossible to document a layout without failing the build, which is
     a poor trade for a check whose whole purpose is to catch pointers written in prose.
+
+    Only *closed* fences are masked. An unterminated fence would otherwise swallow the
+    rest of the file and silently switch the check off for everything after it, which is
+    the failure mode this validator exists to prevent rather than to have. The closing
+    fence must use the same character and be at least as long as the opening one, so a
+    four-backtick block containing a three-backtick example stays a single block.
     """
-    masked, fence = [], None
-    for line in lines:
-        marker = line.lstrip()
-        if fence is None and (marker.startswith("```") or marker.startswith("~~~")):
-            fence = marker[:3]
-            masked.append("")
+    spans: list[tuple[int, int]] = []
+    opened: tuple[int, str] | None = None
+    for number, line in enumerate(lines):
+        match = FENCE_RE.match(line.lstrip())
+        if match is None:
             continue
-        if fence is not None:
-            masked.append("")
-            if marker.startswith(fence):
-                fence = None
+        marker = match.group(1)
+        if opened is None:
+            opened = (number, marker)
             continue
-        masked.append(line)
+        start_line, opening = opened
+        if marker[0] == opening[0] and len(marker) >= len(opening):
+            spans.append((start_line, number))
+            opened = None
+
+    masked = list(lines)
+    for start_line, end_line in spans:
+        for number in range(start_line, end_line + 1):
+            masked[number] = ""
     return masked
 
 
@@ -419,9 +434,14 @@ def check_marketplace(repo_root: Path) -> list[Finding]:
 AGENT_ALLOWED_KEYS = frozenset({"name", "description", "tools", "model"})
 
 
+# A directory-level readme is documentation, not a subagent, and there is no
+# frontmatter it could carry that would satisfy the contract below.
+AGENT_NON_DEFINITIONS = frozenset({"README.md", "readme.md"})
+
+
 def find_agents(root: Path) -> list[Path]:
     """Return every subagent definition under ``root``, sorted by path."""
-    return sorted(root.glob("*.md"))
+    return sorted(p for p in root.glob("*.md") if p.name not in AGENT_NON_DEFINITIONS)
 
 
 def check_agent(path: Path, repo_root: Path) -> list[Finding]:

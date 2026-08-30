@@ -14,14 +14,14 @@ test: ## Run the validator's own test suite
 	PYTHONPATH=src pytest
 
 lint: ## Lint python, markdown, YAML and workflows (skips a tool when it is not installed)
-	@command -v ruff >/dev/null 2>&1 && ruff check . && ruff format --check . || \
-		echo "ruff not installed - run: pipx install ruff"
-	@command -v markdownlint-cli2 >/dev/null 2>&1 && markdownlint-cli2 "**/*.md" || \
-		echo "markdownlint-cli2 not installed - run: npx markdownlint-cli2 '**/*.md'"
-	@command -v yamllint >/dev/null 2>&1 && yamllint --strict . || \
-		echo "yamllint not installed - run: pipx install yamllint"
-	@command -v actionlint >/dev/null 2>&1 && actionlint || \
-		echo "actionlint not installed - see https://github.com/rhysd/actionlint"
+	@if command -v ruff >/dev/null 2>&1; then ruff check . && ruff format --check .; \
+		else echo "ruff not installed - run: pipx install ruff"; fi
+	@if command -v markdownlint-cli2 >/dev/null 2>&1; then markdownlint-cli2 "**/*.md"; \
+		else echo "markdownlint-cli2 not installed - run: npx markdownlint-cli2 '**/*.md'"; fi
+	@if command -v yamllint >/dev/null 2>&1; then yamllint --strict .; \
+		else echo "yamllint not installed - run: pipx install yamllint"; fi
+	@if command -v actionlint >/dev/null 2>&1; then actionlint; \
+		else echo "actionlint not installed - see https://github.com/rhysd/actionlint"; fi
 
 package: ## Build a .skill archive for every skill into dist/
 	@PYTHONPATH=src $(PYTHON) scripts/package_skills.py

@@ -30,7 +30,11 @@ jobs:
   evaluate:
     name: score descriptions
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # At the defaults this is every skill x twenty queries x three samples, so the
+    # budget has to cover roughly eight hundred sequential model calls. The runner
+    # writes its results file after each skill, so a timeout still leaves the scores
+    # already paid for on disk rather than discarding all of them.
+    timeout-minutes: 120
     permissions:
       contents: read
     steps:

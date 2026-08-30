@@ -78,3 +78,21 @@ def test_a_json_object_instead_of_an_array_is_an_error(tmp_path):
     assert "bad-eval-shape" in codes(
         check_evals(write_evals(tmp_path, None, raw='{"queries": []}'), tmp_path)
     )
+
+
+def test_an_eval_finding_lands_on_the_skill_row_in_the_summary(tmp_path, monkeypatch):
+    # The summary grouped by trimming a "/SKILL.md" suffix, so a finding reported
+    # against <skill>/evals/trigger-eval.json matched no row: the table printed a green
+    # tick for a skill while the build failed on it.
+    from skillcheck.cli import main
+
+    directory = write_evals(tmp_path, [{"query": "only one", "should_trigger": True}])
+    (directory / "SKILL.md").write_text(
+        "---\nname: demo\ndescription: A thing. Use this skill when asked.\n---\n\n# Demo\n",
+        encoding="utf-8",
+    )
+    summary = tmp_path / "summary.md"
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
+    assert main([str(tmp_path), "--github", "--skip-marketplace"]) == 1
+    row = next(line for line in summary.read_text().splitlines() if str(directory.name) in line)
+    assert "❌" in row

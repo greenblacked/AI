@@ -97,7 +97,7 @@ they learn that, the gates that matter stop working too.
 
 `workflow_dispatch` only: there is no push, pull-request or schedule trigger, so this
 workflow runs when a person asks for it and at no other time. One job, `evaluate`, check
-name `score descriptions`, with a 45-minute timeout because it makes one model call per
+name `score descriptions`, with a two-hour timeout because it makes one model call per
 query per sample.
 
 | Job | Check name | Failing means |

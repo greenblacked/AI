@@ -70,7 +70,8 @@ in `src/skillcheck/` breaks the guarantee CI is built on, so do not add one.
    to read it. If you name a path, write the file: the validator fails on a pointer to
    something that does not exist, which is the defect that motivated it.
 4. Write `evals/trigger-eval.json`: twenty queries, ten the skill should fire on and
-   ten near-misses it should not. The negatives are the useful half — they are what
+   ten near-misses it should not. The validator's floor is sixteen with eight a side,
+   so twenty leaves room to drop one without failing. The negatives are the useful half — they are what
    catches a description that fires on everything. Draw several from the skills next
    door, because that is where the real collisions are.
 5. Add the skill to the right plugin in `.claude-plugin/marketplace.json`. A skill that
