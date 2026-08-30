@@ -355,6 +355,7 @@ subagent](writing-agents.md) for why.
 | --- | --- | --- | --- |
 | `no-marketplace` | error | `.claude-plugin/marketplace.json` is missing. | Restore it. |
 | `bad-json` | error | The manifest is not valid JSON. | Fix the syntax at the reported line. |
+| `bad-marketplace-shape` | error | The manifest is not an object, `plugins` is not a list, a plugin entry is not an object, or a `skills`/`agents` value is not a list of strings. | Fix the shape. This is reported rather than raised because reaching `.get` on a string used to abort the whole run with a traceback. |
 | `missing-listed-skill` | error | A plugin lists a path with no `SKILL.md`. | Write the skill, or remove the entry. |
 | `unlisted-skill` | error | A skill on disk is in no plugin. | Add it to a plugin's `skills` array. |
 | `missing-listed-agent` | error | A plugin lists an agent file that does not exist. | Write the file, or remove the entry. |

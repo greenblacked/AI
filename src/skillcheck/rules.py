@@ -46,7 +46,13 @@ DESCRIPTION_HEADROOM = 50
 SKILL_MD_MAX_LINES = 500
 REFERENCE_MAX_LINES_WITHOUT_TOC = 300
 
-BUNDLED_PATH_RE = re.compile(r"(?:references|scripts|assets)/[A-Za-z0-9_./-]*[A-Za-z0-9_-]")
+# The lookbehind is what keeps this from matching inside a longer path. Without it,
+# a URL such as https://example.com/assets/logo.png, or a mention of another
+# project's `their-repo/references/x.md`, was reported as a dangling pointer into
+# this skill's own bundle - a false positive that blocks legitimate prose.
+BUNDLED_PATH_RE = re.compile(
+    r"(?<![A-Za-z0-9_./-])(?:references|scripts|assets)/[A-Za-z0-9_./-]*[A-Za-z0-9_-]"
+)
 TRIGGER_RE = re.compile(r"\buse (?:this skill |it )?(?:when|whenever|for|any time)\b", re.I)
 SHOUTING_RE = re.compile(r"(?<![A-Za-z])(?:ALWAYS|NEVER)(?![A-Za-z])")
 TOC_RE = re.compile(r"^#{1,3}\s+(?:table of contents|contents|in this file)\b", re.I | re.M)
@@ -368,37 +374,49 @@ def check_marketplace(repo_root: Path) -> list[Finding]:
         return [Finding(ERROR, relative, error.lineno, "bad-json", f"invalid JSON: {error.msg}")]
 
     findings: list[Finding] = []
+
+    def malformed(message: str) -> list[Finding]:
+        # A manifest of the wrong shape used to reach `.get` on a string and abort the
+        # run with a traceback, or - when `skills` was a string - iterate it character by
+        # character and report one dangling entry per letter. Either way the output said
+        # nothing about what was actually wrong.
+        return [Finding(ERROR, relative, 1, "bad-marketplace-shape", message)]
+
+    if not isinstance(data, dict):
+        return malformed(f"manifest must be a JSON object, found {type(data).__name__}")
+    plugins = data.get("plugins", [])
+    if not isinstance(plugins, list):
+        return malformed(f"'plugins' must be a list, found {type(plugins).__name__}")
+
     listed: set[Path] = set()
     listed_agents: set[Path] = set()
-    for plugin in data.get("plugins", []):
-        for entry in plugin.get("agents", []):
-            path = (repo_root / entry).resolve()
-            if not path.is_file():
-                findings.append(
-                    Finding(
-                        ERROR,
-                        relative,
-                        1,
-                        "missing-listed-agent",
-                        f"plugin {plugin.get('name', '?')!r} lists agent {entry!r}, "
-                        "which does not exist",
+    for index, plugin in enumerate(plugins):
+        if not isinstance(plugin, dict):
+            findings.extend(
+                malformed(f"plugins[{index}] must be an object, found {type(plugin).__name__}")
+            )
+            continue
+        label = plugin.get("name", f"plugins[{index}]")
+        for key, bucket in (("agents", listed_agents), ("skills", listed)):
+            entries = plugin.get(key, [])
+            if not isinstance(entries, list) or any(not isinstance(e, str) for e in entries):
+                findings.extend(malformed(f"{label!r} has a {key!r} that is not a list of strings"))
+                continue
+            for entry in entries:
+                path = (repo_root / entry).resolve()
+                bucket.add(path)
+                exists = path.is_file() if key == "agents" else (path / "SKILL.md").exists()
+                if not exists:
+                    noun = "agent" if key == "agents" else "skill"
+                    findings.append(
+                        Finding(
+                            ERROR,
+                            relative,
+                            1,
+                            f"missing-listed-{noun}",
+                            f"plugin {label!r} lists {noun} {entry!r}, which does not exist",
+                        )
                     )
-                )
-            listed_agents.add(path)
-        for entry in plugin.get("skills", []):
-            path = (repo_root / entry).resolve()
-            if not (path / "SKILL.md").exists():
-                findings.append(
-                    Finding(
-                        ERROR,
-                        relative,
-                        1,
-                        "missing-listed-skill",
-                        f"plugin {plugin.get('name', '?')!r} lists {entry!r}, which has "
-                        "no SKILL.md",
-                    )
-                )
-            listed.add(path)
 
     for agent in find_agents(repo_root / "agents"):
         if agent.resolve() not in listed_agents:

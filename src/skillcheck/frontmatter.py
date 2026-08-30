@@ -137,9 +137,10 @@ def _block_scalar(indicator: str, raw: list[str]) -> str:
     if not content:
         return ""
 
-    # Strip the block's own indentation, set by its first non-empty line, rather than
-    # each line's leading whitespace: relative indentation inside a literal block is
-    # content.
+    # Strip the block's own indentation - the smallest indent of any non-empty line -
+    # rather than each line's own leading whitespace. Relative indentation inside the
+    # block is content: literal blocks keep it, and folded blocks treat a
+    # more-indented line as unfoldable.
     indents = [len(line) - len(line.lstrip()) for line in content if line.strip()]
     base = min(indents) if indents else 0
     stripped = [line[base:] if len(line) > base else line.strip() for line in content]
