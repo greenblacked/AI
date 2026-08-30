@@ -135,7 +135,8 @@ jobs:
         run: |
           set -Eeuo pipefail
           missing=0
-          for file in .github/workflows/*.yml; do
+          shopt -s nullglob
+          for file in .github/workflows/*.yml .github/workflows/*.yaml; do
             if ! grep -qE '^permissions:' "$file"; then
               echo "::error file=$file,title=no permissions block::$file does not set top-level permissions"
               missing=1
@@ -143,6 +144,10 @@ jobs:
           done
           exit "$missing"
       - name: Every third-party action must be pinned to a commit SHA
+        # Matching known-bad shapes let the likeliest regression through: this repo's
+        # own convention is `uses: x@<sha>  # v7`, so keeping the comment and pasting a
+        # tag over the SHA passed a check anchored at end-of-line. Inverted now - a ref
+        # that is not forty hex characters fails, whatever it looks like.
         run: |
           set -Eeuo pipefail
           unpinned=0
@@ -150,7 +155,10 @@ jobs:
             file="${line%%:*}"
             echo "::error file=$file,title=unpinned action::${line#*:}"
             unpinned=1
-          done < <(grep -nE '^\s*(- )?uses: [^@]+@(v[0-9.]+|main|master)\s*$' .github/workflows/*.yml || true)
+          done < <(
+            grep -nE '^[[:space:]]*(- )?uses: [^@]+@' .github/workflows/*.y*ml \
+              | grep -vE '@[0-9a-f]{40}([[:space:]]|$)' || true
+          )
           exit "$unpinned"
 
   security:

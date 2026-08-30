@@ -43,7 +43,9 @@ def test_ignores_comments_and_blank_lines():
         ("---\nname: demo\n", "never closed"),
         ("---\nname: demo\nname: other\n---\n", "duplicate"),
         ("---\nname:\tdemo\n---\n", "tab"),
-        ("---\n  name: demo\n---\n", "indentation"),
+        # The old message said "must be a flat key/value block", which misdescribed
+        # a block that is flat. The real rule is that a value stays on one line.
+        ("---\n  name: demo\n---\n", "one line"),
         ("---\nnot a mapping line\n---\n", "cannot read"),
     ],
 )
@@ -100,3 +102,38 @@ def test_more_indented_lines_are_not_folded(block, expected):
     # 1024-character cap was measured against the wrong thing.
     front = parse(f"---\nname: demo\ndescription: {block}\n---\n")
     assert front.values["description"] == expected
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "---\nname: demo\ndescription: the answer is: red\n---\n",
+        "---\nname: demo\ndescription: trailing colon:\n---\n",
+        "---\nname:demo\n---\n",
+    ],
+)
+def test_input_a_real_yaml_parser_rejects_is_rejected_here(text):
+    # Accepting these meant `--strict` was green on a file the runtime and the upload
+    # API cannot parse, which is the opposite of what a stricter-than-YAML reader is for.
+    with pytest.raises(FrontmatterError):
+        parse(text)
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("see https://example.com/x", "see https://example.com/x"),
+        ("at 10:30 sharp", "at 10:30 sharp"),
+        ('"quoted: fine"', "quoted: fine"),
+    ],
+)
+def test_a_colon_that_yaml_accepts_is_still_accepted(value, expected):
+    front = parse(f"---\nname: demo\ndescription: {value}\n---\n")
+    assert front.values["description"] == expected
+
+
+def test_an_inline_comment_is_dropped_as_yaml_drops_it():
+    # Keeping it made the length and angle-bracket checks measure a string the runtime
+    # never sees, and produced a bogus name-mismatch.
+    front = parse("---\nname: demo  # the skill name\ndescription: A thing.  # TODO\n---\n")
+    assert front.values == {"name": "demo", "description": "A thing."}

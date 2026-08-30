@@ -51,7 +51,7 @@ REFERENCE_MAX_LINES_WITHOUT_TOC = 300
 # project's `their-repo/references/x.md`, was reported as a dangling pointer into
 # this skill's own bundle - a false positive that blocks legitimate prose.
 BUNDLED_PATH_RE = re.compile(
-    r"(?<![A-Za-z0-9_./-])(?:references|scripts|assets)/[A-Za-z0-9_./-]*[A-Za-z0-9_-]"
+    r"(?<![A-Za-z0-9_./-])(?:\./)?(?:references|scripts|assets)/[A-Za-z0-9_./-]*[A-Za-z0-9_-]"
 )
 TRIGGER_RE = re.compile(r"\buse (?:this skill |it )?(?:when|whenever|for|any time)\b", re.I)
 SHOUTING_RE = re.compile(r"(?<![A-Za-z])(?:ALWAYS|NEVER)(?![A-Za-z])")
@@ -116,7 +116,13 @@ def check_skill(directory: Path, repo_root: Path) -> list[Finding]:
             f"nested ones on upload (found {extra.relative_to(repo_root)})",
         )
 
-    text = skill_md.read_text(encoding="utf-8")
+    try:
+        text = skill_md.read_text(encoding="utf-8")
+    except UnicodeDecodeError as error:
+        # One mis-encoded file used to abort validation for every other skill, which in
+        # CI reads as "the validator is broken" rather than "this file is".
+        add(ERROR, "not-utf8", f"file is not valid UTF-8: {error}")
+        return findings
 
     try:
         front: Frontmatter = parse(text)
@@ -312,7 +318,7 @@ def _check_bundled_paths(body_lines: list[str], first_line: int, directory: Path
 
 
 def _check_scripts(directory: Path, repo_root: Path, add) -> list[Finding]:
-    for script in sorted((directory / "scripts").glob("*.sh")):
+    for script in sorted((directory / "scripts").rglob("*.sh")):
         first = script.read_text(encoding="utf-8").split("\n", 1)[0]
         if not first.startswith("#!"):
             add(ERROR, "no-shebang", "shell script has no shebang line", 1, script)
@@ -330,7 +336,7 @@ def _check_length(text: str, directory: Path, repo_root: Path, add) -> list[Find
             f"SKILL.md is {lines} lines; past ~{SKILL_MD_MAX_LINES} the body should "
             "push depth into references/ instead",
         )
-    for reference in sorted((directory / "references").glob("*.md")):
+    for reference in sorted((directory / "references").rglob("*.md")):
         content = reference.read_text(encoding="utf-8")
         count = len(content.split("\n"))
         if count > REFERENCE_MAX_LINES_WITHOUT_TOC and not TOC_RE.search(content):
@@ -628,5 +634,33 @@ def check_evals(directory: Path, repo_root: Path) -> list[Finding]:
             f"least {EVAL_MIN_PER_SIDE} of each are needed, and the negatives are what "
             "catch a description that fires on everything",
             path,
+        )
+    return findings
+
+
+def check_duplicate_names(skills: list[Path], repo_root: Path) -> list[Finding]:
+    """Two skill directories may not share a name.
+
+    `name` must equal the directory name, so two directories sharing a name are two
+    skills sharing a name: the second silently replaces the first when installing and
+    when packaging, and every counter still reports success.
+    """
+    findings: list[Finding] = []
+    seen: dict[str, Path] = {}
+    for directory in skills:
+        first = seen.get(directory.name)
+        if first is None:
+            seen[directory.name] = directory
+            continue
+        findings.append(
+            Finding(
+                ERROR,
+                directory.relative_to(repo_root) / "SKILL.md",
+                1,
+                "duplicate-skill-name",
+                f"another skill already uses the name {directory.name!r} "
+                f"({first.relative_to(repo_root)}); one of them would silently replace "
+                "the other on install and in dist/",
+            )
         )
     return findings

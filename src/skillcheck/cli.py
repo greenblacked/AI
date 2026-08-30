@@ -17,6 +17,7 @@ from .rules import (
     WARNING,
     Finding,
     check_agent,
+    check_duplicate_names,
     check_marketplace,
     check_skill,
     find_agents,
@@ -104,6 +105,7 @@ def main(argv: list[str] | None = None) -> int:
     findings: list[Finding] = []
     for skill in skills:
         findings.extend(check_skill(skill, root))
+    findings.extend(check_duplicate_names(skills, root))
     agents = find_agents(root / "agents")
     for agent in agents:
         findings.extend(check_agent(agent, root))

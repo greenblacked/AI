@@ -298,6 +298,8 @@ Every code the validator can emit is below, grouped by what it is looking at.
 
 | Code | Level | Meaning | Fix |
 | --- | --- | --- | --- |
+| `not-utf8` | error | The file is not valid UTF-8. | Re-save it as UTF-8. Reported rather than raised, because one mis-encoded file used to abort validation for every other skill. |
+| `duplicate-skill-name` | error | Two skill directories share a name. | Rename one. `name` equals the directory name, so a duplicate directory is a duplicate skill: the second silently replaces the first on install and in `dist/`, and every counter still reports success. |
 | `nested-skill` | error | A second `SKILL.md` below the skill directory. | Move it to its own directory under `skills/<category>/`. |
 | `frontmatter` | error | The block could not be parsed at all: missing or unclosed `---`, a tab, a byte-order mark, indentation, a duplicate key, an unreadable line. | Follow the message; it carries the line. |
 | `unknown-key` | error | A key outside the allowed six. | Rename it, or delete it. The message names the likely intended key. |
