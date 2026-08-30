@@ -206,3 +206,27 @@ def test_the_reported_line_points_at_the_pointer(tmp_path):
     finding = next(f for f in check_skill(directory, tmp_path) if f.code == "dangling-reference")
     lines = (directory / "SKILL.md").read_text().split("\n")
     assert "references/deep.md" in lines[finding.line - 1]
+
+
+def test_an_unterminated_fence_does_not_switch_the_check_off(tmp_path):
+    # Masking to end-of-file would silently stop checking every pointer after it, which
+    # is the failure this validator exists to prevent rather than to have.
+    body = "```text\nnever closed\n\nRead `references/deep.md`.\n"
+    directory = write_skill(tmp_path, "demo", body=body)
+    assert "dangling-reference" in codes(check_skill(directory, tmp_path), ERROR)
+
+
+def test_a_longer_fence_survives_a_nested_shorter_one(tmp_path):
+    body = "````text\nouter\n```\ninner\n```\nreferences/inside.md\n````\n"
+    directory = write_skill(tmp_path, "demo", body=body)
+    assert check_skill(directory, tmp_path) == []
+
+
+def test_a_readme_in_the_agents_directory_is_not_a_subagent(tmp_path):
+    from skillcheck.rules import find_agents
+
+    agents = tmp_path / "agents"
+    agents.mkdir()
+    (agents / "README.md").write_text("# Subagents\n", encoding="utf-8")
+    (agents / "real-agent.md").write_text("---\nname: real-agent\n---\n", encoding="utf-8")
+    assert [p.name for p in find_agents(agents)] == ["real-agent.md"]

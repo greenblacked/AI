@@ -32,9 +32,18 @@ def _annotate(finding: Finding) -> str:
 
 
 def _summary(skills: list[Path], findings: list[Finding], root: Path) -> str:
+    # Group by the skill directory that contains the finding, not by trimming a
+    # "/SKILL.md" suffix: an eval-set finding is reported against
+    # `<skill>/evals/trigger-eval.json`, and matching on the suffix silently dropped it,
+    # so a skill whose only defect was its eval set rendered as a green tick while the
+    # build failed.
+    keys = sorted((str(skill.relative_to(root)) for skill in skills), key=len, reverse=True)
     by_skill: dict[str, list[Finding]] = {}
     for finding in findings:
-        by_skill.setdefault(str(finding.path).split("/SKILL.md")[0], []).append(finding)
+        path = str(finding.path)
+        match = next((key for key in keys if path == key or path.startswith(key + "/")), None)
+        if match is not None:
+            by_skill.setdefault(match, []).append(finding)
 
     rows = ["| Skill | Result |", "| --- | --- |"]
     for skill in skills:

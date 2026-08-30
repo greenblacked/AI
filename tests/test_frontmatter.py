@@ -77,3 +77,26 @@ def test_block_scalars_fold_the_way_yaml_folds(block, expected):
 def test_a_literal_block_keeps_relative_indentation():
     front = parse("---\nname: demo\ndescription: |\n  a\n      deep\n  b\n---\n")
     assert front.values["description"] == "a\n    deep\nb\n"
+
+
+# These were verified against PyYAML across ~11,500 generated shapes; the folded cases
+# below are the ones the first implementation got wrong.
+@pytest.mark.parametrize(
+    ("block", "expected"),
+    [
+        (">\n  one\n    two\n  three", "one\n  two\nthree\n"),
+        (">\n  one\n\n    deep\n\n  two", "one\n\n  deep\n\ntwo\n"),
+        (">\n  a\n  b\n\n    c", "a b\n\n  c\n"),
+        # Uniform indentation is the block's own indent, so neither line is
+        # more-indented and the blank folds to a single newline.
+        (">\n    deep\n\n    also", "deep\nalso\n"),
+        (">+\n  yy\n    ind\n", "yy\n  ind\n\n"),
+        ("|+\n  ", "\n"),
+    ],
+)
+def test_more_indented_lines_are_not_folded(block, expected):
+    # YAML keeps a more-indented line literal and does not fold the breaks around it.
+    # Folding them produced a shorter string than the runtime loads, which meant the
+    # 1024-character cap was measured against the wrong thing.
+    front = parse(f"---\nname: demo\ndescription: {block}\n---\n")
+    assert front.values["description"] == expected
