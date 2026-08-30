@@ -230,3 +230,57 @@ def test_a_readme_in_the_agents_directory_is_not_a_subagent(tmp_path):
     (agents / "README.md").write_text("# Subagents\n", encoding="utf-8")
     (agents / "real-agent.md").write_text("---\nname: real-agent\n---\n", encoding="utf-8")
     assert [p.name for p in find_agents(agents)] == ["real-agent.md"]
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "See https://example.com/assets/logo.png for the badge.\n",
+        "See [the spec](https://cdn.example.com/references/spec.md).\n",
+        "Their layout is `their-repo/references/x.md` upstream.\n",
+        "Compare with ../other-skill/references/deep.md if curious.\n",
+    ],
+)
+def test_a_path_inside_a_longer_path_is_not_a_pointer(tmp_path, body):
+    # Matching a bare substring reported a URL, and another project's path, as a
+    # dangling pointer into this skill's own bundle.
+    directory = write_skill(tmp_path, "demo", body=body)
+    assert check_skill(directory, tmp_path) == []
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "Read `references/deep.md` before starting.\n",
+        "Read references/deep.md before starting.\n",
+        "- references/deep.md explains it\n",
+        "(see references/deep.md)\n",
+    ],
+)
+def test_a_real_pointer_is_still_caught_however_it_is_written(tmp_path, body):
+    directory = write_skill(tmp_path, "demo", body=body)
+    assert "dangling-reference" in codes(check_skill(directory, tmp_path), ERROR)
+
+
+@pytest.mark.parametrize(
+    ("manifest", "reason"),
+    [
+        ("[]", "manifest is a list"),
+        ('{"plugins": "x"}', "plugins is a string"),
+        ('{"plugins": ["x"]}', "a plugin entry is a string"),
+        (
+            '{"plugins": [{"name": "p", "skills": "./skills/engineering/demo"}]}',
+            "skills is a string",
+        ),
+        ('{"plugins": [{"name": "p", "agents": "x"}]}', "agents is a string"),
+        ('{"plugins": [{"name": "p", "skills": [1]}]}', "skills holds a non-string"),
+    ],
+)
+def test_a_malformed_manifest_reports_rather_than_crashes(tmp_path, manifest, reason):
+    # Reaching `.get` on a string aborted the whole run with a traceback, and iterating
+    # a string `skills` value reported one dangling entry per character. Neither said
+    # anything about the actual problem.
+    write_skill(tmp_path, "demo")
+    (tmp_path / ".claude-plugin").mkdir()
+    (tmp_path / ".claude-plugin" / "marketplace.json").write_text(manifest, encoding="utf-8")
+    assert "bad-marketplace-shape" in codes(check_marketplace(tmp_path), ERROR), reason

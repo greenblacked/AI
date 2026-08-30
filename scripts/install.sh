@@ -18,10 +18,16 @@ usage() {
 Usage: install.sh [--dry-run] [--force]
 
   --dry-run   Print what would change without touching the filesystem.
-  --force     Replace an existing entry even when it is not a symlink to this repo.
+  --force     Replace an existing symlink or file that does not point into this
+              repository. A real directory is never removed - remove it yourself.
 
 Environment:
   CLAUDE_SKILLS_DIR  Install location (default: ~/.claude/skills)
+
+Exit codes:
+  0  every skill is linked
+  2  bad usage
+  3  finished, but at least one skill was skipped because something was in the way
 USAGE
 }
 
@@ -46,6 +52,7 @@ fi
 
 linked=0
 skipped=0
+conflicts=0
 
 while IFS= read -r -d '' skill_md; do
   skill_dir="$(dirname "$skill_md")"
@@ -58,15 +65,28 @@ while IFS= read -r -d '' skill_md; do
       skipped=$((skipped + 1))
       continue
     fi
+  elif [[ -d "$link" && ! -L "$link" ]]; then
+    # `ln -sfn` onto a real directory creates the link *inside* it, which leaves the
+    # skill uninstalled while the script reports success. Removing a directory of
+    # unknown contents is not something a convenience script should do on its own, so
+    # this is a conflict even under --force.
+    log "skipping $name: $link is a directory; remove it yourself if you want it replaced"
+    skipped=$((skipped + 1))
+    conflicts=$((conflicts + 1))
+    continue
   elif [[ -e "$link" ]] && ((FORCE == 0)); then
     log "skipping $name: $link exists and is not a symlink into this repository (use --force)"
     skipped=$((skipped + 1))
+    conflicts=$((conflicts + 1))
     continue
   fi
 
   if ((DRY_RUN == 1)); then
     log "would link $name -> $skill_dir"
   else
+    # Remove first rather than relying on -f: the target may be a stale symlink or a
+    # regular file, and replacing it in place keeps the outcome unambiguous.
+    rm -f "$link"
     ln -sfn "$skill_dir" "$link"
     log "linked $name"
   fi
@@ -75,4 +95,5 @@ done < <(find "$REPO_ROOT/skills" -name SKILL.md -print0 | sort -z)
 
 log "done: $linked linked, $skipped unchanged or skipped"
 ((DRY_RUN == 1)) && log "dry run - nothing was written"
+((conflicts > 0)) && exit 3
 exit 0
