@@ -44,7 +44,7 @@ while (($# > 0)); do
   shift
 done
 
-[[ -d "$REPO_ROOT/skills" ]] || die "no skills/ directory under $REPO_ROOT"
+[[ -d "$REPO_ROOT/plugins" ]] || die "no plugins/ directory under $REPO_ROOT"
 
 if ((DRY_RUN == 0)); then
   mkdir -p "$TARGET_DIR"
@@ -100,7 +100,7 @@ while IFS= read -r -d '' skill_md; do
     log "linked $name"
   fi
   linked=$((linked + 1))
-done < <(find "$REPO_ROOT/skills" -name SKILL.md -print0 | sort -z)
+done < <(find "$REPO_ROOT/plugins" -name SKILL.md -print0 | sort -z)
 
 log "done: $linked linked, $skipped unchanged or skipped"
 ((DRY_RUN == 1)) && log "dry run - nothing was written"

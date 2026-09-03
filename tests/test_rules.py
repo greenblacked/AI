@@ -21,7 +21,7 @@ GOOD_DESCRIPTION = (
 def write_skill(
     root, name, *, description=GOOD_DESCRIPTION, front=None, body="# Demo\n", evals=True
 ):
-    directory = root / "skills" / "engineering" / name
+    directory = root / "plugins" / "engineering" / "skills" / name
     directory.mkdir(parents=True, exist_ok=True)
     if front is None:
         front = f"name: {name}\ndescription: {description}"
@@ -141,32 +141,57 @@ def test_an_over_long_skill_body_warns(tmp_path):
 def test_find_skills_returns_every_skill_directory(tmp_path):
     write_skill(tmp_path, "one")
     write_skill(tmp_path, "two")
-    assert [p.name for p in find_skills(tmp_path / "skills")] == ["one", "two"]
+    assert [p.name for p in find_skills(tmp_path)] == ["one", "two"]
 
 
-def test_marketplace_must_list_every_skill(tmp_path):
-    write_skill(tmp_path, "demo")
-    manifest = tmp_path / ".claude-plugin"
-    manifest.mkdir()
-    (manifest / "marketplace.json").write_text(
-        '{"name": "x", "owner": {"name": "y"}, "plugins": []}', encoding="utf-8"
+def write_plugin(root, name="engineering"):
+    """Make a fixture directory into a real plugin."""
+    manifest = root / "plugins" / name / ".claude-plugin"
+    manifest.mkdir(parents=True, exist_ok=True)
+    (manifest / "plugin.json").write_text(f'{{"name": "{name}"}}', encoding="utf-8")
+
+
+def write_marketplace(root, plugins):
+    directory = root / ".claude-plugin"
+    directory.mkdir(exist_ok=True)
+    (directory / "marketplace.json").write_text(
+        json.dumps({"name": "x", "owner": {"name": "y"}, "plugins": plugins}), encoding="utf-8"
     )
-    assert "unlisted-skill" in codes(check_marketplace(tmp_path), ERROR)
 
 
-def test_marketplace_entries_must_resolve(tmp_path):
-    directory = write_skill(tmp_path, "demo")
-    manifest = tmp_path / ".claude-plugin"
-    manifest.mkdir()
-    (manifest / "marketplace.json").write_text(
-        '{"name": "x", "owner": {"name": "y"}, "plugins": [{"name": "p", "skills": '
-        '["./skills/engineering/demo", "./skills/engineering/ghost"]}]}',
-        encoding="utf-8",
+def test_a_plugin_on_disk_must_be_listed(tmp_path):
+    write_skill(tmp_path, "demo")
+    write_plugin(tmp_path)
+    write_marketplace(tmp_path, [])
+    assert "unlisted-plugin" in codes(check_marketplace(tmp_path), ERROR)
+
+
+def test_a_listed_plugin_must_exist(tmp_path):
+    write_skill(tmp_path, "demo")
+    write_plugin(tmp_path)
+    write_marketplace(
+        tmp_path,
+        [
+            {"name": "engineering", "source": "./plugins/engineering"},
+            {"name": "ghost", "source": "./plugins/ghost"},
+        ],
     )
     found = codes(check_marketplace(tmp_path), ERROR)
-    assert "missing-listed-skill" in found
-    assert "unlisted-skill" not in found
-    assert directory.exists()
+    assert "missing-listed-plugin" in found
+    assert "unlisted-plugin" not in found
+
+
+def test_a_skill_outside_every_plugin_is_reported(tmp_path):
+    # A skill that no plugin ships installs for nobody, which is the same silent
+    # failure as a skill missing from the old explicit list.
+    write_plugin(tmp_path)
+    write_marketplace(tmp_path, [{"name": "engineering", "source": "./plugins/engineering"}])
+    stray = tmp_path / "loose" / "demo"
+    stray.mkdir(parents=True)
+    (stray / "SKILL.md").write_text(
+        f"---\nname: demo\ndescription: {GOOD_DESCRIPTION}\n---\n", encoding="utf-8"
+    )
+    assert "unowned-skill" in codes(check_marketplace(tmp_path), ERROR)
 
 
 def test_invalid_marketplace_json_is_an_error(tmp_path):
@@ -269,7 +294,7 @@ def test_a_real_pointer_is_still_caught_however_it_is_written(tmp_path, body):
         ('{"plugins": "x"}', "plugins is a string"),
         ('{"plugins": ["x"]}', "a plugin entry is a string"),
         (
-            '{"plugins": [{"name": "p", "skills": "./skills/engineering/demo"}]}',
+            '{"plugins": [{"name": "p", "source": 1}]}',
             "skills is a string",
         ),
         ('{"plugins": [{"name": "p", "agents": "x"}]}', "agents is a string"),
@@ -314,12 +339,12 @@ def test_two_skills_may_not_share_a_name(tmp_path):
     from skillcheck.rules import check_duplicate_names, find_skills
 
     write_skill(tmp_path, "demo")
-    other = tmp_path / "skills" / "personal" / "demo"
+    other = tmp_path / "plugins" / "personal" / "skills" / "demo"
     other.mkdir(parents=True)
     (other / "SKILL.md").write_text(
         f"---\nname: demo\ndescription: {GOOD_DESCRIPTION}\n---\n", encoding="utf-8"
     )
-    skills = find_skills(tmp_path / "skills")
+    skills = find_skills(tmp_path)
     assert "duplicate-skill-name" in codes(check_duplicate_names(skills, tmp_path), ERROR)
 
 

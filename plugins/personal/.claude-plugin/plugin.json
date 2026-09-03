@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "personal",
+  "description": "Personal skills: estimate calories and macros from a photo or description and coach toward a goal, turn what you read into durable notes, and tailor a CV and interview preparation from a real history.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "notes",
+    "learning",
+    "career",
+    "health"
+  ]
+}

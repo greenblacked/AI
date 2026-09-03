@@ -106,12 +106,13 @@ four-space-indented code block is still scanned.
 start with `#!` and have the executable bit set. A script the model is told to run and
 cannot is the same silent failure in a different costume.
 
-**Marketplace consistency (`unlisted-skill`, `missing-listed-skill`).** A skill on disk
-that no plugin lists installs for nobody; a plugin entry pointing at a directory with no
-`SKILL.md` breaks installation for everybody. Both are errors, checked against
-[`marketplace.json`](../.claude-plugin/marketplace.json). The same cross-check runs in
-both directions over each plugin's `agents` array; see [writing a
-subagent](writing-agents.md).
+**Marketplace consistency (`unlisted-plugin`, `missing-listed-plugin`, `unowned-skill`,
+`unowned-agent`).** Each plugin owns its own directory and discovers its own `skills/`
+and `agents/`, so [`marketplace.json`](../.claude-plugin/marketplace.json) lists plugins
+rather than individual skills. Two things still have to hold, and both are errors: every
+listed plugin must exist and carry a `.claude-plugin/plugin.json`, and nothing on disk
+may be stranded outside a plugin — a skill no plugin ships installs for nobody, which is
+the same silent failure the explicit list used to catch.
 
 ## The warnings, and why they are warnings
 
@@ -205,7 +206,7 @@ specificity is not a good skill with a rough edge; it is a skill that fires on e
 Run it locally with the `claude` CLI on `PATH`:
 
 ```bash
-python scripts/run_trigger_eval.py --skill skills/engineering/ci-triage --verbose
+python scripts/run_trigger_eval.py --skill plugins/engineering/skills/ci-triage --verbose
 python scripts/run_trigger_eval.py --all --runs 3 --threshold 0.8
 ```
 
@@ -241,8 +242,8 @@ it. "The approach we discussed" and unexplained internal names are dead weight.
 ## Adding a new skill
 
 ```bash
-mkdir -p skills/engineering/log-shipping/evals
-cp template/SKILL.md skills/engineering/log-shipping/SKILL.md
+mkdir -p plugins/engineering/skills/log-shipping/evals
+cp template/SKILL.md plugins/engineering/skills/log-shipping/SKILL.md
 ```
 
 [`template/SKILL.md`](../template/SKILL.md) carries the shape: a one-sentence statement
@@ -261,7 +262,7 @@ with "use for" and "do not use for", a numbered workflow, and an anti-patterns s
    array alphabetical:
 
    ```json
-   "./skills/engineering/log-shipping"
+   "./plugins/engineering/skills/log-shipping"
    ```
 
 5. Validate:
@@ -273,7 +274,7 @@ with "use for" and "do not use for", a numbered workflow, and an anti-patterns s
 6. Optionally score the description, and check that the skill packages and installs:
 
    ```bash
-   python scripts/run_trigger_eval.py --skill skills/engineering/log-shipping --verbose
+   python scripts/run_trigger_eval.py --skill plugins/engineering/skills/log-shipping --verbose
    make package
    make install
    ```
@@ -358,9 +359,9 @@ subagent](writing-agents.md) for why.
 | `no-marketplace` | error | `.claude-plugin/marketplace.json` is missing. | Restore it. |
 | `bad-json` | error | The manifest is not valid JSON. | Fix the syntax at the reported line. |
 | `bad-marketplace-shape` | error | The manifest is not an object, `plugins` is not a list, a plugin entry is not an object, or a `skills`/`agents` value is not a list of strings. | Fix the shape. This is reported rather than raised because reaching `.get` on a string used to abort the whole run with a traceback. |
-| `missing-listed-skill` | error | A plugin lists a path with no `SKILL.md`. | Write the skill, or remove the entry. |
-| `unlisted-skill` | error | A skill on disk is in no plugin. | Add it to a plugin's `skills` array. |
-| `missing-listed-agent` | error | A plugin lists an agent file that does not exist. | Write the file, or remove the entry. |
-| `unlisted-agent` | error | An `agents/*.md` file is in no plugin. | Add it to a plugin's `agents` array. |
+| `missing-listed-plugin` | error | A plugin listed in `marketplace.json` has no `.claude-plugin/plugin.json` at its `source`. | Write the skill, or remove the entry. |
+| `unlisted-plugin` | error | A plugin exists on disk but is absent from `marketplace.json`, so it installs for nobody. | Add it to a plugin's `skills` array. |
+| `unowned-skill` | error | A skill is not inside any plugin's `skills/` directory, so no plugin ships it. | Write the file, or remove the entry. |
+| `unowned-agent` | error | A subagent is not inside any plugin's `agents/` directory. | Add it to a plugin's `agents` array. |
 
 CI runs the same validator on every push and pull request; see [what CI checks](ci.md).

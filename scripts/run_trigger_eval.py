@@ -14,7 +14,7 @@ Requires the `claude` CLI on PATH and working credentials. It is deliberately no
 the required CI gate: it costs money, it is sampled rather than deterministic, and a gate
 that is occasionally wrong is a gate people learn to override.
 
-    python scripts/run_trigger_eval.py --skill skills/engineering/ci-triage
+    python scripts/run_trigger_eval.py --skill plugins/engineering/skills/ci-triage
     python scripts/run_trigger_eval.py --all --runs 3 --threshold 0.8
 """
 
@@ -46,7 +46,7 @@ none of them applies. No explanation, no punctuation, no other text."""
 
 def catalogue(root: Path) -> dict[str, str]:
     entries = {}
-    for directory in find_skills(root / "skills"):
+    for directory in find_skills(root):
         values = parse((directory / "SKILL.md").read_text(encoding="utf-8")).values
         entries[values["name"]] = " ".join(values["description"].split())
     return entries
@@ -152,9 +152,7 @@ def main() -> int:
 
     root = args.root.resolve()
     if args.all:
-        targets = [
-            d for d in find_skills(root / "skills") if (d / "evals" / "trigger-eval.json").is_file()
-        ]
+        targets = [d for d in find_skills(root) if (d / "evals" / "trigger-eval.json").is_file()]
     else:
         targets = [args.skill.resolve()]
     if not targets:

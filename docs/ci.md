@@ -30,6 +30,12 @@ all report and pass. They are warnings because each is a judgement call rather t
 rule, and they fail the build anyway, because a warning nobody has to clear is a warning
 that accumulates until the whole category is ignored.
 
+`validate-plugin` runs without `--strict`, and that is deliberate: each
+`plugins/<name>/.claude-plugin/plugin.json` omits `version`, which the CLI warns about.
+With a git-sourced marketplace, omitting the version is the documented behaviour — every
+commit then resolves as a new version — so the three warnings are the correct state and
+`--strict` would force a version field that exists only to silence them.
+
 ## `.github/workflows/security.yml` — Security
 
 Same triggers, same empty top-level `permissions`. Tool versions are pinned in `env`
@@ -109,7 +115,7 @@ default, so dispatching the form unchanged scores everything:
 
 | Input | Default | What it does |
 | --- | --- | --- |
-| `skill` | `all` | A skill directory to score, such as `skills/engineering/ci-triage`, or `all` for every skill that has an eval set. |
+| `skill` | `all` | A skill directory to score, such as `plugins/engineering/skills/ci-triage`, or `all` for every skill that has an eval set. |
 | `runs` | `3` | Samples per query. A majority vote across them decides, which separates a description that genuinely fails from one sitting on the model's decision boundary. |
 | `threshold` | `0.8` | Pass rate below which a skill is reported as failing. |
 
@@ -286,7 +292,7 @@ The trigger evals are not part of `make`, because they need a model and a key. R
 directly when a description is the thing in question:
 
 ```bash
-python scripts/run_trigger_eval.py --skill skills/engineering/ci-triage --verbose
+python scripts/run_trigger_eval.py --skill plugins/engineering/skills/ci-triage --verbose
 ```
 
 The security tooling is not wrapped in a `make` target, because the versions are pinned

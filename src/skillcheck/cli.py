@@ -21,6 +21,7 @@ from .rules import (
     check_marketplace,
     check_skill,
     find_agents,
+    find_plugins,
     find_skills,
 )
 
@@ -92,21 +93,21 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     root = args.root.resolve()
-    skills_root = root / "skills"
-    if not skills_root.is_dir():
-        print(f"no skills/ directory under {root}", file=sys.stderr)
-        return 2
-
-    skills = find_skills(skills_root)
+    plugins = find_plugins(root)
+    # Search the whole tree rather than one directory: a skill that has escaped its
+    # plugin still has to be found, so that check_marketplace can report it as unowned
+    # rather than the run quietly not seeing it.
+    skills = find_skills(root)
     if not skills:
-        print(f"no SKILL.md found under {skills_root}", file=sys.stderr)
+        print(f"no SKILL.md found under {root}", file=sys.stderr)
         return 2
 
     findings: list[Finding] = []
     for skill in skills:
         findings.extend(check_skill(skill, root))
     findings.extend(check_duplicate_names(skills, root))
-    agents = find_agents(root / "agents")
+    agents = [agent for plugin in plugins for agent in find_agents(plugin / "agents")]
+    agents += find_agents(root / "agents")
     for agent in agents:
         findings.extend(check_agent(agent, root))
     if not args.skip_marketplace:
@@ -124,8 +125,8 @@ def main(argv: list[str] | None = None) -> int:
             print(_annotate(item))
 
     print(
-        f"\n{len(skills)} skill(s) and {len(agents)} subagent(s) checked — "
-        f"{len(errors)} error(s), {len(warnings)} warning(s)"
+        f"\n{len(plugins)} plugin(s), {len(skills)} skill(s) and {len(agents)} "
+        f"subagent(s) checked — {len(errors)} error(s), {len(warnings)} warning(s)"
     )
 
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")

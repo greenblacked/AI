@@ -76,12 +76,31 @@ class Finding:
         return self.level == ERROR
 
 
+def find_plugins(repo_root: Path) -> list[Path]:
+    """Return every plugin directory, sorted by name.
+
+    A plugin is a directory under ``plugins/`` with its own ``.claude-plugin/plugin.json``.
+    Each owns its ``skills/`` and ``agents/``, which is what stops a repository-root
+    component being shipped once per installed plugin.
+    """
+    return sorted(
+        path.parent.parent for path in (repo_root / "plugins").glob("*/.claude-plugin/plugin.json")
+    )
+
+
 def find_skills(root: Path) -> list[Path]:
     """Return every skill directory under ``root``, sorted by path.
 
-    A skill directory is one that directly contains a ``SKILL.md``.
+    A skill directory is one that directly contains a ``SKILL.md``. ``template/`` is
+    excluded: it is a starting point to copy, not a skill that ships.
     """
-    return sorted({path.parent for path in root.rglob("SKILL.md")})
+    return sorted(
+        {
+            path.parent
+            for path in root.rglob("SKILL.md")
+            if "template" not in path.relative_to(root).parts
+        }
+    )
 
 
 def _line_of(text: str, needle: str) -> int:
@@ -364,10 +383,12 @@ def _check_tone(body: str, text: str, add) -> list[Finding]:
 
 
 def check_marketplace(repo_root: Path) -> list[Finding]:
-    """Cross-check the marketplace manifest against the skills on disk.
+    """Cross-check the marketplace manifest against the plugins on disk.
 
-    A skill that exists but is not listed ships to nobody; a listing that points at a
-    missing directory breaks installation for everybody.
+    Each plugin now owns its own directory and discovers its own ``skills/`` and
+    ``agents/``, so the manifest lists plugins rather than individual skills. What still
+    has to hold is that every listed plugin is real, and that nothing on disk is stranded
+    outside a plugin — a skill nobody ships is a skill nobody can install.
     """
     manifest = repo_root / ".claude-plugin" / "marketplace.json"
     relative = Path(".claude-plugin/marketplace.json")
@@ -382,71 +403,75 @@ def check_marketplace(repo_root: Path) -> list[Finding]:
     findings: list[Finding] = []
 
     def malformed(message: str) -> list[Finding]:
-        # A manifest of the wrong shape used to reach `.get` on a string and abort the
-        # run with a traceback, or - when `skills` was a string - iterate it character by
-        # character and report one dangling entry per letter. Either way the output said
-        # nothing about what was actually wrong.
         return [Finding(ERROR, relative, 1, "bad-marketplace-shape", message)]
 
     if not isinstance(data, dict):
         return malformed(f"manifest must be a JSON object, found {type(data).__name__}")
-    plugins = data.get("plugins", [])
-    if not isinstance(plugins, list):
-        return malformed(f"'plugins' must be a list, found {type(plugins).__name__}")
+    entries = data.get("plugins", [])
+    if not isinstance(entries, list):
+        return malformed(f"'plugins' must be a list, found {type(entries).__name__}")
 
     listed: set[Path] = set()
-    listed_agents: set[Path] = set()
-    for index, plugin in enumerate(plugins):
+    for index, plugin in enumerate(entries):
         if not isinstance(plugin, dict):
             findings.extend(
                 malformed(f"plugins[{index}] must be an object, found {type(plugin).__name__}")
             )
             continue
         label = plugin.get("name", f"plugins[{index}]")
-        for key, bucket in (("agents", listed_agents), ("skills", listed)):
-            entries = plugin.get(key, [])
-            if not isinstance(entries, list) or any(not isinstance(e, str) for e in entries):
-                findings.extend(malformed(f"{label!r} has a {key!r} that is not a list of strings"))
-                continue
-            for entry in entries:
-                path = (repo_root / entry).resolve()
-                bucket.add(path)
-                exists = path.is_file() if key == "agents" else (path / "SKILL.md").exists()
-                if not exists:
-                    noun = "agent" if key == "agents" else "skill"
-                    findings.append(
-                        Finding(
-                            ERROR,
-                            relative,
-                            1,
-                            f"missing-listed-{noun}",
-                            f"plugin {label!r} lists {noun} {entry!r}, which does not exist",
-                        )
-                    )
-
-    for agent in find_agents(repo_root / "agents"):
-        if agent.resolve() not in listed_agents:
+        source = plugin.get("source")
+        if not isinstance(source, str):
+            findings.extend(malformed(f"{label!r} has no string 'source'"))
+            continue
+        directory = (repo_root / source).resolve()
+        listed.add(directory)
+        if not (directory / ".claude-plugin" / "plugin.json").is_file():
             findings.append(
                 Finding(
                     ERROR,
-                    agent.relative_to(repo_root),
+                    relative,
                     1,
-                    "unlisted-agent",
-                    "subagent is not listed in any plugin in marketplace.json, so it "
-                    "installs for nobody",
+                    "missing-listed-plugin",
+                    f"plugin {label!r} points at {source!r}, which has no "
+                    ".claude-plugin/plugin.json",
                 )
             )
 
-    for directory in find_skills(repo_root / "skills"):
-        if directory.resolve() not in listed:
+    for plugin in find_plugins(repo_root):
+        if plugin.resolve() not in listed:
+            findings.append(
+                Finding(
+                    ERROR,
+                    plugin.relative_to(repo_root) / ".claude-plugin" / "plugin.json",
+                    1,
+                    "unlisted-plugin",
+                    "plugin is not listed in marketplace.json, so it installs for nobody",
+                )
+            )
+
+    owned_skills = {d.resolve() for p in find_plugins(repo_root) for d in find_skills(p / "skills")}
+    for directory in find_skills(repo_root):
+        if directory.resolve() not in owned_skills:
             findings.append(
                 Finding(
                     ERROR,
                     directory.relative_to(repo_root) / "SKILL.md",
                     1,
-                    "unlisted-skill",
-                    "skill is not listed in any plugin in marketplace.json, so it "
-                    "installs for nobody",
+                    "unowned-skill",
+                    "skill is not inside any plugin's skills/ directory, so no plugin ships it",
+                )
+            )
+
+    owned_agents = {a.resolve() for p in find_plugins(repo_root) for a in find_agents(p / "agents")}
+    for agent in find_agents(repo_root / "agents"):
+        if agent.resolve() not in owned_agents:
+            findings.append(
+                Finding(
+                    ERROR,
+                    agent.relative_to(repo_root),
+                    1,
+                    "unowned-agent",
+                    "subagent is not inside any plugin's agents/ directory",
                 )
             )
     return findings

@@ -13,7 +13,7 @@ from skillcheck.rules import ERROR, WARNING, check_evals
 
 
 def write_evals(root, entries, raw=None):
-    directory = root / "skills" / "engineering" / "demo"
+    directory = root / "plugins" / "engineering" / "skills" / "demo"
     (directory / "evals").mkdir(parents=True, exist_ok=True)
     path = directory / "evals" / "trigger-eval.json"
     path.write_text(raw if raw is not None else json.dumps(entries), encoding="utf-8")
