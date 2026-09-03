@@ -1,0 +1,22 @@
+[
+  {"query": "we need a plan to replace Jenkins with GitHub Actions across 40 repos", "should_trigger": true},
+  {"query": "how do we move all workloads to the new kubernetes cluster without downtime", "should_trigger": true},
+  {"query": "design the phased plan to move off our current observability stack", "should_trigger": true},
+  {"query": "we are replatforming from EC2 to EKS, what should the phases be", "should_trigger": true},
+  {"query": "how do we run the old and new identity systems in parallel safely", "should_trigger": true},
+  {"query": "review this migration plan and tell me what it is missing", "should_trigger": true},
+  {"query": "what invariants should hold while we move the data to the new store", "should_trigger": true},
+  {"query": "we want to replace our control plane, how do we sequence it", "should_trigger": true},
+  {"query": "plan the retirement of the legacy service once traffic has moved", "should_trigger": true},
+  {"query": "how do we migrate safely from one cloud provider to another", "should_trigger": true},
+  {"query": "we flip DNS at 2am on Saturday, who has authority to call the rollback", "should_trigger": false},
+  {"query": "write the go/no-go checklist for the cutover window this weekend", "should_trigger": false},
+  {"query": "add a nullable column to a 400 million row table without locking it", "should_trigger": false},
+  {"query": "review this terraform plan before I apply it", "should_trigger": false},
+  {"query": "pods are crashlooping after the deploy, get us back", "should_trigger": false},
+  {"query": "write an ADR comparing postgres and dynamodb for a greenfield service", "should_trigger": false},
+  {"query": "the pipeline is red, is it a flake or a real failure", "should_trigger": false},
+  {"query": "scaffold a python service with tests and a linter", "should_trigger": false},
+  {"query": "harden this Dockerfile and pin the base image by digest", "should_trigger": false},
+  {"query": "run a game day to test whether we survive losing an availability zone", "should_trigger": false}
+]
