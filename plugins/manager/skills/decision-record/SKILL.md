@@ -1,6 +1,7 @@
 ---
 name: decision-record
 description: "Produce architecture decision records (MADR 4.x ADRs) and longer design docs / RFCs, choosing between them by stakes and reversibility, and enforcing the structure that makes a decision auditable a year later: labelled artefact type, at least two genuinely considered options with the reason each was rejected, a stated reversibility, sourced impact claims, and a Confirmation section that names a test, fitness function or dashboard. Use this skill whenever the user wants to write, review or supersede an ADR, decision record, design doc, RFC, technical proposal or architecture memo — including casual phrasings like \"write this decision up\", \"we picked Postgres, document it\", \"draft an RFC for the new pipeline\", or \"is this design doc any good\". Do not use it for status reports, project updates or stakeholder comms, and do not use it for anything about a named individual's performance."
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # Decision Record

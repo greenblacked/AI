@@ -1,6 +1,7 @@
 ---
 name: code-scaffold
 description: "Scaffold new production-ready code — Bash scripts, Python tools, Terraform modules, CI jobs, and mixed-language projects — with strict error handling and exit codes, structured logging, input validation and secure defaults, idempotent re-runnable behaviour, a validation pass, and a handoff review checklist. Use this whenever the user asks to write, create, generate, scaffold, bootstrap, or start any new script, tool, module, automation, job, exporter, or service — including casual phrasings like \"write me a script for X\", \"I need something that does Y\", or \"can you put together a module for Z\". Applies even when the user does not say the words \"scaffold\" or \"production\". Do not use it for reviewing, refactoring, or debugging code that already exists."
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(shellcheck:*), Bash(shfmt:*), Bash(ruff:*), Bash(pytest:*), Bash(terraform:*), Bash(git:*)
 ---
 
 # Code Assist

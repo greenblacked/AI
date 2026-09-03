@@ -1,6 +1,7 @@
 ---
 name: iac-review
 description: "Review an infrastructure-as-code change against the machine-readable plan JSON rather than the human-readable plan text — blast radius and destroys first, then replacement causes, drift, state moves, secrets in state, pinning, the policy-as-code gate, cost, and a verdict. Also covers Ansible review via check mode, --diff, and idempotence. Use this skill whenever the user asks you to review, sanity-check, approve, risk-assess, or explain a Terraform or OpenTofu plan, an IaC pull request, a .tf or .tfvars diff, a tfplan or plan.json file, a backend or state change, or an Ansible playbook change — including casual phrasings like \"is this safe to apply\", \"why is it recreating my database\", or \"what will this actually do\". Do not use it for authoring new modules, debugging a provider crash, or open-ended cloud architecture advice."
+allowed-tools: Bash(terraform:*), Bash(tofu:*), Bash(jq:*), Bash(tflint:*), Bash(checkov:*), Bash(tfsec:*), Read, Grep, Glob
 ---
 
 # Infrastructure-as-Code Review

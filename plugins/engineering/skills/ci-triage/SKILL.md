@@ -1,6 +1,7 @@
 ---
 name: ci-triage
 description: "Triage a red CI pipeline in a fixed order: check whether main is already broken before blaming the PR, locate the failing step from check-run annotations and --log-failed instead of whole logs, classify into exactly one of real / flake / infra / config-permission / dependency-drift, confirm with one cheap experiment, bisect only if that was inconclusive, then remediate under an explicit quarantine and retry policy. Use this skill whenever a build, pipeline, workflow, job or check is failing and someone wants to know why — including casual phrasings like \"CI is red\", \"the build broke\", \"this test keeps failing\", \"my PR is blocked\", \"is this a flake?\", \"the runner died\", or \"can we just re-run it\". Covers GitHub Actions and Jenkins. Do not use it for authoring a new pipeline, for debugging an application bug that CI is only reporting, or for running a production incident."
+allowed-tools: Bash(gh:*), Bash(git:*), Bash(jq:*), Read, Grep, Glob
 ---
 
 # CI Triage

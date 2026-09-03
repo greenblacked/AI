@@ -1,6 +1,7 @@
 ---
 name: postmortem
 description: "Write or review a blameless incident postmortem in the Google SRE shape — numbered title, quantified impact, root causes separated from the trigger, how it was detected, and action items that each carry an owner, due date, priority and tracker link. Use this skill whenever an incident needs writing up, reviewing before publication, or judging as postmortem-worthy: after user-visible downtime or degradation, any data loss, an on-call engineer intervening with a rollback or traffic reroute, a long resolution time, or an incident a human spotted before the alerting did. Casual phrasings count — \"we need a writeup for yesterday's outage\", \"can you draft the RCA\", \"is this worth a postmortem\", \"read this before I publish it\". Do not use it for triaging an incident that is still burning, for routine change records, or for a performance conversation about the engineer involved."
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # Postmortem

@@ -1,6 +1,7 @@
 ---
 name: delivery-review
 description: "Assess the delivery health of a team or programme and say what to change — DORA metrics read the way they were defined, flow and capacity reality, prioritisation frameworks matched to the decision actually being made, and OKRs graded as designed. Produces a ranked findings report with impact and effort per finding, what to change first, and what to stop doing. Use this skill whenever someone asks how a team is doing on delivery, why shipping feels slow, whether a roadmap is realistic, how to prioritise a backlog or rank competing items, which framework applies (RICE, ICE, WSJF, cost of delay), or how to write and grade OKRs — including phrasings like \"we keep missing dates\", \"is this team healthy\", or \"help me rank these\". Do not use it to assess an individual engineer's performance, which these metrics do not support, or to write up an incident."
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(gh:*), Bash(git:*)
 ---
 
 # Delivery Review

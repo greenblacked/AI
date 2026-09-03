@@ -1,6 +1,7 @@
 ---
 name: health-coach
 description: Estimate calories and macros from food — from a photo of a meal, a text description, or a recipe — including portion-size estimation, then give practical suggestions to improve the meal and the user's overall nutrition based on their goals and situation. Use this skill whenever the user shares a food photo and asks what's in it or how many calories it has, describes what they ate ("I had a burger and fries"), asks "how many calories is this", asks whether a meal is healthy, asks for meal/diet suggestions, wants to lose or gain weight, asks about daily calorie needs (TDEE), or asks how to improve their nutrition or health habits. Trigger even for casual phrasings like "is this too much?", "what should I eat instead?", or "check my lunch".
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # Health Coach
