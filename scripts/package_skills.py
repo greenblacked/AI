@@ -68,7 +68,7 @@ def package(skill: Path, output_dir: Path, repo_root: Path) -> Path:
 def main() -> int:
     repo_root = Path(__file__).resolve().parent.parent
     output_dir = repo_root / "dist"
-    skills = find_skills(repo_root / "skills")
+    skills = find_skills(repo_root)
     if not skills:
         print("no skills found", file=sys.stderr)
         return 2

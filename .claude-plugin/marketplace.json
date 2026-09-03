@@ -9,9 +9,7 @@
   "plugins": [
     {
       "name": "engineering",
-      "description": "Platform and DevOps skills: scaffold production-ready code, triage a red pipeline, review a Terraform plan, debug a Kubernetes workload or run an incident, harden a container image, and build or audit a website.",
-      "source": "./",
-      "strict": false,
+      "source": "./plugins/engineering",
       "category": "devops",
       "tags": [
         "devops",
@@ -20,27 +18,11 @@
         "ci",
         "containers",
         "sre"
-      ],
-      "skills": [
-        "./skills/engineering/ci-triage",
-        "./skills/engineering/code-scaffold",
-        "./skills/engineering/iac-review",
-        "./skills/engineering/image-hardening",
-        "./skills/engineering/k8s-triage",
-        "./skills/engineering/website-builder"
-      ],
-      "agents": [
-        "./agents/ci-log-reader.md",
-        "./agents/plan-reviewer.md",
-        "./agents/incident-scribe.md",
-        "./agents/skill-reviewer.md"
       ]
     },
     {
       "name": "manager",
-      "description": "Engineering-leadership skills: write a decision record or design doc, write a status update an executive can act on, run a blameless postmortem, review delivery health, and assess AI-assisted-engineering adoption.",
-      "source": "./",
-      "strict": false,
+      "source": "./plugins/manager",
       "category": "productivity",
       "tags": [
         "leadership",
@@ -48,31 +30,17 @@
         "postmortem",
         "dora",
         "okr"
-      ],
-      "skills": [
-        "./skills/manager/ai-enablement",
-        "./skills/manager/decision-record",
-        "./skills/manager/delivery-review",
-        "./skills/manager/postmortem",
-        "./skills/manager/status-update"
       ]
     },
     {
       "name": "personal",
-      "description": "Personal skills: estimate calories and macros from a photo or description and coach toward a goal, turn what you read into durable notes, and tailor a CV and interview preparation from a real history.",
-      "source": "./",
-      "strict": false,
+      "source": "./plugins/personal",
       "category": "productivity",
       "tags": [
         "health",
         "notes",
         "learning",
         "career"
-      ],
-      "skills": [
-        "./skills/personal/health-coach",
-        "./skills/personal/job-search",
-        "./skills/personal/learning-notes"
       ]
     }
   ]

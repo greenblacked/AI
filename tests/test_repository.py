@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def test_every_skill_in_this_repository_is_valid():
     findings = []
-    for skill in find_skills(ROOT / "skills"):
+    for skill in find_skills(ROOT):
         findings.extend(check_skill(skill, ROOT))
     findings.extend(check_marketplace(ROOT))
     errors = [f"{f.path}:{f.line} [{f.code}] {f.message}" for f in findings if f.failed]
@@ -28,7 +28,7 @@ def test_the_cli_exits_zero_on_this_repository(capsys):
 
 
 def test_the_cli_exits_one_when_a_skill_is_broken(tmp_path, capsys):
-    directory = tmp_path / "skills" / "engineering" / "demo"
+    directory = tmp_path / "plugins" / "engineering" / "skills" / "demo"
     directory.mkdir(parents=True)
     (directory / "SKILL.md").write_text("---\nname: wrong-name\n---\n", encoding="utf-8")
     assert main([str(tmp_path), "--skip-marketplace"]) == 1
@@ -38,9 +38,9 @@ def test_the_cli_exits_one_when_a_skill_is_broken(tmp_path, capsys):
 
 
 def test_github_mode_emits_annotations(tmp_path, capsys):
-    directory = tmp_path / "skills" / "engineering" / "demo"
+    directory = tmp_path / "plugins" / "engineering" / "skills" / "demo"
     directory.mkdir(parents=True)
     (directory / "SKILL.md").write_text("---\nname: demo\n---\n", encoding="utf-8")
     main([str(tmp_path), "--github", "--skip-marketplace"])
     output = capsys.readouterr().out
-    assert "::error file=skills/engineering/demo/SKILL.md,line=1" in output
+    assert "::error file=plugins/engineering/skills/demo/SKILL.md,line=1" in output
