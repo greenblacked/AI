@@ -48,7 +48,7 @@ The key set is closed. Only these six are allowed:
 | `name` | yes | Lowercase letters, digits and single hyphens. Max 64 characters. |
 | `description` | yes | Max 1024 characters. No `<` or `>`. |
 | `license` | no | Free text. |
-| `allowed-tools` | no | Tool restriction for the skill. |
+| `allowed-tools` | no | Comma-separated tool restriction, scoped per binary where that carries information: `Bash(kubectl:*)` says something, `Bash` does not. Optional in the standard, but every skill here sets it. |
 | `metadata` | no | Free-form. |
 | `compatibility` | no | Max 500 characters. |
 
@@ -359,9 +359,9 @@ subagent](writing-agents.md) for why.
 | `no-marketplace` | error | `.claude-plugin/marketplace.json` is missing. | Restore it. |
 | `bad-json` | error | The manifest is not valid JSON. | Fix the syntax at the reported line. |
 | `bad-marketplace-shape` | error | The manifest is not an object, `plugins` is not a list, a plugin entry is not an object, or a `skills`/`agents` value is not a list of strings. | Fix the shape. This is reported rather than raised because reaching `.get` on a string used to abort the whole run with a traceback. |
-| `missing-listed-plugin` | error | A plugin listed in `marketplace.json` has no `.claude-plugin/plugin.json` at its `source`. | Write the skill, or remove the entry. |
-| `unlisted-plugin` | error | A plugin exists on disk but is absent from `marketplace.json`, so it installs for nobody. | Add it to a plugin's `skills` array. |
-| `unowned-skill` | error | A skill is not inside any plugin's `skills/` directory, so no plugin ships it. | Write the file, or remove the entry. |
-| `unowned-agent` | error | A subagent is not inside any plugin's `agents/` directory. | Add it to a plugin's `agents` array. |
+| `missing-listed-plugin` | error | A plugin listed in `marketplace.json` has no `.claude-plugin/plugin.json` at its `source`. | Write the plugin manifest, correct the `source` path, or remove the entry. |
+| `unlisted-plugin` | error | A plugin exists on disk but is absent from `marketplace.json`, so it installs for nobody. | Add an entry for it to the manifest's `plugins` array. |
+| `unowned-skill` | error | A skill is not inside any plugin's `skills/` directory, so no plugin ships it. | Move it under `plugins/<name>/skills/`. |
+| `unowned-agent` | error | A subagent is not inside any plugin's `agents/` directory. | Move it under `plugins/<name>/agents/`. |
 
 CI runs the same validator on every push and pull request; see [what CI checks](ci.md).

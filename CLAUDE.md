@@ -6,7 +6,7 @@
 `CLAUDE.md` rather than `AGENTS.md`, and an import keeps them from drifting apart. Two
 Claude-specific notes:
 
-- The subagents in `agents/` are the intended way to do the heavy reading in this
+- The subagents in `plugins/engineering/agents/` are the intended way to do the heavy reading in this
   repository. Delegate a CI log or a Terraform plan rather than pulling it into the main
   context — that is what they exist for. `docs/writing-agents.md` explains when a
   subagent beats doing the work inline.
