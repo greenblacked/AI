@@ -1,0 +1,22 @@
+[
+  {"query": "we're moving off heroku onto ECS on the 14th and i need a plan for the switchover night", "should_trigger": true},
+  {"query": "how do we point DNS at the new load balancer without dropping requests halfway through", "should_trigger": true},
+  {"query": "who actually decides to roll back on saturday night, and by what time", "should_trigger": true},
+  {"query": "we're promoting the eu-west-1 replica to primary this weekend. walk me through the window", "should_trigger": true},
+  {"query": "need a runbook for the migration weekend, steps and owners and what we do if it goes wrong", "should_trigger": true},
+  {"query": "swapping our payment provider from one to another next quarter - what does the switch itself look like on the day", "should_trigger": true},
+  {"query": "carving the billing service out of the monolith and moving traffic to it. big bang or shift it gradually", "should_trigger": true},
+  {"query": "datacentre move next month, how long should the write freeze be and how do we prove both sides match", "should_trigger": true},
+  {"query": "when is it safe to turn the old system off now that we've migrated, and who signs that off", "should_trigger": true},
+  {"query": "what should be on the go/no-go list for thursday's traffic flip", "should_trigger": true},
+  {"query": "adding a nullable column to a 300 million row table - is that going to take a lock", "should_trigger": false},
+  {"query": "the generated down migration just drops the column again, does that count as reversible", "should_trigger": false},
+  {"query": "main has been red since 2pm, the test job keeps dying on the same step", "should_trigger": false},
+  {"query": "pods are in CrashLoopBackOff since the last deploy, do i roll back or investigate first", "should_trigger": false},
+  {"query": "i need to send the weekly update to stakeholders about how the platform work is going", "should_trigger": false},
+  {"query": "write up the postmortem for the outage last week, the timeline is already in a doc", "should_trigger": false},
+  {"query": "we're putting the new checkout behind a feature flag at 5% of users, what should we watch", "should_trigger": false},
+  {"query": "we ship four times a day but lead time is still nine days, where is the time going", "should_trigger": false},
+  {"query": "document the decision on whether we go with kafka or sqs for the event bus", "should_trigger": false},
+  {"query": "the terraform plan on this PR wants to replace the RDS instance, is that safe to apply", "should_trigger": false}
+]
