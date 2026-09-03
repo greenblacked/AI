@@ -60,17 +60,17 @@ advances the cursor instead of spinning.
 Around it:
 
 ```python
-last_id = load_checkpoint()          # 0 on a first run
+last_id = load_checkpoint()  # 0 on a first run
 while True:
     rows, high_water = run_batch(last_id, batch_size)
-    if high_water is None:           # no rows above last_id remain
+    if high_water is None:  # no rows above last_id remain
         break
     last_id = high_water
-    save_checkpoint(last_id)         # commit the checkpoint with, or after, the batch
+    save_checkpoint(last_id)  # commit the checkpoint with, or after, the batch
     emit_metric("backfill.rows", rows)
     lag = replica_lag_seconds()
     if lag > LAG_CEILING:
-        sleep(min(60, lag))          # back off proportionally, do not just continue
+        sleep(min(60, lag))  # back off proportionally, do not just continue
     else:
         sleep(BASE_SLEEP)
 ```

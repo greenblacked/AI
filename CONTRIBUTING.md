@@ -12,8 +12,13 @@ make validate
 make test
 ```
 
-Both are what CI runs. `make lint` runs markdownlint, yamllint and actionlint when they
-are installed and tells you the install command when they are not.
+Both are what CI runs. `make lint` runs ruff, markdownlint, yamllint and actionlint when
+they are installed and tells you the install command when they are not.
+
+Install the versions CI pins. Ruff 0.16 formats Python inside Markdown fences and 0.15
+does not, so an older local ruff reports a file as clean that CI then rejects — which is
+how a badly formatted example in a reference file reached a red build rather than a local
+one.
 
 If you edit this repository with Claude Code, `.claude/settings.json` registers a
 `PostToolUse` hook that runs the validator against whichever skill you just wrote and

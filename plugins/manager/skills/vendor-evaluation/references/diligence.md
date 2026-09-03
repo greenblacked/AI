@@ -20,7 +20,7 @@ Send these in writing and keep the answers with the evaluation. Written answers 
 citable later; a verbal answer on a call is not, and the person who gave it will have moved
 to another account by renewal.
 
-**Data**
+### Data
 
 - What data do you store, where is it stored, and where is it processed?
 - How long is it retained by default, and can we set that? What does deletion mean
@@ -32,7 +32,7 @@ to another account by renewal.
 - Who at your company can read our data, under what controls, and is that access logged in
   a log we can request?
 
-**Security**
+### Security
 
 - Latest SOC 2 Type II or ISO 27001 certificate plus the statement of applicability. What
   is in scope and what is excluded?
@@ -45,7 +45,7 @@ to another account by renewal.
   (This looks minor at signature and becomes the reason a rotation needs an outage — see
   the `secret-rotation` skill.)
 
-**Operations**
+### Operations
 
 - Availability over the last 12 months, and a link to the public status history.
 - RTO and RPO. What is our position if you are unavailable for a full day?
@@ -53,7 +53,7 @@ to another account by renewal.
 - What is the support SLA in the contract, by severity, and what is the escalation path
   outside business hours?
 
-**Commercial**
+### Commercial
 
 - Exactly what is the billing metric, and what happens when we exceed the commitment?
 - What is the renewal uplift, and will you cap it in writing?
