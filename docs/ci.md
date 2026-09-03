@@ -188,10 +188,16 @@ comment:
 ```
 
 A tag is a mutable reference — the maintainer can move `v7`, and a compromised account
-can move it to anything. A SHA cannot be moved. The trailing `# v7` comment is not
+can move it to anything. A SHA cannot be moved. The trailing `# v7.0.1` comment is not
 decoration: Dependabot parses it to identify which action version the SHA corresponds
 to, and without it the SHA stops being updated. `.github/dependabot.yml` has the
 `github-actions` ecosystem on a weekly schedule.
+
+Comment the exact release tag, not the major. A `# v7` is true only until upstream moves
+the floating `v7` tag to a newer commit, at which point the comment quietly describes a
+different version from the one being run — and zizmor's `ref-version-mismatch` fails the
+`security` gate for it. That is not a hypothetical: it is how `codespell-project/actions-codespell`
+and `github/codeql-action` first broke here, months after being pinned correctly.
 
 A tool downloaded rather than used as an action gets the same treatment as far as the
 mechanism allows. `lint-actions` fetches a specific actionlint release and verifies it

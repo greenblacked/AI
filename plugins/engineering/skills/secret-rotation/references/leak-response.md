@@ -123,7 +123,7 @@ follow-up action.
 Revocation removes the foothold. It does not remove what was built while the credential
 worked. Work through the list for the provider in question, bounded by the exposure window.
 
-**Cloud account (AWS, GCP, Azure)**
+### Cloud account (AWS, GCP, Azure)
 
 - New IAM users, roles, service accounts or access keys — especially ones created outside
   your normal tooling or IaC.
@@ -138,7 +138,7 @@ worked. Work through the list for the provider in question, bounded by the expos
   retention setting. This is the highest-signal item on the list.
 - Changed billing contacts, notification addresses, or support-plan details.
 
-**Source control and CI**
+### Source control and CI
 
 - New deploy keys, SSH keys, PATs, or authorised OAuth apps and GitHub Apps.
 - New or modified workflow files, self-hosted runners, and repository or organisation
@@ -146,7 +146,7 @@ worked. Work through the list for the provider in question, bounded by the expos
 - Changed branch protection or required reviewers.
 - Forks and clones of private repositories inside the window.
 
-**Identity and email**
+### Identity and email
 
 - New mail forwarding rules and filters, which are the most common quiet persistence.
 - New MFA devices or recovery methods on any affected account.

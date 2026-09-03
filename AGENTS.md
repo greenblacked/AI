@@ -117,8 +117,10 @@ Shell in this repository, including inline `run:` blocks in workflows, uses
   platform default, which reads as slow CI rather than broken CI.
 - Nothing in a workflow pipes a downloaded script into a shell. Tools are fetched at a
   pinned version and checked against a recorded digest.
-- Every action is pinned to a full-length commit SHA with a trailing `# vN` comment. The
-  SHA is what makes it immutable; the comment is what lets Dependabot bump it.
+- Every action is pinned to a full-length commit SHA, commented with the exact release
+  tag that SHA belongs to — `# v7.0.1`, not `# v7`. The SHA is what makes it immutable;
+  the comment is what lets Dependabot bump it. A major-version comment goes stale
+  silently the moment upstream moves the floating tag, and zizmor fails the build for it.
 - Checkouts set `persist-credentials: false`. Nothing here pushes from CI.
 - Skills may describe security tooling and defensive procedure. They must not contain
   working exploit code, credentials, or instructions whose obvious use is unauthorised

@@ -15,9 +15,9 @@ test: ## Run the validator's own test suite
 
 lint: ## Lint python, markdown, YAML and workflows (skips a tool when it is not installed)
 	@if command -v ruff >/dev/null 2>&1; then ruff check . && ruff format --check .; \
-		else echo "ruff not installed - run: pipx install ruff"; fi
+		else echo "ruff not installed - run: pipx install ruff==0.16.1 (the version CI pins)"; fi
 	@if command -v markdownlint-cli2 >/dev/null 2>&1; then markdownlint-cli2 "**/*.md"; \
-		else echo "markdownlint-cli2 not installed - run: npx markdownlint-cli2 '**/*.md'"; fi
+		else echo "markdownlint-cli2 not installed - run: npx markdownlint-cli2@0.23.2 '**/*.md'"; fi
 	@if command -v yamllint >/dev/null 2>&1; then yamllint --strict .; \
 		else echo "yamllint not installed - run: pipx install yamllint"; fi
 	@if command -v actionlint >/dev/null 2>&1; then actionlint; \
