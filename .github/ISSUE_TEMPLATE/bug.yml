@@ -1,0 +1,44 @@
+---
+name: Bug in a skill or the validator
+description: A skill misfires, a procedure is wrong, or skillcheck reports something it should not.
+labels:
+  - bug
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where is the problem
+      options:
+        - A skill's content or procedure
+        - A skill triggers when it should not, or never triggers
+        - skillcheck (the validator)
+        - Packaging, install, or the plugin marketplace
+        - A subagent
+        - Documentation
+    validations:
+      required: true
+  - type: input
+    id: name
+    attributes:
+      label: Skill, subagent or file
+      description: For example `engineering/ci-triage` or `src/skillcheck/rules.py`.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what happened instead
+      description: >-
+        For a triggering problem, paste the query you typed. For a validator
+        problem, paste the finding and the command you ran.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Claude Code version, Python version, operating system.
+      value: |
+        - Claude Code:
+        - Python:
+        - OS:
