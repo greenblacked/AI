@@ -17,6 +17,7 @@
         "kubernetes",
         "ci",
         "containers",
+        "migrations",
         "sre"
       ]
     },
@@ -27,6 +28,7 @@
       "tags": [
         "leadership",
         "adr",
+        "cadence",
         "postmortem",
         "dora",
         "okr"
@@ -40,7 +42,8 @@
         "health",
         "notes",
         "learning",
-        "career"
+        "career",
+        "writing"
       ]
     }
   ]
