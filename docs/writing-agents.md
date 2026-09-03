@@ -1,7 +1,7 @@
 # Writing a subagent
 
-Subagents live in the `agents/` directory as single Markdown files with YAML
-frontmatter — see [`skill-reviewer.md`](../plugins/engineering/agents/skill-reviewer.md) for one of the four
+Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
+frontmatter — `plugins/engineering/agents/` is the only one here — see [`skill-reviewer.md`](../plugins/engineering/agents/skill-reviewer.md) for one of the four
 this repository has today. A subagent is a separate Claude instance with its own context window,
 its own system prompt, and its own tool allowlist, invoked by the main agent and
 returning a result to it.
@@ -168,8 +168,8 @@ The `engineering` plugin in
   blameless postmortem draft: timeline from timestamped evidence, roles rather than
   names, and a literal `[TK: metric]` wherever a figure was not supplied.
 
-All four are listed in the `engineering` plugin's `agents` array, and the manifest
-cross-check enforces that in both directions: a plugin entry pointing at a file that does
-not exist is `missing-listed-agent`, and a file in `agents/` that no plugin lists is
-`unlisted-agent`. The second is the one that matters day to day — a subagent nobody lists
-installs for nobody, and there is no symptom to notice. Both fail [CI](ci.md).
+All four ship with the `engineering` plugin, which discovers its own `agents/` directory
+rather than listing files in the manifest — so there is no list to fall out of date. What
+the validator still checks is ownership: a subagent sitting outside every plugin is
+`unowned-agent`. That is the one that matters day to day, because a subagent no plugin
+ships installs for nobody and there is no symptom to notice. It fails [CI](ci.md).

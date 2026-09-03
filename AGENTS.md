@@ -20,7 +20,7 @@ Everything here is prose and configuration. There is no application. The only co
 | `plugins/engineering/skills/` | Platform and DevOps skills |
 | `plugins/manager/skills/` | Engineering-leadership skills |
 | `plugins/personal/skills/` | Personal skills |
-| `agents/` | Subagent definitions, validated on the same run as the skills |
+| `plugins/engineering/agents/` | Subagent definitions, validated on the same run as the skills |
 | `src/skillcheck/` | The validator: `frontmatter.py` parses, `rules.py` decides, `cli.py` reports |
 | `tests/` | pytest over the validator, including a check that this repository validates clean |
 | `plugins/*/skills/*/evals/` | Trigger eval sets: the queries a skill should and should not fire on |
@@ -28,6 +28,7 @@ Everything here is prose and configuration. There is no application. The only co
 | `template/SKILL.md` | Starting point for a new skill |
 | `.claude-plugin/marketplace.json` | Lists the three plugins; each discovers its own skills |
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml` |
+| `scripts/hooks/` | The `PostToolUse` hook `.claude/settings.json` registers, which validates a skill as it is written |
 
 ## Setup commands
 
@@ -74,10 +75,12 @@ in `src/skillcheck/` breaks the guarantee CI is built on, so do not add one.
    so twenty leaves room to drop one without failing. The negatives are the useful half — they are what
    catches a description that fires on everything. Draw several from the skills next
    door, because that is where the real collisions are.
-5. Nothing to add to `.claude-plugin/marketplace.json`: each plugin discovers its own
+5. Set `allowed-tools` to the minimum the procedure genuinely needs, scoped per binary
+   where scoping carries information — `Bash(kubectl:*)` says something, `Bash` does not.
+6. Nothing to add to `.claude-plugin/marketplace.json`: each plugin discovers its own
    `skills/`. What the validator checks is that the skill sits inside a plugin at all —
    one stranded outside `plugins/<name>/skills/` installs for nobody.
-6. Run `make validate && make test`.
+7. Run `make validate && make test`.
 
 `docs/writing-skills.md` has the full contract, including every validator code and how to
 fix it.
