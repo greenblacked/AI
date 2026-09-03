@@ -145,6 +145,6 @@ Before finishing, confirm each of these and say so honestly if one does not hold
 - [ ] `make validate` exits 0
 - [ ] `make test` passes
 - [ ] Every `references/`, `scripts/` or `assets/` path named in prose exists
-- [ ] Any new skill is listed in `.claude-plugin/marketplace.json` and has an eval set
+- [ ] Any new skill sits inside `plugins/<name>/skills/` and has an eval set
 - [ ] No secrets, tokens or personal data added
 - [ ] Commit messages carry no tool attribution
