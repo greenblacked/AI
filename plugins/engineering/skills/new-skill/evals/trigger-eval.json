@@ -1,0 +1,22 @@
+[
+  {"query": "write a skill for reviewing terraform plans", "should_trigger": true},
+  {"query": "my SKILL.md never fires, what is wrong with the description", "should_trigger": true},
+  {"query": "turn our incident runbook into a claude code skill", "should_trigger": true},
+  {"query": "how do I write the trigger eval set for a new skill", "should_trigger": true},
+  {"query": "add a new skill to the marketplace for database migrations", "should_trigger": true},
+  {"query": "what should the description say so the skill actually triggers", "should_trigger": true},
+  {"query": "create a skills directory with the right frontmatter for our team conventions", "should_trigger": true},
+  {"query": "this skill fires on everything, help me narrow the description", "should_trigger": true},
+  {"query": "draft an agent skill that walks through hardening container images", "should_trigger": true},
+  {"query": "this skill does two jobs, help me split it into two", "should_trigger": true},
+  {"query": "write me a bash script that rotates log files", "should_trigger": false},
+  {"query": "scaffold a new python cli tool with tests and a linter", "should_trigger": false},
+  {"query": "review the SKILL.md I already drafted and tell me what is broken", "should_trigger": false},
+  {"query": "bootstrap a terraform module for an s3 bucket", "should_trigger": false},
+  {"query": "the build is red again, is this a flake or a real failure", "should_trigger": false},
+  {"query": "write an ADR for choosing postgres over dynamodb", "should_trigger": false},
+  {"query": "generate a new landing page for the product", "should_trigger": false},
+  {"query": "add a github actions workflow that runs our linters", "should_trigger": false},
+  {"query": "summarise this article into atomic notes for my vault", "should_trigger": false},
+  {"query": "harden this Dockerfile and pin the base image by digest", "should_trigger": false}
+]
