@@ -1,0 +1,22 @@
+[
+  {"query": "we're looking at datadog vs grafana cloud vs staying on self-hosted prometheus, help me run this properly", "should_trigger": true},
+  {"query": "sales are offering 15% off for a three year commitment, is that worth taking", "should_trigger": true},
+  {"query": "should we build our own feature flag service or buy one", "should_trigger": true},
+  {"query": "renewal is in six weeks and they've quoted a 40% uplift, i need to work out whether to switch or re-sign", "should_trigger": true},
+  {"query": "put together a scorecard for the three CI vendors we're down to", "should_trigger": true},
+  {"query": "how do i design a trial of these two incident tools so it's actually a fair comparison", "should_trigger": true},
+  {"query": "what should i ask an existing customer on a reference call that they won't have a canned answer for", "should_trigger": true},
+  {"query": "finance wants a three year cost model for this saas tool, list price is 60k a year", "should_trigger": true},
+  {"query": "three teams want three different on-call tools and i have to pick one, how do i run that decision", "should_trigger": true},
+  {"query": "what do i need out of security and legal before we can sign with this vendor", "should_trigger": true},
+  {"query": "write up the decision to use postgres for the event store as an ADR", "should_trigger": false},
+  {"query": "draft an RFC for the new ingestion pipeline, it touches three teams", "should_trigger": false},
+  {"query": "our lead time has been sliding all quarter, can you work out why shipping feels slow", "should_trigger": false},
+  {"query": "our alerts page on cpu above 80% and nobody acts on them, redesign the alerting", "should_trigger": false},
+  {"query": "we signed this MSA last year, read it and tell me what our obligations are", "should_trigger": false},
+  {"query": "raise the PO and walk the invoice through procurement approvals", "should_trigger": false},
+  {"query": "we're hiring a staff platform engineer, design the interview loop and the rubric", "should_trigger": false},
+  {"query": "write this week's status update for the migration programme, exec audience", "should_trigger": false},
+  {"query": "should we roll out AI coding tools to the platform team and how would we measure whether it helped", "should_trigger": false},
+  {"query": "rank the backlog for next quarter, 40 items and six engineers, what framework should i use", "should_trigger": false}
+]
