@@ -1,6 +1,7 @@
 ---
 name: learning-notes
 description: Turn something read, watched or attended into a durable atomic note in the user's Obsidian vault — capture, processing into the user's own words, linking to notes that already exist, extracting the actionable change, and reviewing or quizzing on it later. Use this skill whenever the user pastes an article, paper, talk, RFC or documentation and asks to summarise it, says "add this to my notes", "make a note from this", "process this into my vault", finishes a book, course or conference talk, wants spaced-repetition cards written, or asks to be quizzed on something learned earlier. Trigger on casual phrasings too — "worth keeping?", "what should I remember from this", "quiz me on my Kubernetes notes". Not for drafting original documents, blog posts or specs, and not for answering a one-off factual question the user has no intention of keeping.
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # Learning Notes

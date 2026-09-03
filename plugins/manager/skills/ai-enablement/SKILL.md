@@ -1,6 +1,7 @@
 ---
 name: ai-enablement
 description: "Assess how a team actually uses AI-assisted engineering and produce a rollout plan — baseline current usage, measure the signals that indicate value while refusing the ones that create compliance theatre, check readiness gates on data handling, licensing, review accountability and cost, place the team on the enablement ladder, make repositories runnable by an agent, and run a time-boxed pilot with a pre-registered metric and a kill criterion. Use this skill whenever someone asks how to roll out AI coding tools, whether a team is using them well, what to measure for AI adoption, how to prepare a repo or write an AGENTS.md for agents, how to run or evaluate a pilot, or why AI tooling \"is not working here\" — including phrasings like \"we bought licences, now what\", \"is it actually helping\", or \"draft our AI engineering policy\". Do not use it to compare vendor products on price, or to write code with AI."
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # AI Enablement

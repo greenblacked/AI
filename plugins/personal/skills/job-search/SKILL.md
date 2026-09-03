@@ -1,6 +1,7 @@
 ---
 name: job-search
 description: Tailor a CV, write a cover note and prepare for interviews from the user's real history as a senior infrastructure, platform or engineering-leadership candidate — reading a job description for what it is really hiring to solve, rewriting experience as outcome-first bullets, and rehearsing STAR, system-design and leadership answers. Use this skill whenever the user pastes a job description or job link, asks to tailor, rewrite, review or shorten a CV or resume, wants a cover letter or cover note, is preparing for an interview or hiring loop, wants a system-design or behavioural rehearsal, asks how to explain a gap, a layoff or a career change, or asks how to handle salary and an offer. Casual phrasings count — "is this CV any good", "help me apply for this one", "grill me on this role". Not for writing job descriptions as a hiring manager, performance reviews or promotion packets, and never for inventing experience the user does not have.
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # Job Search

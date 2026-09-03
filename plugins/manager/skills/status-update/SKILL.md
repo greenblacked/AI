@@ -1,6 +1,7 @@
 ---
 name: status-update
 description: "Write weekly team status, executive updates and stakeholder comms that lead with the answer — BLUF (status flag, bottom line, ask, by when, since last, next, risks) for reporting, SCQA for persuasion, and never the two mixed. Enforces the discipline that makes an update trustworthy: no invented numbers, every impact claim linked to a dashboard or ticket, honest RAG status, one screen of length, and no people-performance content in a shared artefact. Use this skill whenever the user wants to write, tighten or review a status report, weekly update, project update, exec summary, steering-committee note, stakeholder email, programme roll-up or leadership briefing — including casual phrasings like \"send an update on the migration\", \"what do I tell the CTO\", or \"make this shorter for leadership\". Do not use it for architecture decision records or design docs, or for performance feedback about a named person."
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # Status Update

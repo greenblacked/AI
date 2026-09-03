@@ -1,6 +1,7 @@
 ---
 name: website-builder
 description: Design and build a complete website scaled to the brief — from a single landing page to a full web app — or audit an existing one and deliver prioritized improvements. Building runs an intake, picks the build tier, presents 2-3 design directions before any code is written, meets a quality floor, and adds deployment artifacts. Auditing covers UI/UX, accessibility, performance, security, SEO, code health, CI/CD and observability, ranks findings by impact and effort, and implements fixes on request. Use whenever the user asks for a website, landing page, portfolio, blog, marketing site, dashboard, web app or any browser-facing UI — "build me a site for X", "I need a page for Y" — and equally when they point at a site that already exists and ask to review it, improve it, redesign it, make it faster or more secure, or fix its pipeline. Not for an isolated UI component, a backend-only service, or a general question about web technology.
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(npm:*), Bash(npx:*), Bash(node:*), Bash(git:*), WebFetch
 ---
 
 # Website Builder
