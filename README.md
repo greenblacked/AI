@@ -95,12 +95,22 @@ git clone https://github.com/greenblacked/AI.git && cd AI
 
 ## Subagents
 
-`plugins/engineering/agents/` holds four subagents that exist to keep bulk out of the main
-context and to be
-denied tools they should not have: `ci-log-reader` reads a failing run and returns a
-classification, `plan-reviewer` reads a Terraform plan and returns the blast radius,
-`incident-scribe` turns triage notes into a postmortem draft, and `skill-reviewer` audits
-a candidate skill against this repository's rules.
+Nine subagents ship across two plugins. Each exists to keep bulk out of the main context
+— the input is a log, a plan, a billing export, a contract, a pile of feedback, and the
+answer is short — and to be denied tools it should not have. A reviewer that can apply is
+not a reviewer.
+
+| Subagent | Plugin | Reads | Returns |
+| --- | --- | --- | --- |
+| `ci-log-reader` | `engineering` | A failing run's logs | One of five triage classes and the line that decided it |
+| `plan-reviewer` | `engineering` | A Terraform plan JSON | The blast radius, destroys first |
+| `incident-scribe` | `engineering` | Raw triage notes and scrollback | A blameless postmortem draft |
+| `skill-reviewer` | `engineering` | A candidate SKILL.md | What is wrong, why it costs something, the smallest fix |
+| `cost-analyst` | `engineering` | A cloud billing export | The top movers period over period, not the top spenders |
+| `policy-auditor` | `engineering` | IAM policies and access logs | The gap between permitted and used, with the window stated |
+| `telemetry-reader` | `engineering` | Traces and structured logs | The critical path, or why the data cannot answer |
+| `contract-reader` | `manager` | A contract, DPA or SOC 2 report | The clauses that decide the deal, quoted and located |
+| `feedback-synthesiser` | `manager` | Collected peer feedback | Themes with a source count and a quoted example |
 
 ## Commands
 

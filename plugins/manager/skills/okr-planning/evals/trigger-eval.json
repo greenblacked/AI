@@ -1,0 +1,22 @@
+[
+  {"query": "help me draft OKRs for the platform team for Q3, we have never done them before", "should_trigger": true},
+  {"query": "every one of our key results is just a thing we were already shipping. how do i fix that", "should_trigger": true},
+  {"query": "we want deploy frequency up next quarter but i have no idea what a sensible target is", "should_trigger": true},
+  {"query": "leadership handed us their goals and told us to break them down into ours. this feels wrong", "should_trigger": true},
+  {"query": "we scored 1.0 on everything last quarter and my director is delighted. i am not", "should_trigger": true},
+  {"query": "goal setting offsite is monday and we have eleven objectives on the board", "should_trigger": true},
+  {"query": "half the quarter is gone and two of our key results stopped mattering after the reorg", "should_trigger": true},
+  {"query": "how do i stop a goal to cut cloud spend from being achieved by deleting all the redundancy", "should_trigger": true},
+  {"query": "finance wants to put our key results into the bonus calculation. give me the argument against", "should_trigger": true},
+  {"query": "time to grade last quarter's objectives and write up what we actually learned", "should_trigger": true},
+  {"query": "our cycle time p95 is four times the median and i want to know why shipping feels slow", "should_trigger": false},
+  {"query": "rank these fourteen backlog items for me, RICE or WSJF, whichever fits", "should_trigger": false},
+  {"query": "what meetings should a platform group of thirty actually run each week", "should_trigger": false},
+  {"query": "our monday leadership sync produces no decisions and everyone dials in from a car", "should_trigger": false},
+  {"query": "weekly update for the steering committee, we are two weeks behind on the migration", "should_trigger": false},
+  {"query": "is priya ready for staff, and what do i put in the promotion packet", "should_trigger": false},
+  {"query": "write up why we picked postgres over kafka for the event store so nobody reopens it", "should_trigger": false},
+  {"query": "40 minutes of 500s after saturday's config change, i need the blameless writeup by wednesday", "should_trigger": false},
+  {"query": "status page says degraded and i need to tell customers something in the next ten minutes", "should_trigger": false},
+  {"query": "we want to kill an availability zone on purpose and see whether the failover actually works", "should_trigger": false}
+]
