@@ -68,6 +68,7 @@ Order of work:
 
    tracer = trace.get_tracer("checkout")
 
+
    def reserve_inventory(order_id: str, tenant_id: str, sku_count: int) -> None:
        with tracer.start_as_current_span("checkout.reserve_inventory") as span:
            # High-cardinality identity is safe here and only here: spans are priced per

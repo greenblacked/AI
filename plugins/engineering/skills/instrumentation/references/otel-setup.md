@@ -180,10 +180,10 @@ a span.
 from opentelemetry.propagate import inject, extract
 
 headers = {}
-inject(headers)                      # producer: traceparent into message headers
+inject(headers)  # producer: traceparent into message headers
 publish(topic, body, headers=headers)
 
-ctx = extract(message.headers)       # consumer: continue the trace
+ctx = extract(message.headers)  # consumer: continue the trace
 with tracer.start_as_current_span("orders.process", context=ctx):
     ...
 ```
