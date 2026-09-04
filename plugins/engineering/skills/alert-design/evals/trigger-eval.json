@@ -1,0 +1,22 @@
+[
+  {"query": "our pager went off 40 times last night for one bad deploy, can we make that stop happening", "should_trigger": true},
+  {"query": "someone wants to add an alert for CPU over 80% after the incident. is that actually a good idea", "should_trigger": true},
+  {"query": "write me the prometheus rules for a 99.9% availability SLO on checkout, multiwindow burn rate", "should_trigger": true},
+  {"query": "should disk 85% full page someone at 3am or just open a ticket", "should_trigger": true},
+  {"query": "the exporter had been dead for two days and every dashboard looked fine. how do we catch that", "should_trigger": true},
+  {"query": "review our PrometheusRule file, half of these have no runbook_url and severity is either warning or critical with no difference", "should_trigger": true},
+  {"query": "we have 180 alert rules and the on call rota ignores basically all of them. where do i start cutting", "should_trigger": true},
+  {"query": "alertmanager keeps sending the same page every 10 minutes and it fires per pod instead of per service", "should_trigger": true},
+  {"query": "what is a sensible for: duration, we scrape every 30s and i keep getting alerts from a single missed scrape", "should_trigger": true},
+  {"query": "customers reported the outage before we did. what alert should have caught it", "should_trigger": true},
+  {"query": "pods in staging went CrashLoopBackOff right after the 11:40 deploy, roll back or dig in?", "should_trigger": false},
+  {"query": "we have an incident, checkout is down for maybe 20% of users and im IC", "should_trigger": false},
+  {"query": "build me a grafana dashboard for the checkout service with latency and traffic panels", "should_trigger": false},
+  {"query": "how many nodes do we need next quarter if traffic keeps growing 8% a month", "should_trigger": false},
+  {"query": "datadog vs grafana cloud vs self hosted prometheus, which should we buy", "should_trigger": false},
+  {"query": "write up the postmortem for last week's outage, i have the timeline in a doc already", "should_trigger": false},
+  {"query": "CI is red again on the payments service, third time today. same job, different test each time", "should_trigger": false},
+  {"query": "terraform plan on the PR says it's replacing the RDS instance, safe to approve or not", "should_trigger": false},
+  {"query": "plan a chaos exercise where we kill an availability zone and see if failover works", "should_trigger": false},
+  {"query": "have a look at this Dockerfile, it's 1.2GB and the process runs as root", "should_trigger": false}
+]

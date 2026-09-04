@@ -1,0 +1,22 @@
+[
+  {"query": "my pod won't start, CrashLoopBackOff, 47 restarts and climbing", "should_trigger": true},
+  {"query": "the deploy broke prod, checkout is 502ing. roll back?", "should_trigger": true},
+  {"query": "pods stuck Pending for twenty minutes in the ml namespace, the node group looks like it has room", "should_trigger": true},
+  {"query": "svc/orders has no endpoints but the pods are all Running, what am i missing", "should_trigger": true},
+  {"query": "worker deployment gets OOMKilled every couple of hours since we bumped the batch size", "should_trigger": true},
+  {"query": "we have an incident, dns resolution failing intermittently cluster wide, coredns pods look healthy", "should_trigger": true},
+  {"query": "namespace has been Terminating for an hour and won't go away", "should_trigger": true},
+  {"query": "403 forbidden: User system:serviceaccount:prod:api cannot list secrets, started after the chart bump", "should_trigger": true},
+  {"query": "readiness never passes on the new version, container is up, logs stop after 'listening on 8080'", "should_trigger": true},
+  {"query": "k8s is down, api server returning etcdserver: request timed out. what do i do first", "should_trigger": true},
+  {"query": "write the deployment, service and hpa manifests for a new grpc service", "should_trigger": false},
+  {"query": "scaffold a helm chart for our internal admin tool", "should_trigger": false},
+  {"query": "write the postmortem for tuesday's outage, i've got the timeline and the graphs", "should_trigger": false},
+  {"query": "we're planning the 1.29 to 1.31 upgrade next quarter, what order do we do things in", "should_trigger": false},
+  {"query": "how many nodes do we need for black friday, p95 cpu is sitting around 40 percent today", "should_trigger": false},
+  {"query": "our staging cluster costs 4k a month, where is the money actually going", "should_trigger": false},
+  {"query": "the e2e workflow has failed six times in a row at the kind cluster setup step", "should_trigger": false},
+  {"query": "this Dockerfile runs as root and the cluster rejects it, fix the image", "should_trigger": false},
+  {"query": "terraform plan wants to replace the eks node group, is that going to drain everything", "should_trigger": false},
+  {"query": "explain how kube-proxy iptables mode differs from ipvs", "should_trigger": false}
+]

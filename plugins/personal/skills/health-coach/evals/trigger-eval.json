@@ -1,0 +1,22 @@
+[
+  {"query": "had a doner kebab and chips at 1am, roughly how bad was that", "should_trigger": true},
+  {"query": "photo of my lunch, is that enough protein? i lift four times a week", "should_trigger": true},
+  {"query": "i am 34, 92kg, desk job, want to be 82 by christmas. what should i actually be eating", "should_trigger": true},
+  {"query": "made a chicken curry with a whole tin of coconut milk for four people, how many calories a portion", "should_trigger": true},
+  {"query": "is 1800 calories too low for me, i am 178cm and reasonably active", "should_trigger": true},
+  {"query": "what should i eat instead of the meal deal every day, i am at my desk with fifteen minutes", "should_trigger": true},
+  {"query": "breakfast is two slices of toast with peanut butter and a coffee. fine or lazy", "should_trigger": true},
+  {"query": "the calculator says my TDEE is 2400 and i have been eating that for a month with nothing happening", "should_trigger": true},
+  {"query": "wife is doing pasta bake tonight and i already had a huge lunch. should i just skip it", "should_trigger": true},
+  {"query": "help me get more fibre in without piling on calories, i eat almost no vegetables", "should_trigger": true},
+  {"query": "i have had stomach cramps after every meal for two weeks, what is causing that", "should_trigger": false},
+  {"query": "my GP says my cholesterol is 6.4 and wants me on statins. should i take them", "should_trigger": false},
+  {"query": "write a diet plan for my dad, he is type 2 diabetic and on metformin", "should_trigger": false},
+  {"query": "is it safe to take ibuprofen with the blood pressure tablets i am on", "should_trigger": false},
+  {"query": "give me a recipe for a chicken traybake for four, i have potatoes and lemons in", "should_trigger": false},
+  {"query": "somewhere good for seafood in lisbon on a saturday night", "should_trigger": false},
+  {"query": "read this paper on time restricted eating and add it to my vault", "should_trigger": false},
+  {"query": "how do i explain a six month gap on my CV where i was actually ill", "should_trigger": false},
+  {"query": "my dog keeps throwing up after he eats, is the food wrong", "should_trigger": false},
+  {"query": "what is a sensible split for hypertrophy if i am training four days a week", "should_trigger": false}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "turn this migration into a blog post", "should_trigger": true},
+  {"query": "write a technical article about how we cut our build times", "should_trigger": true},
+  {"query": "make these rough notes publishable", "should_trigger": true},
+  {"query": "help me find the argument buried in this draft", "should_trigger": true},
+  {"query": "draft a case study on the platform work we did last year", "should_trigger": true},
+  {"query": "write a tutorial explaining how this pattern works", "should_trigger": true},
+  {"query": "I want to explain publicly why we chose this architecture", "should_trigger": true},
+  {"query": "review my engineering blog draft and tell me if the thesis holds", "should_trigger": true},
+  {"query": "write up the lesson from that outage for a public audience", "should_trigger": true},
+  {"query": "turn my project experience into something I can publish", "should_trigger": true},
+  {"query": "write the internal postmortem for last night's incident", "should_trigger": false},
+  {"query": "summarise this paper into atomic notes for my vault", "should_trigger": false},
+  {"query": "tailor my CV for a staff platform engineering role", "should_trigger": false},
+  {"query": "write an ADR recording why we picked this database", "should_trigger": false},
+  {"query": "write the weekly status update for my director", "should_trigger": false},
+  {"query": "build me a personal site to host my writing", "should_trigger": false},
+  {"query": "write API reference documentation for this service", "should_trigger": false},
+  {"query": "write marketing copy for our product launch", "should_trigger": false},
+  {"query": "prepare answers for my upcoming system design interview", "should_trigger": false},
+  {"query": "invent a plausible incident story I can use as an example", "should_trigger": false}
+]

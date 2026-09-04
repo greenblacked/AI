@@ -1,0 +1,22 @@
+[
+  {"query": "we want to run a game day next month, where do we even start", "should_trigger": true},
+  {"query": "can we kill one availability zone in prod and see whether the failover actually holds", "should_trigger": true},
+  {"query": "nobody has ever restored one of our backups. how do i test that properly without wrecking anything", "should_trigger": true},
+  {"query": "i want to page the on call unannounced with a fake alert and time how long detection takes. is that a terrible idea", "should_trigger": true},
+  {"query": "help me write a chaos experiment hypothesis for injecting 500ms of latency into the payments dependency", "should_trigger": true},
+  {"query": "our DR plan has only ever been tested in staging and leadership thinks that counts", "should_trigger": true},
+  {"query": "what should the blast radius and abort condition be if we fail over the primary database during business hours", "should_trigger": true},
+  {"query": "fire drill for the incident response process - i want to see if anyone can write a status page update in ten minutes", "should_trigger": true},
+  {"query": "we ran a chaos exercise last week and produced a doc full of observations that nobody has acted on", "should_trigger": true},
+  {"query": "prove the runbook is right by actually breaking the thing it describes, with an observer taking notes", "should_trigger": true},
+  {"query": "we have an incident, checkout is down for maybe 20% of users and im IC", "should_trigger": false},
+  {"query": "pods in staging went CrashLoopBackOff right after the 11:40 deploy, roll back or dig in?", "should_trigger": false},
+  {"query": "run a k6 load test and find where the api starts falling over at 5000 rps", "should_trigger": false},
+  {"query": "set up a red team engagement to see if anyone can pivot from the web tier into the database", "should_trigger": false},
+  {"query": "write up the postmortem for last week's outage, i have the timeline in a doc already", "should_trigger": false},
+  {"query": "someone wants to add an alert for CPU over 80% after the incident. is that actually a good idea", "should_trigger": false},
+  {"query": "plan the cutover for moving the orders service to the new cluster this saturday with a rollback plan", "should_trigger": false},
+  {"query": "CI is red again on the payments service, third time today. same job, different test each time", "should_trigger": false},
+  {"query": "terraform plan on the PR says it's replacing the RDS instance, safe to approve or not", "should_trigger": false},
+  {"query": "write a bash script that snapshots the rds instance every night and prunes anything older than 30 days", "should_trigger": false}
+]
