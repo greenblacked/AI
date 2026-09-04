@@ -365,3 +365,5 @@ subagent](writing-agents.md) for why.
 | `unowned-agent` | error | A subagent is not inside any plugin's `agents/` directory. | Move it under `plugins/<name>/agents/`. |
 
 CI runs the same validator on every push and pull request; see [what CI checks](ci.md).
+Subagents and slash commands are validated on the same run — see
+[writing a subagent](writing-agents.md) and [writing a slash command](writing-commands.md).

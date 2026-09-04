@@ -21,10 +21,12 @@ Everything here is prose and configuration. There is no application. The only co
 | `plugins/manager/skills/` | Engineering-leadership skills |
 | `plugins/personal/skills/` | Personal skills |
 | `plugins/engineering/agents/` | Subagent definitions, validated on the same run as the skills |
+| `plugins/*/commands/` | Slash commands the plugin ships, validated on the same run |
+| `.claude/commands/` | Slash commands for working on this repository, not shipped to installers |
 | `src/skillcheck/` | The validator: `frontmatter.py` parses, `rules.py` decides, `cli.py` reports |
 | `tests/` | pytest over the validator, including a check that this repository validates clean |
 | `plugins/*/skills/*/evals/` | Trigger eval sets: the queries a skill should and should not fire on |
-| `docs/` | How to write skills, subagents, `AGENTS.md`, and what CI checks |
+| `docs/` | How to write skills, subagents, commands, `AGENTS.md`, and what CI checks |
 | `template/SKILL.md` | Starting point for a new skill |
 | `.claude-plugin/marketplace.json` | Lists the three plugins; each discovers its own skills |
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml` |
@@ -84,6 +86,12 @@ in `src/skillcheck/` breaks the guarantee CI is built on, so do not add one.
 
 `docs/writing-skills.md` has the full contract, including every validator code and how to
 fix it.
+
+A slash command is a different thing and is not a substitute for a skill: it never fires
+on its own, so it is the right shape only for work that takes an argument or that should
+happen when asked rather than when merely relevant. A command that restates a skill is a
+worse version of a skill whose description should have triggered.
+`docs/writing-commands.md` has that contract.
 
 ## Code style
 
