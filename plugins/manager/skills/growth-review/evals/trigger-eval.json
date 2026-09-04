@@ -1,0 +1,22 @@
+[
+  {"query": "reviews are due friday for four reports and honestly i only have the last six weeks in my head", "should_trigger": true},
+  {"query": "is maya ready for staff or am i just impressed because she ran the one visible project", "should_trigger": true},
+  {"query": "write the promo packet for tom, he has been carrying senior scope for about three quarters", "should_trigger": true},
+  {"query": "calibration is tuesday and i need to argue for my person against a much louder story from another manager", "should_trigger": true},
+  {"query": "i have to tell an engineer this is a meets not an exceeds and i keep softening it into mush", "should_trigger": true},
+  {"query": "turn 'needs to be more strategic' into something he can actually start on next quarter", "should_trigger": true},
+  {"query": "one of my reports has been missing the bar for two months and i have not said it properly yet, how do i open that conversation", "should_trigger": true},
+  {"query": "what should i ask his peers, asking 'any thoughts on dan' gets me nothing but adjectives", "should_trigger": true},
+  {"query": "we have no career ladder and i need to explain why she is a senior and he is not", "should_trigger": true},
+  {"query": "draft the development plan coming out of this review cycle for one of my engineers", "should_trigger": true},
+  {"query": "we are hiring a platform engineer and the loop is five rounds, what should i cut", "should_trigger": false},
+  {"query": "the panel is split on this candidate and the debrief is in an hour", "should_trigger": false},
+  {"query": "why does everything take three weeks to ship, cycle time feels awful and we keep missing dates", "should_trigger": false},
+  {"query": "tailor my CV for this SRE role and then grill me on the system design round", "should_trigger": false},
+  {"query": "what should we pay a staff engineer in berlin, i need band data before i make the offer", "should_trigger": false},
+  {"query": "i have already decided to let him go, write me something that supports the decision", "should_trigger": false},
+  {"query": "weekly update for the steering committee on the migration, we are two weeks behind", "should_trigger": false},
+  {"query": "write up why we chose postgres over dynamo so nobody relitigates it next quarter", "should_trigger": false},
+  {"query": "our OKRs came in at 1.0 across the board again, is that a problem", "should_trigger": false},
+  {"query": "the checkout outage on saturday needs a postmortem by wednesday", "should_trigger": false}
+]

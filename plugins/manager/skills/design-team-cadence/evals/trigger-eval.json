@@ -1,0 +1,22 @@
+[
+  {"query": "our meetings achieve nothing, help me fix the rhythm", "should_trigger": true},
+  {"query": "what cadence should I run for a team of twelve engineers", "should_trigger": true},
+  {"query": "how often should I do one-to-ones and what goes in them", "should_trigger": true},
+  {"query": "everyone is surprised by decisions, how should we route them", "should_trigger": true},
+  {"query": "I am becoming a manager of managers, what routines do I need", "should_trigger": true},
+  {"query": "help me cut the number of recurring meetings without losing coordination", "should_trigger": true},
+  {"query": "design an operating rhythm for a platform group", "should_trigger": true},
+  {"query": "should we have an architecture forum and who owns it", "should_trigger": true},
+  {"query": "set up skip-levels and a weekly staff meeting that are worth attending", "should_trigger": true},
+  {"query": "what should our escalation path look like day to day", "should_trigger": true},
+  {"query": "our DORA numbers are getting worse, what does that tell us", "should_trigger": false},
+  {"query": "write the weekly status update for the leadership team", "should_trigger": false},
+  {"query": "write an ADR for the queue technology we picked", "should_trigger": false},
+  {"query": "prepare a promotion case for a senior engineer", "should_trigger": false},
+  {"query": "design the interview loop for a staff platform role", "should_trigger": false},
+  {"query": "write up the outage from last night as a blameless postmortem", "should_trigger": false},
+  {"query": "assess how the team is adopting AI-assisted engineering", "should_trigger": false},
+  {"query": "compare three observability vendors and recommend one", "should_trigger": false},
+  {"query": "cycle time has doubled this quarter, where is the queue", "should_trigger": false},
+  {"query": "facilitate the incident call happening right now", "should_trigger": false}
+]

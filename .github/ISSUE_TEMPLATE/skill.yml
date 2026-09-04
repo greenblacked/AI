@@ -1,0 +1,48 @@
+---
+name: Propose a skill
+description: Suggest a new skill, or a substantial change to an existing one.
+labels:
+  - skill
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        A skill earns its place by encoding an opinionated procedure — the
+        ordering, the specific gate, the command with the right flag. If the
+        answer is general good practice that a competent agent already follows,
+        it does not need a skill.
+  - type: input
+    id: name
+    attributes:
+      label: Proposed name
+      description: Lowercase, hyphenated, and it becomes the directory name.
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - engineering
+        - manager
+        - personal
+    validations:
+      required: true
+  - type: textarea
+    id: procedure
+    attributes:
+      label: What is the procedure, in order
+      description: >-
+        The steps, the gates, and what makes the job hard enough to be worth
+        writing down.
+    validations:
+      required: true
+  - type: textarea
+    id: overlap
+    attributes:
+      label: Which existing skill is this closest to, and how does it differ
+      description: >-
+        Two skills whose descriptions overlap fire unpredictably, so this
+        answer decides whether the proposal is viable.
+    validations:
+      required: true

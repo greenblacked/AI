@@ -1,0 +1,22 @@
+[
+  {"query": "build me a site for my dog grooming business, one page, needs a booking form", "should_trigger": true},
+  {"query": "i need a landing page for the beta launch, copy is in a google doc already", "should_trigger": true},
+  {"query": "make a web app that does timezone aware standup scheduling, small internal thing for about 15 people", "should_trigger": true},
+  {"query": "our marketing site looks like every other startup site. redesign it", "should_trigger": true},
+  {"query": "portfolio site for me, i'm a photographer, roughly 40 images, has to be quick on mobile", "should_trigger": true},
+  {"query": "can you audit acme.io, lighthouse gives us 34 on performance and i don't know where to start", "should_trigger": true},
+  {"query": "screen reader users can't get past the nav on our docs site. review it and fix what's broken", "should_trigger": true},
+  {"query": "build an internal dashboard showing deploy frequency and change failure rate, pulls from the github api", "should_trigger": true},
+  {"query": "existing next.js site, i want it hardened and the deploy pipeline working again", "should_trigger": true},
+  {"query": "blog for the engineering team, markdown posts, cheap to host and easy for people to add to", "should_trigger": true},
+  {"query": "write a react date range picker, accessible, no dependencies", "should_trigger": false},
+  {"query": "build the rest api for the booking service, no frontend, someone else is doing that", "should_trigger": false},
+  {"query": "what's the difference between SSR and SSG and does it matter for a ten page site", "should_trigger": false},
+  {"query": "our email newsletter template renders completely broken in outlook, fix the html", "should_trigger": false},
+  {"query": "vercel build failing on the marketing site, Module not found: Can't resolve @/lib/db", "should_trigger": false},
+  {"query": "the site's container image is 900mb because node_modules ends up in the runtime stage", "should_trigger": false},
+  {"query": "frontend pods are getting OOMKilled since the last release", "should_trigger": false},
+  {"query": "review the terraform that puts the site behind cloudfront, is that s3 bucket public", "should_trigger": false},
+  {"query": "write a python script that generates sitemap.xml from our content folder", "should_trigger": false},
+  {"query": "contentful vs sanity vs plain markdown for the CMS, write it up so we can decide properly", "should_trigger": false}
+]

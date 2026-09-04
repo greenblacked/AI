@@ -1,0 +1,22 @@
+[
+  {"query": "we bought 60 copilot seats back in march and honestly i have no idea if anything changed. how would i even tell", "should_trigger": true},
+  {"query": "the platform team keeps telling me AI doesn't work in our monorepo. i suspect that is not actually about the AI", "should_trigger": true},
+  {"query": "need to write an AGENTS.md for the payments repo so an agent can run the tests without asking someone", "should_trigger": true},
+  {"query": "CTO wants a one page policy on what code people are allowed to paste into AI tools. where do i start", "should_trigger": true},
+  {"query": "planning a six week pilot of cursor with the checkout team, what do we measure and when do we call it off", "should_trigger": true},
+  {"query": "half my engineers are using personal chatgpt accounts on work code. what do i do about that other than ban it", "should_trigger": true},
+  {"query": "our VP wants a per engineer leaderboard of suggestion acceptance rate. i think it is a terrible idea but i need to argue it properly", "should_trigger": true},
+  {"query": "where does my team actually sit on AI maturity, we are all just doing tab completion in the editor right now", "should_trigger": true},
+  {"query": "i want agents opening PRs in CI. what has to be true before i let that happen", "should_trigger": true},
+  {"query": "draft me a 90 day rollout plan for AI tooling across four backend teams", "should_trigger": true},
+  {"query": "cycle time has been creeping up for two quarters and i want to know why before the QBR", "should_trigger": false},
+  {"query": "help me rank these fourteen backlog items, one queue and everyone thinks theirs goes first", "should_trigger": false},
+  {"query": "we picked Copilot Enterprise over Cursor and i want the rejected options written down so nobody reopens it in january", "should_trigger": false},
+  {"query": "weekly note to the steering group on the tooling rollout, it is amber and i have to say so", "should_trigger": false},
+  {"query": "an agent merged a bad migration on friday and we lost an hour of writes, draft the writeup", "should_trigger": false},
+  {"query": "cursor business is 40 a seat and copilot enterprise is 39, which is cheaper at 200 seats on an annual commit", "should_trigger": false},
+  {"query": "my prompt keeps making it rewrite the whole file instead of the one function, how should i phrase it", "should_trigger": false},
+  {"query": "i want to build an internal assistant over our runbooks with RAG, what stack would you use", "should_trigger": false},
+  {"query": "raj barely touches the tools we bought him and his output is down. how do i raise that in his review", "should_trigger": false},
+  {"query": "can you explain how context windows actually work, i keep hearing about them and nodding along", "should_trigger": false}
+]
