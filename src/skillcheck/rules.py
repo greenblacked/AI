@@ -795,3 +795,54 @@ def check_command(path: Path, repo_root: Path) -> list[Finding]:
             front.end_line + 1 + masked[: match.start()].count("\n"),
         )
     return findings
+
+
+def check_eval_conflicts(skills: list[Path], repo_root: Path) -> list[Finding]:
+    """No query may be a positive for two skills at once.
+
+    A query labelled ``should_trigger: true`` in two eval sets is a contradiction the
+    harness can never satisfy: whichever skill wins the invocation, the other is scored
+    as a miss, so one of the two is permanently and misleadingly below its threshold.
+
+    The reverse — a positive for one skill and a negative for another — is not a
+    conflict but the strongest test in the set, because it names the exact sibling the
+    description has to beat. It is deliberately left alone.
+    """
+    findings: list[Finding] = []
+    claimed: dict[str, tuple[str, Path]] = {}
+    for directory in skills:
+        path = directory / "evals" / "trigger-eval.json"
+        if not path.is_file():
+            continue
+        try:
+            entries = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, ValueError, UnicodeDecodeError):
+            continue  # check_evals reports the malformed file; do not report it twice
+        if not isinstance(entries, list):
+            continue
+        for entry in entries:
+            if not isinstance(entry, dict) or entry.get("should_trigger") is not True:
+                continue
+            query = entry.get("query")
+            if not isinstance(query, str):
+                continue
+            key = " ".join(query.split()).casefold()
+            first = claimed.get(key)
+            if first is None:
+                claimed[key] = (directory.name, path)
+                continue
+            if first[0] == directory.name:
+                continue
+            findings.append(
+                Finding(
+                    ERROR,
+                    path.relative_to(repo_root),
+                    1,
+                    "conflicting-eval-query",
+                    f"{query!r} is also a positive for {first[0]!r} "
+                    f"({first[1].relative_to(repo_root)}); one of the two will always "
+                    "score as a miss, so decide which skill owns the query and make it "
+                    "a negative in the other",
+                )
+            )
+    return findings

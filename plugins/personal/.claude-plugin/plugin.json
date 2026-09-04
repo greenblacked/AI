@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "personal",
-  "description": "Personal skills: estimate calories and macros from a photo or description and coach toward a goal, turn what you read into durable notes, write an evidence-backed technical article, and tailor a CV and interview preparation from a real history.",
+  "description": "Personal skills: estimate calories and macros from a photo or description and coach toward a goal, turn what you read into durable notes, write an evidence-backed technical article, run an honest weekly review, evaluate and negotiate a job offer, and tailor a CV and interview preparation from a real history.",
   "author": {
     "name": "Serhii Zolotov",
     "url": "https://github.com/greenblacked"
