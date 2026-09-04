@@ -96,3 +96,47 @@ def test_an_eval_finding_lands_on_the_skill_row_in_the_summary(tmp_path, monkeyp
     assert main([str(tmp_path), "--github", "--skip-marketplace"]) == 1
     row = next(line for line in summary.read_text().splitlines() if str(directory.name) in line)
     assert "❌" in row
+
+
+POSITIVE = {"query": "ship it", "should_trigger": True}
+
+
+def write_eval_set(root, plugin, skill, queries):
+    directory = root / "plugins" / plugin / "skills" / skill / "evals"
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "trigger-eval.json").write_text(json.dumps(queries), encoding="utf-8")
+    return directory.parent
+
+
+def test_the_same_positive_in_two_skills_is_an_error(tmp_path):
+    from skillcheck.rules import check_eval_conflicts
+
+    # Whitespace and case differ, because a conflict people actually create is a
+    # near-copy rather than an exact one.
+    a = write_eval_set(tmp_path, "engineering", "alpha", [POSITIVE])
+    b = write_eval_set(
+        tmp_path, "engineering", "beta", [{"query": "Ship  It", "should_trigger": True}]
+    )
+    findings = check_eval_conflicts([a, b], tmp_path)
+    assert [f.code for f in findings] == ["conflicting-eval-query"]
+    assert "alpha" in findings[0].message
+
+
+def test_a_positive_in_one_skill_and_a_negative_in_another_is_allowed(tmp_path):
+    from skillcheck.rules import check_eval_conflicts
+
+    a = write_eval_set(tmp_path, "engineering", "alpha", [POSITIVE])
+    b = write_eval_set(
+        tmp_path, "engineering", "beta", [{"query": "ship it", "should_trigger": False}]
+    )
+    assert check_eval_conflicts([a, b], tmp_path) == []
+
+
+def test_a_missing_or_malformed_eval_set_is_not_reported_twice(tmp_path):
+    from skillcheck.rules import check_eval_conflicts
+
+    a = tmp_path / "plugins" / "engineering" / "skills" / "alpha"
+    a.mkdir(parents=True)
+    b = write_eval_set(tmp_path, "engineering", "beta", [POSITIVE])
+    (b / "evals" / "trigger-eval.json").write_text("{not json", encoding="utf-8")
+    assert check_eval_conflicts([a, b], tmp_path) == []

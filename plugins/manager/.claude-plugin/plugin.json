@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "manager",
-  "description": "Engineering-leadership skills: write a decision record or design doc, write a status update an executive can act on, run a blameless postmortem, review delivery health, design a team operating cadence, evaluate a vendor, design a hiring loop, prepare a growth or promotion case, and assess AI-assisted-engineering adoption.",
+  "description": "Engineering-leadership skills: write a decision record or design doc, write a status update an executive can act on, run a blameless postmortem, review delivery health, design a team operating cadence, set goals worth having, communicate an incident to customers, evaluate a vendor, design a hiring loop, prepare a growth or promotion case, and assess AI-assisted-engineering adoption.",
   "author": {
     "name": "Serhii Zolotov",
     "url": "https://github.com/greenblacked"
