@@ -1,0 +1,22 @@
+[
+  {"query": "we are going with postgres for the event store instead of kafka, write it up so nobody relitigates it next quarter", "should_trigger": true},
+  {"query": "need an RFC for the new ingestion pipeline before thursday's architecture review", "should_trigger": true},
+  {"query": "read this design doc and tell me if it is any good, it feels thin and i cannot say why", "should_trigger": true},
+  {"query": "ADR-0007 says we use DynamoDB and we moved off it last month. what is the right way to handle that", "should_trigger": true},
+  {"query": "i want to document why we are NOT splitting into microservices. does that even count as a decision record", "should_trigger": true},
+  {"query": "the ask is funding to replace the auth service and the audience is the CFO. i need a proper written proposal, not slides", "should_trigger": true},
+  {"query": "we argued for two hours about self hosting the queue and landed on SQS, capture it while it is fresh", "should_trigger": true},
+  {"query": "all my consequences bullets are positive and that feels wrong. what am i missing", "should_trigger": true},
+  {"query": "team is split on adopting tRPC, i want both sides written down properly before we decide anything", "should_trigger": true},
+  {"query": "moving all the mobile builds into one repo is basically irreversible once we cut over, so this needs doing properly", "should_trigger": true},
+  {"query": "weekly update on the migration, we are two weeks behind and i need to tell the steering committee without it turning into a witch hunt", "should_trigger": false},
+  {"query": "make this shorter and less waffly, the CTO reads about six lines and stops", "should_trigger": false},
+  {"query": "we had 40 minutes of 500s on saturday after a config change, the writeup is due wednesday", "should_trigger": false},
+  {"query": "is our Q4 roadmap realistic when we lose two people to on call every sprint", "should_trigger": false},
+  {"query": "how do i write up that mark's proposals keep skipping the alternatives, for his mid year review", "should_trigger": false},
+  {"query": "scaffold me a terraform module for the new VPC with the tagging conventions we use", "should_trigger": false},
+  {"query": "prod is down, the api pods are all pending and i do not know why", "should_trigger": false},
+  {"query": "read this paper on CRDTs and put it in my vault", "should_trigger": false},
+  {"query": "we bought copilot licences six months ago and nobody can tell me whether it helped", "should_trigger": false},
+  {"query": "just answer me, is event sourcing a sensible fit for a billing ledger or not. i do not want a document", "should_trigger": false}
+]

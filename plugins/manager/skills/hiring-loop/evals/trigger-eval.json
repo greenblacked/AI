@@ -1,0 +1,22 @@
+[
+  {"query": "we are hiring a senior backend engineer and i have no idea what the loop should look like", "should_trigger": true},
+  {"query": "write the scorecard for a platform lead role, the job ad exists but it tells interviewers nothing", "should_trigger": true},
+  {"query": "our take home eats a whole weekend and the good candidates keep dropping out", "should_trigger": true},
+  {"query": "the panel is split on this candidate and the debrief is in an hour", "should_trigger": true},
+  {"query": "what should we actually ask in the behavioural round so we get more than a rehearsed story", "should_trigger": true},
+  {"query": "someone keeps vetoing people on culture fit in debriefs and i want to stop it without a fight", "should_trigger": true},
+  {"query": "i need a rubric and a debrief form for the system design round before friday", "should_trigger": true},
+  {"query": "design a pairing exercise for a mid level frontend role that is not leetcode", "should_trigger": true},
+  {"query": "we ghosted three candidates last month after final rounds, fix our rejection process", "should_trigger": true},
+  {"query": "how do i calibrate four new interviewers before we open the req", "should_trigger": true},
+  {"query": "reviews are due friday and i only really remember the last six weeks of everyone's work", "should_trigger": false},
+  {"query": "is maya ready for staff, i want the promo case written properly before calibration", "should_trigger": false},
+  {"query": "grill me on system design, i have an interview at a payments company on thursday", "should_trigger": false},
+  {"query": "rewrite my CV against this staff SRE job description and shorten the cover note", "should_trigger": false},
+  {"query": "why is our cycle time so bad, the team keeps missing dates and nobody can say why", "should_trigger": false},
+  {"query": "what is the market rate for a staff engineer in amsterdam and how should the bands be shaped", "should_trigger": false},
+  {"query": "write the ADR for choosing temporal over our homegrown scheduler", "should_trigger": false},
+  {"query": "friday's deploy took checkout down for 40 minutes, i need the incident writeup", "should_trigger": false},
+  {"query": "our new hire is not working out three months in and i need to have the conversation", "should_trigger": false},
+  {"query": "send leadership a weekly update on the hiring push, they want numbers not narrative", "should_trigger": false}
+]

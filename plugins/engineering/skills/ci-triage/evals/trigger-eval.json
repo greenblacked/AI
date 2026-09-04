@@ -1,0 +1,22 @@
+[
+  {"query": "CI is red again on the payments service, third time today. same job, different test each time", "should_trigger": true},
+  {"query": "my PR is blocked, lint passes but build-and-test dies with npm ERR! code EINTEGRITY. any idea?", "should_trigger": true},
+  {"query": "is this a flake? integration suite failed once, i re-ran it and it went green, but it did the same thing yesterday", "should_trigger": true},
+  {"query": "jenkins job release-candidate died halfway through with 'Agent went offline during the build' - their problem or ours", "should_trigger": true},
+  {"query": "should we just hit re-run all jobs or is that going to hide something", "should_trigger": true},
+  {"query": "test_checkout_timeout has failed on 4 of the last 12 runs of ci.yml and nobody can reproduce it locally", "should_trigger": true},
+  {"query": "build broke right after dependabot bumped urllib3, error is ImportError: cannot import name DEFAULT_CIPHERS. who owns this", "should_trigger": true},
+  {"query": "everyones PRs have been failing since about 2pm, can you work out what landed on main", "should_trigger": true},
+  {"query": "github actions says Error: The operation was canceled. on the e2e job after six hours. what actually happened there", "should_trigger": true},
+  {"query": "workflow fails at the docker login step, denied: requested access to the resource is denied. is that a permissions thing on our side", "should_trigger": true},
+  {"query": "add a new github actions workflow that publishes to npm on tag", "should_trigger": false},
+  {"query": "write a reusable composite action for our python setup steps, we copy paste the same 12 lines into 9 repos", "should_trigger": false},
+  {"query": "our pipeline takes 34 minutes and it's all green, where should we cache to get it under 15", "should_trigger": false},
+  {"query": "i want required status checks and branch protection turned on for main, how should that be configured", "should_trigger": false},
+  {"query": "pods in staging went CrashLoopBackOff right after the 11:40 deploy, roll back or dig in?", "should_trigger": false},
+  {"query": "we have an incident, checkout is down for maybe 20% of users and im IC", "should_trigger": false},
+  {"query": "terraform plan on the PR says it's replacing the RDS instance, safe to approve or not", "should_trigger": false},
+  {"query": "have a look at this Dockerfile, it's 1.2GB and the process runs as root", "should_trigger": false},
+  {"query": "the api 500s on /v1/orders when the customer has no address, the unit test catches it, help me fix the null deref", "should_trigger": false},
+  {"query": "write up the postmortem for last week's outage, i have the timeline in a doc already", "should_trigger": false}
+]

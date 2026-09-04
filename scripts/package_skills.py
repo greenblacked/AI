@@ -26,6 +26,12 @@ EXCLUDED_NAMES = {".DS_Store"}
 
 
 def _included(path: Path, skill: Path) -> bool:
+    if path.is_symlink():
+        # `is_file()` and `ZipFile.write` both follow links, so a symlink used to bake
+        # whatever it pointed at - including content outside the repository - into the
+        # artifact, while a symlinked *directory* contributed nothing at all. Neither
+        # matches what the author sees in the tree.
+        return False
     relative = path.relative_to(skill)
     if path.name in EXCLUDED_NAMES or path.suffix == ".pyc":
         return False
@@ -42,6 +48,14 @@ def package(skill: Path, output_dir: Path, repo_root: Path) -> Path:
             + "\n".join(f"  {f.path}:{f.line} [{f.code}] {f.message}" for f in findings)
         )
 
+    for part in skill.rglob("*"):
+        if part.is_symlink():
+            raise SystemExit(
+                f"refusing to package {skill.name}: {part.relative_to(skill)} is a symlink. "
+                "The archive would either inline what it points at or drop it silently, "
+                "and neither matches the tree."
+            )
+
     output_dir.mkdir(parents=True, exist_ok=True)
     archive = output_dir / f"{skill.name}.skill"
     with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as bundle:
@@ -54,10 +68,15 @@ def package(skill: Path, output_dir: Path, repo_root: Path) -> Path:
 def main() -> int:
     repo_root = Path(__file__).resolve().parent.parent
     output_dir = repo_root / "dist"
-    skills = find_skills(repo_root / "skills")
+    skills = find_skills(repo_root)
     if not skills:
         print("no skills found", file=sys.stderr)
         return 2
+
+    # A renamed or removed skill otherwise leaves its old archive behind, and CI
+    # uploads it as though it were still shipped.
+    for stale in output_dir.glob("*.skill"):
+        stale.unlink()
     for skill in skills:
         archive = package(skill, output_dir, repo_root)
         size = archive.stat().st_size

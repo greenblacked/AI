@@ -1,0 +1,22 @@
+[
+  {"query": "write me a bash script that rotates the nginx logs on the box and ships yesterday's to s3", "should_trigger": true},
+  {"query": "i need a small python cli that reads a csv of user ids and calls our deactivate endpoint, with retries", "should_trigger": true},
+  {"query": "can you put together a terraform module for an s3 bucket we can reuse, versioning and access logs on by default", "should_trigger": true},
+  {"query": "bootstrap a prometheus exporter in go that scrapes postgres replication lag", "should_trigger": true},
+  {"query": "need something that watches a folder and posts new files to slack. will run under cron on a debian vm", "should_trigger": true},
+  {"query": "start a repo layout for a small internal service, fastapi plus dockerfile plus makefile, the usual", "should_trigger": true},
+  {"query": "generate a ci job that runs pytest on 3.10 through 3.13 and uploads coverage", "should_trigger": true},
+  {"query": "write a backfill for the missing created_at values in prod. it has to be safe if someone runs it twice", "should_trigger": true},
+  {"query": "quick tool to diff two json config files and exit nonzero if anything under limits changed", "should_trigger": true},
+  {"query": "scaffold an ansible role that installs and configures the datadog agent across our ubuntu fleet", "should_trigger": true},
+  {"query": "refactor scripts/deploy.sh, it's 400 lines and three people have bolted flags onto it", "should_trigger": false},
+  {"query": "this python script exits 0 even when the upload fails, work out why", "should_trigger": false},
+  {"query": "read through internal/auth/token.go and tell me whether the refresh logic has a race", "should_trigger": false},
+  {"query": "review the terraform in modules/vpc before i open the PR, is anything going to get destroyed", "should_trigger": false},
+  {"query": "why is our terraform plan recreating the nat gateway on every single run", "should_trigger": false},
+  {"query": "have a look at the Dockerfile i wrote and tell me if it's any good", "should_trigger": false},
+  {"query": "the exporter i wrote last week gets OOMKilled every couple of hours in the prod cluster", "should_trigger": false},
+  {"query": "our nightly job started failing at the terraform fmt step and nobody touched it", "should_trigger": false},
+  {"query": "explain how python's contextmanager decorator actually works under the hood", "should_trigger": false},
+  {"query": "build a landing page for the new pricing tier, copy is mostly written", "should_trigger": false}
+]

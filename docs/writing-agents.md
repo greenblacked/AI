@@ -1,8 +1,8 @@
 # Writing a subagent
 
-Subagents live in the `agents/` directory as single Markdown files with YAML
-frontmatter — see [`skill-reviewer.md`](../agents/skill-reviewer.md) for the one this
-repository has today. A subagent is a separate Claude instance with its own context window,
+Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
+frontmatter — `plugins/engineering/agents/` is the only one here — see [`skill-reviewer.md`](../plugins/engineering/agents/skill-reviewer.md) for one of the four
+this repository has today. A subagent is a separate Claude instance with its own context window,
 its own system prompt, and its own tool allowlist, invoked by the main agent and
 returning a result to it.
 
@@ -16,16 +16,30 @@ tools: Read, Glob, Grep, Bash
 ---
 ```
 
-- **`name`** — the identifier the main agent delegates to, and the filename stem.
-- **`description`** — the only text the main agent sees when deciding whether to
-  delegate. Same economics as a skill description: if it does not name the situations,
-  the subagent never runs.
-- **`tools`** — a comma-separated allowlist. Omit it and the subagent inherits the main
-  agent's full tool set, which is almost never what you want.
+- **`name`** — required. The identifier the main agent delegates to. Lowercase letters,
+  digits and single hyphens, at most 64 characters, and equal to the filename stem.
+- **`description`** — required. The only text the main agent sees when deciding whether
+  to delegate. Same economics as a skill description: if it does not name the situations,
+  the subagent never runs. At most 1024 characters, and no `<` or `>`.
+- **`tools`** — optional. A comma-separated allowlist. Omit it and the subagent inherits
+  the main agent's full tool set, which is almost never what you want. Present, it must
+  be a non-empty list with no blank entries; a trailing comma is the usual way to get
+  that wrong.
+- **`model`** — optional. The model the subagent runs on. None of the four here set it.
 
-Note that this key is `tools`, not the `allowed-tools` used in skill frontmatter. They
-are different formats; [the skill validator](../src/skillcheck/rules.py) does not run
-over `agents/`.
+The key set is closed, and it is deliberately not a skill's. The allowlist key here is
+`tools`; in a `SKILL.md` it is `allowed-tools`, and each is rejected in the other file.
+That is not an inconsistency to work around — they are separate fields with separate
+meanings, so [the validator](../src/skillcheck/rules.py) checks them against separate key
+sets rather than one union that would accept both everywhere and catch neither mistake.
+Writing `allowed-tools` in a subagent earns `unknown-key`; writing `tools` in a skill
+earns the same code with a suggestion attached.
+
+The validator runs over every `agents/*.md` on each push, for the same reason it runs
+over skills: nothing else in the pipeline reads these files. A misspelled key or a `name`
+that has drifted from the filename fails exactly the way a dangling `references/` pointer
+fails — delegation quietly never happens, and no error is raised anywhere. The codes are
+listed in [writing a skill](writing-skills.md).
 
 The body is the system prompt. Write it as instructions to a colleague who has just
 walked in: it starts with no memory of the conversation that produced the delegation.
@@ -141,20 +155,21 @@ The `engineering` plugin in
   not have, whether depth is in the right layer, whether it is a procedure or an essay,
   whether it overlaps an existing skill, and whether the commands it shows are real. It
   has `Read`, `Glob`, `Grep` and `Bash`, and no write access — by design:
-  [`agents/skill-reviewer.md`](../agents/skill-reviewer.md).
-- **[`ci-log-reader`](../agents/ci-log-reader.md)** — reads a failed pipeline run and
+  [`agents/skill-reviewer.md`](../plugins/engineering/agents/skill-reviewer.md).
+- **[`ci-log-reader`](../plugins/engineering/agents/ci-log-reader.md)** — reads a failed pipeline run and
   returns a classification. This is the canonical context-isolation case: whole CI logs
   are large, and the caller needs the failing step and the decisive lines, not the log.
   It checks the default branch first, because if that is red too the answer is "not
   this change" and nothing further needs reading.
-- **[`plan-reviewer`](../agents/plan-reviewer.md)** — reads a Terraform plan JSON and
+- **[`plan-reviewer`](../plugins/engineering/agents/plan-reviewer.md)** — reads a Terraform plan JSON and
   returns the blast radius, destroys first. Same shape: the plan is large, the answer is
   a short list of risky changes, and a reviewer that can apply is not a reviewer.
-- **[`incident-scribe`](../agents/incident-scribe.md)** — turns raw triage notes into a
+- **[`incident-scribe`](../plugins/engineering/agents/incident-scribe.md)** — turns raw triage notes into a
   blameless postmortem draft: timeline from timestamped evidence, roles rather than
   names, and a literal `[TK: metric]` wherever a figure was not supplied.
 
-All four files exist and all four are listed in the `engineering` plugin's `agents`
-array. Worth knowing: the validator's manifest cross-check covers `skills` entries, not
-`agents` entries, so a subagent listed in the manifest but missing from disk would not
-fail [CI](ci.md). Check that by reading.
+All four ship with the `engineering` plugin, which discovers its own `agents/` directory
+rather than listing files in the manifest — so there is no list to fall out of date. What
+the validator still checks is ownership: a subagent sitting outside every plugin is
+`unowned-agent`. That is the one that matters day to day, because a subagent no plugin
+ships installs for nobody and there is no symptom to notice. It fails [CI](ci.md).

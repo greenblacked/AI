@@ -1,0 +1,22 @@
+[
+  {"query": "just finished designing data intensive applications. what is worth keeping from it", "should_trigger": true},
+  {"query": "pasting this article on the raft paper, process it into my vault", "should_trigger": true},
+  {"query": "watched a talk on platform engineering at kubecon, decent, but i cannot tell if there was anything new in it", "should_trigger": true},
+  {"query": "i have forty rough captures sat in my inbox folder and none of them link to anything. help", "should_trigger": true},
+  {"query": "worth keeping? it is a blog post about why they moved off kubernetes", "should_trigger": true},
+  {"query": "make me spaced repetition cards for the postgres isolation levels, i keep mixing them up", "should_trigger": true},
+  {"query": "quiz me on what i wrote about consensus algorithms last month", "should_trigger": true},
+  {"query": "need an index note for everything in the vault about observability, there are about fifteen of them", "should_trigger": true},
+  {"query": "read this RFC with me and help me work out what i actually disagree with", "should_trigger": true},
+  {"query": "finished the terraform course. what do i do differently on monday", "should_trigger": true},
+  {"query": "write a blog post about our migration off jenkins, i want to publish it next week", "should_trigger": false},
+  {"query": "what is the difference between a statefulset and a deployment, i just need to know right now", "should_trigger": false},
+  {"query": "explain how raft handles leader election, the term thing is not clicking for me", "should_trigger": false},
+  {"query": "turn my scribbles from the architecture meeting into a proper ADR", "should_trigger": false},
+  {"query": "condense these four team updates into one note for my VP", "should_trigger": false},
+  {"query": "read this incident writeup and pull the action items out into the tracker", "should_trigger": false},
+  {"query": "log what i ate today so i can keep track of it", "should_trigger": false},
+  {"query": "summarise my last three jobs into a CV, here are the dates", "should_trigger": false},
+  {"query": "write a script that syncs my obsidian vault to s3 every night", "should_trigger": false},
+  {"query": "recommend a book on distributed systems for someone who has already read kleppmann", "should_trigger": false}
+]

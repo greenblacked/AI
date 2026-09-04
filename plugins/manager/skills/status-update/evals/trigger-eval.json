@@ -1,0 +1,22 @@
+[
+  {"query": "need to send the weekly update and i have basically nothing good to report", "should_trigger": true},
+  {"query": "what do i tell the CTO on monday about the migration, we slipped again", "should_trigger": true},
+  {"query": "make this shorter for leadership, they will not read past six lines", "should_trigger": true},
+  {"query": "steering committee note for the data platform programme, three workstreams and two of them amber", "should_trigger": true},
+  {"query": "i have marked this green for five weeks and it is not green. how do i change it without a bloodbath", "should_trigger": true},
+  {"query": "roll these four team updates up into one thing the VP can read in two minutes", "should_trigger": true},
+  {"query": "email to the stakeholders that launch moves to november and here is what we need from them", "should_trigger": true},
+  {"query": "is my ask clear in this? my manager keeps replying to ask what i actually want from him", "should_trigger": true},
+  {"query": "monthly note to the board on the infra spend reduction, finance sent me the numbers this morning", "should_trigger": true},
+  {"query": "first time writing an exec summary and everything i draft comes out as a list of what we did", "should_trigger": true},
+  {"query": "write this up as an ADR, we chose terraform over pulumi and i want the rejected options recorded", "should_trigger": false},
+  {"query": "is this design doc any good? feels like it is missing the alternatives entirely", "should_trigger": false},
+  {"query": "need the incident writeup for tuesday's outage, blameless format, due friday", "should_trigger": false},
+  {"query": "why does everything take so long here. i want an actual diagnosis, not another status", "should_trigger": false},
+  {"query": "need to write priya's mid year performance summary, she led the migration", "should_trigger": false},
+  {"query": "my exec sponsor wants a rollout plan for AI tooling across the org by month end", "should_trigger": false},
+  {"query": "customers are on the phone, checkout is down, what do i check first", "should_trigger": false},
+  {"query": "cover note for a head of platform role, here is the job description", "should_trigger": false},
+  {"query": "summarise this article on flow metrics into my notes", "should_trigger": false},
+  {"query": "put together the agenda for tomorrow's steering committee, an hour with six people", "should_trigger": false}
+]

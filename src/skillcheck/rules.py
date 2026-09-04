@@ -46,7 +46,13 @@ DESCRIPTION_HEADROOM = 50
 SKILL_MD_MAX_LINES = 500
 REFERENCE_MAX_LINES_WITHOUT_TOC = 300
 
-BUNDLED_PATH_RE = re.compile(r"(?:references|scripts|assets)/[A-Za-z0-9_./-]*[A-Za-z0-9_-]")
+# The lookbehind is what keeps this from matching inside a longer path. Without it,
+# a URL such as https://example.com/assets/logo.png, or a mention of another
+# project's `their-repo/references/x.md`, was reported as a dangling pointer into
+# this skill's own bundle - a false positive that blocks legitimate prose.
+BUNDLED_PATH_RE = re.compile(
+    r"(?<![A-Za-z0-9_./-])(?:\./)?(?:references|scripts|assets)/[A-Za-z0-9_./-]*[A-Za-z0-9_-]"
+)
 TRIGGER_RE = re.compile(r"\buse (?:this skill |it )?(?:when|whenever|for|any time)\b", re.I)
 SHOUTING_RE = re.compile(r"(?<![A-Za-z])(?:ALWAYS|NEVER)(?![A-Za-z])")
 TOC_RE = re.compile(r"^#{1,3}\s+(?:table of contents|contents|in this file)\b", re.I | re.M)
@@ -70,12 +76,31 @@ class Finding:
         return self.level == ERROR
 
 
+def find_plugins(repo_root: Path) -> list[Path]:
+    """Return every plugin directory, sorted by name.
+
+    A plugin is a directory under ``plugins/`` with its own ``.claude-plugin/plugin.json``.
+    Each owns its ``skills/`` and ``agents/``, which is what stops a repository-root
+    component being shipped once per installed plugin.
+    """
+    return sorted(
+        path.parent.parent for path in (repo_root / "plugins").glob("*/.claude-plugin/plugin.json")
+    )
+
+
 def find_skills(root: Path) -> list[Path]:
     """Return every skill directory under ``root``, sorted by path.
 
-    A skill directory is one that directly contains a ``SKILL.md``.
+    A skill directory is one that directly contains a ``SKILL.md``. ``template/`` is
+    excluded: it is a starting point to copy, not a skill that ships.
     """
-    return sorted({path.parent for path in root.rglob("SKILL.md")})
+    return sorted(
+        {
+            path.parent
+            for path in root.rglob("SKILL.md")
+            if "template" not in path.relative_to(root).parts
+        }
+    )
 
 
 def _line_of(text: str, needle: str) -> int:
@@ -110,7 +135,13 @@ def check_skill(directory: Path, repo_root: Path) -> list[Finding]:
             f"nested ones on upload (found {extra.relative_to(repo_root)})",
         )
 
-    text = skill_md.read_text(encoding="utf-8")
+    try:
+        text = skill_md.read_text(encoding="utf-8")
+    except UnicodeDecodeError as error:
+        # One mis-encoded file used to abort validation for every other skill, which in
+        # CI reads as "the validator is broken" rather than "this file is".
+        add(ERROR, "not-utf8", f"file is not valid UTF-8: {error}")
+        return findings
 
     try:
         front: Frontmatter = parse(text)
@@ -123,11 +154,13 @@ def check_skill(directory: Path, repo_root: Path) -> list[Finding]:
     findings.extend(_check_description(front, add))
     findings.extend(_check_compatibility(front, add))
 
-    body = "\n".join(text.split("\n")[front.end_line :])
-    findings.extend(_check_bundled_paths(body, directory, repo_root, text, add))
+    body_lines = text.split("\n")[front.end_line :]
+    body = "\n".join(body_lines)
+    findings.extend(_check_bundled_paths(body_lines, front.end_line + 1, directory, add))
     findings.extend(_check_scripts(directory, repo_root, add))
     findings.extend(_check_length(text, directory, repo_root, add))
     findings.extend(_check_tone(body, text, add))
+    findings.extend(check_evals(directory, repo_root))
 
     return findings
 
@@ -235,35 +268,76 @@ def _check_compatibility(front: Frontmatter, add) -> list[Finding]:
     return []
 
 
-def _check_bundled_paths(body: str, directory: Path, repo_root: Path, text: str, add):
+FENCE_RE = re.compile(r"^(`{3,}|~{3,})")
+
+
+def _mask_fenced_blocks(lines: list[str]) -> list[str]:
+    """Blank out fenced code blocks, keeping the line count so line numbers survive.
+
+    A path inside a fence is almost always an illustration — a directory tree showing
+    how some other project is laid out, or a command run against the user's repository —
+    not a pointer this skill expects the model to follow. Treating those as dangling
+    pointers made it impossible to document a layout without failing the build, which is
+    a poor trade for a check whose whole purpose is to catch pointers written in prose.
+
+    Only *closed* fences are masked. An unterminated fence would otherwise swallow the
+    rest of the file and silently switch the check off for everything after it, which is
+    the failure mode this validator exists to prevent rather than to have. The closing
+    fence must use the same character and be at least as long as the opening one, so a
+    four-backtick block containing a three-backtick example stays a single block.
+    """
+    spans: list[tuple[int, int]] = []
+    opened: tuple[int, str] | None = None
+    for number, line in enumerate(lines):
+        match = FENCE_RE.match(line.lstrip())
+        if match is None:
+            continue
+        marker = match.group(1)
+        if opened is None:
+            opened = (number, marker)
+            continue
+        start_line, opening = opened
+        if marker[0] == opening[0] and len(marker) >= len(opening):
+            spans.append((start_line, number))
+            opened = None
+
+    masked = list(lines)
+    for start_line, end_line in spans:
+        for number in range(start_line, end_line + 1):
+            masked[number] = ""
+    return masked
+
+
+def _check_bundled_paths(body_lines: list[str], first_line: int, directory: Path, add):
     """Every references/, scripts/ or assets/ path named in prose must exist.
 
     A dangling pointer is the worst kind of skill defect: nothing errors, the model
     simply never loads the depth the author thought it was loading.
     """
     seen: set[str] = set()
-    for match in BUNDLED_PATH_RE.finditer(body):
-        candidate = match.group(0).rstrip(".,;:")
-        if candidate in seen:
-            continue
-        seen.add(candidate)
-        tail = candidate.rsplit("/", 1)[-1]
-        if "." not in tail:
-            # A directory mentioned generically ("put helpers in scripts/") is prose,
-            # not a pointer to a specific file.
-            continue
-        if not (directory / candidate).exists():
-            add(
-                ERROR,
-                "dangling-reference",
-                f"SKILL.md points at {candidate!r}, which does not exist",
-                _line_of(text, candidate),
-            )
+    for offset, line in enumerate(_mask_fenced_blocks(body_lines)):
+        for match in BUNDLED_PATH_RE.finditer(line):
+            candidate = match.group(0).rstrip(".,;:")
+            if candidate in seen:
+                continue
+            seen.add(candidate)
+            tail = candidate.rsplit("/", 1)[-1]
+            if "." not in tail:
+                # A directory mentioned generically ("put helpers in scripts/") is
+                # prose, not a pointer to a specific file.
+                continue
+            if not (directory / candidate).exists():
+                add(
+                    ERROR,
+                    "dangling-reference",
+                    f"SKILL.md points at {candidate!r}, which does not exist",
+                    first_line + offset,
+                )
     return []
 
 
 def _check_scripts(directory: Path, repo_root: Path, add) -> list[Finding]:
-    for script in sorted((directory / "scripts").glob("*.sh")):
+    for script in sorted((directory / "scripts").rglob("*.sh")):
         first = script.read_text(encoding="utf-8").split("\n", 1)[0]
         if not first.startswith("#!"):
             add(ERROR, "no-shebang", "shell script has no shebang line", 1, script)
@@ -281,7 +355,7 @@ def _check_length(text: str, directory: Path, repo_root: Path, add) -> list[Find
             f"SKILL.md is {lines} lines; past ~{SKILL_MD_MAX_LINES} the body should "
             "push depth into references/ instead",
         )
-    for reference in sorted((directory / "references").glob("*.md")):
+    for reference in sorted((directory / "references").rglob("*.md")):
         content = reference.read_text(encoding="utf-8")
         count = len(content.split("\n"))
         if count > REFERENCE_MAX_LINES_WITHOUT_TOC and not TOC_RE.search(content):
@@ -309,10 +383,12 @@ def _check_tone(body: str, text: str, add) -> list[Finding]:
 
 
 def check_marketplace(repo_root: Path) -> list[Finding]:
-    """Cross-check the marketplace manifest against the skills on disk.
+    """Cross-check the marketplace manifest against the plugins on disk.
 
-    A skill that exists but is not listed ships to nobody; a listing that points at a
-    missing directory breaks installation for everybody.
+    Each plugin now owns its own directory and discovers its own ``skills/`` and
+    ``agents/``, so the manifest lists plugins rather than individual skills. What still
+    has to hold is that every listed plugin is real, and that nothing on disk is stranded
+    outside a plugin — a skill nobody ships is a skill nobody can install.
     """
     manifest = repo_root / ".claude-plugin" / "marketplace.json"
     relative = Path(".claude-plugin/marketplace.json")
@@ -325,33 +401,291 @@ def check_marketplace(repo_root: Path) -> list[Finding]:
         return [Finding(ERROR, relative, error.lineno, "bad-json", f"invalid JSON: {error.msg}")]
 
     findings: list[Finding] = []
-    listed: set[Path] = set()
-    for plugin in data.get("plugins", []):
-        for entry in plugin.get("skills", []):
-            path = (repo_root / entry).resolve()
-            if not (path / "SKILL.md").exists():
-                findings.append(
-                    Finding(
-                        ERROR,
-                        relative,
-                        1,
-                        "missing-listed-skill",
-                        f"plugin {plugin.get('name', '?')!r} lists {entry!r}, which has "
-                        "no SKILL.md",
-                    )
-                )
-            listed.add(path)
 
-    for directory in find_skills(repo_root / "skills"):
-        if directory.resolve() not in listed:
+    def malformed(message: str) -> list[Finding]:
+        return [Finding(ERROR, relative, 1, "bad-marketplace-shape", message)]
+
+    if not isinstance(data, dict):
+        return malformed(f"manifest must be a JSON object, found {type(data).__name__}")
+    entries = data.get("plugins", [])
+    if not isinstance(entries, list):
+        return malformed(f"'plugins' must be a list, found {type(entries).__name__}")
+
+    listed: set[Path] = set()
+    for index, plugin in enumerate(entries):
+        if not isinstance(plugin, dict):
+            findings.extend(
+                malformed(f"plugins[{index}] must be an object, found {type(plugin).__name__}")
+            )
+            continue
+        label = plugin.get("name", f"plugins[{index}]")
+        source = plugin.get("source")
+        if not isinstance(source, str):
+            findings.extend(malformed(f"{label!r} has no string 'source'"))
+            continue
+        directory = (repo_root / source).resolve()
+        listed.add(directory)
+        if not (directory / ".claude-plugin" / "plugin.json").is_file():
+            findings.append(
+                Finding(
+                    ERROR,
+                    relative,
+                    1,
+                    "missing-listed-plugin",
+                    f"plugin {label!r} points at {source!r}, which has no "
+                    ".claude-plugin/plugin.json",
+                )
+            )
+
+    for plugin in find_plugins(repo_root):
+        if plugin.resolve() not in listed:
+            findings.append(
+                Finding(
+                    ERROR,
+                    plugin.relative_to(repo_root) / ".claude-plugin" / "plugin.json",
+                    1,
+                    "unlisted-plugin",
+                    "plugin is not listed in marketplace.json, so it installs for nobody",
+                )
+            )
+
+    owned_skills = {d.resolve() for p in find_plugins(repo_root) for d in find_skills(p / "skills")}
+    for directory in find_skills(repo_root):
+        if directory.resolve() not in owned_skills:
             findings.append(
                 Finding(
                     ERROR,
                     directory.relative_to(repo_root) / "SKILL.md",
                     1,
-                    "unlisted-skill",
-                    "skill is not listed in any plugin in marketplace.json, so it "
-                    "installs for nobody",
+                    "unowned-skill",
+                    "skill is not inside any plugin's skills/ directory, so no plugin ships it",
                 )
             )
+
+    owned_agents = {a.resolve() for p in find_plugins(repo_root) for a in find_agents(p / "agents")}
+    for agent in find_agents(repo_root / "agents"):
+        if agent.resolve() not in owned_agents:
+            findings.append(
+                Finding(
+                    ERROR,
+                    agent.relative_to(repo_root),
+                    1,
+                    "unowned-agent",
+                    "subagent is not inside any plugin's agents/ directory",
+                )
+            )
+    return findings
+
+
+# Subagent frontmatter is a different contract from a skill's: `tools` is meaningful
+# here and would be rejected in a SKILL.md, while `allowed-tools` is the reverse. They
+# are validated separately for that reason rather than sharing one key set.
+AGENT_ALLOWED_KEYS = frozenset({"name", "description", "tools", "model"})
+
+
+# A directory-level readme is documentation, not a subagent, and there is no
+# frontmatter it could carry that would satisfy the contract below.
+AGENT_NON_DEFINITIONS = frozenset({"README.md", "readme.md"})
+
+
+def find_agents(root: Path) -> list[Path]:
+    """Return every subagent definition under ``root``, sorted by path."""
+    return sorted(p for p in root.glob("*.md") if p.name not in AGENT_NON_DEFINITIONS)
+
+
+def check_agent(path: Path, repo_root: Path) -> list[Finding]:
+    """Validate one subagent definition.
+
+    Nothing else in the pipeline reads these files, so a misspelled key or a name that
+    disagrees with the filename fails the same silent way a dangling skill reference
+    does: delegation simply never happens, and no error is raised anywhere.
+    """
+    findings: list[Finding] = []
+    relative = path.relative_to(repo_root)
+
+    def add(level: str, code: str, message: str, line: int = 1) -> None:
+        findings.append(Finding(level, relative, line, code, message))
+
+    try:
+        front = parse(path.read_text(encoding="utf-8"))
+    except FrontmatterError as error:
+        add(ERROR, "frontmatter", error.message, error.line)
+        return findings
+
+    for key in sorted(front.values):
+        if key not in AGENT_ALLOWED_KEYS:
+            add(
+                ERROR,
+                "unknown-key",
+                f"unexpected subagent frontmatter key {key!r} — allowed keys are "
+                + ", ".join(sorted(AGENT_ALLOWED_KEYS)),
+                front.line_of(key),
+            )
+
+    name = (front.get("name") or "").strip()
+    if not name:
+        add(ERROR, "missing-name", "subagent frontmatter has no usable 'name'")
+    else:
+        if not NAME_RE.match(name) or len(name) > NAME_MAX:
+            add(
+                ERROR,
+                "bad-name",
+                f"name {name!r} must be lowercase letters, digits and single hyphens, "
+                f"at most {NAME_MAX} characters",
+                front.line_of("name"),
+            )
+        if name != path.stem:
+            add(
+                ERROR,
+                "name-mismatch",
+                f"name {name!r} must equal the filename {path.stem!r}",
+                front.line_of("name"),
+            )
+
+    description = (front.get("description") or "").strip()
+    line = front.line_of("description")
+    if not description:
+        add(ERROR, "missing-description", "subagent frontmatter has no usable 'description'")
+    else:
+        if "<" in description or ">" in description:
+            add(ERROR, "angle-brackets", "description cannot contain '<' or '>'", line)
+        if len(description) > DESCRIPTION_MAX:
+            add(
+                ERROR,
+                "long-description",
+                f"description is {len(description)} characters; the cap is {DESCRIPTION_MAX}",
+                line,
+            )
+
+    tools = front.get("tools")
+    if tools is not None:
+        entries = [item.strip() for item in tools.split(",")]
+        if not tools.strip() or any(not item for item in entries):
+            add(
+                ERROR,
+                "bad-tools",
+                "'tools' must be a non-empty comma-separated list with no blank entries",
+                front.line_of("tools"),
+            )
+    return findings
+
+
+# A trigger eval is the only way to find out whether a description actually fires,
+# rather than assuming it does because it reads well. The schema is checked on every
+# run because it is deterministic and free; the queries themselves are scored by a
+# model, which is why that part is a manual workflow rather than a gate.
+EVAL_MIN_QUERIES = 16
+EVAL_MIN_PER_SIDE = 8
+
+
+def check_evals(directory: Path, repo_root: Path) -> list[Finding]:
+    """Validate a skill's trigger-eval set, if it has one."""
+    path = directory / "evals" / "trigger-eval.json"
+    findings: list[Finding] = []
+
+    def add(level: str, code: str, message: str, target: Path) -> None:
+        findings.append(Finding(level, target.relative_to(repo_root), 1, code, message))
+
+    if not path.exists():
+        add(
+            WARNING,
+            "no-evals",
+            "skill has no evals/trigger-eval.json, so nothing measures whether its "
+            "description triggers",
+            directory / "SKILL.md",
+        )
+        return findings
+
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        add(ERROR, "bad-eval-json", f"invalid JSON: {error.msg}", path)
+        return findings
+
+    if not isinstance(data, list):
+        add(ERROR, "bad-eval-shape", "eval set must be a JSON array of query objects", path)
+        return findings
+
+    queries: list[str] = []
+    positives = 0
+    for index, entry in enumerate(data):
+        where = f"entry {index}"
+        if not isinstance(entry, dict):
+            add(ERROR, "bad-eval-entry", f"{where} is not an object", path)
+            continue
+        query = entry.get("query")
+        trigger = entry.get("should_trigger")
+        extra = set(entry) - {"query", "should_trigger"}
+        if extra:
+            add(
+                ERROR,
+                "bad-eval-entry",
+                f"{where} has unexpected key(s): {', '.join(sorted(extra))}",
+                path,
+            )
+        if not isinstance(query, str) or not query.strip():
+            add(ERROR, "bad-eval-entry", f"{where} has no usable 'query'", path)
+            continue
+        if not isinstance(trigger, bool):
+            add(
+                ERROR,
+                "bad-eval-entry",
+                f"{where} 'should_trigger' must be true or false",
+                path,
+            )
+            continue
+        queries.append(query.strip())
+        positives += trigger
+
+    duplicates = {q for q in queries if queries.count(q) > 1}
+    for duplicate in sorted(duplicates):
+        add(ERROR, "duplicate-eval-query", f"query appears more than once: {duplicate!r}", path)
+
+    total = len(queries)
+    negatives = total - positives
+    if total < EVAL_MIN_QUERIES:
+        add(
+            ERROR,
+            "thin-eval-set",
+            f"{total} queries; at least {EVAL_MIN_QUERIES} are needed for the result to "
+            "mean anything",
+            path,
+        )
+    if total and (positives < EVAL_MIN_PER_SIDE or negatives < EVAL_MIN_PER_SIDE):
+        add(
+            ERROR,
+            "unbalanced-eval-set",
+            f"{positives} should-trigger and {negatives} should-not-trigger queries; at "
+            f"least {EVAL_MIN_PER_SIDE} of each are needed, and the negatives are what "
+            "catch a description that fires on everything",
+            path,
+        )
+    return findings
+
+
+def check_duplicate_names(skills: list[Path], repo_root: Path) -> list[Finding]:
+    """Two skill directories may not share a name.
+
+    `name` must equal the directory name, so two directories sharing a name are two
+    skills sharing a name: the second silently replaces the first when installing and
+    when packaging, and every counter still reports success.
+    """
+    findings: list[Finding] = []
+    seen: dict[str, Path] = {}
+    for directory in skills:
+        first = seen.get(directory.name)
+        if first is None:
+            seen[directory.name] = directory
+            continue
+        findings.append(
+            Finding(
+                ERROR,
+                directory.relative_to(repo_root) / "SKILL.md",
+                1,
+                "duplicate-skill-name",
+                f"another skill already uses the name {directory.name!r} "
+                f"({first.relative_to(repo_root)}); one of them would silently replace "
+                "the other on install and in dist/",
+            )
+        )
     return findings

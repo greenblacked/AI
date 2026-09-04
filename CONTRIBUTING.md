@@ -12,16 +12,32 @@ make validate
 make test
 ```
 
-Both are what CI runs. `make lint` runs markdownlint, yamllint and actionlint when they
-are installed and tells you the install command when they are not.
+Both are what CI runs. `make lint` runs ruff, markdownlint, yamllint and actionlint when
+they are installed and tells you the install command when they are not.
+
+Install the versions CI pins. Ruff 0.16 formats Python inside Markdown fences and 0.15
+does not, so an older local ruff reports a file as clean that CI then rejects — which is
+how a badly formatted example in a reference file reached a red build rather than a local
+one.
+
+If you edit this repository with Claude Code, `.claude/settings.json` registers a
+`PostToolUse` hook that runs the validator against whichever skill you just wrote and
+reports only that skill's errors. It exists so a dangling `references/` pointer surfaces
+while you are still holding the context, rather than in a CI log twenty minutes later.
+Warnings are left out of it deliberately — a hook that interrupts on a judgement call is
+a hook people delete.
 
 ## Adding a skill
 
 Follow [`docs/writing-skills.md`](docs/writing-skills.md). In short: copy
 `template/SKILL.md`, name the directory and the `name` field identically, write the
 `description` last and make it explicit about when the skill should fire, put depth in
-`references/` and write every file you name, then list the skill in
-[`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json).
+`references/` and write every file you name, write `evals/trigger-eval.json`, then list
+the skill in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json).
+
+The eval set is twenty queries — ten the skill should fire on, ten near-misses it should
+not. Spend the effort on the negatives: a positive only shows the description is not
+inert, while a negative drawn from a neighbouring skill shows it actually discriminates.
 
 The validator will catch every mechanical mistake. What it cannot catch is a skill that
 restates general good practice — if a capable model would already do what the skill says,

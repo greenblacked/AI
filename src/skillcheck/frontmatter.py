@@ -16,7 +16,7 @@ import re
 from dataclasses import dataclass
 
 DELIMITER = "---"
-KEY_RE = re.compile(r"^([A-Za-z0-9_.-]+):[ \t]*(.*)$")
+KEY_RE = re.compile(r"^([A-Za-z0-9_.-]+):(?:[ \t]+(.*))?$")
 BLOCK_INDICATORS = {">", "|", ">-", "|-", ">+", "|+"}
 
 
@@ -48,6 +48,37 @@ class Frontmatter:
         return self.lines.get(key, 1)
 
 
+def _strip_comment(value: str) -> str:
+    """Drop a trailing ``# comment`` from an unquoted scalar, as YAML does.
+
+    Keeping it meant the length and angle-bracket checks measured a string the runtime
+    never sees, and a comment after ``name:`` produced a bogus name-mismatch.
+    """
+    if value[:1] in "\"'":
+        return value
+    cut = value.find(" #")
+    return value[:cut].rstrip() if cut >= 0 else value
+
+
+def _reject_unquotable(value: str, line: int) -> None:
+    """Refuse a plain scalar that YAML would read as a nested mapping.
+
+    ``description: the answer is: red`` parses here as a plain string and is rejected by
+    every real YAML parser, so the file validates clean and then fails on upload — the
+    opposite of what a stricter-than-YAML scanner is for. A colon is only a problem when
+    followed by a space or ending the value, which is why ``https://x`` and ``10:30``
+    are fine.
+    """
+    if value[:1] in "\"'":
+        return
+    if ": " in value or value.endswith(":"):
+        raise FrontmatterError(
+            "unquoted ':' followed by a space in a value; YAML reads that as a nested "
+            "key. Quote the value, or use a '>' block.",
+            line,
+        )
+
+
 def _unquote(raw: str) -> str:
     """Strip one layer of quoting, mirroring YAML's scalar rules closely enough."""
     if len(raw) >= 2 and raw[0] == raw[-1] and raw[0] in "\"'":
@@ -56,6 +87,105 @@ def _unquote(raw: str) -> str:
             return inner.replace('\\"', '"').replace("\\\\", "\\")
         return inner.replace("''", "'")
     return raw
+
+
+def _fold(lines: list[str]) -> str:
+    """Fold a folded block the way YAML folds one.
+
+    Two rules do the work. Consecutive line breaks collapse to one fewer newline, so a
+    single break between ordinary lines becomes a space and a blank line becomes a
+    newline. A line indented further than the block is *more-indented*: it is kept
+    verbatim, and the breaks on either side of it stay newlines rather than folding.
+
+    Missing that second rule is how the earlier version diverged: it folded a
+    more-indented line into the surrounding text and produced a string shorter than the
+    one the runtime loads, which meant the 1024-character cap was measured against the
+    wrong thing.
+    """
+    result: list[str] = []
+    previous: str | None = None
+    previous_indented = False
+
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        if not line.strip():
+            run = 0
+            while index < len(lines) and not lines[index].strip():
+                run += 1
+                index += 1
+            # A break next to a more-indented line is never folded, so one survives
+            # on top of the newlines the blank lines themselves contribute. One,
+            # not one per side: a run between two more-indented lines still only
+            # has the single unfolded break.
+            following_indented = index < len(lines) and lines[index][:1].isspace()
+            trailing = index >= len(lines)
+            extra = int((previous_indented and not trailing) or following_indented)
+            result.append("\n" * (run + extra))
+            previous, previous_indented = "blank", False
+            continue
+
+        indented = line[:1].isspace()
+        if previous is None or previous == "blank":
+            separator = ""
+        elif indented or previous_indented:
+            separator = "\n"
+        else:
+            separator = " "
+        result.append(separator + (line if indented else line.strip()))
+        previous, previous_indented = "line", indented
+        index += 1
+
+    return "".join(result)
+
+
+def _block_scalar(indicator: str, raw: list[str]) -> str:
+    """Resolve a YAML block scalar the way a real YAML parser would.
+
+    This matters more than it looks. The 1024-character cap on ``description`` is
+    enforced on whatever string this returns, so if the folding rules differ from the
+    runtime's, the validator polices a string nobody ever loads. The earlier
+    implementation joined every line with a single space or newline and dropped blank
+    lines entirely, which disagreed with YAML on any block containing a paragraph
+    break.
+
+    Handles the two indicators and the three chomping modes. Explicit indentation
+    indicators (``|2``) are not supported; they are vanishingly rare in frontmatter and
+    a caller who needs one is better served by a quoted scalar.
+    """
+    literal = indicator.startswith("|")
+    chomp = "clip"
+    if indicator.endswith("-"):
+        chomp = "strip"
+    elif indicator.endswith("+"):
+        chomp = "keep"
+
+    content = [line for line in raw]
+    while content and not content[-1].strip():
+        if chomp == "keep":
+            break
+        content.pop()
+    if not content:
+        return ""
+
+    # Strip the block's own indentation - the smallest indent of any non-empty line -
+    # rather than each line's own leading whitespace. Relative indentation inside the
+    # block is content: literal blocks keep it, and folded blocks treat a
+    # more-indented line as unfoldable.
+    indents = [len(line) - len(line.lstrip()) for line in content if line.strip()]
+    base = min(indents) if indents else 0
+    stripped = [line[base:] if len(line) > base else line.strip() for line in content]
+
+    if not any(line.strip() for line in stripped):
+        # A block of nothing but blank lines has no final line break to clip or keep,
+        # so chomping does not apply to it.
+        return "\n" * len(stripped) if chomp == "keep" else ""
+
+    body = "\n".join(stripped) if literal else _fold(stripped)
+
+    if chomp == "strip":
+        return body
+    return body + "\n"
 
 
 def parse(text: str) -> Frontmatter:
@@ -96,7 +226,8 @@ def parse(text: str) -> Frontmatter:
             continue
         if raw[0].isspace():
             raise FrontmatterError(
-                "unexpected indentation: frontmatter must be a flat key/value block",
+                "a value has to fit on one line; YAML allows a wrapped plain scalar but "
+                "this reader does not. Use a '>' block to wrap.",
                 number,
             )
 
@@ -104,22 +235,22 @@ def parse(text: str) -> Frontmatter:
         if not match:
             raise FrontmatterError(f"cannot read frontmatter line: {raw!r}", number)
 
-        key, rest = match.group(1), match.group(2).strip()
+        key, rest = match.group(1), (match.group(2) or "").strip()
+        rest = _strip_comment(rest)
+        _reject_unquotable(rest, number)
         if key in values:
             raise FrontmatterError(f"duplicate frontmatter key {key!r}", number)
 
         if rest in BLOCK_INDICATORS or rest == "":
-            folded = rest.startswith(">")
-            collected: list[str] = []
+            collected = []
             index += 1
             while index < closing:
                 following = lines[index]
                 if following.strip() and not following[0].isspace():
                     break
-                collected.append(following.strip())
+                collected.append(following)
                 index += 1
-            joined = (" " if folded else "\n").join(part for part in collected if part)
-            values[key] = joined
+            values[key] = _block_scalar(rest, collected)
             key_lines[key] = number
             continue
 

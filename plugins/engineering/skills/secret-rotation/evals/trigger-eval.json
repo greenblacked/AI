@@ -1,0 +1,22 @@
+[
+  {"query": "an aws access key for the reporting user is sitting in a public github repo, has been since march. what do i do first", "should_trigger": true},
+  {"query": "how do we change the postgres password for the orders service without taking it down", "should_trigger": true},
+  {"query": "sam left on friday and had prod api tokens in his password manager, do we need to rotate everything", "should_trigger": true},
+  {"query": "our monitoring vendor emailed to say they were breached and our integration key may be affected", "should_trigger": true},
+  {"query": "i force pushed to remove the commit with the token in it, are we ok now or is there more to do", "should_trigger": true},
+  {"query": "how long should we leave the old iam key inactive before we actually delete it", "should_trigger": true},
+  {"query": "policy says keys older than 90 days get replaced and we have about 40 of them, where do i start", "should_trigger": true},
+  {"query": "how do i find every single thing that uses this gcp service account key before i swap it out", "should_trigger": true},
+  {"query": "someone pasted a slack webhook signing secret into a jira ticket, how bad is that and what now", "should_trigger": true},
+  {"query": "we swapped the api key last night and three cron jobs failed at 2am, how should we have sequenced it", "should_trigger": true},
+  {"query": "should we standardise on hashicorp vault or aws secrets manager for the platform", "should_trigger": false},
+  {"query": "design the auth for our new customer portal, jwt with refresh tokens or server side sessions?", "should_trigger": false},
+  {"query": "review our IAM roles, i'm fairly sure half of them are effectively admin", "should_trigger": false},
+  {"query": "terraform plan says it wants to replace the RDS instance, is that safe to approve", "should_trigger": false},
+  {"query": "this Dockerfile is 1.4GB and the process runs as root, can you tighten it up", "should_trigger": false},
+  {"query": "everyone's PRs have been failing since about 2pm, can you work out what landed on main", "should_trigger": false},
+  {"query": "pods went CrashLoopBackOff right after the 11:40 deploy, roll back or dig in", "should_trigger": false},
+  {"query": "gitleaks is failing CI on a fake key in a test fixture, how do i allowlist that path in the config", "should_trigger": false},
+  {"query": "we need to add a not null column to the users table without locking it, plan the migration", "should_trigger": false},
+  {"query": "write up the postmortem for tuesday's outage, i already have the timeline in a doc", "should_trigger": false}
+]

@@ -9,9 +9,7 @@
   "plugins": [
     {
       "name": "engineering",
-      "description": "Platform and DevOps skills: scaffold production-ready code, triage a red pipeline, review a Terraform plan, debug Kubernetes, harden images, plan platform migrations, and build or audit websites.",
-      "source": "./",
-      "strict": false,
+      "source": "./plugins/engineering",
       "category": "devops",
       "tags": [
         "devops",
@@ -21,28 +19,11 @@
         "containers",
         "migrations",
         "sre"
-      ],
-      "skills": [
-        "./skills/engineering/ci-triage",
-        "./skills/engineering/code-scaffold",
-        "./skills/engineering/iac-review",
-        "./skills/engineering/image-hardening",
-        "./skills/engineering/k8s-triage",
-        "./skills/engineering/plan-platform-migration",
-        "./skills/engineering/website-builder"
-      ],
-      "agents": [
-        "./agents/ci-log-reader.md",
-        "./agents/plan-reviewer.md",
-        "./agents/incident-scribe.md",
-        "./agents/skill-reviewer.md"
       ]
     },
     {
       "name": "manager",
-      "description": "Engineering-leadership skills: assess AI adoption, write decisions and status, review delivery, design team operating cadences, and run blameless postmortems.",
-      "source": "./",
-      "strict": false,
+      "source": "./plugins/manager",
       "category": "productivity",
       "tags": [
         "leadership",
@@ -51,21 +32,11 @@
         "postmortem",
         "dora",
         "okr"
-      ],
-      "skills": [
-        "./skills/manager/ai-enablement",
-        "./skills/manager/decision-record",
-        "./skills/manager/delivery-review",
-        "./skills/manager/design-team-cadence",
-        "./skills/manager/postmortem",
-        "./skills/manager/status-update"
       ]
     },
     {
       "name": "personal",
-      "description": "Personal skills: coach nutrition, tailor a CV and interview preparation, turn sources into durable notes, and write evidence-backed technical articles from real experience.",
-      "source": "./",
-      "strict": false,
+      "source": "./plugins/personal",
       "category": "productivity",
       "tags": [
         "health",
@@ -73,12 +44,6 @@
         "learning",
         "career",
         "writing"
-      ],
-      "skills": [
-        "./skills/personal/health-coach",
-        "./skills/personal/job-search",
-        "./skills/personal/learning-notes",
-        "./skills/personal/write-technical-article"
       ]
     }
   ]

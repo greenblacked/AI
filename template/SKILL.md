@@ -27,3 +27,10 @@ Imperative instructions. Concrete commands where they help.
 ## Anti-patterns
 
 **The specific mistake.** Why it looks harmless and what it costs.
+
+<!--
+Before this skill can merge it also needs evals/trigger-eval.json beside this file:
+twenty queries, ten with "should_trigger": true and ten near-misses with false. Draw
+several negatives from the skills next door - that is where descriptions actually
+collide, and it is the only part of the set that proves anything.
+-->
