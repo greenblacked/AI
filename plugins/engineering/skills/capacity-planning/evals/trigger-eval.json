@@ -1,0 +1,22 @@
+[
+  {"query": "marketing is doing a super bowl ad. will the checkout service survive it and what do we need to change", "should_trigger": true},
+  {"query": "we're onboarding a tenant that's 40x bigger than our largest. what breaks first", "should_trigger": true},
+  {"query": "how many replicas do we actually need for black friday, last year we guessed and it was ugly", "should_trigger": true},
+  {"query": "our k6 run passed at 2000 rps but i don't trust it, the test db has like 5000 rows in it", "should_trigger": true},
+  {"query": "latency is fine at 70% cpu and terrible at 85%, is that normal and what utilisation should we target", "should_trigger": true},
+  {"query": "the HPA scales up two minutes after the spike, by which point it's over. what do we do about that", "should_trigger": true},
+  {"query": "design a soak test for the ingest pipeline, we think there's a leak but nothing shows in a 20 minute run", "should_trigger": true},
+  {"query": "will this hold at 10x traffic or do we need to shard the orders table before the launch", "should_trigger": true},
+  {"query": "we get connection pool timeouts under load but cpu is at 30 percent everywhere. how do i work out the real ceiling", "should_trigger": true},
+  {"query": "what should the api do when it's past what it can serve, right now it just gets slower until everything times out", "should_trigger": true},
+  {"query": "we have an incident, checkout is down for maybe 20% of users and im IC", "should_trigger": false},
+  {"query": "can we kill an availability zone in staging on purpose and see what happens", "should_trigger": false},
+  {"query": "our aws bill jumped 30% last month, where is all this money going", "should_trigger": false},
+  {"query": "what metrics and spans should this new service emit so the next incident is diagnosable", "should_trigger": false},
+  {"query": "pods stuck in Pending, events say Insufficient cpu. what do i do right now", "should_trigger": false},
+  {"query": "the /v1/orders endpoint has a slow query, help me read this explain analyze and add the right index", "should_trigger": false},
+  {"query": "how long should we bake the canary at 5 percent before promoting", "should_trigger": false},
+  {"query": "write up the postmortem for last week's outage, i have the timeline in a doc already", "should_trigger": false},
+  {"query": "which of these three alerts should actually page someone at 3am and which should be a ticket", "should_trigger": false},
+  {"query": "we need to move 200 services off the old platform, plan the migration phases", "should_trigger": false}
+]

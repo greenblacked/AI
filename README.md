@@ -3,10 +3,11 @@
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
 [![Security](https://github.com/greenblacked/AI/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/security.yml)
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
-[![Skills](https://img.shields.io/badge/skills-26-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-40-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-A focused library of 26 agent skills and four read-only specialist subagents, built from
+A focused library of 40 agent skills, nine read-only specialist subagents and eight slash
+commands, built from
 real platform engineering, DevOps, engineering-management, and technical-writing work.
 Everything is installable through a three-plugin marketplace and validated before it ships.
 
@@ -23,12 +24,12 @@ command with the flag that actually produces the evidence.
 
 | Plugin | Focus | Contents |
 | --- | --- | --- |
-| `engineering` | Platform delivery and operations | 13 skills and 4 specialist subagents |
-| `manager` | Engineering leadership | 9 skills |
-| `personal` | Health, career, learning and writing | 4 skills |
+| `engineering` | Platform delivery and operations | 21 skills, 7 subagents, 4 commands |
+| `manager` | Engineering leadership | 12 skills, 2 subagents, 1 command |
+| `personal` | Health, career, learning and writing | 7 skills |
 
-Install one plugin or all three. Only the `engineering` plugin includes subagents; the
-other plugins contain skills alone. Each plugin is a self-contained directory under
+Install one plugin or all three. `engineering` and `manager` ship subagents and commands
+alongside their skills; `personal` is skills alone. Each plugin is a self-contained directory under
 `plugins/` with its own manifest, skills and subagents, so installing one does not pull in
 the others' files.
 
@@ -56,17 +57,25 @@ git clone https://github.com/greenblacked/AI.git && cd AI
 
 | Skill | What it does |
 | --- | --- |
+| [`access-review`](plugins/engineering/skills/access-review/SKILL.md) | Reduce who and what can do what toward least privilege without breaking production: evidence over intent, and an audit-only window before enforcement. |
 | [`alert-design`](plugins/engineering/skills/alert-design/SKILL.md) | Write, review or delete alerting rules so every page is user-visible and actionable now: symptom over mechanism, multiwindow burn-rate rules, and pruning by how often anyone acted rather than by how often it fired. |
+| [`api-design`](plugins/engineering/skills/api-design/SKILL.md) | Design an interface that can still be changed after other people depend on it — compatibility rules, error structure, pagination, and deprecation with usage telemetry. |
+| [`capacity-planning`](plugins/engineering/skills/capacity-planning/SKILL.md) | Work out whether a system survives an expected load: a demand model first, the one saturating resource, and a defined behaviour past capacity. |
 | [`ci-triage`](plugins/engineering/skills/ci-triage/SKILL.md) | Classify a red pipeline before debugging it — real failure, flake, runner, config, or dependency drift — starting with whether the default branch is already broken. Quarantine policy and retry hygiene included. |
 | [`code-scaffold`](plugins/engineering/skills/code-scaffold/SKILL.md) | Write new code that survives a 3am cron run: strict error handling, meaningful exit codes, structured logging, validated input, idempotent re-runs. |
+| [`cost-review`](plugins/engineering/skills/cost-review/SKILL.md) | Investigate a bill that grew, or reduce spend deliberately: attribute before acting, read the top movers rather than the top spenders, and name what each saving degrades. |
 | [`cutover`](plugins/engineering/skills/cutover/SKILL.md) | Run the change that has a point of no return — a traffic switch, a provider move, a region migration — from a rehearsed runbook with a rollback deadline computed before the window opens. |
 | [`db-migration`](plugins/engineering/skills/db-migration/SKILL.md) | Ship a schema change to a live database without a stuck lock: expand and contract, each phase its own revertible deploy, batched backfills, and the Postgres operations that are safe versus the ones that rewrite the table. |
+| [`dependency-upgrade`](plugins/engineering/skills/dependency-upgrade/SKILL.md) | Move onto a new major version without a branch that never lands: deprecation warnings first, one dependency per change, and the uncovered surface named. |
 | [`game-day`](plugins/engineering/skills/game-day/SKILL.md) | Plan and run a reliability exercise around a falsifiable hypothesis, with a blast radius chosen in advance and an abort that was executed before the experiment started. |
 | [`iac-review`](plugins/engineering/skills/iac-review/SKILL.md) | Review a Terraform change against the plan JSON rather than the plan text, so replacements and destroys surface first instead of being skimmed past. |
 | [`image-hardening`](plugins/engineering/skills/image-hardening/SKILL.md) | Build or audit a container image: minimal base, digest pinning, numeric non-root UID, no secrets in layers, SBOM, a scan gate that will not get bypassed, signing that is actually verified. |
+| [`instrumentation`](plugins/engineering/skills/instrumentation/SKILL.md) | Add telemetry so the next incident is diagnosable — instrument backwards from the questions you will need answered at 3am, with cardinality bounded on purpose. |
 | [`k8s-triage`](plugins/engineering/skills/k8s-triage/SKILL.md) | Mitigate first, diagnose second. The deploy-related question, the fixed evidence order, and a decode table for the failure modes that account for most of them. |
 | [`new-skill`](plugins/engineering/skills/new-skill/SKILL.md) | Author a skill that actually fires: decide whether it deserves to exist, write the body before the description, and build the eval set from the neighbouring skills it has to beat. |
 | [`plan-platform-migration`](plugins/engineering/skills/plan-platform-migration/SKILL.md) | Plan a production migration around invariants, state authority, phased evidence gates, rehearsed rollback, controlled cutover, and explicit legacy retirement. |
+| [`release-strategy`](plugins/engineering/skills/release-strategy/SKILL.md) | Separate deploy from release: flags, rings and canaries chosen by how the change fails, with promotion gates, bake times and a flag removal date. |
+| [`runbook`](plugins/engineering/skills/runbook/SKILL.md) | Write what the 3am reader follows: numbered steps, real commands, every mitigation with its blast radius, and a last-verified date, because a wrong runbook is worse than none. |
 | [`secret-rotation`](plugins/engineering/skills/secret-rotation/SKILL.md) | Rotate a credential, or contain one that has leaked. The two run in opposite orders, and the skill makes you pick which one you are in before it does anything else. |
 | [`website-builder`](plugins/engineering/skills/website-builder/SKILL.md) | Build a site that looks designed for its subject and can still be hosted and maintained afterwards — or audit one that already exists. |
 
@@ -80,6 +89,9 @@ git clone https://github.com/greenblacked/AI.git && cd AI
 | [`design-team-cadence`](plugins/manager/skills/design-team-cadence/SKILL.md) | Design a minimal management operating rhythm where every recurring forum has a decision or relationship purpose, explicit inputs and outputs, and a cancellation rule. |
 | [`growth-review`](plugins/manager/skills/growth-review/SKILL.md) | Prepare a review, a promotion case or a development plan from evidence over the whole period rather than the last six weeks, where every claim carries an example. |
 | [`hiring-loop`](plugins/manager/skills/hiring-loop/SKILL.md) | Design and run a hiring loop from a scorecard: stages that each test something the others do not, written scores before the debrief, and "culture fit" restated as a named behaviour or dropped. |
+| [`incident-comms`](plugins/manager/skills/incident-comms/SKILL.md) | Communicate an incident to customers, executives and staff: acknowledge on impact rather than diagnosis, and keep the next-update promise even when nothing has changed. |
+| [`okr-planning`](plugins/manager/skills/okr-planning/SKILL.md) | Set goals that change what people do — an objective is the outcome, a key result is the evidence — with baselines before targets and guardrails beside them. |
+| [`onboarding-plan`](plugins/manager/skills/onboarding-plan/SKILL.md) | Get a new engineer productive deliberately: access working before day one, something shipped in week one, and 30/60/90 expectations written down and shared. |
 | [`postmortem`](plugins/manager/skills/postmortem/SKILL.md) | Write a blameless postmortem in the Google SRE shape, where "human error" is a prompt for a better question and every action item has an owner. |
 | [`status-update`](plugins/manager/skills/status-update/SKILL.md) | Bottom line up front for status, Minto for persuasion, and never the two mixed. Numbers are sourced or marked as missing. |
 | [`vendor-evaluation`](plugins/manager/skills/vendor-evaluation/SKILL.md) | Run a buy decision to a defensible conclusion, including the decision not to buy — weights agreed before any demo, three-year total cost, and an exit cost established while you still have leverage. |
@@ -88,9 +100,12 @@ git clone https://github.com/greenblacked/AI.git && cd AI
 
 | Skill | What it does |
 | --- | --- |
+| [`conference-talk`](plugins/personal/skills/conference-talk/SKILL.md) | Take a talk from idea to accepted proposal to a delivery that lands: one takeaway, a structure that survives being heard once, and rehearsal out loud and timed. |
 | [`health-coach`](plugins/personal/skills/health-coach/SKILL.md) | Estimate calories and macros from a photo or a description, as a range with the uncertainty named, then suggest one thing worth changing. |
 | [`job-search`](plugins/personal/skills/job-search/SKILL.md) | Tailor a CV and prepare for interviews from a real history. Selection and evidence, never embellishment. |
 | [`learning-notes`](plugins/personal/skills/learning-notes/SKILL.md) | Turn something read into a note that is still useful in a year, on the principle that a summary is not a note. |
+| [`offer-negotiation`](plugins/personal/skills/offer-negotiation/SKILL.md) | Evaluate and negotiate an offer: total compensation decomposed, levelling as the negotiation that compounds, and nothing real until it is in writing. |
+| [`weekly-review`](plugins/personal/skills/weekly-review/SKILL.md) | Run a short weekly review whose only output is what you are doing next week and what you are consciously not doing, planned against the hours that are actually free. |
 | [`write-technical-article`](plugins/personal/skills/write-technical-article/SKILL.md) | Turn real engineering experience and verifiable sources into a publishable technical article with a defensible thesis and no invented authority. |
 
 ## Subagents
@@ -122,7 +137,11 @@ Each one does the mechanical part and points at the skill that holds the full pr
 | --- | --- | --- |
 | `/blast-radius` | `engineering` | Read a Terraform plan as JSON and report destroys first, with the attribute forcing each replacement. |
 | `/ci-fail` | `engineering` | Classify a failing run from annotations and failed-step logs, after checking whether the default branch is red too. |
+| `/image-audit` | `engineering` | Audit a built image for secrets in layers, root execution, base currency and a gate that will not get bypassed. |
+| `/oncall-handover` | `engineering` | Draft a handover from pages, deploys and anything left mid-flight, with the fragile mitigations first. |
 | `/weekly` | `manager` | Draft a bottom-line-first status update from merged pull requests and commits, every number sourced. |
+| `/scaffold-skill` | this repository | Create the directory, SKILL.md and eval stub for a new skill, in the right plugin, refusing a duplicate name. |
+| `/eval-skill` | this repository | Score whether one description actually triggers, and name the phrasing it is missing. |
 | `/skill-doctor` | this repository | Diagnose one skill: validator findings, description health, eval-set balance, and which siblings it collides with. |
 
 ## CI is the source of truth
