@@ -1,0 +1,22 @@
+[
+  {"query": "we're on react 17 and everything new wants 19. how do we get there without a branch that lives forever", "should_trigger": true},
+  {"query": "snyk flagged a critical in our transitive lodash and there's no patch for the 4.x line we're pinned to. what now", "should_trigger": true},
+  {"query": "node 18 goes end of support in april. plan the move to 22 for the four services", "should_trigger": true},
+  {"query": "the spring boot 3 upgrade branch has been open since march and nobody wants to touch it, can it be salvaged", "should_trigger": true},
+  {"query": "is bumping django 4.2 to 5.1 safe for us or do i need to read the whole release notes", "should_trigger": true},
+  {"query": "dependabot opened 23 PRs this morning, should i just merge them all in one go", "should_trigger": true},
+  {"query": "we're three majors behind on the payments SDK. do i go one at a time or straight to latest", "should_trigger": true},
+  {"query": "after the jackson bump nothing failed in tests but the api started serialising nulls differently in prod. how do i catch that class of thing next time", "should_trigger": true},
+  {"query": "our package-lock changed 400 lines when i bumped one dependency, is that normal and how do i review it", "should_trigger": true},
+  {"query": "someone added a resolutions entry for semver two years ago and nobody knows why, can we take it out", "should_trigger": true},
+  {"query": "build broke right after dependabot bumped urllib3, error is ImportError: cannot import name DEFAULT_CIPHERS. who owns this", "should_trigger": false},
+  {"query": "we need to rename orders.customer_id to customer_ref on a 400M row table with no downtime", "should_trigger": false},
+  {"query": "what percent should we start the canary at and how long before promoting to 25", "should_trigger": false},
+  {"query": "help me pick between prisma and drizzle for the new service, i want it written up properly", "should_trigger": false},
+  {"query": "have a look at this Dockerfile, it's 1.2GB and the process runs as root", "should_trigger": false},
+  {"query": "our aws bill jumped 30% last month and finance wants to know where it went", "should_trigger": false},
+  {"query": "pods in staging went CrashLoopBackOff right after the 11:40 deploy, roll back or dig in?", "should_trigger": false},
+  {"query": "we need to rotate the stripe api key, it was pasted into a slack channel", "should_trigger": false},
+  {"query": "evaluate three observability vendors for us, we're deciding next quarter", "should_trigger": false},
+  {"query": "our traces stop at the sqs boundary, how do i propagate context across the queue", "should_trigger": false}
+]

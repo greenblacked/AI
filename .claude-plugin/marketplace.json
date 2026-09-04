@@ -21,7 +21,10 @@
         "sre",
         "cost",
         "observability",
-        "iam"
+        "iam",
+        "api",
+        "runbooks",
+        "capacity"
       ]
     },
     {
@@ -35,7 +38,8 @@
         "postmortem",
         "dora",
         "okr",
-        "incidents"
+        "incidents",
+        "onboarding"
       ]
     },
     {
@@ -48,7 +52,8 @@
         "learning",
         "career",
         "writing",
-        "planning"
+        "planning",
+        "speaking"
       ]
     }
   ]

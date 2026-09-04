@@ -1,0 +1,22 @@
+[
+  {"query": "new backend engineer starts in two weeks and i have honestly not thought about any of it yet", "should_trigger": true},
+  {"query": "what should the first ticket be for someone joining the payments team on monday", "should_trigger": true},
+  {"query": "who should be her buddy for the first fortnight and how much of their time does that actually cost", "should_trigger": true},
+  {"query": "write me a 30/60/90 for a senior SRE joining a team with a fifteen year old codebase", "should_trigger": true},
+  {"query": "she is four weeks in and barely asking anything and i cannot tell whether that is fine", "should_trigger": true},
+  {"query": "when is it reasonable to put a new joiner on the on call rotation", "should_trigger": true},
+  {"query": "our new hire is fully remote three timezones out and i think he is drifting", "should_trigger": true},
+  {"query": "every new person loses three days to the stale setup docs, what do we actually do about that", "should_trigger": true},
+  {"query": "he is slower than i expected in month two, how do i work out if that is the codebase or him", "should_trigger": true},
+  {"query": "what access does a joining engineer genuinely need on day one and what can wait until they need it", "should_trigger": true},
+  {"query": "the panel is split on the staff candidate and i am running the debrief tomorrow morning", "should_trigger": false},
+  {"query": "our interview loop is five rounds and good candidates keep dropping out, help me trim it", "should_trigger": false},
+  {"query": "reviews are due friday and i need to make the case that she is ready for staff", "should_trigger": false},
+  {"query": "how do i tell him it is a meets and not an exceeds without it turning into an argument", "should_trigger": false},
+  {"query": "we have far too many standing meetings, redesign the team's week for me", "should_trigger": false},
+  {"query": "draft the key results for the platform team for next quarter", "should_trigger": false},
+  {"query": "they came back below my current base and i want to push once without blowing it up", "should_trigger": false},
+  {"query": "i have a systems design interview on thursday and i want to prepare properly", "should_trigger": false},
+  {"query": "the quarterly access review is due, pull together everyone who still has prod write", "should_trigger": false},
+  {"query": "we had 40 minutes of 500s on saturday after a config change and the writeup is due wednesday", "should_trigger": false}
+]
