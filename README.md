@@ -102,6 +102,19 @@ classification, `plan-reviewer` reads a Terraform plan and returns the blast rad
 `incident-scribe` turns triage notes into a postmortem draft, and `skill-reviewer` audits
 a candidate skill against this repository's rules.
 
+## Commands
+
+A command never fires on its own — you type it — which makes it the right shape for work
+that takes an argument, or that should run when asked rather than when merely relevant.
+Each one does the mechanical part and points at the skill that holds the full procedure.
+
+| Command | Ships with | What it does |
+| --- | --- | --- |
+| `/blast-radius` | `engineering` | Read a Terraform plan as JSON and report destroys first, with the attribute forcing each replacement. |
+| `/ci-fail` | `engineering` | Classify a failing run from annotations and failed-step logs, after checking whether the default branch is red too. |
+| `/weekly` | `manager` | Draft a bottom-line-first status update from merged pull requests and commits, every number sourced. |
+| `/skill-doctor` | this repository | Diagnose one skill: validator findings, description health, eval-set balance, and which siblings it collides with. |
+
 ## CI is the source of truth
 
 Every skill is validated on every push. The validator is standard library only, and the
@@ -132,6 +145,7 @@ descriptions, which is what catches a skill that fires on everything.
 
 - [Writing a skill](docs/writing-skills.md) — the contract, every validator code, and how to write a description that actually triggers
 - [Writing a subagent](docs/writing-agents.md) — when a subagent beats doing the work inline
+- [Writing a slash command](docs/writing-commands.md) — when a command beats a skill, and why most do not
 - [AGENTS.md](docs/agents-md.md) — the standard, and how it relates to `CLAUDE.md`
 - [CI](docs/ci.md) — what each check means and how to make it required
 - [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)

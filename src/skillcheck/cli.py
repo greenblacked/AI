@@ -17,10 +17,12 @@ from .rules import (
     WARNING,
     Finding,
     check_agent,
+    check_command,
     check_duplicate_names,
     check_marketplace,
     check_skill,
     find_agents,
+    find_commands,
     find_plugins,
     find_skills,
 )
@@ -110,6 +112,12 @@ def main(argv: list[str] | None = None) -> int:
     agents += find_agents(root / "agents")
     for agent in agents:
         findings.extend(check_agent(agent, root))
+    # Commands ship two ways: inside a plugin, and in the repository's own
+    # `.claude/commands/`, which is where a contributor-facing command belongs.
+    commands = [command for plugin in plugins for command in find_commands(plugin / "commands")]
+    commands += find_commands(root / ".claude" / "commands")
+    for command in commands:
+        findings.extend(check_command(command, root))
     if not args.skip_marketplace:
         findings.extend(check_marketplace(root))
 
@@ -125,8 +133,9 @@ def main(argv: list[str] | None = None) -> int:
             print(_annotate(item))
 
     print(
-        f"\n{len(plugins)} plugin(s), {len(skills)} skill(s) and {len(agents)} "
-        f"subagent(s) checked — {len(errors)} error(s), {len(warnings)} warning(s)"
+        f"\n{len(plugins)} plugin(s), {len(skills)} skill(s), {len(agents)} subagent(s) "
+        f"and {len(commands)} command(s) checked — {len(errors)} error(s), "
+        f"{len(warnings)} warning(s)"
     )
 
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")

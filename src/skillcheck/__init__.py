@@ -6,9 +6,11 @@ from .rules import (
     WARNING,
     Finding,
     check_agent,
+    check_command,
     check_marketplace,
     check_skill,
     find_agents,
+    find_commands,
     find_skills,
 )
 
@@ -17,7 +19,9 @@ __all__ = [
     "WARNING",
     "Finding",
     "check_agent",
+    "check_command",
     "find_agents",
+    "find_commands",
     "Frontmatter",
     "FrontmatterError",
     "check_marketplace",
