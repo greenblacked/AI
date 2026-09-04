@@ -1,0 +1,22 @@
+[
+  {"query": "we are shipping a rewrite of the pricing engine next week. how do we get it out without betting the whole customer base on it", "should_trigger": true},
+  {"query": "what percentage should the canary start at and how long do we actually leave it there before promoting", "should_trigger": true},
+  {"query": "we have about 140 feature flags and nobody knows which of them are dead. help", "should_trigger": true},
+  {"query": "blue green or a percentage rollout for a jvm upgrade? arguing about it in the design review", "should_trigger": true},
+  {"query": "can we auto roll back when the canary error rate spikes or is that just going to flap all night", "should_trigger": true},
+  {"query": "we want a kill switch on the recommendations service before black friday. what does a good one look like", "should_trigger": true},
+  {"query": "new search ranker is ready, i want to compare it against the old one on real traffic before any user sees it", "should_trigger": true},
+  {"query": "how do we ship this to internal staff first, then a couple of small tenants, then everyone", "should_trigger": true},
+  {"query": "canary looked fine for five minutes so we went to 100% and it fell over at 2am. what should we have done instead", "should_trigger": true},
+  {"query": "conversion is up in the test but i am nervous. what guardrails should we be watching during the rollout", "should_trigger": true},
+  {"query": "we are moving off heroku on the 14th. need the runbook, the roles and who calls the rollback", "should_trigger": false},
+  {"query": "how do we cut DNS over to the new load balancer on saturday without dropping requests", "should_trigger": false},
+  {"query": "plan our move from jenkins to github actions, 200 jobs across two teams over a couple of quarters", "should_trigger": false},
+  {"query": "renaming a column on a 200 million row table. how do i do that without downtime or a stuck lock", "should_trigger": false},
+  {"query": "the e2e job has failed 4 of the last 12 runs and nobody can reproduce it locally. is it a flake", "should_trigger": false},
+  {"query": "prod is down, pods have been in CrashLoopBackOff since the 11:40 deploy, im on call", "should_trigger": false},
+  {"query": "should high cpu on the nodes page someone or is that a dashboard-only thing", "should_trigger": false},
+  {"query": "review this terraform plan for me, it says it is replacing the RDS instance and i do not trust it", "should_trigger": false},
+  {"query": "launchdarkly vs unleash vs building our own. need a three year tco and a scorecard for the decision", "should_trigger": false},
+  {"query": "our cloud bill jumped 30% after last month, can you work out where the money went", "should_trigger": false}
+]

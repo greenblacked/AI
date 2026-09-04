@@ -20,7 +20,7 @@ Everything here is prose and configuration. There is no application. The only co
 | `plugins/engineering/skills/` | Platform and DevOps skills |
 | `plugins/manager/skills/` | Engineering-leadership skills |
 | `plugins/personal/skills/` | Personal skills |
-| `plugins/engineering/agents/` | Subagent definitions, validated on the same run as the skills |
+| `plugins/*/agents/` | Subagent definitions, validated on the same run as the skills |
 | `plugins/*/commands/` | Slash commands the plugin ships, validated on the same run |
 | `.claude/commands/` | Slash commands for working on this repository, not shipped to installers |
 | `src/skillcheck/` | The validator: `frontmatter.py` parses, `rules.py` decides, `cli.py` reports |
