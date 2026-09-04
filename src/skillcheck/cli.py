@@ -19,6 +19,7 @@ from .rules import (
     check_agent,
     check_command,
     check_duplicate_names,
+    check_eval_conflicts,
     check_marketplace,
     check_skill,
     find_agents,
@@ -108,6 +109,7 @@ def main(argv: list[str] | None = None) -> int:
     for skill in skills:
         findings.extend(check_skill(skill, root))
     findings.extend(check_duplicate_names(skills, root))
+    findings.extend(check_eval_conflicts(skills, root))
     agents = [agent for plugin in plugins for agent in find_agents(plugin / "agents")]
     agents += find_agents(root / "agents")
     for agent in agents:
