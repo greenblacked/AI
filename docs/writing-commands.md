@@ -73,13 +73,17 @@ without the "Use this whenever" pushiness a skill description needs.
 
 ## Arguments
 
-`$1` through `$9` are positional; `$ARGUMENTS` is everything. Write the body so it still
-does something sensible when the argument is absent — `/ci-fail` with no run id should
-find the latest failing run rather than fail.
+`$ARGUMENTS` is everything the caller typed. Individual arguments are
+**zero-indexed**: `$ARGUMENTS[0]` is the first, and `$N` is shorthand for the same thing,
+so `$0` is the first argument and `$1` is the second. This catches people out — it is not
+shell numbering, and getting it wrong is silent, because an index with no argument at that
+position expands to nothing rather than erroring. Write the body so it still does
+something sensible when the argument is absent: `/ci-fail` with no run id should find the
+latest failing run rather than stop.
 
 If the body reads an argument, declare `argument-hint`. Without it the picker shows the
 command with no indication that it takes anything, so people type the bare name and it
-runs against nothing. That is a warning rather than an error because a `$1` inside a
+runs against nothing. That is a warning rather than an error because a `$0` inside a
 fenced example is not an argument the command actually reads — fenced blocks are excluded
 before the check runs.
 

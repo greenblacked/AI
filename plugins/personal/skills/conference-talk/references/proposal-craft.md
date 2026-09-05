@@ -3,6 +3,17 @@
 Read this while writing or rewriting a CFP submission. The talk and the proposal are
 different pieces of work, and a good talk with a weak proposal does not get given.
 
+## Contents
+
+- [How a committee actually reads](#how-a-committee-actually-reads)
+- [The abstract](#the-abstract)
+- [The outline](#the-outline)
+- [The bio](#the-bio)
+- [Notes to the committee](#notes-to-the-committee)
+- [Choosing which idea to submit](#choosing-which-idea-to-submit)
+- [Submitting](#submitting)
+- [Rejection](#rejection)
+
 ## How a committee actually reads
 
 Assume a reviewer with two hundred submissions, a schedule with gaps of specific shapes,

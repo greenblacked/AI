@@ -107,7 +107,7 @@ command or tool named — not from reading the code and forming an impression.
 
 ### Accessibility
 
-Full standard in `references/quality-floor.md`; a failure there is a finding by
+Full standard in the quality-floor reference the skill lists; a failure there is a finding by
 definition.
 
 ```bash

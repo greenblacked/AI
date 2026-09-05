@@ -21,6 +21,13 @@ skills/<category>/<name>/
 [the marketplace manifest](../.claude-plugin/marketplace.json). `<name>` is the skill
 name, and it must equal the `name` in the frontmatter.
 
+Keep references one level deep. A file under `references/` should not point at another
+file under `references/`, because a file reached through a chain of references is the one
+most likely to be read partially — the model follows the first pointer, reads the head of
+the second file, and proceeds on incomplete information without anything going wrong
+visibly. If two references genuinely need each other, name the second in `SKILL.md` as
+well so it is reachable in one hop, or fold them together.
+
 The validator treats any directory that directly contains a `SKILL.md` as a skill, so a
 second `SKILL.md` nested anywhere below one is an error (`nested-skill`): the Skills API
 rejects nested skills on upload.
@@ -129,7 +136,7 @@ walk past it.
 | `description-headroom` | Description is within 50 characters of the 1024 cap. | It works today. The point is that the next edit breaks it invisibly. |
 | `no-trigger` | Description has no "use when / whenever / for / any time" clause. | A description can trigger without the exact phrasing; the heuristic is a prompt, not a proof. |
 | `long-skill` | `SKILL.md` is over 500 lines. | Length is a signal that depth belongs in `references/`, not a defect in itself. |
-| `no-toc` | A reference file is over 300 lines with no table of contents. | Some long references are genuinely linear. |
+| `no-toc` | A reference file is over 100 lines with no table of contents. | Some long references are genuinely linear. |
 | `shouting` | `ALWAYS` or `NEVER` in capitals in the body. | Occasionally the emphasis is earned. Reported once per file, not once per occurrence. |
 | `no-evals` | The skill has no `evals/trigger-eval.json`. | A skill can be correct before anyone has written its eval set; the rest of the eval rules are errors once the file exists. |
 
@@ -317,6 +324,7 @@ Every code the validator can emit is below, grouped by what it is looking at.
 | `missing-name` | error | No `name`. | Add it. |
 | `empty-name` | error | `name` present but blank. | Fill it in. |
 | `bad-name` | error | Not lowercase letters, digits and single hyphens. | No capitals, underscores, leading, trailing or doubled hyphens. |
+| `reserved-name` | error | The name contains `anthropic` or `claude`. The upload route rejects it, so the skill passes locally and fails at the boundary. | Name it after the job rather than the tool. |
 | `long-name` | error | Over 64 characters. | Shorten it. |
 | `name-mismatch` | error | `name` differs from the directory name. | Change one to match the other. |
 | `missing-description` | error | No `description`. | Add it. |
@@ -330,7 +338,7 @@ Every code the validator can emit is below, grouped by what it is looking at.
 | `no-shebang` | error | A `scripts/*.sh` file has no `#!` line. | Add `#!/usr/bin/env bash`. |
 | `not-executable` | error | A `scripts/*.sh` file is not executable. | `chmod +x` it. |
 | `long-skill` | warning | `SKILL.md` over 500 lines. | Push depth into `references/`. |
-| `no-toc` | warning | A reference over 300 lines with no contents heading. | Add a `## Contents` (or "Table of contents", or "In this file") heading. |
+| `no-toc` | warning | A reference over 100 lines with no contents heading. The threshold is upstream's, and the reason is partial reads: Claude may read only the head of a long file, so the contents list is what makes the rest visible. | Add a `## Contents` (or "Table of contents", or "In this file") heading. |
 | `shouting` | warning | `ALWAYS` or `NEVER` in capitals. | Replace with the reason the rule exists. |
 
 ### Eval sets

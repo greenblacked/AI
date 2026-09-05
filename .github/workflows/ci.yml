@@ -61,7 +61,23 @@ jobs:
         # would silently fall behind. The version is pinned for the same reason the
         # scanners are: a validator that changes underneath you turns a green build
         # into a statement about the validator.
-        run: npx --yes "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" plugin validate .
+        run: |
+          set -Eeuo pipefail
+          npx --yes "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" plugin validate . \
+            | tee validate.log
+          # `plugin validate` exits 0 even when it warns, so a new warning class would
+          # land silently — exactly the failure this repository rejects for skillcheck's
+          # own warnings. The missing-version warnings are expected and deliberate: the
+          # source is a git ref, so Claude Code derives the version from the commit SHA
+          # and installers track every commit rather than waiting for a manual bump.
+          # Anything else is new and fails the build.
+          unexpected=$(grep -E '^[[:space:]]+> ' validate.log \
+            | grep -v 'version: No version specified' || true)
+          if [ -n "${unexpected}" ]; then
+            echo "::error::plugin validate reported an unexpected warning"
+            echo "${unexpected}"
+            exit 1
+          fi
         env:
           CLAUDE_CODE_VERSION: '2.1.221'
 
