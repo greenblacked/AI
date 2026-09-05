@@ -1,0 +1,22 @@
+[
+  {"query": "the CheckoutErrorBudgetFastBurn alert links to a wiki page that just says 'investigate the issue'. can you write the actual runbook", "should_trigger": true},
+  {"query": "we need an on-call procedure for when the kafka consumer lag stops draining. nobody on the rota knows what to do", "should_trigger": true},
+  {"query": "write up the eu-west failover steps so that someone who has never done it can run them at 3am", "should_trigger": true},
+  {"query": "our runbooks are two years old and half the kubectl commands in them don't work any more. how do we stop that happening", "should_trigger": true},
+  {"query": "document what the responder should do when the nightly reconciliation job fails, including when to escalate", "should_trigger": true},
+  {"query": "review this playbook for me - could someone unfamiliar with the service actually follow it under pressure?", "should_trigger": true},
+  {"query": "every step in our playbook says restart the service and none of them say what that drops. fix it", "should_trigger": true},
+  {"query": "new person joins the pager rota on monday and there is no written procedure for anything. where do i start", "should_trigger": true},
+  {"query": "turn the steps i pasted in slack during last night's outage into a proper document for next time", "should_trigger": true},
+  {"query": "what belongs in an operational doc and what doesn't - ours open with three paragraphs of architecture before step 1", "should_trigger": true},
+  {"query": "should a pod restarting page someone at night or is that dashboard-only", "should_trigger": false},
+  {"query": "our pager goes off 40 times a night. help me prune the rule set by how often anyone actually acted", "should_trigger": false},
+  {"query": "checkout pods are CrashLoopBackOff right now and prod is down. what do i do", "should_trigger": false},
+  {"query": "the deploy at 14:02 broke staging - roll back now or read the logs first?", "should_trigger": false},
+  {"query": "write the postmortem for tuesday's outage, i already have the timeline in a doc", "should_trigger": false},
+  {"query": "we want to kill an availability zone in staging on thursday and see what survives", "should_trigger": false},
+  {"query": "draft the status page update customers will see while checkout is degraded", "should_trigger": false},
+  {"query": "write me a bash script that collects an evidence bundle from a namespace and uploads it to s3", "should_trigger": false},
+  {"query": "the e2e job has failed 4 of the last 12 runs and nobody can reproduce it locally. flake or real?", "should_trigger": false},
+  {"query": "we can't tell which downstream call is slow. what spans and metrics should the checkout service emit", "should_trigger": false}
+]

@@ -18,7 +18,13 @@
         "ci",
         "containers",
         "migrations",
-        "sre"
+        "sre",
+        "cost",
+        "observability",
+        "iam",
+        "api",
+        "runbooks",
+        "capacity"
       ]
     },
     {
@@ -31,7 +37,9 @@
         "cadence",
         "postmortem",
         "dora",
-        "okr"
+        "okr",
+        "incidents",
+        "onboarding"
       ]
     },
     {
@@ -43,7 +51,9 @@
         "notes",
         "learning",
         "career",
-        "writing"
+        "writing",
+        "planning",
+        "speaking"
       ]
     }
   ]
