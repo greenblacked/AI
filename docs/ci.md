@@ -13,7 +13,7 @@ Triggers on push to `main`, on every pull request, and on `workflow_dispatch`. T
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
-| `validate-skills` | `validate skills` | A skill, a subagent or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed trigger-eval set, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output. |
+| `validate-skills` | `validate skills` | A skill, a subagent, a command or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed eval set for a skill or a subagent, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output; it also prints the per-plugin description total, which is the listing cost every installer pays. |
 | `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the job's `env` for the same reason the scanners are. |
 | `test` | `test (3.10)` … `test (3.13)` | The validator's own test suite failed on that interpreter. The matrix is four versions because [`pyproject.toml`](../pyproject.toml) declares no dependencies, and running on a bare interpreter across the supported range is how that claim stays true. |
 | `lint-markdown` | `lint markdown` | markdownlint-cli2 found a violation in a `*.md` file. Config in `.markdownlint-cli2.yaml`. |
@@ -110,21 +110,23 @@ query per sample.
 | --- | --- | --- |
 | `evaluate` | `score descriptions` | A skill scored below the threshold, or the credentials are absent. Nothing depends on this job and no branch rule requires it. |
 
-Three inputs. `skill` is marked required and the other two are not, but all three carry a
-default, so dispatching the form unchanged scores everything:
+Four inputs. `skill` is marked required and the others are not, but all carry a default,
+so dispatching the form unchanged scores everything:
 
 | Input | Default | What it does |
 | --- | --- | --- |
-| `skill` | `all` | A skill directory to score, such as `plugins/engineering/skills/ci-triage`, or `all` for every skill that has an eval set. |
-| `runs` | `3` | Samples per query. A majority vote across them decides, which separates a description that genuinely fails from one sitting on the model's decision boundary. |
-| `threshold` | `0.8` | Pass rate below which a skill is reported as failing. |
+| `skill` | `all` | A skill directory such as `plugins/engineering/skills/ci-triage`, a subagent file such as `plugins/engineering/agents/ci-log-reader.md`, or `all` for everything that has an eval set. |
+| `budget` | empty | A listing budget in characters. Set it to score descriptions the way the runtime shows them — the runtime's default is about 8,000 on a 200k model — rather than at full length. |
+| `runs` | `3` | Samples per query; must be odd. A majority vote across them decides, which separates a description that genuinely fails from one sitting on the model's decision boundary. |
+| `threshold` | `0.8` | Pass rate below which a target is reported as failing. |
 
 It needs an `ANTHROPIC_API_KEY` repository secret. The first step checks for it and stops
 with a one-line annotation if it is absent, because failing there beats failing forty API
 calls later with a stack trace. The job then installs the pinned `claude` CLI and runs
-[`scripts/run_trigger_eval.py`](../scripts/run_trigger_eval.py), writes a pass rate,
-recall and specificity table into the job summary, and uploads the full results as the
-`trigger-evals` artifact.
+[`scripts/run_trigger_eval.py`](../scripts/run_trigger_eval.py), writes a table of pass
+rate, recall, specificity, routing and the count of narrowly decided queries into the job
+summary, and uploads the full results as the `trigger-evals` artifact. Download that
+artifact and pass it back as `--baseline` on the next local run to see what an edit moved.
 
 Nothing here gates anything, and that is the design rather than an omission. A trigger
 eval has two halves that cost different amounts. The schema — twenty queries, at least

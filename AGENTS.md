@@ -26,6 +26,7 @@ Everything here is prose and configuration. There is no application. The only co
 | `src/skillcheck/` | The validator: `frontmatter.py` parses, `rules.py` decides, `cli.py` reports |
 | `tests/` | pytest over the validator, including a check that this repository validates clean |
 | `plugins/*/skills/*/evals/` | Trigger eval sets: the queries a skill should and should not fire on |
+| `plugins/*/agents/evals/` | The same for each subagent, one `<name>.json` per agent file |
 | `docs/` | How to write skills, subagents, commands, `AGENTS.md`, and what CI checks |
 | `template/SKILL.md` | Starting point for a new skill |
 | `.claude-plugin/marketplace.json` | Lists the three plugins; each discovers its own skills |
@@ -73,16 +74,24 @@ in `src/skillcheck/` breaks the guarantee CI is built on, so do not add one.
    to read it. If you name a path, write the file: the validator fails on a pointer to
    something that does not exist, which is the defect that motivated it.
 4. Write `evals/trigger-eval.json`: twenty queries, ten the skill should fire on and
-   ten near-misses it should not. The validator's floor is sixteen with eight a side,
+   ten near-misses it should not. On each negative that has an obvious owner, add
+   `"expected"` naming the skill or subagent that should win it — that is what turns
+   "did not fire" into "routed correctly", and it is the only way the score can see one
+   description stealing another's queries. The validator's floor is sixteen with eight a side,
    so twenty leaves room to drop one without failing. The negatives are the useful half — they are what
    catches a description that fires on everything. Draw several from the skills next
    door, because that is where the real collisions are.
-5. Set `allowed-tools` to the minimum the procedure genuinely needs, scoped per binary
+5. Keep the description inside the 500–900 character guidance rather than at the cap.
+   Every description a plugin ships is resident in context for the whole session, and the
+   runtime drops the least-used ones when the listing overflows its budget — `make
+   validate` prints the per-plugin total, and `docs/writing-skills.md` explains what to do
+   with it.
+6. Set `allowed-tools` to the minimum the procedure genuinely needs, scoped per binary
    where scoping carries information — `Bash(kubectl:*)` says something, `Bash` does not.
-6. Nothing to add to `.claude-plugin/marketplace.json`: each plugin discovers its own
+7. Nothing to add to `.claude-plugin/marketplace.json`: each plugin discovers its own
    `skills/`. What the validator checks is that the skill sits inside a plugin at all —
    one stranded outside `plugins/<name>/skills/` installs for nobody.
-7. Run `make validate && make test`.
+8. Run `make validate && make test`.
 
 `docs/writing-skills.md` has the full contract, including every validator code and how to
 fix it.
@@ -139,6 +148,11 @@ Shell in this repository, including inline `run:` blocks in workflows, uses
 - Do not edit a skill's `description` to make a test or check pass. If a check is wrong,
   fix the check and its test.
 - Do not add a dependency to `skillcheck`.
+- Do not add a frontmatter key to a `SKILL.md` outside the six the validator allows,
+  however useful Claude Code makes it. The Skills API upload route rejects every other key
+  with a hard error, and every skill here has to survive `make package`. `when_to_use` is
+  the tempting one; its content belongs in `description`. A key the portable six cannot
+  carry is the one reason to write a command instead of a skill.
 - Do not turn a validator error into a warning to unblock a change. The dangling-pointer
   check in particular exists because that failure is silent in production.
 - Do not rewrite the exported skills' voice. `code-scaffold`, `website-builder` and

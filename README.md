@@ -43,6 +43,19 @@ the others' files.
 /reload-plugins
 ```
 
+If you install more than one plugin, raise the skill listing budget. Claude Code keeps
+every skill's description in context at all times, capped at about 1% of the context
+window, and when that overflows it silently drops the descriptions of the skills you use
+least — they stay invocable by name and stop being chosen on their own. Forty descriptions
+are roughly four times the default budget, so in `~/.claude/settings.json`:
+
+```json
+{ "skillListingBudgetFraction": 0.04 }
+```
+
+Or keep the default and set the skills you rarely want to `"name-only"` in
+`skillOverrides`. `/doctor` reports the listing's actual cost and its biggest contributors.
+
 Or, to work on them locally and have edits take effect immediately:
 
 ```bash
