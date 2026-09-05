@@ -1,0 +1,22 @@
+[
+  {"query": "our SOC 2 user access review is due and we have about 400 iam roles. where do i even start", "should_trigger": true},
+  {"query": "this service account has s3 wildcard and i want to narrow it without breaking the nightly export", "should_trigger": true},
+  {"query": "who actually has admin in our aws org, and can we take it off most of them", "should_trigger": true},
+  {"query": "sarah moved from platform to data six months ago and still has every platform role. is anybody checking this", "should_trigger": true},
+  {"query": "found a role that can attach policies to itself. how bad is that and how do we close it", "should_trigger": true},
+  {"query": "we keep 90 days of cloudtrail - can i use that to build a least privilege policy for this role", "should_trigger": true},
+  {"query": "a vendor integration from a trial in 2023 still has org wide read. how do i find everything else like it", "should_trigger": true},
+  {"query": "cluster-admin is bound to about 12 service accounts in this cluster, help me work out which still need it", "should_trigger": true},
+  {"query": "how do we do break glass properly instead of five people having standing admin forever", "should_trigger": true},
+  {"query": "we want to strip unused permissions but last time we tried it we broke the monthly billing job", "should_trigger": true},
+  {"query": "our aws access key is in a public gist. what do we do in the next ten minutes", "should_trigger": false},
+  {"query": "how do we rotate the shared database password without taking downtime", "should_trigger": false},
+  {"query": "design the oauth flow and session handling for our new customer portal", "should_trigger": false},
+  {"query": "review this terraform diff please, it changes a security group and an iam policy - safe to apply?", "should_trigger": false},
+  {"query": "the base image is ubuntu and the process runs as root, harden this dockerfile for me", "should_trigger": false},
+  {"query": "rbac 403 on the deploy right now, staging is down and i need it back", "should_trigger": false},
+  {"query": "should we page someone when a certificate is 21 days from expiry or is that a ticket", "should_trigger": false},
+  {"query": "the deploy workflow dies at docker login with denied: requested access to the resource is denied", "should_trigger": false},
+  {"query": "compare okta and entra id for us, we are picking an identity provider this quarter", "should_trigger": false},
+  {"query": "what metrics and spans should this new service emit on day one so incidents are debuggable", "should_trigger": false}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "the CFP closes friday and i have an idea but nothing written, help me submit something", "should_trigger": true},
+  {"query": "my abstract has been rejected twice now, can you tell me what is actually wrong with it", "should_trigger": true},
+  {"query": "i have about 60 minutes of material and a 40 minute slot, what do i cut", "should_trigger": true},
+  {"query": "how do i open a talk if not with an agenda slide", "should_trigger": true},
+  {"query": "should i run the kubectl bit live on stage or just record it beforehand", "should_trigger": true},
+  {"query": "i am speaking at a meetup next week and i have never done it before, how do i not fall apart", "should_trigger": true},
+  {"query": "my talk has three points and feels mushy, help me get it down to one thing people remember", "should_trigger": true},
+  {"query": "write the speaker bio for my submission, i have run the payments platform for four years", "should_trigger": true},
+  {"query": "there is always someone whose question is really a statement, how do i handle that on stage", "should_trigger": true},
+  {"query": "look at these slides, they are dense and i think i am going to end up reading them out", "should_trigger": true},
+  {"query": "turn the kafka migration into a blog post for our engineering site", "should_trigger": false},
+  {"query": "i have rough notes from the cutover and i want to make them publishable somewhere", "should_trigger": false},
+  {"query": "weekly update for the steering committee, we are two weeks behind and i need to say so", "should_trigger": false},
+  {"query": "i have a systems design interview on thursday, help me prepare for it", "should_trigger": false},
+  {"query": "i watched a session on CRDTs at the conference, write my notes up into my vault", "should_trigger": false},
+  {"query": "the offer came in ten thousand below what i asked for, how do i counter", "should_trigger": false},
+  {"query": "write up why we picked postgres over kafka for the event store so nobody relitigates it", "should_trigger": false},
+  {"query": "help me plan my week, i have far too much on and keep dropping things", "should_trigger": false},
+  {"query": "what should we ask candidates in the behavioural round of our loop", "should_trigger": false},
+  {"query": "build me the slide deck for the quarterly business review with the exec team", "should_trigger": false}
+]

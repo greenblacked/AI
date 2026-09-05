@@ -1,0 +1,22 @@
+[
+  {"query": "aws bill went from 41k to 55k last month and nobody can tell me why. can you work out what actually changed", "should_trigger": true},
+  {"query": "finance has asked us to take 20% off cloud spend by q1. where do we even start without breaking prod", "should_trigger": true},
+  {"query": "about 60% of our spend has no owner tag on it. is that as bad as it sounds and what do i do first", "should_trigger": true},
+  {"query": "we are paying nearly 8k a month on NatGateway-Bytes and nobody knows what is generating it", "should_trigger": true},
+  {"query": "should we buy a three year savings plan for the api fleet? we are halfway through moving it to graviton", "should_trigger": true},
+  {"query": "kubecost says the platform namespace is 40% of the cluster. how do i split that across the six teams fairly", "should_trigger": true},
+  {"query": "someone on the team wants to rightsize every instance down to its average cpu. talk me out of it or don't", "should_trigger": true},
+  {"query": "the vendor dashboard claims we are wasting 97% of our compute spend. is that a real number", "should_trigger": true},
+  {"query": "our revenue doubled this year and so did the bill. is that fine or is something actually wrong", "should_trigger": true},
+  {"query": "dev and staging run 24/7 and nobody touches them after 6pm. worth doing something about or is it noise", "should_trigger": true},
+  {"query": "checkout p99 is 2.4 seconds and the traces all point at the database. help me find the slow query", "should_trigger": false},
+  {"query": "we launch in brazil in march. how many nodes do we need and how much headroom should we hold", "should_trigger": false},
+  {"query": "compare datadog, grafana cloud and self-hosting. i need a three year tco and a scorecard before we decide", "should_trigger": false},
+  {"query": "terraform plan on this PR says it is replacing the RDS instance. safe to approve or not", "should_trigger": false},
+  {"query": "pods are stuck Pending with insufficient cpu and prod is degraded right now, what do i do", "should_trigger": false},
+  {"query": "plan the move off jenkins onto github actions, we have about 200 jobs and two teams", "should_trigger": false},
+  {"query": "this dockerfile builds a 1.2GB image and the process runs as root, can you sort it out", "should_trigger": false},
+  {"query": "our pager went off 40 times last night and none of it was actionable. help me prune the rules", "should_trigger": false},
+  {"query": "will adding this index lock the orders table in production or can i ship it during the day", "should_trigger": false},
+  {"query": "CI has been red on main since about 2pm, can you work out what landed and broke it", "should_trigger": false}
+]

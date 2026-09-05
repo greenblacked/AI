@@ -1,10 +1,11 @@
 # Writing a subagent
 
 Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
-frontmatter — `plugins/engineering/agents/` is the only one here — see [`skill-reviewer.md`](../plugins/engineering/agents/skill-reviewer.md) for one of the four
-this repository has today. A subagent is a separate Claude instance with its own context window,
-its own system prompt, and its own tool allowlist, invoked by the main agent and
-returning a result to it.
+frontmatter — see [`skill-reviewer.md`](../plugins/engineering/agents/skill-reviewer.md)
+for one of the nine this repository has today, seven with the `engineering` plugin and two
+with `manager`. A subagent is a separate Claude instance with its own context window, its
+own system prompt, and its own tool allowlist, invoked by the main agent and returning a
+result to it.
 
 ## Frontmatter
 
@@ -168,8 +169,16 @@ The `engineering` plugin in
   blameless postmortem draft: timeline from timestamped evidence, roles rather than
   names, and a literal `[TK: metric]` wherever a figure was not supplied.
 
-All four ship with the `engineering` plugin, which discovers its own `agents/` directory
-rather than listing files in the manifest — so there is no list to fall out of date. What
+The others follow the same shape. `cost-analyst` reads a billing export and returns the
+movers rather than the spenders; `policy-auditor` compares what a policy permits against
+what the identity used, and refuses to apply the reduction it proposes; `telemetry-reader`
+returns the critical path from a trace bundle, and treats "the data cannot answer this"
+as a first-class result. In the `manager` plugin, `contract-reader` quotes the four or
+five clauses in a vendor agreement that decide the deal, and `feedback-synthesiser` turns
+a pile of peer feedback into themes with a source count, refusing to present a
+single-source theme as consensus.
+
+Each plugin discovers its own `agents/` directory rather than listing files in the manifest — so there is no list to fall out of date. What
 the validator still checks is ownership: a subagent sitting outside every plugin is
 `unowned-agent`. That is the one that matters day to day, because a subagent no plugin
 ships installs for nobody and there is no symptom to notice. It fails [CI](ci.md).

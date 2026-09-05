@@ -308,11 +308,14 @@ def _mask_fenced_blocks(lines: list[str]) -> list[str]:
     return masked
 
 
-def _check_bundled_paths(body_lines: list[str], first_line: int, directory: Path, add):
+def _check_bundled_paths(
+    body_lines: list[str], first_line: int, directory: Path, add, label: str = "SKILL.md"
+):
     """Every references/, scripts/ or assets/ path named in prose must exist.
 
     A dangling pointer is the worst kind of skill defect: nothing errors, the model
-    simply never loads the depth the author thought it was loading.
+    simply never loads the depth the author thought it was loading. Commands are
+    checked the same way, which is why the file named in the message is a parameter.
     """
     seen: set[str] = set()
     for offset, line in enumerate(_mask_fenced_blocks(body_lines)):
@@ -330,7 +333,7 @@ def _check_bundled_paths(body_lines: list[str], first_line: int, directory: Path
                 add(
                     ERROR,
                     "dangling-reference",
-                    f"SKILL.md points at {candidate!r}, which does not exist",
+                    f"{label} points at {candidate!r}, which does not exist",
                     first_line + offset,
                 )
     return []
@@ -688,4 +691,158 @@ def check_duplicate_names(skills: list[Path], repo_root: Path) -> list[Finding]:
                 "the other on install and in dist/",
             )
         )
+    return findings
+
+
+# Slash commands are the third component a plugin can ship, and the one with the
+# loosest contract upstream — which is exactly why it needs a local one. A command
+# whose frontmatter key is misspelled still installs; it simply loses the behaviour
+# the key was for, with no error anywhere. The name is taken from the filename, so
+# unlike a skill there is no `name` key to disagree with it.
+COMMAND_ALLOWED_KEYS = frozenset(
+    {"description", "argument-hint", "allowed-tools", "model", "disable-model-invocation"}
+)
+
+COMMAND_NON_DEFINITIONS = frozenset({"README.md", "readme.md"})
+
+# `$ARGUMENTS`, `$1`..`$9`. A command that reads an argument and does not advertise
+# one is invisible: the picker shows no hint, so the caller types the bare name and
+# the command runs against nothing.
+COMMAND_ARGUMENT_RE = re.compile(r"\$(?:ARGUMENTS\b|[1-9])")
+
+
+def find_commands(root: Path) -> list[Path]:
+    """Return every slash-command definition under ``root``, sorted by path."""
+    if not root.is_dir():
+        return []
+    return sorted(p for p in root.rglob("*.md") if p.name not in COMMAND_NON_DEFINITIONS)
+
+
+def check_command(path: Path, repo_root: Path) -> list[Finding]:
+    """Validate one slash command."""
+    findings: list[Finding] = []
+    relative = path.relative_to(repo_root)
+
+    def add(level: str, code: str, message: str, line: int = 1) -> None:
+        findings.append(Finding(level, relative, line, code, message))
+
+    text = path.read_text(encoding="utf-8")
+    try:
+        front = parse(text)
+    except FrontmatterError as error:
+        add(ERROR, "frontmatter", error.message, error.line)
+        return findings
+
+    for key in sorted(front.values):
+        if key not in COMMAND_ALLOWED_KEYS:
+            add(
+                ERROR,
+                "unknown-key",
+                f"unexpected command frontmatter key {key!r} — allowed keys are "
+                + ", ".join(sorted(COMMAND_ALLOWED_KEYS)),
+                front.line_of(key),
+            )
+
+    # The filename is the invocation, so it has to be typeable and stable.
+    if not NAME_RE.match(path.stem) or len(path.stem) > NAME_MAX:
+        add(
+            ERROR,
+            "bad-command-name",
+            f"filename {path.stem!r} becomes the slash command, so it must be lowercase "
+            f"letters, digits and single hyphens, at most {NAME_MAX} characters",
+        )
+
+    description = (front.get("description") or "").strip()
+    if not description:
+        add(
+            ERROR,
+            "missing-description",
+            "command frontmatter has no usable 'description', so the picker shows nothing",
+        )
+    else:
+        line = front.line_of("description")
+        if "<" in description or ">" in description:
+            add(ERROR, "angle-brackets", "description cannot contain '<' or '>'", line)
+        if len(description) > DESCRIPTION_MAX:
+            add(
+                ERROR,
+                "long-description",
+                f"description is {len(description)} characters; the cap is {DESCRIPTION_MAX}",
+                line,
+            )
+
+    body_lines = text.split("\n")[front.end_line :]
+    body = "\n".join(body_lines)
+    if not body.strip():
+        add(ERROR, "empty-command", "command has frontmatter but no prompt body")
+
+    masked = "\n".join(_mask_fenced_blocks(body_lines))
+    if COMMAND_ARGUMENT_RE.search(masked) and not (front.get("argument-hint") or "").strip():
+        add(
+            WARNING,
+            "no-argument-hint",
+            "command reads an argument but declares no 'argument-hint', so the caller "
+            "is not told what to pass",
+        )
+
+    _check_bundled_paths(body_lines, front.end_line + 1, path.parent, add, label=path.name)
+    for match in SHOUTING_RE.finditer(masked):
+        add(
+            WARNING,
+            "shouting",
+            f"{match.group(0)} in capitals — explaining why a rule matters travels "
+            "further than shouting it",
+            front.end_line + 1 + masked[: match.start()].count("\n"),
+        )
+    return findings
+
+
+def check_eval_conflicts(skills: list[Path], repo_root: Path) -> list[Finding]:
+    """No query may be a positive for two skills at once.
+
+    A query labelled ``should_trigger: true`` in two eval sets is a contradiction the
+    harness can never satisfy: whichever skill wins the invocation, the other is scored
+    as a miss, so one of the two is permanently and misleadingly below its threshold.
+
+    The reverse — a positive for one skill and a negative for another — is not a
+    conflict but the strongest test in the set, because it names the exact sibling the
+    description has to beat. It is deliberately left alone.
+    """
+    findings: list[Finding] = []
+    claimed: dict[str, tuple[str, Path]] = {}
+    for directory in skills:
+        path = directory / "evals" / "trigger-eval.json"
+        if not path.is_file():
+            continue
+        try:
+            entries = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, ValueError, UnicodeDecodeError):
+            continue  # check_evals reports the malformed file; do not report it twice
+        if not isinstance(entries, list):
+            continue
+        for entry in entries:
+            if not isinstance(entry, dict) or entry.get("should_trigger") is not True:
+                continue
+            query = entry.get("query")
+            if not isinstance(query, str):
+                continue
+            key = " ".join(query.split()).casefold()
+            first = claimed.get(key)
+            if first is None:
+                claimed[key] = (directory.name, path)
+                continue
+            if first[0] == directory.name:
+                continue
+            findings.append(
+                Finding(
+                    ERROR,
+                    path.relative_to(repo_root),
+                    1,
+                    "conflicting-eval-query",
+                    f"{query!r} is also a positive for {first[0]!r} "
+                    f"({first[1].relative_to(repo_root)}); one of the two will always "
+                    "score as a miss, so decide which skill owns the query and make it "
+                    "a negative in the other",
+                )
+            )
     return findings

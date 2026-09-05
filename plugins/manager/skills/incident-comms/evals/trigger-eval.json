@@ -1,0 +1,22 @@
+[
+  {"query": "checkout has been down for twenty minutes and we have put nothing on the status page yet", "should_trigger": true},
+  {"query": "what do i actually say to customers when we do not know what is wrong yet", "should_trigger": true},
+  {"query": "the CEO is asking for an update on the outage and i need something she can take to the board", "should_trigger": true},
+  {"query": "support is inventing answers in the queue, i need a holding line and a macro they can send", "should_trigger": true},
+  {"query": "draft the customer facing writeup for last week's outage, the internal one is already done", "should_trigger": true},
+  {"query": "the VP wants to tell customers it will be fixed within the hour and i think that is a mistake", "should_trigger": true},
+  {"query": "we told everyone it was EU only and it turns out UK is affected too. how do we correct that publicly", "should_trigger": true},
+  {"query": "possible data exposure during the incident, who needs telling and how fast does the clock run", "should_trigger": true},
+  {"query": "incident resolved four days ago, two enterprise accounts were badly hit and nobody has contacted them", "should_trigger": true},
+  {"query": "who should own writing the status updates while the incident is running, the on call engineer is drowning", "should_trigger": true},
+  {"query": "we had 40 minutes of 500s on saturday and the blameless writeup is due wednesday", "should_trigger": false},
+  {"query": "the api pods are all pending and half the deployment is crashlooping, what do i check first", "should_trigger": false},
+  {"query": "action items from the last three incidents all have no owner and no date", "should_trigger": false},
+  {"query": "weekly project update for the steering committee, migration is two weeks behind", "should_trigger": false},
+  {"query": "we want to kill an availability zone on purpose next month and see if failover holds", "should_trigger": false},
+  {"query": "why does everything feel slow to ship, our p95 cycle time is nine days", "should_trigger": false},
+  {"query": "our incident review meeting produces nothing, should it even be on the calendar", "should_trigger": false},
+  {"query": "help me write Q3 objectives for the reliability team that are not just a list of projects", "should_trigger": false},
+  {"query": "document why we chose to run the queue on SQS instead of self hosting it", "should_trigger": false},
+  {"query": "sam handled the outage badly and i need to raise it in his mid year review", "should_trigger": false}
+]

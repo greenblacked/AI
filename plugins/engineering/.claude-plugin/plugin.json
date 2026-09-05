@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "engineering",
-  "description": "Platform and DevOps skills: scaffold production-ready code, triage a red pipeline, review a Terraform plan, debug a Kubernetes workload or run an incident, harden a container image, plan a platform migration, ship a database migration, design alerts, run a disaster-recovery drill, retire a service, rotate a credential, and build or audit a website.",
+  "description": "Platform and DevOps skills: scaffold production-ready code, triage a red pipeline, review a Terraform plan, debug a Kubernetes workload or run an incident, harden a container image, plan a platform migration, ship a database migration, roll a change out gradually, instrument a service, design alerts, write the runbook behind them, design an API that can still change, upgrade a major dependency, plan for load, reduce a cloud bill, review who can do what, run a disaster-recovery drill, retire a service, rotate a credential, and build or audit a website.",
   "author": {
     "name": "Serhii Zolotov",
     "url": "https://github.com/greenblacked"
