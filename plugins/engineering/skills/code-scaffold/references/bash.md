@@ -4,6 +4,20 @@ Bash defaults are tuned for an interactive shell, where a failed command is obvi
 because a human is watching. In a cron job nobody is watching, so those defaults have
 to be overridden deliberately.
 
+## Contents
+
+- [Strict mode, and what it does not catch](#strict-mode-and-what-it-does-not-catch)
+- [Traps: cleanup and error reporting](#traps-cleanup-and-error-reporting)
+- [Logging to stderr](#logging-to-stderr)
+- [Argument parsing](#argument-parsing)
+- [Quoting, tests and arrays](#quoting-tests-and-arrays)
+- [Idempotence, temporary files and dry-run](#idempotence-temporary-files-and-dry-run)
+- [Network calls and timeouts](#network-calls-and-timeouts)
+- [Secrets](#secrets)
+- [Locking](#locking)
+- [Validation](#validation)
+- [Worked example](#worked-example)
+
 ## Strict mode, and what it does not catch
 
 ```bash

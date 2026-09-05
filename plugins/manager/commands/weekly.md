@@ -4,15 +4,15 @@ argument-hint: [since date, default 7 days ago]
 allowed-tools: Bash(gh:*), Bash(git:*), Read, Glob
 ---
 
-Draft this week's update from evidence rather than memory. Use `$1` as the start of the
+Draft this week's update from evidence rather than memory. Use `$0` as the start of the
 window, defaulting to seven days ago.
 
 Gather first:
 
 ```bash
-gh pr list --state merged --search "merged:>=$1" --json number,title,mergedAt,author,additions,deletions
-gh issue list --state closed --search "closed:>=$1" --json number,title,closedAt,labels
-git log --since="$1" --no-merges --format='%h %s'
+gh pr list --state merged --search "merged:>=$0" --json number,title,mergedAt,author,additions,deletions
+gh issue list --state closed --search "closed:>=$0" --json number,title,closedAt,labels
+git log --since="$0" --no-merges --format='%h %s'
 ```
 
 Then write it bottom line up front. The first sentence says where things stand and what,

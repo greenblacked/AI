@@ -2,6 +2,16 @@
 
 Values are approximate (per USDA-typical figures) and for cooked, ready-to-eat food unless noted. P = protein, C = carbs, F = fat, in grams.
 
+## Contents
+
+- [Proteins (per 100g cooked)](#proteins-per-100g-cooked)
+- [Carbs (per 100g cooked unless noted)](#carbs-per-100g-cooked-unless-noted)
+- [Fats and condiments](#fats-and-condiments)
+- [Vegetables & fruit (per 100g)](#vegetables--fruit-per-100g)
+- [Common composed dishes (typical serving)](#common-composed-dishes-typical-serving)
+- [Drinks](#drinks)
+- [Quick rules](#quick-rules)
+
 ## Proteins (per 100g cooked)
 
 | Food | kcal | P | C | F |

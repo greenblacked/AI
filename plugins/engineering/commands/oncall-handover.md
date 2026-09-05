@@ -4,16 +4,16 @@ argument-hint: [since, default the start of the shift]
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(kubectl:*), Read, Grep
 ---
 
-Draft the handover for the shift starting at `$1`, defaulting to the last seven days if
+Draft the handover for the shift starting at `$0`, defaulting to the last seven days if
 nothing was given.
 
 Gather what happened rather than what you remember. Memory at the end of a shift is worst
 exactly where the handover matters most:
 
 ```bash
-gh issue list --label incident --state all --search "updated:>=$1" --json number,title,state,updatedAt
-gh run list --workflow=deploy.yml --created=">=$1" --json conclusion,displayTitle,createdAt
-git log --since="$1" --no-merges --format='%h %s' --all
+gh issue list --label incident --state all --search "updated:>=$0" --json number,title,state,updatedAt
+gh run list --workflow=deploy.yml --created=">=$0" --json conclusion,displayTitle,createdAt
+git log --since="$0" --no-merges --format='%h %s' --all
 ```
 
 Then write it under these headings, and keep it short enough to be read in the two minutes

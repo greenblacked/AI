@@ -1,5 +1,14 @@
 # Obsidian conventions
 
+## Contents
+
+- [Frontmatter schema](#frontmatter-schema)
+- [Tags are types, not topics](#tags-are-types-not-topics)
+- [Links](#links)
+- [Filenames and folders](#filenames-and-folders)
+- [Maps of content](#maps-of-content)
+- [Templates](#templates)
+
 ## Frontmatter schema
 
 Every note carries the same block. Consistency matters more than completeness — a field

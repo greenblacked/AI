@@ -8,6 +8,15 @@ An item counts as done when someone has confirmed it works, not when it has been
 requested. "Raised a ticket for it" is the state that produces a first week of waiting,
 because the ticket queue does not know the start date.
 
+## Contents
+
+- [Owners](#owners)
+- [Access](#access)
+- [Hardware and environment](#hardware-and-environment)
+- [People and plan](#people-and-plan)
+- [Announcement and arrival](#announcement-and-arrival)
+- [Verification pass, the day before](#verification-pass-the-day-before)
+
 ## Owners
 
 Name a person against every line. An item owned by a team is owned by nobody, and the

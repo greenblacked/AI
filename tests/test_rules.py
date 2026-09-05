@@ -40,6 +40,19 @@ def codes(findings, level=None):
     return {f.code for f in findings if level is None or f.level == level}
 
 
+@pytest.mark.parametrize("name", ["claude-helper", "anthropic-tools", "my-claude-thing"])
+def test_a_reserved_word_in_the_name_is_an_error(tmp_path, name):
+    # The upload route rejects these, so without the check a skill named after the tool
+    # it targets passes locally and fails at the boundary.
+    directory = write_skill(tmp_path, name)
+    assert "reserved-name" in codes(check_skill(directory, tmp_path))
+
+
+def test_a_name_that_merely_resembles_a_reserved_word_is_fine(tmp_path):
+    directory = write_skill(tmp_path, "clause-review")
+    assert "reserved-name" not in codes(check_skill(directory, tmp_path))
+
+
 def test_a_well_formed_skill_produces_nothing(tmp_path):
     directory = write_skill(tmp_path, "demo")
     assert check_skill(directory, tmp_path) == []

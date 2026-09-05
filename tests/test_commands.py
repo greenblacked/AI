@@ -84,7 +84,9 @@ def test_broken_frontmatter_is_reported_once(tmp_path):
     assert codes(findings) == {"frontmatter"}
 
 
-@pytest.mark.parametrize("token", ["$ARGUMENTS", "$1", "$9"])
+@pytest.mark.parametrize(
+    "token", ["$ARGUMENTS", "$0", "$1", "$9", "$10", "$ARGUMENTS[0]", "$ARGUMENTS[2]"]
+)
 def test_reading_an_argument_without_a_hint_warns(tmp_path, token):
     text = f"---\ndescription: A thing.\n---\n\nRun against {token}.\n"
     findings = check_command(write_command(tmp_path, "demo", text), tmp_path)
@@ -135,3 +137,19 @@ def test_find_commands_skips_a_readme_and_recurses(tmp_path):
 
 def test_find_commands_on_a_missing_directory_is_empty(tmp_path):
     assert find_commands(tmp_path / "nothing") == []
+
+
+def test_a_zero_index_is_detected(tmp_path):
+    # `$0` is the first argument, so it is the placeholder a correct command is most
+    # likely to use. The original pattern matched `[1-9]` and missed it entirely, which
+    # meant fixing a command's off-by-one silently disabled the check on it.
+    text = "---\ndescription: A thing.\n---\n\nRun against $0.\n"
+    findings = check_command(write_command(tmp_path, "demo", text), tmp_path)
+    assert "no-argument-hint" in codes(findings, WARNING)
+
+
+def test_a_dollar_followed_by_a_word_is_not_an_argument(tmp_path):
+    # `$1foo` is not an index; the negative lookahead keeps a shell-ish string from
+    # being read as one.
+    text = "---\ndescription: A thing.\n---\n\nSet $0abc in the environment.\n"
+    assert check_command(write_command(tmp_path, "demo", text), tmp_path) == []
