@@ -1,0 +1,22 @@
+[
+  {"query": "i drafted a new skill for db backups, review it before i open the PR", "should_trigger": true},
+  {"query": "here's the SKILL.md, it validates clean but does it actually make sense", "should_trigger": true},
+  {"query": "my capacity-planning skill never fires, look at the description and tell me why", "should_trigger": true},
+  {"query": "review plugins/engineering/skills/runbook/SKILL.md, i've been editing the body and think it's too long now", "should_trigger": true},
+  {"query": "does this skill overlap with cutover? check both and say which should own the case", "should_trigger": true},
+  {"query": "run the validator on the new skill and then tell me what it can't catch", "should_trigger": true},
+  {"query": "have a look at this candidate skill, is the depth in the right layer or should half of it be in references", "should_trigger": true},
+  {"query": "the commands in this skill, are the flags real? review it", "should_trigger": true},
+  {"query": "read the description on secret-rotation cold, would you pick it from that alone", "should_trigger": true},
+  {"query": "i've rewritten the description for api-design three times and it still doesn't trigger in tests, review it", "should_trigger": true},
+  {"query": "make a skill for our deploy runbook", "should_trigger": false, "expected": "new-skill"},
+  {"query": "what should the description say for a skill that rotates certificates", "should_trigger": false, "expected": "new-skill"},
+  {"query": "turn this runbook markdown into a SKILL.md", "should_trigger": false, "expected": "new-skill"},
+  {"query": "add a twenty query eval set for the new skill", "should_trigger": false, "expected": "new-skill"},
+  {"query": "write a subagent that reads ci logs", "should_trigger": false},
+  {"query": "review this terraform plan json before we apply", "should_trigger": false, "expected": "plan-reviewer"},
+  {"query": "review the peer feedback i've collected for sam, what are the themes", "should_trigger": false, "expected": "feedback-synthesiser"},
+  {"query": "review this postmortem draft before it goes out", "should_trigger": false, "expected": "postmortem"},
+  {"query": "read the SOC 2 and tell me what matters", "should_trigger": false, "expected": "contract-reader"},
+  {"query": "write a bash script that validates our yaml files", "should_trigger": false, "expected": "code-scaffold"}
+]
