@@ -4,14 +4,14 @@ argument-hint: [path to tfplan or plan.json]
 allowed-tools: Bash(terraform:*), Bash(tofu:*), Bash(jq:*), Read, Glob
 ---
 
-Read the plan at `$1` and report its blast radius. The point of reading the JSON rather
+Read the plan at `$0` and report its blast radius. The point of reading the JSON rather
 than the terminal output is that `terraform plan` prints changes in alphabetical order,
 so a destroy sits wherever the resource name puts it and gets skimmed past.
 
-If `$1` is a binary plan file, convert it first:
+If `$0` is a binary plan file, convert it first:
 
 ```bash
-terraform show -json "$1" > /tmp/plan.json
+terraform show -json "$0" > /tmp/plan.json
 ```
 
 Then work through `.resource_changes[]` in this order, because it is the order of
