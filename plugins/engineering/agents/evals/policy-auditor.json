@@ -1,0 +1,22 @@
+[
+  {"query": "here's the iam authorization details dump and 90 days of cloudtrail for the deploy role, what does it not use", "should_trigger": true},
+  {"query": "access review is due, read the policies for these 40 roles and give me the wildcards and standing admin", "should_trigger": true},
+  {"query": "does the ci role still need s3 full access? the last-accessed data and the policy json are in ./audit", "should_trigger": true},
+  {"query": "read these role definitions and tell me if any of them can escalate to admin", "should_trigger": true},
+  {"query": "the vendor role trust policy is in the repo, check whether it's conditioned properly and what else looks loose", "should_trigger": true},
+  {"query": "after the incident we want the app role tightened, here's what it's permitted and the audit log for the quarter, propose the reduction", "should_trigger": true},
+  {"query": "gcp iam policy export for the project plus the audit logs, how many principals have owner and who actually used it", "should_trigger": true},
+  {"query": "go through the attached policy set and list every Action star and Resource star with the role it's on", "should_trigger": true},
+  {"query": "which of these 200 service accounts haven't used their permissions in the window, the export and the logs are attached", "should_trigger": true},
+  {"query": "is this permission still needed? the policy and the last 90 days of access logs are in the bucket", "should_trigger": true},
+  {"query": "how do we run an access review without breaking the quarterly job", "should_trigger": false, "expected": "access-review"},
+  {"query": "what's the safe way to roll out a permission reduction, audit-only first?", "should_trigger": false, "expected": "access-review"},
+  {"query": "someone's leaving friday, walk me through the offboarding sweep", "should_trigger": false, "expected": "access-review"},
+  {"query": "apply the tightened policy the audit came up with", "should_trigger": false, "expected": "access-review"},
+  {"query": "an aws key leaked in a public repo, what do i do right now", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "attached is the plan json, does it touch any iam resources", "should_trigger": false, "expected": "plan-reviewer"},
+  {"query": "here's the billing export, which team's spend grew", "should_trigger": false, "expected": "cost-analyst"},
+  {"query": "what's the difference between a permission boundary and an SCP", "should_trigger": false},
+  {"query": "the pod gets 403 from the api server, RBAC issue, fix it", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "harden this container image, it runs as root", "should_trigger": false, "expected": "image-hardening"}
+]

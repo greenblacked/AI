@@ -1,0 +1,22 @@
+[
+  {"query": "service is back. here's the slack scrollback from the incident channel and the pagerduty timeline, turn it into a postmortem draft", "should_trigger": true},
+  {"query": "i have 300 lines of triage notes and kubectl output from last night, assemble a timeline from it", "should_trigger": true},
+  {"query": "draft the writeup from this channel export, i don't have the request numbers yet so leave gaps", "should_trigger": true},
+  {"query": "attached: alert history, the deploy log and my notes from the call. build the incident timeline and mark what's only from memory", "should_trigger": true},
+  {"query": "turn these raw notes into a blameless postmortem, replace the names with roles", "should_trigger": true},
+  {"query": "here's everything from the war room, someone needs to make a first draft before the review on thursday", "should_trigger": true},
+  {"query": "the outage is over, i've dumped the chat log and the grafana annotations into a folder, write the draft", "should_trigger": true},
+  {"query": "incident-2291 needs writing up, the evidence is scattered across three threads and a doc, pull it into one timeline", "should_trigger": true},
+  {"query": "here are the deploy records and the on-call handover notes from the outage, put together the draft and tell me what's thin", "should_trigger": true},
+  {"query": "write the first pass of the RCA from this scrollback, and list the figures you couldn't find", "should_trigger": true},
+  {"query": "help me write the postmortem, what sections does it need", "should_trigger": false, "expected": "postmortem"},
+  {"query": "is last night's blip worth a postmortem", "should_trigger": false, "expected": "postmortem"},
+  {"query": "review this postmortem before i publish it, is the root cause section any good", "should_trigger": false, "expected": "postmortem"},
+  {"query": "our action items never get done, how should we structure them", "should_trigger": false, "expected": "postmortem"},
+  {"query": "checkout is down for 20% of users right now, i'm IC", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "the pipeline has been red since the outage, read the failed run and say what class it is", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "we need to tell customers about the outage, draft the status page update", "should_trigger": false, "expected": "incident-comms"},
+  {"query": "reviews are due friday and this incident is going to come up for the engineer involved, how do i handle that", "should_trigger": false, "expected": "growth-review"},
+  {"query": "here's the trace bundle from the incident window, where did the latency come from", "should_trigger": false, "expected": "telemetry-reader"},
+  {"query": "what should we have alerted on so we'd have caught this sooner", "should_trigger": false, "expected": "alert-design"}
+]

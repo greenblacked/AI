@@ -1,0 +1,22 @@
+[
+  {"query": "checkout p99 is 4 seconds, here's the jaeger trace bundle, whose latency is it", "should_trigger": true},
+  {"query": "attached are 200 traces from the slow window, walk the critical path and tell me the span", "should_trigger": true},
+  {"query": "errors are spiking on /v1/orders but we can't tell where in the chain, the tempo export is in ./traces", "should_trigger": true},
+  {"query": "before anyone touches code, read the spans for the search endpoint and say where the time goes", "should_trigger": true},
+  {"query": "here's an 80MB otel export from the incident, give me p50 p95 p99 and an exemplar from the tail", "should_trigger": true},
+  {"query": "we suspect the db but nobody has looked, here are the traces and the structured logs for the last hour", "should_trigger": true},
+  {"query": "the api got slow after the deploy, trace bundle attached, is it our compute or a dependency", "should_trigger": true},
+  {"query": "can the traces even answer why the batch job is slow? they're in the traces/ folder, tell me if propagation is broken", "should_trigger": true},
+  {"query": "500s on the payments path are concentrated somewhere, read the spans and find where", "should_trigger": true},
+  {"query": "grab the slow traces for the login route from the export and tell me the self time per hop", "should_trigger": true},
+  {"query": "what should we instrument on the new service so the next incident is diagnosable", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "our traces stop at the queue, how do we propagate context across it", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "the metric labels have customer id on them and prometheus is dying, fix the cardinality", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "the pod is CrashLoopBackOff, roll back or dig in", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "we have an incident, the api is down, im IC", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "here's the billing export, what moved", "should_trigger": false, "expected": "cost-analyst"},
+  {"query": "ci is red on the perf test job, read the run and classify it", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "what should page a human for this service and what should just be a ticket", "should_trigger": false, "expected": "alert-design"},
+  {"query": "profile this python function, it's slow inside a loop", "should_trigger": false},
+  {"query": "we're expecting 5x traffic at launch, do we have the headroom", "should_trigger": false, "expected": "capacity-planning"}
+]
