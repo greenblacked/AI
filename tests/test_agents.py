@@ -79,3 +79,21 @@ def test_find_agents_is_sorted_and_ignores_other_files(tmp_path):
     write_agent(tmp_path, "a-agent")
     (tmp_path / "agents" / "notes.txt").write_text("ignored", encoding="utf-8")
     assert [p.stem for p in find_agents(tmp_path / "agents")] == ["a-agent", "b-agent"]
+
+
+@pytest.mark.parametrize(
+    "key", ["disallowedTools", "effort", "maxTurns", "skills", "memory", "isolation", "color"]
+)
+def test_the_documented_plugin_agent_keys_are_allowed(tmp_path, key):
+    text = GOOD.replace("tools: Read, Grep\n", f"tools: Read, Grep\n{key}: value\n")
+    assert check_agent(write_agent(tmp_path, "demo-agent", text), tmp_path) == []
+
+
+@pytest.mark.parametrize("key", ["hooks", "mcpServers", "permissionMode"])
+def test_keys_a_plugin_may_not_ship_are_refused_with_the_reason(tmp_path, key):
+    # These work in a project-level agent and are refused in a plugin-shipped one, so
+    # the message has to say why rather than "unexpected key".
+    text = GOOD.replace("tools: Read, Grep\n", f"tools: Read, Grep\n{key}: value\n")
+    findings = check_agent(write_agent(tmp_path, "demo-agent", text), tmp_path)
+    assert codes(findings) == {"unknown-key"}
+    assert "plugin-shipped" in findings[0].message

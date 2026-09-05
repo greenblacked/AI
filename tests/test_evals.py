@@ -140,3 +140,82 @@ def test_a_missing_or_malformed_eval_set_is_not_reported_twice(tmp_path):
     b = write_eval_set(tmp_path, "engineering", "beta", [POSITIVE])
     (b / "evals" / "trigger-eval.json").write_text("{not json", encoding="utf-8")
     assert check_eval_conflicts([a, b], tmp_path) == []
+
+
+# --- `expected`, and eval sets for subagents ---------------------------------------
+
+
+def _cases(expected_on_negatives=None, positive_expected=None):
+    cases = [{"query": f"positive {i}", "should_trigger": True} for i in range(10)]
+    if positive_expected:
+        cases[0]["expected"] = positive_expected
+    for i in range(10):
+        case = {"query": f"negative {i}", "should_trigger": False}
+        if expected_on_negatives:
+            case["expected"] = expected_on_negatives
+        cases.append(case)
+    return cases
+
+
+def test_expected_on_a_negative_is_accepted(tmp_path):
+    directory = write_evals(tmp_path, _cases(expected_on_negatives="neighbour"))
+    assert check_evals(directory, tmp_path, frozenset({"demo", "neighbour"})) == []
+
+
+def test_expected_on_a_positive_is_a_contradiction(tmp_path):
+    directory = write_evals(tmp_path, _cases(positive_expected="neighbour"))
+    findings = check_evals(directory, tmp_path, frozenset({"demo", "neighbour"}))
+    assert [f.code for f in findings] == ["bad-eval-entry"]
+    assert "should_trigger is true" in findings[0].message
+
+
+def test_expecting_yourself_to_win_a_negative_is_a_contradiction(tmp_path):
+    directory = write_evals(tmp_path, _cases(expected_on_negatives="demo"))
+    findings = check_evals(directory, tmp_path, frozenset({"demo"}))
+    assert {f.code for f in findings} == {"bad-eval-entry"}
+
+
+def test_an_unknown_expected_name_is_an_error_only_when_names_are_known(tmp_path):
+    # A misspelt `expected` scores as a permanent miss, so it is checked against what
+    # exists — but only the CLI knows what exists, so a bare check_evals stays silent.
+    directory = write_evals(tmp_path, _cases(expected_on_negatives="k8s-triag"))
+    assert check_evals(directory, tmp_path) == []
+    findings = check_evals(directory, tmp_path, frozenset({"demo", "k8s-triage"}))
+    assert {f.code for f in findings} == {"unknown-expected"}
+
+
+def _agent(root, name="reader"):
+    directory = root / "plugins" / "engineering" / "agents"
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / f"{name}.md"
+    path.write_text(f"---\nname: {name}\ndescription: Read things.\ntools: Read\n---\n\nBody.\n")
+    return path
+
+
+def test_a_subagent_with_no_eval_set_warns_against_the_agent_file(tmp_path):
+    from skillcheck.rules import check_agent_evals
+
+    path = _agent(tmp_path)
+    findings = check_agent_evals(path, tmp_path)
+    assert [f.code for f in findings] == ["no-evals"]
+    assert str(findings[0].path) == "plugins/engineering/agents/reader.md"
+
+
+def test_a_subagent_eval_set_lives_beside_it_under_evals(tmp_path):
+    from skillcheck.rules import check_agent_evals
+
+    path = _agent(tmp_path)
+    (path.parent / "evals").mkdir()
+    (path.parent / "evals" / "reader.json").write_text(json.dumps(_cases()), encoding="utf-8")
+    assert check_agent_evals(path, tmp_path) == []
+
+
+def test_a_positive_shared_by_a_skill_and_a_subagent_is_a_conflict(tmp_path):
+    from skillcheck.rules import check_eval_conflicts
+
+    skill = write_evals(tmp_path, balanced())  # positives are "positive 0".."positive 9"
+    agent = _agent(tmp_path)
+    (agent.parent / "evals").mkdir()
+    (agent.parent / "evals" / "reader.json").write_text(json.dumps(_cases()), encoding="utf-8")
+    findings = check_eval_conflicts([skill], tmp_path, [agent])
+    assert findings and all(f.code == "conflicting-eval-query" for f in findings)
