@@ -4,13 +4,13 @@ argument-hint: [skill name, for example ci-triage]
 allowed-tools: Bash(python3:*), Bash(make:*), Read, Grep, Glob
 ---
 
-Diagnose the skill named `$1`.
+Diagnose the skill named `$0`.
 
 Locate it and run the validator over the tree, then report only the findings whose path
 is inside that skill:
 
 ```bash
-find plugins -type d -name "$1"
+find plugins -type d -name "$0"
 PYTHONPATH=src python3 -m skillcheck . --strict
 ```
 

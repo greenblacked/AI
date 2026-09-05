@@ -35,6 +35,10 @@ NEAR_MISSES = {
 }
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+# The upload route rejects a name containing either vendor word, so a skill named for
+# the tool it targets passes locally and fails at the boundary — the same class as the
+# length caps below.
+RESERVED_NAME_WORDS = ("anthropic", "claude")
 NAME_MAX = 64
 DESCRIPTION_MAX = 1024
 COMPATIBILITY_MAX = 500
@@ -44,7 +48,7 @@ COMPATIBILITY_MAX = 500
 DESCRIPTION_HEADROOM = 50
 
 SKILL_MD_MAX_LINES = 500
-REFERENCE_MAX_LINES_WITHOUT_TOC = 300
+REFERENCE_MAX_LINES_WITHOUT_TOC = 100
 
 # The lookbehind is what keeps this from matching inside a longer path. Without it,
 # a URL such as https://example.com/assets/logo.png, or a mention of another
@@ -201,6 +205,15 @@ def _check_name(front: Frontmatter, directory: Path, add) -> list[Finding]:
         )
     if len(name) > NAME_MAX:
         add(ERROR, "long-name", f"name is {len(name)} characters; the cap is {NAME_MAX}", line)
+    for word in RESERVED_NAME_WORDS:
+        if word in name:
+            add(
+                ERROR,
+                "reserved-name",
+                f"name {name!r} contains the reserved word {word!r}; the upload route "
+                "rejects it, so name the skill after the job rather than the tool",
+                line,
+            )
     if name != directory.name:
         add(
             ERROR,
@@ -705,10 +718,12 @@ COMMAND_ALLOWED_KEYS = frozenset(
 
 COMMAND_NON_DEFINITIONS = frozenset({"README.md", "readme.md"})
 
-# `$ARGUMENTS`, `$1`..`$9`. A command that reads an argument and does not advertise
-# one is invisible: the picker shows no hint, so the caller types the bare name and
-# the command runs against nothing.
-COMMAND_ARGUMENT_RE = re.compile(r"\$(?:ARGUMENTS\b|[1-9])")
+# `$ARGUMENTS`, `$ARGUMENTS[N]`, and the `$N` shorthand. Indexing is zero-based —
+# `$0` is the first argument — so the old `[1-9]` pattern missed the one placeholder a
+# correctly written command is most likely to use. A command that reads an argument and
+# does not advertise one is invisible: the picker shows no hint, so the caller types the
+# bare name and the command runs against nothing.
+COMMAND_ARGUMENT_RE = re.compile(r"\$(?:ARGUMENTS(?:\[\d+\])?\b|\d+(?!\w))")
 
 
 def find_commands(root: Path) -> list[Path]:

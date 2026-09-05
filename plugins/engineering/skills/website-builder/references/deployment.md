@@ -72,7 +72,7 @@ location / {
 Bundlers emit `app.4f3a91c2.js` by default; keep that on. The hash is what makes
 `immutable` safe — a changed file gets a new name, so there is nothing to invalidate.
 Purge the CDN for HTML on deploy if the platform does not do it automatically, and set
-the security headers from `references/quality-floor.md` in the same configuration file
+the security headers from the quality-floor reference in the same configuration file
 while you are in it.
 
 For a container, serve with nginx or Caddy from a small final image:
@@ -127,7 +127,7 @@ confident answers about a system that no longer exists.
 | --- | --- |
 | Local development | `.env.local`, gitignored, generated from `.env.example` |
 | Preview and production | The host's or CI provider's secret store |
-| Anything in the client bundle | Public by definition — see `references/app-architecture.md` |
+| Anything in the client bundle | Public by definition — see the app-architecture reference |
 
 Rules worth stating to the owner: production credentials never appear in a preview
 environment, because previews run untrusted branch code; secrets are set once in the

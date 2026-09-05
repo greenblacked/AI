@@ -4,15 +4,15 @@ argument-hint: [image reference, ideally by digest]
 allowed-tools: Bash(docker:*), Bash(trivy:*), Bash(syft:*), Bash(grype:*), Bash(hadolint:*), Read, Grep
 ---
 
-Audit the image `$1`. Read the built image, not only the Dockerfile — what shipped is what
+Audit the image `$0`. Read the built image, not only the Dockerfile — what shipped is what
 matters, and a multi-stage build makes the two diverge in ways that are hard to predict
 from the source.
 
 ```bash
-docker image inspect "$1" --format '{{.Config.User}} {{.Config.Entrypoint}} {{.Os}}/{{.Architecture}}'
-docker history --no-trunc "$1"
-syft "$1" -o spdx-json > /tmp/sbom.json
-trivy image --scanners vuln,secret,misconfig "$1"
+docker image inspect "$0" --format '{{.Config.User}} {{.Config.Entrypoint}} {{.Os}}/{{.Architecture}}'
+docker history --no-trunc "$0"
+syft "$0" -o spdx-json > /tmp/sbom.json
+trivy image --scanners vuln,secret,misconfig "$0"
 ```
 
 Report in this order, because it is the order of decreasing certainty that something is
