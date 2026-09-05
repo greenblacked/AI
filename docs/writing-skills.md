@@ -183,6 +183,16 @@ The codes are `no-evals` (a warning, the only one), `bad-eval-json`, `bad-eval-s
 Twenty and ten are the house convention; sixteen and eight are the floor below which the
 result stops meaning anything.
 
+One check reaches across skills. The same query may not be a positive in two eval sets:
+whichever skill wins the invocation, the other is scored as a miss, so one of the two sits
+permanently below its threshold for a reason that has nothing to do with its description.
+That is `conflicting-eval-query`, and the fix is to decide which skill owns the query and
+make it a negative in the other.
+
+The reverse is not a conflict and is worth doing deliberately: a query that is a positive
+for one skill and a negative for its neighbour is the strongest test either set can
+contain, because it names the exact sibling the description has to beat.
+
 Scoring the queries needs a model, so it lives somewhere else:
 [`scripts/run_trigger_eval.py`](../scripts/run_trigger_eval.py), driven manually by the
 `.github/workflows/evals.yml` workflow. The split is the whole design. The schema check is
@@ -334,6 +344,7 @@ Every code the validator can emit is below, grouped by what it is looking at.
 | `duplicate-eval-query` | error | The same query string appears twice. | Replace one of them; a duplicate inflates the count without testing anything. |
 | `thin-eval-set` | error | Fewer than 16 queries. | Add more. Below that the pass rate moves too far on one result. |
 | `unbalanced-eval-set` | error | Fewer than 8 on either side. | Add to the short side — usually the negatives, which are what catch a description that fires on everything. |
+| `conflicting-eval-query` | error | The same query is a positive in two skills' eval sets. | Decide which skill owns it and make it a negative in the other. Left alone, one of the two always scores as a miss. |
 
 ### Subagents
 
@@ -365,3 +376,5 @@ subagent](writing-agents.md) for why.
 | `unowned-agent` | error | A subagent is not inside any plugin's `agents/` directory. | Move it under `plugins/<name>/agents/`. |
 
 CI runs the same validator on every push and pull request; see [what CI checks](ci.md).
+Subagents and slash commands are validated on the same run — see
+[writing a subagent](writing-agents.md) and [writing a slash command](writing-commands.md).

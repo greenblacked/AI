@@ -1,0 +1,22 @@
+[
+  {"query": "it is friday afternoon, run my weekly review with me", "should_trigger": true},
+  {"query": "plan my week, i have no idea what i should be focusing on come monday", "should_trigger": true},
+  {"query": "i got almost nothing on my list done again last week and i want to work out why", "should_trigger": true},
+  {"query": "i have not done a review in about a month and the thought of catching up is why i keep putting it off", "should_trigger": true},
+  {"query": "i keep planning five days of work when i have maybe ten free hours. help me plan against what i actually have", "should_trigger": true},
+  {"query": "my list has twelve things on it for next week. what should i drop", "should_trigger": true},
+  {"query": "which of my recurring commitments should i cancel, my calendar has completely silted up", "should_trigger": true},
+  {"query": "do a monthly look back with me, i want to know whether the last four weeks added up to anything", "should_trigger": true},
+  {"query": "give me a template i can fill in every friday in fifteen minutes instead of writing one from scratch", "should_trigger": true},
+  {"query": "i want to write down the things i am deliberately not doing this week so i stop feeling guilty about them", "should_trigger": true},
+  {"query": "process this article into my vault and link it to the notes i already have", "should_trigger": false},
+  {"query": "tailor my cv for this platform engineering role, applications close on friday", "should_trigger": false},
+  {"query": "they offered 118 base and a 20k sign on. should i counter and how", "should_trigger": false},
+  {"query": "log what i ate today and tell me whether i am on track for my protein target", "should_trigger": false},
+  {"query": "draft the weekly status update on the migration programme for the exec review", "should_trigger": false},
+  {"query": "run the sprint delivery review with my team on friday, we shipped about half of what we said", "should_trigger": false},
+  {"query": "help me write the growth conversation for my report who wants to make staff next year", "should_trigger": false},
+  {"query": "set the quarterly okrs for the platform team and pick the key results", "should_trigger": false},
+  {"query": "outline a blog post about the incident we had last month", "should_trigger": false},
+  {"query": "redesign the design team's meeting cadence, we have critiques and standups everywhere", "should_trigger": false}
+]

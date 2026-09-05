@@ -1,0 +1,22 @@
+[
+  {"query": "designing the orders endpoints for our partner API - should refunds be nested under orders or sit at the top level?", "should_trigger": true},
+  {"query": "is adding a new value to this status enum a breaking change for the go clients we generate from the proto?", "should_trigger": true},
+  {"query": "can you review my openapi spec before we publish it to external partners", "should_trigger": true},
+  {"query": "we want to retire /v1 next quarter. how do we do that without breaking the integrations we can't contact", "should_trigger": true},
+  {"query": "our list endpoint returns every row with no paging. offset or cursor, and what's the max page size", "should_trigger": true},
+  {"query": "should cancelling an order be a PATCH with status=cancelled or a POST to /orders/{id}/cancel", "should_trigger": true},
+  {"query": "every error from our service is a 200 with ok:false in the body. how bad is that and what should it be instead", "should_trigger": true},
+  {"query": "the mobile team has to make four calls and join them client side to render one screen. is our interface wrong", "should_trigger": true},
+  {"query": "we keep creating duplicate charges when clients retry POST /payments after a timeout. what is the right fix", "should_trigger": true},
+  {"query": "we have three different error body shapes across our services. what should the standard one look like", "should_trigger": true},
+  {"query": "write me a fastapi service that exposes the orders table, with structured logging and a dockerfile", "should_trigger": false},
+  {"query": "write up the ADR for why we picked grpc over rest for the internal services", "should_trigger": false},
+  {"query": "roll the new checkout endpoint out to 5% of traffic behind a flag before we go to everyone", "should_trigger": false},
+  {"query": "add a not null column to the orders table in postgres without taking a long lock", "should_trigger": false},
+  {"query": "write the on-call runbook for when the api starts returning 500s at night", "should_trigger": false},
+  {"query": "what spans and attributes should the orders service emit so we can see latency per endpoint", "should_trigger": false},
+  {"query": "the api pods have been OOMKilled since the 10:15 deploy. what do i do right now", "should_trigger": false},
+  {"query": "the contract test job fails intermittently in github actions, passes on re-run. flake?", "should_trigger": false},
+  {"query": "should we page someone when the api p99 goes over 800ms, or is that a ticket", "should_trigger": false},
+  {"query": "audit who still has admin scope on the production api keys and revoke what isn't used", "should_trigger": false}
+]

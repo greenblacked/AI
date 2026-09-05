@@ -1,0 +1,22 @@
+[
+  {"query": "they came back with 118 base and 20k of options. is that a good offer for a staff platform role", "should_trigger": true},
+  {"query": "the recruiter asked on the first call what salary i am looking for and i froze. what should i have said", "should_trigger": true},
+  {"query": "i have two offers, one is a series b startup with a pile of equity and one is boring and pays cash. how do i compare them properly", "should_trigger": true},
+  {"query": "how do i ask to be hired a level up without coming across as ungrateful", "should_trigger": true},
+  {"query": "they want an answer by friday and my final round somewhere else is next week", "should_trigger": true},
+  {"query": "my current employer has countered with 15 percent more to keep me. do i take it", "should_trigger": true},
+  {"query": "what should i actually be asking about the equity grant before i sign anything", "should_trigger": true},
+  {"query": "offer letter arrived and there is a clawback on the sign on bonus if i leave inside two years. should i be worried", "should_trigger": true},
+  {"query": "i already told them on the call that the number sounded fine. is it too late to counter", "should_trigger": true},
+  {"query": "need to turn down the other offer without burning the bridge, help me write it", "should_trigger": true},
+  {"query": "my cv is three pages and apparently that is too long for a staff role. what comes out", "should_trigger": false},
+  {"query": "system design round on thursday, grill me on designing a metrics pipeline", "should_trigger": false},
+  {"query": "putting together my promo case for staff engineer, what evidence do i need in it", "should_trigger": false},
+  {"query": "we are opening a senior sre req, design the interview loop and the scorecards", "should_trigger": false},
+  {"query": "i manage the platform team and i need to benchmark our salary bands against the market before planning", "should_trigger": false},
+  {"query": "make a permanent note from this paper on consensus protocols and link it to what i already have", "should_trigger": false},
+  {"query": "is this lunch too much if i am trying to lose half a kilo a week", "should_trigger": false},
+  {"query": "turn my migration write up into a post for the company engineering blog", "should_trigger": false},
+  {"query": "write the weekly status update on the platform programme for the exec review", "should_trigger": false},
+  {"query": "we missed the quarter by a mile, run me through a delivery review with the team", "should_trigger": false}
+]

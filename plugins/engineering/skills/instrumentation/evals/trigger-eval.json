@@ -1,0 +1,22 @@
+[
+  {"query": "we had an outage last night and could not say which customers were affected. what should this service actually be emitting", "should_trigger": true},
+  {"query": "adding opentelemetry to our go api - what do i instrument first and what can i get for free", "should_trigger": true},
+  {"query": "our metrics bill nearly tripled last month, i think someone added a label to the request histogram", "should_trigger": true},
+  {"query": "traces stop dead when an order goes onto the queue, the consumer work shows up as its own separate trace", "should_trigger": true},
+  {"query": "should a count of failed webhook deliveries be a metric or just a log line we grep", "should_trigger": true},
+  {"query": "new service ships next week. what telemetry does it need on day one so we are not blind", "should_trigger": true},
+  {"query": "is it fine to put customer_id as a prometheus label so we can break latency down per tenant", "should_trigger": true},
+  {"query": "we sample traces at 1 percent and the slow request is never in there when i go looking", "should_trigger": true},
+  {"query": "how do i get the trace id into our json log lines so i can jump from a span to the logs", "should_trigger": true},
+  {"query": "our error rate metric counts validation 400s and real 500s together and nobody trusts the number any more", "should_trigger": true},
+  {"query": "should cpu above 80 percent on the checkout nodes page someone or just sit on a dashboard", "should_trigger": false},
+  {"query": "write me a multiwindow burn rate rule for the 99.9% availability SLO on checkout", "should_trigger": false},
+  {"query": "pods have been OOMKilled since the 15:00 rollout, what do i do right now", "should_trigger": false},
+  {"query": "we have an incident, orders api is 500ing for everyone and i'm the IC", "should_trigger": false},
+  {"query": "the e2e job on main has failed 4 of the last 10 runs, is that a flake or something real", "should_trigger": false},
+  {"query": "our datadog api key ended up in a public repo, what do we do first", "should_trigger": false},
+  {"query": "terraform plan says it will replace the rds instance, is that safe to apply", "should_trigger": false},
+  {"query": "this container image is 1.4GB and the process runs as root, help me shrink and harden it", "should_trigger": false},
+  {"query": "compare datadog, grafana cloud and honeycomb, we have to pick one this quarter", "should_trigger": false},
+  {"query": "this parsing function eats 400ms per call in a hot loop, help me profile it and make it faster", "should_trigger": false}
+]
