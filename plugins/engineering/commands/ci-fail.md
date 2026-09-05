@@ -4,7 +4,7 @@ argument-hint: [run id, or blank for the latest failing run on this branch]
 allowed-tools: Bash(gh:*), Bash(git:*), Read, Grep
 ---
 
-Classify the failing run `$1`. If no run id was given, find the most recent failing run
+Classify the failing run `$0`. If no run id was given, find the most recent failing run
 for the current branch.
 
 Check the default branch first. This is the highest-value minute in the procedure, and
@@ -20,9 +20,9 @@ break, not a problem with the change under test.
 Otherwise work from most-structured to least, and do not read a whole log:
 
 ```bash
-gh run view "$1" --verbose                       # which step failed first
+gh run view "$0" --verbose                       # which step failed first
 gh api repos/{owner}/{repo}/check-runs/{id}/annotations   # the pre-extracted error surface
-gh run view "$1" --log-failed                    # only the failed steps
+gh run view "$0" --log-failed                    # only the failed steps
 ```
 
 Land on exactly one class — real failure, flake, infrastructure, config or permission,

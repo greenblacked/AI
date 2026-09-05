@@ -4,12 +4,12 @@ argument-hint: [skill name, or --all]
 allowed-tools: Bash(python3:*), Read, Glob
 ---
 
-Score the trigger eval set for `$1`. A description nobody has tested is a guess, and the
+Score the trigger eval set for `$0`. A description nobody has tested is a guess, and the
 interesting output is not the headline number but the specific query that came out wrong,
 because that names the phrasing the description is missing.
 
 ```bash
-python3 scripts/run_trigger_eval.py --skill "$(find plugins -type d -name "$1")" --verbose
+python3 scripts/run_trigger_eval.py --skill "$(find plugins -type d -name "$0")" --verbose
 ```
 
 Use `--all` if that was the argument. This calls a model once per query, so it costs real

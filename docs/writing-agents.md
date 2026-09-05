@@ -26,7 +26,7 @@ tools: Read, Glob, Grep, Bash
   the main agent's full tool set, which is almost never what you want. Present, it must
   be a non-empty list with no blank entries; a trailing comma is the usual way to get
   that wrong.
-- **`model`** — optional. The model the subagent runs on. None of the four here set it.
+- **`model`** — optional. The model the subagent runs on. None of the nine here set it.
 
 The key set is closed, and it is deliberately not a skill's. The allowlist key here is
 `tools`; in a `SKILL.md` it is `allowed-tools`, and each is rejected in the other file.
@@ -146,8 +146,9 @@ inline.
 
 ## The subagents in this repository
 
-The `engineering` plugin in
-[`marketplace.json`](../.claude-plugin/marketplace.json) declares four:
+The `engineering` plugin discovers its own `agents/` directory — nothing lists them in
+[`marketplace.json`](../.claude-plugin/marketplace.json). Seven ship there, and two more
+with `manager`:
 
 - **`skill-reviewer`** — reviews a candidate `SKILL.md` against this repository's rules
   and against what makes a skill actually trigger. Runs the validator first to settle
