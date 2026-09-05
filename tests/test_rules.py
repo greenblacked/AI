@@ -367,3 +367,16 @@ def test_a_nested_script_is_checked_too(tmp_path):
     nested.mkdir(parents=True)
     (nested / "inner.sh").write_text("echo hi\n", encoding="utf-8")
     assert {"no-shebang", "not-executable"} <= codes(check_skill(directory, tmp_path), ERROR)
+
+
+@pytest.mark.parametrize("key", ["when_to_use", "argument-hint", "disable-model-invocation"])
+def test_a_claude_code_only_key_is_refused_with_the_portability_reason(tmp_path, key):
+    # Claude Code accepts these; the Skills API upload route rejects them with a hard
+    # error. The message has to say that, because "unexpected key" invites the author
+    # to argue with the validator rather than learn the constraint.
+    directory = write_skill(tmp_path, "demo", front=f"name: demo\ndescription: x\n{key}: y")
+    findings = [f for f in check_skill(directory, tmp_path) if f.code == "unknown-key"]
+    assert len(findings) == 1
+    assert "upload route rejects" in findings[0].message
+    if key == "when_to_use":
+        assert "'description'" in findings[0].message

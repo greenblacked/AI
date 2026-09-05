@@ -44,3 +44,15 @@ def test_github_mode_emits_annotations(tmp_path, capsys):
     main([str(tmp_path), "--github", "--skip-marketplace"])
     output = capsys.readouterr().out
     assert "::error file=plugins/engineering/skills/demo/SKILL.md,line=1" in output
+
+
+def test_listing_budget_warns_per_plugin_and_is_off_by_default(capsys):
+    # This repository's descriptions exceed the runtime's default budget; the point of
+    # the flag is to make that visible on demand without turning it into a gate.
+    assert main([str(ROOT), "--skip-marketplace"]) == 0
+    out = capsys.readouterr().out
+    assert "description characters in the listing:" in out
+    assert "listing-over-budget" not in out
+    main([str(ROOT), "--skip-marketplace", "--listing-budget", "1000"])
+    out = capsys.readouterr().out
+    assert out.count("[listing-over-budget]") == 3
