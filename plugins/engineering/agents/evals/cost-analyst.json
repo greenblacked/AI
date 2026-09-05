@@ -1,0 +1,22 @@
+[
+  {"query": "here's the CUR for july and august as parquet, about 400MB, tell me what moved and why", "should_trigger": true},
+  {"query": "bill went up 28% last month and nobody knows why. the bigquery billing export is in the project, find the drivers", "should_trigger": true},
+  {"query": "attached is a 300k line csv from cost explorer, which services actually changed period over period, not the biggest ones", "should_trigger": true},
+  {"query": "finance wants to know which team is responsible for the jump in spend, read the export and give me names or say it's untagged", "should_trigger": true},
+  {"query": "monthly cost review is tomorrow, go through the billing export and give me the five movers with a cause each", "should_trigger": true},
+  {"query": "our gcp bill doubled, the export is in gs://billing-export, is it quantity or rate", "should_trigger": true},
+  {"query": "the s3 line went from 4k to 19k, dig through the CUR and tell me which bucket and whether it's storage class or requests", "should_trigger": true},
+  {"query": "quarterly review, i need month over month deltas by service from the azure cost export, don't dump the file back at me", "should_trigger": true},
+  {"query": "did the reserved instances expiring explain the ec2 jump? the CUR is in the cur/ directory", "should_trigger": true},
+  {"query": "read the billing data and tell me what share of spend has no team tag before we try to split it by team", "should_trigger": true},
+  {"query": "why did our aws bill go up and what should we do about it", "should_trigger": false, "expected": "cost-review"},
+  {"query": "put together a finops plan to get 20% off the cloud bill without hurting reliability", "should_trigger": false, "expected": "cost-review"},
+  {"query": "should we buy savings plans or reserved instances for the baseline compute", "should_trigger": false, "expected": "cost-review"},
+  {"query": "the NAT gateway is costing a fortune, how do we restructure to cut egress", "should_trigger": false, "expected": "cost-review"},
+  {"query": "can you stop the idle instances the report found", "should_trigger": false, "expected": "cost-review"},
+  {"query": "checkout p99 is 4s, here's the trace bundle, whose latency is it", "should_trigger": false, "expected": "telemetry-reader"},
+  {"query": "here's the tfplan json, does it destroy anything", "should_trigger": false, "expected": "plan-reviewer"},
+  {"query": "read the iam policies and cloudtrail for the deploy role and tell me what it doesn't use", "should_trigger": false, "expected": "policy-auditor"},
+  {"query": "we need to size the cluster for the launch, expecting 5x traffic", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "the datadog renewal quote is 40% up, is it worth it or do we switch", "should_trigger": false, "expected": "vendor-evaluation"}
+]

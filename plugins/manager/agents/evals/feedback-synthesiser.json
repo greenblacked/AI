@@ -1,0 +1,22 @@
+[
+  {"query": "i've collected feedback from eight people about sam, what are the themes", "should_trigger": true},
+  {"query": "here are twelve peer reviews for the promo case, which points have more than one source", "should_trigger": true},
+  {"query": "360 feedback for my report is in the folder, summarise it so i don't have to read every submission", "should_trigger": true},
+  {"query": "review cycle, i have a pile of stakeholder feedback about one engineer, pull out the themes and quote an example each", "should_trigger": true},
+  {"query": "some of this feedback is about personality not behaviour, read it all and separate what's usable", "should_trigger": true},
+  {"query": "growth conversation is monday, here's what her peers wrote, tell me where they disagree", "should_trigger": true},
+  {"query": "eleven submissions about the same person, most of them repeat each other, what's actually in there", "should_trigger": true},
+  {"query": "is 'not a culture fit' in this feedback backed by anything observable? the submissions are attached", "should_trigger": true},
+  {"query": "count how many independent people raised the review turnaround thing in this feedback, not how many times it's mentioned", "should_trigger": true},
+  {"query": "read the feedback we gathered for the staff promotion packet and list what perspective is missing", "should_trigger": true},
+  {"query": "help me write her performance review, it's a meets not an exceeds", "should_trigger": false, "expected": "growth-review"},
+  {"query": "is she ready for staff", "should_trigger": false, "expected": "growth-review"},
+  {"query": "how do i give him the feedback that he's not delivering without it being a surprise", "should_trigger": false, "expected": "growth-review"},
+  {"query": "write the promotion case from these themes", "should_trigger": false, "expected": "growth-review"},
+  {"query": "what rating should i give based on this feedback", "should_trigger": false, "expected": "growth-review"},
+  {"query": "we're hiring a senior sre, design the loop and the rubric", "should_trigger": false, "expected": "hiring-loop"},
+  {"query": "read the vendor contract and tell me the renewal terms", "should_trigger": false, "expected": "contract-reader"},
+  {"query": "the postmortem needs writing from the scrollback", "should_trigger": false, "expected": "incident-scribe"},
+  {"query": "onboarding plan for the new hire starting in two weeks", "should_trigger": false, "expected": "onboarding-plan"},
+  {"query": "review this SKILL.md draft", "should_trigger": false, "expected": "skill-reviewer"}
+]

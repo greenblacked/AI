@@ -64,6 +64,24 @@ Anything else is an `unknown-key` error. The common near-misses — `tools`,
 error message with the key you probably meant, because the runtime ignores an unknown
 key silently and the author never finds out.
 
+Six is not this repository's preference; it is what the distribution boundary allows.
+Claude Code itself accepts many more — `when_to_use`, `argument-hint`,
+`disable-model-invocation`, `context: fork`, `paths`, `hooks` and others — but the
+[skills reference](https://code.claude.com/docs/en/skills#using-skill-frontmatter-outside-claude-code)
+is explicit that claude.ai uploads, the Skills API and `package_skill.py` accept only
+`name`, `description`, `license`, `compatibility`, `metadata` and `allowed-tools`, and
+that any other key fails packaging or upload with a hard error:
+
+```text
+Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name
+```
+
+Every skill here has to survive `make package`, so the validator names those keys
+specifically and says why, rather than reporting them as merely unexpected. The one that
+stings is `when_to_use`: it is exactly the trigger-phrase surface these descriptions carry,
+and the answer is to put that text in `description` itself. Forgoing the rest is the price
+of portability, and it is a standing decision rather than an inherited one.
+
 Each limit exists for a reason worth knowing:
 
 - **The 64/1024/500 character caps and the angle-bracket ban** come from what the Skills
@@ -169,6 +187,32 @@ Two skills whose descriptions both plausibly match the same request means neithe
 reliably. Before adding one, read the descriptions of the skills already in its
 category and decide which one owns the overlapping case.
 
+## The listing budget
+
+Every description a plugin ships is resident in context for the whole session, whether or
+not the skill ever fires, and the runtime caps the whole listing at about **1% of the
+context window** — roughly 8,000 characters on a 200k-token model. When the listing
+overflows, Claude Code keeps every skill's name but
+[drops the descriptions of the least-used skills](https://code.claude.com/docs/en/skills#skill-descriptions-are-cut-short),
+so those skills can still be invoked by name and stop being chosen on their own. A
+newly installed skill has never been used, so it is first to lose its description.
+
+This repository's forty descriptions total about 36,000 characters; `engineering` alone is
+over twice the budget. `make validate` prints the per-plugin total on every run, and
+`--listing-budget CHARS` turns exceeding it into a warning:
+
+```bash
+PYTHONPATH=src python -m skillcheck . --listing-budget 8000
+```
+
+It is not a gate, because the fix is not on the author's side: at twenty-one skills, even
+descriptions cut to five hundred characters would still overflow. What the number tells
+you is which of two things to do. Installers of more than one plugin should raise
+`skillListingBudgetFraction` in their settings, or mark rarely used skills `"name-only"`
+in `skillOverrides`. Authors should keep descriptions inside the 500–900 guidance rather
+than at the cap, and should score them with `--budget` to see what the runtime actually
+shows.
+
 ## Trigger eval sets
 
 A description that reads well and never fires is indistinguishable from a good one until
@@ -182,11 +226,32 @@ twenty queries, ten that should fire the skill and ten that should not.
 ]
 ```
 
+A negative may also name the sibling that **should** win that query:
+
+```json
+  {"query": "pods are crashlooping since the 11:40 deploy", "should_trigger": false, "expected": "k8s-triage"}
+```
+
+Without `expected`, a negative passes whenever anything other than this skill is chosen —
+including `NONE`, and including a completely wrong neighbour. That means the harness can
+see a description failing to fire, but not a description stealing a query from the skill
+that owns it, which is the failure the negatives exist to catch. With `expected`, the
+negative passes only when the named sibling is chosen, and the run reports a separate
+routing number over the negatives that carry one. Write it on every negative where you
+can name the owner; leave it off the genuinely ownerless ones.
+
 The validator checks the schema of that file on every run, and nothing more: at least 16
-queries, at least 8 on each side, no query string appearing twice, no keys beyond `query`
-and `should_trigger`, and `should_trigger` a real boolean rather than the string `"true"`.
-The codes are `no-evals` (a warning, the only one), `bad-eval-json`, `bad-eval-shape`,
-`bad-eval-entry`, `duplicate-eval-query`, `thin-eval-set` and `unbalanced-eval-set`.
+queries, at least 8 on each side, no query string appearing twice, no keys beyond `query`,
+`should_trigger` and `expected`, `should_trigger` a real boolean rather than the string
+`"true"`, and `expected` only on a negative, never naming the skill itself, and naming a
+skill or subagent that exists — a misspelling there is a permanent miss. The codes are
+`no-evals` (a warning, the only one), `bad-eval-json`, `bad-eval-shape`, `bad-eval-entry`,
+`unknown-expected`, `duplicate-eval-query`, `thin-eval-set` and `unbalanced-eval-set`.
+
+Subagents carry eval sets too, at `agents/evals/<name>.json` beside the agent file, with
+the same schema. Their descriptions do the same routing job, and several compete directly
+with a skill — `ci-log-reader` and `ci-triage` most obviously — so the catalogue the
+harness scores against contains both.
 Twenty and ten are the house convention; sixteen and eight are the floor below which the
 result stops meaning anything.
 
@@ -216,19 +281,35 @@ the reason the negatives are worth more effort than the positives. Take them fro
 adjacent skills: the queries that should land on `k8s-triage` or `image-hardening` are the
 ones that reveal whether `ci-triage` is stealing them.
 
-Three numbers come back per skill: the pass rate over all queries, recall over the
-positives, and specificity over the negatives. A skill at 100% recall and 40%
-specificity is not a good skill with a rough edge; it is a skill that fires on everything.
+Four numbers come back per target: the pass rate over all queries, recall over the
+positives, specificity over the negatives, and routing over the negatives that name an
+expected winner. A skill at 100% recall and 40% specificity is not a good skill with a
+rough edge; it is a skill that fires on everything. A skill at 100% specificity and 50%
+routing is one whose neighbours are quietly losing queries to something else.
 
 Run it locally with the `claude` CLI on `PATH`:
 
 ```bash
 python scripts/run_trigger_eval.py --skill plugins/engineering/skills/ci-triage --verbose
-python scripts/run_trigger_eval.py --all --runs 3 --threshold 0.8
+python scripts/run_trigger_eval.py --agent plugins/engineering/agents/ci-log-reader.md
+python scripts/run_trigger_eval.py --all --budget 8000 --baseline evals/last-run.json
 ```
 
-`--runs` samples each query more than once and takes the majority, which is how you tell a
-description that genuinely fails from one that sits on the model's decision boundary.
+Three flags change what the number means:
+
+- `--runs` samples each query more than once and takes the majority. The default is three
+  and it must be odd, so a vote cannot tie and be broken by whichever sample happened to
+  run first. The `narrow` column counts queries decided by a split, which is where a
+  description sits on the model's decision boundary.
+- `--budget` scores descriptions the way the runtime shows them rather than the way they
+  are written: it applies the listing budget above and drops the target's own description
+  first, which is the realistic case for a skill nobody has used yet. A description that
+  scores well only without `--budget` is one that never reaches the model in a real
+  session.
+- `--baseline` takes an earlier `--json` output and prints the per-target delta. With
+  forty descriptions competing for the same queries, the expected consequence of editing
+  one is a change in a neighbour's score, and a fixed threshold cannot see a skill slide
+  from 100% to 85%. Commit a run and diff against it.
 
 ## Writing the body
 
@@ -352,6 +433,8 @@ Every code the validator can emit is below, grouped by what it is looking at.
 | `duplicate-eval-query` | error | The same query string appears twice. | Replace one of them; a duplicate inflates the count without testing anything. |
 | `thin-eval-set` | error | Fewer than 16 queries. | Add more. Below that the pass rate moves too far on one result. |
 | `unbalanced-eval-set` | error | Fewer than 8 on either side. | Add to the short side — usually the negatives, which are what catch a description that fires on everything. |
+| `unknown-expected` | error | A negative names an `expected` winner that is not a skill or subagent here. | Fix the spelling. Left alone it scores as a permanent miss. |
+| `listing-over-budget` | warning, only with `--listing-budget` | A plugin's descriptions together exceed the given listing budget. | Not an author-side fix at this scale; see [the listing budget](#the-listing-budget). |
 | `conflicting-eval-query` | error | The same query is a positive in two skills' eval sets. | Decide which skill owns it and make it a negative in the other. Left alone, one of the two always scores as a miss. |
 
 ### Subagents

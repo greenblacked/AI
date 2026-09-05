@@ -25,6 +25,29 @@ ALLOWED_KEYS = frozenset(
 # Keys people reach for that the runtime will silently ignore. Naming them beats a
 # generic "unexpected key", because the author's intent is obvious and the fix is one
 # character.
+# Keys Claude Code accepts in a SKILL.md that the upload route rejects with a hard
+# error. This repository keeps the portable six on purpose, and `when_to_use` is the
+# one a contributor here will reach for first, because it is exactly the trigger-phrase
+# surface the descriptions are written to carry.
+CLAUDE_CODE_ONLY_KEYS = frozenset(
+    {
+        "when_to_use",
+        "argument-hint",
+        "arguments",
+        "disable-model-invocation",
+        "user-invocable",
+        "disallowed-tools",
+        "model",
+        "effort",
+        "context",
+        "agent",
+        "background",
+        "hooks",
+        "paths",
+        "shell",
+    }
+)
+
 NEAR_MISSES = {
     "allowed_tools": "allowed-tools",
     "allowedtools": "allowed-tools",
@@ -114,7 +137,9 @@ def _line_of(text: str, needle: str) -> int:
     return text.count("\n", 0, index) + 1
 
 
-def check_skill(directory: Path, repo_root: Path) -> list[Finding]:
+def check_skill(
+    directory: Path, repo_root: Path, known: frozenset[str] | None = None
+) -> list[Finding]:
     """Run every rule against one skill directory."""
     skill_md = directory / "SKILL.md"
     findings: list[Finding] = []
@@ -164,7 +189,7 @@ def check_skill(directory: Path, repo_root: Path) -> list[Finding]:
     findings.extend(_check_scripts(directory, repo_root, add))
     findings.extend(_check_length(text, directory, repo_root, add))
     findings.extend(_check_tone(body, text, add))
-    findings.extend(check_evals(directory, repo_root))
+    findings.extend(check_evals(directory, repo_root, known))
 
     return findings
 
@@ -172,6 +197,17 @@ def check_skill(directory: Path, repo_root: Path) -> list[Finding]:
 def _check_keys(front: Frontmatter, add) -> list[Finding]:
     for key in sorted(front.values):
         if key in ALLOWED_KEYS:
+            continue
+        if key in CLAUDE_CODE_ONLY_KEYS:
+            add(
+                ERROR,
+                "unknown-key",
+                f"{key!r} is a Claude Code key that the Skills API upload route rejects "
+                "with a hard error; this repository keeps the six portable keys so every "
+                "skill packages and uploads"
+                + (" — put trigger phrasings in 'description'" if key == "when_to_use" else ""),
+                front.line_of(key),
+            )
             continue
         suggestion = NEAR_MISSES.get(key.lower().replace("-", "_"))
         hint = f"; did you mean {suggestion!r}?" if suggestion else ""
@@ -496,7 +532,29 @@ def check_marketplace(repo_root: Path) -> list[Finding]:
 # Subagent frontmatter is a different contract from a skill's: `tools` is meaningful
 # here and would be rejected in a SKILL.md, while `allowed-tools` is the reverse. They
 # are validated separately for that reason rather than sharing one key set.
-AGENT_ALLOWED_KEYS = frozenset({"name", "description", "tools", "model"})
+# What a plugin-shipped subagent may carry. Unlike a skill there is no upload route
+# forcing this closed, so it is the documented set rather than a house restriction.
+AGENT_ALLOWED_KEYS = frozenset(
+    {
+        "name",
+        "description",
+        "tools",
+        "disallowedTools",
+        "model",
+        "effort",
+        "maxTurns",
+        "skills",
+        "memory",
+        "background",
+        "isolation",
+        "color",
+        "initialPrompt",
+    }
+)
+# Accepted in a project-level agent, refused in one a plugin ships — a plugin must not
+# be able to register hooks, attach MCP servers or change the permission mode on
+# whoever installs it.
+AGENT_UNSUPPORTED_IN_PLUGINS = frozenset({"hooks", "mcpServers", "permissionMode"})
 
 
 # A directory-level readme is documentation, not a subagent, and there is no
@@ -529,6 +587,16 @@ def check_agent(path: Path, repo_root: Path) -> list[Finding]:
         return findings
 
     for key in sorted(front.values):
+        if key in AGENT_UNSUPPORTED_IN_PLUGINS:
+            add(
+                ERROR,
+                "unknown-key",
+                f"{key!r} is not supported in a plugin-shipped subagent: a plugin must "
+                "not register hooks, attach MCP servers or set the permission mode for "
+                "whoever installs it",
+                front.line_of(key),
+            )
+            continue
         if key not in AGENT_ALLOWED_KEYS:
             add(
                 ERROR,
@@ -594,9 +662,19 @@ EVAL_MIN_QUERIES = 16
 EVAL_MIN_PER_SIDE = 8
 
 
-def check_evals(directory: Path, repo_root: Path) -> list[Finding]:
-    """Validate a skill's trigger-eval set, if it has one."""
-    path = directory / "evals" / "trigger-eval.json"
+EVAL_ENTRY_KEYS = frozenset({"query", "should_trigger", "expected"})
+
+
+def _check_eval_file(
+    path: Path, subject: Path, own_name: str, repo_root: Path, known: frozenset[str] | None
+) -> list[Finding]:
+    """Validate one eval set, whoever it belongs to.
+
+    `expected` is optional and only meaningful on a negative: it names the skill or
+    subagent that should win that query instead. Without it a negative passes whenever
+    anything other than the subject is chosen — including a completely wrong neighbour —
+    and the theft between siblings that the negatives exist to catch is invisible.
+    """
     findings: list[Finding] = []
 
     def add(level: str, code: str, message: str, target: Path) -> None:
@@ -606,9 +684,9 @@ def check_evals(directory: Path, repo_root: Path) -> list[Finding]:
         add(
             WARNING,
             "no-evals",
-            "skill has no evals/trigger-eval.json, so nothing measures whether its "
-            "description triggers",
-            directory / "SKILL.md",
+            f"no eval set at {path.relative_to(repo_root)}, so nothing measures whether "
+            "the description triggers",
+            subject,
         )
         return findings
 
@@ -631,7 +709,7 @@ def check_evals(directory: Path, repo_root: Path) -> list[Finding]:
             continue
         query = entry.get("query")
         trigger = entry.get("should_trigger")
-        extra = set(entry) - {"query", "should_trigger"}
+        extra = set(entry) - EVAL_ENTRY_KEYS
         if extra:
             add(
                 ERROR,
@@ -650,6 +728,34 @@ def check_evals(directory: Path, repo_root: Path) -> list[Finding]:
                 path,
             )
             continue
+        if "expected" in entry:
+            expected = entry["expected"]
+            if not isinstance(expected, str) or not expected.strip():
+                add(ERROR, "bad-eval-entry", f"{where} 'expected' must be a name", path)
+            elif trigger:
+                add(
+                    ERROR,
+                    "bad-eval-entry",
+                    f"{where} names an 'expected' winner but should_trigger is true; "
+                    "the winner of a positive is the subject itself",
+                    path,
+                )
+            elif expected == own_name:
+                add(
+                    ERROR,
+                    "bad-eval-entry",
+                    f"{where} expects {own_name!r} to win a negative, which contradicts "
+                    "should_trigger: false",
+                    path,
+                )
+            elif known is not None and expected not in known:
+                add(
+                    ERROR,
+                    "unknown-expected",
+                    f"{where} expects {expected!r}, which is not a skill or subagent in "
+                    "this repository — a misspelling here scores as a permanent miss",
+                    path,
+                )
         queries.append(query.strip())
         positives += trigger
 
@@ -677,6 +783,32 @@ def check_evals(directory: Path, repo_root: Path) -> list[Finding]:
             path,
         )
     return findings
+
+
+def check_evals(
+    directory: Path, repo_root: Path, known: frozenset[str] | None = None
+) -> list[Finding]:
+    """Validate a skill's trigger-eval set, if it has one."""
+    return _check_eval_file(
+        directory / "evals" / "trigger-eval.json",
+        directory / "SKILL.md",
+        directory.name,
+        repo_root,
+        known,
+    )
+
+
+def check_agent_evals(
+    path: Path, repo_root: Path, known: frozenset[str] | None = None
+) -> list[Finding]:
+    """Validate a subagent's eval set at agents/evals/<name>.json, if it has one.
+
+    A subagent's description does the same routing job a skill's does, and until this
+    existed none of the nine here had anything measuring it.
+    """
+    return _check_eval_file(
+        path.parent / "evals" / f"{path.stem}.json", path, path.stem, repo_root, known
+    )
 
 
 def check_duplicate_names(skills: list[Path], repo_root: Path) -> list[Finding]:
@@ -812,8 +944,10 @@ def check_command(path: Path, repo_root: Path) -> list[Finding]:
     return findings
 
 
-def check_eval_conflicts(skills: list[Path], repo_root: Path) -> list[Finding]:
-    """No query may be a positive for two skills at once.
+def check_eval_conflicts(
+    skills: list[Path], repo_root: Path, agents: list[Path] = ()
+) -> list[Finding]:
+    """No query may be a positive for two skills or subagents at once.
 
     A query labelled ``should_trigger: true`` in two eval sets is a contradiction the
     harness can never satisfy: whichever skill wins the invocation, the other is scored
@@ -825,8 +959,9 @@ def check_eval_conflicts(skills: list[Path], repo_root: Path) -> list[Finding]:
     """
     findings: list[Finding] = []
     claimed: dict[str, tuple[str, Path]] = {}
-    for directory in skills:
-        path = directory / "evals" / "trigger-eval.json"
+    sets = [(d.name, d / "evals" / "trigger-eval.json") for d in skills]
+    sets += [(a.stem, a.parent / "evals" / f"{a.stem}.json") for a in agents]
+    for owner, path in sets:
         if not path.is_file():
             continue
         try:
@@ -844,9 +979,9 @@ def check_eval_conflicts(skills: list[Path], repo_root: Path) -> list[Finding]:
             key = " ".join(query.split()).casefold()
             first = claimed.get(key)
             if first is None:
-                claimed[key] = (directory.name, path)
+                claimed[key] = (owner, path)
                 continue
-            if first[0] == directory.name:
+            if first[0] == owner:
                 continue
             findings.append(
                 Finding(

@@ -1,0 +1,22 @@
+[
+  {"query": "read this SOC 2 and tell me what matters", "should_trigger": true},
+  {"query": "attached is the MSA, order form and DPA, 130 pages, what are the clauses that decide the deal", "should_trigger": true},
+  {"query": "renewal is coming up, go through the contract and tell me the notice deadline and the uplift cap", "should_trigger": true},
+  {"query": "what does section 9.3 of this agreement actually commit us to", "should_trigger": true},
+  {"query": "here's the vendor's security questionnaire response, 60 pages, pull out the exceptions and carve-outs", "should_trigger": true},
+  {"query": "read the DPA and list the sub-processors and the breach notification window", "should_trigger": true},
+  {"query": "is there a renewal uplift cap in this order form or not, i can't find one", "should_trigger": true},
+  {"query": "we signed this MSA last year, read it and tell me what our obligations are", "should_trigger": true},
+  {"query": "pdf of the contract attached, what happens to our data when we leave and does export cost extra", "should_trigger": true},
+  {"query": "the SOC 2 they sent is a type 1 from 2023, is that a problem? read it and say what's in scope", "should_trigger": true},
+  {"query": "which of these three vendors should we pick", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "should we build or buy the feature flag service", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "they've quoted 40% more at renewal, help me decide whether to re-sign or move", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "put together a scorecard for the CI vendors we're down to", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "what leverage do we have going into the renegotiation", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "redline the termination clause for me", "should_trigger": false},
+  {"query": "here's the feedback i've collected for priya, what are the themes", "should_trigger": false, "expected": "feedback-synthesiser"},
+  {"query": "read the iam policies and tell me what's unused", "should_trigger": false, "expected": "policy-auditor"},
+  {"query": "i got an offer, base is 180k, how do i negotiate it", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "write the status update on the vendor migration for the execs", "should_trigger": false, "expected": "status-update"}
+]
