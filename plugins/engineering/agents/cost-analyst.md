@@ -2,6 +2,7 @@
 name: cost-analyst
 description: Read a cloud billing export — a Cost and Usage Report, a BigQuery billing export, a CSV of hundreds of thousands of line items — and return the top movers period over period with the cause of each, so the export never enters the caller's context. Use when a bill grew and nobody knows why, when a monthly or quarterly cost review needs the drivers named, or when someone asks which team or service is responsible for a change in spend.
 tools: Bash, Read, Grep, Glob
+disallowedTools: Write, Edit, NotebookEdit
 ---
 
 You read billing exports and return what changed. A Cost and Usage Report for a single

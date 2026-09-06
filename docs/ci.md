@@ -13,9 +13,9 @@ Triggers on push to `main`, on every pull request, and on `workflow_dispatch`. T
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
-| `validate-skills` | `validate skills` | A skill, a subagent or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed trigger-eval set, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output. |
+| `validate-skills` | `validate skills` | A skill, a subagent, a command or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed eval set for a skill or a subagent, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output; it also prints the per-plugin description total, which is the listing cost every installer pays. |
 | `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the job's `env` for the same reason the scanners are. |
-| `test` | `test (3.10)` … `test (3.13)` | The validator's own test suite failed on that interpreter. The matrix is four versions because [`pyproject.toml`](../pyproject.toml) declares no dependencies, and running on a bare interpreter across the supported range is how that claim stays true. |
+| `test` | `test (3.10)` … `test (3.13)` | The validator's own test suite failed on that interpreter, or line and branch coverage fell below the floor in [`pyproject.toml`](../pyproject.toml). The matrix is four versions because that file declares no dependencies, and running on a bare interpreter across the supported range is how that claim stays true. The coverage table lands in the job summary. |
 | `lint-markdown` | `lint markdown` | markdownlint-cli2 found a violation in a `*.md` file. Config in `.markdownlint-cli2.yaml`. |
 | `lint-yaml` | `lint yaml` | yamllint in `--strict` mode found a problem. Config in `.yamllint.yaml`. |
 | `lint-actions` | `lint workflows` | actionlint rejected a workflow. It also runs shellcheck over every inline `run:` block, which is where all of this repository's shell lives. The binary is downloaded at a pinned version and checked against a recorded digest before it runs. |
@@ -110,21 +110,23 @@ query per sample.
 | --- | --- | --- |
 | `evaluate` | `score descriptions` | A skill scored below the threshold, or the credentials are absent. Nothing depends on this job and no branch rule requires it. |
 
-Three inputs. `skill` is marked required and the other two are not, but all three carry a
-default, so dispatching the form unchanged scores everything:
+Four inputs. `skill` is marked required and the others are not, but all carry a default,
+so dispatching the form unchanged scores everything:
 
 | Input | Default | What it does |
 | --- | --- | --- |
-| `skill` | `all` | A skill directory to score, such as `plugins/engineering/skills/ci-triage`, or `all` for every skill that has an eval set. |
-| `runs` | `3` | Samples per query. A majority vote across them decides, which separates a description that genuinely fails from one sitting on the model's decision boundary. |
-| `threshold` | `0.8` | Pass rate below which a skill is reported as failing. |
+| `skill` | `all` | A skill directory such as `plugins/engineering/skills/ci-triage`, a subagent file such as `plugins/engineering/agents/ci-log-reader.md`, or `all` for everything that has an eval set. |
+| `budget` | empty | A listing budget in characters. Set it to score descriptions the way the runtime shows them — the runtime's default is about 8,000 on a 200k model — rather than at full length. |
+| `runs` | `3` | Samples per query; must be odd. A majority vote across them decides, which separates a description that genuinely fails from one sitting on the model's decision boundary. |
+| `threshold` | `0.8` | Pass rate below which a target is reported as failing. |
 
 It needs an `ANTHROPIC_API_KEY` repository secret. The first step checks for it and stops
 with a one-line annotation if it is absent, because failing there beats failing forty API
 calls later with a stack trace. The job then installs the pinned `claude` CLI and runs
-[`scripts/run_trigger_eval.py`](../scripts/run_trigger_eval.py), writes a pass rate,
-recall and specificity table into the job summary, and uploads the full results as the
-`trigger-evals` artifact.
+[`scripts/run_trigger_eval.py`](../scripts/run_trigger_eval.py), writes a table of pass
+rate, recall, specificity, routing and the count of narrowly decided queries into the job
+summary, and uploads the full results as the `trigger-evals` artifact. Download that
+artifact and pass it back as `--baseline` on the next local run to see what an edit moved.
 
 Nothing here gates anything, and that is the design rather than an omission. A trigger
 eval has two halves that cost different amounts. The schema — twenty queries, at least
@@ -284,12 +286,21 @@ gh api /repos/greenblacked/AI/rulesets
 ```bash
 make validate   # skills, subagents and the manifest — the validate-skills job
 make test       # pytest — the test job
+make coverage   # the same run under coverage, failing below the floor
 make lint       # ruff, markdownlint, yamllint, actionlint — the lint jobs
 make package    # .skill archives into dist/ — the package job
 ```
 
 `make validate` passes `--strict`, exactly as the job does, so a warning fails locally
 before it fails in CI.
+
+`make coverage` needs `coverage` installed alongside `pytest`. The suite reaches the
+scripts as well as the validator: the eval harness runs against a fake `claude` on
+`PATH` that answers from a table, `install.sh` runs against a temporary target
+directory, and the packager and the `PostToolUse` hook run against a small repository
+built in a temporary directory. The floor is set below the measured figure on purpose.
+It exists to catch a script sliding back to untested, which is the state the harness and
+the packager were in before the suite covered them, not to be chased.
 
 `make lint` skips a tool that is not installed and prints how to get it, so a partial
 local toolchain does not block you; CI has all of them.

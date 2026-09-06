@@ -1,0 +1,22 @@
+[
+  {"query": "attached is the plan json, 9000 lines, what does the apply actually do", "should_trigger": true},
+  {"query": "the tfplan is in the PR artefacts, tell me what gets destroyed and why before i approve", "should_trigger": true},
+  {"query": "why is terraform recreating the rds instance? plan.json is in the repo root", "should_trigger": true},
+  {"query": "read this tofu plan and list anything stateful that goes away", "should_trigger": true},
+  {"query": "here's the plan from the prod workspace, 140 resources changing, i only care about deletes and replacements", "should_trigger": true},
+  {"query": "the plan says 3 to add 2 to change 4 to destroy, work out what the 4 are and whether any of them hold data", "should_trigger": true},
+  {"query": "someone ran terraform show -json on the release plan, go through it and flag drift and anything deposed", "should_trigger": true},
+  {"query": "does this plan leak anything sensitive into state? plan.json attached", "should_trigger": true},
+  {"query": "run terraform show -json on the tfplan in ./out and tell me the blast radius, destroys first", "should_trigger": true},
+  {"query": "what's forcing the replacement on the subnet in this plan, the json is in the ci artefacts", "should_trigger": true},
+  {"query": "how should we review terraform changes on the team, what should the gate look like", "should_trigger": false, "expected": "iac-review"},
+  {"query": "review the .tf diff on PR 88 and tell me if the module pinning is right", "should_trigger": false, "expected": "iac-review"},
+  {"query": "check mode on this ansible playbook says changed on every run, why isn't it idempotent", "should_trigger": false, "expected": "iac-review"},
+  {"query": "we're moving state from local to an s3 backend, what could go wrong", "should_trigger": false, "expected": "iac-review"},
+  {"query": "go ahead and apply the plan, it looks fine", "should_trigger": false},
+  {"query": "write a terraform module for an s3 bucket with versioning and a lifecycle rule", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "read the iam role policies and 90 days of cloudtrail, which permissions are unused", "should_trigger": false, "expected": "policy-auditor"},
+  {"query": "here's the CUR, which service moved most month over month", "should_trigger": false, "expected": "cost-analyst"},
+  {"query": "ci is red on the terraform plan step, read the run and tell me why", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "we need to move the platform from ecs to eks, help me plan it", "should_trigger": false, "expected": "plan-platform-migration"}
+]
