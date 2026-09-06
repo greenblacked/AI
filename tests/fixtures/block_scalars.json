@@ -1,0 +1,920 @@
+[
+ {
+  "indicator": ">",
+  "lines": [
+   "  one",
+   "  two"
+  ],
+  "expected": "one two\n"
+ },
+ {
+  "indicator": ">",
+  "lines": [
+   "  one",
+   "",
+   "  two"
+  ],
+  "expected": "one\ntwo\n"
+ },
+ {
+  "indicator": ">",
+  "lines": [
+   "  one",
+   "",
+   "",
+   "  two"
+  ],
+  "expected": "one\n\ntwo\n"
+ },
+ {
+  "indicator": ">",
+  "lines": [
+   "  one",
+   "    more",
+   "  two"
+  ],
+  "expected": "one\n  more\ntwo\n"
+ },
+ {
+  "indicator": ">",
+  "lines": [
+   "  one",
+   "",
+   "    more",
+   "",
+   "  two"
+  ],
+  "expected": "one\n\n  more\n\ntwo\n"
+ },
+ {
+  "indicator": ">",
+  "lines": [
+   "  one",
+   "    more",
+   "    more2",
+   "  two"
+  ],
+  "expected": "one\n  more\n  more2\ntwo\n"
+ },
+ {
+  "indicator": ">",
+  "lines": [
+   "  one",
+   "  two",
+   ""
+  ],
+  "expected": "one two\n"
+ },
+ {
+  "indicator": ">",
+  "lines": [
+   "  one",
+   "  two",
+   "",
+   ""
+  ],
+  "expected": "one two\n"
+ },
+ {
+  "indicator": ">",
+  "lines": [
+   "  trailing space ",
+   "  two"
+  ],
+  "expected": "trailing space  two\n"
+ },
+ {
+  "indicator": ">",
+  "lines": [
+   "  one",
+   "    more",
+   ""
+  ],
+  "expected": "one\n  more\n"
+ },
+ {
+  "indicator": ">",
+  "lines": [
+   "  only"
+  ],
+  "expected": "only\n"
+ },
+ {
+  "indicator": ">",
+  "lines": [
+   ""
+  ],
+  "expected": ""
+ },
+ {
+  "indicator": ">",
+  "lines": [
+   "",
+   ""
+  ],
+  "expected": ""
+ },
+ {
+  "indicator": ">",
+  "lines": [
+   "  one",
+   "  ",
+   "  two"
+  ],
+  "expected": "one\ntwo\n"
+ },
+ {
+  "indicator": ">",
+  "lines": [
+   "  one",
+   "      ",
+   "  two"
+  ],
+  "expected": "one\n    \ntwo\n"
+ },
+ {
+  "indicator": ">",
+  "lines": [
+   "  a",
+   "    b",
+   "",
+   "    c",
+   "  d"
+  ],
+  "expected": "a\n  b\n\n  c\nd\n"
+ },
+ {
+  "indicator": ">",
+  "lines": [
+   "  a",
+   "",
+   "    b"
+  ],
+  "expected": "a\n\n  b\n"
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   "  one",
+   "  two"
+  ],
+  "expected": "one two"
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   "  one",
+   "",
+   "  two"
+  ],
+  "expected": "one\ntwo"
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   "  one",
+   "",
+   "",
+   "  two"
+  ],
+  "expected": "one\n\ntwo"
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   "  one",
+   "    more",
+   "  two"
+  ],
+  "expected": "one\n  more\ntwo"
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   "  one",
+   "",
+   "    more",
+   "",
+   "  two"
+  ],
+  "expected": "one\n\n  more\n\ntwo"
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   "  one",
+   "    more",
+   "    more2",
+   "  two"
+  ],
+  "expected": "one\n  more\n  more2\ntwo"
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   "  one",
+   "  two",
+   ""
+  ],
+  "expected": "one two"
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   "  one",
+   "  two",
+   "",
+   ""
+  ],
+  "expected": "one two"
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   "  trailing space ",
+   "  two"
+  ],
+  "expected": "trailing space  two"
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   "  one",
+   "    more",
+   ""
+  ],
+  "expected": "one\n  more"
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   "  only"
+  ],
+  "expected": "only"
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   ""
+  ],
+  "expected": ""
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   "",
+   ""
+  ],
+  "expected": ""
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   "  one",
+   "  ",
+   "  two"
+  ],
+  "expected": "one\ntwo"
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   "  one",
+   "      ",
+   "  two"
+  ],
+  "expected": "one\n    \ntwo"
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   "  a",
+   "    b",
+   "",
+   "    c",
+   "  d"
+  ],
+  "expected": "a\n  b\n\n  c\nd"
+ },
+ {
+  "indicator": ">-",
+  "lines": [
+   "  a",
+   "",
+   "    b"
+  ],
+  "expected": "a\n\n  b"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   "  one",
+   "  two"
+  ],
+  "expected": "one two\n"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   "  one",
+   "",
+   "  two"
+  ],
+  "expected": "one\ntwo\n"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   "  one",
+   "",
+   "",
+   "  two"
+  ],
+  "expected": "one\n\ntwo\n"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   "  one",
+   "    more",
+   "  two"
+  ],
+  "expected": "one\n  more\ntwo\n"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   "  one",
+   "",
+   "    more",
+   "",
+   "  two"
+  ],
+  "expected": "one\n\n  more\n\ntwo\n"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   "  one",
+   "    more",
+   "    more2",
+   "  two"
+  ],
+  "expected": "one\n  more\n  more2\ntwo\n"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   "  one",
+   "  two",
+   ""
+  ],
+  "expected": "one two\n\n"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   "  one",
+   "  two",
+   "",
+   ""
+  ],
+  "expected": "one two\n\n\n"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   "  trailing space ",
+   "  two"
+  ],
+  "expected": "trailing space  two\n"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   "  one",
+   "    more",
+   ""
+  ],
+  "expected": "one\n  more\n\n"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   "  only"
+  ],
+  "expected": "only\n"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   ""
+  ],
+  "expected": "\n"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   "",
+   ""
+  ],
+  "expected": "\n\n"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   "  one",
+   "  ",
+   "  two"
+  ],
+  "expected": "one\ntwo\n"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   "  one",
+   "      ",
+   "  two"
+  ],
+  "expected": "one\n    \ntwo\n"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   "  a",
+   "    b",
+   "",
+   "    c",
+   "  d"
+  ],
+  "expected": "a\n  b\n\n  c\nd\n"
+ },
+ {
+  "indicator": ">+",
+  "lines": [
+   "  a",
+   "",
+   "    b"
+  ],
+  "expected": "a\n\n  b\n"
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   "  one",
+   "  two"
+  ],
+  "expected": "one\ntwo\n"
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   "  one",
+   "",
+   "  two"
+  ],
+  "expected": "one\n\ntwo\n"
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   "  one",
+   "",
+   "",
+   "  two"
+  ],
+  "expected": "one\n\n\ntwo\n"
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   "  one",
+   "    more",
+   "  two"
+  ],
+  "expected": "one\n  more\ntwo\n"
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   "  one",
+   "",
+   "    more",
+   "",
+   "  two"
+  ],
+  "expected": "one\n\n  more\n\ntwo\n"
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   "  one",
+   "    more",
+   "    more2",
+   "  two"
+  ],
+  "expected": "one\n  more\n  more2\ntwo\n"
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   "  one",
+   "  two",
+   ""
+  ],
+  "expected": "one\ntwo\n"
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   "  one",
+   "  two",
+   "",
+   ""
+  ],
+  "expected": "one\ntwo\n"
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   "  trailing space ",
+   "  two"
+  ],
+  "expected": "trailing space \ntwo\n"
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   "  one",
+   "    more",
+   ""
+  ],
+  "expected": "one\n  more\n"
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   "  only"
+  ],
+  "expected": "only\n"
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   ""
+  ],
+  "expected": ""
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   "",
+   ""
+  ],
+  "expected": ""
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   "  one",
+   "  ",
+   "  two"
+  ],
+  "expected": "one\n\ntwo\n"
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   "  one",
+   "      ",
+   "  two"
+  ],
+  "expected": "one\n    \ntwo\n"
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   "  a",
+   "    b",
+   "",
+   "    c",
+   "  d"
+  ],
+  "expected": "a\n  b\n\n  c\nd\n"
+ },
+ {
+  "indicator": "|",
+  "lines": [
+   "  a",
+   "",
+   "    b"
+  ],
+  "expected": "a\n\n  b\n"
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   "  one",
+   "  two"
+  ],
+  "expected": "one\ntwo"
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   "  one",
+   "",
+   "  two"
+  ],
+  "expected": "one\n\ntwo"
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   "  one",
+   "",
+   "",
+   "  two"
+  ],
+  "expected": "one\n\n\ntwo"
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   "  one",
+   "    more",
+   "  two"
+  ],
+  "expected": "one\n  more\ntwo"
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   "  one",
+   "",
+   "    more",
+   "",
+   "  two"
+  ],
+  "expected": "one\n\n  more\n\ntwo"
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   "  one",
+   "    more",
+   "    more2",
+   "  two"
+  ],
+  "expected": "one\n  more\n  more2\ntwo"
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   "  one",
+   "  two",
+   ""
+  ],
+  "expected": "one\ntwo"
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   "  one",
+   "  two",
+   "",
+   ""
+  ],
+  "expected": "one\ntwo"
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   "  trailing space ",
+   "  two"
+  ],
+  "expected": "trailing space \ntwo"
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   "  one",
+   "    more",
+   ""
+  ],
+  "expected": "one\n  more"
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   "  only"
+  ],
+  "expected": "only"
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   ""
+  ],
+  "expected": ""
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   "",
+   ""
+  ],
+  "expected": ""
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   "  one",
+   "  ",
+   "  two"
+  ],
+  "expected": "one\n\ntwo"
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   "  one",
+   "      ",
+   "  two"
+  ],
+  "expected": "one\n    \ntwo"
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   "  a",
+   "    b",
+   "",
+   "    c",
+   "  d"
+  ],
+  "expected": "a\n  b\n\n  c\nd"
+ },
+ {
+  "indicator": "|-",
+  "lines": [
+   "  a",
+   "",
+   "    b"
+  ],
+  "expected": "a\n\n  b"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   "  one",
+   "  two"
+  ],
+  "expected": "one\ntwo\n"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   "  one",
+   "",
+   "  two"
+  ],
+  "expected": "one\n\ntwo\n"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   "  one",
+   "",
+   "",
+   "  two"
+  ],
+  "expected": "one\n\n\ntwo\n"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   "  one",
+   "    more",
+   "  two"
+  ],
+  "expected": "one\n  more\ntwo\n"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   "  one",
+   "",
+   "    more",
+   "",
+   "  two"
+  ],
+  "expected": "one\n\n  more\n\ntwo\n"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   "  one",
+   "    more",
+   "    more2",
+   "  two"
+  ],
+  "expected": "one\n  more\n  more2\ntwo\n"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   "  one",
+   "  two",
+   ""
+  ],
+  "expected": "one\ntwo\n\n"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   "  one",
+   "  two",
+   "",
+   ""
+  ],
+  "expected": "one\ntwo\n\n\n"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   "  trailing space ",
+   "  two"
+  ],
+  "expected": "trailing space \ntwo\n"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   "  one",
+   "    more",
+   ""
+  ],
+  "expected": "one\n  more\n\n"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   "  only"
+  ],
+  "expected": "only\n"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   ""
+  ],
+  "expected": "\n"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   "",
+   ""
+  ],
+  "expected": "\n\n"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   "  one",
+   "  ",
+   "  two"
+  ],
+  "expected": "one\n\ntwo\n"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   "  one",
+   "      ",
+   "  two"
+  ],
+  "expected": "one\n    \ntwo\n"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   "  a",
+   "    b",
+   "",
+   "    c",
+   "  d"
+  ],
+  "expected": "a\n  b\n\n  c\nd\n"
+ },
+ {
+  "indicator": "|+",
+  "lines": [
+   "  a",
+   "",
+   "    b"
+  ],
+  "expected": "a\n\n  b\n"
+ }
+]
