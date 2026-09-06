@@ -100,8 +100,17 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
-      - run: python -m pip install --upgrade pip pytest
-      - run: PYTHONPATH=src python -m pytest
+      - run: python -m pip install --upgrade pip pytest coverage
+      # The floor is a ratchet, not a target: it sits below the measured figure so a
+      # change that quietly drops a script back to untested fails here rather than
+      # being noticed months later. Raise it in pyproject.toml when coverage rises.
+      - run: |
+          set -Eeuo pipefail
+          PYTHONPATH=src python -m coverage run -m pytest
+          # The summary is written before the floor is enforced, so a failing run
+          # still shows which file fell.
+          python -m coverage report --format=markdown --fail-under=0 >> "$GITHUB_STEP_SUMMARY"
+          python -m coverage report
 
   lint-markdown:
     name: lint markdown

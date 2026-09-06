@@ -40,9 +40,10 @@ only, and CI runs it on Python 3.10 through 3.13 to keep that true. Only the tes
 needs anything installed.
 
 ```bash
-python -m pip install pytest   # only for `make test`
+python -m pip install pytest coverage   # only for `make test` and `make coverage`
 make validate                  # every skill, subagent and the marketplace manifest
 make test                      # the validator's own test suite
+make coverage                  # the same, failing below the floor in pyproject.toml
 make package                   # build a .skill archive per skill into dist/
 make install                   # symlink every skill into ~/.claude/skills
 ```
@@ -52,6 +53,17 @@ make install                   # symlink every skill into ~/.claude/skills
 `make validate` and `make test` are the same commands CI runs. Run both before
 finishing; a change to `rules.py` that does not also change `tests/` is almost always
 missing a case.
+
+The suite covers the scripts, not only the validator. `tests/conftest.py` holds the two
+fixtures they share: `mini_repo`, a complete plugin repository built in a temporary
+directory, and `fake_claude`, a stand-in for the `claude` CLI that answers from a table
+so the eval harness can be exercised without a model. A change to a script under
+`scripts/` should come with a case in the matching `tests/test_*.py`, and CI fails the
+test job when coverage drops below the floor in `pyproject.toml`.
+
+The block-scalar cases in `tests/fixtures/block_scalars.json` are recorded from PyYAML
+by `tests/fixtures/generate_block_scalars.py`. Regenerate them when `frontmatter.py`
+changes; the generator refuses to write the file while the two parsers disagree.
 
 `make validate` runs with `--strict`, so warnings fail too. They are warnings because
 each is a judgement call rather than a rule, but a warning nobody has to clear is one

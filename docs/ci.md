@@ -15,7 +15,7 @@ Triggers on push to `main`, on every pull request, and on `workflow_dispatch`. T
 | --- | --- | --- |
 | `validate-skills` | `validate skills` | A skill, a subagent, a command or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed eval set for a skill or a subagent, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output; it also prints the per-plugin description total, which is the listing cost every installer pays. |
 | `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the job's `env` for the same reason the scanners are. |
-| `test` | `test (3.10)` … `test (3.13)` | The validator's own test suite failed on that interpreter. The matrix is four versions because [`pyproject.toml`](../pyproject.toml) declares no dependencies, and running on a bare interpreter across the supported range is how that claim stays true. |
+| `test` | `test (3.10)` … `test (3.13)` | The validator's own test suite failed on that interpreter, or line and branch coverage fell below the floor in [`pyproject.toml`](../pyproject.toml). The matrix is four versions because that file declares no dependencies, and running on a bare interpreter across the supported range is how that claim stays true. The coverage table lands in the job summary. |
 | `lint-markdown` | `lint markdown` | markdownlint-cli2 found a violation in a `*.md` file. Config in `.markdownlint-cli2.yaml`. |
 | `lint-yaml` | `lint yaml` | yamllint in `--strict` mode found a problem. Config in `.yamllint.yaml`. |
 | `lint-actions` | `lint workflows` | actionlint rejected a workflow. It also runs shellcheck over every inline `run:` block, which is where all of this repository's shell lives. The binary is downloaded at a pinned version and checked against a recorded digest before it runs. |
@@ -286,12 +286,21 @@ gh api /repos/greenblacked/AI/rulesets
 ```bash
 make validate   # skills, subagents and the manifest — the validate-skills job
 make test       # pytest — the test job
+make coverage   # the same run under coverage, failing below the floor
 make lint       # ruff, markdownlint, yamllint, actionlint — the lint jobs
 make package    # .skill archives into dist/ — the package job
 ```
 
 `make validate` passes `--strict`, exactly as the job does, so a warning fails locally
 before it fails in CI.
+
+`make coverage` needs `coverage` installed alongside `pytest`. The suite reaches the
+scripts as well as the validator: the eval harness runs against a fake `claude` on
+`PATH` that answers from a table, `install.sh` runs against a temporary target
+directory, and the packager and the `PostToolUse` hook run against a small repository
+built in a temporary directory. The floor is set below the measured figure on purpose.
+It exists to catch a script sliding back to untested, which is the state the harness and
+the packager were in before the suite covered them, not to be chased.
 
 `make lint` skips a tool that is not installed and prints how to get it, so a partial
 local toolchain does not block you; CI has all of them.
