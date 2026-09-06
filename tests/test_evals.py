@@ -219,3 +219,17 @@ def test_a_positive_shared_by_a_skill_and_a_subagent_is_a_conflict(tmp_path):
     (agent.parent / "evals" / "reader.json").write_text(json.dumps(_cases()), encoding="utf-8")
     findings = check_eval_conflicts([skill], tmp_path, [agent])
     assert findings and all(f.code == "conflicting-eval-query" for f in findings)
+
+
+def test_an_entry_that_is_not_an_object_is_an_error(tmp_path):
+    entries = [*balanced(), "just a string"]
+    findings = check_evals(write_evals(tmp_path, entries), tmp_path)
+    assert "bad-eval-entry" in codes(findings)
+    assert any("entry 20 is not an object" in f.message for f in findings)
+
+
+def test_an_expected_that_is_not_a_name_is_an_error(tmp_path):
+    entries = balanced()
+    entries[-1]["expected"] = ["beta"]
+    findings = check_evals(write_evals(tmp_path, entries), tmp_path)
+    assert any("'expected' must be a name" in f.message for f in findings)
