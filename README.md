@@ -165,6 +165,7 @@ test matrix runs it on Python 3.10 through 3.13 to keep it that way.
 ```bash
 make validate   # frontmatter contract, dangling references, marketplace cross-check
 make test       # the validator's own test suite
+make coverage   # the same, with the coverage floor CI enforces
 make package    # a .skill archive per skill
 ```
 

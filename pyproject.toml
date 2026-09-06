@@ -20,6 +20,19 @@ addopts = "-ra -q --strict-markers --import-mode=importlib"
 testpaths = ["tests"]
 pythonpath = ["src"]
 
+[tool.coverage.run]
+branch = true
+source = ["src/skillcheck", "scripts"]
+# The generator is the one script that needs a third-party package; it is run by hand
+# when the parser changes and is not part of the suite.
+omit = ["tests/fixtures/generate_block_scalars.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+# Measured at 98% when the floor was set; see `make coverage`.
+fail_under = 95
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"
