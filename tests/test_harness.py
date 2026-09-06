@@ -205,6 +205,30 @@ def test_ask_takes_the_last_non_empty_line(fake_claude):
     assert harness.ask(harness.PROMPT.format(catalogue="", query="hello"), None, 30) == "alpha"
 
 
+@pytest.mark.parametrize(
+    ("raw", "name"),
+    [
+        ("ci-log-reader (subagent)", "ci-log-reader"),
+        ("ci-triage (skill)", "ci-triage"),
+        ("`ci-triage`", "ci-triage"),
+        ("- ci-triage", "ci-triage"),
+        ("ci-triage.", "ci-triage"),
+        ("**ci-log-reader (subagent)**", "ci-log-reader"),
+        ("NONE", "NONE"),
+        ("ci-triage", "ci-triage"),
+    ],
+)
+def test_an_echoed_label_is_reduced_to_the_bare_name(raw, name):
+    # The catalogue shows `name (subagent)`, so a model that copies the label would
+    # otherwise never match the judge and every positive would read as a miss.
+    assert harness.normalise(raw) == name
+
+
+def test_an_echoed_label_still_scores_as_fired(fake_claude):
+    fake_claude({"hello": "reader (subagent)"})
+    assert harness.ask(harness.PROMPT.format(catalogue="", query="hello"), None, 30) == "reader"
+
+
 def test_a_failing_cli_raises_rather_than_scoring(fake_claude):
     fake_claude(mode="fail")
     with pytest.raises(harness.ToolFailure, match="exited 1"):
