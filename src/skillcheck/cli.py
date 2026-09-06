@@ -13,10 +13,12 @@ import os
 import sys
 from pathlib import Path
 
+from .frontmatter import FrontmatterError, parse
 from .rules import (
     WARNING,
     Finding,
     check_agent,
+    check_agent_evals,
     check_command,
     check_duplicate_names,
     check_eval_conflicts,
@@ -34,6 +36,23 @@ def _annotate(finding: Finding) -> str:
     return (
         f"::{level} file={finding.path},line={finding.line},title={finding.code}::{finding.message}"
     )
+
+
+def _listing_sizes(plugins: list[Path], skills: list[Path]) -> dict[Path, int]:
+    """Characters of description each plugin puts into the skill listing."""
+    sizes: dict[Path, int] = {plugin: 0 for plugin in plugins}
+    for skill in skills:
+        try:
+            description = parse((skill / "SKILL.md").read_text(encoding="utf-8")).get(
+                "description", ""
+            )
+        except (OSError, FrontmatterError, UnicodeDecodeError):
+            continue  # check_skill has already reported it
+        for plugin in plugins:
+            if skill.is_relative_to(plugin):
+                sizes[plugin] += len(" ".join((description or "").split()))
+                break
+    return sizes
 
 
 def _summary(skills: list[Path], findings: list[Finding], root: Path) -> str:
@@ -89,6 +108,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--strict", action="store_true", help="treat warnings as errors")
     parser.add_argument(
+        "--listing-budget",
+        type=int,
+        default=None,
+        metavar="CHARS",
+        help="warn when a plugin's descriptions together exceed this many characters; "
+        "Claude Code's default listing budget is about 1%% of the context window, "
+        "roughly 8000 for a 200k model",
+    )
+    parser.add_argument(
         "--skip-marketplace",
         action="store_true",
         help="skip the marketplace cross-check (useful before the manifest exists)",
@@ -105,15 +133,20 @@ def main(argv: list[str] | None = None) -> int:
         print(f"no SKILL.md found under {root}", file=sys.stderr)
         return 2
 
-    findings: list[Finding] = []
-    for skill in skills:
-        findings.extend(check_skill(skill, root))
-    findings.extend(check_duplicate_names(skills, root))
-    findings.extend(check_eval_conflicts(skills, root))
     agents = [agent for plugin in plugins for agent in find_agents(plugin / "agents")]
     agents += find_agents(root / "agents")
+    # Every name an eval set may point at with `expected`. A misspelling there is a
+    # permanent miss, so it is checked against what actually exists.
+    known = frozenset(d.name for d in skills) | frozenset(a.stem for a in agents)
+
+    findings: list[Finding] = []
+    for skill in skills:
+        findings.extend(check_skill(skill, root, known))
+    findings.extend(check_duplicate_names(skills, root))
+    findings.extend(check_eval_conflicts(skills, root, agents))
     for agent in agents:
         findings.extend(check_agent(agent, root))
+        findings.extend(check_agent_evals(agent, root, known))
     # Commands ship two ways: inside a plugin, and in the repository's own
     # `.claude/commands/`, which is where a contributor-facing command belongs.
     commands = [command for plugin in plugins for command in find_commands(plugin / "commands")]
@@ -122,6 +155,22 @@ def main(argv: list[str] | None = None) -> int:
         findings.extend(check_command(command, root))
     if not args.skip_marketplace:
         findings.extend(check_marketplace(root))
+    listing = _listing_sizes(plugins, skills)
+    if args.listing_budget is not None:
+        for plugin, size in listing.items():
+            if size > args.listing_budget:
+                findings.append(
+                    Finding(
+                        WARNING,
+                        plugin.relative_to(root) / ".claude-plugin" / "plugin.json",
+                        1,
+                        "listing-over-budget",
+                        f"this plugin's skill descriptions total {size:,} characters "
+                        f"against a listing budget of {args.listing_budget:,}; the runtime "
+                        "drops descriptions of the least-used skills when the listing "
+                        "overflows, so they can no longer fire on their own",
+                    )
+                )
 
     github = args.github or os.environ.get("GITHUB_ACTIONS") == "true"
 
@@ -139,6 +188,12 @@ def main(argv: list[str] | None = None) -> int:
         f"and {len(commands)} command(s) checked — {len(errors)} error(s), "
         f"{len(warnings)} warning(s)"
     )
+    # Always reported, never a finding on its own: the number is the point. Every
+    # description a plugin ships is resident in context for the whole session, and the
+    # runtime's listing budget is roughly 1% of the context window.
+    total = sum(listing.values())
+    per_plugin = ", ".join(f"{p.name} {n:,}" for p, n in listing.items())
+    print(f"description characters in the listing: {total:,} ({per_plugin})")
 
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if github and summary_path:

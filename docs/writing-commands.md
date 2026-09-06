@@ -35,6 +35,16 @@ triggers correctly. If the answer to "why is this not a skill?" is nothing more 
 than "it feels like a command", write the skill instead — or improve the description of
 the skill that should have fired.
 
+Upstream has since collapsed the distinction. In current Claude Code, a file at
+`.claude/commands/deploy.md` and a skill at `.claude/skills/deploy/SKILL.md` both create
+`/deploy` and work the same way; the runtime's own version of "run only when asked" is
+`disable-model-invocation: true` on a skill. The commands here stay as flat files for a
+reason that is this repository's rather than the runtime's: a skill has to survive the
+Skills API upload route, which rejects that key, and a command never goes through it. So
+the five-key set below is a house restriction that keeps the two kinds of file distinct,
+not the runtime's contract — and a command is the right home for anything that needs a
+key the portable six do not allow.
+
 Commands compose with skills rather than replacing them. `/blast-radius plan.json` does
 the mechanical part — convert, query, order the output by recoverability — and points at
 `iac-review` for the full procedure. Each does what the other cannot.
@@ -86,6 +96,22 @@ command with no indication that it takes anything, so people type the bare name 
 runs against nothing. That is a warning rather than an error because a `$0` inside a
 fenced example is not an argument the command actually reads — fenced blocks are excluded
 before the check runs.
+
+## Dynamic context
+
+Three substitutions run before the prompt reaches the model, and all three are more useful
+than telling Claude to go and run something:
+
+- `` !`command` `` runs a shell command and inlines its output. `/ci-fail` could inline
+  `gh run view --log-failed` rather than asking Claude to run it as a step. A non-zero
+  exit aborts the whole invocation, so anything that legitimately exits non-zero — a grep
+  with no matches, a diff with changes — needs `|| true`.
+- A fenced block opened with ` ```! ` does the same for a multi-line script.
+- `@path` attaches a file's contents, so `@plan.json` puts the plan in front of the model
+  without a Read step.
+
+None of the eight commands here use them yet; the mechanism is documented so the next
+one can.
 
 ## What the validator checks
 

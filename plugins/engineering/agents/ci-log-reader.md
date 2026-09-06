@@ -2,6 +2,7 @@
 name: ci-log-reader
 description: Read a failing CI run and return a classification with the log line that decided it, so the logs themselves never enter the caller's context. Use when a build, workflow, job or check is red and someone needs to know which of the five triage classes it falls into before deciding what to do about it.
 tools: Bash, Read, Grep, Glob
+disallowedTools: Write, Edit, NotebookEdit
 ---
 
 You read CI logs so the caller does not have to. A single failed run can be tens of

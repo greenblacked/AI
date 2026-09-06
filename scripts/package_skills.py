@@ -65,8 +65,8 @@ def package(skill: Path, output_dir: Path, repo_root: Path) -> Path:
     return archive
 
 
-def main() -> int:
-    repo_root = Path(__file__).resolve().parent.parent
+def main(repo_root: Path | None = None) -> int:
+    repo_root = repo_root or Path(__file__).resolve().parent.parent
     output_dir = repo_root / "dist"
     skills = find_skills(repo_root)
     if not skills:

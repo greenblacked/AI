@@ -20,6 +20,19 @@ addopts = "-ra -q --strict-markers --import-mode=importlib"
 testpaths = ["tests"]
 pythonpath = ["src"]
 
+[tool.coverage.run]
+branch = true
+source = ["src/skillcheck", "scripts"]
+# The generator is the one script that needs a third-party package; it is run by hand
+# when the parser changes and is not part of the suite.
+omit = ["tests/fixtures/generate_block_scalars.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+# Measured at 98% when the floor was set; see `make coverage`.
+fail_under = 95
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"
@@ -28,6 +41,10 @@ src = ["src", "tests"]
 [tool.ruff.lint]
 # "S" is flake8-bandit: the security rules CI relies on in the python job.
 select = ["E", "F", "I", "UP", "B", "SIM", "S"]
+
+[tool.ruff.lint.isort]
+# The test modules import their shared helpers as `tests.conftest`.
+known-first-party = ["skillcheck", "tests"]
 
 [tool.ruff.lint.per-file-ignores]
 # Tests assert; that is the whole point of them.

@@ -22,10 +22,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def edited_skill(payload: dict) -> Path | None:
+def edited_skill(payload: object) -> Path | None:
     """Return the skill directory the edited file belongs to, if any."""
-    raw = payload.get("tool_input", {}).get("file_path")
-    if not raw:
+    tool_input = payload.get("tool_input") if isinstance(payload, dict) else None
+    raw = tool_input.get("file_path") if isinstance(tool_input, dict) else None
+    if not isinstance(raw, str) or not raw:
         return None
     try:
         path = Path(raw).resolve().relative_to(ROOT)

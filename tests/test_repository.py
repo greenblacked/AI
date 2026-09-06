@@ -5,6 +5,9 @@ Without this, the validator is a tool that has never been pointed at anything re
 
 from __future__ import annotations
 
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 from skillcheck.cli import main
@@ -44,3 +47,30 @@ def test_github_mode_emits_annotations(tmp_path, capsys):
     main([str(tmp_path), "--github", "--skip-marketplace"])
     output = capsys.readouterr().out
     assert "::error file=plugins/engineering/skills/demo/SKILL.md,line=1" in output
+
+
+def test_listing_budget_warns_per_plugin_and_is_off_by_default(capsys):
+    # This repository's descriptions exceed the runtime's default budget; the point of
+    # the flag is to make that visible on demand without turning it into a gate.
+    assert main([str(ROOT), "--skip-marketplace"]) == 0
+    out = capsys.readouterr().out
+    assert "description characters in the listing:" in out
+    assert "listing-over-budget" not in out
+    main([str(ROOT), "--skip-marketplace", "--listing-budget", "1000"])
+    out = capsys.readouterr().out
+    assert out.count("[listing-over-budget]") == 3
+
+
+def test_the_fixture_repository_validates_clean(mini_repo):
+    # Every script test builds on this fixture, and a fixture the validator rejects
+    # proves nothing about the hook or the packager: an error attributed to another
+    # skill hides in the noise. The first version of it shipped with colliding eval
+    # queries and only the tests that happened not to look at the total passed.
+    result = subprocess.run(  # noqa: S603
+        [sys.executable, "-m", "skillcheck", str(mini_repo), "--strict"],
+        capture_output=True,
+        text=True,
+        env={**os.environ, "PYTHONPATH": str(mini_repo / "src")},
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout

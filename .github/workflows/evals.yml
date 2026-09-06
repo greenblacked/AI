@@ -9,9 +9,16 @@ on:
   workflow_dispatch:
     inputs:
       skill:
-        description: 'Skill directory to score, or "all"'
+        description: 'Skill directory or subagent .md file to score, or "all"'
         required: true
         default: all
+        type: string
+      budget:
+        description: >-
+          Listing budget in characters, to score descriptions the way the runtime
+          shows them; blank scores them at full length
+        required: false
+        default: ''
         type: string
       runs:
         description: Samples per query; a majority vote across them decides
@@ -64,15 +71,22 @@ jobs:
           npm install --global "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
           if [ "$SKILL" = "all" ]; then
             target=(--all)
+          elif [[ "$SKILL" == *.md ]]; then
+            target=(--agent "$SKILL")
           else
             target=(--skill "$SKILL")
           fi
-          python scripts/run_trigger_eval.py "${target[@]}" \
+          extra=()
+          if [ -n "$BUDGET" ]; then
+            extra=(--budget "$BUDGET")
+          fi
+          python scripts/run_trigger_eval.py "${target[@]}" "${extra[@]}" \
             --runs "$RUNS" --threshold "$THRESHOLD" --json evals.json --verbose
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CLAUDE_CODE_VERSION: '2.1.221'
           SKILL: ${{ inputs.skill }}
+          BUDGET: ${{ inputs.budget }}
           RUNS: ${{ inputs.runs }}
           THRESHOLD: ${{ inputs.threshold }}
       - name: Publish the scores

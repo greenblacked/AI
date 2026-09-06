@@ -26,15 +26,27 @@ tools: Read, Glob, Grep, Bash
   the main agent's full tool set, which is almost never what you want. Present, it must
   be a non-empty list with no blank entries; a trailing comma is the usual way to get
   that wrong.
+- **`disallowedTools`** — optional, and every subagent here sets it to
+  `Write, Edit, NotebookEdit`. A denylist applied before the allowlist. The allowlist
+  already omits those tools, so this is a statement rather than a restriction: it says in
+  the file that the subagent must not change anything, where a reader will see it, and it
+  survives someone later adding `Bash` to `tools` for a checker.
 - **`model`** — optional. The model the subagent runs on. None of the nine here set it.
+- Also accepted, because a plugin-shipped subagent supports them: `effort`, `maxTurns`,
+  `skills`, `memory`, `background`, `isolation`, `color`, `initialPrompt`.
 
-The key set is closed, and it is deliberately not a skill's. The allowlist key here is
-`tools`; in a `SKILL.md` it is `allowed-tools`, and each is rejected in the other file.
-That is not an inconsistency to work around — they are separate fields with separate
-meanings, so [the validator](../src/skillcheck/rules.py) checks them against separate key
-sets rather than one union that would accept both everywhere and catch neither mistake.
-Writing `allowed-tools` in a subagent earns `unknown-key`; writing `tools` in a skill
-earns the same code with a suggestion attached.
+The key set is the documented one for a plugin-shipped subagent, not a house restriction
+— unlike a skill, there is no upload route forcing it closed. Three keys that work in a
+project-level agent are refused here with the reason stated: `hooks`, `mcpServers` and
+`permissionMode`, because a plugin must not be able to register hooks, attach servers or
+change the permission mode for whoever installs it.
+
+The allowlist key here is `tools`; in a `SKILL.md` it is `allowed-tools`, and each is
+rejected in the other file. That is not an inconsistency to work around — they are
+separate fields with separate meanings, so [the validator](../src/skillcheck/rules.py)
+checks them against separate key sets rather than one union that would accept both
+everywhere and catch neither mistake. Writing `allowed-tools` in a subagent earns
+`unknown-key`; writing `tools` in a skill earns the same code with a suggestion attached.
 
 The validator runs over every `agents/*.md` on each push, for the same reason it runs
 over skills: nothing else in the pipeline reads these files. A misspelled key or a `name`
@@ -89,6 +101,20 @@ and grant exactly those.
 This is not defence against a malicious model; it is defence against a helpful one.
 Capability that is present will eventually be used, and a subagent that quietly fixed
 what it was asked to evaluate has destroyed the evidence you delegated for.
+
+## Measuring whether delegation happens
+
+Every subagent carries an eval set at `agents/evals/<name>.json`, with the same schema as a
+skill's: twenty queries, ten that should route here and ten that should not. The
+validator warns when one is missing and checks the schema on every push; scoring needs a
+model and runs on demand with `scripts/run_trigger_eval.py --agent`.
+
+The negatives are where the effort goes, and for a subagent they have a specific shape.
+The paired skill's territory, phrased as a request for procedure or judgement rather than
+for a read, is the strongest negative — "how should I approach triaging this" belongs to
+`ci-triage`, and "here is the 40MB log, which class is it" belongs to `ci-log-reader`.
+Name that owner with `expected`, so the score distinguishes "did not fire" from "routed to
+the right place". See [trigger eval sets](writing-skills.md#trigger-eval-sets).
 
 ## Writing the description so delegation happens
 

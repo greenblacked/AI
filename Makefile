@@ -10,7 +10,7 @@ SHELL := bash
 RUFF_PIN := $(shell sed -n "s/^ *RUFF_VERSION: *'\(.*\)'/\1/p" .github/workflows/security.yml)
 MARKDOWNLINT_PIN := 0.23.2
 
-.PHONY: help validate test lint package install clean
+.PHONY: help validate test coverage lint package install clean
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
@@ -20,6 +20,10 @@ validate: ## Validate every skill, subagent and the marketplace manifest
 
 test: ## Run the validator's own test suite
 	PYTHONPATH=src pytest
+
+coverage: ## Run the tests under coverage and fail below the floor in pyproject.toml
+	PYTHONPATH=src $(PYTHON) -m coverage run -m pytest
+	$(PYTHON) -m coverage report
 
 lint: ## Lint python, markdown, YAML and workflows (skips a tool when it is not installed)
 	@if command -v ruff >/dev/null 2>&1; then \
@@ -46,5 +50,5 @@ install: ## Symlink every skill into ~/.claude/skills
 	@scripts/install.sh
 
 clean: ## Remove build output and caches
-	rm -rf dist .pytest_cache
+	rm -rf dist .pytest_cache .coverage htmlcov
 	find . -name __pycache__ -type d -prune -exec rm -rf {} +

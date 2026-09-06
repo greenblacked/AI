@@ -109,9 +109,12 @@ def _fold(lines: list[str]) -> str:
     index = 0
     while index < len(lines):
         line = lines[index]
-        if not line.strip():
+        # The caller has already reduced a blank line to the empty string. A line
+        # that still holds white space is more-indented than the block, and YAML
+        # treats that as content, not as a paragraph break.
+        if line == "":
             run = 0
-            while index < len(lines) and not lines[index].strip():
+            while index < len(lines) and lines[index] == "":
                 run += 1
                 index += 1
             # A break next to a more-indented line is never folded, so one survives
@@ -132,7 +135,9 @@ def _fold(lines: list[str]) -> str:
             separator = "\n"
         else:
             separator = " "
-        result.append(separator + (line if indented else line.strip()))
+        # Trailing white space on a content line is content in YAML, so the fold
+        # space is added to it rather than replacing it.
+        result.append(separator + line)
         previous, previous_indented = "line", indented
         index += 1
 

@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 
 from skillcheck.frontmatter import FrontmatterError, parse
@@ -137,3 +140,20 @@ def test_an_inline_comment_is_dropped_as_yaml_drops_it():
     # never sees, and produced a bogus name-mismatch.
     front = parse("---\nname: demo  # the skill name\ndescription: A thing.  # TODO\n---\n")
     assert front.values == {"name": "demo", "description": "A thing."}
+
+
+def _block_scalar_cases():
+    path = Path(__file__).parent / "fixtures" / "block_scalars.json"
+    for case in json.loads(path.read_text(encoding="utf-8")):
+        label = case["indicator"] + " " + json.dumps(case["lines"])
+        yield pytest.param(case["indicator"], case["lines"], case["expected"], id=label)
+
+
+@pytest.mark.parametrize(("indicator", "lines", "expected"), list(_block_scalar_cases()))
+def test_every_recorded_block_scalar_resolves_as_pyyaml_resolves_it(indicator, lines, expected):
+    # The fixture was produced by tests/fixtures/generate_block_scalars.py, which asks
+    # PyYAML for the answer to every combination of indicator and body it knows about
+    # and refuses to write the file while this parser disagrees with any of them. The
+    # cases replay here so the guarantee holds without PyYAML installed.
+    text = "---\nname: demo\ndescription: " + indicator + "\n" + "\n".join(lines) + "\n---\n"
+    assert parse(text).values["description"] == expected
