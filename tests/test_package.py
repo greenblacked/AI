@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.conftest import REPO, load_script, write_skill
+from tests.conftest import load_script, write_skill
 
 packager = load_script("package_skills.py")
 
@@ -74,20 +74,18 @@ def test_included_never_follows_a_link(tmp_path):
     assert not packager._included(skill / "link.md", skill)
 
 
-def test_main_clears_stale_archives_and_packages_every_skill(monkeypatch, tmp_path, capsys):
-    # main() derives everything from its own file location, so it runs against the
-    # real repository; dist/ is gitignored and rebuilt by CI the same way.
-    dist = REPO / "dist"
-    dist.mkdir(exist_ok=True)
+def test_main_clears_stale_archives_and_packages_every_skill(mini_repo, capsys):
+    # Against the fixture, not this repository: a test that rebuilds the developer's
+    # own dist/ deletes whatever `make package` just produced and races with it.
+    dist = mini_repo / "dist"
+    dist.mkdir()
     stale = dist / "renamed-long-ago.skill"
     stale.write_bytes(b"stale")
-    assert packager.main() == 0
+    assert packager.main(mini_repo) == 0
     out = capsys.readouterr().out
     assert not stale.exists()
-    archives = sorted(dist.glob("*.skill"))
-    skills = sorted(p.name for p in REPO.glob("plugins/*/skills/*") if (p / "SKILL.md").is_file())
-    assert [a.stem for a in archives] == skills
-    assert f"packaged {len(skills)} skill(s)" in out
+    assert [a.stem for a in sorted(dist.glob("*.skill"))] == ["alpha", "beta"]
+    assert "packaged 2 skill(s)" in out
 
 
 def test_a_tree_with_no_skills_exits_two(tmp_path, capsys):
