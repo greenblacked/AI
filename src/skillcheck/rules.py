@@ -22,9 +22,6 @@ ALLOWED_KEYS = frozenset(
     {"name", "description", "license", "allowed-tools", "metadata", "compatibility"}
 )
 
-# Keys people reach for that the runtime will silently ignore. Naming them beats a
-# generic "unexpected key", because the author's intent is obvious and the fix is one
-# character.
 # Keys Claude Code accepts in a SKILL.md that the upload route rejects with a hard
 # error. This repository keeps the portable six on purpose, and `when_to_use` is the
 # one a contributor here will reach for first, because it is exactly the trigger-phrase
@@ -48,6 +45,9 @@ CLAUDE_CODE_ONLY_KEYS = frozenset(
     }
 )
 
+# Keys people reach for that the runtime will silently ignore. Naming them beats a
+# generic "unexpected key", because the author's intent is obvious and the fix is one
+# character.
 NEAR_MISSES = {
     "allowed_tools": "allowed-tools",
     "allowedtools": "allowed-tools",

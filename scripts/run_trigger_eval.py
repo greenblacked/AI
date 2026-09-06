@@ -161,7 +161,23 @@ def ask(prompt: str, model: str | None, timeout: int) -> str:
         )
     if not result.stdout.strip():
         raise ToolFailure("the `claude` CLI returned nothing")
-    return result.stdout.strip().splitlines()[-1].strip()
+    return normalise(result.stdout.strip().splitlines()[-1])
+
+
+def normalise(answer: str) -> str:
+    """Reduce the model's last line to a bare name.
+
+    The catalogue labels a subagent as `name (subagent)`, and the prompt asks for "the
+    name of the single entry", so a model that echoes the label as shown would be
+    judged as never firing: 0% recall that reads as a bad description rather than a
+    formatting artefact. Strip the kind suffix and the decoration a list item picks up.
+    """
+    answer = answer.strip().strip("`*").lstrip("- ").rstrip(".").strip()
+    for kind in ("skill", "subagent"):
+        suffix = f" ({kind})"
+        if answer.endswith(suffix):
+            answer = answer[: -len(suffix)].rstrip()
+    return answer
 
 
 def judge(case: dict, chosen: str, name: str) -> tuple[bool, str]:
