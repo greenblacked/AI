@@ -112,12 +112,14 @@ def test_a_regular_file_in_the_way_is_kept_without_force_and_replaced_with_it(tm
     assert result.returncode == 0 and (target / SKILLS[0]).is_symlink()
 
 
-def test_a_stale_symlink_into_this_repository_is_repointed(tmp_path):
-    # A link that already points into the repository, but at the wrong place, is
-    # ours to fix without --force.
+def test_a_stale_symlink_into_this_repository_still_needs_force(tmp_path):
+    # The script recognises exactly one target per link: the skill directory itself.
+    # A link into the repository but at the wrong place is somebody's deliberate
+    # arrangement as far as it can tell, so it is left alone until asked.
     target = tmp_path / "skills"
     target.mkdir()
     (target / SKILLS[0]).symlink_to(REPO / "plugins" / "nowhere")
     result = run(target)
-    assert result.returncode == 3  # it is not into a skill dir, so it is foreign
+    assert result.returncode == 3
     assert "use --force" in result.stderr
+    assert os.readlink(target / SKILLS[0]) == str(REPO / "plugins" / "nowhere")
