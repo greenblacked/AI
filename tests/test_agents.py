@@ -97,3 +97,15 @@ def test_keys_a_plugin_may_not_ship_are_refused_with_the_reason(tmp_path, key):
     findings = check_agent(write_agent(tmp_path, "demo-agent", text), tmp_path)
     assert codes(findings) == {"unknown-key"}
     assert "plugin-shipped" in findings[0].message
+
+
+def test_a_missing_name_is_an_error(tmp_path):
+    text = GOOD.replace("name: demo-agent\n", "")
+    assert "missing-name" in codes(check_agent(write_agent(tmp_path, "demo-agent", text), tmp_path))
+
+
+def test_a_description_over_the_cap_is_an_error(tmp_path):
+    text = GOOD.replace("Do one narrow thing", "Do one narrow thing " + "x" * 1024)
+    assert "long-description" in codes(
+        check_agent(write_agent(tmp_path, "demo-agent", text), tmp_path)
+    )
