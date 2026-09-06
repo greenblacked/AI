@@ -1,0 +1,22 @@
+[
+  {"query": "here is the failed run, which of the five classes is it", "should_trigger": true},
+  {"query": "run 8812345 on ci.yml is red. don't paste the log at me, just give me the line that killed it and whether it's the change or the runner", "should_trigger": true},
+  {"query": "the build-and-test job failed and the log is 60k lines, find the step that actually died first", "should_trigger": true},
+  {"query": "three jobs went red on PR 412, read them and tell me if it's one cause or three", "should_trigger": true},
+  {"query": "is main also red or is this mine? check the workflow history and give me a one line answer", "should_trigger": true},
+  {"query": "attached are the check-run annotations and the --log-failed output for the nightly, classify it, i just need flake or real", "should_trigger": true},
+  {"query": "before i hit re-run, read the failed e2e job and tell me whether retrying would even help", "should_trigger": true},
+  {"query": "the release workflow died at the docker push step, read the run and say whether that's permissions, infra or us", "should_trigger": true},
+  {"query": "here's a jenkins console log from the failed build, 20MB, pull out the deciding line and which bucket it goes in", "should_trigger": true},
+  {"query": "the check went red on the dependabot bump, read the run and say if it's dependency drift or something else, quote the line", "should_trigger": true},
+  {"query": "the pipeline is red, is this a flake or the change", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "how should i approach triaging this, main might already be broken", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "what should our retry and quarantine policy be for flaky tests", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "walk me through bisecting which commit broke the build", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "add a github actions workflow that runs the tests on every PR", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "here's the terraform plan json from the PR, what does the apply destroy", "should_trigger": false, "expected": "plan-reviewer"},
+  {"query": "here's the trace bundle for the slow checkout endpoint, where does the time go", "should_trigger": false, "expected": "telemetry-reader"},
+  {"query": "the unit test that CI reported catches a null deref in the orders handler, help me fix it", "should_trigger": false},
+  {"query": "pods went CrashLoopBackOff right after the deploy, roll back or dig in?", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "the runner outage from last week needs writing up, here's the scrollback from the channel", "should_trigger": false, "expected": "incident-scribe"}
+]

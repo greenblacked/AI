@@ -367,3 +367,72 @@ def test_a_nested_script_is_checked_too(tmp_path):
     nested.mkdir(parents=True)
     (nested / "inner.sh").write_text("echo hi\n", encoding="utf-8")
     assert {"no-shebang", "not-executable"} <= codes(check_skill(directory, tmp_path), ERROR)
+
+
+@pytest.mark.parametrize("key", ["when_to_use", "argument-hint", "disable-model-invocation"])
+def test_a_claude_code_only_key_is_refused_with_the_portability_reason(tmp_path, key):
+    # Claude Code accepts these; the Skills API upload route rejects them with a hard
+    # error. The message has to say that, because "unexpected key" invites the author
+    # to argue with the validator rather than learn the constraint.
+    directory = write_skill(tmp_path, "demo", front=f"name: demo\ndescription: x\n{key}: y")
+    findings = [f for f in check_skill(directory, tmp_path) if f.code == "unknown-key"]
+    assert len(findings) == 1
+    assert "upload route rejects" in findings[0].message
+    if key == "when_to_use":
+        assert "'description'" in findings[0].message
+
+
+def test_unparseable_frontmatter_is_one_error_and_stops_there(tmp_path):
+    # Every later rule reads the frontmatter, so a parse failure is reported once
+    # rather than as a cascade of missing-name and missing-description.
+    directory = write_skill(tmp_path, "demo", front="name: demo\ndescription")
+    findings = check_skill(directory, tmp_path)
+    assert [f.code for f in findings] == ["frontmatter"]
+
+
+def test_a_directory_mentioned_generically_is_not_a_pointer(tmp_path):
+    directory = write_skill(tmp_path, "demo", body="# Demo\n\nPut helpers in scripts/ later.\n")
+    assert "dangling-reference" not in codes(check_skill(directory, tmp_path))
+
+
+def test_a_long_reference_without_a_table_of_contents_warns(tmp_path):
+    directory = write_skill(tmp_path, "demo", body="# Demo\n\nRead references/long.md first.\n")
+    (directory / "references").mkdir()
+    (directory / "references" / "long.md").write_text(
+        "# Long\n\n" + "line\n" * 120, encoding="utf-8"
+    )
+    assert "no-toc" in codes(check_skill(directory, tmp_path), WARNING)
+    (directory / "references" / "long.md").write_text(
+        "# Long\n\n## Contents\n\n- [A](#a)\n\n" + "line\n" * 120, encoding="utf-8"
+    )
+    assert "no-toc" not in codes(check_skill(directory, tmp_path), WARNING)
+
+
+def test_a_missing_marketplace_manifest_is_an_error(tmp_path):
+    write_skill(tmp_path, "demo")
+    assert codes(check_marketplace(tmp_path)) == {"no-marketplace"}
+
+
+def test_an_agent_outside_every_plugin_is_unowned(tmp_path):
+    write_skill(tmp_path, "demo")
+    (tmp_path / ".claude-plugin").mkdir()
+    (tmp_path / ".claude-plugin" / "marketplace.json").write_text(
+        json.dumps(
+            {
+                "name": "m",
+                "owner": {"name": "t"},
+                "plugins": [{"name": "engineering", "source": "./plugins/engineering"}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "plugins" / "engineering" / ".claude-plugin").mkdir()
+    (tmp_path / "plugins" / "engineering" / ".claude-plugin" / "plugin.json").write_text(
+        json.dumps({"name": "engineering", "description": "t"}), encoding="utf-8"
+    )
+    (tmp_path / "agents").mkdir()
+    (tmp_path / "agents" / "stray.md").write_text(
+        "---\nname: stray\ndescription: Do a thing. Use when asked.\n---\n\nBody.\n",
+        encoding="utf-8",
+    )
+    assert "unowned-agent" in codes(check_marketplace(tmp_path))
