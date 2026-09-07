@@ -104,16 +104,21 @@ def mini_repo(tmp_path: Path) -> Path:
     return root
 
 
-FAKE_CLAUDE = '''#!/usr/bin/env python3
-"""A stand-in for `claude -p PROMPT` that answers from a table.
+FAKE_CLI = '''#!/usr/bin/env python3
+"""A stand-in for any model CLI that answers from a table.
 
+The prompt is whichever argument carries the harness's "User message:" marker, so the
+same script serves as `claude -p PROMPT`, `codex exec PROMPT` or a custom command.
 FAKE_ANSWERS is JSON mapping a query to an answer, or to a list of answers that are
 cycled across calls (to simulate a split vote). Anything unlisted answers NONE.
 FAKE_MODE selects a failure: "fail" exits 1, "empty" prints nothing, "hang" never
-answers.
+answers, "fenced" wraps the answer in a code fence. FAKE_ARGV_FILE, if set, receives
+the argv so a test can see what the harness passed.
 """
 import json, os, sys, hashlib, pathlib, time
 
+if os.environ.get("FAKE_ARGV_FILE"):
+    pathlib.Path(os.environ["FAKE_ARGV_FILE"]).write_text(json.dumps(sys.argv[1:]))
 mode = os.environ.get("FAKE_MODE", "")
 if mode == "fail":
     print("simulated failure", file=sys.stderr)
@@ -123,7 +128,7 @@ if mode == "empty":
 if mode == "hang":
     time.sleep(30)
 
-prompt = sys.argv[sys.argv.index("-p") + 1]
+prompt = next((a for a in sys.argv[1:] if "User message:" in a), sys.argv[-1])
 query = prompt.split("User message:\\n", 1)[1].split("\\n\\nReply", 1)[0].strip()
 answers = json.loads(os.environ.get("FAKE_ANSWERS", "{}"))
 answer = answers.get(query, "NONE")
@@ -134,23 +139,31 @@ if isinstance(answer, list):
     answer = answer[n % len(answer)]
 # Real output has a preamble sometimes; the harness takes the last non-empty line.
 print("thinking...")
-print(answer)
+if mode == "fenced":
+    print("```")
+    print(answer)
+    print("```")
+else:
+    print(answer)
 '''
 
 
 @pytest.fixture
-def fake_claude(tmp_path: Path, monkeypatch):
-    """Put a fake `claude` first on PATH. Returns a function to set its answers."""
+def fake_cli(tmp_path: Path, monkeypatch):
+    """Install a fake model CLI under any name, first on PATH.
+
+    Returns an installer: `configure = fake_cli("codex")`. The configure function it
+    returns sets the answer table and the failure mode, and every fake installed in one
+    test shares the same table, because the harness asks one client per run.
+    """
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
-    script = bin_dir / "claude"
-    script.write_text(FAKE_CLAUDE, encoding="utf-8")
-    script.chmod(script.stat().st_mode | stat.S_IXUSR)
     counters = tmp_path / "counters"
     counters.mkdir()
     monkeypatch.setenv("PATH", f"{bin_dir}{os.pathsep}{os.environ.get('PATH', '')}")
     monkeypatch.setenv("FAKE_COUNTER_DIR", str(counters))
     monkeypatch.delenv("FAKE_MODE", raising=False)
+    monkeypatch.delenv("FAKE_ARGV_FILE", raising=False)
 
     def configure(answers: dict | None = None, mode: str = ""):
         monkeypatch.setenv("FAKE_ANSWERS", json.dumps(answers or {}))
@@ -161,5 +174,17 @@ def fake_claude(tmp_path: Path, monkeypatch):
         for stale in counters.iterdir():
             stale.unlink()
 
-    configure()
-    return configure
+    def install(name: str):
+        script = bin_dir / name
+        script.write_text(FAKE_CLI, encoding="utf-8")
+        script.chmod(script.stat().st_mode | stat.S_IXUSR)
+        configure()
+        return configure
+
+    return install
+
+
+@pytest.fixture
+def fake_claude(fake_cli):
+    """A fake `claude` first on PATH, the harness's default backend."""
+    return fake_cli("claude")

@@ -25,19 +25,25 @@ Three things it measures that a pass/fail line cannot:
   `--budget` reproduces that so a description is scored the way the runtime shows it
   rather than the way it is written.
 
-Requires the `claude` CLI on PATH and working credentials. It is deliberately not part of
-the required CI gate: it costs money, it is sampled rather than deterministic, and a gate
-that is occasionally wrong is a gate people learn to override.
+The model is reached through its own command-line client, and the credential is whatever
+that client already holds: a subscription login is enough, and this script reads no API
+key of its own. `--backend` picks one of the clients it knows, `--command` takes any
+other. It is deliberately not part of the required CI gate: it costs money, it is sampled
+rather than deterministic, and a gate that is occasionally wrong is a gate people learn to
+override.
 
     python scripts/run_trigger_eval.py --skill plugins/engineering/skills/ci-triage
     python scripts/run_trigger_eval.py --agent plugins/engineering/agents/ci-log-reader.md
     python scripts/run_trigger_eval.py --all --baseline evals/baseline.json
+    python scripts/run_trigger_eval.py --all --backend codex --model o4-mini
+    python scripts/run_trigger_eval.py --all --command 'mycli --quiet {prompt}'
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import shlex
 import subprocess
 import sys
 from collections import Counter
@@ -130,7 +136,44 @@ class ToolFailure(RuntimeError):
     """The model could not be reached, so no answer exists to score."""
 
 
-def ask(prompt: str, model: str | None, timeout: int) -> str:
+# The clients this script knows how to drive. Each is the vendor's own command-line
+# tool run in its non-interactive mode, so the credential is whatever that tool already
+# holds - a subscription login on a workstation, a token in CI - and this script never
+# handles a key. The argv keeps `{prompt}` unsubstituted until each call; `{model}` is
+# substituted once, or the model is appended with the flag named in the second field.
+BACKENDS: dict[str, tuple[list[str], str | None]] = {
+    "claude": (["claude", "-p", "{prompt}"], "--model"),
+    "codex": (["codex", "exec", "--skip-git-repo-check", "{prompt}"], "--model"),
+    "gemini": (["gemini", "-p", "{prompt}"], "--model"),
+    "ollama": (["ollama", "run", "{model}", "{prompt}"], None),
+}
+
+
+def build_command(backend: str, custom: str | None, model: str | None) -> list[str]:
+    """Return the argv to run per query, with `{prompt}` still to be substituted.
+
+    A custom template wins over a named backend, so a client this script has never
+    heard of is one flag away rather than a code change. The template is split the way
+    a shell would, which is what a person typing it expects.
+    """
+    if custom:
+        argv = shlex.split(custom)
+        flag = None
+        if not any("{prompt}" in part for part in argv):
+            raise ValueError("--command must contain {prompt}, or the model is never asked")
+    else:
+        argv, flag = BACKENDS[backend]
+        argv = list(argv)
+    wants_model = any("{model}" in part for part in argv)
+    if wants_model and not model:
+        raise ValueError(f"the {custom and 'command' or backend} backend needs --model")
+    argv = [part.replace("{model}", model or "") for part in argv]
+    if model and flag and not wants_model:
+        argv += [flag, model]
+    return argv
+
+
+def ask(prompt: str, command: list[str], timeout: int) -> str:
     """Return the model's choice, or raise if the tool itself failed.
 
     Folding a failure into the return value is the dangerous thing here. A dead CLI
@@ -140,28 +183,30 @@ def ask(prompt: str, model: str | None, timeout: int) -> str:
     rather than "the tool is broken", and it is exactly the number the report is read
     for. Better to stop.
     """
-    command = ["claude", "-p", prompt]
-    if model:
-        command += ["--model", model]
+    argv = [part.replace("{prompt}", prompt) for part in command]
+    tool = f"the `{argv[0]}` CLI"
     try:
         result = subprocess.run(  # noqa: S603
-            command, capture_output=True, text=True, timeout=timeout, check=False
+            argv, capture_output=True, text=True, timeout=timeout, check=False
         )
     except FileNotFoundError as error:
-        raise ToolFailure("the `claude` CLI is not on PATH") from error
+        raise ToolFailure(f"{tool} is not on PATH") from error
     except OSError as error:
-        raise ToolFailure(f"could not run the `claude` CLI: {error}") from error
+        raise ToolFailure(f"could not run {tool}: {error}") from error
     except subprocess.TimeoutExpired as error:
-        raise ToolFailure(f"the `claude` CLI timed out after {timeout}s") from error
+        raise ToolFailure(f"{tool} timed out after {timeout}s") from error
 
     if result.returncode != 0:
         detail = (result.stderr or result.stdout).strip().splitlines()
         raise ToolFailure(
-            f"the `claude` CLI exited {result.returncode}: {detail[-1] if detail else 'no output'}"
+            f"{tool} exited {result.returncode}: {detail[-1] if detail else 'no output'}"
         )
-    if not result.stdout.strip():
-        raise ToolFailure("the `claude` CLI returned nothing")
-    return normalise(result.stdout.strip().splitlines()[-1])
+    # The answer is the last line that carries anything. A client that wraps its reply
+    # in a code fence ends on a line of backticks, which is not the answer.
+    lines = [line for line in result.stdout.splitlines() if line.strip().strip("`")]
+    if not lines:
+        raise ToolFailure(f"{tool} returned nothing")
+    return normalise(lines[-1])
 
 
 def normalise(answer: str) -> str:
@@ -172,7 +217,7 @@ def normalise(answer: str) -> str:
     judged as never firing: 0% recall that reads as a bad description rather than a
     formatting artefact. Strip the kind suffix and the decoration a list item picks up.
     """
-    answer = answer.strip().strip("`*").lstrip("- ").rstrip(".").strip()
+    answer = answer.strip().strip("`*\"'").lstrip("- ").rstrip(".").strip()
     for kind in ("skill", "subagent"):
         suffix = f" ({kind})"
         if answer.endswith(suffix):
@@ -204,7 +249,7 @@ def score(target: Target, entries: dict, args) -> dict:
     results = []
     for case in cases:
         votes = Counter(
-            ask(PROMPT.format(catalogue=listing, query=case["query"]), args.model, args.timeout)
+            ask(PROMPT.format(catalogue=listing, query=case["query"]), args.command, args.timeout)
             for _ in range(args.runs)
         )
         (chosen, count), *rest = votes.most_common()
@@ -235,6 +280,8 @@ def score(target: Target, entries: dict, args) -> dict:
     return {
         "target": target.name,
         "kind": target.kind,
+        "backend": args.command[0],
+        "model": args.model,
         "total": len(results),
         "passed": sum(r["passed"] for r in results),
         "rate": rate(results) or 0.0,
@@ -286,7 +333,20 @@ def main() -> int:
     parser.add_argument(
         "--baseline", type=Path, default=None, help="an earlier --json output to diff against"
     )
-    parser.add_argument("--model", default=None)
+    parser.add_argument(
+        "--backend",
+        choices=sorted(BACKENDS),
+        default="claude",
+        help="which model CLI answers; it must be on PATH and signed in",
+    )
+    parser.add_argument(
+        "--command",
+        default=None,
+        metavar="TEMPLATE",
+        help="any other CLI, as a shell-style template containing {prompt} and "
+        "optionally {model}; overrides --backend",
+    )
+    parser.add_argument("--model", default=None, help="passed to the CLI, or substituted")
     parser.add_argument("--timeout", type=int, default=60)
     parser.add_argument("--json", type=Path, default=None, help="write full results here")
     parser.add_argument("--verbose", action="store_true")
@@ -294,6 +354,10 @@ def main() -> int:
 
     if args.runs < 1 or args.runs % 2 == 0:
         parser.error("--runs must be a positive odd number, so that a vote cannot tie")
+    try:
+        args.command = build_command(args.backend, args.command, args.model)
+    except ValueError as error:
+        parser.error(str(error))
 
     root = args.root.resolve()
     if args.all:

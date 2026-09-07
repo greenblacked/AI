@@ -287,13 +287,25 @@ expected winner. A skill at 100% recall and 40% specificity is not a good skill 
 rough edge; it is a skill that fires on everything. A skill at 100% specificity and 50%
 routing is one whose neighbours are quietly losing queries to something else.
 
-Run it locally with the `claude` CLI on `PATH`:
+Run it locally with a model CLI on `PATH` and signed in. The harness reads no API key; the
+credential is whatever the CLI holds, and a subscription login is enough. `claude` is the
+default, `--backend` picks another, and `--command` takes any CLI at all as a shell-style
+template with `{prompt}` where the question goes:
 
 ```bash
 python scripts/run_trigger_eval.py --skill plugins/engineering/skills/ci-triage --verbose
 python scripts/run_trigger_eval.py --agent plugins/engineering/agents/ci-log-reader.md
 python scripts/run_trigger_eval.py --all --budget 8000 --baseline evals/last-run.json
+python scripts/run_trigger_eval.py --all --backend codex --model o4-mini
+python scripts/run_trigger_eval.py --all --backend ollama --model llama3.1
+python scripts/run_trigger_eval.py --all --command 'mycli --quiet {prompt}'
 ```
+
+Score against more than one model before trusting a number. The catalogue is the same but
+the reader is not, and a description that routes cleanly on one model and leaks on another
+is telling you which phrasing carried the decision. Each result records the backend and
+model it was scored with, so a baseline from a different model is not mistaken for a
+regression.
 
 Three flags change what the number means:
 
