@@ -17,10 +17,15 @@ from tests.conftest import load_script
 harness = load_script("run_trigger_eval.py")
 
 
+CLAUDE = ["claude", "-p", "{prompt}"]
+
+
 class Args:
     def __init__(self, **overrides):
         self.runs = 3
         self.model = None
+        self.command = list(CLAUDE)
+        self.jobs = 1
         self.timeout = 30
         self.budget = None
         self.verbose = False
@@ -187,9 +192,9 @@ def test_the_budget_changes_what_the_model_is_shown(mini_repo, fake_claude, monk
     seen = []
     real_ask = harness.ask
 
-    def spy(prompt, model, timeout):
+    def spy(prompt, command, timeout, names=frozenset()):
         seen.append(prompt)
-        return real_ask(prompt, model, timeout)
+        return real_ask(prompt, command, timeout, names)
 
     monkeypatch.setattr(harness, "ask", spy)
     fake_claude({})
@@ -202,7 +207,7 @@ def test_the_budget_changes_what_the_model_is_shown(mini_repo, fake_claude, monk
 
 def test_ask_takes_the_last_non_empty_line(fake_claude):
     fake_claude({"hello": "alpha"})
-    assert harness.ask(harness.PROMPT.format(catalogue="", query="hello"), None, 30) == "alpha"
+    assert harness.ask(harness.PROMPT.format(catalogue="", query="hello"), CLAUDE, 30) == "alpha"
 
 
 @pytest.mark.parametrize(
@@ -216,6 +221,8 @@ def test_ask_takes_the_last_non_empty_line(fake_claude):
         ("**ci-log-reader (subagent)**", "ci-log-reader"),
         ("NONE", "NONE"),
         ("ci-triage", "ci-triage"),
+        ('"ci-triage"', "ci-triage"),
+        ("'k8s-triage'", "k8s-triage"),
     ],
 )
 def test_an_echoed_label_is_reduced_to_the_bare_name(raw, name):
@@ -226,31 +233,135 @@ def test_an_echoed_label_is_reduced_to_the_bare_name(raw, name):
 
 def test_an_echoed_label_still_scores_as_fired(fake_claude):
     fake_claude({"hello": "reader (subagent)"})
-    assert harness.ask(harness.PROMPT.format(catalogue="", query="hello"), None, 30) == "reader"
+    assert harness.ask(harness.PROMPT.format(catalogue="", query="hello"), CLAUDE, 30) == "reader"
 
 
 def test_a_failing_cli_raises_rather_than_scoring(fake_claude):
     fake_claude(mode="fail")
     with pytest.raises(harness.ToolFailure, match="exited 1"):
-        harness.ask("x", None, 30)
+        harness.ask("x", CLAUDE, 30)
 
 
 def test_an_empty_answer_raises_rather_than_scoring(fake_claude):
     fake_claude(mode="empty")
     with pytest.raises(harness.ToolFailure, match="returned nothing"):
-        harness.ask("x", None, 30)
+        harness.ask("x", CLAUDE, 30)
 
 
 def test_a_missing_cli_raises_rather_than_scoring(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", str(tmp_path))  # nothing on it
-    with pytest.raises(harness.ToolFailure, match="not on PATH"):
-        harness.ask("x", None, 30)
+    with pytest.raises(harness.ToolFailure, match="`claude` CLI is not on PATH"):
+        harness.ask("x", CLAUDE, 30)
 
 
 def test_a_model_flag_is_passed_through(fake_claude, tmp_path, monkeypatch):
-    # The fake ignores --model, so this only checks that the argv it receives parses.
     fake_claude({"q": "alpha"})
-    assert harness.ask(harness.PROMPT.format(catalogue="", query="q"), "haiku", 30) == "alpha"
+    seen = tmp_path / "argv.json"
+    monkeypatch.setenv("FAKE_ARGV_FILE", str(seen))
+    command = harness.build_command("claude", None, "haiku")
+    assert harness.ask(harness.PROMPT.format(catalogue="", query="q"), command, 30) == "alpha"
+    assert json.loads(seen.read_text())[-2:] == ["--model", "haiku"]
+
+
+# --- backends: the harness holds no credential, the CLI does ---------------------------
+
+
+@pytest.mark.parametrize(
+    ("backend", "model", "argv"),
+    [
+        ("claude", None, ["claude", "-p", "{prompt}"]),
+        ("claude", "opus", ["claude", "-p", "{prompt}", "--model", "opus"]),
+        ("codex", None, ["codex", "exec", "--skip-git-repo-check", "{prompt}"]),
+        (
+            "codex",
+            "o4-mini",
+            ["codex", "exec", "--skip-git-repo-check", "{prompt}", "--model", "o4-mini"],
+        ),
+        ("gemini", "gemini-2.5-pro", ["gemini", "-p", "{prompt}", "--model", "gemini-2.5-pro"]),
+        ("ollama", "llama3.1", ["ollama", "run", "llama3.1", "{prompt}"]),
+    ],
+)
+def test_each_backend_builds_its_own_argv(backend, model, argv):
+    assert harness.build_command(backend, None, model) == argv
+
+
+def test_a_backend_with_a_positional_model_refuses_to_run_without_one():
+    with pytest.raises(ValueError, match="ollama backend needs --model"):
+        harness.build_command("ollama", None, None)
+
+
+def test_a_custom_command_wins_over_the_backend_and_may_take_the_model():
+    assert harness.build_command("claude", "mycli --quiet {prompt}", None) == [
+        "mycli",
+        "--quiet",
+        "{prompt}",
+    ]
+    assert harness.build_command("claude", "mycli -m {model} {prompt}", "tiny") == [
+        "mycli",
+        "-m",
+        "tiny",
+        "{prompt}",
+    ]
+    # A model given to a template that has no slot for it is not silently dropped.
+    assert harness.build_command("claude", "mycli {prompt}", "tiny") == ["mycli", "{prompt}"]
+
+
+def test_a_custom_command_without_a_prompt_slot_is_refused():
+    with pytest.raises(ValueError, match="must contain {prompt}"):
+        harness.build_command("claude", "mycli --quiet", None)
+    with pytest.raises(ValueError, match="command backend needs --model"):
+        harness.build_command("claude", "mycli -m {model} {prompt}", None)
+
+
+def test_another_cli_on_path_answers_the_same_way(fake_cli):
+    configure = fake_cli("codex")
+    configure({"hello": "alpha"})
+    command = harness.build_command("codex", None, None)
+    assert harness.ask(harness.PROMPT.format(catalogue="", query="hello"), command, 30) == "alpha"
+
+
+def test_a_custom_command_runs_whatever_was_named(fake_cli, tmp_path, monkeypatch):
+    configure = fake_cli("mycli")
+    configure({"hello": "beta"})
+    seen = tmp_path / "argv.json"
+    monkeypatch.setenv("FAKE_ARGV_FILE", str(seen))
+    command = harness.build_command("claude", "mycli --quiet {prompt}", None)
+    assert harness.ask(harness.PROMPT.format(catalogue="", query="hello"), command, 30) == "beta"
+    assert json.loads(seen.read_text())[0] == "--quiet"
+
+
+def test_a_failure_names_the_cli_that_failed(fake_cli):
+    configure = fake_cli("codex")
+    configure(mode="fail")
+    with pytest.raises(harness.ToolFailure, match="the `codex` CLI exited 1"):
+        harness.ask("x", harness.build_command("codex", None, None), 30)
+
+
+def test_a_fenced_answer_is_read_through_the_fence(fake_claude):
+    fake_claude({"hello": "alpha"}, mode="fenced")
+    assert harness.ask(harness.PROMPT.format(catalogue="", query="hello"), CLAUDE, 30) == "alpha"
+
+
+def test_a_footer_after_the_answer_is_skipped_when_the_catalogue_is_known(fake_claude):
+    # codex prints token counts after its reply. Read as the last line, every answer
+    # would be the footer and every skill would score zero for a reason nobody looks for.
+    fake_claude({"hello": "alpha"}, mode="footer")
+    prompt = harness.PROMPT.format(catalogue="", query="hello")
+    assert harness.ask(prompt, CLAUDE, 30, frozenset({"alpha"})) == "alpha"
+    assert harness.ask(prompt, CLAUDE, 30) == "tokens used: 1234"
+
+
+def test_a_name_in_the_wrong_case_is_matched_to_the_catalogue(fake_claude):
+    fake_claude({"hello": "Alpha", "bye": "None"})
+    prompt = harness.PROMPT.format(catalogue="", query="hello")
+    assert harness.ask(prompt, CLAUDE, 30, frozenset({"alpha"})) == "alpha"
+    prompt = harness.PROMPT.format(catalogue="", query="bye")
+    assert harness.ask(prompt, CLAUDE, 30, frozenset({"alpha"})) == "NONE"
+
+
+def test_stdin_is_closed_so_a_client_that_reads_it_does_not_wait(fake_claude):
+    fake_claude({"hello": "alpha"}, mode="stdin")
+    assert harness.ask(harness.PROMPT.format(catalogue="", query="hello"), CLAUDE, 5) == "alpha"
 
 
 # --- main: the command line end to end ----------------------------------------------
@@ -381,4 +492,86 @@ def test_the_prompt_names_the_query_and_the_catalogue():
 def test_a_hanging_cli_raises_rather_than_scoring(fake_claude):
     fake_claude(mode="hang")
     with pytest.raises(harness.ToolFailure, match="timed out after 1s"):
-        harness.ask("x", None, 1)
+        harness.ask("x", CLAUDE, 1)
+
+
+def test_the_report_records_which_client_and_model_scored_it(mini_repo, fake_claude):
+    fake_claude({})
+    report = harness.score(_alpha(mini_repo), harness.catalogue(mini_repo), Args(model="opus"))
+    assert (report["backend"], report["model"]) == ("claude", "opus")
+
+
+def test_main_resolves_the_backend_flags(mini_repo, fake_cli, monkeypatch, capsys, tmp_path):
+    configure = fake_cli("codex")
+    configure({f"alpha positive {i}": "alpha" for i in range(8)})
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    out = tmp_path / "out.json"
+    argv = (
+        "--skill",
+        str(skill),
+        "--root",
+        str(mini_repo),
+        "--backend",
+        "codex",
+        "--model",
+        "o4-mini",
+        "--threshold",
+        "0",
+        "--json",
+        str(out),
+    )
+    assert run_main(monkeypatch, *argv) == 0
+    report = json.loads(out.read_text())[0]
+    assert (report["backend"], report["model"]) == ("codex", "o4-mini")
+
+
+def test_main_rejects_a_command_without_a_prompt_slot(mini_repo, monkeypatch, capsys):
+    with pytest.raises(SystemExit) as caught:
+        run_main(monkeypatch, "--all", "--root", str(mini_repo), "--command", "mycli --quiet")
+    assert caught.value.code == 2
+    assert "must contain {prompt}" in capsys.readouterr().err
+
+
+def test_parallel_jobs_score_the_same_as_one(mini_repo, fake_claude):
+    answers = {f"alpha positive {i}": "alpha" for i in range(8)}
+    answers.update({f"alpha negative {i}": "beta" for i in range(8)})
+    fake_claude(answers)
+    entries = harness.catalogue(mini_repo)
+    serial = harness.score(_alpha(mini_repo), entries, Args(jobs=1))
+    parallel = harness.score(_alpha(mini_repo), entries, Args(jobs=4))
+    keys = ("rate", "recall", "specificity", "routing", "narrow", "unrecognised")
+    assert [parallel[k] for k in keys] == [serial[k] for k in keys] == [1.0, 1.0, 1.0, 1.0, 0, 0]
+
+
+def test_a_client_that_never_names_an_entry_aborts_rather_than_scoring_zero(mini_repo, fake_claude):
+    queries = [f"alpha positive {i}" for i in range(8)] + [f"alpha negative {i}" for i in range(8)]
+    fake_claude({q: "Sure, here is my analysis of the request" for q in queries})
+    with pytest.raises(harness.ToolFailure, match="named a catalogue entry"):
+        harness.score(_alpha(mini_repo), harness.catalogue(mini_repo), Args())
+
+
+def test_a_partly_unrecognised_run_is_counted_not_aborted(mini_repo, fake_claude):
+    answers = {f"alpha positive {i}": "alpha" for i in range(8)}
+    answers["alpha positive 0"] = "let me think about that"
+    fake_claude(answers)
+    report = harness.score(_alpha(mini_repo), harness.catalogue(mini_repo), Args())
+    assert report["unrecognised"] == 1
+    assert report["recall"] == 7 / 8
+
+
+def test_show_listing_prints_what_the_model_would_see_and_asks_nothing(
+    mini_repo, monkeypatch, capsys, tmp_path
+):
+    monkeypatch.setenv("PATH", str(tmp_path))  # no CLI at all, and none is needed
+    argv = ("--all", "--root", str(mini_repo), "--show-listing", "--budget", "1")
+    assert run_main(monkeypatch, *argv) == 0
+    out = capsys.readouterr().out
+    assert "# alpha (skill)" in out and "# reader (subagent)" in out
+    assert "- alpha\n" in out  # its own description dropped first under the budget
+
+
+def test_zero_jobs_is_rejected(mini_repo, monkeypatch, capsys):
+    with pytest.raises(SystemExit) as caught:
+        run_main(monkeypatch, "--all", "--root", str(mini_repo), "--jobs", "0")
+    assert caught.value.code == 2
+    assert "--jobs must be at least 1" in capsys.readouterr().err

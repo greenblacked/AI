@@ -30,6 +30,23 @@ on:
         required: false
         default: '0.8'
         type: string
+      backend:
+        description: >-
+          Which model CLI answers. The credential is the one that CLI reads:
+          CLAUDE_CODE_OAUTH_TOKEN (a subscription login) or ANTHROPIC_API_KEY for
+          claude, OPENAI_API_KEY for codex, GEMINI_API_KEY for gemini
+        required: false
+        default: claude
+        type: choice
+        options:
+          - claude
+          - codex
+          - gemini
+      model:
+        description: Model name passed to the CLI; blank uses the CLI's default
+        required: false
+        default: ''
+        type: string
 
 permissions: {}
 
@@ -37,10 +54,10 @@ jobs:
   evaluate:
     name: score descriptions
     runs-on: ubuntu-latest
-    # At the defaults this is every skill x twenty queries x three samples, so the
-    # budget has to cover roughly eight hundred sequential model calls. The runner
-    # writes its results file after each skill, so a timeout still leaves the scores
-    # already paid for on disk rather than discarding all of them.
+    # At the defaults this is fifty targets x twenty queries x three samples, three
+    # thousand model calls with four in flight at a time. The runner writes its results
+    # file after each target, so a timeout still leaves the scores already paid for on
+    # disk rather than discarding all of them.
     timeout-minutes: 120
     permissions:
       contents: read
@@ -54,21 +71,54 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version: '22'
-      - name: Check credentials are configured
-        # Failing here with a sentence beats failing forty API calls later with a stack
-        # trace, and this workflow is opt-in precisely because it needs a key.
+      - name: Check the chosen backend has a credential
+        # The harness reads no key of its own; each CLI reads the credential it
+        # expects. Failing here with a sentence beats failing forty model calls later
+        # with a stack trace. A subscription login is the intended default for claude:
+        # `claude setup-token` on a workstation prints the OAuth token to store.
         run: |
           set -Eeuo pipefail
-          if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
-            echo "::error title=no credentials::Set the ANTHROPIC_API_KEY repository secret to run trigger evals"
+          case "$BACKEND" in
+            claude)
+              present="${CLAUDE_CODE_OAUTH_TOKEN:-}${ANTHROPIC_API_KEY:-}"
+              wanted="CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY"
+              ;;
+            codex)
+              present="${OPENAI_API_KEY:-}"
+              wanted="OPENAI_API_KEY"
+              ;;
+            gemini)
+              present="${GEMINI_API_KEY:-}"
+              wanted="GEMINI_API_KEY"
+              ;;
+            *)
+              echo "::error title=unknown backend::$BACKEND"
+              exit 1
+              ;;
+          esac
+          if [ -z "$present" ]; then
+            echo "::error title=no credentials::Set the $wanted repository secret" \
+              "to run trigger evals with the $BACKEND backend"
             exit 1
           fi
         env:
+          BACKEND: ${{ inputs.backend }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       - name: Score the eval sets
         run: |
           set -Eeuo pipefail
-          npm install --global "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
+          case "$BACKEND" in
+            claude) npm install --global "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" ;;
+            codex)
+              npm install --global "@openai/codex@${CODEX_VERSION}"
+              # codex takes its key through a login rather than from the environment.
+              printenv OPENAI_API_KEY | codex login --with-api-key
+              ;;
+            gemini) npm install --global "@google/gemini-cli@${GEMINI_CLI_VERSION}" ;;
+          esac
           if [ "$SKILL" = "all" ]; then
             target=(--all)
           elif [[ "$SKILL" == *.md ]]; then
@@ -76,15 +126,25 @@ jobs:
           else
             target=(--skill "$SKILL")
           fi
-          extra=()
+          extra=(--backend "$BACKEND")
           if [ -n "$BUDGET" ]; then
-            extra=(--budget "$BUDGET")
+            extra+=(--budget "$BUDGET")
+          fi
+          if [ -n "$MODEL" ]; then
+            extra+=(--model "$MODEL")
           fi
           python scripts/run_trigger_eval.py "${target[@]}" "${extra[@]}" \
-            --runs "$RUNS" --threshold "$THRESHOLD" --json evals.json --verbose
+            --runs "$RUNS" --threshold "$THRESHOLD" --jobs 4 --json evals.json --verbose
         env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           CLAUDE_CODE_VERSION: '2.1.221'
+          CODEX_VERSION: '0.153.4'
+          GEMINI_CLI_VERSION: '0.58.0'
+          BACKEND: ${{ inputs.backend }}
+          MODEL: ${{ inputs.model }}
           SKILL: ${{ inputs.skill }}
           BUDGET: ${{ inputs.budget }}
           RUNS: ${{ inputs.runs }}
@@ -97,12 +157,16 @@ jobs:
           {
             echo "### Trigger evaluation"
             echo ""
-            echo "| Skill | Pass rate | Recall | Specificity |"
-            echo "| --- | --- | --- | --- |"
+            echo "| Target | Pass rate | Recall | Specificity | Routing | Narrow |"
+            echo "| --- | --- | --- | --- | --- | --- |"
             python -c "
           import json
           for r in json.load(open('evals.json')):
-              print(f\"| \`{r['skill']}\` | {r['rate']:.0%} | {r['recall']:.0%} | {r['specificity']:.0%} |\")
+              routing = '-' if r.get('routing') is None else f\"{r['routing']:.0%}\"
+              name = r.get('target', r.get('skill'))
+              cells = [name, f\"{r['rate']:.0%}\", f\"{r['recall']:.0%}\",
+                       f\"{r['specificity']:.0%}\", routing, str(r.get('narrow', 0))]
+              print('| \`' + cells[0] + '\` | ' + ' | '.join(cells[1:]) + ' |')
           "
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
