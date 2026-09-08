@@ -307,6 +307,12 @@ is telling you which phrasing carried the decision. Each result records the back
 model it was scored with, so a baseline from a different model is not mistaken for a
 regression.
 
+Two flags are about time rather than meaning. `--jobs` runs several queries at once,
+four by default, because three thousand calls one at a time do not fit in an afternoon.
+`--show-listing` prints the catalogue each target would be judged against, under
+`--budget` if given, and exits without asking the model anything: it is the fastest way
+to see whether a description survives the budget, and it costs nothing.
+
 Three flags change what the number means:
 
 - `--runs` samples each query more than once and takes the majority. The default is three

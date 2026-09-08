@@ -111,9 +111,10 @@ The prompt is whichever argument carries the harness's "User message:" marker, s
 same script serves as `claude -p PROMPT`, `codex exec PROMPT` or a custom command.
 FAKE_ANSWERS is JSON mapping a query to an answer, or to a list of answers that are
 cycled across calls (to simulate a split vote). Anything unlisted answers NONE.
-FAKE_MODE selects a failure: "fail" exits 1, "empty" prints nothing, "hang" never
-answers, "fenced" wraps the answer in a code fence. FAKE_ARGV_FILE, if set, receives
-the argv so a test can see what the harness passed.
+FAKE_MODE selects a behaviour: "fail" exits 1, "empty" prints nothing, "hang" never
+answers, "fenced" wraps the answer in a code fence, "footer" prints a token count after
+it, "stdin" answers only once stdin is exhausted (as codex and gemini do). FAKE_ARGV_FILE,
+if set, receives the argv so a test can see what the harness passed.
 """
 import json, os, sys, hashlib, pathlib, time
 
@@ -127,6 +128,9 @@ if mode == "empty":
     sys.exit(0)
 if mode == "hang":
     time.sleep(30)
+if mode == "stdin":
+    # A real client blocks here for as long as stdin stays open.
+    sys.stdin.read()
 
 prompt = next((a for a in sys.argv[1:] if "User message:" in a), sys.argv[-1])
 query = prompt.split("User message:\\n", 1)[1].split("\\n\\nReply", 1)[0].strip()
@@ -143,6 +147,9 @@ if mode == "fenced":
     print("```")
     print(answer)
     print("```")
+elif mode == "footer":
+    print(answer)
+    print("tokens used: 1234")
 else:
     print(answer)
 '''

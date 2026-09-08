@@ -25,6 +25,7 @@ class Args:
         self.runs = 3
         self.model = None
         self.command = list(CLAUDE)
+        self.jobs = 1
         self.timeout = 30
         self.budget = None
         self.verbose = False
@@ -191,9 +192,9 @@ def test_the_budget_changes_what_the_model_is_shown(mini_repo, fake_claude, monk
     seen = []
     real_ask = harness.ask
 
-    def spy(prompt, command, timeout):
+    def spy(prompt, command, timeout, names=frozenset()):
         seen.append(prompt)
-        return real_ask(prompt, command, timeout)
+        return real_ask(prompt, command, timeout, names)
 
     monkeypatch.setattr(harness, "ask", spy)
     fake_claude({})
@@ -339,6 +340,28 @@ def test_a_failure_names_the_cli_that_failed(fake_cli):
 def test_a_fenced_answer_is_read_through_the_fence(fake_claude):
     fake_claude({"hello": "alpha"}, mode="fenced")
     assert harness.ask(harness.PROMPT.format(catalogue="", query="hello"), CLAUDE, 30) == "alpha"
+
+
+def test_a_footer_after_the_answer_is_skipped_when_the_catalogue_is_known(fake_claude):
+    # codex prints token counts after its reply. Read as the last line, every answer
+    # would be the footer and every skill would score zero for a reason nobody looks for.
+    fake_claude({"hello": "alpha"}, mode="footer")
+    prompt = harness.PROMPT.format(catalogue="", query="hello")
+    assert harness.ask(prompt, CLAUDE, 30, frozenset({"alpha"})) == "alpha"
+    assert harness.ask(prompt, CLAUDE, 30) == "tokens used: 1234"
+
+
+def test_a_name_in_the_wrong_case_is_matched_to_the_catalogue(fake_claude):
+    fake_claude({"hello": "Alpha", "bye": "None"})
+    prompt = harness.PROMPT.format(catalogue="", query="hello")
+    assert harness.ask(prompt, CLAUDE, 30, frozenset({"alpha"})) == "alpha"
+    prompt = harness.PROMPT.format(catalogue="", query="bye")
+    assert harness.ask(prompt, CLAUDE, 30, frozenset({"alpha"})) == "NONE"
+
+
+def test_stdin_is_closed_so_a_client_that_reads_it_does_not_wait(fake_claude):
+    fake_claude({"hello": "alpha"}, mode="stdin")
+    assert harness.ask(harness.PROMPT.format(catalogue="", query="hello"), CLAUDE, 5) == "alpha"
 
 
 # --- main: the command line end to end ----------------------------------------------
@@ -507,3 +530,48 @@ def test_main_rejects_a_command_without_a_prompt_slot(mini_repo, monkeypatch, ca
         run_main(monkeypatch, "--all", "--root", str(mini_repo), "--command", "mycli --quiet")
     assert caught.value.code == 2
     assert "must contain {prompt}" in capsys.readouterr().err
+
+
+def test_parallel_jobs_score_the_same_as_one(mini_repo, fake_claude):
+    answers = {f"alpha positive {i}": "alpha" for i in range(8)}
+    answers.update({f"alpha negative {i}": "beta" for i in range(8)})
+    fake_claude(answers)
+    entries = harness.catalogue(mini_repo)
+    serial = harness.score(_alpha(mini_repo), entries, Args(jobs=1))
+    parallel = harness.score(_alpha(mini_repo), entries, Args(jobs=4))
+    keys = ("rate", "recall", "specificity", "routing", "narrow", "unrecognised")
+    assert [parallel[k] for k in keys] == [serial[k] for k in keys] == [1.0, 1.0, 1.0, 1.0, 0, 0]
+
+
+def test_a_client_that_never_names_an_entry_aborts_rather_than_scoring_zero(mini_repo, fake_claude):
+    queries = [f"alpha positive {i}" for i in range(8)] + [f"alpha negative {i}" for i in range(8)]
+    fake_claude({q: "Sure, here is my analysis of the request" for q in queries})
+    with pytest.raises(harness.ToolFailure, match="named a catalogue entry"):
+        harness.score(_alpha(mini_repo), harness.catalogue(mini_repo), Args())
+
+
+def test_a_partly_unrecognised_run_is_counted_not_aborted(mini_repo, fake_claude):
+    answers = {f"alpha positive {i}": "alpha" for i in range(8)}
+    answers["alpha positive 0"] = "let me think about that"
+    fake_claude(answers)
+    report = harness.score(_alpha(mini_repo), harness.catalogue(mini_repo), Args())
+    assert report["unrecognised"] == 1
+    assert report["recall"] == 7 / 8
+
+
+def test_show_listing_prints_what_the_model_would_see_and_asks_nothing(
+    mini_repo, monkeypatch, capsys, tmp_path
+):
+    monkeypatch.setenv("PATH", str(tmp_path))  # no CLI at all, and none is needed
+    argv = ("--all", "--root", str(mini_repo), "--show-listing", "--budget", "1")
+    assert run_main(monkeypatch, *argv) == 0
+    out = capsys.readouterr().out
+    assert "# alpha (skill)" in out and "# reader (subagent)" in out
+    assert "- alpha\n" in out  # its own description dropped first under the budget
+
+
+def test_zero_jobs_is_rejected(mini_repo, monkeypatch, capsys):
+    with pytest.raises(SystemExit) as caught:
+        run_main(monkeypatch, "--all", "--root", str(mini_repo), "--jobs", "0")
+    assert caught.value.code == 2
+    assert "--jobs must be at least 1" in capsys.readouterr().err

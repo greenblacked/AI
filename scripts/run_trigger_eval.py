@@ -46,7 +46,8 @@ import json
 import shlex
 import subprocess
 import sys
-from collections import Counter
+from collections import Counter, defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
@@ -173,7 +174,7 @@ def build_command(backend: str, custom: str | None, model: str | None) -> list[s
     return argv
 
 
-def ask(prompt: str, command: list[str], timeout: int) -> str:
+def ask(prompt: str, command: list[str], timeout: int, names: frozenset[str] = frozenset()) -> str:
     """Return the model's choice, or raise if the tool itself failed.
 
     Folding a failure into the return value is the dangerous thing here. A dead CLI
@@ -182,12 +183,25 @@ def ask(prompt: str, command: list[str], timeout: int) -> str:
     specificity. That is a plausible-looking result meaning "descriptions never fire"
     rather than "the tool is broken", and it is exactly the number the report is read
     for. Better to stop.
+
+    `names` is the catalogue. The reply is the last line that names an entry or NONE,
+    not simply the last line: a client that prints a footer after its answer - token
+    counts, timings - would otherwise be read as answering with the footer on every
+    query, which is the same plausible-looking zero.
     """
     argv = [part.replace("{prompt}", prompt) for part in command]
     tool = f"the `{argv[0]}` CLI"
     try:
+        # stdin is closed on purpose. Without a terminal, `codex exec` and `gemini -p`
+        # both wait for more input on stdin before answering, and a run in CI hangs on
+        # the first query until the timeout.
         result = subprocess.run(  # noqa: S603
-            argv, capture_output=True, text=True, timeout=timeout, check=False
+            argv,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
+            stdin=subprocess.DEVNULL,
         )
     except FileNotFoundError as error:
         raise ToolFailure(f"{tool} is not on PATH") from error
@@ -206,6 +220,13 @@ def ask(prompt: str, command: list[str], timeout: int) -> str:
     lines = [line for line in result.stdout.splitlines() if line.strip().strip("`")]
     if not lines:
         raise ToolFailure(f"{tool} returned nothing")
+    canonical = {name.lower(): name for name in names}
+    for line in reversed(lines):
+        answer = normalise(line)
+        if answer.upper() == "NONE":
+            return "NONE"
+        if answer.lower() in canonical:
+            return canonical[answer.lower()]
     return normalise(lines[-1])
 
 
@@ -245,14 +266,43 @@ def score(target: Target, entries: dict, args) -> dict:
         raise SystemExit(f"{target.source} has no eval set at {target.eval_set}")
     cases = json.loads(target.eval_set.read_text(encoding="utf-8"))
     listing = render(entries, args.budget, target.name)
+    names = frozenset(entries)
+
+    # Every (query, sample) pair is independent, so they run a few at a time. At the
+    # house convention of fifty targets, twenty queries and three samples that is three
+    # thousand calls, and one at a time they do not fit inside a CI timeout.
+    work = [
+        (index, PROMPT.format(catalogue=listing, query=case["query"]))
+        for index, case in enumerate(cases)
+        for _ in range(args.runs)
+    ]
+
+    def one(item: tuple[int, str]) -> tuple[int, str]:
+        index, prompt = item
+        return index, ask(prompt, args.command, args.timeout, names)
+
+    answers: dict[int, list[str]] = defaultdict(list)
+    jobs = max(1, getattr(args, "jobs", 1))
+    if jobs == 1:
+        for item in work:
+            index, answer = one(item)
+            answers[index].append(answer)
+    else:
+        with ThreadPoolExecutor(max_workers=jobs) as pool:
+            try:
+                for index, answer in pool.map(one, work):
+                    answers[index].append(answer)
+            except ToolFailure:
+                pool.shutdown(cancel_futures=True)
+                raise
 
     results = []
-    for case in cases:
-        votes = Counter(
-            ask(PROMPT.format(catalogue=listing, query=case["query"]), args.command, args.timeout)
-            for _ in range(args.runs)
-        )
+    unrecognised = 0
+    for index, case in enumerate(cases):
+        votes = Counter(answers[index])
         (chosen, count), *rest = votes.most_common()
+        if chosen != "NONE" and chosen not in names:
+            unrecognised += 1
         # With an odd number of runs a tie is impossible, so the margin is a real signal
         # about whether the description sits on the model's decision boundary.
         margin = count - (rest[0][1] if rest else 0)
@@ -273,6 +323,14 @@ def score(target: Target, entries: dict, args) -> dict:
             split = f" ({count}-{count - margin} split)" if margin < args.runs else ""
             print(f"  {mark}  chose={chosen:22} {case['query'][:60]}{split}", file=sys.stderr)
 
+    if results and unrecognised == len(results):
+        # Every answer was something other than a catalogue entry. That is not a set
+        # of misses; it is a client whose output this script is not reading correctly.
+        raise ToolFailure(
+            f"no reply for {target.name} named a catalogue entry (last was "
+            f"{results[-1]['chose']!r}); the CLI is printing something other than the answer"
+        )
+
     positives = [r for r in results if r["should_trigger"]]
     negatives = [r for r in results if not r["should_trigger"]]
     routed = [r for r in negatives if r["expected"]]
@@ -289,6 +347,7 @@ def score(target: Target, entries: dict, args) -> dict:
         "specificity": rate(negatives) or 0.0,
         "routing": rate(routed),
         "narrow": sum(1 for r in results if r["margin"] < args.runs),
+        "unrecognised": unrecognised,
         "failures": [r for r in results if not r["passed"]],
     }
 
@@ -347,6 +406,15 @@ def main() -> int:
         "optionally {model}; overrides --backend",
     )
     parser.add_argument("--model", default=None, help="passed to the CLI, or substituted")
+    parser.add_argument(
+        "--jobs", type=int, default=4, help="queries in flight at once; 1 runs them in order"
+    )
+    parser.add_argument(
+        "--show-listing",
+        action="store_true",
+        help="print the catalogue each target's queries would be judged against, under "
+        "--budget if given, and exit without asking the model anything",
+    )
     parser.add_argument("--timeout", type=int, default=60)
     parser.add_argument("--json", type=Path, default=None, help="write full results here")
     parser.add_argument("--verbose", action="store_true")
@@ -354,6 +422,8 @@ def main() -> int:
 
     if args.runs < 1 or args.runs % 2 == 0:
         parser.error("--runs must be a positive odd number, so that a vote cannot tie")
+    if args.jobs < 1:
+        parser.error("--jobs must be at least 1")
     try:
         args.command = build_command(args.backend, args.command, args.model)
     except ValueError as error:
@@ -372,6 +442,13 @@ def main() -> int:
 
     baseline = _load_baseline(args.baseline)
     entries = catalogue(root)
+
+    if args.show_listing:
+        # The fastest way to see whether a description survives the budget is to look
+        # at what the model would be shown, which costs nothing.
+        for target in targets:
+            print(f"# {target.name} ({target.kind})\n{render(entries, args.budget, target.name)}\n")
+        return 0
 
     reports = []
     for target in targets:
