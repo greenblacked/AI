@@ -14,7 +14,10 @@ python3 scripts/run_trigger_eval.py --skill "$(find plugins -type d -name "$0")"
 python3 scripts/run_trigger_eval.py --agent "$(find plugins -path "*/agents/$0.md")" --verbose
 ```
 
-Use `--all` if that was the argument. This calls a model three times per query, so it
+Use `--all` if that was the argument. The `claude` CLI answers by default; add
+`--backend codex`, `--backend gemini` or `--backend ollama --model NAME` to score against
+another model, or `--command 'tool {prompt}'` for one the harness does not know. Whichever
+it is, it has to be on PATH and signed in; no key is read. This calls a model three times per query, so it
 costs real money and real time — say what it is about to run before running it if the set
 is large. Add `--budget 8000` to score the description the way the runtime shows it when
 the listing is over budget, and `--baseline` with an earlier `--json` output to see what

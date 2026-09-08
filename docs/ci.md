@@ -110,8 +110,8 @@ query per sample.
 | --- | --- | --- |
 | `evaluate` | `score descriptions` | A skill scored below the threshold, or the credentials are absent. Nothing depends on this job and no branch rule requires it. |
 
-Four inputs. `skill` is marked required and the others are not, but all carry a default,
-so dispatching the form unchanged scores everything:
+Six inputs. `skill` is marked required and the others are not, but all carry a default,
+so dispatching the form unchanged scores everything against Claude:
 
 | Input | Default | What it does |
 | --- | --- | --- |
@@ -119,14 +119,26 @@ so dispatching the form unchanged scores everything:
 | `budget` | empty | A listing budget in characters. Set it to score descriptions the way the runtime shows them — the runtime's default is about 8,000 on a 200k model — rather than at full length. |
 | `runs` | `3` | Samples per query; must be odd. A majority vote across them decides, which separates a description that genuinely fails from one sitting on the model's decision boundary. |
 | `threshold` | `0.8` | Pass rate below which a target is reported as failing. |
+| `backend` | `claude` | Which model CLI answers: `claude`, `codex` (OpenAI) or `gemini`. The job installs only that one, at the version pinned in its `env`. |
+| `model` | empty | A model name passed to the CLI. Blank uses the CLI's own default. |
 
-It needs an `ANTHROPIC_API_KEY` repository secret. The first step checks for it and stops
-with a one-line annotation if it is absent, because failing there beats failing forty API
-calls later with a stack trace. The job then installs the pinned `claude` CLI and runs
-[`scripts/run_trigger_eval.py`](../scripts/run_trigger_eval.py), writes a table of pass
-rate, recall, specificity, routing and the count of narrowly decided queries into the job
-summary, and uploads the full results as the `trigger-evals` artifact. Download that
-artifact and pass it back as `--baseline` on the next local run to see what an edit moved.
+The harness reads no API key of its own. Each CLI reads the credential it expects, and
+the first step checks that the chosen backend has one, stopping with a one-line annotation
+if not, because failing there beats failing forty model calls later with a stack trace:
+
+| Backend | Repository secret | Where it comes from |
+| --- | --- | --- |
+| `claude` | `CLAUDE_CODE_OAUTH_TOKEN`, or `ANTHROPIC_API_KEY` | The token is a subscription login: run `claude setup-token` on a signed-in workstation and store what it prints. No API key or billing account is needed. |
+| `codex` | `OPENAI_API_KEY` | The OpenAI platform. Locally, a ChatGPT login through `codex login` is enough. |
+| `gemini` | `GEMINI_API_KEY` | Google AI Studio. Locally, a Google login through the CLI is enough. |
+
+The job then runs [`scripts/run_trigger_eval.py`](../scripts/run_trigger_eval.py) with
+`--backend`, writes a table of pass rate, recall, specificity, routing and the count of
+narrowly decided queries into the job summary, and uploads the full results as the
+`trigger-evals` artifact. Each result records the backend and model it was scored with, so
+a `--baseline` diff against a run on a different model is visible for what it is. Download
+that artifact and pass it back as `--baseline` on the next local run to see what an edit
+moved.
 
 Nothing here gates anything, and that is the design rather than an omission. A trigger
 eval has two halves that cost different amounts. The schema — twenty queries, at least

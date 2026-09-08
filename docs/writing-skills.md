@@ -197,8 +197,8 @@ overflows, Claude Code keeps every skill's name but
 so those skills can still be invoked by name and stop being chosen on their own. A
 newly installed skill has never been used, so it is first to lose its description.
 
-This repository's forty descriptions total about 36,000 characters; `engineering` alone is
-over twice the budget. `make validate` prints the per-plugin total on every run, and
+This repository's forty-one descriptions total about 37,000 characters; `engineering` alone
+is over twice the budget. `make validate` prints the per-plugin total on every run, and
 `--listing-budget CHARS` turns exceeding it into a warning:
 
 ```bash
@@ -287,13 +287,31 @@ expected winner. A skill at 100% recall and 40% specificity is not a good skill 
 rough edge; it is a skill that fires on everything. A skill at 100% specificity and 50%
 routing is one whose neighbours are quietly losing queries to something else.
 
-Run it locally with the `claude` CLI on `PATH`:
+Run it locally with a model CLI on `PATH` and signed in. The harness reads no API key; the
+credential is whatever the CLI holds, and a subscription login is enough. `claude` is the
+default, `--backend` picks another, and `--command` takes any CLI at all as a shell-style
+template with `{prompt}` where the question goes:
 
 ```bash
 python scripts/run_trigger_eval.py --skill plugins/engineering/skills/ci-triage --verbose
 python scripts/run_trigger_eval.py --agent plugins/engineering/agents/ci-log-reader.md
 python scripts/run_trigger_eval.py --all --budget 8000 --baseline evals/last-run.json
+python scripts/run_trigger_eval.py --all --backend codex --model o4-mini
+python scripts/run_trigger_eval.py --all --backend ollama --model llama3.1
+python scripts/run_trigger_eval.py --all --command 'mycli --quiet {prompt}'
 ```
+
+Score against more than one model before trusting a number. The catalogue is the same but
+the reader is not, and a description that routes cleanly on one model and leaks on another
+is telling you which phrasing carried the decision. Each result records the backend and
+model it was scored with, so a baseline from a different model is not mistaken for a
+regression.
+
+Two flags are about time rather than meaning. `--jobs` runs several queries at once,
+four by default, because three thousand calls one at a time do not fit in an afternoon.
+`--show-listing` prints the catalogue each target would be judged against, under
+`--budget` if given, and exits without asking the model anything: it is the fastest way
+to see whether a description survives the budget, and it costs nothing.
 
 Three flags change what the number means:
 
@@ -307,7 +325,7 @@ Three flags change what the number means:
   scores well only without `--budget` is one that never reaches the model in a real
   session.
 - `--baseline` takes an earlier `--json` output and prints the per-target delta. With
-  forty descriptions competing for the same queries, the expected consequence of editing
+  forty-one descriptions competing for the same queries, the expected consequence of editing
   one is a change in a neighbour's score, and a fixed threshold cannot see a skill slide
   from 100% to 85%. Commit a run and diff against it.
 
