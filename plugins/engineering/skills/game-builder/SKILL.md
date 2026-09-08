@@ -40,6 +40,15 @@ Ask about:
 
 When the user has already answered most of this, confirm the gaps only and state assumptions for anything minor.
 
+The scope class is the one answer that decides what "done" means, so write it down:
+
+| Scope class | Done means |
+| --- | --- |
+| Mechanic test | One mechanic playable in grey boxes, and a written verdict on whether it is fun |
+| Jam entry | One mechanic, a handful of levels or waves, a title, an ending, and a build uploaded before the deadline |
+| Vertical slice | One level at final quality in every dimension: art, audio, feel, teaching |
+| Small complete game | Every screen and level, settings, persistence if the design needs it, published |
+
 ### Step A2: Route to the lightest engine that fits
 
 The tier decides the stack, the layout and how long the first playable takes. Choose the lowest tier that satisfies the brief; every step up adds tooling, a build step and an export pipeline that someone maintains.
@@ -47,8 +56,8 @@ The tier decides the stack, the layout and how long the first playable takes. Ch
 | Tier | Fits when | Build as |
 | --- | --- | --- |
 | 1 — Single file | One mechanic, one screen, browser, no external assets | One HTML file, canvas 2D, no dependencies, playable by opening it |
-| 2 — Browser game | 2D, several scenes, sprites and audio, a web or itch.io target | Phaser 3 via Vite, an `assets/` folder, a scene per screen |
-| 3 — Engine project | 3D, real physics, tilemaps or animation tooling, desktop targets | Godot 4 with GDScript by default; Unity or Unreal only when already in use |
+| 2 — Browser game | 2D, several scenes, sprites and audio, a web or itch.io target | Phaser via Vite, an `assets/` folder, a scene per screen |
+| 3 — Engine project | 3D, real physics, tilemaps or animation tooling, desktop or mobile targets | Godot 4 with GDScript by default; Unity or Unreal only when already in use |
 | 4 — Networked | Real-time multiplayer | Tier 3 plus an authoritative server and a netcode model chosen by genre |
 
 Announce the tier and the one-line reason before building. If the brief sits between two tiers, choose the lower one and say what would push it up. Godot is the tier 3 default because its scenes and scripts are plain text — readable in a diff, editable without the editor open — and it exports to the web, which keeps the playtest loop short.
@@ -101,6 +110,7 @@ With the loop played and tuned, build outward in the order that adds the most pl
 - **Art and audio pass.** Replace placeholders in order of how long the player looks at each thing. The player character first; the background last.
 - **Settings.** Volume, remappable controls, a screen-shake and flash toggle, and reduced motion. These are the accessibility floor and they cost an hour if done now and a week if done after the input code has spread.
 - **Persistence.** Only if the scope class calls for it. A jam entry does not need a save system.
+- **A headless smoke test.** The simulation is fixed-step and seeded, so it runs without a renderer: step a few hundred frames of scripted input and assert nothing throws, the player is alive and the score moved. It is the one test a jam entry has time for, and it catches the update-order bug that only appears after level three. The shape is in `references/game-loop.md`.
 
 ### Step A7: Export and publish, only if wanted
 

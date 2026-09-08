@@ -6,6 +6,7 @@ Read this for tier 2 and above before writing project files, and for the netcode
 
 - [Tier 1: one HTML file](#tier-1-one-html-file)
 - [Tier 2: Phaser via Vite](#tier-2-phaser-via-vite)
+- [Tiers 1 and 2: browser gotchas](#tiers-1-and-2-browser-gotchas)
 - [Tier 3: Godot 4](#tier-3-godot-4)
 - [When the user already has an engine](#when-the-user-already-has-an-engine)
 - [Tier 4: netcode, by genre](#tier-4-netcode-by-genre)
@@ -43,6 +44,16 @@ public/assets/     # sprites, audio, tilemaps, plus LICENSES.md
 ```
 
 Set `scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }` so the game keeps its aspect ratio at any window size, and fix the physics step rate in the config rather than letting it follow the display. Kaplay is a lighter alternative for jam-scale games when Phaser's scene system is more than the brief needs.
+
+## Tiers 1 and 2: browser gotchas
+
+Each of these has cost a jam entry its first hour, and none is visible until someone else opens the game.
+
+- **Audio is muted until the first gesture.** Browsers refuse to start an `AudioContext` before the user has clicked or pressed a key, and the first sounds fail silently. Create or resume the context inside the first input handler, and show a "press any key" screen so that gesture always happens.
+- **The canvas is blurry on a high-density display.** Size the canvas by `devicePixelRatio` and scale the context to match, or everything is drawn at half resolution and upscaled. For pixel art, do the opposite on purpose: draw at the native resolution, scale by an integer, and set `image-rendering: pixelated`.
+- **Keys scroll the page and repeat.** Covered under input in `game-loop.md`: `preventDefault` on the game's keys, and ignore `keydown` events with `repeat` set.
+- **The tab loses focus and the loop keeps counting.** `requestAnimationFrame` pauses in a background tab, so a minute away is a minute of accumulated time when it returns. The step cap in the loop turns that into a brief slowdown; also pause on the `blur` event, because the player was not there.
+- **Assets load from `file://` in one browser and not another.** A tier 1 file with inline everything avoids it; a tier 2 build needs `npm run dev` or any static server, never a double-click on `index.html`.
 
 ## Tier 3: Godot 4
 

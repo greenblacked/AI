@@ -12,6 +12,7 @@ Read this before writing the loop skeleton in step A4. The loop is the one piece
 - [Tuning in one place](#tuning-in-one-place)
 - [Seeded randomness](#seeded-randomness)
 - [Pooling](#pooling)
+- [A headless smoke test](#a-headless-smoke-test)
 
 ## Why a fixed timestep
 
@@ -79,6 +80,8 @@ Two buffers make controls feel responsive, and both are in `feel.md` with number
 
 Actions fire on the pressed edge. Binding anything to release adds the entire press duration to the input latency.
 
+In a browser, two things break edge detection if they are not handled. A held key sends repeated `keydown` events, so ignore any with `event.repeat` set, or the jump buffer is refilled every few milliseconds. And the arrow keys and space scroll the page, so call `preventDefault` on the keys the game uses, or the first jump also scrolls the canvas out of view.
+
 ## Game states
 
 A small explicit state machine beats flags. One enum, one current state, and enter and exit hooks per state:
@@ -130,3 +133,25 @@ Godot's `RandomNumberGenerator` takes a seed directly. Keep one generator for th
 ## Pooling
 
 Creating and destroying objects inside the loop is what causes the periodic hitch a profiler shows as garbage collection. Anything spawned more than a few times a second — bullets, particles, enemies in a wave — comes from a pool: preallocate, mark inactive instead of destroying, reuse the next inactive one. In Godot, instantiate the scene once per pool slot and toggle `visible` and `process_mode` rather than calling `queue_free`.
+
+## A headless smoke test
+
+Because `update` takes a state and a step and touches no canvas, it can be driven from a test with no browser at all. One test, run before every upload, catches the class of bug that only appears after minutes of play:
+
+```javascript
+import { createState, update, TUNING } from "./game.js";
+
+test("six hundred frames of scripted play do not break the simulation", () => {
+  const state = createState({ seed: 42 });
+  const script = (frame) => ({ left: frame % 90 < 30, right: frame % 90 >= 45, jump: frame % 60 === 0 });
+  for (let frame = 0; frame < 600; frame++) {
+    state.input = script(frame);
+    update(state, 1 / 60);
+  }
+  expect(state.player.alive).toBe(true);
+  expect(state.score).toBeGreaterThan(0);
+  expect(Number.isFinite(state.player.y)).toBe(true);
+});
+```
+
+Keeping the loop testable is the reason simulation and rendering are separate functions in the first place; a tier 1 file can still export them. In Godot, the same test is a scene run with `godot --headless --script` that instantiates the level, calls `_physics_process` in a loop and asserts on the nodes.
