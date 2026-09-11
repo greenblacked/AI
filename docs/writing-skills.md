@@ -198,8 +198,10 @@ overflows, Claude Code keeps every skill's name but
 so those skills can still be invoked by name and stop being chosen on their own. A
 newly installed skill has never been used, so it is first to lose its description.
 
-This repository's forty-one descriptions total about 37,000 characters; `engineering` alone
-is over twice the budget. `make validate` prints the per-plugin total on every run, and
+This repository's fifty-five descriptions total about 49,000 characters, which is why they
+are split across seven plugins rather than three: five of the seven fit the default budget
+on their own, and the two that do not — `coding` and `manager` — are the ones nobody
+installs alongside much else. `make validate` prints the per-plugin total on every run, and
 `--listing-budget CHARS` turns exceeding it into a warning:
 
 ```bash
@@ -326,7 +328,7 @@ Three flags change what the number means:
   scores well only without `--budget` is one that never reaches the model in a real
   session.
 - `--baseline` takes an earlier `--json` output and prints the per-target delta. With
-  forty-one descriptions competing for the same queries, the expected consequence of editing
+  fifty-five descriptions competing for the same queries, the expected consequence of editing
   one is a change in a neighbour's score, and a fixed threshold cannot see a skill slide
   from 100% to 85%. Commit a run and diff against it.
 
