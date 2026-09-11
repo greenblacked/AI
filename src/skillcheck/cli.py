@@ -133,7 +133,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"no SKILL.md found under {root}", file=sys.stderr)
         return 2
 
+    # Subagents live in three places. Inside a plugin, which is what ships. In the
+    # repository's own `.claude/agents/`, which is where one that only serves work on
+    # this repository belongs — the same split `.claude/commands/` has below. And
+    # stranded in a top-level `agents/`, which is found so check_marketplace can report
+    # it as unowned rather than the run quietly not seeing it.
     agents = [agent for plugin in plugins for agent in find_agents(plugin / "agents")]
+    agents += find_agents(root / ".claude" / "agents")
     agents += find_agents(root / "agents")
     # Every name an eval set may point at with `expected`. A misspelling there is a
     # permanent miss, so it is checked against what actually exists.
