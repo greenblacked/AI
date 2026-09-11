@@ -1,7 +1,7 @@
 ---
 name: code-review
 description: "Review a change — a diff, a pull request, a branch — in a fixed severity order: correctness first (does it do what its description claims, what happens on the error path, what happens under concurrency, what happens with hostile input), then tests, then maintainability, with a severity label on every finding and nits named as nits. Covers reviewing a diff you cannot run, sampling a large diff honestly, and writing a comment that gets acted on. Use this skill whenever someone asks you to look over a change — \"review my PR\", \"can you check this diff before I merge\", \"is this safe to ship\", \"what did I miss in #412\", \"give this branch a once-over\". Not for a red pipeline, which is ci-triage; not for designing a test suite, which is test-design; not for restructuring without behaviour change, which is refactoring; not for a dedicated threat model, which is security-review."
-allowed-tools: "Read, Grep, Glob, Bash(git:*), Bash(gh:*), Bash(rg:*), Bash(jq:*)"
+allowed-tools: "Read, Grep, Glob, Bash(git:*), Bash(gh:*), Bash(rg:*)"
 ---
 
 # Code Review
@@ -179,8 +179,6 @@ Approving with non-blocking comments outstanding is usually correct and is what 
 **Approving a 2,000-line diff you skimmed.** The approval is a statement that someone checked, and the team now believes it. Better to review the migration and the auth change properly, say so, and leave the rest openly unreviewed, than to launder a skim into a signature.
 
 **Rewriting the change in the comments.** A review that proposes a different design after the work is done costs a week and usually loses. If the design is wrong, say that as one blocking finding with the consequence, and move the conversation off the diff.
-
-**The rhetorical question.** "Did you think about concurrency here?" carries no information, invites a defensive answer and often turns out to be wrong. Ask the specific question with the specific consequence, or trace it yourself and make it a finding.
 
 **The same nit nine times.** Repetition converts one preference into the dominant impression of the review. Say it once at the first occurrence, note that it recurs, and let the author decide whether to sweep.
 

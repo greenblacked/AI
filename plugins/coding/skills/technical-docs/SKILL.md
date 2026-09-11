@@ -1,7 +1,7 @@
 ---
 name: technical-docs
-description: "Write internal documentation still true in six months: name the reader and what they can already do, pick exactly one Diataxis mode — tutorial, how-to, reference or explanation — rather than blending two, execute every command and verify every path and link instead of writing what is plausible, keep the README to a newcomer's first hour, stamp an owner and a last-verified date, and prune stale pages rather than adding a newer one beside them. Use this skill whenever someone asks to \"write a README for this\", \"document this service\", \"write an architecture overview\", \"write an API guide people can actually follow\", \"our docs are out of date\", or \"nobody can onboard onto this without me\". Do not use it for the procedure someone follows at 3am (runbook), for recording a decision and its alternatives (decision-record), or for a publishable article with a thesis (write-technical-article)."
-allowed-tools: Read, Write, Edit, Grep, Glob, Bash(git:*), Bash(curl:*), Bash(make:*)
+description: "Write and maintain documentation still true in six months — a README, an onboarding or handover guide, an architecture overview, an API guide, and the pruning of whatever has gone stale: name the reader and what they can already do, pick exactly one Diátaxis mode (tutorial, how-to, reference or explanation) rather than blending two, execute every command and verify every path and link, stamp an owner and a last-verified date, and delete a page that has gone false rather than writing a newer one beside it. Use this skill whenever someone asks to \"write a README for this\", \"document this service before I go on leave\", \"write an architecture overview\", \"our docs are out of date\", \"nobody can onboard onto this without me sitting with them\", or \"how do we stop the wiki growing forever\". Do not use it for the procedure someone follows at 3am (runbook), a decision and its alternatives (decision-record), a publishable article (write-technical-article), the incident write-up (postmortem), ramping a new joiner (onboarding-plan), designing the interface (api-design), or the dated orientation snapshot of a repository you have just landed in (codebase-orientation)."
+allowed-tools: Read, Write, Edit, Grep, Glob, Bash(git:*), Bash(rg:*), Bash(curl:*)
 ---
 
 # Technical Docs
@@ -16,9 +16,11 @@ Use for: a README for a repository or service; a how-to for a task someone perfo
 
 Do not use for: the operational procedure a responder follows during an incident (`runbook`), recording a decision and the alternatives rejected (`decision-record`), an article written for publication with a thesis and an argument (`write-technical-article`), the incident write-up afterwards (`postmortem`), the plan for onboarding a person rather than documenting a system (`onboarding-plan`), or designing the interface the guide describes (`api-design`).
 
+The boundary with `codebase-orientation` is the artefact rather than the topic, and it runs both ways: the dated, confidence-marked orientation snapshot someone writes after reading an unfamiliar repository belongs to `codebase-orientation`; anything owned, re-verified and linked from the README belongs here.
+
 ## The four modes, and why mixing them is the core defect
 
-Diátaxis splits documentation by what the reader is doing when they open it. The split matters because the four have incompatible obligations: a tutorial must never present a choice, and reference must present every choice.
+Diátaxis is Daniele Procida's framework, published at https://diataxis.fr under CC BY-SA. It splits documentation by what the reader is doing when they open it. The split matters because the four have incompatible obligations: a tutorial must never present a choice, and reference must present every choice.
 
 | Mode | Reader's state | Obligation | Failure when mixed in |
 | --- | --- | --- | --- |
@@ -60,13 +62,21 @@ Keep one instruction per step. A step containing two verbs is two steps, and the
 This is the gate that separates documentation from plausible documentation. Run every command as written, in a clean environment, in the document's own order. Follow every link. Confirm every file path exists at the path given.
 
 ```bash
-git ls-files | rg -n '\.(md|mdx)$' | while read -r f; do
+git ls-files '*.md' '*.mdx' | while read -r f; do
   rg -o '\]\(([^)#][^)]*)\)' -r '$1' "$f" | while read -r link; do
     case "$link" in http*) continue;; esac
+    link=${link%%#*}
+    [ -n "$link" ] || continue
     [ -e "$(dirname "$f")/$link" ] || printf '%s: broken link %s\n' "$f" "$link"
   done
 done
 ```
+
+Two details decide whether that reports anything. `rg -n` on the file list prefixes a line
+number, so every filename arrives as `12:docs/x.md` and every inner command fails silently
+while the loop still exits 0 — list the files with a pathspec instead. And stripping the
+fragment before the existence test is what stops `](writing-skills.md#trigger-eval-sets)`
+being reported as broken.
 
 A path that does not exist is the failure this repository's own validator was written to catch: two skills shipped for months naming reference files nobody had written, and nothing failed — the reader follows the pointer, finds nothing, and proceeds on incomplete information with no error anywhere. A broken pointer in documentation is the same defect with the same silence. Verify the pointer at the moment you write it.
 
@@ -106,18 +116,15 @@ The test is the newcomer's first hour: if a section does not help someone get th
 
 Documentation sets fail by accumulation, not by absence. Adding is easy and socially safe; deleting feels destructive, so a stale page survives beside its replacement and the reader gets two answers.
 
-Audit on evidence, in this order, and act rather than filing:
+Audit on evidence rather than impressions. For each page answer three questions in order, and stop at the first that decides it:
 
-| Signal | Verdict | Action |
-| --- | --- | --- |
-| The commands fail when executed today | Actively harmful; worse than nothing, because it sends the reader confidently wrong | Fix it now or delete it now. There is no third option and no backlog ticket. |
-| No page views in twelve months and no owner | Nobody depends on it | Delete it. The history keeps it if anyone is ever wrong about that. |
-| Two pages describe the same thing differently | Both are now untrustworthy | Merge into one, delete the other, redirect the URL. |
-| Describes a system that has been replaced | Archive, not documentation | Move it under an archive path with a banner naming the replacement. |
-| Accurate but never referenced from anywhere | Unreachable, therefore not read | Link it from the README or the index, or delete it. |
-| Last-verified date over twelve months old | Unknown state | Re-verify by executing, or restamp it as unverified and let the reader see that. |
+1. **Does it execute?** Run its first three commands. A failure settles the page immediately: it is actively harmful, because it sends the reader confidently wrong. Fix it now or delete it now — there is no third option and no backlog ticket.
+2. **Is it reached?** No inbound link and no page views in twelve months means nobody depends on it, whatever its quality.
+3. **Is it contradicted?** Another page describing the same thing differently makes both untrustworthy, because the reader has no way to choose. Merge into one and redirect the other.
 
-Deleting documentation is reversible — the version history holds it — while leaving false documentation in place is not, because the cost lands on a reader who cannot tell. `references/pruning.md` covers running the audit across a whole set, the redirect and archive mechanics, and how to make deletion routine instead of a decision.
+A page that executes, is reached and is uncontradicted is fine even if it is old. Age alone is not a defect; unverified age is.
+
+Deleting documentation is reversible — the version history holds it — while leaving false documentation in place is not, because the cost lands on a reader who cannot tell. `references/pruning.md` carries the verdict table for every signal the audit turns up, how to run it across a whole set, the redirect and archive mechanics, and how to make deletion routine instead of a decision.
 
 ## Anti-patterns
 

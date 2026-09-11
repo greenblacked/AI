@@ -8,7 +8,8 @@
   {"query": "my pension platform charges 0.9% a year, is that a lot over thirty years", "should_trigger": true},
   {"query": "can I afford a 400 a month car payment on my current outgoings", "should_trigger": true},
   {"query": "every few months a big bill lands and wrecks the month, how do I plan for that", "should_trigger": true},
-  {"query": "I want to model whether taking a lower paying job closer to home leaves me better off after commuting costs", "should_trigger": true},
+  {"query": "I want to model what dropping the commute would do to our monthly outgoings before we decide anything", "should_trigger": true},
+  {"query": "which index fund should I buy this month", "should_trigger": true},
 
   {"query": "they offered me 95k plus equity, how do I push for more before I sign", "should_trigger": false, "expected": "offer-negotiation"},
   {"query": "our AWS bill went up 40% last month and nobody knows why", "should_trigger": false, "expected": "cost-review"},
@@ -18,6 +19,5 @@
   {"query": "I'm thinking about leaving my job, where do I even start looking", "should_trigger": false, "expected": "job-search"},
   {"query": "write up what I learned from that book on distributed systems so it sticks", "should_trigger": false, "expected": "learning-notes"},
   {"query": "we're forecasting node count for next year's cluster growth", "should_trigger": false, "expected": "capacity-planning"},
-  {"query": "explain how compound interest works, I'm just curious about the maths", "should_trigger": false},
-  {"query": "which index fund should I buy this month", "should_trigger": false}
+  {"query": "explain how compound interest works, I'm just curious about the maths", "should_trigger": false}
 ]

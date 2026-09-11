@@ -1,7 +1,7 @@
 ---
 name: test-design
 description: "Choose what to test before writing a test: partition the input space into equivalence classes and take the boundary of each, enumerate the error and exception paths nobody writes, cut a combinatorial explosion down with pairwise selection, place every case at the unit, integration or no level at all, pin time, randomness, concurrency and I/O behind seams so the suite cannot go flaky, and keep only tests that would catch a regression rather than tests that pin the current implementation. Use this skill whenever someone asks \"what should I test here\", \"are these tests any good\", \"is our coverage enough\", \"how do I test this without it being flaky\", or wants a failing test that reproduces a reported bug before the fix lands. Do not use it to triage a test already red in CI (ci-triage), to find the cause of a bug (debugging), or to restructure code (refactoring)."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(pytest:*), Bash(coverage:*), Bash(jest:*), Bash(go:*), Bash(git:*)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(pytest:*), Bash(coverage:*), Bash(npx:*), Bash(npm:*), Bash(go:*), Bash(git:*)
 ---
 
 # Test Design

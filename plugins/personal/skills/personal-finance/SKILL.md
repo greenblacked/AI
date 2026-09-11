@@ -1,20 +1,20 @@
 ---
 name: personal-finance
-description: "Build an honest picture of where the money goes from real statements rather than memory, categorise it as fixed, variable and irregular-but-certain, annualise the subscriptions and renewals that hide the real number, size an emergency fund against actual fixed outgoings, work the order of operations — buffer, employer pension match, debt above a threshold rate, tax-advantaged saving, then the rest — and model the decision before committing to it. Use this skill whenever someone asks \"where is my money actually going\", \"can I afford this\", \"should I overpay the mortgage or invest\", wants a budget that survives a real month, is choosing a debt payoff order, or is worried about fees eating a pension. Not for salary and compensation packages (offer-negotiation), cloud or infrastructure spend (cost-review), business purchasing (vendor-evaluation), or planning the week (weekly-review)."
+description: "Build the real picture of where the money goes from statements rather than memory, categorise it as fixed, variable and irregular-but-certain, annualise the subscriptions and renewals that hide the number, size an emergency fund against fixed outgoings, work the order of operations — buffer, employer match, debt above a threshold rate, tax-advantaged saving — and model the decision before committing to it. Use this skill whenever someone asks \"where is my money actually going\", \"can I afford this\", \"should I overpay the mortgage or invest\", \"which fund do I put it in\", wants a budget that survives a real month, is choosing a debt payoff order, or is worried about fees eating a pension. Not for pay and offers (offer-negotiation), which car or laptop to buy and how to finance it (major-purchase), cloud spend (cost-review), supplier choice (vendor-evaluation), or the week (weekly-review)."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(python3:*)
 ---
 
 # Personal Finance
 
-A finished session produces an annualised picture of income and outgoings that reconciles to within 5% of twelve months of real statements, a named emergency-fund target in pounds or dollars rather than months, and one decision modelled to a number the user can act on this week.
+A finished session produces an annualised picture of income and outgoings that reconciles to within 1% of twelve months of real statements, a named emergency-fund target in pounds or dollars rather than months, and one decision modelled to a number the user can act on this week.
 
-Personal money work fails in five specific ways, and none of them is arithmetic. People build the picture from memory, which reliably under-counts by the third of spending that happens in small transactions nobody recalls. They budget in monthly units, so an annual insurance renewal, a yearly domain bill and eleven monthly subscriptions never appear in the same number — the annualisation trap, and the largest single source of surprise. They size an emergency fund against take-home pay when the thing it has to cover is fixed outgoings, which overstates the target for a high earner with a cheap life and understates it for someone whose rent eats 45% of net. They optimise in the wrong order, paying down a 4% mortgage while leaving an employer pension match unclaimed, which is a guaranteed 50-100% immediate return declined. And they treat fees as a rounding error, when 0.75% against 0.15% on a portfolio held thirty years is roughly a sixth of the final balance. This skill fixes the order: real statements first, annualise everything, size the buffer against fixed costs, then run the decision through arithmetic before opinion. Personal finance is now the largest consumer app category by revenue — around 207 billion dollars in 2026, growing about 25% a year — and life-admin surveys keep putting bills and subscriptions at the centre of the reported burden, which tells you the demand is real and the tooling has not solved it.
+Personal money work fails in five specific ways, and none of them is arithmetic. People build the picture from memory, which reliably under-counts by a wide margin, concentrated in the small and frequent transactions nobody recalls. They budget in monthly units, so an annual insurance renewal, a yearly domain bill and eleven monthly subscriptions never appear in the same number — the annualisation trap, and the largest single source of surprise. They size an emergency fund against take-home pay when the thing it has to cover is fixed outgoings, which overstates the target for a high earner with a cheap life and understates it for someone whose rent eats 45% of net. They optimise in the wrong order, paying down a 4% mortgage while leaving an employer pension match unclaimed, which is a guaranteed 50-100% immediate return declined. And they treat fees as a rounding error, when 0.75% against 0.15% on a portfolio held thirty years is roughly a sixth of the final balance. This skill fixes the order: real statements first, annualise everything, size the buffer against fixed costs, then run the decision through arithmetic before opinion.
 
 ## Scope
 
-Use for: reconstructing spending from statements, building a budget that survives an irregular month, sizing an emergency fund, choosing a debt payoff order, deciding between overpaying debt and investing, understanding fee drag, and modelling one concrete affordability or trade-off decision.
+Use for: reconstructing spending from statements, building a budget that survives an irregular month, sizing an emergency fund, choosing a debt payoff order, deciding between overpaying debt and investing, understanding fee drag, and modelling one concrete affordability or trade-off decision. Rent against buy belongs here, because it is a comparison of the total cost of occupation rather than a choice between products.
 
-Do not use for: salary, equity, bonus and offer decisions (`offer-negotiation`); cloud, SaaS or infrastructure spend, including "why did the bill go up" asked about a platform account (`cost-review`); company purchasing and supplier selection (`vendor-evaluation`); planning the week or pruning commitments (`weekly-review`); or nutrition and training (`health-coach`).
+Do not use for: salary, equity, bonus and offer decisions (`offer-negotiation`); cloud, SaaS or infrastructure spend, including "why did the bill go up" asked about a platform account (`cost-review`); company purchasing and supplier selection (`vendor-evaluation`); choosing and financing one expensive item — which car, flat or laptop, buy against lease, a 0% finance offer (`major-purchase`); planning the week or pruning commitments (`weekly-review`); or nutrition and training (`health-coach`).
 
 Do not recommend a specific fund, broker, product or individual investment. Model the structure of the decision — rate, fee, term, tax wrapper — and let the user pick the instrument.
 
@@ -93,16 +93,16 @@ Hold it somewhere instantly accessible and separate from the current account. Wh
 
 ### 5. Apply the order of operations
 
-Most credible guidance converges on this order. Follow it, and say which step the user is on:
+Most credible guidance converges on this order. Its items are stages, numbered separately from the workflow steps above; follow it and say which stage the user is on:
 
-1. **A small starter buffer** — roughly one month of fixed outgoings, or a flat 1,000 in local currency. Its job is to stop the next small shock becoming new debt while the rest of the plan runs.
+1. **A small starter buffer** — roughly one month of fixed outgoings, or half a month where a full one is out of reach this quarter. Its job is to stop the next small shock becoming new debt while the rest of the plan runs.
 2. **Any employer retirement match, up to the full match.** Contributing enough to capture a 50% match is an immediate 50% return on that money, before any market return. Nothing else in the list beats it. Skipping this to pay down a 20% credit card is still wrong: the match is claimed once per year and lost permanently.
-3. **Debt above roughly 8% interest, highest rate first.** Eight per cent is the working threshold because it sits above the long-run real return most people should plan on for a diversified portfolio (about 5-7% nominal after inflation is a common planning assumption, and the point is that certain 8% beats uncertain 7%). Credit cards at 20-25% APR and most personal loans are comfortably above it.
-4. **Fill the emergency fund to the step-4 target.**
+3. **Debt above roughly 8% interest, highest rate first.** Eight per cent is the working threshold because it sits above the long-run real return most people should plan on for a diversified portfolio (about 5-7% real is a common planning assumption, and the point is that a certain 8% beats an uncertain real 7%). Credit cards at 20-25% APR and most personal loans are comfortably above it.
+4. **Fill the emergency fund to the target sized at workflow step 4.**
 5. **Tax-advantaged saving to the annual allowance** — the wrapper depends on the country, per the list above. A wrapper is worth roughly the tax rate on the gains it shelters, which for a higher-rate taxpayer over decades is a larger effect than most fund-selection decisions.
 6. **Everything else**: debt between about 4% and 8% (a genuine toss-up, decide on temperament), taxable investing, mortgage overpayment, and specific goals with dates.
 
-Debt below roughly 4% is usually not worth accelerating while step 5 has headroom, with one exception: a variable-rate or short-fix debt whose rate can reset upward is a risk, not just a cost, and paying it down buys certainty.
+Debt below roughly 4% is usually not worth accelerating while stage 5 has headroom, with one exception: a variable-rate or short-fix debt whose rate can reset upward is a risk, not just a cost, and paying it down buys certainty.
 
 ### 6. Choose a debt payoff order and be honest about the trade
 
@@ -112,7 +112,7 @@ Two orders, and the comparison is arithmetic on one side and psychology on the o
 
 **Smallest balance first (snowball)** clears individual debts sooner, which produces visible wins earlier and, in the behavioural literature, correlates with higher completion rates.
 
-Compute both for the user's actual debts and show the two totals side by side. The gap is usually smaller than people expect — on a typical mix of three to four consumer debts it is often a few hundred over the life of the payoff, and it widens sharply when one large balance carries a much higher rate than the rest. Decide with this rule: if the interest gap is under about 5% of the total repayment, take whichever the user will finish; if it is above that, take the avalanche and make the first win visible another way.
+Compute both for the user's actual debts and show the two totals side by side. The gap is usually smaller than people expect — on a typical mix of three to four consumer debts it is often under a couple of hundred over the life of the payoff, and it widens sharply when one large balance carries a much higher rate than the rest. Decide with this rule: if the interest gap is under about 5% of the total interest paid, take whichever the user will finish; if it is above that, take the avalanche and make the first win visible another way.
 
 Worked examples of both orders on the same debts are in `references/debt-and-fees.md` — read it when running the comparison or explaining why the totals differ.
 
@@ -122,7 +122,7 @@ Before either: check whether a balance transfer or consolidation at a lower rate
 
 Fees are the one cost in the picture that compounds against the user for decades, and the only one they can change with a single form.
 
-On a portfolio contributed to steadily over thirty years, the difference between a 0.75% and a 0.15% annual charge is roughly 15-20% of the final balance. The mechanism is that the fee is charged on the whole balance every year, including on the growth the previous years' fees already removed.
+On a portfolio held for thirty years, the difference between a 0.75% and a 0.15% annual charge is about 16% of the final balance. The mechanism is that the fee is charged on the whole balance every year, including on the growth the previous years' fees already removed.
 
 Always express fees three ways at once: the percentage, the pounds or dollars per year at the current balance, and the projected cost over the remaining horizon. The percentage alone is what makes a 1% charge sound like a rounding error.
 
@@ -161,7 +161,7 @@ Target: [absolute amount] ([n] months) · Currently held: [amount] · Gap: [amou
 Reason for [n]: [the row from the sizing table that applies]
 
 ## Where you are in the order of operations
-Step [n]: [name]. Next action: [specific, with an amount]
+Stage [n]: [name]. Next action: [specific, with an amount]
 Unclaimed employer match: [amount/yr, or "none available"]
 
 ## Decision modelled
@@ -182,8 +182,8 @@ This flips if: [the condition]
 - **Budgeting from memory.** Self-reported spending under-counts by a wide margin, concentrated in small and frequent transactions, so the resulting budget balances on paper and fails in month two. Export twelve months and reconcile to the balance change.
 - **The monthly frame.** Eleven subscriptions at nine a month and one annual renewal at two hundred never appear in the same number, so the total is never seen. Annualise every recurring line before judging any of it.
 - **Sizing the buffer against income.** Income is what stops; fixed outgoings are what continue. A high earner with low fixed costs is told to hold far too much, and someone whose rent is 45% of net is told to hold far too little.
-- **Paying down cheap debt while an employer match goes unclaimed.** A 50% match declined to overpay a 4% mortgage is a guaranteed loss of about 46 percentage points, and the match cannot be claimed retroactively.
-- **Treating fees as a rounding error.** A 0.6 percentage point difference in annual charges costs roughly a fifth of the final balance over thirty years. Quote every fee as a percentage, an annual amount, and a lifetime cost together.
+- **Paying down cheap debt while an employer match goes unclaimed.** The match returns 50% once, immediately and with certainty; the mortgage returns 4% a year. No horizon short of a decade makes the mortgage the better use of the same pound, and the match cannot be claimed retroactively.
+- **Treating fees as a rounding error.** A 0.6 percentage point difference in annual charges costs roughly a sixth of the final balance over thirty years. Quote every fee as a percentage, an annual amount, and a lifetime cost together.
 - **Optimising the small line while the large one is unexamined.** Cancelling a streaming service saves about a hundred a year; refinancing a mortgage, changing a commute, or moving a pension platform moves thousands. Sort by annual amount and work from the top.
 - **A plan with no downside case.** Every projection that assumes continuous income and no large repair is a bet presented as arithmetic. Run the shock before committing.
 - **Recommending a product.** A specific fund, broker or account is outside what this can responsibly do and dates badly. Model the rate, fee, term and wrapper; let the user choose the instrument.

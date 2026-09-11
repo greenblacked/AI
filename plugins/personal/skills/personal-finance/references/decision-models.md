@@ -46,8 +46,10 @@ decision is a bet on returns and should be labelled as one.
 **Flips if**: the debt is on a fix that expires inside the horizon and could reset upward,
 which converts the overpayment from a return into insurance; the overpayment exceeds the
 penalty-free allowance, which can cost more than the interest saved; or the wrapper
-allowance is about to expire unused, since an unused annual allowance is usually gone
-permanently.
+allowance is about to expire unused — confirm that it expires before treating the deadline
+as real. A UK ISA allowance and the US 401(k) and IRA contribution limits are lost at the
+end of the year, but unused Canadian RRSP and TFSA room carries forward indefinitely, and
+the UK pension annual allowance can be carried forward three years.
 
 ## Rent against buy
 

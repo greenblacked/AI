@@ -122,7 +122,7 @@ what happens at three in the morning in the next service that copies this code.
 | A wildcard cross-origin policy, or one reflecting the request origin, especially with credentials allowed | An explicit origin list; credentials never combined with a reflected origin |
 | Debug mode, verbose errors, a profiler endpoint or an administrative console enabled by configuration that defaults on | Off by default, switched on only by explicit opt-in that cannot be set in the production profile |
 | A new endpoint added outside the authenticated route group | Authentication applied at the group with an explicit, named opt-out list, so a new route is guarded by omission |
-| Cookies without secure, host-only and same-site attributes | All three set at the point the cookie is created, not in a wrapper the next caller may not use |
+| Cookies without Secure, HttpOnly and SameSite attributes, HttpOnly being the one that keeps injected script from reading a session cookie and the one most often absent from a diff | All three set at the point the cookie is created, not in a wrapper the next caller may not use, with host-only as a fourth wherever no subdomain needs the cookie |
 | Temporary files or directories created with broad permissions | Created with the restrictive mode at creation time; a later permission change leaves a window |
 | An unbounded request body, page size, upload or recursion depth | A cap, chosen and written down, so that resource exhaustion needs more than one request |
 | A new queue, bucket, topic or cache created with open access for convenience | Closed at creation; anything else is a configuration nobody revisits |

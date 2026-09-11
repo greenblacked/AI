@@ -52,6 +52,6 @@ Coverage will not answer this, because vacuous tests raise it. Two cheap probes 
 
 ## Closing the gaps that are left
 
-Do not attempt to bring the whole suite to a standard. Add cases where the cost of a defect is highest and where change is most frequent: cross the modules changed most often in the last six months (`git log --format= --name-only | sort | uniq -c | sort -rn`) against the modules whose failure would cost money, and start at the intersection.
+Do not attempt to bring the whole suite to a standard. Add cases where the cost of a defect is highest and where change is most frequent: cross the modules changed most often in the last six months (`git log --since=6.months --no-merges --format= --name-only | sed '/^$/d' | sort | uniq -c | sort -rn`) against the modules whose failure would cost money, and start at the intersection.
 
 For everything else, adopt the rule that new and changed code arrives with behavioural tests, and let the untouched parts stay as they are. A suite improved along the diff converges on the code that actually moves; a suite improved alphabetically stalls at the first boring module.

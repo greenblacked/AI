@@ -44,7 +44,7 @@ Answer three questions in writing before reviewing any line: which entry points 
 
 ### 2. Walk the classes in this order
 
-The order is by how often the class is exploited and by how much later checks depend on earlier ones. Do not reorder it for convenience; injection found in a handler nobody may call is worth less than a missing ownership check in one everybody can.
+The order is by what each check costs once the one before it is done, not by severity and not by how often the class is exploited. Supply chain sits last here and is A03 in the 2025 list; unsafe defaults sit sixth and their OWASP equivalent, security misconfiguration, is A02. Each pass reuses the reachability map and the sink inventory the previous one built, and the supply-chain pass works from the lockfile rather than from the reachability map, so it costs the same wherever it is run. Do not reorder it for convenience; injection found in a handler nobody may call is worth less than a missing ownership check in one everybody can. Rank the findings by severity when you write the report, never by their position in this walk.
 
 | Order | Class | What to look for in the diff | Verdict is |
 | --- | --- | --- | --- |
@@ -55,6 +55,8 @@ The order is by how often the class is exploited and by how much later checks de
 | 5 | Secrets and sensitive data | A literal credential, a token in a log line, an error body echoing internals, a new file that bypasses ignore rules | Removed from the diff, or confirmed a placeholder |
 | 6 | Unsafe defaults | A permissive default that only the caller's diligence closes — verification off, wildcard origin, debug on, a temporary file with wide permissions | The default inverted, so omission is safe |
 | 7 | Supply chain | A new or bumped dependency, a changed lockfile, a new build or CI step, an unpinned action or image tag | The provenance, the pin, and what the step can reach |
+
+Server-side request forgery is walked as its own class although the 2025 list folds it into A01 broken access control, because the inventory it needs — outbound HTTP clients, webhook and callback targets, redirect following, URL parsers — has nothing in common with the ownership predicates checked in the first pass.
 
 ### 3. Review authorisation properly
 

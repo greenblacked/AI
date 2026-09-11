@@ -20,10 +20,11 @@ like payment.
 
 The minimum payment on a revolving credit card is typically set as a percentage of the
 balance with a floor, which means it falls as the balance falls and the term stretches
-towards decades. A 3,000 balance at 22% APR paid at a 2%-of-balance minimum takes well over
-twenty years and costs more in interest than the original balance. Paying a fixed amount
-rather than a percentage is, on its own, the single largest improvement available on a
-card.
+towards decades. A 3,000 balance at 22% APR paid at a 2%-of-balance minimum with a floor of
+25 takes about 47 years and costs about 17,900 in interest — six times the balance
+borrowed, most of it accrued in the long tail where the payment is barely above the floor.
+Paying a fixed amount rather than a percentage is, on its own, the single largest
+improvement available on a card.
 
 To compute a payoff schedule, iterate month by month rather than reaching for a closed
 form — the closed form breaks as soon as the payment changes, which it does in both
@@ -44,8 +45,8 @@ def months_to_clear(balance, annual_rate, payment):
 
 ## Avalanche against snowball, same debts
 
-An illustrative set of consumer debts, 600 a month available in total above the minimums
-plus minimums of 25 per account:
+An illustrative set of consumer debts, 600 a month available above the minimums plus
+minimums of 25 per account, so 700 a month in total:
 
 | Debt | Balance | APR |
 | --- | --- | --- |
@@ -60,19 +61,25 @@ only in the middle, which is typical and is why the gap is usually modest.
 
 | Method | Total interest over the payoff | Months to debt-free | First debt cleared |
 | --- | --- | --- | --- |
-| Avalanche | roughly 2,900 | 28 | month 2 |
-| Snowball | roughly 3,150 | 28 | month 2 |
+| Avalanche | about 2,250 | 26 | month 2 |
+| Snowball | about 2,330 | 26 | month 2 |
 
-The illustrative gap is about 250, or 8% of total interest. Two properties generalise from
-this and are worth stating to the user directly: the total months to debt-free are
-identical or near-identical under both methods, because the same total payment is applied
-either way; and the difference is concentrated entirely in which balance the surplus
-touches in the middle of the run.
+The illustrative gap is about 80, or a little over 3% of the interest paid — under the 5%
+threshold in the decision rule below, so on these debts the snowball is the right answer
+for anyone more likely to finish it. That is the usual result on a mix like this one, and
+it is the reason to run the comparison rather than assume the avalanche's arithmetic
+advantage is large enough to argue about.
 
-The gap widens when a large balance carries the highest rate — put 12,000 at 27% at the top
-of the list and avalanche pulls ahead by four figures, because the snowball leaves the
-expensive balance accruing while three small ones are cleared. It narrows to near zero when
-the rates are within a few points of each other.
+Two things are worth stating to the user directly. The months to debt-free are the same
+under both methods here, because the same 700 is applied every month either way and the
+interest gap is too small to move a whole month; and the difference is concentrated
+entirely in which balance the surplus touches in the middle of the run.
+
+Neither holds once a large balance carries the highest rate. Replace the 900 store card
+with 12,000 at 27%, keep the same 700 a month, and the avalanche clears in 56 months having
+paid about 12,250 in interest while the snowball takes 72 months and about 23,350 — the
+expensive balance grows on its 25 minimum while three smaller ones are cleared ahead of it.
+The gap narrows to near zero when the rates are within a few points of each other.
 
 Recompute for the user's actual debts; these figures are an illustration of shape, not a
 substitute for the calculation.
@@ -80,7 +87,9 @@ substitute for the calculation.
 ## The decision rule
 
 1. Compute both totals for the real debts.
-2. Express the gap as a percentage of total repayment, not as an absolute.
+2. Express the gap as a percentage of the total interest paid, not as an absolute and not
+   as a percentage of the total repaid — interest is the only part of the repayment the
+   choice of method can change.
 3. Under about 5%: take whichever method the user will actually finish. Completion rates
    are the binding constraint, and an abandoned avalanche costs more than a completed
    snowball.

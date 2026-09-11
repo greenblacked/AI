@@ -6,23 +6,12 @@ blocking findings or one you expect to be argued with.
 
 ## Contents
 
-- [The four properties of a finding that lands](#the-four-properties-of-a-finding-that-lands)
 - [Worked examples by severity](#worked-examples-by-severity)
 - [Phrasings that provoke a defence](#phrasings-that-provoke-a-defence)
 - [When you are not sure](#when-you-are-not-sure)
 - [Disagreement, and how to end it](#disagreement-and-how-to-end-it)
 - [Reviewing generated code](#reviewing-generated-code)
 - [Receiving a review](#receiving-a-review)
-
-## The four properties of a finding that lands
-
-1. **A location.** `file:line`, with the line quoted. A reader who has to search for what
-   you meant will resolve the ambiguity in the direction of no work.
-2. **A consequence.** What breaks, for whom, under what input. This is what converts a
-   rule into a reason, and a reason is what survives the author disagreeing with the rule.
-3. **A severity.** Blocking, should-fix, consider, nit — stated, not implied by tone.
-4. **A next action.** Fix, answer the question, or open a follow-up. A finding with no
-   available action is an observation.
 
 ## Worked examples by severity
 
@@ -60,7 +49,6 @@ blocking findings or one you expect to be argued with.
 | --- | --- | --- |
 | "Why didn't you just …" | Carries an assumption that the author did not think, and the answer is usually a constraint you cannot see. | "What made this preferable to X? X would avoid the extra round trip." |
 | "This is wrong." | Leaves the author with nothing to act on and a reason to argue. | "This returns the wrong total when `items` is empty: `sum` starts at 1 on line 30." |
-| "Are we sure this is thread-safe?" | A rhetorical question with no information; often the reviewer has not checked either. | Trace it and state the finding, or ask the specific question with the failing sequence. |
 | "Nit: …" attached to nine lines | Turns one preference into the impression of the review and buries the blocking finding. | Say it once at the first occurrence and note that it recurs. |
 | "I would have written this differently." | Invites a redesign after the work is done and stalls the change for a week. | Either a blocking finding with a named failure, or nothing. |
 | "Needs more tests." | Unactionable; the author cannot tell when they are done. | Name the behaviour that needs a test and what it should assert. |
