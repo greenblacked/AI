@@ -18,11 +18,18 @@ that actually produces the evidence. A skill that would only restate what the mo
 already does is not in here — there is no commit-message writer and no git-worktree
 helper, because both are ceremony.
 
+They are procedures, not plugin code, so they are not tied to one assistant. Claude Code
+installs them as plugins and fires them automatically; `make portable` flattens every one
+into a standalone file for ChatGPT, Grok, Codex or anything else that reads text.
+[Using the skills](docs/using.md) covers each route, and is honest about what you lose
+outside a runtime that can trigger them for you.
+
 ## What is included
 
 | Plugin | Focus | Contents |
 | --- | --- | --- |
-| `coding` | Reading, reviewing, testing and changing code | 12 skills, 1 subagent |
+| `coding` | Reading, reviewing, testing and changing code | 11 skills, 1 subagent |
+| `gamedev` | Making games, and shipping them | 1 skill |
 | `operations` | Keeping a running system alive | 8 skills, 4 subagents, 2 commands |
 | `delivery` | Getting a change into production | 5 skills |
 | `security` | The defensive side of shipping software | 5 skills, 2 subagents, 2 commands |
@@ -30,23 +37,30 @@ helper, because both are ceremony.
 | `personal` | Money, travel, admin, habits and health | 7 skills |
 | `career` | Applications, negotiation, speaking and writing | 5 skills |
 
-Install one plugin or all seven. Each is a self-contained directory under `plugins/` with
+Install one plugin or all eight. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
 
 ## Install
 
+### Claude Code
+
 ```shell
 /plugin marketplace add greenblacked/AI
 /plugin install coding@greenblacked-ai
-/plugin install personal@greenblacked-ai
+/plugin install gamedev@greenblacked-ai
 /reload-plugins
 ```
+
+The first line registers the marketplace and downloads nothing. Each `/plugin install`
+adds one plugin, and `/reload-plugins` makes them live in the session you are already in
+— skip it and you will wonder why nothing fires. After that you do not invoke a skill:
+you describe the situation, and the one whose description matches is loaded.
 
 Install the plugins you will use rather than all of them. Every description a plugin ships
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Six
-of the seven plugins fit the default budget on their own, and the split exists for exactly
+of the eight plugins fit the default budget on their own, and the split exists for exactly
 this reason. If you install several, raise the budget in `~/.claude/settings.json`:
 
 ```json
@@ -55,7 +69,24 @@ this reason. If you install several, raise the budget in `~/.claude/settings.jso
 
 `/doctor` reports what the listing actually costs and its biggest contributors.
 
-To work on the skills themselves and have edits take effect immediately:
+### ChatGPT, Grok, Codex and everything else
+
+There is no marketplace to read, so flatten the skills into files that stand alone —
+frontmatter becomes a plain "Use this when" line and every reference file is inlined, so
+nothing is left pointing at a path the reader cannot open:
+
+```bash
+git clone https://github.com/greenblacked/AI.git && cd AI
+make portable       # writes dist/portable/
+```
+
+Upload `dist/portable/plugins/*.md` to a ChatGPT Project or a Custom GPT, paste
+`dist/portable/skills/<name>.md` into any chat, or append a bundle to the `AGENTS.md` of
+the repository a terminal agent is working in. [Using the skills](docs/using.md) has the
+instruction text that makes a Project reach for them, and says plainly what does not
+survive the trip.
+
+### Working on the skills themselves
 
 ```bash
 git clone https://github.com/greenblacked/AI.git && cd AI
@@ -77,12 +108,19 @@ Reading, reviewing, testing and changing code.
 | [`codebase-orientation`](plugins/coding/skills/codebase-orientation/SKILL.md) | Get oriented in code you did not write: what it does before how it is built, one real request traced end to end, the tests as specification and the history as evidence, ending in a map and a first change. |
 | [`debugging`](plugins/coding/skills/debugging/SKILL.md) | Drive a failure down to a proven cause before changing any code: reproduce it, reduce it, one falsifiable hypothesis at a time, and prove the fix by turning the failure off and on again. |
 | [`dependency-upgrade`](plugins/coding/skills/dependency-upgrade/SKILL.md) | Move onto a new major version without a branch that never lands: deprecation warnings first, one dependency per change, and the uncovered surface named. |
-| [`game-builder`](plugins/coding/skills/game-builder/SKILL.md) | Build a playable game scaled to the brief — core loop first in grey boxes, then a game-feel floor tuned against numbers — or review one that exists for feel, frame time and structure. |
 | [`new-skill`](plugins/coding/skills/new-skill/SKILL.md) | Author a skill that actually fires: decide whether it deserves to exist, write the body before the description, and build the eval set from the neighbouring skills it has to beat. |
 | [`refactoring`](plugins/coding/skills/refactoring/SKILL.md) | Restructure without changing behaviour, in steps each provably safe: a characterisation test before touching code nobody understands, one kind of change per commit, and a proof at the end. |
 | [`technical-docs`](plugins/coding/skills/technical-docs/SKILL.md) | Write documentation still true in six months: name the reader, pick one Diátaxis mode instead of blending two, execute every command you print, and prune the stale page rather than adding a newer one beside it. |
 | [`test-design`](plugins/coding/skills/test-design/SKILL.md) | Choose what to test before writing tests: equivalence classes and their boundaries, the error paths nobody writes, pairwise selection when the inputs explode, and the seams that stop a suite going flaky. |
 | [`website-builder`](plugins/coding/skills/website-builder/SKILL.md) | Build a site that looks designed for its subject and can still be hosted and maintained afterwards — or audit one that already exists. |
+
+### Gamedev
+
+Making games, and shipping them.
+
+| Skill | What it does |
+| --- | --- |
+| [`game-builder`](plugins/gamedev/skills/game-builder/SKILL.md) | Build a playable game scaled to the brief — core loop first in grey boxes, then a game-feel floor tuned against numbers — or review one that exists for feel, frame time and structure. |
 
 ### Operations
 
@@ -243,6 +281,7 @@ skill that fires on everything.
 
 ## Documentation
 
+- [Using the skills](docs/using.md) — installing and using them in Claude Code, ChatGPT, Grok and terminal agents
 - [Writing a skill](docs/writing-skills.md) — the contract, every validator code, and how to write a description that actually triggers
 - [Writing a subagent](docs/writing-agents.md) — when a subagent beats doing the work inline
 - [Writing a slash command](docs/writing-commands.md) — when a command beats a skill, and why most do not

@@ -11,7 +11,7 @@ RUFF_PIN := $(shell sed -n "s/^ *RUFF_VERSION: *'\(.*\)'/\1/p" .github/workflows
 MARKDOWNLINT_PIN := 0.23.2
 CODESPELL_PIN := $(shell sed -n "s/^ *CODESPELL_VERSION: *'\(.*\)'/\1/p" .github/workflows/ci.yml)
 
-.PHONY: help validate catalogue test coverage lint package install clean
+.PHONY: help validate catalogue test coverage lint package portable install clean
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
@@ -52,6 +52,9 @@ lint: ## Lint python, markdown, YAML and workflows (skips a tool when it is not 
 
 package: ## Build a .skill archive for every skill into dist/
 	@PYTHONPATH=src $(PYTHON) scripts/package_skills.py
+
+portable: ## Flatten every skill into dist/portable for ChatGPT, Grok and other assistants
+	@PYTHONPATH=src $(PYTHON) scripts/export_portable.py .
 
 install: ## Symlink every skill into ~/.claude/skills
 	@scripts/install.sh

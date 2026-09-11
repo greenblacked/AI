@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "greenblacked-ai",
-  "description": "Agent skills, subagents and slash commands for software engineering, engineering leadership, and life outside work. Seven focused plugins; install only the ones you want.",
+  "description": "Agent skills, subagents and slash commands for software engineering, making games, engineering leadership, and life outside work. Eight focused plugins; install only the ones you want.",
   "owner": {
     "name": "Serhii Zolotov",
     "url": "https://github.com/greenblacked"
@@ -19,6 +19,21 @@
         "documentation",
         "api",
         "scaffolding"
+      ]
+    },
+    {
+      "name": "gamedev",
+      "source": "./plugins/gamedev",
+      "category": "development",
+      "tags": [
+        "gamedev",
+        "godot",
+        "unity",
+        "unreal",
+        "performance",
+        "netcode",
+        "balance",
+        "assets"
       ]
     },
     {

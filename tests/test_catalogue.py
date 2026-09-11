@@ -249,3 +249,119 @@ def test_a_backticked_name_in_another_table_is_not_read_as_a_plugin(mini_repo, c
         README + "\n| `some-tool` | Not a plugin | No counts here |\n",
     )
     assert readme.check(mini_repo) == 0
+
+
+# --- the portable export --------------------------------------------------------------
+
+portable = load_script("export_portable.py")
+
+
+def test_a_reference_is_inlined_and_its_pointer_rewritten(mini_repo):
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    (skill / "references").mkdir()
+    (skill / "references" / "depth.md").write_text(
+        "# Going deeper\n\n## A sub-heading\n\nDetail.\n", encoding="utf-8"
+    )
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text(encoding="utf-8") + "\nRead `references/depth.md` when stuck.\n",
+        encoding="utf-8",
+    )
+    name, _, document, unresolved = portable.render_skill(skill)
+    assert name == "alpha"
+    assert unresolved == []
+    # The path is gone and the section it named is present, which is the whole job:
+    # a reader with no filesystem can still follow the pointer.
+    assert "references/depth.md" not in document
+    assert 'the "Going deeper" section below' in document
+    assert "### Going deeper" in document
+    assert "##### A sub-heading" in document  # demoted so it nests
+
+
+def test_a_pointer_to_a_file_that_is_gone_is_reported_not_swallowed(mini_repo):
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text(encoding="utf-8") + "\nRead `references/missing.md`.\n", encoding="utf-8"
+    )
+    _, _, document, unresolved = portable.render_skill(skill)
+    assert unresolved == ["references/missing.md"]
+    assert "references/missing.md" in document  # left as written, so the report matches
+
+
+def test_a_path_in_a_worked_example_is_not_treated_as_a_pointer(mini_repo):
+    # A reference file quoting the reader's own project layout is the false positive
+    # that a whole-document scan produces, and it would fail every export.
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    (skill / "references").mkdir()
+    (skill / "references" / "depth.md").write_text(
+        "# Depth\n\nShip `assets/LICENSES.md` with the build.\n", encoding="utf-8"
+    )
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text(encoding="utf-8") + "\nRead `references/depth.md`.\n", encoding="utf-8"
+    )
+    _, _, _, unresolved = portable.render_skill(skill)
+    assert unresolved == []
+
+
+def test_headings_inside_a_code_fence_are_left_alone():
+    text = "# Title\n\n```bash\n# not a heading, a comment\nls\n```\n\n## Real\n"
+    out = portable.demote(text, 2)
+    assert "### Title" in out
+    assert "# not a heading, a comment" in out
+    assert "#### Real" in out
+
+
+def test_the_document_has_exactly_one_top_level_heading(mini_repo):
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    _, _, document, _ = portable.render_skill(skill)
+    assert [line for line in document.split("\n") if line.startswith("# ")].__len__() == 1
+
+
+def test_an_asset_is_inlined_as_a_fenced_template(mini_repo):
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    (skill / "assets").mkdir()
+    (skill / "assets" / "template.md").write_text("# Template\n\nFill this in.\n", encoding="utf-8")
+    _, _, document, _ = portable.render_skill(skill)
+    assert "```markdown" in document
+    assert "Fill this in." in document
+
+
+def test_export_writes_a_file_per_skill_a_bundle_per_plugin_and_an_index(mini_repo, tmp_path):
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    assert sorted(p.name for p in (out / "skills").glob("*.md")) == ["alpha.md", "beta.md"]
+    assert (out / "plugins" / "engineering.md").is_file()
+    index = (out / "index.md").read_text(encoding="utf-8")
+    assert "- **alpha**" in index and "- **beta**" in index
+    assert (out / "README.md").is_file()
+
+
+def test_check_reports_without_writing(mini_repo, tmp_path, capsys):
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert not out.exists()
+    assert "export is clean" in capsys.readouterr().out
+
+
+def test_check_fails_on_a_pointer_that_would_not_survive_the_export(mini_repo, tmp_path, capsys):
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text(encoding="utf-8") + "\nRead `references/missing.md`.\n", encoding="utf-8"
+    )
+    assert portable.export(mini_repo, tmp_path / "portable", check=True) == 1
+    assert "still points at references/missing.md" in capsys.readouterr().out
+
+
+def test_export_rewrites_the_output_directory(mini_repo, tmp_path):
+    out = tmp_path / "portable"
+    out.mkdir()
+    (out / "stale.md").write_text("from an older run", encoding="utf-8")
+    assert portable.export(mini_repo, out) == 0
+    assert not (out / "stale.md").exists()
+
+
+def test_export_reports_a_tree_with_no_plugins(tmp_path):
+    assert portable.main([str(tmp_path)]) == 2

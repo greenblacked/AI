@@ -10,11 +10,19 @@ wrong flag in a skill is worse than no skill.
 
 ```bash
 make validate
+make catalogue
 make test
 ```
 
-Both are what CI runs. `make lint` runs ruff, markdownlint, yamllint and actionlint when
-they are installed and tells you the install command when they are not.
+All three are what CI runs. `make lint` runs ruff, markdownlint, yamllint, actionlint and
+codespell when they are installed and tells you the install command when they are not.
+
+`make catalogue` is the one that fails on work that feels finished. A new skill has no row
+in the README yet, and it pushes its plugin's listing past the ceiling recorded in
+`listing-budget.json` — both deliberate. Past the runtime's listing budget, the
+descriptions of a plugin's least-used skills are dropped silently, so growth is meant to
+be a decision: raise the ceiling with `scripts/check_listing_budget.py --update` and say
+why in the commit, or split the plugin.
 
 Install the versions CI pins. Ruff 0.16 formats Python inside Markdown fences and 0.15
 does not, so an older local ruff reports a file as clean that CI then rejects — which is

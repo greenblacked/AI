@@ -17,6 +17,7 @@ Triggers on push to `main`, on every pull request, and on `workflow_dispatch`. T
 | `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the job's `env` for the same reason the scanners are. |
 | `test` | `test (3.10)` … `test (3.13)` | The validator's own test suite failed on that interpreter, or line and branch coverage fell below the floor in [`pyproject.toml`](../pyproject.toml). The matrix is four versions because that file declares no dependencies, and running on a bare interpreter across the supported range is how that claim stays true. The coverage table lands in the job summary. |
 | `catalogue` | `check catalogue` | Either a plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), or the README stopped matching the tree. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. |
+| `catalogue` (portable step) | `check catalogue` | `make portable` could not flatten every skill into a file that stands alone. This is how the library reaches ChatGPT, Grok and anything else without a skills runtime: frontmatter becomes a plain "Use this when" line and every `references/` file is inlined, with the pointer that named it rewritten to name the section instead. A pointer that survives as a path is a dangling reference reintroduced at the boundary, for a reader with no filesystem to resolve it against. |
 | `spelling` | `lint spelling` | codespell found a likely typo. It ran weekly and warn-only until it was made a gate; the false positives are listed in [`pyproject.toml`](../pyproject.toml) with the reason each is one, which is what lets the check sit at zero and mean something. |
 | `lint-markdown` | `lint markdown` | markdownlint-cli2 found a violation in a `*.md` file. Config in `.markdownlint-cli2.yaml`. |
 | `lint-yaml` | `lint yaml` | yamllint in `--strict` mode found a problem. Config in `.yamllint.yaml`. |
@@ -299,6 +300,7 @@ gh api /repos/greenblacked/AI/rulesets
 ```bash
 make validate   # skills, subagents and the manifest — the validate-skills job
 make catalogue  # listing ceilings and README drift — the catalogue job
+make portable   # flatten every skill for ChatGPT, Grok and other assistants
 make test       # pytest — the test job
 make coverage   # the same run under coverage, failing below the floor
 make lint       # ruff, markdownlint, yamllint, actionlint, codespell — the lint jobs

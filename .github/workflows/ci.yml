@@ -135,6 +135,13 @@ jobs:
         # A catalogue nobody checks is a catalogue that drifts. This one has, twice,
         # both times after the plugins were re-cut.
         run: python scripts/check_readme.py .
+      - name: Every skill still flattens into a file that stands alone
+        # The portable export is how this library reaches ChatGPT, Grok and anything
+        # else without a skills runtime. Flattening inlines each `references/` file and
+        # rewrites the pointer that named it; a pointer that survives as a path is a
+        # dangling reference reintroduced at the boundary, for a reader who has no
+        # filesystem to resolve it against.
+        run: PYTHONPATH=src python scripts/export_portable.py . --check
 
   spelling:
     name: lint spelling
