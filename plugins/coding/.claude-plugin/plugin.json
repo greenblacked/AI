@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "coding",
+  "description": "Skills for the daily loop of changing code: review a diff for the defects that actually break production, debug a failure down to a proven cause, decide what to test before writing tests, restructure code without changing behaviour, orient yourself in an unfamiliar codebase, write documentation that stays true, scaffold new production-ready code, design an API you can still evolve, land a dependency upgrade, build a website or a game, and author a skill that fires when it should.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "code-review",
+    "debugging",
+    "testing",
+    "refactoring",
+    "documentation",
+    "api",
+    "frontend"
+  ]
+}

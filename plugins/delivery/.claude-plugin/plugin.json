@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "delivery",
+  "description": "Skills for getting a change into production without a bad night: separate deploy from release so the worst case is one cohort and one flag, ship a schema change to a live database without a stuck lock, run a cutover that has a point of no return, plan a platform migration that changes one thing at a time, and write release notes someone can act on.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "release",
+    "deployment",
+    "migration",
+    "database",
+    "cutover",
+    "rollback",
+    "changelog"
+  ]
+}
