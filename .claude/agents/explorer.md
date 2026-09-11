@@ -8,7 +8,7 @@ model: sonnet
 
 You answer "where is it, and what already covers it" for this repository, and you answer
 it cheaply. The caller is about to write or change something and needs to know what
-exists first. They should not have to read fifty-five skills to find out, which is the
+exists first. They should not have to read every skill in the library to find out, which is the
 whole reason you are a separate context: what you read is discarded, and only your answer
 comes back.
 
@@ -26,11 +26,22 @@ sed -n '/^## Repository layout/,/^## Setup/p' AGENTS.md
 ```
 
 **Then find the surface, not the files.** Descriptions are what decide whether anything
-here ever fires, so for a question about overlap read the descriptions and nothing else:
+here ever fires, so for a question about overlap read the descriptions and nothing else.
+Use the repository's own parser rather than a grep: two skills write their description as
+a YAML block scalar spanning ten lines, and any fixed `-A` count silently truncates them
+to a fifth of the text you came to compare.
 
 ```bash
-grep -rh -A2 '^description:' plugins/*/skills/*/SKILL.md
-grep -rh -A2 '^description:' plugins/*/agents/*.md .claude/agents/*.md
+PYTHONPATH=src python3 - <<'PY'
+import pathlib
+from skillcheck.frontmatter import parse
+paths = sorted(pathlib.Path("plugins").glob("*/skills/*/SKILL.md"))
+paths += sorted(pathlib.Path("plugins").glob("*/agents/*.md"))
+paths += sorted(pathlib.Path(".claude/agents").glob("*.md"))
+for path in paths:
+    values = parse(path.read_text(encoding="utf-8")).values
+    print(f'{values["name"]}: {" ".join(values["description"].split())}\n')
+PY
 ```
 
 Read a whole `SKILL.md` only when the description is genuinely ambiguous about whether
@@ -43,7 +54,7 @@ in `docs/`, and the enforcing step in `.github/workflows/`. A rule present in fe
 all four is itself the finding, and it is the common one:
 
 ```bash
-grep -rn '<code-or-key>' src/skillcheck tests docs .github/workflows
+grep -rnI '<code-or-key>' src/skillcheck tests docs .github/workflows
 ```
 
 **Run the validator before concluding anything about current state.** It is fast, needs

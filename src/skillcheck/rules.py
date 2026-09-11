@@ -567,6 +567,25 @@ def find_agents(root: Path) -> list[Path]:
     return sorted(p for p in root.glob("*.md") if p.name not in AGENT_NON_DEFINITIONS)
 
 
+def find_all_agents(repo_root: Path) -> list[Path]:
+    """Every subagent a run should see, in the two places one legitimately lives.
+
+    Inside a plugin, which is what ships, and in the repository's own
+    ``.claude/agents/``, which is where one that only serves work on this repository
+    belongs — the same split ``.claude/commands/`` has. A stray top-level ``agents/`` is
+    deliberately not here: it is found separately so ``check_marketplace`` can report it
+    as unowned rather than the run quietly treating it as valid.
+
+    Every caller that walks subagents goes through this. Discovery duplicated per caller
+    is how ``.claude/agents/`` came to be validated and still invisible to the eval
+    harness, which is a rule living in fewer places than it has to.
+    """
+    agents = [
+        agent for plugin in find_plugins(repo_root) for agent in find_agents(plugin / "agents")
+    ]
+    return agents + find_agents(repo_root / ".claude" / "agents")
+
+
 def check_agent(path: Path, repo_root: Path) -> list[Finding]:
     """Validate one subagent definition.
 

@@ -1,7 +1,7 @@
 ---
 description: Run a change to this repository through the three-stage loop — explorer surveys what already exists, implementer writes it and runs the gates, reviewer judges the result before anything is committed.
 argument-hint: [what to change, for example "add a skill for reading flamegraphs"]
-allowed-tools: Task, Read, Grep, Glob, Bash(make:*), Bash(git status:*), Bash(git diff:*)
+allowed-tools: Agent(explorer), Agent(implementer), Agent(reviewer), Read, Grep, Glob, Bash(make:*), Bash(git status:*), Bash(git diff:*)
 ---
 
 Take this change through the loop: $ARGUMENTS

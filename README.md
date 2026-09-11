@@ -191,7 +191,7 @@ is not a reviewer.
 Three more sit in [`.claude/agents/`](.claude/agents) and ship to nobody. They are for
 working on this repository: `explorer` surveys what already covers a change, `implementer`
 writes it and runs the gates, and `reviewer` judges the result on a fresh context with no
-write access. Each runs on the tier its stage needs, and [`/ship`](.claude/commands/ship.md)
+editing tools. Each runs on the tier its stage needs, and [`/ship`](.claude/commands/ship.md)
 runs the three in order. [Writing a subagent](docs/writing-agents.md#the-three-stage-loop)
 explains why the split earns its round trips.
 

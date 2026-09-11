@@ -12,7 +12,7 @@ Claude-specific notes:
   subagent beats doing the work inline.
 - For a change to this repository, `/ship` runs `explorer`, `implementer` and `reviewer`
   from `.claude/agents/` in order: survey what already exists, write it and run the
-  gates, then judge the result on a fresh context with no write access. Each runs on the
+  gates, then judge the result on a fresh context with no editing tools. Each runs on the
   tier its stage needs. Use it for anything more than a one-line edit, and keep the
   decision about what to write in the main conversation — that is the part that depends
   on the session and does not survive a cold prompt.

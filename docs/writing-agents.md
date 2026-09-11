@@ -228,25 +228,31 @@ later without a surprise.
 They divide one change into three stages, and the division is the point. Each stage is a
 context the next one does not inherit, and each runs on the tier its work actually needs:
 
-| Stage | Subagent | Tier | Can write |
+| Stage | Subagent | Runs on | Editing tools |
 | --- | --- | --- | --- |
-| Survey | [`explorer`](../.claude/agents/explorer.md) | cheap | no |
-| Write | [`implementer`](../.claude/agents/implementer.md) | mid | yes |
-| Judge | [`reviewer`](../.claude/agents/reviewer.md) | top | no |
+| Survey | [`explorer`](../.claude/agents/explorer.md) | the fast tier | none |
+| Write | [`implementer`](../.claude/agents/implementer.md) | the capable tier | `Write`, `Edit` |
+| Judge | [`reviewer`](../.claude/agents/reviewer.md) | the most capable tier | none |
 
 The tier is set per subagent with the `model` key, which is the only place in this
 repository that key is used. Claude Code resolves a subagent's model from the
 per-invocation argument first, then this frontmatter, then the `CLAUDE_CODE_SUBAGENT_MODEL`
 environment variable, then the main conversation's model. Frontmatter winning over the
 environment variable is what makes the tiering hold: someone who has set that variable
-for their own reasons still gets a top-tier reviewer.
+for their own reasons still gets the capable reviewer.
+
+Two caveats on that, both of which turn the tiering off silently rather than loudly. The
+order above holds from Claude Code v2.1.251; before it the environment variable won.
+And `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` restores that older precedence deliberately, so
+anyone who sets it is choosing one model for every subagent and should know they have
+opted out of the split.
 
 The split earns its round trips twice. **Survey is throwaway reading** — the answer to
 "what already covers this" costs fifty descriptions to reach and two sentences to state,
 which is the canonical context-isolation case, and it does not need an expensive model to
 do it. **Judgement has to be independent of the hand that wrote the change.** A reviewer
-that can edit will fix what it was asked to assess, so `reviewer` has no write access and
-returns findings rather than patches; carrying them back to `implementer` is what keeps
+that can edit will fix what it was asked to assess, so `reviewer` is given no editing tools
+and returns findings rather than patches; carrying them back to `implementer` is what keeps
 the verdict worth having. Reviewing is also the stage where being wrong is most expensive,
 which is why it gets the capable model and the survey does not.
 

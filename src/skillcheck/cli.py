@@ -25,6 +25,7 @@ from .rules import (
     check_marketplace,
     check_skill,
     find_agents,
+    find_all_agents,
     find_commands,
     find_plugins,
     find_skills,
@@ -133,13 +134,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"no SKILL.md found under {root}", file=sys.stderr)
         return 2
 
-    # Subagents live in three places. Inside a plugin, which is what ships. In the
-    # repository's own `.claude/agents/`, which is where one that only serves work on
-    # this repository belongs — the same split `.claude/commands/` has below. And
-    # stranded in a top-level `agents/`, which is found so check_marketplace can report
-    # it as unowned rather than the run quietly not seeing it.
-    agents = [agent for plugin in plugins for agent in find_agents(plugin / "agents")]
-    agents += find_agents(root / ".claude" / "agents")
+    # Plugin-shipped and repo-local subagents, plus anything stranded in a top-level
+    # `agents/` — found here so check_marketplace can report it as unowned rather than
+    # the run quietly not seeing it.
+    agents = find_all_agents(root)
     agents += find_agents(root / "agents")
     # Every name an eval set may point at with `expected`. A misspelling there is a
     # permanent miss, so it is checked against what actually exists.

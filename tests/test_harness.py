@@ -125,6 +125,32 @@ def test_all_targets_finds_every_eval_set(mini_repo):
     assert all(t.eval_set.is_file() for t in targets)
 
 
+def test_a_repo_local_subagent_is_a_target_and_is_in_the_listing(mini_repo):
+    # The harness and the validator walk subagents through the same helper. They did
+    # not always: the validator learned about `.claude/agents/` first, and for as long
+    # as the harness had its own plugin-only walk a repo-local subagent validated clean
+    # and could never be scored — worse, an explicit --agent run rendered a listing its
+    # own name was missing from, so every positive scored as a miss.
+    directory = mini_repo / ".claude" / "agents"
+    directory.mkdir(parents=True)
+    (directory / "local-helper.md").write_text(
+        "---\nname: local-helper\ndescription: Do one narrow thing for work on this "
+        "repository. Use when the caller is changing something here.\ntools: Read\n---\n\n"
+        "Body.\n",
+        encoding="utf-8",
+    )
+    (directory / "evals").mkdir()
+    (directory / "evals" / "local-helper.json").write_text(
+        json.dumps([{"query": "do the narrow thing", "should_trigger": True}]), encoding="utf-8"
+    )
+    entries = harness.catalogue(mini_repo)
+    assert entries["local-helper"][0] == "subagent"
+    assert "local-helper" in harness.render(entries, None, "alpha")
+    assert ("local-helper", "subagent") in {
+        (t.name, t.kind) for t in harness.all_targets(mini_repo)
+    }
+
+
 def test_a_target_without_an_eval_set_is_refused(mini_repo, fake_claude):
     bare = harness.Target.skill(mini_repo / "plugins" / "engineering" / "skills" / "nothing")
     with pytest.raises(SystemExit, match="no eval set"):
