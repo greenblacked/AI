@@ -1,0 +1,22 @@
+[
+  {"query": "this shotgun is overpowered, everyone dies to it in two shots. what do i change", "should_trigger": true},
+  {"query": "how do i know if my difficulty curve is right, people seem to quit around level 4", "should_trigger": true},
+  {"query": "running a playtest this weekend with six people, what should i actually record while they play", "should_trigger": true},
+  {"query": "our top faction is sitting at 54% win rate over 300 matches, do we nerf it or is that noise", "should_trigger": true},
+  {"query": "three of my eight classes are basically never picked but the ones who do pick them win a lot", "should_trigger": true},
+  {"query": "one deck dominates at high ranks and loses in casual, which number do i balance against", "should_trigger": true},
+  {"query": "how many matches do i need before a win rate difference actually means something", "should_trigger": true},
+  {"query": "what telemetry should my roguelike emit so i can tell which builds are genuinely viable", "should_trigger": true},
+  {"query": "i want to nerf the sword and buff the bow and retune the economy in the same patch", "should_trigger": true},
+  {"query": "the cheapest unit in my rts is always the right buy no matter the matchup, how do i price the rest", "should_trigger": true},
+  {"query": "build me a deckbuilder prototype so i can try the core loop this week", "should_trigger": false, "expected": "game-builder"},
+  {"query": "the jump in my godot platformer feels floaty and lands late, fix the controller", "should_trigger": false, "expected": "game-builder"},
+  {"query": "we are blowing the 16ms frame budget, gpu time is 11ms on shadow draws alone", "should_trigger": false, "expected": "game-performance"},
+  {"query": "frame time spikes every few seconds and it looks like gc pauses in the update loop", "should_trigger": false, "expected": "game-performance"},
+  {"query": "hits do not register for players on 120ms ping, do we need rollback or is interpolation enough", "should_trigger": false, "expected": "game-netcode"},
+  {"query": "should the server be authoritative for movement or only for damage and pickups", "should_trigger": false, "expected": "game-netcode"},
+  {"query": "how many players per matchmaking node can we take at launch and what saturates first", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "our prometheus cardinality exploded because someone put player id on a metric label", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "what spans should the inventory service emit so the next 3am page is diagnosable", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "write the patch notes for this season's balance changes so players understand them", "should_trigger": false, "expected": "release-notes"}
+]

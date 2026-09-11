@@ -135,6 +135,13 @@ jobs:
         # A catalogue nobody checks is a catalogue that drifts. This one has, twice,
         # both times after the plugins were re-cut.
         run: python scripts/check_readme.py .
+      - name: Every shell block and shipped script parses
+        # The commands inside a fenced block are the part an agent follows most
+        # literally, and they were the one part of a skill nothing checked: the
+        # validator masks fences before scanning for dangling pointers, so nothing
+        # else ever looked inside them. `bash -n` parses without executing, so this
+        # runs no command and needs none of the binaries they name.
+        run: python scripts/check_shell.py .
       - name: Every skill still flattens into a file that stands alone
         # The portable export is how this library reaches ChatGPT, Grok and anything
         # else without a skills runtime. Flattening inlines each `references/` file and

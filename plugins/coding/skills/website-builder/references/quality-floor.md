@@ -148,8 +148,8 @@ Check these specifically, because they are where narrow layouts actually break: 
 unbroken strings (URLs, tokens) overflowing, tables, fixed-width images, position-fixed
 headers eating the viewport, and modals taller than the screen with no internal scroll.
 
-```bash
-# quick overflow check in the console
+```javascript
+// quick overflow check in the browser console
 [...document.querySelectorAll('*')].filter(e => e.scrollWidth > document.documentElement.clientWidth)
 ```
 

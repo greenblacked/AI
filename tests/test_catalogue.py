@@ -365,3 +365,79 @@ def test_export_rewrites_the_output_directory(mini_repo, tmp_path):
 
 def test_export_reports_a_tree_with_no_plugins(tmp_path):
     assert portable.main([str(tmp_path)]) == 2
+
+
+# --- shell that ships or is printed ----------------------------------------------------
+
+shell = load_script("check_shell.py")
+
+
+def test_a_block_that_parses_is_accepted():
+    assert shell.parses("set -Eeuo pipefail\nif [ -f x ]; then echo y; fi\n") is None
+
+
+def test_an_unbalanced_quote_is_caught():
+    assert shell.parses('echo "unterminated\n') is not None
+
+
+def test_a_placeholder_is_documentation_not_a_defect():
+    # Eleven of this repository's blocks "failed" before this substitution and every one
+    # was a placeholder. A gate that fails on the documentation convention is all noise.
+    assert shell.parses("git bisect start <known-bad-sha> <known-good-sha>\n") is None
+    assert shell.parses("kubectl logs <pod> -c <container>\n") is None
+
+
+def test_a_real_redirection_is_still_checked():
+    # The placeholder pattern has to start with a letter, or it swallows redirections
+    # and here-strings and the check stops seeing half the shell it was written for.
+    assert shell.parses("cat <&-\ndone\n") is not None
+
+
+def test_javascript_tagged_as_shell_is_caught():
+    # The one real defect this found in the repository: a browser console snippet in a
+    # ```bash fence, which an agent told to run every command it prints would try.
+    source = "[...document.querySelectorAll('*')].filter(e => e.scrollWidth > 0)\n"
+    assert shell.parses(source) is not None
+
+
+def test_blocks_finds_each_fence_with_its_line_number():
+    text = "intro\n\n```bash\necho one\n```\n\ntext\n\n```sh\necho two\n```\n"
+    assert list(shell.blocks(text)) == [(4, "echo one"), (10, "echo two")]
+
+
+def test_an_untagged_or_other_language_fence_is_left_alone():
+    text = "```python\nnot shell at all(\n```\n\n```\nplain\n```\n"
+    assert list(shell.blocks(text)) == []
+
+
+def test_check_passes_on_a_tree_with_good_shell(tmp_path, capsys):
+    (tmp_path / "plugins").mkdir()
+    (tmp_path / "plugins" / "a.md").write_text("```bash\nset -Eeuo pipefail\nls\n```\n", "utf-8")
+    assert shell.check(tmp_path) == 0
+    assert "1 shell block(s) parsed" in capsys.readouterr().out
+
+
+def test_check_fails_and_names_the_line(tmp_path, capsys):
+    (tmp_path / "plugins").mkdir()
+    (tmp_path / "plugins" / "a.md").write_text("intro\n\n```bash\nif true\n```\n", "utf-8")
+    assert shell.check(tmp_path) == 1
+    assert "file=plugins/a.md,line=4" in capsys.readouterr().out
+
+
+def test_a_shipped_script_is_checked_too(tmp_path, capsys):
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts" / "broken.sh").write_text("#!/usr/bin/env bash\nif true\n", "utf-8")
+    assert shell.check(tmp_path) == 1
+    assert "is not valid shell" in capsys.readouterr().out
+
+
+def test_an_empty_block_is_not_counted(tmp_path, capsys):
+    (tmp_path / "plugins").mkdir()
+    (tmp_path / "plugins" / "a.md").write_text("```bash\n\n```\n", "utf-8")
+    assert shell.check(tmp_path) == 0
+    assert "0 shell block(s) parsed" in capsys.readouterr().out
+
+
+def test_main_accepts_a_root(tmp_path):
+    (tmp_path / "plugins").mkdir()
+    assert shell.main([str(tmp_path)]) == 0

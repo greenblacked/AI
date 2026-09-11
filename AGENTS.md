@@ -20,6 +20,7 @@ Everything here is prose and configuration. There is no application. The only co
 | `plugins/coding/skills/` | Reading, reviewing, testing and changing code |
 | `plugins/operations/skills/` | Keeping a running system alive |
 | `plugins/delivery/skills/` | Getting a change into production |
+| `plugins/gamedev/skills/` | Making games, and shipping them |
 | `plugins/security/skills/` | The defensive side of shipping software |
 | `plugins/manager/skills/` | Engineering leadership |
 | `plugins/personal/skills/` | Money, travel, admin, habits and health |
@@ -34,7 +35,7 @@ Everything here is prose and configuration. There is no application. The only co
 | `plugins/*/agents/evals/` | The same for each subagent, one `<name>.json` per agent file |
 | `docs/` | How to write skills, subagents, commands, `AGENTS.md`, and what CI checks |
 | `template/SKILL.md` | Starting point for a new skill |
-| `.claude-plugin/marketplace.json` | Lists the seven plugins; each discovers its own skills |
+| `.claude-plugin/marketplace.json` | Lists the eight plugins; each discovers its own skills |
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing; `scripts/check_listing_budget.py` enforces them |
 | `scripts/` | Packaging, install, the eval harness, and the two catalogue checks |

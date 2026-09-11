@@ -3,13 +3,13 @@
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
 [![Security](https://github.com/greenblacked/AI/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/security.yml)
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
-[![Skills](https://img.shields.io/badge/skills-55-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-59-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-55 agent skills, nine read-only subagents and five slash commands, in seven
+59 agent skills, nine read-only subagents and five slash commands, in seven
 plugins you install separately. They cover the daily loop of changing code, keeping a
-system running, shipping a change, securing it, leading a team, a career, and the parts
-of life that are nobody's job.
+system running, shipping a change, securing it, making a game, leading a team, a career,
+and the parts of life that are nobody's job.
 
 A skill is a Markdown procedure an agent loads when it recognises the situation. Nothing
 here wraps a model's general knowledge. The useful part of a skill is the opinionated
@@ -29,7 +29,7 @@ outside a runtime that can trigger them for you.
 | Plugin | Focus | Contents |
 | --- | --- | --- |
 | `coding` | Reading, reviewing, testing and changing code | 11 skills, 1 subagent |
-| `gamedev` | Making games, and shipping them | 1 skill |
+| `gamedev` | Making games, and shipping them | 5 skills |
 | `operations` | Keeping a running system alive | 8 skills, 4 subagents, 2 commands |
 | `delivery` | Getting a change into production | 5 skills |
 | `security` | The defensive side of shipping software | 5 skills, 2 subagents, 2 commands |
@@ -120,7 +120,11 @@ Making games, and shipping them.
 
 | Skill | What it does |
 | --- | --- |
+| [`game-assets`](plugins/gamedev/skills/game-assets/SKILL.md) | Get art and audio into the build without it eating the disk, the memory or the download — source kept out of the import path, large binaries behind LFS before the history is too big, and per-platform texture compression chosen rather than defaulted. |
+| [`game-balance`](plugins/gamedev/skills/game-balance/SKILL.md) | Tune a game's numbers against evidence rather than taste: decide what balanced means for this game first, read pick rate against win rate by skill band, change one thing with a window, and run playtests where you watch instead of asking. |
 | [`game-builder`](plugins/gamedev/skills/game-builder/SKILL.md) | Build a playable game scaled to the brief — core loop first in grey boxes, then a game-feel floor tuned against numbers — or review one that exists for feel, frame time and structure. |
+| [`game-netcode`](plugins/gamedev/skills/game-netcode/SKILL.md) | Choose a multiplayer authority model from genre and player count, then hide latency with prediction, reconciliation and interpolation — and treat anything the client is authoritative over as a thing the client can lie about. |
+| [`game-performance`](plugins/gamedev/skills/game-performance/SKILL.md) | Hold a frame budget on the hardware you ship to: milliseconds not FPS, captured from a real build on the device, judged at the 1% low, and CPU-bound proved against GPU-bound before a single optimisation. |
 
 ### Operations
 
