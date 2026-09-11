@@ -20,10 +20,16 @@ def write_evals(root, entries, raw=None):
     return directory
 
 
-def balanced(positives=10, negatives=10):
-    return [{"query": f"positive {i}", "should_trigger": True} for i in range(positives)] + [
-        {"query": f"negative {i}", "should_trigger": False} for i in range(negatives)
-    ]
+def balanced(positives=10, negatives=10, routed=True):
+    """Ten and ten by default, with the first negative naming a winner — a set where no
+    negative does earns `no-routing`, so a "balanced" fixture has to carry one."""
+    cases = [{"query": f"positive {i}", "should_trigger": True} for i in range(positives)]
+    for i in range(negatives):
+        case = {"query": f"negative {i}", "should_trigger": False}
+        if routed and i == 0:
+            case["expected"] = "neighbour"
+        cases.append(case)
+    return cases
 
 
 def codes(findings, level=ERROR):
@@ -145,7 +151,9 @@ def test_a_missing_or_malformed_eval_set_is_not_reported_twice(tmp_path):
 # --- `expected`, and eval sets for subagents ---------------------------------------
 
 
-def _cases(expected_on_negatives=None, positive_expected=None):
+def _cases(expected_on_negatives="neighbour", positive_expected=None):
+    """Ten and ten. Negatives name a winner by default, because a set where none of
+    them does earns `no-routing` and that would drown every other assertion here."""
     cases = [{"query": f"positive {i}", "should_trigger": True} for i in range(10)]
     if positive_expected:
         cases[0]["expected"] = positive_expected

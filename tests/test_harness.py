@@ -12,7 +12,7 @@ import sys
 
 import pytest
 
-from tests.conftest import load_script
+from tests.conftest import eval_set, load_script
 
 harness = load_script("run_trigger_eval.py")
 
@@ -186,7 +186,14 @@ def test_a_negative_that_lands_on_the_wrong_sibling_is_a_routing_miss(mini_repo,
 
 
 def test_routing_is_absent_when_no_negative_names_a_winner(mini_repo, fake_claude):
-    beta = harness.Target.skill(mini_repo / "plugins" / "engineering" / "skills" / "beta")
+    # Written here rather than taken from the fixture: the fixture's sets name a winner
+    # now, because a set where none of them does earns `no-routing` from the validator.
+    # This test owns the condition it is testing.
+    directory = mini_repo / "plugins" / "engineering" / "skills" / "beta"
+    (directory / "evals" / "trigger-eval.json").write_text(
+        json.dumps(eval_set("beta")), encoding="utf-8"
+    )
+    beta = harness.Target.skill(directory)
     fake_claude({f"beta positive {i}": "beta" for i in range(8)})
     report = harness.score(beta, harness.catalogue(mini_repo), Args())
     assert report["routing"] is None
@@ -464,9 +471,12 @@ def test_baseline_prints_a_delta_and_new_for_unknown_targets(
         json.dumps([{"target": "alpha", "rate": 0.5}, {"skill": "beta", "rate": 1.0}])
     )
     # alpha scores a perfect run; beta never fires, so it keeps only its negatives;
-    # reader has no baseline row at all.
+    # reader has no baseline row at all. beta's routed negatives are answered so they
+    # route correctly — otherwise they fail on routing rather than on firing, and the
+    # delta would stop being about the thing this test is measuring.
     answers = {f"alpha positive {i}": "alpha" for i in range(8)}
     answers.update({f"alpha negative {i}": "beta" for i in range(0, 8, 2)})
+    answers.update({f"beta negative {i}": "alpha" for i in range(0, 8, 2)})
     fake_claude(answers)
     run_main(
         monkeypatch,

@@ -721,6 +721,7 @@ def _check_eval_file(
 
     queries: list[str] = []
     positives = 0
+    routed = 0
     for index, entry in enumerate(data):
         where = f"entry {index}"
         if not isinstance(entry, dict):
@@ -777,6 +778,8 @@ def _check_eval_file(
                 )
         queries.append(query.strip())
         positives += trigger
+        if not trigger and entry.get("expected"):
+            routed += 1
 
     duplicates = {q for q in queries if queries.count(q) > 1}
     for duplicate in sorted(duplicates):
@@ -790,6 +793,17 @@ def _check_eval_file(
             "thin-eval-set",
             f"{total} queries; at least {EVAL_MIN_QUERIES} are needed for the result to "
             "mean anything",
+            path,
+        )
+    if negatives and not routed:
+        add(
+            WARNING,
+            "no-routing",
+            f"none of the {negatives} negatives names the skill or subagent that should "
+            "win it instead, so each one passes whenever anything else fires — the wrong "
+            "neighbour included, which is the theft the field exists to catch. Add "
+            "'expected' to the negatives that have an obvious owner; a query nothing here "
+            "claims is right to leave alone",
             path,
         )
     if total and (positives < EVAL_MIN_PER_SIDE or negatives < EVAL_MIN_PER_SIDE):

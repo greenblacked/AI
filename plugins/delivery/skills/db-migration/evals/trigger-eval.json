@@ -9,14 +9,14 @@
   {"query": "is this migration actually reversible? the generated down() just drops the column we added", "should_trigger": true},
   {"query": "mysql 8, adding a column to a 90gb innodb table. is ALGORITHM=INSTANT enough or do we need gh-ost", "should_trigger": true},
   {"query": "adding a foreign key to a big table took the site down last time. how do we add it without the full scan", "should_trigger": true},
-  {"query": "CI is red on main since about 2pm and the build-and-test job dies at the docker login step", "should_trigger": false},
-  {"query": "pods went CrashLoopBackOff right after the 11:40 deploy, do we roll back or dig in", "should_trigger": false},
-  {"query": "terraform plan on this PR says it will replace the RDS instance. safe to approve or not", "should_trigger": false},
+  {"query": "CI is red on main since about 2pm and the build-and-test job dies at the docker login step", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "pods went CrashLoopBackOff right after the 11:40 deploy, do we roll back or dig in", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "terraform plan on this PR says it will replace the RDS instance. safe to approve or not", "should_trigger": false, "expected": "iac-review"},
   {"query": "which database should we pick for the new events service, postgres or dynamodb", "should_trigger": false},
   {"query": "this report query does a seq scan over 40 million rows and takes 9 seconds, help me get it under one", "should_trigger": false},
-  {"query": "we're moving the whole platform from us-east-1 to eu-west-1 next month and i need a runbook and a go/no-go", "should_trigger": false},
-  {"query": "write me a python job that syncs salesforce records into the warehouse every night", "should_trigger": false},
-  {"query": "write up the postmortem for last tuesday's outage, i already have the timeline in a doc", "should_trigger": false},
-  {"query": "this Dockerfile is 1.2GB and the process runs as root, can you tidy it up", "should_trigger": false},
-  {"query": "set up sqlalchemy models and alembic for a brand new service, there's no data in it yet", "should_trigger": false}
+  {"query": "we're moving the whole platform from us-east-1 to eu-west-1 next month and i need a runbook and a go/no-go", "should_trigger": false, "expected": "cutover"},
+  {"query": "write me a python job that syncs salesforce records into the warehouse every night", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "write up the postmortem for last tuesday's outage, i already have the timeline in a doc", "should_trigger": false, "expected": "postmortem"},
+  {"query": "this Dockerfile is 1.2GB and the process runs as root, can you tidy it up", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "set up sqlalchemy models and alembic for a brand new service, there's no data in it yet", "should_trigger": false, "expected": "code-scaffold"}
 ]

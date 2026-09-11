@@ -198,23 +198,33 @@ overflows, Claude Code keeps every skill's name but
 so those skills can still be invoked by name and stop being chosen on their own. A
 newly installed skill has never been used, so it is first to lose its description.
 
-This repository's fifty-five descriptions total about 49,000 characters, which is why they
-are split across seven plugins rather than three: five of the seven fit the default budget
-on their own, and the two that do not — `coding` and `manager` — are the ones nobody
-installs alongside much else. `make validate` prints the per-plugin total on every run, and
-`--listing-budget CHARS` turns exceeding it into a warning:
+This repository's descriptions total about 53,000 characters, which is why they are split
+across eight plugins rather than three: six of the eight fit the default budget on their
+own, and the two that do not — `coding` and `manager` — are the ones nobody installs
+alongside much else. `make validate` prints the per-plugin total on every run, and
+`--listing-budget CHARS` turns exceeding one number into a warning:
 
 ```bash
 PYTHONPATH=src python -m skillcheck . --listing-budget 8000
 ```
 
-It is not a gate, because the fix is not on the author's side: at twenty-one skills, even
-descriptions cut to five hundred characters would still overflow. What the number tells
-you is which of two things to do. Installers of more than one plugin should raise
-`skillListingBudgetFraction` in their settings, or mark rarely used skills `"name-only"`
-in `skillOverrides`. Authors should keep descriptions inside the 500–900 guidance rather
-than at the cap, and should score them with `--budget` to see what the runtime actually
-shows.
+A single threshold cannot gate this, because two plugins are already above the runtime
+default and a gate set there would fail on every run forever. So the gate is a ratchet
+instead, in the same shape as the coverage floor: `listing-budget.json` records a ceiling
+per plugin with a few hundred characters of slack, `make catalogue` enforces it, and
+growth has to be a decision rather than a drift. A description is 500–900 characters, so
+rewording stays free and adding a skill does not.
+
+```bash
+make catalogue                                  # enforce the ceilings
+python scripts/check_listing_budget.py --update  # raise them deliberately
+```
+
+Raise a ceiling and say why in the commit, or split the plugin. Installers of more than
+one plugin should raise `skillListingBudgetFraction` in their settings, or mark rarely
+used skills `"name-only"` in `skillOverrides`. Authors should keep descriptions inside the
+500–900 guidance rather than at the cap, and should score them with `--budget` to see what
+the runtime actually shows.
 
 ## Trigger eval sets
 
@@ -374,21 +384,26 @@ with "use for" and "do not use for", a numbered workflow, and an anti-patterns s
    only once you know what it does.
 3. Write `evals/trigger-eval.json` alongside it: twenty queries, ten `true` and ten
    `false`. Write them in the user's words rather than the skill's, and draw the
-   negatives from the skills this one sits next to. Doing this straight after the
-   description is what turns "this reads well" into a number.
-4. Add the skill to the right plugin's `skills` array in
-   [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json), keeping the
-   array alphabetical:
-
-   ```json
-   "./plugins/coding/skills/log-shipping"
-   ```
-
-5. Validate:
+   negatives from the skills this one sits next to. Put `"expected"` on every negative
+   with an obvious owner — a negative without it passes when any other skill fires,
+   including the wrong one, so the routing metric has nothing to measure. Doing this
+   straight after the description is what turns "this reads well" into a number.
+4. Nothing to add to
+   [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json). Each plugin
+   discovers its own `skills/`, so there is no list to keep alphabetical and none to
+   fall out of date. What the validator checks instead is ownership: a skill outside
+   every plugin's `skills/` directory is `unowned-skill`, because it installs for nobody.
+5. Validate, and add the row the README gate will ask for:
 
    ```bash
    make validate
+   make catalogue
    ```
+
+   `make catalogue` fails on a new skill twice over, both deliberately: it has no README
+   row yet, and it has pushed its plugin past the listing ceiling. Add the row, then
+   either raise the ceiling with `scripts/check_listing_budget.py --update` and say why,
+   or split the plugin.
 
 6. Optionally score the description, and check that the skill packages and installs:
 

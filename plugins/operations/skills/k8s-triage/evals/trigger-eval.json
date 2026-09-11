@@ -17,6 +17,6 @@
   {"query": "our staging cluster costs 4k a month, where is the money actually going", "should_trigger": false, "expected": "cost-review"},
   {"query": "the e2e workflow has failed six times in a row at the kind cluster setup step", "should_trigger": false, "expected": "ci-triage"},
   {"query": "this Dockerfile runs as root and the cluster rejects it, fix the image", "should_trigger": false, "expected": "image-hardening"},
-  {"query": "terraform plan wants to replace the eks node group, is that going to drain everything", "should_trigger": false, "expected": "plan-reviewer"},
+  {"query": "terraform plan wants to replace the eks node group, is that going to drain everything", "should_trigger": false, "expected": "iac-review"},
   {"query": "explain how kube-proxy iptables mode differs from ipvs", "should_trigger": false}
 ]

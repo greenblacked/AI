@@ -15,8 +15,8 @@
   {"query": "is it safe to take ibuprofen with the blood pressure tablets i am on", "should_trigger": false},
   {"query": "give me a recipe for a chicken traybake for four, i have potatoes and lemons in", "should_trigger": false},
   {"query": "recommend somewhere good for seafood on a saturday night", "should_trigger": false},
-  {"query": "read this paper on time restricted eating and add it to my vault", "should_trigger": false},
-  {"query": "how do i explain a six month gap on my CV where i was actually ill", "should_trigger": false},
+  {"query": "read this paper on time restricted eating and add it to my vault", "should_trigger": false, "expected": "learning-notes"},
+  {"query": "how do i explain a six month gap on my CV where i was actually ill", "should_trigger": false, "expected": "job-search"},
   {"query": "the dog keeps being sick after meals, is the food wrong", "should_trigger": false},
   {"query": "what is a sensible hypertrophy split for four days a week in the gym", "should_trigger": false}
 ]

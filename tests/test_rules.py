@@ -28,10 +28,12 @@ def write_skill(
     (directory / "SKILL.md").write_text(f"---\n{front}\n---\n\n{body}", encoding="utf-8")
     if evals:
         # A fixture skill is otherwise incomplete, and every assertion of "produces
-        # nothing" would trip over the missing-eval-set warning instead.
+        # nothing" would trip over the missing-eval-set warning instead. One negative
+        # names a winner for the same reason: a set where none does earns `no-routing`.
         (directory / "evals").mkdir(exist_ok=True)
         cases = [{"query": f"positive {i}", "should_trigger": True} for i in range(10)]
-        cases += [{"query": f"negative {i}", "should_trigger": False} for i in range(10)]
+        cases += [{"query": "negative 0", "should_trigger": False, "expected": "neighbour"}]
+        cases += [{"query": f"negative {i}", "should_trigger": False} for i in range(1, 10)]
         (directory / "evals" / "trigger-eval.json").write_text(json.dumps(cases), encoding="utf-8")
     return directory
 

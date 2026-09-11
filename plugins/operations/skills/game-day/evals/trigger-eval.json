@@ -9,14 +9,14 @@
   {"query": "fire drill for the incident response process - i want to see if anyone can write a status page update in ten minutes", "should_trigger": true},
   {"query": "we ran a chaos exercise last week and produced a doc full of observations that nobody has acted on", "should_trigger": true},
   {"query": "prove the runbook is right by actually breaking the thing it describes, with an observer taking notes", "should_trigger": true},
-  {"query": "we have an incident, checkout is down for maybe 20% of users and im IC", "should_trigger": false},
-  {"query": "pods in staging went CrashLoopBackOff right after the 11:40 deploy, roll back or dig in?", "should_trigger": false},
-  {"query": "run a k6 load test and find where the api starts falling over at 5000 rps", "should_trigger": false},
+  {"query": "we have an incident, checkout is down for maybe 20% of users and im IC", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "pods in staging went CrashLoopBackOff right after the 11:40 deploy, roll back or dig in?", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "run a k6 load test and find where the api starts falling over at 5000 rps", "should_trigger": false, "expected": "capacity-planning"},
   {"query": "set up a red team engagement to see if anyone can pivot from the web tier into the database", "should_trigger": false},
-  {"query": "write up the postmortem for last week's outage, i have the timeline in a doc already", "should_trigger": false},
-  {"query": "someone wants to add an alert for CPU over 80% after the incident. is that actually a good idea", "should_trigger": false},
-  {"query": "plan the cutover for moving the orders service to the new cluster this saturday with a rollback plan", "should_trigger": false},
-  {"query": "CI is red again on the payments service, third time today. same job, different test each time", "should_trigger": false},
-  {"query": "terraform plan on the PR says it's replacing the RDS instance, safe to approve or not", "should_trigger": false},
-  {"query": "write a bash script that snapshots the rds instance every night and prunes anything older than 30 days", "should_trigger": false}
+  {"query": "write up the postmortem for last week's outage, i have the timeline in a doc already", "should_trigger": false, "expected": "postmortem"},
+  {"query": "someone wants to add an alert for CPU over 80% after the incident. is that actually a good idea", "should_trigger": false, "expected": "alert-design"},
+  {"query": "plan the cutover for moving the orders service to the new cluster this saturday with a rollback plan", "should_trigger": false, "expected": "cutover"},
+  {"query": "CI is red again on the payments service, third time today. same job, different test each time", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "terraform plan on the PR says it's replacing the RDS instance, safe to approve or not", "should_trigger": false, "expected": "iac-review"},
+  {"query": "write a bash script that snapshots the rds instance every night and prunes anything older than 30 days", "should_trigger": false, "expected": "code-scaffold"}
 ]

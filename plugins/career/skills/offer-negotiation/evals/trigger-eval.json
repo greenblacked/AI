@@ -9,14 +9,14 @@
   {"query": "offer letter arrived and there is a clawback on the sign on bonus if i leave inside two years. should i be worried", "should_trigger": true},
   {"query": "i already told them on the call that the number sounded fine. is it too late to counter", "should_trigger": true},
   {"query": "need to turn down the other offer without burning the bridge, help me write it", "should_trigger": true},
-  {"query": "my cv is three pages and apparently that is too long for a staff role. what comes out", "should_trigger": false},
-  {"query": "system design round on thursday, grill me on designing a metrics pipeline", "should_trigger": false},
-  {"query": "putting together my promo case for staff engineer, what evidence do i need in it", "should_trigger": false},
-  {"query": "we are opening a senior sre req, design the interview loop and the scorecards", "should_trigger": false},
+  {"query": "my cv is three pages and apparently that is too long for a staff role. what comes out", "should_trigger": false, "expected": "job-search"},
+  {"query": "system design round on thursday, grill me on designing a metrics pipeline", "should_trigger": false, "expected": "job-search"},
+  {"query": "putting together my promo case for staff engineer, what evidence do i need in it", "should_trigger": false, "expected": "growth-review"},
+  {"query": "we are opening a senior sre req, design the interview loop and the scorecards", "should_trigger": false, "expected": "hiring-loop"},
   {"query": "i manage the platform team and i need to benchmark our salary bands against the market before planning", "should_trigger": false},
-  {"query": "make a permanent note from this paper on consensus protocols and link it to what i already have", "should_trigger": false},
-  {"query": "is this lunch too much if i am trying to lose half a kilo a week", "should_trigger": false},
-  {"query": "turn my migration write up into a post for the company engineering blog", "should_trigger": false},
-  {"query": "write the weekly status update on the platform programme for the exec review", "should_trigger": false},
-  {"query": "we missed the quarter by a mile, run me through a delivery review with the team", "should_trigger": false}
+  {"query": "make a permanent note from this paper on consensus protocols and link it to what i already have", "should_trigger": false, "expected": "learning-notes"},
+  {"query": "is this lunch too much if i am trying to lose half a kilo a week", "should_trigger": false, "expected": "health-coach"},
+  {"query": "turn my migration write up into a post for the company engineering blog", "should_trigger": false, "expected": "write-technical-article"},
+  {"query": "write the weekly status update on the platform programme for the exec review", "should_trigger": false, "expected": "status-update"},
+  {"query": "we missed the quarter by a mile, run me through a delivery review with the team", "should_trigger": false, "expected": "delivery-review"}
 ]
