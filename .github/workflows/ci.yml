@@ -112,6 +112,53 @@ jobs:
           python -m coverage report --format=markdown --fail-under=0 >> "$GITHUB_STEP_SUMMARY"
           python -m coverage report
 
+  catalogue:
+    name: check catalogue
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.13'
+      - name: Every plugin is inside its listing ceiling
+        # The runtime drops the descriptions of a plugin's least-used skills once the
+        # listing overflows its budget, and says nothing: they stay invocable by name
+        # and stop being chosen on their own. Re-cutting the plugins fixed that once;
+        # this is what stops it growing back.
+        run: python scripts/check_listing_budget.py .
+      - name: The README still describes what is in the repository
+        # A catalogue nobody checks is a catalogue that drifts. This one has, twice,
+        # both times after the plugins were re-cut.
+        run: python scripts/check_readme.py .
+
+  spelling:
+    name: lint spelling
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --upgrade pip "codespell==${CODESPELL_VERSION}"
+        env:
+          CODESPELL_VERSION: '2.4.3'
+      - name: Check spelling
+        # This ran weekly with only_warn set, which is the shape of check this
+        # repository rejects everywhere else: nobody had to clear it, so nobody read
+        # it. The false positives are listed in pyproject.toml with the reason each is
+        # one, which is what lets the gate sit at zero and mean something.
+        run: codespell
+
   lint-markdown:
     name: lint markdown
     runs-on: ubuntu-latest
@@ -206,6 +253,36 @@ jobs:
           python-version: '3.13'
       - name: Build a .skill archive for every skill
         run: PYTHONPATH=src python scripts/package_skills.py
+      - name: Every archive holds a loadable skill
+        # Building without error only proves the zip was written. What the upload route
+        # needs is a SKILL.md at the archive root whose `name` matches the archive, and
+        # a broken layout would ship silently: the build is green and the install is
+        # what fails, for someone else, later.
+        run: |
+          set -Eeuo pipefail
+          PYTHONPATH=src python - <<'EOF'
+          import pathlib
+          import zipfile
+
+          from skillcheck.frontmatter import parse
+
+          archives = sorted(pathlib.Path("dist").glob("*.skill"))
+          if not archives:
+              raise SystemExit("no archives in dist/")
+          for archive in archives:
+              stem = archive.stem
+              with zipfile.ZipFile(archive) as bundle:
+                  bad = bundle.testzip()
+                  if bad is not None:
+                      raise SystemExit(f"{archive}: corrupt member {bad}")
+                  member = f"{stem}/SKILL.md"
+                  if member not in bundle.namelist():
+                      raise SystemExit(f"{archive}: no {member} in the archive")
+                  values = parse(bundle.read(member).decode("utf-8")).values
+              if values.get("name") != stem:
+                  raise SystemExit(f"{archive}: declares name {values.get('name')!r}")
+          print(f"{len(archives)} archive(s) verified")
+          EOF
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: skills
@@ -222,6 +299,8 @@ jobs:
       - validate-skills
       - validate-plugin
       - test
+      - catalogue
+      - spelling
       - lint-markdown
       - lint-yaml
       - lint-actions

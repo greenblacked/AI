@@ -28,8 +28,8 @@ already-existing thing it must not collide with, what goes in the body and what 
 delegated.
 
 Then delegate to `implementer` with that decision, the paths, and anything from the
-survey it would otherwise rediscover. It writes the files and runs `make validate` and
-`make test` before returning. If it comes back with a red gate, send it the failure
+survey it would otherwise rediscover. It writes the files and runs `make validate`,
+`make catalogue` and `make test` before returning. If it comes back with a red gate, send it the failure
 rather than fixing the files here — it has the context for the change and you do not.
 
 ## 3. Judge

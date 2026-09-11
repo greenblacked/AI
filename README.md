@@ -22,11 +22,11 @@ helper, because both are ceremony.
 
 | Plugin | Focus | Contents |
 | --- | --- | --- |
-| `coding` | Reading, reviewing, testing and changing code | 12 skills, 1 subagents |
+| `coding` | Reading, reviewing, testing and changing code | 12 skills, 1 subagent |
 | `operations` | Keeping a running system alive | 8 skills, 4 subagents, 2 commands |
 | `delivery` | Getting a change into production | 5 skills |
 | `security` | The defensive side of shipping software | 5 skills, 2 subagents, 2 commands |
-| `manager` | Engineering leadership | 13 skills, 2 subagents, 1 commands |
+| `manager` | Engineering leadership | 13 skills, 2 subagents, 1 command |
 | `personal` | Money, travel, admin, habits and health | 7 skills |
 | `career` | Applications, negotiation, speaking and writing | 5 skills |
 

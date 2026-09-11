@@ -36,6 +36,8 @@ Everything here is prose and configuration. There is no application. The only co
 | `template/SKILL.md` | Starting point for a new skill |
 | `.claude-plugin/marketplace.json` | Lists the seven plugins; each discovers its own skills |
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml` |
+| `listing-budget.json` | Per-plugin ceilings for the skill listing; `scripts/check_listing_budget.py` enforces them |
+| `scripts/` | Packaging, install, the eval harness, and the two catalogue checks |
 | `scripts/hooks/` | The `PostToolUse` hook `.claude/settings.json` registers, which validates a skill as it is written |
 
 ## Setup commands
@@ -47,6 +49,7 @@ needs anything installed.
 ```bash
 python -m pip install pytest coverage   # only for `make test` and `make coverage`
 make validate                  # every skill, subagent and the marketplace manifest
+make catalogue                 # listing ceilings, and the README against the tree
 make test                      # the validator's own test suite
 make coverage                  # the same, failing below the floor in pyproject.toml
 make package                   # build a .skill archive per skill into dist/
@@ -55,9 +58,17 @@ make install                   # symlink every skill into ~/.claude/skills
 
 ## Testing instructions
 
-`make validate` and `make test` are the same commands CI runs. Run both before
-finishing; a change to `rules.py` that does not also change `tests/` is almost always
-missing a case.
+`make validate`, `make catalogue` and `make test` are the same commands CI runs. Run all
+three before finishing; a change to `rules.py` that does not also change `tests/` is
+almost always missing a case.
+
+`make catalogue` is the pair of checks on the repository's claims about itself. Adding a
+skill pushes its plugin's listing past the ceiling in `listing-budget.json`, on purpose:
+past the runtime's budget the descriptions of a plugin's least-used skills are dropped
+silently, so growth has to be a decision rather than a drift. Raise the ceiling with
+`scripts/check_listing_budget.py --update` and say why in the commit, or split the
+plugin. The same target checks that the README still lists every skill, subagent and
+command that exists and nothing that does not.
 
 The suite covers the scripts, not only the validator. `tests/conftest.py` holds the two
 fixtures they share: `mini_repo`, a complete plugin repository built in a temporary
@@ -74,9 +85,12 @@ changes; the generator refuses to write the file while the two parsers disagree.
 each is a judgement call rather than a rule, but a warning nobody has to clear is one
 that accumulates until the whole category stops being read.
 
-CI additionally runs markdownlint, yamllint, actionlint, an offline link check, gitleaks,
-zizmor, ruff (with the flake8-bandit rules) and CodeQL. `make lint` runs the first three
-locally when they are installed and tells you the command when they are not.
+CI additionally runs markdownlint, yamllint, actionlint, codespell, an offline link
+check, gitleaks, zizmor, ruff (with the flake8-bandit rules) and CodeQL. `make lint` runs
+the first four locally when they are installed and tells you the command when they are
+not. codespell's false positives live in `pyproject.toml` with the reason each is one;
+add to that list rather than silencing the check, and only for a word that is genuinely
+not a typo.
 
 The validator must keep working on a bare interpreter. Importing a third-party package
 in `src/skillcheck/` breaks the guarantee CI is built on, so do not add one.
@@ -108,7 +122,9 @@ in `src/skillcheck/` breaks the guarantee CI is built on, so do not add one.
 7. Nothing to add to `.claude-plugin/marketplace.json`: each plugin discovers its own
    `skills/`. What the validator checks is that the skill sits inside a plugin at all —
    one stranded outside `plugins/<name>/skills/` installs for nobody.
-8. Run `make validate && make test`.
+8. Run `make validate && make catalogue && make test`. The catalogue check will fail
+   until the README has a row for the skill, and may fail on the plugin's listing
+   ceiling — both are the gate working.
 
 `docs/writing-skills.md` has the full contract, including every validator code and how to
 fix it.
@@ -182,6 +198,7 @@ Shell in this repository, including inline `run:` blocks in workflows, uses
 Before finishing, confirm each of these and say so honestly if one does not hold:
 
 - [ ] `make validate` exits 0
+- [ ] `make catalogue` exits 0
 - [ ] `make test` passes
 - [ ] Every `references/`, `scripts/` or `assets/` path named in prose exists
 - [ ] Any new skill sits inside `plugins/<name>/skills/` and has an eval set

@@ -43,6 +43,7 @@ compared.
 
 ```bash
 make validate
+make catalogue
 make test
 ```
 
@@ -87,7 +88,8 @@ A verdict and its evidence. Not a transcript, and not the fix.
   written.
 - **Improvements**, kept separate and explicitly non-blocking, so the caller can ship
   without arguing with them.
-- **Gate output**, quoted: the validator's counts line and the test summary.
+- **Gate output**, quoted: the validator's counts line, the catalogue result and the
+  test summary.
 - **What you did not assess.** Name the files you did not open and the claims you could
   not verify. A review that implies coverage it did not have is worse than a short one
   that says where it stopped.

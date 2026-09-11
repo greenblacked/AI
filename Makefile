@@ -9,14 +9,19 @@ SHELL := bash
 # shadowed the pinned one.
 RUFF_PIN := $(shell sed -n "s/^ *RUFF_VERSION: *'\(.*\)'/\1/p" .github/workflows/security.yml)
 MARKDOWNLINT_PIN := 0.23.2
+CODESPELL_PIN := $(shell sed -n "s/^ *CODESPELL_VERSION: *'\(.*\)'/\1/p" .github/workflows/ci.yml)
 
-.PHONY: help validate test coverage lint package install clean
+.PHONY: help validate catalogue test coverage lint package install clean
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
 
 validate: ## Validate every skill, subagent and the marketplace manifest
 	PYTHONPATH=src $(PYTHON) -m skillcheck . --strict
+
+catalogue: ## Check the listing ceilings and that the README still matches the tree
+	@$(PYTHON) scripts/check_listing_budget.py .
+	@$(PYTHON) scripts/check_readme.py .
 
 test: ## Run the validator's own test suite
 	PYTHONPATH=src pytest
@@ -42,6 +47,8 @@ lint: ## Lint python, markdown, YAML and workflows (skips a tool when it is not 
 		else echo "yamllint not installed - run: pipx install yamllint"; fi
 	@if command -v actionlint >/dev/null 2>&1; then actionlint; \
 		else echo "actionlint not installed - see https://github.com/rhysd/actionlint"; fi
+	@if command -v codespell >/dev/null 2>&1; then codespell; \
+		else echo "codespell not installed - run: pipx install codespell==$(CODESPELL_PIN)"; fi
 
 package: ## Build a .skill archive for every skill into dist/
 	@PYTHONPATH=src $(PYTHON) scripts/package_skills.py

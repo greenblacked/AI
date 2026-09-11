@@ -37,7 +37,7 @@ For persisted data the same three phases apply, with the migration of existing r
 2. Move callers to the interface, in separate commits.
 3. Build the new implementation behind the same interface, merged to trunk but not selected — it is dead code until a flag selects it, which is exactly what makes the work incremental.
 4. Switch traffic over by flag, starting with a fraction where the system allows it.
-5. Delete the old implementation, then the abstraction if it has no other purpose. An interface with one implementor left behind is a cost with no return.
+5. Delete the old implementation, then the abstraction if it has no other purpose. An interface with one implementer left behind is a cost with no return.
 
 The flag is the rollback. Keep the old path intact and exercised until the new one has run a full business cycle, and give the flag an owner and a removal date, because a permanent flag doubles the paths every future change must consider.
 

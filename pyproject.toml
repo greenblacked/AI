@@ -51,5 +51,12 @@ known-first-party = ["skillcheck", "tests"]
 "tests/*" = ["S101"]
 
 [tool.codespell]
-skip = "./.git,./node_modules,*.lock"
+skip = "./.git,./node_modules,./dist,*.lock"
 quiet-level = 3
+# Each of these is a false positive, and the gate is only worth having if it stays at
+# zero. "trough" is the shape of a demand curve, not a typo for "through"; "applyable"
+# and "unparseable" are spellings in tool output and prose this repository quotes
+# verbatim; "stings" is the verb; "caf" is the first half of a latin-1 "cafe" in an
+# encoding test; "aplha" is a deliberate misspelling in the test that proves a
+# misspelled `expected` is caught.
+ignore-words-list = "trough,applyable,unparseable,stings,caf,aplha"

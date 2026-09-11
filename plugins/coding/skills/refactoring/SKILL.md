@@ -136,7 +136,7 @@ Report a refactor in this shape:
 
 **Extracting for line count.** Splitting a 300-line function into ten 30-line functions that are each called once and share eight parameters produces a call graph nobody can follow. Extract where there is a concept to name; leave the rest.
 
-**Introducing an abstraction for one implementation.** An interface with a single implementor, a factory that constructs one class, a strategy with one strategy — all cost indirection now and buy flexibility that is speculative. Wait for the second case; it will tell you where the seam actually is.
+**Introducing an abstraction for one implementation.** An interface with a single implementer, a factory that constructs one class, a strategy with one strategy — all cost indirection now and buy flexibility that is speculative. Wait for the second case; it will tell you where the seam actually is.
 
 **Reformatting in the same commit.** A whitespace or import-order pass over a file buries the four lines that matter in a 600-line diff, and `git blame` on that file now points at you for everything. Reformat in its own commit and add it to the blame-ignore list.
 

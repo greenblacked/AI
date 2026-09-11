@@ -1,0 +1,13 @@
+{
+  "_comment": "Per-plugin ceilings for the skill listing, in characters. Regenerate with scripts/check_listing_budget.py --update, and say in the commit why a ceiling went up.",
+  "runtime_default": 8000,
+  "plugins": {
+    "career": 5000,
+    "coding": 11000,
+    "delivery": 5000,
+    "manager": 12000,
+    "operations": 7500,
+    "personal": 6500,
+    "security": 5000
+  }
+}
