@@ -87,7 +87,7 @@ Rehearse the shape and the evidence, not the wording. Word-perfect answers sound
 
 ## Awkward facts
 
-A gap, a layoff, or a career change is fine and needs one calm sentence, in the user's own voice, followed by moving on. "I was in the 2025 platform-org layoff; I took two months to finish an AI-enablement project I had been putting off, and I have been interviewing since October." No apology, no over-explaining, no defensive framing — length signals discomfort more than the fact ever does. For a career change, lead with the transferable evidence and name the deliberate reason for the move in one line.
+A gap, a layoff, or a career change is fine and needs one calm sentence, in the user's own voice, followed by moving on. "My role was cut in a restructuring round; I spent two months finishing an open-source project I had been putting off, and I have been interviewing since." No apology, no over-explaining, no defensive framing — length signals discomfort more than the fact ever does. For a career change, lead with the transferable evidence and name the deliberate reason for the move in one line.
 
 ## Standard output format: tailored CV section
 

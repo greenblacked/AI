@@ -1,7 +1,8 @@
 # Contributing
 
-This is a personal library, so the bar for a new skill is "I would reach for this", not
-"this is generally useful". Issues and pull requests are welcome anyway — particularly
+The bar for a new skill is that someone would reach for it in real work, not that it is
+notionally useful: a skill that restates what a model already knows costs context on every
+session and earns nothing back. Issues and pull requests are welcome — particularly
 corrections, since several skills assert specific command flags and standards, and a
 wrong flag in a skill is worse than no skill.
 

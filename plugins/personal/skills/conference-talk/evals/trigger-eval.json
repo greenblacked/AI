@@ -6,7 +6,7 @@
   {"query": "should i run the kubectl bit live on stage or just record it beforehand", "should_trigger": true},
   {"query": "i am speaking at a meetup next week and i have never done it before, how do i not fall apart", "should_trigger": true},
   {"query": "my talk has three points and feels mushy, help me get it down to one thing people remember", "should_trigger": true},
-  {"query": "write the speaker bio for my submission, i have run the payments platform for four years", "should_trigger": true},
+  {"query": "write the speaker bio for my submission, i have led a platform team for a few years", "should_trigger": true},
   {"query": "there is always someone whose question is really a statement, how do i handle that on stage", "should_trigger": true},
   {"query": "look at these slides, they are dense and i think i am going to end up reading them out", "should_trigger": true},
   {"query": "turn the kafka migration into a blog post for our engineering site", "should_trigger": false},

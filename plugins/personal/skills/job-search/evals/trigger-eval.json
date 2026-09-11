@@ -2,7 +2,7 @@
   {"query": "here is the JD for a principal SRE role, what are they actually hiring someone to fix", "should_trigger": true},
   {"query": "my CV is three pages and i am told that is too long for a staff role. what comes out", "should_trigger": true},
   {"query": "onsite loop thursday, four rounds and one of them is system design. grill me", "should_trigger": true},
-  {"query": "i was made redundant in january and have not worked since. how do i put that in the cover note without sounding defensive", "should_trigger": true},
+  {"query": "i was made redundant nine months ago and have not worked since. how do i put that in the cover note without sounding defensive", "should_trigger": true},
   {"query": "they offered 105 and i wanted 120. what do i actually say back", "should_trigger": true},
   {"query": "rewrite this bullet for me, it says responsible for kubernetes infrastructure and i know that is weak", "should_trigger": true},
   {"query": "going from IC to management, does the whole CV need to look different", "should_trigger": true},

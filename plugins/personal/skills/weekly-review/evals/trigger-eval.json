@@ -11,7 +11,7 @@
   {"query": "i want to write down the things i am deliberately not doing this week so i stop feeling guilty about them", "should_trigger": true},
   {"query": "process this article into my vault and link it to the notes i already have", "should_trigger": false},
   {"query": "tailor my cv for this platform engineering role, applications close on friday", "should_trigger": false},
-  {"query": "they offered 118 base and a 20k sign on. should i counter and how", "should_trigger": false},
+  {"query": "they offered 96 base and a 10k sign on. should i counter and how", "should_trigger": false},
   {"query": "log what i ate today and tell me whether i am on track for my protein target", "should_trigger": false},
   {"query": "draft the weekly status update on the migration programme for the exec review", "should_trigger": false},
   {"query": "run the sprint delivery review with my team on friday, we shipped about half of what we said", "should_trigger": false},
