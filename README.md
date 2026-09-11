@@ -71,18 +71,26 @@ this reason. If you install several, raise the budget in `~/.claude/settings.jso
 
 ### ChatGPT, Grok, Codex and everything else
 
-There is no marketplace to read, so flatten the skills into files that stand alone —
-frontmatter becomes a plain "Use this when" line and every reference file is inlined, so
-nothing is left pointing at a path the reader cannot open:
+There is no marketplace to read, so the skills are flattened into files that stand alone
+— frontmatter becomes a plain "Use this when" line and every reference file is inlined, so
+nothing is left pointing at a path the reader cannot open.
+
+You do not need a toolchain to get them. Every CI run builds them and attaches them as
+the **portable-skills** artifact: open the
+[latest run](https://github.com/greenblacked/AI/actions/workflows/ci.yml?query=branch%3Amain),
+scroll to Artifacts, and download. Inside are one file per skill, one bundle per plugin,
+an index of every description, and a README explaining where each goes.
+
+If you do have a terminal, build them yourself instead:
 
 ```bash
 git clone https://github.com/greenblacked/AI.git && cd AI
 make portable       # writes dist/portable/
 ```
 
-Upload `dist/portable/plugins/*.md` to a ChatGPT Project or a Custom GPT, paste
-`dist/portable/skills/<name>.md` into any chat, or append a bundle to the `AGENTS.md` of
-the repository a terminal agent is working in. [Using the skills](docs/using.md) has the
+Either way: upload the `plugins/*.md` bundles to a ChatGPT Project or a Custom GPT, paste
+a single `skills/<name>.md` into any chat, or append a bundle to the `AGENTS.md` of the
+repository a terminal agent is working in. [Using the skills](docs/using.md) has the
 instruction text that makes a Project reach for them, and says plainly what does not
 survive the trip.
 

@@ -142,13 +142,23 @@ jobs:
         # else ever looked inside them. `bash -n` parses without executing, so this
         # runs no command and needs none of the binaries they name.
         run: python scripts/check_shell.py .
-      - name: Every skill still flattens into a file that stands alone
+      - name: Flatten every skill into a file that stands alone
         # The portable export is how this library reaches ChatGPT, Grok and anything
         # else without a skills runtime. Flattening inlines each `references/` file and
         # rewrites the pointer that named it; a pointer that survives as a path is a
         # dangling reference reintroduced at the boundary, for a reader who has no
         # filesystem to resolve it against.
-        run: PYTHONPATH=src python scripts/export_portable.py . --check
+        #
+        # It is built rather than only checked so the files can be uploaded below. The
+        # audience for them is someone using ChatGPT precisely because they have no
+        # coding toolchain, and telling that person to clone a repository and run make
+        # is the whole distribution problem restated as instructions.
+        run: PYTHONPATH=src python scripts/export_portable.py .
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: portable-skills
+          path: dist/portable
+          if-no-files-found: error
 
   spelling:
     name: lint spelling

@@ -107,14 +107,25 @@ There is no marketplace to read, so the skills are flattened into files that sta
 — frontmatter turned into a plain "Use this when" line, and every reference file inlined
 so no path is left for a reader with no filesystem to follow.
 
+**Download them, no toolchain needed.** Every CI run builds the flattened files and
+attaches them as the **portable-skills** artifact. Open the
+[latest run](https://github.com/greenblacked/AI/actions/workflows/ci.yml?query=branch%3Amain),
+scroll to Artifacts, and download `portable-skills`. This is the route to use if you are
+here because you do not have a coding setup — being told to clone a repository and run
+`make` would be the distribution problem restated as instructions.
+
+**Or build them.** If you do have a terminal:
+
 ```bash
 git clone https://github.com/greenblacked/AI.git && cd AI
 make portable          # writes dist/portable/
 ```
 
 **A Project** is the closest fit to how the skills are meant to work. Create one, upload
-the `dist/portable/plugins/*.md` bundles you want, and put this in the project
-instructions:
+the `plugins/*.md` bundles you want **and `index.md` alongside them** — a Project answers
+from retrieved chunks rather than the whole file, so the index is what guarantees the
+model can see every "Use this when" line at once and choose between them. Then put this in
+the project instructions:
 
 > You have a library of procedures in the project files. Before answering, check whether
 > one applies — each begins with "Use this when". If one does, follow it rather than
