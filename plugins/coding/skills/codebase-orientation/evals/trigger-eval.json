@@ -1,0 +1,22 @@
+[
+  {"query": "just inherited a 200k line python service from a team that got laid off. where do I even start", "should_trigger": true},
+  {"query": "new job, first week, how do I get my head around this repo fast enough to ship something by friday", "should_trigger": true},
+  {"query": "I need to change how discounts are applied but I have no idea where in this codebase that actually happens", "should_trigger": true},
+  {"query": "can you trace what happens when someone hits POST /checkout in this repo, end to end", "should_trigger": true},
+  {"query": "half of this repo looks dead. how do I tell what's actually still running in production", "should_trigger": true},
+  {"query": "want to contribute to this open source project but the directory layout makes no sense to me", "should_trigger": true},
+  {"query": "which files in here change the most and who actually owns them? nobody will tell me", "should_trigger": true},
+  {"query": "what would be a sensible first pull request on a codebase I've been reading for two days", "should_trigger": true},
+  {"query": "is this src/legacy folder vendored, generated, or ours? I can't tell and I don't want to edit the wrong thing", "should_trigger": true},
+  {"query": "took over an unowned service, need to write something down so the next person doesn't start from zero like I did", "should_trigger": true},
+  {"query": "checkout returns a 500 for one specific tenant since tuesday, help me find the cause", "should_trigger": false, "expected": "debugging"},
+  {"query": "can you go through the diff on PR 412 and tell me if it's safe to merge", "should_trigger": false, "expected": "code-review"},
+  {"query": "this module is a mess and I understand it fine, I want to break it into smaller pieces safely", "should_trigger": false, "expected": "refactoring"},
+  {"query": "write a README for this service so new people can run it locally", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "what tests should this payment module have, it's got none", "should_trigger": false, "expected": "test-design"},
+  {"query": "start a new go cli tool from scratch with proper error handling and logging", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "our CI has been red all morning on main and nobody knows why", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "bumping us from django 3 to django 5, what's the safe order to do it in", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "put together a 30 60 90 plan for the engineer joining my team in october", "should_trigger": false, "expected": "onboarding-plan"},
+  {"query": "we're moving this whole estate off heroku onto kubernetes, need a plan", "should_trigger": false, "expected": "plan-platform-migration"}
+]
