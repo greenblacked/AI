@@ -257,8 +257,10 @@ The validator checks the schema of that file on every run, and nothing more: at 
 queries, at least 8 on each side, no query string appearing twice, no keys beyond `query`,
 `should_trigger` and `expected`, `should_trigger` a real boolean rather than the string
 `"true"`, and `expected` only on a negative, never naming the skill itself, and naming a
-skill or subagent that exists — a misspelling there is a permanent miss. The codes are
-`no-evals` (a warning, the only one), `bad-eval-json`, `bad-eval-shape`, `bad-eval-entry`,
+skill or subagent that exists — a misspelling there is a permanent miss. It also warns
+when a set's negatives name no winner at all, which is the state that makes the routing
+number meaningless rather than merely incomplete. The codes are `no-evals` and
+`no-routing` (the two warnings), `bad-eval-json`, `bad-eval-shape`, `bad-eval-entry`,
 `unknown-expected`, `duplicate-eval-query`, `thin-eval-set` and `unbalanced-eval-set`.
 
 Subagents carry eval sets too, at `agents/evals/<name>.json` beside the agent file, with
@@ -470,6 +472,7 @@ Every code the validator can emit is below, grouped by what it is looking at.
 | `thin-eval-set` | error | Fewer than 16 queries. | Add more. Below that the pass rate moves too far on one result. |
 | `unbalanced-eval-set` | error | Fewer than 8 on either side. | Add to the short side — usually the negatives, which are what catch a description that fires on everything. |
 | `unknown-expected` | error | A negative names an `expected` winner that is not a skill or subagent here. | Fix the spelling. Left alone it scores as a permanent miss. |
+| `no-routing` | warning | None of the set's negatives names a winner, so each one passes whenever anything else fires — the wrong neighbour included. | Add `expected` to the negatives that have an obvious owner. A query nothing here claims is right to leave alone; most sets leave a few. |
 | `listing-over-budget` | warning, only with `--listing-budget` | A plugin's descriptions together exceed the given listing budget. | Not an author-side fix at this scale; see [the listing budget](#the-listing-budget). |
 | `conflicting-eval-query` | error | The same query is a positive in two skills' eval sets. | Decide which skill owns it and make it a negative in the other. Left alone, one of the two always scores as a miss. |
 
