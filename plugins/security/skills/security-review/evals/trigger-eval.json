@@ -1,0 +1,23 @@
+[
+  {"query": "can you security review this PR before I merge it", "should_trigger": true},
+  {"query": "is this endpoint safe to expose without auth", "should_trigger": true},
+  {"query": "does this handler need an authz check or is the middleware enough", "should_trigger": true},
+  {"query": "is this query injectable, we build the order by from a query param", "should_trigger": true},
+  {"query": "did we just commit a key in this branch", "should_trigger": true},
+  {"query": "look over my diff for anything an attacker could abuse", "should_trigger": true},
+  {"query": "this PR adds a url preview fetcher, anything I should worry about", "should_trigger": true},
+  {"query": "we changed the jwt validation in this change, can someone check it", "should_trigger": true},
+  {"query": "new postinstall script showed up in the lockfile diff, is that a problem", "should_trigger": true},
+  {"query": "review this branch for owasp top 10 issues", "should_trigger": true},
+
+  {"query": "review this diff for bugs and anything that could be simpler", "should_trigger": false, "expected": "code-review"},
+  {"query": "who has admin in our aws org and can we drop the wildcards", "should_trigger": false, "expected": "access-review"},
+  {"query": "a live api key got pushed to github an hour ago, what now", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "check this terraform plan before I apply it", "should_trigger": false, "expected": "iac-review"},
+  {"query": "our container image is huge and runs as root, fix it", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "bump express to v5 across the monorepo without breaking anything", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "CI is red on this PR and I cannot tell why", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "help me design the rest api for our new billing service", "should_trigger": false, "expected": "api-design"},
+  {"query": "write tests for this payments module", "should_trigger": false, "expected": "test-design"},
+  {"query": "walk me through how this repo is structured, I just joined", "should_trigger": false, "expected": "codebase-orientation"}
+]

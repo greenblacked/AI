@@ -1,0 +1,22 @@
+[
+  {"query": "what should i actually test here? it's a function that works out shipping bands by weight and destination", "should_trigger": true},
+  {"query": "i've got 5 config flags and testing every combination is 243 cases, how do i cut that down sensibly", "should_trigger": true},
+  {"query": "our coverage is 91% and we still shipped two regressions last sprint. is the number lying to us", "should_trigger": true},
+  {"query": "how do i test code that calls datetime.now everywhere without the tests breaking at midnight", "should_trigger": true},
+  {"query": "a customer reported the discount is applied twice on renewals, i want a failing test before i touch the code", "should_trigger": true},
+  {"query": "are these tests any good or are they just mocking everything and asserting the mock got called", "should_trigger": true},
+  {"query": "should this go in a unit test or an integration test against the real postgres", "should_trigger": true},
+  {"query": "we have 40 end to end tests and they take 25 minutes, which ones actually earn their place", "should_trigger": true},
+  {"query": "i need cases for a retry loop with backoff and jitter without the suite becoming nondeterministic", "should_trigger": true},
+  {"query": "inherited this repo, the suite is 1200 tests and i have no idea which of them would catch anything", "should_trigger": true},
+  {"query": "the checkout test has failed 4 times this week in CI but passes locally, is it a flake and can we just rerun", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "orders are occasionally saved with a null customer id and i cannot work out where it comes from", "should_trigger": false, "expected": "debugging"},
+  {"query": "this service module is 1800 lines, split it up without changing what it does", "should_trigger": false, "expected": "refactoring"},
+  {"query": "have a look at my PR before i ask the team, mostly changes to the auth middleware", "should_trigger": false, "expected": "code-review"},
+  {"query": "write me a python cli that reconciles two csv exports and exits nonzero on a mismatch", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "design the rest endpoints for the new notifications service, pagination and error shapes included", "should_trigger": false, "expected": "api-design"},
+  {"query": "bumping django from 4.2 to 5.1, what order do i do the dependencies in", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "set up a game day exercise for the payments team next month", "should_trigger": false, "expected": "game-day"},
+  {"query": "how many replicas will we need for black friday given last year's traffic", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "what alerts should we page on for the ingest pipeline", "should_trigger": false, "expected": "alert-design"}
+]

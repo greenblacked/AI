@@ -1,0 +1,22 @@
+[
+  {"query": "can you look over PR 412 before i merge it, it touches the checkout path", "should_trigger": true},
+  {"query": "here's my diff, tell me what i missed", "should_trigger": true},
+  {"query": "give this branch a once-over, i wrote most of it with an agent and i don't fully trust it", "should_trigger": true},
+  {"query": "is this change safe to ship on a friday", "should_trigger": true},
+  {"query": "the PR is 2300 lines and i have 40 minutes, how should i approach it", "should_trigger": true},
+  {"query": "my teammate approved this in 30 seconds and i think something's off with the refund logic, second opinion?", "should_trigger": true},
+  {"query": "i keep leaving comments about naming and people ignore my reviews, what should i be doing instead", "should_trigger": true},
+  {"query": "i can't run this code locally, can i still review it properly or am i wasting my time", "should_trigger": true},
+  {"query": "read through these three files i changed and tell me if the error handling is actually right", "should_trigger": true},
+  {"query": "sanity check this patch for concurrency problems before it goes out", "should_trigger": true},
+  {"query": "the pipeline went red on my PR and i can't tell if it's a flake or me", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "this endpoint returns 500 for about one in fifty requests and i have no idea why", "should_trigger": false, "expected": "debugging"},
+  {"query": "pods are stuck in CrashLoopBackOff since the last deploy, what do i do first", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "write me a script that rotates the log files nightly and exits nonzero on failure", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "we're designing the public v2 endpoints, how should pagination and errors work", "should_trigger": false, "expected": "api-design"},
+  {"query": "bump us from spring boot 2.7 to 3.2 without a branch that lives forever", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "do a proper threat model of the new file upload feature", "should_trigger": false, "expected": "security-review"},
+  {"query": "this 600 line class needs breaking up but the behaviour has to stay identical", "should_trigger": false, "expected": "refactoring"},
+  {"query": "what should we actually be testing in the billing service, the coverage number is meaningless", "should_trigger": false, "expected": "test-design"},
+  {"query": "i just joined and i have no idea how this repo fits together, where do i start", "should_trigger": false, "expected": "codebase-orientation"}
+]
