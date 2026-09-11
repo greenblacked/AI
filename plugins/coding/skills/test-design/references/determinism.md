@@ -34,6 +34,7 @@ UUIDs, tokens and generated identifiers are the same problem in disguise. Inject
 Sleeps are the failure mode. A `sleep` long enough to pass on a laptop is not long enough on a CI runner at four times the load, and it lengthens every run whether or not it was needed.
 
 Use instead:
+
 - A latch, barrier or semaphore the test controls, so the interleaving under test is the one that runs rather than the one that happens to.
 - Deterministic schedulers where the language offers one — a single-threaded executor, a manual event-loop pump, Go's `testing/synctest` for synthetic time.
 - A poll with a deadline (`waitFor(condition, timeout)`) at true asynchronous boundaries, which fails fast when broken and returns immediately when not.

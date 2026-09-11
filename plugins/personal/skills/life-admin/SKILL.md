@@ -1,17 +1,16 @@
 ---
 name: life-admin
 description: >-
-  Get through a bureaucratic process in one attempt rather than three — a renewal, a claim, a
-  registration, an application or a dispute with a company: establish the authoritative
-  requirement source before assembling anything, build the document set including the documents
-  needed to obtain the other documents, work backwards from the deadline through the lead times
-  you do not control, do the steps in the order the process requires, keep a record of every
-  submission and every person you spoke to, then escalate through the formal complaint and
-  ombudsman routes when it stalls. Use this skill whenever someone says "the insurer rejected
-  my claim", "I need to renew my driving licence", "the council keeps losing my form", "how do
-  I complain about my bank", "what documents do I need for this application", or is stuck in an
-  appeal. Not for operational procedures for systems (runbook), money decisions
-  (personal-finance), or planning a week of work (weekly-review).
+  Get through a bureaucratic process in one attempt — a renewal, claim, registration,
+  application or dispute with a company. Establish the authoritative requirement source first,
+  build the document set including the documents needed to obtain the other documents, work
+  backwards from the deadline through the lead times you do not control, do the steps in the
+  order the process requires, record every submission and every person spoken to, then escalate
+  through the formal complaint and ombudsman routes when it stalls. Use this skill whenever
+  someone says "the insurer rejected my claim", "I need to renew my driving licence", "the
+  council keeps losing my form", "how do I complain about my bank", or is stuck in an appeal.
+  Not for operational procedures for systems (runbook), money decisions (personal-finance), or
+  planning a week of work (weekly-review).
 allowed-tools: Read, Write, Edit, Glob, WebFetch, WebSearch
 ---
 

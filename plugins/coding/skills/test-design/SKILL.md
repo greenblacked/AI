@@ -94,6 +94,26 @@ Use it in exactly two ways. Read the uncovered list, because an uncovered error 
 
 Branch coverage is worth more than line coverage, because a one-line `if` is fully line-covered by a test that never takes the false path. Where the tool offers it, measure branches and ignore the line figure.
 
+## Choosing a test double
+
+Pick by what the test needs to observe, not by which library is already imported. The wrong double is how a suite ends up asserting on its own configuration.
+
+| What the test needs | Double to use | The failure the alternative causes |
+| --- | --- | --- |
+| A dependency that must return a canned value so the code under test can proceed | A stub, returning data and nothing else | A mock with call expectations here couples the test to how many times the code asks, which is implementation. |
+| Proof that an outgoing effect happened — an email sent, an event published | A spy recording the calls, asserted once at the end | Asserting on the return value alone lets a silently dropped side effect pass. |
+| The real behaviour of a stateful collaborator — a queue, a store, a cache | A fake with a working in-memory implementation, or the real thing | A stub returning fixed values cannot express state, so the test passes for sequences the real dependency would reject. |
+| A third-party HTTP API you cannot call in tests | A stub server speaking the real protocol, from a recorded interaction | A mocked client skips your serialisation, headers and error handling, which is where the defects are. |
+| Nothing — the dependency is pure and fast | The real object | Every double is a copy of a contract that will drift; do not create one you do not need. |
+
+Count the doubles per test. More than two or three means the code under test has too many collaborators, and that is a design finding worth reporting rather than a mocking problem to solve.
+
+## Naming and failure output
+
+A test name states the condition and the expected outcome, so a failure in a CI summary is diagnosable without opening the file: `rejects_a_transfer_that_would_overdraw`, not `test_transfer_2`. One reason to fail per test — a test with four unrelated assertions reports only the first, and the other three are untested until someone fixes it.
+
+Make the failure message carry the input. An assertion that prints `expected True, got False` costs the next reader a debugger session; one that prints the case's parameters and the actual value costs them nothing. Parameterised tests need the parameter in the generated case name for the same reason.
+
 ## Output format
 
 Report a test design in this shape, before writing the tests:

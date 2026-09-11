@@ -1,6 +1,16 @@
 ---
 name: travel-planning
-description: Plan a trip around the constraints that break trips rather than the ones that are fun to argue about — fix the immovable constraints first (dates, budget ceiling, who is coming, what would make the trip a failure), verify entry and visa requirements at the official government source, check passport validity and blank pages, then build the itinerary around minimum connection times, single ticket versus self-transfer risk, change and cancellation windows, insurance exclusions, time zones and arrival-day pacing. Use this skill whenever someone is planning or booking travel — "plan me a week in Japan", "is this connection too tight", "do I need a visa for Vietnam", "my passport expires in four months", "help me build a two-week itinerary", "should I book these two flights separately". Not for money decisions in general (personal-finance), work visas and relocation (job-search), planning a week of work (weekly-review), or paperwork at home (life-admin).
+description: >-
+  Plan a trip around the constraints that break trips — fix the immovable ones first (dates,
+  budget ceiling, who is coming, what would make the trip a failure), verify entry and visa
+  requirements at the official government source, check passport validity and blank pages, then
+  build the itinerary around minimum connection times, single ticket versus self-transfer risk,
+  change and cancellation windows, insurance exclusions and arrival-day pacing. Use this skill
+  whenever someone is planning or booking travel — "plan me a week in Japan", "is this
+  connection too tight", "do I need a visa for Vietnam", "my passport expires in four months",
+  "should I book these two flights separately". Not for general money decisions
+  (personal-finance), work visas and relocation (job-search), planning a week of work
+  (weekly-review), or paperwork at home (life-admin).
 allowed-tools: Read, Write, Edit, WebFetch, WebSearch
 ---
 

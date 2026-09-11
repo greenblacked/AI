@@ -62,6 +62,7 @@ check-in on Friday.
 the ask changes.
 
 **Instances.**
+
 - 4 March, sprint commitment on the search index. Told the team it would not land on the
   morning of the review. Two people had scheduled work behind it and lost the day.
 - 18 March, same pattern on the reindex script. QA had held a window open.
