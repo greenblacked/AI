@@ -1,0 +1,22 @@
+[
+  {"query": "we've settled the shape, now write the SKILL.md and its eval set and make validate pass", "should_trigger": true},
+  {"query": "add the validator rule we discussed plus its test, and leave the tree green", "should_trigger": true},
+  {"query": "make the edit to docs/writing-agents.md and run the gates before you come back", "should_trigger": true},
+  {"query": "create the slash command in .claude/commands and wire the argument hint", "should_trigger": true},
+  {"query": "split this reference file in two and fix every path that pointed at it", "should_trigger": true},
+  {"query": "implement it: new subagent, eval set, and the layout table row, then make validate && make test", "should_trigger": true},
+  {"query": "apply those five review findings to the files and prove the suite still passes", "should_trigger": true},
+  {"query": "rename the skill and update everything that referenced the old name", "should_trigger": true},
+  {"query": "write the workflow step and pin the action to a sha with the release tag in the comment", "should_trigger": true},
+  {"query": "do the change and run ruff format and ruff check since it touches python", "should_trigger": true},
+  {"query": "should we add a skill for this at all, or does something here already cover it", "should_trigger": false, "expected": "explorer"},
+  {"query": "the change is written, go over the diff and tell me if it can land", "should_trigger": false, "expected": "reviewer"},
+  {"query": "how should a skill be structured, and what goes in references versus the body", "should_trigger": false, "expected": "new-skill"},
+  {"query": "read this SKILL.md and tell me what's wrong with its description", "should_trigger": false, "expected": "skill-reviewer"},
+  {"query": "scaffold a new go service with a dockerfile, ci and a health endpoint", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "build me a landing page for the project", "should_trigger": false, "expected": "website-builder"},
+  {"query": "bump the pinned dependencies and work out which bumps are risky", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "this refactor keeps breaking things, how should i sequence it", "should_trigger": false, "expected": "refactoring"},
+  {"query": "commit and push what's in the tree", "should_trigger": false},
+  {"query": "tests are failing intermittently, help me work out why", "should_trigger": false, "expected": "debugging"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "the working tree has the change in it, review it before i commit", "should_trigger": true},
+  {"query": "go over the diff against main and tell me whether this can land", "should_trigger": true},
+  {"query": "did this change weaken anything in the validator to make itself pass?", "should_trigger": true},
+  {"query": "last gate on this branch: run the checks yourself and give me a verdict", "should_trigger": true},
+  {"query": "check the commands this new skill prints actually run as written", "should_trigger": true},
+  {"query": "verify the figures this skill cites against the primary sources before i ship it", "should_trigger": true},
+  {"query": "review these fourteen new files against AGENTS.md and rank what blocks the merge", "should_trigger": true},
+  {"query": "i think the tests were loosened in this diff, confirm or clear it", "should_trigger": true},
+  {"query": "before i open the pr, tell me what a careful reviewer would object to here", "should_trigger": true},
+  {"query": "audit this change for personal data, secrets and tool attribution", "should_trigger": true},
+  {"query": "read this candidate SKILL.md and tell me whether its description will trigger", "should_trigger": false, "expected": "skill-reviewer"},
+  {"query": "find out where the eval rule is implemented in this repo", "should_trigger": false, "expected": "explorer"},
+  {"query": "write the fixes you just described", "should_trigger": false, "expected": "implementer"},
+  {"query": "review pull request 412 on our payments service for bugs and blast radius", "should_trigger": false, "expected": "code-review"},
+  {"query": "threat model the new auth flow and tell me what an attacker gets", "should_trigger": false, "expected": "security-review"},
+  {"query": "here's the terraform plan json, what does the apply destroy", "should_trigger": false, "expected": "plan-reviewer"},
+  {"query": "compare what this iam role allows against what it actually used last quarter", "should_trigger": false, "expected": "policy-auditor"},
+  {"query": "what should our team's review gate for infrastructure code look like", "should_trigger": false, "expected": "iac-review"},
+  {"query": "run the retro on last week's outage", "should_trigger": false, "expected": "postmortem"},
+  {"query": "review how delivery went this quarter and what to change", "should_trigger": false, "expected": "delivery-review"}
+]

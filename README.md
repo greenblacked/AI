@@ -188,6 +188,13 @@ is not a reviewer.
 | `contract-reader` | `manager` | A contract, DPA or SOC 2 report | The clauses that decide the deal, quoted and located |
 | `feedback-synthesiser` | `manager` | Collected peer feedback | Themes with a source count and a quoted example |
 
+Three more sit in [`.claude/agents/`](.claude/agents) and ship to nobody. They are for
+working on this repository: `explorer` surveys what already covers a change, `implementer`
+writes it and runs the gates, and `reviewer` judges the result on a fresh context with no
+write access. Each runs on the tier its stage needs, and [`/ship`](.claude/commands/ship.md)
+runs the three in order. [Writing a subagent](docs/writing-agents.md#the-three-stage-loop)
+explains why the split earns its round trips.
+
 ## Commands
 
 A command never fires on its own — you type it — which makes it the right shape for work
@@ -204,6 +211,7 @@ Each does the mechanical part and points at the skill holding the full procedure
 | `/scaffold-skill` | this repository | Create the directory, SKILL.md and eval stub for a new skill, in the right plugin, refusing a duplicate name. |
 | `/eval-skill` | this repository | Score whether one description actually triggers, and name the phrasing it is missing. |
 | `/skill-doctor` | this repository | Diagnose one skill: validator findings, description health, eval-set balance, and which siblings it collides with. |
+| `/ship` | this repository | Take a change through the three-stage loop: survey what already exists, write it and run the gates, then judge the result independently. |
 
 ## CI is the source of truth
 

@@ -27,6 +27,7 @@ Everything here is prose and configuration. There is no application. The only co
 | `plugins/*/agents/` | Subagent definitions, validated on the same run as the skills |
 | `plugins/*/commands/` | Slash commands the plugin ships, validated on the same run |
 | `.claude/commands/` | Slash commands for working on this repository, not shipped to installers |
+| `.claude/agents/` | The three-stage loop — `explorer`, `implementer`, `reviewer` — for working on this repository, validated on the same run |
 | `src/skillcheck/` | The validator: `frontmatter.py` parses, `rules.py` decides, `cli.py` reports |
 | `tests/` | pytest over the validator, including a check that this repository validates clean |
 | `plugins/*/skills/*/evals/` | Trigger eval sets: the queries a skill should and should not fire on |

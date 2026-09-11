@@ -2,8 +2,11 @@
 
 Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
 frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md)
-for one of the nine this repository has today, seven with the `engineering` plugin and two
-with `manager`. A subagent is a separate Claude instance with its own context window, its
+for one of the nine this repository ships today — one with `coding`, four with
+`operations`, two with `security` and two with `manager` — and in `.claude/agents/` for
+the three that serve work on this repository rather than shipping to anyone, described in
+[the three-stage loop](#the-three-stage-loop) below. A subagent is a separate Claude
+instance with its own context window, its
 own system prompt, and its own tool allowlist, invoked by the main agent and returning a
 result to it.
 
@@ -172,9 +175,9 @@ inline.
 
 ## The subagents in this repository
 
-The `engineering` plugin discovers its own `agents/` directory — nothing lists them in
-[`marketplace.json`](../.claude-plugin/marketplace.json). Seven ship there, and two more
-with `manager`:
+Each plugin discovers its own `agents/` directory — nothing lists them in
+[`marketplace.json`](../.claude-plugin/marketplace.json). Nine ship: one with `coding`,
+four with `operations`, two with `security` and two with `manager`.
 
 - **`skill-reviewer`** — reviews a candidate `SKILL.md` against this repository's rules
   and against what makes a skill actually trigger. Runs the validator first to settle
@@ -205,7 +208,57 @@ five clauses in a vendor agreement that decide the deal, and `feedback-synthesis
 a pile of peer feedback into themes with a source count, refusing to present a
 single-source theme as consensus.
 
-Each plugin discovers its own `agents/` directory rather than listing files in the manifest — so there is no list to fall out of date. What
-the validator still checks is ownership: a subagent sitting outside every plugin is
-`unowned-agent`. That is the one that matters day to day, because a subagent no plugin
-ships installs for nobody and there is no symptom to notice. It fails [CI](ci.md).
+Each plugin discovers its own `agents/` directory rather than listing files in the
+manifest — so there is no list to fall out of date. What the validator still checks is
+ownership: a subagent in a bare top-level `agents/`, belonging to no plugin and not
+repo-local either, is `unowned-agent`. That is the one that matters day to day, because a
+subagent no plugin ships installs for nobody and there is no symptom to notice. It fails
+[CI](ci.md).
+
+## The three-stage loop
+
+Three more subagents live in [`.claude/agents/`](../.claude/agents), and they ship to
+nobody. They are for working on this repository, the same way `.claude/commands/` holds
+commands for contributors here rather than for installers. The validator scans that
+directory on the same run, so they are held to the contract above — including the key set
+a plugin-shipped subagent is limited to, which is stricter than Claude Code allows a
+project-level agent. That is deliberate: it means one of them can move into a plugin
+later without a surprise.
+
+They divide one change into three stages, and the division is the point. Each stage is a
+context the next one does not inherit, and each runs on the tier its work actually needs:
+
+| Stage | Subagent | Tier | Can write |
+| --- | --- | --- | --- |
+| Survey | [`explorer`](../.claude/agents/explorer.md) | cheap | no |
+| Write | [`implementer`](../.claude/agents/implementer.md) | mid | yes |
+| Judge | [`reviewer`](../.claude/agents/reviewer.md) | top | no |
+
+The tier is set per subagent with the `model` key, which is the only place in this
+repository that key is used. Claude Code resolves a subagent's model from the
+per-invocation argument first, then this frontmatter, then the `CLAUDE_CODE_SUBAGENT_MODEL`
+environment variable, then the main conversation's model. Frontmatter winning over the
+environment variable is what makes the tiering hold: someone who has set that variable
+for their own reasons still gets a top-tier reviewer.
+
+The split earns its round trips twice. **Survey is throwaway reading** — the answer to
+"what already covers this" costs fifty descriptions to reach and two sentences to state,
+which is the canonical context-isolation case, and it does not need an expensive model to
+do it. **Judgement has to be independent of the hand that wrote the change.** A reviewer
+that can edit will fix what it was asked to assess, so `reviewer` has no write access and
+returns findings rather than patches; carrying them back to `implementer` is what keeps
+the verdict worth having. Reviewing is also the stage where being wrong is most expensive,
+which is why it gets the capable model and the survey does not.
+
+[`/ship`](../.claude/commands/ship.md) runs the three in order. The middle decision —
+which plugin owns the change, what it must not collide with — stays in the main
+conversation, because that is the one part that depends on judgement built up over the
+session and travels badly through a cold prompt.
+
+Nothing about this is committed into `.claude/settings.json`, which applies to everyone
+who opens the repository. To pin a main-conversation model or set a subagent default for
+yourself, put it in `.claude/settings.local.json`, which is git-ignored:
+
+```json
+{ "model": "opus" }
+```
