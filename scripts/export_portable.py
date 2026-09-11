@@ -41,7 +41,10 @@ from skillcheck.rules import find_plugins, find_skills  # noqa: E402
 
 # A bundled path as it appears in prose, with or without a leading `./`.
 BUNDLED_RE = re.compile(r"(?<![A-Za-z0-9_./-])(?:\./)?((?:references|assets)/[A-Za-z0-9_.-]+\.md)")
-FENCE_RE = re.compile(r"^\s*(?:```|~~~)")
+# Any fence opener, with its full run of markers: the closing fence has to use the same
+# character and be at least as long, or a four-backtick block quoting a three-backtick
+# example closes early and everything after it is read as prose.
+FENCE_RE = re.compile(r"^(`{3,}|~{3,})")
 ATX_RE = re.compile(r"^(#{1,6})(\s+)")
 
 
@@ -51,13 +54,19 @@ def demote(text: str, levels: int) -> str:
     A `#` at the start of a line inside a shell block is a comment, not a heading, and
     rewriting it would corrupt a command the reader is meant to run.
     """
-    out, in_fence = [], False
+    out: list[str] = []
+    opening: str | None = None
     for line in text.split("\n"):
-        if FENCE_RE.match(line):
-            in_fence = not in_fence
+        fence = FENCE_RE.match(line.lstrip())
+        if fence is not None:
+            marker = fence.group(1)
+            if opening is None:
+                opening = marker
+            elif marker[0] == opening[0] and len(marker) >= len(opening):
+                opening = None
             out.append(line)
             continue
-        match = None if in_fence else ATX_RE.match(line)
+        match = None if opening is not None else ATX_RE.match(line)
         if match is None:
             out.append(line)
             continue

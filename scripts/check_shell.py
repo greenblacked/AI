@@ -41,8 +41,12 @@ import subprocess
 import sys
 from pathlib import Path
 
-FENCE_OPEN_RE = re.compile(r"^\s*(?:```|~~~)\s*(bash|sh|shell)\s*$", re.I)
-FENCE_CLOSE_RE = re.compile(r"^\s*(?:```|~~~)\s*$")
+# The marker run is captured so the closing fence can be required to use the same
+# character and be at least as long. Without that, a block quoting a bare ``` line
+# closes early and the prose after it is parsed as shell, which fails for a reason
+# that has nothing to do with the author.
+FENCE_OPEN_RE = re.compile(r"^(`{3,}|~{3,})\s*(bash|sh|shell)\s*$", re.I)
+FENCE_CLOSE_RE = re.compile(r"^(`{3,}|~{3,})\s*$")
 # `<run-id>`, `<known-bad-sha>`, `<the exact failing commit>`. Deliberately narrow: it
 # has to start with a letter, so a real redirection into a file or a here-string is not
 # swallowed and stays checkable.
@@ -55,12 +59,19 @@ def blocks(text: str):
     lines = text.split("\n")
     index = 0
     while index < len(lines):
-        if not FENCE_OPEN_RE.match(lines[index]):
+        opening = FENCE_OPEN_RE.match(lines[index].lstrip())
+        if opening is None:
             index += 1
             continue
+        marker = opening.group(1)
         start = index + 1
         end = start
-        while end < len(lines) and not FENCE_CLOSE_RE.match(lines[end]):
+        while end < len(lines):
+            closing = FENCE_CLOSE_RE.match(lines[end].lstrip())
+            if closing is not None:
+                run = closing.group(1)
+                if run[0] == marker[0] and len(run) >= len(marker):
+                    break
             end += 1
         yield start + 1, "\n".join(lines[start:end])
         index = end + 1

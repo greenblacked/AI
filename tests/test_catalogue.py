@@ -441,3 +441,36 @@ def test_an_empty_block_is_not_counted(tmp_path, capsys):
 def test_main_accepts_a_root(tmp_path):
     (tmp_path / "plugins").mkdir()
     assert shell.main([str(tmp_path)]) == 0
+
+
+def test_a_nested_shorter_fence_does_not_close_a_longer_one():
+    # A four-backtick block quoting a three-backtick example is one block. Closing on
+    # the inner fence makes the rest of the block parse as prose, and the failure is
+    # reported against the author rather than against the scanner.
+    text = "````bash\nls\n```\nstill inside\n````\n"
+    assert list(shell.blocks(text)) == [(2, "ls\n```\nstill inside")]
+
+
+def test_an_unterminated_fence_is_checked_rather_than_skipped():
+    # It runs to the end of the file. That is the safe direction for this check: the
+    # worst case is a false positive somebody reads, where skipping would turn the gate
+    # off for everything after the unclosed fence and say nothing.
+    [(line, source)] = list(shell.blocks("```bash\nls\n"))
+    assert line == 2
+    assert source.strip() == "ls"
+
+
+def test_demotion_leaves_a_comment_inside_a_nested_fence_alone():
+    # The same rule, in the exporter: `# inner` is a shell comment, and rewriting it as
+    # a heading corrupts a command the reader is meant to run.
+    text = "# Title\n\n````markdown\n```bash\n# inner comment\n```\n````\n\n## After\n"
+    out = portable.demote(text, 2)
+    assert "# inner comment" in out
+    assert "### inner comment" not in out
+    assert "### Title" in out
+    assert "#### After" in out
+
+
+def test_demotion_handles_a_tilde_fence_and_clamps_at_six():
+    assert "# comment" in portable.demote("~~~bash\n# comment\n~~~\n", 2)
+    assert portable.demote("###### Deep\n", 2).strip() == "###### Deep"
