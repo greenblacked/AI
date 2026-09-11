@@ -8,7 +8,7 @@ allowed-tools: "Read, Grep, Glob, Bash(git:*), Bash(gh:*), Bash(rg:*), Bash(jq:*
 
 A review is finished when every claim the change makes has been checked against the code that implements it, and every finding carries a severity that survives being read by the author six hours later.
 
-The job goes wrong in five reliable ways. The reviewer opens with the cheapest observations — naming, import order, a docstring — because those are findable without understanding anything, and by the time attention runs out the error path has never been read. The reviewer reads the diff and not the code around it, so a function that is correct in isolation and wrong at its two call sites passes. The reviewer treats the description as evidence rather than as a claim to be tested, which is the specific failure that matters most now that much of the code under review was generated: Stack Overflow's 2025 survey found 66% of developers spend more time than expected debugging AI-generated code and 45% describe it as "almost right, but not quite", and Sonar's 2026 developer survey reports 96% do not fully trust the functional accuracy of generated code, with the burden having moved from writing to verification — near-miss code reads well and fails on the branch nobody exercised. The reviewer emits twenty findings with no severity, so the author picks the three that are easiest to fix. And the reviewer, faced with 2,000 lines, skims all of it and approves, which is worse than reading 200 lines and saying so. This skill fixes the order, forces a severity on every finding, and makes partial coverage something you declare rather than hide.
+The job goes wrong in five reliable ways. The reviewer opens with the cheapest observations — naming, import order, a docstring — because those are findable without understanding anything, and by the time attention runs out the error path has never been read. The reviewer reads the diff and not the code around it, so a function that is correct in isolation and wrong at its two call sites passes. The reviewer treats the description as evidence rather than as a claim to be tested, which is the specific failure that matters most now that much of the code under review was generated: Stack Overflow's 2025 survey found 66% of developers name "AI solutions that are almost right, but not quite" as a frustration, and 45% name debugging AI-generated code as more time-consuming, and Sonar's 2026 developer survey reports 96% do not fully trust the functional accuracy of generated code, with the burden having moved from writing to verification — near-miss code reads well and fails on the branch nobody exercised. The reviewer emits twenty findings with no severity, so the author picks the three that are easiest to fix. And the reviewer, faced with 2,000 lines, skims all of it and approves, which is worse than reading 200 lines and saying so. This skill fixes the order, forces a severity on every finding, and makes partial coverage something you declare rather than hide.
 
 ## Scope
 
@@ -48,7 +48,7 @@ The diff shows what moved. Correctness lives in what surrounds it.
 For each changed function, open the file and read the whole function, then find its callers:
 
 ```bash
-rg -n 'chargeCustomer\(' --glob '!test*'
+rg -n 'chargeCustomer\(' --glob '!*test*' --glob '!*spec*'
 git log -n 5 --oneline -- path/to/changed_file.py
 git log -S 'retryOnTimeout' --oneline          # when this behaviour arrived, and why
 ```
@@ -172,7 +172,7 @@ Approving with non-blocking comments outstanding is usually correct and is what 
 
 **Reviewing the diff without the file.** The diff hides the invariant the function relied on and every caller that now behaves differently. This is how a change that is locally correct ships a regression, and it is the single most common way a careful review misses a real defect.
 
-**Taking the description as evidence.** The description says what the author intended; near-miss code says something adjacent. With 45% of developers reporting generated code is "almost right, but not quite" (Stack Overflow 2025), reading the description and then skimming for agreement finds exactly nothing, because the code does look right.
+**Taking the description as evidence.** The description says what the author intended; near-miss code says something adjacent. With 66% of developers naming "almost right, but not quite" as their top frustration with generated code (Stack Overflow 2025), reading the description and then skimming for agreement finds exactly nothing, because the code does look right.
 
 **Findings without severity.** Twenty equal-weight comments get triaged by cost to fix, so the rename gets done and the race condition gets a "good catch, follow-up" that never lands. Grading costs two minutes and decides which findings are actually acted on.
 

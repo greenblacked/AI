@@ -103,8 +103,8 @@ your next blocking finding believable.
 Treat the source as a prior on where to look rather than as a reason to review
 differently. Sonar's 2026 survey reports 96% of developers do not fully trust the
 functional accuracy of generated code and that the work has shifted from creation to
-verification; Stack Overflow's 2025 survey reports 66% spend more time than expected
-debugging it and 45% call it "almost right, but not quite". That near-miss shape has
+verification; Stack Overflow's 2025 survey reports 66% naming "almost right, but not quite" as a
+frustration and 45% naming debugging it as more time-consuming. That near-miss shape has
 specific tells:
 
 - **Plausible API usage that does not exist** in the version you depend on, or that
