@@ -1,7 +1,7 @@
 ---
 name: debugging
-description: "Drive a failure down to a proven cause before changing any code: capture the exact failure and its conditions, reproduce it reliably, reduce it to the smallest case that still fails, form one falsifiable hypothesis at a time, bisect through history and through the input, instrument instead of guessing, then prove the fix by turning the failure off and on again. Use this skill whenever a program misbehaves and nobody knows why — \"this crashes sometimes and I cannot work out why\", \"it works on my machine\", \"the test passes locally but not on the runner\", \"it worked yesterday and nothing changed\", \"intermittent 500s in the order service\", \"I have been staring at this for three hours\". Not for classifying a red pipeline, which is ci-triage; not for restoring a broken cluster workload or running a live outage, which is k8s-triage; not for judging someone else's diff, which is code-review."
-allowed-tools: "Read, Grep, Glob, Edit, Bash(git:*), Bash(rg:*), Bash(jq:*), Bash(python:*), Bash(node:*), Bash(go:*), Bash(pytest:*), Bash(npm:*), Bash(curl:*)"
+description: "Drive a failure down to a proven cause before changing any code: capture the exact failure and its conditions, reproduce it reliably, reduce it to the smallest case that still fails, form one falsifiable hypothesis at a time, bisect through history and through the input, instrument instead of guessing, then prove the fix by turning the failure off and on again. Use whenever a program misbehaves and nobody knows why — \"this crashes sometimes and I cannot work out why\", \"the test passes locally but not on the runner\", \"it worked yesterday and nothing changed\", \"intermittent 500s in the order service\", \"I have been staring at this for three hours\". Not for a red pipeline, which is ci-triage; not for a live outage or a broken cluster workload, which is k8s-triage; not for judging someone else's diff, which is code-review; not for choosing what a suite should test, which is test-design."
+allowed-tools: "Read, Grep, Glob, Edit, Bash(git:*), Bash(rg:*), Bash(python:*), Bash(node:*), Bash(go:*), Bash(pytest:*), Bash(npm:*), Bash(rr:*), Bash(gdb:*), Bash(strace:*), Bash(tcpdump:*), Bash(perf:*), Bash(valgrind:*), Bash(py-spy:*), Bash(jcmd:*)"
 ---
 
 # Debugging
@@ -67,7 +67,7 @@ A reproduction that takes eight minutes and 400 lines of input costs you every s
 
 Remove one thing at a time and re-check that it still fails: half the input, one service from the chain, one middleware, one configuration block, one test-suite dependency. Bisecting the input this way is usually faster than removing items one by one. Stop when every remaining element is load-bearing — each one removed makes the failure disappear.
 
-The reduced case is worth the time twice over. It makes every experiment below cheap, and by the time you have finished cutting, the remaining elements are frequently a description of the bug. If a reduction is itself expensive, `git bisect run` on the input with a scripted predicate works the same way as bisecting history.
+The reduced case is worth the time twice over. It makes every experiment below cheap, and by the time you have finished cutting, the remaining elements are frequently a description of the bug. If a reduction is itself expensive, the same binary-search technique with a scripted predicate works on the input — halve it, run the predicate, keep the failing half — exactly as it does on history.
 
 ### 4. One falsifiable hypothesis at a time
 

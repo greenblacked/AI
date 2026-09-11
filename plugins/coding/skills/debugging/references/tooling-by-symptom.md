@@ -19,7 +19,7 @@ Read when you know what class of bug you are in and need the command.
 | Symptom | Reach for | Why this one |
 | --- | --- | --- |
 | Deterministic crash or wrong value | A debugger with a conditional breakpoint on the bad value | You can stop exactly when the invariant breaks rather than stepping from the start |
-| Fails only sometimes, vanishes when observed | Recorded execution (`rr`, `undo`), or timestamped structured logging | A debugger changes the schedule; a recording replays the exact failing run |
+| Fails only sometimes, vanishes when observed | Recorded execution (`rr`, or `udb` from Undo), or timestamped structured logging | A debugger changes the schedule; a recording replays the exact failing run |
 | Intermittent with concurrency | The language race detector, then jitter injection | Detectors find races that did not fail, which is most of them |
 | Memory grows without bound | Two heap snapshots and a diff by allocation site | The total tells you there is a leak; the diff tells you where |
 | Crash with memory corruption | Address and undefined-behaviour sanitisers | They fail at the moment of corruption rather than at the later symptom |
@@ -43,6 +43,10 @@ Record in a loop until the failure is captured, then debug the recording rather 
 program. `gdb` and `lldb` both support watchpoints on a memory location, which is the
 fastest way to find who wrote a bad value. Java has similar ground via JFR recordings;
 `.NET` via time-travel debugging on Windows.
+
+`rr` needs Linux and access to hardware performance counters, which most containers and many
+cloud instances do not expose — check with `rr record /bin/true` before planning around it,
+and fall back to `udb`, to a JFR recording or to timestamped logging where it will not run.
 
 ## Race and memory detectors
 
@@ -73,9 +77,13 @@ go test -cpuprofile cpu.out -bench . && go tool pprof -http=: cpu.out
 py-spy record -o profile.svg --pid 1234
 py-spy dump --pid 1234                 # what every thread is doing right now
 node --cpu-prof --cpu-prof-dir=./prof app.js
-perf record -F 99 -g -- ./prog && perf script | flamegraph.pl > out.svg
-async-profiler -d 30 -f out.html <jvm-pid>
+perf record -F 99 -g -- ./prog && perf script | stackcollapse-perf.pl | flamegraph.pl > out.svg
+asprof -d 30 -f out.html <jvm-pid>            # async-profiler 3.x; ./profiler.sh up to v2
 ```
+
+`flamegraph.pl` consumes folded stacks, so `perf script` has to pass through
+`stackcollapse-perf.pl` first; piping `perf script` straight into it produces an empty or
+malformed SVG.
 
 Profile the workload that is slow, not a synthetic one, and compare a profile of the slow
 case against one of the fast case. A profile in isolation shows you where time goes,
@@ -88,12 +96,18 @@ waiting as well as working.
 
 ```bash
 strace -f -T -e trace=openat,connect,read,write -p 1234     # Linux
-dtruss / ktrace                                             # macOS
+sudo fs_usage -w -f filesys <pid>                           # macOS: file and socket activity
+sample <pid> 10                                             # macOS: where the time goes
 lsof -p 1234                                                # open files, sockets
 tcpdump -i any -w capture.pcap 'port 5432'
 mitmproxy --mode reverse:https://upstream                   # readable HTTPS, with TLS you control
 ltrace ./prog                                               # library calls
 ```
+
+On macOS, `dtruss` is the closest equivalent to `strace` but needs System Integrity
+Protection disabled, which is rarely acceptable on a work machine; `ktrace` is a kernel
+trace collector rather than a user-facing syscall tracer. Reach for `fs_usage` and `sample`
+first.
 
 `strace` answers "is it even trying?" in seconds — a missing file, a connection to the
 wrong host, a permission denied that the application reported as a generic error. Use `-T`
@@ -101,16 +115,9 @@ for durations to find which call is the slow one.
 
 ## Tracing and logging in production
 
-- Add a trace attribute carrying the suspect value rather than a log line, so it is
-  queryable and joined to the request. `instrumentation` covers designing this properly.
-- Log at boundaries with structured fields, not free text: the request id, the entity id,
-  the state before, the state after.
-- Sample aggressively but keep every error: tail-based sampling keeps the traces that
-  matter and drops the rest.
-- Gate verbose debugging behind a flag scoped to one entity — one account, one tenant,
-  one request header — so the volume is bounded and the blast radius is one customer.
-- Redact before shipping. Debug instrumentation added under pressure is the usual way
-  tokens and personal data reach a logging vendor.
+Add a trace attribute carrying the suspect value rather than a log line, so it is queryable
+and joined to the request. Designing that — the fields, the sampling, the cardinality and
+the redaction — belongs to `instrumentation`, which is where to go next.
 
 ## Language-specific flags
 
@@ -140,11 +147,19 @@ RUST_BACKTRACE=full cargo test -- --nocapture --test-threads=1
 cargo test -- --test-threads=1         # isolates ordering-dependent tests
 
 # C / C++
-gdb --args ./prog; catch throw; watch -l *0xaddr
+gdb --args ./prog
 ulimit -c unlimited                    # keep the core
 ```
 
-`--count=50`, `-p no:randomly` and `--test-threads=1` each exist to separate two
+The last two are entered at the `gdb` prompt, not at the shell, where `catch` is not a
+command and `watch` is the unrelated `procps` one:
+
+```gdb
+catch throw
+watch -l *0xaddr
+```
+
+`-count=50`, `-p no:randomly` and `--test-threads=1` each exist to separate two
 hypotheses that are easy to confuse: a test that fails on its own versus a test that
 fails only after another test ran.
 

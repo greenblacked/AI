@@ -76,7 +76,7 @@ review your change with any authority, so lean harder on tests and on the trace.
 
 ```bash
 git log --oneline --grep='revert' -i --since='24 months ago'
-git log --oneline --grep='roll ?back\|back out\|disable' -iE --since='24 months ago'
+git log --oneline -i -E --grep='roll ?back|back out|disable' --since='24 months ago'
 ```
 
 Read the revert and then the commit it reverted. Between them they usually name a failure
@@ -96,11 +96,18 @@ Files that appear in the same commit repeatedly are coupled whether or not the
 architecture says so.
 
 ```bash
-git log --since='12 months ago' --name-only --format='---' \
+git log --since='12 months ago' --name-only --pretty=format:'---' \
   | awk '/^---$/{if(n>1&&n<8)for(i=1;i<=n;i++)for(j=i+1;j<=n;j++)print f[i]"|"f[j];n=0;next}
-         NF{f[++n]=$0}' \
+         NF{f[++n]=$0}
+         END{if(n>1&&n<8)for(i=1;i<=n;i++)for(j=i+1;j<=n;j++)print f[i]"|"f[j]}' \
   | sort | uniq -c | sort -rn | head -20
 ```
+
+Two details are load-bearing. `--pretty=format:'---'` rather than `--format='---'`: a
+`--format` whose value carries no `%` is read as the name of a pretty format and git exits
+with `fatal: invalid --pretty format: ---`, so the whole pipeline yields nothing. And the
+`END` block flushes the last commit in the stream, whose file list no separator follows;
+without it that commit's pairs are silently dropped.
 
 Bounding the commit size (here between two and seven files) keeps bulk renames and
 formatting sweeps from swamping the result. A pair at the top of this list that lives in

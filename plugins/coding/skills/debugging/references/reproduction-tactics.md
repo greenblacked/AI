@@ -52,8 +52,9 @@ turn. Raise it until the bug is reliable, fix it, then check at the raised rate.
   the downstream service widens every window that depends on it.
 - Shrink the pools and caches so eviction and reuse happen constantly.
 - Run the language's race detector, which finds races that did not happen to fail:
-  `go test -race`, `-fsanitize=thread`, `RUSTFLAGS="-Z sanitizer=thread"`, Java's
-  `-XX:+UnlockDiagnosticVMOptions` with a concurrency stress harness.
+  `go test -race`, `-fsanitize=thread`, `RUSTFLAGS="-Z sanitizer=thread"`. On the JVM the
+  equivalent is jcstress, the OpenJDK concurrency stress harness, which runs a candidate
+  interleaving millions of times and reports the outcomes it actually observed.
 - For distributed races, run the two callers against the same key deliberately rather
   than waiting for it: a loop issuing the same two requests simultaneously will find a
   check-then-act in seconds.

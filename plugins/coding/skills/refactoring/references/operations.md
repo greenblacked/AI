@@ -17,7 +17,7 @@ Each operation below states what must be true before starting, the mechanical st
 
 **Precondition:** the new name is accurate for what the thing does now, not for what you intend it to do after the refactor. Renaming to the future name leaves the code lying until the rest lands.
 
-**Steps:** use the language server or IDE rename, which resolves references rather than matching text. Where none exists, list occurrences with `rg -w '\boldName\b'`, review each, and edit deliberately — then search once more for the name in strings, serialised data, database columns, configuration keys and documentation, because those are where a rename leaks out of the codebase and becomes a behaviour change.
+**Steps:** use the language server or IDE rename, which resolves references rather than matching text. Where none exists, list occurrences with `rg -w oldName`, review each, and edit deliberately — then search once more for the name in strings, serialised data, database columns, configuration keys and documentation, because those are where a rename leaks out of the codebase and becomes a behaviour change.
 
 **Check:** the diff contains no line where the surrounding logic changed. A rename commit where one hunk looks different is a rename commit with a bug in it.
 
@@ -47,7 +47,7 @@ Each operation below states what must be true before starting, the mechanical st
 
 **Steps:** move, fix imports, change nothing else. If the move requires an edit to the body, that edit is a separate commit before or after, never during.
 
-**Check:** `git diff -M --stat` reports a rename or a high similarity index. Deletions plus additions of similar size mean git could not match them, which usually means the body changed.
+**Check:** before committing, `git diff -M --stat --cached` reports a rename or a high similarity index — the move has to be staged for git to pair the deletion with the addition, which `git mv` does for you. Deletions plus additions of similar size mean git could not match them, which usually means the body changed. After the commit the same check is `git show -M --stat`.
 
 ## Split a module
 
@@ -67,7 +67,7 @@ Three techniques, in order of preference:
 
 Deferring an import inside a function body removes the tool's warning and leaves the cycle in place, moving the failure from import time to the first call at runtime. Treat it as a temporary measure with a follow-up, not as a fix.
 
-**Check:** run the cycle detector (`import-linter` or `pydeps` in Python, `madge` in JavaScript, `go list` with a graph tool) and see the cycle gone from the report, rather than inferring it from the code.
+**Check:** run the cycle detector (`import-linter`, whose command is `lint-imports`, or `pydeps` in Python, `madge` in JavaScript, `go list` with a graph tool) and see the cycle gone from the report, rather than inferring it from the code.
 
 ## Replace a conditional
 

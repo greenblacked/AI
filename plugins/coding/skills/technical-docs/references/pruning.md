@@ -32,8 +32,14 @@ git ls-files '*.md' | while read -r f; do
 done
 
 # Declared staleness: pages carrying a last-verified stamp, oldest first.
-grep -rn --include='*.md' -i 'last verified' . | sort -t: -k3
+grep -rEio --include='*.md' 'last[ -]verified[^0-9]{0,12}[0-9]{4}-[0-9]{2}-[0-9]{2}' . \
+  | sed -E 's/^([^:]*):.*([0-9]{4}-[0-9]{2}-[0-9]{2}).*/\2 \1/' | sort
 ```
+
+The reachability check matches on the basename, so read it as a shortlist rather than a
+verdict: two `setup.md` files in different directories mask each other, and a page reached
+only from a mkdocs nav, a sidebar or an HTML index reads as unreferenced when it is not.
+Confirm each hit by searching for its full path before deleting anything.
 
 The fourth source is page views, from whatever hosts the documentation. It is the
 strongest single signal and it is usually available and never looked at: a page with no

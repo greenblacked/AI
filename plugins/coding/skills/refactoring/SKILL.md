@@ -1,7 +1,7 @@
 ---
 name: refactoring
-description: "Restructure existing code without changing behaviour, in steps small enough that each one is provably safe: pin current behaviour with a characterisation test before touching code you do not understand, find a seam first when there are no tests at all, then apply one operation at a time — rename, extract, inline, move, split a module, break a dependency cycle, replace a conditional — keeping each commit to a single kind of change, never mixing a behaviour change with a move, and proving behaviour unchanged before you stop. Use this skill whenever someone says \"clean this up\", \"this file is 2000 lines\", \"untangle these circular imports\", \"rename this everywhere\", \"extract this into its own module\", or \"make this readable before I add the feature\". Do not use it for judging someone else's change (code-review), writing new code (code-scaffold), or choosing test cases (test-design)."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Bash(pytest:*), Bash(ruff:*), Bash(rg:*), Bash(make:*)
+description: "Restructure code without changing behaviour, in steps small enough that each one is provably safe: pin behaviour with a characterisation test before touching code you do not understand, find a seam when there are no tests at all, then apply one operation at a time — rename, extract, inline, move, split a module, break a dependency cycle, replace a conditional — keeping each commit to one kind of change, never mixing a behaviour change with a move, and proving behaviour unchanged before you stop. Use when someone says \"clean this up\", \"this file is 2000 lines\", \"untangle these circular imports\", \"rename this everywhere\", \"extract this into its own module\", or \"make this readable before I add the feature\". Not for judging someone else's change (code-review), writing new code (code-scaffold), choosing test cases (test-design), or moving onto a new major version or API (dependency-upgrade)."
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Bash(pytest:*), Bash(rg:*), Bash(lint-imports:*), Bash(pydeps:*), Bash(madge:*)
 ---
 
 # Refactoring
@@ -10,7 +10,7 @@ A refactor is finished when the external behaviour is demonstrably identical —
 
 Refactoring goes wrong in five ways, and all five are about the size and purity of the step rather than the destination. Someone starts restructuring code they do not understand, so the "obvious" simplification silently drops a branch that existed for a reason nobody wrote down. Someone mixes a behaviour change into a move, so the diff is unreviewable and the bisect that finds the regression lands on a 900-line commit. Someone works for two days without committing, hits a wall, and loses the good half along with the bad. Someone with no tests at all starts editing on the assumption the code is easy to verify by reading. And someone declares victory when the code looks nicer, with no evidence that it does the same thing. The gates below exist so that each of those is impossible rather than merely discouraged.
 
-The habit is worth defending explicitly. GitClear's 2026 analysis found refactoring line-moves down about 70% and long-term maintenance work down about 74% against the 2022 baseline as AI-authored volume rose — meaning the maintainability habit is the one eroding fastest while code volume grows.
+The habit is worth defending explicitly. GitClear's *The Maintainability Gap* (June 2026), drawn from 623 million changes, puts moved lines at 21% of changes in 2022 and 3.8% in 2026, and code updated after its first year at 1.7% in 2023 and 0.46% in 2026 — a fall of about 74% against that 2023 anchor, alongside the rise in AI-authored volume. It is vendor research and it measures correlation rather than cause, but the direction is consistent across four years: restructuring is now a rare enough act to be worth defending deliberately.
 
 ## Scope
 
@@ -47,11 +47,11 @@ If the reason is an upcoming feature, say which one. Preparatory refactoring is 
 | No tests and no seam to test at | Find the seam first — see step 3 | The seam-finding is the work; the restructuring afterwards is straightforward. |
 | A pure function with a wide input space | Capture current output for a large sample of inputs and diff old against new | This is cheaper than reasoning about a function you did not write, and it catches the branch you did not notice. |
 
-A characterisation test asserts what the code does today, not what it ought to do. Call it with representative input, observe the output, and paste the observation into the assertion, surprising values included. Where the output is large, record a snapshot and commit it. Name the file so the next reader knows it pins behaviour rather than specifying it, and add a comment on anything you believe is a bug, so the fix later is a deliberate decision instead of an accident.
+A characterisation test — Michael Feathers' term, from *Working Effectively with Legacy Code* — asserts what the code does today, not what it ought to do. Call it with representative input, observe the output, and paste the observation into the assertion, surprising values included. Where the output is large, record a snapshot and commit it. Name the file so the next reader knows it pins behaviour rather than specifying it, and add a comment on anything you believe is a bug, so the fix later is a deliberate decision instead of an accident.
 
 ### 3. Find a seam when there are no tests
 
-A seam is a place where behaviour can be changed without editing the code around it. Legacy code resists testing because construction, configuration and I/O are entangled with logic, and the fix is to introduce a seam with the smallest possible edit, then test through it.
+A seam, in Feathers' definition, is a place where behaviour can be altered without editing in that place: you change what happens from somewhere else, through an enabling point such as a constructor parameter, an overridable method or a substituted import. Legacy code resists testing because construction, configuration and I/O are entangled with logic, and the fix is to introduce a seam with the smallest possible edit, then test through it.
 
 | The obstacle | The seam to introduce | The smallest safe first edit |
 | --- | --- | --- |
@@ -84,7 +84,7 @@ Looking right is not evidence. Use at least two of these, and say which you used
 - A structural diff of the public surface — exported names and signatures before and after. An unintended visibility or signature change is the commonest accidental break.
 - For a pure transformation, a differential run: the old and new implementations against the same corpus of inputs, asserting byte-identical output. This is the strongest evidence available and it is cheap for parsers, formatters, serialisers and pricing logic.
 - For a service, a shadow or replay run over recorded production traffic, comparing responses.
-- For a move-only commit, `git diff -M --stat` showing renames rather than deletions and additions, which demonstrates mechanically that no content changed.
+- For a move-only commit, `git show -M --stat` showing renames rather than deletions and additions, which demonstrates mechanically that no content changed. Once the move is committed `git diff -M --stat` compares the working tree against it and prints nothing; use `git show -M --stat`, or `git diff -M --stat HEAD~1 HEAD`.
 
 Read `references/legacy-seams.md` again at this point when the code has no suite worth trusting and you need evidence anyway; its last section is the differential and replay machinery.
 
@@ -98,11 +98,7 @@ Land the work in small pull requests, each independently revertible. A branch th
 
 Large restructurings that cannot land in one commit need a strategy that keeps the trunk working throughout.
 
-- **Parallel change** (expand, migrate, contract): add the new shape alongside the old, move callers over in separate commits, then delete the old one. Each phase is independently shippable, and the contract phase is the only irreversible one.
-- **Branch by abstraction**: put an interface in front of the thing being replaced, implement the new version behind it, switch, then remove the abstraction if it has no other use. This is what makes a month-long restructuring possible without a long-lived branch.
-- **Keep a facade** where the old public name is widely used: leave it in place delegating to the new structure, deprecate it with a date, and delete it once the callers are gone. Renaming a widely-imported symbol in one commit makes every open branch conflict.
-
-Read `references/large-refactors.md` when the change spans more than a handful of files or cannot be finished in one sitting.
+Read `references/large-refactors.md` when the change spans more than a handful of files or cannot be finished in one sitting: it chooses between parallel change, branch by abstraction and a delegating facade per situation, and works each one through phase by phase.
 
 ## Output format
 

@@ -8,7 +8,7 @@
   {"query": "which files in here change the most and who actually owns them? nobody will tell me", "should_trigger": true},
   {"query": "what would be a sensible first pull request on a codebase I've been reading for two days", "should_trigger": true},
   {"query": "is this src/legacy folder vendored, generated, or ours? I can't tell and I don't want to edit the wrong thing", "should_trigger": true},
-  {"query": "took over an unowned service, need to write something down so the next person doesn't start from zero like I did", "should_trigger": true},
+  {"query": "took over an unowned service and spent a week reading it — I want the entry points, the request path I traced and the dead folders written down before I forget them", "should_trigger": true},
   {"query": "checkout returns a 500 for one specific tenant since tuesday, help me find the cause", "should_trigger": false, "expected": "debugging"},
   {"query": "can you go through the diff on PR 412 and tell me if it's safe to merge", "should_trigger": false, "expected": "code-review"},
   {"query": "this module is a mess and I understand it fine, I want to break it into smaller pieces safely", "should_trigger": false, "expected": "refactoring"},

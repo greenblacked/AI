@@ -1,22 +1,93 @@
 [
-  {"query": "write a README for this repo, right now there's just a title and a half finished install section", "should_trigger": true},
-  {"query": "need an architecture overview doc for the billing service that a new backend engineer could actually follow", "should_trigger": true},
-  {"query": "our docs are all two years out of date and half the commands don't work anymore. what do we do with them", "should_trigger": true},
-  {"query": "can you write a guide for how other teams integrate with our api, the generated spec isn't enough on its own", "should_trigger": true},
-  {"query": "nobody can onboard onto this service without me sitting with them for a day. I want that written down", "should_trigger": true},
-  {"query": "this setup doc mixes a tutorial and a config reference and it's unreadable, help me split it", "should_trigger": true},
-  {"query": "we have four pages describing the deploy process and they all disagree", "should_trigger": true},
-  {"query": "write a how-to for rotating the signing key that someone on another team could follow during working hours", "should_trigger": true},
-  {"query": "how do I stop our wiki growing forever, I want to delete stuff but everyone's scared to", "should_trigger": true},
-  {"query": "document this internal library properly before I go on leave for three months", "should_trigger": true},
-  {"query": "this alert links to nothing. write the procedure for whoever gets paged at 3am when the queue backs up", "should_trigger": false, "expected": "runbook"},
-  {"query": "we picked postgres over dynamo last week, write it up with the alternatives we rejected", "should_trigger": false, "expected": "decision-record"},
-  {"query": "I want to publish a piece on our blog about how we cut p99 latency by 80 percent", "should_trigger": false, "expected": "write-technical-article"},
-  {"query": "write up what happened in yesterday's outage and what we're changing", "should_trigger": false, "expected": "postmortem"},
-  {"query": "draft the customer facing status page update while we're still mitigating", "should_trigger": false, "expected": "incident-comms"},
-  {"query": "design the endpoints for our new partner api, should refunds nest under orders", "should_trigger": false, "expected": "api-design"},
-  {"query": "I've just been dropped into this repo and I don't know what any of it does yet", "should_trigger": false, "expected": "codebase-orientation"},
-  {"query": "summarise what shipped this release for the changelog and the customer email", "should_trigger": false, "expected": "release-notes"},
-  {"query": "write the weekly status update for my leadership team", "should_trigger": false, "expected": "status-update"},
-  {"query": "I'm giving a conference talk on this next month, help me structure it", "should_trigger": false, "expected": "conference-talk"}
+ {
+  "query": "write a README for this repo, right now there's just a title and a half finished install section",
+  "should_trigger": true
+ },
+ {
+  "query": "need an architecture overview doc for the billing service that a new backend engineer could actually follow",
+  "should_trigger": true
+ },
+ {
+  "query": "our engineering docs still describe the service as it was before last year's rewrite and nobody trusts a page of them",
+  "should_trigger": true
+ },
+ {
+  "query": "can you write a guide for how other teams integrate with our api, the generated spec isn't enough on its own",
+  "should_trigger": true
+ },
+ {
+  "query": "nobody can onboard onto this service without me sitting with them for a day. I want that written down",
+  "should_trigger": true
+ },
+ {
+  "query": "this setup doc mixes a tutorial and a config reference and it's unreadable, help me split it",
+  "should_trigger": true
+ },
+ {
+  "query": "we have four pages describing the deploy process and they all disagree",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I stop our wiki growing forever, I want to delete stuff but everyone's scared to",
+  "should_trigger": true
+ },
+ {
+  "query": "document this internal library properly before I go on leave for three months",
+  "should_trigger": true
+ },
+ {
+  "query": "write a how-to for rotating the signing key that someone on another team could follow during working hours",
+  "should_trigger": false,
+  "expected": "secret-rotation"
+ },
+ {
+  "query": "this alert links to nothing. write the procedure for whoever gets paged at 3am when the queue backs up",
+  "should_trigger": false,
+  "expected": "runbook"
+ },
+ {
+  "query": "we picked postgres over dynamo last week, write it up with the alternatives we rejected",
+  "should_trigger": false,
+  "expected": "decision-record"
+ },
+ {
+  "query": "I want to publish a piece on our blog about how we cut p99 latency by 80 percent",
+  "should_trigger": false,
+  "expected": "write-technical-article"
+ },
+ {
+  "query": "write up what happened in yesterday's outage and what we're changing",
+  "should_trigger": false,
+  "expected": "postmortem"
+ },
+ {
+  "query": "draft the customer facing status page update while we're still mitigating",
+  "should_trigger": false,
+  "expected": "incident-comms"
+ },
+ {
+  "query": "design the endpoints for our new partner api, should refunds nest under orders",
+  "should_trigger": false,
+  "expected": "api-design"
+ },
+ {
+  "query": "I've just been dropped into this repo and I don't know what any of it does yet",
+  "should_trigger": false,
+  "expected": "codebase-orientation"
+ },
+ {
+  "query": "summarise what shipped this release for the changelog and the customer email",
+  "should_trigger": false,
+  "expected": "release-notes"
+ },
+ {
+  "query": "write the weekly status update for my leadership team",
+  "should_trigger": false,
+  "expected": "status-update"
+ },
+ {
+  "query": "I'm giving a conference talk on this next month, help me structure it",
+  "should_trigger": false,
+  "expected": "conference-talk"
+ }
 ]

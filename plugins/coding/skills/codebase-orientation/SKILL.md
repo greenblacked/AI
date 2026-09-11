@@ -1,7 +1,7 @@
 ---
 name: codebase-orientation
 description: "Get oriented in a codebase you did not write, in a fixed order: what it does and for whom before how it is built, the entry points, one real request traced end to end, a named behaviour located in the code, the tests read as the specification, the history read as evidence of what churns and what has never moved, and the local dev loop run once — then separate live code from dead, generated and vendored code, and finish with a written map plus one small change. Use this skill whenever someone lands in unfamiliar code and asks \"where do I even start with this repo\", \"how does this service actually work\", \"I just inherited this project\", \"where does X actually happen in here\", or \"what should my first change be\". Do not use it to chase a specific failure (debugging), judge a diff (code-review), restructure code already understood (refactoring), or write the documentation afterwards (technical-docs)."
-allowed-tools: Read, Grep, Glob, Bash(git:*), Bash(rg:*), Bash(find:*), Bash(make:*), Bash(npm:*)
+allowed-tools: Read, Grep, Glob, Bash(git:*), Bash(rg:*), Bash(make:*), Bash(npm:*)
 ---
 
 # Codebase Orientation
@@ -119,7 +119,7 @@ The change is the proof. A map with no change behind it has not been tested agai
 
 Match the depth to the change you are about to make, and stop there. A newcomer trying to understand everything before touching anything is the most common way orientation consumes a month and produces nothing.
 
-| The change ahead | Stop after | Skip |
+| The change ahead | Do only | Skip |
 | --- | --- | --- |
 | A one-line fix with a reproducing test | Steps 4, 5 and 7 | The full trace; you need the one hop, not the path. |
 | A new endpoint or job alongside existing ones | Steps 1 to 7, tracing the nearest sibling | The history forensics; copy the working neighbour. |

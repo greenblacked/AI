@@ -1,6 +1,6 @@
 ---
 name: technical-docs
-description: "Write and maintain documentation still true in six months — a README, an onboarding or handover guide, an architecture overview, an API guide, and the pruning of whatever has gone stale: name the reader and what they can already do, pick exactly one Diátaxis mode (tutorial, how-to, reference or explanation) rather than blending two, execute every command and verify every path and link, stamp an owner and a last-verified date, and delete a page that has gone false rather than writing a newer one beside it. Use this skill whenever someone asks to \"write a README for this\", \"document this service before I go on leave\", \"write an architecture overview\", \"our docs are out of date\", \"nobody can onboard onto this without me sitting with them\", or \"how do we stop the wiki growing forever\". Do not use it for the procedure someone follows at 3am (runbook), a decision and its alternatives (decision-record), a publishable article (write-technical-article), the incident write-up (postmortem), ramping a new joiner (onboarding-plan), designing the interface (api-design), or the dated orientation snapshot of a repository you have just landed in (codebase-orientation)."
+description: "Write and prune internal documentation: a README for a newcomer's first hour, an onboarding or handover guide, an architecture overview, an API guide beside the generated spec. Name the reader, pick one Diátaxis mode — tutorial, how-to, reference, explanation — not two, execute every command, stamp an owner and date, and delete what is stale. Use this skill whenever someone says \"write a README for this\", \"document this service before I go on leave\", \"our wiki keeps growing and nobody deletes anything\", or \"nobody can onboard onto this service without me sitting with them for a day\" — the onboarding document, not the on-call one. Not for the 3am procedure (runbook), a decision and its alternatives (decision-record), a publishable article (write-technical-article), or the orientation snapshot of an unfamiliar repository (codebase-orientation); the owned, re-verified page is this skill's."
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash(git:*), Bash(rg:*), Bash(curl:*)
 ---
 
@@ -12,7 +12,7 @@ Documentation fails in five specific ways, and none of them is "not enough docum
 
 ## Scope
 
-Use for: a README for a repository or service; a how-to for a task someone performs during working hours; an architecture or design overview explaining how a system fits together; an API guide a human reads alongside the generated reference; an onboarding or setup document; auditing and pruning a documentation set that has gone stale.
+Use for: a README for a repository or service; a how-to for a task someone performs during working hours, where the task is not itself operational — rotating a key or draining a queue belongs to `runbook` whatever the hour; an architecture or design overview explaining how a system fits together; an API guide a human reads alongside the generated reference; an onboarding or setup document; auditing and pruning a documentation set that has gone stale.
 
 Do not use for: the operational procedure a responder follows during an incident (`runbook`), recording a decision and the alternatives rejected (`decision-record`), an article written for publication with a thesis and an argument (`write-technical-article`), the incident write-up afterwards (`postmortem`), the plan for onboarding a person rather than documenting a system (`onboarding-plan`), or designing the interface the guide describes (`api-design`).
 
@@ -20,7 +20,7 @@ The boundary with `codebase-orientation` is the artefact rather than the topic, 
 
 ## The four modes, and why mixing them is the core defect
 
-Diátaxis is Daniele Procida's framework, published at https://diataxis.fr under CC BY-SA. It splits documentation by what the reader is doing when they open it. The split matters because the four have incompatible obligations: a tutorial must never present a choice, and reference must present every choice.
+Diátaxis is Daniele Procida's framework, published at [diataxis.fr](https://diataxis.fr) under CC BY-SA. It splits documentation by what the reader is doing when they open it. The split matters because the four have incompatible obligations: a tutorial must never present a choice, and reference must present every choice.
 
 | Mode | Reader's state | Obligation | Failure when mixed in |
 | --- | --- | --- | --- |
@@ -75,8 +75,8 @@ done
 Two details decide whether that reports anything. `rg -n` on the file list prefixes a line
 number, so every filename arrives as `12:docs/x.md` and every inner command fails silently
 while the loop still exits 0 — list the files with a pathspec instead. And stripping the
-fragment before the existence test is what stops `](writing-skills.md#trigger-eval-sets)`
-being reported as broken.
+fragment before the existence test is what stops a link to a real file that carries an
+anchor — anything ending in `#some-heading` — from being reported as broken.
 
 A path that does not exist is the failure this repository's own validator was written to catch: two skills shipped for months naming reference files nobody had written, and nothing failed — the reader follows the pointer, finds nothing, and proceeds on incomplete information with no error anywhere. A broken pointer in documentation is the same defect with the same silence. Verify the pointer at the moment you write it.
 

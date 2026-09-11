@@ -106,6 +106,10 @@ middle section is the trace you were trying to build by hand. Strip the framewor
 keep the ones in the repository's own package, and that list is step 3 of the workflow
 with no work.
 
+That order holds for Java, JavaScript, Go and Rust. Python prints its traceback the other
+way round — it says so at the top, "most recent call last" — so a Python traceback is read
+downwards: the entry point is at the top and the last line is where it broke.
+
 ## Recording the trace
 
 One line per hop, in the order the request visits them, each carrying file, function and

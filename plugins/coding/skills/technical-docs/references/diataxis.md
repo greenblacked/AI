@@ -3,6 +3,10 @@
 Read this when a draft resists being one mode, or when splitting a page that has grown
 into two or three. The workflow's table is the summary; this is the decision procedure.
 
+The four modes are Daniele Procida's Diátaxis framework, published at [diataxis.fr](https://diataxis.fr)
+under CC BY-SA. What follows is how to apply it to an internal documentation set; read the
+original for the theory behind the split.
+
 ## Contents
 
 - [Placing a document in one question](#placing-a-document-in-one-question)
