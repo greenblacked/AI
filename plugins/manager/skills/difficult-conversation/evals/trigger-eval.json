@@ -1,0 +1,22 @@
+[
+  {"query": "I need to tell someone their work is not good enough and I have been avoiding it for a month", "should_trigger": true},
+  {"query": "how do I open with a report who keeps missing deadlines without him getting defensive", "should_trigger": true},
+  {"query": "two of my engineers cannot work together and I have to sit them down", "should_trigger": true},
+  {"query": "I have to tell my manager I cannot take the migration on as well as the launch", "should_trigger": true},
+  {"query": "what do I say if she starts crying when I give her this feedback", "should_trigger": true},
+  {"query": "I have to tell Rob the reorg is happening and it is not up for debate", "should_trigger": true},
+  {"query": "I have to tell my teammate he did not get the tech lead role and he expected it", "should_trigger": true},
+  {"query": "a peer took credit for my work in front of the leadership team and I want to raise it with him", "should_trigger": true},
+  {"query": "I keep rescheduling a one to one because I am dreading what I have to say", "should_trigger": true},
+  {"query": "help me script the first two minutes of a conversation about someone's attitude in retros", "should_trigger": true},
+  {"query": "write up Priya's performance review, ratings are due on Friday", "should_trigger": false, "expected": "growth-review"},
+  {"query": "build the promotion case for my staff engineer before calibration", "should_trigger": false, "expected": "growth-review"},
+  {"query": "draft the customer update for the checkout outage this morning", "should_trigger": false, "expected": "incident-comms"},
+  {"query": "design the interview loop for a senior backend hire", "should_trigger": false, "expected": "hiring-loop"},
+  {"query": "put together the first 30 days for our new platform engineer", "should_trigger": false, "expected": "onboarding-plan"},
+  {"query": "write the postmortem for last night's database failover", "should_trigger": false, "expected": "postmortem"},
+  {"query": "I keep saying I will run three times a week and I never do", "should_trigger": false, "expected": "habit-change"},
+  {"query": "we need a decision record for picking Postgres over DynamoDB", "should_trigger": false, "expected": "decision-record"},
+  {"query": "draft this week's stakeholder status update for the platform programme", "should_trigger": false, "expected": "status-update"},
+  {"query": "the base in this offer is lower than I wanted, how do I push back", "should_trigger": false, "expected": "offer-negotiation"}
+]
