@@ -1,0 +1,22 @@
+[
+  {"query": "orders.py is 2100 lines and every change to it breaks something else, can we split it up", "should_trigger": true},
+  {"query": "clean this up before i add the multi-currency feature, it's unreadable as it stands", "should_trigger": true},
+  {"query": "we have circular imports between services/billing and services/accounts, how do i untangle them", "should_trigger": true},
+  {"query": "rename Customer to Account everywhere without breaking the twelve services that import it", "should_trigger": true},
+  {"query": "this function has a 9 branch if/elif chain on payment provider, is there a better shape", "should_trigger": true},
+  {"query": "there are no tests on this module at all and i need to restructure it, where do i even start", "should_trigger": true},
+  {"query": "pull the pdf rendering out of the report handler into its own module", "should_trigger": true},
+  {"query": "how do i prove i didn't change behaviour when i restructured the pricing engine", "should_trigger": true},
+  {"query": "i want to swap out our homegrown queue wrapper for the sdk without a three week branch", "should_trigger": true},
+  {"query": "inherited a 600 line god class, what order should i do the cleanup in so it stays mergeable", "should_trigger": true},
+  {"query": "what cases should i write for this discount calculator, i keep missing the edges", "should_trigger": false, "expected": "test-design"},
+  {"query": "can you go over my pull request, it touches the session handling", "should_trigger": false, "expected": "code-review"},
+  {"query": "the checkout total is off by a penny for some orders and i cannot find where", "should_trigger": false, "expected": "debugging"},
+  {"query": "write a new service that syncs our stripe invoices into the warehouse every hour", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "we're versioning the public api, how should the new endpoints be shaped", "should_trigger": false, "expected": "api-design"},
+  {"query": "upgrade us off node 18 and get all the transitive deps current", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "the ci build has been red since this morning and nobody knows why", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "we need to move this table to a new schema without downtime", "should_trigger": false, "expected": "db-migration"},
+  {"query": "write up why we picked kafka over sqs so nobody reopens it in six months", "should_trigger": false, "expected": "decision-record"},
+  {"query": "our aws bill jumped 30% last month, where is it going", "should_trigger": false, "expected": "cost-review"}
+]
