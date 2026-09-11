@@ -18,6 +18,8 @@ Do not use for: what to eat, calorie and macro targets, or meal planning — tha
 
 "I want to exercise more" sits on the line and splits cleanly: the frequency, the cue, the smallest version and the recovery rule are this skill; what to eat around the training is `health-coach`; slotting three sessions into next week's real calendar is `weekly-review`. Where a request is mostly one of the other two, hand it over by name rather than running this procedure on it.
 
+Weight loss splits on the same line, and it is worth stating because the request usually arrives named after the outcome. "I want to lose weight — help me build a habit of going to the gym three times a week" is this skill: what is being asked for is a behaviour, and the cue it follows, the version that survives a bad day and the recovery rule are what decide whether it happens. The calorie target, what to eat around the training, and whether the plan moves the weight at all are `health-coach`. Design the behaviour here and hand the eating half over by name.
+
 ## What the evidence actually supports
 
 Quote these numbers rather than the folklore, and quote the spread as well as the middle.
@@ -43,7 +45,7 @@ Then convert the goal into a behaviour. "Get fitter" is an outcome and cannot be
 
 ### 2. Shrink it until a bad day cannot stop it
 
-Set the size against the worst realistic day in a month — ill, travelling, a bad night with a child, a late finish — not against the day the person is planning on. A design that only works on good days will run for as long as the good days last, which is usually eleven days.
+Set the size against the worst realistic day in a month — ill, travelling, a bad night with a child, a late finish — not against the day the person is planning on. A design that only works on good days will run for as long as the good days last, which is rarely more than a week or two.
 
 | The stated ambition | The version that survives a bad day |
 | --- | --- |
@@ -110,13 +112,13 @@ Read the misses as design evidence. A behaviour that fails on Thursdays has a Th
 
 Starting adds a behaviour to an empty slot; stopping leaves a slot that the old behaviour will reclaim unless something else takes it. Four differences change the design.
 
-**There is no floor version.** "Smoke less" and "scroll a bit" are not floors, they are the behaviour at reduced volume with the cue intact. For genuinely compulsive behaviours, abrupt cessation beats tapering: Lindson-Hawley and colleagues (2016), in a randomised trial of nearly 700 smokers, found abrupt quitting produced higher abstinence at four weeks than gradual reduction, 49% against 39%. Set a date rather than a slope.
+**There is no floor version.** "Smoke less" and "scroll a bit" are not floors, they are the behaviour at reduced volume with the cue intact. For a nicotine-type behaviour — a specific cue, a supply you control, no physical dependence that stopping would destabilise — abrupt cessation beats tapering: Lindson-Hawley and colleagues (2016), in a randomised trial of nearly 700 smokers, found abrupt quitting produced higher abstinence at four weeks than gradual reduction, 49% against 39%. Set a date rather than a slope. The evidence is a smoking trial and the rule stops at that shape. Withdrawal from alcohol, benzodiazepines and some other medications is a medical event that abrupt cessation can make dangerous, so anything in that group goes to a clinician for a supervised plan before any date is set.
 
-**Suppression rebounds.** Wegner's work on ironic process (1987) is the reason "just don't think about it" fails: monitoring for the thought produces the thought. Design around the cue instead of around the urge — remove the trigger, leave the room, change the route — and give the slot a replacement behaviour that uses the same hands and the same two minutes.
+**Suppression rebounds.** Wegner, Schneider, Carter and White (1987) are the reason "just don't think about it" fails: people told not to think of a white bear thought of it more, during the instruction and afterwards. Wegner's ironic process theory (1994) supplied the mechanism — suppression requires a monitor that searches for the thought, and the search is what keeps producing it. Design around the cue instead of around the urge — remove the trigger, leave the room, change the route — and give the slot a replacement behaviour that uses the same hands and the same two minutes.
 
 **Name the trigger, not the habit.** Log the next ten instances with what preceded each: time, place, who was present, what feeling. The list is almost always short and situational — the after-dinner cigarette, the phone at the first boring moment of a meeting, the drink at the point of putting the children to bed. Each entry gets its own environment fix, and the ones with no fix get a substitute.
 
-**The recovery rule is more important, not less.** A single lapse in a stopping attempt is the classic abstinence violation point. Write the rule as: a lapse is one event, it does not restart a counter, and the next instance of the trigger has a named alternative. If the behaviour is alcohol, nicotine, drugs, gambling or self-harm, say plainly that this skill is a design tool and not treatment, and point at a clinician or a specialist service; withdrawal from alcohol and some medications is a medical matter, not a willpower matter.
+**The recovery rule is more important, not less.** A single lapse in a stopping attempt is the classic abstinence violation point. Write the rule as: a lapse is one event, it does not restart a counter, and the next instance of the trigger has a named alternative. If the behaviour is alcohol, nicotine, drugs, gambling or self-harm, say plainly that this skill is a design tool and not treatment, and point at a clinician or a specialist service rather than running this design on top of it.
 
 ## Telling a formed habit from one running on motivation
 

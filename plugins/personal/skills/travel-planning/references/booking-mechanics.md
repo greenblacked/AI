@@ -54,7 +54,9 @@ has probably already gone.
 
 The published minimum connection time is the shortest interval at which an airport's
 systems will sell a connection. It assumes an on-time arrival, no gate change, no queue,
-and a passenger who moves briskly and knows the way. It is a legal floor, not a safe one.
+and a passenger who moves briskly and knows the way. It is a commercial scheduling value
+published by the airport and its carriers in the IATA and OAG databases, so it is a
+scheduling floor rather than a safety margin, and nothing legal turns on it.
 
 Typical published values, which vary by airport and terminal and should be checked for the
 specific airport:
@@ -113,8 +115,8 @@ notified inside a notice period, applying to departures from those territories o
 airline and to arrivals on their carriers. It does not apply where the cause is an
 extraordinary circumstance outside the airline's control, which covers most weather and
 air-traffic control events but not, under settled case law, ordinary technical faults. The
-United States has no equivalent compensation scheme for delay; its protections are refunds
-and, since recent rulemaking, fee transparency.
+United States has no equivalent compensation scheme for delay; its protections are
+refunds.
 
 **Duty of care** is separate again and is owed during the wait: meals proportionate to the
 delay, and accommodation plus transfers where an overnight is forced. It does not stop
@@ -124,6 +126,11 @@ What to do at the time, in order: get rebooked first, because seats are finite a
 compensation is not; keep the boarding passes, the delay notification and any receipt;
 claim the statutory compensation directly with the airline before paying a claims company
 a share of it.
+
+Where the claim is refused and you intend to push it, the work stops being a travel
+question and becomes a complaint against a company: the formal complaint, the final
+response and the national enforcement body or ombudsman are `life-admin`. This file settles
+what you are owed; that one gets it out of them.
 
 ## Accommodation and rail
 
@@ -147,7 +154,7 @@ a share of it.
 | Emergency medical and evacuation | Treatment abroad and transport to adequate care or home | Evacuation is the catastrophic cost — commonly quoted in the tens of thousands and reaching six figures for a long-haul air ambulance. Check the per-person limit, not the headline. |
 | Trip cancellation | The non-refundable costs when a covered reason stops you going | It pays only for listed reasons — illness, injury, death, jury service, specific disruptions. Changing your mind is not one. |
 | Trip interruption | Getting home early and the unused portion | Check whether it pays the original fare class or an economy replacement. |
-| Cancel for any reason | Part of the cost, whatever the reason | Typically 50–75% reimbursed, must usually be bought within 14–21 days of the first deposit, and costs a significant premium. |
+| Cancel for any reason | Part of the cost, whatever the reason | A United States retail product, sold as an upgrade and restricted or unavailable in some states: typically 50–75% reimbursed, bought within 14–21 days of the first deposit, at a significant premium. Essentially unavailable in that form across much of Europe, where a refundable fare is the substitute. |
 | Baggage and delay | Replacement of lost items and essentials during a delay | Per-item caps are low; valuables and electronics are usually sub-limited or excluded. |
 | Annual multi-trip | The same cover across a year | Watch the maximum trip length per journey, commonly 21–31 days. |
 

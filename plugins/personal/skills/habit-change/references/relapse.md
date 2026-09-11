@@ -81,7 +81,7 @@ Work through these in order before attempting a fourth.
   a shower and a change of clothes on a workday, a social cost, money. An unnamed cost is
   paid anyway and drives the quitting decision from outside the design.
 - **Is somebody else's approval the motivator?** Those attempts end when the audience stops
-  watching, which is reliably around week three.
+  watching, which is usually within the first few weeks.
 - **Is there a physical or clinical obstacle?** Pain, untreated sleep problems, depression,
   ADHD, medication side effects. A behaviour design does not fix any of these and running
   one on top of an untreated condition manufactures another failure to add to the pile. Say

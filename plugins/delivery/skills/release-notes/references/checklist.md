@@ -15,7 +15,7 @@ amended. Every item is verified against the repository and the artefact, not fro
 | --- | --- | --- |
 | Version bumped everywhere it appears | Search the tree for the previous version string; manifest, lockfile, vendored copies, container labels and generated files all have to agree | A version that disagrees with itself makes every support conversation start with establishing what the user is running |
 | Tag exists and points at the built commit | `git rev-parse v2.4.0^{commit}` compared with the revision the build recorded | A tag that points elsewhere makes every future range derivation wrong and unreproducible |
-| Tag has never been moved or recreated | `git tag -v` where tags are signed, or the tag's creation record in the forge | A moved tag returns different content to different people depending on when they fetched |
+| Tag has never been moved or recreated | `git tag -v v2.4.0` where tags are signed, or the tag's creation record in the forge | A moved tag returns different content to different people depending on when they fetched |
 | The artefact is the tested one | Compare the digest or checksum of the promoted artefact with the one the test run recorded | A rebuild between test and publish ships something that was never tested |
 | Every breaking change carries its migration | Read the Action required section against the range, entry by entry | A reader who knows they are affected and not what to do delays the upgrade indefinitely |
 | Migration read by someone who did not write it | A named reviewer on the notes, not only on the code | The author cannot see the step they performed from memory and omitted |
@@ -32,14 +32,20 @@ Order matters because each step makes the next one verifiable.
 
 1. Freeze the range. Nothing further merges into the release branch; late changes go to
    the next version rather than into the artefact that was tested.
-2. Build once. Record the digest. Everything downstream refers to this digest.
-3. Run the full test suite against that artefact, not against a source tree.
-4. Bump the version, commit, and tag that commit. The tag is created once and never moved.
-5. Write and review the notes against the frozen range.
-6. Publish the artefact by promoting the digest, not by rebuilding.
-7. Publish the notes at the same time as the artefact. Notes that arrive later are read by
+2. Bump the version and commit. Every place the version appears — manifest, lockfile,
+   vendored copies, container labels, generated files — moves in this one commit, before
+   anything is built. A bump after the build ships an artefact carrying the previous
+   version string.
+3. Build once from that commit. Record the digest. Everything downstream refers to this
+   digest.
+4. Run the full test suite against that artefact, not against a source tree.
+5. Tag the built commit. The tag is created once, points at the commit the digest came
+   from, and is never moved.
+6. Write and review the notes against the frozen range.
+7. Publish the artefact by promoting the digest, not by rebuilding.
+8. Publish the notes at the same time as the artefact. Notes that arrive later are read by
    nobody, because the upgrade has already happened or already failed.
-8. Watch the first upgrades. The rollback stated in the notes is now the plan, so confirm
+9. Watch the first upgrades. The rollback stated in the notes is now the plan, so confirm
    somebody is positioned to execute it.
 
 ## When the release is already published and wrong

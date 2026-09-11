@@ -2,15 +2,15 @@
 name: travel-planning
 description: >-
   Plan a trip around the constraints that break trips — fix the immovable ones first (dates,
-  budget ceiling, who is coming, what would make the trip a failure), verify entry and visa
-  requirements at the official government source, check passport validity and blank pages, then
-  build the itinerary around minimum connection times, single ticket versus self-transfer risk,
-  change and cancellation windows, insurance exclusions and arrival-day pacing. Use this skill
-  whenever someone is planning or booking travel — "plan me a week in Japan", "is this
-  connection too tight", "do I need a visa for Vietnam", "my passport expires in four months",
-  "should I book these two flights separately". Not for general money decisions
-  (personal-finance), work visas and relocation (job-search), planning a week of work
-  (weekly-review), or paperwork at home (life-admin).
+  budget, who is coming, what would make it fail), verify entry and visa requirements at the
+  official government source, check passport validity and blank pages, then build the itinerary
+  around minimum connection times, single ticket versus self-transfer risk, change and
+  cancellation windows, insurance exclusions and arrival-day pacing. Use this skill whenever
+  someone is planning or booking travel — "plan me a week in Japan", "is this connection too
+  tight", "do I need a visa for Vietnam", "my passport expires in four months", "should I book
+  these two flights separately". It settles what a delayed or cancelled flight owes you; once a
+  claim is refused, escalation is life-admin. Not for money decisions (personal-finance), work
+  visas and relocation (job-search), or planning a work week (weekly-review).
 allowed-tools: Read, Write, Edit, WebFetch, WebSearch
 ---
 
@@ -18,7 +18,7 @@ allowed-tools: Read, Write, Edit, WebFetch, WebSearch
 
 A trip is planned when every person going can board every leg, the total committed spend is known and under the ceiling, each booking's change and cancellation window is written down, and no day requires being in two places at once.
 
-The job goes wrong in a small number of ways, and none of them is the part people spend their time on. First, the entry requirement is assumed rather than checked: visa policy, transit rules and health requirements change with weeks of notice, model training data and travel blogs both go stale, and a wrong answer is discovered at a check-in desk where the airline refuses boarding because it, not the border, pays the fine for carrying you. Second, the passport is valid on the calendar but not under the destination's rule — the common requirement is six months of validity beyond the intended departure date, and an issue date more than ten years old fails Schengen entry even when the expiry date is comfortable. Third, the connection is legal on a screen and impossible on the ground, or worse, it is two separate tickets, which means the second airline owes nothing at all when the first leg is late. Fourth, the itinerary is scheduled to capacity, so a single delayed train removes the rest of the week. Fifth, insurance is bought and its exclusions are never read, so the one claim that matters is denied for a pre-existing condition nobody declared. This skill fixes the constraints before the pleasures, sends every entry question to the official government source rather than answering it from memory, and prices the risk of each booking structure explicitly.
+The job goes wrong in a small number of ways, and none of them is the part people spend their time on. First, the entry requirement is assumed rather than checked: visa policy, transit rules and health requirements change with weeks of notice, model training data and travel blogs both go stale, and a wrong answer is discovered at a check-in desk where the airline refuses boarding because it, not the border, pays the fine for carrying you. Second, the passport is valid on the calendar but not under the destination's rule — the common requirement is six months of validity beyond the date of entry, and an issue date more than ten years old fails Schengen entry even when the expiry date is comfortable. Third, the connection is sellable on a screen and impossible on the ground, or worse, it is two separate tickets, which means the second airline owes nothing at all when the first leg is late. Fourth, the itinerary is scheduled to capacity, so a single delayed train removes the rest of the week. Fifth, insurance is bought and its exclusions are never read, so the one claim that matters is denied for a pre-existing condition nobody declared. This skill fixes the constraints before the pleasures, sends every entry question to the official government source rather than answering it from memory, and prices the risk of each booking structure explicitly.
 
 ## Scope
 
@@ -59,7 +59,7 @@ Check every passport separately when the party holds more than one nationality, 
 
 Three rules fail people who believe their passport is valid:
 
-- **Six months beyond departure.** A large number of countries, concentrated in Asia, the Middle East and Latin America, require the passport to be valid for at least six months after the intended date of departure from the country. A passport expiring in four months is refused at check-in for a trip that ends next week.
+- **Six months beyond entry.** A large number of countries, concentrated in Asia, the Middle East and Latin America, require the passport to be valid for at least six months from the date of entry — Thailand, Vietnam, Indonesia and Malaysia state it that way. The United States counts six months beyond the intended period of stay. A passport expiring in four months is refused at check-in for a trip that ends next week. A few countries count the six months from departure instead, so on a long trip check which rule applies: the difference between the two is the whole of your margin.
 - **Blank pages.** Many countries require one to two entirely blank pages for the entry stamp, and some, South Africa among them, refuse entry without two. Amendment and endorsement pages do not count.
 - **Issued within the last ten years.** Schengen entry requires the passport to have been issued less than ten years before the date of entry and to be valid at least three months beyond the intended departure. Extension months added to an older renewal are the usual trap.
 
@@ -75,7 +75,7 @@ The difference between one ticket and two is the whole of your protection when t
 | Single ticket, interline or alliance partners | Same protection; the ticket is one contract of carriage regardless of who flies it | Long routings where no one carrier covers it. |
 | Two separate tickets, self-transfer | The second airline owes you nothing. The fare is gone and a replacement is bought at the walk-up price | Only with an overnight buffer, or a booking platform that sells an explicit self-transfer guarantee — read what it actually pays. |
 
-Minimum connection time is the airport's published legal minimum, not a safe one. Commonly it is 45 to 60 minutes for domestic connections, 60 to 90 for international, and 90 to 120 at large hubs that require terminal changes, immigration or a security re-clear. Book at the published minimum only when you can afford the trip to break; on a single ticket, add 50%, and where you must change terminal, clear immigration, or collect and recheck bags, treat two hours as the floor. Two separate tickets need the buffer sized to the next available replacement flight — if there is one a day, the buffer is a night in a hotel.
+Minimum connection time is the published minimum — a commercial scheduling value the airport and its carriers file in the IATA and OAG databases so booking systems will sell the connection. It is a scheduling floor, not a safety margin, and nothing legal turns on it. Commonly it is 45 to 60 minutes for domestic connections, 60 to 90 for international, and 90 to 120 at large hubs that require terminal changes, immigration or a security re-clear. Book at the published minimum only when you can afford the trip to break; on a single ticket, add 50%, and where you must change terminal, clear immigration, or collect and recheck bags, treat two hours as the floor. Two separate tickets need the buffer sized to the next available replacement flight — if there is one a day, the buffer is a night in a hotel.
 
 ### 5. Write down the change and cancellation window for every booking
 
@@ -83,9 +83,9 @@ For each flight, hotel and rail ticket, record the answer to four questions at t
 
 Three specific windows are worth knowing and are all time-limited:
 
-- **The 24-hour rule.** Tickets bought in the United States at least seven days before departure can be cancelled for a full refund within 24 hours of booking, under a US Department of Transportation rule. That window is free thinking time — use it to run the entry and connection checks before the ticket becomes non-refundable.
+- **The United States 24-hour rule, and its three limits.** Under 14 CFR 259.5(b)(4) a carrier must either allow a reservation to be cancelled without penalty within 24 hours of booking, or hold it at the quoted fare for 24 hours without payment — the carrier picks which, so a free cancellation is not guaranteed. The rule attaches to the flight, not to where you bought it: any flight to, from or within the United States on a carrier whose website is marketed to US consumers is covered, so a London-bought London–Boston ticket has it and a US-bought Rome–Athens ticket does not. It applies only when the booking is made at least seven days before departure, and it binds carriers rather than ticket agents, so an online travel agent owes you nothing — book direct where you want the window. Where you have it, it is free thinking time: run the entry and connection checks inside it, before the ticket becomes non-refundable.
 - **Free cancellation on accommodation.** Usually ends between 24 hours and 14 days before arrival, and differs per rate on the same property. Put the date in the calendar with the booking reference in the title, not in a folder you will not open.
-- **The cancellation-for-any-reason insurance window.** Where it is offered at all, it must normally be bought within 14 to 21 days of the first trip deposit, and it reimburses 50% to 75% rather than everything.
+- **The cancel-for-any-reason insurance window, in the United States.** This is a US retail product and these are the US figures: bought as an upgrade within 14 to 21 days of the first trip deposit, reimbursing 50% to 75% rather than everything, and restricted or unavailable in some states. It is essentially unavailable in that form across much of Europe, where policies pay only for listed reasons, so outside the US market the answer to "cover me if I change my mind" is a refundable fare rather than a policy.
 
 ### 6. Buy insurance for what it actually covers
 
@@ -117,7 +117,7 @@ Work through the checklist in `references/documents-and-money.md`, which covers 
 
 ## Choosing the tools
 
-Trip-planning applications are the fastest-growing segment of travel software, with the largest reporting year-on-year growth of around 37%, so the traveller probably already has one. That is worth knowing and not worth deferring to: the tools are good at storing an itinerary and bad at the two checks that actually strand people, which are entry eligibility for a specific passport and the ticket structure behind a connection. Use whatever the traveller already uses to hold the plan; do the verification here.
+The traveller probably already uses a trip-planning application. Use it to hold the plan and do not defer to it: these tools store an itinerary well and check neither entry eligibility for a specific passport nor the ticket structure behind a connection, which are the two things that actually strand people. Do the verification here.
 
 ## Output format
 
@@ -159,13 +159,13 @@ Checked exclusions: [pre-existing] / [advisory] / [activities]
 
 **Answering a visa question from memory.** Entry rules change with weeks of notice and the answer is enforced at a check-in desk by an airline that pays the fine for getting it wrong. The cost is a refused boarding and a non-refundable trip. Check the destination government's own page, name it, and give the date you checked it.
 
-**Reading only the expiry date on a passport.** Six months of validity beyond departure, two blank pages, and an issue date under ten years old are three separate rules, and a passport can pass the expiry test and fail all three. Check the destination's rule, not the date on the front.
+**Reading only the expiry date on a passport.** Six months of validity beyond the date of entry, two blank pages, and an issue date under ten years old are three separate rules, and a passport can pass the expiry test and fail all three. Check the destination's rule, not the date on the front.
 
 **Two tickets treated as one journey.** A self-transfer that saves 80 on the fare costs a full-price walk-up ticket, a night in an airport hotel and a missed first day when leg one is late. Either buy one ticket, or buy the buffer — an overnight, not ninety minutes.
 
-**Connecting at the published minimum.** The legal minimum assumes no immigration queue, no gate change, no bag recheck and an on-time arrival. On a single ticket add half again; where a terminal change or an immigration clearance is involved, two hours is the floor.
+**Connecting at the published minimum.** The published minimum is what the airport files so the connection can be sold, and it assumes no immigration queue, no gate change, no bag recheck and an on-time arrival. On a single ticket add half again; where a terminal change or an immigration clearance is involved, two hours is the floor.
 
-**Booking before the entry check.** Research done in the wrong order produces a beautiful itinerary to a country whose visa takes six weeks. Constraints first, always, and the US 24-hour cancellation window exists precisely to let you check after you have secured a fare.
+**Booking before the entry check.** Research done in the wrong order produces a beautiful itinerary to a country whose visa takes six weeks. Constraints first, always. Where a United States 24-hour window applies — a flight to, from or within the US, booked direct with the carrier seven or more days out — it exists precisely to let you check after securing a fare, but the carrier may satisfy it with a hold at the quoted fare rather than a refund, so confirm which you have before relying on it.
 
 **Scheduling to capacity.** Every day full means the first delay deletes something irreplaceable and the trip becomes an exercise in catching up. Two anchors a day, one moving day in four, and a planned empty half-day every three or four days.
 

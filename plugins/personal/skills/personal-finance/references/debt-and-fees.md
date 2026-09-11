@@ -36,7 +36,7 @@ def months_to_clear(balance, annual_rate, payment):
     while balance > 0.005:
         interest = balance * annual_rate / 12
         if payment <= interest:
-            return None, None          # never clears
+            return None, None  # never clears
         balance = balance + interest - payment
         paid += interest
         months += 1

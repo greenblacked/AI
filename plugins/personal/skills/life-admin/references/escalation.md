@@ -34,14 +34,19 @@ with authority.
 | Stage | What it is | Typical clock | What it unlocks |
 | --- | --- | --- | --- |
 | Written chase | A dated request for a decision or a decision date | Your own, usually 10 working days | Evidence you gave them the chance |
-| Formal complaint | A separate, logged, timed process | Acknowledgement quickly, substantive response within a published window, commonly eight weeks in regulated sectors | The internal escalation and the final response |
+| Formal complaint | A separate, logged, timed process | Acknowledgement quickly, then a substantive response within the scheme's published window — eight weeks under the UK's FCA DISP rules, 15 days for an initial response under the US Consumer Financial Protection Bureau, 90 days for the body to conclude under the EU dispute-resolution directive | The internal escalation and the final response |
 | Final response or deadlock letter | Their closing position in writing | Issued at the end of the complaint, or claimable when the window expires | The ticket to the external scheme |
-| Ombudsman or regulator | A free external decision-maker | Referral window, commonly six months from the final response | A binding or influential decision at no cost |
+| Ombudsman or regulator | A free external decision-maker | The scheme's own referral window: six months from the final response under UK FCA DISP, two years under Australia's AFCA | A binding or influential decision at no cost |
 | Court or tribunal | A judicial determination | Limitation periods measured in years, but procedural deadlines in weeks | Enforcement |
 
 Never skip the complaint stage. External schemes almost always refuse a case that has not
 been through the organisation's internal process, and being refused on that ground wastes
 the referral window.
+
+The clocks above are examples, not a general rule: they are set by the scheme and differ by
+country and by sector. Find the published window on the scheme's own page at the point you
+open the complaint, and write that date at the top of the file. It is the number every
+later stage is counted against.
 
 ## Stage 1: the written chase
 
@@ -129,12 +134,17 @@ deadlines, which are often shorter.
 ## Small claims
 
 The small-claims procedure exists for people without lawyers: simplified rules, a modest
-fee, and — the decisive feature — limited exposure to the other side's legal costs if you
-lose.
+fee, and a track a litigant can run unrepresented. Where costs follow the event, as in
+England and Wales, it adds the decisive feature of limited exposure to the other side's
+legal costs if you lose.
 
-Above the small-claims threshold, that protection usually disappears and the losing party
-can be ordered to pay the winner's costs, which can exceed the sum in dispute. That single
-fact is what makes the threshold the point at which a professional stops being optional.
+Above the threshold the arithmetic changes, and the reason depends on the jurisdiction.
+Under the English rule the losing party can be ordered to pay the winner's costs, which can
+exceed the sum in dispute. In the United States the American rule applies instead: each
+side bears its own attorney's fees regardless of the amount, in every state, absent a
+statute or a contract term shifting them — so the exposure is not their bill but yours, for
+representation a case at that size now needs and no judgment will give back. Either way,
+the threshold is the point at which a professional stops being optional.
 
 The thresholds differ by jurisdiction and by claim type, and they change. Check the current
 figure for the relevant court before deciding which side of the line a claim sits on, and

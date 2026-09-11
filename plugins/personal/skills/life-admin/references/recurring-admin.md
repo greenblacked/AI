@@ -30,10 +30,9 @@ Three reasons, and all three are structural rather than personal:
 3. **Nothing connects the expiry dates.** They live on the documents, which are filed, and a
    date that exists only on a filed document is a date nobody sees.
 
-With personal administration already running at roughly nine hours a week and a further
-three hours a week spent thinking about it, the recurring category is where the thinking
-hours concentrate: a known obligation with an unknown date produces low-grade background
-load continuously, and an inventory converts it into one line in a calendar.
+The recurring category is where the thinking time concentrates: a known obligation with an
+unknown date produces low-grade background load continuously, and an inventory converts it
+into one line in a calendar.
 
 ## The inventory
 

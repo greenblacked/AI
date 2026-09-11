@@ -64,16 +64,21 @@ For each traveller, for each country entered or transited:
 
 Three independent rules, each of which can fail a passport whose expiry date looks fine.
 
-**Six months beyond departure.** A large number of countries require the passport to
-remain valid for at least six months after the intended date of departure from that
-country. It is common across Asia, the Middle East, Africa and parts of Latin America.
-Some countries use three months, some require validity only for the duration of stay, and
-a few accept a passport valid on the day of exit. The safe planning rule is that a
-passport with under six months remaining needs checking country by country, and a passport
-with under three months remaining should be renewed before the trip regardless.
+**Six months beyond entry.** A large number of countries require the passport to remain
+valid for at least six months from the date of entry. It is common across Asia, the Middle
+East, Africa and parts of Latin America — Thailand, Vietnam, Indonesia and Malaysia all
+state it in those terms. The United States applies a related but different test, six months
+beyond the intended period of stay. Some countries use three months, some require validity
+only for the duration of stay, and a few accept a passport valid on the day of exit. The
+safe planning rule is that a passport with under six months remaining needs checking
+country by country, and a passport with under three months remaining should be renewed
+before the trip regardless.
 
-**Counted from departure, not arrival.** A two-week trip means the rule bites two weeks
-later than travellers assume.
+**Counted from entry, and by a minority from departure.** The dominant rule bites on the
+day you land, so a passport that clears it for a two-week trip clears it for a two-month
+one. A few countries count the six months from the intended date of departure instead, and
+on a long trip that difference is the whole of the margin. Read which one the destination
+states; where its page does not say, plan on the later of the two dates.
 
 **Issued within the last ten years.** Schengen area entry requires the passport to have
 been issued less than ten years before the date of entry, and to be valid for at least

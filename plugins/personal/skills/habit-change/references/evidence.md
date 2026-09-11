@@ -25,6 +25,12 @@ it in a consistent context for 84 days, and rated automaticity daily on the Self
 Habit Index. The median time to reach the asymptote of the automaticity curve was 66 days,
 with individual times from 18 to 254 days.
 
+Know what that number is counted over, because it is the largest caveat on it. Ninety-six
+people enrolled, 82 returned usable data, the asymptotic curve was fitted to 62 of those,
+and 39 of the 62 fitted it well. The 66-day median and the 18-to-254-day range are
+properties of that modelled subset, measured against 95% of each person's fitted asymptote
+— not of the enrolled sample, and not of anyone who dropped out because it was not working.
+
 What it supports: a review at day 66 rather than day 21, and a warning about variance
 before day one. What it does not support: a promise that 66 days works for a given person,
 or any claim at all about complex multi-step behaviours. The sample was small,
@@ -61,8 +67,9 @@ cues are gone anyway.
 
 Rozin, Scott, Dingley, Urbanek, Jiang and Kaltenbach (2011) ran cafeteria field studies in
 which small changes — moving a food item about 25 cm further along the counter, or
-replacing a serving spoon with a smaller one — produced substantial reductions in how much
-of it people took, without any information, persuasion or restriction.
+replacing a serving spoon with a smaller one — cut how much of it people took by 8 to 16%,
+without any information, persuasion or restriction. The authors describe the effect as
+modest but reliable, and that is the right size to plan around.
 
 The general point is that a step of effort is a real intervention with a measurable size.
 The general point is also the limit: these are small effects on single choices in one
@@ -91,8 +98,10 @@ intervention — and most effects decayed substantially after the intervention e
 Read this as a caution about external motivators: they buy weeks, not habits. The design in
 this skill spends its effort on the cue and the environment because those persist when
 nobody is running a programme. Temptation bundling (Milkman, Minson and Volpp, 2014, at a
-university gym) is the exception worth using, because it attaches the behaviour to
-something the person independently wants and therefore keeps paying without a sponsor.
+university gym) is worth using for its mechanism — it attaches the behaviour to something
+the person independently wants, so nobody has to sponsor it — but it is not an exception to
+the decay. In that study the gym-visit advantage faded over the Thanksgiving break and did
+not recover. Recommend it because of how it works, not because it has been shown to last.
 
 ## Stopping versus reducing
 
@@ -106,9 +115,12 @@ The transferable claim is narrow but useful: for a behaviour with a strong cue a
 supply, a stop date beats a slope, and the person's own preference for tapering is not
 evidence that tapering will work for them.
 
-Wegner's ironic process theory (1987) supplies the other half. Instructed suppression of a
-thought requires monitoring for it, and the monitoring produces the thought — which is why
-stopping designs work on cues, supply and substitution rather than on resisting urges.
+Wegner, Schneider, Carter and White (1987), *Paradoxical Effects of Thought Suppression*,
+supply the other half: people instructed not to think of a white bear reported it more,
+both while suppressing and afterwards. Wegner (1994), *Ironic Processes of Mental Control*,
+named the mechanism — suppression runs a monitor that searches for the thought, and the
+search is what keeps supplying it. Which is why stopping designs work on cues, supply and
+substitution rather than on resisting urges.
 
 ## Where the twenty-one days came from
 

@@ -60,7 +60,10 @@ the only way they are ever budgeted.
 
 Transaction costs across a buy and a later sell commonly total 5-10% of value, which sets
 the break-even horizon against renting. Compute that break-even explicitly; it is usually
-between three and seven years and it is the number that decides most buy-or-rent questions.
+between three and seven years. The arithmetic belongs here and the question it feeds does
+not: whether to rent or buy at all turns on the deposit, the alternative use of that money,
+the rest of the money picture and the time horizon, which is `personal-finance`. Hand the
+break-even over as the input to it.
 
 ## Computing and phones
 
@@ -110,9 +113,9 @@ moment those can be found. They are shapes, not forecasts.
 
 | Category | Year 1 | Year 3 cumulative | Year 5 cumulative | Notes |
 | --- | --- | --- | --- | --- |
-| New mass-market car | 20-30% | 40-50% | 55-65% | Varies most with brand and fuel type; check listings for the same model at target age. |
+| New mass-market car | 20-30% | 40-50% | 45-55% | Varies most with brand and fuel type, and the whole curve moved sharply with used-car supply — current market data puts average five-year depreciation near 42%. Check listings for the same model at target age. |
 | One-to-three-year-old car | 10-15% a year | — | — | The flatter part of the curve, which is the whole argument for buying here. |
-| Laptop or phone | 25-40% | 55-70% | near-zero resale | Cliff-edged at the end of software support rather than gradual. |
+| Laptop or phone | 25-40% | 55-70% | 70-80% | Cliff-edged at the end of security support rather than gradual, and that end usually arrives before year five. Five-year-old flagship phones and laptops still fetch 20-30% of list; models below flagship approach zero. |
 | Large appliance | steep and irrelevant | — | — | Second-hand market is thin; assume no resale and plan on service life instead. |
 | Quality bicycle, tool or instrument | 20-30% | 35-45% | 40-50% | Then nearly flat, sometimes rising for sought-after items. |
 | Furniture | 50-70% | — | — | Mass-market furniture has effectively no resale; solid-wood and designer pieces behave like the row above. |

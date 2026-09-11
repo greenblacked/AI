@@ -16,14 +16,18 @@ Use for: assembling notes or a changelog for a version or a deploy; deciding wha
 
 Do not use for: choosing how the change reaches users — flags, rings, canaries and bake times, which is `release-strategy`; a one-way switchover with a point of no return, which is `cutover`; the expand-and-contract steps of a schema change, which is `db-migration`; a multi-phase platform migration, which is `plan-platform-migration`; a recurring progress report to stakeholders, which is `status-update`; recording why a choice was made, which is `decision-record`; or writing product or API documentation, which is `technical-docs`.
 
+The upgrade guide sits on the line with `technical-docs` and splits by what the document is tied to. A guide scoped to one version transition — what breaks going from 1.x to 2.0, the migration for each break, the deadline on the old path — is part of shipping that release and belongs here, whoever it is written for. A durable page in the documentation set that is owned, dated and re-verified after the release has shipped belongs to `technical-docs`. Write it here first; hand it over when it outlives the release.
+
 ## Hard gates
 
-1. **The range comes from the last shipped tag.** Not a date, not a sprint boundary, not the branch point. Anything else produces notes that are confidently wrong in both directions.
-2. **A breaking change without its migration is not published.** The reader already knows something broke; what they need is the replacement and the deadline.
-3. **The artefact shipped is the artefact tested.** A rebuild between the test run and the publish invalidates the test, however deterministic the build claims to be.
-4. **The tag points at the commit that was built.** A tag moved, recreated or applied to a different commit makes every future range derivation wrong, permanently.
-5. **Every release states its rollback.** Including "none — this release is not reversible", which is a decision that must be visible before publication rather than discovered during an incident.
-6. **Noise is cut before the notes are written, not after.** Filtering a finished document means arguing about entries that already exist; filtering the range means they never do.
+Each one is argued in the anti-patterns at the end; here they are the list you check against.
+
+1. The range comes from the last shipped tag.
+2. A breaking change without its migration is not published.
+3. The artefact shipped is the artefact tested.
+4. The tag points at the commit that was built.
+5. Every release states its rollback, including "none — this release is not reversible".
+6. Noise is cut before the notes are written, not after.
 
 ## Workflow
 
@@ -100,7 +104,7 @@ Semantic versioning is a promise about compatibility, not a measure of effort. T
 
 | Situation | Call it | Reason |
 | --- | --- | --- |
-| A bug fix that some caller has plausibly built on | Minor, with the behaviour change called out | A patch that changes observable behaviour arrives through automatic upgrades, which is where unattended breakage comes from |
+| A bug fix that some caller has plausibly built on | Major where an untouched caller observes a different result; patch where the old behaviour was documented as a defect and nothing could reasonably depend on it | Semantic Versioning 2.0.0 defines PATCH as a backward-compatible bug fix, which reads as covering every fix. It does not: a fix a caller has built on is not backward compatible, so the spec's own compatibility test makes it MAJOR. Say in the notes which of the two you applied, because a reader comparing against a literal reading of the spec will expect a patch |
 | A new optional field in a response | Minor, unless clients validate strictly | Additive is only additive if the consumer tolerates unknown fields; strict validation makes it breaking in practice |
 | A new required field in a request, or stricter validation on an existing one | Major | Previously accepted input is now rejected, which is a break however small the change |
 | A default value changed | Major when a caller relying on the old default gets a different outcome; minor when it only affects new installations | The question is whether an untouched caller behaves differently after upgrading |

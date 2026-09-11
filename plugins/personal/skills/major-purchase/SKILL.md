@@ -8,13 +8,13 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(python3:*)
 
 A finished decision names one option, the requirement it satisfies, its total cost of ownership over a stated holding period, the axis on which it is worse than the runner-up, and the walk-away conditions written down before any shopping began.
 
-Expensive durable purchases go wrong in six repeatable ways. The requirement is written after the options are seen, so it describes the option the buyer already wants rather than the job to be done. Only the sticker price is compared, when on a car the sticker is typically under half the five-year cost and on a house it is a smaller fraction still. Financing is judged on the monthly payment, which is the one number a seller can set to any value by lengthening the term. The first price seen anchors everything after it, so a discount from an inflated list feels like a gain. Research already done becomes a reason to continue, which is the sunk cost in its purest form. And the rare case drives the specification — the towing trip once a year, the video edit twice — so the buyer pays a permanent premium for an occasional need. This skill fixes the order: requirement first and written down, total cost second, comparison on explicit axes third, and a pre-commitment that makes the decision before the room is designed to change it.
+Expensive durable purchases go wrong in six repeatable ways. The requirement is written after the options are seen, so it describes the option the buyer already wants rather than the job to be done. Only the sticker price is compared, when on a car the sticker is roughly two-thirds of the five-year cost — AAA's *Your Driving Costs 2025* sets a sales-weighted average sticker of $38,938 against $57,885 to own and operate over five years and 75,000 miles — and on a house it is a smaller fraction still. The third that never appears on an invoice is larger than any discount you will negotiate. Financing is judged on the monthly payment, which is the one number a seller can set to any value by lengthening the term. The first price seen anchors everything after it, so a discount from an inflated list feels like a gain. Research already done becomes a reason to continue, which is the sunk cost in its purest form. And the rare case drives the specification — the towing trip once a year, the video edit twice — so the buyer pays a permanent premium for an occasional need. This skill fixes the order: requirement first and written down, total cost second, comparison on explicit axes third, and a pre-commitment that makes the decision before the room is designed to change it.
 
 ## Scope
 
 Use for: cars, motorbikes and bicycles; property purchase as a purchase decision; laptops, phones and desktop machines; white goods and large appliances; furniture; musical instruments; tools; a paid course, bootcamp or qualification; and any other single purchase large enough that the buyer would be stuck with a mistake for years.
 
-Do not use for: company or team purchasing, supplier selection, procurement and contract terms (`vendor-evaluation`); building the overall money picture, budgeting, emergency-fund sizing and debt payoff order (`personal-finance`) — bring the affordability answer here as an input; salary, equity and job offers (`offer-negotiation`); or planning the week (`weekly-review`).
+Do not use for: company or team purchasing, supplier selection, procurement and contract terms (`vendor-evaluation`); building the overall money picture, budgeting, emergency-fund sizing and debt payoff order (`personal-finance`) — bring the affordability answer here as an input; salary, equity and job offers (`offer-negotiation`); whether to rent or buy at all, which is `personal-finance` — the buy-and-sell break-even is computed here and handed over to feed that comparison; or planning the week (`weekly-review`).
 
 Affordability and purchase choice are different questions. If the user does not yet know whether they can afford it, that is `personal-finance`; this skill assumes a budget exists and decides what to buy inside it.
 
@@ -61,7 +61,7 @@ Compute over the holding period from step 1. The seven components, and the one p
 
 | Component | How to get it | Why it dominates |
 | --- | --- | --- |
-| Depreciation | Current price of the same model at the target age and mileage, subtracted from purchase price. | On a new car this is usually the largest single cost of ownership — commonly 40-60% of the price over the first three years — and it never appears on any invoice. |
+| Depreciation | Current price of the same model at the target age and mileage, subtracted from purchase price. | On a new car this is usually the largest single cost of ownership — commonly 40-50% of the price over the first three years — and it never appears on any invoice. |
 | Financing interest | Total repaid minus cash price, from the schedule rather than the headline rate. | It is invisible in a monthly payment and is frequently four figures. |
 | Insurance | A real quote for the specific model, not a category estimate. | Varies by a factor of two or more between models in the same price bracket, and is paid every year. |
 | Maintenance and servicing | Scheduled service costs at the interval, plus an allowance for wear items: tyres, brakes, belts, a battery. | A cheap purchase with expensive parts availability inverts the ranking. |
@@ -77,7 +77,7 @@ Where a component is unknown, put a range on it and say which component the answ
 
 Three numbers, always, before any comparison of deals: the cash price, the total amount repayable, and the APR.
 
-APR and term interact to hide the total. Lengthening the term lowers the monthly payment and raises the total paid, which is why a seller asked for a lower payment will offer a longer term rather than a lower price. A 20,000 borrowing at 7% costs roughly 2,240 in interest over three years and roughly 3,800 over five — the payment falls by about 30%, the cost rises by about 70%.
+APR and term interact to hide the total. Lengthening the term lowers the monthly payment and raises the total paid, which is why a seller asked for a lower payment will offer a longer term rather than a lower price. A 20,000 borrowing at 7% nominal costs 2,232 in interest over three years at 617.54 a month, and 3,761 over five at 396.02 — the payment falls by about 35%, the total cost rises by about 70%.
 
 Rules that decide most financing questions:
 
@@ -182,12 +182,12 @@ Pause: [24 hours minimum] · Also has to agree: [who]
 ## Anti-patterns
 
 - **Writing the requirement after browsing.** The list then describes the option already wanted, every cheaper alternative is eliminated before the comparison starts, and the process reads as diligence while functioning as justification. Write it first and date it.
-- **Comparing sticker prices.** On a car the purchase price is often under half the five-year cost; on a property the transaction and running costs run to years of the difference between options. Ranking on sticker regularly picks the more expensive option.
+- **Comparing sticker prices.** On a car the purchase price is roughly two-thirds of the five-year cost of ownership and operation — $38,938 against $57,885 in AAA's *Your Driving Costs 2025* — and the third that never reaches an invoice is larger than any discount you will negotiate; on a property the transaction and running costs run to years of the difference between options. Ranking on sticker regularly picks the more expensive option.
 - **Negotiating on the monthly payment.** It is the one number a seller can set to any value by extending the term, and doing so raises the total. Quote the total repayable instead and the deal stops moving.
 - **Specifying for the rare case.** The once-a-year tow, the twice-a-year long drive, the occasional big render. Paying a permanent premium for an occasional need costs more than hiring for it, usually by a wide margin over a holding period.
 - **A weighted score out of ten.** The weights get tuned until the preferred option wins, and the composite hides the single axis the decision turns on. Compare pairwise and name what the extra money buys.
 - **Treating research as an investment.** Hours already spent are gone whichever option is chosen, and the only effect of counting them is to lock in the option researched first. Ask what someone arriving fresh today would pick.
-- **Buying because it is discounted.** A 40% saving on the wrong thing is a 60% loss. Decide the option, then the price, in that order and never the reverse.
+- **Buying because it is discounted.** Buying the wrong thing at 40% off is a loss of 100% of the price paid, not a saving of the difference. Decide the option, then the price, in that order and never the reverse.
 - **Deciding inside the seller's environment.** Showrooms, viewings and checkout flows are designed to compress the time between wanting and committing. The 24-hour pause is the entire defence, and skipping it is where extended warranties and add-ons get sold.
 - **Ignoring the cost of being wrong.** Two close options are separated by which is easier to sell, return or replace, not by more research. Reversal cost is a real axis and it is usually the tiebreaker.
 - **Leaving the holding period unstated.** Every cost figure depends on it, so an unnamed holding period means the totals cannot be compared at all and the cheapest per-year option stays invisible.
