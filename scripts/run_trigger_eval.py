@@ -32,8 +32,8 @@ other. It is deliberately not part of the required CI gate: it costs money, it i
 rather than deterministic, and a gate that is occasionally wrong is a gate people learn to
 override.
 
-    python scripts/run_trigger_eval.py --skill plugins/engineering/skills/ci-triage
-    python scripts/run_trigger_eval.py --agent plugins/engineering/agents/ci-log-reader.md
+    python scripts/run_trigger_eval.py --skill plugins/operations/skills/ci-triage
+    python scripts/run_trigger_eval.py --agent plugins/operations/agents/ci-log-reader.md
     python scripts/run_trigger_eval.py --all --baseline evals/baseline.json
     python scripts/run_trigger_eval.py --all --backend codex --model o4-mini
     python scripts/run_trigger_eval.py --all --command 'mycli --quiet {prompt}'

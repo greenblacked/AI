@@ -17,7 +17,8 @@ skills/<category>/<name>/
 └── assets/           # optional: templates and files the skill emits
 ```
 
-`<category>` is one of `engineering`, `manager` or `personal` — the three plugins in
+`<category>` is one of `coding`, `operations`, `delivery`, `security`, `manager`, `personal` or
+`career` — the seven plugins in
 [the marketplace manifest](../.claude-plugin/marketplace.json). `<name>` is the skill
 name, and it must equal the `name` in the frontmatter.
 
@@ -293,8 +294,8 @@ default, `--backend` picks another, and `--command` takes any CLI at all as a sh
 template with `{prompt}` where the question goes:
 
 ```bash
-python scripts/run_trigger_eval.py --skill plugins/engineering/skills/ci-triage --verbose
-python scripts/run_trigger_eval.py --agent plugins/engineering/agents/ci-log-reader.md
+python scripts/run_trigger_eval.py --skill plugins/operations/skills/ci-triage --verbose
+python scripts/run_trigger_eval.py --agent plugins/operations/agents/ci-log-reader.md
 python scripts/run_trigger_eval.py --all --budget 8000 --baseline evals/last-run.json
 python scripts/run_trigger_eval.py --all --backend codex --model o4-mini
 python scripts/run_trigger_eval.py --all --backend ollama --model llama3.1
@@ -358,8 +359,8 @@ it. "The approach we discussed" and unexplained internal names are dead weight.
 ## Adding a new skill
 
 ```bash
-mkdir -p plugins/engineering/skills/log-shipping/evals
-cp template/SKILL.md plugins/engineering/skills/log-shipping/SKILL.md
+mkdir -p plugins/coding/skills/log-shipping/evals
+cp template/SKILL.md plugins/coding/skills/log-shipping/SKILL.md
 ```
 
 [`template/SKILL.md`](../template/SKILL.md) carries the shape: a one-sentence statement
@@ -378,7 +379,7 @@ with "use for" and "do not use for", a numbered workflow, and an anti-patterns s
    array alphabetical:
 
    ```json
-   "./plugins/engineering/skills/log-shipping"
+   "./plugins/coding/skills/log-shipping"
    ```
 
 5. Validate:
@@ -390,7 +391,7 @@ with "use for" and "do not use for", a numbered workflow, and an anti-patterns s
 6. Optionally score the description, and check that the skill packages and installs:
 
    ```bash
-   python scripts/run_trigger_eval.py --skill plugins/engineering/skills/log-shipping --verbose
+   python scripts/run_trigger_eval.py --skill plugins/coding/skills/log-shipping --verbose
    make package
    make install
    ```

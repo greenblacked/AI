@@ -1,7 +1,7 @@
 # Writing a subagent
 
 Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
-frontmatter — see [`skill-reviewer.md`](../plugins/engineering/agents/skill-reviewer.md)
+frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md)
 for one of the nine this repository has today, seven with the `engineering` plugin and two
 with `manager`. A subagent is a separate Claude instance with its own context window, its
 own system prompt, and its own tool allowlist, invoked by the main agent and returning a
@@ -183,16 +183,16 @@ with `manager`:
   not have, whether depth is in the right layer, whether it is a procedure or an essay,
   whether it overlaps an existing skill, and whether the commands it shows are real. It
   has `Read`, `Glob`, `Grep` and `Bash`, and no write access — by design:
-  [`agents/skill-reviewer.md`](../plugins/engineering/agents/skill-reviewer.md).
-- **[`ci-log-reader`](../plugins/engineering/agents/ci-log-reader.md)** — reads a failed pipeline run and
+  [`agents/skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md).
+- **[`ci-log-reader`](../plugins/operations/agents/ci-log-reader.md)** — reads a failed pipeline run and
   returns a classification. This is the canonical context-isolation case: whole CI logs
   are large, and the caller needs the failing step and the decisive lines, not the log.
   It checks the default branch first, because if that is red too the answer is "not
   this change" and nothing further needs reading.
-- **[`plan-reviewer`](../plugins/engineering/agents/plan-reviewer.md)** — reads a Terraform plan JSON and
+- **[`plan-reviewer`](../plugins/security/agents/plan-reviewer.md)** — reads a Terraform plan JSON and
   returns the blast radius, destroys first. Same shape: the plan is large, the answer is
   a short list of risky changes, and a reviewer that can apply is not a reviewer.
-- **[`incident-scribe`](../plugins/engineering/agents/incident-scribe.md)** — turns raw triage notes into a
+- **[`incident-scribe`](../plugins/operations/agents/incident-scribe.md)** — turns raw triage notes into a
   blameless postmortem draft: timeline from timestamped evidence, roles rather than
   names, and a literal `[TK: metric]` wherever a figure was not supplied.
 

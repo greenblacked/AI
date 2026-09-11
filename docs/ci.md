@@ -115,7 +115,7 @@ so dispatching the form unchanged scores everything against Claude:
 
 | Input | Default | What it does |
 | --- | --- | --- |
-| `skill` | `all` | A skill directory such as `plugins/engineering/skills/ci-triage`, a subagent file such as `plugins/engineering/agents/ci-log-reader.md`, or `all` for everything that has an eval set. |
+| `skill` | `all` | A skill directory such as `plugins/operations/skills/ci-triage`, a subagent file such as `plugins/operations/agents/ci-log-reader.md`, or `all` for everything that has an eval set. |
 | `budget` | empty | A listing budget in characters. Set it to score descriptions the way the runtime shows them — the runtime's default is about 8,000 on a 200k model — rather than at full length. |
 | `runs` | `3` | Samples per query; must be odd. A majority vote across them decides, which separates a description that genuinely fails from one sitting on the model's decision boundary. |
 | `threshold` | `0.8` | Pass rate below which a target is reported as failing. |
@@ -321,7 +321,7 @@ The trigger evals are not part of `make`, because they need a model and a key. R
 directly when a description is the thing in question:
 
 ```bash
-python scripts/run_trigger_eval.py --skill plugins/engineering/skills/ci-triage --verbose
+python scripts/run_trigger_eval.py --skill plugins/operations/skills/ci-triage --verbose
 ```
 
 The security tooling is not wrapped in a `make` target, because the versions are pinned

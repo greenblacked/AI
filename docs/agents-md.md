@@ -95,7 +95,7 @@ skill, code style, commit and pull-request rules, security considerations, an ex
 boundaries section, and a closing review checklist.
 
 [`CLAUDE.md`](../CLAUDE.md) is four lines of substance: the `@AGENTS.md` import, a note
-that the subagents in `plugins/engineering/agents/` are the intended way to do heavy
+that the subagents under `plugins/*/agents/` are the intended way to do heavy
 reading here, and a note
 to use plan mode for anything touching `src/skillcheck/` or `.github/workflows/`, since
 those two decide whether every other change is allowed to merge.
@@ -113,7 +113,7 @@ things live — which directory owns which concern, and which ones are generated
 not be edited by hand. This is the single highest-value section, because the alternative
 is the agent spending its first several tool calls reconstructing the layout, and
 sometimes reconstructing it wrong. For this repository the map is short: `skills/` by
-category under `plugins/`, `plugins/engineering/agents/`, `src/skillcheck/`, `scripts/`,
+category under `plugins/`, `plugins/*/agents/`, `src/skillcheck/`, `scripts/`,
 `template/`.
 
 **The one shortcut that saves a wasted cycle.** Strong repository instructions name the

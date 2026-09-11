@@ -17,9 +17,13 @@ Everything here is prose and configuration. There is no application. The only co
 
 | Path | What lives there |
 | --- | --- |
-| `plugins/engineering/skills/` | Platform and DevOps skills |
-| `plugins/manager/skills/` | Engineering-leadership skills |
-| `plugins/personal/skills/` | Personal skills |
+| `plugins/coding/skills/` | Reading, reviewing, testing and changing code |
+| `plugins/operations/skills/` | Keeping a running system alive |
+| `plugins/delivery/skills/` | Getting a change into production |
+| `plugins/security/skills/` | The defensive side of shipping software |
+| `plugins/manager/skills/` | Engineering leadership |
+| `plugins/personal/skills/` | Money, travel, admin, habits and health |
+| `plugins/career/skills/` | Applications, negotiation, speaking and writing |
 | `plugins/*/agents/` | Subagent definitions, validated on the same run as the skills |
 | `plugins/*/commands/` | Slash commands the plugin ships, validated on the same run |
 | `.claude/commands/` | Slash commands for working on this repository, not shipped to installers |
@@ -29,7 +33,7 @@ Everything here is prose and configuration. There is no application. The only co
 | `plugins/*/agents/evals/` | The same for each subagent, one `<name>.json` per agent file |
 | `docs/` | How to write skills, subagents, commands, `AGENTS.md`, and what CI checks |
 | `template/SKILL.md` | Starting point for a new skill |
-| `.claude-plugin/marketplace.json` | Lists the three plugins; each discovers its own skills |
+| `.claude-plugin/marketplace.json` | Lists the seven plugins; each discovers its own skills |
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml` |
 | `scripts/hooks/` | The `PostToolUse` hook `.claude/settings.json` registers, which validates a skill as it is written |
 
