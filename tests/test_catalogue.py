@@ -1,10 +1,12 @@
-"""The two checks that keep the repository honest about itself.
+"""The checks that keep the repository honest about itself.
 
-Both guard failures with no symptom. A plugin whose listing has crept past the runtime
-budget still installs, still validates, and quietly stops offering its least-used skills.
-A README that no longer matches the tree still renders, and tells a reader the library
-contains something it does not. Neither raises an error anywhere, which is why each
-needed a gate rather than a habit.
+Every one guards a failure with no symptom. A plugin whose listing has crept past the
+runtime budget still installs, still validates, and quietly stops offering its least-used
+skills. A README that no longer matches the tree still renders, and tells a reader the
+library contains something it does not. A command with an unbalanced quote reads fine
+until someone runs it. And a flattened export can ship a pointer to a file the reader
+does not have while its own check reports clean. None of them raises an error anywhere,
+which is why each needed a gate rather than a habit.
 """
 
 from __future__ import annotations

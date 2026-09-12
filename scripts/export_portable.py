@@ -12,16 +12,20 @@ This flattens each skill into one file that stands alone:
 
 - the frontmatter becomes a plain "Use this when" line, which is the only part of it a
   model without a skills runtime can act on
-- every `references/*.md` the skill names is inlined as a section, its headings demoted
-  so they nest, and each pointer in the prose is rewritten to name that section instead
-  of a path — a dangling pointer is the defect this repository exists to prevent, and
-  exporting one would reintroduce it at the boundary
-- `assets/` are inlined too, inside a fenced block, because a template is useless as a
-  path and fine as text
+- every `references/*.md` is inlined as a section with its headings demoted to nest, and
+  every pointer naming one is rewritten to name that section instead of a path — in the
+  reference text as well as in the body, because a reference sending you to a sibling
+  reference is as much a dangling pointer for a reader with no filesystem
+- `assets/` and `scripts/` are inlined fenced, because a template or a script is a thing
+  to copy rather than to read, and a script named in prose is a path a flattened copy
+  cannot otherwise provide
+- a path inside a fenced block is left exactly as written. It is part of a command, and
+  the command needs it; the inlined section is what tells the reader which file to create
 
 Output lands in `dist/portable/`: one file per skill, one per plugin, and an index that
 lists every description so a model can choose between them the way a skills runtime
-would. `--check` verifies the export without writing, which is what CI runs.
+would. CI builds it on every run and uploads the result, so the files exist for someone
+with no toolchain; `--check` verifies without writing, for when you only want the gate.
 
 Standard library only, like the validator it imports.
 """
@@ -39,7 +43,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 from skillcheck.frontmatter import FrontmatterError, parse  # noqa: E402
 from skillcheck.rules import find_plugins, find_skills  # noqa: E402
 
-# A bundled path as it appears in prose, with or without a leading `./`.
 # Everything a skill can ship and name in prose. `scripts/` is here because a skill
 # that hands an agent a script to run is handing it a path, and a path is the one thing
 # a flattened copy cannot provide — `git bisect run ./scripts/bisect-probe.sh` reaches a
