@@ -10,7 +10,7 @@
   {"query": "someone pasted a slack webhook signing secret into a jira ticket, how bad is that and what now", "should_trigger": true},
   {"query": "we swapped the api key last night and three cron jobs failed at 2am, how should we have sequenced it", "should_trigger": true},
   {"query": "should we standardise on hashicorp vault or aws secrets manager for the platform", "should_trigger": false, "expected": "vendor-evaluation"},
-  {"query": "design the auth for our new customer portal, jwt with refresh tokens or server side sessions?", "should_trigger": false},
+  {"query": "design the auth for our new customer portal, jwt with refresh tokens or server side sessions?", "should_trigger": false, "expected": "auth-design"},
   {"query": "review our IAM roles, i'm fairly sure half of them are effectively admin", "should_trigger": false, "expected": "access-review"},
   {"query": "terraform plan says it wants to replace the RDS instance, is that safe to approve", "should_trigger": false, "expected": "iac-review"},
   {"query": "this Dockerfile is 1.4GB and the process runs as root, can you tighten it up", "should_trigger": false, "expected": "image-hardening"},
