@@ -17,6 +17,10 @@ Everything here is prose and configuration. There is no application. The only co
 
 | Path | What lives there |
 | --- | --- |
+| `AGENTS.md` | This file: the rules, in the form Codex and Gemini CLI read too |
+| `CLAUDE.md` | The `@AGENTS.md` import plus the three notes that are only true of Claude Code |
+| `.claude/rules/` | Path-scoped rules loaded when a file matching the glob is read; `docs/project-structure.md` explains when each fires |
+| `.claude/settings.json` | Permissions and the `PostToolUse` hook registration |
 | `plugins/coding/skills/` | Reading, reviewing, testing and changing code |
 | `plugins/operations/skills/` | Keeping a running system alive |
 | `plugins/delivery/skills/` | Getting a change into production |
@@ -33,12 +37,12 @@ Everything here is prose and configuration. There is no application. The only co
 | `tests/` | pytest over the validator, including a check that this repository validates clean |
 | `plugins/*/skills/*/evals/` | Trigger eval sets: the queries a skill should and should not fire on |
 | `plugins/*/agents/evals/` | The same for each subagent, one `<name>.json` per agent file |
-| `docs/` | How to write skills, subagents, commands, `AGENTS.md`, and what CI checks |
+| `docs/` | How to write skills, subagents, commands, `AGENTS.md`, what the project layout loads, and what CI checks |
 | `template/SKILL.md` | Starting point for a new skill |
 | `.claude-plugin/marketplace.json` | Lists the eight plugins; each discovers its own skills |
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing; `scripts/check_listing_budget.py` enforces them |
-| `scripts/` | Packaging, install, the eval harness, and the two catalogue checks |
+| `scripts/` | Packaging, install, the eval harness, the portable export, and the three catalogue checks |
 | `scripts/hooks/` | The `PostToolUse` hook `.claude/settings.json` registers, which validates a skill as it is written |
 
 ## Setup commands
@@ -50,7 +54,7 @@ needs anything installed.
 ```bash
 python -m pip install pytest coverage   # only for `make test` and `make coverage`
 make validate                  # every skill, subagent and the marketplace manifest
-make catalogue                 # listing ceilings, and the README against the tree
+make catalogue                 # listing ceilings, the README, and every shell block
 make test                      # the validator's own test suite
 make coverage                  # the same, failing below the floor in pyproject.toml
 make package                   # build a .skill archive per skill into dist/

@@ -94,11 +94,12 @@ overview, the repository layout as a table, setup and testing commands, how to a
 skill, code style, commit and pull-request rules, security considerations, an explicit
 boundaries section, and a closing review checklist.
 
-[`CLAUDE.md`](../CLAUDE.md) is four lines of substance: the `@AGENTS.md` import, a note
-that the subagents under `plugins/*/agents/` are the intended way to do heavy
-reading here, and a note
-to use plan mode for anything touching `src/skillcheck/` or `.github/workflows/`, since
-those two decide whether every other change is allowed to merge.
+[`CLAUDE.md`](../CLAUDE.md) is the `@AGENTS.md` import plus three notes that are only
+true of Claude Code: that the subagents under `plugins/*/agents/` are the intended way to
+do heavy reading here, that `/ship` runs the three-stage loop in `.claude/agents/` over a
+change to this repository, and that plan mode is wanted for anything touching
+`src/skillcheck/` or `.github/workflows/`, since those two decide whether every other
+change is allowed to merge.
 
 The import, rather than a symlink, because a symlink needs Administrator or Developer
 Mode on Windows and this repository is public.

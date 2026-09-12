@@ -297,6 +297,7 @@ skill that fires on everything.
 ## Documentation
 
 - [Using the skills](docs/using.md) — installing and using them in Claude Code, ChatGPT, Grok and terminal agents
+- [Project structure](docs/project-structure.md) — what Claude Code loads from a project, what it loads only when relevant, and what is only a convention
 - [Writing a skill](docs/writing-skills.md) — the contract, every validator code, and how to write a description that actually triggers
 - [Writing a subagent](docs/writing-agents.md) — when a subagent beats doing the work inline
 - [Writing a slash command](docs/writing-commands.md) — when a command beats a skill, and why most do not

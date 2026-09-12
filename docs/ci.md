@@ -13,7 +13,7 @@ Triggers on push to `main`, on every pull request, and on `workflow_dispatch`. T
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
-| `validate-skills` | `validate skills` | A skill, a subagent, a command or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed eval set for a skill or a subagent, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output; it also prints the per-plugin description total, which is the listing cost every installer pays. |
+| `validate-skills` | `validate skills` | A skill, a subagent, a command or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed eval set for a skill or a subagent, a `.claude/rules/` glob that matches nothing, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output; it also prints the per-plugin description total, which is the listing cost every installer pays. |
 | `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the job's `env` for the same reason the scanners are. |
 | `test` | `test (3.10)` … `test (3.13)` | The validator's own test suite failed on that interpreter, or line and branch coverage fell below the floor in [`pyproject.toml`](../pyproject.toml). The matrix is four versions because that file declares no dependencies, and running on a bare interpreter across the supported range is how that claim stays true. The coverage table lands in the job summary. |
 | `catalogue` | `check catalogue` | Either a plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), or the README stopped matching the tree. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. |
@@ -298,7 +298,7 @@ gh api /repos/greenblacked/AI/rulesets
 ## Running the checks locally
 
 ```bash
-make validate   # skills, subagents and the manifest — the validate-skills job
+make validate   # skills, subagents, commands, rules and the manifest — the validate-skills job
 make catalogue  # listing ceilings and README drift — the catalogue job
 make portable   # flatten every skill for ChatGPT, Grok and other assistants
 make test       # pytest — the test job
@@ -363,6 +363,13 @@ ruff format --check .
    above wrap the same invocations. `make validate` runs
    `PYTHONPATH=src python3 -m skillcheck . --strict`, which is what the job runs — down
    to the flag, so a warning that fails CI fails locally too.
+
+`validate-skills` also reads `.claude/rules/`, which is loaded into the session rather
+than shipped to installers. A rule scoped with a `paths:` glob loads only when Claude
+reads a matching file, so a glob with a typo in it never matches, the rule never loads,
+and nothing else would ever say so — `dangling-glob` and `empty-paths` are that failure
+made loud. [Project structure](project-structure.md) has the rest of what the loader
+picks up automatically.
 
 For the reasoning behind the rules `validate-skills` enforces, see [writing a
 skill](writing-skills.md). For the subagents referenced by the manifest, see [writing a
