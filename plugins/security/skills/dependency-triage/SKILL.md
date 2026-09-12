@@ -1,7 +1,7 @@
 ---
 name: dependency-triage
 description: "Work a queue of dependency vulnerability alerts — Dependabot, npm audit, pip-audit, govulncheck — into a decision each: reachability before severity, CVSS base versus environmental, EPSS and CISA KEV as the two signals that mean today rather than this quarter, direct versus transitive and the three ways to fix a transitive one, patch bumps batched behind the suite while behaviour changes go alone, suppressions with an expiry date and a named reason, and the malicious or typosquatted package that is an incident, not a queue item. Use this skill whenever someone asks \"twelve dependabot PRs, which matter\", \"is this CVE actually exploitable for us\", \"npm audit says 40 vulnerabilities\", \"can we ignore this one\", or has a backlog nobody reads. Not for a planned major-version move (dependency-upgrade), a container image scan gate (image-hardening), or a leaked credential (secret-rotation)."
-allowed-tools: "Bash(gh:*), Bash(npm:*), Bash(pnpm:*), Bash(yarn:*), Bash(pip:*), Bash(pip-audit:*), Bash(uv:*), Bash(poetry:*), Bash(go:*), Bash(govulncheck:*), Bash(osv-scanner:*), Bash(jq:*), Bash(curl:*), Bash(rg:*), Read, Grep, Glob"
+allowed-tools: "Bash(gh:*), Bash(npm:*), Bash(pnpm:*), Bash(yarn:*), Bash(pip:*), Bash(pip-audit:*), Bash(uv:*), Bash(poetry:*), Bash(go:*), Bash(govulncheck:*), Bash(osv-scanner:*), Bash(jq:*), Bash(curl:*), Bash(rg:*), Read, Write, Edit, Grep, Glob"
 ---
 
 # Dependency Triage

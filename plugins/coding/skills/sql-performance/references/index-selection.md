@@ -66,9 +66,9 @@ PostgreSQL only:
 CREATE INDEX jobs_pending_idx ON jobs (created_at) WHERE state = 'pending';
 ```
 
-On a queue table where 0.3% of rows are pending, this index is small enough to stay in cache permanently, and it gives the planner an accurate row estimate because the count comes from the index rather than from multiplied selectivities. It is the right answer for queue tables, soft-deleted rows (`WHERE deleted_at IS NULL`), and any predicate that is both constant and highly selective.
+On a queue table where 0.3% of rows are pending, this index is small enough to stay in cache permanently, and the path through it is cheap enough that the planner takes it. It does not improve the row estimate — PostgreSQL derives selectivity from statistics, never from an index — so if the estimate was the problem, this is not the fix for it. It is the right answer for queue tables, soft-deleted rows (`WHERE deleted_at IS NULL`), and any predicate that is both constant and highly selective.
 
-The predicate must be provably implied by the query's `WHERE` clause for the index to be used. `WHERE state = 'pending'` matches; `WHERE state = $1` with a parameter does not, even when the parameter is `'pending'`, because the planner cannot prove it at plan time.
+The predicate must be provably implied by the query's `WHERE` clause for the index to be used. `WHERE state = 'pending'` matches. `WHERE state = $1` matches only when the planner has the parameter value: under the default `plan_cache_mode = auto` a custom plan does use the index, and a generic plan cannot, because the predicate is not provable at plan time. Check which you got with `EXPLAIN (GENERIC_PLAN)`.
 
 A unique partial index also expresses a constraint nothing else can: `CREATE UNIQUE INDEX ON subscriptions (customer_id) WHERE status = 'active'` permits one active subscription per customer and any number of cancelled ones.
 

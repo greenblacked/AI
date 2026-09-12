@@ -36,7 +36,7 @@ WHERE o.status = 'pending'
 ```
 
 ```text
-Nested Loop  (cost=0.86..3419.24 rows=12 width=48) (actual time=0.121..3874.552 rows=144639 loops=1)
+Nested Loop  (cost=0.86..3419.24 rows=36 width=48) (actual time=0.121..3874.552 rows=144639 loops=1)
   Buffers: shared hit=148203 read=39122
   ->  Index Scan using orders_created_at_idx on orders o  (cost=0.43..1284.10 rows=12 width=24) (actual time=0.038..91.204 rows=48213 loops=1)
         Index Cond: (created_at >= '2026-08-01 00:00:00+00'::timestamptz)
@@ -58,20 +58,24 @@ Execution Time: 3912.118 ms
 
 **Why the estimate was wrong.** Two predicates on the same table. PostgreSQL estimates the selectivity of `status = 'pending'` and of `created_at >= ...` separately and multiplies them, which assumes the columns are independent. They are the opposite of independent: orders become non-pending as they age, so almost every pending order is recent. `Rows Removed by Filter: 210544` alongside 48,213 kept rows says the index range was reasonable and the correlated filter is where the estimate went.
 
-**The fix.** Tell the planner about the correlation:
+**The fix.** Give the planner a cheap path for the predicate as written:
+
+```sql
+CREATE INDEX orders_pending_created_idx ON orders (created_at) WHERE status = 'pending';
+```
+
+The partial index serves both predicates, is a fraction of the size of the table, and stays in cache when pending orders are a small share of it. The plan changes because this path is cheap, not because the estimate improved — verify that by reading the new plan rather than assuming it.
+
+Be precise about what extended statistics can and cannot do here, because reaching for them first is the common wrong move:
 
 ```sql
 CREATE STATISTICS orders_status_created (dependencies, mcv) ON status, created_at FROM orders;
 ANALYZE orders;
 ```
 
-With a correct estimate the planner sees 48,213 outer rows, abandons the nested loop and hash-joins `order_items` instead, which reads that table once. A partial index is the alternative when pending orders stay a small fraction of the table:
+Functional dependencies apply to equality clauses, and an MCV list cannot represent a range over a column with hundreds of thousands of distinct values. So this corrects `status = 'pending' AND customer_tier = 'gold'` and leaves `status = 'pending' AND created_at >= …` essentially where it was — measured on PostgreSQL 16, the estimate moved from 92 to 87 against 3,441 actual rows, and raising the statistics target did not help. Extended statistics are for correlated equality predicates; a correlated range wants an index or a rewrite.
 
-```sql
-CREATE INDEX orders_pending_created_idx ON orders (created_at) WHERE status = 'pending';
-```
-
-That serves the same predicate, is a fraction of the size, and gives the planner an accurate estimate because the row count comes from the index itself. It stops helping the day someone queries a different status, which is the trade.
+The partial index stops helping the day someone queries a different status, which is the trade.
 
 **What to check afterwards.** Re-run with `BUFFERS` and compare `shared read=` between runs: the first execution above did 39,122 physical reads, so part of the 3.9 seconds was cold cache rather than the plan. The honest comparison is second run against second run.
 

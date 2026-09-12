@@ -14,7 +14,7 @@
   {"query": "our aws bill jumped 30% last month, where is all this money going", "should_trigger": false, "expected": "cost-review"},
   {"query": "what metrics and spans should this new service emit so the next incident is diagnosable", "should_trigger": false, "expected": "instrumentation"},
   {"query": "pods stuck in Pending, events say Insufficient cpu. what do i do right now", "should_trigger": false, "expected": "k8s-triage"},
-  {"query": "the /v1/orders endpoint has a slow query, help me read this explain analyze and add the right index", "should_trigger": false},
+  {"query": "the /v1/orders endpoint has a slow query, help me read this explain analyze and add the right index", "should_trigger": false, "expected": "sql-performance"},
   {"query": "how long should we bake the canary at 5 percent before promoting", "should_trigger": false, "expected": "release-strategy"},
   {"query": "write up the postmortem for last week's outage, i have the timeline in a doc already", "should_trigger": false, "expected": "postmortem"},
   {"query": "which of these three alerts should actually page someone at 3am and which should be a ticket", "should_trigger": false, "expected": "alert-design"},
