@@ -22,7 +22,8 @@ opened, loaded now rather than hoped for.
   that is what you did.
 - **A fixture changed to satisfy a new rule is how that rule gets defanged.** If a fixture
   has to change, ask whether it was the pattern the rule exists to discourage, and say so
-  in the commit either way.
+  in the commit either way. This is in `AGENTS.md` under Boundaries, so it holds whether
+  or not this file is loaded.
 
 `frontmatter.py` parses, `rules.py` decides, `cli.py` reports. Run `make validate` and
 `make test` before you stop.

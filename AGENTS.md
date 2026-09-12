@@ -20,7 +20,7 @@ Everything here is prose and configuration. There is no application. The only co
 | `AGENTS.md` | This file: the rules, in the form Codex and Gemini CLI read too |
 | `CLAUDE.md` | The `@AGENTS.md` import plus the three notes that are only true of Claude Code |
 | `.claude/rules/` | Path-scoped rules loaded when a file matching the glob is read; `docs/project-structure.md` explains when each fires |
-| `.claude/settings.json` | Permissions and the `PostToolUse` hook registration |
+| `.claude/settings.json` | The `PostToolUse` hook registration; nothing else yet |
 | `plugins/coding/skills/` | Reading, reviewing, testing and changing code |
 | `plugins/operations/skills/` | Keeping a running system alive |
 | `plugins/delivery/skills/` | Getting a change into production |
@@ -193,6 +193,9 @@ Shell in this repository, including inline `run:` blocks in workflows, uses
   carry is the one reason to write a command instead of a skill.
 - Do not turn a validator error into a warning to unblock a change. The dangling-pointer
   check in particular exists because that failure is silent in production.
+- Do not edit a fixture to satisfy a new rule without saying so. A fixture that trips a
+  rule is often the pattern the rule exists to discourage, and quietly changing it is how
+  the rule gets defanged on the day it lands. Say in the commit which it was.
 - Do not rewrite the exported skills' voice. `code-scaffold`, `website-builder` and
   `health-coach` were written by hand; new reference files match them rather than the
   other way round.

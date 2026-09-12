@@ -32,7 +32,7 @@ AGENTS.md                     the portable form; CLAUDE.md imports it with @AGEN
   rules/*.md                  always, or on a path match with `paths:`
   commands/*.md               a slash command per file
   skills/<name>/SKILL.md      on a description match, or /<name>
-  agents/*.md                 on a description match, or @<name>
+  agents/*.md                 on a description match, or @agent-<name>
   hooks/*.sh                  nothing; a settings file has to name each one
 ```
 
@@ -47,8 +47,10 @@ monorepo can put shared rules at the root and specific ones in a package. A nest
 not before.
 
 **`CLAUDE.local.md`.** A first-class feature rather than a deprecated one: it loads
-automatically, and it loads *last* at each level, so it wins over the committed
-`CLAUDE.md` beside it. It is for preferences that are yours rather than the project's —
+automatically, and it is read *last* at each level. Memory files are concatenated rather
+than overridden, so a contradiction between it and the committed `CLAUDE.md` beside it is
+resolved arbitrarily — write it to add, not to overrule. It is for preferences that are
+yours rather than the project's —
 the scratch directory you use, the service you point a local run at. Git-ignore it;
 this repository does.
 
@@ -58,10 +60,12 @@ Gemini CLI and others read, and the reason this repository keeps its rules there
 [AGENTS.md](agents-md.md) covers what that split costs and what it buys.
 
 **`.claude/settings.json`** and **`.claude/settings.local.json`.** Both load
-automatically. Precedence runs local over committed over user-level (`~/.claude/`) over
-managed policy, and arrays merge additively rather than replacing, so a permission
-granted at one level is not taken away by silence at another. The `.local` file is
-git-ignored for the same reason as `CLAUDE.local.md`.
+automatically. Precedence runs highest first: managed policy, then the command line,
+then project-local, then the committed project file, then user-level (`~/.claude/`).
+Managed policy is the one nothing below it can override, which is the point of it.
+Lists merge rather than replacing, so a permission granted at one level is not taken
+away by silence at another. The `.local` file is git-ignored for the same reason as
+`CLAUDE.local.md`.
 
 **`.mcp.json`.** MCP server definitions at the project root, discovered automatically and
 committed so a team shares them. An interactive session asks before trusting servers from
@@ -81,7 +85,19 @@ be relevant.
 That conditional loading is also its failure mode, and the reason `skillcheck` validates
 this directory. A glob with a typo in it matches nothing, so the rule never loads, and
 nothing anywhere reports it — the author simply believes a gate is in place that is not.
-`make validate` fails such a rule with `dangling-glob`.
+`make validate` checks this directory for three things:
+
+| Code | Means | Fix |
+| --- | --- | --- |
+| `dangling-glob` | A `paths:` entry selects nothing in the repository, so the rule never loads. | Correct the glob, or drop the key and let the rule load every session. |
+| `empty-paths` | `paths:` is present with no entries, which scopes the rule to nothing. | List a glob, or remove the key. |
+| `empty-rule` | The file has no content to load. | Write it or delete it. |
+
+Prose pointers and capitalised shouting are checked as they are in a skill, with paths
+resolved against the repository root because that is where a rule's prose points. Brace
+groups (`src/**/*.{ts,tsx}`) are expanded before matching, since `pathlib` has none. A
+glob is matched against the working tree, so scope a rule to something committed rather
+than to `dist/`, which exists only after a build.
 
 This repository has three, each scoped to a path class whose gate fails expensively:
 
@@ -103,7 +119,8 @@ is namespaced (`/coding:code-review`). Writing one is
 
 **`.claude/agents/*.md`.** Discovered by walking up from the working directory, with the
 closest definition winning a name collision. Claude picks one by matching the
-`description`, or you name it with `@agent-name`. [Writing a subagent](writing-agents.md)
+`description`, or you name it with `@agent-<name>` — `@agent-reviewer` here, and
+`@agent-plugin:name` for one a plugin ships. [Writing a subagent](writing-agents.md)
 covers when delegating beats doing the work inline.
 
 **`.claude/commands/*.md`.** One slash command per file, discovered automatically.

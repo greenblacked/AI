@@ -21,7 +21,8 @@ fail the build for, and each exists because the failure is otherwise silent.
   platform default, which reads as slow CI rather than broken CI.
 - **`persist-credentials: false` on every checkout.** Nothing here pushes from CI.
 - **`set -Eeuo pipefail` in every inline `run:` block.** actionlint runs shellcheck over
-  them, and `scripts/check_shell.py` parses them.
+  them in CI, and nothing else does: `scripts/check_shell.py` reads shipped scripts and
+  fenced Markdown blocks, never a workflow.
 - **Never pipe a downloaded script into a shell.** Fetch at a pinned version and check it
   against a recorded digest.
 - **A cancelled job counts as a failure to the aggregate.** That is deliberate: a required

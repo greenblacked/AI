@@ -16,7 +16,7 @@ Triggers on push to `main`, on every pull request, and on `workflow_dispatch`. T
 | `validate-skills` | `validate skills` | A skill, a subagent, a command or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed eval set for a skill or a subagent, a `.claude/rules/` glob that matches nothing, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output; it also prints the per-plugin description total, which is the listing cost every installer pays. |
 | `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the job's `env` for the same reason the scanners are. |
 | `test` | `test (3.10)` … `test (3.13)` | The validator's own test suite failed on that interpreter, or line and branch coverage fell below the floor in [`pyproject.toml`](../pyproject.toml). The matrix is four versions because that file declares no dependencies, and running on a bare interpreter across the supported range is how that claim stays true. The coverage table lands in the job summary. |
-| `catalogue` | `check catalogue` | Either a plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), or the README stopped matching the tree. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. |
+| `catalogue` | `check catalogue` | A plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), the README stopped matching the tree, or a shell block or shipped script no longer parses. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. |
 | `catalogue` (portable step) | `check catalogue` | `make portable` could not flatten every skill into a file that stands alone. This is how the library reaches ChatGPT, Grok and anything else without a skills runtime: frontmatter becomes a plain "Use this when" line and every `references/` file is inlined, with the pointer that named it rewritten to name the section instead. A pointer that survives as a path is a dangling reference reintroduced at the boundary, for a reader with no filesystem to resolve it against. |
 | `spelling` | `lint spelling` | codespell found a likely typo. It ran weekly and warn-only until it was made a gate; the false positives are listed in [`pyproject.toml`](../pyproject.toml) with the reason each is one, which is what lets the check sit at zero and mean something. |
 | `lint-markdown` | `lint markdown` | markdownlint-cli2 found a violation in a `*.md` file. Config in `.markdownlint-cli2.yaml`. |
@@ -299,7 +299,7 @@ gh api /repos/greenblacked/AI/rulesets
 
 ```bash
 make validate   # skills, subagents, commands, rules and the manifest — the validate-skills job
-make catalogue  # listing ceilings and README drift — the catalogue job
+make catalogue  # listing ceilings, README drift, shell blocks — the catalogue job
 make portable   # flatten every skill for ChatGPT, Grok and other assistants
 make test       # pytest — the test job
 make coverage   # the same run under coverage, failing below the floor
@@ -324,8 +324,10 @@ local toolchain does not block you; CI has all of them.
 `make catalogue` needs nothing installed beyond `bash`. It is the three checks that
 keep the repository's claims about itself true — the per-plugin listing ceilings, whether
 the README still lists every skill, subagent and command that exists and nothing that
-does not, and whether every shell block and shipped script actually parses. Both failures are invisible without a gate: the first costs you the skills you use
-least, silently, and the second is only ever caught by someone reading.
+does not, and whether every shell block and shipped script actually parses. Each
+failure is invisible without a gate: the first costs you the skills you use least,
+silently; the second is only ever caught by someone reading; and the third ships a
+command that reads fine and fails in someone else's terminal.
 
 The trigger evals are not part of `make`, because they need a model and a key. Run them
 directly when a description is the thing in question:

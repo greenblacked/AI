@@ -30,6 +30,8 @@ the part that applies to the file you just opened.
 - **Every command you print must run.** `scripts/check_shell.py` proves the shell parses;
   it cannot prove a flag exists. Execute it.
 
-`make catalogue` will fail on a new skill twice, both deliberately: no README row yet, and
-the plugin's listing pushed past its ceiling. Add the row, then raise the ceiling with
-`scripts/check_listing_budget.py --update` and say why, or split the plugin.
+`make catalogue` will fail on a new skill for the missing README row, and may fail again
+on the plugin's listing ceiling — the ceilings carry a few hundred characters of slack, so
+rewording is free and a whole new description usually is not. Both are the gate working.
+Add the row, then raise the ceiling with `scripts/check_listing_budget.py --update` and
+say why, or split the plugin.

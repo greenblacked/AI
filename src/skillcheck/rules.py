@@ -979,18 +979,24 @@ def check_command(path: Path, repo_root: Path) -> list[Finding]:
 
 RULE_GLOB_ENTRY_RE = re.compile(r"^\s*-\s*(\S.*?)\s*$")
 
+# A trailing YAML comment on a sequence entry. Only whitespace-preceded `#` counts, so a
+# glob containing one — rare but legal — survives.
+RULE_GLOB_COMMENT_RE = re.compile(r"\s+#.*$")
+
+RULE_BRACE_RE = re.compile(r"\{([^{}]*)\}")
+
 
 def find_rules(root: Path) -> list[Path]:
     """Return every rule file under ``root``, sorted by path.
 
-    Claude Code discovers `.claude/rules/` recursively and concatenates what it finds
-    into context at session start, so a stray Markdown file in there is loaded whether
-    or not it was meant to be a rule. The one exception is a README, which is written
-    for the reader of the directory rather than for the model.
+    Claude Code discovers `.claude/rules/` recursively and concatenates every Markdown
+    file it finds into context at session start, so a stray one is loaded whether or not
+    it was meant to be a rule. There is no README exemption for that reason: a README
+    here is not documentation beside the rules, it is a rule.
     """
     if not root.is_dir():
         return []
-    return sorted(p for p in root.rglob("*.md") if p.name.lower() != "readme.md")
+    return sorted(root.rglob("*.md"))
 
 
 def _rule_globs(text: str, closing: int) -> list[tuple[str, int]]:
@@ -1011,9 +1017,11 @@ def _rule_globs(text: str, closing: int) -> list[tuple[str, int]]:
             index += 1
             continue
         rest = raw[len("paths:") :].strip()
+        # A flow sequence wrapped over several lines never reaches here: the frontmatter
+        # reader refuses a value that does not fit on one line, and says so, which is the
+        # loud failure rather than the silent one.
         if rest.startswith("[") and rest.endswith("]"):
-            for entry in rest[1:-1].split(","):
-                entry = entry.strip()
+            for entry in _split_outside_braces(rest[1:-1]):
                 if entry:
                     globs.append((_unquote_glob(entry), index + 1))
         elif rest:
@@ -1021,6 +1029,9 @@ def _rule_globs(text: str, closing: int) -> list[tuple[str, int]]:
         else:
             index += 1
             while index < closing:
+                if not lines[index].strip():
+                    index += 1
+                    continue
                 match = RULE_GLOB_ENTRY_RE.match(lines[index])
                 if match is None:
                     break
@@ -1031,8 +1042,29 @@ def _rule_globs(text: str, closing: int) -> list[tuple[str, int]]:
     return globs
 
 
+def _split_outside_braces(text: str) -> list[str]:
+    """Split a flow sequence on its separators, keeping `{ts,tsx}` in one piece."""
+    parts: list[str] = []
+    current: list[str] = []
+    depth = 0
+    for character in text:
+        if character == "{":
+            depth += 1
+        elif character == "}":
+            depth = max(0, depth - 1)
+        if character == "," and depth == 0:
+            parts.append("".join(current).strip())
+            current = []
+            continue
+        current.append(character)
+    parts.append("".join(current).strip())
+    return parts
+
+
 def _unquote_glob(value: str) -> str:
     value = value.strip()
+    if not (value and value[0] in "\"'" and value[-1] == value[0]):
+        value = RULE_GLOB_COMMENT_RE.sub("", value).strip()
     if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
         return value[1:-1]
     return value
@@ -1099,13 +1131,37 @@ def check_rule(path: Path, repo_root: Path) -> list[Finding]:
 def _glob_matches(repo_root: Path, pattern: str) -> bool:
     """Whether ``pattern`` selects at least one path under ``repo_root``.
 
-    An unusable pattern — absolute, or escaping the root — is reported as matching
+    Brace groups are expanded first, because `pathlib` has none and
+    `src/**/*.{ts,tsx}` is the form the documentation itself uses — handing it straight
+    to `Path.glob` would fail a correct rule and tell its author it never loads.
+
+    A pattern that cannot select anything Claude Code would load is reported as matching
     nothing rather than raised, so one bad glob names itself instead of ending the run.
+    That covers the absolute form and any `..` component: `Path.glob` happily resolves
+    `../sibling/**` and would pass a rule scoped outside the repository entirely.
+
+    A glob is matched against the working tree, which includes ignored files. A rule
+    scoped to `dist/**` therefore passes on a machine that has run `make package` and
+    fails on a clean checkout; scope a rule to something committed.
     """
+    if pattern.startswith("/") or any(part == ".." for part in pattern.split("/")):
+        return False
     try:
-        return any(True for _ in repo_root.glob(pattern))
+        return any(any(True for _ in repo_root.glob(p)) for p in _expand_braces(pattern))
     except (NotImplementedError, ValueError, IndexError):
         return False
+
+
+def _expand_braces(pattern: str) -> list[str]:
+    """Expand `{a,b}` groups, innermost first, into the patterns they stand for."""
+    match = RULE_BRACE_RE.search(pattern)
+    if match is None:
+        return [pattern]
+    expanded: list[str] = []
+    for option in match.group(1).split(","):
+        head, tail = pattern[: match.start()], pattern[match.end() :]
+        expanded.extend(_expand_braces(f"{head}{option.strip()}{tail}"))
+    return expanded
 
 
 def check_eval_conflicts(
