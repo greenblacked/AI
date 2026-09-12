@@ -1,0 +1,23 @@
+[
+  {"query": "where is my money actually going every month, I earn fine and there's nothing left", "should_trigger": true},
+  {"query": "I want to go through my bank statements and work out a budget that I'll actually stick to", "should_trigger": true},
+  {"query": "how much should I have in an emergency fund, everyone says three to six months but three to six months of what", "should_trigger": true},
+  {"query": "should I overpay the mortgage or put the money into a pension instead", "should_trigger": true},
+  {"query": "I have four credit cards and a loan, what order do I pay them off in", "should_trigger": true},
+  {"query": "help me audit my subscriptions, I think I'm paying for stuff I never use", "should_trigger": true},
+  {"query": "my pension platform charges 0.9% a year, is that a lot over thirty years", "should_trigger": true},
+  {"query": "can I afford a 400 a month car payment on my current outgoings", "should_trigger": true},
+  {"query": "every few months a big bill lands and wrecks the month, how do I plan for that", "should_trigger": true},
+  {"query": "I want to model what dropping the commute would do to our monthly outgoings before we decide anything", "should_trigger": true},
+  {"query": "which index fund should I buy this month", "should_trigger": true},
+
+  {"query": "they offered me 95k plus equity, how do I push for more before I sign", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "our AWS bill went up 40% last month and nobody knows why", "should_trigger": false, "expected": "cost-review"},
+  {"query": "we need to pick between two observability vendors for the platform team", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "help me plan my week, I keep ending Friday with nothing finished", "should_trigger": false, "expected": "weekly-review"},
+  {"query": "how many calories are in the pasta dish I just made", "should_trigger": false, "expected": "health-coach"},
+  {"query": "I'm thinking about leaving my job, where do I even start looking", "should_trigger": false, "expected": "job-search"},
+  {"query": "write up what I learned from that book on distributed systems so it sticks", "should_trigger": false, "expected": "learning-notes"},
+  {"query": "we're forecasting node count for next year's cluster growth", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "explain how compound interest works, I'm just curious about the maths", "should_trigger": false}
+]

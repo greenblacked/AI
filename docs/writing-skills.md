@@ -17,7 +17,8 @@ skills/<category>/<name>/
 └── assets/           # optional: templates and files the skill emits
 ```
 
-`<category>` is one of `engineering`, `manager` or `personal` — the three plugins in
+`<category>` is one of `coding`, `operations`, `delivery`, `security`, `manager`, `personal` or
+`career` — the seven plugins in
 [the marketplace manifest](../.claude-plugin/marketplace.json). `<name>` is the skill
 name, and it must equal the `name` in the frontmatter.
 
@@ -197,21 +198,33 @@ overflows, Claude Code keeps every skill's name but
 so those skills can still be invoked by name and stop being chosen on their own. A
 newly installed skill has never been used, so it is first to lose its description.
 
-This repository's forty-one descriptions total about 37,000 characters; `engineering` alone
-is over twice the budget. `make validate` prints the per-plugin total on every run, and
-`--listing-budget CHARS` turns exceeding it into a warning:
+This repository's descriptions total about 53,000 characters, which is why they are split
+across eight plugins rather than three: six of the eight fit the default budget on their
+own, and the two that do not — `coding` and `manager` — are the ones nobody installs
+alongside much else. `make validate` prints the per-plugin total on every run, and
+`--listing-budget CHARS` turns exceeding one number into a warning:
 
 ```bash
 PYTHONPATH=src python -m skillcheck . --listing-budget 8000
 ```
 
-It is not a gate, because the fix is not on the author's side: at twenty-one skills, even
-descriptions cut to five hundred characters would still overflow. What the number tells
-you is which of two things to do. Installers of more than one plugin should raise
-`skillListingBudgetFraction` in their settings, or mark rarely used skills `"name-only"`
-in `skillOverrides`. Authors should keep descriptions inside the 500–900 guidance rather
-than at the cap, and should score them with `--budget` to see what the runtime actually
-shows.
+A single threshold cannot gate this, because two plugins are already above the runtime
+default and a gate set there would fail on every run forever. So the gate is a ratchet
+instead, in the same shape as the coverage floor: `listing-budget.json` records a ceiling
+per plugin with a few hundred characters of slack, `make catalogue` enforces it, and
+growth has to be a decision rather than a drift. A description is 500–900 characters, so
+rewording stays free and adding a skill does not.
+
+```bash
+make catalogue                                  # enforce the ceilings
+python scripts/check_listing_budget.py --update  # raise them deliberately
+```
+
+Raise a ceiling and say why in the commit, or split the plugin. Installers of more than
+one plugin should raise `skillListingBudgetFraction` in their settings, or mark rarely
+used skills `"name-only"` in `skillOverrides`. Authors should keep descriptions inside the
+500–900 guidance rather than at the cap, and should score them with `--budget` to see what
+the runtime actually shows.
 
 ## Trigger eval sets
 
@@ -244,8 +257,10 @@ The validator checks the schema of that file on every run, and nothing more: at 
 queries, at least 8 on each side, no query string appearing twice, no keys beyond `query`,
 `should_trigger` and `expected`, `should_trigger` a real boolean rather than the string
 `"true"`, and `expected` only on a negative, never naming the skill itself, and naming a
-skill or subagent that exists — a misspelling there is a permanent miss. The codes are
-`no-evals` (a warning, the only one), `bad-eval-json`, `bad-eval-shape`, `bad-eval-entry`,
+skill or subagent that exists — a misspelling there is a permanent miss. It also warns
+when a set's negatives name no winner at all, which is the state that makes the routing
+number meaningless rather than merely incomplete. The codes are `no-evals` and
+`no-routing` (the two warnings), `bad-eval-json`, `bad-eval-shape`, `bad-eval-entry`,
 `unknown-expected`, `duplicate-eval-query`, `thin-eval-set` and `unbalanced-eval-set`.
 
 Subagents carry eval sets too, at `agents/evals/<name>.json` beside the agent file, with
@@ -293,8 +308,8 @@ default, `--backend` picks another, and `--command` takes any CLI at all as a sh
 template with `{prompt}` where the question goes:
 
 ```bash
-python scripts/run_trigger_eval.py --skill plugins/engineering/skills/ci-triage --verbose
-python scripts/run_trigger_eval.py --agent plugins/engineering/agents/ci-log-reader.md
+python scripts/run_trigger_eval.py --skill plugins/operations/skills/ci-triage --verbose
+python scripts/run_trigger_eval.py --agent plugins/operations/agents/ci-log-reader.md
 python scripts/run_trigger_eval.py --all --budget 8000 --baseline evals/last-run.json
 python scripts/run_trigger_eval.py --all --backend codex --model o4-mini
 python scripts/run_trigger_eval.py --all --backend ollama --model llama3.1
@@ -325,7 +340,7 @@ Three flags change what the number means:
   scores well only without `--budget` is one that never reaches the model in a real
   session.
 - `--baseline` takes an earlier `--json` output and prints the per-target delta. With
-  forty-one descriptions competing for the same queries, the expected consequence of editing
+  fifty-five descriptions competing for the same queries, the expected consequence of editing
   one is a change in a neighbour's score, and a fixed threshold cannot see a skill slide
   from 100% to 85%. Commit a run and diff against it.
 
@@ -358,8 +373,8 @@ it. "The approach we discussed" and unexplained internal names are dead weight.
 ## Adding a new skill
 
 ```bash
-mkdir -p plugins/engineering/skills/log-shipping/evals
-cp template/SKILL.md plugins/engineering/skills/log-shipping/SKILL.md
+mkdir -p plugins/coding/skills/log-shipping/evals
+cp template/SKILL.md plugins/coding/skills/log-shipping/SKILL.md
 ```
 
 [`template/SKILL.md`](../template/SKILL.md) carries the shape: a one-sentence statement
@@ -371,26 +386,31 @@ with "use for" and "do not use for", a numbered workflow, and an anti-patterns s
    only once you know what it does.
 3. Write `evals/trigger-eval.json` alongside it: twenty queries, ten `true` and ten
    `false`. Write them in the user's words rather than the skill's, and draw the
-   negatives from the skills this one sits next to. Doing this straight after the
-   description is what turns "this reads well" into a number.
-4. Add the skill to the right plugin's `skills` array in
-   [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json), keeping the
-   array alphabetical:
-
-   ```json
-   "./plugins/engineering/skills/log-shipping"
-   ```
-
-5. Validate:
+   negatives from the skills this one sits next to. Put `"expected"` on every negative
+   with an obvious owner — a negative without it passes when any other skill fires,
+   including the wrong one, so the routing metric has nothing to measure. Doing this
+   straight after the description is what turns "this reads well" into a number.
+4. Nothing to add to
+   [`.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json). Each plugin
+   discovers its own `skills/`, so there is no list to keep alphabetical and none to
+   fall out of date. What the validator checks instead is ownership: a skill outside
+   every plugin's `skills/` directory is `unowned-skill`, because it installs for nobody.
+5. Validate, and add the row the README gate will ask for:
 
    ```bash
    make validate
+   make catalogue
    ```
+
+   `make catalogue` fails on a new skill twice over, both deliberately: it has no README
+   row yet, and it has pushed its plugin past the listing ceiling. Add the row, then
+   either raise the ceiling with `scripts/check_listing_budget.py --update` and say why,
+   or split the plugin.
 
 6. Optionally score the description, and check that the skill packages and installs:
 
    ```bash
-   python scripts/run_trigger_eval.py --skill plugins/engineering/skills/log-shipping --verbose
+   python scripts/run_trigger_eval.py --skill plugins/coding/skills/log-shipping --verbose
    make package
    make install
    ```
@@ -452,6 +472,7 @@ Every code the validator can emit is below, grouped by what it is looking at.
 | `thin-eval-set` | error | Fewer than 16 queries. | Add more. Below that the pass rate moves too far on one result. |
 | `unbalanced-eval-set` | error | Fewer than 8 on either side. | Add to the short side — usually the negatives, which are what catch a description that fires on everything. |
 | `unknown-expected` | error | A negative names an `expected` winner that is not a skill or subagent here. | Fix the spelling. Left alone it scores as a permanent miss. |
+| `no-routing` | warning | None of the set's negatives names a winner, so each one passes whenever anything else fires — the wrong neighbour included. | Add `expected` to the negatives that have an obvious owner. A query nothing here claims is right to leave alone; most sets leave a few. |
 | `listing-over-budget` | warning, only with `--listing-budget` | A plugin's descriptions together exceed the given listing budget. | Not an author-side fix at this scale; see [the listing budget](#the-listing-budget). |
 | `conflicting-eval-query` | error | The same query is a positive in two skills' eval sets. | Decide which skill owns it and make it a negative in the other. Left alone, one of the two always scores as a miss. |
 

@@ -1,0 +1,23 @@
+[
+  {"query": "twelve dependabot PRs landed this week, which ones actually matter", "should_trigger": true},
+  {"query": "is this CVE actually exploitable for us or can we leave it", "should_trigger": true},
+  {"query": "npm audit says 40 vulnerabilities, where do I even start", "should_trigger": true},
+  {"query": "a transitive dep is vulnerable and the parent has not released a fix, what are my options", "should_trigger": true},
+  {"query": "govulncheck says the module is vulnerable but the symbol is never called, do I still have to fix it", "should_trigger": true},
+  {"query": "can we skip this alert, it is only a dev dependency", "should_trigger": true},
+  {"query": "our dependabot backlog is 200 alerts and nobody reads it any more", "should_trigger": true},
+  {"query": "how do I force a patched version of a package we only get transitively", "should_trigger": true},
+  {"query": "should we prioritise our vulnerability queue by cvss or by epss", "should_trigger": true},
+  {"query": "a package in our lockfile turned out to be malicious, what do we do", "should_trigger": true},
+
+  {"query": "bump us from django 4 to django 5 across the codebase", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "we are three majors behind on react, plan the upgrade", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "there is no patch for our major, plan the move onto the supported version", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "our image scan fails on the base layer, which distroless variant should we use", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "set up an sbom and a severity gate for container images in the release pipeline", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "can you security review this PR before I merge it", "should_trigger": false, "expected": "security-review"},
+  {"query": "check this terraform plan before I apply it", "should_trigger": false, "expected": "iac-review"},
+  {"query": "an aws access key got pushed to a public repo an hour ago", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "CI went red right after the lockfile update and I cannot tell why", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "the tests on this dependabot PR keep failing, is it a flake", "should_trigger": false, "expected": "ci-triage"}
+]

@@ -1,0 +1,23 @@
+[
+  {"query": "write the release notes for 2.4", "should_trigger": true},
+  {"query": "what changed since the last release, I need a changelog", "should_trigger": true},
+  {"query": "is this a minor or a major, we changed a default value", "should_trigger": true},
+  {"query": "draft the changelog for this week's deploy", "should_trigger": true},
+  {"query": "we are removing the old sort param, how do I announce it", "should_trigger": true},
+  {"query": "run me through the checklist before I publish this version", "should_trigger": true},
+  {"query": "need an upgrade guide for customers moving from 1.x to 2.0", "should_trigger": true},
+  {"query": "how do I work out which commits are actually in this release", "should_trigger": true},
+  {"query": "our release notes are 80 lines of dependency bumps, nobody reads them", "should_trigger": true},
+  {"query": "should the breaking change go at the top and what do I put with it", "should_trigger": true},
+
+  {"query": "what percent of traffic should the canary get and how long do we bake", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "we are flipping dns to the new provider on saturday, plan it", "should_trigger": false, "expected": "cutover"},
+  {"query": "how do I drop this column without taking the app down", "should_trigger": false, "expected": "db-migration"},
+  {"query": "we want to move off jenkins onto github actions over two quarters", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "write this week's update for the leadership team", "should_trigger": false, "expected": "status-update"},
+  {"query": "capture why we picked postgres over dynamo so nobody reopens it", "should_trigger": false, "expected": "decision-record"},
+  {"query": "write the api reference docs for the new endpoints", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "upgrade our react version to 19 across the app", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "the deploy broke prod last night, write up what happened", "should_trigger": false, "expected": "postmortem"},
+  {"query": "security review this diff before it merges", "should_trigger": false, "expected": "security-review"}
+]

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "security",
+  "description": "Skills for the defensive side of shipping software: review a change for the vulnerability classes that actually get exploited, reduce who can do what toward least privilege without breaking production, rotate or contain a credential, harden a container image and keep checking it, and read a Terraform plan for what it destroys.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "security",
+    "least-privilege",
+    "secrets",
+    "containers",
+    "terraform",
+    "appsec",
+    "supply-chain"
+  ]
+}

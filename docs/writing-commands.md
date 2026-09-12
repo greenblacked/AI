@@ -52,7 +52,7 @@ the mechanical part — convert, query, order the output by recoverability — a
 ## Shape on disk
 
 ```text
-plugins/engineering/commands/blast-radius.md   # ships with the plugin
+plugins/security/commands/blast-radius.md      # ships with the plugin
 .claude/commands/skill-doctor.md               # contributor tooling, not shipped
 ```
 

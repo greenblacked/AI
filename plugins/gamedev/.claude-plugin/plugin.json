@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "gamedev",
+  "description": "Skills for making games: build a playable prototype and take it to a finished game, hold a frame budget on the hardware you are shipping to, choose a multiplayer authority model and make it survive latency, tune numbers against telemetry instead of taste, and keep an asset pipeline from eating the build.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "gamedev",
+    "godot",
+    "unity",
+    "unreal",
+    "performance",
+    "netcode",
+    "balance",
+    "assets"
+  ]
+}

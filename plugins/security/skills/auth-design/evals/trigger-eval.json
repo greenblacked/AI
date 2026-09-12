@@ -1,0 +1,22 @@
+[
+  {"query": "design the auth for our new customer portal, jwt with refresh tokens or server side sessions?", "should_trigger": true},
+  {"query": "we're adding google login to the app this sprint, what do we need to get right", "should_trigger": true},
+  {"query": "is our refresh token flow safe? we issue a new one each refresh but the old one keeps working for an hour", "should_trigger": true},
+  {"query": "where should the spa keep the access token, localstorage or an httponly cookie", "should_trigger": true},
+  {"query": "should we build our own login and signup or pay for a hosted identity provider", "should_trigger": true},
+  {"query": "what flags do we need on the session cookie, and does samesite lax actually stop csrf on its own", "should_trigger": true},
+  {"query": "how should we hash passwords for the new signup form, bcrypt or argon2id", "should_trigger": true},
+  {"query": "do we still need the state parameter if we're already doing pkce, the contractor says it's redundant", "should_trigger": true},
+  {"query": "our gateway decodes the jwt and reads the sub claim, do we have to verify the signature if the call is internal", "should_trigger": true},
+  {"query": "can we register a wildcard redirect uri so the preview deploys work with okta", "should_trigger": true},
+  {"query": "the stripe api key the payments service uses is three months old, how do we swap it with no downtime", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "someone committed a service account json file to the repo last night, what do we do first", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "the quarterly access certification is due, who still has production database access and do they need it", "should_trigger": false, "expected": "access-review"},
+  {"query": "six engineers have standing admin on the prod account, we want just in time elevation with approval and expiry", "should_trigger": false, "expected": "access-review"},
+  {"query": "can you security review this PR, it adds a file upload endpoint and a new dependency", "should_trigger": false, "expected": "security-review"},
+  {"query": "here's the diff for the orders controller, does this endpoint need an authz check before i merge it", "should_trigger": false, "expected": "security-review"},
+  {"query": "should we return 403 or 404 when the caller is authenticated but not allowed to see that order", "should_trigger": false, "expected": "api-design"},
+  {"query": "offset or cursor pagination for the orders list endpoint, and how do we version it later", "should_trigger": false, "expected": "api-design"},
+  {"query": "terraform plan wants to replace the cognito user pool, is that safe to apply", "should_trigger": false, "expected": "iac-review"},
+  {"query": "can you look over this branch before i merge, it's mostly restructuring the checkout service", "should_trigger": false, "expected": "code-review"}
+]

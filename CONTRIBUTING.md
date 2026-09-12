@@ -1,7 +1,8 @@
 # Contributing
 
-This is a personal library, so the bar for a new skill is "I would reach for this", not
-"this is generally useful". Issues and pull requests are welcome anyway — particularly
+The bar for a new skill is that someone would reach for it in real work, not that it is
+notionally useful: a skill that restates what a model already knows costs context on every
+session and earns nothing back. Issues and pull requests are welcome — particularly
 corrections, since several skills assert specific command flags and standards, and a
 wrong flag in a skill is worse than no skill.
 
@@ -9,11 +10,19 @@ wrong flag in a skill is worse than no skill.
 
 ```bash
 make validate
+make catalogue
 make test
 ```
 
-Both are what CI runs. `make lint` runs ruff, markdownlint, yamllint and actionlint when
-they are installed and tells you the install command when they are not.
+All three are what CI runs. `make lint` runs ruff, markdownlint, yamllint, actionlint and
+codespell when they are installed and tells you the install command when they are not.
+
+`make catalogue` is the one that fails on work that feels finished. A new skill has no row
+in the README yet, and it pushes its plugin's listing past the ceiling recorded in
+`listing-budget.json` — both deliberate. Past the runtime's listing budget, the
+descriptions of a plugin's least-used skills are dropped silently, so growth is meant to
+be a decision: raise the ceiling with `scripts/check_listing_budget.py --update` and say
+why in the commit, or split the plugin.
 
 Install the versions CI pins. Ruff 0.16 formats Python inside Markdown fences and 0.15
 does not, so an older local ruff reports a file as clean that CI then rejects — which is
@@ -32,12 +41,18 @@ a hook people delete.
 Follow [`docs/writing-skills.md`](docs/writing-skills.md). In short: copy
 `template/SKILL.md`, name the directory and the `name` field identically, write the
 `description` last and make it explicit about when the skill should fire, put depth in
-`references/` and write every file you name, write `evals/trigger-eval.json`, then list
-the skill in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json).
+`references/` and write every file you name, and write `evals/trigger-eval.json`. There is
+nothing to register: each plugin discovers its own `skills/`, so the only structural rule
+is that the skill sits inside one of the seven under `plugins/`. Pick the plugin by the
+work it belongs to, not by who would do it — a skill stranded outside a plugin installs
+for nobody, and the validator says so.
 
 The eval set is twenty queries — ten the skill should fire on, ten near-misses it should
 not. Spend the effort on the negatives: a positive only shows the description is not
 inert, while a negative drawn from a neighbouring skill shows it actually discriminates.
+On any negative with an obvious owner, add `"expected"` naming the skill that should win
+it; that is what turns "did not fire" into "routed correctly", and it is the only way the
+score can see one description quietly stealing another's queries.
 
 The validator will catch every mechanical mistake. What it cannot catch is a skill that
 restates general good practice — if a capable model would already do what the skill says,

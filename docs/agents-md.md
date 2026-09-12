@@ -94,11 +94,12 @@ overview, the repository layout as a table, setup and testing commands, how to a
 skill, code style, commit and pull-request rules, security considerations, an explicit
 boundaries section, and a closing review checklist.
 
-[`CLAUDE.md`](../CLAUDE.md) is four lines of substance: the `@AGENTS.md` import, a note
-that the subagents in `plugins/engineering/agents/` are the intended way to do heavy
-reading here, and a note
-to use plan mode for anything touching `src/skillcheck/` or `.github/workflows/`, since
-those two decide whether every other change is allowed to merge.
+[`CLAUDE.md`](../CLAUDE.md) is the `@AGENTS.md` import plus three notes that are only
+true of Claude Code: that the subagents under `plugins/*/agents/` are the intended way to
+do heavy reading here, that `/ship` runs the three-stage loop in `.claude/agents/` over a
+change to this repository, and that plan mode is wanted for anything touching
+`src/skillcheck/` or `.github/workflows/`, since those two decide whether every other
+change is allowed to merge.
 
 The import, rather than a symlink, because a symlink needs Administrator or Developer
 Mode on Windows and this repository is public.
@@ -113,7 +114,7 @@ things live — which directory owns which concern, and which ones are generated
 not be edited by hand. This is the single highest-value section, because the alternative
 is the agent spending its first several tool calls reconstructing the layout, and
 sometimes reconstructing it wrong. For this repository the map is short: `skills/` by
-category under `plugins/`, `plugins/engineering/agents/`, `src/skillcheck/`, `scripts/`,
+category under `plugins/`, `plugins/*/agents/`, `src/skillcheck/`, `scripts/`,
 `template/`.
 
 **The one shortcut that saves a wasted cycle.** Strong repository instructions name the

@@ -1,0 +1,22 @@
+[
+  {"query": "plan me a week in Japan in April, two of us flying from Manchester", "should_trigger": true},
+  {"query": "do I need a visa for Vietnam on an Irish passport?", "should_trigger": true},
+  {"query": "my passport runs out in four months, is that a problem for Thailand", "should_trigger": true},
+  {"query": "is a 55 minute connection at Heathrow enough to make the Nairobi flight", "should_trigger": true},
+  {"query": "should I book these two flights separately, it saves about ninety quid", "should_trigger": true},
+  {"query": "help me build a two week itinerary for Peru that isn't completely exhausting", "should_trigger": true},
+  {"query": "we land in Sydney at 6am after a red-eye, what should we plan for that day", "should_trigger": true},
+  {"query": "is travel insurance actually worth it for two weeks in Costa Rica", "should_trigger": true},
+  {"query": "what do I need to take my daughter to Spain without her father coming", "should_trigger": true},
+  {"query": "we have 3500 euros and ten days free in October, what does that trip look like", "should_trigger": true},
+  {"query": "can we afford a big holiday this year or should we overpay the mortgage first", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "will I need a work visa if I take this job offer in Berlin", "should_trigger": false, "expected": "job-search"},
+  {"query": "plan my week for me, I'm drowning and nothing is getting done", "should_trigger": false, "expected": "weekly-review"},
+  {"query": "the airline has rejected my delay compensation claim twice, what do I do now", "should_trigger": false, "expected": "life-admin"},
+  {"query": "I need to renew my passport, walk me through what to send and when", "should_trigger": false, "expected": "life-admin"},
+  {"query": "what should I eat on a fourteen hour flight to stay on track", "should_trigger": false, "expected": "health-coach"},
+  {"query": "should I buy a campervan or just keep hiring one twice a year", "should_trigger": false, "expected": "major-purchase"},
+  {"query": "write the failover procedure our on-call team follows at 3am", "should_trigger": false, "expected": "runbook"},
+  {"query": "I'm speaking at a conference in Lisbon next month, help me prepare the talk", "should_trigger": false, "expected": "conference-talk"},
+  {"query": "they offered me the role but the relocation package looks thin", "should_trigger": false, "expected": "offer-negotiation"}
+]

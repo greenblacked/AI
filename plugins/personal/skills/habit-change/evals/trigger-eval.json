@@ -1,0 +1,22 @@
+[
+  {"query": "I keep starting the gym in January and quitting by February, what am I doing wrong", "should_trigger": true},
+  {"query": "how do I make flossing actually stick this time", "should_trigger": true},
+  {"query": "I want to read before bed every night but I always end up scrolling instead", "should_trigger": true},
+  {"query": "I missed two days of my morning walk and now I have stopped completely", "should_trigger": true},
+  {"query": "is it really 21 days to form a habit or is that made up", "should_trigger": true},
+  {"query": "help me quit doomscrolling in the evenings", "should_trigger": true},
+  {"query": "I want a daily writing practice that does not collapse the first busy week", "should_trigger": true},
+  {"query": "how do I stop biting my nails, I have tried everything", "should_trigger": true},
+  {"query": "my meditation streak broke at day 40 and I cannot get started again", "should_trigger": true},
+  {"query": "I need to actually take my tablets at the same time each day", "should_trigger": true},
+  {"query": "how many calories are in this bowl of pasta and chorizo", "should_trigger": false, "expected": "health-coach"},
+  {"query": "I want to eat more protein, what should I be putting in my lunches", "should_trigger": false, "expected": "health-coach"},
+  {"query": "what should I focus on this week, I am behind on everything", "should_trigger": false, "expected": "weekly-review"},
+  {"query": "run me through a Friday reset so I can close out the week", "should_trigger": false, "expected": "weekly-review"},
+  {"query": "set up a monthly budget I will actually stick to", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "I need to tell my report that his code review comments are too blunt", "should_trigger": false, "expected": "difficult-conversation"},
+  {"query": "help me set quarterly goals for my team", "should_trigger": false, "expected": "okr-planning"},
+  {"query": "I want to learn Rust properly, how should I capture what I read", "should_trigger": false, "expected": "learning-notes"},
+  {"query": "my passport and two insurance renewals are all due next month", "should_trigger": false, "expected": "life-admin"},
+  {"query": "plan a two week trip to northern Japan in April", "should_trigger": false, "expected": "travel-planning"}
+]

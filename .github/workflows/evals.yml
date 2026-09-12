@@ -6,6 +6,13 @@
 name: Trigger evals
 
 on:
+  # Monthly, and not a gate. Scoring costs money and is sampled, which is why nothing
+  # depends on it — but until this existed it had no cadence at all, so a skill that
+  # scored 100% could be starved by a sibling added later and nothing would ever
+  # re-measure it. Every query is judged against the whole catalogue, so the right
+  # answer changes when the catalogue does.
+  schedule:
+    - cron: '0 7 1 * *'
   workflow_dispatch:
     inputs:
       skill:
@@ -72,6 +79,7 @@ jobs:
         with:
           node-version: '22'
       - name: Check the chosen backend has a credential
+        id: credentials
         # The harness reads no key of its own; each CLI reads the credential it
         # expects. Failing here with a sentence beats failing forty model calls later
         # with a stack trace. A subscription login is the intended default for claude:
@@ -97,17 +105,29 @@ jobs:
               ;;
           esac
           if [ -z "$present" ]; then
+            # A monthly run that fails for want of a secret nobody set is a red mark
+            # people learn to ignore, and this workflow gates nothing. So the scheduled
+            # run stands down with a notice, and a run somebody asked for fails loudly
+            # with the same sentence — they are owed the error.
+            if [ "${GITHUB_EVENT_NAME}" = "schedule" ]; then
+              echo "::notice title=no credentials::Skipping the scheduled trigger eval:" \
+                "set the $wanted repository secret to enable it"
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
             echo "::error title=no credentials::Set the $wanted repository secret" \
               "to run trigger evals with the $BACKEND backend"
             exit 1
           fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
         env:
-          BACKEND: ${{ inputs.backend }}
+          BACKEND: ${{ inputs.backend || 'claude' }}
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       - name: Score the eval sets
+        if: steps.credentials.outputs.skip != 'true'
         run: |
           set -Eeuo pipefail
           case "$BACKEND" in
@@ -143,14 +163,14 @@ jobs:
           CLAUDE_CODE_VERSION: '2.1.221'
           CODEX_VERSION: '0.153.4'
           GEMINI_CLI_VERSION: '0.58.0'
-          BACKEND: ${{ inputs.backend }}
+          BACKEND: ${{ inputs.backend || 'claude' }}
           MODEL: ${{ inputs.model }}
-          SKILL: ${{ inputs.skill }}
+          SKILL: ${{ inputs.skill || 'all' }}
           BUDGET: ${{ inputs.budget }}
-          RUNS: ${{ inputs.runs }}
-          THRESHOLD: ${{ inputs.threshold }}
+          RUNS: ${{ inputs.runs || '3' }}
+          THRESHOLD: ${{ inputs.threshold || '0.8' }}
       - name: Publish the scores
-        if: always()
+        if: always() && steps.credentials.outputs.skip != 'true'
         run: |
           set -Eeuo pipefail
           [ -f evals.json ] || exit 0
@@ -170,7 +190,7 @@ jobs:
           "
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
-        if: always()
+        if: always() && steps.credentials.outputs.skip != 'true'
         with:
           name: trigger-evals
           path: evals.json

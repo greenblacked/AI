@@ -1,0 +1,22 @@
+[
+  {"query": "before i write this, what's already in this repo that covers incident triage", "should_trigger": true},
+  {"query": "which plugin should a new kubernetes cost skill go in, and what would it collide with", "should_trigger": true},
+  {"query": "where does the unowned-agent rule live? i want every place it's implemented, not just the check", "should_trigger": true},
+  {"query": "is there already a skill here for writing runbooks or am i about to duplicate one", "should_trigger": true},
+  {"query": "survey the descriptions in plugins/personal and tell me which trigger surfaces are already taken", "should_trigger": true},
+  {"query": "find every file in this repo that mentions the listing budget", "should_trigger": true},
+  {"query": "i need the paths for the validator, its tests and the workflow that runs it, don't paste the files", "should_trigger": true},
+  {"query": "what does this repo already say about eval set negatives, and where does it say it", "should_trigger": true},
+  {"query": "give me a map of which plugins ship subagents and how many each has", "should_trigger": true},
+  {"query": "does anything here already handle dependency pinning, and if so under what name", "should_trigger": true},
+  {"query": "read this draft SKILL.md and tell me whether the description will ever fire", "should_trigger": false, "expected": "skill-reviewer"},
+  {"query": "go ahead and write the skill, we've agreed the shape", "should_trigger": false, "expected": "implementer"},
+  {"query": "the change is finished, tell me whether it can land", "should_trigger": false, "expected": "reviewer"},
+  {"query": "i just joined a team and inherited a 200k line service, how do i find my footing in it", "should_trigger": false, "expected": "codebase-orientation"},
+  {"query": "set up the directory and frontmatter for a brand new skill", "should_trigger": false, "expected": "new-skill"},
+  {"query": "the build is red, read the run and tell me which class of failure it is", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "here's plan.json, what gets destroyed", "should_trigger": false, "expected": "plan-reviewer"},
+  {"query": "explain why a skill description has a 1024 character cap", "should_trigger": false},
+  {"query": "scaffold a new python service with tests and a dockerfile", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "write the release notes for the next tag", "should_trigger": false, "expected": "release-notes"}
+]

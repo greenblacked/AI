@@ -9,14 +9,14 @@
   {"query": "incident 2026-114 writeup. service was back in ten minutes but only because tom happened to be staring at the dashboard", "should_trigger": true},
   {"query": "turn this incident timeline into something the exec review will accept, without anyone's name in it", "should_trigger": true},
   {"query": "we failed over to the secondary region wednesday night. everything is fine now but i owe a document", "should_trigger": true},
-  {"query": "pods are crashlooping in prod right now, OOMKilled, what do i do first", "should_trigger": false},
-  {"query": "fifteen minutes into an incident, api is throwing 502s and i am the IC. talk me through the next moves", "should_trigger": false},
-  {"query": "our failed deployment recovery time looks awful across every team. is the team unhealthy or is the metric wrong", "should_trigger": false},
-  {"query": "help me prioritise the reliability backlog for next quarter, there are about thirty items", "should_trigger": false},
-  {"query": "the engineer who ran the migration has done this twice now. how do i handle that conversation", "should_trigger": false},
-  {"query": "customers are asking what is happening. write the status page update while we are still fixing it", "should_trigger": false},
-  {"query": "write an ADR for moving to blue green deploys, the options and why we rejected the others", "should_trigger": false},
+  {"query": "pods are crashlooping in prod right now, OOMKilled, what do i do first", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "fifteen minutes into an incident, api is throwing 502s and i am the IC. talk me through the next moves", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "our failed deployment recovery time looks awful across every team. is the team unhealthy or is the metric wrong", "should_trigger": false, "expected": "delivery-review"},
+  {"query": "help me prioritise the reliability backlog for next quarter, there are about thirty items", "should_trigger": false, "expected": "delivery-review"},
+  {"query": "the engineer who ran the migration has done this twice now. how do i handle that conversation", "should_trigger": false, "expected": "difficult-conversation"},
+  {"query": "customers are asking what is happening. write the status page update while we are still fixing it", "should_trigger": false, "expected": "incident-comms"},
+  {"query": "write an ADR for moving to blue green deploys, the options and why we rejected the others", "should_trigger": false, "expected": "decision-record"},
   {"query": "compliance wants a routine change record for the friday config push", "should_trigger": false},
-  {"query": "process the google SRE postmortem chapter into my vault as a note", "should_trigger": false},
-  {"query": "i want alerting that catches this class of failure next time. what should the alert actually fire on", "should_trigger": false}
+  {"query": "process the google SRE postmortem chapter into my vault as a note", "should_trigger": false, "expected": "learning-notes"},
+  {"query": "i want alerting that catches this class of failure next time. what should the alert actually fire on", "should_trigger": false, "expected": "alert-design"}
 ]

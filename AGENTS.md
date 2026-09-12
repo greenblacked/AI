@@ -17,20 +17,32 @@ Everything here is prose and configuration. There is no application. The only co
 
 | Path | What lives there |
 | --- | --- |
-| `plugins/engineering/skills/` | Platform and DevOps skills |
-| `plugins/manager/skills/` | Engineering-leadership skills |
-| `plugins/personal/skills/` | Personal skills |
+| `AGENTS.md` | This file: the rules, in the form Codex and Gemini CLI read too |
+| `CLAUDE.md` | The `@AGENTS.md` import plus the three notes that are only true of Claude Code |
+| `.claude/rules/` | Path-scoped rules loaded when a file matching the glob is read; `docs/project-structure.md` explains when each fires |
+| `.claude/settings.json` | The `PostToolUse` hook registration; nothing else yet |
+| `plugins/coding/skills/` | Reading, reviewing, testing and changing code |
+| `plugins/operations/skills/` | Keeping a running system alive |
+| `plugins/delivery/skills/` | Getting a change into production |
+| `plugins/gamedev/skills/` | Making games, and shipping them |
+| `plugins/security/skills/` | The defensive side of shipping software |
+| `plugins/manager/skills/` | Engineering leadership |
+| `plugins/personal/skills/` | Money, travel, admin, habits and health |
+| `plugins/career/skills/` | Applications, negotiation, speaking and writing |
 | `plugins/*/agents/` | Subagent definitions, validated on the same run as the skills |
 | `plugins/*/commands/` | Slash commands the plugin ships, validated on the same run |
 | `.claude/commands/` | Slash commands for working on this repository, not shipped to installers |
+| `.claude/agents/` | The three-stage loop — `explorer`, `implementer`, `reviewer` — for working on this repository, validated on the same run |
 | `src/skillcheck/` | The validator: `frontmatter.py` parses, `rules.py` decides, `cli.py` reports |
 | `tests/` | pytest over the validator, including a check that this repository validates clean |
 | `plugins/*/skills/*/evals/` | Trigger eval sets: the queries a skill should and should not fire on |
 | `plugins/*/agents/evals/` | The same for each subagent, one `<name>.json` per agent file |
-| `docs/` | How to write skills, subagents, commands, `AGENTS.md`, and what CI checks |
+| `docs/` | How to write skills, subagents, commands, `AGENTS.md`, what the project layout loads, and what CI checks |
 | `template/SKILL.md` | Starting point for a new skill |
-| `.claude-plugin/marketplace.json` | Lists the three plugins; each discovers its own skills |
+| `.claude-plugin/marketplace.json` | Lists the eight plugins; each discovers its own skills |
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml` |
+| `listing-budget.json` | Per-plugin ceilings for the skill listing; `scripts/check_listing_budget.py` enforces them |
+| `scripts/` | Packaging, install, the eval harness, the portable export, and the three catalogue checks |
 | `scripts/hooks/` | The `PostToolUse` hook `.claude/settings.json` registers, which validates a skill as it is written |
 
 ## Setup commands
@@ -42,6 +54,7 @@ needs anything installed.
 ```bash
 python -m pip install pytest coverage   # only for `make test` and `make coverage`
 make validate                  # every skill, subagent and the marketplace manifest
+make catalogue                 # listing ceilings, the README, and every shell block
 make test                      # the validator's own test suite
 make coverage                  # the same, failing below the floor in pyproject.toml
 make package                   # build a .skill archive per skill into dist/
@@ -50,9 +63,17 @@ make install                   # symlink every skill into ~/.claude/skills
 
 ## Testing instructions
 
-`make validate` and `make test` are the same commands CI runs. Run both before
-finishing; a change to `rules.py` that does not also change `tests/` is almost always
-missing a case.
+`make validate`, `make catalogue` and `make test` are the same commands CI runs. Run all
+three before finishing; a change to `rules.py` that does not also change `tests/` is
+almost always missing a case.
+
+`make catalogue` is the three checks on what the repository claims about itself: the listing ceilings, the README against the tree, and that every shell block and shipped script parses. Adding a
+skill pushes its plugin's listing past the ceiling in `listing-budget.json`, on purpose:
+past the runtime's budget the descriptions of a plugin's least-used skills are dropped
+silently, so growth has to be a decision rather than a drift. Raise the ceiling with
+`scripts/check_listing_budget.py --update` and say why in the commit, or split the
+plugin. The same target checks that the README still lists every skill, subagent and
+command that exists and nothing that does not.
 
 The suite covers the scripts, not only the validator. `tests/conftest.py` holds the two
 fixtures they share: `mini_repo`, a complete plugin repository built in a temporary
@@ -69,9 +90,12 @@ changes; the generator refuses to write the file while the two parsers disagree.
 each is a judgement call rather than a rule, but a warning nobody has to clear is one
 that accumulates until the whole category stops being read.
 
-CI additionally runs markdownlint, yamllint, actionlint, an offline link check, gitleaks,
-zizmor, ruff (with the flake8-bandit rules) and CodeQL. `make lint` runs the first three
-locally when they are installed and tells you the command when they are not.
+CI additionally runs markdownlint, yamllint, actionlint, codespell, an offline link
+check, gitleaks, zizmor, ruff (with the flake8-bandit rules) and CodeQL. `make lint` runs
+the first four locally when they are installed and tells you the command when they are
+not. codespell's false positives live in `pyproject.toml` with the reason each is one;
+add to that list rather than silencing the check, and only for a word that is genuinely
+not a typo.
 
 The validator must keep working on a bare interpreter. Importing a third-party package
 in `src/skillcheck/` breaks the guarantee CI is built on, so do not add one.
@@ -103,7 +127,9 @@ in `src/skillcheck/` breaks the guarantee CI is built on, so do not add one.
 7. Nothing to add to `.claude-plugin/marketplace.json`: each plugin discovers its own
    `skills/`. What the validator checks is that the skill sits inside a plugin at all —
    one stranded outside `plugins/<name>/skills/` installs for nobody.
-8. Run `make validate && make test`.
+8. Run `make validate && make catalogue && make test`. The catalogue check will fail
+   until the README has a row for the skill, and may fail on the plugin's listing
+   ceiling — both are the gate working.
 
 `docs/writing-skills.md` has the full contract, including every validator code and how to
 fix it.
@@ -128,7 +154,7 @@ Shell in this repository, including inline `run:` blocks in workflows, uses
 
 ## Commit and pull request instructions
 
-- Commits are authored by me and nobody else. Do not add `Co-Authored-By`
+- Commits are authored by the person who wrote them and nobody else. Do not add `Co-Authored-By`
   trailers, tool attributions, or "generated by" lines to commit messages, pull request
   bodies, or files.
 - One logical change per commit; a subject line in the imperative under about 70
@@ -167,6 +193,9 @@ Shell in this repository, including inline `run:` blocks in workflows, uses
   carry is the one reason to write a command instead of a skill.
 - Do not turn a validator error into a warning to unblock a change. The dangling-pointer
   check in particular exists because that failure is silent in production.
+- Do not edit a fixture to satisfy a new rule without saying so. A fixture that trips a
+  rule is often the pattern the rule exists to discourage, and quietly changing it is how
+  the rule gets defanged on the day it lands. Say in the commit which it was.
 - Do not rewrite the exported skills' voice. `code-scaffold`, `website-builder` and
   `health-coach` were written by hand; new reference files match them rather than the
   other way round.
@@ -177,6 +206,7 @@ Shell in this repository, including inline `run:` blocks in workflows, uses
 Before finishing, confirm each of these and say so honestly if one does not hold:
 
 - [ ] `make validate` exits 0
+- [ ] `make catalogue` exits 0
 - [ ] `make test` passes
 - [ ] Every `references/`, `scripts/` or `assets/` path named in prose exists
 - [ ] Any new skill sits inside `plugins/<name>/skills/` and has an eval set

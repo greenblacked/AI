@@ -10,8 +10,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from skillcheck.cli import main
-from skillcheck.rules import check_marketplace, check_skill, find_skills
+from skillcheck.cli import _listing_sizes, main
+from skillcheck.rules import check_marketplace, check_skill, find_plugins, find_skills
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -58,7 +58,15 @@ def test_listing_budget_warns_per_plugin_and_is_off_by_default(capsys):
     assert "listing-over-budget" not in out
     main([str(ROOT), "--skip-marketplace", "--listing-budget", "1000"])
     out = capsys.readouterr().out
-    assert out.count("[listing-over-budget]") == 3
+    # Measure which plugins are actually over rather than assuming all of them are. A
+    # literal count broke when the library was re-split, and "every plugin" broke the
+    # first time a small plugin was added — both times the test failed on a change that
+    # was correct, which is the fastest way to teach someone to stop reading it.
+    over = sum(
+        1 for size in _listing_sizes(find_plugins(ROOT), find_skills(ROOT)).values() if size > 1000
+    )
+    assert over, "no plugin exceeds 1000 characters, so this asserts nothing"
+    assert out.count("[listing-over-budget]") == over
 
 
 def test_the_fixture_repository_validates_clean(mini_repo):
