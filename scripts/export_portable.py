@@ -40,7 +40,17 @@ from skillcheck.frontmatter import FrontmatterError, parse  # noqa: E402
 from skillcheck.rules import find_plugins, find_skills  # noqa: E402
 
 # A bundled path as it appears in prose, with or without a leading `./`.
-BUNDLED_RE = re.compile(r"(?<![A-Za-z0-9_./-])(?:\./)?((?:references|assets)/[A-Za-z0-9_.-]+\.md)")
+# Everything a skill can ship and name in prose. `scripts/` is here because a skill
+# that hands an agent a script to run is handing it a path, and a path is the one thing
+# a flattened copy cannot provide — `git bisect run ./scripts/bisect-probe.sh` reaches a
+# reader with no such file.
+BUNDLED_RE = re.compile(
+    r"(?<![A-Za-z0-9_./-])(?:\./)?"
+    r"((?:references|assets)/[A-Za-z0-9_.-]+\.md|scripts/[A-Za-z0-9_.-]+\.[A-Za-z0-9]+)"
+)
+# How to fence a shipped script, by extension. Anything unlisted is fenced without a
+# language rather than guessed at.
+SCRIPT_LANGUAGES = {".sh": "bash", ".bash": "bash", ".py": "python", ".js": "javascript"}
 # Any fence opener, with its full run of markers: the closing fence has to use the same
 # character and be at least as long, or a four-backtick block quoting a three-backtick
 # example closes early and everything after it is read as prose.
@@ -93,14 +103,59 @@ def strip_frontmatter(text: str) -> str:
     return text.strip()
 
 
+def fence_spans(text: str) -> list[bool]:
+    """One flag per line: True when the line is inside a fenced code block.
+
+    A path inside a fence is part of a command or a worked example. Rewriting it to
+    "the … section below" turns a runnable line into prose — `git bisect run` needs a
+    path, and the inlined section is what tells the reader which file to create.
+    """
+    flags: list[bool] = []
+    opening: str | None = None
+    for line in text.split("\n"):
+        fence = FENCE_RE.match(line.lstrip())
+        if fence is not None:
+            marker = fence.group(1)
+            if opening is None:
+                opening = marker
+                flags.append(True)
+                continue
+            if marker[0] == opening[0] and len(marker) >= len(opening):
+                opening = None
+            flags.append(True)
+            continue
+        flags.append(opening is not None)
+    return flags
+
+
+def language_of(relative: str) -> str:
+    """The fence language for a shipped script, or none when the extension is unknown."""
+    return SCRIPT_LANGUAGES.get(Path(relative).suffix, "")
+
+
+def drop_title(text: str) -> str:
+    """A reference file's own H1, removed: the section heading already carries it, and
+    keeping both renders as a title followed immediately by the same title again."""
+    stripped = strip_frontmatter(text)
+    if stripped.startswith("# "):
+        return stripped.split("\n", 1)[1].lstrip("\n") if "\n" in stripped else ""
+    return stripped
+
+
 def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
     """Return (name, description, the self-contained document, unresolved pointers).
 
-    "Unresolved" means a path the skill's own body names and this export could not
-    inline. It is deliberately narrow: reference files quote paths from the reader's
-    project — `assets/LICENSES.md` in a game, say — and those are worked examples, not
-    pointers into the skill bundle. Scanning the finished document for anything that
-    looks like a bundled path reports those as defects, which is a gate that cries wolf.
+    Everything the skill ships is inlined — references as prose with their headings
+    demoted to nest, assets and scripts fenced, because a template or a script is a
+    thing to copy rather than to read. Pointers are then rewritten to name the section
+    instead of the path, in the reference text as well as in the body: a reference file
+    that sends you to a sibling reference is as much a dangling pointer, for a reader
+    with no filesystem, as one in the body.
+
+    "Unresolved" counts only paths the skill's own body names and this export could not
+    inline. Reference files quote paths from the reader's own project —
+    `assets/LICENSES.md` in a game they are building — and those are worked examples.
+    Failing on them would be a gate that cries wolf, so they are left exactly as written.
     """
     source = (directory / "SKILL.md").read_text(encoding="utf-8")
     values = parse(source).values
@@ -119,44 +174,60 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
     # where the prose sent them rather than in alphabetical order.
     order: list[str] = []
     named: list[str] = []
-    for match in BUNDLED_RE.finditer(body):
-        if match.group(1) not in order:
-            order.append(match.group(1))
-            named.append(match.group(1))
-    for extra in sorted(
-        p.relative_to(directory).as_posix() for p in directory.glob("references/*.md")
-    ):
-        if extra not in order:
-            order.append(extra)
-    for extra in sorted(p.relative_to(directory).as_posix() for p in directory.glob("assets/*.md")):
-        if extra not in order:
-            order.append(extra)
+    for line, fenced in zip(body.split("\n"), fence_spans(body), strict=True):
+        if fenced:
+            continue
+        for match in BUNDLED_RE.finditer(line):
+            if match.group(1) not in order:
+                order.append(match.group(1))
+                named.append(match.group(1))
+    for pattern in ("references/*.md", "assets/*.md", "scripts/*"):
+        for path in sorted(directory.glob(pattern)):
+            if path.is_file():
+                relative = path.relative_to(directory).as_posix()
+                if relative not in order:
+                    order.append(relative)
 
+    sources: dict[str, str] = {}
     titles: dict[str, str] = {}
-    sections: list[str] = []
     for relative in order:
         path = directory / relative
         if not path.is_file():
             continue  # the validator owns dangling pointers; do not report them twice
-        text = path.read_text(encoding="utf-8")
-        title = title_of(text, Path(relative).stem)
-        titles[relative] = title
-        if relative.startswith("assets/"):
-            # A template is a thing to copy, so it is fenced rather than folded into the
-            # prose, where its own headings would read as part of the document.
-            sections.append(f"### {title}\n\n```markdown\n{text.rstrip()}\n```")
+        try:
+            sources[relative] = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue  # a binary asset cannot be inlined as text; leave the pointer be
+        titles[relative] = title_of(sources[relative], Path(relative).stem)
+
+    def rewrite(text: str) -> str:
+        def one(match: re.Match[str]) -> str:
+            title = titles.get(match.group(1))
+            return f'the "{title}" section below' if title else match.group(1)
+
+        out = []
+        for line, fenced in zip(text.split("\n"), fence_spans(text), strict=True):
+            if fenced:
+                out.append(line)
+                continue
+            line = BUNDLED_RE.sub(one, line)
+            # A pointer inside backticks reads as a path even after rewriting.
+            out.append(re.sub(r'`the "([^"]+)" section below`', r'the "\1" section below', line))
+        return "\n".join(out)
+
+    sections: list[str] = []
+    for relative in order:
+        if relative not in sources:
+            continue
+        title, text = titles[relative], sources[relative]
+        if relative.startswith("references/"):
+            sections.append(f"### {title}\n\n{demote(drop_title(text), 3).strip()}")
         else:
-            sections.append(f"### {title}\n\n{demote(strip_frontmatter(text), 3).strip()}")
+            language = "markdown" if relative.startswith("assets/") else language_of(relative)
+            sections.append(f"### {title}\n\n```{language}\n{text.rstrip()}\n```")
+    sections = [rewrite(section) for section in sections]
 
-    def rewrite(match: re.Match[str]) -> str:
-        relative = match.group(1)
-        title = titles.get(relative)
-        return f'the "{title}" section below' if title else relative
-
-    body = BUNDLED_RE.sub(rewrite, body)
-    # A pointer inside backticks reads as a path even after rewriting, so unwrap those.
-    body = re.sub(r'`the "([^"]+)" section below`', r'the "\1" section below', body)
-
+    body = rewrite(body)
     unresolved = [relative for relative in named if relative not in titles]
 
     parts = [

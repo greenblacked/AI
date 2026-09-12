@@ -321,10 +321,10 @@ the packager were in before the suite covered them, not to be chased.
 `make lint` skips a tool that is not installed and prints how to get it, so a partial
 local toolchain does not block you; CI has all of them.
 
-`make catalogue` needs nothing installed. It is the pair of checks that keep the
-repository's claims about itself true — the per-plugin listing ceilings, and whether the
-README still lists every skill, subagent and command that exists and nothing that does
-not. Both failures are invisible without a gate: the first costs you the skills you use
+`make catalogue` needs nothing installed beyond `bash`. It is the three checks that
+keep the repository's claims about itself true — the per-plugin listing ceilings, whether
+the README still lists every skill, subagent and command that exists and nothing that
+does not, and whether every shell block and shipped script actually parses. Both failures are invisible without a gate: the first costs you the skills you use
 least, silently, and the second is only ever caught by someone reading.
 
 The trigger evals are not part of `make`, because they need a model and a key. Run them

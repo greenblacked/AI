@@ -78,9 +78,12 @@ def test_the_ceiling_leaves_room_to_reword_and_not_to_add_a_skill():
     # A description is 500-900 characters, so one step of slack is the line between
     # editing prose and adding a skill.
     assert budget.ceiling_for(4559) == 5000
-    assert budget.ceiling_for(5000) == 5000
     assert budget.ceiling_for(5001) == 5500
     assert budget.ceiling_for(0) == budget.GRANULARITY
+    # Rounding alone is not enough. A total that lands just under a boundary would earn
+    # a ceiling one character above it, and four documents promise rewording is free.
+    for size in (4499, 5000, 11998):
+        assert budget.ceiling_for(size) - size >= budget.HEADROOM, size
 
 
 def test_main_reports_a_tree_with_no_plugins(tmp_path):
@@ -474,3 +477,64 @@ def test_demotion_leaves_a_comment_inside_a_nested_fence_alone():
 def test_demotion_handles_a_tilde_fence_and_clamps_at_six():
     assert "# comment" in portable.demote("~~~bash\n# comment\n~~~\n", 2)
     assert portable.demote("###### Deep\n", 2).strip() == "###### Deep"
+
+
+def test_a_shipped_script_is_inlined_and_its_command_left_runnable(mini_repo):
+    # The defect this was written for: `git bisect run ./scripts/probe.sh` reached a
+    # reader with no such file. The script is now in the document — but the command
+    # still has to say a path, because a command is not prose.
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    (skill / "scripts").mkdir()
+    (skill / "scripts" / "probe.sh").write_text("#!/usr/bin/env bash\nexit 0\n", encoding="utf-8")
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text(encoding="utf-8")
+        + "\nHand it `scripts/probe.sh`.\n\n```bash\ngit bisect run ./scripts/probe.sh\n```\n",
+        encoding="utf-8",
+    )
+    _, _, document, unresolved = portable.render_skill(skill)
+    assert unresolved == []
+    assert "git bisect run ./scripts/probe.sh" in document  # the command survives intact
+    assert "```bash\n#!/usr/bin/env bash" in document  # the script is there to create
+    assert "Hand it the " in document  # the prose pointer became a section name
+
+
+def test_a_pointer_inside_a_reference_file_is_rewritten_too(mini_repo):
+    # A reference that sends you to a sibling reference is as much a dangling pointer,
+    # for a reader with no filesystem, as one in the body — and it is not in the body,
+    # so the first version of this export never touched it.
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    (skill / "references").mkdir()
+    (skill / "references" / "first.md").write_text(
+        "# First\n\nGo on to `references/second.md` for the rest.\n", encoding="utf-8"
+    )
+    (skill / "references" / "second.md").write_text("# Second\n\nThe rest.\n", encoding="utf-8")
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text(encoding="utf-8") + "\nStart at `references/first.md`.\n", encoding="utf-8"
+    )
+    _, _, document, _ = portable.render_skill(skill)
+    assert "references/second.md" not in document
+    assert 'the "Second" section below' in document
+
+
+def test_a_path_inside_a_code_block_is_not_counted_as_a_pointer(mini_repo):
+    # Otherwise a worked example showing the reader's own project layout becomes a
+    # dangling pointer, and the export fails on a skill that is correct.
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text(encoding="utf-8") + "\n```text\nreferences/theirs.md\n```\n",
+        encoding="utf-8",
+    )
+    _, _, document, unresolved = portable.render_skill(skill)
+    assert unresolved == []
+    assert "references/theirs.md" in document
+
+
+def test_an_inlined_reference_does_not_repeat_its_own_title(mini_repo):
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    (skill / "references").mkdir()
+    (skill / "references" / "depth.md").write_text("# Going deeper\n\nDetail.\n", encoding="utf-8")
+    _, _, document, _ = portable.render_skill(skill)
+    assert document.count("Going deeper") == 1

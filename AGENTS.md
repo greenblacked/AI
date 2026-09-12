@@ -63,7 +63,7 @@ make install                   # symlink every skill into ~/.claude/skills
 three before finishing; a change to `rules.py` that does not also change `tests/` is
 almost always missing a case.
 
-`make catalogue` is the pair of checks on the repository's claims about itself. Adding a
+`make catalogue` is the three checks on what the repository claims about itself: the listing ceilings, the README against the tree, and that every shell block and shipped script parses. Adding a
 skill pushes its plugin's listing past the ceiling in `listing-budget.json`, on purpose:
 past the runtime's budget the descriptions of a plugin's least-used skills are dropped
 silently, so growth has to be a decision rather than a drift. Raise the ceiling with

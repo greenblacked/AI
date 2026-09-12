@@ -40,6 +40,29 @@ def test_a_balanced_set_produces_nothing(tmp_path):
     assert check_evals(write_evals(tmp_path, balanced()), tmp_path) == []
 
 
+def test_a_set_whose_negatives_name_no_winner_warns(tmp_path):
+    # The state that makes the routing number meaningless rather than merely
+    # incomplete: every negative passes whenever anything else fires, so a description
+    # stealing a neighbour's queries scores exactly like one that behaves.
+    directory = write_evals(tmp_path, balanced(routed=False))
+    findings = check_evals(directory, tmp_path)
+    assert codes(findings, WARNING) == {"no-routing"}
+    assert codes(findings) == set()
+
+
+def test_one_named_negative_is_enough_to_clear_it(tmp_path):
+    # Deliberately one, not all. A query nothing in the library claims is right to leave
+    # alone, and a rule demanding a winner for every negative would push authors into
+    # inventing one — which scores a correct route as a permanent miss.
+    assert check_evals(write_evals(tmp_path, balanced()), tmp_path) == []
+
+
+def test_a_set_with_no_negatives_at_all_does_not_warn_about_routing(tmp_path):
+    # It earns `unbalanced-eval-set` instead. Two findings for one defect is noise.
+    findings = check_evals(write_evals(tmp_path, balanced(negatives=0)), tmp_path)
+    assert "no-routing" not in codes(findings, WARNING)
+
+
 def test_a_missing_eval_set_warns_but_does_not_fail(tmp_path):
     directory = tmp_path / "skills" / "engineering" / "demo"
     directory.mkdir(parents=True)

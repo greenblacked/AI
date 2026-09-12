@@ -44,7 +44,13 @@ RUNTIME_DEFAULT = 8000
 # How much slack a recorded ceiling carries over the measured total. A description is
 # 500-900 characters, so this lets prose be reworded and refuses to let a skill be added
 # without someone deciding to raise the ceiling.
+#
+# HEADROOM is a floor on that slack, not decoration. Rounding alone gave a plugin
+# measuring 4,499 exactly one character before the gate failed, which makes "rewording
+# stays free" untrue for whichever plugins happen to land near a boundary — and a gate
+# that fails on a two-character edit is one people route around.
 GRANULARITY = 500
+HEADROOM = 150
 
 
 def measure(root: Path) -> dict[str, int]:
@@ -66,8 +72,13 @@ def measure(root: Path) -> dict[str, int]:
 
 
 def ceiling_for(size: int) -> int:
-    """The ceiling a measured total earns: itself, rounded up to the next step."""
-    return max(GRANULARITY, math.ceil(size / GRANULARITY) * GRANULARITY)
+    """The ceiling a measured total earns: rounded up to the next step, and at least
+    HEADROOM above the total itself so a plugin sitting just under a boundary still has
+    room to reword."""
+    rounded = max(GRANULARITY, math.ceil(size / GRANULARITY) * GRANULARITY)
+    while rounded - size < HEADROOM:
+        rounded += GRANULARITY
+    return rounded
 
 
 def load(path: Path) -> dict[str, int]:

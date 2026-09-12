@@ -18,9 +18,9 @@ Two surfaces:
 
 `bash -n` parses without executing, so nothing here runs a command, touches a network or
 needs a binary the block names. It catches the class that is purely mechanical — an
-unclosed quote, a missing `fi`, a heredoc that never terminates, a block tagged as shell
-that is actually JavaScript. It cannot catch a flag that does not exist; that still needs
-a person to run it, which is what the skills themselves demand.
+unclosed quote, a missing `fi`, a block tagged as shell that is actually JavaScript. It
+cannot catch a flag that does not exist, and `bash -n` accepts an unterminated heredoc;
+both still need a person to run the thing, which is what the skills themselves demand.
 
 Placeholders are substituted before parsing. `git bisect start <bad-sha> <good-sha>` is
 documentation convention, not a defect, and a gate that fails on it would be all noise:
@@ -48,9 +48,9 @@ from pathlib import Path
 FENCE_OPEN_RE = re.compile(r"^(`{3,}|~{3,})\s*(bash|sh|shell)\s*$", re.I)
 FENCE_CLOSE_RE = re.compile(r"^(`{3,}|~{3,})\s*$")
 # `<run-id>`, `<known-bad-sha>`, `<the exact failing commit>`. Deliberately narrow: it
-# has to start with a letter, so a real redirection into a file or a here-string is not
-# swallowed and stays checkable.
-PLACEHOLDER_RE = re.compile(r"<[A-Za-z][A-Za-z0-9 _.:/-]*>")
+# has to start with a letter and may not end on a space, so a real redirection, a
+# here-string or `sort <in >` stays checkable rather than being rewritten away.
+PLACEHOLDER_RE = re.compile(r"<[A-Za-z](?:[A-Za-z0-9 _.:/-]*[A-Za-z0-9_.:/-])?>")
 SEARCH_DIRS = ("plugins", "docs", "scripts", ".claude", "template")
 
 

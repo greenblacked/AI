@@ -187,8 +187,8 @@ Be clear about what you lose outside Claude Code, because it is the valuable par
   cut narrowly. Uploading one bundle to a Project has no such cap, which is a genuine
   advantage of that route.
 
-The content itself travels intact. Of fifty-five skills, exactly one names a Claude Code
-concept anywhere in its text — `new-skill`, which is about authoring a skill in this
-format and could not avoid it. The rest are procedures about code, systems, teams and
-life, and nothing in them assumes which assistant is reading. `make portable --check`
-runs in CI, so that stays true.
+The content itself travels intact. Of sixty-two skills, two name Claude anywhere in
+their text: `new-skill`, which is about authoring a skill in this format and could not
+avoid it, and `website-builder`, which names a real constraint of Claude.ai artifacts.
+The rest are procedures about code, systems, teams and life, and nothing in them assumes
+which assistant is reading. CI builds the export on every run, so that stays true.
