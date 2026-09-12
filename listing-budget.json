@@ -3,12 +3,12 @@
   "runtime_default": 8000,
   "plugins": {
     "career": 5000,
-    "coding": 10000,
+    "coding": 11000,
     "delivery": 5000,
     "gamedev": 4500,
     "manager": 12000,
     "operations": 7500,
     "personal": 6500,
-    "security": 5000
+    "security": 6500
   }
 }

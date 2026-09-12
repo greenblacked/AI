@@ -18,5 +18,6 @@
   {"query": "we have no idea when things are broken until customers tell us, what should we alert on", "should_trigger": false, "expected": "alert-design"},
   {"query": "add tracing so we can actually see where time goes across our services", "should_trigger": false, "expected": "instrumentation"},
   {"query": "set up a script that provisions the dev database from scratch", "should_trigger": false, "expected": "code-scaffold"},
-  {"query": "document how the payments module works for the next person", "should_trigger": false, "expected": "technical-docs"}
+  {"query": "document how the payments module works for the next person", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "this report query takes eleven seconds and i need it under one, here is the explain output", "should_trigger": false, "expected": "sql-performance"}
 ]
