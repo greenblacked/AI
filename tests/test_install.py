@@ -1,5 +1,5 @@
-"""install.sh is the author's own install path, and its failure modes are exactly the
-ones a convenience script must not have: nesting a link inside a real directory while
+"""install.sh is the local-development install path, and its failure modes are exactly
+the ones a convenience script must not have: nesting a link inside a real directory while
 reporting success, or replacing someone's deliberate symlink without being asked.
 
 These run the real script against a temporary target directory. The repository it links

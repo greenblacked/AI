@@ -1,0 +1,22 @@
+[
+  {"query": "players rubber-band backwards every few seconds, it only happens online", "should_trigger": true},
+  {"query": "should the server be authoritative for movement or only for damage and pickups", "should_trigger": true},
+  {"query": "hits do not register for players on 120ms ping, do we need rollback or is interpolation enough", "should_trigger": true},
+  {"query": "my fighting game needs rollback netcode, where do i even start with that", "should_trigger": true},
+  {"query": "what tick rate and send rate should i run for a 5v5 shooter", "should_trigger": true},
+  {"query": "everyone else on the map stutters and teleports but my own character moves smoothly", "should_trigger": true},
+  {"query": "our rts desyncs after about ten minutes and the two clients end up with different unit counts", "should_trigger": true},
+  {"query": "real time browser game, do i use websockets or do i need webrtc datachannels", "should_trigger": true},
+  {"query": "people are speed hacking, the client sends its own position and i think that is the problem", "should_trigger": true},
+  {"query": "each player costs us 400 kilobytes a second of bandwidth, how do i get that down", "should_trigger": true},
+  {"query": "prototype a two player local versus game where both players share one keyboard", "should_trigger": false, "expected": "game-builder"},
+  {"query": "add a spectator camera and a scoreboard screen to my game", "should_trigger": false, "expected": "game-builder"},
+  {"query": "frame time spikes to 40ms whenever a wave spawns, is it cpu or gpu bound", "should_trigger": false, "expected": "game-performance"},
+  {"query": "my multiplayer game drops frames on the client once there are 40 players on screen", "should_trigger": false, "expected": "game-performance"},
+  {"query": "design the rest api for our player account and inventory service, pagination and versioning", "should_trigger": false, "expected": "api-design"},
+  {"query": "is adding a required field to the matchmaking request a breaking change for existing clients", "should_trigger": false, "expected": "api-design"},
+  {"query": "how many game server instances do we need for 50k concurrent players at launch", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "load test the matchmaking service and tell me which resource saturates first", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "the dedicated server segfaults about once a day and i cannot reproduce it locally", "should_trigger": false, "expected": "debugging"},
+  {"query": "the sniper rifle sits at a 62% win rate in ranked, work out how much to nerf it", "should_trigger": false, "expected": "game-balance"}
+]

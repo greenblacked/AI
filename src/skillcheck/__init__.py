@@ -11,6 +11,7 @@ from .rules import (
     check_marketplace,
     check_skill,
     find_agents,
+    find_all_agents,
     find_commands,
     find_skills,
 )
@@ -23,6 +24,7 @@ __all__ = [
     "check_command",
     "check_eval_conflicts",
     "find_agents",
+    "find_all_agents",
     "find_commands",
     "Frontmatter",
     "FrontmatterError",

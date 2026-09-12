@@ -1,7 +1,8 @@
 ---
-# Checks that depend on the network or on a wordlist, kept out of the required gate.
-# A gate that fails because someone else's site was briefly down is a gate people
-# learn to override.
+# Checks that depend on someone else's server staying up, kept out of the required
+# gate. A gate that fails because a site was briefly down is a gate people learn to
+# override. Spelling used to live here with only_warn set, which made it a gate nobody
+# had to clear; it is a required check in ci.yml now.
 name: Scheduled checks
 
 on:
@@ -10,6 +11,10 @@ on:
   workflow_dispatch:
 
 permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   external-links:
@@ -27,18 +32,3 @@ jobs:
           args: --cache --max-cache-age 1d --no-progress './**/*.md'
           fail: true
           jobSummary: true
-
-  spelling:
-    name: spelling
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: codespell-project/actions-codespell@406322ec52dd7b488e48c1c4b82e2a8b3a1bf630  # v2.1
-        with:
-          skip: ./.git,./node_modules,*.lock
-          only_warn: 1

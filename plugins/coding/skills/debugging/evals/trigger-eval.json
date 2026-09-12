@@ -1,0 +1,23 @@
+[
+  {"query": "this crashes about once every twenty requests and i cannot work out why", "should_trigger": true},
+  {"query": "it worked yesterday and nobody changed anything, now the export comes out empty", "should_trigger": true},
+  {"query": "the test passes on my laptop and fails on the runner every single time", "should_trigger": true},
+  {"query": "i've been staring at this for three hours, the total comes out 1 cent off for some orders", "should_trigger": true},
+  {"query": "the bug disappears when i attach a debugger, what do i even do with that", "should_trigger": true},
+  {"query": "memory climbs all day and the pod gets killed overnight, how do i find what's holding it", "should_trigger": true},
+  {"query": "something between commit a3f and today broke pdf rendering, can we narrow it down", "should_trigger": true},
+  {"query": "i added a null check and the error stopped but i don't think that's the real problem", "should_trigger": true},
+  {"query": "one customer gets a 500 on checkout and nobody else does, their record looks normal to me", "should_trigger": true},
+  {"query": "how do i prove this fix actually fixed it and i didn't just get lucky", "should_trigger": true},
+  {"query": "our github actions workflow is red on main, is it a flake or did something actually break", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "half the pods are unschedulable and the deploy is stuck, we're paging", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "can you go through my pull request and flag anything risky before i merge", "should_trigger": false, "expected": "code-review"},
+  {"query": "the billing suite has 90% coverage and still misses everything, what should it be testing", "should_trigger": false, "expected": "test-design"},
+  {"query": "write the postmortem for last week's outage, we have the timeline already", "should_trigger": false, "expected": "postmortem"},
+  {"query": "split this god object into something maintainable without changing what it does", "should_trigger": false, "expected": "refactoring"},
+  {"query": "we have no idea when things are broken until customers tell us, what should we alert on", "should_trigger": false, "expected": "alert-design"},
+  {"query": "add tracing so we can actually see where time goes across our services", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "set up a script that provisions the dev database from scratch", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "document how the payments module works for the next person", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "this report query takes eleven seconds and i need it under one, here is the explain output", "should_trigger": false, "expected": "sql-performance"}
+]

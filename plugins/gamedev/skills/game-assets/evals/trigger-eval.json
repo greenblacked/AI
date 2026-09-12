@@ -1,0 +1,22 @@
+[
+  {"query": "our unity build is 4gb and google play rejects the upload, where is all of it going", "should_trigger": true},
+  {"query": "textures look terrible on android but they are fine on pc, what did we set wrong", "should_trigger": true},
+  {"query": "should i use lfs for this, the repo has about 2gb of psds in it already", "should_trigger": true},
+  {"query": "the game gets killed by the os on a mid range phone a few seconds into the second level", "should_trigger": true},
+  {"query": "we have 300mb of wav files in the build, what should the audio import settings actually be", "should_trigger": true},
+  {"query": "should music be streamed or loaded into memory, and what about footstep sounds", "should_trigger": true},
+  {"query": "every mesh from the artist imports at 100x scale in unreal and now the physics is doing strange things", "should_trigger": true},
+  {"query": "what texture compression format should the switch and the ios build each use", "should_trigger": true},
+  {"query": "set up import presets per folder so new sprites come in at the right size without anyone remembering", "should_trigger": true},
+  {"query": "level load takes 40 seconds on console, which assets should i look at first", "should_trigger": true},
+  {"query": "make me a simple platformer i can play in the browser", "should_trigger": false, "expected": "game-builder"},
+  {"query": "add some juice to my breakout clone, it works but it feels lifeless", "should_trigger": false, "expected": "game-builder"},
+  {"query": "the phone build is doing 4000 draw calls a frame, is that what is killing it", "should_trigger": false, "expected": "game-performance"},
+  {"query": "we have to hit 16.7ms on the switch build and we are at 28, where do i start", "should_trigger": false, "expected": "game-performance"},
+  {"query": "how do i work out whether my unreal game is cpu bound or gpu bound", "should_trigger": false, "expected": "game-performance"},
+  {"query": "we are three majors behind on the photon sdk and it goes out of support in june, plan the move", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "moving the project from unity 2021 lts to unity 6, what breaks and in what order do we fix it", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "our docker image is 1.2gb, make it smaller", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "pick a base image for the game server container and pin every digest", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "write me a cli that batch resizes a folder of pngs and reports how many bytes it saved", "should_trigger": false, "expected": "code-scaffold"}
+]

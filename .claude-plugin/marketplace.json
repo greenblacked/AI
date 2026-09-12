@@ -1,31 +1,80 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "greenblacked-ai",
-  "description": "Serhii Zolotov's agent skills and subagents: platform engineering, engineering management, and personal tooling.",
+  "description": "Agent skills, subagents and slash commands for software engineering, making games, engineering leadership, and life outside work. Eight focused plugins; install only the ones you want.",
   "owner": {
     "name": "Serhii Zolotov",
     "url": "https://github.com/greenblacked"
   },
   "plugins": [
     {
-      "name": "engineering",
-      "source": "./plugins/engineering",
+      "name": "coding",
+      "source": "./plugins/coding",
+      "category": "development",
+      "tags": [
+        "code-review",
+        "debugging",
+        "testing",
+        "refactoring",
+        "documentation",
+        "api",
+        "scaffolding"
+      ]
+    },
+    {
+      "name": "gamedev",
+      "source": "./plugins/gamedev",
+      "category": "development",
+      "tags": [
+        "gamedev",
+        "godot",
+        "unity",
+        "unreal",
+        "performance",
+        "netcode",
+        "balance",
+        "assets"
+      ]
+    },
+    {
+      "name": "operations",
+      "source": "./plugins/operations",
       "category": "devops",
       "tags": [
-        "devops",
-        "terraform",
+        "sre",
         "kubernetes",
         "ci",
-        "containers",
-        "migrations",
-        "sre",
-        "cost",
         "observability",
-        "iam",
-        "api",
-        "runbooks",
+        "alerting",
+        "oncall",
         "capacity",
-        "games"
+        "cost"
+      ]
+    },
+    {
+      "name": "delivery",
+      "source": "./plugins/delivery",
+      "category": "devops",
+      "tags": [
+        "release",
+        "deployment",
+        "migrations",
+        "database",
+        "cutover",
+        "rollback"
+      ]
+    },
+    {
+      "name": "security",
+      "source": "./plugins/security",
+      "category": "security",
+      "tags": [
+        "security",
+        "least-privilege",
+        "secrets",
+        "containers",
+        "terraform",
+        "supply-chain"
       ]
     },
     {
@@ -40,7 +89,7 @@
         "dora",
         "okr",
         "incidents",
-        "onboarding"
+        "hiring"
       ]
     },
     {
@@ -48,13 +97,26 @@
       "source": "./plugins/personal",
       "category": "productivity",
       "tags": [
+        "money",
+        "travel",
+        "admin",
+        "habits",
+        "decisions",
         "health",
-        "notes",
-        "learning",
+        "planning"
+      ]
+    },
+    {
+      "name": "career",
+      "source": "./plugins/career",
+      "category": "productivity",
+      "tags": [
         "career",
+        "interviews",
+        "negotiation",
+        "speaking",
         "writing",
-        "planning",
-        "speaking"
+        "notes"
       ]
     }
   ]

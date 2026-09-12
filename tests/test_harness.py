@@ -12,7 +12,7 @@ import sys
 
 import pytest
 
-from tests.conftest import load_script
+from tests.conftest import eval_set, load_script
 
 harness = load_script("run_trigger_eval.py")
 
@@ -125,6 +125,32 @@ def test_all_targets_finds_every_eval_set(mini_repo):
     assert all(t.eval_set.is_file() for t in targets)
 
 
+def test_a_repo_local_subagent_is_a_target_and_is_in_the_listing(mini_repo):
+    # The harness and the validator walk subagents through the same helper. They did
+    # not always: the validator learned about `.claude/agents/` first, and for as long
+    # as the harness had its own plugin-only walk a repo-local subagent validated clean
+    # and could never be scored — worse, an explicit --agent run rendered a listing its
+    # own name was missing from, so every positive scored as a miss.
+    directory = mini_repo / ".claude" / "agents"
+    directory.mkdir(parents=True)
+    (directory / "local-helper.md").write_text(
+        "---\nname: local-helper\ndescription: Do one narrow thing for work on this "
+        "repository. Use when the caller is changing something here.\ntools: Read\n---\n\n"
+        "Body.\n",
+        encoding="utf-8",
+    )
+    (directory / "evals").mkdir()
+    (directory / "evals" / "local-helper.json").write_text(
+        json.dumps([{"query": "do the narrow thing", "should_trigger": True}]), encoding="utf-8"
+    )
+    entries = harness.catalogue(mini_repo)
+    assert entries["local-helper"][0] == "subagent"
+    assert "local-helper" in harness.render(entries, None, "alpha")
+    assert ("local-helper", "subagent") in {
+        (t.name, t.kind) for t in harness.all_targets(mini_repo)
+    }
+
+
 def test_a_target_without_an_eval_set_is_refused(mini_repo, fake_claude):
     bare = harness.Target.skill(mini_repo / "plugins" / "engineering" / "skills" / "nothing")
     with pytest.raises(SystemExit, match="no eval set"):
@@ -160,7 +186,14 @@ def test_a_negative_that_lands_on_the_wrong_sibling_is_a_routing_miss(mini_repo,
 
 
 def test_routing_is_absent_when_no_negative_names_a_winner(mini_repo, fake_claude):
-    beta = harness.Target.skill(mini_repo / "plugins" / "engineering" / "skills" / "beta")
+    # Written here rather than taken from the fixture: the fixture's sets name a winner
+    # now, because a set where none of them does earns `no-routing` from the validator.
+    # This test owns the condition it is testing.
+    directory = mini_repo / "plugins" / "engineering" / "skills" / "beta"
+    (directory / "evals" / "trigger-eval.json").write_text(
+        json.dumps(eval_set("beta")), encoding="utf-8"
+    )
+    beta = harness.Target.skill(directory)
     fake_claude({f"beta positive {i}": "beta" for i in range(8)})
     report = harness.score(beta, harness.catalogue(mini_repo), Args())
     assert report["routing"] is None
@@ -438,9 +471,12 @@ def test_baseline_prints_a_delta_and_new_for_unknown_targets(
         json.dumps([{"target": "alpha", "rate": 0.5}, {"skill": "beta", "rate": 1.0}])
     )
     # alpha scores a perfect run; beta never fires, so it keeps only its negatives;
-    # reader has no baseline row at all.
+    # reader has no baseline row at all. beta's routed negatives are answered so they
+    # route correctly — otherwise they fail on routing rather than on firing, and the
+    # delta would stop being about the thing this test is measuring.
     answers = {f"alpha positive {i}": "alpha" for i in range(8)}
     answers.update({f"alpha negative {i}": "beta" for i in range(0, 8, 2)})
+    answers.update({f"beta negative {i}": "alpha" for i in range(0, 8, 2)})
     fake_claude(answers)
     run_main(
         monkeypatch,

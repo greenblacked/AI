@@ -13,15 +13,18 @@ Triggers on push to `main`, on every pull request, and on `workflow_dispatch`. T
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
-| `validate-skills` | `validate skills` | A skill, a subagent, a command or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed eval set for a skill or a subagent, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output; it also prints the per-plugin description total, which is the listing cost every installer pays. |
+| `validate-skills` | `validate skills` | A skill, a subagent, a command or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed eval set for a skill or a subagent, a `.claude/rules/` glob that matches nothing, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output; it also prints the per-plugin description total, which is the listing cost every installer pays. |
 | `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the job's `env` for the same reason the scanners are. |
 | `test` | `test (3.10)` … `test (3.13)` | The validator's own test suite failed on that interpreter, or line and branch coverage fell below the floor in [`pyproject.toml`](../pyproject.toml). The matrix is four versions because that file declares no dependencies, and running on a bare interpreter across the supported range is how that claim stays true. The coverage table lands in the job summary. |
+| `catalogue` | `check catalogue` | A plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), the README stopped matching the tree, or a shell block or shipped script no longer parses. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. |
+| `catalogue` (portable step) | `check catalogue` | `make portable` could not flatten every skill into a file that stands alone. This is how the library reaches ChatGPT, Grok and anything else without a skills runtime: frontmatter becomes a plain "Use this when" line and every `references/` file is inlined, with the pointer that named it rewritten to name the section instead. A pointer that survives as a path is a dangling reference reintroduced at the boundary, for a reader with no filesystem to resolve it against. |
+| `spelling` | `lint spelling` | codespell found a likely typo. It ran weekly and warn-only until it was made a gate; the false positives are listed in [`pyproject.toml`](../pyproject.toml) with the reason each is one, which is what lets the check sit at zero and mean something. |
 | `lint-markdown` | `lint markdown` | markdownlint-cli2 found a violation in a `*.md` file. Config in `.markdownlint-cli2.yaml`. |
 | `lint-yaml` | `lint yaml` | yamllint in `--strict` mode found a problem. Config in `.yamllint.yaml`. |
 | `lint-actions` | `lint workflows` | actionlint rejected a workflow. It also runs shellcheck over every inline `run:` block, which is where all of this repository's shell lives. The binary is downloaded at a pinned version and checked against a recorded digest before it runs. |
 | `links` | `check links` | lychee found a broken link. It runs `--offline`, so only local paths are resolved — a relative link between documents, or from a document into the source tree, that does not exist. |
-| `package` | `package` | `scripts/package_skills.py` could not build a `.skill` archive for every skill. It refuses to package a skill that does not validate, so this failing after `validate-skills` passed means a packaging problem, not a content one. The archives upload as the `skills` artifact. |
-| `ci` | `ci` | One of the eight jobs above failed or was cancelled. |
+| `package` | `package` | `scripts/package_skills.py` could not build a `.skill` archive for every skill, or an archive it built is not loadable. It refuses to package a skill that does not validate, so this failing after `validate-skills` passed means a packaging problem, not a content one. Each archive is then opened and checked for a `SKILL.md` at its root whose `name` matches the archive, because building without error only proves a zip was written — a broken layout would ship green and fail at install, for someone else. The archives upload as the `skills` artifact. |
+| `ci` | `ci` | One of the ten jobs above failed or was cancelled. |
 
 `validate-skills` runs `PYTHONPATH=src python -m skillcheck . --strict`, the same
 invocation as `make validate`. The flag is the point: without it, a description one edit
@@ -93,7 +96,6 @@ Runs weekly (`cron: '0 6 * * 1'`) and on `workflow_dispatch`. Neither job gates 
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `external-links` | `external links` | lychee could not reach an external URL. Hosts in `.lycheeignore` (example.com and friends, which appear inside skill instructions) are excluded. |
-| `spelling` | `spelling` | codespell found a likely typo. Set to `only_warn: 1`, so it reports without failing. |
 
 These are here because they depend on the network or a wordlist. A gate that fails
 because someone else's site was briefly down is a gate people learn to override, and once
@@ -115,7 +117,7 @@ so dispatching the form unchanged scores everything against Claude:
 
 | Input | Default | What it does |
 | --- | --- | --- |
-| `skill` | `all` | A skill directory such as `plugins/engineering/skills/ci-triage`, a subagent file such as `plugins/engineering/agents/ci-log-reader.md`, or `all` for everything that has an eval set. |
+| `skill` | `all` | A skill directory such as `plugins/operations/skills/ci-triage`, a subagent file such as `plugins/operations/agents/ci-log-reader.md`, or `all` for everything that has an eval set. |
 | `budget` | empty | A listing budget in characters. Set it to score descriptions the way the runtime shows them — the runtime's default is about 8,000 on a 200k model — rather than at full length. |
 | `runs` | `3` | Samples per query; must be odd. A majority vote across them decides, which separates a description that genuinely fails from one sitting on the model's decision boundary. |
 | `threshold` | `0.8` | Pass rate below which a target is reported as failing. |
@@ -296,10 +298,12 @@ gh api /repos/greenblacked/AI/rulesets
 ## Running the checks locally
 
 ```bash
-make validate   # skills, subagents and the manifest — the validate-skills job
+make validate   # skills, subagents, commands, rules and the manifest — the validate-skills job
+make catalogue  # listing ceilings, README drift, shell blocks — the catalogue job
+make portable   # flatten every skill for ChatGPT, Grok and other assistants
 make test       # pytest — the test job
 make coverage   # the same run under coverage, failing below the floor
-make lint       # ruff, markdownlint, yamllint, actionlint — the lint jobs
+make lint       # ruff, markdownlint, yamllint, actionlint, codespell — the lint jobs
 make package    # .skill archives into dist/ — the package job
 ```
 
@@ -317,11 +321,19 @@ the packager were in before the suite covered them, not to be chased.
 `make lint` skips a tool that is not installed and prints how to get it, so a partial
 local toolchain does not block you; CI has all of them.
 
+`make catalogue` needs nothing installed beyond `bash`. It is the three checks that
+keep the repository's claims about itself true — the per-plugin listing ceilings, whether
+the README still lists every skill, subagent and command that exists and nothing that
+does not, and whether every shell block and shipped script actually parses. Each
+failure is invisible without a gate: the first costs you the skills you use least,
+silently; the second is only ever caught by someone reading; and the third ships a
+command that reads fine and fails in someone else's terminal.
+
 The trigger evals are not part of `make`, because they need a model and a key. Run them
 directly when a description is the thing in question:
 
 ```bash
-python scripts/run_trigger_eval.py --skill plugins/engineering/skills/ci-triage --verbose
+python scripts/run_trigger_eval.py --skill plugins/operations/skills/ci-triage --verbose
 ```
 
 The security tooling is not wrapped in a `make` target, because the versions are pinned
@@ -353,6 +365,13 @@ ruff format --check .
    above wrap the same invocations. `make validate` runs
    `PYTHONPATH=src python3 -m skillcheck . --strict`, which is what the job runs — down
    to the flag, so a warning that fails CI fails locally too.
+
+`validate-skills` also reads `.claude/rules/`, which is loaded into the session rather
+than shipped to installers. A rule scoped with a `paths:` glob loads only when Claude
+reads a matching file, so a glob with a typo in it never matches, the rule never loads,
+and nothing else would ever say so — `dangling-glob` and `empty-paths` are that failure
+made loud. [Project structure](project-structure.md) has the rest of what the loader
+picks up automatically.
 
 For the reasoning behind the rules `validate-skills` enforces, see [writing a
 skill](writing-skills.md). For the subagents referenced by the manifest, see [writing a

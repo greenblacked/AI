@@ -32,8 +32,8 @@ other. It is deliberately not part of the required CI gate: it costs money, it i
 rather than deterministic, and a gate that is occasionally wrong is a gate people learn to
 override.
 
-    python scripts/run_trigger_eval.py --skill plugins/engineering/skills/ci-triage
-    python scripts/run_trigger_eval.py --agent plugins/engineering/agents/ci-log-reader.md
+    python scripts/run_trigger_eval.py --skill plugins/operations/skills/ci-triage
+    python scripts/run_trigger_eval.py --agent plugins/operations/agents/ci-log-reader.md
     python scripts/run_trigger_eval.py --all --baseline evals/baseline.json
     python scripts/run_trigger_eval.py --all --backend codex --model o4-mini
     python scripts/run_trigger_eval.py --all --command 'mycli --quiet {prompt}'
@@ -53,7 +53,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from skillcheck.frontmatter import parse  # noqa: E402
-from skillcheck.rules import find_agents, find_plugins, find_skills  # noqa: E402
+from skillcheck.rules import find_all_agents, find_skills  # noqa: E402
 
 PROMPT = """You are deciding which skill or subagent, if any, to consult for a user's message.
 
@@ -91,9 +91,7 @@ class Target:
 
 def all_targets(root: Path) -> list[Target]:
     targets = [Target.skill(d) for d in find_skills(root)]
-    for plugin in find_plugins(root):
-        targets += [Target.agent(a) for a in find_agents(plugin / "agents")]
-    return targets
+    return targets + [Target.agent(a) for a in find_all_agents(root)]
 
 
 def catalogue(root: Path) -> dict[str, tuple[str, str]]:
@@ -102,10 +100,9 @@ def catalogue(root: Path) -> dict[str, tuple[str, str]]:
     for directory in find_skills(root):
         values = parse((directory / "SKILL.md").read_text(encoding="utf-8")).values
         entries[values["name"]] = ("skill", " ".join(values["description"].split()))
-    for plugin in find_plugins(root):
-        for path in find_agents(plugin / "agents"):
-            values = parse(path.read_text(encoding="utf-8")).values
-            entries[values["name"]] = ("subagent", " ".join(values["description"].split()))
+    for path in find_all_agents(root):
+        values = parse(path.read_text(encoding="utf-8")).values
+        entries[values["name"]] = ("subagent", " ".join(values["description"].split()))
     return entries
 
 

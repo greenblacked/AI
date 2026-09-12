@@ -567,6 +567,25 @@ def find_agents(root: Path) -> list[Path]:
     return sorted(p for p in root.glob("*.md") if p.name not in AGENT_NON_DEFINITIONS)
 
 
+def find_all_agents(repo_root: Path) -> list[Path]:
+    """Every subagent a run should see, in the two places one legitimately lives.
+
+    Inside a plugin, which is what ships, and in the repository's own
+    ``.claude/agents/``, which is where one that only serves work on this repository
+    belongs — the same split ``.claude/commands/`` has. A stray top-level ``agents/`` is
+    deliberately not here: it is found separately so ``check_marketplace`` can report it
+    as unowned rather than the run quietly treating it as valid.
+
+    Every caller that walks subagents goes through this. Discovery duplicated per caller
+    is how ``.claude/agents/`` came to be validated and still invisible to the eval
+    harness, which is a rule living in fewer places than it has to.
+    """
+    agents = [
+        agent for plugin in find_plugins(repo_root) for agent in find_agents(plugin / "agents")
+    ]
+    return agents + find_agents(repo_root / ".claude" / "agents")
+
+
 def check_agent(path: Path, repo_root: Path) -> list[Finding]:
     """Validate one subagent definition.
 
@@ -702,6 +721,7 @@ def _check_eval_file(
 
     queries: list[str] = []
     positives = 0
+    routed = 0
     for index, entry in enumerate(data):
         where = f"entry {index}"
         if not isinstance(entry, dict):
@@ -758,6 +778,8 @@ def _check_eval_file(
                 )
         queries.append(query.strip())
         positives += trigger
+        if not trigger and entry.get("expected"):
+            routed += 1
 
     duplicates = {q for q in queries if queries.count(q) > 1}
     for duplicate in sorted(duplicates):
@@ -771,6 +793,17 @@ def _check_eval_file(
             "thin-eval-set",
             f"{total} queries; at least {EVAL_MIN_QUERIES} are needed for the result to "
             "mean anything",
+            path,
+        )
+    if negatives and not routed:
+        add(
+            WARNING,
+            "no-routing",
+            f"none of the {negatives} negatives names the skill or subagent that should "
+            "win it instead, so each one passes whenever anything else fires — the wrong "
+            "neighbour included, which is the theft the field exists to catch. Add "
+            "'expected' to the negatives that have an obvious owner; a query nothing here "
+            "claims is right to leave alone",
             path,
         )
     if total and (positives < EVAL_MIN_PER_SIDE or negatives < EVAL_MIN_PER_SIDE):
@@ -942,6 +975,193 @@ def check_command(path: Path, repo_root: Path) -> list[Finding]:
             front.end_line + 1 + masked[: match.start()].count("\n"),
         )
     return findings
+
+
+RULE_GLOB_ENTRY_RE = re.compile(r"^\s*-\s*(\S.*?)\s*$")
+
+# A trailing YAML comment on a sequence entry. Only whitespace-preceded `#` counts, so a
+# glob containing one — rare but legal — survives.
+RULE_GLOB_COMMENT_RE = re.compile(r"\s+#.*$")
+
+RULE_BRACE_RE = re.compile(r"\{([^{}]*)\}")
+
+
+def find_rules(root: Path) -> list[Path]:
+    """Return every rule file under ``root``, sorted by path.
+
+    Claude Code discovers `.claude/rules/` recursively and concatenates every Markdown
+    file it finds into context at session start, so a stray one is loaded whether or not
+    it was meant to be a rule. There is no README exemption for that reason: a README
+    here is not documentation beside the rules, it is a rule.
+    """
+    if not root.is_dir():
+        return []
+    return sorted(root.rglob("*.md"))
+
+
+def _rule_globs(text: str, closing: int) -> list[tuple[str, int]]:
+    """Return each entry of a `paths:` sequence with its 1-based line number.
+
+    Read from the raw lines rather than through :func:`parse`, because the frontmatter
+    reader folds a block into a single scalar and the entries stop being separable
+    once it has. Both YAML sequence forms are accepted: the block form written one
+    entry per line, and the flow form on the key's own line. ``closing`` is the 0-based
+    index of the closing delimiter, which the caller already has from the parse.
+    """
+    lines = text.split("\n")
+    globs: list[tuple[str, int]] = []
+    index = 1
+    while index < closing:
+        raw = lines[index]
+        if not raw.startswith("paths:"):
+            index += 1
+            continue
+        rest = raw[len("paths:") :].strip()
+        # A flow sequence wrapped over several lines never reaches here: the frontmatter
+        # reader refuses a value that does not fit on one line, and says so, which is the
+        # loud failure rather than the silent one.
+        if rest.startswith("[") and rest.endswith("]"):
+            for entry in _split_outside_braces(rest[1:-1]):
+                if entry:
+                    globs.append((_unquote_glob(entry), index + 1))
+        elif rest:
+            globs.append((_unquote_glob(rest), index + 1))
+        else:
+            index += 1
+            while index < closing:
+                if not lines[index].strip():
+                    index += 1
+                    continue
+                match = RULE_GLOB_ENTRY_RE.match(lines[index])
+                if match is None:
+                    break
+                globs.append((_unquote_glob(match.group(1)), index + 1))
+                index += 1
+            continue
+        index += 1
+    return globs
+
+
+def _split_outside_braces(text: str) -> list[str]:
+    """Split a flow sequence on its separators, keeping `{ts,tsx}` in one piece."""
+    parts: list[str] = []
+    current: list[str] = []
+    depth = 0
+    for character in text:
+        if character == "{":
+            depth += 1
+        elif character == "}":
+            depth = max(0, depth - 1)
+        if character == "," and depth == 0:
+            parts.append("".join(current).strip())
+            current = []
+            continue
+        current.append(character)
+    parts.append("".join(current).strip())
+    return parts
+
+
+def _unquote_glob(value: str) -> str:
+    value = value.strip()
+    if not (value and value[0] in "\"'" and value[-1] == value[0]):
+        value = RULE_GLOB_COMMENT_RE.sub("", value).strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+        return value[1:-1]
+    return value
+
+
+def check_rule(path: Path, repo_root: Path) -> list[Finding]:
+    """Validate one file under `.claude/rules/`.
+
+    Frontmatter is optional: a rule without it loads on every session, which is a
+    choice rather than a defect. What is a defect is a `paths:` glob that matches
+    nothing — the rule then never loads, and no error anywhere says so.
+    """
+    findings: list[Finding] = []
+    relative = path.relative_to(repo_root)
+
+    def add(level: str, code: str, message: str, line: int = 1) -> None:
+        findings.append(Finding(level, relative, line, code, message))
+
+    text = path.read_text(encoding="utf-8")
+    body_start = 0
+    if text.startswith("---"):
+        try:
+            front = parse(text)
+        except FrontmatterError as error:
+            add(ERROR, "frontmatter", error.message, error.line)
+            return findings
+        body_start = front.end_line
+        globs = _rule_globs(text, front.end_line - 1)
+        if "paths" in front.values and not globs:
+            add(
+                ERROR,
+                "empty-paths",
+                "rule declares 'paths' but lists no glob, so it is scoped to nothing "
+                "and never loads",
+                front.line_of("paths"),
+            )
+        for pattern, line in globs:
+            if not _glob_matches(repo_root, pattern):
+                add(
+                    ERROR,
+                    "dangling-glob",
+                    f"path glob {pattern!r} matches nothing in the repository, so this "
+                    "rule never loads and nothing reports it",
+                    line,
+                )
+
+    body_lines = text.split("\n")[body_start:]
+    if not "\n".join(body_lines).strip():
+        add(ERROR, "empty-rule", "rule file has no content to load")
+
+    masked = "\n".join(_mask_fenced_blocks(body_lines))
+    _check_bundled_paths(body_lines, body_start + 1, repo_root, add, label=path.name)
+    for match in SHOUTING_RE.finditer(masked):
+        add(
+            WARNING,
+            "shouting",
+            f"{match.group(0)} in capitals — explaining why a rule matters travels "
+            "further than shouting it",
+            body_start + 1 + masked[: match.start()].count("\n"),
+        )
+    return findings
+
+
+def _glob_matches(repo_root: Path, pattern: str) -> bool:
+    """Whether ``pattern`` selects at least one path under ``repo_root``.
+
+    Brace groups are expanded first, because `pathlib` has none and
+    `src/**/*.{ts,tsx}` is the form the documentation itself uses — handing it straight
+    to `Path.glob` would fail a correct rule and tell its author it never loads.
+
+    A pattern that cannot select anything Claude Code would load is reported as matching
+    nothing rather than raised, so one bad glob names itself instead of ending the run.
+    That covers the absolute form and any `..` component: `Path.glob` happily resolves
+    `../sibling/**` and would pass a rule scoped outside the repository entirely.
+
+    A glob is matched against the working tree, which includes ignored files. A rule
+    scoped to `dist/**` therefore passes on a machine that has run `make package` and
+    fails on a clean checkout; scope a rule to something committed.
+    """
+    if pattern.startswith("/") or any(part == ".." for part in pattern.split("/")):
+        return False
+    try:
+        return any(any(True for _ in repo_root.glob(p)) for p in _expand_braces(pattern))
+    except (NotImplementedError, ValueError, IndexError):
+        return False
+
+
+def _expand_braces(pattern: str) -> list[str]:
+    """Expand `{a,b}` groups, innermost first, into the patterns they stand for."""
+    match = RULE_BRACE_RE.search(pattern)
+    if match is None:
+        return [pattern]
+    expanded: list[str] = []
+    for option in match.group(1).split(","):
+        head, tail = pattern[: match.start()], pattern[match.end() :]
+        expanded.extend(_expand_braces(f"{head}{option.strip()}{tail}"))
+    return expanded
 
 
 def check_eval_conflicts(

@@ -35,7 +35,11 @@ def eval_set(
     name: str, positives: int = 8, negatives: int = 8, expected: str | None = None
 ) -> list:
     """Queries carry the target's name because the validator refuses a positive that
-    two targets share, and the fake CLI answers by exact query text."""
+    two targets share, and the fake CLI answers by exact query text.
+
+    Half the negatives name a winner, because a set where none of them does earns
+    `no-routing` and the fixture has to be one the validator accepts.
+    """
     cases = [{"query": f"{name} positive {i}", "should_trigger": True} for i in range(positives)]
     for i in range(negatives):
         case = {"query": f"{name} negative {i}", "should_trigger": False}
@@ -97,7 +101,7 @@ def mini_repo(tmp_path: Path) -> Path:
         json.dumps({"name": "engineering", "description": "test"}), encoding="utf-8"
     )
     write_skill(root, "engineering", "alpha", evals=eval_set("alpha", expected="beta"))
-    write_skill(root, "engineering", "beta", evals=eval_set("beta"))
+    write_skill(root, "engineering", "beta", evals=eval_set("beta", expected="alpha"))
     write_agent(root, "engineering", "reader", evals=eval_set("reader", expected="alpha"))
     # The scripts locate `src/` relative to the repository root they are given.
     shutil.copytree(REPO / "src", root / "src")

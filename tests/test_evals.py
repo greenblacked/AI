@@ -20,10 +20,16 @@ def write_evals(root, entries, raw=None):
     return directory
 
 
-def balanced(positives=10, negatives=10):
-    return [{"query": f"positive {i}", "should_trigger": True} for i in range(positives)] + [
-        {"query": f"negative {i}", "should_trigger": False} for i in range(negatives)
-    ]
+def balanced(positives=10, negatives=10, routed=True):
+    """Ten and ten by default, with the first negative naming a winner — a set where no
+    negative does earns `no-routing`, so a "balanced" fixture has to carry one."""
+    cases = [{"query": f"positive {i}", "should_trigger": True} for i in range(positives)]
+    for i in range(negatives):
+        case = {"query": f"negative {i}", "should_trigger": False}
+        if routed and i == 0:
+            case["expected"] = "neighbour"
+        cases.append(case)
+    return cases
 
 
 def codes(findings, level=ERROR):
@@ -32,6 +38,29 @@ def codes(findings, level=ERROR):
 
 def test_a_balanced_set_produces_nothing(tmp_path):
     assert check_evals(write_evals(tmp_path, balanced()), tmp_path) == []
+
+
+def test_a_set_whose_negatives_name_no_winner_warns(tmp_path):
+    # The state that makes the routing number meaningless rather than merely
+    # incomplete: every negative passes whenever anything else fires, so a description
+    # stealing a neighbour's queries scores exactly like one that behaves.
+    directory = write_evals(tmp_path, balanced(routed=False))
+    findings = check_evals(directory, tmp_path)
+    assert codes(findings, WARNING) == {"no-routing"}
+    assert codes(findings) == set()
+
+
+def test_one_named_negative_is_enough_to_clear_it(tmp_path):
+    # Deliberately one, not all. A query nothing in the library claims is right to leave
+    # alone, and a rule demanding a winner for every negative would push authors into
+    # inventing one — which scores a correct route as a permanent miss.
+    assert check_evals(write_evals(tmp_path, balanced()), tmp_path) == []
+
+
+def test_a_set_with_no_negatives_at_all_does_not_warn_about_routing(tmp_path):
+    # It earns `unbalanced-eval-set` instead. Two findings for one defect is noise.
+    findings = check_evals(write_evals(tmp_path, balanced(negatives=0)), tmp_path)
+    assert "no-routing" not in codes(findings, WARNING)
 
 
 def test_a_missing_eval_set_warns_but_does_not_fail(tmp_path):
@@ -145,7 +174,9 @@ def test_a_missing_or_malformed_eval_set_is_not_reported_twice(tmp_path):
 # --- `expected`, and eval sets for subagents ---------------------------------------
 
 
-def _cases(expected_on_negatives=None, positive_expected=None):
+def _cases(expected_on_negatives="neighbour", positive_expected=None):
+    """Ten and ten. Negatives name a winner by default, because a set where none of
+    them does earns `no-routing` and that would drown every other assertion here."""
     cases = [{"query": f"positive {i}", "should_trigger": True} for i in range(10)]
     if positive_expected:
         cases[0]["expected"] = positive_expected

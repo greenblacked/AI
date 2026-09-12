@@ -1,0 +1,22 @@
+[
+  {"query": "my game stutters every few seconds even though the fps counter says 60", "should_trigger": true},
+  {"query": "frame drops on the steam deck, it holds a solid 60 on my desktop", "should_trigger": true},
+  {"query": "why is this 20fps on mobile when it runs fine in the editor", "should_trigger": true},
+  {"query": "how do i work out whether my unreal game is cpu bound or gpu bound", "should_trigger": true},
+  {"query": "the unity profiler shows a gc spike every four seconds, how do i find what is allocating", "should_trigger": true},
+  {"query": "we have to hit 16.7ms on the switch build and we are at 28, where do i start", "should_trigger": true},
+  {"query": "my godot game hitches the first time each enemy type appears on screen", "should_trigger": true},
+  {"query": "the phone build is doing 4000 draw calls a frame, is that what is killing it", "should_trigger": true},
+  {"query": "frame time doubled after last week's content drop and nothing obvious changed", "should_trigger": true},
+  {"query": "my webgl game runs at 30fps in chrome, how do i profile it properly", "should_trigger": true},
+  {"query": "make me a roguelike deckbuilder prototype i can play by the weekend", "should_trigger": false, "expected": "game-builder"},
+  {"query": "the jump feels floaty and the character lands late, fix the controller", "should_trigger": false, "expected": "game-builder"},
+  {"query": "add screen shake and hit stop so the combat feels punchy", "should_trigger": false, "expected": "game-builder"},
+  {"query": "the save file loads the wrong level when you quit from the pause menu", "should_trigger": false, "expected": "debugging"},
+  {"query": "scores come back as zero for about one player in twenty and i cannot work out why", "should_trigger": false, "expected": "debugging"},
+  {"query": "can the matchmaking service take 50k concurrent players on launch day", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "how many game server instances do we need to pre-scale for the free weekend", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "add opentelemetry spans to the inventory service so we can see where the latency goes", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "what should the game backend emit after last night's incident, we had no idea which shard was slow", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "our unity build takes 40 minutes on ci, can we make that faster", "should_trigger": false}
+]

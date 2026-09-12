@@ -1,0 +1,22 @@
+[
+  {"query": "this endpoint takes 4 seconds and i'm fairly sure it's the database", "should_trigger": true},
+  {"query": "why is postgres not using my index on created_at, it's right there", "should_trigger": true},
+  {"query": "explain analyze output attached, what am i actually looking at here", "should_trigger": true},
+  {"query": "the orders query was fine until the table passed 40 million rows", "should_trigger": true},
+  {"query": "should i add an index on the status column or is that pointless", "should_trigger": true},
+  {"query": "our rails page fires about 800 queries to render one list, all of them fast", "should_trigger": true},
+  {"query": "the mysql slow query log is enormous, where do i even start with it", "should_trigger": true},
+  {"query": "the plan shows a seq scan on a huge table, is that what's killing us", "should_trigger": true},
+  {"query": "same query is 2ms for most customers and 3 seconds for one of them", "should_trigger": true},
+  {"query": "can this report query be made faster at all or do we just have to cache it", "should_trigger": true},
+  {"query": "adding this index on a 90 million row table in production, how do i avoid locking it", "should_trigger": false, "expected": "db-migration"},
+  {"query": "the monthly revenue query and the dashboard disagree on the total, one of them is wrong", "should_trigger": false, "expected": "debugging"},
+  {"query": "will our postgres instance survive black friday at 8x traffic, and how many read replicas do we need", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "should the orders list endpoint use offset or cursor pagination, and what ordering do we guarantee", "should_trigger": false, "expected": "api-design"},
+  {"query": "can you review this pull request before i merge, it touches the orders repository", "should_trigger": false, "expected": "code-review"},
+  {"query": "we cannot see where time goes across our services, add opentelemetry spans", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "what should actually page someone when the database starts degrading", "should_trigger": false, "expected": "alert-design"},
+  {"query": "the migration job in github actions went red on main, flake or a real break", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "our rds bill doubled last quarter and nobody knows where the money went", "should_trigger": false, "expected": "cost-review"},
+  {"query": "write up how the reporting module works for whoever inherits it", "should_trigger": false, "expected": "technical-docs"}
+]

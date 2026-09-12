@@ -1,0 +1,22 @@
+[
+  {"query": "the insurer rejected my claim and I have no idea what to do next", "should_trigger": true},
+  {"query": "I need to renew my driving licence and there's a medical form involved", "should_trigger": true},
+  {"query": "the council has lost my form twice now and nobody will give me a straight answer", "should_trigger": true},
+  {"query": "how do I make a proper complaint about my bank, calling them is going nowhere", "should_trigger": true},
+  {"query": "what documents do I actually need to register the birth and change her surname", "should_trigger": true},
+  {"query": "my landlord is refusing to return the deposit, what are my options", "should_trigger": true},
+  {"query": "the energy company has been billing me for a meter that isn't mine since March", "should_trigger": true},
+  {"query": "my grant application was refused, is it worth appealing or should I just reapply", "should_trigger": true},
+  {"query": "help me get my professional registration renewed before it lapses next month", "should_trigger": true},
+  {"query": "I keep missing renewals, car tax, insurance, all of it, how do I stop this", "should_trigger": true},
+  {"query": "do I need a visa for Brazil on a German passport", "should_trigger": false, "expected": "travel-planning"},
+  {"query": "is two hours enough between connecting flights in Doha", "should_trigger": false, "expected": "travel-planning"},
+  {"query": "write the on-call procedure for restoring the database from backup", "should_trigger": false, "expected": "runbook"},
+  {"query": "should I overpay the mortgage or put more into the pension", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "I've got too much on next week, help me work out what actually matters", "should_trigger": false, "expected": "weekly-review"},
+  {"query": "how many calories are in a sandwich and a packet of crisps", "should_trigger": false, "expected": "health-coach"},
+  {"query": "they've offered me the job, how do I ask for more money", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "our contract with the monitoring vendor is up for renewal, should we stay with them", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "write up the postmortem for Thursday's outage", "should_trigger": false, "expected": "postmortem"},
+  {"query": "document the process new joiners follow to get their accounts set up", "should_trigger": false, "expected": "onboarding-plan"}
+]

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Symlink every skill in this repository into ~/.claude/skills.
 #
-# Installing through the plugin marketplace is the better route for other people —
-# it namespaces the skills and updates with the repository. This script exists for
-# the author's own machine, where editing a skill and having the change live
-# immediately is worth more than the namespacing.
+# Installing through the plugin marketplace is the better route for normal use — it
+# namespaces the skills and updates with the repository. This script is for working on
+# the skills themselves, where editing one and having the change live immediately is
+# worth more than the namespacing.
 set -Eeuo pipefail
 
 readonly REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

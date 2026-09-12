@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "operations",
+  "description": "Skills for keeping a running system alive: triage a red pipeline to its real cause, get a broken Kubernetes workload back before diagnosing it, design alerts where every page is actionable, instrument a service so the next incident is answerable, write the runbook a stranger can follow at 3am, rehearse failure on purpose, plan for load before it arrives, and find out why the bill grew.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "sre",
+    "kubernetes",
+    "ci",
+    "observability",
+    "alerting",
+    "oncall",
+    "capacity",
+    "cost"
+  ]
+}

@@ -1,0 +1,23 @@
+[
+  {"query": "should I buy or lease a car, the dealer keeps steering me to the monthly payment", "should_trigger": true},
+  {"query": "new or used laptop for the next four years, I keep going back and forth on this", "should_trigger": true},
+  {"query": "the washing machine died and I need to pick a replacement without regretting it", "should_trigger": true},
+  {"query": "is this bootcamp actually worth 7000 or am I talking myself into it", "should_trigger": true},
+  {"query": "they're offering 0% finance on the bike, is that as good as it sounds", "should_trigger": true},
+  {"query": "help me work out the real five year cost of these two cars, not the sticker", "should_trigger": true},
+  {"query": "I'm viewing a flat on Saturday, what should I decide before I go so I don't get carried away", "should_trigger": true},
+  {"query": "which of these three options should I get, they're each better at different things", "should_trigger": true},
+  {"query": "do I need the seven seater for the twice a year my in laws visit", "should_trigger": true},
+  {"query": "the shop wants to sell me an extended warranty and paint protection, worth it?", "should_trigger": true},
+
+  {"query": "we need to choose between Datadog and Grafana Cloud for the platform, run the evaluation", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "where is all my money going each month, I want to see it properly", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "how do I decide the order to pay off my credit cards", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "I got the offer, base is lower than I wanted but the equity is big, what do I say", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "our cloud spend jumped this quarter, find out what changed", "should_trigger": false, "expected": "cost-review"},
+  {"query": "help me plan next week, too much is slipping", "should_trigger": false, "expected": "weekly-review"},
+  {"query": "write down the reasoning behind the architecture choice so the team can refer back to it", "should_trigger": false, "expected": "decision-record"},
+  {"query": "is this lunch too many calories for my goal", "should_trigger": false, "expected": "health-coach"},
+  {"query": "we're upgrading the framework across the repo, what order do we do it in", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "what's a good birthday present for my sister under 40", "should_trigger": false}
+]
