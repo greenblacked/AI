@@ -977,6 +977,137 @@ def check_command(path: Path, repo_root: Path) -> list[Finding]:
     return findings
 
 
+RULE_GLOB_ENTRY_RE = re.compile(r"^\s*-\s*(\S.*?)\s*$")
+
+
+def find_rules(root: Path) -> list[Path]:
+    """Return every rule file under ``root``, sorted by path.
+
+    Claude Code discovers `.claude/rules/` recursively and concatenates what it finds
+    into context at session start, so a stray Markdown file in there is loaded whether
+    or not it was meant to be a rule. The one exception is a README, which is written
+    for the reader of the directory rather than for the model.
+    """
+    if not root.is_dir():
+        return []
+    return sorted(p for p in root.rglob("*.md") if p.name.lower() != "readme.md")
+
+
+def _rule_globs(text: str, closing: int) -> list[tuple[str, int]]:
+    """Return each entry of a `paths:` sequence with its 1-based line number.
+
+    Read from the raw lines rather than through :func:`parse`, because the frontmatter
+    reader folds a block into a single scalar and the entries stop being separable
+    once it has. Both YAML sequence forms are accepted: the block form written one
+    entry per line, and the flow form on the key's own line. ``closing`` is the 0-based
+    index of the closing delimiter, which the caller already has from the parse.
+    """
+    lines = text.split("\n")
+    globs: list[tuple[str, int]] = []
+    index = 1
+    while index < closing:
+        raw = lines[index]
+        if not raw.startswith("paths:"):
+            index += 1
+            continue
+        rest = raw[len("paths:") :].strip()
+        if rest.startswith("[") and rest.endswith("]"):
+            for entry in rest[1:-1].split(","):
+                entry = entry.strip()
+                if entry:
+                    globs.append((_unquote_glob(entry), index + 1))
+        elif rest:
+            globs.append((_unquote_glob(rest), index + 1))
+        else:
+            index += 1
+            while index < closing:
+                match = RULE_GLOB_ENTRY_RE.match(lines[index])
+                if match is None:
+                    break
+                globs.append((_unquote_glob(match.group(1)), index + 1))
+                index += 1
+            continue
+        index += 1
+    return globs
+
+
+def _unquote_glob(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+        return value[1:-1]
+    return value
+
+
+def check_rule(path: Path, repo_root: Path) -> list[Finding]:
+    """Validate one file under `.claude/rules/`.
+
+    Frontmatter is optional: a rule without it loads on every session, which is a
+    choice rather than a defect. What is a defect is a `paths:` glob that matches
+    nothing — the rule then never loads, and no error anywhere says so.
+    """
+    findings: list[Finding] = []
+    relative = path.relative_to(repo_root)
+
+    def add(level: str, code: str, message: str, line: int = 1) -> None:
+        findings.append(Finding(level, relative, line, code, message))
+
+    text = path.read_text(encoding="utf-8")
+    body_start = 0
+    if text.startswith("---"):
+        try:
+            front = parse(text)
+        except FrontmatterError as error:
+            add(ERROR, "frontmatter", error.message, error.line)
+            return findings
+        body_start = front.end_line
+        globs = _rule_globs(text, front.end_line - 1)
+        if "paths" in front.values and not globs:
+            add(
+                ERROR,
+                "empty-paths",
+                "rule declares 'paths' but lists no glob, so it is scoped to nothing "
+                "and never loads",
+                front.line_of("paths"),
+            )
+        for pattern, line in globs:
+            if not _glob_matches(repo_root, pattern):
+                add(
+                    ERROR,
+                    "dangling-glob",
+                    f"path glob {pattern!r} matches nothing in the repository, so this "
+                    "rule never loads and nothing reports it",
+                    line,
+                )
+
+    body_lines = text.split("\n")[body_start:]
+    if not "\n".join(body_lines).strip():
+        add(ERROR, "empty-rule", "rule file has no content to load")
+
+    masked = "\n".join(_mask_fenced_blocks(body_lines))
+    _check_bundled_paths(body_lines, body_start + 1, repo_root, add, label=path.name)
+    for match in SHOUTING_RE.finditer(masked):
+        add(
+            WARNING,
+            "shouting",
+            f"{match.group(0)} in capitals — explaining why a rule matters travels "
+            "further than shouting it",
+            body_start + 1 + masked[: match.start()].count("\n"),
+        )
+    return findings
+
+
+def _glob_matches(repo_root: Path, pattern: str) -> bool:
+    """Whether ``pattern`` selects at least one path under ``repo_root``.
+
+    An unusable pattern — absolute, or escaping the root — is reported as matching
+    nothing rather than raised, so one bad glob names itself instead of ending the run.
+    """
+    try:
+        return any(True for _ in repo_root.glob(pattern))
+    except (NotImplementedError, ValueError, IndexError):
+        return False
+
+
 def check_eval_conflicts(
     skills: list[Path], repo_root: Path, agents: list[Path] = ()
 ) -> list[Finding]:

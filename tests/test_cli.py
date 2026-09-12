@@ -121,3 +121,27 @@ def test_a_repo_local_subagent_may_not_register_hooks_either(mini_repo, capsys):
     )
     assert main([str(mini_repo)]) == 1
     assert "[unknown-key]" in capsys.readouterr().out
+
+
+def _local_rule(root, name, text):
+    directory = root / ".claude" / "rules"
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / f"{name}.md"
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
+def test_a_repo_local_rule_is_discovered_and_counted(mini_repo, capsys):
+    # Rules load into every session from `.claude/rules/`, so the run has to see them
+    # for the same reason it sees the commands next door.
+    _local_rule(mini_repo, "house", '---\npaths:\n  - "plugins/**"\n---\n\n# House\n\nBody.\n')
+    assert main([str(mini_repo)]) == 0
+    assert "1 rule(s)" in capsys.readouterr().out
+
+
+def test_a_rule_scoped_to_nothing_fails_the_run(mini_repo, capsys):
+    _local_rule(mini_repo, "house", '---\npaths:\n  - "nowhere/**"\n---\n\n# House\n\nBody.\n')
+    assert main([str(mini_repo)]) == 1
+    out = capsys.readouterr().out
+    assert "[dangling-glob]" in out
+    assert ".claude/rules/house.md" in out

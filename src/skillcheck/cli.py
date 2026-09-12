@@ -23,11 +23,13 @@ from .rules import (
     check_duplicate_names,
     check_eval_conflicts,
     check_marketplace,
+    check_rule,
     check_skill,
     find_agents,
     find_all_agents,
     find_commands,
     find_plugins,
+    find_rules,
     find_skills,
 )
 
@@ -157,6 +159,11 @@ def main(argv: list[str] | None = None) -> int:
     commands += find_commands(root / ".claude" / "commands")
     for command in commands:
         findings.extend(check_command(command, root))
+    # Rules are loaded into every session from `.claude/rules/`, so a broken one costs
+    # context or, worse, silently scopes itself to nothing.
+    rules = find_rules(root / ".claude" / "rules")
+    for rule in rules:
+        findings.extend(check_rule(rule, root))
     if not args.skip_marketplace:
         findings.extend(check_marketplace(root))
     listing = _listing_sizes(plugins, skills)
@@ -188,9 +195,9 @@ def main(argv: list[str] | None = None) -> int:
             print(_annotate(item))
 
     print(
-        f"\n{len(plugins)} plugin(s), {len(skills)} skill(s), {len(agents)} subagent(s) "
-        f"and {len(commands)} command(s) checked — {len(errors)} error(s), "
-        f"{len(warnings)} warning(s)"
+        f"\n{len(plugins)} plugin(s), {len(skills)} skill(s), {len(agents)} subagent(s), "
+        f"{len(commands)} command(s) and {len(rules)} rule(s) checked — "
+        f"{len(errors)} error(s), {len(warnings)} warning(s)"
     )
     # Always reported, never a finding on its own: the number is the point. Every
     # description a plugin ships is resident in context for the whole session, and the
