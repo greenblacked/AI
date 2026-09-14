@@ -18,5 +18,5 @@
   {"query": "terraform plan says it will replace the rds instance, is that safe to apply", "should_trigger": false, "expected": "iac-review"},
   {"query": "this container image is 1.4GB and the process runs as root, help me shrink and harden it", "should_trigger": false, "expected": "image-hardening"},
   {"query": "compare datadog, grafana cloud and honeycomb, we have to pick one this quarter", "should_trigger": false, "expected": "vendor-evaluation"},
-  {"query": "this parsing function eats 400ms per call in a hot loop, help me profile it and make it faster", "should_trigger": false}
+  {"query": "this parsing function eats 400ms per call in a hot loop, help me profile it and make it faster", "should_trigger": false, "expected": "profiling"}
 ]
