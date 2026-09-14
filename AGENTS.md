@@ -20,7 +20,7 @@ Everything here is prose and configuration. There is no application. The only co
 | `AGENTS.md` | This file: the rules, in the form Codex and Gemini CLI read too |
 | `CLAUDE.md` | The `@AGENTS.md` import plus the three notes that are only true of Claude Code |
 | `.claude/rules/` | Path-scoped rules loaded when a file matching the glob is read; `docs/project-structure.md` explains when each fires |
-| `.claude/settings.json` | The `PostToolUse` hook registration; nothing else yet |
+| `.claude/settings.json` | The `PostToolUse` hook registration, checked by `scripts/check_settings.py`; nothing else yet |
 | `plugins/coding/skills/` | Reading, reviewing, testing and changing code |
 | `plugins/operations/skills/` | Keeping a running system alive |
 | `plugins/delivery/skills/` | Getting a change into production |
@@ -42,7 +42,7 @@ Everything here is prose and configuration. There is no application. The only co
 | `.claude-plugin/marketplace.json` | Lists the eight plugins; each discovers its own skills |
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing; `scripts/check_listing_budget.py` enforces them |
-| `scripts/` | Packaging, install, the eval harness, the portable export, and the three catalogue checks |
+| `scripts/` | Packaging, install, the eval harness, the portable export, and the four catalogue checks |
 | `scripts/hooks/` | The `PostToolUse` hook `.claude/settings.json` registers, which validates a skill as it is written |
 
 ## Setup commands
@@ -54,7 +54,7 @@ needs anything installed.
 ```bash
 python -m pip install pytest coverage   # only for `make test` and `make coverage`
 make validate                  # every skill, subagent and the marketplace manifest
-make catalogue                 # listing ceilings, the README, and every shell block
+make catalogue                 # listing ceilings, the README, shell blocks, the hook
 make test                      # the validator's own test suite
 make coverage                  # the same, failing below the floor in pyproject.toml
 make package                   # build a .skill archive per skill into dist/
@@ -67,7 +67,7 @@ make install                   # symlink every skill into ~/.claude/skills
 three before finishing; a change to `rules.py` that does not also change `tests/` is
 almost always missing a case.
 
-`make catalogue` is the three checks on what the repository claims about itself: the listing ceilings, the README against the tree, and that every shell block and shipped script parses. Adding a
+`make catalogue` is the four checks on what the repository claims about itself: the listing ceilings, the README against the tree, that every shell block and shipped script parses, and that the hook `.claude/settings.json` registers points at a script that exists and can run. Adding a
 skill pushes its plugin's listing past the ceiling in `listing-budget.json`, on purpose:
 past the runtime's budget the descriptions of a plugin's least-used skills are dropped
 silently, so growth has to be a decision rather than a drift. Raise the ceiling with
