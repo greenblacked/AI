@@ -10,7 +10,7 @@
   {"query": "what do I need to take my daughter to Spain without her father coming", "should_trigger": true},
   {"query": "we have 3500 euros and ten days free in October, what does that trip look like", "should_trigger": true},
   {"query": "can we afford a big holiday this year or should we overpay the mortgage first", "should_trigger": false, "expected": "personal-finance"},
-  {"query": "will I need a work visa if I take this job offer in Berlin", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "they have offered me a role in Berlin, should I push for relocation and visa sponsorship in the package", "should_trigger": false, "expected": "offer-negotiation"},
   {"query": "plan my week for me, I'm drowning and nothing is getting done", "should_trigger": false, "expected": "weekly-review"},
   {"query": "the airline has rejected my delay compensation claim twice, what do I do now", "should_trigger": false, "expected": "life-admin"},
   {"query": "I need to renew my passport, walk me through what to send and when", "should_trigger": false, "expected": "life-admin"},

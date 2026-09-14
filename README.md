@@ -6,7 +6,7 @@
 [![Skills](https://img.shields.io/badge/skills-63-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-63 agent skills, nine read-only subagents and five slash commands, in seven
+63 agent skills, nine read-only subagents and five slash commands, in eight
 plugins you install separately. They cover the daily loop of changing code, keeping a
 system running, shipping a change, securing it, making a game, leading a team, a career,
 and the parts of life that are nobody's job.

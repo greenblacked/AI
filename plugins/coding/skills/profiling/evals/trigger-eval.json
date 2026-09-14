@@ -11,6 +11,7 @@
   {"query": "our go service sits at 60 percent cpu doing almost nothing, how do i find what it's actually doing", "should_trigger": true},
   {"query": "this endpoint takes four seconds and the explain analyze shows a seq scan on orders", "should_trigger": false, "expected": "sql-performance"},
   {"query": "our rails page fires about 800 queries to render one list, all of them fast", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "this endpoint takes 4 seconds and i'm fairly sure it's the database", "should_trigger": false, "expected": "sql-performance"},
   {"query": "my game stutters every few seconds even though the fps counter says 60", "should_trigger": false, "expected": "game-performance"},
   {"query": "the unity profiler shows a gc spike every four seconds, how do i find what is allocating", "should_trigger": false, "expected": "game-performance"},
   {"query": "add opentelemetry spans to the inventory service so we can see where the latency goes", "should_trigger": false, "expected": "instrumentation"},

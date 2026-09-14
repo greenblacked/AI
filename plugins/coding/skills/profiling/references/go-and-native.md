@@ -41,7 +41,7 @@ go tool trace trace.out
 
 The tracer records goroutine creation, blocking, syscalls, GC and scheduler latency on a real timeline. The findings it produces are the ones no profile shows: goroutines runnable but not scheduled because `GOMAXPROCS` is wrong for the container, a chain of goroutines each waiting on the previous, or a garbage collection assist eating the request that triggered it.
 
-`GOMAXPROCS` deserves a specific check. Go reads the machine's core count, not the container's CPU quota, so a pod limited to 1.5 cores on a 64-core node starts 64 Ps, and the resulting scheduling overhead and GC worker count are a real and frequently missed cost. Set it from the quota.
+`GOMAXPROCS` deserves a specific check, and which check depends on the version. Before Go 1.25 the runtime read the machine's core count and ignored the container's CPU quota, so a pod limited to 1.5 cores on a 64-core node started 64 Ps, and the resulting scheduling overhead and GC worker count were a real and frequently missed cost; on those versions, set it from the quota. Go 1.25 made the default cgroup-aware on Linux, so the cost is gone unless something put it back — check for a `GOMAXPROCS` environment variable pinned to a host-sized value by an older manifest, or `GODEBUG=containermaxprocs=0`, which restores the old behaviour.
 
 ## Go: benchmarks and comparing them honestly
 

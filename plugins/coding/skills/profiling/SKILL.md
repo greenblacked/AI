@@ -1,7 +1,7 @@
 ---
 name: profiling
 description: "Make slow application code fast, or prove it cannot be: fix the workload and the target number, subtract database, downstream and I/O time to prove the cost is yours, sample the real process under load, read self time and call paths, not the function that feels slow, and change one thing at a time against measured variance. Covers wall-clock against CPU time, off-CPU and lock waits, and why a microbenchmark disagrees with production. Use when someone says \"this function eats 400ms in a hot loop\", \"profile this python function\", \"the endpoint is slow and the queries are fine\", or \"is this cpu bound\". Not for a slow query, which is sql-performance; not for a frame budget, which is game-performance; not for adding spans or metrics, which is instrumentation; not for sizing for a peak, which is capacity-planning; not for a wrong answer or memory that climbs all day, which are debugging."
-allowed-tools: "Read, Grep, Glob, Edit, Bash(python:*), Bash(py-spy:*), Bash(perf:*), Bash(go:*), Bash(node:*), Bash(jcmd:*)"
+allowed-tools: "Read, Grep, Glob, Edit, Bash(python:*), Bash(py-spy:*), Bash(perf:*), Bash(go:*), Bash(node:*), Bash(jcmd:*), Bash(asprof:*), Bash(benchstat:*), Bash(memray:*)"
 ---
 
 # Profiling
@@ -81,7 +81,7 @@ The reading order matters more than the tool.
 4. **Check the sample count before believing a frame.** A function holding 4% of a profile built from 300 samples is twelve samples, which is noise. Either profile for longer or say the number is indicative.
 5. **Look for what is missing.** A large `unknown`, `[unknown]` or truncated-stack fraction means broken stack walking — usually missing frame pointers — and every percentage in that profile is suspect until it is fixed.
 
-`references/reading-a-profile.md` has this worked through on a real profile: self against cumulative time, flame graph against flame chart, differential profiles for a regression, off-CPU profiling, and the sampling artefacts worth recognising. Read it when you have a profile in front of you.
+`references/reading-a-profile.md` covers this: self against cumulative time, flame graph against flame chart, differential profiles for a regression, off-CPU profiling, and the sampling artefacts worth recognising. Read it when you have a profile in front of you.
 
 ### 5. State cost per call times call count before proposing a fix
 
