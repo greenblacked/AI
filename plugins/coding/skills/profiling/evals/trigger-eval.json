@@ -1,0 +1,22 @@
+[
+  {"query": "this parsing function eats 400ms per call in a hot loop, help me profile it and make it faster", "should_trigger": true},
+  {"query": "profile this python function, it's slow inside a loop", "should_trigger": true},
+  {"query": "the endpoint takes 3 seconds and the database only accounts for 80ms of it, where is the rest going", "should_trigger": true},
+  {"query": "our worker burns a whole cpu core per job and i have no idea which part of it is expensive", "should_trigger": true},
+  {"query": "i have a py-spy flame graph and i cannot tell what i'm supposed to be looking at", "should_trigger": true},
+  {"query": "is this service cpu bound or just waiting on something, the process looks busy but the box is idle", "should_trigger": true},
+  {"query": "the csv export got four times slower after we swapped the serialiser, how do i find out why", "should_trigger": true},
+  {"query": "i rewrote the loop and my benchmark says twice as fast but production looks exactly the same", "should_trigger": true},
+  {"query": "which of these two implementations is actually faster on real input rather than on a toy list", "should_trigger": true},
+  {"query": "our go service sits at 60 percent cpu doing almost nothing, how do i find what it's actually doing", "should_trigger": true},
+  {"query": "this endpoint takes four seconds and the explain analyze shows a seq scan on orders", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "our rails page fires about 800 queries to render one list, all of them fast", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "my game stutters every few seconds even though the fps counter says 60", "should_trigger": false, "expected": "game-performance"},
+  {"query": "the unity profiler shows a gc spike every four seconds, how do i find what is allocating", "should_trigger": false, "expected": "game-performance"},
+  {"query": "add opentelemetry spans to the inventory service so we can see where the latency goes", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "we sample traces at 1 percent and the slow request is never in there when i go looking", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "will this hold at 10x traffic or do we need to shard the orders table before the launch", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "latency is fine at 70% cpu and terrible at 85%, is that normal and what utilisation should we target", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "memory climbs all day and the pod gets killed overnight, how do i find what's holding it", "should_trigger": false, "expected": "debugging"},
+  {"query": "the totals come out one cent off for some orders and i've been staring at it for three hours", "should_trigger": false, "expected": "debugging"}
+]

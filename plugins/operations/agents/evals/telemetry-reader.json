@@ -17,6 +17,6 @@
   {"query": "here's the billing export, what moved", "should_trigger": false, "expected": "cost-analyst"},
   {"query": "ci is red on the perf test job, read the run and classify it", "should_trigger": false, "expected": "ci-log-reader"},
   {"query": "what should page a human for this service and what should just be a ticket", "should_trigger": false, "expected": "alert-design"},
-  {"query": "profile this python function, it's slow inside a loop", "should_trigger": false},
+  {"query": "profile this python function, it's slow inside a loop", "should_trigger": false, "expected": "profiling"},
   {"query": "we're expecting 5x traffic at launch, do we have the headroom", "should_trigger": false, "expected": "capacity-planning"}
 ]
