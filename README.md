@@ -3,10 +3,10 @@
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
 [![Security](https://github.com/greenblacked/AI/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/security.yml)
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
-[![Skills](https://img.shields.io/badge/skills-65-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-66-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-65 agent skills, nine read-only subagents and five slash commands, in eight
+66 agent skills, nine read-only subagents and five slash commands, in eight
 plugins you install separately. They cover the daily loop of changing code, keeping a
 system running, shipping a change, securing it, making a game, leading a team, a career,
 and the parts of life that are nobody's job.
@@ -29,7 +29,7 @@ outside a runtime that can trigger them for you.
 | Plugin | Focus | Contents |
 | --- | --- | --- |
 | `coding` | Reading, reviewing, testing and changing code | 13 skills, 1 subagent |
-| `gamedev` | Making games, and shipping them | 7 skills |
+| `gamedev` | Making games, and shipping them | 8 skills |
 | `operations` | Keeping a running system alive | 8 skills, 4 subagents, 2 commands |
 | `delivery` | Getting a change into production | 5 skills |
 | `security` | The defensive side of shipping software | 7 skills, 2 subagents, 2 commands |
@@ -133,6 +133,7 @@ Making games, and shipping them.
 | [`game-assets`](plugins/gamedev/skills/game-assets/SKILL.md) | Get art and audio into the build without it eating the disk, the memory or the download — source kept out of the import path, large binaries behind LFS before the history is too big, and per-platform texture compression chosen rather than defaulted. |
 | [`game-balance`](plugins/gamedev/skills/game-balance/SKILL.md) | Tune a game's numbers against evidence rather than taste: decide what balanced means for this game first, read pick rate against win rate by skill band, change one thing with a window, and run playtests where you watch instead of asking. |
 | [`game-builder`](plugins/gamedev/skills/game-builder/SKILL.md) | Build a playable game scaled to the brief — core loop first in grey boxes, then a game-feel floor tuned against numbers — or review one that exists for feel, frame time and structure. |
+| [`game-design-doc`](plugins/gamedev/skills/game-design-doc/SKILL.md) | Turn a game idea or a design conversation into a feature specification the whole team can build from: out of scope before scope, every statement marked as a decision, an assumption, a recommendation or an open question, and acceptance criteria a stranger can fail. |
 | [`game-netcode`](plugins/gamedev/skills/game-netcode/SKILL.md) | Choose a multiplayer authority model from genre and player count, then hide latency with prediction, reconciliation and interpolation — and treat anything the client is authoritative over as a thing the client can lie about. |
 | [`game-certification`](plugins/gamedev/skills/game-certification/SKILL.md) | Clear platform certification and store submission on the first try: work backwards from the release date to a content lock, run the checks that can fail cert before the ones that only polish, and declare ratings and data collection against what the build actually does. |
 | [`game-save-system`](plugins/gamedev/skills/game-save-system/SKILL.md) | Name the compatibility promise before the format — how many builds back a save must load — then version the schema, migrate one step per bump, write atomically so an interrupted save is not a corrupt one, and settle cloud conflicts by lineage rather than by timestamp. |
