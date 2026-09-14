@@ -8,9 +8,10 @@ description: >-
   cancellation windows, insurance exclusions and arrival-day pacing. Use this skill whenever
   someone is planning or booking travel — "plan me a week in Japan", "is this connection too
   tight", "do I need a visa for Vietnam", "my passport expires in four months", "should I book
-  these two flights separately". It settles what a delayed or cancelled flight owes you; once a
-  claim is refused, escalation is life-admin. Not for money decisions (personal-finance), work
-  visas and relocation (job-search), or planning a work week (weekly-review).
+  these two flights separately". It settles what a delayed or cancelled flight owes you; a
+  refused claim, or a work-visa application, is life-admin. Not for money decisions
+  (personal-finance), visa sponsorship and relocation in a job offer (offer-negotiation), or
+  planning a work week (weekly-review).
 allowed-tools: Read, Write, Edit, WebFetch, WebSearch
 ---
 
@@ -24,7 +25,7 @@ The job goes wrong in a small number of ways, and none of them is the part peopl
 
 Use for: planning a leisure or personal trip end to end; deciding between itinerary options; checking whether a connection, ticket structure or passport is safe; working out what documents, insurance and money a trip needs; rescuing a trip where something has already gone wrong with a booking.
 
-Do not use for: budgeting, saving or a general money decision (`personal-finance`); a large discretionary purchase judged on its merits (`major-purchase`); work visas, relocation and immigration tied to employment (`job-search`); planning a week of work (`weekly-review`); renewing a passport or fighting a refund with a company back home (`life-admin`).
+Do not use for: budgeting, saving or a general money decision (`personal-finance`); a large discretionary purchase judged on its merits (`major-purchase`); relocation, visa sponsorship and immigration costs as terms being negotiated in a job offer (`offer-negotiation`); planning a week of work (`weekly-review`); renewing a passport, filing the work-visa or residence application itself, or fighting a refund with a company back home (`life-admin`).
 
 The boundary with `personal-finance` runs through the question, not the topic. "Can we afford a 4,000 trip this year given our savings" is a money decision and belongs there. "We have 4,000 — what does the trip look like" is a constraint on this trip and belongs here. State which one you are answering.
 

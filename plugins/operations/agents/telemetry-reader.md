@@ -1,6 +1,6 @@
 ---
 name: telemetry-reader
-description: Read traces, spans and structured logs for a slow or failing request path and return the critical path with per-span durations, whose latency it is, and the p50/p95/p99 shape — or an explicit statement that the telemetry cannot answer the question and what to instrument next. Use when an endpoint is slow, when errors are concentrated somewhere unknown in a request path, or when a trace bundle needs reading before anyone changes code.
+description: Read traces, spans and structured logs for a slow or failing request path and return the critical path with per-span durations, whose latency it is, and the p50/p95/p99 shape — or an explicit statement that the telemetry cannot answer the question and what to instrument next. Use when an endpoint is slow, when errors are concentrated somewhere unknown in a request path, or when a trace bundle needs reading before anyone changes code. Not for making that code faster once the slow span is known to be your own, which is profiling.
 tools: Bash, Read, Grep, Glob
 disallowedTools: Write, Edit, NotebookEdit
 ---

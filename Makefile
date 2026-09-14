@@ -19,10 +19,11 @@ help: ## Show this help
 validate: ## Validate every skill, subagent and the marketplace manifest
 	PYTHONPATH=src $(PYTHON) -m skillcheck . --strict
 
-catalogue: ## Check listing ceilings, README drift, and every shell block this repo prints
+catalogue: ## Check listing ceilings, README drift, shell blocks, and the hook registration
 	@$(PYTHON) scripts/check_listing_budget.py .
 	@$(PYTHON) scripts/check_readme.py .
 	@$(PYTHON) scripts/check_shell.py .
+	@$(PYTHON) scripts/check_settings.py .
 
 test: ## Run the validator's own test suite
 	PYTHONPATH=src pytest

@@ -142,6 +142,12 @@ jobs:
         # else ever looked inside them. `bash -n` parses without executing, so this
         # runs no command and needs none of the binaries they name.
         run: python scripts/check_shell.py .
+      - name: The hook registration points at a script that exists
+        # `.claude/settings.json` is read by the runtime and by nothing else here, so
+        # a typo in the path, or a stale one left after the script moved, disables the
+        # hook with no error anywhere. The first symptom would be an unvalidated skill
+        # reaching CI weeks later.
+        run: python scripts/check_settings.py .
       - name: Flatten every skill into a file that stands alone
         # The portable export is how this library reaches ChatGPT, Grok and anything
         # else without a skills runtime. Flattening inlines each `references/` file and

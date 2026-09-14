@@ -3,10 +3,10 @@
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
 [![Security](https://github.com/greenblacked/AI/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/security.yml)
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
-[![Skills](https://img.shields.io/badge/skills-62-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-63-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-62 agent skills, nine read-only subagents and five slash commands, in seven
+63 agent skills, nine read-only subagents and five slash commands, in eight
 plugins you install separately. They cover the daily loop of changing code, keeping a
 system running, shipping a change, securing it, making a game, leading a team, a career,
 and the parts of life that are nobody's job.
@@ -28,7 +28,7 @@ outside a runtime that can trigger them for you.
 
 | Plugin | Focus | Contents |
 | --- | --- | --- |
-| `coding` | Reading, reviewing, testing and changing code | 12 skills, 1 subagent |
+| `coding` | Reading, reviewing, testing and changing code | 13 skills, 1 subagent |
 | `gamedev` | Making games, and shipping them | 5 skills |
 | `operations` | Keeping a running system alive | 8 skills, 4 subagents, 2 commands |
 | `delivery` | Getting a change into production | 5 skills |
@@ -117,6 +117,7 @@ Reading, reviewing, testing and changing code.
 | [`debugging`](plugins/coding/skills/debugging/SKILL.md) | Drive a failure down to a proven cause before changing any code: reproduce it, reduce it, one falsifiable hypothesis at a time, and prove the fix by turning the failure off and on again. |
 | [`dependency-upgrade`](plugins/coding/skills/dependency-upgrade/SKILL.md) | Move onto a new major version without a branch that never lands: deprecation warnings first, one dependency per change, and the uncovered surface named. |
 | [`new-skill`](plugins/coding/skills/new-skill/SKILL.md) | Author a skill that actually fires: decide whether it deserves to exist, write the body before the description, and build the eval set from the neighbouring skills it has to beat. |
+| [`profiling`](plugins/coding/skills/profiling/SKILL.md) | Make slow application code fast or prove it cannot be: rule out the database and the network first, sample the real process under load, read self time and call paths rather than the function that feels slow, and prove each change against measured variance. |
 | [`refactoring`](plugins/coding/skills/refactoring/SKILL.md) | Restructure without changing behaviour, in steps each provably safe: a characterisation test before touching code nobody understands, one kind of change per commit, and a proof at the end. |
 | [`sql-performance`](plugins/coding/skills/sql-performance/SKILL.md) | Make a slow query fast or prove it cannot be: start from the statement with the most total time rather than the one someone complained about, read the plan from the deepest node out to the first place estimates and reality diverge, and decide between an index, a rewrite and accepting it. |
 | [`technical-docs`](plugins/coding/skills/technical-docs/SKILL.md) | Write documentation still true in six months: name the reader, pick one Diátaxis mode instead of blending two, execute every command you print, and prune the stale page rather than adding a newer one beside it. |

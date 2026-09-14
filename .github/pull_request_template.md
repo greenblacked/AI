@@ -7,7 +7,7 @@
 Confirm each of these, and say honestly if one does not hold.
 
 - [ ] `make validate` exits 0
-- [ ] `make catalogue` exits 0 — listing ceilings, and the README against the tree
+- [ ] `make catalogue` exits 0 — listing ceilings, the README against the tree, every shell block, and the hook registration
 - [ ] `make test` passes
 - [ ] Every `references/`, `scripts/` or `assets/` path named in prose exists
 - [ ] Any new skill sits inside `plugins/<name>/skills/` and has an eval set

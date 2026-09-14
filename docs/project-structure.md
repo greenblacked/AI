@@ -156,6 +156,11 @@ called anything. Diagrams of this layout often list `.claude/hooks/` beside
 belief never runs. This repository keeps its hook at `scripts/hooks/skill_hook.py`,
 named from `.claude/settings.json`, which is the arrangement above.
 
+Because that path is the only thing that matters and nothing else in the repository reads
+it, `scripts/check_settings.py` resolves it on every `make catalogue`: a typo, or a stale
+path left after the script moves, would otherwise turn the hook off with no error
+anywhere.
+
 ## What this repository has, and what it leaves out
 
 Two entries in the map are deliberately absent here.

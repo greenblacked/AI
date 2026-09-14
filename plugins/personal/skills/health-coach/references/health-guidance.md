@@ -2,7 +2,7 @@
 
 General-wellness guidance only. Not medical advice. Any diagnosed condition, medication, pregnancy, or under-18 user → general info + explicit recommendation to consult a doctor or registered dietitian.
 
-## BMR — Mifflin-St Jeor
+## BMR — Mifflin-St Jeor [1]
 
 - Men: BMR = 10·weight(kg) + 6.25·height(cm) − 5·age + 5
 - Women: BMR = 10·weight(kg) + 6.25·height(cm) − 5·age − 161
@@ -27,12 +27,15 @@ Desk-based tech workers almost always belong at 1.2-1.375 even if they feel busy
 | Maintain | TDEE ± 100 | stable |
 | Gain muscle | TDEE + 200 to 300 kcal | 0.1-0.25 kg/week |
 
-Hard floors: never below ~1,500 kcal/day (men) / ~1,200 kcal/day (women); at or near the floor, recommend professional supervision. Never endorse >1% bodyweight loss per week, "burning off" specific meals, or compensatory restriction after overeating — after a big meal, the advice is simply to return to normal eating.
+Hard floors: never below ~1,500 kcal/day (men) / ~1,200 kcal/day (women); at or near the floor, recommend professional supervision. These two numbers are a long-standing clinical convention rather than a finding from a specific trial, and they are set where they are so that the answer at the boundary is a referral rather than a smaller number. Never endorse >1% bodyweight loss per week, "burning off" specific meals, or compensatory restriction after overeating — after a big meal, the advice is simply to return to normal eating.
 
 ## Protein
 
-- General health: 1.2-1.6 g/kg bodyweight/day
-- Training + fat loss: 1.6-2.2 g/kg
+- General health: 1.2-1.6 g/kg bodyweight/day [2]
+- Training + fat loss: 1.6-2.2 g/kg. The 1.6 is where the evidence stops, not where
+  the range does [3]: past roughly that intake, supplementation adds nothing further to
+  training-induced lean mass. The upper end is a practical ceiling for a deficit, and is
+  not a figure either source supports — treat it as headroom, not a target.
 - Practical framing: 25-40g protein per main meal; give food equivalents (150g chicken ≈ 46g, 3 eggs ≈ 18g, 200g Greek yogurt ≈ 20g).
 
 ## Other targets worth mentioning when relevant
@@ -72,3 +75,25 @@ One compassionate paragraph, no lectures, keep the door open for balanced-nutrit
 ## Uncertainty honesty
 
 TDEE formulas carry ±10-15% individual error. Frame targets as starting points: track 2-3 weeks, compare weight trend (weekly average, not daily), adjust by 100-200 kcal. Daily weight fluctuates 1-2 kg on water/sodium/carbs — teach the weekly-average habit.
+
+## Sources
+
+The numeric claims above come from these; the rest is convention, and says so where it
+matters. Checked against PubMed rather than from memory, because this is the one file in
+the library where a wrong number carries a real cost.
+
+1. Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. "A new predictive
+   equation for resting energy expenditure in healthy individuals." *Am J Clin Nutr*
+   1990;51(2):241-7. <https://doi.org/10.1093/ajcn/51.2.241> — the simplified per-sex
+   equations above are the paper's own, and it reports the 1919 Harris-Benedict equations
+   overestimating measured REE by 5%.
+2. Phillips SM, Chevalier S, Leidy HJ. "Protein 'requirements' beyond the RDA:
+   implications for optimizing health." *Appl Physiol Nutr Metab* 2016;41(5):565-72.
+   <https://doi.org/10.1139/apnm-2015-0550> — concludes "at least 1.2 to 1.6 g/(kg·day)
+   of high-quality protein is a more ideal target for achieving optimal health outcomes
+   in adults."
+3. Morton RW, Murphy KT, McKellar SR, et al. "A systematic review, meta-analysis and
+   meta-regression of the effect of protein supplementation on resistance training-induced
+   gains in muscle mass and strength in healthy adults." *Br J Sports Med*
+   2018;52(6):376-384. <https://doi.org/10.1136/bjsports-2017-097608> — 49 studies, 1,863
+   participants; intake beyond 1.62 g/kg/day produced no further gains in fat-free mass.
