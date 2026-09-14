@@ -1,0 +1,22 @@
+[
+  {"query": "we are submitting to a console storefront for the first time, what has to be ready before we can", "should_trigger": true},
+  {"query": "our build failed cert because the game does not handle the controller being disconnected", "should_trigger": true},
+  {"query": "how far before launch do we have to lock content to survive console certification", "should_trigger": true},
+  {"query": "what do i put in the google play data safety form when the game bundles an ads sdk", "should_trigger": true},
+  {"query": "do we need an esrb rating for a digital only release or is the iarc questionnaire enough", "should_trigger": true},
+  {"query": "apple rejected the upload for a missing entitlement, what else should i check before resubmitting", "should_trigger": true},
+  {"query": "what does lotcheck actually test that our normal playtesting would never hit", "should_trigger": true},
+  {"query": "what screenshots, icons and store copy does the eshop listing require and at what sizes", "should_trigger": true},
+  {"query": "the game does not come back correctly after the console suspends, is that a certification failure", "should_trigger": true},
+  {"query": "we already announced a date, how much schedule does a cert rejection actually cost us", "should_trigger": true},
+  {"query": "what percentage should the canary start at and how long do we actually leave it there before promoting", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "can we put the new matchmaking behind a feature flag and ramp it to ten percent of players", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "the game sits at 24fps on the base console, work out whether that is cpu or gpu", "should_trigger": false, "expected": "game-performance"},
+  {"query": "we get a hitch every few seconds on the steam deck and the average frame rate looks fine", "should_trigger": false, "expected": "game-performance"},
+  {"query": "build me a small platformer i can play this afternoon", "should_trigger": false, "expected": "game-builder"},
+  {"query": "the jump feels floaty and dying gives the player no feedback, can you fix the feel", "should_trigger": false, "expected": "game-builder"},
+  {"query": "dependabot opened fourteen pull requests against our game server, which of them matter", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "is this cve in our analytics library actually exploitable for us or can it wait", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "main went red and the packaging step is failing, figure out why", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "our nightly build job fails about one run in four, is that a flake or something real", "should_trigger": false, "expected": "ci-triage"}
+]
