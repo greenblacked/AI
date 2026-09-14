@@ -1,0 +1,22 @@
+[
+  {"query": "the 1.3 patch broke everyone's saves, they get a parse error on load", "should_trigger": true},
+  {"query": "how should i version my save file format so old saves still load after an update", "should_trigger": true},
+  {"query": "players who play on two machines keep losing progress when the cloud sync picks a side", "should_trigger": true},
+  {"query": "the save file ends up corrupt if the game is closed while it is writing, how do i stop that", "should_trigger": true},
+  {"query": "should saves be json or binary, and does the choice matter once we start patching", "should_trigger": true},
+  {"query": "i renamed a field in the player state, do i need a migration for existing save files", "should_trigger": true},
+  {"query": "we used binaryformatter for saves and now renaming a class breaks every old save", "should_trigger": true},
+  {"query": "how many backup saves should we keep per slot and what do we do when none of them load", "should_trigger": true},
+  {"query": "someone inserted a value in the middle of an enum and everyone's inventory loads wrong now", "should_trigger": true},
+  {"query": "how do i test that saves written by the launch build still work in the current build", "should_trigger": true},
+  {"query": "adding a nullable column to the accounts table in postgres without taking the site down", "should_trigger": false, "expected": "db-migration"},
+  {"query": "will this backfill of 40 million rows hold a lock long enough to stall the deploy", "should_trigger": false, "expected": "db-migration"},
+  {"query": "add a pause menu and a slot select screen to my platformer", "should_trigger": false, "expected": "game-builder"},
+  {"query": "make me a small roguelike prototype i can play in the browser", "should_trigger": false, "expected": "game-builder"},
+  {"query": "how do i replicate player position from the server down to clients at 20hz", "should_trigger": false, "expected": "game-netcode"},
+  {"query": "our lockstep rts ends up with two different world states after about ten minutes", "should_trigger": false, "expected": "game-netcode"},
+  {"query": "design the http endpoints for our cloud save service, including what a conflict response returns", "should_trigger": false, "expected": "api-design"},
+  {"query": "is adding a required field to the profile response a breaking change for old clients", "should_trigger": false, "expected": "api-design"},
+  {"query": "the xp curve flattens out around level 30, how much should i steepen the back half", "should_trigger": false, "expected": "game-balance"},
+  {"query": "there is far too much gold in circulation by hour 20, how do i tune the sinks", "should_trigger": false, "expected": "game-balance"}
+]
