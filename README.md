@@ -3,10 +3,10 @@
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
 [![Security](https://github.com/greenblacked/AI/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/security.yml)
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
-[![Skills](https://img.shields.io/badge/skills-66-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-67-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-66 agent skills, nine read-only subagents and five slash commands, in eight
+67 agent skills, ten read-only subagents and six slash commands, in eight
 plugins you install separately. They cover the daily loop of changing code, keeping a
 system running, shipping a change, securing it, making a game, leading a team, a career,
 and the parts of life that are nobody's job.
@@ -29,7 +29,7 @@ outside a runtime that can trigger them for you.
 | Plugin | Focus | Contents |
 | --- | --- | --- |
 | `coding` | Reading, reviewing, testing and changing code | 13 skills, 1 subagent |
-| `gamedev` | Making games, and shipping them | 8 skills |
+| `gamedev` | Making games, and shipping them | 9 skills, 1 subagent, 1 command |
 | `operations` | Keeping a running system alive | 8 skills, 4 subagents, 2 commands |
 | `delivery` | Getting a change into production | 5 skills |
 | `security` | The defensive side of shipping software | 7 skills, 2 subagents, 2 commands |
@@ -134,6 +134,7 @@ Making games, and shipping them.
 | [`game-balance`](plugins/gamedev/skills/game-balance/SKILL.md) | Tune a game's numbers against evidence rather than taste: decide what balanced means for this game first, read pick rate against win rate by skill band, change one thing with a window, and run playtests where you watch instead of asking. |
 | [`game-builder`](plugins/gamedev/skills/game-builder/SKILL.md) | Build a playable game scaled to the brief — core loop first in grey boxes, then a game-feel floor tuned against numbers — or review one that exists for feel, frame time and structure. |
 | [`game-design-doc`](plugins/gamedev/skills/game-design-doc/SKILL.md) | Turn a game idea or a design conversation into a feature specification the whole team can build from: out of scope before scope, every statement marked as a decision, an assumption, a recommendation or an open question, and acceptance criteria a stranger can fail. |
+| [`game-level-design`](plugins/gamedev/skills/game-level-design/SKILL.md) | Lay out a level as a space: player metrics fixed before any geometry so every dimension derives from them, pacing charted as explore, combat, choreo and puzzle beats with no category repeating, and wayfinding cues built into the blockmesh and playtested there rather than asserted after art. |
 | [`game-netcode`](plugins/gamedev/skills/game-netcode/SKILL.md) | Choose a multiplayer authority model from genre and player count, then hide latency with prediction, reconciliation and interpolation — and treat anything the client is authoritative over as a thing the client can lie about. |
 | [`game-certification`](plugins/gamedev/skills/game-certification/SKILL.md) | Clear platform certification and store submission on the first try: work backwards from the release date to a content lock, run the checks that can fail cert before the ones that only polish, and declare ratings and data collection against what the build actually does. |
 | [`game-save-system`](plugins/gamedev/skills/game-save-system/SKILL.md) | Name the compatibility promise before the format — how many builds back a save must load — then version the schema, migrate one step per bump, write atomically so an interrupted save is not a corrupt one, and settle cloud conflicts by lineage rather than by timestamp. |
@@ -228,7 +229,7 @@ Applications, negotiation, speaking and writing.
 
 ## Subagents
 
-Nine subagents ship across four plugins. Each exists to keep bulk out of the main context
+Ten subagents ship across five plugins. Each exists to keep bulk out of the main context
 — the input is a log, a plan, a billing export, a contract, a pile of feedback, and the
 answer is short — and to be denied the tools it should not have. A reviewer that can apply
 is not a reviewer.
@@ -237,6 +238,7 @@ is not a reviewer.
 | --- | --- | --- | --- |
 | `ci-log-reader` | `operations` | A failing run's logs | One of five triage classes and the line that decided it |
 | `telemetry-reader` | `operations` | Traces and structured logs | The critical path, or why the data cannot answer |
+| `frame-capture-reader` | `gamedev` | A profiler capture or frame trace | CPU-bound or GPU-bound with the numbers, or what to capture instead |
 | `cost-analyst` | `operations` | A cloud billing export | The top movers period over period, not the top spenders |
 | `incident-scribe` | `operations` | Raw triage notes and scrollback | A blameless postmortem draft |
 | `plan-reviewer` | `security` | A Terraform plan JSON | The blast radius, destroys first |
@@ -262,6 +264,7 @@ Each does the mechanical part and points at the skill holding the full procedure
 | --- | --- | --- |
 | `/ci-fail` | `operations` | Classify a failing run from annotations and failed-step logs, after checking whether the default branch is red too. |
 | `/oncall-handover` | `operations` | Draft a handover from pages, deploys and anything left mid-flight, with the fragile mitigations first. |
+| `/level` | `gamedev` | Run a level or feature through spec, layout, grey-box, tuning, frame budget and build size, with a gate between each stage. |
 | `/blast-radius` | `security` | Read a Terraform plan as JSON and report destroys first, with the attribute forcing each replacement. |
 | `/image-audit` | `security` | Audit a built image for secrets in layers, root execution, base currency and a gate that will not get bypassed. |
 | `/weekly` | `manager` | Draft a bottom-line-first status update from merged pull requests and commits, every number sourced. |

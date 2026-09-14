@@ -1,14 +1,13 @@
 # Writing a subagent
 
 Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
-frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md)
-for one of the nine this repository ships today — one with `coding`, four with
-`operations`, two with `security` and two with `manager` — and in `.claude/agents/` for
-the three that serve work on this repository rather than shipping to anyone, described in
-[the three-stage loop](#the-three-stage-loop) below. A subagent is a separate Claude
-instance with its own context window, its
-own system prompt, and its own tool allowlist, invoked by the main agent and returning a
-result to it.
+frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md) for
+one of the ten this repository ships today, one with `coding`, four with `operations`,
+two with `security`, two with `manager` and one with `gamedev` — and in `.claude/agents/`
+for the three that serve work on this repository rather than shipping to anyone,
+described in [the three-stage loop](#the-three-stage-loop) below. A subagent is a
+separate Claude instance with its own context window, its own system prompt, and its own
+tool allowlist, invoked by the main agent and returning a result to it.
 
 ## Frontmatter
 
@@ -34,7 +33,7 @@ tools: Read, Glob, Grep, Bash
   already omits those tools, so this is a statement rather than a restriction: it says in
   the file that the subagent must not change anything, where a reader will see it, and it
   survives someone later adding `Bash` to `tools` for a checker.
-- **`model`** — optional. The model the subagent runs on. None of the nine here set it.
+- **`model`** — optional. The model the subagent runs on. None of the ten here set it.
 - Also accepted, because a plugin-shipped subagent supports them: `effort`, `maxTurns`,
   `skills`, `memory`, `background`, `isolation`, `color`, `initialPrompt`.
 
@@ -176,8 +175,9 @@ inline.
 ## The subagents in this repository
 
 Each plugin discovers its own `agents/` directory — nothing lists them in
-[`marketplace.json`](../.claude-plugin/marketplace.json). Nine ship: one with `coding`,
-four with `operations`, two with `security` and two with `manager`.
+[`marketplace.json`](../.claude-plugin/marketplace.json). Ten ship: one with `coding`,
+four with `operations`, two with `security`, two with `manager` and one with
+`gamedev`.
 
 - **`skill-reviewer`** — reviews a candidate `SKILL.md` against this repository's rules
   and against what makes a skill actually trigger. Runs the validator first to settle
@@ -206,7 +206,9 @@ returns the critical path from a trace bundle, and treats "the data cannot answe
 as a first-class result. In the `manager` plugin, `contract-reader` quotes the four or
 five clauses in a vendor agreement that decide the deal, and `feedback-synthesiser` turns
 a pile of peer feedback into themes with a source count, refusing to present a
-single-source theme as consensus.
+single-source theme as consensus. In `gamedev`, `frame-capture-reader` reads a profiler
+capture and returns whether the frame is CPU-bound or GPU-bound with the three numbers
+that decided it, then hands the decision about what to change to `game-performance`.
 
 Each plugin discovers its own `agents/` directory rather than listing files in the
 manifest — so there is no list to fall out of date. What the validator still checks is

@@ -53,7 +53,7 @@ move when you know exactly what you want.
 
 ### Subagents
 
-Nine ship across four plugins, and they work differently: the main agent delegates to one
+Ten ship across five plugins, and they work differently: the main agent delegates to one
 when the work would otherwise flood your context with material you do not need afterwards.
 A megabyte of CI logs, a Terraform plan, a billing export. You get the conclusion; the raw
 material never enters your session.
@@ -63,7 +63,7 @@ Ask for one by name when you want to be sure.
 
 ### Slash commands
 
-Five ship, and unlike skills they never fire on their own — you type them. That makes them
+Six ship, and unlike skills they never fire on their own — you type them. That makes them
 the right shape for work that takes an argument, or that should happen when asked rather
 than when merely relevant.
 
