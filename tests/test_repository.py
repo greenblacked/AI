@@ -82,3 +82,29 @@ def test_the_fixture_repository_validates_clean(mini_repo):
         check=False,
     )
     assert result.returncode == 0, result.stdout
+
+
+def test_this_repository_s_budget_comment_is_what_the_writer_emits():
+    """The note in listing-budget.json is regenerated, so it must not be hand-edited.
+
+    ``write()`` rebuilds the whole file, and it now derives the token figures from
+    CHARS_PER_TOKEN. A comment typed in by hand survives until the next ``--update`` and
+    then vanishes, and in the meantime it can state a ratio the report has stopped using.
+    Writing this file by hand once already produced "1,730 tokens" where the constant
+    gives 1,728.
+    """
+    import importlib.util
+    import json
+    import tempfile
+
+    spec = importlib.util.spec_from_file_location(
+        "clb", ROOT / "scripts" / "check_listing_budget.py"
+    )
+    budget = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(budget)
+
+    committed = json.loads((ROOT / budget.BUDGET_FILE).read_text(encoding="utf-8"))["_comment"]
+    scratch = Path(tempfile.mkdtemp()) / budget.BUDGET_FILE
+    budget.write(scratch, {"any": 0})
+    emitted = json.loads(scratch.read_text(encoding="utf-8"))["_comment"]
+    assert committed == emitted
