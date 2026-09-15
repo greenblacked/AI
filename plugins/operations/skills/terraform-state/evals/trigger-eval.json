@@ -1,0 +1,91 @@
+[
+  {
+    "query": "i renamed the module and now terraform wants to destroy and recreate all 40 resources, they haven't changed at all",
+    "should_trigger": true
+  },
+  {
+    "query": "how do i import existing resources into terraform without it recreating them",
+    "should_trigger": true
+  },
+  {
+    "query": "about 200 s3 buckets were made by hand before we had terraform, any way to bulk adopt them",
+    "should_trigger": true
+  },
+  {
+    "query": "Error acquiring the state lock, ConditionalCheckFailedException. the CI job that held it was cancelled an hour ago",
+    "should_trigger": true
+  },
+  {
+    "query": "we agreed to keep the console change to the security group, now get it into state so the plan stops trying to revert it",
+    "should_trigger": true
+  },
+  {
+    "query": "i need this rds instance out of terraform without deleting it, the data team is taking it over",
+    "should_trigger": true
+  },
+  {
+    "query": "our apply got killed halfway and now the state doesn't match what's actually in aws",
+    "should_trigger": true
+  },
+  {
+    "query": "we're splitting the monorepo, how do i move these resources into the new state file",
+    "should_trigger": true
+  },
+  {
+    "query": "switching from count to for_each and the plan wants to destroy all six instances, is there a way to remap them",
+    "should_trigger": true
+  },
+  {
+    "query": "explain the difference between terraform workspaces and separate state files, the team is arguing about it",
+    "should_trigger": true
+  },
+  {
+    "query": "can you review this terraform plan before i apply it to prod, 2 to destroy and it's the payments account",
+    "should_trigger": false,
+    "expected": "iac-review"
+  },
+  {
+    "query": "here's the plan json from the PR, is the aurora replacement going to lose data",
+    "should_trigger": false,
+    "expected": "plan-reviewer"
+  },
+  {
+    "query": "write me a terraform module for an ecs service with autoscaling and sane tagging",
+    "should_trigger": false,
+    "expected": "code-scaffold"
+  },
+  {
+    "query": "bootstrap the terraform for a brand new account, nothing exists in it yet",
+    "should_trigger": false,
+    "expected": "code-scaffold"
+  },
+  {
+    "query": "we're moving off cloudformation onto terraform across twelve accounts, what does the plan look like",
+    "should_trigger": false,
+    "expected": "plan-platform-migration"
+  },
+  {
+    "query": "shift every workload from the old eks cluster to the new one without downtime, need the phasing",
+    "should_trigger": false,
+    "expected": "plan-platform-migration"
+  },
+  {
+    "query": "i found an aws access key committed in the repo two years ago, what now",
+    "should_trigger": false,
+    "expected": "secret-rotation"
+  },
+  {
+    "query": "the terraform plan job in github actions has failed five times in a row at the init step",
+    "should_trigger": false,
+    "expected": "ci-triage"
+  },
+  {
+    "query": "our aws bill jumped 30 percent after the platform refactor, where is it going",
+    "should_trigger": false,
+    "expected": "cost-review"
+  },
+  {
+    "query": "why does terraform create the nat gateway before the route table, how does it order things",
+    "should_trigger": false
+  }
+]

@@ -198,17 +198,42 @@ overflows, Claude Code keeps every skill's name but
 so those skills can still be invoked by name and stop being chosen on their own. A
 newly installed skill has never been used, so it is first to lose its description.
 
-This repository's descriptions total about 53,000 characters, which is why they are split
-across eight plugins rather than three: six of the eight fit the default budget on their
-own, and the two that do not — `coding` and `manager` — are the ones nobody installs
-alongside much else. `make validate` prints the per-plugin total on every run, and
-`--listing-budget CHARS` turns exceeding one number into a warning:
+Those two figures are not the same constraint. One per cent of a 200,000-token window is
+2,000 tokens; 8,000 characters is what that becomes if you assume four characters to the
+token. Measured over every description here with the tokenizer this runtime family
+publishes, the library runs **4.63 characters per token** — between 4.54 and 4.70 across
+the eight plugins, so it is a property of technical English rather than of any one
+description. At that ratio 2,000 tokens is about 9,250 characters, and the 8,000-character
+default is roughly 14% stricter than the sentence it encodes. The vocabulary is the
+65,000-entry published one rather than the current model's, and per skill the spread is
+wider than per plugin, so the ratio is a property of this library as a whole and is only
+ever applied to plugin totals. That does not make the
+default wrong to hold to, and nothing here raises it: it is a proxy with an error bar, the
+vocabulary is the published one rather than the current model's, and the conservative side
+of a budget is the safe side. What it does mean is that a plugin a little over 8,000 has
+not necessarily spent one per cent of anything, so `make catalogue` prints the token
+equivalent under its summary line for exactly the plugins that cross the default, and the
+decision gets made on both numbers rather than on the alarming one.
+
+This repository's descriptions total about 63,200 characters — roughly 13,650 tokens —
+which is why they are split across eight plugins rather than three. Four of the eight fit
+the default budget on their own. `coding`, `manager`, `gamedev` and `operations` do not,
+and only the first three of those are ones nobody installs alongside much else:
+`operations` is the plugin most likely to be installed next to `delivery` and `security`,
+so its descriptions are the ones most at risk of being dropped in a real session. Read
+that alongside the token figures rather than the character ones — `operations` is over
+the 8,000-character default and still under one per cent of a window — and note what the
+runtime drops first: a skill nobody has used yet. The newest skills in an over-budget
+plugin are the ones that lose their descriptions, which is an argument for splitting a
+plugin rather than for raising its ceiling indefinitely. `make validate` prints the
+per-plugin total on every run, and `--listing-budget CHARS` turns exceeding one number
+into a warning:
 
 ```bash
 PYTHONPATH=src python -m skillcheck . --listing-budget 8000
 ```
 
-A single threshold cannot gate this, because two plugins are already above the runtime
+A single threshold cannot gate this, because three plugins are already above the runtime
 default and a gate set there would fail on every run forever. So the gate is a ratchet
 instead, in the same shape as the coverage floor: `listing-budget.json` records a ceiling
 per plugin with a few hundred characters of slack, `make catalogue` enforces it, and
@@ -225,6 +250,49 @@ one plugin should raise `skillListingBudgetFraction` in their settings, or mark 
 used skills `"name-only"` in `skillOverrides`. Authors should keep descriptions inside the
 500–900 guidance rather than at the cap, and should score them with `--budget` to see what
 the runtime actually shows.
+
+### What survives the budget is the name
+
+When the listing overflows, the runtime keeps every name and drops descriptions. A skill
+nobody has used yet is first to lose its own — so in the case that matters most, the case
+of a skill that has just been installed, the name is not a label on the description. It is
+the description.
+
+This is measurable, and it was measured here after a skill scored badly for a reason that
+looked like prose. `game-ship` scored far below its neighbours under `--budget` while
+scoring with them when the full listing was present. Rewriting its description moved the
+budget score by exactly zero — the result to expect once you notice that `--budget` had
+dropped the rewritten text before the model ever saw it. Renaming the skill to
+`game-certification`, with the same description, body and eval set, was what moved it. The
+word "ship" names a stage that half this library is part of; "certification" names the
+thing this skill alone owns. The run that decided it is quoted in the commit that made the
+rename.
+
+The gap between a skill's two scores is therefore a reading of how much of its routing
+rests on a description that may not be there. Read the gap and its direction, not the
+digits: a score is a majority over twenty queries, so one query changing its mind moves it
+five points, and the numbers above are the ones that run produced rather than constants
+you should expect to reproduce.
+
+What reproduces is the failure mode, and it is visible in the run rather than in the
+score. Scoring `life-admin` under `--budget` prints lines like these:
+
+```text
+wanted life-admin, chose NONE: the energy company has been billing me for a meter
+  that isn't mine since March
+wanted life-admin, chose NONE: help me get my professional registration renewed
+  before it lapses next month
+```
+
+Nothing is wrong with that description — it is not in the listing. The model is being
+asked whether a skill called `life-admin` handles a disputed energy bill, and from the
+name alone it will not commit. A name that says what the skill owns keeps those queries;
+a name that labels a category loses them.
+
+So name a skill after what it owns, in the word someone reaching for it would use, and
+read the name on its own — with the description covered up — asking whether you would pick
+it out of a list of sixty-seven. Then score it with `--budget` and read which queries it
+drops. A name is not cosmetic when the budget drops everything else.
 
 ## Trigger eval sets
 
@@ -338,9 +406,11 @@ Three flags change what the number means:
   are written: it applies the listing budget above and drops the target's own description
   first, which is the realistic case for a skill nobody has used yet. A description that
   scores well only without `--budget` is one that never reaches the model in a real
-  session.
+  session — and since dropping the description leaves only the name, the gap between the
+  two scores is usually telling you about the name. See
+  [what survives the budget](#what-survives-the-budget-is-the-name).
 - `--baseline` takes an earlier `--json` output and prints the per-target delta. With
-  fifty-five descriptions competing for the same queries, the expected consequence of editing
+  sixty-seven descriptions competing for the same queries, the expected consequence of editing
   one is a change in a neighbour's score, and a fixed threshold cannot see a skill slide
   from 100% to 85%. Commit a run and diff against it.
 

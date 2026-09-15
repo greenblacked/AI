@@ -7,9 +7,9 @@ descriptions of the least-used skills: they stay invocable by name and stop bein
 on their own. Nothing raises an error, nothing appears in a log, and the skill simply
 never fires again.
 
-That is what the seven-plugin split was for, and nothing stopped it regressing. The
+That is what the eight-plugin split was for, and nothing stopped it regressing. The
 validator prints the per-plugin total and `--listing-budget` warns against one number,
-but two plugins are already over the runtime default, so a single threshold can only be
+but three plugins are already over the runtime default, so a single threshold can only be
 set where it catches nothing. This is a ratchet instead, in the same shape as the
 coverage floor: each plugin's ceiling is recorded in ``listing-budget.json`` with a few
 hundred characters of slack, so rewording stays free and adding a skill does not. When it
@@ -40,6 +40,26 @@ BUDGET_FILE = "listing-budget.json"
 # installs one plugin is fine, and the split already did the work that could be done —
 # but it is worth saying out loud on every run rather than discovering later.
 RUNTIME_DEFAULT = 8000
+
+# Characters per token, measured over every description in this repository with the
+# 65,000-entry BPE vocabulary this runtime family publishes — the older published one,
+# since the current model's is not released. It sat between 4.54 and 4.70 across the eight
+# plugins, so it is a property of this library as a whole rather than of any one
+# description; per skill the spread is wider and the report only ever applies it to plugin
+# totals. It is recorded rather than computed on the fly: tokenizing needs a dependency and
+# a megabyte of vocabulary, and this repository's validator is standard library only.
+#
+# To re-measure, encode each description exactly as measure() normalises it — whitespace
+# collapsed — and divide total characters by total tokens. Change the constant and every
+# figure below follows, including the comment written into listing-budget.json.
+#
+# It is here because RUNTIME_DEFAULT is a character figure standing in for a token one.
+# One per cent of a 200k-token window is 2,000 tokens, which is about 9,250 characters at
+# this ratio, so the 8,000 above is roughly 14% stricter than the sentence it encodes. A
+# plugin a little over it has not necessarily spent one per cent of anything, and the
+# report says so rather than leaving the reader with the alarming half of the pair.
+CHARS_PER_TOKEN = 4.63
+CONTEXT_WINDOW_TOKENS = 200_000
 
 # How much slack a recorded ceiling carries over the measured total. A description is
 # 500-900 characters, so this lets prose be reworded and refuses to let a skill be added
@@ -93,7 +113,11 @@ def write(path: Path, sizes: dict[str, int]) -> None:
         "_comment": (
             "Per-plugin ceilings for the skill listing, in characters. Regenerate with "
             "scripts/check_listing_budget.py --update, and say in the commit why a "
-            "ceiling went up."
+            "ceiling went up. The runtime default below is characters standing in for "
+            f"tokens: this library measures {CHARS_PER_TOKEN} characters per token, so "
+            f"{RUNTIME_DEFAULT:,} is about {RUNTIME_DEFAULT / CHARS_PER_TOKEN:,.0f} "
+            f"tokens against the {CONTEXT_WINDOW_TOKENS // 100:,} that one per cent of a "
+            f"{CONTEXT_WINDOW_TOKENS // 1000}k window allows."
         ),
         "runtime_default": RUNTIME_DEFAULT,
         "plugins": {name: ceiling_for(sizes[name]) for name in sorted(sizes)},
@@ -158,6 +182,13 @@ def check(root: Path, update: bool = False) -> int:
             f"above the ~{RUNTIME_DEFAULT:,} runtime default on their own: "
             f"{', '.join(over_runtime)}"
         )
+        for name in over_runtime:
+            tokens = sizes[name] / CHARS_PER_TOKEN
+            print(
+                f"  {name}: about {tokens:,.0f} tokens, "
+                f"{tokens / CONTEXT_WINDOW_TOKENS:.2%} of a "
+                f"{CONTEXT_WINDOW_TOKENS // 1000}k window"
+            )
     return 1 if failed else 0
 
 

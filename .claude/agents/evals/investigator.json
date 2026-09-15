@@ -1,0 +1,92 @@
+[
+  {
+    "query": "does kubectl drain --force really skip the grace period? check the source, not a blog post",
+    "should_trigger": true
+  },
+  {
+    "query": "this skill cites a figure for what causes flaky tests — is it real, and what is the primary source",
+    "should_trigger": true
+  },
+  {
+    "query": "verify this command runs exactly as written before it ships in a reference file",
+    "should_trigger": true
+  },
+  {
+    "query": "i wrote these eval numbers from memory, confirm them or refute them",
+    "should_trigger": true
+  },
+  {
+    "query": "the whole paragraph rests on one premise — check the premise",
+    "should_trigger": true
+  },
+  {
+    "query": "find out whether this api behaves the way the docs claim in the version we pin",
+    "should_trigger": true
+  },
+  {
+    "query": "go looking for whatever would prove this claim false",
+    "should_trigger": true
+  },
+  {
+    "query": "is this statistic primary, or is everyone just citing each other",
+    "should_trigger": true
+  },
+  {
+    "query": "check this claim about tls session resumption against the rfc and tell me what you couldn't reach",
+    "should_trigger": true
+  },
+  {
+    "query": "settle whether this benchmark number is reproducible or whether it came from one blog post",
+    "should_trigger": true
+  },
+  {
+    "query": "the change is finished, review it against AGENTS.md and give me a verdict",
+    "should_trigger": false,
+    "expected": "reviewer"
+  },
+  {
+    "query": "what in this repository already covers checking a claim before we assert it",
+    "should_trigger": false,
+    "expected": "explorer"
+  },
+  {
+    "query": "what already exists in this repo that covers checking claims",
+    "should_trigger": false,
+    "expected": "explorer"
+  },
+  {
+    "query": "now fix the sentence so it matches what you found",
+    "should_trigger": false,
+    "expected": "implementer"
+  },
+  {
+    "query": "read this candidate SKILL.md and tell me whether the description triggers",
+    "should_trigger": false,
+    "expected": "skill-reviewer"
+  },
+  {
+    "query": "here's the terraform plan json, what does the apply destroy",
+    "should_trigger": false,
+    "expected": "plan-reviewer"
+  },
+  {
+    "query": "the build is red, read the run and classify the failure",
+    "should_trigger": false,
+    "expected": "ci-log-reader"
+  },
+  {
+    "query": "audit this new auth design for attack paths",
+    "should_trigger": false,
+    "expected": "security-review"
+  },
+  {
+    "query": "of these upgrade candidates, which bumps are risky",
+    "should_trigger": false,
+    "expected": "dependency-upgrade"
+  },
+  {
+    "query": "synthesise this pile of peer feedback into themes",
+    "should_trigger": false,
+    "expected": "feedback-synthesiser"
+  }
+]
