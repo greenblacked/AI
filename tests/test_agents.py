@@ -109,3 +109,37 @@ def test_a_description_over_the_cap_is_an_error(tmp_path):
     assert "long-description" in codes(
         check_agent(write_agent(tmp_path, "demo-agent", text), tmp_path)
     )
+
+
+def test_a_cede_clause_naming_a_subagent_that_does_not_exist_is_an_error(tmp_path):
+    # A subagent's description routes exactly as a skill's does, and this is the case
+    # that motivated the rule: deleting an agent left another one ceding to it.
+    text = GOOD.replace(
+        "wants that.", "wants that. Not for finding the sources, which is source-finder."
+    )
+    path = write_agent(tmp_path, "demo-agent", text)
+    findings = check_agent(path, tmp_path, frozenset({"demo-agent"}))
+    assert [f.code for f in findings] == ["dangling-cede"]
+    assert "source-finder" in findings[0].message
+
+
+def test_a_cede_clause_naming_a_subagent_that_exists_is_clean(tmp_path):
+    text = GOOD.replace("wants that.", "wants that. Not for the wider sweep (deep-audit).")
+    path = write_agent(tmp_path, "demo-agent", text)
+    assert check_agent(path, tmp_path, frozenset({"demo-agent", "deep-audit"})) == []
+
+
+def test_without_a_known_set_an_agent_cede_clause_is_not_checked(tmp_path):
+    # The two-argument call is what every other caller here uses, and it stays silent
+    # for the same reason `unknown-expected` does: nothing has told it what exists.
+    text = GOOD.replace(
+        "wants that.", "wants that. Not for finding the sources, which is source-finder."
+    )
+    assert check_agent(write_agent(tmp_path, "demo-agent", text), tmp_path) == []
+
+
+def test_a_hyphenated_aside_outside_an_agent_cede_clause_is_not_a_target(tmp_path):
+    text = GOOD.replace(
+        "wants that.", "wants that. It reports only (read-only) and changes nothing."
+    )
+    assert check_agent(write_agent(tmp_path, "demo-agent", text), tmp_path, frozenset()) == []

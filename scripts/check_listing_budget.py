@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail when a plugin's skill listing grows past its recorded ceiling.
+"""Fail when a plugin's listing, or a skill's description, grows past its record.
 
 Every description a plugin ships is resident in context for the whole session, and the
 runtime caps that listing at roughly 1% of the context window. Past the cap it drops the
@@ -16,6 +16,15 @@ hundred characters of slack, so rewording stays free and adding a skill does not
 fails, either trim a description, split the plugin, or raise the ceiling deliberately
 with ``--update`` and say why in the commit.
 
+The same file carries a per-skill ratchet, for the same reason one step down. A plugin's
+total is the sum of its descriptions, so a ceiling with slack in it says nothing about any
+one of them, and a description that drifts past the guidance costs every session it is
+resident in. A flat rule cannot be the answer here either: a third of the descriptions in
+this repository are already over the guidance, and they were written against measured
+routing scores, so clearing a flat rule would mean editing descriptions to satisfy a
+check. So what exists is recorded at what it measures and may not grow, and a skill with
+no record is new and has to come in at or under DESCRIPTION_TARGET.
+
 Standard library only, like the validator it imports: no dependency may stand between a
 bare interpreter and a green build.
 """
@@ -27,6 +36,7 @@ import json
 import math
 import sys
 from pathlib import Path
+from typing import NamedTuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
@@ -72,11 +82,32 @@ CONTEXT_WINDOW_TOKENS = 200_000
 GRANULARITY = 500
 HEADROOM = 150
 
+# The length a description that has no record yet has to come in at. AGENTS.md asks for
+# 500-900 characters and the upper end of that was never enforced, so 33 of the 73
+# descriptions here are above it, up to 971. That is why this is a ratchet and not a
+# threshold: the only way to clear a flat rule would be to trim 33 descriptions that were
+# written against measured routing scores, which is editing a description to satisfy a
+# check. Recorded lengths grandfather those; this number gates everything new.
+DESCRIPTION_TARGET = 900
 
-def measure(root: Path) -> dict[str, int]:
-    """Characters of description each plugin puts into the listing, by plugin name."""
+
+class Recorded(NamedTuple):
+    """What listing-budget.json records: a ceiling per plugin, a length per skill."""
+
+    plugins: dict[str, int]
+    skills: dict[str, int]
+
+
+def walk(root: Path) -> list[tuple[str, str, int]]:
+    """(plugin, skill, description length) for every skill that sits inside a plugin.
+
+    One pass feeds both the per-plugin totals and the per-skill ratchet, so the two
+    numbers are the same measurement of the same text and cannot disagree. A skill
+    outside every plugin installs for nobody and the validator errors on it; it is left
+    out here rather than counted against a plugin it is not in.
+    """
     plugins = find_plugins(root)
-    sizes = {plugin.name: 0 for plugin in plugins}
+    entries: list[tuple[str, str, int]] = []
     for skill in find_skills(root):
         try:
             description = parse((skill / "SKILL.md").read_text(encoding="utf-8")).get(
@@ -86,9 +117,26 @@ def measure(root: Path) -> dict[str, int]:
             continue  # the validator reports a malformed skill; this is not its job
         for plugin in plugins:
             if skill.is_relative_to(plugin):
-                sizes[plugin.name] += len(" ".join((description or "").split()))
+                # Whitespace is collapsed because a folded description carries newlines
+                # the runtime never sees.
+                entries.append(
+                    (plugin.name, skill.name, len(" ".join((description or "").split())))
+                )
                 break
+    return entries
+
+
+def totals(root: Path, entries: list[tuple[str, str, int]]) -> dict[str, int]:
+    """Sum a walk() into characters per plugin, including plugins that ship no skill."""
+    sizes = {plugin.name: 0 for plugin in find_plugins(root)}
+    for plugin, _skill, length in entries:
+        sizes[plugin] += length
     return sizes
+
+
+def measure(root: Path) -> dict[str, int]:
+    """Characters of description each plugin puts into the listing, by plugin name."""
+    return totals(root, walk(root))
 
 
 def ceiling_for(size: int) -> int:
@@ -101,51 +149,125 @@ def ceiling_for(size: int) -> int:
     return rounded
 
 
-def load(path: Path) -> dict[str, int]:
+def load(path: Path) -> Recorded:
     data = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(data, dict) or not isinstance(data.get("plugins"), dict):
-        raise ValueError(f"{path.name} must be an object with a 'plugins' object in it")
-    return {str(name): int(value) for name, value in data["plugins"].items()}
+    if not isinstance(data, dict) or not all(
+        isinstance(data.get(key), dict) for key in ("plugins", "skills")
+    ):
+        raise ValueError(
+            f"{path.name} must be an object with 'plugins' and 'skills' objects in it; "
+            "run --update to regenerate it"
+        )
+    return Recorded(
+        {str(name): int(value) for name, value in data["plugins"].items()},
+        {str(name): int(value) for name, value in data["skills"].items()},
+    )
 
 
-def write(path: Path, sizes: dict[str, int]) -> None:
+def write(path: Path, sizes: dict[str, int], lengths: dict[str, int] | None = None) -> None:
     body = {
         "_comment": (
-            "Per-plugin ceilings for the skill listing, in characters. Regenerate with "
+            "Per-plugin ceilings for the skill listing, in characters, and the recorded "
+            "length of each skill's description. Regenerate with "
             "scripts/check_listing_budget.py --update, and say in the commit why a "
-            "ceiling went up. The runtime default below is characters standing in for "
-            f"tokens: this library measures {CHARS_PER_TOKEN} characters per token, so "
-            f"{RUNTIME_DEFAULT:,} is about {RUNTIME_DEFAULT / CHARS_PER_TOKEN:,.0f} "
+            "ceiling or a length went up. The runtime default below is characters "
+            f"standing in for tokens: this library measures {CHARS_PER_TOKEN} characters "
+            f"per token, so {RUNTIME_DEFAULT:,} is about "
+            f"{RUNTIME_DEFAULT / CHARS_PER_TOKEN:,.0f} "
             f"tokens against the {CONTEXT_WINDOW_TOKENS // 100:,} that one per cent of a "
-            f"{CONTEXT_WINDOW_TOKENS // 1000}k window allows."
+            f"{CONTEXT_WINDOW_TOKENS // 1000}k window allows. A skill under 'skills' may "
+            "not grow past the length recorded there; one that is absent is new and has "
+            f"to come in at or under {DESCRIPTION_TARGET:,} characters."
         ),
         "runtime_default": RUNTIME_DEFAULT,
+        "description_target": DESCRIPTION_TARGET,
         "plugins": {name: ceiling_for(sizes[name]) for name in sorted(sizes)},
+        "skills": {name: (lengths or {})[name] for name in sorted(lengths or {})},
     }
     path.write_text(json.dumps(body, indent=2) + "\n", encoding="utf-8")
 
 
+def report_skills(lengths: dict[str, int], recorded: dict[str, int]) -> bool:
+    """Gate each description against its record, print the summary, and say if it failed.
+
+    A skill with no record is new: the target applies to it. A skill with one is
+    grandfathered at whatever it measured when the record was written, and may shrink
+    but not grow. A record with no skill is drift of the same kind a stale plugin entry
+    is, and worse in one way: it would silently grandfather an over-length description
+    added later under the same name.
+    """
+    failed = False
+    for name in sorted(set(recorded) - set(lengths)):
+        print(
+            f"::error::{BUDGET_FILE} records a skill named {name}, "
+            "which does not exist; run --update"
+        )
+        failed = True
+
+    grandfathered = []
+    for name in sorted(lengths):
+        length, limit = lengths[name], recorded.get(name)
+        if limit is None:
+            if length > DESCRIPTION_TARGET:
+                print(
+                    f"::error::{name} is new and its description is {length:,} characters "
+                    f"against a target of {DESCRIPTION_TARGET:,}; trim the description, or "
+                    "record the length deliberately with --update and say why in the commit"
+                )
+                failed = True
+        elif length > max(limit, DESCRIPTION_TARGET):
+            # The record is a floor of DESCRIPTION_TARGET, not a hard ceiling. A skill
+            # recorded under the target may be reworded freely up to it, the way the
+            # per-plugin ceilings above carry slack so that rewording stays free. Only a
+            # grandfathered description — one already over the target — is pinned where
+            # it is, because that is the growth this ratchet exists to stop.
+            print(
+                f"::error::{name} description is {length:,} characters against a limit of "
+                f"{max(limit, DESCRIPTION_TARGET):,}; trim the description, or raise the "
+                "recorded length with --update and say why in the commit"
+            )
+            failed = True
+        elif limit > DESCRIPTION_TARGET:
+            grandfathered.append(name)
+
+    note = ""
+    if grandfathered:
+        longest = max(grandfathered, key=lambda name: recorded[name])
+        note = (
+            f", {len(grandfathered)} grandfathered above it "
+            f"(longest {longest} at {recorded[longest]:,})"
+        )
+    print(
+        f"\n{len(lengths)} skill description(s) against the "
+        f"{DESCRIPTION_TARGET:,}-character target{note}"
+    )
+    return failed
+
+
 def check(root: Path, update: bool = False) -> int:
     path = root / BUDGET_FILE
-    sizes = measure(root)
+    entries = walk(root)
+    sizes = totals(root, entries)
+    lengths = {skill: length for _plugin, skill, length in entries}
     if not sizes:
         print(f"no plugins found under {root}", file=sys.stderr)
         return 2
 
     if update:
-        write(path, sizes)
-        print(f"wrote {BUDGET_FILE} for {len(sizes)} plugin(s)")
+        write(path, sizes, lengths)
+        print(f"wrote {BUDGET_FILE} for {len(sizes)} plugin(s) and {len(lengths)} skill(s)")
         return 0
 
     if not path.is_file():
         print(f"{BUDGET_FILE} is missing; create it with --update", file=sys.stderr)
         return 1
     try:
-        ceilings = load(path)
+        recorded = load(path)
     except (json.JSONDecodeError, ValueError, TypeError) as error:
         print(f"{BUDGET_FILE}: {error}", file=sys.stderr)
         return 1
 
+    ceilings = recorded.plugins
     failed = False
     # A plugin that appears in one place and not the other is drift in its own right:
     # a new plugin with no ceiling is unmeasured, and a stale entry means the file was
@@ -189,6 +311,10 @@ def check(root: Path, update: bool = False) -> int:
                 f"{tokens / CONTEXT_WINDOW_TOKENS:.2%} of a "
                 f"{CONTEXT_WINDOW_TOKENS // 1000}k window"
             )
+
+    # Last, because it is the finer grain: the plugin block above is the one a reader
+    # comes here for, and this says which single description moved.
+    failed = report_skills(lengths, recorded.skills) or failed
     return 1 if failed else 0
 
 

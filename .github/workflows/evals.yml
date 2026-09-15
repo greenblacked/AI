@@ -1,8 +1,11 @@
 ---
-# Trigger evaluation. Manual only, and deliberately not part of the required gate: it
-# costs money, it is sampled rather than deterministic, and a gate that is occasionally
-# wrong is a gate people learn to override. The schema of every eval set is checked on
-# every push by `skillcheck`; this workflow is what scores the queries.
+# Trigger evaluation. Two jobs: the whole catalogue monthly or on request, and the
+# skills a pull request changed plus their declared neighbours on every pull request.
+# Neither is a required check, and the pull request one fails only below a floor well
+# under its reporting bar: scoring costs money, it is sampled rather than deterministic,
+# and a gate that is occasionally wrong is a gate people learn to override. The schema of
+# every eval set is checked on every push by `skillcheck`; this workflow scores the
+# queries.
 name: Trigger evals
 
 on:
@@ -13,6 +16,13 @@ on:
   # answer changes when the catalogue does.
   schedule:
     - cron: '0 7 1 * *'
+  # On every pull request, for the changed skills only. A monthly cadence measures the
+  # catalogue; it does not tell the author of a new skill that it took a neighbour's
+  # queries, and that collision is invisible in the new skill's own score — one merged
+  # at 95% while breaking the skill next door. Deliberately no `paths:` filter, for the
+  # reason ci.yml gives: a workflow skipped by a path filter leaves its check Pending
+  # forever. The job runs every time and reports that nothing changed when nothing did.
+  pull_request:
   workflow_dispatch:
     inputs:
       skill:
@@ -57,9 +67,22 @@ on:
 
 permissions: {}
 
+# Pull requests supersede each other; scheduled and dispatched runs do not. A shared
+# group keyed on the ref would let someone dispatching a run cancel the monthly one,
+# since both are on main and the monthly run takes two hours.
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{ github.event_name == 'pull_request'
+    && github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   evaluate:
     name: score descriptions
+    # The whole catalogue, monthly or on request. A pull request scores only what it
+    # touched, in `evaluate-changed` below; running this one per push would be three
+    # thousand model calls a commit.
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     # At the defaults this is fifty targets x twenty queries x three samples, three
     # thousand model calls with four in flight at a time. The runner writes its results
@@ -108,13 +131,17 @@ jobs:
             # A monthly run that fails for want of a secret nobody set is a red mark
             # people learn to ignore, and this workflow gates nothing. So the scheduled
             # run stands down with a notice, and a run somebody asked for fails loudly
-            # with the same sentence — they are owed the error.
-            if [ "${GITHUB_EVENT_NAME}" = "schedule" ]; then
-              echo "::notice title=no credentials::Skipping the scheduled trigger eval:" \
-                "set the $wanted repository secret to enable it"
-              echo "skip=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
+            # with the same sentence — they are owed the error. A pull request stands
+            # down for a second reason: one from a fork is handed no secrets at all, and
+            # a contributor must never face a red check they have no way to make green.
+            case "${GITHUB_EVENT_NAME}" in
+              schedule | pull_request)
+                echo "::notice title=no credentials::Skipping the trigger eval:" \
+                  "set the $wanted repository secret to enable it"
+                echo "skip=true" >> "$GITHUB_OUTPUT"
+                exit 0
+                ;;
+            esac
             echo "::error title=no credentials::Set the $wanted repository secret" \
               "to run trigger evals with the $BACKEND backend"
             exit 1
@@ -194,4 +221,288 @@ jobs:
         with:
           name: trigger-evals
           path: evals.json
+          if-no-files-found: ignore
+
+  evaluate-changed:
+    name: score changed skills
+    # Only a pull request has a base to diff against. A job skipped by an `if:` reports
+    # success, which is the mechanism ci.yml documents as the safe one — unlike a
+    # workflow-level `paths:` filter, which leaves the check Pending and blocks a merge.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    # Twelve targets at twenty queries and three samples is seven hundred calls with
+    # four in flight, well inside this. The monthly job's two hours is for fifty.
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          # The base branch has to be reachable for the diff below; the default shallow
+          # clone has only the pull request's own commits.
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.13'
+      - name: Work out which skills the pull request touches
+        id: targets
+        # Plain git rather than a changed-files action: this is one diff, and an action
+        # would be another pinned dependency in the supply chain for it.
+        run: |
+          set -Eeuo pipefail
+          if ! git rev-parse --verify --quiet "origin/${GITHUB_BASE_REF}" > /dev/null; then
+            git fetch --no-tags --prune --quiet origin \
+              "+refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}"
+          fi
+          git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD" > changed-paths.txt
+          python - <<'EOF'
+          import json
+          import os
+          import pathlib
+
+          # Past a dozen targets the run stops being a pull request check and starts
+          # being the monthly job, so it truncates and says that it did.
+          CAP = 12
+
+          root = pathlib.Path(".")
+          changed = [
+              line.strip()
+              for line in pathlib.Path("changed-paths.txt").read_text(encoding="utf-8").splitlines()
+              if line.strip()
+          ]
+
+
+          def skill_of(path):
+              """The skill directory a changed path belongs to, if it belongs to one."""
+              parts = pathlib.PurePosixPath(path).parts
+              if len(parts) >= 4 and parts[0] == "plugins" and parts[2] == "skills":
+                  return pathlib.Path(*parts[:4])
+              return None
+
+
+          def resolve(name):
+              """A name in an `expected` field, as a scorable target.
+
+              Both places a subagent legitimately lives are searched, because a skill's
+              near-miss queries are routinely owned by one.
+              """
+              for candidate in sorted(root.glob(f"plugins/*/skills/{name}")):
+                  if (candidate / "evals" / "trigger-eval.json").is_file():
+                      return ("skill", candidate)
+              for parent in ("plugins/*/agents", ".claude/agents"):
+                  for candidate in sorted(root.glob(f"{parent}/{name}.md")):
+                      if (candidate.parent / "evals" / f"{name}.json").is_file():
+                          return ("agent", candidate)
+              return None
+
+
+          touched, unscorable = [], []
+          for path in changed:
+              directory = skill_of(path)
+              if directory is None or directory in touched or directory in unscorable:
+                  continue
+              if (directory / "evals" / "trigger-eval.json").is_file():
+                  touched.append(directory)
+              elif (directory / "SKILL.md").is_file():
+                  unscorable.append(directory)
+
+          # The declared neighbours: every skill or subagent a changed skill's negatives
+          # say should win them. Scoring the changed skill alone cannot see a collision,
+          # because the skill that steals the queries is the one that still scores well.
+          neighbours = []
+          for directory in touched:
+              queries = json.loads(
+                  (directory / "evals" / "trigger-eval.json").read_text(encoding="utf-8")
+              )
+              for query in queries:
+                  name = query.get("expected")
+                  if not name or name == directory.name:
+                      continue
+                  target = resolve(name)
+                  if target is None or target[1] in touched or target in neighbours:
+                      continue
+                  neighbours.append(target)
+
+          selected = [("skill", directory) for directory in touched] + neighbours
+          truncated = max(0, len(selected) - CAP)
+          selected = selected[:CAP]
+
+          pathlib.Path("targets.txt").write_text(
+              "".join(f"{kind} {path.as_posix()}\n" for kind, path in selected), encoding="utf-8"
+          )
+
+          notes = ["### Trigger evals for changed skills", ""]
+          if not selected:
+              notes.append(
+                  "No skill in this pull request has a trigger eval set to score. "
+                  "Nothing to do, and nothing is wrong."
+              )
+          else:
+              notes.append(
+                  f"Scoring {len(touched)} changed skill(s) and "
+                  f"{len(selected) - len(touched)} declared neighbour(s)."
+              )
+          if unscorable:
+              notes.append("")
+              notes.append(
+                  "Not scored, no eval set: "
+                  + ", ".join(f"`{d.name}`" for d in unscorable)
+                  + "."
+              )
+          if truncated:
+              notes.append("")
+              notes.append(
+                  f"Truncated at {CAP} targets; {truncated} more were dropped. "
+                  "Run the monthly job by hand if the rest matter."
+              )
+          notes.append("")
+
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("\n".join(notes) + "\n")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"count={len(selected)}\n")
+          for kind, path in selected:
+              print(f"{kind} {path.as_posix()}")
+          EOF
+      - name: Check the backend has a credential
+        id: credentials
+        if: steps.targets.outputs.count != '0'
+        # A pull request from a fork is handed no secrets, so this cannot be an error:
+        # the contributor could do nothing about it, and a red check nobody can make
+        # green is a check everybody learns to ignore.
+        run: |
+          set -Eeuo pipefail
+          if [ -n "${CLAUDE_CODE_OAUTH_TOKEN:-}${ANTHROPIC_API_KEY:-}" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "::notice title=no credentials::Not scoring the changed skills:" \
+            "this run has no CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY," \
+            "which is expected on a pull request from a fork"
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+          {
+            echo "Not scored: this run has no model credential. That is expected on a"
+            echo "pull request from a fork, and is not a failure."
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        if: steps.targets.outputs.count != '0' && steps.credentials.outputs.skip != 'true'
+        with:
+          node-version: '22'
+      - name: Score each target
+        id: score
+        if: steps.targets.outputs.count != '0' && steps.credentials.outputs.skip != 'true'
+        # One invocation per target, because the harness takes exactly one target and
+        # rewrites `--json` wholesale: a second run into the same file would erase the
+        # first. The publish step merges the files back into one table.
+        run: |
+          set -Eeuo pipefail
+          npm install --global "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
+          mkdir -p eval-results
+          index=0
+          while read -r kind path <&3; do
+            index=$((index + 1))
+            case "$kind" in
+              skill) flag=--skill ;;
+              agent) flag=--agent ;;
+              *) echo "::error title=unknown target kind::$kind"; exit 1 ;;
+            esac
+            code=0
+            python scripts/run_trigger_eval.py "$flag" "$path" \
+              --runs 3 --threshold "$REPORT_BAR" --jobs 4 --verbose \
+              --json "eval-results/$(printf '%03d' "$index").json" || code=$?
+            # 1 is "scored below the reporting bar", which the publish step judges
+            # against the floor. Anything higher is the harness itself failing — an
+            # unreachable model, a malformed eval set — and has no score to report.
+            if [ "$code" -ge 2 ]; then
+              echo "::error title=eval harness failed::$path exited $code"
+              exit "$code"
+            fi
+          done 3< targets.txt
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_VERSION: '2.1.221'
+          REPORT_BAR: '0.8'
+      - name: Publish the scores
+        # `!= 'skipped'` rather than `== 'success'`: when the harness itself dies
+        # partway through, the scores already paid for are still worth showing.
+        if: always() && steps.score.outcome != 'skipped'
+        # Advisory above the floor, and the gap between the two numbers is the point.
+        # Measured variance here is about five points — one skill read 85% and 90% on
+        # the same tree — so failing at the 0.8 reporting bar would fail on noise, and a
+        # gate that fails on noise is one people learn to override. 0.7 is below the
+        # noise and still well above a description that has stopped working.
+        run: |
+          set -Eeuo pipefail
+          python - <<'EOF'
+          import json
+          import os
+          import pathlib
+
+          FLOOR = 0.7
+          BAR = 0.8
+
+          rows = []
+          for path in sorted(pathlib.Path("eval-results").glob("*.json")):
+              rows.extend(json.loads(path.read_text(encoding="utf-8")))
+
+          lines = [
+              "| Target | Pass rate | Recall | Specificity | Routing | Narrow |",
+              "| --- | --- | --- | --- | --- | --- |",
+          ]
+          for row in rows:
+              routing = "-" if row.get("routing") is None else f"{row['routing']:.0%}"
+              name = row.get("target", row.get("skill"))
+              cells = [
+                  f"`{name}`",
+                  f"{row['rate']:.0%}",
+                  f"{row['recall']:.0%}",
+                  f"{row['specificity']:.0%}",
+                  routing,
+                  str(row.get("narrow", 0)),
+              ]
+              lines.append("| " + " | ".join(cells) + " |")
+
+          under_floor = [r for r in rows if r["rate"] < FLOOR]
+          advisory = [r for r in rows if FLOOR <= r["rate"] < BAR]
+          lines.append("")
+          if under_floor:
+              lines.append(
+                  "Below the "
+                  f"{FLOOR:.0%} floor: "
+                  + ", ".join(f"`{r['target']}`" for r in under_floor)
+                  + ". This fails the job."
+              )
+          if advisory:
+              lines.append("")
+              lines.append(
+                  f"Between {FLOOR:.0%} and the {BAR:.0%} reporting bar: "
+                  + ", ".join(f"`{r['target']}`" for r in advisory)
+                  + ". Advisory — run-to-run variance here is about five points."
+              )
+          if not rows:
+              lines.append("No results were written.")
+          lines.append("")
+
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("\n".join(lines) + "\n")
+
+          for row in advisory:
+              print(f"::notice title=below the reporting bar::{row['target']} scored {row['rate']:.0%}")
+          for row in under_floor:
+              print(f"::error title=below the eval floor::{row['target']} scored {row['rate']:.0%}")
+          raise SystemExit(1 if under_floor else 0)
+          EOF
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        # `!= 'skipped'` rather than `== 'success'`: when the harness itself dies
+        # partway through, the scores already paid for are still worth showing.
+        if: always() && steps.score.outcome != 'skipped'
+        with:
+          name: trigger-evals-changed
+          path: eval-results
           if-no-files-found: ignore

@@ -151,7 +151,7 @@ def main(argv: list[str] | None = None) -> int:
     findings.extend(check_duplicate_names(skills, root))
     findings.extend(check_eval_conflicts(skills, root, agents))
     for agent in agents:
-        findings.extend(check_agent(agent, root))
+        findings.extend(check_agent(agent, root, known))
         findings.extend(check_agent_evals(agent, root, known))
     # Commands ship two ways: inside a plugin, and in the repository's own
     # `.claude/commands/`, which is where a contributor-facing command belongs.

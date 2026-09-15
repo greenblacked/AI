@@ -52,8 +52,17 @@ def eval_set(
 def write_skill(root: Path, plugin: str, name: str, *, evals=None, description=None) -> Path:
     directory = root / "plugins" / plugin / "skills" / name
     directory.mkdir(parents=True, exist_ok=True)
+    # Long enough to clear the description floor. `short-description` warns under 500
+    # characters, and this fixture has to be a repository the validator accepts under
+    # --strict — that is what test_the_fixture_repository_validates_clean pins.
     description = description or (
-        f"Do the {name} thing. Use this skill whenever the user asks for {name}. "
+        f"Do the {name} thing end to end, from the first command through the check that "
+        f"says it worked. Use this skill whenever the user asks for {name}, in whatever "
+        "words they reach for first, and whenever they hand back the output of a run "
+        "that stopped part way through it. Covers the ordering the steps run in, the "
+        "flag that matters on each command, and the state to leave behind when a run is "
+        "abandoned half done, so the next attempt starts from something known. It "
+        "assumes nothing about the surrounding tooling beyond a working checkout. "
         "Not for anything else."
     )
     (directory / "SKILL.md").write_text(

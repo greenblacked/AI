@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 
-from tests.conftest import load_script, write_skill
+from tests.conftest import REPO, load_script, write_skill
 
 budget = load_script("check_listing_budget.py")
 readme = load_script("check_readme.py")
@@ -90,6 +90,143 @@ def test_the_ceiling_leaves_room_to_reword_and_not_to_add_a_skill():
 
 def test_main_reports_a_tree_with_no_plugins(tmp_path):
     assert budget.main([str(tmp_path)]) == 2
+
+
+# --- the per-skill description ratchet -------------------------------------------------
+
+
+def raise_the_plugin_ceiling(root, value=99_000):
+    """Lift the per-plugin ceiling out of the way.
+
+    It is a separate gate with its own tests, and a test of the per-skill one that hits
+    it first would pass for the wrong reason.
+    """
+    path = root / budget.BUDGET_FILE
+    data = json.loads(path.read_text())
+    data["plugins"]["engineering"] = value
+    path.write_text(json.dumps(data), encoding="utf-8")
+
+
+def test_a_new_description_past_the_target_fails(mini_repo, capsys):
+    # A skill with no record is new, and new is the half of the corpus this gates.
+    budget.check(mini_repo, update=True)
+    write_skill(
+        mini_repo, "engineering", "gamma", description="g" * (budget.DESCRIPTION_TARGET + 1)
+    )
+    raise_the_plugin_ceiling(mini_repo)
+    assert budget.check(mini_repo) == 1
+    out = capsys.readouterr().out
+    assert "gamma is new" in out
+    # Both ways out have to be in the message, or the cheap one is the only one found.
+    assert "trim the description" in out and "--update and say why" in out
+
+
+def test_a_new_description_inside_the_target_passes(mini_repo):
+    budget.check(mini_repo, update=True)
+    write_skill(mini_repo, "engineering", "gamma", description="g" * budget.DESCRIPTION_TARGET)
+    raise_the_plugin_ceiling(mini_repo)
+    assert budget.check(mini_repo) == 0  # at the target, which is a target and not a limit
+
+
+def test_a_description_already_over_the_target_is_grandfathered(mini_repo, capsys):
+    # Why this is a ratchet and not a threshold: a third of the descriptions in this
+    # repository are already past the guidance, and trimming them to clear a new check is
+    # the one edit AGENTS.md refuses. They are recorded at what they measure instead.
+    write_skill(mini_repo, "engineering", "gamma", description="g" * 960)
+    assert budget.check(mini_repo, update=True) == 0
+    assert json.loads((mini_repo / budget.BUDGET_FILE).read_text())["skills"]["gamma"] == 960
+    assert budget.check(mini_repo) == 0
+    assert "1 grandfathered above it (longest gamma at 960)" in capsys.readouterr().out
+
+
+def test_a_grandfathered_description_growing_past_its_record_fails(mini_repo, capsys):
+    # A description already over the target is pinned where it is. That growth is the
+    # only growth this ratchet exists to stop.
+    over = budget.DESCRIPTION_TARGET + 40
+    budget.check(mini_repo, update=True)
+    write_skill(mini_repo, "engineering", "alpha", description="a" * over)
+    raise_the_plugin_ceiling(mini_repo)
+    budget.check(mini_repo, update=True)
+    write_skill(mini_repo, "engineering", "alpha", description="a" * (over + 1))
+    raise_the_plugin_ceiling(mini_repo)
+    assert budget.check(mini_repo) == 1
+    assert f"against a limit of {over:,}" in capsys.readouterr().out
+
+
+def test_rewording_under_the_target_stays_free(mini_repo):
+    # The per-plugin half of this file carries slack so that rewording stays free. A
+    # record under the target is a floor of the target, not a second flat rule, or every
+    # reworded sentence would conflict on listing-budget.json.
+    budget.check(mini_repo, update=True)
+    recorded = json.loads((mini_repo / budget.BUDGET_FILE).read_text())["skills"]["alpha"]
+    assert recorded < budget.DESCRIPTION_TARGET
+    write_skill(mini_repo, "engineering", "alpha", description="a" * budget.DESCRIPTION_TARGET)
+    raise_the_plugin_ceiling(mini_repo)
+    assert budget.check(mini_repo) == 0
+
+
+def test_a_shorter_description_than_the_record_passes(mini_repo):
+    # Trimming is the fix the error message recommends, so it cannot itself fail. The
+    # record catches up at the next --update.
+    budget.check(mini_repo, update=True)
+    recorded = json.loads((mini_repo / budget.BUDGET_FILE).read_text())["skills"]["alpha"]
+    write_skill(mini_repo, "engineering", "alpha", description="a" * (recorded - 20))
+    assert budget.check(mini_repo) == 0
+
+
+def test_a_record_for_a_skill_that_is_gone_fails(mini_repo, capsys):
+    # Not harmless drift: a skill added later under the same name would inherit a
+    # grandfathered length nobody decided to give it.
+    budget.check(mini_repo, update=True)
+    path = mini_repo / budget.BUDGET_FILE
+    data = json.loads(path.read_text())
+    data["skills"]["retired"] = 960
+    path.write_text(json.dumps(data), encoding="utf-8")
+    assert budget.check(mini_repo) == 1
+    assert "records a skill named retired" in capsys.readouterr().out
+
+
+def test_update_records_the_length_of_every_skill(mini_repo):
+    assert budget.check(mini_repo, update=True) == 0
+    data = json.loads((mini_repo / budget.BUDGET_FILE).read_text())
+    assert set(data["skills"]) == {"alpha", "beta"}
+    assert data["skills"] == {skill: n for _plugin, skill, n in budget.walk(mini_repo)}
+    # One measurement feeds both numbers, so a plugin total is the sum of its skills.
+    assert sum(data["skills"].values()) == budget.measure(mini_repo)["engineering"]
+
+
+def test_a_budget_file_with_no_skills_map_fails(mini_repo, capsys):
+    # The file predates the per-skill ratchet, so the shape without it has to be an
+    # error rather than a map that silently grandfathers everything.
+    budget.check(mini_repo, update=True)
+    path = mini_repo / budget.BUDGET_FILE
+    data = json.loads(path.read_text())
+    del data["skills"]
+    path.write_text(json.dumps(data), encoding="utf-8")
+    assert budget.check(mini_repo) == 1
+    assert "'plugins' and 'skills'" in capsys.readouterr().err
+
+
+def test_the_committed_budget_file_is_what_the_writer_emits(tmp_path):
+    """The file is generated, and a hand edit to it survives until the next --update.
+
+    Formatting, key order and the note all come from write(); the skill map has to name
+    exactly the skills on disk, and every recorded length has to be one this tree still
+    satisfies, or the committed ratchet is one nobody could have generated.
+    """
+    text = (REPO / budget.BUDGET_FILE).read_text(encoding="utf-8")
+    committed = json.loads(text)
+    assert text == json.dumps(committed, indent=2) + "\n"
+    assert list(committed["skills"]) == sorted(committed["skills"])
+    assert list(committed["plugins"]) == sorted(committed["plugins"])
+
+    scratch = tmp_path / budget.BUDGET_FILE
+    budget.write(scratch, {"any": 0})
+    assert committed["_comment"] == json.loads(scratch.read_text(encoding="utf-8"))["_comment"]
+
+    measured = {skill: n for _plugin, skill, n in budget.walk(REPO)}
+    assert set(committed["skills"]) == set(measured)
+    assert {n for n, length in measured.items() if length > committed["skills"][n]} == set()
 
 
 # --- the README catalogue -------------------------------------------------------------

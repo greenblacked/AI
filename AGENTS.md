@@ -41,7 +41,7 @@ Everything here is prose and configuration. There is no application. The only co
 | `template/SKILL.md` | Starting point for a new skill |
 | `.claude-plugin/marketplace.json` | Lists the eight plugins; each discovers its own skills |
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml` |
-| `listing-budget.json` | Per-plugin ceilings for the skill listing; `scripts/check_listing_budget.py` enforces them |
+| `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
 | `scripts/` | Packaging, install, the eval harness, the portable export, and the four catalogue checks |
 | `scripts/hooks/` | The `PostToolUse` hook `.claude/settings.json` registers, which validates a skill as it is written |
 

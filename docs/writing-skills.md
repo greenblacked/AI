@@ -153,6 +153,8 @@ walk past it.
 | Code | What it means | Why it is a warning and not an error |
 | --- | --- | --- |
 | `description-headroom` | Description is within 50 characters of the 1024 cap. | It works today. The point is that the next edit breaks it invisibly. |
+| `short-description` | Description is under 500 characters. | A description that short is usually vague, and vague is what loses a query to a neighbour. |
+| `dangling-cede` | A cede clause names a skill or subagent that does not exist. | The clause is a routing pointer. Pointing it at something deleted sends the reader nowhere, and nothing else catches it. |
 | `no-trigger` | Description has no "use when / whenever / for / any time" clause. | A description can trigger without the exact phrasing; the heuristic is a prompt, not a proof. |
 | `long-skill` | `SKILL.md` is over 500 lines. | Length is a signal that depth belongs in `references/`, not a defect in itself. |
 | `no-toc` | A reference file is over 100 lines with no table of contents. | Some long references are genuinely linear. |
@@ -233,7 +235,7 @@ into a warning:
 PYTHONPATH=src python -m skillcheck . --listing-budget 8000
 ```
 
-A single threshold cannot gate this, because three plugins are already above the runtime
+A single threshold cannot gate this, because four plugins are already above the runtime
 default and a gate set there would fail on every run forever. So the gate is a ratchet
 instead, in the same shape as the coverage floor: `listing-budget.json` records a ceiling
 per plugin with a few hundred characters of slack, `make catalogue` enforces it, and
@@ -244,6 +246,21 @@ rewording stays free and adding a skill does not.
 make catalogue                                  # enforce the ceilings
 python scripts/check_listing_budget.py --update  # raise them deliberately
 ```
+
+The same file carries a second ratchet, per skill rather than per plugin. `AGENTS.md`
+puts a description at 500 to 900 characters and nothing enforced the top of that range,
+so 33 of the 73 descriptions here had drifted past it — the longest at 971. Trimming
+those to turn a new gate green would mean editing descriptions to satisfy a check, which
+is a boundary this repository names, and each of them was written against a measured
+routing score. So what exists is recorded at what it measures and pinned there, and a
+skill with no record is new and has to arrive at or under 900.
+
+The record is a floor of 900 rather than a hard ceiling: a description recorded under the
+target can be reworded freely up to it, for the same reason the per-plugin ceilings carry
+slack. Only a description already over 900 is pinned exactly where it is, because that is
+the growth the ratchet exists to stop. Below the range, `short-description` warns under
+500 — nothing is that short today, and it is there for the description that gets written
+in a hurry.
 
 Raise a ceiling and say why in the commit, or split the plugin. Installers of more than
 one plugin should raise `skillListingBudgetFraction` in their settings, or mark rarely
@@ -521,6 +538,8 @@ Every code the validator can emit is below, grouped by what it is looking at.
 | `angle-brackets` | error | `<` or `>` in the description. | Remove them; upload rejects them. |
 | `long-description` | error | Over 1024 characters, measured on the folded value. | Cut the least load-bearing phrasings, not the trigger list. |
 | `description-headroom` | warning | Within 50 characters of the cap. | Trim now, before an edit crosses it. |
+| `short-description` | warning | Under 500 characters. | Say what the skill owns and what people type. Brevity here costs queries. |
+| `dangling-cede` | error | A cede clause — one opened by `Not for`, `not for`, `Do not use` or `Not to be used` — names something that is not a skill or subagent here. | Fix the name, or drop the clause. Only text after one of those openers is scanned, so a parenthesised aside earlier in the description is never read as a pointer. The bare `which is name` form is caught only for hyphenated names, because widening it would match `which is faster`. |
 | `no-trigger` | warning | No explicit "use when…" clause. | Add one naming the situations. |
 | `long-compatibility` | error | `compatibility` over 500 characters. | Shorten it. |
 | `dangling-reference` | error | A `references/`, `scripts/` or `assets/` path named in prose does not exist. | Write the file, remove the pointer, or fence it if it was only an illustration. |
