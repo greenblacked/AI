@@ -117,6 +117,42 @@ def write_readme(root, text=README):
     (root / "README.md").write_text(text, encoding="utf-8")
 
 
+def test_a_repo_local_subagent_with_no_readme_row_is_caught(mini_repo, capsys):
+    # Skills, and anything a plugin ships, were gated from the start. `.claude/` was not,
+    # so the three-stage loop's own documentation went stale without any gate noticing.
+    write_readme(mini_repo)
+    agents = mini_repo / ".claude" / "agents"
+    agents.mkdir(parents=True, exist_ok=True)
+    (agents / "searcher.md").write_text(
+        "---\nname: searcher\ndescription: " + "f" * 60 + "\ntools: Read\n---\n\nBody.\n",
+        encoding="utf-8",
+    )
+    assert readme.check(mini_repo) == 1
+    assert "searcher is in .claude/ and has no row" in capsys.readouterr().out
+
+
+def test_a_repo_local_command_with_no_readme_row_is_caught(mini_repo, capsys):
+    write_readme(mini_repo)
+    commands = mini_repo / ".claude" / "commands"
+    commands.mkdir(parents=True, exist_ok=True)
+    (commands / "verify.md").write_text(
+        "---\ndescription: " + "f" * 60 + "\n---\n\nBody.\n", encoding="utf-8"
+    )
+    assert readme.check(mini_repo) == 1
+    assert "/verify is in .claude/ and has no row" in capsys.readouterr().out
+
+
+def test_a_repo_local_agent_named_in_the_readme_passes(mini_repo, capsys):
+    agents = mini_repo / ".claude" / "agents"
+    agents.mkdir(parents=True, exist_ok=True)
+    (agents / "searcher.md").write_text(
+        "---\nname: searcher\ndescription: " + "f" * 60 + "\ntools: Read\n---\n\nBody.\n",
+        encoding="utf-8",
+    )
+    write_readme(mini_repo, README + "\n\nAlso `searcher`, which ships to nobody.\n")
+    assert readme.check(mini_repo) == 0
+
+
 def test_a_matching_readme_passes(mini_repo, capsys):
     write_readme(mini_repo)
     assert readme.check(mini_repo) == 0
@@ -228,6 +264,43 @@ def test_a_plugin_over_the_runtime_default_is_reported_and_not_failed(mini_repo,
     finally:
         budget.RUNTIME_DEFAULT = monkey
     assert "over the runtime default" in capsys.readouterr().out
+
+
+def test_a_plugin_over_the_default_also_reports_what_it_costs_in_tokens(mini_repo, capsys):
+    # The character figure on its own reads as worse than it is: 8,000 characters is a
+    # stand-in for 2,000 tokens that assumes four characters to the token, and this
+    # library measures 4.63. A reader deciding whether to raise a ceiling needs the pair.
+    budget.check(mini_repo, update=True)
+    sizes = budget.measure(mini_repo)
+    monkey = budget.RUNTIME_DEFAULT
+    budget.RUNTIME_DEFAULT = 1
+    try:
+        assert budget.check(mini_repo) == 0
+    finally:
+        budget.RUNTIME_DEFAULT = monkey
+    out = capsys.readouterr().out
+    expected = sizes["engineering"] / budget.CHARS_PER_TOKEN
+    assert f"about {expected:,.0f} tokens" in out
+    assert "of a 200k window" in out
+
+
+def test_the_recorded_ratio_stays_a_plausible_one():
+    # A typo here would silently understate or overstate every token figure the report
+    # prints. English prose through this tokenizer family does not leave this range.
+    assert 4.0 < budget.CHARS_PER_TOKEN < 5.5
+    assert budget.CONTEXT_WINDOW_TOKENS == 200_000
+
+
+def test_the_regenerated_comment_explains_the_character_to_token_gap(mini_repo):
+    # write() rebuilds the whole file, so a note added to listing-budget.json by hand is
+    # erased by the next --update. The explanation has to live in the writer to survive.
+    budget.check(mini_repo, update=True)
+    data = json.loads((mini_repo / budget.BUDGET_FILE).read_text(encoding="utf-8"))
+    assert f"{budget.CHARS_PER_TOKEN} characters per token" in data["_comment"]
+    # Derived, not restated: re-measuring and changing the constant must move this too,
+    # or the file goes on asserting a ratio the report has stopped using.
+    tokens = budget.RUNTIME_DEFAULT / budget.CHARS_PER_TOKEN
+    assert f"about {tokens:,.0f} tokens" in data["_comment"]
 
 
 def test_update_through_main_writes_the_file(mini_repo):

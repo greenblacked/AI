@@ -1,0 +1,22 @@
+[
+  {"query": "here is a 400MB unity profiler capture from the switch build, is the frame cpu bound or gpu bound", "should_trigger": true},
+  {"query": "unreal insights trace attached, which frames blew the budget and what dominated each one", "should_trigger": true},
+  {"query": "read the renderdoc capture summary for our worst frame and tell me where the time goes", "should_trigger": true},
+  {"query": "perf record from the linux build is in ./captures, give me the hot frames not the hot functions", "should_trigger": true},
+  {"query": "i need the main thread versus render thread split out of this frame trace", "should_trigger": true},
+  {"query": "the capture covers the hitch when the boss spawns, is that a one-off spike or a cost we pay every frame", "should_trigger": true},
+  {"query": "ps5 devkit capture attached, tell me what the evidence for the bound actually is before we optimise anything", "should_trigger": true},
+  {"query": "can this capture even explain why the phone build drops to 30, or do we need to capture something else", "should_trigger": true},
+  {"query": "we logged frame times for 6000 frames of the playtest build, what are the 1% low and the worst frames", "should_trigger": true},
+  {"query": "here are two captures, one before the content drop and one after, what changed in the frame", "should_trigger": true},
+  {"query": "we know it is gpu bound now, what do we cut first", "should_trigger": false, "expected": "game-performance"},
+  {"query": "turn our 60fps target on the switch into a per-frame budget and tell me how to hold it", "should_trigger": false, "expected": "game-performance"},
+  {"query": "how do i get the draw call count down in unity without breaking batching", "should_trigger": false, "expected": "game-performance"},
+  {"query": "our matchmaking service p99 is four seconds, the jaeger bundle is attached, whose latency is it", "should_trigger": false, "expected": "telemetry-reader"},
+  {"query": "read the otel spans from the game backend and tell me which service is eating the request", "should_trigger": false, "expected": "telemetry-reader"},
+  {"query": "py-spy output from our asset import script is attached, it takes nine minutes, where is the time", "should_trigger": false, "expected": "profiling"},
+  {"query": "profile this inventory function in the tools codebase, it is slow inside a loop", "should_trigger": false, "expected": "profiling"},
+  {"query": "the android build is 3.2gb and the store rejects it, what is taking the space", "should_trigger": false, "expected": "game-assets"},
+  {"query": "textures look terrible on mid-range android, which compression format should we import to", "should_trigger": false, "expected": "game-assets"},
+  {"query": "the nightly build job went red, read the run and tell me which class of failure it is", "should_trigger": false, "expected": "ci-log-reader"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "my app container starts before the database is ready and dies, depends_on doesn't seem to actually wait", "should_trigger": true},
+  {"query": "the stack works fine on my machine but the same compose file fails in CI every time, something about connection refused", "should_trigger": true},
+  {"query": "two of my containers can't reach each other, do i need to put them on the same network or publish ports", "should_trigger": true},
+  {"query": "why is node_modules empty inside the container when i mount the project directory", "should_trigger": true},
+  {"query": "how do i keep secrets out of the compose file that's checked into the repo", "should_trigger": true},
+  {"query": "our integration tests only pass on the second run, first run always times out waiting for postgres", "should_trigger": true},
+  {"query": "what should the healthcheck interval and start period be for a service that takes ages to boot", "should_trigger": true},
+  {"query": "i want the migration job to finish before the api starts, right now they race", "should_trigger": true},
+  {"query": "how do i make the observability containers optional so most people don't have to run them locally", "should_trigger": true},
+  {"query": "two devs on the same compose file are getting different postgres versions, how do i pin it", "should_trigger": true},
+  {"query": "make this Dockerfile smaller and pin the base image to a digest", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "our image still runs as root and the scanner is complaining, and we need an SBOM", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "is this Dockerfile any good? it's a node app with a multi-stage build i copied from somewhere", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "what should i set for cpu and memory limits on this deployment, the pods keep getting OOMKilled", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "should this workload have a liveness probe as well as a readiness probe, and what values", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "draining a node hangs on this one deployment, i think the PodDisruptionBudget is wrong", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "our CI takes 40 minutes, help me work out which stages actually need to be sequential", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "which checks should be required for merge and how do i key the cache so it actually hits", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "write me a bash script that tails a log file and posts anomalies to slack, with proper error handling", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "the build has been red since this morning and nobody knows why, can you work out what broke", "should_trigger": false, "expected": "ci-triage"}
+]

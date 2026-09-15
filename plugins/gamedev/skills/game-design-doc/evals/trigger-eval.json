@@ -1,0 +1,22 @@
+[
+  {"query": "write a design doc for the new daily login reward so the team can build it", "should_trigger": true},
+  {"query": "spec out this grappling hook mechanic properly, the programmers keep asking me questions", "should_trigger": true},
+  {"query": "turn this design chat into something an artist and a qa engineer can actually work from", "should_trigger": true},
+  {"query": "we need a GDD for the crafting system before the sprint starts", "should_trigger": true},
+  {"query": "our feature specs keep missing what is out of scope and we argue about it in review every time", "should_trigger": true},
+  {"query": "what sections should a feature spec have so nobody has to ask me what happens on disconnect", "should_trigger": true},
+  {"query": "rewrite these acceptance criteria so qa can pass or fail them without me in the room", "should_trigger": true},
+  {"query": "review this design document and tell me which parts are assumptions dressed up as decisions", "should_trigger": true},
+  {"query": "the team built three weeks on something i only assumed, how do i write specs that stop that", "should_trigger": true},
+  {"query": "document the boss encounter for the whole team, including analytics and what it saves", "should_trigger": true},
+  {"query": "build me a playable prototype of this grappling hook mechanic so i can try it", "should_trigger": false, "expected": "game-builder"},
+  {"query": "make me a snake game in one html file", "should_trigger": false, "expected": "game-builder"},
+  {"query": "my platformer jump feels floaty and lifeless, can you fix the feel", "should_trigger": false, "expected": "game-builder"},
+  {"query": "we picked postgres over dynamodb last week, write that up with the alternatives we rejected", "should_trigger": false, "expected": "decision-record"},
+  {"query": "record why we are moving off the in-house renderer so the next team does not relitigate it", "should_trigger": false, "expected": "decision-record"},
+  {"query": "write a readme and an onboarding guide for our engine tools repo", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "our architecture overview is stale, can you rewrite it for new backend hires", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "turn my talk notes into a publishable article about ecs performance", "should_trigger": false, "expected": "write-technical-article"},
+  {"query": "the shotgun has a 61% win rate in diamond, how much damage should i take off it", "should_trigger": false, "expected": "game-balance"},
+  {"query": "pick the numbers for the crafting cost curve so tier three is not skipped", "should_trigger": false, "expected": "game-balance"}
+]

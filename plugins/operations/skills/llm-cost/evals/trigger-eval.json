@@ -1,0 +1,22 @@
+[
+  {"query": "our openai bill tripled this month and nobody can tell me which feature is responsible", "should_trigger": true},
+  {"query": "we turned prompt caching on three weeks ago and the spend has not moved at all. what am i doing wrong", "should_trigger": true},
+  {"query": "should the intent classification step call a cheaper model, and how do i decide that without wrecking accuracy", "should_trigger": true},
+  {"query": "one agent task ran 80 tool calls overnight and burned more tokens than the rest of the day combined", "should_trigger": true},
+  {"query": "i want a hard cap on what a single request can spend on inference. where does that logic live", "should_trigger": true},
+  {"query": "we stuff the entire product knowledge base into every prompt. is that as wasteful as it sounds", "should_trigger": true},
+  {"query": "what should the product actually do when a tenant blows through their monthly ai budget", "should_trigger": true},
+  {"query": "cost per resolved support ticket keeps climbing even though ticket volume is flat. it is all model spend", "should_trigger": true},
+  {"query": "can the nightly document enrichment run through the batch api instead, and what does that save", "should_trigger": true},
+  {"query": "output tokens are about 70% of our inference bill. what are the levers on that", "should_trigger": true},
+  {"query": "aws bill jumped 14k last month and most of it looks like nat gateway and cross-az transfer", "should_trigger": false, "expected": "cost-review"},
+  {"query": "should we buy a three year savings plan for the api fleet or stay on demand", "should_trigger": false, "expected": "cost-review"},
+  {"query": "we open the assistant to every customer in march. how many replicas does the serving tier need to hold the peak", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "this python function eats 400ms in a hot loop and i cannot tell if it is cpu bound", "should_trigger": false, "expected": "profiling"},
+  {"query": "add spans and metrics to the new service, our traces stop dead at the queue boundary", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "our datadog bill exploded after someone added a customer id label to a metric", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "compare the model vendors on a three year tco and a scorecard before we sign anything", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "we bought ai coding licences for 40 engineers and nobody knows if it is helping. what do we measure", "should_trigger": false, "expected": "ai-enablement"},
+  {"query": "checkout p99 is 2.4 seconds and the traces put nearly all of it in one query", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "the pager went off 40 times overnight and none of it was actionable. help me prune the rules", "should_trigger": false, "expected": "alert-design"}
+]

@@ -104,6 +104,20 @@ def check(root: Path) -> int:
                 if f"`{name}`" not in text and f"`/{name}`" not in text:
                     fail(f"{kind} {name} ships with {plugin} and has no row in the README")
 
+    # --- the repository's own agents and commands -------------------------------------
+    # The loop above covers anything a plugin ships. Nothing covered `.claude/`, so a
+    # subagent or command written for work on this repository could exist with no row
+    # and no gate would say so — which is how the three-stage loop's own documentation
+    # went stale. These ship to nobody but they are listed in the README all the same.
+    for directory, kind, mark in (
+        (root / ".claude" / "agents", "subagent", ""),
+        (root / ".claude" / "commands", "command", "/"),
+    ):
+        finder = find_agents if kind == "subagent" else find_commands
+        for path in finder(directory):
+            if f"`{mark}{path.stem}`" not in text:
+                fail(f"{kind} {mark}{path.stem} is in .claude/ and has no row in the README")
+
     # --- the per-plugin contents table ------------------------------------------------
     seen_in_table = set()
     for plugin, cell in CONTENTS_ROW_RE.findall(text):

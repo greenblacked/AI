@@ -1,0 +1,22 @@
+[
+  {"query": "our pipeline takes 34 minutes and it's all green, where should we cache to get it under 15", "should_trigger": true},
+  {"query": "i want required status checks and branch protection turned on for main, how should that be configured", "should_trigger": true},
+  {"query": "CI is up to 40 minutes and people have started merging without waiting for it. what do we restructure", "should_trigger": true},
+  {"query": "we have 14 checks on every PR, which of them should actually block the merge and which should just report", "should_trigger": true},
+  {"query": "new repo, python service that ships as a container - lay out the CI stages for us from scratch", "should_trigger": true},
+  {"query": "our node_modules cache never seems to hit, what should the key actually be", "should_trigger": true},
+  {"query": "we build the image separately for staging and prod. is that a problem and what replaces it", "should_trigger": true},
+  {"query": "should these be one matrix or six jobs? same steps, different postgres versions each time", "should_trigger": true},
+  {"query": "every job in our workflow has a needs: on the one before it and i don't think any of that is real, can it parallelise", "should_trigger": true},
+  {"query": "where should the deploy credentials live so the test job that runs contributor code can't read them", "should_trigger": true},
+  {"query": "my PR is blocked, lint passes but build-and-test dies with npm ERR! code EINTEGRITY. any idea?", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "the e2e job is red on my branch and green on main, what happened", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "everyones PRs have been failing since about 2pm, can you work out what landed on main", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "generate a ci job that runs pytest on 3.10 through 3.13 and uploads coverage", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "write me a release script that tags the repo and pushes the image to ecr", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "what percent of traffic should the canary get, and how long do we bake before going to 100", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "we need a kill switch on the new pricing path before we turn it on for anyone", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "coverage is 90% and it tells us nothing, what should we actually be testing in the payments module", "should_trigger": false, "expected": "test-design"},
+  {"query": "we're moving off jenkins onto github actions across 40 repos, how do we sequence that without a code freeze", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "our github actions bill doubled last month, where is the money actually going", "should_trigger": false, "expected": "cost-review"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "lay out this level for the flooded district, i have the spec but no geometry yet", "should_trigger": true},
+  {"query": "my players keep getting lost in the second area and never find the exit", "should_trigger": true},
+  {"query": "the pacing drags in the second half of this campaign, it is fight after fight", "should_trigger": true},
+  {"query": "what dimensions should the blockout use before anyone models a room", "should_trigger": true},
+  {"query": "how do i greybox this arena so the fight actually has somewhere to go", "should_trigger": true},
+  {"query": "we want to agree our level metrics before the team starts building rooms", "should_trigger": true},
+  {"query": "we changed the tile grid on our modular kit and every built level broke, how do we avoid that next time", "should_trigger": true},
+  {"query": "this corridor fight is a shooting gallery, players get cornered and die in the same spot every run", "should_trigger": true},
+  {"query": "where should the landmarks go so players know which way is forward without a quest marker", "should_trigger": true},
+  {"query": "should this door be a streaming and occlusion boundary, and does that change the layout", "should_trigger": true},
+  {"query": "make me a playable platformer prototype i can try in the browser", "should_trigger": false, "expected": "game-builder"},
+  {"query": "my character jump feels floaty and dead, fix the game feel", "should_trigger": false, "expected": "game-builder"},
+  {"query": "should i build this 3d puzzle game in godot or unity", "should_trigger": false, "expected": "game-builder"},
+  {"query": "how many enemies should this arena spawn on hard difficulty", "should_trigger": false, "expected": "game-balance"},
+  {"query": "the difficulty curve spikes at chapter three, what numbers do i move", "should_trigger": false, "expected": "game-balance"},
+  {"query": "the game stutters whenever i walk into the big open area, find where the frame time goes", "should_trigger": false, "expected": "game-performance"},
+  {"query": "is this scene cpu bound or gpu bound on the steam deck", "should_trigger": false, "expected": "game-performance"},
+  {"query": "write the feature spec for the escape sequence so the whole team can build from it", "should_trigger": false, "expected": "game-design-doc"},
+  {"query": "mark which parts of this design document are assumptions rather than decisions", "should_trigger": false, "expected": "game-design-doc"},
+  {"query": "our level art is pushing the build past 4gb, what texture compression should we use", "should_trigger": false, "expected": "game-assets"}
+]
