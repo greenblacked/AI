@@ -10,12 +10,32 @@ import json
 
 import pytest
 
-from skillcheck.rules import ERROR, WARNING, check_marketplace, check_skill, find_skills
-
-GOOD_DESCRIPTION = (
-    "Do a specific, useful thing end to end. Use this skill whenever the user asks "
-    "for that thing, including casual phrasings."
+from skillcheck.rules import (
+    ERROR,
+    WARNING,
+    _cede_targets,
+    check_marketplace,
+    check_skill,
+    find_skills,
 )
+
+# Long enough to clear the description floor, because every "produces nothing" case
+# below would otherwise be asserting against a short-description warning instead of the
+# defect it is about.
+GOOD_DESCRIPTION = (
+    "Do a specific, useful thing end to end, from the first command through the check "
+    "that says it worked. Use this skill whenever the user asks for that thing, "
+    "including casual phrasings such as asking for it to be sorted out, looked at or "
+    "finished off, and whenever they hand back the output of a run that stopped part "
+    "way through. Covers the ordering the steps have to run in, the flag that matters "
+    "on each command, and the state to leave behind when a run is abandoned half done "
+    "so the next attempt starts from something known."
+)
+
+# The names a cede clause in these fixtures is allowed to reach. `neighbour` is in it
+# because the fixture eval set routes a negative there, and passing `known` at all turns
+# a name it does not hold into an `unknown-expected` error.
+KNOWN = frozenset({"demo", "neighbour", "image-hardening"})
 
 
 def write_skill(
@@ -438,3 +458,100 @@ def test_an_agent_outside_every_plugin_is_unowned(tmp_path):
         encoding="utf-8",
     )
     assert "unowned-agent" in codes(check_marketplace(tmp_path))
+
+
+def test_a_cede_clause_naming_a_skill_that_does_not_exist_is_an_error(tmp_path):
+    # Deleting a subagent left a description ceding to it and nothing noticed. The
+    # description is what the runtime loads, so the turned-away query lands nowhere.
+    description = GOOD_DESCRIPTION + " Not for rebuilding the base image (image-builder)."
+    directory = write_skill(tmp_path, "demo", description=description)
+    findings = [f for f in check_skill(directory, tmp_path, KNOWN) if f.code == "dangling-cede"]
+    assert [f.level for f in findings] == [ERROR]
+    assert "image-builder" in findings[0].message
+
+
+def test_the_which_is_form_of_a_cede_clause_is_read_too(tmp_path):
+    description = GOOD_DESCRIPTION + " Not for auditing the modules, which is iac-review."
+    directory = write_skill(tmp_path, "demo", description=description)
+    assert "dangling-cede" in codes(check_skill(directory, tmp_path, KNOWN), ERROR)
+
+
+def test_a_cede_clause_naming_something_that_exists_is_clean(tmp_path):
+    description = GOOD_DESCRIPTION + " Not for locking down a base image (image-hardening)."
+    directory = write_skill(tmp_path, "demo", description=description)
+    assert check_skill(directory, tmp_path, KNOWN) == []
+
+
+def test_a_cede_clause_naming_a_command_is_still_an_error(tmp_path):
+    # Commands are deliberately absent from `known`. A cede clause tells the router
+    # where the query should go instead, and a command never receives a routed query —
+    # it only fires when typed — so ceding to one sends the query nowhere.
+    description = GOOD_DESCRIPTION + " Not for cutting the release, which is ship-release."
+    directory = write_skill(tmp_path, "demo", description=description)
+    commands = tmp_path / "plugins" / "engineering" / "commands"
+    commands.mkdir(parents=True, exist_ok=True)
+    (commands / "ship-release.md").write_text("# Ship\n", encoding="utf-8")
+    assert "dangling-cede" in codes(check_skill(directory, tmp_path, KNOWN), ERROR)
+
+
+@pytest.mark.parametrize(
+    "description",
+    [
+        "Run the smoke suite rather than the full one, which is long-running.",
+        "Ownership belongs to the on-call engineer (read-only).",
+        "The team cannot form a plan without the numbers (dry-run).",
+        "Unlike the full pipeline, which is multi-stage.",
+    ],
+)
+def test_ordinary_prose_is_never_read_as_a_cede_clause(tmp_path, description):
+    # Every one of these was a false positive while the marker list included "rather
+    # than", "belongs to" and "Unlike ". The scan runs from the first marker to the end
+    # of the description, so a loose marker drags an ordinary parenthesised aside into
+    # the span. Only explicit negatives open a cede clause.
+    assert _cede_targets(description) == []
+
+
+def test_a_description_with_no_cede_clause_is_not_scanned(tmp_path):
+    description = GOOD_DESCRIPTION + " The default run is safe (read-only) until confirmed."
+    directory = write_skill(tmp_path, "demo", description=description)
+    assert check_skill(directory, tmp_path, KNOWN) == []
+
+
+def test_a_hyphenated_aside_before_the_cede_clause_is_not_a_target(tmp_path):
+    # The false-positive guard the whole rule rests on: over a full description the same
+    # two shapes match asides such as "(read-only)" and report them as missing skills,
+    # which is why the scan starts at the cede marker and not at the first character.
+    description = (
+        GOOD_DESCRIPTION + " The first pass is safe (read-only) and the rollback is "
+        "single-step, which is deliberate. Not for locking down a base image "
+        "(image-hardening)."
+    )
+    directory = write_skill(tmp_path, "demo", description=description)
+    assert check_skill(directory, tmp_path, KNOWN) == []
+
+
+def test_without_a_known_set_the_cede_clause_is_not_checked(tmp_path):
+    # The precedent `unknown-expected` set: a caller that cannot say what exists gets
+    # silence rather than a guess at it.
+    description = GOOD_DESCRIPTION + " Not for rebuilding the base image (image-builder)."
+    directory = write_skill(tmp_path, "demo", description=description)
+    assert check_skill(directory, tmp_path) == []
+
+
+def _description_of_length(length: int) -> str:
+    """A description that triggers nothing but the length rules, padded to `length`."""
+    base = "Do the thing. Use this skill when asked for it. "
+    return base + "x" * (length - len(base))
+
+
+def test_a_description_under_the_floor_warns(tmp_path):
+    # 500 is the floor of the guidance in AGENTS.md, and nothing enforced it: a
+    # description this short names the topic without the trigger phrasings or the
+    # boundary, so it fires on everything adjacent or on nothing.
+    directory = write_skill(tmp_path, "demo", description=_description_of_length(499))
+    assert "short-description" in codes(check_skill(directory, tmp_path, KNOWN), WARNING)
+
+
+def test_a_description_on_the_floor_does_not_warn(tmp_path):
+    directory = write_skill(tmp_path, "demo", description=_description_of_length(500))
+    assert check_skill(directory, tmp_path, KNOWN) == []

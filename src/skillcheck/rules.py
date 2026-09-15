@@ -70,6 +70,13 @@ COMPATIBILITY_MAX = 500
 # invisible until an edit crosses it, and crossing it makes the skill unloadable.
 DESCRIPTION_HEADROOM = 50
 
+# The floor of the 500-900 character guidance. A description this short has room to name
+# the topic and nothing else: not the trigger phrasings a user actually types, and not
+# the neighbour a near-miss belongs to. That reads as a tidy description and behaves as a
+# vague one, firing on everything adjacent or on nothing at all. Only the floor is a
+# rule; going long is a listing-budget question that a separate ratchet owns.
+DESCRIPTION_MIN = 500
+
 SKILL_MD_MAX_LINES = 500
 REFERENCE_MAX_LINES_WITHOUT_TOC = 100
 
@@ -81,6 +88,23 @@ BUNDLED_PATH_RE = re.compile(
     r"(?<![A-Za-z0-9_./-])(?:\./)?(?:references|scripts|assets)/[A-Za-z0-9_./-]*[A-Za-z0-9_-]"
 )
 TRIGGER_RE = re.compile(r"\buse (?:this skill |it )?(?:when|whenever|for|any time)\b", re.I)
+
+# A description's closing cede clause is the one place it names its neighbours, and the
+# marker is what bounds the scan. Searching a whole description for the same two shapes
+# reports ordinary parenthetical asides - `(read-only)`, `(dry-run)` - as missing
+# skills; bounded to the clause it extracts only names the author meant as routing
+# targets, which is what makes an error rather than a warning defensible here.
+# Only explicit negatives. Widening this to "rather than" and "belongs to" was tried and
+# reverted: the scan runs from the first match to the end of the description, so an
+# ordinary "rather than" earlier in a sentence drags the rest of it into the span, and a
+# parenthesised aside like "(read-only)" then reads as a routing pointer. That bought two
+# skills and two subagents of extra coverage and put a third of the corpus one aside away
+# from an error whose only fixes are rewording a description or suppressing the check.
+# `not for` is bounded because unbounded it also matches inside "cannot form".
+CEDE_MARKER_RE = re.compile(r"\bNot for\b|\bnot for\b|\bDo not use\b|\bNot to be used\b")
+
+CEDE_PAREN_RE = re.compile(r"\(([a-z0-9]+(?:-[a-z0-9]+)*)\)")
+CEDE_NAMED_RE = re.compile(r"\b(?:which|that) is ([a-z0-9]+(?:-[a-z0-9]+)+)")
 SHOUTING_RE = re.compile(r"(?<![A-Za-z])(?:ALWAYS|NEVER)(?![A-Za-z])")
 TOC_RE = re.compile(r"^#{1,3}\s+(?:table of contents|contents|in this file)\b", re.I | re.M)
 
@@ -181,6 +205,7 @@ def check_skill(
     findings.extend(_check_keys(front, add))
     findings.extend(_check_name(front, directory, add))
     findings.extend(_check_description(front, add))
+    findings.extend(_check_cede(front, add, known))
     findings.extend(_check_compatibility(front, add))
 
     body_lines = text.split("\n")[front.end_line :]
@@ -294,6 +319,15 @@ def _check_description(front: Frontmatter, add) -> list[Finding]:
             f"description is {length} of {DESCRIPTION_MAX} characters — one edit from breaking",
             line,
         )
+    elif length < DESCRIPTION_MIN:
+        add(
+            WARNING,
+            "short-description",
+            f"description is {length} characters, under the {DESCRIPTION_MIN} the guidance "
+            "starts at — a description this short usually names the topic without the "
+            "trigger phrasings or the boundary, and routes badly for both reasons",
+            line,
+        )
     if not TRIGGER_RE.search(description):
         add(
             WARNING,
@@ -301,6 +335,59 @@ def _check_description(front: Frontmatter, add) -> list[Finding]:
             "description has no explicit 'use when/whenever…' clause; the description "
             "is the only thing that decides whether the skill fires",
             line,
+        )
+    return []
+
+
+def _cede_targets(description: str) -> list[str]:
+    """Names the cede clause hands a query to, in the order they are written.
+
+    The clause runs from the first cede marker to the end of the description, and nothing
+    before it is read: a parenthesised aside like `(read-only)` earlier in the sentence is
+    prose, not a pointer, and a rule that flagged it would be dictating wording.
+
+    The bare `which is name` form is read only inside that clause, and only for hyphenated
+    names: widening it to single words would match "which is faster".
+
+    Neither form catches a name written with no parentheses and no marker. The phrasing
+    that prompted this rule, "finding candidate sources first is searcher", is still
+    missed: a pattern loose enough to catch it also matches "is faster", and a check whose
+    fix is to suppress it is worse than no check.
+    """
+    marker = CEDE_MARKER_RE.search(description)
+    if marker is None:
+        return []
+    clause = description[marker.start() :]
+    names = [match.group(1) for match in CEDE_PAREN_RE.finditer(clause)]
+    names += [match.group(1) for match in CEDE_NAMED_RE.finditer(clause)]
+    return list(dict.fromkeys(names))
+
+
+def _check_cede(front: Frontmatter, add, known: frozenset[str] | None) -> list[Finding]:
+    """A cede clause may only name something that exists.
+
+    Deleting a subagent left one description reading "finding candidate sources first is
+    searcher" with nothing to catch it. The description is what the runtime loads, so a
+    pointer to a deleted skill routes the reader nowhere and never errors. Commands are
+    deliberately absent from `known`: a cede clause tells the router where a query should
+    go instead, and a command never receives a routed query.
+    """
+    if known is None:
+        return []
+    # Whitespace is normalised first: a description written as a block scalar keeps its
+    # line breaks, and a clause wrapped between "which is" and the name it cedes to
+    # would otherwise go unread — the silent half of the failure this check is for.
+    description = " ".join((front.get("description") or "").split())
+    for target in _cede_targets(description):
+        if target in known:
+            continue
+        add(
+            ERROR,
+            "dangling-cede",
+            f"the cede clause sends the reader to {target!r}, which is not a skill or "
+            "subagent in this repository — the description is the text the runtime "
+            "loads, so the query it turns away lands nowhere",
+            front.line_of("description"),
         )
     return []
 
@@ -586,7 +673,7 @@ def find_all_agents(repo_root: Path) -> list[Path]:
     return agents + find_agents(repo_root / ".claude" / "agents")
 
 
-def check_agent(path: Path, repo_root: Path) -> list[Finding]:
+def check_agent(path: Path, repo_root: Path, known: frozenset[str] | None = None) -> list[Finding]:
     """Validate one subagent definition.
 
     Nothing else in the pipeline reads these files, so a misspelled key or a name that
@@ -659,6 +746,7 @@ def check_agent(path: Path, repo_root: Path) -> list[Finding]:
                 f"description is {len(description)} characters; the cap is {DESCRIPTION_MAX}",
                 line,
             )
+        findings.extend(_check_cede(front, add, known))
 
     tools = front.get("tools")
     if tools is not None:

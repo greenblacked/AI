@@ -131,6 +131,17 @@ want a review.
 State the boundary too. A subagent that plausibly matches the same request as another
 one means neither is chosen reliably.
 
+Name the neighbour you are ceding to, and spell the name exactly. The validator reads the
+cede clause at the end of a description — the text after `Not for`, `Do not use` or
+`Not to be used` — and fails on a name there that is not a skill or subagent here, because
+that clause is a routing
+pointer and a stale one sends the reader nowhere. The rule exists because a subagent was
+deleted once and the references to it in other descriptions survived, with only the eval
+sets catching their own copy. Most subagent descriptions phrase a boundary as "Unlike
+explorer, which surveys this repository" rather than "Not for", and that form is
+deliberately not scanned: opening a cede clause on ordinary English would put every
+parenthesised aside in the repository one edit away from a false error.
+
 ## What a subagent should return
 
 A conclusion and its evidence. Not a transcript.

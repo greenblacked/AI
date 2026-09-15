@@ -4,7 +4,8 @@ CI is the source of truth for whether this repository is correct. Everything a r
 would otherwise check by eye — that a skill validates, that its reference files exist,
 that it is listed in the marketplace, that no secret is in history — is a job that either
 passes or does not. Four workflows run it: two that gate every change, one that runs
-weekly, and one that only runs when somebody asks for it.
+weekly, and one that scores trigger evals — monthly over everything, and on every pull
+request over what that pull request touched.
 
 ## `.github/workflows/ci.yml` — CI
 
@@ -16,7 +17,7 @@ Triggers on push to `main`, on every pull request, and on `workflow_dispatch`. T
 | `validate-skills` | `validate skills` | A skill, a subagent, a command or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed eval set for a skill or a subagent, a `.claude/rules/` glob that matches nothing, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output; it also prints the per-plugin description total, which is the listing cost every installer pays. |
 | `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the job's `env` for the same reason the scanners are. |
 | `test` | `test (3.10)` … `test (3.13)` | The validator's own test suite failed on that interpreter, or line and branch coverage fell below the floor in [`pyproject.toml`](../pyproject.toml). The matrix is four versions because that file declares no dependencies, and running on a bare interpreter across the supported range is how that claim stays true. The coverage table lands in the job summary. |
-| `catalogue` | `check catalogue` | A plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), the README stopped matching the tree, a shell block or shipped script no longer parses, or the hook registration in `.claude/settings.json` names a script that is missing or not executable. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. |
+| `catalogue` | `check catalogue` | A plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), the README stopped matching the tree, a shell block or shipped script no longer parses, or the hook registration in `.claude/settings.json` names a script that is missing or not executable. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. The same file also records each skill's own description length: a new skill must arrive at or under 900 characters, and one already above that is pinned where it measures rather than trimmed to fit a gate. |
 | `catalogue` (portable step) | `check catalogue` | `make portable` could not flatten every skill into a file that stands alone. This is how the library reaches ChatGPT, Grok and anything else without a skills runtime: frontmatter becomes a plain "Use this when" line and every `references/` file is inlined, with the pointer that named it rewritten to name the section instead. A pointer that survives as a path is a dangling reference reintroduced at the boundary, for a reader with no filesystem to resolve it against. |
 | `spelling` | `lint spelling` | codespell found a likely typo. It ran weekly and warn-only until it was made a gate; the false positives are listed in [`pyproject.toml`](../pyproject.toml) with the reason each is one, which is what lets the check sit at zero and mean something. |
 | `lint-markdown` | `lint markdown` | markdownlint-cli2 found a violation in a `*.md` file. Config in `.markdownlint-cli2.yaml`. |
@@ -103,17 +104,76 @@ they learn that, the gates that matter stop working too.
 
 ## `.github/workflows/evals.yml` — Trigger evals
 
-`workflow_dispatch` only: there is no push, pull-request or schedule trigger, so this
-workflow runs when a person asks for it and at no other time. One job, `evaluate`, check
-name `score descriptions`, with a two-hour timeout because it makes one model call per
-query per sample.
+Three triggers: a monthly `schedule` (`0 7 1 * *`), `workflow_dispatch`, and
+`pull_request`. There is no push trigger and, like `ci.yml`, no `paths:` filter — a
+workflow skipped by a path filter leaves its check Pending forever, which is the failure
+this repository refuses everywhere. Two jobs, and each is guarded by a job-level `if:` so
+that exactly one of them runs on any given event:
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
-| `evaluate` | `score descriptions` | A skill scored below the threshold, or the credentials are absent. Nothing depends on this job and no branch rule requires it. |
+| `evaluate` | `score descriptions` | The whole catalogue, on the schedule or on request; skipped on a pull request. A skill scored below the `threshold` input, or a dispatched run has no credential. Nothing depends on this job and no branch rule requires it. Two-hour timeout, because it makes one model call per query per sample. |
+| `evaluate-changed` | `score changed skills` | Only on a pull request; skipped otherwise. A skill the pull request changed, or one of that skill's declared neighbours, scored below **0.7**. Forty-five-minute timeout. |
 
-Six inputs. `skill` is marked required and the others are not, but all carry a default,
-so dispatching the form unchanged scores everything against Claude:
+### `evaluate-changed`, the pull request job
+
+`evaluate` measures the catalogue on a cadence. What it cannot do is tell the author of a
+new skill that it has taken a neighbour's queries, because the score that reveals the
+collision belongs to the neighbour: one skill merged at 95% while breaking the eval set
+of the skill next door, and on a monthly cadence nobody would have known for a month.
+
+So the pull request job scores the changed skills **and their declared neighbours** —
+every distinct `expected` value in a changed skill's `evals/trigger-eval.json`, resolved
+to a skill directory under `plugins/*/skills/` or a subagent file under
+`plugins/*/agents/` or `.claude/agents/`. Scoring only the changed skill would not catch
+the case above, because the changed skill is the one that scores well.
+
+What it does, in order:
+
+1. Checks out with `fetch-depth: 0` so the base branch is reachable, and lists the
+   changed files with `git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD"`. Plain
+   git rather than a changed-files action: this is one diff, and an action would be
+   another pinned dependency in the supply chain for it.
+2. Maps each changed path back to the skill directory that contains it, adds the
+   neighbours, and caps the list at twelve targets. Past a dozen the run stops being a
+   pull request check and becomes the monthly job; when it truncates, the summary says so
+   and by how many.
+3. Runs [`scripts/run_trigger_eval.py`](../scripts/run_trigger_eval.py) once per target.
+   The harness takes exactly one target per invocation and rewrites `--json` wholesale,
+   so each target writes its own results file and the publish step merges them into one
+   table — the same six columns the monthly job prints. The merged files upload as the
+   `trigger-evals-changed` artifact.
+
+Three outcomes that are green on purpose:
+
+- **No skill changed.** The job reports success with a note in the summary rather than
+  being skipped, so nothing sits Pending.
+- **No credential.** A pull request from a fork is handed no secrets. The job says so in
+  a notice and stands down, because a red check a contributor has no way to make green is
+  a check everybody learns to ignore. The same is now true of the scheduled run of
+  `evaluate`: a scheduled run skips with a notice, and only a dispatched run — where a person
+  asked for a score and is owed the error — fails on a missing credential.
+- **A score between 0.7 and 0.8.** Reported in the summary and as a notice annotation,
+  and advisory.
+
+The floor is 0.7 rather than the 0.8 reporting bar because the measurement is sampled.
+Run-to-run variance here is about five points — one skill read 85% and 90% on the same
+tree — so a gate at 0.8 would fail on noise, and a gate that fails on noise is a gate
+people learn to override, at which point the gates that matter stop working too. 0.7 sits
+below the noise and still well above a description that has actually stopped working.
+Anything under it fails the job with an error annotation naming the target.
+
+An exit code of 1 from the harness means "below the reporting bar" and the job carries
+on; anything higher means the harness itself failed — an unreachable model, a malformed
+eval set — and stops the job with an error, because a run that cannot reach the model has
+no score to report. The scores already paid for are published and uploaded either way.
+
+### Dispatch inputs
+
+The six inputs belong to `evaluate`; `evaluate-changed` takes none and always scores with
+the `claude` backend at three samples per query. `skill` is marked required and the
+others are not, but all carry a default, so dispatching the form unchanged scores
+everything against Claude:
 
 | Input | Default | What it does |
 | --- | --- | --- |
@@ -126,7 +186,9 @@ so dispatching the form unchanged scores everything against Claude:
 
 The harness reads no API key of its own. Each CLI reads the credential it expects, and
 the first step checks that the chosen backend has one, stopping with a one-line annotation
-if not, because failing there beats failing forty model calls later with a stack trace:
+if not, because failing there beats failing forty model calls later with a stack trace. A
+dispatched run fails on an absent credential; a scheduled run and a pull request skip with
+a notice instead, for the reasons above:
 
 | Backend | Repository secret | Where it comes from |
 | --- | --- | --- |
@@ -134,7 +196,7 @@ if not, because failing there beats failing forty model calls later with a stack
 | `codex` | `OPENAI_API_KEY` | The OpenAI platform. Locally, a ChatGPT login through `codex login` is enough. |
 | `gemini` | `GEMINI_API_KEY` | Google AI Studio. Locally, a Google login through the CLI is enough. |
 
-The job then runs [`scripts/run_trigger_eval.py`](../scripts/run_trigger_eval.py) with
+`evaluate` then runs [`scripts/run_trigger_eval.py`](../scripts/run_trigger_eval.py) with
 `--backend`, writes a table of pass rate, recall, specificity, routing and the count of
 narrowly decided queries into the job summary, and uploads the full results as the
 `trigger-evals` artifact. Each result records the backend and model it was scored with, so
@@ -142,11 +204,12 @@ a `--baseline` diff against a run on a different model is visible for what it is
 that artifact and pass it back as `--baseline` on the next local run to see what an edit
 moved.
 
-Nothing here gates anything, and that is the design rather than an omission. A trigger
+Neither job is a required check, and that is the design rather than an omission. A trigger
 eval has two halves that cost different amounts. The schema — twenty queries, at least
 eight on each side, no duplicates, `should_trigger` a real boolean — is deterministic and
 free, so `validate-skills` checks it on every push. The score is sampled and costs money
-per run, so it stays manual: a required check that is occasionally wrong is a check people
+per run, so what it gets on a pull request is a floor well under the reporting bar rather
+than a required check: a required check that is occasionally wrong is a check people
 learn to override, and once they learn that, the checks that matter stop working too.
 
 What the run measures is discrimination rather than recall alone. Each query is put to the
@@ -180,7 +243,10 @@ gates nothing has no use for one.
 
 ## Why there is no `paths:` filter
 
-Neither `ci.yml` nor `security.yml` has a `paths:` filter, and this is deliberate.
+No workflow here has a `paths:` filter, and this is deliberate. `evals.yml` is the one
+where the temptation is real — its pull request job has nothing to do unless a skill
+changed — and it runs on every pull request anyway, reporting "no skill changed" in the
+job summary.
 
 A workflow skipped by a path filter does not report a result at all — its check sits
 Pending forever. If that check is required, the pull request can never merge, and the
