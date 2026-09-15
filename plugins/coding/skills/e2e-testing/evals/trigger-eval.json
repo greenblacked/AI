@@ -1,0 +1,23 @@
+[
+  {"query": "our playwright tests are flaky and everyone just re-runs them until they go green", "should_trigger": true},
+  {"query": "the e2e suite passes locally and fails in CI about a third of the time", "should_trigger": true},
+  {"query": "how should I select elements in browser tests - we use css classes and they keep breaking", "should_trigger": true},
+  {"query": "should I use page objects or is that overkill for our checkout tests", "should_trigger": true},
+  {"query": "how do I log in once for all my browser tests instead of going through the form every time", "should_trigger": true},
+  {"query": "our cypress tests are full of cy.wait(2000) and I want to get rid of them", "should_trigger": true},
+  {"query": "two of our browser tests fail when run in parallel but pass on their own", "should_trigger": true},
+  {"query": "what do I do with a test that has started flaking and nobody has time to fix it", "should_trigger": true},
+  {"query": "the stripe checkout page makes our end to end tests fail whenever their sandbox is slow", "should_trigger": true},
+  {"query": "I have a trace.zip from a failed run, how do I work out why the click did nothing", "should_trigger": true},
+
+  {"query": "what should I test for this new discount calculation function", "should_trigger": false, "expected": "test-design"},
+  {"query": "is 80% coverage enough or should we be aiming higher", "should_trigger": false, "expected": "test-design"},
+  {"query": "should this case be a unit test or an integration test", "should_trigger": false, "expected": "test-design"},
+  {"query": "CI is red on main again, third time today, what is going on", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "my PR is blocked by a failing check and I cannot tell if it is a real failure or a flake", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "the runner died halfway through the build with no error in the log", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "the checkout total comes out wrong for orders with two discounts and I cannot work out why", "should_trigger": false, "expected": "debugging"},
+  {"query": "this crashes sometimes in production and I have been staring at it for three hours", "should_trigger": false, "expected": "debugging"},
+  {"query": "build me a landing page for my consultancy with a contact form", "should_trigger": false, "expected": "website-builder"},
+  {"query": "our site takes eight seconds to load on mobile, can you make it faster", "should_trigger": false, "expected": "website-builder"}
+]

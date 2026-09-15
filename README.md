@@ -3,10 +3,10 @@
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
 [![Security](https://github.com/greenblacked/AI/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/security.yml)
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
-[![Skills](https://img.shields.io/badge/skills-67-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-73-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-67 agent skills, ten read-only subagents and six slash commands, in eight
+73 agent skills, ten read-only subagents and seven slash commands, in eight
 plugins you install separately. They cover the daily loop of changing code, keeping a
 system running, shipping a change, securing it, making a game, leading a team, a career,
 and the parts of life that are nobody's job.
@@ -28,10 +28,10 @@ outside a runtime that can trigger them for you.
 
 | Plugin | Focus | Contents |
 | --- | --- | --- |
-| `coding` | Reading, reviewing, testing and changing code | 13 skills, 1 subagent |
+| `coding` | Reading, reviewing, testing and changing code | 14 skills, 1 subagent |
 | `gamedev` | Making games, and shipping them | 9 skills, 1 subagent, 1 command |
-| `operations` | Keeping a running system alive | 8 skills, 4 subagents, 2 commands |
-| `delivery` | Getting a change into production | 5 skills |
+| `operations` | Keeping a running system alive | 12 skills, 4 subagents, 2 commands |
+| `delivery` | Getting a change into production | 6 skills |
 | `security` | The defensive side of shipping software | 7 skills, 2 subagents, 2 commands |
 | `manager` | Engineering leadership | 13 skills, 2 subagents, 1 command |
 | `personal` | Money, travel, admin, habits and health | 7 skills |
@@ -102,6 +102,52 @@ git clone https://github.com/greenblacked/AI.git && cd AI
 ./scripts/install.sh             # symlink every skill into ~/.claude/skills
 ```
 
+## What a real week looks like
+
+You never type a skill name. You describe the situation in the words you would use to a
+colleague, and the skill whose description matches that situation loads itself. This is
+one service going from nothing to running badly to running well, with the sentence that
+fired each step.
+
+**Monday — the service does not exist yet.**
+
+| You say | What loads | What it makes you do first |
+| --- | --- | --- |
+| "set up a pipeline for this repo" | `ci-pipeline-design` | Decide which checks may block a merge before drawing a single stage |
+| "what should I set for resource limits" | `k8s-workloads` | Measure the workload under load before writing any number |
+| "write me a script that prunes old snapshots" | `code-scaffold` | Ask the questions that change the shape of the code, in one batch, before writing |
+
+**Wednesday — it ships.**
+
+| You say | What loads | What it makes you do first |
+| --- | --- | --- |
+| "canary or blue-green for this one" | `release-strategy` | Separate deploy from release, then pick the mechanism from how the change fails |
+| "we need to move the DNS without dropping requests" | `cutover` | Name the roles and the point of no return before the window opens |
+| "this migration adds a column to a 40M-row table" | `db-migration` | Expand, backfill, migrate reads, migrate writes, contract — each revertible alone |
+
+**Thursday, 3am — it breaks.**
+
+| You say | What loads | What it makes you do first |
+| --- | --- | --- |
+| "pods are in CrashLoopBackOff and I am on call" | `k8s-triage` | Restore service first; diagnosis is the second job |
+| *(a 200MB CI log)* | `ci-log-reader` *(subagent)* | Returns which of five triage classes it is and the log line that decided it |
+| "what do we tell customers" | `incident-comms` | Acknowledge on impact, not on diagnosis, and promise a next update you keep |
+
+**Friday — you find out why, and stop it recurring.**
+
+| You say | What loads | What it makes you do first |
+| --- | --- | --- |
+| "write this up without blaming anyone" | `postmortem` | Separate the root causes from the trigger; every action item gets an owner and a date |
+| "our pager is out of control" | `alert-design` | Classify every signal as page, ticket or dashboard-only, and alert on SLO burn |
+| "I renamed a module and now it wants to destroy everything" | `terraform-state` | Back up state before touching it, and prefer the form that shows up in a plan |
+| "our bill went up 30% and nobody knows why" | `cost-review` | Attribute the spend before touching anything, then read top movers over top spenders |
+
+Two things in that week are worth naming. The subagent on Thursday exists so a
+200MB log never enters your context — you get the verdict, not the bytes. And every
+"what it makes you do first" column is the actual value: the model already knows what a
+liveness probe is, but it will happily write you one that checks a database and restarts
+healthy pods during someone else's outage. The gate is the skill.
+
 ## Skills
 
 ### Coding
@@ -116,6 +162,7 @@ Reading, reviewing, testing and changing code.
 | [`codebase-orientation`](plugins/coding/skills/codebase-orientation/SKILL.md) | Get oriented in code you did not write: what it does before how it is built, one real request traced end to end, the tests as specification and the history as evidence, ending in a map and a first change. |
 | [`debugging`](plugins/coding/skills/debugging/SKILL.md) | Drive a failure down to a proven cause before changing any code: reproduce it, reduce it, one falsifiable hypothesis at a time, and prove the fix by turning the failure off and on again. |
 | [`dependency-upgrade`](plugins/coding/skills/dependency-upgrade/SKILL.md) | Move onto a new major version without a branch that never lands: deprecation warnings first, one dependency per change, and the uncovered surface named. |
+| [`e2e-testing`](plugins/coding/skills/e2e-testing/SKILL.md) | Keep a browser suite trustworthy instead of rerun until green: measure each test's real flake rate first, locate by role and accessible name, wait on state rather than a sleep or network idle, authenticate once, and prove a repaired test can still fail. |
 | [`new-skill`](plugins/coding/skills/new-skill/SKILL.md) | Author a skill that actually fires: decide whether it deserves to exist, write the body before the description, and build the eval set from the neighbouring skills it has to beat. |
 | [`profiling`](plugins/coding/skills/profiling/SKILL.md) | Make slow application code fast or prove it cannot be: rule out the database and the network first, sample the real process under load, read self time and call paths rather than the function that feels slow, and prove each change against measured variance. |
 | [`refactoring`](plugins/coding/skills/refactoring/SKILL.md) | Restructure without changing behaviour, in steps each provably safe: a characterisation test before touching code nobody understands, one kind of change per commit, and a proof at the end. |
@@ -150,10 +197,14 @@ Keeping a running system alive.
 | [`capacity-planning`](plugins/operations/skills/capacity-planning/SKILL.md) | Work out whether a system survives an expected load: a demand model first, the one saturating resource, and a defined behaviour past capacity. |
 | [`ci-triage`](plugins/operations/skills/ci-triage/SKILL.md) | Classify a red pipeline before debugging it — real failure, flake, runner, config, or dependency drift — starting with whether the default branch is already broken. Quarantine policy and retry hygiene included. |
 | [`cost-review`](plugins/operations/skills/cost-review/SKILL.md) | Investigate a bill that grew, or reduce spend deliberately: attribute before acting, read the top movers rather than the top spenders, and name what each saving degrades. |
+| [`docker-compose`](plugins/operations/skills/docker-compose/SKILL.md) | Compose containers into a working environment for local development and CI: every dependency edge gated on a healthcheck condition, because started is not ready, plus service discovery, mount semantics, config layering and digest pinning. |
 | [`game-day`](plugins/operations/skills/game-day/SKILL.md) | Plan and run a reliability exercise around a falsifiable hypothesis, with a blast radius chosen in advance and an abort that was executed before the experiment started. |
 | [`instrumentation`](plugins/operations/skills/instrumentation/SKILL.md) | Add telemetry so the next incident is diagnosable — instrument backwards from the questions you will need answered at 3am, with cardinality bounded on purpose. |
 | [`k8s-triage`](plugins/operations/skills/k8s-triage/SKILL.md) | Mitigate first, diagnose second. The deploy-related question, the fixed evidence order, and a decode table for the failure modes that account for most of them. |
+| [`k8s-workloads`](plugins/operations/skills/k8s-workloads/SKILL.md) | Specify a workload so it holds under pressure: measure before setting any number, then requests and limits knowing CPU throttles where memory kills, distinct probes, a disruption budget that does not deadlock drains, and the SIGTERM race closed. |
+| [`llm-cost`](plugins/operations/skills/llm-cost/SKILL.md) | Control what an LLM feature costs without degrading it: attribute spend to a prompt path first, judge caching on reads per write rather than hit rate, route cheap steps against a measured quality bar, and decide degrade, queue or refuse before a budget runs out. |
 | [`runbook`](plugins/operations/skills/runbook/SKILL.md) | Write what the 3am reader follows: numbered steps, real commands, every mitigation with its blast radius, and a last-verified date, because a wrong runbook is worse than none. |
+| [`terraform-state`](plugins/operations/skills/terraform-state/SKILL.md) | Execute the state operation already decided — import, move, remove, reconcile drift, recover a lost file, clear a stuck lock — taking a backup first and preferring the block forms that show up in a plan over the imperative subcommands. |
 
 ### Delivery
 
@@ -161,6 +212,7 @@ Getting a change into production without a bad night.
 
 | Skill | What it does |
 | --- | --- |
+| [`ci-pipeline-design`](plugins/delivery/skills/ci-pipeline-design/SKILL.md) | Design a pipeline that does not exist yet, or restructure one that grew badly: decide what may block a merge first, then a stage graph that waits on nothing it does not use, cache keys tied to what invalidates them, and one artefact promoted by digest. |
 | [`cutover`](plugins/delivery/skills/cutover/SKILL.md) | Run the change that has a point of no return — a traffic switch, a provider move, a region migration — from a rehearsed runbook with a rollback deadline computed before the window opens. |
 | [`db-migration`](plugins/delivery/skills/db-migration/SKILL.md) | Ship a schema change to a live database without a stuck lock: expand and contract, each phase its own revertible deploy, batched backfills, and the Postgres operations that are safe versus the ones that rewrite the table. |
 | [`plan-platform-migration`](plugins/delivery/skills/plan-platform-migration/SKILL.md) | Plan a production migration around invariants, state authority, phased evidence gates, rehearsed rollback, controlled cutover, and explicit legacy retirement. |
@@ -247,12 +299,23 @@ is not a reviewer.
 | `contract-reader` | `manager` | A contract, DPA or SOC 2 report | The clauses that decide the deal, quoted and located |
 | `feedback-synthesiser` | `manager` | Collected peer feedback | Themes with a source count and a quoted example |
 
-Three more sit in [`.claude/agents/`](.claude/agents) and ship to nobody. They are for
-working on this repository: `explorer` surveys what already covers a change, `implementer`
-writes it and runs the gates, and `reviewer` judges the result on a fresh context with no
-editing tools. Each runs on the tier its stage needs, and [`/ship`](.claude/commands/ship.md)
-runs the three in order. [Writing a subagent](docs/writing-agents.md#the-three-stage-loop)
-explains why the split earns its round trips.
+Four more sit in [`.claude/agents/`](.claude/agents) and ship to nobody. They are for
+working on this repository, in two loops that share a judge.
+
+To build something: `explorer` surveys what already covers a change, `implementer` writes
+it and runs the gates, and `reviewer` judges the result on a fresh context with no editing
+tools. [`/ship`](.claude/commands/ship.md) runs those three in order.
+
+To establish whether something is true: `investigator` settles one claim against primary
+sources, labels every finding primary, consensus or inference, and says what it could not
+verify and why; then `reviewer` judges whether the finding actually supports the change.
+[`/verify`](.claude/commands/verify.md) runs the two. It exists because a skill in this
+repository once asserted that a `kubectl drain` flag skipped graceful shutdown, and the
+source said otherwise.
+
+Each runs on the tier its stage needs.
+[Writing a subagent](docs/writing-agents.md#the-two-loops) explains why the splits earn
+their round trips.
 
 ## Commands
 
@@ -271,7 +334,8 @@ Each does the mechanical part and points at the skill holding the full procedure
 | `/scaffold-skill` | this repository | Create the directory, SKILL.md and eval stub for a new skill, in the right plugin, refusing a duplicate name. |
 | `/eval-skill` | this repository | Score whether one description actually triggers, and name the phrasing it is missing. |
 | `/skill-doctor` | this repository | Diagnose one skill: validator findings, description health, eval-set balance, and which siblings it collides with. |
-| `/ship` | this repository | Take a change through the three-stage loop: survey what already exists, write it and run the gates, then judge the result independently. |
+| `/ship` | this repository | Take a change through the build loop: survey what already exists, write it and run the gates, then judge the result independently. |
+| `/verify` | this repository | Take a claim through the verification loop: settle it against primary sources, labelling what is verified and what is not, then judge whether the finding supports the change. |
 
 ## CI is the source of truth
 

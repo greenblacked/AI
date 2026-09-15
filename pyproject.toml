@@ -59,5 +59,7 @@ quiet-level = 3
 # verbatim; "stings" is the verb; "caf" is the first half of a latin-1 "cafe" in an
 # encoding test; "aplha" is a deliberate misspelling in the test that proves a
 # misspelled `expected` is caught. "lod" is level of detail, which is what the gamedev
-# skills are talking about every time they use it.
-ignore-words-list = "trough,applyable,unparseable,stings,caf,aplha,lod"
+# skills are talking about every time they use it. "afterAll" is the test-runner hook,
+# spelled that way by Playwright, Jest and Vitest alike, so the e2e-testing skill cannot
+# write it any other way.
+ignore-words-list = "trough,applyable,unparseable,stings,caf,aplha,lod,afterall"

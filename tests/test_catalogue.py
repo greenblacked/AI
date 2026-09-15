@@ -117,6 +117,42 @@ def write_readme(root, text=README):
     (root / "README.md").write_text(text, encoding="utf-8")
 
 
+def test_a_repo_local_subagent_with_no_readme_row_is_caught(mini_repo, capsys):
+    # Skills, and anything a plugin ships, were gated from the start. `.claude/` was not,
+    # so the three-stage loop's own documentation went stale without any gate noticing.
+    write_readme(mini_repo)
+    agents = mini_repo / ".claude" / "agents"
+    agents.mkdir(parents=True, exist_ok=True)
+    (agents / "searcher.md").write_text(
+        "---\nname: searcher\ndescription: " + "f" * 60 + "\ntools: Read\n---\n\nBody.\n",
+        encoding="utf-8",
+    )
+    assert readme.check(mini_repo) == 1
+    assert "searcher is in .claude/ and has no row" in capsys.readouterr().out
+
+
+def test_a_repo_local_command_with_no_readme_row_is_caught(mini_repo, capsys):
+    write_readme(mini_repo)
+    commands = mini_repo / ".claude" / "commands"
+    commands.mkdir(parents=True, exist_ok=True)
+    (commands / "verify.md").write_text(
+        "---\ndescription: " + "f" * 60 + "\n---\n\nBody.\n", encoding="utf-8"
+    )
+    assert readme.check(mini_repo) == 1
+    assert "/verify is in .claude/ and has no row" in capsys.readouterr().out
+
+
+def test_a_repo_local_agent_named_in_the_readme_passes(mini_repo, capsys):
+    agents = mini_repo / ".claude" / "agents"
+    agents.mkdir(parents=True, exist_ok=True)
+    (agents / "searcher.md").write_text(
+        "---\nname: searcher\ndescription: " + "f" * 60 + "\ntools: Read\n---\n\nBody.\n",
+        encoding="utf-8",
+    )
+    write_readme(mini_repo, README + "\n\nAlso `searcher`, which ships to nobody.\n")
+    assert readme.check(mini_repo) == 0
+
+
 def test_a_matching_readme_passes(mini_repo, capsys):
     write_readme(mini_repo)
     assert readme.check(mini_repo) == 0

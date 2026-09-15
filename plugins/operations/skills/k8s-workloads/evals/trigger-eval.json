@@ -1,0 +1,92 @@
+[
+  {
+    "query": "what should i set for resource limits on this service? right now it's whatever got copy pasted from the last one",
+    "should_trigger": true
+  },
+  {
+    "query": "my pods get OOMKilled under load and the app doesn't leak as far as i can tell. what numbers do i put in the manifest",
+    "should_trigger": true
+  },
+  {
+    "query": "should this have a readiness probe or is a liveness probe enough",
+    "should_trigger": true
+  },
+  {
+    "query": "will this poddisruptionbudget stop us draining nodes, we only run one replica",
+    "should_trigger": true
+  },
+  {
+    "query": "is it bad that i set cpu limit equal to cpu request on everything",
+    "should_trigger": true
+  },
+  {
+    "query": "we get a couple of seconds of connection resets on every single deploy. is that just how rollouts work in kubernetes",
+    "should_trigger": true
+  },
+  {
+    "query": "do we actually need Guaranteed QoS for this pod or is Burstable fine",
+    "should_trigger": true
+  },
+  {
+    "query": "someone said our liveness probe shouldn't check the postgres connection but didn't say why",
+    "should_trigger": true
+  },
+  {
+    "query": "what maxSurge and maxUnavailable should this deployment use so a rollout doesn't drop capacity",
+    "should_trigger": true
+  },
+  {
+    "query": "how do i make sure these replicas land in different availability zones so losing one AZ doesn't take us out",
+    "should_trigger": true
+  },
+  {
+    "query": "pods are in CrashLoopBackOff since the 11:40 deploy, what do i do right now",
+    "should_trigger": false,
+    "expected": "k8s-triage"
+  },
+  {
+    "query": "a pod just got OOMKilled in prod, the page is firing and customers are seeing errors",
+    "should_trigger": false,
+    "expected": "k8s-triage"
+  },
+  {
+    "query": "everything is Pending with Insufficient cpu in the events and the release is blocked, help",
+    "should_trigger": false,
+    "expected": "k8s-triage"
+  },
+  {
+    "query": "how many replicas do we need to survive black friday, last year we guessed badly",
+    "should_trigger": false,
+    "expected": "capacity-planning"
+  },
+  {
+    "query": "design a soak test for the ingest pipeline so we can find out where it saturates",
+    "should_trigger": false,
+    "expected": "capacity-planning"
+  },
+  {
+    "query": "write me a helm chart and a go service skeleton for a new notifications api",
+    "should_trigger": false,
+    "expected": "code-scaffold"
+  },
+  {
+    "query": "i need a bash script that reaps namespaces older than 30 days, with proper error handling",
+    "should_trigger": false,
+    "expected": "code-scaffold"
+  },
+  {
+    "query": "make this Dockerfile smaller and pin the base image to a digest",
+    "should_trigger": false,
+    "expected": "image-hardening"
+  },
+  {
+    "query": "our container still runs as root and the scanner is complaining, fix the image",
+    "should_trigger": false,
+    "expected": "image-hardening"
+  },
+  {
+    "query": "how long should we bake the canary at 5 percent before we promote it",
+    "should_trigger": false,
+    "expected": "release-strategy"
+  }
+]

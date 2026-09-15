@@ -5,7 +5,7 @@ frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewe
 one of the ten this repository ships today, one with `coding`, four with `operations`,
 two with `security`, two with `manager` and one with `gamedev` — and in `.claude/agents/`
 for the three that serve work on this repository rather than shipping to anyone,
-described in [the three-stage loop](#the-three-stage-loop) below. A subagent is a
+described in [the two loops](#the-two-loops) below. A subagent is a
 separate Claude instance with its own context window, its own system prompt, and its own
 tool allowlist, invoked by the main agent and returning a result to it.
 
@@ -217,9 +217,9 @@ repo-local either, is `unowned-agent`. That is the one that matters day to day, 
 subagent no plugin ships installs for nobody and there is no symptom to notice. It fails
 [CI](ci.md).
 
-## The three-stage loop
+## The two loops
 
-Three more subagents live in [`.claude/agents/`](../.claude/agents), and they ship to
+Four more subagents live in [`.claude/agents/`](../.claude/agents), and they ship to
 nobody. They are for working on this repository, the same way `.claude/commands/` holds
 commands for contributors here rather than for installers. The validator scans that
 directory on the same run, so they are held to the contract above — including the key set
@@ -227,14 +227,52 @@ a plugin-shipped subagent is limited to, which is stricter than Claude Code allo
 project-level agent. That is deliberate: it means one of them can move into a plugin
 later without a surprise.
 
-They divide one change into three stages, and the division is the point. Each stage is a
-context the next one does not inherit, and each runs on the tier its work actually needs:
+They form two loops that share a judge. Each stage is a context the next one does not
+inherit, and each runs on the tier its work actually needs.
+
+Building something, run by [`/ship`](../.claude/commands/ship.md):
 
 | Stage | Subagent | Runs on | Editing tools |
 | --- | --- | --- | --- |
 | Survey | [`explorer`](../.claude/agents/explorer.md) | the fast tier | none |
 | Write | [`implementer`](../.claude/agents/implementer.md) | the capable tier | `Write`, `Edit` |
 | Judge | [`reviewer`](../.claude/agents/reviewer.md) | the most capable tier | none |
+
+Establishing whether something is true, run by [`/verify`](../.claude/commands/verify.md):
+
+| Stage | Subagent | Runs on | Editing tools |
+| --- | --- | --- | --- |
+| Establish | [`investigator`](../.claude/agents/investigator.md) | the capable tier | none |
+| Judge | [`reviewer`](../.claude/agents/reviewer.md) | the most capable tier | none |
+
+The second loop exists because prose in this repository has twice asserted something that
+the source contradicted — a `kubectl drain` flag said to skip graceful shutdown when it
+does not, and a `gh` invocation that could not run as written and failed silently. Both
+were caught by reading the source rather than by any gate, which is an argument for making
+that reading a stage rather than a habit.
+
+Both of its numbers are worth stating plainly, because neither is good.
+
+`investigator` scores between 60% and 70% against a bar of 80%, and the half it loses is
+specificity: asked to look into something, the model reaches for whichever skill owns the
+subject matter — `ci-triage` for a red build, `auth-design` for an auth question — rather
+than for an agent that owns the act of checking. That is a real limitation of describing
+a stance rather than a domain, and it is the reason `/verify` names the agent explicitly
+instead of relying on it being chosen. The eval workflow runs monthly and on demand rather
+than on a pull request, so this is a recorded cost and not a red gate; anyone who improves
+it should beat 70% before assuming the description was the problem.
+
+It has two stages rather than three on the same evidence. A third was
+drafted — a cheap `searcher` that would find candidate sources and hand them on without a
+verdict — and it scored 60% against a bar of 80% across three attempts at its description,
+because it had no territory of its own: `explorer` already surveys this repository, and
+`investigator` already reaches a source once it has one. This file's own advice predicted
+it, under [writing the description so delegation happens](#writing-the-description-so-delegation-happens):
+a subagent that plausibly matches the same request as another one means neither is chosen
+reliably. Rewriting the description moved the score by five points in each direction and
+never fixed it, because the overlap was structural. The cheap-then-expensive split is a
+real idea and it may come back as two steps inside one agent; it did not survive as two
+agents.
 
 The tier is set per subagent with the `model` key, which is the only place in this
 repository that key is used. Claude Code resolves a subagent's model from the
