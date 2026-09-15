@@ -90,17 +90,14 @@ BUNDLED_PATH_RE = re.compile(
 TRIGGER_RE = re.compile(r"\buse (?:this skill |it )?(?:when|whenever|for|any time)\b", re.I)
 
 # A description's closing cede clause is the one place it names its neighbours, and the
-# marker is what bounds the scan. Searching a whole description for the same two shapes
-# reports ordinary parenthetical asides - `(read-only)`, `(dry-run)` - as missing
-# skills; bounded to the clause it extracts only names the author meant as routing
-# targets, which is what makes an error rather than a warning defensible here.
-# Only explicit negatives. Widening this to "rather than" and "belongs to" was tried and
-# reverted: the scan runs from the first match to the end of the description, so an
-# ordinary "rather than" earlier in a sentence drags the rest of it into the span, and a
-# parenthesised aside like "(read-only)" then reads as a routing pointer. That bought two
-# skills and two subagents of extra coverage and put a third of the corpus one aside away
-# from an error whose only fixes are rewording a description or suppressing the check.
-# `not for` is bounded because unbounded it also matches inside "cannot form".
+# marker is what bounds the scan: everything from the first match to the end is read as
+# the clause. That is why only explicit negatives open one. Widening this to "rather
+# than" and "belongs to" was tried and reverted — an ordinary "rather than" earlier in a
+# sentence dragged the rest of it into the span, and a parenthesised aside like
+# "(read-only)" then read as a routing pointer. It bought two skills and two subagents of
+# coverage and put a third of the corpus one aside away from an error whose only fixes
+# are rewording a description or suppressing the check. `not for` is bounded because
+# unbounded it also matches inside "cannot form".
 CEDE_MARKER_RE = re.compile(r"\bNot for\b|\bnot for\b|\bDo not use\b|\bNot to be used\b")
 
 CEDE_PAREN_RE = re.compile(r"\(([a-z0-9]+(?:-[a-z0-9]+)*)\)")
@@ -360,14 +357,18 @@ def _cede_targets(description: str) -> list[str]:
     clause = description[marker.start() :]
     names = [match.group(1) for match in CEDE_PAREN_RE.finditer(clause)]
     names += [match.group(1) for match in CEDE_NAMED_RE.finditer(clause)]
-    return list(dict.fromkeys(names))
+    # `(a)`, `(b)` and `(1)` are enumeration, not names. The floor is on the whole
+    # token rather than its first segment, because `ci-triage` opens with two letters.
+    # No name here is shorter than seven.
+    return list(dict.fromkeys(name for name in names if len(name) >= 3))
 
 
 def _check_cede(front: Frontmatter, add, known: frozenset[str] | None) -> list[Finding]:
     """A cede clause may only name something that exists.
 
     Deleting a subagent left one description reading "finding candidate sources first is
-    searcher" with nothing to catch it. The description is what the runtime loads, so a
+    searcher" with nothing to catch it — and that exact phrasing is still not caught, as
+    `_cede_targets` explains. The description is what the runtime loads, so a
     pointer to a deleted skill routes the reader nowhere and never errors. Commands are
     deliberately absent from `known`: a cede clause tells the router where a query should
     go instead, and a command never receives a routed query.

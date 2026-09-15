@@ -501,6 +501,8 @@ def test_a_cede_clause_naming_a_command_is_still_an_error(tmp_path):
         "Ownership belongs to the on-call engineer (read-only).",
         "The team cannot form a plan without the numbers (dry-run).",
         "Unlike the full pipeline, which is multi-stage.",
+        "Do not use it for (a) reviewing a plan or (b) writing a module.",
+        "Not for step (1) or step (2) of the rollout.",
     ],
 )
 def test_ordinary_prose_is_never_read_as_a_cede_clause(tmp_path, description):

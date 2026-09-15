@@ -154,7 +154,10 @@ def load(path: Path) -> Recorded:
     if not isinstance(data, dict) or not all(
         isinstance(data.get(key), dict) for key in ("plugins", "skills")
     ):
-        raise ValueError(f"{path.name} must be an object with 'plugins' and 'skills' objects in it")
+        raise ValueError(
+            f"{path.name} must be an object with 'plugins' and 'skills' objects in it; "
+            "run --update to regenerate it"
+        )
     return Recorded(
         {str(name): int(value) for name, value in data["plugins"].items()},
         {str(name): int(value) for name, value in data["skills"].items()},
