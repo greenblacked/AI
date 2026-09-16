@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: "Review a change — a diff, a pull request, a branch — in a fixed severity order: correctness first (does it do what its description claims, what happens on the error path, what happens under concurrency, what happens with hostile input), then tests, then maintainability, with a severity label on every finding and nits named as nits. Covers reviewing a diff you cannot run, sampling a large diff honestly, and writing a comment that gets acted on. Use this skill whenever someone asks you to look over a change — \"review my PR\", \"can you check this diff before I merge\", \"is this safe to ship\", \"what did I miss in #412\", \"give this branch a once-over\". Not for a red pipeline, which is ci-triage; not for designing a test suite, which is test-design; not for restructuring without behaviour change, which is refactoring; not for a dedicated threat model, which is security-review."
+description: "Review a change — a diff, a pull request, a branch — in a fixed severity order: correctness first (does it do what its description claims, what happens on the error path, what happens under concurrency, what happens with hostile input), then tests, then maintainability, with a severity label on every finding and nits named as nits. Covers reviewing a diff you cannot run, sampling a large diff honestly, and writing a comment that gets acted on. Use this skill whenever someone asks you to look over a change — \"review my PR\", \"can you check this diff before I merge\", \"is this safe to ship\", \"what did I miss in #412\", \"give this branch a once-over\". Not for a red pipeline, which is ci-triage; not for designing a test suite, which is test-design; not for restructuring without behaviour change, which is refactoring; not for the vulnerability classes in a diff, which is security-review."
 allowed-tools: "Read, Grep, Glob, Bash(git:*), Bash(gh:*), Bash(rg:*)"
 ---
 
@@ -14,7 +14,7 @@ The job goes wrong in five reliable ways. The reviewer opens with the cheapest o
 
 Use for: reviewing a diff, a pull request, a branch or a patch before merge; a second opinion on a change someone else already approved; reviewing code you or another model generated; deciding whether a change is safe to ship.
 
-Do not use for: a failing pipeline, which is `ci-triage`; driving an observed bug down to its cause, which is `debugging`; designing what a suite should test, which is `test-design`; restructuring code that is not changing behaviour, which is `refactoring`; a dedicated threat-model or authorisation pass, which is `security-review`; reviewing an interface contract before it is built, which is `api-design`; writing the change in the first place, which is `code-scaffold`.
+Do not use for: a failing pipeline, which is `ci-triage`; driving an observed bug down to its cause, which is `debugging`; designing what a suite should test, which is `test-design`; restructuring code that is not changing behaviour, which is `refactoring`; an authorisation, injection and secrets pass over a diff, which is `security-review`; reviewing an interface contract before it is built, which is `api-design`; writing the change in the first place, which is `code-scaffold`.
 
 ## Hard gates
 
