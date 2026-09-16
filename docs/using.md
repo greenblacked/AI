@@ -78,7 +78,7 @@ than when merely relevant.
 If you cloned this repository to change the skills themselves, `/ship` runs the
 three-stage loop over a change: `explorer` surveys what already covers it, `implementer`
 writes it and runs the gates, `reviewer` judges the result on a fresh context with no
-editing tools. See [writing a subagent](writing-agents.md#the-three-stage-loop).
+editing tools. See [writing a subagent](writing-agents.md#the-two-loops).
 
 ### Updating and removing
 
