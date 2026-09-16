@@ -145,6 +145,19 @@ def drop_title(text: str) -> str:
     return stripped
 
 
+# The attribution MIT makes a condition of every copy. A flattened skill is the copy
+# most likely to leave this repository — pasted into a project in another assistant, or
+# a single file forwarded on — and until this line existed it left with no notice at
+# all. It sits at the foot of every exported file, below the reference material, so a
+# reader who scrolls to the end finds where the text came from and what they may do
+# with it.
+NOTICE = (
+    "---\n"
+    "From https://github.com/greenblacked/AI by greenblacked. MIT licensed: use, change "
+    "and redistribute it freely, keeping this line."
+)
+
+
 def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
     """Return (name, description, the self-contained document, unresolved pointers).
 
@@ -244,6 +257,7 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
     ]
     if sections:
         parts += ["", "## Reference material", "", *(s + "\n" for s in sections)]
+    parts += ["", NOTICE]
     return name, description, "\n".join(parts).rstrip() + "\n", unresolved
 
 
@@ -300,6 +314,12 @@ make portable
 
 Everything under `dist/` is generated and git-ignored. Do not edit these files; edit the
 skill and export again.
+
+## Licence
+
+MIT, from https://github.com/greenblacked/AI by greenblacked. Every file here ends with
+that line; keep it when you copy the file on, and you have met the licence's one
+condition.
 """
 
 
@@ -344,14 +364,18 @@ def export(root: Path, out: Path, check: bool = False) -> int:
     index = ["# Skill index", "", f"{total} procedures across {len(rendered)} groups.", ""]
     for plugin in sorted(rendered):
         index += [f"## {plugin}", ""]
-        bundle = [f"# {plugin}", ""]
+        bodies = []
         for name, description, document in sorted(rendered[plugin]):
             (out / "skills" / f"{name}.md").write_text(document, encoding="utf-8")
             index.append(f"- **{name}** — {description}")
-            # rstrip first: each document already ends in a newline, and joining without
-            # trimming leaves the blank-line runs markdownlint reports on the bundle.
-            bundle += [demote(document, 1).rstrip(), "", "---", ""]
+            # Every document ends with the notice. The bundle is one file, so it carries
+            # the notice once, at its foot, rather than once per skill it concatenates.
+            body = document[: document.rindex(NOTICE)]
+            # rstrip first: joining untrimmed documents leaves the blank-line runs
+            # markdownlint reports on the bundle.
+            bodies.append(demote(body, 1).rstrip())
         index.append("")
+        bundle = [f"# {plugin}", "", "\n\n---\n\n".join(bodies), "", NOTICE]
         (out / "plugins" / f"{plugin}.md").write_text("\n".join(bundle).rstrip() + "\n", "utf-8")
     (out / "index.md").write_text("\n".join(index).rstrip() + "\n", encoding="utf-8")
 
