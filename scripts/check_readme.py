@@ -16,9 +16,33 @@ What is checked, all of it mechanical:
 - the per-plugin contents table against what each plugin actually ships
 - one row per shipped subagent and per shipped command
 
-What is not checked is the prose, including the sentence that spells the counts in
-words. A check that tried to parse that would fail on a rewrite that was perfectly
-correct, and a gate that cries wolf is one people learn to override.
+- the Python badge against the interpreter matrix CI actually runs
+- the coverage badge against the floor `pyproject.toml` enforces
+- a count spelled out in the prose, against the same totals
+
+That last one was left out on purpose once, on the reasoning that parsing prose would
+fail on a rewrite that was perfectly correct, and a gate that cries wolf is one people
+learn to override. The exemption then produced exactly the failure this file exists to
+prevent: the opening sentence claimed seven slash commands while six shipped, and it
+survived several merges because the table and the badge were right and nothing read the
+sentence. It was caught by a reviewer, which is the outcome named two paragraphs above.
+
+The check is narrow enough to be safe rather than clever. It reads only lines outside
+tables and fenced blocks, only a number immediately followed by one of six nouns, and
+only where the number is a digit or a number word. Measured against this README it
+matches six phrases and every one is a real count. `plugins` is deliberately not one of
+the nouns: the prose uses it for two different true values, all eight of them in one
+sentence and the five that ship a subagent in another, so a single expected total would
+be wrong somewhere.
+
+The two badges that state what CI enforces are floors, not live figures. A coverage
+badge showing the real percentage would have to be typed by hand, and a typed number
+in a README is exactly how the slash-command count went wrong. Stating the floor is
+honest and checkable: the badge must match `fail_under`, and the Python badge must
+match the test matrix, so neither drifts when its source of truth moves. The check runs
+in both directions: a badge is required while its source exists, and a badge left
+behind after the source is removed fails too, because that is a guarantee with nothing
+enforcing it, which is the trigger-eval badge this file refused to add.
 
 Standard library only, like the validator it imports.
 """
@@ -29,6 +53,7 @@ import argparse
 import re
 import sys
 from pathlib import Path
+from urllib.parse import unquote
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
@@ -37,6 +62,13 @@ from skillcheck.rules import find_agents, find_commands, find_plugins, find_skil
 # `[`name`](plugins/<plugin>/skills/<name>/SKILL.md)` — the shape every skill row uses.
 SKILL_ROW_RE = re.compile(r"\[`([a-z0-9-]+)`\]\((plugins/[^)]*?/skills/[^)]*?/SKILL\.md)\)")
 BADGE_RE = re.compile(r"img\.shields\.io/badge/skills-(\d+)-")
+# The version list is URL-encoded in the badge ("3.10%20%7C%203.11") and is decoded
+# before comparison. The trailing colour is what bounds the capture.
+PYTHON_BADGE_RE = re.compile(r"img\.shields\.io/badge/python-(.+?)-[0-9a-f]{6}\)")
+# "≥" arrives as %E2%89%A5 and "%" as %25; the number between them is the floor.
+COVERAGE_BADGE_RE = re.compile(r"img\.shields\.io/badge/coverage-(?:%E2%89%A5)?(\d+)%25-")
+CI_MATRIX_RE = re.compile(r"python-version:\s*\[([^\]]*)\]")
+FAIL_UNDER_RE = re.compile(r"^fail_under\s*=\s*(\d+)", re.M)
 # A row in the "What is included" table: | `coding` | focus | 12 skills, 1 subagent |
 CONTENTS_ROW_RE = re.compile(r"^\|\s*`([a-z0-9-]+)`\s*\|[^|]*\|([^|]*)\|", re.M)
 COUNT_RES = {
@@ -44,6 +76,51 @@ COUNT_RES = {
     "subagents": re.compile(r"(\d+)\s+subagents?\b"),
     "commands": re.compile(r"(\d+)\s+commands?\b"),
 }
+
+# Counts in the prose are written in words as often as in digits. Twenty is well above
+# anything this repository will spell out rather than tabulate.
+NUMBER_WORDS = {
+    word: value
+    for value, word in enumerate(
+        [
+            *("zero", "one", "two", "three", "four", "five", "six", "seven"),
+            *("eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen"),
+            *("fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty"),
+        ]
+    )
+}
+# The qualified forms come first so the alternation prefers them: "agent skills" must not
+# match as bare "skills" and leave "agent" as the number.
+PROSE_NOUNS = {
+    "agent skills": "skills",
+    "read-only subagents": "subagents",
+    "slash commands": "commands",
+    "skills": "skills",
+    "subagents": "subagents",
+    "commands": "commands",
+}
+PROSE_COUNT_RE = re.compile(
+    rf"\b([A-Za-z]+|\d+)\s+({'|'.join(PROSE_NOUNS)})\b",
+    re.I,
+)
+
+
+def prose_lines(text: str) -> list[tuple[int, str]]:
+    """Every numbered line that is prose rather than a table row or fenced code.
+
+    A table row states a per-plugin count and is checked against that plugin, not
+    against the repository total, so reading one here would invent a failure.
+    """
+    out: list[tuple[int, str]] = []
+    fenced = False
+    for number, line in enumerate(text.splitlines(), 1):
+        if line.lstrip().startswith("```"):
+            fenced = not fenced
+            continue
+        if fenced or line.lstrip().startswith("|"):
+            continue
+        out.append((number, line))
+    return out
 
 
 def on_disk(root: Path) -> dict[str, dict[str, set[str]]]:
@@ -57,6 +134,27 @@ def on_disk(root: Path) -> dict[str, dict[str, set[str]]]:
             "commands": {c.stem for c in find_commands(plugin / "commands")},
         }
     return contents
+
+
+def ci_python_matrix(root: Path) -> list[str] | None:
+    """The interpreter versions CI's test matrix runs, or None when there is no matrix."""
+    workflow = root / ".github" / "workflows" / "ci.yml"
+    if not workflow.is_file():
+        return None
+    match = CI_MATRIX_RE.search(workflow.read_text(encoding="utf-8"))
+    if match is None:
+        return None
+    # Single quotes, double quotes or none: the workflow's style is not the contract.
+    return re.findall(r"(\d+\.\d+)", match.group(1))
+
+
+def coverage_floor(root: Path) -> int | None:
+    """The coverage percentage `make coverage` fails below, or None when none is set."""
+    pyproject = root / "pyproject.toml"
+    if not pyproject.is_file():
+        return None
+    match = FAIL_UNDER_RE.search(pyproject.read_text(encoding="utf-8"))
+    return int(match.group(1)) if match else None
 
 
 def check(root: Path) -> int:
@@ -95,6 +193,34 @@ def check(root: Path) -> int:
     elif int(badge.group(1)) != len(every_skill):
         fail(f"the skills badge says {badge.group(1)}, and there are {len(every_skill)}")
 
+    # --- badges that state what CI enforces ------------------------------------------
+    matrix = ci_python_matrix(root)
+    python_badge = PYTHON_BADGE_RE.search(text)
+    if matrix is None and python_badge is not None:
+        fail("the README has a python badge and CI runs no interpreter matrix to back it")
+    elif matrix is not None:
+        if python_badge is None:
+            fail("CI runs a Python matrix and the README has no python badge stating it")
+        else:
+            stated = [v.strip() for v in unquote(python_badge.group(1)).split("|")]
+            if sorted(stated) != sorted(matrix):
+                fail(f"the python badge says {', '.join(stated)}, and CI tests {', '.join(matrix)}")
+    floor = coverage_floor(root)
+    coverage_badge = COVERAGE_BADGE_RE.search(text)
+    if floor is None and coverage_badge is not None:
+        fail("the README states a coverage floor and pyproject.toml sets none")
+    elif floor is not None:
+        if coverage_badge is None:
+            fail(
+                f"pyproject.toml fails coverage below {floor} and the README has no "
+                "badge stating it"
+            )
+        elif int(coverage_badge.group(1)) != floor:
+            fail(
+                f"the coverage badge says {coverage_badge.group(1)}, and pyproject.toml "
+                f"fails below {floor}"
+            )
+
     # --- subagents and commands: every shipped one has a row --------------------------
     for kind, key in (("subagent", "subagents"), ("command", "commands")):
         for plugin in sorted(contents):
@@ -117,6 +243,28 @@ def check(root: Path) -> int:
         for path in finder(directory):
             if f"`{mark}{path.stem}`" not in text:
                 fail(f"{kind} {mark}{path.stem} is in .claude/ and has no row in the README")
+
+    # --- counts spelled out in the prose ----------------------------------------------
+    totals = {
+        "skills": len(every_skill),
+        "subagents": len({n for p in contents.values() for n in p["subagents"]}),
+        "commands": len({n for p in contents.values() for n in p["commands"]}),
+    }
+    for number, line in prose_lines(text):
+        for stated, noun in PROSE_COUNT_RE.findall(line):
+            if stated.isdigit():
+                value = int(stated)
+            elif stated.lower() in NUMBER_WORDS:
+                value = NUMBER_WORDS[stated.lower()]
+            else:
+                continue  # ordinary prose — "the skills", "installed subagents"
+            kind = PROSE_NOUNS[noun.lower()]
+            if value != totals[kind]:
+                fail(
+                    f"line {number} says {stated} {noun}, and there are "
+                    f"{totals[kind]}; if that sentence counts something narrower than "
+                    f"the whole repository, say so in words the count cannot be read from"
+                )
 
     # --- the per-plugin contents table ------------------------------------------------
     seen_in_table = set()

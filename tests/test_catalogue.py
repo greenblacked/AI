@@ -763,3 +763,156 @@ def test_an_inlined_reference_does_not_repeat_its_own_title(mini_repo):
     (skill / "references" / "depth.md").write_text("# Going deeper\n\nDetail.\n", encoding="utf-8")
     _, _, document, _ = portable.render_skill(skill)
     assert document.count("Going deeper") == 1
+
+
+def test_a_prose_count_that_disagrees_with_the_tree_is_caught(mini_repo, capsys):
+    # The defect this check was added for: the opening sentence said seven slash commands
+    # while six shipped, and it survived several merges because the table and the badge
+    # were right and nothing read the sentence.
+    write_readme(mini_repo, README + "\nThis library has three skills, in one plugin.\n")
+    assert readme.check(mini_repo) == 1
+    assert "says three skills, and there are 2" in capsys.readouterr().out
+
+
+def test_a_prose_count_written_in_digits_is_caught(mini_repo, capsys):
+    write_readme(mini_repo, README + "\nAll 9 skills are listed above.\n")
+    assert readme.check(mini_repo) == 1
+    assert "says 9 skills, and there are 2" in capsys.readouterr().out
+
+
+def test_a_correct_prose_count_passes(mini_repo, capsys):
+    write_readme(mini_repo, README + "\nTwo skills and one subagent ship here.\n")
+    assert readme.check(mini_repo) == 0
+
+
+def test_ordinary_prose_about_skills_is_not_read_as_a_count(mini_repo, capsys):
+    # The reason this check was left out once: a gate that fails on correct prose is one
+    # people learn to override. A word before the noun is only a count when it is a
+    # number, so "installed skills" and "the subagents" have to stay silent.
+    write_readme(
+        mini_repo,
+        README + "\nThe installed skills load on demand, and the subagents do not.\n",
+    )
+    assert readme.check(mini_repo) == 0
+
+
+def test_a_per_plugin_count_in_a_table_is_not_read_as_a_repository_total(mini_repo, capsys):
+    # The contents row says "2 skills" for one plugin. Read as a repository total in a
+    # tree with more plugins it would be wrong, so table rows are excluded by line.
+    write_readme(mini_repo, README)
+    assert readme.check(mini_repo) == 0
+    assert "says 2 skills" not in capsys.readouterr().out
+
+
+def test_a_count_inside_a_fenced_block_is_not_checked(mini_repo, capsys):
+    # A fenced block is a transcript or an example, not a claim about this tree.
+    write_readme(mini_repo, README + "\n```text\nFound 40 skills\n```\n")
+    assert readme.check(mini_repo) == 0
+
+
+# --- badges that state what CI enforces --------------------------------------------------
+
+PYTHON_BADGE = (
+    "[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11-3776ab)](pyproject.toml)\n"
+)
+COVERAGE_BADGE = (
+    "[![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)\n"
+)
+
+
+def write_ci_matrix(root, versions):
+    workflow = root / ".github" / "workflows"
+    workflow.mkdir(parents=True, exist_ok=True)
+    quoted = ", ".join(f"'{v}'" for v in versions)
+    (workflow / "ci.yml").write_text(
+        f"jobs:\n  test:\n    strategy:\n      matrix:\n        python-version: [{quoted}]\n",
+        encoding="utf-8",
+    )
+
+
+def write_coverage_floor(root, floor):
+    (root / "pyproject.toml").write_text(
+        f"[tool.coverage.report]\nfail_under = {floor}\n", encoding="utf-8"
+    )
+
+
+def test_without_a_matrix_or_a_floor_neither_badge_is_required(mini_repo):
+    # The fixture repository declares neither, and a badge for a guarantee the tree
+    # does not make would be the stale-number problem in reverse.
+    write_readme(mini_repo, README)
+    assert readme.check(mini_repo) == 0
+
+
+def test_a_python_badge_matching_the_matrix_passes(mini_repo):
+    write_ci_matrix(mini_repo, ["3.10", "3.11"])
+    write_readme(mini_repo, README.replace("\n| Plugin", PYTHON_BADGE + "\n| Plugin", 1))
+    assert readme.check(mini_repo) == 0
+
+
+def test_a_python_badge_that_disagrees_with_the_matrix_is_caught(mini_repo, capsys):
+    # The matrix gained a version and the badge did not: the README now understates
+    # the portability guarantee the four-interpreter run exists to make.
+    write_ci_matrix(mini_repo, ["3.10", "3.11", "3.12"])
+    write_readme(mini_repo, README.replace("\n| Plugin", PYTHON_BADGE + "\n| Plugin", 1))
+    assert readme.check(mini_repo) == 1
+    assert (
+        "the python badge says 3.10, 3.11, and CI tests 3.10, 3.11, 3.12" in capsys.readouterr().out
+    )
+
+
+def test_a_missing_python_badge_is_caught_when_ci_has_a_matrix(mini_repo, capsys):
+    write_ci_matrix(mini_repo, ["3.10"])
+    write_readme(mini_repo, README)
+    assert readme.check(mini_repo) == 1
+    assert "no python badge" in capsys.readouterr().out
+
+
+def test_a_coverage_badge_matching_the_floor_passes(mini_repo):
+    write_coverage_floor(mini_repo, 95)
+    write_readme(mini_repo, README.replace("\n| Plugin", COVERAGE_BADGE + "\n| Plugin", 1))
+    assert readme.check(mini_repo) == 0
+
+
+def test_a_coverage_badge_that_disagrees_with_the_floor_is_caught(mini_repo, capsys):
+    # The badge states the floor, not a live figure, precisely so that this comparison
+    # is possible: a floor is something the tree declares and a gate can read.
+    write_coverage_floor(mini_repo, 90)
+    write_readme(mini_repo, README.replace("\n| Plugin", COVERAGE_BADGE + "\n| Plugin", 1))
+    assert readme.check(mini_repo) == 1
+    assert (
+        "the coverage badge says 95, and pyproject.toml fails below 90" in capsys.readouterr().out
+    )
+
+
+def test_a_missing_coverage_badge_is_caught_when_a_floor_is_declared(mini_repo, capsys):
+    write_coverage_floor(mini_repo, 95)
+    write_readme(mini_repo, README)
+    assert readme.check(mini_repo) == 1
+    assert "no badge stating it" in capsys.readouterr().out
+
+
+def test_a_python_badge_with_no_matrix_behind_it_is_caught(mini_repo, capsys):
+    # The reverse direction. Remove the matrix and the badge keeps advertising a
+    # guarantee nothing enforces, which is the trigger-eval badge this check refused.
+    write_readme(mini_repo, README.replace("\n| Plugin", PYTHON_BADGE + "\n| Plugin", 1))
+    assert readme.check(mini_repo) == 1
+    assert "no interpreter matrix to back it" in capsys.readouterr().out
+
+
+def test_a_coverage_badge_with_no_floor_behind_it_is_caught(mini_repo, capsys):
+    write_readme(mini_repo, README.replace("\n| Plugin", COVERAGE_BADGE + "\n| Plugin", 1))
+    assert readme.check(mini_repo) == 1
+    assert "pyproject.toml sets none" in capsys.readouterr().out
+
+
+def test_a_double_quoted_matrix_is_read(mini_repo):
+    # The workflow's quoting style is not the contract; a rewrite to double quotes must
+    # not make the gate go blind.
+    workflow = mini_repo / ".github" / "workflows"
+    workflow.mkdir(parents=True, exist_ok=True)
+    (workflow / "ci.yml").write_text(
+        'jobs:\n  test:\n    strategy:\n      matrix:\n        python-version: ["3.10", "3.11"]\n',
+        encoding="utf-8",
+    )
+    write_readme(mini_repo, README.replace("\n| Plugin", PYTHON_BADGE + "\n| Plugin", 1))
+    assert readme.check(mini_repo) == 0

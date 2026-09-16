@@ -1,0 +1,23 @@
+[
+  {"query": "here's the schema dump for all 200 tables, which columns hold personal data", "should_trigger": true},
+  {"query": "attached is a day of nginx access logs, 400MB, find the personal data in it", "should_trigger": true},
+  {"query": "i exported every column name and type from the warehouse, go through it and classify", "should_trigger": true},
+  {"query": "sample of 5000 rows from the events table, tell me what's identifying in there", "should_trigger": true},
+  {"query": "this CSV export is 80 columns wide and nobody knows what half of them are, work it out", "should_trigger": true},
+  {"query": "read the dump in ./out and tell me which fields are special category", "should_trigger": true},
+  {"query": "go through this table sample and tell me which columns are free text that could hold anything", "should_trigger": true},
+  {"query": "which of these log fields carry identifiers, don't paste the log back at me", "should_trigger": true},
+  {"query": "here's the full DDL for the legacy database, find what's personal and where it points", "should_trigger": true},
+  {"query": "scan this schema and say which combinations of columns would re-identify someone", "should_trigger": true},
+
+  {"query": "how long should we keep this data once we know what it is", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "a subject access request arrived, what do we do first", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "is this breach notifiable or do we record it internally", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "write the retention policy now that we have the inventory", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "read the DPA and tell me what the sub-processor clause commits us to", "should_trigger": false, "expected": "contract-reader"},
+  {"query": "read the iam policies and cloudtrail and tell me what this role over-permits", "should_trigger": false, "expected": "policy-auditor"},
+  {"query": "here is the failed CI run, which of the five classes is it", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "read this terraform plan json and tell me what the apply destroys", "should_trigger": false, "expected": "plan-reviewer"},
+  {"query": "make this slow query fast, here is the explain output", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "our key leaked, rotate it without an outage", "should_trigger": false, "expected": "secret-rotation"}
+]
