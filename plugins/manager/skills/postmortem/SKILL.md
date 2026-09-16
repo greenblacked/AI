@@ -36,6 +36,12 @@ The last row deserves its own emphasis. An incident found by a customer, a suppo
 
 ### 2. Interrogate before drafting
 
+When the raw material is bulky — a channel export, war-room scrollback, a day of alert
+history — and the operations plugin is installed, hand it to the `incident-scribe`
+subagent instead of reading it here. It returns a first draft with the timeline assembled
+and every unsupported figure marked, and keeps the scrollback out of this conversation.
+Without that plugin, gather the sources below yourself.
+
 Gather facts before writing a single sentence of narrative. Ask in one batch, and ask for sources rather than recollections:
 
 - Timeline entries with timestamps and time zone — from chat logs, alert history, deploy records, not from memory.

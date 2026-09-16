@@ -69,6 +69,13 @@ Keep the raw capture. It is the before number, and without it the after number p
 
 ### 4. Prove the bound before changing anything
 
+When the evidence is a capture rather than a number — a frame-timing export, a profiler
+trace, thousands of frames from a playtest build — hand it to the `frame-capture-reader`
+subagent instead of reading it here. It returns whether the frame is CPU-bound or
+GPU-bound with the evidence for the call, the hot frames and what dominated each, and
+whether a hitch is a spike or a sustained cost, and keeps the capture out of this
+conversation.
+
 Every fix below belongs to one side of the frame. Applying a CPU fix to a GPU-bound frame changes nothing, which is usually read as "the optimisation did not help much" rather than "this was the wrong half".
 
 The fast tell per engine — `stat unit` in Unreal, the wait markers in the Unity Profiler, the Visual Profiler in Godot, the main-thread flame chart against the GPU track in Chrome — is in `references/cpu-or-gpu.md`, along with the two engine-independent experiments that settle it when the tooling is unavailable: halve the render resolution, and halve the entity count, separately, and see which one moves the frame time. Read it at this step and record the verdict, the evidence and the number in one line before continuing.

@@ -187,6 +187,12 @@ Ship with this, then let real questions add to it:
 
 ### 12. After an incident, add only what answers the question you could not answer
 
+When the incident left a trace bundle or a day of structured logs, hand it to the
+`telemetry-reader` subagent before deciding what to add. It returns the critical path with
+per-span durations, or an explicit statement that the telemetry cannot answer the question
+and what would, which is exactly the gap this step exists to close. The bundle itself never
+enters this conversation.
+
 Write the unanswered question down first, in the postmortem, in the responder's words. Then add the one or two signals that answer it, and record the question beside them. Resist widening: the instinct after an incident is to instrument the entire mechanism that failed, which is exactly how an estate ends up shaped by one bad night. And use the same review to delete — the panels the responders scrolled past and the metrics nobody queried during the incident are evidence, and it is the only time you will get that evidence for free.
 
 ## Question to signal to instrument
