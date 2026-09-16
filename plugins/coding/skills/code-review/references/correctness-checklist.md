@@ -101,8 +101,8 @@ attacker-chosen — against each input the change introduces or newly trusts.
   addresses added to a log line or an error message that goes to a third party.
 
 For the authorisation, injection and secrets pass over the whole diff rather than the
-input handling in one file, hand off to `security-review`. A dedicated threat model of
-a surface before the code exists is owned by nothing here.
+input handling in one file, hand off to `security-review`. For a threat model of the
+surface before the code exists, `threat-model`.
 
 ## Resources and lifetimes
 

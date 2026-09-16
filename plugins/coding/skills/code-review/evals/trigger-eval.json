@@ -70,9 +70,9 @@
     "expected": "dependency-upgrade"
   },
   {
-    "query": "check the new upload endpoint for injection and ssrf before it merges",
+    "query": "do a proper threat model of the new file upload feature",
     "should_trigger": false,
-    "expected": "security-review"
+    "expected": "threat-model"
   },
   {
     "query": "this 600 line class needs breaking up but the behaviour has to stay identical",
