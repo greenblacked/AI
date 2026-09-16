@@ -622,6 +622,10 @@ def check_marketplace(repo_root: Path) -> list[Finding]:
 # are validated separately for that reason rather than sharing one key set.
 # What a plugin-shipped subagent may carry. Unlike a skill there is no upload route
 # forcing this closed, so it is the documented set rather than a house restriction.
+# The source is the plugins reference's "Plugin agents support ..." line, not the
+# sub-agents page: the two list different keys, and only the former is scoped to what
+# survives being shipped inside a plugin. Re-check it there rather than trusting this
+# copy. `color` and `initialPrompt` are absent from it and were once accepted here.
 AGENT_ALLOWED_KEYS = frozenset(
     {
         "name",
@@ -635,8 +639,7 @@ AGENT_ALLOWED_KEYS = frozenset(
         "memory",
         "background",
         "isolation",
-        "color",
-        "initialPrompt",
+        "omitClaudeMd",
     }
 )
 # Accepted in a project-level agent, refused in one a plugin ships — a plugin must not

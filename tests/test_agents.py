@@ -82,11 +82,41 @@ def test_find_agents_is_sorted_and_ignores_other_files(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "key", ["disallowedTools", "effort", "maxTurns", "skills", "memory", "isolation", "color"]
+    "key",
+    [
+        "disallowedTools",
+        "effort",
+        "maxTurns",
+        "skills",
+        "memory",
+        "background",
+        "isolation",
+        "omitClaudeMd",
+    ],
 )
 def test_the_documented_plugin_agent_keys_are_allowed(tmp_path, key):
     text = GOOD.replace("tools: Read, Grep\n", f"tools: Read, Grep\n{key}: value\n")
     assert check_agent(write_agent(tmp_path, "demo-agent", text), tmp_path) == []
+
+
+@pytest.mark.parametrize("key", ["color", "initialPrompt"])
+def test_keys_the_plugins_reference_does_not_list_are_refused(tmp_path, key):
+    # Both were accepted here once, on the assumption that a subagent file's key set and
+    # a plugin-shipped subagent's are the same. They are not: the plugins reference lists
+    # twelve keys a plugin agent supports and neither of these is among them, so an author
+    # following the validator could ship one and never learn that nothing read it.
+    #
+    # That absence is the whole reason, and it is worth being exact about what it is not.
+    # A plugin agent *can* run as the main session agent — `claude --agent my-plugin:name`
+    # is documented — so "it is never the main agent" would be a false argument for
+    # refusing `initialPrompt`, and the next reader who discovers that would restore both
+    # keys. The second assertion pins the other half: these are ordinary unknown keys, not
+    # the security-reasoned refusal that `hooks`, `mcpServers` and `permissionMode` get,
+    # because that message states a reason untrue of a display colour.
+    text = GOOD.replace("tools: Read, Grep\n", f"tools: Read, Grep\n{key}: value\n")
+    findings = check_agent(write_agent(tmp_path, "demo-agent", text), tmp_path)
+    assert codes(findings) == {"unknown-key"}
+    assert "plugin-shipped" not in findings[0].message
 
 
 @pytest.mark.parametrize("key", ["hooks", "mcpServers", "permissionMode"])

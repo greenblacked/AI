@@ -1,0 +1,92 @@
+[
+  {
+    "query": "we're adding a users table, what personal data rules should shape the schema before we build it",
+    "should_trigger": true
+  },
+  {
+    "query": "how long are we allowed to keep this data and who decides that",
+    "should_trigger": true
+  },
+  {
+    "query": "a customer asked us to delete everything we hold on them, what does that actually have to reach",
+    "should_trigger": true
+  },
+  {
+    "query": "we got a subject access request this morning and nobody knows what to do first",
+    "should_trigger": true
+  },
+  {
+    "query": "write the retention policy for our analytics events, we keep everything forever right now",
+    "should_trigger": true
+  },
+  {
+    "query": "is this a reportable breach or do we just record it internally",
+    "should_trigger": true
+  },
+  {
+    "query": "our deleted_at column is the only deletion we have, is that a problem",
+    "should_trigger": true
+  },
+  {
+    "query": "we hash emails before putting them in the warehouse, can we call that anonymised",
+    "should_trigger": true
+  },
+  {
+    "query": "personal data is ending up in our application logs, how do we approach fixing that",
+    "should_trigger": true
+  },
+  {
+    "query": "if we restore last month's backup do the records we erased come back",
+    "should_trigger": true
+  },
+  {
+    "query": "here's the schema dump for all 200 tables, work out which columns hold personal data",
+    "should_trigger": false,
+    "expected": "pii-reader"
+  },
+  {
+    "query": "read this day of nginx logs and tell me which fields are personal data",
+    "should_trigger": false,
+    "expected": "pii-reader"
+  },
+  {
+    "query": "our API key ended up in a public repo, what now",
+    "should_trigger": false,
+    "expected": "secret-rotation"
+  },
+  {
+    "query": "design how our service proves who the caller is",
+    "should_trigger": false,
+    "expected": "auth-design"
+  },
+  {
+    "query": "does the ci role still need s3 full access, here are the last-accessed reports",
+    "should_trigger": false,
+    "expected": "access-review"
+  },
+  {
+    "query": "read the DPA this vendor sent and tell me what it commits us to",
+    "should_trigger": false,
+    "expected": "contract-reader"
+  },
+  {
+    "query": "review this pull request for vulnerabilities before it merges",
+    "should_trigger": false,
+    "expected": "security-review"
+  },
+  {
+    "query": "we need to migrate the users table to a new schema without downtime",
+    "should_trigger": false,
+    "expected": "db-migration"
+  },
+  {
+    "query": "draft the customer notice for the breach and the status page post",
+    "should_trigger": false,
+    "expected": "incident-comms"
+  },
+  {
+    "query": "the outage is over and the writeup needs drafting",
+    "should_trigger": false,
+    "expected": "postmortem"
+  }
+]

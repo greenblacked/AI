@@ -2,9 +2,9 @@
 
 Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
 frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md) for
-one of the ten this repository ships today, one with `coding`, four with `operations`,
-two with `security`, two with `manager` and one with `gamedev` — and in `.claude/agents/`
-for the three that serve work on this repository rather than shipping to anyone,
+one of the eleven this repository ships today, one with `coding`, four with
+`operations`, three with `security`, two with `manager` and one with `gamedev` — and in `.claude/agents/`
+for the four that serve work on this repository rather than shipping to anyone,
 described in [the two loops](#the-two-loops) below. A subagent is a
 separate Claude instance with its own context window, its own system prompt, and its own
 tool allowlist, invoked by the main agent and returning a result to it.
@@ -33,9 +33,14 @@ tools: Read, Glob, Grep, Bash
   already omits those tools, so this is a statement rather than a restriction: it says in
   the file that the subagent must not change anything, where a reader will see it, and it
   survives someone later adding `Bash` to `tools` for a checker.
-- **`model`** — optional. The model the subagent runs on. None of the ten here set it.
+- **`model`** — optional. The model the subagent runs on. None of the eleven here set it.
 - Also accepted, because a plugin-shipped subagent supports them: `effort`, `maxTurns`,
-  `skills`, `memory`, `background`, `isolation`, `color`, `initialPrompt`.
+  `skills`, `memory`, `background`, `isolation`, `omitClaudeMd`. The last is the one
+  worth knowing: it starts the subagent without the user's, the project's and the local
+  `CLAUDE.md`, which for a narrow reader is the difference between a clean context and
+  inheriting the whole contract of wherever it ran. Managed policy files still load, and
+  it needs Claude Code v2.1.271 — on an older client it is ignored in silence, the same
+  failure this file guards against elsewhere.
 
 The key set is the documented one for a plugin-shipped subagent, not a house restriction
 — unlike a skill, there is no upload route forcing it closed. Three keys that work in a
@@ -272,6 +277,35 @@ a stance rather than a domain, and it is the reason `/verify` names the agent ex
 instead of relying on it being chosen. The eval workflow runs monthly and on demand rather
 than on a pull request, so this is a recorded cost and not a red gate; anyone who improves
 it should beat 70% before assuming the description was the problem.
+
+### What the scores showed
+
+Every shipped subagent was scored against the live catalogue in one sitting, three runs
+each with a majority vote, and the result was not what the descriptions predicted. The
+score was decided by one thing: whether the paired skill's description claimed the same
+act the subagent performs. Where the skill described a different act — `vendor-evaluation`
+is about choosing a vendor and `contract-reader` reads the contract — the subagent scored
+between 95% and 100%. Where the skill claimed the act itself — `ci-triage` says it reads
+`--log-failed`, `postmortem` says it drafts the postmortem — the subagent scored between
+60% and 70%, and the misses went to that skill. The mechanism is lexical: a skill's quoted
+casual phrasings, written so it fires on vernacular, capture the subagent's queries too.
+`iac-review` quotes "why is it recreating my database" and takes `plan-reviewer`'s "why is
+terraform recreating the rds instance".
+
+Description length correlated with score across the ten subagents that existed then, at a
+rank correlation near 0.9, and the correlation was confounded. Lengthening `ci-log-reader`'s
+description from 299 to 719 characters in a scratch copy moved its score from 60% to 70%
+and made recall worse. Adding a cede clause to `ci-triage` instead, with the subagent's
+description untouched, moved it to 80% and cost the skill nothing attributable. Neither is
+a fix: three positives still went to the skill on queries whose vocabulary it owns
+outright. The one intervention that works whichever side wins routing is the handoff line
+in the skill body, which is why the rule for subagents asks for it.
+
+Two things the catalogue cannot see. The built-in `Explore` competes with `explorer` in
+every session, and the built-in `/skill-doctor` was chosen by name for queries meant for
+`skill-reviewer`, so real competition is wider than any score here reflects. And these
+were single sittings with about five points of run-to-run noise, so read the gap and the
+failure mode, not the digits.
 
 It has two stages rather than three on the same evidence. A third was
 drafted — a cheap `searcher` that would find candidate sources and hand them on without a
