@@ -553,6 +553,19 @@ def test_export_writes_a_file_per_skill_a_bundle_per_plugin_and_an_index(mini_re
     assert (out / "README.md").is_file()
 
 
+def test_every_exported_file_carries_the_attribution_notice(mini_repo, tmp_path):
+    # A flattened skill is the copy most likely to leave the repository, and MIT makes
+    # keeping the notice a condition of every copy. Before this footer existed the
+    # export shipped nothing a reader could trace back.
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for path in [*(out / "skills").glob("*.md"), *(out / "plugins").glob("*.md")]:
+        text = path.read_text(encoding="utf-8")
+        assert portable.NOTICE in text, path.name
+        assert text.rstrip().endswith(portable.NOTICE.rstrip()), f"{path.name} not last"
+    assert "greenblacked/AI" in (out / "README.md").read_text(encoding="utf-8")
+
+
 def test_check_reports_without_writing(mini_repo, tmp_path, capsys):
     out = tmp_path / "portable"
     assert portable.export(mini_repo, out, check=True) == 0

@@ -380,4 +380,16 @@ Repository conventions for agents live in [`AGENTS.md`](AGENTS.md).
 
 ## Licence
 
-[MIT](LICENSE).
+[MIT](LICENSE). Use it, copy it, change it, ship it inside something you sell — the one
+condition is that the copyright notice travels with it. That notice names
+**greenblacked** and links to this repository, so any copy, fork or derivative has to say
+where it came from:
+
+```text
+Copyright (c) 2026 greenblacked (https://github.com/greenblacked/AI)
+```
+
+Keep it in a `LICENSE` file, a header, or a credits page — anywhere a reader of the copy
+will find it. If you lift a single skill into another assistant, the portable export
+already puts the line at the foot of every file it writes, so `make portable` needs no
+extra step. What the licence does not require is asking first, or sharing changes back.
