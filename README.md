@@ -3,7 +3,7 @@
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
 [![Security](https://github.com/greenblacked/AI/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/security.yml)
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
-[![Skills](https://img.shields.io/badge/skills-73-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-74-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 73 agent skills, ten read-only subagents and seven slash commands, in eight
@@ -32,7 +32,7 @@ outside a runtime that can trigger them for you.
 | `gamedev` | Making games, and shipping them | 9 skills, 1 subagent, 1 command |
 | `operations` | Keeping a running system alive | 12 skills, 4 subagents, 2 commands |
 | `delivery` | Getting a change into production | 6 skills |
-| `security` | The defensive side of shipping software | 7 skills, 2 subagents, 2 commands |
+| `security` | The defensive side of shipping software | 8 skills, 3 subagents, 2 commands |
 | `manager` | Engineering leadership | 13 skills, 2 subagents, 1 command |
 | `personal` | Money, travel, admin, habits and health | 7 skills |
 | `career` | Applications, negotiation, speaking and writing | 5 skills |
@@ -227,6 +227,7 @@ The defensive side of shipping software.
 | --- | --- |
 | [`access-review`](plugins/security/skills/access-review/SKILL.md) | Reduce who and what can do what toward least privilege without breaking production: evidence over intent, and an audit-only window before enforcement. |
 | [`auth-design`](plugins/security/skills/auth-design/SKILL.md) | Design or review how a system proves who a caller is and keeps that proof safe: whether to build identity at all, the flow that fits each client type, session rotation on every privilege change, and where a token's claims can be trusted. |
+| [`data-privacy`](plugins/security/skills/data-privacy/SKILL.md) | Handle personal data end to end: settle controller or processor before anything else, classify what is held, enforce retention with a job rather than a document, and make deletion reach the search index, the caches and the restore path instead of only the primary row. |
 | [`dependency-triage`](plugins/security/skills/dependency-triage/SKILL.md) | Work a queue of vulnerability alerts into a decision each — reachability before severity, the two signals that mean today rather than this quarter, safe patches batched and risky ones isolated, and suppression that expires. |
 | [`iac-review`](plugins/security/skills/iac-review/SKILL.md) | Review a Terraform change against the plan JSON rather than the plan text, so replacements and destroys surface first instead of being skimmed past. |
 | [`image-hardening`](plugins/security/skills/image-hardening/SKILL.md) | Build or audit a container image: minimal base, digest pinning, numeric non-root UID, no secrets in layers, SBOM, a scan gate that will not get bypassed, signing that is actually verified. |
@@ -295,6 +296,7 @@ is not a reviewer.
 | `incident-scribe` | `operations` | Raw triage notes and scrollback | A blameless postmortem draft |
 | `plan-reviewer` | `security` | A Terraform plan JSON | The blast radius, destroys first |
 | `policy-auditor` | `security` | IAM policies and access logs | The gap between permitted and used, with the window stated |
+| `pii-reader` | `security` | A schema dump, a row sample or a log excerpt | Which fields carry personal data, their class and where they flow |
 | `skill-reviewer` | `coding` | A candidate SKILL.md | What is wrong, why it costs something, the smallest fix |
 | `contract-reader` | `manager` | A contract, DPA or SOC 2 report | The clauses that decide the deal, quoted and located |
 | `feedback-synthesiser` | `manager` | Collected peer feedback | Themes with a source count and a quoted example |
