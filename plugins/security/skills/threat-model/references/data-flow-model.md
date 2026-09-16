@@ -22,8 +22,8 @@ handled at the boundary you share.
 **Process.** Something that acts on data — a service, a lambda, a job, a consumer.
 
 **Data store.** Something that holds it — a database, a bucket, a queue, a cache, a log.
-Logs and caches are data stores and are the two most often left off, which is why
-information disclosure gets missed.
+Logs and caches are data stores and are commonly left off, which is why information
+disclosure gets missed.
 
 **Data flow.** The arrow, labelled with what actually travels and over what. "User data"
 is not a label; "session cookie over TLS" and "tenant id in an unsigned header" are, and
@@ -31,7 +31,7 @@ the second one names its own threat.
 
 ## Where trust changes hands
 
-These are the crossings worth marking, roughly in order of how often they are missed:
+These are the crossings worth marking:
 
 - **Application to its own pipeline.** Anything that can deploy can change the
   application, so the boundary between production and whatever pushes to it is real even
@@ -47,7 +47,8 @@ These are the crossings worth marking, roughly in order of how often they are mi
   carrying a claim about who it is.
 - **Your service to a third party,** in both directions. The response is input.
 - **Human to system.** An admin console, a support tool, a break-glass path. Support
-  tooling is a boundary crossing with a person on one side and is routinely unmodelled.
+  tooling is a boundary crossing with a person on one side, and is easy to leave out
+  because it was built for insiders.
 
 ## When the diagram is too big
 

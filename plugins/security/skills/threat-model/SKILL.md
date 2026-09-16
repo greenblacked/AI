@@ -1,6 +1,6 @@
 ---
 name: threat-model
-description: "Model what could go wrong with a design before the code exists — draw the data flows and mark every trust boundary first, because a threat lives where data crosses one; apply STRIDE per crossing rather than per component, which is what stops a quadratic pile of non-findings; write down what you are choosing not to mitigate and get a name against it; and rerun when a boundary moves rather than on a calendar. Use when a feature, service or integration is being designed, when a design document needs its security section, or when someone asks what an attacker could do with this. Not for reviewing a diff (security-review), designing login or tokens (auth-design), IAM permissions (access-review), or a live compromise (secret-rotation)."
+description: "Model what could go wrong with a design before the code exists — draw the data flows and mark every trust boundary first, because a threat lives where data crosses one; apply STRIDE per crossing rather than per component, because a crossing has two named parties and a payload and a component has neither; write down what you are choosing not to mitigate and get a name against it; and rerun when a boundary moves rather than on a calendar. Use when a feature, service or integration is being designed, when a design document needs its security section, or when someone asks what an attacker could do with this. Not for reviewing a diff (security-review), designing login or tokens (auth-design), IAM permissions (access-review), or a live compromise (secret-rotation)."
 allowed-tools: "Read, Grep, Glob, Write, Edit"
 ---
 
@@ -27,8 +27,9 @@ trust changes hands.
   invented from judgement gets quoted later as evidence, and the ranking that matters is
   which crossings are reachable by whom.
 - Do not close a threat with "we would notice". Detection is a mitigation only if
-  something is actually emitting the signal and someone is actually alerted on it. If
-  neither is true, the threat is open and the work is in `instrumentation`.
+  something is actually emitting the signal and someone is actually alerted on it. The
+  emitting is `instrumentation` and the alerting is `alert-design`; until both exist the
+  threat is open.
 
 ## Workflow
 
@@ -50,14 +51,15 @@ that the scope of the diagram is itself a decision.
 ### 2. Apply STRIDE per crossing, not per component
 
 For each flow that crosses a boundary, ask the six questions: can an attacker pretend to
-be one of the parties (spoofing), change the data in flight (tampering), deny having sent
+be one of the parties (spoofing), change the data in flight or at rest (tampering), deny having sent
 it (repudiation), read what they should not (information disclosure), stop it working
 (denial of service), or gain rights they were not granted (elevation of privilege).
 
-Per crossing rather than per component is the whole discipline. A component has every
-category applied to it in the abstract, which generates a quadratic pile of findings that
-are all true and none actionable. A crossing has two named parties and a specific payload,
-so each answer is either a real threat with an owner or a quick no.
+Per crossing rather than per component is the whole discipline, and it is not about doing
+less work — a system with many flows has more crossings than components. It is about what
+an answer can say. A component asked about tampering in the abstract yields a finding that
+is true and unactionable. A crossing has two named parties and a specific payload, so each
+answer is either a real threat with an owner or a quick no.
 
 [STRIDE per crossing](references/stride-per-crossing.md) has the question set with what a
 useful answer looks like for each, and the crossings where each category usually bites.
@@ -107,12 +109,15 @@ Finding spoofing and moving on leaves the elevation path that made spoofing wort
 **Boundaries** — each one, and the two parties either side.
 
 **Threats** — per crossing: the category, what it would let an attacker do, and the state
-from step 3 with its owner.
+from step 3 with its owner. Order the crossings by who can reach them — unauthenticated
+internet first, then authenticated tenant, internal service, the pipeline, and the human
+admin path — which is the ranking that matters and needs no score.
 
 **Accepted** — pulled out separately, with a name and a date against each.
 
 **Retrigger** — the structural changes that oblige a rerun.
 
 The four framing questions this follows — what are we building, what can go wrong, what
-are we doing about it, did we do a good job — and STRIDE itself are OWASP's, from
+are we doing about it, did we do a good job — STRIDE itself, and the four response states
+in step 3 are OWASP's, from
 [the threat modelling cheat sheet](https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/Threat_Modeling_Cheat_Sheet.md).
