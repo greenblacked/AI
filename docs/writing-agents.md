@@ -35,7 +35,12 @@ tools: Read, Glob, Grep, Bash
   survives someone later adding `Bash` to `tools` for a checker.
 - **`model`** — optional. The model the subagent runs on. None of the ten here set it.
 - Also accepted, because a plugin-shipped subagent supports them: `effort`, `maxTurns`,
-  `skills`, `memory`, `background`, `isolation`, `color`, `initialPrompt`.
+  `skills`, `memory`, `background`, `isolation`, `omitClaudeMd`. The last is the one
+  worth knowing: it starts the subagent without the user's, the project's and the local
+  `CLAUDE.md`, which for a narrow reader is the difference between a clean context and
+  inheriting the whole contract of wherever it ran. Managed policy files still load, and
+  it needs Claude Code v2.1.271 — on an older client it is ignored in silence, the same
+  failure this file guards against elsewhere.
 
 The key set is the documented one for a plugin-shipped subagent, not a house restriction
 — unlike a skill, there is no upload route forcing it closed. Three keys that work in a

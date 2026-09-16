@@ -573,7 +573,7 @@ subagent](writing-agents.md) for why.
 | Code | Level | Meaning | Fix |
 | --- | --- | --- | --- |
 | `frontmatter` | error | The block could not be parsed, as above. | Follow the message. |
-| `unknown-key` | error | A key outside `name`, `description`, `tools`, `model`. | Rename or delete it. `allowed-tools` here is the usual cause; the subagent key is `tools`. |
+| `unknown-key` | error | A key outside the set in [writing a subagent](writing-agents.md#frontmatter). | Rename or delete it. `allowed-tools` here is the usual cause; the subagent key is `tools`. |
 | `missing-name` | error | No `name`, or blank. | Add it. |
 | `bad-name` | error | Not lowercase letters, digits and single hyphens, or over 64 characters. | Rewrite it in kebab-case. |
 | `name-mismatch` | error | `name` differs from the filename stem. | Change one to match the other. |
