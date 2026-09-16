@@ -16,9 +16,9 @@ What is checked, all of it mechanical:
 - the per-plugin contents table against what each plugin actually ships
 - one row per shipped subagent and per shipped command
 
-- a count spelled out in the prose, against the same totals
 - the Python badge against the interpreter matrix CI actually runs
 - the coverage badge against the floor `pyproject.toml` enforces
+- a count spelled out in the prose, against the same totals
 
 That last one was left out on purpose once, on the reasoning that parsing prose would
 fail on a rewrite that was perfectly correct, and a gate that cries wolf is one people
@@ -39,8 +39,10 @@ The two badges that state what CI enforces are floors, not live figures. A cover
 badge showing the real percentage would have to be typed by hand, and a typed number
 in a README is exactly how the slash-command count went wrong. Stating the floor is
 honest and checkable: the badge must match `fail_under`, and the Python badge must
-match the test matrix, so neither drifts when its source of truth moves. Each is
-required only when that source exists in the tree, which keeps the test fixture small.
+match the test matrix, so neither drifts when its source of truth moves. The check runs
+in both directions: a badge is required while its source exists, and a badge left
+behind after the source is removed fails too, because that is a guarantee with nothing
+enforcing it, which is the trigger-eval badge this file refused to add.
 
 Standard library only, like the validator it imports.
 """
@@ -142,7 +144,8 @@ def ci_python_matrix(root: Path) -> list[str] | None:
     match = CI_MATRIX_RE.search(workflow.read_text(encoding="utf-8"))
     if match is None:
         return None
-    return re.findall(r"'(\d+\.\d+)'", match.group(1))
+    # Single quotes, double quotes or none: the workflow's style is not the contract.
+    return re.findall(r"(\d+\.\d+)", match.group(1))
 
 
 def coverage_floor(root: Path) -> int | None:
@@ -192,8 +195,10 @@ def check(root: Path) -> int:
 
     # --- badges that state what CI enforces ------------------------------------------
     matrix = ci_python_matrix(root)
-    if matrix is not None:
-        python_badge = PYTHON_BADGE_RE.search(text)
+    python_badge = PYTHON_BADGE_RE.search(text)
+    if matrix is None and python_badge is not None:
+        fail("the README has a python badge and CI runs no interpreter matrix to back it")
+    elif matrix is not None:
         if python_badge is None:
             fail("CI runs a Python matrix and the README has no python badge stating it")
         else:
@@ -201,8 +206,10 @@ def check(root: Path) -> int:
             if sorted(stated) != sorted(matrix):
                 fail(f"the python badge says {', '.join(stated)}, and CI tests {', '.join(matrix)}")
     floor = coverage_floor(root)
-    if floor is not None:
-        coverage_badge = COVERAGE_BADGE_RE.search(text)
+    coverage_badge = COVERAGE_BADGE_RE.search(text)
+    if floor is None and coverage_badge is not None:
+        fail("the README states a coverage floor and pyproject.toml sets none")
+    elif floor is not None:
         if coverage_badge is None:
             fail(
                 f"pyproject.toml fails coverage below {floor} and the README has no "

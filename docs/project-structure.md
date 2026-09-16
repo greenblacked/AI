@@ -99,14 +99,14 @@ groups (`src/**/*.{ts,tsx}`) are expanded before matching, since `pathlib` has n
 glob is matched against the working tree, so scope a rule to something committed rather
 than to `dist/`, which exists only after a build.
 
-This repository has three, each scoped to a path class whose gate fails expensively:
+This repository has four, each scoped to a path class whose gate fails expensively:
 
 | Rule | Scope | Why it exists |
 | --- | --- | --- |
 | `.claude/rules/validator.md` | `src/skillcheck/**`, `tests/**` | This package decides whether every other change may merge |
 | `.claude/rules/workflows.md` | `.github/workflows/**` | Every item in it is something zizmor or actionlint fails the build for |
 | `.claude/rules/skills.md` | `plugins/**/SKILL.md`, `plugins/**/evals/*.json` | The frontmatter contract and the eval floor, at the moment a skill is open |
-| `.claude/rules/agents.md` | `plugins/**/agents/*.md`, `.claude/agents/*.md` | What the subagent scores measured, at the moment one is open |
+| `.claude/rules/agents.md` | `plugins/**/agents/*.md`, `.claude/agents/*.md` | The pairing rule and the key set, at the moment a subagent is open |
 
 Each says `AGENTS.md` is the authority and restates only the part that applies to the
 file just opened. A rule that grows into a second copy of the contract is how the two

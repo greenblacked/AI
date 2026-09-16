@@ -889,3 +889,30 @@ def test_a_missing_coverage_badge_is_caught_when_a_floor_is_declared(mini_repo, 
     write_readme(mini_repo, README)
     assert readme.check(mini_repo) == 1
     assert "no badge stating it" in capsys.readouterr().out
+
+
+def test_a_python_badge_with_no_matrix_behind_it_is_caught(mini_repo, capsys):
+    # The reverse direction. Remove the matrix and the badge keeps advertising a
+    # guarantee nothing enforces, which is the trigger-eval badge this check refused.
+    write_readme(mini_repo, README.replace("\n| Plugin", PYTHON_BADGE + "\n| Plugin", 1))
+    assert readme.check(mini_repo) == 1
+    assert "no interpreter matrix to back it" in capsys.readouterr().out
+
+
+def test_a_coverage_badge_with_no_floor_behind_it_is_caught(mini_repo, capsys):
+    write_readme(mini_repo, README.replace("\n| Plugin", COVERAGE_BADGE + "\n| Plugin", 1))
+    assert readme.check(mini_repo) == 1
+    assert "pyproject.toml sets none" in capsys.readouterr().out
+
+
+def test_a_double_quoted_matrix_is_read(mini_repo):
+    # The workflow's quoting style is not the contract; a rewrite to double quotes must
+    # not make the gate go blind.
+    workflow = mini_repo / ".github" / "workflows"
+    workflow.mkdir(parents=True, exist_ok=True)
+    (workflow / "ci.yml").write_text(
+        'jobs:\n  test:\n    strategy:\n      matrix:\n        python-version: ["3.10", "3.11"]\n',
+        encoding="utf-8",
+    )
+    write_readme(mini_repo, README.replace("\n| Plugin", PYTHON_BADGE + "\n| Plugin", 1))
+    assert readme.check(mini_repo) == 0
