@@ -763,3 +763,48 @@ def test_an_inlined_reference_does_not_repeat_its_own_title(mini_repo):
     (skill / "references" / "depth.md").write_text("# Going deeper\n\nDetail.\n", encoding="utf-8")
     _, _, document, _ = portable.render_skill(skill)
     assert document.count("Going deeper") == 1
+
+
+def test_a_prose_count_that_disagrees_with_the_tree_is_caught(mini_repo, capsys):
+    # The defect this check was added for: the opening sentence said seven slash commands
+    # while six shipped, and it survived several merges because the table and the badge
+    # were right and nothing read the sentence.
+    write_readme(mini_repo, README + "\nThis library has three skills, in one plugin.\n")
+    assert readme.check(mini_repo) == 1
+    assert "says three skills, and there are 2" in capsys.readouterr().out
+
+
+def test_a_prose_count_written_in_digits_is_caught(mini_repo, capsys):
+    write_readme(mini_repo, README + "\nAll 9 skills are listed above.\n")
+    assert readme.check(mini_repo) == 1
+    assert "says 9 skills, and there are 2" in capsys.readouterr().out
+
+
+def test_a_correct_prose_count_passes(mini_repo, capsys):
+    write_readme(mini_repo, README + "\nTwo skills and one subagent ship here.\n")
+    assert readme.check(mini_repo) == 0
+
+
+def test_ordinary_prose_about_skills_is_not_read_as_a_count(mini_repo, capsys):
+    # The reason this check was left out once: a gate that fails on correct prose is one
+    # people learn to override. A word before the noun is only a count when it is a
+    # number, so "installed skills" and "the subagents" have to stay silent.
+    write_readme(
+        mini_repo,
+        README + "\nThe installed skills load on demand, and the subagents do not.\n",
+    )
+    assert readme.check(mini_repo) == 0
+
+
+def test_a_per_plugin_count_in_a_table_is_not_read_as_a_repository_total(mini_repo, capsys):
+    # The contents row says "2 skills" for one plugin. Read as a repository total in a
+    # tree with more plugins it would be wrong, so table rows are excluded by line.
+    write_readme(mini_repo, README)
+    assert readme.check(mini_repo) == 0
+    assert "says 2 skills" not in capsys.readouterr().out
+
+
+def test_a_count_inside_a_fenced_block_is_not_checked(mini_repo, capsys):
+    # A fenced block is a transcript or an example, not a claim about this tree.
+    write_readme(mini_repo, README + "\n```text\nFound 40 skills\n```\n")
+    assert readme.check(mini_repo) == 0

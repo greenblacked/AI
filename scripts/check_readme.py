@@ -16,9 +16,22 @@ What is checked, all of it mechanical:
 - the per-plugin contents table against what each plugin actually ships
 - one row per shipped subagent and per shipped command
 
-What is not checked is the prose, including the sentence that spells the counts in
-words. A check that tried to parse that would fail on a rewrite that was perfectly
-correct, and a gate that cries wolf is one people learn to override.
+- a count spelled out in the prose, against the same totals
+
+That last one was left out on purpose once, on the reasoning that parsing prose would
+fail on a rewrite that was perfectly correct, and a gate that cries wolf is one people
+learn to override. The exemption then produced exactly the failure this file exists to
+prevent: the opening sentence claimed seven slash commands while six shipped, and it
+survived several merges because the table and the badge were right and nothing read the
+sentence. It was caught by a reviewer, which is the outcome named two paragraphs above.
+
+The check is narrow enough to be safe rather than clever. It reads only lines outside
+tables and fenced blocks, only a number immediately followed by one of six nouns, and
+only where the number is a digit or a number word. Measured against this README it
+matches six phrases and every one is a real count. `plugins` is deliberately not one of
+the nouns: the prose uses it for two different true values, all eight of them in one
+sentence and the five that ship a subagent in another, so a single expected total would
+be wrong somewhere.
 
 Standard library only, like the validator it imports.
 """
@@ -44,6 +57,51 @@ COUNT_RES = {
     "subagents": re.compile(r"(\d+)\s+subagents?\b"),
     "commands": re.compile(r"(\d+)\s+commands?\b"),
 }
+
+# Counts in the prose are written in words as often as in digits. Twenty is well above
+# anything this repository will spell out rather than tabulate.
+NUMBER_WORDS = {
+    word: value
+    for value, word in enumerate(
+        [
+            *("zero", "one", "two", "three", "four", "five", "six", "seven"),
+            *("eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen"),
+            *("fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty"),
+        ]
+    )
+}
+# The qualified forms come first so the alternation prefers them: "agent skills" must not
+# match as bare "skills" and leave "agent" as the number.
+PROSE_NOUNS = {
+    "agent skills": "skills",
+    "read-only subagents": "subagents",
+    "slash commands": "commands",
+    "skills": "skills",
+    "subagents": "subagents",
+    "commands": "commands",
+}
+PROSE_COUNT_RE = re.compile(
+    rf"\b([A-Za-z]+|\d+)\s+({'|'.join(PROSE_NOUNS)})\b",
+    re.I,
+)
+
+
+def prose_lines(text: str) -> list[tuple[int, str]]:
+    """Every numbered line that is prose rather than a table row or fenced code.
+
+    A table row states a per-plugin count and is checked against that plugin, not
+    against the repository total, so reading one here would invent a failure.
+    """
+    out: list[tuple[int, str]] = []
+    fenced = False
+    for number, line in enumerate(text.splitlines(), 1):
+        if line.lstrip().startswith("```"):
+            fenced = not fenced
+            continue
+        if fenced or line.lstrip().startswith("|"):
+            continue
+        out.append((number, line))
+    return out
 
 
 def on_disk(root: Path) -> dict[str, dict[str, set[str]]]:
@@ -117,6 +175,28 @@ def check(root: Path) -> int:
         for path in finder(directory):
             if f"`{mark}{path.stem}`" not in text:
                 fail(f"{kind} {mark}{path.stem} is in .claude/ and has no row in the README")
+
+    # --- counts spelled out in the prose ----------------------------------------------
+    totals = {
+        "skills": len(every_skill),
+        "subagents": len({n for p in contents.values() for n in p["subagents"]}),
+        "commands": len({n for p in contents.values() for n in p["commands"]}),
+    }
+    for number, line in prose_lines(text):
+        for stated, noun in PROSE_COUNT_RE.findall(line):
+            if stated.isdigit():
+                value = int(stated)
+            elif stated.lower() in NUMBER_WORDS:
+                value = NUMBER_WORDS[stated.lower()]
+            else:
+                continue  # ordinary prose — "the skills", "installed subagents"
+            kind = PROSE_NOUNS[noun.lower()]
+            if value != totals[kind]:
+                fail(
+                    f"line {number} says {stated} {noun}, and there are "
+                    f"{totals[kind]}; if that sentence counts something narrower than "
+                    f"the whole repository, say so in words the count cannot be read from"
+                )
 
     # --- the per-plugin contents table ------------------------------------------------
     seen_in_table = set()
