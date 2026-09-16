@@ -6,7 +6,7 @@
 [![Skills](https://img.shields.io/badge/skills-74-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-73 agent skills, ten read-only subagents and seven slash commands, in eight
+74 agent skills, eleven read-only subagents and six slash commands, in eight
 plugins you install separately. They cover the daily loop of changing code, keeping a
 system running, shipping a change, securing it, making a game, leading a team, a career,
 and the parts of life that are nobody's job.
@@ -282,7 +282,7 @@ Applications, negotiation, speaking and writing.
 
 ## Subagents
 
-Ten subagents ship across five plugins. Each exists to keep bulk out of the main context
+Eleven subagents ship across five plugins. Each exists to keep bulk out of the main context
 — the input is a log, a plan, a billing export, a contract, a pile of feedback, and the
 answer is short — and to be denied the tools it should not have. A reviewer that can apply
 is not a reviewer.

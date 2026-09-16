@@ -2,8 +2,8 @@
 
 Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
 frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md) for
-one of the ten this repository ships today, one with `coding`, four with `operations`,
-two with `security`, two with `manager` and one with `gamedev` — and in `.claude/agents/`
+one of the eleven this repository ships today, one with `coding`, four with
+`operations`, three with `security`, two with `manager` and one with `gamedev` — and in `.claude/agents/`
 for the four that serve work on this repository rather than shipping to anyone,
 described in [the two loops](#the-two-loops) below. A subagent is a
 separate Claude instance with its own context window, its own system prompt, and its own
@@ -33,7 +33,7 @@ tools: Read, Glob, Grep, Bash
   already omits those tools, so this is a statement rather than a restriction: it says in
   the file that the subagent must not change anything, where a reader will see it, and it
   survives someone later adding `Bash` to `tools` for a checker.
-- **`model`** — optional. The model the subagent runs on. None of the ten here set it.
+- **`model`** — optional. The model the subagent runs on. None of the eleven here set it.
 - Also accepted, because a plugin-shipped subagent supports them: `effort`, `maxTurns`,
   `skills`, `memory`, `background`, `isolation`, `omitClaudeMd`. The last is the one
   worth knowing: it starts the subagent without the user's, the project's and the local

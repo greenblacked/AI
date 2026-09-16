@@ -6,7 +6,7 @@ boundary is disputed. The classes are ordered by what mishandling them costs.
 ## The classes
 
 **Direct identifiers.** Name, email address, phone number, account number, government
-identifier, device identifier, precise location. A single value names one person. These
+identifier, device identifier, precise location. A single value usually names one person. These
 are what a subject request retrieves by, and what a breach report counts.
 
 **Indirect identifiers.** Postcode, date of birth, job title, employer, browser
@@ -46,7 +46,7 @@ exemption that does not apply.
 | Special category | Justified separately, usually shorter | Explicit grant, never a default role | Every surface, and prove it |
 | Inferred attribute | Tied to the inference's usefulness, not the input's | As its implied class | Recompute or delete; a stale score outlives its input |
 | Pseudonymised | As the underlying class | As the underlying class | Delete the key as well as the rows |
-| Anonymous | Out of scope, if the claim holds | Unrestricted | Not applicable |
+| Anonymous | Out of scope, if the claim holds | Out of scope here | Not applicable |
 
 ## Classifying a field in practice
 

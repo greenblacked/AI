@@ -18,7 +18,7 @@ you, and whether you are the controller or the processor. Those give different d
 different triggers and in some cases no fixed figure at all. A processor's obligation is
 typically to tell the controller, not the regulator, and carries no hour count of its own.
 
-So no number appears anywhere in this skill or its references. Step 1 establishes who you
+So no deadline appears anywhere in this skill or its references. Step 1 establishes who you
 are and what binds you, and you take the figure from that authority. A hardcoded deadline
 copied from one jurisdiction's controller duty is wrong for most readers, and wrong in the
 direction that looks compliant.
@@ -26,7 +26,7 @@ direction that looks compliant.
 ## Hard gates
 
 - Do not answer a subject request before verifying identity. Disclosing a person's data to
-  someone impersonating them is itself a breach, and it is the most common own-goal here.
+  someone impersonating them is itself a breach, and it is a common one.
 - Do not call data anonymous while you hold anything that re-identifies it. If you keep a
   key, a salt or a lookup table, it is pseudonymised, and pseudonymised data is still
   personal data.
@@ -84,7 +84,7 @@ One period per class, with the reason it is that long. Then build the job that e
 
 ### 5. Make deletion reach every surface
 
-Deletion in the primary database is the easy fifth of the work. Walk
+Deletion in the primary database is the easy part. Walk
 [deletion surfaces](references/deletion-surfaces.md) as a checklist and confirm each one.
 
 The restore path is the surface people miss. A backup usually cannot be edited, so a
@@ -97,8 +97,10 @@ out until the restore happens.
 
 Verify identity first, against something you already hold, and never against the data
 being requested. Then scope the request: what they asked for, what you hold, and what you
-may withhold because it would disclose someone else. Start the clock at receipt, whatever
-your own authority says that clock is, and record when it started.
+may withhold because it would disclose someone else. Record two dates, the day it arrived
+and the day identity was confirmed, because regimes differ on which one starts the
+response period. Step 1's authority decides which, and you will not be able to
+reconstruct either date later.
 
 ### 7. A breach: capture evidence, then decide
 
@@ -108,7 +110,15 @@ decide whether this is reportable. Snapshot what is relevant now and decide late
 
 Then make one decision explicitly, and write down the reasoning either way: is this
 notifiable to your authority, or is it recorded internally and not reported? Both outcomes
-need the record. The deadline for the first comes from step 1's authority.
+need the record, and the internal one is not the lesser paperwork — an unrecorded decision
+not to report is indistinguishable later from never having noticed.
+
+The threshold is set by your authority, but the questions that feed it are the same
+everywhere. How likely is harm to the people whose data it was, and how severe would it be.
+Whether the data was readable to whoever took it, which is where encryption at rest earns
+its keep. How many people, and whether they can be identified individually. Whether it can
+still be contained. Answer those first and the threshold question becomes arithmetic
+against whatever figure step 1's authority sets.
 
 ## What people do instead, and why it fails
 
@@ -116,9 +126,11 @@ need the record. The deadline for the first comes from step 1's authority.
 nothing else, because the row and its copies are still there. Soft delete is a UX feature.
 It is a privacy defect the moment it is also the deletion story.
 
-**Hashing an identifier and calling it anonymous.** Email addresses and phone numbers come
-from a small enough space to enumerate, so an unsalted hash of one is reversible by anyone
-who wants to. Hashing changes the format, not the identifiability.
+**Hashing an identifier and calling it anonymous.** A phone number comes from a space
+small enough to enumerate outright, and an email address does not need enumerating —
+lists of billions sit in breach corpora, and hashing each one is a lookup table. An
+unsalted hash of either is reversible by anyone who wants to. Hashing changes the format,
+not the identifiability.
 
 **Joining two safe datasets.** Two sets that identify nobody on their own can identify
 people together. Check re-identification at the join, not at each table.
