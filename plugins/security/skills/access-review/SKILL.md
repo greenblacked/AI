@@ -75,10 +75,7 @@ Record an owner per identity as you go. An identity with no owner is itself a fi
 
 ### 2. Gather evidence of what is actually used
 
-When the evidence is bulky — every policy on a role, ninety days of access logs — hand it
-to the `policy-auditor` subagent instead of reading it here. It returns the gap between
-what each identity may do and what it did, plus wildcards, escalation paths and standing
-admin, and the policies and logs never enter this conversation.
+When the evidence is bulky — every policy on a role, ninety days of access logs — hand it to the `policy-auditor` subagent instead of reading it here. It returns the gap between what each identity may do and what it did, plus wildcards, escalation paths and standing admin, and the policies and logs never enter this conversation.
 
 Two categories of source, and you want both.
 

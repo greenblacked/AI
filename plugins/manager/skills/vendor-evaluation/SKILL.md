@@ -123,10 +123,7 @@ Compare the three-year totals side by side, including the do-nothing and build o
 
 ### 7. Security, legal and data review, in parallel
 
-The documents this step turns on are long — the contract, the order form, the DPA, a SOC 2
-report, a security questionnaire — so hand each to the `contract-reader` subagent rather
-than reading it here. It returns the clauses that decide the deal, each quoted with its
-location, and keeps the document itself out of this conversation.
+The documents this step turns on are long — the contract, the order form, the DPA, a SOC 2 report, a security questionnaire — so hand each to the `contract-reader` subagent rather than reading it here. It returns the clauses that decide the deal, each quoted with its location, and keeps the document itself out of this conversation. Its terms table also fills the pricing, overage and renewal lines in step 6 and the exit in step 9, so a linear reader reaching step 6 first should send the contract on then.
 
 Start these in week one and run them alongside the PoC. They kill deals, and the cheapest time to be killed is early.
 

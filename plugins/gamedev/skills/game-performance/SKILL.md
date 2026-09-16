@@ -69,12 +69,7 @@ Keep the raw capture. It is the before number, and without it the after number p
 
 ### 4. Prove the bound before changing anything
 
-When the evidence is a capture rather than a number — a frame-timing export, a profiler
-trace, thousands of frames from a playtest build — hand it to the `frame-capture-reader`
-subagent instead of reading it here. It returns whether the frame is CPU-bound or
-GPU-bound with the evidence for the call, the hot frames and what dominated each, and
-whether a hitch is a spike or a sustained cost, and keeps the capture out of this
-conversation.
+When the evidence is a capture rather than a number — a profiler trace, a capture from a playtest build — hand it to the `frame-capture-reader` subagent instead of reading it here. It returns whether the frame is CPU-bound or GPU-bound with the evidence for the call, the hot frames and what dominated each, and whether a hitch is a spike or a sustained cost, and keeps the capture out of this conversation.
 
 Every fix below belongs to one side of the frame. Applying a CPU fix to a GPU-bound frame changes nothing, which is usually read as "the optimisation did not help much" rather than "this was the wrong half".
 

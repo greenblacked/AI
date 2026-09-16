@@ -58,11 +58,7 @@ Solicit peer feedback with a specific question. "Any thoughts on Priya?" returns
 
 ### 3. Convert evidence into feedback units
 
-When the raw feedback is more than a screen — a quarter of peer submissions, a 360 export,
-a thread of one-to-one notes — hand it to the `feedback-synthesiser` subagent instead of
-reading it here. It returns the themes, each with the number of independent sources and a
-quoted example, with observed behaviour separated from statements about personality, and
-keeps the submissions out of this conversation.
+When the raw feedback is more than a screen — a quarter of peer submissions, a 360 export — hand it to the `feedback-synthesiser` subagent instead of reading it here. It returns the themes, each with the number of independent sources and a quoted example, with observed behaviour separated from statements about personality, and keeps the submissions out of this conversation.
 
 The unit is behaviour, then impact, then evidence. Build the table before writing any prose; the prose is a rendering of the table.
 

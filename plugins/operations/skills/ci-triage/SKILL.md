@@ -45,10 +45,7 @@ If main is green but only *sometimes*, you already have your answer for the PR t
 
 ### 1. Locate the failing step
 
-When the failed log is longer than a screen, or several jobs went red at once, hand the
-run to the `ci-log-reader` subagent instead of reading it here. It returns one of the five
-classes with the log line that decided it, and the log itself never enters this
-conversation. The ordering that follows is for runs small enough to read.
+When the failed log is longer than a screen, or several jobs went red at once, hand the run to the `ci-log-reader` subagent instead of reading it here. It returns one of the five classes with the log line that decided it, and the log itself never enters this conversation; pick up at step 3 with its answer. The ordering that follows is for runs small enough to read.
 
 Never read the whole log. Work from most-structured to least:
 

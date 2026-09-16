@@ -20,11 +20,6 @@ Do not use for: writing new modules, debugging provider errors, or greenfield ar
 
 ### 1. Generate the reviewable artefact
 
-When the plan is large — hundreds of resource changes, a whole workspace, a JSON already on
-disk — hand it to the `plan-reviewer` subagent instead of reading it here. It returns what
-the apply will actually do, destroys first, with the reason each resource is being
-replaced, and the JSON itself never enters this conversation.
-
 Never review the plan text. Review the plan JSON. Produce it yourself rather than trusting a pasted excerpt — a pasted excerpt is precisely where truncation hides.
 
 ```bash
@@ -51,6 +46,8 @@ Use `has()` rather than `//` here: these are booleans, and jq's alternative oper
 Automation should use `applyable` as its primary condition — the docs say so explicitly, because the exact definition may shift in future versions. A plan that is `applyable` but not `complete` will not converge in one round; it needs another plan/apply cycle, and the reviewer should know that before approving. In CI, `terraform plan -detailed-exitcode` returns `0` for an empty diff, `1` for an error, and `2` for changes present.
 
 ### 2. Blast radius, destroys before creates
+
+Once `plan.json` exists and the flags gate above has passed, if the plan is large — hundreds of resource changes, a whole workspace — hand it to the `plan-reviewer` subagent instead of reading it here. It returns what the apply will actually do, destroys first, with the reason each resource is being replaced, and the JSON itself never enters this conversation. The rest of this step is for plans small enough to read.
 
 Read deletions first. Creates are recoverable; deletions frequently are not.
 
