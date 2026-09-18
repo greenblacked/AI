@@ -123,6 +123,8 @@ Compare the three-year totals side by side, including the do-nothing and build o
 
 ### 7. Security, legal and data review, in parallel
 
+The documents this step turns on are long — the contract, the order form, the DPA, a SOC 2 report, a security questionnaire — so hand each to the `contract-reader` subagent rather than reading it here. It returns the clauses that decide the deal, each quoted with its location, and keeps the document itself out of this conversation. Its terms table also fills the pricing, overage and renewal lines in step 6 and the exit in step 9, so a linear reader reaching step 6 first should send the contract on then.
+
 Start these in week one and run them alongside the PoC. They kill deals, and the cheapest time to be killed is early.
 
 - **Certification scope.** A SOC 2 Type II report is evidence about specified systems over a specified period. Read which systems, which period, and the exceptions section — a report covering the marketing site is not a report covering the product. For ISO 27001, read the statement of applicability.

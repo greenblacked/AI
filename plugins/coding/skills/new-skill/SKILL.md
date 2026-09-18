@@ -111,6 +111,8 @@ Then run it. A description nobody has tested is a guess, and the interesting res
 
 ## 7. Validate, then install and use it
 
+Before you install it, hand the draft to the `skill-reviewer` subagent. It reviews on a fresh context with no editing tools, which is what makes the review a review: a reviewer that can edit will fix the thing it was asked to judge, and you lose the judgement. It returns ranked findings, each with the observation, the consequence and the smallest change that fixes it.
+
 Run the repository's validator and its tests. Then package or symlink the skill, start a fresh session, and use it on a real task. Reading a skill tells you whether it is well written; running it tells you whether it works.
 
 ## Anti-patterns

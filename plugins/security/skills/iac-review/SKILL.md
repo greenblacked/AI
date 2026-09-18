@@ -47,6 +47,8 @@ Automation should use `applyable` as its primary condition — the docs say so e
 
 ### 2. Blast radius, destroys before creates
 
+Once `plan.json` exists and the flags gate above has passed, if the plan is large — hundreds of resource changes, a whole workspace — hand it to the `plan-reviewer` subagent instead of reading it here. It returns what the apply will actually do, destroys first, with the reason each resource is being replaced, and the JSON itself never enters this conversation. The rest of this step is for plans small enough to read.
+
 Read deletions first. Creates are recoverable; deletions frequently are not.
 
 The valid `actions` values are exactly `["no-op"]`, `["create"]`, `["read"]`, `["update"]`, `["delete","create"]`, `["create","delete"]`, and `["delete"]`. The two replace forms are spelled out as pairs deliberately, so a caller can scan the array for `"delete"` and catch all three situations in which an object goes away. So the canonical test is membership, not a string match on the word "replace":
