@@ -6,9 +6,8 @@ allowed-tools: Bash(python3:*), Read, Grep, Glob
 
 Survey `$0` for coverage the library does not have. With no argument, survey the whole
 library, plugin by plugin, ordered by which plugin has the most headroom under the
-runtime's listing budget — read the per-plugin totals off step 1 below and take the ones
-furthest under 8,000 characters first, because those are the only ones a new skill could
-actually land in.
+runtime's listing budget — take the per-plugin totals from step 4 and start with the ones
+furthest under 8,000 characters, because a skill landing there keeps its description.
 
 ## 1. Read descriptions, never bodies, and test the sense rather than the word
 
@@ -16,10 +15,13 @@ Use the repository's own frontmatter parser, not grep: some descriptions are YAM
 scalars, and a fixed `-A` count truncates them.
 
 ```bash
-python3 scripts/run_trigger_eval.py --all --show-listing --budget 8000
+python3 scripts/run_trigger_eval.py --skill plugins/coding/skills/new-skill --show-listing
 ```
 
-This prints the catalogue exactly as the runtime shows it, free, with no model call.
+That prints every description in full, free, with no model call — any one target will do,
+since the listing it renders is the whole catalogue. Adding `--budget 8000` instead shows
+what survives when the listing overflows, which is a different question: it blanks
+descriptions until the rest fits, so it is for seeing what is lost, never for reading.
 Worked example: 27 skill bodies in this repository mention a cache and four descriptions
 claim one — CI caches, prompt caching, deletion reaching caches, BuildKit cache mounts —
 and not one of the four claims application-level caching. A word search would have
@@ -54,8 +56,17 @@ Four numbers bind:
 - `DESCRIPTION_TARGET` of 900 for anything new
 - the 500-character floor `short-description` warns under
 
-Where a plugin is already over the runtime default, the budget does not size the
-description — it disqualifies the destination. Note the known gap before trusting the
+This prints each plugin's measured total against its ceiling and flags the ones over the
+runtime default. That is where the per-plugin numbers come from; step 1's listing does
+not carry them.
+
+```bash
+python3 scripts/check_listing_budget.py
+```
+
+Where a plugin is already over the runtime default, the budget stops sizing the
+description and starts deciding whether a description is worth writing at all, because
+the runtime will drop it. That is step 5, not a veto. Note the known gap before trusting the
 ceiling alone: `ceiling_for()`, the function that computes it, adds slack above the
 measured total, so the listing-budget gate can pass characters the runtime would drop.
 Compare the plugin's measured total from step 1 against 8,000 directly, not only against

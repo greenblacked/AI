@@ -30,7 +30,7 @@ Install the plugins you will actually use. Every description a plugin ships sits
 context for the whole session, and the runtime caps that listing at about 1% of the
 context window. Past the cap it drops the descriptions of the skills you invoke least,
 which leaves them invocable by name and stops them being chosen on their own — silently.
-Six of the eight plugins fit the default budget by themselves. If you install several,
+Four of the eight plugins fit the default budget by themselves. If you install several,
 raise it in `~/.claude/settings.json`:
 
 ```json
@@ -217,8 +217,12 @@ away.
 no separate context to trust here; you are both the one writing the change and the one
 who has to believe the result.
 
-**Review**, in a new conversation, and hand it `git diff` as text rather than the working
-tree, so it has nothing to patch even if it decides it should. Ask for the same output
+**Review**, in a new conversation, and hand it `git diff` as text, together with every
+file `git ls-files --others --exclude-standard` names, in full. The diff alone omits
+untracked files, which on a change that adds one is the whole change. Pasting rather than
+pointing removes the material only when the reviewing conversation cannot reach the
+checkout; in a terminal agent sitting in the repository it has the tree whatever you
+paste, so open the review somewhere that does not. Ask for the same output
 contract a reviewing subagent is written to produce: a one-line verdict; blocking defects
 ranked by cost, each with the observation, the concrete consequence and the smallest fix
 described rather than written; non-blocking findings kept separate from blocking ones;
