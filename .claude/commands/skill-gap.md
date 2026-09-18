@@ -48,21 +48,19 @@ disagrees with what that step actually says, this command is wrong, not the skil
 
 Four numbers bind:
 
-- the plugin ceiling in `listing-budget.json`, raisable with a reason in the commit:
-  ```bash
-  python3 scripts/check_listing_budget.py --update
-  ```
+- the plugin ceiling in `listing-budget.json`, raisable with a reason in the commit
 - the 8,000-character runtime default, which is not raisable
 - `DESCRIPTION_TARGET` of 900 for anything new
 - the 500-character floor `short-description` warns under
 
-This prints each plugin's measured total against its ceiling and flags the ones over the
-runtime default. That is where the per-plugin numbers come from; step 1's listing does
-not carry them.
-
 ```bash
 python3 scripts/check_listing_budget.py
 ```
+
+This prints each plugin's measured total against its ceiling and flags the ones over the
+runtime default. That is where the per-plugin numbers come from; step 1's listing does
+not carry them. Raising a ceiling is the same script with `--update`, and the reason for
+raising it goes in the commit.
 
 Where a plugin is already over the runtime default, the budget stops sizing the
 description and starts deciding whether a description is worth writing at all, because
