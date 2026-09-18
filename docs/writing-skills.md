@@ -17,8 +17,8 @@ skills/<category>/<name>/
 └── assets/           # optional: templates and files the skill emits
 ```
 
-`<category>` is one of `coding`, `operations`, `delivery`, `security`, `manager`, `personal` or
-`career` — the seven plugins in
+`<category>` is one of `coding`, `operations`, `delivery`, `security`, `gamedev`, `manager`,
+`personal` or `career` — the eight plugins in
 [the marketplace manifest](../.claude-plugin/marketplace.json). `<name>` is the skill
 name, and it must equal the `name` in the frontmatter.
 

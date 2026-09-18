@@ -339,6 +339,7 @@ Each does the mechanical part and points at the skill holding the full procedure
 | `/scaffold-skill` | this repository | Create the directory, SKILL.md and eval stub for a new skill, in the right plugin, refusing a duplicate name. |
 | `/eval-skill` | this repository | Score whether one description actually triggers, and name the phrasing it is missing. |
 | `/skill-doctor` | this repository | Diagnose one skill: validator findings, description health, eval-set balance, and which siblings it collides with. |
+| `/skill-gap` | this repository | Survey the library for coverage it lacks, from its own dangling demand, and say which of skill, subagent, command or nothing the gap deserves. |
 | `/ship` | this repository | Take a change through the build loop: survey what already exists, write it and run the gates, then judge the result independently. |
 | `/verify` | this repository | Take a claim through the verification loop: settle it against primary sources, labelling what is verified and what is not, then judge whether the finding supports the change. |
 

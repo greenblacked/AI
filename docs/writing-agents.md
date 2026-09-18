@@ -191,8 +191,8 @@ inline.
 ## The subagents in this repository
 
 Each plugin discovers its own `agents/` directory — nothing lists them in
-[`marketplace.json`](../.claude-plugin/marketplace.json). Ten ship: one with `coding`,
-four with `operations`, two with `security`, two with `manager` and one with
+[`marketplace.json`](../.claude-plugin/marketplace.json). Eleven ship: one with `coding`,
+four with `operations`, three with `security`, two with `manager` and one with
 `gamedev`.
 
 - **`skill-reviewer`** — reviews a candidate `SKILL.md` against this repository's rules

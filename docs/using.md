@@ -53,7 +53,7 @@ move when you know exactly what you want.
 
 ### Subagents
 
-Ten ship across five plugins, and they work differently: the main agent delegates to one
+Eleven ship across five plugins, and they work differently: the main agent delegates to one
 when the work would otherwise flood your context with material you do not need afterwards.
 A megabyte of CI logs, a Terraform plan, a billing export. You get the conclusion; the raw
 material never enters your session.
@@ -187,8 +187,80 @@ Be clear about what you lose outside Claude Code, because it is the valuable par
   cut narrowly. Uploading one bundle to a Project has no such cap, which is a genuine
   advantage of that route.
 
-The content itself travels intact. Of sixty-two skills, two name Claude anywhere in
+The content itself travels intact. Of seventy-five skills, two name Claude anywhere in
 their text: `new-skill`, which is about authoring a skill in this format and could not
 avoid it, and `website-builder`, which names a real constraint of Claude.ai artifacts.
 The rest are procedures about code, systems, teams and life, and nothing in them assumes
 which assistant is reading. CI builds the export on every run, so that stays true.
+
+## Running the loop without a subagent mechanism
+
+The "Subagents" loss above is the one worth a substitute rather than just a note, because
+`/ship` and `/verify` are how changes to this repository get made. Without a runtime that
+can spawn an isolated subagent, the replacement is three conversations rather than three
+agents — the same stages, run by hand, in separate windows instead of separate contexts.
+
+**Survey**, in a new conversation, report-only. Describe the change and ask what already
+covers it, where the affected files are, and which existing description its trigger
+surface would overlap. Take the answer, then close the conversation — the closing is what
+does the isolating, not the asking. A survey window left open and reused for writing has
+stopped being a survey.
+
+**Decide the shape yourself.** Which plugin owns the change and what it must not collide
+with is not something `/ship` delegates either — that decision needs judgement built up
+over the session, and it travels badly through a cold prompt whether the prompt goes to a
+subagent or to a fresh conversation. This step does not change when the mechanism goes
+away.
+
+**Write**, in your working session, and run the gates yourself — `make validate`,
+`make catalogue`, `make test` — rather than accepting a report that they passed. There is
+no separate context to trust here; you are both the one writing the change and the one
+who has to believe the result.
+
+**Review**, in a new conversation, and hand it `git diff` as text rather than the working
+tree, so it has nothing to patch even if it decides it should. Ask for the same output
+contract a reviewing subagent is written to produce: a one-line verdict; blocking defects
+ranked by cost, each with the observation, the concrete consequence and the smallest fix
+described rather than written; non-blocking findings kept separate from blocking ones;
+the gate output quoted rather than summarised; and what was not assessed, said plainly
+rather than left to be inferred from silence.
+
+Carry what it finds back to the writing conversation. Never paste a fix into the
+reviewing one — that single move is what collapses the two stages back into one, because
+a conversation that has just fixed what it was asked to judge is not the reviewer
+any more; it is the author, with an extra turn.
+
+**What is genuinely lost**, and pretending otherwise costs more than naming it:
+
+- **The runtime-enforced no-write.** A subagent with no `Write` or `Edit` cannot act on a
+  decision to fix what it is reviewing, however tempted; a conversation with no such
+  restriction can, and a review that quietly turns into a rewrite reads exactly like a
+  review until someone checks whether anything actually changed underneath it.
+- **Automatic delegation.** `/ship` reaches for the survey stage without being asked.
+  Three separate conversations require you to remember to open each one, and the stage
+  that goes missing is whichever felt optional when time was short — usually the survey,
+  because the change already looks obvious from where you are standing.
+- **Enforced tiering.** A subagent's `model` key pins its tier regardless of what the
+  main conversation is running on. Three manual conversations run on whatever tier each
+  happens to be open on, and nothing stops all three running on the same one out of
+  convenience.
+
+**What is not lost.** Context isolation is not the runtime's alone to give — it is what
+closing a conversation buys, with or without a subagent mechanism behind it. The cold
+read survives too: a review conversation started fresh from `git diff` alone knows
+exactly as little as a reviewing subagent does. The ordering — survey, then write, then
+review, never collapsed into one sitting — is a discipline kept by opening three
+conversations in sequence, not a property a runtime grants automatically. And the output
+contract above is exactly as enforceable by asking for it in the prompt as by writing it
+into a subagent's system prompt; nothing about it needs a runtime feature.
+
+The four files in `.claude/agents/` are where this repository's current stage names and
+prompts actually live, if the description above is not enough and the wording itself is
+wanted.
+
+One caveat on the tiering point, so as not to overstate it: a more capable model is a
+cost hedge on a review that is expensive to get wrong, not a requirement of the stage
+itself. What review needs is a context that has not written the change and is not
+allowed to — that holds in a fresh conversation on whatever model is already in use, and
+paying for a stronger one on top of that is a choice about how much a missed defect would
+cost, not a precondition for the review being real.
