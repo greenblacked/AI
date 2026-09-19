@@ -1,7 +1,7 @@
 ---
 name: routeros-config
-description: Change, upgrade or recover a MikroTik RouterOS device without locking yourself out of it. Establish the version and a second way in, export the config as text, make the change in safe mode so a dropped session reverts it, verify over a path you did not touch, then release. Covers the changes that actually strand people — firewall input rules, bridge VLAN filtering, addresses, routes, users and services — the package and RouterBOOT upgrade order, and the recovery ladder. Use whenever someone configures, upgrades, backs up or is locked out of a MikroTik router or switch, or mentions RouterOS, WinBox, hEX, CRS, CCR, /export or safe mode. Not for reviewing a written Ansible or Terraform diff (iac-review), rotating a credential (secret-rotation), or an access review (access-review).
-allowed-tools: Read, Grep, Glob, Write, Edit, Bash(ssh:*), Bash(diff:*)
+description: Change, upgrade or recover a MikroTik RouterOS device without locking yourself out of it. Establish the version and a second way in, export the config as text, make the change in safe mode so a dropped session reverts it, verify over a path you did not touch, then release. Covers the changes that actually strand people — firewall input rules, bridge VLAN filtering, addresses, routes, users and services — the package and RouterBOOT upgrade order, and the recovery ladder. Use whenever someone configures, upgrades, backs up or is locked out of a MikroTik router or switch, or mentions RouterOS, WinBox, hEX, CRS, CCR, /export or safe mode. Not for reviewing a written Ansible or Terraform diff (iac-review), rotating a credential (secret-rotation), an access review (access-review), or another vendor's router or firewall, which nothing here covers.
+allowed-tools: Read, Grep, Glob, Bash(ssh:*), Bash(diff:*)
 ---
 
 # RouterOS configuration and recovery
@@ -31,7 +31,9 @@ Do not use for: reviewing an Ansible or Terraform diff that someone has already 
 which is `iac-review`; rotating or containing a leaked credential, which is
 `secret-rotation`; an estate-wide least-privilege review, which is `access-review`; a
 live service incident whose cause is not yet known to be the network, which is
-`k8s-triage`.
+`k8s-triage`; or a network device from another vendor, because the commands, the gates and
+the recovery ladder here are RouterOS-specific and following them elsewhere produces
+confident nonsense.
 
 ## Hard gates
 
@@ -104,7 +106,9 @@ own traffic, or a VLAN table that does not contain the port you are sitting on.
 
 ### 4. Make the change in safe mode
 
-In an interactive terminal, safe mode is a toggle, and the prompt says so while it is on.
+In an interactive terminal, safe mode is a toggle — Ctrl-X — and the prompt shows the mode
+while it is on. The prompt is the confirmation: if it does not change, the chord did not
+take, which is a harmless way to find that out.
 Everything done while it is on is undone if the session drops — which is exactly the
 failure you are protecting against, because the change that strands you also kills the
 session that made it.
@@ -115,10 +119,11 @@ other ways out discards the changes rather than keeping them — so end it on pu
 than by closing a window.
 
 Two limits decide whether the protection is real. It holds a bounded number of actions, and
-a window that runs past the bound can stop protecting you without announcing it, so keep the
-window to the change itself rather than a whole evening's work and confirm the prompt still
-shows safe mode before relying on it. And it protects the session, not the device: a reboot
-or a power cut is a different problem, and the export from step 2 is what covers that.
+a window that runs past the bound can leave the mode and keep the changes rather than
+refusing the action, so keep the window to the change itself rather than a whole evening's
+work, and treat the prompt as the only signal that you are still protected. And it protects
+the session, not the device: a reboot or a power cut is a different problem, and the export
+from step 2 is what covers that.
 
 ### 5. Verify over a path you did not touch
 
@@ -136,9 +141,10 @@ ssh admin@192.0.2.1 '/export' > after.rsc && diff -u before.rsc after.rsc
 ```
 
 The export begins with a header carrying the date and the version, so the diff is never
-empty; read past that line. What remains is the record of what actually changed, which is routinely not what you thought
-you were changing. Store `after.rsc` where the next person will find it, with the date and
-the reason, and keep it in version control if the device matters.
+empty; read past that line. What remains is the record of what actually changed, which is
+routinely not what you thought you were changing. Store `after.rsc` where the next person
+will find it, with the date and the reason, and keep it in version control if the device
+matters.
 
 ## Upgrades
 

@@ -224,7 +224,7 @@ and only the first three of those are ones nobody installs alongside much else:
 `operations` is the plugin most likely to be installed next to `delivery` and `security`,
 so its descriptions are the ones most at risk of being dropped in a real session. Read
 that alongside the token figures rather than the character ones — `operations` is over
-the 8,000-character default and, since `routeros-config`, over one per cent of a window too — and note what the
+the 8,000-character default and over one per cent of a window too — and note what the
 runtime drops first: a skill nobody has used yet. The newest skills in an over-budget
 plugin are the ones that lose their descriptions, which is an argument for splitting a
 plugin rather than for raising its ceiling indefinitely. `make validate` prints the

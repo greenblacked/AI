@@ -7,12 +7,14 @@ or a scope that includes your own traffic.
 
 ## Firewall input chain
 
-**Mechanism.** Rules are evaluated in order and the first match wins, so a drop rule
-placed above the rule that permits your management access ends your session the moment it
-is accepted — and not only on the next connection, unless a rule accepting established and
-related traffic sits above the drop as well. Where such a rule does sit above it, the open
-session survives and the lockout appears the next time anyone connects, which is the worse
-case: the change looks fine from the session that made it.
+**Mechanism.** Rules are evaluated in order, the first match wins, and every packet of an
+existing connection is evaluated again — being already open buys a session nothing. So a
+drop rule placed above the rule that admits your management traffic fails in one of two
+ways, depending on what else sits above it. With no accept for established and related
+traffic above the drop, your open session dies at its next packet and you find out at once.
+With one above it, your session survives and only new connections are refused — the worse
+case, because the change looks correct from the session that made it and strands whoever
+connects next.
 
 **Check first.** Know where in the list the rule will land rather than where you intended
 it to land, and place it explicitly relative to a known neighbour instead of appending and

@@ -18,5 +18,5 @@
   {"query": "locked out of the cisco switch after a vlan change, how do i get back in", "should_trigger": false},
   {"query": "the firewall rules on our pfsense box are in the wrong order and traffic is being dropped", "should_trigger": false},
   {"query": "write something on-call can follow at 2am when the vpn tunnel drops", "should_trigger": false, "expected": "runbook"},
-  {"query": "explain the difference between a layer 2 switch and a layer 3 switch", "should_trigger": false}
+  {"query": "my laptop keeps booting into safe mode and i can't get out of it", "should_trigger": false}
 ]

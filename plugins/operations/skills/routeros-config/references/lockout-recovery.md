@@ -36,8 +36,8 @@ the device, or into a switch that reaches it without crossing the router you jus
 ## 3. Serial console
 
 A serial console does not care about the network stack at all, so it survives everything
-above and most things below. It needs physical access and the right cable, and on some
-boards the port is present but not fitted with a connector. Find out which case you are in
+above and most things below. It needs physical access and the right
+cable, and not every board has one you can use. Find out which case you are in
 before an outage rather than during one.
 
 ## 4. The other administrator, from the other side
@@ -50,19 +50,19 @@ with the first.
 
 ## 5. The reset button
 
-The reset button does several different things depending on how long it is held, and both
-the intervals and what they mean differ by board. One of them destroys the running
-configuration and the others do not, and you cannot tell which one you are performing by
-feel. Read the documentation for the board in front of you before pressing it, rather than
-working from what the last board did.
+The reset button does several different things depending on how long it is held, and the
+intervals and their meanings may differ by board. Some of them destroy the running
+configuration, and you cannot tell which one you are performing by feel. Read the
+documentation for the board in front of you before pressing it, rather than working from
+what the last board did.
 
 This rung destroys the running configuration. It is recoverable only to the extent that
 you took a text export beforehand, which is the argument for step 2 of the skill.
 
 ## 6. Reinstall over the network
 
-The last rung reloads the operating system from a machine on the same segment, and by default returns
-the device to a clean state with no configuration at all. It needs physical access, a
+The last rung reloads the operating system from a machine on the same segment. It does not keep
+the configuration unless you tell it to. It needs physical access, a
 direct connection and a prepared host, so it is a planned operation rather than something
 you improvise at the end of a bad evening.
 
