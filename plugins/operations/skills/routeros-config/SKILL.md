@@ -109,6 +109,7 @@ own traffic, or a VLAN table that does not contain the port you are sitting on.
 In an interactive terminal, safe mode is a toggle — Ctrl-X — and the prompt shows the mode
 while it is on. The prompt is the confirmation: if it does not change, the chord did not
 take, which is a harmless way to find that out.
+
 Everything done while it is on is undone if the session drops — which is exactly the
 failure you are protecting against, because the change that strands you also kills the
 session that made it.
