@@ -61,7 +61,7 @@ you describe the situation, and the one whose description matches is loaded.
 Install the plugins you will use rather than all of them. Every description a plugin ships
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
-least, which leaves them invocable by name and stops them being chosen on their own. Six
+least, which leaves them invocable by name and stops them being chosen on their own. Four
 of the eight plugins fit the default budget on their own, and the split exists for exactly
 this reason. If you install several, raise the budget in `~/.claude/settings.json`:
 

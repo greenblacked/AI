@@ -15,8 +15,8 @@
   {"query": "who has admin across our cloud accounts, we want to drop the wildcard grants", "should_trigger": false, "expected": "access-review"},
   {"query": "we're moving the whole datacentre to a new region in march, plan the switchover", "should_trigger": false, "expected": "cutover"},
   {"query": "pods can't resolve dns and half the services are throwing 502s", "should_trigger": false, "expected": "k8s-triage"},
-  {"query": "what should the new payments service emit so we can actually debug it at 3am", "should_trigger": false, "expected": "instrumentation"},
-  {"query": "the e2e pipeline has gone red six times in a row at the same step", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "locked out of the cisco switch after a vlan change, how do i get back in", "should_trigger": false},
+  {"query": "the firewall rules on our pfsense box are in the wrong order and traffic is being dropped", "should_trigger": false},
   {"query": "write something on-call can follow at 2am when the vpn tunnel drops", "should_trigger": false, "expected": "runbook"},
   {"query": "explain the difference between a layer 2 switch and a layer 3 switch", "should_trigger": false}
 ]

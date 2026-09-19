@@ -13,6 +13,12 @@ without you. Waiting is the whole procedure. Reconnecting too eagerly through a 
 session, or forcing the old session to close in the wrong way, is how people lose a revert
 that was already happening.
 
+The revert does not fire the moment your side of the connection dies. It fires when the
+device gives up on a session it can no longer see, which is minutes rather than seconds.
+Impatience here is what sends people to the bottom of this ladder to destroy a
+configuration that was about to come back on its own, so give it that long before moving
+down.
+
 Establish from the other end whether the session is really gone. A session that is hung
 rather than closed has not triggered anything yet.
 
@@ -44,19 +50,18 @@ with the first.
 
 ## 5. The reset button
 
-The reset button's behaviour depends on how long it is held, and the durations and their
-meanings differ by board — one of them loads a backup configuration, one clears the
-configuration entirely, and one puts the device into a mode where it waits for a network
-install. Read the documentation for the board in front of you before pressing it. Holding
-it for the wrong interval is the difference between a device that comes back with defaults
-and a device that comes back with nothing.
+The reset button does several different things depending on how long it is held, and both
+the intervals and what they mean differ by board. One of them destroys the running
+configuration and the others do not, and you cannot tell which one you are performing by
+feel. Read the documentation for the board in front of you before pressing it, rather than
+working from what the last board did.
 
 This rung destroys the running configuration. It is recoverable only to the extent that
 you took a text export beforehand, which is the argument for step 2 of the skill.
 
 ## 6. Reinstall over the network
 
-The last rung reloads the operating system from a machine on the same segment, and returns
+The last rung reloads the operating system from a machine on the same segment, and by default returns
 the device to a clean state with no configuration at all. It needs physical access, a
 direct connection and a prepared host, so it is a planned operation rather than something
 you improvise at the end of a bad evening.

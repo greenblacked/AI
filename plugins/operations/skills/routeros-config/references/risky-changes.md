@@ -9,7 +9,10 @@ or a scope that includes your own traffic.
 
 **Mechanism.** Rules are evaluated in order and the first match wins, so a drop rule
 placed above the rule that permits your management access ends your session the moment it
-is accepted — not on the next connection, because the existing one stops matching too.
+is accepted — and not only on the next connection, unless a rule accepting established and
+related traffic sits above the drop as well. Where such a rule does sit above it, the open
+session survives and the lockout appears the next time anyone connects, which is the worse
+case: the change looks fine from the session that made it.
 
 **Check first.** Know where in the list the rule will land rather than where you intended
 it to land, and place it explicitly relative to a known neighbour instead of appending and
@@ -34,7 +37,9 @@ deliberately where the device's own management address lives once filtering is o
 this change from a path that does not cross the bridge you are changing, or from the
 console, if you have one.
 
-**Cheapest recovery.** Safe mode, then layer-2 access from an attached segment.
+**Cheapest recovery.** Safe mode. Layer-2 access is the fallback, but it is a weaker one
+here than elsewhere: that traffic still crosses the bridge you have just told to enforce a
+table, so a port missing from the table can take the recovery path with it.
 
 ## The address or interface you are connected over
 

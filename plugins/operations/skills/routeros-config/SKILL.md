@@ -1,7 +1,7 @@
 ---
 name: routeros-config
 description: Change, upgrade or recover a MikroTik RouterOS device without locking yourself out of it. Establish the version and a second way in, export the config as text, make the change in safe mode so a dropped session reverts it, verify over a path you did not touch, then release. Covers the changes that actually strand people — firewall input rules, bridge VLAN filtering, addresses, routes, users and services — the package and RouterBOOT upgrade order, and the recovery ladder. Use whenever someone configures, upgrades, backs up or is locked out of a MikroTik router or switch, or mentions RouterOS, WinBox, hEX, CRS, CCR, /export or safe mode. Not for reviewing a written Ansible or Terraform diff (iac-review), rotating a credential (secret-rotation), or an access review (access-review).
-allowed-tools: Read, Grep, Glob, Write, Edit, Bash(ssh:*), Bash(scp:*)
+allowed-tools: Read, Grep, Glob, Write, Edit, Bash(ssh:*), Bash(diff:*)
 ---
 
 # RouterOS configuration and recovery
@@ -59,8 +59,12 @@ Before the first change, record the version, the board, and the identity — a d
 believe is the spare is the one people reconfigure by mistake.
 
 ```bash
-ssh admin@192.0.2.1 '/system/resource/print; /system/routerboard/print; /system/identity/print'
+ssh admin@192.0.2.1 '/system resource print; /system routerboard print; /system identity print'
 ```
+
+The space-separated form above is accepted by both major versions. The slash-separated
+path form is not, which matters in the one step whose job is to find out which version you
+are on.
 
 Then establish the second path, and prove it works now rather than assuming it. Candidates,
 roughly in order of how much they survive: a serial console; layer-2 MAC access from a
@@ -105,10 +109,16 @@ Everything done while it is on is undone if the session drops — which is exact
 failure you are protecting against, because the change that strands you also kills the
 session that made it.
 
-Safe mode holds a bounded number of actions and releases when you quit cleanly, so keep
-the protected window to the change itself rather than a whole evening's work. It protects
-the session, not the device: a reboot or a power cut is a different problem, and the
-export from step 2 is what covers that.
+Releasing it means pressing the same toggle again, deliberately, once the change is
+verified. Leaving the session by another route is not the same act — at least one of the
+other ways out discards the changes rather than keeping them — so end it on purpose rather
+than by closing a window.
+
+Two limits decide whether the protection is real. It holds a bounded number of actions, and
+a window that runs past the bound can stop protecting you without announcing it, so keep the
+window to the change itself rather than a whole evening's work and confirm the prompt still
+shows safe mode before relying on it. And it protects the session, not the device: a reboot
+or a power cut is a different problem, and the export from step 2 is what covers that.
 
 ### 5. Verify over a path you did not touch
 
@@ -119,13 +129,14 @@ session that is still open.
 
 ### 6. Release, export again, and diff
 
-Release safe mode deliberately, once verification passed. Then export again and diff:
+Release safe mode with the toggle, once verification passed. Then export again and diff:
 
 ```bash
 ssh admin@192.0.2.1 '/export' > after.rsc && diff -u before.rsc after.rsc
 ```
 
-The diff is the record of what actually changed, which is routinely not what you thought
+The export begins with a header carrying the date and the version, so the diff is never
+empty; read past that line. What remains is the record of what actually changed, which is routinely not what you thought
 you were changing. Store `after.rsc` where the next person will find it, with the date and
 the reason, and keep it in version control if the device matters.
 
