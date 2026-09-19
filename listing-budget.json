@@ -10,7 +10,7 @@
     "manager": 12500,
     "operations": 11000,
     "personal": 6500,
-    "security": 7500
+    "security": 8500
   },
   "skills": {
     "access-review": 945,
@@ -21,7 +21,7 @@
     "capacity-planning": 951,
     "ci-pipeline-design": 899,
     "ci-triage": 882,
-    "code-review": 881,
+    "code-review": 891,
     "code-scaffold": 760,
     "codebase-orientation": 909,
     "conference-talk": 919,
@@ -76,12 +76,13 @@
     "release-strategy": 916,
     "runbook": 914,
     "secret-rotation": 967,
-    "security-review": 897,
+    "security-review": 898,
     "sql-performance": 957,
     "status-update": 915,
     "technical-docs": 899,
     "terraform-state": 897,
     "test-design": 871,
+    "threat-model": 769,
     "travel-planning": 935,
     "vendor-evaluation": 969,
     "website-builder": 944,

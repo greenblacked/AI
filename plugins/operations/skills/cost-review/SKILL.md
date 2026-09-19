@@ -38,6 +38,8 @@ Attribution is a prerequisite, not a phase-two nicety, and it is the deliverable
 
 ### 2. Find the delta, not the total
 
+A billing export is too large to read inline, so hand it to the `cost-analyst` subagent rather than opening it here. It returns the top movers period over period with the cause of each, and the export itself never enters this conversation.
+
 A bill that grew has a specific cause, and it is almost never the biggest line. Compare period over period at the resource and usage-type level, then sort by change rather than by size.
 
 ```bash
