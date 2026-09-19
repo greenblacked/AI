@@ -44,8 +44,9 @@ Each of these exists because skipping it is how a routine change becomes a site 
   mode, arrange the undo before the change, not after.
 - **A text export before you touch anything, and another after.** The binary backup
   cannot be read or diffed, so it cannot tell you what changed or be partially reused.
-- **Verify over a path you did not just change.** The session that made the change is the
-  one witness that cannot tell you it still works, because it was already open.
+- **Verify with a connection opened after the change.** The session that made the change
+  cannot tell you it still works, because it was already open — and neither can any other
+  session that was. A change that only refuses new connections leaves every old one alive.
 - **Confirm the command on the device, not from a procedure.** Tab-completion and `?` at
   a menu level cost seconds and settle the version question that a copied command does
   not.
@@ -64,9 +65,9 @@ believe is the spare is the one people reconfigure by mistake.
 ssh admin@192.0.2.1 '/system resource print; /system routerboard print; /system identity print'
 ```
 
-The space-separated form above is accepted by both major versions. The slash-separated
-path form is not, which matters in the one step whose job is to find out which version you
-are on.
+The space-separated form above is the one both major versions take; the slash-separated
+path form is version 7's. That matters most in the one step whose job is to find out which
+version you are on.
 
 Then establish the second path, and prove it works now rather than assuming it. Candidates,
 roughly in order of how much they survive: a serial console; layer-2 MAC access from a
@@ -126,12 +127,16 @@ work, and treat the prompt as the only signal that you are still protected. And 
 the session, not the device: a reboot or a power cut is a different problem, and the export
 from step 2 is what covers that.
 
-### 5. Verify over a path you did not touch
+### 5. Verify with a new connection over a path you did not touch
 
-Test from the second path, and test the thing the change was for as well as the thing you
-were afraid of breaking. A rule that blocks your management traffic and a rule that blocks
-the traffic it was written for fail in opposite directions and look identical from a
-session that is still open.
+Open a fresh connection over the second path, while safe mode is still on. Reusing a
+session that was already open there proves nothing: a change that refuses only new
+connections leaves every existing session working, so an old session reports success in
+exactly the case that has stranded you.
+
+Then test the thing the change was for as well as the thing you were afraid of breaking. A
+rule that blocks your management traffic and a rule that blocks the traffic it was written
+for fail in opposite directions and look identical from a session that is still open.
 
 ### 6. Release, export again, and diff
 

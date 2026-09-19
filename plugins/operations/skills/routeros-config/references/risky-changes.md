@@ -5,13 +5,23 @@ the check that catches it beforehand, and the recovery that is cheapest if it ha
 anyway. None of these is an exotic mistake; they are correct changes applied in an order
 or a scope that includes your own traffic.
 
+## Contents
+
+- [Firewall input chain](#firewall-input-chain)
+- [Bridge VLAN filtering](#bridge-vlan-filtering)
+- [The address or interface you are connected over](#the-address-or-interface-you-are-connected-over)
+- [Default route and routing changes](#default-route-and-routing-changes)
+- [Users, groups and management services](#users-groups-and-management-services)
+- [Wireless and interface-level changes on a remote device](#wireless-and-interface-level-changes-on-a-remote-device)
+
 ## Firewall input chain
 
 **Mechanism.** Rules are evaluated in order, the first match wins, and every packet of an
 existing connection is evaluated again — being already open buys a session nothing. So a
 drop rule placed above the rule that admits your management traffic fails in one of two
 ways, depending on what else sits above it. With no accept for established and related
-traffic above the drop, your open session dies at its next packet and you find out at once.
+traffic above the drop, your open session stops responding at its next packet, which you
+notice immediately.
 With one above it, your session survives and only new connections are refused — the worse
 case, because the change looks correct from the session that made it and strands whoever
 connects next.
@@ -20,10 +30,17 @@ connects next.
 it to land, and place it explicitly relative to a known neighbour instead of appending and
 hoping. Confirm the rule that admits your own access exists and sits above it. A rule
 matching established and related traffic near the top is what keeps an open session alive
-while you work; if the change moves or removes it, that is the change to be careful about,
-not the new rule.
+while you work, and it is also what hides the second order from you — so treat a change
+that moves or removes it as carefully as the drop rule itself, rather than instead of it.
 
-**Cheapest recovery.** Safe mode. This is the class safe mode was made for.
+**Verify with a new connection.** In the second order nothing drops, so safe mode never
+fires and every open session keeps working, including the one you opened over the second
+path. Only a connection opened after the change distinguishes the two orders, and releasing
+safe mode before running that test is how the worse case ships.
+
+**Cheapest recovery.** Safe mode covers the first order, because there the session does
+drop. In the second it is the fresh-connection test above that saves you; once safe mode is
+released the recovery is layer-2 access or the second account.
 
 ## Bridge VLAN filtering
 
