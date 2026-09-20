@@ -354,9 +354,14 @@ Both of those are enforced rather than remembered: `permissions-audit` fails the
 workflows existed, and a convention held by habit is one the next job quietly skips.
 
 The six jobs that install from PyPI cache `~/.cache/pip`, and `validate-plugin` caches
-`~/.npm`. Each key names the job and then the file that records the pins, so it busts
-when a pinned version changes and not otherwise, and there is no separate lockfile to
-keep in step with the pins. The job name is load-bearing rather than decoration:
+`~/.npm`. Each key names the job and then a hash of the file that records the pins, so
+it busts whenever that file changes — every pin change, and also edits that change
+nothing a cache holds. That over-busting is the deliberate side of the trade: the
+alternative is a key naming each pinned version by hand, which is one more thing to keep
+in step with the pins and to get wrong silently. There is no separate lockfile either
+way. A branch also starts cold, because a cache is visible to the branch that wrote it,
+its base and the default branch, so the first run of a new branch misses whatever `main`
+has not published yet. The job name is load-bearing rather than decoration:
 `setup-python`'s own `cache: pip` keys on the interpreter and the dependency file and
 nothing else, so every job in a workflow running the same interpreter would share one
 entry — the first to finish saves its wheels, and the rest restore a cache without
