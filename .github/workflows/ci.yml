@@ -22,6 +22,23 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Every tool this workflow installs or downloads, pinned, for the reason security.yml
+# gives: a tool that changes its rules underneath you turns a green build into a
+# statement about the tool rather than about the repository. They sit at workflow level
+# rather than beside the step that uses each, so that a cache key can name one and so
+# `make lint` can read one out with a single sed.
+env:
+  CLAUDE_CODE_VERSION: '2.1.221'
+  CODESPELL_VERSION: '2.4.3'
+  # yamllint, pytest and coverage were the three that floated. A yamllint release that
+  # adds a rule reddens the build on YAML nobody touched, which is exactly what got ruff
+  # pinned; a pytest major can change collection under a suite that has not moved.
+  YAMLLINT_VERSION: '1.38.0'
+  PYTEST_VERSION: '9.1.1'
+  COVERAGE_VERSION: '7.16.1'
+  ACTIONLINT_VERSION: '1.7.12'
+  ACTIONLINT_SHA256: '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8'
+
 jobs:
   validate-skills:
     name: validate skills
@@ -78,8 +95,6 @@ jobs:
             echo "${unexpected}"
             exit 1
           fi
-        env:
-          CLAUDE_CODE_VERSION: '2.1.221'
 
   test:
     name: test
@@ -100,7 +115,9 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
-      - run: python -m pip install --upgrade pip pytest coverage
+      - run: |
+          python -m pip install --upgrade pip
+          python -m pip install "pytest==${PYTEST_VERSION}" "coverage==${COVERAGE_VERSION}"
       # The floor is a ratchet, not a target: it sits below the measured figure so a
       # change that quietly drops a script back to untested fails here rather than
       # being noticed months later. Raise it in pyproject.toml when coverage rises.
@@ -180,8 +197,6 @@ jobs:
         with:
           python-version: '3.13'
       - run: python -m pip install --upgrade pip "codespell==${CODESPELL_VERSION}"
-        env:
-          CODESPELL_VERSION: '2.4.3'
       - name: Check spelling
         # This ran weekly with only_warn set, which is the shape of check this
         # repository rejects everywhere else: nobody had to clear it, so nobody read
@@ -216,7 +231,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: '3.13'
-      - run: python -m pip install --upgrade pip yamllint
+      - run: python -m pip install --upgrade pip "yamllint==${YAMLLINT_VERSION}"
       - run: yamllint --strict --format github .
 
   lint-actions:
@@ -245,9 +260,6 @@ jobs:
           echo "${ACTIONLINT_SHA256}  ${archive}" | sha256sum --check --status
           tar -xzf "$archive" actionlint
           ./actionlint -color
-        env:
-          ACTIONLINT_VERSION: '1.7.12'
-          ACTIONLINT_SHA256: '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8'
 
   links:
     name: check links
