@@ -178,7 +178,9 @@ Correct handling, in order of preference:
 of the base repo. Combining it with `actions/checkout` at `github.event.pull_request.head.sha`
 executes attacker-controlled code with those credentials. That is the standard Actions
 repo-takeover path. If a workflow you are triaging does this, the finding is a security
-issue and outranks the CI failure you came for.
+issue and outranks the CI failure you came for. Handing the triaged run back safely is as
+far as this goes — auditing the workflow itself for every trigger, pin and credential an
+attacker could reach is `pipeline-hardening`.
 
 ## Comparing a red run to the last green one
 
