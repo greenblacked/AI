@@ -63,11 +63,23 @@ stays in context for the whole session, and the runtime caps that listing at abo
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Four
 of the eight plugins fit the default budget on their own, and the split exists for exactly
-this reason. If you install several, raise the budget in `~/.claude/settings.json`:
+this reason.
+
+Trimming is not the answer and the arithmetic says so: all 77 descriptions average 899
+characters against a 900-character target, so capping every one of them at the target
+saves 1.8% and leaves the listing eight times over budget. Fitting all of them inside the
+default would mean a mean of 104 characters, which is a label rather than a description.
+So either install what you need, or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.04 }
+{ "skillListingBudgetFraction": 0.08 }
 ```
+
+That figure covers the whole marketplace, with a little headroom. Anything smaller
+silently drops the difference — 0.04 covers barely half of it, which reads like a fix and
+is not. `scripts/check_listing_budget.py` prints the fraction the listing currently needs
+and fails if this number falls below it, so the advice cannot go stale as skills are
+added.
 
 `/doctor` reports what the listing actually costs and its biggest contributors.
 

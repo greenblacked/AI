@@ -34,6 +34,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import re
 import sys
 from pathlib import Path
 from typing import NamedTuple
@@ -70,6 +71,10 @@ RUNTIME_DEFAULT = 8000
 # report says so rather than leaving the reader with the alarming half of the pair.
 CHARS_PER_TOKEN = 4.63
 CONTEXT_WINDOW_TOKENS = 200_000
+README = Path("README.md")
+# `{ "skillListingBudgetFraction": 0.04 }` in the README's install section — the setting
+# it tells a reader to raise when they install several plugins.
+FRACTION_RE = re.compile(r'"skillListingBudgetFraction"\s*:\s*([0-9.]+)')
 
 # How much slack a recorded ceiling carries over the measured total. A description is
 # 500-900 characters, so this lets prose be reworded and refuses to let a skill be added
@@ -339,11 +344,44 @@ def check(root: Path, update: bool = False) -> int:
                 f"{silent} of its skills lose their description entirely"
             )
         together = sum(sizes.values())
+        needed = together / CHARS_PER_TOKEN / CONTEXT_WINDOW_TOKENS
         print(
             f"  all {len(sizes)} installed together: {together:,} characters against the "
             f"~{RUNTIME_DEFAULT:,} budget, so most descriptions are dropped and most "
             f"skills can only be reached by name"
         )
+        print(
+            f"  keeping every description at that size needs "
+            f"skillListingBudgetFraction {needed:.3f}"
+        )
+
+    # The README tells a reader to raise `skillListingBudgetFraction` when they install
+    # several plugins, and names a number. That number is a claim about this library's
+    # size, so it goes stale the way any recorded measurement does: it said 0.04 while
+    # the listing needed 0.075, which covers a little over half of it and leaves the
+    # reader believing they have fixed the problem. Checked here rather than in
+    # check_readme.py because the measurement lives here, and two measurements of one
+    # thing eventually disagree.
+    readme = root / README
+    if readme.is_file():
+        needed = total / CHARS_PER_TOKEN / CONTEXT_WINDOW_TOKENS
+        match = FRACTION_RE.search(readme.read_text(encoding="utf-8"))
+        if match is None:
+            print(
+                f"::error::{README} no longer names skillListingBudgetFraction, so the "
+                f"install advice cannot be checked against the listing it describes"
+            )
+            failed = True
+        else:
+            covers = float(match.group(1)) * CONTEXT_WINDOW_TOKENS * CHARS_PER_TOKEN
+            if covers < total:
+                print(
+                    f"::error file={README}::the install section recommends "
+                    f"skillListingBudgetFraction {match.group(1)}, which covers "
+                    f"{covers / total:.0%} of the {total:,} characters this marketplace "
+                    f"ships; it needs at least {needed:.3f}"
+                )
+                failed = True
 
     # Last, because it is the finer grain: the plugin block above is the one a reader
     # comes here for, and this says which single description moved.
