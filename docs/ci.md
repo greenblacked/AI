@@ -10,18 +10,22 @@ request over what that pull request touched.
 ## `.github/workflows/ci.yml` — CI
 
 Triggers on push to `main`, on every pull request, and on `workflow_dispatch`. Top-level
-`permissions: {}`; each job grants itself the minimum.
+`permissions: {}`; each job grants itself the minimum. Every tool the workflow installs
+or downloads is pinned in the workflow-level `env` block — `CLAUDE_CODE_VERSION`,
+`CODESPELL_VERSION`, `YAMLLINT_VERSION`, `PYTEST_VERSION`, `COVERAGE_VERSION`,
+`ACTIONLINT_VERSION` and `ACTIONLINT_SHA256` — for the reason the security section
+gives, and at workflow level so a cache key can name one.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `validate-skills` | `validate skills` | A skill, a subagent, a command or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed eval set for a skill or a subagent, a `.claude/rules/` glob that matches nothing, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output; it also prints the per-plugin description total, which is the listing cost every installer pays. |
-| `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the job's `env` for the same reason the scanners are. |
-| `test` | `test (3.10)` … `test (3.13)` | The validator's own test suite failed on that interpreter, or line and branch coverage fell below the floor in [`pyproject.toml`](../pyproject.toml). The matrix is four versions because that file declares no dependencies, and running on a bare interpreter across the supported range is how that claim stays true. The coverage table lands in the job summary. |
-| `catalogue` | `check catalogue` | A plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), the README stopped matching the tree, a shell block or shipped script no longer parses, or the hook registration in `.claude/settings.json` names a script that is missing or not executable. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. The same file also records each skill's own description length: a new skill must arrive at or under 900 characters, and one already above that is pinned where it measures rather than trimmed to fit a gate. |
+| `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the workflow's `env` for the same reason the scanners are. |
+| `test` | `test (3.10)` … `test (3.13)` | The validator's own test suite failed on that interpreter, or line and branch coverage fell below the floor in [`pyproject.toml`](../pyproject.toml). The matrix is four versions because that file declares no dependencies, and running on a bare interpreter across the supported range is how that claim stays true. pytest and coverage are pinned in `PYTEST_VERSION` and `COVERAGE_VERSION`, so a runner failure is a statement about this repository rather than about the day's release of the runner. The coverage table lands in the job summary. |
+| `catalogue` | `check catalogue` | A plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), the README stopped matching the tree, this file stopped listing the jobs CI runs, a shell block or shipped script no longer parses, or the hook registration in `.claude/settings.json` names a script that is missing or not executable. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. The same file also records each skill's own description length: a new skill must arrive at or under 900 characters, and one already above that is pinned where it measures rather than trimmed to fit a gate. |
 | `catalogue` (portable step) | `check catalogue` | `make portable` could not flatten every skill into a file that stands alone. This is how the library reaches ChatGPT, Grok and anything else without a skills runtime: frontmatter becomes a plain "Use this when" line and every `references/` file is inlined, with the pointer that named it rewritten to name the section instead. A pointer that survives as a path is a dangling reference reintroduced at the boundary, for a reader with no filesystem to resolve it against. |
 | `spelling` | `lint spelling` | codespell found a likely typo. It ran weekly and warn-only until it was made a gate; the false positives are listed in [`pyproject.toml`](../pyproject.toml) with the reason each is one, which is what lets the check sit at zero and mean something. |
 | `lint-markdown` | `lint markdown` | markdownlint-cli2 found a violation in a `*.md` file. Config in `.markdownlint-cli2.yaml`. |
-| `lint-yaml` | `lint yaml` | yamllint in `--strict` mode found a problem. Config in `.yamllint.yaml`. |
+| `lint-yaml` | `lint yaml` | yamllint in `--strict` mode found a problem. Config in `.yamllint.yaml`, version in `YAMLLINT_VERSION`: a release that adds a rule would otherwise redden the build on YAML nobody touched. |
 | `lint-actions` | `lint workflows` | actionlint rejected a workflow. It also runs shellcheck over every inline `run:` block, which is where all of this repository's shell lives. The binary is downloaded at a pinned version and checked against a recorded digest before it runs. |
 | `links` | `check links` | lychee found a broken link. It runs `--offline`, so only local paths are resolved — a relative link between documents, or from a document into the source tree, that does not exist. |
 | `package` | `package` | `scripts/package_skills.py` could not build a `.skill` archive for every skill, or an archive it built is not loadable. It refuses to package a skill that does not validate, so this failing after `validate-skills` passed means a packaging problem, not a content one. Each archive is then opened and checked for a `SKILL.md` at its root whose `name` matches the archive, because building without error only proves a zip was written — a broken layout would ship green and fail at install, for someone else. The archives upload as the `skills` artifact. |
@@ -43,11 +47,11 @@ commit then resolves as a new version — so the three warnings are the correct 
 ## `.github/workflows/security.yml` — Security
 
 Same triggers, same empty top-level `permissions`. Tool versions are pinned in `env`
-(`GITLEAKS_VERSION`, `ZIZMOR_VERSION`, `RUFF_VERSION`) rather than floated: a scanner that
-changes its rule set between runs turns a green build into a statement about the scanner
-rather than about the code. ruff is in that list for a concrete reason — 0.16 began
-formatting Python blocks inside Markdown, so an unpinned upgrade would fail the build on
-skill prose that was green the day before.
+(`GITLEAKS_VERSION`, `GITLEAKS_SHA256`, `ZIZMOR_VERSION`, `RUFF_VERSION`) rather than
+floated: a scanner that changes its rule set between runs turns a green build into a
+statement about the scanner rather than about the code. ruff is in that list for a
+concrete reason — 0.16 began formatting Python blocks inside Markdown, so an unpinned
+upgrade would fail the build on skill prose that was green the day before.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
@@ -55,7 +59,7 @@ skill prose that was green the day before.
 | `workflows` | `workflow audit` | zizmor found a workflow vulnerability at medium severity or above. |
 | `python` | `python security lint` | `ruff check` or `ruff format --check` failed. |
 | `codeql` | `codeql` | CodeQL's `security-extended` query suite found something in the Python source. |
-| `permissions-audit` | `permissions audit` | A workflow has no top-level `permissions:` block, or an action is not pinned to a SHA. |
+| `permissions-audit` | `permissions audit` | A workflow has no top-level `permissions:` block, an action is not pinned to a SHA, a job sets no `timeout-minutes`, or an `actions/checkout` does not set `persist-credentials: false`. |
 | `security` | `security` | One of the five jobs above failed or was cancelled. |
 
 ### The security jobs in detail
@@ -65,7 +69,10 @@ skill prose that was green the day before.
 only the working tree misses the case that matters most: a secret that was committed and
 later removed is still a leaked secret, because the object is still in the repository and
 anyone who cloned it has a copy. Both invocations use `--redact` so the finding does not
-put the secret in the log.
+put the secret in the log. The binary itself is downloaded at the version in
+`GITLEAKS_VERSION` and checked against `GITLEAKS_SHA256` before it is unpacked, for the
+reason the pinning section below gives: a release asset is as mutable as the tag naming
+it, and a secret scanner is a poor thing to run an unverified download of.
 
 **zizmor audits the workflows themselves.** Run as
 `zizmor --persona=regular --min-severity=medium .`. It looks for the things that actually
@@ -81,14 +88,30 @@ because asserting is what tests do.
 **CodeQL** runs `github/codeql-action` init and analyze with `languages: python` and
 `queries: security-extended`. It is the only job that needs `security-events: write`.
 
-**Two shell invariants.** `permissions-audit` is two `grep` loops, deliberately not a
-tool:
+**Four shell invariants.** `permissions-audit` is four `grep` and `awk` loops,
+deliberately not a tool. Each is one of the workflow conventions `AGENTS.md` states, and
+each exists because breaking it is silent:
 
 - Every workflow file must set a top-level `permissions:` block. An absent block means
   jobs inherit the repository default, which is often read and write on everything. The
   failure is silent and permanent, which is exactly the kind worth a one-line check.
-- Every action must be pinned to a commit SHA. The check greps for `uses:` lines ending
-  in `@v1.2`, `@main` or `@master` and fails on any match.
+- Every action must be pinned to a commit SHA. The check is inverted rather than
+  matching known-bad shapes: a ref that is not forty hex characters fails, whatever it
+  looks like. Matching `@v1.2`, `@main` and `@master` let the likeliest regression
+  through, which is pasting a tag over the SHA and leaving the `# v7.0.1` comment behind.
+- Every job must set `timeout-minutes`. Without one a hung job runs to the six-hour
+  platform default, which reads as slow CI rather than broken CI and holds a runner the
+  whole time. Jobs are found as the two-space keys under `jobs:`, and a file the walk
+  found no job in fails rather than passing — a parse that silently matches nothing is
+  the failure this job exists to prevent.
+- Every `actions/checkout` must set `persist-credentials: false`, including a checkout
+  with no `with:` block at all. The `awk` walk is cross-checked against a plain `grep`
+  count of the checkout steps, so a file whose shape it does not understand fails
+  instead of reporting a clean run over steps it never saw.
+
+The last two held by habit until they were gated. Both were correct across all twenty
+jobs and eighteen checkouts on the day the check landed, which is the point: a ratchet
+goes on while the invariant is true, not after it has already been broken.
 
 ## `.github/workflows/scheduled.yml` — Scheduled checks
 
@@ -283,7 +306,8 @@ and `github/codeql-action` first broke here, months after being pinned correctly
 
 A tool downloaded rather than used as an action gets the same treatment as far as the
 mechanism allows. `lint-actions` fetches a specific actionlint release and verifies it
-against a recorded SHA-256 before running it:
+against a recorded SHA-256 before running it, and `secrets` fetches gitleaks the same
+way:
 
 ```yaml
 run: |
@@ -311,6 +335,29 @@ Every job sets `timeout-minutes` — ten for most, twenty for CodeQL, forty-five
 eval scoring, five for the aggregators. The default is six hours, which is long enough
 that a hung step looks like a slow one for most of a working day, and it holds a runner
 the whole time. A timeout turns that into a failure with a name.
+
+Both of those are enforced rather than remembered: `permissions-audit` fails the
+`security` gate for a job with no `timeout-minutes` and for a checkout that does not set
+`persist-credentials: false`. They were conventions held by habit for as long as the
+workflows existed, and a convention held by habit is one the next job quietly skips.
+
+The six jobs that install from PyPI cache `~/.cache/pip`, and `validate-plugin` caches
+`~/.npm`. Each key names the job and then the file that records the pins, so it busts
+when a pinned version changes and not otherwise, and there is no separate lockfile to
+keep in step with the pins. The job name is load-bearing rather than decoration:
+`setup-python`'s own `cache: pip` keys on the interpreter and the dependency file and
+nothing else, so every job in a workflow running the same interpreter would share one
+entry — the first to finish saves its wheels, and the rest restore a cache without
+theirs and, because the key hit exactly, never save their own. `validate-plugin` needs
+`actions/cache` for a different reason: the Claude CLI arrives through `npx` rather than
+as a dependency, so there is no lockfile for `setup-node` to cache against, and the key
+names `CLAUDE_CODE_VERSION` by hand instead.
+
+Four jobs that fetch something are deliberately not cached. `lint-actions` and `secrets`
+curl a single pinned tarball each and verify it against a digest, which is already about
+as cheap as a cache restore and one fewer moving part in the path a binary reaches CI by.
+The two `evals.yml` jobs install a CLI globally with npm and are not on the critical path
+of any gate.
 
 ## Making CI authoritative
 
@@ -365,7 +412,7 @@ gh api /repos/greenblacked/AI/rulesets
 
 ```bash
 make validate   # skills, subagents, commands, rules and the manifest — the validate-skills job
-make catalogue  # listing ceilings, README drift, shell blocks — the catalogue job
+make catalogue  # listing ceilings, README and CI drift, shell blocks — the catalogue job
 make portable   # flatten every skill for ChatGPT, Grok and other assistants
 make test       # pytest — the test job
 make coverage   # the same run under coverage, failing below the floor
@@ -387,14 +434,15 @@ the packager were in before the suite covered them, not to be chased.
 `make lint` skips a tool that is not installed and prints how to get it, so a partial
 local toolchain does not block you; CI has all of them.
 
-`make catalogue` needs nothing installed beyond `bash`. It is the four checks that
+`make catalogue` needs nothing installed beyond `bash`. It is the five checks that
 keep the repository's claims about itself true — the per-plugin listing ceilings, whether
 the README still lists every skill, subagent and command that exists and nothing that
-does not, whether every shell block and shipped script actually parses, and whether the
-hook registered in `.claude/settings.json` names a script that is there and executable.
+does not, whether this file still lists every job CI runs, whether every shell block and
+shipped script actually parses, and whether the hook registered in
+`.claude/settings.json` names a script that is there and executable.
 Each failure is invisible without a gate: the first costs you the skills you use least,
-silently; the second is only ever caught by someone reading; the third ships a
-command that reads fine and fails in someone else's terminal; and the fourth turns the
+silently; the second and third are only ever caught by someone reading; the fourth ships
+a command that reads fine and fails in someone else's terminal; and the fifth turns the
 hook off, so skills are written unvalidated and the first sign of it is one reaching CI
 weeks later. `.claude/settings.json` is read by the runtime and by nothing else here,
 which is why the path in `command` needed a check of its own rather than a habit.

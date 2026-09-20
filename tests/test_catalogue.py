@@ -17,6 +17,7 @@ from tests.conftest import REPO, load_script, write_skill
 
 budget = load_script("check_listing_budget.py")
 readme = load_script("check_readme.py")
+ci_docs = load_script("check_ci_docs.py")
 
 
 # --- the listing ratchet --------------------------------------------------------------
@@ -916,3 +917,170 @@ def test_a_double_quoted_matrix_is_read(mini_repo):
     )
     write_readme(mini_repo, README.replace("\n| Plugin", PYTHON_BADGE + "\n| Plugin", 1))
     assert readme.check(mini_repo) == 0
+
+
+# --- the CI documentation -------------------------------------------------------------
+
+WORKFLOW = """---
+name: Demo
+on: [push]
+
+permissions: {}
+
+jobs:
+  build:
+    name: build it
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: echo build
+  gate:
+    name: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: echo gate
+"""
+
+CI_DOC = """# CI
+
+## `.github/workflows/demo.yml` — Demo
+
+| Job | Check name | Failing means |
+| --- | --- | --- |
+| `build` | `build it` | It did not build. |
+| `gate` | `gate` | Something above failed. |
+"""
+
+
+def write_ci(root, workflow=WORKFLOW, doc=CI_DOC, name="demo.yml"):
+    workflows = root / ".github" / "workflows"
+    workflows.mkdir(parents=True, exist_ok=True)
+    (workflows / name).write_text(workflow, encoding="utf-8")
+    docs = root / "docs"
+    docs.mkdir(parents=True, exist_ok=True)
+    (docs / "ci.md").write_text(doc, encoding="utf-8")
+    return root
+
+
+def test_a_documented_workflow_passes(tmp_path, capsys):
+    write_ci(tmp_path)
+    assert ci_docs.check(tmp_path) == 0
+    assert "2 job(s) across 1 workflow(s)" in capsys.readouterr().out
+
+
+def test_a_job_with_no_row_fails(tmp_path, capsys):
+    # The failure this exists for: a job is added, the table is not, and the first
+    # person to meet the red check has to reverse-engineer it out of YAML.
+    write_ci(tmp_path, doc=CI_DOC.replace("| `gate` | `gate` | Something above failed. |\n", ""))
+    assert ci_docs.check(tmp_path) == 1
+    assert "job `gate` has no row" in capsys.readouterr().out
+
+
+def test_a_row_for_a_job_that_is_gone_fails(tmp_path, capsys):
+    # The other direction, and the one a reader pays for: they go looking for a check
+    # that no longer runs.
+    write_ci(tmp_path, doc=CI_DOC + "| `retired` | `retired` | Nothing; it is gone. |\n")
+    assert ci_docs.check(tmp_path) == 1
+    assert "has a row for `retired`" in capsys.readouterr().out
+
+
+def test_an_undocumented_workflow_fails(tmp_path, capsys):
+    write_ci(tmp_path)
+    (tmp_path / ".github" / "workflows" / "extra.yml").write_text(WORKFLOW, encoding="utf-8")
+    assert ci_docs.check(tmp_path) == 1
+    assert "extra.yml has no section" in capsys.readouterr().out
+
+
+def test_a_section_for_a_workflow_that_is_gone_fails(tmp_path, capsys):
+    write_ci(tmp_path, doc=CI_DOC + "\n## `.github/workflows/ghost.yml` — Ghost\n")
+    assert ci_docs.check(tmp_path) == 1
+    assert "section for ghost.yml, which does not exist" in capsys.readouterr().out
+
+
+def test_a_workflow_with_no_jobs_is_reported_not_skipped(tmp_path, capsys):
+    # A parse that silently matches nothing would pass this file vacuously, which is
+    # the shape of failure every check here is written against.
+    write_ci(tmp_path, workflow="---\nname: Demo\non: [push]\npermissions: {}\n")
+    assert ci_docs.check(tmp_path) == 1
+    assert "found no job in this workflow" in capsys.readouterr().out
+
+
+def test_a_later_table_in_the_same_section_is_not_read_as_job_rows(tmp_path, capsys):
+    # `evals.yml` documents its dispatch inputs and its credentials in tables of the
+    # same shape further down its section. Reading those as job rows would fail a
+    # document that is correct, which is the gate people learn to override.
+    doc = (
+        CI_DOC
+        + """
+### Dispatch inputs
+
+| Input | Default | What it does |
+| --- | --- | --- |
+| `skill` | `all` | Which skill to score. |
+"""
+    )
+    write_ci(tmp_path, doc=doc)
+    assert ci_docs.check(tmp_path) == 0
+
+
+def test_prose_after_the_job_name_is_not_read_as_a_different_job(tmp_path, capsys):
+    # `catalogue` has a second row labelled "(portable step)" documenting a step rather
+    # than a job. Only the first backticked token is the job.
+    doc = CI_DOC + "| `build` (portable step) | `build it` | The extra step failed. |\n"
+    write_ci(tmp_path, doc=doc)
+    assert ci_docs.check(tmp_path) == 0
+
+
+def test_a_tree_with_no_ci_doc_is_reported(tmp_path, capsys):
+    workflows = tmp_path / ".github" / "workflows"
+    workflows.mkdir(parents=True)
+    (workflows / "demo.yml").write_text(WORKFLOW, encoding="utf-8")
+    assert ci_docs.check(tmp_path) == 1
+
+
+def test_a_tree_with_no_workflows_is_reported(tmp_path, capsys):
+    docs = tmp_path / "docs"
+    docs.mkdir(parents=True)
+    (docs / "ci.md").write_text(CI_DOC, encoding="utf-8")
+    (tmp_path / ".github" / "workflows").mkdir(parents=True)
+    assert ci_docs.check(tmp_path) == 1
+
+
+def test_a_key_below_the_jobs_block_does_not_end_it(tmp_path):
+    # The walk ends the jobs block at the next top-level key, and a comment column at
+    # column zero is not one. `jobs:` is last in every workflow here, but that is a
+    # habit rather than a rule.
+    workflow = WORKFLOW + "\n# a trailing comment at column zero\n"
+    write_ci(tmp_path, workflow=workflow)
+    assert ci_docs.check(tmp_path) == 0
+
+
+def test_main_runs_the_check_over_a_root(tmp_path, capsys):
+    write_ci(tmp_path)
+    assert ci_docs.main([str(tmp_path)]) == 0
+
+
+def test_this_repository_documents_every_job_it_runs(capsys):
+    # The check pointed at something real, which is the test the validator's own suite
+    # makes of every other gate here.
+    assert ci_docs.check(REPO) == 0
+
+
+def test_a_top_level_key_after_the_jobs_block_ends_the_walk(tmp_path, capsys):
+    # Without the break, a two-space key belonging to a later top-level block reads as
+    # a job, and the gate then demands a row for something that is not one.
+    workflow = WORKFLOW + "\nconcurrency:\n  group:\n    name: demo\n"
+    write_ci(tmp_path, workflow=workflow)
+    assert ci_docs.check(tmp_path) == 0
+
+
+def test_a_job_key_with_a_trailing_comment_is_still_a_job(tmp_path, capsys):
+    # A walk that skipped it would leave that job undocumented and unchecked for a
+    # timeout while still reporting a clean run, which is the vacuous pass every
+    # check here is written against. The same allowance is in the shell walk that
+    # `permissions-audit` runs.
+    workflow = WORKFLOW.replace("  gate:\n", "  gate:  # the aggregate\n")
+    write_ci(tmp_path, workflow=workflow)
+    assert ci_docs.check(tmp_path) == 0
+    assert "2 job(s)" in capsys.readouterr().out
