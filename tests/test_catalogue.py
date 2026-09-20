@@ -1151,3 +1151,51 @@ def test_this_repository_has_plugins_that_go_silent(capsys):
     silent = {p: budget.mute(entries, p) for p in {e[0] for e in entries}}
     assert sum(silent.values()) > 0, "expected at least one plugin over the budget"
     assert silent["coding"] >= 1
+
+
+# --- the install advice against the listing it describes ---------------------------
+
+
+def readme_with(root, fraction: str):
+    """Write the fraction verbatim.
+
+    A float here formats as `1e-07` for small values, which the regex reads as `1` — so
+    the string is the literal the README would contain.
+    """
+    (root / "README.md").write_text(
+        f'# Mini\n\nRaise it:\n\n```json\n{{ "skillListingBudgetFraction": {fraction} }}\n```\n',
+        encoding="utf-8",
+    )
+
+
+def test_a_fraction_that_covers_the_listing_passes(mini_repo, capsys):
+    budget.check(mini_repo, update=True)
+    readme_with(mini_repo, "0.5")  # far more than a two-skill repo needs
+    assert budget.check(mini_repo) == 0
+
+
+def test_a_fraction_that_does_not_cover_the_listing_fails(mini_repo, capsys):
+    # The defect this exists for: 0.04 was recommended while the listing needed 0.075,
+    # so a reader who followed the advice still lost nearly half their descriptions and
+    # had no way to know.
+    budget.check(mini_repo, update=True)
+    readme_with(mini_repo, "0.0000001")
+    assert budget.check(mini_repo) == 1
+    out = capsys.readouterr().out
+    assert "skillListingBudgetFraction" in out
+    assert "it needs at least" in out
+
+
+def test_a_readme_that_stops_naming_the_fraction_fails(mini_repo, capsys):
+    # Removing the setting would otherwise retire the check silently, which is the
+    # failure every gate here is written against.
+    budget.check(mini_repo, update=True)
+    (mini_repo / "README.md").write_text("# Mini\n\nNo advice here.\n", encoding="utf-8")
+    assert budget.check(mini_repo) == 1
+    assert "no longer names skillListingBudgetFraction" in capsys.readouterr().out
+
+
+def test_a_tree_with_no_readme_skips_the_advice_check(mini_repo):
+    budget.check(mini_repo, update=True)
+    (mini_repo / "README.md").unlink(missing_ok=True)
+    assert budget.check(mini_repo) == 0
