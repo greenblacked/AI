@@ -29,8 +29,11 @@ that is correct, and a gate that cries wolf is one people learn to override — 
 reasoning `check_readme.py` applies to counts written in prose. The job column is
 mechanical; the check-name column is prose, and it is left to the reader.
 
-Only the table immediately under a workflow's heading is read, so the dispatch-input and
-credential tables further down the evals section are not mistaken for job rows. Job names
+Rows are read from a workflow's heading up to the next heading of any level, which is
+what keeps the dispatch-input and credential tables further down the evals section from
+being mistaken for job rows: they sit under their own subheadings. A second job table
+placed under the same heading would be read as part of the first, which is the right
+trade — the alternative is guessing which of two adjacent tables is the real one. Job names
 are the two-space keys inside a workflow's `jobs:` block, which is how `permissions-audit`
 finds them in shell. Parsing the workflows twice, once here and once there, is deliberate:
 that audit is a required part of the `security` gate, and a security check that could only
@@ -61,8 +64,11 @@ HEADING_RE = re.compile(r"^#{1,6}\s")
 # "| `validate-skills` | `validate skills` | … |" — the job is the first backticked
 # token of the first cell. Anything after it, such as "(portable step)", is prose.
 ROW_RE = re.compile(r"^\|\s*`([^`]+)`")
-# A job is a two-space key inside `jobs:`; a job's own keys sit at four.
-JOB_RE = re.compile(r"^ {2}([A-Za-z0-9_.-]+):\s*$")
+# A job is a two-space key inside `jobs:`; a job's own keys sit at four. A trailing
+# comment is allowed, because a key that carries one is still a job, and a walk that
+# skipped it would leave that job unchecked while still reporting a clean run.
+JOBS_RE = re.compile(r"^jobs:\s*(?:#.*)?$")
+JOB_RE = re.compile(r"^ {2}([A-Za-z0-9_.-]+):\s*(?:#.*)?$")
 TOP_LEVEL_RE = re.compile(r"^[^\s#]")
 
 
@@ -71,7 +77,7 @@ def jobs_in(text: str) -> dict[str, int]:
     jobs: dict[str, int] = {}
     inside = False
     for number, line in enumerate(text.splitlines(), start=1):
-        if line.rstrip() == "jobs:":
+        if JOBS_RE.match(line):
             inside = True
             continue
         if not inside:

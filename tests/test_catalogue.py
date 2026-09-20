@@ -1073,3 +1073,14 @@ def test_a_top_level_key_after_the_jobs_block_ends_the_walk(tmp_path, capsys):
     workflow = WORKFLOW + "\nconcurrency:\n  group:\n    name: demo\n"
     write_ci(tmp_path, workflow=workflow)
     assert ci_docs.check(tmp_path) == 0
+
+
+def test_a_job_key_with_a_trailing_comment_is_still_a_job(tmp_path, capsys):
+    # A walk that skipped it would leave that job undocumented and unchecked for a
+    # timeout while still reporting a clean run, which is the vacuous pass every
+    # check here is written against. The same allowance is in the shell walk that
+    # `permissions-audit` runs.
+    workflow = WORKFLOW.replace("  gate:\n", "  gate:  # the aggregate\n")
+    write_ci(tmp_path, workflow=workflow)
+    assert ci_docs.check(tmp_path) == 0
+    assert "2 job(s)" in capsys.readouterr().out
