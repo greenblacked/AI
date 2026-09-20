@@ -30,7 +30,7 @@ env:
   # Pinned for the same reason: ruff 0.16 began formatting Python blocks inside
   # Markdown, so an unpinned upgrade would fail the build on skill prose that was
   # green the day before.
-  RUFF_VERSION: '0.16.1'
+  RUFF_VERSION: '0.16.8'
 
 jobs:
   secrets:
