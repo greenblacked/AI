@@ -76,6 +76,18 @@ concurrency:
     && github.ref || github.run_id }}
   cancel-in-progress: true
 
+# The backend CLIs, pinned at workflow level the way ci.yml and security.yml pin theirs.
+# They were set twice in step-level blocks, and `CLAUDE_CODE_VERSION` had to agree with
+# the copy in ci.yml as well — three places, none of them aware of the others. Bumping
+# one and not the rest would have the harness score descriptions against a different CLI
+# than `validate-plugin` validated the manifest with, and that surfaces as a moved score
+# rather than as an error. `scripts/check_workflows.py` now fails when the name means two
+# things; keeping one copy per workflow is what makes that check easy to satisfy.
+env:
+  CLAUDE_CODE_VERSION: '2.1.221'
+  CODEX_VERSION: '0.153.4'
+  GEMINI_CLI_VERSION: '0.58.0'
+
 jobs:
   evaluate:
     name: score descriptions
@@ -187,9 +199,6 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          CLAUDE_CODE_VERSION: '2.1.221'
-          CODEX_VERSION: '0.153.4'
-          GEMINI_CLI_VERSION: '0.58.0'
           BACKEND: ${{ inputs.backend || 'claude' }}
           MODEL: ${{ inputs.model }}
           SKILL: ${{ inputs.skill || 'all' }}
@@ -426,7 +435,6 @@ jobs:
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          CLAUDE_CODE_VERSION: '2.1.221'
           REPORT_BAR: '0.8'
       - name: Publish the scores
         # `!= 'skipped'` rather than `== 'success'`: when the harness itself dies

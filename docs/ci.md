@@ -21,7 +21,7 @@ gives, and at workflow level so a cache key can name one.
 | `validate-skills` | `validate skills` | A skill, a subagent, a command or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed eval set for a skill or a subagent, a `.claude/rules/` glob that matches nothing, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output; it also prints the per-plugin description total, which is the listing cost every installer pays. |
 | `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the workflow's `env` for the same reason the scanners are. |
 | `test` | `test (3.10)` … `test (3.13)` | The validator's own test suite failed on that interpreter, or line and branch coverage fell below the floor in [`pyproject.toml`](../pyproject.toml). The matrix is four versions because that file declares no dependencies, and running on a bare interpreter across the supported range is how that claim stays true. pytest and coverage are pinned in `PYTEST_VERSION` and `COVERAGE_VERSION`, so a runner failure is a statement about this repository rather than about the day's release of the runner. The coverage table lands in the job summary. |
-| `catalogue` | `check catalogue` | A plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), the README stopped matching the tree, this file stopped listing the jobs CI runs, a shell block or shipped script no longer parses, or the hook registration in `.claude/settings.json` names a script that is missing or not executable. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. The same file also records each skill's own description length: a new skill must arrive at or under 900 characters, and one already above that is pinned where it measures rather than trimmed to fit a gate. |
+| `catalogue` | `check catalogue` | A plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), the README stopped matching the tree, this file stopped listing the jobs CI runs, a workflow's aggregate stopped naming every job in it or a pinned version came to mean two things, a shell block or shipped script no longer parses, or the hook registration in `.claude/settings.json` names a script that is missing or not executable. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. The same file also records each skill's own description length: a new skill must arrive at or under 900 characters, and one already above that is pinned where it measures rather than trimmed to fit a gate. |
 | `catalogue` (portable step) | `check catalogue` | `make portable` could not flatten every skill into a file that stands alone. This is how the library reaches ChatGPT, Grok and anything else without a skills runtime: frontmatter becomes a plain "Use this when" line and every `references/` file is inlined, with the pointer that named it rewritten to name the section instead. A pointer that survives as a path is a dangling reference reintroduced at the boundary, for a reader with no filesystem to resolve it against. |
 | `spelling` | `lint spelling` | codespell found a likely typo. It ran weekly and warn-only until it was made a gate; the false positives are listed in [`pyproject.toml`](../pyproject.toml) with the reason each is one, which is what lets the check sit at zero and mean something. |
 | `lint-markdown` | `lint markdown` | markdownlint-cli2 found a violation in a `*.md` file. Config in `.markdownlint-cli2.yaml`. |
@@ -115,15 +115,28 @@ goes on while the invariant is true, not after it has already been broken.
 
 ## `.github/workflows/scheduled.yml` — Scheduled checks
 
-Runs weekly (`cron: '0 6 * * 1'`) and on `workflow_dispatch`. Neither job gates anything.
+Runs weekly (`cron: '0 6 * * 1'`) and on `workflow_dispatch`. Neither job gates
+anything, and neither this workflow nor `evals.yml` has an aggregator, because an
+aggregator exists to give branch protection a stable name to require and nothing
+requires either of them.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `external-links` | `external links` | lychee could not reach an external URL. Hosts in `.lycheeignore` (example.com and friends, which appear inside skill instructions) are excluded. |
+| `pin-freshness` | `pin freshness` | A pinned tool version has fallen behind upstream, a `*_VERSION` in a workflow has no registry registered for it in [`scripts/check_pin_freshness.py`](../scripts/check_pin_freshness.py), or `MARKDOWNLINT_PIN` in the [`Makefile`](../Makefile) no longer matches the markdownlint-cli2 the pinned action bundles. It reports and never bumps: adopting a version is the judgement the pinning exists to preserve. |
 
 These are here because they depend on the network or a wordlist. A gate that fails
 because someone else's site was briefly down is a gate people learn to override, and once
 they learn that, the gates that matter stop working too.
+
+`pin-freshness` is the answer to a gap the pinning created. Every tool CI installs or
+downloads is pinned so that a green build is a statement about this repository rather
+than about the day's release of a scanner — and Dependabot cannot move any of those
+numbers, because its `github-actions` ecosystem updates `uses:` references and reusable
+workflows and never reads an `env:` block. Without a weekly look, eleven versions and the
+markdownlint line in the `Makefile` sit where they are until somebody happens to wonder.
+It asks PyPI, the npm registry and the GitHub releases API what the latest version is,
+prints a table into the job summary, and stops there.
 
 ## `.github/workflows/evals.yml` — Trigger evals
 
@@ -204,7 +217,7 @@ everything against Claude:
 | `budget` | empty | A listing budget in characters. Set it to score descriptions the way the runtime shows them — the runtime's default is about 8,000 on a 200k model — rather than at full length. |
 | `runs` | `3` | Samples per query; must be odd. A majority vote across them decides, which separates a description that genuinely fails from one sitting on the model's decision boundary. |
 | `threshold` | `0.8` | Pass rate below which a target is reported as failing. |
-| `backend` | `claude` | Which model CLI answers: `claude`, `codex` (OpenAI) or `gemini`. The job installs only that one, at the version pinned in its `env`. |
+| `backend` | `claude` | Which model CLI answers: `claude`, `codex` (OpenAI) or `gemini`. The job installs only that one, at the version pinned in the workflow's `env`. |
 | `model` | empty | A model name passed to the CLI. Blank uses the CLI's own default. |
 
 The harness reads no API key of its own. Each CLI reads the credential it expects, and
@@ -342,9 +355,14 @@ Both of those are enforced rather than remembered: `permissions-audit` fails the
 workflows existed, and a convention held by habit is one the next job quietly skips.
 
 The six jobs that install from PyPI cache `~/.cache/pip`, and `validate-plugin` caches
-`~/.npm`. Each key names the job and then the file that records the pins, so it busts
-when a pinned version changes and not otherwise, and there is no separate lockfile to
-keep in step with the pins. The job name is load-bearing rather than decoration:
+`~/.npm`. Each key names the job and then a hash of the file that records the pins, so
+it busts whenever that file changes — every pin change, and also edits that change
+nothing a cache holds. That over-busting is the deliberate side of the trade: the
+alternative is a key naming each pinned version by hand, which is one more thing to keep
+in step with the pins and to get wrong silently. There is no separate lockfile either
+way. A branch also starts cold, because a cache is visible to the branch that wrote it,
+its base and the default branch, so the first run of a new branch misses whatever `main`
+has not published yet. The job name is load-bearing rather than decoration:
 `setup-python`'s own `cache: pip` keys on the interpreter and the dependency file and
 nothing else, so every job in a workflow running the same interpreter would share one
 entry — the first to finish saves its wheels, and the rest restore a cache without
@@ -361,8 +379,11 @@ of any gate.
 
 ## Making CI authoritative
 
-The workflows only mean something if the checks are required. Create a ruleset on the
-default branch:
+The workflows only mean something if the checks are required. Until this ruleset
+existed, none of them were: `ci` and `security` reported on every pull request and
+nothing stopped a red one merging, which made every gate in this repository advisory and
+`AGENTS.md`'s "do not push to the default branch directly" a statement rather than a
+rule. The ruleset below is configured on `main` and is what changes that.
 
 ```bash
 gh api --method POST /repos/greenblacked/AI/rulesets \
@@ -378,6 +399,16 @@ gh api --method POST /repos/greenblacked/AI/rulesets \
     { "type": "deletion" },
     { "type": "non_fast_forward" },
     {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": false,
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": false
+      }
+    },
+    {
       "type": "required_status_checks",
       "parameters": {
         "strict_required_status_checks_policy": true,
@@ -392,11 +423,29 @@ gh api --method POST /repos/greenblacked/AI/rulesets \
 JSON
 ```
 
-Three things to note. `~DEFAULT_BRANCH` is a symbolic target, so the ruleset follows the
+Five things to note. `~DEFAULT_BRANCH` is a symbolic target, so the ruleset follows the
 default branch if it is ever renamed. `strict_required_status_checks_policy: true`
 requires the branch to be up to date with its base before merging, which is what stops
 two individually-green pull requests from combining into a red `main`. The `deletion` and
 `non_fast_forward` rules block branch deletion and force-pushes.
+
+The `pull_request` rule is what enforces the rule `AGENTS.md` states, and its review
+count is zero on purpose. This repository has one maintainer, and GitHub does not let
+anyone approve their own pull request, so a count of one would lock the only person who
+can merge out of merging. Zero still forces the change through a pull request, which is
+where the required checks run; it does not pretend a second pair of eyes exists. Raise it
+the day a second maintainer does.
+
+The API fills in three defaults the payload does not set: `required_reviewers: []`,
+`allowed_merge_methods` with all three, and
+`require_extra_approval_for_unattributed_changes: true`. The last one reads alarmingly
+next to a review count of zero and is not: it applies to pull requests opened by Copilot
+under its own app identity, so it cannot lock out a person.
+
+There are no bypass actors, so the rules apply to the owner as well. That is the point —
+a rule the person most likely to be in a hurry can step around is a rule for everybody
+else. Add one to `bypass_actors` if an escape hatch is ever needed, and expect to explain
+why in the commit that does it.
 
 This requires repository admin. A workflow's `GITHUB_TOKEN` cannot create or modify
 rulesets no matter what `permissions:` it is granted, so this is a one-time manual step
@@ -406,13 +455,17 @@ Verify with:
 
 ```bash
 gh api /repos/greenblacked/AI/rulesets
+gh api /repos/greenblacked/AI/rulesets/<id> --jq '.rules[].type'
 ```
+
+A `[]` from the first command means the gates are advisory again, whatever the workflows
+say.
 
 ## Running the checks locally
 
 ```bash
 make validate   # skills, subagents, commands, rules and the manifest — the validate-skills job
-make catalogue  # listing ceilings, README and CI drift, shell blocks — the catalogue job
+make catalogue  # listing ceilings, README and CI drift, workflows, shell — the catalogue job
 make portable   # flatten every skill for ChatGPT, Grok and other assistants
 make test       # pytest — the test job
 make coverage   # the same run under coverage, failing below the floor
@@ -434,18 +487,30 @@ the packager were in before the suite covered them, not to be chased.
 `make lint` skips a tool that is not installed and prints how to get it, so a partial
 local toolchain does not block you; CI has all of them.
 
-`make catalogue` needs nothing installed beyond `bash`. It is the five checks that
+`make catalogue` needs nothing installed beyond `bash`. It is the six checks that
 keep the repository's claims about itself true — the per-plugin listing ceilings, whether
 the README still lists every skill, subagent and command that exists and nothing that
-does not, whether this file still lists every job CI runs, whether every shell block and
-shipped script actually parses, and whether the hook registered in
-`.claude/settings.json` names a script that is there and executable.
+does not, whether this file still lists every job CI runs, whether each workflow's
+aggregate still names every job in it and each pinned version still means one thing,
+whether every shell block and shipped script actually parses, and whether the hook
+registered in `.claude/settings.json` names a script that is there and executable.
 Each failure is invisible without a gate: the first costs you the skills you use least,
-silently; the second and third are only ever caught by someone reading; the fourth ships
-a command that reads fine and fails in someone else's terminal; and the fifth turns the
-hook off, so skills are written unvalidated and the first sign of it is one reaching CI
-weeks later. `.claude/settings.json` is read by the runtime and by nothing else here,
-which is why the path in `command` needed a check of its own rather than a habit.
+silently; the second and third are only ever caught by someone reading; the fourth is the
+worst of them, because a job left out of the aggregate makes the required check report
+success while that job is red; the fifth ships a command that reads fine and fails in
+someone else's terminal; and the sixth turns the hook off, so skills are written
+unvalidated and the first sign of it is one reaching CI weeks later.
+`.claude/settings.json` is read by the runtime and by nothing else here, which is why
+the path in `command` needed a check of its own rather than a habit.
+
+`check_pin_freshness.py` is not part of `make catalogue` either, for the same reason it
+is not a gate: it needs PyPI, the npm registry and the GitHub releases API to answer. Run
+it directly when you want to know what has moved, and give it a token if you are asking
+more than a few times an hour:
+
+```bash
+GH_TOKEN=$(gh auth token) python scripts/check_pin_freshness.py .
+```
 
 The trigger evals are not part of `make`, because they need a model and a key. Run them
 directly when a description is the thing in question:
