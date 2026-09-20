@@ -1,0 +1,22 @@
+[
+  {"query": "a contributor forked our repo and opened a PR, can they get at our secrets", "should_trigger": true},
+  {"query": "is pull_request_target dangerous in this workflow", "should_trigger": true},
+  {"query": "dependabot just bumped an action, do we need to re-pin the sha", "should_trigger": true},
+  {"query": "audit our github actions workflows for injection", "should_trigger": true},
+  {"query": "our deploy job holds an AWS access key as a repo secret, is that a problem", "should_trigger": true},
+  {"query": "zizmor flagged something in our release workflow and I don't know if it matters", "should_trigger": true},
+  {"query": "a workflow triggers on issue_comment and kicks off a build, is that safe", "should_trigger": true},
+  {"query": "do we actually verify a signed artefact anywhere in the pipeline", "should_trigger": true},
+  {"query": "we're about to make this release workflow a required check, review it first", "should_trigger": true},
+  {"query": "the build cache is shared between fork PR runs and main, could that be poisoned", "should_trigger": true},
+  {"query": "our CI takes 40 minutes end to end, how do we speed it up", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "what should be a required check before we merge to main", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "the workflow is failing at the docker login step, why", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "this e2e test keeps failing intermittently, is it a flake", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "can you security review this PR that adds a new API endpoint", "should_trigger": false, "expected": "security-review"},
+  {"query": "harden our Dockerfile, it's running as root", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "we just found a live API key pushed to the repo an hour ago", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "this service account has full S3 access, can we cut that down", "should_trigger": false, "expected": "access-review"},
+  {"query": "add a new workflow that publishes to npm on a tag push", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "we have twelve open dependabot PRs, help me work through them", "should_trigger": false, "expected": "dependency-triage"}
+]

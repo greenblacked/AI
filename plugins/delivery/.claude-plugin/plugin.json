@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "delivery",
-  "description": "Skills for getting a change into production without a bad night: separate deploy from release so the worst case is one cohort and one flag, ship a schema change to a live database without a stuck lock, run a cutover that has a point of no return, plan a platform migration that changes one thing at a time, and write release notes someone can act on.",
+  "description": "Skills for getting a change into production without a bad night: separate deploy from release so the worst case is one cohort and one flag, ship a schema change to a live database without a stuck lock, run a cutover that has a point of no return, plan a platform migration that changes one thing at a time, audit a CI/CD workflow's own definition for what an attacker can reach through it, and write release notes someone can act on.",
   "author": {
     "name": "greenblacked",
     "url": "https://github.com/greenblacked"

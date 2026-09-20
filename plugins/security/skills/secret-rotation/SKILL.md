@@ -163,7 +163,7 @@ Write it up afterwards with the `postmortem` skill. The interesting question is 
 
 The best rotation is the one you do not have to perform, because the credential expires on its own in an hour.
 
-- **Federate CI to the cloud with OIDC.** GitHub Actions and GitLab CI can exchange a workload identity token for a short-lived cloud role, so no static key exists in CI at all. This deletes an entire class of leak: the CI secret that ends up echoed into a log.
+- **Federate CI to the cloud with OIDC.** GitHub Actions and GitLab CI can exchange a workload identity token for a short-lived cloud role, so no static key exists in CI at all. This deletes an entire class of leak: the CI secret that ends up echoed into a log. Setting the federation up, and checking the trust policy is conditioned on the right repository and ref rather than on `sub: *`, is `pipeline-hardening`.
 - **Use workload identity in the runtime.** IAM roles for service accounts or EKS Pod Identity, GKE Workload Identity, Azure workload identity, instance profiles. The credential becomes a rotating token the platform manages.
 - **Use dynamic credentials for databases.** A secret manager that mints a per-connection database user with a short lease turns rotation into expiry.
 - **Scan before the push and in CI.** A pre-commit hook catches the value before it exists in history; a CI scan over full history catches what the hook missed. Provider-side push protection is better than both, because it rejects the push rather than reporting it. Do not stop at the hook — the hook is the control someone bypasses at 6pm on a Friday.
