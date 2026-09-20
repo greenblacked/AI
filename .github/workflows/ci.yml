@@ -28,7 +28,7 @@ concurrency:
 # rather than beside the step that uses each, so that a cache key can name one and so
 # `make lint` can read one out with a single sed.
 env:
-  CLAUDE_CODE_VERSION: '2.1.221'
+  CLAUDE_CODE_VERSION: '2.1.278'
   CODESPELL_VERSION: '2.4.3'
   # yamllint, pytest and coverage were the three that floated. A yamllint release that
   # adds a rule reddens the build on YAML nobody touched, which is exactly what got ruff
