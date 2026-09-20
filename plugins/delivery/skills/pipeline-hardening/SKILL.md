@@ -54,12 +54,13 @@ A value interpolated directly into a `run:` block is expanded by the shell befor
 
 For each job, answer two questions side by side: what can this job read (`GITHUB_TOKEN` scope, repository and organisation secrets, an OIDC token it can request), and does any step in it execute code or a script the pull request author controls — application code, a test suite, a `postinstall` hook, an action from the PR's own `.github/`.
 
-A job that answers yes to both is the finding, regardless of how the credential arrived. `pull_request_target` combined with `actions/checkout` at `github.event.pull_request.head.sha` is the canonical shape, but the same defect exists wherever a `workflow_run` job downloads and runs an artefact a fork produced, or wherever a same-repo `pull_request` job is later given a secret to satisfy a step that did not need it.
+A job that answers yes to both is the finding, regardless of how the credential arrived. `pull_request_target` combined with `actions/checkout` at `github.event.pull_request.head.sha` is the canonical shape, and `actions/checkout` now gates it behind `allow-unsafe-pr-checkout`, which defaults to false — so `rg -n 'allow-unsafe-pr-checkout:\s*true' .github/workflows/*.yml` finds the place someone deliberately opted out. It is not the whole search: `git fetch` of the head ref, `gh pr checkout` and a downloaded artefact all reach the same code without that input, but the same defect exists wherever a `workflow_run` job downloads and runs an artefact a fork produced, or wherever a same-repo `pull_request` job is later given a secret to satisfy a step that did not need it.
 
 ### 4. Check every pin
 
 ```bash
-rg -n 'uses:\s*[^@]+@(?!\w{40})' .github/workflows/*.yml    # a ref that is not a 40-char SHA
+rg -n '^\s*(- )?uses:\s*\S+@' .github/workflows/*.yml \
+  | rg -v '@[0-9a-f]{40}'                                   # a ref that is not a 40-char SHA
 rg -n 'curl .*\|\s*(bash|sh)' .github/workflows/*.yml       # fetch-and-pipe-to-shell
 ```
 
@@ -83,7 +84,7 @@ An unexplained pass or an unexplained suppression are both failures of this step
 
 A stored cloud credential in a CI secret is a static, long-lived key that every run has read access to and that leaks the moment a log line or a compromised dependency exposes it. Where the provider supports federation, replace it: the job exchanges the workflow's own OIDC token for a short-lived role, and there is nothing left in the secret store to steal.
 
-The trust policy is where this is done badly as often as it is skipped. Conditioning on `sub` alone, or worse on `sub: *`, trusts every workflow in every repository that can mint a token from that OIDC issuer — which on GitHub Actions is far broader than the one repository the credential was meant for. Condition on the repository, the ref or environment, and the workflow path, not on the subject claim in isolation. `references/credentials-and-provenance.md` has the exact condition shape per provider.
+The trust policy is where this is done badly as often as it is skipped. Pin the whole `sub` — repository plus ref or environment — and pin `aud` to the provider's audience string. A wildcard anywhere in the `sub` match is the finding: a policy that accepts `repo:OWNER/REPO:*` trusts every branch and every pull request in that repository, and one that accepts `*` trusts every workflow able to mint a token from that issuer. Repositories created after July 2026 carry immutable identifiers in the claim (`repo:OWNER@ID/REPO@ID:...`), so a policy written against the older shape can silently match nothing. `references/credentials-and-provenance.md` has the exact condition shape per provider.
 
 ### 7. Check caches and artefacts across the fork boundary, and provenance at consumption
 

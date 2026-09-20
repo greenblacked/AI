@@ -10,7 +10,7 @@ not the other.
 
 - [`GITHUB_TOKEN`: what reach actually means here](#github_token-what-reach-actually-means-here)
 - [OIDC federation, per provider](#oidc-federation-per-provider)
-- [Why `sub` alone is a wildcard](#why-sub-alone-is-a-wildcard)
+- [Pin the whole subject, and the audience](#pin-the-whole-subject-and-the-audience)
 - [`persist-credentials: false`](#persist-credentials-false)
 - [Cache scope across the fork boundary](#cache-scope-across-the-fork-boundary)
 - [Artefact attestation and verification at the consumer](#artefact-attestation-and-verification-at-the-consumer)
@@ -43,14 +43,17 @@ any point.
 `id-token: write` is required in the job's `permissions:` block for the request to
 succeed at all, and only the job that federates needs it.
 
-## Why `sub` alone is a wildcard
+## Pin the whole subject, and the audience
 
 GitHub's OIDC token's `sub` claim is structured — `repo:OWNER/REPO:ref:refs/heads/main`,
-or `:pull_request`, or `:environment:production` — and a trust policy that matches on
-`sub` with no further condition, or worse accepts `*`, trusts every workflow able to
-mint a token from that issuer, not just the one repository the role was created for. The
-two conditions that actually narrow it: pin the repository in the `sub` match, and pin
-`aud` to the provider's own audience string rather than leaving it unconstrained. A trust
+or `:pull_request`, or `:environment:production`. An exact match on that whole string is
+the condition you want; the hole is a wildcard inside it. `repo:OWNER/REPO:*` accepts
+every branch and every pull request in the repository, which includes a branch an
+attacker can create, and a bare `*` accepts every workflow able to mint a token from the
+issuer. Pin the full `sub`, and pin `aud` to the provider's own audience string rather
+than leaving it unconstrained. Repositories created after July 2026 carry immutable
+identifiers (`repo:OWNER@ID/REPO@ID:...`), so a policy written against the older shape
+matches nothing rather than failing loudly. A trust
 policy reviewed once at creation and never re-read is the common way this drifts —
 confirm it on every audit rather than trusting the name of the role implies its scope.
 
@@ -63,14 +66,20 @@ job's later steps genuinely push, which is rare outside a release job.
 
 ## Cache scope across the fork boundary
 
-On GitHub-hosted runners, a cache saved by a run on the default branch is restorable by
-a run on a fork's pull request, and — depending on how the cache action and key are
-configured — the reverse can also hold. Treat the cache as crossing the trust boundary by
-default rather than assuming it does not:
+The platform's defaults already do most of this work, and the audit is mostly a check
+that nobody has turned them off. A `pull_request` run's caches are scoped to the merge
+ref and cannot be written into the default branch's scope. Runs on other events that
+resolve to the default branch — `pull_request_target`, `issue_comment`, `workflow_run`,
+the ones whose payload or initiating actor someone outside the repository can influence —
+get read-only access to that scope: they restore, they cannot create or overwrite.
 
-- An untrusted run should restore from a cache, never save to a scope the default branch
-  or a privileged job will later read. `actions/cache`'s `save-always` and manual
-  save/restore split are what make this enforceable rather than accidental.
+What reopens it is an explicit `cache-mode`, whose values are `read`, `write`,
+`write-only` and `none`. A write-capable `cache-mode` on a low-trust trigger hands back
+the poisoning risk the default removed, so `rg -n 'cache-mode:\s*(write|write-only)'
+.github/workflows/*.yml` is the grep, and each hit needs a reason:
+
+- Where a job genuinely should only restore, `actions/cache/restore` says so in the
+  workflow rather than relying on the run's scope to refuse the save.
 - A cache key that a fork PR can fully control (built only from `github.head_ref`, for
   example) lets that PR choose which cached bytes a later trusted run restores. Key on
   content the PR does not choose alone — a lockfile hash, not a branch name.
