@@ -1,6 +1,6 @@
 ---
 name: ci-pipeline-design
-description: "Design a CI/CD pipeline that does not exist yet, or restructure one that grew badly: decide which checks are allowed to block a merge before drawing any stage, lay the stages out as a dependency graph so nothing waits on output it never uses, key caches on what actually invalidates them, choose a matrix or separate jobs, build the artefact once and promote the same digest through every environment, scope secrets to the job that needs them, and hold wall-clock to a number people will wait for. Use whenever someone says \"our CI takes 40 minutes\", \"what should be a required check\", \"how do I cache node_modules properly\", or \"set up a pipeline for this repo\". Not for a pipeline that is red right now (ci-triage), not for writing or generating a workflow file, job or script — a version matrix among them — which is code-scaffold, and not for how a built change reaches users (release-strategy)."
+description: "Design a CI/CD pipeline that does not exist yet, or restructure one that grew badly: decide which checks are allowed to block a merge before drawing any stage, lay the stages out as a dependency graph so nothing waits on output it never uses, key caches on what actually invalidates them, choose a matrix or separate jobs, build the artefact once and promote the same digest through every environment, decide which job may ever see a secret, and hold wall-clock to a number people will wait for. Use whenever someone says \"our CI takes 40 minutes\", \"what should be a required check\", \"how do I cache node_modules properly\", or \"set up a pipeline for this repo\". Not for red CI (ci-triage), writing a workflow file or script (code-scaffold), how a change reaches users (release-strategy), or auditing an existing workflow for attacker reach (pipeline-hardening)."
 allowed-tools: "Read, Write, Edit, Grep, Glob, Bash(gh:*), Bash(jq:*), Bash(git:*), Bash(actionlint:*)"
 ---
 
@@ -14,7 +14,7 @@ Pipelines are rarely designed. They accrete, and every addition is locally reaso
 
 Use for: designing a pipeline for a repository that has none; restructuring one that has grown badly; deciding which checks are required for merge and which are advisory; laying out the stage graph and what gates what; cache keys and what actually invalidates them; matrix strategy versus separate jobs; promoting one artefact across environments instead of rebuilding; where secrets enter and which job can see them; getting total wall-clock down to a number people will wait for.
 
-Do not use for: a pipeline that is red right now and you want to know why, including "the build broke", "my PR is blocked" and "is this a flake" — that is `ci-triage`; writing a single workflow file, job or helper script from a description — that is `code-scaffold`; how a built change reaches users, canaries, rings, flags and blue/green — that is `release-strategy`; moving wholesale from one CI system to another as a project with a parallel run and a retirement plan — that is `plan-platform-migration`; deciding what the tests should cover — that is `test-design`.
+Do not use for: a pipeline that is red right now and you want to know why, including "the build broke", "my PR is blocked" and "is this a flake" — that is `ci-triage`; writing a single workflow file, job or helper script from a description — that is `code-scaffold`; how a built change reaches users, canaries, rings, flags and blue/green — that is `release-strategy`; moving wholesale from one CI system to another as a project with a parallel run and a retirement plan — that is `plan-platform-migration`; deciding what the tests should cover — that is `test-design`; auditing a workflow that already exists for what an attacker, rather than a slow build, can reach through it — that is `pipeline-hardening`.
 
 ## Workflow
 
@@ -165,6 +165,8 @@ Secrets scoping is a design decision made in the stage graph, not a configuratio
 - Set permissions at the lowest scope the provider offers, and default the workflow to read-only, raising it per job that genuinely writes.
 - Pass a secret through the environment rather than as a command argument. Arguments appear in process listings, in shell traces, and in the error message a tool prints when it fails to parse them.
 - A fork pull request should not receive secrets, so any job that needs one has to run somewhere else. Designing that split early is much cheaper than retrofitting it after someone discovers the pipeline cannot test contributions.
+
+Scoping secrets is a structural decision made once, here. Auditing a workflow that already exists — whether `pull_request_target` or `workflow_run` actually holds to that split, whether every pin has a SHA, whether a stored cloud key could be OIDC instead — is `pipeline-hardening`.
 
 ### 8. Write the flake policy before the first flake
 

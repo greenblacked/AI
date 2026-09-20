@@ -251,11 +251,11 @@ Report triage in this shape. It front-loads the answer and makes the evidence au
 
 **Bisecting a nondeterministic failure.** Returns a confidently wrong commit, which is worse than no answer because someone will act on it. Quarantine, stabilize, then bisect.
 
-**`pull_request_target` with a checkout of the PR head.** Executes untrusted fork code with a write-scoped token and access to secrets. This is the standard Actions repo-takeover path, not a theoretical one. Use `pull_request`, and if you truly need the token, split the privileged work into a separate `workflow_run` job that never checks out fork code.
+**`pull_request_target` with a checkout of the PR head.** Executes untrusted fork code with a write-scoped token and access to secrets. This is the standard Actions repo-takeover path, not a theoretical one. Use `pull_request`, and if you truly need the token, split the privileged work into a separate `workflow_run` job that never checks out fork code. Auditing the workflow itself for this and every other way an attacker can reach it is `pipeline-hardening`.
 
-**Unpinned action tags.** `@v3` is a mutable ref pointing at whatever the maintainer moved it to. It makes builds non-reproducible and puts a supply-chain compromise one force-push away. Pin to a full commit SHA with the version in a trailing comment.
+**Unpinned action tags.** `@v3` is a mutable ref pointing at whatever the maintainer moved it to. It makes builds non-reproducible and puts a supply-chain compromise one force-push away. Pin to a full commit SHA with the version in a trailing comment. A full pinning pass over every workflow, not just the one that just failed, is `pipeline-hardening`.
 
-**No `permissions:` block.** The job inherits the repository default, which may be write-all. Set a `permissions: {}` default at workflow level and grant per-job.
+**No `permissions:` block.** The job inherits the repository default, which may be write-all. Set a `permissions: {}` default at workflow level and grant per-job. A per-job audit of what credential is live where a fork's code can run is `pipeline-hardening`.
 
 ## Reference files
 
