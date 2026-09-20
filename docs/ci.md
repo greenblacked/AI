@@ -361,8 +361,11 @@ of any gate.
 
 ## Making CI authoritative
 
-The workflows only mean something if the checks are required. Create a ruleset on the
-default branch:
+The workflows only mean something if the checks are required. Until this ruleset
+existed, none of them were: `ci` and `security` reported on every pull request and
+nothing stopped a red one merging, which made every gate in this repository advisory and
+`AGENTS.md`'s "do not push to the default branch directly" a statement rather than a
+rule. The ruleset below is configured on `main` and is what changes that.
 
 ```bash
 gh api --method POST /repos/greenblacked/AI/rulesets \
@@ -378,6 +381,16 @@ gh api --method POST /repos/greenblacked/AI/rulesets \
     { "type": "deletion" },
     { "type": "non_fast_forward" },
     {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": false,
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": false
+      }
+    },
+    {
       "type": "required_status_checks",
       "parameters": {
         "strict_required_status_checks_policy": true,
@@ -392,11 +405,23 @@ gh api --method POST /repos/greenblacked/AI/rulesets \
 JSON
 ```
 
-Three things to note. `~DEFAULT_BRANCH` is a symbolic target, so the ruleset follows the
+Four things to note. `~DEFAULT_BRANCH` is a symbolic target, so the ruleset follows the
 default branch if it is ever renamed. `strict_required_status_checks_policy: true`
 requires the branch to be up to date with its base before merging, which is what stops
 two individually-green pull requests from combining into a red `main`. The `deletion` and
 `non_fast_forward` rules block branch deletion and force-pushes.
+
+The `pull_request` rule is what enforces the rule `AGENTS.md` states, and its review
+count is zero on purpose. This repository has one maintainer, and GitHub does not let
+anyone approve their own pull request, so a count of one would lock the only person who
+can merge out of merging. Zero still forces the change through a pull request, which is
+where the required checks run; it does not pretend a second pair of eyes exists. Raise it
+the day a second maintainer does.
+
+There are no bypass actors, so the rules apply to the owner as well. That is the point —
+a rule the person most likely to be in a hurry can step around is a rule for everybody
+else. Add one to `bypass_actors` if an escape hatch is ever needed, and expect to explain
+why in the commit that does it.
 
 This requires repository admin. A workflow's `GITHUB_TOKEN` cannot create or modify
 rulesets no matter what `permissions:` it is granted, so this is a one-time manual step
@@ -406,7 +431,11 @@ Verify with:
 
 ```bash
 gh api /repos/greenblacked/AI/rulesets
+gh api /repos/greenblacked/AI/rulesets/<id> --jq '.rules[].type'
 ```
+
+A `[]` from the first command means the gates are advisory again, whatever the workflows
+say.
 
 ## Running the checks locally
 
