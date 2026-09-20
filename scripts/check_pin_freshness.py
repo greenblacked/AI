@@ -29,6 +29,14 @@ table is written by hand and the workflows are not, so without that the table fa
 quietly behind the thing it describes, which is the failure every check in this directory
 is written against.
 
+Every lookup is wrapped in a bare `except Exception`, which is normally the wrong
+instinct and is the right one here. The narrower tuple it started with missed the shapes
+that actually turn up from a registry having a bad day: a body that parses as JSON but is
+a list or a string raises `TypeError`, and `http.client.HTTPException` is not an
+`OSError`. Because the lookups run in a loop and the table is printed after it, one
+uncaught exception meant no table at all — a job whose only output is a report, producing
+a traceback instead. A failed lookup is a row that says so.
+
 `*_SHA256` pins are not looked up. A digest follows its version, and the jobs that
 download something check theirs against the artefact at the moment it matters and fail
 before the binary runs, which is a stronger statement than anything available here.
@@ -44,13 +52,18 @@ import argparse
 import json
 import os
 import re
-import urllib.error
 import urllib.request
 from pathlib import Path
 
 WORKFLOW_DIR = Path(".github") / "workflows"
 MAKEFILE = Path("Makefile")
-PIN_RE = re.compile(r"^\s*([A-Z][A-Z0-9_]*_VERSION):\s*'([^']*)'\s*(?:#.*)?$")
+# Any of YAML's three spellings, for the reason `check_workflows.py` gives: nothing
+# forces single quotes, and a pin re-typed without them would drop out of this table
+# with no row and no complaint.
+PIN_RE = re.compile(
+    r"""^\s*([A-Z][A-Z0-9_]*_VERSION):\s*"""
+    r"""(?:'([^']*)'|"([^"]*)"|([^\s#'">|&*!{\[][^\s#]*))\s*(?:#.*)?$"""
+)
 MARKDOWNLINT_PIN_RE = re.compile(r"^MARKDOWNLINT_PIN\s*:?=\s*(\S+)", re.M)
 # `- uses: DavidAnson/markdownlint-cli2-action@<sha>  # v24.2.0`
 MARKDOWNLINT_ACTION_RE = re.compile(r"markdownlint-cli2-action@[0-9a-f]{40}\s+#\s*(v\S+)")
@@ -72,8 +85,8 @@ SOURCES = {
 }
 
 
-def fetch(url: str) -> str:
-    """GET a URL and return its body, with the job token when one is in the environment.
+def build_request(url: str) -> urllib.request.Request:
+    """The request for one URL, carrying the job token when the host is GitHub's API.
 
     Unauthenticated `api.github.com` allows sixty requests an hour per IP address, which
     a shared runner exhausts without this repository doing anything wrong. The token is
@@ -85,16 +98,28 @@ def fetch(url: str) -> str:
     # before a request object exists.
     if not url.startswith("https://"):
         raise ValueError(f"refusing to fetch a non-https URL: {url}")
-    # No cover below this line, and deliberately: these are the statements that make a
-    # real request, and a test that exercised them would put the suite on the network.
-    # Everything that decides anything takes the fetcher as an argument instead.
-    request = urllib.request.Request(  # noqa: S310 - https enforced above  # pragma: no cover
+    request = urllib.request.Request(  # noqa: S310 - https enforced above
         url, headers={"User-Agent": "check-pin-freshness"}
     )
-    token = os.environ.get("GH_TOKEN", "")  # pragma: no cover
-    if token and url.startswith("https://api.github.com/"):  # pragma: no cover
+    token = os.environ.get("GH_TOKEN", "")
+    if token and url.startswith("https://api.github.com/"):
         request.add_header("Authorization", f"Bearer {token}")
-    with urllib.request.urlopen(request, timeout=30) as response:  # noqa: S310  # pragma: no cover
+    return request
+
+
+def fetch(url: str) -> str:
+    """GET a URL and return its body.
+
+    Only the send is left untested: exercising it would put the suite on the network,
+    and a suite that can make a request is one that fails when someone else's server
+    does. Everything that decides anything — which scheme is allowed, which host gets
+    the token — is in `build_request` above, where a test can reach it.
+    """
+    request = build_request(url)
+    # Left uncovered on purpose rather than hidden behind a pragma: the coverage report
+    # naming these two lines is the honest record that nothing in the suite sends a
+    # request, which is the property worth keeping.
+    with urllib.request.urlopen(request, timeout=30) as response:  # noqa: S310
         return response.read().decode("utf-8")
 
 
@@ -118,7 +143,8 @@ def pinned(root: Path) -> dict[str, list[str]]:
             for line in path.read_text(encoding="utf-8").splitlines():
                 match = PIN_RE.match(line)
                 if match:
-                    found.setdefault(match.group(1), []).append(match.group(2))
+                    value = next(g for g in match.groups()[1:] if g is not None)
+                    found.setdefault(match.group(1), []).append(value)
     return found
 
 
@@ -167,8 +193,8 @@ def check(root: Path, get=None) -> int:
         registry, package = SOURCES[name]
         try:
             newest = latest(registry, package, get)
-        except (urllib.error.URLError, OSError, ValueError, KeyError, json.JSONDecodeError) as err:
-            rows.append((name, current, "?", f"could not ask {registry}: {err}"))
+        except Exception as err:  # noqa: BLE001 - a nag must report, never raise
+            rows.append((name, current, "?", f"could not ask {registry}: {err!r}"))
             problems += 1
             continue
         if newest == current:
@@ -179,9 +205,9 @@ def check(root: Path, get=None) -> int:
 
     try:
         pair = markdownlint(root, get)
-    except (urllib.error.URLError, OSError, ValueError, KeyError, json.JSONDecodeError) as err:
+    except Exception as err:  # noqa: BLE001 - as above
         pair = None
-        rows.append(("MARKDOWNLINT_PIN", "?", "?", f"could not ask the action: {err}"))
+        rows.append(("MARKDOWNLINT_PIN", "?", "?", f"could not ask the action: {err!r}"))
         problems += 1
     if pair is not None:
         recorded, shipped = pair

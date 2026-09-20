@@ -115,9 +115,10 @@ goes on while the invariant is true, not after it has already been broken.
 
 ## `.github/workflows/scheduled.yml` — Scheduled checks
 
-Runs weekly (`cron: '0 6 * * 1'`) and on `workflow_dispatch`. Neither job gates anything,
-and neither workflow has an aggregator, because an aggregator exists to give branch
-protection a stable name to require and nothing requires these.
+Runs weekly (`cron: '0 6 * * 1'`) and on `workflow_dispatch`. Neither job gates
+anything, and neither this workflow nor `evals.yml` has an aggregator, because an
+aggregator exists to give branch protection a stable name to require and nothing
+requires either of them.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
@@ -422,7 +423,7 @@ gh api --method POST /repos/greenblacked/AI/rulesets \
 JSON
 ```
 
-Four things to note. `~DEFAULT_BRANCH` is a symbolic target, so the ruleset follows the
+Five things to note. `~DEFAULT_BRANCH` is a symbolic target, so the ruleset follows the
 default branch if it is ever renamed. `strict_required_status_checks_policy: true`
 requires the branch to be up to date with its base before merging, which is what stops
 two individually-green pull requests from combining into a red `main`. The `deletion` and
@@ -434,6 +435,12 @@ anyone approve their own pull request, so a count of one would lock the only per
 can merge out of merging. Zero still forces the change through a pull request, which is
 where the required checks run; it does not pretend a second pair of eyes exists. Raise it
 the day a second maintainer does.
+
+The API fills in three defaults the payload does not set: `required_reviewers: []`,
+`allowed_merge_methods` with all three, and
+`require_extra_approval_for_unattributed_changes: true`. The last one reads alarmingly
+next to a review count of zero and is not: it applies to pull requests opened by Copilot
+under its own app identity, so it cannot lock out a person.
 
 There are no bypass actors, so the rules apply to the owner as well. That is the point —
 a rule the person most likely to be in a hurry can step around is a rule for everybody

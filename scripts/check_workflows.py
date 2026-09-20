@@ -56,14 +56,31 @@ WORKFLOW_DIR = Path(".github") / "workflows"
 JOBS_RE = re.compile(r"^jobs:\s*(?:#.*)?$")
 JOB_RE = re.compile(r"^ {2}([A-Za-z0-9_.-]+):\s*(?:#.*)?$")
 TOP_LEVEL_RE = re.compile(r"^[^\s#]")
-# `    if: always()`, the mark of the aggregator, alongside its `needs:`.
-ALWAYS_RE = re.compile(r"^ {4}if:\s*always\(\)\s*(?:#.*)?$")
+# The mark of the aggregator: a job-level `if:` that mentions `always()`, alongside a
+# `needs:`. Matching the whole value exactly was this check's second silent hole —
+# `if: ${{ always() }}` and `if: always() && !cancelled()` are both aggregates, and
+# either spelling made the job invisible, the workflow read as gating nothing, and an
+# incomplete `needs:` pass. Any `if:` carrying `always()` counts.
+ALWAYS_RE = re.compile(r"^ {4}if:\s*.*always\(\)")
 NEEDS_BLOCK_RE = re.compile(r"^ {4}needs:\s*(?:#.*)?$")
 NEEDS_INLINE_RE = re.compile(r"^ {4}needs:\s*\[([^\]]*)\]\s*(?:#.*)?$")
 NEEDS_ONE_RE = re.compile(r"^ {4}needs:\s*([A-Za-z0-9_.-]+)\s*(?:#.*)?$")
 NEEDS_ITEM_RE = re.compile(r"^ {6}-\s*([A-Za-z0-9_.-]+)\s*(?:#.*)?$")
-# Every pinned tool version or digest, at any indent, so a step-level block is caught.
-PIN_RE = re.compile(r"^\s*([A-Z][A-Z0-9_]*_(?:VERSION|SHA256)):\s*'([^']*)'\s*(?:#.*)?$")
+# Every pinned tool version or digest, at any indent so a step-level block is caught,
+# and in any of YAML's three spellings. Requiring single quotes was a silent hole:
+# nothing makes anyone use them — `.yamllint` extends `default`, where `quoted-strings`
+# is off — so a pin re-typed bare or in double quotes dropped out of the comparison
+# entirely and could not disagree with anything.
+PIN_RE = re.compile(
+    r"""^\s*([A-Z][A-Z0-9_]*_(?:VERSION|SHA256)):\s*"""
+    # The bare form excludes the characters YAML gives a meaning to at the start of a
+    # value — block scalars, anchors, aliases, tags, flow collections — so `>-` is
+    # reported as unreadable rather than recorded as the version string ">-".
+    r"""(?:'([^']*)'|"([^"]*)"|([^\s#'">|&*!{\[][^\s#]*))\s*(?:#.*)?$"""
+)
+# The same key with a value the pattern above cannot read. Reported rather than skipped,
+# because a pin nobody parsed is a pin nobody is comparing.
+PIN_KEY_RE = re.compile(r"^\s*[A-Z][A-Z0-9_]*_(?:VERSION|SHA256):")
 
 
 class Job:
@@ -151,7 +168,10 @@ def pins_in(text: str) -> list[tuple[str, str, int]]:
     for number, line in enumerate(text.splitlines(), start=1):
         match = PIN_RE.match(line)
         if match:
-            found.append((match.group(1), match.group(2), number))
+            value = next(g for g in match.groups()[1:] if g is not None)
+            found.append((match.group(1), value, number))
+        elif PIN_KEY_RE.match(line):
+            found.append((line.split(":", 1)[0].strip(), None, number))
     return found
 
 
@@ -191,6 +211,14 @@ def check(root: Path) -> int:
             continue
 
         for name, value, number in pins_in(text):
+            if value is None:
+                print(
+                    f"::error file={rel},line={number}::could not read the value of "
+                    f"`{name}`; write it as a plain, single-quoted or double-quoted "
+                    f"scalar, because a pin nobody can parse is one nobody is comparing"
+                )
+                problems += 1
+                continue
             seen_pins.setdefault(name, []).append((str(rel), value, number))
 
         aggregators = [job for job in jobs if job.always and job.needs is not None]
