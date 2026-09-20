@@ -43,11 +43,11 @@ commit then resolves as a new version — so the three warnings are the correct 
 ## `.github/workflows/security.yml` — Security
 
 Same triggers, same empty top-level `permissions`. Tool versions are pinned in `env`
-(`GITLEAKS_VERSION`, `ZIZMOR_VERSION`, `RUFF_VERSION`) rather than floated: a scanner that
-changes its rule set between runs turns a green build into a statement about the scanner
-rather than about the code. ruff is in that list for a concrete reason — 0.16 began
-formatting Python blocks inside Markdown, so an unpinned upgrade would fail the build on
-skill prose that was green the day before.
+(`GITLEAKS_VERSION`, `GITLEAKS_SHA256`, `ZIZMOR_VERSION`, `RUFF_VERSION`) rather than
+floated: a scanner that changes its rule set between runs turns a green build into a
+statement about the scanner rather than about the code. ruff is in that list for a
+concrete reason — 0.16 began formatting Python blocks inside Markdown, so an unpinned
+upgrade would fail the build on skill prose that was green the day before.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
@@ -65,7 +65,10 @@ skill prose that was green the day before.
 only the working tree misses the case that matters most: a secret that was committed and
 later removed is still a leaked secret, because the object is still in the repository and
 anyone who cloned it has a copy. Both invocations use `--redact` so the finding does not
-put the secret in the log.
+put the secret in the log. The binary itself is downloaded at the version in
+`GITLEAKS_VERSION` and checked against `GITLEAKS_SHA256` before it is unpacked, for the
+reason the pinning section below gives: a release asset is as mutable as the tag naming
+it, and a secret scanner is a poor thing to run an unverified download of.
 
 **zizmor audits the workflows themselves.** Run as
 `zizmor --persona=regular --min-severity=medium .`. It looks for the things that actually
@@ -283,7 +286,8 @@ and `github/codeql-action` first broke here, months after being pinned correctly
 
 A tool downloaded rather than used as an action gets the same treatment as far as the
 mechanism allows. `lint-actions` fetches a specific actionlint release and verifies it
-against a recorded SHA-256 before running it:
+against a recorded SHA-256 before running it, and `secrets` fetches gitleaks the same
+way:
 
 ```yaml
 run: |
