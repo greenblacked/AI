@@ -42,7 +42,7 @@ Everything here is prose and configuration. There is no application. The only co
 | `.claude-plugin/marketplace.json` | Lists the eight plugins; each discovers its own skills |
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
-| `scripts/` | Packaging, install, the eval harness, the portable export, and the five catalogue checks |
+| `scripts/` | Packaging, install, the eval harness, the portable export, and the six catalogue checks |
 | `scripts/hooks/` | The `PostToolUse` hook `.claude/settings.json` registers, which validates a skill as it is written |
 
 ## Setup commands
@@ -67,18 +67,21 @@ make install                   # symlink every skill into ~/.claude/skills
 three before finishing; a change to `rules.py` that does not also change `tests/` is
 almost always missing a case.
 
-`make catalogue` is the five checks on what the repository claims about itself: the
+`make catalogue` is the six checks on what the repository claims about itself: the
 listing ceilings, the README against the tree, `docs/ci.md` against the jobs the
-workflows actually define, that every shell block and shipped script parses, and that
-the hook `.claude/settings.json` registers points at a script that exists and can run.
+workflows actually define, that each workflow's aggregate names every job in it and each
+pinned version means one thing, that every shell block and shipped script parses, and
+that the hook `.claude/settings.json` registers points at a script that exists and can
+run.
 Adding a skill pushes its plugin's listing past the ceiling in `listing-budget.json`,
 on purpose: past the runtime's budget the descriptions of a plugin's least-used skills
 are dropped silently, so growth has to be a decision rather than a drift. Raise the ceiling with
 `scripts/check_listing_budget.py --update` and say why in the commit, or split the
 plugin. The same target checks that the README still lists every skill, subagent and
-command that exists and nothing that does not, and that `docs/ci.md` still has a row for
+command that exists and nothing that does not, that `docs/ci.md` still has a row for
 every job CI runs — a job with no row is a red check someone has to reverse-engineer out
-of YAML.
+of YAML — and that a job left out of `ci`'s or `security`'s `needs:` cannot go green by
+being forgotten.
 
 The suite covers the scripts, not only the validator. `tests/conftest.py` holds the two
 fixtures they share: `mini_repo`, a complete plugin repository built in a temporary
