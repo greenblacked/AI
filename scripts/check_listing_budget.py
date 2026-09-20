@@ -139,6 +139,30 @@ def measure(root: Path) -> dict[str, int]:
     return totals(root, walk(root))
 
 
+def mute(entries: list[tuple[str, str, int]], plugin: str, budget: int = RUNTIME_DEFAULT) -> int:
+    """How many of one plugin's skills lose their description, installed on their own.
+
+    The character total says a plugin is over the budget; this says what that costs, in
+    the unit the reader cares about. Past the budget the runtime drops whole descriptions
+    rather than truncating them, so the skill stays invocable by name and stops being
+    chosen on its own — a skill nobody can reach without already knowing it exists.
+
+    Which particular skills go is not knowable here: the runtime drops the least-used,
+    and on a fresh install nothing has been used. The count does depend on that order —
+    dropping five short descriptions frees less room than dropping five long ones — so
+    this packs the shortest first, which keeps the most and therefore reports the
+    smallest honest number. Read it as "at least this many", not as the expected loss.
+    """
+    lengths = sorted(length for name, _skill, length in entries if name == plugin)
+    used, kept = 0, 0
+    for length in lengths:
+        if used + length > budget:
+            break
+        used += length
+        kept += 1
+    return len(lengths) - kept
+
+
 def ceiling_for(size: int) -> int:
     """The ceiling a measured total earns: rounded up to the next step, and at least
     HEADROOM above the total itself so a plugin sitting just under a boundary still has
@@ -298,19 +322,28 @@ def check(root: Path, update: bool = False) -> int:
 
     print(f"\ntotal across {len(sizes)} plugin(s): {total:,} characters")
     if over_runtime:
-        # Not a failure. Someone who installs one plugin is unaffected, and the split
-        # has already done what a split can do; the number is here so it stays visible.
+        # Not a failure, and not harmless either. An earlier version of this comment said
+        # someone who installs one plugin is unaffected; that is not true of a plugin
+        # over the budget on its own, and the count below is what it costs them.
         print(
             f"above the ~{RUNTIME_DEFAULT:,} runtime default on their own: "
             f"{', '.join(over_runtime)}"
         )
         for name in over_runtime:
             tokens = sizes[name] / CHARS_PER_TOKEN
+            silent = mute(entries, name)
             print(
                 f"  {name}: about {tokens:,.0f} tokens, "
                 f"{tokens / CONTEXT_WINDOW_TOKENS:.2%} of a "
-                f"{CONTEXT_WINDOW_TOKENS // 1000}k window"
+                f"{CONTEXT_WINDOW_TOKENS // 1000}k window; installed alone, at least "
+                f"{silent} of its skills lose their description entirely"
             )
+        together = sum(sizes.values())
+        print(
+            f"  all {len(sizes)} installed together: {together:,} characters against the "
+            f"~{RUNTIME_DEFAULT:,} budget, so most descriptions are dropped and most "
+            f"skills can only be reached by name"
+        )
 
     # Last, because it is the finer grain: the plugin block above is the one a reader
     # comes here for, and this says which single description moved.

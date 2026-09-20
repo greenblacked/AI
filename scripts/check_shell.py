@@ -52,6 +52,22 @@ FENCE_CLOSE_RE = re.compile(r"^(`{3,}|~{3,})\s*$")
 # here-string or `sort <in >` stays checkable rather than being rewritten away.
 PLACEHOLDER_RE = re.compile(r"<[A-Za-z](?:[A-Za-z0-9 _.:/-]*[A-Za-z0-9_.:/-])?>")
 SEARCH_DIRS = ("plugins", "docs", "scripts", ".claude", "template")
+# A deliberately dumber test for the same thing, used only to notice that the scanner
+# above has stopped finding anything. It shares no pattern with FENCE_OPEN_RE on
+# purpose: two spellings of one regex fail together, which is no check at all.
+LOOKS_LIKE_A_FENCE = ("bash", "sh", "shell")
+
+
+def fence_openers(text: str) -> int:
+    """How many lines look like the start of a shell block, counted naively."""
+    found = 0
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith(("```", "~~~")):
+            continue
+        if stripped.lstrip("`~").strip().lower() in LOOKS_LIKE_A_FENCE:
+            found += 1
+    return found
 
 
 def blocks(text: str):
@@ -121,11 +137,16 @@ def check(root: Path) -> int:
                 failures += 1
 
     checked = 0
+    apparent = 0
+    seen = 0
     for directory in SEARCH_DIRS:
         for path in sorted((root / directory).rglob("*.md")):
-            for line, source in blocks(path.read_text(encoding="utf-8")):
+            text = path.read_text(encoding="utf-8")
+            apparent += fence_openers(text)
+            for line, source in blocks(text):
+                seen += 1
                 if not source.strip():
-                    continue
+                    continue  # an empty block is nothing to parse, but it was found
                 checked += 1
                 problem = parses(source, executable)
                 if problem is not None:
@@ -137,6 +158,22 @@ def check(root: Path) -> int:
                         f"<placeholder>"
                     )
                     failures += 1
+
+    # The same rule as the missing-bash branch above, for the other way this can report
+    # success without having looked: if the tree plainly contains shell fences and the
+    # scanner yielded none, the scanner is broken rather than the tree being clean. That
+    # failure is otherwise a zero in a line nobody reads, with the build still green and
+    # every block in the library unexamined.
+    #
+    # Measured against blocks found rather than blocks parsed, because an empty fence is
+    # skipped before parsing and is still evidence the scanner is working.
+    if apparent and not seen:
+        print(
+            f"::error::{apparent} fenced shell block(s) are visible in the Markdown and "
+            f"the scanner matched none of them, so nothing was checked",
+            file=sys.stderr,
+        )
+        return 2
 
     print(f"{scripts} shipped script(s) and {checked} shell block(s) parsed")
     if failures:
