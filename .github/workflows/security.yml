@@ -145,7 +145,7 @@ jobs:
           exit "$missing"
       - name: Every third-party action must be pinned to a commit SHA
         # Matching known-bad shapes let the likeliest regression through: this repo's
-        # own convention is `uses: x@<sha>  # v7`, so keeping the comment and pasting a
+        # own convention is `uses: x@<sha>  # v7.0.1`, so keeping the comment and pasting a
         # tag over the SHA passed a check anchored at end-of-line. Inverted now - a ref
         # that is not forty hex characters fails, whatever it looks like.
         run: |
