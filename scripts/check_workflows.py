@@ -33,6 +33,15 @@ What is deliberately not checked:
   here checks it against the artefact — the jobs that download something do that
   themselves, at the moment it matters, and fail before the binary runs.
 
+There is deliberately no "found no pins" floor. The pin check is already belt and
+braces — blinding the value pattern leaves PIN_KEY_RE reporting every pin as unreadable,
+so a single pattern failure fails loudly — and a tree that legitimately pins nothing is
+not a defect. A floor here fires on that tree and teaches people to ignore the check,
+which costs more than the two-simultaneous-failures case it would cover. `check_shell.py`
+takes the opposite decision for the opposite reason: there a single pattern failure does
+pass silently, and the guard it uses cross-checks against a different scan rather than
+asserting a count.
+
 A `needs:` written in a shape this cannot parse is reported rather than read as empty,
 and a workflow whose `jobs:` block yields nothing is reported rather than skipped. A
 check that silently matches nothing passes every file it does not understand, which is

@@ -12,6 +12,7 @@ which is why each needed a gate rather than a habit.
 from __future__ import annotations
 
 import json
+import re
 
 from tests.conftest import REPO, load_script, write_skill
 
@@ -1084,3 +1085,26 @@ def test_a_job_key_with_a_trailing_comment_is_still_a_job(tmp_path, capsys):
     write_ci(tmp_path, workflow=workflow)
     assert ci_docs.check(tmp_path) == 0
     assert "2 job(s)" in capsys.readouterr().out
+
+
+def test_a_scanner_that_matches_no_fence_refuses_to_pass(tmp_path, capsys, monkeypatch):
+    # The other way this file can report success without having looked. Its whole
+    # reason for existing is that a command with an unbalanced quote reads fine and
+    # fails in someone else's terminal; if the fence pattern stops matching, every
+    # block goes unexamined and the only trace is a zero in a line nobody reads.
+    docs = tmp_path / "docs"
+    docs.mkdir(parents=True)
+    (docs / "page.md").write_text("# Page\n\n```bash\necho hello\n```\n", encoding="utf-8")
+    assert shell.check(tmp_path) == 0
+    monkeypatch.setattr(shell, "FENCE_OPEN_RE", re.compile(r"^NEVERMATCHES$"))
+    assert shell.check(tmp_path) == 2
+    assert "matched none of them" in capsys.readouterr().err
+
+
+def test_a_tree_with_no_shell_at_all_still_passes(tmp_path):
+    # The guard cross-checks against a second scan rather than asserting a count, so a
+    # tree that legitimately contains no shell is not a failure.
+    docs = tmp_path / "docs"
+    docs.mkdir(parents=True)
+    (docs / "page.md").write_text("# Page\n\nProse only.\n", encoding="utf-8")
+    assert shell.check(tmp_path) == 0

@@ -10,6 +10,8 @@ error.
 
 from __future__ import annotations
 
+import re
+
 from tests.conftest import REPO, load_script
 
 workflows = load_script("check_workflows.py")
@@ -521,3 +523,10 @@ def test_no_token_in_the_environment_sends_no_header(monkeypatch):
     monkeypatch.delenv("GH_TOKEN", raising=False)
     request = freshness.build_request("https://api.github.com/repos/a/b/releases/latest")
     assert request.get_header("Authorization") is None
+
+
+def test_blinding_only_the_pin_value_pattern_still_fails(tmp_path, capsys, monkeypatch):
+    monkeypatch.setattr(workflows, "PIN_RE", re.compile(r"^NEVERMATCHES$"))
+    write_workflows(tmp_path, demo=GATING)
+    assert workflows.check(tmp_path) == 1
+    assert "could not read the value of" in capsys.readouterr().out
