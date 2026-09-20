@@ -115,15 +115,27 @@ goes on while the invariant is true, not after it has already been broken.
 
 ## `.github/workflows/scheduled.yml` — Scheduled checks
 
-Runs weekly (`cron: '0 6 * * 1'`) and on `workflow_dispatch`. Neither job gates anything.
+Runs weekly (`cron: '0 6 * * 1'`) and on `workflow_dispatch`. Neither job gates anything,
+and neither workflow has an aggregator, because an aggregator exists to give branch
+protection a stable name to require and nothing requires these.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `external-links` | `external links` | lychee could not reach an external URL. Hosts in `.lycheeignore` (example.com and friends, which appear inside skill instructions) are excluded. |
+| `pin-freshness` | `pin freshness` | A pinned tool version has fallen behind upstream, a `*_VERSION` in a workflow has no registry registered for it in [`scripts/check_pin_freshness.py`](../scripts/check_pin_freshness.py), or `MARKDOWNLINT_PIN` in the [`Makefile`](../Makefile) no longer matches the markdownlint-cli2 the pinned action bundles. It reports and never bumps: adopting a version is the judgement the pinning exists to preserve. |
 
 These are here because they depend on the network or a wordlist. A gate that fails
 because someone else's site was briefly down is a gate people learn to override, and once
 they learn that, the gates that matter stop working too.
+
+`pin-freshness` is the answer to a gap the pinning created. Every tool CI installs or
+downloads is pinned so that a green build is a statement about this repository rather
+than about the day's release of a scanner — and Dependabot cannot move any of those
+numbers, because its `github-actions` ecosystem updates `uses:` references and reusable
+workflows and never reads an `env:` block. Without a weekly look, eleven versions and the
+markdownlint line in the `Makefile` sit where they are until somebody happens to wonder.
+It asks PyPI, the npm registry and the GitHub releases API what the latest version is,
+prints a table into the job summary, and stops there.
 
 ## `.github/workflows/evals.yml` — Trigger evals
 
@@ -478,6 +490,15 @@ someone else's terminal; and the sixth turns the hook off, so skills are written
 unvalidated and the first sign of it is one reaching CI weeks later.
 `.claude/settings.json` is read by the runtime and by nothing else here, which is why
 the path in `command` needed a check of its own rather than a habit.
+
+`check_pin_freshness.py` is not part of `make catalogue` either, for the same reason it
+is not a gate: it needs PyPI, the npm registry and the GitHub releases API to answer. Run
+it directly when you want to know what has moved, and give it a token if you are asking
+more than a few times an hour:
+
+```bash
+GH_TOKEN=$(gh auth token) python scripts/check_pin_freshness.py .
+```
 
 The trigger evals are not part of `make`, because they need a model and a key. Run them
 directly when a description is the thing in question:

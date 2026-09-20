@@ -268,3 +268,167 @@ def test_a_blank_line_inside_a_needs_list_does_not_end_it(tmp_path):
     spaced = GATING.replace("      - build\n      - lint\n", "      - build\n\n      - lint\n")
     write_workflows(tmp_path, demo=spaced)
     assert workflows.check(tmp_path) == 0
+
+
+# --- the pin freshness nag ---------------------------------------------------------
+
+freshness = load_script("check_pin_freshness.py")
+
+MAKEFILE = "MARKDOWNLINT_PIN := 0.23.2\n"
+ACTION_TAG = (
+    "      - uses: DavidAnson/markdownlint-cli2-action@"
+    "21c1be1b93ad9ed58fa840aacc3f279cde2a72ff  # v24.2.0\n"
+)
+PINNED = (
+    """---
+name: CI
+on: [push]
+
+permissions: {}
+
+env:
+  RUFF_VERSION: '0.16.1'
+  GITLEAKS_VERSION: '8.30.1'
+  CLAUDE_CODE_VERSION: '2.1.221'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+"""
+    + ACTION_TAG
+)
+
+
+def answers(**overrides):
+    """A fake fetcher: a table of URL to body, the shape the fake CLI uses."""
+    table = {
+        "https://pypi.org/pypi/ruff/json": '{"info": {"version": "0.16.1"}}',
+        "https://api.github.com/repos/gitleaks/gitleaks/releases/latest": '{"tag_name": "v8.30.1"}',
+        "https://registry.npmjs.org/@anthropic-ai/claude-code/latest": '{"version": "2.1.221"}',
+        "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2-action/"
+        "v24.2.0/package.json": '{"dependencies": {"markdownlint-cli2": "0.23.2"}}',
+    }
+    table.update(overrides)
+
+    def get(url):
+        if url not in table:
+            raise KeyError(url)
+        body = table[url]
+        if isinstance(body, Exception):
+            raise body
+        return body
+
+    return get
+
+
+def write_pinned(root, workflow=PINNED, makefile=MAKEFILE):
+    directory = root / ".github" / "workflows"
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "ci.yml").write_text(workflow, encoding="utf-8")
+    (root / "Makefile").write_text(makefile, encoding="utf-8")
+    return root
+
+
+def test_every_pin_current_passes(tmp_path, capsys):
+    write_pinned(tmp_path)
+    assert freshness.check(tmp_path, answers()) == 0
+    assert "all 4 pin(s) are current" in capsys.readouterr().out
+
+
+def test_a_pin_behind_upstream_is_reported(tmp_path, capsys):
+    get = answers(**{"https://pypi.org/pypi/ruff/json": '{"info": {"version": "0.17.0"}}'})
+    write_pinned(tmp_path)
+    assert freshness.check(tmp_path, get) == 1
+    out = capsys.readouterr().out
+    assert "| `RUFF_VERSION` | 0.16.1 | 0.17.0 | **behind** |" in out
+
+
+def test_a_github_tag_is_compared_without_its_v(tmp_path, capsys):
+    # The releases API returns `v8.30.1` and the workflow pins `8.30.1`; comparing them
+    # raw would report every GitHub-sourced tool as permanently behind.
+    write_pinned(tmp_path)
+    assert freshness.check(tmp_path, answers()) == 0
+    assert "| `GITLEAKS_VERSION` | 8.30.1 | 8.30.1 | current |" in capsys.readouterr().out
+
+
+def test_a_pin_with_no_registry_registered_is_reported(tmp_path, capsys):
+    # The table is written by hand and the workflows are not, so a new pin with no
+    # entry would otherwise be skipped and the table would fall quietly behind.
+    extra = PINNED.replace("  RUFF_VERSION:", "  NOVEL_VERSION: '1.0.0'\n  RUFF_VERSION:")
+    write_pinned(tmp_path, workflow=extra)
+    assert freshness.check(tmp_path, answers()) == 1
+    assert "no upstream registered" in capsys.readouterr().out
+
+
+def test_a_registry_that_cannot_be_reached_is_reported_not_raised(tmp_path, capsys):
+    # The whole point of running weekly and gating nothing: a registry being down is
+    # a line in the table, not a traceback and not a blocked merge.
+    get = answers(**{"https://pypi.org/pypi/ruff/json": OSError("connection reset")})
+    write_pinned(tmp_path)
+    assert freshness.check(tmp_path, get) == 1
+    assert "could not ask pypi" in capsys.readouterr().out
+
+
+def test_a_markdownlint_pin_that_does_not_match_the_action_is_reported(tmp_path, capsys):
+    # The Makefile's copy is a claim about somebody else's package.json, and it goes
+    # stale silently the first time Dependabot bumps the action.
+    write_pinned(tmp_path, makefile="MARKDOWNLINT_PIN := 0.20.0\n")
+    assert freshness.check(tmp_path, answers()) == 1
+    assert "does not match the action" in capsys.readouterr().out
+
+
+def test_a_markdownlint_lookup_that_fails_is_reported(tmp_path, capsys):
+    url = (
+        "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2-action/v24.2.0/package.json"
+    )
+    write_pinned(tmp_path)
+    assert freshness.check(tmp_path, answers(**{url: OSError("no route")})) == 1
+    assert "could not ask the action" in capsys.readouterr().out
+
+
+def test_no_markdownlint_pin_at_all_is_not_a_finding(tmp_path, capsys):
+    # A tree without that pin has nothing to disagree with.
+    write_pinned(tmp_path, makefile="PYTHON ?= python3\n")
+    assert freshness.check(tmp_path, answers()) == 0
+    assert "MARKDOWNLINT_PIN" not in capsys.readouterr().out
+
+
+def test_a_tree_with_no_makefile_skips_the_markdownlint_check(tmp_path):
+    directory = tmp_path / ".github" / "workflows"
+    directory.mkdir(parents=True)
+    (directory / "ci.yml").write_text(PINNED, encoding="utf-8")
+    assert freshness.check(tmp_path, answers()) == 0
+
+
+def test_fetch_refuses_a_url_that_is_not_https():
+    # The audit S310 asks for, and the reason the suppression beside it is honest.
+    try:
+        freshness.fetch("file:///etc/passwd")
+    except ValueError as error:
+        assert "non-https" in str(error)
+    else:  # pragma: no cover
+        raise AssertionError("fetch accepted a file: URL")
+
+
+def test_an_unknown_registry_is_a_programming_error():
+    try:
+        freshness.latest("carrier-pigeon", "ruff", answers())
+    except ValueError as error:
+        assert "no such registry" in str(error)
+    else:  # pragma: no cover
+        raise AssertionError("latest accepted an unknown registry")
+
+
+def test_main_runs_the_freshness_check_over_a_root(tmp_path, monkeypatch):
+    write_pinned(tmp_path)
+    monkeypatch.setattr(freshness, "fetch", answers())
+    assert freshness.main([str(tmp_path)]) == 0
+
+
+def test_every_pin_in_this_repository_has_a_registry(capsys):
+    # Offline half of the freshness check: the table must cover what the workflows
+    # actually pin, which is the part that would otherwise rot.
+    unregistered = sorted(set(freshness.pinned(REPO)) - set(freshness.SOURCES))
+    assert unregistered == []
