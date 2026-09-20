@@ -1,0 +1,22 @@
+[
+  {"query": "i need to add a firewall rule on the mikrotik and i'm worried i'll lock myself out", "should_trigger": true},
+  {"query": "locked myself out of the hex after turning on vlan filtering on the bridge, what now", "should_trigger": true},
+  {"query": "how do i back up a routeros config properly, is the binary backup enough on its own", "should_trigger": true},
+  {"query": "upgrading a CCR across a major version next week, what order do the steps go in", "should_trigger": true},
+  {"query": "what's the safe way to change the management address on a router i'm connected to remotely", "should_trigger": true},
+  {"query": "routerboot firmware is way behind the routeros version on our CRS, does that actually matter", "should_trigger": true},
+  {"query": "winbox can't reach the router any more after i added a drop rule to the input chain", "should_trigger": true},
+  {"query": "need to harden a new mikrotik before it ships to site - users, services, management access", "should_trigger": true},
+  {"query": "can i diff two /export files to work out what someone changed on the router last week", "should_trigger": true},
+  {"query": "does safe mode protect me if the box reboots partway through, or only if my session drops", "should_trigger": true},
+  {"query": "review this ansible playbook diff before we let it near the fleet", "should_trigger": false, "expected": "iac-review"},
+  {"query": "terraform plan wants to replace the nat gateway, is that going to take everything down", "should_trigger": false, "expected": "iac-review"},
+  {"query": "rotate the api token for our monitoring integration without an outage", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "who has admin across our cloud accounts, we want to drop the wildcard grants", "should_trigger": false, "expected": "access-review"},
+  {"query": "we're moving the whole datacentre to a new region in march, plan the switchover", "should_trigger": false, "expected": "cutover"},
+  {"query": "pods can't resolve dns and half the services are throwing 502s", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "locked out of the cisco switch after a vlan change, how do i get back in", "should_trigger": false},
+  {"query": "the firewall rules on our pfsense box are in the wrong order and traffic is being dropped", "should_trigger": false},
+  {"query": "write something on-call can follow at 2am when the vpn tunnel drops", "should_trigger": false, "expected": "runbook"},
+  {"query": "my laptop keeps booting into safe mode and i can't get out of it", "should_trigger": false}
+]

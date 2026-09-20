@@ -110,7 +110,7 @@ than telling Claude to go and run something:
 - `@path` attaches a file's contents, so `@plan.json` puts the plan in front of the model
   without a Read step.
 
-None of the nine commands here use them yet; the mechanism is documented so the next
+None of the twelve commands here use them yet; the mechanism is documented so the next
 one can.
 
 ## What the validator checks

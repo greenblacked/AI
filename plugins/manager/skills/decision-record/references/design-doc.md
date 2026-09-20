@@ -81,7 +81,7 @@ when it has to interoperate with two things that cannot move. Say which world yo
 Walk each one explicitly and write "no impact, because …" where there is none. The
 sections people skip are the ones that produce launch blockers.
 
-- **Security**: trust boundaries, authn/authz model, secret handling, threat surface
+- **Security**: trust boundaries, authn/authz model, secret handling, threat surface (`threat-model` produces this section)
   introduced.
 - **Privacy**: personal data touched, lawful basis, retention, deletion path, data
   residency, who can read it in production.
