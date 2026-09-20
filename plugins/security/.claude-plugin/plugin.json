@@ -3,7 +3,7 @@
   "name": "security",
   "description": "Skills for the defensive side of shipping software: review a change for the vulnerability classes that actually get exploited, reduce who can do what toward least privilege without breaking production, rotate or contain a credential, harden a container image and keep checking it, and read a Terraform plan for what it destroys.",
   "author": {
-    "name": "Serhii Zolotov",
+    "name": "greenblacked",
     "url": "https://github.com/greenblacked"
   },
   "homepage": "https://github.com/greenblacked/AI",

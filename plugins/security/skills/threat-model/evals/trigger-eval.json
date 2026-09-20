@@ -1,0 +1,23 @@
+[
+  {"query": "we're designing a new multi-tenant billing service, what could go wrong with it", "should_trigger": true},
+  {"query": "threat model the new file upload feature before we build it", "should_trigger": true},
+  {"query": "can you run STRIDE over this architecture", "should_trigger": true},
+  {"query": "where are the trust boundaries in this design", "should_trigger": true},
+  {"query": "the design doc needs its security section filled in, here's the architecture", "should_trigger": true},
+  {"query": "we're adding a webhook integration with a third party, what should worry us", "should_trigger": true},
+  {"query": "what could an attacker do with the admin console we're planning", "should_trigger": true},
+  {"query": "draw the data flows for this service and tell me where trust changes hands", "should_trigger": true},
+  {"query": "we're splitting the monolith into two services, does that create new attack surface", "should_trigger": true},
+  {"query": "which threats did we decide to accept on this design and who signed off", "should_trigger": true},
+
+  {"query": "review this pull request for anything an attacker could abuse", "should_trigger": false, "expected": "security-review"},
+  {"query": "is this query injectable, we build the order by from a query param", "should_trigger": false, "expected": "security-review"},
+  {"query": "design how our service proves who the caller is, sessions and tokens", "should_trigger": false, "expected": "auth-design"},
+  {"query": "does the ci role still need s3 full access, here are the last-accessed reports", "should_trigger": false, "expected": "access-review"},
+  {"query": "we think a host is compromised and a key may have leaked, what now", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "write up the architecture decision and the options we rejected", "should_trigger": false, "expected": "decision-record"},
+  {"query": "what personal data does this schema hold and how long may we keep it", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "harden this dockerfile, it runs as root on a full debian base", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "here's the terraform plan json, what does the apply destroy", "should_trigger": false, "expected": "plan-reviewer"},
+  {"query": "design the rest interface for this resource before anyone builds it", "should_trigger": false, "expected": "api-design"}
+]

@@ -30,6 +30,8 @@ If the answer is a paragraph of encouragement, stop. Put it in project instructi
 
 Then check what already exists. Two skills with overlapping descriptions do not compose; they compete, and the loser fires at random. If an existing skill covers 70 percent of this, extend it rather than adding a neighbour.
 
+The same test runs in reverse: surveying a whole library for what it does not cover, rather than judging one candidate already in hand. That direction reads descriptions, not bodies — a body can mention a topic that no description ever claims, which is coverage that never fires and a word search would miss going either way. A documented refusal, the candidate not clearing the bar above, is the normal outcome of that survey and not a failure of it.
+
 ## 2. Name it and place it
 
 The directory name and the `name` field must be identical — lowercase, digits and single hyphens, at most 64 characters. Name it after the job, not the tool: `image-hardening` outlives the scanner you happen to use this year.
@@ -108,6 +110,8 @@ The positives only prove the description is not inert. The negatives are the hal
 Then run it. A description nobody has tested is a guess, and the interesting result is not the score but the specific query that came out wrong, because that names the phrase the description is missing.
 
 ## 7. Validate, then install and use it
+
+Before you install it, hand the draft to the `skill-reviewer` subagent. It reviews on a fresh context with no editing tools, which is what makes the review a review: a reviewer that can edit will fix the thing it was asked to judge, and you lose the judgement. It returns ranked findings, each with the observation, the consequence and the smallest change that fixes it.
 
 Run the repository's validator and its tests. Then package or symlink the skill, start a fresh session, and use it on a real task. Reading a skill tells you whether it is well written; running it tells you whether it works.
 

@@ -24,8 +24,8 @@ read long after it stopped being true.
 - **The skill body hands off to you by name.** A subagent reached only by routing loses
   to its own skill more often than not. The skill names the subagent at the point the
   material gets bulky, and that line is what makes the subagent run whichever side wins
-  the query. Read the paired skill; if the line is not there, add it. Most paired skills
-  here do not have it yet, and adding it is the fix rather than rewriting your description.
+  the query. Each paired skill here carries one; if you add a pair, that line is the fix
+  rather than a rewritten description.
 - **Cede in both directions.** Your description names the skill that decides, and the
   skill's description names you for the bulk read. The validator checks that anything
   after `Not for` or `Do not use` names something that exists.

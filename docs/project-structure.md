@@ -175,10 +175,10 @@ in exchange for nothing.
 `plugins/*/skills/` where `make package` and `make install` can find them and the
 marketplace can ship them. A project-level skill would be one installers never get.
 
-The three-stage loop in `.claude/agents/` — `explorer`, `implementer`, `reviewer` — and
-the commands in `.claude/commands/` go the other way: they exist to work *on* this
-repository and are not shipped, which is exactly the split the `.claude/` directory is
-for.
+The two loops in `.claude/agents/` — `explorer`, `implementer` and `reviewer` to build;
+`investigator` and `reviewer` to verify — and the commands in `.claude/commands/` go the
+other way: they exist to work *on* this repository and are not shipped, which is exactly
+the split the `.claude/` directory is for.
 
 See also [using the skills](using.md), [writing a skill](writing-skills.md), and
 [AGENTS.md](agents-md.md).

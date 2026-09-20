@@ -10,7 +10,7 @@ not restate them. Last reviewed 2026-09-19.
 
 ## Rules
 
-The conventions come from https://github.com/greenblacked/AI — its `AGENTS.md` is the
+The conventions come from <https://github.com/greenblacked/AI> — its `AGENTS.md` is the
 contract. The parts that apply to work here:
 
 - Commits are authored by the person who wrote them and nobody else. No

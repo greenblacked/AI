@@ -100,8 +100,9 @@ attacker-chosen — against each input the change introduces or newly trusts.
 - **Secrets and personal data in logs.** Tokens, keys, full request bodies and email
   addresses added to a log line or an error message that goes to a third party.
 
-For a dedicated threat model of a whole surface rather than the input handling in one
-diff, hand off to `security-review`.
+For the authorisation, injection and secrets pass over the whole diff rather than the
+input handling in one file, hand off to `security-review`. For a threat model of the
+surface before the code exists, `threat-model`.
 
 ## Resources and lifetimes
 
