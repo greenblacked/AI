@@ -8,7 +8,7 @@
     "delivery": 6000,
     "gamedev": 8500,
     "manager": 12500,
-    "operations": 11000,
+    "operations": 12000,
     "personal": 6500,
     "security": 8500
   },
@@ -74,6 +74,7 @@
     "refactoring": 899,
     "release-notes": 878,
     "release-strategy": 916,
+    "routeros-config": 856,
     "runbook": 914,
     "secret-rotation": 967,
     "security-review": 898,

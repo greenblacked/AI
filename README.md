@@ -32,7 +32,7 @@ outside a runtime that can trigger them for you.
 | --- | --- | --- |
 | `coding` | Reading, reviewing, testing and changing code | 14 skills, 1 subagent |
 | `gamedev` | Making games, and shipping them | 9 skills, 1 subagent, 1 command |
-| `operations` | Keeping a running system alive | 12 skills, 4 subagents, 2 commands |
+| `operations` | Keeping a running system alive | 13 skills, 4 subagents, 2 commands |
 | `delivery` | Getting a change into production | 6 skills |
 | `security` | The defensive side of shipping software | 9 skills, 3 subagents, 2 commands |
 | `manager` | Engineering leadership | 13 skills, 2 subagents, 1 command |
@@ -61,7 +61,7 @@ you describe the situation, and the one whose description matches is loaded.
 Install the plugins you will use rather than all of them. Every description a plugin ships
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
-least, which leaves them invocable by name and stops them being chosen on their own. Six
+least, which leaves them invocable by name and stops them being chosen on their own. Four
 of the eight plugins fit the default budget on their own, and the split exists for exactly
 this reason. If you install several, raise the budget in `~/.claude/settings.json`:
 
@@ -205,6 +205,7 @@ Keeping a running system alive.
 | [`k8s-triage`](plugins/operations/skills/k8s-triage/SKILL.md) | Mitigate first, diagnose second. The deploy-related question, the fixed evidence order, and a decode table for the failure modes that account for most of them. |
 | [`k8s-workloads`](plugins/operations/skills/k8s-workloads/SKILL.md) | Specify a workload so it holds under pressure: measure before setting any number, then requests and limits knowing CPU throttles where memory kills, distinct probes, a disruption budget that does not deadlock drains, and the SIGTERM race closed. |
 | [`llm-cost`](plugins/operations/skills/llm-cost/SKILL.md) | Control what an LLM feature costs without degrading it: attribute spend to a prompt path first, judge caching on reads per write rather than hit rate, route cheap steps against a measured quality bar, and decide degrade, queue or refuse before a budget runs out. |
+| [`routeros-config`](plugins/operations/skills/routeros-config/SKILL.md) | Change, upgrade or recover a MikroTik RouterOS device without locking yourself out: a second way in proven before the change, a text export either side of it, the change made under safe mode, and verification over a path you did not touch. |
 | [`runbook`](plugins/operations/skills/runbook/SKILL.md) | Write what the 3am reader follows: numbered steps, real commands, every mitigation with its blast radius, and a last-verified date, because a wrong runbook is worse than none. |
 | [`terraform-state`](plugins/operations/skills/terraform-state/SKILL.md) | Execute the state operation already decided — import, move, remove, reconcile drift, recover a lost file, clear a stuck lock — taking a backup first and preferring the block forms that show up in a plan over the imperative subcommands. |
 
