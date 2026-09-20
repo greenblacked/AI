@@ -11,3 +11,18 @@ updates:
       default-days: 7
     commit-message:
       prefix: ci
+    # One pull request for the routine bumps rather than one per action: every pull
+    # request here runs the whole of `ci` and `security`, so three separate patch
+    # bumps cost three full matrices. Majors stay out of the group and arrive on their
+    # own, because a grouped major is a breaking change hidden among patches. Two
+    # edits would quietly break that: adding `group-by`, which drops majors instead of
+    # raising them separately, and pinning an action to a SHA that carries no upstream
+    # tag, which leaves it on individual pull requests because the semver rule cannot
+    # classify it.
+    groups:
+      actions:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
