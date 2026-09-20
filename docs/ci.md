@@ -341,6 +341,24 @@ Both of those are enforced rather than remembered: `permissions-audit` fails the
 `persist-credentials: false`. They were conventions held by habit for as long as the
 workflows existed, and a convention held by habit is one the next job quietly skips.
 
+The six jobs that install from PyPI cache `~/.cache/pip`, and `validate-plugin` caches
+`~/.npm`. Each key names the job and then the file that records the pins, so it busts
+when a pinned version changes and not otherwise, and there is no separate lockfile to
+keep in step with the pins. The job name is load-bearing rather than decoration:
+`setup-python`'s own `cache: pip` keys on the interpreter and the dependency file and
+nothing else, so every job in a workflow running the same interpreter would share one
+entry — the first to finish saves its wheels, and the rest restore a cache without
+theirs and, because the key hit exactly, never save their own. `validate-plugin` needs
+`actions/cache` for a different reason: the Claude CLI arrives through `npx` rather than
+as a dependency, so there is no lockfile for `setup-node` to cache against, and the key
+names `CLAUDE_CODE_VERSION` by hand instead.
+
+Four jobs that fetch something are deliberately not cached. `lint-actions` and `secrets`
+curl a single pinned tarball each and verify it against a digest, which is already about
+as cheap as a cache restore and one fewer moving part in the path a binary reaches CI by.
+The two `evals.yml` jobs install a CLI globally with npm and are not on the critical path
+of any gate.
+
 ## Making CI authoritative
 
 The workflows only mean something if the checks are required. Create a ruleset on the

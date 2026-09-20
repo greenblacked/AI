@@ -72,6 +72,14 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version: '22'
+      - name: Cache the Claude CLI download
+        # `setup-node`'s own cache needs a lockfile and there is none here: the CLI
+        # arrives through npx rather than as a dependency. Keying on the pin is the
+        # same idea by hand — a new key when the version moves, a hit when it has not.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: ~/.npm
+          key: npm-claude-code-${{ env.CLAUDE_CODE_VERSION }}
       - name: Validate the marketplace and plugin manifests
         # The schema's source of truth is the Zod definition inside the CLI itself, so
         # this checks against the real thing rather than against a copy of it that
@@ -115,6 +123,18 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
+      # setup-python's own `cache: pip` keys on the interpreter and the dependency file
+      # and nothing else, so every job here on 3.13 would share one entry: the first to
+      # finish saves its wheels, the rest restore a cache without theirs and, because
+      # the key hit exactly, never save their own. The job name is what makes a key
+      # identify what is in it. The rest of the key is the file that records the pins,
+      # so it busts when a pinned version changes and not otherwise.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: ~/.cache/pip
+          key: >-
+            pip-test-${{ runner.os }}-${{ matrix.python-version }}-${{
+            hashFiles('.github/workflows/ci.yml') }}
       - run: |
           python -m pip install --upgrade pip
           python -m pip install "pytest==${PYTEST_VERSION}" "coverage==${COVERAGE_VERSION}"
@@ -202,6 +222,10 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: '3.13'
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: ~/.cache/pip
+          key: pip-spelling-${{ runner.os }}-${{ hashFiles('.github/workflows/ci.yml') }}
       - run: python -m pip install --upgrade pip "codespell==${CODESPELL_VERSION}"
       - name: Check spelling
         # This ran weekly with only_warn set, which is the shape of check this
@@ -237,6 +261,10 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: '3.13'
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: ~/.cache/pip
+          key: pip-lint-yaml-${{ runner.os }}-${{ hashFiles('.github/workflows/ci.yml') }}
       - run: python -m pip install --upgrade pip "yamllint==${YAMLLINT_VERSION}"
       - run: yamllint --strict --format github .
 
