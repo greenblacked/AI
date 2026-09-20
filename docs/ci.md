@@ -461,6 +461,74 @@ gh api /repos/greenblacked/AI/rulesets/<id> --jq '.rules[].type'
 A `[]` from the first command means the gates are advisory again, whatever the workflows
 say.
 
+## Settings no file here can see
+
+The ruleset above is one of several controls that live in GitHub's settings rather than
+in this repository. That is the whole difficulty with them: nothing in the tree records
+their state, no gate reads them, and a repository can look rigorous while every control
+it describes is switched off. That is not hypothetical here — the ruleset itself was
+documented for weeks before anyone noticed it had never been created, and the paragraph
+below about reporting a vulnerability named a form that was disabled.
+
+This section is the record. Each row says what the setting decides and what silently
+stops working without it.
+
+| Setting | Decides | Without it |
+| --- | --- | --- |
+| The branch ruleset above | Whether `ci` and `security` are required, and whether `main` takes direct pushes | Every gate in this repository is advisory and a red build can merge |
+| Private vulnerability reporting | Whether the advisory form `SECURITY.md` tells people to use exists | A reporter follows that instruction, finds nothing, and falls back to a public issue — which for a leaked credential is the outcome the document exists to prevent |
+| Dependabot alerts, and security updates | Whether a published advisory against something pinned here is surfaced at all | Nothing says a pinned action or tool has a known vulnerability. `.github/dependabot.yml` does **not** cover this: it configures version updates, which is a different feature |
+| Required SHA pinning for actions | Whether the platform refuses a workflow referencing an action by tag | Only the `grep` in `permissions-audit` stands between a floating tag and a build, and it runs after the fact rather than instead of |
+| Secret scanning, and push protection | Whether a credential is caught as it is pushed | gitleaks still catches it in CI, one step later and after it has left the machine |
+| Default workflow token permissions | The floor every job's `permissions:` block narrows from | An absent block inherits write access rather than read |
+
+Read the current state of all of them:
+
+```bash
+gh api /repos/greenblacked/AI/rulesets --jq '.[] | "\(.name) [\(.enforcement)]"'
+gh api /repos/greenblacked/AI/private-vulnerability-reporting
+gh api /repos/greenblacked/AI/actions/permissions
+gh api /repos/greenblacked/AI --jq '.security_and_analysis'
+gh api /repos/greenblacked/AI/vulnerability-alerts && echo "alerts enabled"
+```
+
+And set the three that are a single call each:
+
+```bash
+gh api --method PUT /repos/greenblacked/AI/private-vulnerability-reporting
+gh api --method PUT /repos/greenblacked/AI/vulnerability-alerts
+gh api --method PUT /repos/greenblacked/AI/automated-security-fixes
+gh api --method PUT /repos/greenblacked/AI/actions/permissions \
+  -F enabled=true -f allowed_actions=all -F sha_pinning_required=true
+```
+
+All of these need repository admin, and a workflow's `GITHUB_TOKEN` cannot change any of
+them whatever `permissions:` it is granted. They are owner actions, not something to
+automate in Actions.
+
+### The eval credential
+
+`evals.yml` needs a model credential as a repository secret, and there is none. Both its
+jobs are written to stand down rather than fail when that is the case, which is right for
+a fork and for a check nobody is required to pass — and it means the scoring has never
+run. Every pull request that reached the credential step reported
+`::notice title=no credentials::Not scoring the changed skills`, and the monthly run over
+the whole catalogue will do the same.
+
+So the trigger-eval machinery — the harness, the eval sets on every skill and subagent,
+and the section of this document describing what the numbers mean — currently measures
+nothing. The collision it exists to catch, one skill quietly taking a neighbour's queries,
+has never been looked for.
+
+One secret fixes it, and no API key or billing account is needed: run `claude setup-token`
+on a signed-in workstation and store what it prints as `CLAUDE_CODE_OAUTH_TOKEN`.
+
+```bash
+gh api /repos/greenblacked/AI/actions/secrets --jq '.secrets[].name'
+```
+
+An empty result means the eval jobs are standing down on every run.
+
 ## Running the checks locally
 
 ```bash
