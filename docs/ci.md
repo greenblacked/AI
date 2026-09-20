@@ -524,7 +524,7 @@ in the workflow rather than in the repository. Reproduce it directly, matching t
 versions in `security.yml`:
 
 ```bash
-python -m pip install "zizmor==1.29.0" "ruff==0.16.8"
+python -m pip install "zizmor==1.30.1" "ruff==0.16.8"
 zizmor --persona=regular --min-severity=medium .
 ruff check .
 ruff format --check .
