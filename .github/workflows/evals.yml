@@ -84,9 +84,9 @@ concurrency:
 # rather than as an error. `scripts/check_workflows.py` now fails when the name means two
 # things; keeping one copy per workflow is what makes that check easy to satisfy.
 env:
-  CLAUDE_CODE_VERSION: '2.1.221'
-  CODEX_VERSION: '0.153.4'
-  GEMINI_CLI_VERSION: '0.58.0'
+  CLAUDE_CODE_VERSION: '2.1.278'
+  CODEX_VERSION: '0.155.1'
+  GEMINI_CLI_VERSION: '0.60.0'
 
 jobs:
   evaluate:
