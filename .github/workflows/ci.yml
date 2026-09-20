@@ -152,6 +152,12 @@ jobs:
         # A catalogue nobody checks is a catalogue that drifts. This one has, twice,
         # both times after the plugins were re-cut.
         run: python scripts/check_readme.py .
+      - name: The CI documentation still lists the jobs CI runs
+        # `docs/ci.md` is where a red check name turns into something actionable, so a
+        # job with no row is a failure someone has to reverse-engineer from YAML. The
+        # README drifted twice before it was gated; this is the same gate for the file
+        # that documents the gates.
+        run: python scripts/check_ci_docs.py .
       - name: Every shell block and shipped script parses
         # The commands inside a fenced block are the part an agent follows most
         # literally, and they were the one part of a skill nothing checked: the
