@@ -128,7 +128,9 @@ jobs:
       # finish saves its wheels, the rest restore a cache without theirs and, because
       # the key hit exactly, never save their own. The job name is what makes a key
       # identify what is in it. The rest of the key is the file that records the pins,
-      # so it busts when a pinned version changes and not otherwise.
+      # so it busts whenever that file changes — every pin change, and also edits that
+      # change nothing a cache holds. Over-busting beats a key that lists each version
+      # by hand and falls out of step with them silently.
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
         with:
           path: ~/.cache/pip
@@ -178,6 +180,12 @@ jobs:
         # README drifted twice before it was gated; this is the same gate for the file
         # that documents the gates.
         run: python scripts/check_ci_docs.py .
+      - name: Each workflow's aggregate names every job in it
+        # `ci` and `security` are what branch protection requires, and they work by
+        # listing every other job in `needs:`. A job missing from that list fails
+        # without failing the required check, so the pull request merges green. This
+        # also catches a pinned version that means two different things in two files.
+        run: python scripts/check_workflows.py .
       - name: Every shell block and shipped script parses
         # The commands inside a fenced block are the part an agent follows most
         # literally, and they were the one part of a skill nothing checked: the

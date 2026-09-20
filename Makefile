@@ -19,10 +19,11 @@ help: ## Show this help
 validate: ## Validate every skill, subagent and the marketplace manifest
 	PYTHONPATH=src $(PYTHON) -m skillcheck . --strict
 
-catalogue: ## Check listing ceilings, README and CI drift, shell blocks, and the hook
+catalogue: ## Check listing ceilings, README and CI drift, workflows, shell, and the hook
 	@$(PYTHON) scripts/check_listing_budget.py .
 	@$(PYTHON) scripts/check_readme.py .
 	@$(PYTHON) scripts/check_ci_docs.py .
+	@$(PYTHON) scripts/check_workflows.py .
 	@$(PYTHON) scripts/check_shell.py .
 	@$(PYTHON) scripts/check_settings.py .
 

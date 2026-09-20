@@ -32,3 +32,33 @@ jobs:
           args: --cache --max-cache-age 1d --no-progress './**/*.md'
           fail: true
           jobSummary: true
+
+  pin-freshness:
+    name: pin freshness
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.13'
+      - name: Compare every pinned tool version against upstream
+        # Dependabot updates `uses:` references and reusable workflows and never looks
+        # inside an `env:` block, so nothing moves the eleven version pins or the
+        # markdownlint version the Makefile records. Without this they sit where they
+        # are until somebody happens to wonder.
+        #
+        # It reports and does not bump. Adopting a version is the judgement the pinning
+        # exists to preserve: a digest has to move with its version, and ruff 0.16
+        # reformatting Markdown is why ruff is pinned at all.
+        run: |
+          set -Eeuo pipefail
+          python scripts/check_pin_freshness.py . | tee -a "$GITHUB_STEP_SUMMARY"
+        env:
+          # Unauthenticated api.github.com allows sixty requests an hour per IP, which
+          # a shared runner exhausts without this repository doing anything wrong.
+          GH_TOKEN: ${{ github.token }}
