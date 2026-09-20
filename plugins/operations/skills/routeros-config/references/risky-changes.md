@@ -20,8 +20,8 @@ or a scope that includes your own traffic.
 existing connection is evaluated again — being already open buys a session nothing. So a
 drop rule placed above the rule that admits your management traffic fails in one of two
 ways, depending on what else sits above it. With no accept for established and related
-traffic above the drop, your open session stops responding at its next packet, which you
-notice immediately.
+traffic above the drop, your open session stops responding at its next packet — the reply
+to the command you just ran still leaves, so you notice the next time you type.
 With one above it, your session survives and only new connections are refused — the worse
 case, because the change looks correct from the session that made it and strands whoever
 connects next.
@@ -35,8 +35,9 @@ that moves or removes it as carefully as the drop rule itself, rather than inste
 
 **Verify with a new connection.** In the second order nothing drops, so safe mode never
 fires and every open session keeps working, including the one you opened over the second
-path. Only a connection opened after the change distinguishes the two orders, and releasing
-safe mode before running that test is how the worse case ships.
+path. Only a connection opened after the change distinguishes the two orders, and it has to
+arrive through the input chain to do so — a console or layer-2 session never reaches it and
+succeeds in both. Releasing safe mode before running that test is how the worse case ships.
 
 **Cheapest recovery.** Safe mode covers the first order, because there the session does
 drop. In the second it is the fresh-connection test above that saves you; once safe mode is
@@ -54,7 +55,8 @@ device over is one of them, the device is gone the instant the setting takes eff
 your management traffic is in, including the case where that traffic is untagged. Decide
 deliberately where the device's own management address lives once filtering is on. Make
 this change from a path that does not cross the bridge you are changing, or from the
-console, if you have one.
+console, if you have one. Then verify through the bridge, because a console session cannot
+tell you whether it carries management traffic.
 
 **Cheapest recovery.** Safe mode. Layer-2 access is the fallback, but it is a weaker one
 here than elsewhere: that traffic still crosses the bridge you have just told to enforce a
@@ -80,21 +82,26 @@ default route changes, even though nothing about the device's own interfaces mov
 one is easy to mis-attribute, because the device is fine and the path is not.
 
 **Check first.** Work out whether your traffic reaches the device symmetrically. If the
-return path depends on the route you are editing, arrange the undo before the edit.
+return path depends on the route you are editing, arrange the undo before the edit. A
+session from inside the device's own segment survives a bad default route, so it cannot
+verify the change; test from where remote management actually comes from.
 
 **Cheapest recovery.** Safe mode, then a session from inside the segment the device is on.
 
 ## Users, groups and management services
 
 **Mechanism.** Disabling, renaming or restricting the account you are logged in as, or the
-service you are logged in over, can end access for everyone including you. Address
+service you are logged in over, can end access for everyone including you. It usually
+refuses the next login rather than ending the one you are in, so the session you are
+holding will not tell you — the same shape as the firewall class above. Address
 restrictions on a service are the sharp edge: correct in intent, and wrong by one subnet
 is indistinguishable from off.
 
 **Check first.** Have a second working account before you change the first, and prove it
 by logging in with it rather than by reading the configuration. When restricting a service
 by address, include the address you are connected from, and check what that address is
-after any network address translation between you and the device.
+after any network address translation between you and the device. Then log in with the
+second account again after the change: proving it beforehand tested the old configuration.
 
 **Cheapest recovery.** The second account. If there is no second account this class has no
 cheap recovery, which is the argument for making one first.

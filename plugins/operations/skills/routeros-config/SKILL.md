@@ -1,6 +1,6 @@
 ---
 name: routeros-config
-description: Change, upgrade or recover a MikroTik RouterOS device without locking yourself out of it. Establish the version and a second way in, export the config as text, make the change in safe mode so a dropped session reverts it, verify over a path you did not touch, then release. Covers the changes that actually strand people — firewall input rules, bridge VLAN filtering, addresses, routes, users and services — the package and RouterBOOT upgrade order, and the recovery ladder. Use whenever someone configures, upgrades, backs up or is locked out of a MikroTik router or switch, or mentions RouterOS, WinBox, hEX, CRS, CCR, /export or safe mode. Not for reviewing a written Ansible or Terraform diff (iac-review), rotating a credential (secret-rotation), an access review (access-review), or another vendor's router or firewall, which nothing here covers.
+description: Change, upgrade or recover a MikroTik RouterOS device without locking yourself out of it. Establish the version and a second way in, export the config as text, make the change in safe mode so a dropped session reverts it, verify with a connection opened after it, then release. Covers the changes that actually strand people — firewall input rules, bridge VLAN filtering, addresses, routes, users and services — the package and RouterBOOT upgrade order, and the recovery ladder. Use whenever someone configures, upgrades, backs up or is locked out of a MikroTik router or switch, or mentions RouterOS, WinBox, hEX, CRS, CCR, /export or safe mode. Not for reviewing a written Ansible or Terraform diff (iac-review), rotating a credential (secret-rotation), an access review (access-review), or another vendor's router or firewall, which nothing here covers.
 allowed-tools: Read, Grep, Glob, Bash(ssh:*), Bash(diff:*)
 ---
 
@@ -44,9 +44,10 @@ Each of these exists because skipping it is how a routine change becomes a site 
   mode, arrange the undo before the change, not after.
 - **A text export before you touch anything, and another after.** The binary backup
   cannot be read or diffed, so it cannot tell you what changed or be partially reused.
-- **Verify with a connection opened after the change.** The session that made the change
-  cannot tell you it still works, because it was already open — and neither can any other
-  session that was. A change that only refuses new connections leaves every old one alive.
+- **Verify with a connection opened after the change, over the path it governs.** The
+  session that made the change cannot tell you it still works, because it was already
+  open — and neither can any other session that was. Nor can one that never crosses what
+  you changed: a console session proves nothing about a firewall rule.
 - **Confirm the command on the device, not from a procedure.** Tab-completion and `?` at
   a menu level cost seconds and settle the version question that a copied command does
   not.
@@ -127,12 +128,19 @@ work, and treat the prompt as the only signal that you are still protected. And 
 the session, not the device: a reboot or a power cut is a different problem, and the export
 from step 2 is what covers that.
 
-### 5. Verify with a new connection over a path you did not touch
+### 5. Verify with a connection opened after the change, over the path it governs
 
-Open a fresh connection over the second path, while safe mode is still on. Reusing a
-session that was already open there proves nothing: a change that refuses only new
-connections leaves every existing session working, so an old session reports success in
-exactly the case that has stranded you.
+Open a fresh connection over the path the change governs — the one you made the change
+over, or the one the next person will come in on — from an address they will actually come
+from, while safe mode is still on. Two properties matter and each catches a different
+failure. It has to be new, because a change that refuses only new connections leaves every
+existing session working, so an old session reports success in exactly the case that has
+stranded you. And it has to cross what you changed: a console or layer-2 session never
+meets the input chain, so it succeeds whatever the rule now says and tells you nothing.
+
+The second path is the lifeline that holds the device reachable while you run that test,
+not the test itself. Where it is an IP path, prove it separately afterwards, so you know
+the way back in still works too.
 
 Then test the thing the change was for as well as the thing you were afraid of breaking. A
 rule that blocks your management traffic and a rule that blocks the traffic it was written
