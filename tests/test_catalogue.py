@@ -1108,3 +1108,46 @@ def test_a_tree_with_no_shell_at_all_still_passes(tmp_path):
     docs.mkdir(parents=True)
     (docs / "page.md").write_text("# Page\n\nProse only.\n", encoding="utf-8")
     assert shell.check(tmp_path) == 0
+
+
+# --- what the budget costs, in skills --------------------------------------------
+
+
+def test_a_plugin_inside_the_budget_mutes_nothing():
+    entries = [("p", "a", 100), ("p", "b", 200)]
+    assert budget.mute(entries, "p", budget=8000) == 0
+
+
+def test_a_plugin_over_the_budget_mutes_the_overflow():
+    # Six descriptions of 2,000 against a 8,000 budget: four fit, two go silent.
+    entries = [("p", f"s{i}", 2000) for i in range(6)]
+    assert budget.mute(entries, "p", budget=8000) == 2
+
+
+def test_the_count_is_the_smallest_honest_one():
+    # Packing shortest-first keeps the most, so the number reported is a lower bound
+    # rather than the expected loss. Longest-first on the same data drops more, which
+    # is why the docstring says "at least".
+    entries = [("p", "a", 600), ("p", "b", 500), ("p", "c", 500)]
+    assert budget.mute(entries, "p", budget=1000) == 1  # 500 + 500 fit, 600 does not
+    used = kept = 0
+    for n in sorted((n for _, _, n in entries), reverse=True):
+        if used + n > 1000:
+            break
+        used += n
+        kept += 1
+    assert len(entries) - kept == 2  # longest-first drops two: strictly worse
+
+
+def test_only_the_named_plugin_is_counted():
+    entries = [("p", "a", 9000), ("q", "b", 100)]
+    assert budget.mute(entries, "q", budget=8000) == 0
+
+
+def test_this_repository_has_plugins_that_go_silent(capsys):
+    # The measurement that prompted this: four plugins exceed the whole listing budget
+    # on their own, so a reader installing one of them loses skills to silence.
+    entries = budget.walk(REPO)
+    silent = {p: budget.mute(entries, p) for p in {e[0] for e in entries}}
+    assert sum(silent.values()) > 0, "expected at least one plugin over the budget"
+    assert silent["coding"] >= 1
