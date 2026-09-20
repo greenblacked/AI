@@ -59,7 +59,7 @@ upgrade would fail the build on skill prose that was green the day before.
 | `workflows` | `workflow audit` | zizmor found a workflow vulnerability at medium severity or above. |
 | `python` | `python security lint` | `ruff check` or `ruff format --check` failed. |
 | `codeql` | `codeql` | CodeQL's `security-extended` query suite found something in the Python source. |
-| `permissions-audit` | `permissions audit` | A workflow has no top-level `permissions:` block, or an action is not pinned to a SHA. |
+| `permissions-audit` | `permissions audit` | A workflow has no top-level `permissions:` block, an action is not pinned to a SHA, a job sets no `timeout-minutes`, or an `actions/checkout` does not set `persist-credentials: false`. |
 | `security` | `security` | One of the five jobs above failed or was cancelled. |
 
 ### The security jobs in detail
@@ -88,14 +88,30 @@ because asserting is what tests do.
 **CodeQL** runs `github/codeql-action` init and analyze with `languages: python` and
 `queries: security-extended`. It is the only job that needs `security-events: write`.
 
-**Two shell invariants.** `permissions-audit` is two `grep` loops, deliberately not a
-tool:
+**Four shell invariants.** `permissions-audit` is four `grep` and `awk` loops,
+deliberately not a tool. Each is one of the workflow conventions `AGENTS.md` states, and
+each exists because breaking it is silent:
 
 - Every workflow file must set a top-level `permissions:` block. An absent block means
   jobs inherit the repository default, which is often read and write on everything. The
   failure is silent and permanent, which is exactly the kind worth a one-line check.
-- Every action must be pinned to a commit SHA. The check greps for `uses:` lines ending
-  in `@v1.2`, `@main` or `@master` and fails on any match.
+- Every action must be pinned to a commit SHA. The check is inverted rather than
+  matching known-bad shapes: a ref that is not forty hex characters fails, whatever it
+  looks like. Matching `@v1.2`, `@main` and `@master` let the likeliest regression
+  through, which is pasting a tag over the SHA and leaving the `# v7.0.1` comment behind.
+- Every job must set `timeout-minutes`. Without one a hung job runs to the six-hour
+  platform default, which reads as slow CI rather than broken CI and holds a runner the
+  whole time. Jobs are found as the two-space keys under `jobs:`, and a file the walk
+  found no job in fails rather than passing — a parse that silently matches nothing is
+  the failure this job exists to prevent.
+- Every `actions/checkout` must set `persist-credentials: false`, including a checkout
+  with no `with:` block at all. The `awk` walk is cross-checked against a plain `grep`
+  count of the checkout steps, so a file whose shape it does not understand fails
+  instead of reporting a clean run over steps it never saw.
+
+The last two held by habit until they were gated. Both were correct across all twenty
+jobs and eighteen checkouts on the day the check landed, which is the point: a ratchet
+goes on while the invariant is true, not after it has already been broken.
 
 ## `.github/workflows/scheduled.yml` — Scheduled checks
 
@@ -319,6 +335,11 @@ Every job sets `timeout-minutes` — ten for most, twenty for CodeQL, forty-five
 eval scoring, five for the aggregators. The default is six hours, which is long enough
 that a hung step looks like a slow one for most of a working day, and it holds a runner
 the whole time. A timeout turns that into a failure with a name.
+
+Both of those are enforced rather than remembered: `permissions-audit` fails the
+`security` gate for a job with no `timeout-minutes` and for a checkout that does not set
+`persist-credentials: false`. They were conventions held by habit for as long as the
+workflows existed, and a convention held by habit is one the next job quietly skips.
 
 ## Making CI authoritative
 

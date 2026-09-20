@@ -172,6 +172,85 @@ jobs:
               | grep -vE '@[0-9a-f]{40}([[:space:]]|$)' || true
           )
           exit "$unpinned"
+      - name: Every job must set timeout-minutes
+        # Without one a hung job runs to the six-hour platform default, which reads as
+        # slow CI rather than broken CI and holds a runner the whole time. The
+        # convention has held by habit since the workflows were written, and a habit is
+        # not a gate: the job that forgets it is green, and stays green.
+        #
+        # Jobs are the two-space keys under `jobs:`; a job's own keys sit at four. The
+        # walk refuses to vouch for a file it found no job in, because a parse that
+        # silently matches nothing is the failure this whole job exists to avoid.
+        run: |
+          set -Eeuo pipefail
+          missing=0
+          shopt -s nullglob
+          for file in .github/workflows/*.yml .github/workflows/*.yaml; do
+            seen=0
+            while IFS=$'\t' read -r line job has; do
+              seen=$((seen + 1))
+              if [ "$has" -eq 0 ]; then
+                echo "::error file=$file,line=$line,title=no timeout::job $job sets no timeout-minutes"
+                missing=1
+              fi
+            done < <(
+              awk '
+                /^jobs:[[:space:]]*$/ { injobs = 1; next }
+                injobs && /^[^[:space:]#]/ {
+                  if (job != "") print jobline "\t" job "\t" has
+                  job = ""; injobs = 0
+                }
+                injobs && /^  [A-Za-z0-9_.-]+:[[:space:]]*$/ {
+                  if (job != "") print jobline "\t" job "\t" has
+                  job = $1; sub(/:$/, "", job); jobline = NR; has = 0; next
+                }
+                injobs && /^    timeout-minutes:[[:space:]]/ { has = 1 }
+                END { if (job != "") print jobline "\t" job "\t" has }
+              ' "$file"
+            )
+            if [ "$seen" -eq 0 ]; then
+              echo "::error file=$file,title=no jobs found::found no job here, so this check cannot vouch for it"
+              missing=1
+            fi
+          done
+          exit "$missing"
+      - name: Every checkout must set persist-credentials false
+        # actions/checkout writes the job token into .git/config by default, where any
+        # later step — including anything a script it runs pulls in — can read it and
+        # push with it. Nothing here pushes from CI, so nothing here needs the
+        # credential to survive the checkout step.
+        #
+        # The awk walk is cross-checked against a plain grep count: if the two disagree
+        # the file has a shape this does not understand, and it fails rather than
+        # reporting a clean run over steps it never saw.
+        run: |
+          set -Eeuo pipefail
+          persisted=0
+          shopt -s nullglob
+          for file in .github/workflows/*.yml .github/workflows/*.yaml; do
+            expected=$(grep -cE 'uses:[[:space:]]*actions/checkout@' "$file" || true)
+            found=0
+            while IFS=$'\t' read -r line ok; do
+              found=$((found + 1))
+              if [ "$ok" -eq 0 ]; then
+                msg='does not set persist-credentials: false'
+                echo "::error file=$file,line=$line,title=credential persisted::checkout $msg"
+                persisted=1
+              fi
+            done < <(
+              awk '
+                /uses:[[:space:]]*actions\/checkout@/ { pending = 1; at = NR; ok = 0; next }
+                pending && /persist-credentials:[[:space:]]*false/ { ok = 1 }
+                pending && /^[[:space:]]*- / { print at "\t" ok; pending = 0 }
+                END { if (pending) print at "\t" ok }
+              ' "$file"
+            )
+            if [ "$found" -ne "$expected" ]; then
+              echo "::error file=$file,title=unparsed checkout::saw $found checkout step(s) where grep counts $expected"
+              persisted=1
+            fi
+          done
+          exit "$persisted"
 
   security:
     # The required status check for this workflow. `ci` in ci.yml is the other one;
