@@ -204,7 +204,7 @@ everything against Claude:
 | `budget` | empty | A listing budget in characters. Set it to score descriptions the way the runtime shows them — the runtime's default is about 8,000 on a 200k model — rather than at full length. |
 | `runs` | `3` | Samples per query; must be odd. A majority vote across them decides, which separates a description that genuinely fails from one sitting on the model's decision boundary. |
 | `threshold` | `0.8` | Pass rate below which a target is reported as failing. |
-| `backend` | `claude` | Which model CLI answers: `claude`, `codex` (OpenAI) or `gemini`. The job installs only that one, at the version pinned in its `env`. |
+| `backend` | `claude` | Which model CLI answers: `claude`, `codex` (OpenAI) or `gemini`. The job installs only that one, at the version pinned in the workflow's `env`. |
 | `model` | empty | A model name passed to the CLI. Blank uses the CLI's own default. |
 
 The harness reads no API key of its own. Each CLI reads the credential it expects, and
