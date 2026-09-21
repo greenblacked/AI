@@ -4,20 +4,22 @@
   "description_target": 900,
   "plugins": {
     "career": 5000,
-    "coding": 14000,
+    "coding": 14500,
     "delivery": 7500,
     "gamedev": 8500,
     "manager": 12500,
-    "operations": 13000,
+    "operations": 13500,
     "personal": 6500,
-    "security": 8500
+    "security": 9000
   },
   "skills": {
     "access-review": 945,
     "agent-evaluation": 863,
+    "agent-security-review": 806,
     "ai-enablement": 912,
     "alert-design": 864,
     "api-design": 926,
+    "application-caching": 759,
     "auth-design": 891,
     "backup-recovery-design": 831,
     "capacity-planning": 951,
@@ -40,6 +42,7 @@
     "difficult-conversation": 899,
     "docker-compose": 889,
     "e2e-testing": 873,
+    "event-driven-reliability": 832,
     "game-assets": 925,
     "game-balance": 877,
     "game-builder": 971,
