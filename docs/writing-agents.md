@@ -2,7 +2,7 @@
 
 Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
 frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md) for
-one of the thirteen this repository ships today, three with `coding`, four with
+one of the fourteen this repository ships today, three with `coding`, five with
 `operations`, three with `security`, two with `manager` and one with `gamedev` — and in `.claude/agents/`
 for the four that serve work on this repository rather than shipping to anyone,
 described in [the two loops](#the-two-loops) below. A subagent is a
@@ -33,7 +33,7 @@ tools: Read, Glob, Grep, Bash
   already omits those tools, so this is a statement rather than a restriction: it says in
   the file that the subagent must not change anything, where a reader will see it, and it
   survives someone later adding `Bash` to `tools` for a checker.
-- **`model`** — optional. The model the subagent runs on. None of the thirteen here set it.
+- **`model`** — optional. The model the subagent runs on. None of the fourteen here set it.
 - Also accepted, because a plugin-shipped subagent supports them: `effort`, `maxTurns`,
   `skills`, `memory`, `background`, `isolation`, `omitClaudeMd`. The last is the one
   worth knowing: it starts the subagent without the user's, the project's and the local
@@ -196,8 +196,8 @@ inline.
 ## The subagents in this repository
 
 Each plugin discovers its own `agents/` directory — nothing lists them in
-[`marketplace.json`](../.claude-plugin/marketplace.json). Thirteen ship: three with `coding`,
-four with `operations`, three with `security`, two with `manager` and one with
+[`marketplace.json`](../.claude-plugin/marketplace.json). Fourteen ship: three with `coding`,
+five with `operations`, three with `security`, two with `manager` and one with
 `gamedev`.
 
 - **`skill-reviewer`** — reviews a candidate `SKILL.md` against this repository's rules
@@ -220,6 +220,11 @@ four with `operations`, three with `security`, two with `manager` and one with
   are large, and the caller needs the failing step and the decisive lines, not the log.
   It checks the default branch first, because if that is red too the answer is "not
   this change" and nothing further needs reading.
+- **[`k8s-evidence-reader`](../plugins/operations/agents/k8s-evidence-reader.md)** — reads
+  captured Kubernetes snapshots, events, object exports, rollout records and container
+  logs into at most five capture-time evidence chains. It marks contradictions,
+  staleness and missing evidence without querying the cluster, diagnosing live state or
+  recommending a mutation.
 - **[`plan-reviewer`](../plugins/security/agents/plan-reviewer.md)** — reads a Terraform plan JSON and
   returns the blast radius, destroys first. Same shape: the plan is large, the answer is
   a short list of risky changes, and a reviewer that can apply is not a reviewer.
