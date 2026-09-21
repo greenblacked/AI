@@ -2,7 +2,7 @@
 
 Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
 frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md) for
-one of the eleven this repository ships today, one with `coding`, four with
+one of the thirteen this repository ships today, three with `coding`, four with
 `operations`, three with `security`, two with `manager` and one with `gamedev` — and in `.claude/agents/`
 for the four that serve work on this repository rather than shipping to anyone,
 described in [the two loops](#the-two-loops) below. A subagent is a
@@ -33,7 +33,7 @@ tools: Read, Glob, Grep, Bash
   already omits those tools, so this is a statement rather than a restriction: it says in
   the file that the subagent must not change anything, where a reader will see it, and it
   survives someone later adding `Bash` to `tools` for a checker.
-- **`model`** — optional. The model the subagent runs on. None of the eleven here set it.
+- **`model`** — optional. The model the subagent runs on. None of the thirteen here set it.
 - Also accepted, because a plugin-shipped subagent supports them: `effort`, `maxTurns`,
   `skills`, `memory`, `background`, `isolation`, `omitClaudeMd`. The last is the one
   worth knowing: it starts the subagent without the user's, the project's and the local
@@ -196,7 +196,7 @@ inline.
 ## The subagents in this repository
 
 Each plugin discovers its own `agents/` directory — nothing lists them in
-[`marketplace.json`](../.claude-plugin/marketplace.json). Eleven ship: one with `coding`,
+[`marketplace.json`](../.claude-plugin/marketplace.json). Thirteen ship: three with `coding`,
 four with `operations`, three with `security`, two with `manager` and one with
 `gamedev`.
 
@@ -208,6 +208,13 @@ four with `operations`, three with `security`, two with `manager` and one with
   whether it overlaps an existing skill, and whether the commands it shows are real. It
   has `Read`, `Glob`, `Grep` and `Bash`, and no write access — by design:
   [`agents/skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md).
+- **[`change-impact-reader`](../plugins/coding/agents/change-impact-reader.md)** — traces a
+  supplied diff through matching repository snapshots and returns up to five impact
+  chains, their file-and-line evidence and unresolved boundaries.
+- **[`agent-run-trace-reader`](../plugins/coding/agents/agent-run-trace-reader.md)** — reads
+  historical worker events, tool transcripts and coordinator logs into an evidence
+  ledger by task and attempt, with unanswered calls, stale results and verification gaps
+  marked.
 - **[`ci-log-reader`](../plugins/operations/agents/ci-log-reader.md)** — reads a failed pipeline run and
   returns a classification. This is the canonical context-isolation case: whole CI logs
   are large, and the caller needs the failing step and the decisive lines, not the log.
@@ -285,8 +292,9 @@ it should beat 70% before assuming the description was the problem.
 
 ### What the scores showed
 
-Every shipped subagent was scored against the live catalogue in one sitting, three runs
-each with a majority vote, and the result was not what the descriptions predicted. The
+Every subagent shipped at the time was scored against the live catalogue in one sitting,
+three runs each with a majority vote, and the result was not what the descriptions
+predicted. The
 score was decided by one thing: whether the paired skill's description claimed the same
 act the subagent performs. Where the skill described a different act — `vendor-evaluation`
 is about choosing a vendor and `contract-reader` reads the contract — the subagent scored

@@ -9,6 +9,7 @@
   {"query": "coordinate multiple implementers with exclusive path ownership, then run combined validation and a fresh review", "should_trigger": true},
   {"query": "orchestrate coding agents for this feature and make sure none of them silently pushes or deploys", "should_trigger": true},
   {"query": "recover a live multi-agent coding run after one worker failed and an external publish outcome is uncertain", "should_trigger": true},
+  {"query": "read this exported bundle of old worker events and tool transcripts and return a provenance ledger without coordinating the live run", "should_trigger": false, "expected": "agent-run-trace-reader"},
   {"query": "the coding agent ran out of context; prepare a checkpoint so a new session can continue the unfinished change safely", "should_trigger": false, "expected": "agent-handoff"},
   {"query": "build a benchmark with holdout tasks and deterministic graders for our repository editing agent", "should_trigger": false, "expected": "agent-evaluation"},
   {"query": "review this pull request for correctness, security issues, and missing tests", "should_trigger": false, "expected": "code-review"},

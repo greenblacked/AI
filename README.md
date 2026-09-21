@@ -8,7 +8,7 @@
 [![Skills](https://img.shields.io/badge/skills-86-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-86 agent skills, eleven read-only subagents and six slash commands, in eight
+86 agent skills, thirteen read-only subagents and six slash commands, in eight
 plugins you install separately. They cover the daily loop of changing code, keeping a
 system running, shipping a change, securing it, making a game, leading a team, a career,
 and the parts of life that are nobody's job.
@@ -30,7 +30,7 @@ outside a runtime that can trigger them for you.
 
 | Plugin | Focus | Contents |
 | --- | --- | --- |
-| `coding` | Reading, reviewing, testing and changing code | 18 skills, 1 subagent |
+| `coding` | Reading, reviewing, testing and changing code | 18 skills, 3 subagents |
 | `gamedev` | Making games, and shipping them | 9 skills, 1 subagent, 1 command |
 | `operations` | Keeping a running system alive | 15 skills, 4 subagents, 2 commands |
 | `delivery` | Getting a change into production | 8 skills |
@@ -308,7 +308,7 @@ Applications, negotiation, speaking and writing.
 
 ## Subagents
 
-Eleven subagents ship across five plugins. Each exists to keep bulk out of the main context
+Thirteen subagents ship across five plugins. Each exists to keep bulk out of the main context
 — the input is a log, a plan, a billing export, a contract, a pile of feedback, and the
 answer is short — and to be denied the tools it should not have. A reviewer that can apply
 is not a reviewer.
@@ -324,6 +324,8 @@ is not a reviewer.
 | `policy-auditor` | `security` | IAM policies and access logs | The gap between permitted and used, with the window stated |
 | `pii-reader` | `security` | A schema dump, a row sample or a log excerpt | Which fields carry personal data, their class and where they flow |
 | `skill-reviewer` | `coding` | A candidate SKILL.md | What is wrong, why it costs something, the smallest fix |
+| `change-impact-reader` | `coding` | A diff and matching repository snapshots | Up to five impact chains, their evidence and unresolved boundaries |
+| `agent-run-trace-reader` | `coding` | Historical agent-run artifacts | A task-and-attempt evidence ledger with unanswered calls and verification gaps |
 | `contract-reader` | `manager` | A contract, DPA or SOC 2 report | The clauses that decide the deal, quoted and located |
 | `feedback-synthesiser` | `manager` | Collected peer feedback | Themes with a source count and a quoted example |
 

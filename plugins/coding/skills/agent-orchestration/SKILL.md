@@ -1,6 +1,6 @@
 ---
 name: agent-orchestration
-description: "Coordinate multiple coding agents through a live repository task: decompose work into a dependency graph, delegate independent research, implementation and review with explicit contracts, assign exclusive file and shared-resource ownership, monitor real runtime state, recover safely from stalls or failed workers, integrate the combined change, and run final gates. Use when someone asks to split a coding project across agents, run work in parallel, manage an agent team, orchestrate delegated repository work, or coordinate implementers and reviewers. Not for evaluating agent quality with benchmarks, securing untrusted agents, implementing a single bounded change, or preparing a durable checkpoint for a later session; use agent-handoff for paused-work transfer and resume."
+description: "Coordinate multiple coding agents through a live repository task: decompose work into a dependency graph, delegate independent research, implementation and review with explicit contracts, assign exclusive file and shared-resource ownership, monitor runtime state, recover safely from stalls or failed workers, integrate the combined change, and run final gates. Use when someone asks to split coding work across agents, run work in parallel, manage an agent team, or coordinate implementers and reviewers. When supplied run artifacts are too bulky to inspect here, use agent-run-trace-reader for the bounded evidence ledger while this skill retains live decisions. Not for benchmarks, agent security, a single bounded change, or a durable checkpoint; use agent-handoff for paused-work transfer and resume."
 ---
 
 # Agent Orchestration
@@ -117,6 +117,13 @@ generation are evidence to inspect, not changes to integrate automatically.
 Track observable runtime state rather than inferring completion from elapsed time. A
 timeout means the wait ended; it does not prove the worker stopped. Preserve useful
 progress reports, diffs, test output, and unresolved questions as tasks run.
+
+When historical worker events or tool transcripts are too bulky for the coordinator's
+context, hand the supplied artifacts to `agent-run-trace-reader`. Use its task-and-
+generation evidence ledger to locate claims, unanswered calls, stale results, and
+verification gaps. The coordinator still queries live state and decides whether to
+retry, stop, reassign, integrate, or publish; the reader cannot make those decisions or
+establish current state from an artifact.
 
 When a task finishes, verify its returned revision or diff, changed paths, acceptance
 evidence, and stated limitations. Release dependent tasks only after their prerequisites

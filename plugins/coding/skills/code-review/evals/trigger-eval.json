@@ -88,5 +88,10 @@
     "query": "i just joined and i have no idea how this repo fits together, where do i start",
     "should_trigger": false,
     "expected": "codebase-orientation"
+  },
+  {
+    "query": "read this supplied diff and matching source snapshots and map changed symbols to direct callers, entry points and contracts without judging correctness",
+    "should_trigger": false,
+    "expected": "change-impact-reader"
   }
 ]
