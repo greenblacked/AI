@@ -371,8 +371,12 @@ Each does the mechanical part and points at the skill holding the full procedure
 
 ## CI is the source of truth
 
-Every skill is validated on every push. The validator is standard library only, and the
-test matrix runs it on Python 3.10 through 3.13 to keep it that way.
+Every skill is validated on pull requests, pushes to `main`, merge-group checks and
+manual CI runs. The validator is standard library only, and the test matrix runs on
+Python 3.10 through 3.13. Coverage is measured on 3.13; the full suite runs on all four.
+Independent checks run in parallel, then packaging builds the review artifacts only
+after the CI checks pass. The stable `ci` and `security` gates reject every non-success
+dependency, including skipped jobs. See the [execution flow](docs/ci.md#execution-flow).
 
 ```bash
 make validate   # frontmatter contract, dangling references, marketplace cross-check

@@ -7,9 +7,46 @@ passes or does not. Four workflows run it: two that gate every change, one that 
 weekly, and one that scores trigger evals — monthly over everything, and on every pull
 request over what that pull request touched.
 
+## Execution flow
+
+Validation, lint, compatibility tests and security scans run in parallel. Packaging
+starts only after every CI check succeeds, then builds and verifies the skill archives
+and portable exports. `ci` and `security` remain the two required check names. Both reject
+failed, cancelled, skipped, missing or malformed dependency results.
+
+```mermaid
+flowchart TD
+  E["PR, main push, merge group or manual run"] --> C["Parallel validation, lint and tests"]
+  E --> S["Parallel security scans"]
+  C --> P["Build and verify artifacts"]
+  C --> G["ci gate"]
+  P --> G
+  S --> H["security gate"]
+  G --> M["Merge eligibility"]
+  H --> M
+```
+
+Artifacts are review outputs, not a deployment or release. Downloading them does not
+prove the separate security workflow passed. Merge still requires both gates.
+
+| Event | Required workflows | Cancellation |
+| --- | --- | --- |
+| Pull request opened, reopened or updated | CI and Security | A newer run for the same PR supersedes the older run |
+| Push to `main` | CI and Security | Each run has its own concurrency group |
+| Merge queue `checks_requested` | CI and Security | Each candidate run has its own concurrency group |
+| Manual dispatch | CI and Security when dispatched individually | Each run has its own concurrency group |
+| Weekly or monthly schedule | Existing advisory workflows | Existing advisory concurrency rules |
+
+The merge-group trigger makes the checks available to a merge queue; it does not enable
+a queue or change repository rules. Unique groups for non-PR runs also prevent a newer
+pending run from replacing an older one. The cancellation policy applies only to
+superseded PR checks. See GitHub's [merge queue requirements](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue)
+and [concurrency behavior](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs).
+
 ## `.github/workflows/ci.yml` — CI
 
-Triggers on push to `main`, on every pull request, and on `workflow_dispatch`. Top-level
+Triggers on push to `main`, on every pull request, on merge-group `checks_requested`,
+and on `workflow_dispatch`. Top-level
 `permissions: {}`; each job grants itself the minimum. Every tool the workflow installs
 or downloads is pinned in the workflow-level `env` block — `CLAUDE_CODE_VERSION`,
 `CODESPELL_VERSION`, `YAMLLINT_VERSION`, `PYTEST_VERSION`, `COVERAGE_VERSION`,
@@ -20,16 +57,16 @@ gives, and at workflow level so a cache key can name one.
 | --- | --- | --- |
 | `validate-skills` | `validate skills` | A skill, a subagent, a command or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed eval set for a skill or a subagent, a `.claude/rules/` glob that matches nothing, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output; it also prints the per-plugin description total, which is the listing cost every installer pays. |
 | `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the workflow's `env` for the same reason the scanners are. |
-| `test` | `test (3.10)` … `test (3.13)` | The validator's own test suite failed on that interpreter, or line and branch coverage fell below the floor in [`pyproject.toml`](../pyproject.toml). The matrix is four versions because that file declares no dependencies, and running on a bare interpreter across the supported range is how that claim stays true. pytest and coverage are pinned in `PYTEST_VERSION` and `COVERAGE_VERSION`, so a runner failure is a statement about this repository rather than about the day's release of the runner. The coverage table lands in the job summary. |
+| `test` | `test (3.10)` … `test (3.13)` | The full test suite failed on that interpreter. Python 3.10–3.12 run plain pytest; 3.13 additionally measures line and branch coverage and enforces the unchanged floor in [`pyproject.toml`](../pyproject.toml). Compatibility remains checked on all four versions, with coverage instrumentation paid for once. pytest and coverage retain their existing version pins. The coverage table lands in the 3.13 job summary. |
 | `catalogue` | `check catalogue` | A plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), the README stopped matching the tree, this file stopped listing the jobs CI runs, a workflow's aggregate stopped naming every job in it or a pinned version came to mean two things, a shell block or shipped script no longer parses, or the hook registration in `.claude/settings.json` names a script that is missing or not executable. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. The same file also records each skill's own description length: a new skill must arrive at or under 900 characters, and one already above that is pinned where it measures rather than trimmed to fit a gate. |
-| `catalogue` (portable step) | `check catalogue` | `make portable` could not flatten every skill into a file that stands alone. This is how the library reaches ChatGPT, Grok and anything else without a skills runtime: frontmatter becomes a plain "Use this when" line and every `references/` file is inlined, with the pointer that named it rewritten to name the section instead. A pointer that survives as a path is a dangling reference reintroduced at the boundary, for a reader with no filesystem to resolve it against. |
+| `package` (portable step) | `package` | `make portable` could not flatten every skill into a file that stands alone. References are inlined and their pointers rewritten, so the export works without a filesystem. Portable outputs upload as `portable-skills` only after the preceding CI checks pass. |
 | `spelling` | `lint spelling` | codespell found a likely typo. It ran weekly and warn-only until it was made a gate; the false positives are listed in [`pyproject.toml`](../pyproject.toml) with the reason each is one, which is what lets the check sit at zero and mean something. |
 | `lint-markdown` | `lint markdown` | markdownlint-cli2 found a violation in a `*.md` file. Config in `.markdownlint-cli2.yaml`. |
 | `lint-yaml` | `lint yaml` | yamllint in `--strict` mode found a problem. Config in `.yamllint.yaml`, version in `YAMLLINT_VERSION`: a release that adds a rule would otherwise redden the build on YAML nobody touched. |
 | `lint-actions` | `lint workflows` | actionlint rejected a workflow. It also runs shellcheck over every inline `run:` block, which is where all of this repository's shell lives. The binary is downloaded at a pinned version and checked against a recorded digest before it runs. |
 | `links` | `check links` | lychee found a broken link. It runs `--offline`, so only local paths are resolved — a relative link between documents, or from a document into the source tree, that does not exist. |
 | `package` | `package` | `scripts/package_skills.py` could not build a `.skill` archive for every skill, or an archive it built is not loadable. It refuses to package a skill that does not validate, so this failing after `validate-skills` passed means a packaging problem, not a content one. Each archive is then opened and checked for a `SKILL.md` at its root whose `name` matches the archive, because building without error only proves a zip was written — a broken layout would ship green and fail at install, for someone else. The archives upload as the `skills` artifact. |
-| `ci` | `ci` | One of the ten jobs above failed or was cancelled. |
+| `ci` | `ci` | Any of its ten dependencies did not report exactly `success`, or the result payload did not match the expected jobs. A skipped package after a failed prerequisite also fails this gate. |
 
 `validate-skills` runs `PYTHONPATH=src python -m skillcheck . --strict`, the same
 invocation as `make validate`. The flag is the point: without it, a description one edit
@@ -60,7 +97,7 @@ upgrade would fail the build on skill prose that was green the day before.
 | `python` | `python security lint` | `ruff check` or `ruff format --check` failed. |
 | `codeql` | `codeql` | CodeQL's `security-extended` query suite found something in the Python source. |
 | `permissions-audit` | `permissions audit` | A workflow has no top-level `permissions:` block, an action is not pinned to a SHA, a job sets no `timeout-minutes`, or an `actions/checkout` does not set `persist-credentials: false`. |
-| `security` | `security` | One of the five jobs above failed or was cancelled. |
+| `security` | `security` | Any of its five dependencies did not report exactly `success`, or the result payload did not match the expected jobs. |
 
 ### The security jobs in detail
 
@@ -258,9 +295,13 @@ place, is covered in [writing a skill](writing-skills.md).
 
 ## Why the aggregator jobs exist
 
-`ci` and `security` are otherwise-empty jobs that `needs:` every job in their workflow,
-run `if: always()`, and fail when any dependency reports `failure` or `cancelled`. They
-exist so that branch protection has a stable name to require.
+`ci` and `security` name every other job in their workflow in `needs:`, run
+`if: always()`, and pass the dependency results to
+[`scripts/check_job_results.py`](../scripts/check_job_results.py). The helper accepts
+only a nonempty result set matching the expected job IDs, with every result exactly
+`success`. Failure, cancellation, skipping, unknown statuses and malformed or missing
+results all fail. Each gate writes a per-job result table to its summary without
+printing dependency outputs. This gives branch protection a stable name to require.
 
 The concrete problem: a matrix job's check name carries its parameters. The `test` job
 appears as `test (3.10)`, `test (3.11)`, `test (3.12)` and `test (3.13)`. Requiring
@@ -269,9 +310,11 @@ at which point the required check never reports, and every pull request is block
 check that no longer exists. A fixed-name aggregator does not have that property: the
 jobs behind `ci` can change freely and the required check keeps the same name.
 
-`if: always()` is load-bearing. Without it the aggregator would be skipped when a
-dependency fails, and a skipped required check blocks the pull request rather than
-failing it.
+`if: always()` is load-bearing. Without it the aggregator can be skipped when a
+dependency fails. GitHub treats a skipped job as successful for merge requirements, so
+the aggregate must run and explicitly reject every non-success dependency. The workflow
+checker also verifies the required aggregate's identity and result-check wiring; a
+renamed or disconnected gate must not pass the repository's own checks.
 
 `scheduled.yml` and `evals.yml` have no aggregator, because nothing requires them. An
 aggregator exists to give branch protection a stable name to point at; a workflow that
@@ -290,9 +333,10 @@ only escape is an admin override. A job skipped by an `if:` condition behaves
 differently: it reports success, and the pull request merges. The two look like the same
 mechanism and are not.
 
-This repository is small enough that running everything on every change is cheaper than
-the failure mode. Where a skip is genuinely wanted, use a job-level `if:`, never a
-workflow-level `paths:`.
+This repository is small enough that running every required check on every change is
+cheaper than the failure mode. Job-level skips are appropriate for the advisory eval
+workflow, whose event and credential conditions are intentional. Required CI and
+Security dependencies do not allow skips.
 
 ## Pinning, timeouts and checkout conventions
 
@@ -300,7 +344,7 @@ Every action is pinned to a full-length commit SHA with the version in a trailin
 comment:
 
 ```yaml
-- uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+- uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
   with:
     persist-credentials: false
 ```
@@ -370,6 +414,26 @@ theirs and, because the key hit exactly, never save their own. `validate-plugin`
 `actions/cache` for a different reason: the Claude CLI arrives through `npx` rather than
 as a dependency, so there is no lockfile for `setup-node` to cache against, and the key
 names `CLAUDE_CODE_VERSION` by hand instead.
+
+CI and Security use pip supplied by the selected Python installation rather than
+upgrading it to an unpinned release during every run. Direct tool dependencies remain
+version-pinned; this does not claim that the hosted runner or every transitive package
+is immutable.
+
+## Validating or rolling back this flow
+
+Run `make validate`, `make catalogue`, `make test` and `make coverage` locally. The
+focused gate tests exercise skipped, failed, cancelled, missing and malformed results;
+workflow tests check the required aggregate wiring. On a PR, verify all four Python
+jobs, both aggregate summaries and the `skills` and `portable-skills` artifacts. A green
+advisory trigger-eval job without credentials still means no routing score was measured.
+
+No branch-protection migration is needed because `ci` and `security` keep their names.
+To roll back, revert the CI redesign commit through a PR and require both existing
+checks before merging. The extra artifact stage may lengthen the critical path; the
+benefit is that packaging starts only after the checks pass, while the separate checks
+continue to give early failure feedback. Runner-minute or wall-clock savings must be
+measured from actual runs rather than inferred from job count.
 
 Four jobs that fetch something are deliberately not cached. `lint-actions` and `secrets`
 curl a single pinned tarball each and verify it against a digest, which is already about
