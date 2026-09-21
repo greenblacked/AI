@@ -64,6 +64,11 @@ listed in [writing a skill](writing-skills.md).
 The body is the system prompt. Write it as instructions to a colleague who has just
 walked in: it starts with no memory of the conversation that produced the delegation.
 
+This guide covers authoring the static subagent definition. For operating agents, use
+[`agent-orchestration`](../plugins/coding/skills/agent-orchestration/SKILL.md) to
+coordinate a live team, and [`agent-handoff`](../plugins/coding/skills/agent-handoff/SKILL.md)
+to checkpoint one task so another session can resume it.
+
 ## When a subagent is the right tool
 
 The honest discriminator is not "is this a distinct task". Skills also carve out distinct

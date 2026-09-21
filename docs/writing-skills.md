@@ -56,7 +56,7 @@ The key set is closed. Only these six are allowed:
 | `name` | yes | Lowercase letters, digits and single hyphens. Max 64 characters. |
 | `description` | yes | Max 1024 characters. No `<` or `>`. |
 | `license` | no | Free text. |
-| `allowed-tools` | no | Comma-separated tool restriction, scoped per binary where that carries information: `Bash(kubectl:*)` says something, `Bash` does not. Optional in the standard, but every skill here sets it. |
+| `allowed-tools` | no | Comma-separated tool restriction, scoped per binary where that carries information: `Bash(kubectl:*)` says something, `Bash` does not. When omitted, the existing host tools and permissions apply; omission grants no new authority. |
 | `metadata` | no | Free-form. |
 | `compatibility` | no | Max 500 characters. |
 
