@@ -55,6 +55,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import shlex
 import sys
 from pathlib import Path
 
@@ -71,6 +72,7 @@ TOP_LEVEL_RE = re.compile(r"^[^\s#]")
 # either spelling made the job invisible, the workflow read as gating nothing, and an
 # incomplete `needs:` pass. Any `if:` carrying `always()` counts.
 ALWAYS_RE = re.compile(r"^ {4}if:\s*.*always\(\)")
+IF_RE = re.compile(r"^ {4}if:\s*(.*?)\s*(?:#.*)?$")
 NEEDS_BLOCK_RE = re.compile(r"^ {4}needs:\s*(?:#.*)?$")
 NEEDS_INLINE_RE = re.compile(r"^ {4}needs:\s*\[([^\]]*)\]\s*(?:#.*)?$")
 NEEDS_ONE_RE = re.compile(r"^ {4}needs:\s*([A-Za-z0-9_.-]+)\s*(?:#.*)?$")
@@ -90,6 +92,10 @@ PIN_RE = re.compile(
 # The same key with a value the pattern above cannot read. Reported rather than skipped,
 # because a pin nobody parsed is a pin nobody is comparing.
 PIN_KEY_RE = re.compile(r"^\s*[A-Z][A-Z0-9_]*_(?:VERSION|SHA256):")
+DISPLAY_NAME_RE = re.compile(r"^ {4}name:\s*([^#]+?)\s*(?:#.*)?$", re.MULTILINE)
+NEEDS_JSON_RE = re.compile(r"^\s+NEEDS_JSON:\s*\$\{\{\s*toJSON\(needs\)\s*}}\s*$", re.MULTILINE)
+HELPER = "scripts/check_job_results.py"
+KNOWN_GATES = {"ci.yml": "ci", "security.yml": "security"}
 
 
 class Job:
@@ -99,6 +105,7 @@ class Job:
         self.name = name
         self.line = line
         self.always = False
+        self.condition: str | None = None
         self.needs: list[str] | None = None
         self.unparsed: int | None = None
 
@@ -144,8 +151,10 @@ def jobs_in(text: str) -> tuple[list[Job], list[str]]:
                 collecting = False
                 continue
 
-        if ALWAYS_RE.match(line):
-            current.always = True
+        condition = IF_RE.match(line)
+        if condition:
+            current.condition = condition.group(1)
+            current.always = ALWAYS_RE.match(line) is not None
             continue
         inline = NEEDS_INLINE_RE.match(line)
         if inline:
@@ -184,6 +193,130 @@ def pins_in(text: str) -> list[tuple[str, str, int]]:
     return found
 
 
+def job_body(text: str, jobs: list[Job], target: Job) -> str:
+    """The source belonging to one already-parsed job."""
+    lines = text.splitlines()
+    later = [job.line for job in jobs if job.line > target.line]
+    end = min(later) - 1 if later else len(lines)
+    return "\n".join(lines[target.line - 1 : end])
+
+
+def helper_step(body: str) -> tuple[list[str], str] | None:
+    """Static helper arguments and its containing step, if canonical and unambiguous."""
+    lines = body.splitlines()
+    command_lines = [index for index, line in enumerate(lines) if HELPER in line]
+    if len(command_lines) != 1:
+        return None
+    command_line = command_lines[0]
+    starts = [index for index in range(command_line + 1) if lines[index].startswith("      - ")]
+    if not starts:
+        return None
+    start = starts[-1]
+    ends = [index for index in range(start + 1, len(lines)) if lines[index].startswith("      - ")]
+    end = ends[0] if ends else len(lines)
+    step = "\n".join(lines[start:end])
+    joined = re.sub(r"\\\n\s*", " ", step)
+    calls = [line.strip() for line in joined.splitlines() if HELPER in line]
+    if len(calls) != 1:
+        return None
+    try:
+        words = shlex.split(calls[0])
+    except ValueError:
+        return None
+    try:
+        helper = words.index(HELPER)
+    except ValueError:
+        return None
+    if helper == 0 or words[:helper] not in (["python"], ["python3"]):
+        return None
+    return words[helper + 1 :], step
+
+
+def canonical_helper_run(step: str) -> bool:
+    """The helper step runs strict shell setup and then only the helper command."""
+    lines = step.splitlines()
+    run_lines = [index for index, line in enumerate(lines) if line == "        run: |"]
+    if len(run_lines) != 1:
+        return False
+    commands = []
+    for line in lines[run_lines[0] + 1 :]:
+        if line.strip() and not line.startswith(" " * 10):
+            break
+        if line.strip():
+            commands.append(line[10:])
+    joined = re.sub(r"\\\n\s*", " ", "\n".join(commands))
+    command_lines = [line.strip() for line in joined.splitlines() if line.strip()]
+    return (
+        len(command_lines) == 2
+        and command_lines[0] == "set -Eeuo pipefail"
+        and command_lines[1].startswith(f"python3 {HELPER} ")
+    )
+
+
+def check_known_gate(rel: Path, text: str, jobs: list[Job]) -> int:
+    """Enforce the shared fail-closed implementation for branch-protection gates."""
+    expected_name = KNOWN_GATES.get(rel.name)
+    if expected_name is None:
+        return 0
+    matches = [job for job in jobs if job.name == expected_name]
+    if len(matches) != 1:
+        print(f"::error file={rel}::expected one `{expected_name}` aggregate job")
+        return 1
+    aggregate = matches[0]
+    body = job_body(text, jobs, aggregate)
+    problems = 0
+    display = DISPLAY_NAME_RE.search(body)
+    if display is None or display.group(1).strip(" '\"") != expected_name:
+        print(
+            f"::error file={rel},line={aggregate.line}::`{expected_name}` must have "
+            f"display name `{expected_name}`"
+        )
+        problems += 1
+    if aggregate.condition not in ("always()", "${{ always() }}"):
+        print(
+            f"::error file={rel},line={aggregate.line}::`{expected_name}` must use exactly always()"
+        )
+        problems += 1
+    if re.search(r"^ {4}continue-on-error:", body, re.MULTILINE):
+        print(
+            f"::error file={rel},line={aggregate.line}::`{expected_name}` may not continue on error"
+        )
+        problems += 1
+    helper = helper_step(body)
+    step = helper[1] if helper is not None else ""
+    if not NEEDS_JSON_RE.search(step):
+        print(
+            f"::error file={rel},line={aggregate.line}::`{expected_name}` must pass "
+            "`${{ toJSON(needs) }}` as NEEDS_JSON"
+        )
+        problems += 1
+    if re.search(r"^(?: {6}- | {8})(?:if|continue-on-error):", step, re.MULTILINE):
+        print(
+            f"::error file={rel},line={aggregate.line}::`{expected_name}` helper step "
+            "must be unconditional and may not continue on error"
+        )
+        problems += 1
+    if helper is not None and not canonical_helper_run(step):
+        print(
+            f"::error file={rel},line={aggregate.line}::`{expected_name}` helper step must "
+            "run strict shell setup followed by only the shared helper"
+        )
+        problems += 1
+    if helper is None:
+        print(
+            f"::error file={rel},line={aggregate.line}::`{expected_name}` must call "
+            f"`python3 {HELPER}` with static job IDs"
+        )
+        problems += 1
+    elif aggregate.needs is None or helper[0] != aggregate.needs:
+        print(
+            f"::error file={rel},line={aggregate.line}::`{expected_name}` helper job IDs "
+            "must exactly match its needs list"
+        )
+        problems += 1
+    return problems
+
+
 def check(root: Path) -> int:
     workflows = sorted(
         path for pattern in ("*.yml", "*.yaml") for path in (root / WORKFLOW_DIR).glob(pattern)
@@ -218,6 +351,8 @@ def check(root: Path) -> int:
             )
             problems += 1
             continue
+
+        problems += check_known_gate(rel, text, jobs)
 
         for name, value, number in pins_in(text):
             if value is None:
