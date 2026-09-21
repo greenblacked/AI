@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import re
 
+import pytest
+
 from tests.conftest import REPO, load_script
 
 workflows = load_script("check_workflows.py")
@@ -62,6 +64,24 @@ jobs:
     steps:
       - run: echo solo
 """
+
+
+def known_ci_gate():
+    """The extra contract enforced only for this repository's named gate files."""
+    return (
+        GATING.replace("  demo:\n", "  ci:\n")
+        .replace(
+            "    steps:\n      - run: echo gate\n",
+            "    steps:\n"
+            "      - name: Verify jobs\n"
+            "        env:\n"
+            "          NEEDS_JSON: ${{ toJSON(needs) }}\n"
+            "        run: |\n"
+            "          set -Eeuo pipefail\n"
+            "          python3 scripts/check_job_results.py build lint\n",
+        )
+        .replace("    if: always()\n", "    name: ci\n    if: always()\n")
+    )
 
 
 def write_workflows(root, **files):
@@ -172,6 +192,100 @@ def test_a_top_level_key_after_the_jobs_block_ends_the_walk(tmp_path):
     trailing = GATING + "\nconcurrency:\n  group:\n    name: demo\n"
     write_workflows(tmp_path, demo=trailing)
     assert workflows.check(tmp_path) == 0
+
+
+def test_the_known_ci_gate_calls_the_shared_helper(tmp_path):
+    write_workflows(tmp_path, ci=known_ci_gate())
+    assert workflows.check(tmp_path) == 0
+
+
+def test_the_known_gate_display_name_is_fixed(tmp_path, capsys):
+    write_workflows(tmp_path, ci=known_ci_gate().replace("    name: ci\n", "    name: green\n"))
+    assert workflows.check(tmp_path) == 1
+    assert "must have display name `ci`" in capsys.readouterr().out
+
+
+def test_the_known_gate_passes_the_whole_needs_object(tmp_path, capsys):
+    write_workflows(tmp_path, ci=known_ci_gate().replace("toJSON(needs)", "toJSON(job)"))
+    assert workflows.check(tmp_path) == 1
+    assert "must pass `${{ toJSON(needs) }}`" in capsys.readouterr().out
+
+
+def test_the_known_gate_helper_arguments_match_needs(tmp_path, capsys):
+    write_workflows(
+        tmp_path,
+        ci=known_ci_gate().replace("check_job_results.py build lint", "check_job_results.py build"),
+    )
+    assert workflows.check(tmp_path) == 1
+    assert "helper job IDs must exactly match its needs list" in capsys.readouterr().out
+
+
+def test_the_known_gate_cannot_replace_the_helper_with_inline_shell(tmp_path, capsys):
+    write_workflows(
+        tmp_path,
+        ci=known_ci_gate().replace(
+            "python3 scripts/check_job_results.py build lint", "test success = success"
+        ),
+    )
+    assert workflows.check(tmp_path) == 1
+    assert "must call `python3 scripts/check_job_results.py`" in capsys.readouterr().out
+
+
+def test_the_known_gate_condition_is_exact(tmp_path, capsys):
+    write_workflows(tmp_path, ci=known_ci_gate().replace("if: always()", "if: always() && false"))
+    assert workflows.check(tmp_path) == 1
+    assert "must use exactly always()" in capsys.readouterr().out
+
+
+def test_the_known_gate_helper_step_cannot_be_conditional(tmp_path, capsys):
+    conditional = known_ci_gate().replace(
+        "        env:\n          NEEDS_JSON:",
+        "        if: false\n        env:\n          NEEDS_JSON:",
+    )
+    write_workflows(tmp_path, ci=conditional)
+    assert workflows.check(tmp_path) == 1
+    assert "helper step must be unconditional" in capsys.readouterr().out
+
+
+def test_the_known_gate_helper_step_cannot_continue_on_error(tmp_path, capsys):
+    softened = known_ci_gate().replace(
+        "        env:\n          NEEDS_JSON:",
+        "        continue-on-error: true\n        env:\n          NEEDS_JSON:",
+    )
+    write_workflows(tmp_path, ci=softened)
+    assert workflows.check(tmp_path) == 1
+    assert "may not continue on error" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("key", ["if: false", "continue-on-error: true"])
+def test_the_known_gate_rejects_a_forbidden_property_as_the_step_list_key(tmp_path, capsys, key):
+    softened = known_ci_gate().replace("      - name: Verify jobs\n", f"      - {key}\n")
+    write_workflows(tmp_path, ci=softened)
+    assert workflows.check(tmp_path) == 1
+    assert "helper step must be unconditional" in capsys.readouterr().out
+
+
+def test_the_known_gate_job_cannot_continue_on_error(tmp_path, capsys):
+    softened = known_ci_gate().replace(
+        "    if: always()\n", "    if: always()\n    continue-on-error: true\n"
+    )
+    write_workflows(tmp_path, ci=softened)
+    assert workflows.check(tmp_path) == 1
+    assert "`ci` may not continue on error" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "extra",
+    ["          exit 0\n", "          set +e\n", "          true\n"],
+)
+def test_the_known_gate_run_block_contains_only_strict_setup_and_helper(tmp_path, capsys, extra):
+    softened = known_ci_gate().replace(
+        "          python3 scripts/check_job_results.py build lint\n",
+        extra + "          python3 scripts/check_job_results.py build lint\n",
+    )
+    write_workflows(tmp_path, ci=softened)
+    assert workflows.check(tmp_path) == 1
+    assert "followed by only the shared helper" in capsys.readouterr().out
 
 
 # --- the pins --------------------------------------------------------------------

@@ -9,6 +9,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
 
 # Deliberately no `paths:` filter. A workflow skipped by a path filter leaves its
@@ -19,8 +21,10 @@ on:
 permissions: {}
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: >-
+    ${{ github.workflow }}-${{ github.event_name == 'pull_request'
+    && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Every tool this workflow installs or downloads, pinned, for the reason security.yml
 # gives: a tool that changes its rules underneath you turns a green build into a
@@ -57,7 +61,9 @@ jobs:
         # `--strict` fails on warnings too. They are warnings because each is a
         # judgement call rather than a rule, but a warning nobody has to clear is a
         # warning that accumulates until the whole category is ignored.
-        run: PYTHONPATH=src python -m skillcheck . --strict
+        run: |
+          set -Eeuo pipefail
+          PYTHONPATH=src python -m skillcheck . --strict
 
   validate-plugin:
     name: validate plugin manifest
@@ -137,19 +143,36 @@ jobs:
           key: >-
             pip-test-${{ runner.os }}-${{ matrix.python-version }}-${{
             hashFiles('.github/workflows/ci.yml') }}
-      - run: |
-          python -m pip install --upgrade pip
-          python -m pip install "pytest==${PYTEST_VERSION}" "coverage==${COVERAGE_VERSION}"
+      - name: Install the test runner
+        run: |
+          set -Eeuo pipefail
+          python -m pip install "pytest==${PYTEST_VERSION}"
+      - name: Install coverage on the coverage interpreter
+        if: matrix.python-version == '3.13'
+        run: |
+          set -Eeuo pipefail
+          python -m pip install "coverage==${COVERAGE_VERSION}"
+      - name: Run tests
+        if: matrix.python-version != '3.13'
+        run: |
+          set -Eeuo pipefail
+          PYTHONPATH=src python -m pytest
       # The floor is a ratchet, not a target: it sits below the measured figure so a
       # change that quietly drops a script back to untested fails here rather than
       # being noticed months later. Raise it in pyproject.toml when coverage rises.
-      - run: |
+      - name: Run tests with coverage and enforce the floor
+        if: matrix.python-version == '3.13'
+        run: |
           set -Eeuo pipefail
+          set +e
           PYTHONPATH=src python -m coverage run -m pytest
+          test_status=$?
+          set -e
           # The summary is written before the floor is enforced, so a failing run
           # still shows which file fell.
           python -m coverage report --format=markdown --fail-under=0 >> "$GITHUB_STEP_SUMMARY"
           python -m coverage report
+          exit "$test_status"
 
   catalogue:
     name: check catalogue
@@ -169,53 +192,48 @@ jobs:
         # listing overflows its budget, and says nothing: they stay invocable by name
         # and stop being chosen on their own. Re-cutting the plugins fixed that once;
         # this is what stops it growing back.
-        run: python scripts/check_listing_budget.py .
+        run: |
+          set -Eeuo pipefail
+          python scripts/check_listing_budget.py .
       - name: The README still describes what is in the repository
         # A catalogue nobody checks is a catalogue that drifts. This one has, twice,
         # both times after the plugins were re-cut.
-        run: python scripts/check_readme.py .
+        run: |
+          set -Eeuo pipefail
+          python scripts/check_readme.py .
       - name: The CI documentation still lists the jobs CI runs
         # `docs/ci.md` is where a red check name turns into something actionable, so a
         # job with no row is a failure someone has to reverse-engineer from YAML. The
         # README drifted twice before it was gated; this is the same gate for the file
         # that documents the gates.
-        run: python scripts/check_ci_docs.py .
+        run: |
+          set -Eeuo pipefail
+          python scripts/check_ci_docs.py .
       - name: Each workflow's aggregate names every job in it
         # `ci` and `security` are what branch protection requires, and they work by
         # listing every other job in `needs:`. A job missing from that list fails
         # without failing the required check, so the pull request merges green. This
         # also catches a pinned version that means two different things in two files.
-        run: python scripts/check_workflows.py .
+        run: |
+          set -Eeuo pipefail
+          python scripts/check_workflows.py .
       - name: Every shell block and shipped script parses
         # The commands inside a fenced block are the part an agent follows most
         # literally, and they were the one part of a skill nothing checked: the
         # validator masks fences before scanning for dangling pointers, so nothing
         # else ever looked inside them. `bash -n` parses without executing, so this
         # runs no command and needs none of the binaries they name.
-        run: python scripts/check_shell.py .
+        run: |
+          set -Eeuo pipefail
+          python scripts/check_shell.py .
       - name: The hook registration points at a script that exists
         # `.claude/settings.json` is read by the runtime and by nothing else here, so
         # a typo in the path, or a stale one left after the script moved, disables the
         # hook with no error anywhere. The first symptom would be an unvalidated skill
         # reaching CI weeks later.
-        run: python scripts/check_settings.py .
-      - name: Flatten every skill into a file that stands alone
-        # The portable export is how this library reaches ChatGPT, Grok and anything
-        # else without a skills runtime. Flattening inlines each `references/` file and
-        # rewrites the pointer that named it; a pointer that survives as a path is a
-        # dangling reference reintroduced at the boundary, for a reader who has no
-        # filesystem to resolve it against.
-        #
-        # It is built rather than only checked so the files can be uploaded below. The
-        # audience for them is someone using ChatGPT precisely because they have no
-        # coding toolchain, and telling that person to clone a repository and run make
-        # is the whole distribution problem restated as instructions.
-        run: PYTHONPATH=src python scripts/export_portable.py .
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
-        with:
-          name: portable-skills
-          path: dist/portable
-          if-no-files-found: error
+        run: |
+          set -Eeuo pipefail
+          python scripts/check_settings.py .
 
   spelling:
     name: lint spelling
@@ -234,13 +252,17 @@ jobs:
         with:
           path: ~/.cache/pip
           key: pip-spelling-${{ runner.os }}-${{ hashFiles('.github/workflows/ci.yml') }}
-      - run: python -m pip install --upgrade pip "codespell==${CODESPELL_VERSION}"
+      - run: |
+          set -Eeuo pipefail
+          python -m pip install "codespell==${CODESPELL_VERSION}"
       - name: Check spelling
         # This ran weekly with only_warn set, which is the shape of check this
         # repository rejects everywhere else: nobody had to clear it, so nobody read
         # it. The false positives are listed in pyproject.toml with the reason each is
         # one, which is what lets the gate sit at zero and mean something.
-        run: codespell
+        run: |
+          set -Eeuo pipefail
+          codespell
 
   lint-markdown:
     name: lint markdown
@@ -273,8 +295,12 @@ jobs:
         with:
           path: ~/.cache/pip
           key: pip-lint-yaml-${{ runner.os }}-${{ hashFiles('.github/workflows/ci.yml') }}
-      - run: python -m pip install --upgrade pip "yamllint==${YAMLLINT_VERSION}"
-      - run: yamllint --strict --format github .
+      - run: |
+          set -Eeuo pipefail
+          python -m pip install "yamllint==${YAMLLINT_VERSION}"
+      - run: |
+          set -Eeuo pipefail
+          yamllint --strict --format github .
 
   lint-actions:
     name: lint workflows
@@ -324,6 +350,16 @@ jobs:
 
   package:
     name: package
+    needs:
+      - validate-skills
+      - validate-plugin
+      - test
+      - catalogue
+      - spelling
+      - lint-markdown
+      - lint-yaml
+      - lint-actions
+      - links
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -336,7 +372,9 @@ jobs:
         with:
           python-version: '3.13'
       - name: Build a .skill archive for every skill
-        run: PYTHONPATH=src python scripts/package_skills.py
+        run: |
+          set -Eeuo pipefail
+          PYTHONPATH=src python scripts/package_skills.py
       - name: Every archive holds a loadable skill
         # Building without error only proves the zip was written. What the upload route
         # needs is a SKILL.md at the archive root whose `name` matches the archive, and
@@ -367,10 +405,19 @@ jobs:
                   raise SystemExit(f"{archive}: declares name {values.get('name')!r}")
           print(f"{len(archives)} archive(s) verified")
           EOF
+      - name: Flatten every skill into a file that stands alone
+        run: |
+          set -Eeuo pipefail
+          PYTHONPATH=src python scripts/export_portable.py .
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: skills
           path: dist/*.skill
+          if-no-files-found: error
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: portable-skills
+          path: dist/portable
           if-no-files-found: error
 
   ci:
@@ -392,7 +439,17 @@ jobs:
       - package
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
-      - name: Fail if any job failed or was cancelled
-        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
-        run: exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify every required CI job passed
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          set -Eeuo pipefail
+          python3 scripts/check_job_results.py \
+            validate-skills validate-plugin test catalogue spelling \
+            lint-markdown lint-yaml lint-actions links package
