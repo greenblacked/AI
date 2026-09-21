@@ -5,10 +5,10 @@
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-86-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-87-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-86 agent skills, fourteen read-only subagents and six slash commands, in eight
+87 agent skills, fourteen read-only subagents and six slash commands, in eight
 plugins you install separately. They cover the daily loop of changing code, keeping a
 system running, shipping a change, securing it, making a game, leading a team, a career,
 and the parts of life that are nobody's job.
@@ -33,7 +33,7 @@ outside a runtime that can trigger them for you.
 | `coding` | Reading, reviewing, testing and changing code | 18 skills, 3 subagents |
 | `gamedev` | Making games, and shipping them | 9 skills, 1 subagent, 1 command |
 | `operations` | Keeping a running system alive | 15 skills, 5 subagents, 2 commands |
-| `delivery` | Getting a change into production | 8 skills |
+| `delivery` | Getting a change into production | 9 skills |
 | `security` | The defensive side of shipping software | 11 skills, 3 subagents, 2 commands |
 | `manager` | Engineering leadership | 13 skills, 2 subagents, 1 command |
 | `personal` | Money, travel, admin, habits and health | 7 skills |
@@ -233,6 +233,7 @@ Getting a change into production without a bad night.
 
 | Skill | What it does |
 | --- | --- |
+| [`ai-review-integration`](plugins/delivery/skills/ai-review-integration/SKILL.md) | Design or implement an advisory AI reviewer for GitLab merge requests around a trusted controller, immutable MR versions, explicit diff coverage, deterministic finding validation, reconciled comments, and a staged rollout with a kill switch. |
 | [`ci-pipeline-design`](plugins/delivery/skills/ci-pipeline-design/SKILL.md) | Design a pipeline that does not exist yet, or restructure one that grew badly: decide what may block a merge first, then a stage graph that waits on nothing it does not use, cache keys tied to what invalidates them, and one artefact promoted by digest. |
 | [`cutover`](plugins/delivery/skills/cutover/SKILL.md) | Run the change that has a point of no return — a traffic switch, a provider move, a region migration — from a rehearsed runbook with a rollback deadline computed before the window opens. |
 | [`db-migration`](plugins/delivery/skills/db-migration/SKILL.md) | Ship a schema change to a live database without a stuck lock: expand and contract, each phase its own revertible deploy, batched backfills, and the Postgres operations that are safe versus the ones that rewrite the table. |

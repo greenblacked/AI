@@ -1,0 +1,22 @@
+[
+  {"query": "design an AI bot that reviews every GitLab merge request and posts inline suggestions", "should_trigger": true},
+  {"query": "how should we connect an LLM reviewer to GitLab MRs without leaking tokens to forks", "should_trigger": true},
+  {"query": "our automated merge request reviewer sometimes posts comments for an older push", "should_trigger": true},
+  {"query": "spec the controller and webhook flow for advisory AI code review comments in GitLab", "should_trigger": true},
+  {"query": "the review bot duplicates discussions whenever the GitLab API times out", "should_trigger": true},
+  {"query": "plan a shadow rollout and kill switch for an LLM merge request reviewer", "should_trigger": true},
+  {"query": "what output schema and validation should an AI MR reviewer use before it comments", "should_trigger": true},
+  {"query": "assess whether our GitLab AI reviewer handles pagination and oversized diffs safely", "should_trigger": true},
+  {"query": "we want an automated reviewer service outside CI that analyses fork merge requests", "should_trigger": true},
+  {"query": "define observability, budgets and stale-result handling for AI comments on merge requests", "should_trigger": true},
+  {"query": "review this merge request and tell me whether the code has bugs", "should_trigger": false, "expected": "code-review"},
+  {"query": "audit this GitLab CI yaml for unsafe variables and fork pipeline attacks", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "audit whether untrusted support-ticket text can manipulate the refund tool used by our agent", "should_trigger": false, "expected": "agent-security-review"},
+  {"query": "build a benchmark to compare two coding-agent prompts on real repositories", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "help us roll out AI coding tools across the engineering organisation", "should_trigger": false, "expected": "ai-enablement"},
+  {"query": "design a new GitLab pipeline with test, build and deploy stages", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "why is the lint job failing only on merge request pipelines", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "perform a security review of the authentication changes in this diff", "should_trigger": false, "expected": "security-review"},
+  {"query": "write release notes from the merge requests merged since version 3.4", "should_trigger": false, "expected": "release-notes"},
+  {"query": "create an agent that delegates coding tasks to parallel workers", "should_trigger": false, "expected": "agent-orchestration"}
+]
