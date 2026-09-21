@@ -9,7 +9,7 @@ enforces, and how to get from an empty directory to a skill that ships.
 A skill is a directory containing exactly one `SKILL.md`:
 
 ```text
-skills/<category>/<name>/
+plugins/<plugin>/skills/<name>/
 ├── SKILL.md          # required: frontmatter + the procedure
 ├── evals/            # trigger-eval.json: the queries that prove the description fires
 ├── references/       # optional: depth loaded on demand
@@ -17,7 +17,7 @@ skills/<category>/<name>/
 └── assets/           # optional: templates and files the skill emits
 ```
 
-`<category>` is one of `coding`, `operations`, `delivery`, `security`, `gamedev`, `manager`,
+`<plugin>` is one of `coding`, `operations`, `delivery`, `security`, `gamedev`, `manager`,
 `personal` or `career` — the eight plugins in
 [the marketplace manifest](../.claude-plugin/marketplace.json). `<name>` is the skill
 name, and it must equal the `name` in the frontmatter.
@@ -154,7 +154,6 @@ walk past it.
 | --- | --- | --- |
 | `description-headroom` | Description is within 50 characters of the 1024 cap. | It works today. The point is that the next edit breaks it invisibly. |
 | `short-description` | Description is under 500 characters. | A description that short is usually vague, and vague is what loses a query to a neighbour. |
-| `dangling-cede` | A cede clause names a skill or subagent that does not exist. | The clause is a routing pointer. Pointing it at something deleted sends the reader nowhere, and nothing else catches it. |
 | `no-trigger` | Description has no "use when / whenever / for / any time" clause. | A description can trigger without the exact phrasing; the heuristic is a prompt, not a proof. |
 | `long-skill` | `SKILL.md` is over 500 lines. | Length is a signal that depth belongs in `references/`, not a defect in itself. |
 | `no-toc` | A reference file is over 100 lines with no table of contents. | Some long references are genuinely linear. |
@@ -308,7 +307,7 @@ a name that labels a category loses them.
 
 So name a skill after what it owns, in the word someone reaching for it would use, and
 read the name on its own — with the description covered up — asking whether you would pick
-it out of a list of sixty-seven. Then score it with `--budget` and read which queries it
+it out of the full catalogue. Then score it with `--budget` and read which queries it
 drops. A name is not cosmetic when the budget drops everything else.
 
 ## Trigger eval sets
@@ -427,7 +426,7 @@ Three flags change what the number means:
   two scores is usually telling you about the name. See
   [what survives the budget](#what-survives-the-budget-is-the-name).
 - `--baseline` takes an earlier `--json` output and prints the per-target delta. With
-  sixty-seven descriptions competing for the same queries, the expected consequence of editing
+  the full catalogue competing for the same queries, the expected consequence of editing
   one is a change in a neighbour's score, and a fixed threshold cannot see a skill slide
   from 100% to 85%. Commit a run and diff against it.
 
@@ -524,7 +523,7 @@ Every code the validator can emit is below, grouped by what it is looking at.
 | --- | --- | --- | --- |
 | `not-utf8` | error | The file is not valid UTF-8. | Re-save it as UTF-8. Reported rather than raised, because one mis-encoded file used to abort validation for every other skill. |
 | `duplicate-skill-name` | error | Two skill directories share a name. | Rename one. `name` equals the directory name, so a duplicate directory is a duplicate skill: the second silently replaces the first on install and in `dist/`, and every counter still reports success. |
-| `nested-skill` | error | A second `SKILL.md` below the skill directory. | Move it to its own directory under `skills/<category>/`. |
+| `nested-skill` | error | A second `SKILL.md` below the skill directory. | Move it to its own directory under `plugins/<plugin>/skills/`. |
 | `frontmatter` | error | The block could not be parsed at all: missing or unclosed `---`, a tab, a byte-order mark, indentation, a duplicate key, an unreadable line. | Follow the message; it carries the line. |
 | `unknown-key` | error | A key outside the allowed six. | Rename it, or delete it. The message names the likely intended key. |
 | `missing-name` | error | No `name`. | Add it. |
@@ -556,7 +555,7 @@ Every code the validator can emit is below, grouped by what it is looking at.
 | `no-evals` | warning | The skill has no `evals/trigger-eval.json`. | Write one: twenty queries, ten each way. |
 | `bad-eval-json` | error | The file is not valid JSON. | Fix the syntax; the message carries the parser's reason. |
 | `bad-eval-shape` | error | The top level is not a JSON array. | Wrap the entries in `[ … ]`. |
-| `bad-eval-entry` | error | An entry is not an object, has no usable `query`, has a `should_trigger` that is not a real boolean, or carries a key other than those two. | The message names the entry's index. |
+| `bad-eval-entry` | error | An entry is not an object, has no usable `query`, has a `should_trigger` that is not a real boolean, or carries a key other than `query`, `should_trigger` and optional `expected`. | The message names the entry's index. |
 | `duplicate-eval-query` | error | The same query string appears twice. | Replace one of them; a duplicate inflates the count without testing anything. |
 | `thin-eval-set` | error | Fewer than 16 queries. | Add more. Below that the pass rate moves too far on one result. |
 | `unbalanced-eval-set` | error | Fewer than 8 on either side. | Add to the short side — usually the negatives, which are what catch a description that fires on everything. |

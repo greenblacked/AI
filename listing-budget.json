@@ -10,7 +10,7 @@
     "manager": 12500,
     "operations": 13500,
     "personal": 6500,
-    "security": 9000
+    "security": 10000
   },
   "skills": {
     "access-review": 945,
@@ -21,6 +21,7 @@
     "api-design": 926,
     "application-caching": 759,
     "auth-design": 891,
+    "authorization-design": 799,
     "backup-recovery-design": 831,
     "capacity-planning": 951,
     "ci-pipeline-design": 863,
