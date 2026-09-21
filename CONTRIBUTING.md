@@ -79,3 +79,9 @@ argue that it is wrong and change it deliberately.
 
 One logical change per commit, imperative subject line, and a body that explains why when
 the diff does not. Please do not add tool-attribution or `Co-Authored-By` trailers.
+
+## Conduct
+
+Taking part here means agreeing to the [Code of Conduct](CODE_OF_CONDUCT.md). It also
+sets out how to report a problem privately, which matters more than the policy text: a
+reporting route nobody can find is the same as not having one.
