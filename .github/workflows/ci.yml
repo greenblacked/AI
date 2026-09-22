@@ -109,6 +109,19 @@ jobs:
             echo "${unexpected}"
             exit 1
           fi
+          # The grep above assumes a warning is printed as an indented `> ` line. If a
+          # future CLI changes that shape it matches nothing, `unexpected` is empty, and
+          # a whole new warning class lands green — the same way check_shell.py once
+          # reported "0 blocks parsed" and passed. The eight known warnings are the
+          # control: finding none of them means the format moved, not that the tree got
+          # cleaner, because a git-sourced marketplace always has them.
+          known=$(grep -c 'version: No version specified' validate.log || true)
+          if [ "${known}" -eq 0 ]; then
+            echo "::error::plugin validate printed none of the warnings this check is" \
+              "written against, so its output format has changed and the check above" \
+              "is no longer looking at anything"
+            exit 1
+          fi
 
   test:
     name: test
@@ -347,6 +360,24 @@ jobs:
         with:
           args: --offline --no-progress './**/*.md'
           fail: true
+      - name: Fail if the link checker looked at nothing
+        # A glob passed as a literal string is one typo away from matching no files, and
+        # lychee reports that as zero links, zero broken, and exits 0. The summary it
+        # writes is the only evidence it read anything at all.
+        run: |
+          set -Eeuo pipefail
+          summary=lychee/out.md
+          if [ ! -f "${summary}" ]; then
+            echo "::error::lychee wrote no summary, so there is no evidence it ran"
+            exit 1
+          fi
+          total=$(sed -n 's/.*Total[^|]*|[[:space:]]*\([0-9][0-9]*\).*/\1/p' \
+            "${summary}" | head -1)
+          if [ -z "${total}" ] || [ "${total}" -eq 0 ]; then
+            echo "::error::lychee checked ${total:-no} links, so the glob matched nothing"
+            exit 1
+          fi
+          echo "lychee checked ${total} link(s)"
 
   package:
     name: package
