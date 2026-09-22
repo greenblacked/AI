@@ -29,7 +29,19 @@ jobs:
           persist-credentials: false
       - uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8  # v2.9.0
         with:
-          args: --cache --max-cache-age 1d --no-progress './**/*.md'
+          # `--user-agent` because doi.org answers 403 to lychee's default agent. The
+          # two DOIs in health-coach are the only links here that resolve through it,
+          # and they are the citations most worth keeping: a DOI is the identifier that
+          # does not rot, so the checker is what should bend. Crossref asks automated
+          # clients to identify themselves and a contact, which is what this string is.
+          #
+          # Not `--accept 403`, which would hide a genuine 403 on any of the other
+          # 1,219 links, and not an ignore entry, which stops checking the two links
+          # this job exists to check.
+          args: >-
+            --cache --max-cache-age 1d --no-progress
+            --user-agent 'lychee (+https://github.com/greenblacked/AI)'
+            './**/*.md'
           fail: true
           jobSummary: true
 
