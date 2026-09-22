@@ -1,0 +1,22 @@
+[
+  {"query":"Argo CD keeps reverting the hotfix I apply with kubectl. How should we make the change stick?","should_trigger":true},
+  {"query":"Our application is OutOfSync because a mutating webhook changes one field. Help us handle the drift safely.","should_trigger":true},
+  {"query":"Should we enable automated prune and self-heal for this Argo CD Application?","should_trigger":true},
+  {"query":"Design the sync waves for CRDs, an operator, a migration job, and the application workloads.","should_trigger":true},
+  {"query":"A bad commit auto-synced through Argo CD. What is the controller-safe rollback procedure?","should_trigger":true},
+  {"query":"Why did changing one ApplicationSet generator remove applications from several clusters?","should_trigger":true},
+  {"query":"Two Argo CD sources both render the same ConfigMap and the result is surprising. Diagnose the ownership.","should_trigger":true},
+  {"query":"Review this GitOps change before sync, including the rendered manifests and prune set.","should_trigger":true},
+  {"query":"How do we verify that the Git commit actually reconciled and the service recovered?","should_trigger":true},
+  {"query":"Flux keeps undoing manual edits in the cluster. Explain the authority chain and recovery options.","should_trigger":true},
+  {"query":"Choose canary percentages, bake times, and promotion metrics for our checkout release.","should_trigger":false,"expected":"release-strategy"},
+  {"query":"Our pod is CrashLoopBackOff after today's deploy and customers cannot check out. Triage the incident.","should_trigger":false,"expected":"k8s-triage"},
+  {"query":"Write readiness and liveness probes and resource limits for this Kubernetes Deployment.","should_trigger":false,"expected":"k8s-workloads"},
+  {"query":"Plan a zero-downtime PostgreSQL column migration using expand and contract.","should_trigger":false,"expected":"db-migration"},
+  {"query":"Our GitHub Actions deployment job is red; inspect the logs and find the first failure.","should_trigger":false,"expected":"ci-triage"},
+  {"query":"Plan the one-time DNS switchover to our new production region with go/no-go gates.","should_trigger":false,"expected":"cutover"},
+  {"query":"Create a phased migration plan from Jenkins to GitHub Actions across all engineering teams.","should_trigger":false,"expected":"plan-platform-migration"},
+  {"query":"Our Terraform state is locked after an interrupted apply. Help recover it safely.","should_trigger":false,"expected":"terraform-state"},
+  {"query":"Draft customer-facing release notes for the features shipping this week.","should_trigger":false,"expected":"release-notes"},
+  {"query":"Harden this CI/CD pipeline against artifact substitution and untrusted pull requests.","should_trigger":false,"expected":"pipeline-hardening"}
+]

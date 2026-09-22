@@ -1,0 +1,22 @@
+[
+  {"query": "the coding agent ran out of context; prepare a checkpoint so a new session can continue the unfinished change safely", "should_trigger": true},
+  {"query": "I have to stop this repo edit now; leave a durable continuation packet with the exact dirty tree and next step", "should_trigger": true},
+  {"query": "resume the half-finished patch from yesterday, but first check whether the branch moved and preserve my local edits", "should_trigger": true},
+  {"query": "write a handoff for one interrupted coding task that separates completed, partial, and untouched work", "should_trigger": true},
+  {"query": "the previous session died after submitting something remote; reconcile whether it happened before retrying", "should_trigger": true},
+  {"query": "capture the current HEAD, worktree diff, test evidence and blockers so another coding session can take over", "should_trigger": true},
+  {"query": "continue this implementation from an old checkpoint and verify it is still fresh against the repository", "should_trigger": true},
+  {"query": "my agent is near its token limit; preserve the user's latest corrections and the next smallest safe action", "should_trigger": true},
+  {"query": "transfer this unfinished bug fix to a successor without losing which approval is actually still valid", "should_trigger": true},
+  {"query": "recover a partially completed repository change after an interruption without resetting uncommitted user work", "should_trigger": true},
+  {"query": "coordinate research, implementation and independent review agents for a repository change with disjoint file ownership", "should_trigger": false, "expected": "agent-orchestration"},
+  {"query": "dispatch three coding agents in parallel, retry failures, and integrate their branches in dependency order", "should_trigger": false, "expected": "agent-orchestration"},
+  {"query": "build a holdout benchmark to measure whether our coding agent safely completes repository tasks", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "compare failed agent traces and identify the earliest decision that caused the regression", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "I just inherited this repository; map the entry points and trace one request end to end", "should_trigger": false, "expected": "codebase-orientation"},
+  {"query": "review this pull request for correctness, security problems, and missing tests", "should_trigger": false, "expected": "code-review"},
+  {"query": "checkout returns 500 for one tenant; reproduce the failure and find its root cause", "should_trigger": false, "expected": "debugging"},
+  {"query": "design cursor pagination for a new endpoint and state its ordering guarantee", "should_trigger": false, "expected": "api-design"},
+  {"query": "break this well-understood module into smaller components without changing behavior", "should_trigger": false, "expected": "refactoring"},
+  {"query": "write a durable architecture guide for this service after the migration is complete", "should_trigger": false, "expected": "technical-docs"}
+]

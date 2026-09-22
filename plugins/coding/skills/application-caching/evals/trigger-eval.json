@@ -1,0 +1,22 @@
+[
+  {"query": "review our Redis cache-aside code for stale reads and the race where an old database load lands after invalidation", "should_trigger": true},
+  {"query": "design cache keys for tenant-scoped product data where fields vary by role, locale, and feature cohort", "should_trigger": true},
+  {"query": "our cache outage sent all misses to Postgres and took it down; design bounded fallback and recovery", "should_trigger": true},
+  {"query": "should this negative cache store 404s, and how do we invalidate them when the object is created", "should_trigger": true},
+  {"query": "help choose between singleflight, a shared lease, stale-while-revalidate, and no miss coalescing", "should_trigger": true},
+  {"query": "review this application cache rollout so rollback does not cause a cold-cache stampede", "should_trigger": true},
+  {"query": "a suspended user retains access for five minutes because entitlements are cached; fix the correctness contract", "should_trigger": true},
+  {"query": "design CAS or generation-based publication so slow workers cannot overwrite newer cached values", "should_trigger": true},
+  {"query": "our hit rate is high but Redis keeps evicting expensive objects; define useful cache measurements", "should_trigger": true},
+  {"query": "audit an in-process plus shared data cache for freshness, authorization isolation, and source fallback", "should_trigger": true},
+  {"query": "GitHub Actions keeps downloading the same dependencies; improve the workflow cache keys", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "our LLM prompt cache has almost no reads per write and the token bill increased", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "estimate pods, database connections, and queue workers needed for our Black Friday peak", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "design HTTP Cache-Control, ETag, pagination, and idempotency semantics for our public REST API", "should_trigger": false, "expected": "api-design"},
+  {"query": "map personal data through replicas, caches, logs, backups, and our deletion workflow", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "profile why this Python function consumes so much CPU before we optimize it", "should_trigger": false, "expected": "profiling"},
+  {"query": "plan a zero-downtime migration that adds a NOT NULL column to a large production table", "should_trigger": false, "expected": "db-migration"},
+  {"query": "add tracing and RED metrics so we can diagnose latency across three services", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "review this OAuth scope model and service-to-service authorization boundary", "should_trigger": false, "expected": "auth-design"},
+  {"query": "choose a canary rollout strategy and automatic rollback thresholds for the new service version", "should_trigger": false, "expected": "release-strategy"}
+]

@@ -89,11 +89,11 @@ the library where a wrong number carries a real cost.
    overestimating measured REE by 5%.
 2. Phillips SM, Chevalier S, Leidy HJ. "Protein 'requirements' beyond the RDA:
    implications for optimizing health." *Appl Physiol Nutr Metab* 2016;41(5):565-72.
-   <https://doi.org/10.1139/apnm-2015-0550> — concludes "at least 1.2 to 1.6 g/(kg·day)
+   <https://pubmed.ncbi.nlm.nih.gov/26960445/> — concludes "at least 1.2 to 1.6 g/(kg·day)
    of high-quality protein is a more ideal target for achieving optimal health outcomes
    in adults."
 3. Morton RW, Murphy KT, McKellar SR, et al. "A systematic review, meta-analysis and
    meta-regression of the effect of protein supplementation on resistance training-induced
    gains in muscle mass and strength in healthy adults." *Br J Sports Med*
-   2018;52(6):376-384. <https://doi.org/10.1136/bjsports-2017-097608> — 49 studies, 1,863
+   2018;52(6):376-384. <https://pubmed.ncbi.nlm.nih.gov/28698222/> — 49 studies, 1,863
    participants; intake beyond 1.62 g/kg/day produced no further gains in fat-free mass.

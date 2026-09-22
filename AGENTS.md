@@ -13,6 +13,17 @@ general good practice.
 Everything here is prose and configuration. There is no application. The only code is
 `skillcheck`, the validator CI runs against the skills.
 
+## Multi-agent workflow
+
+For multi-agent work, use Astra at medium effort only for review and decisions; use Sol
+at low effort for research into agent features or configuration and for implementation;
+use Terra at low effort for branch synchronisation and integration when assigned. Honour
+an explicit per-task assignment over this default split. Research agents verify facts
+before implementation begins. Give implementation agents disjoint files, then have the
+reviewer validate the combined diff. Do not substitute another model automatically; if a
+requested model is unavailable, report that limitation. Model and effort choices apply
+when starting agents and cannot change an already active session.
+
 ## Repository layout
 
 | Path | What lives there |
@@ -110,7 +121,7 @@ in `src/skillcheck/` breaks the guarantee CI is built on, so do not add one.
 
 ## Adding or changing a skill
 
-1. Copy `template/SKILL.md` into `skills/<category>/<name>/SKILL.md`.
+1. Copy `template/SKILL.md` into `plugins/<plugin>/skills/<name>/SKILL.md`.
 2. Set `name` to exactly the directory name. Write the `description` last, when you know
    what the skill does — it is the only text loaded before the skill fires, so it decides
    whether the skill is ever used.

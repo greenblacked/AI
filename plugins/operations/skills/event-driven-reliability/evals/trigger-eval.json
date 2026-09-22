@@ -1,0 +1,22 @@
+[
+  {"query": "design an at-least-once order consumer so duplicate deliveries cannot charge the customer twice", "should_trigger": true},
+  {"query": "review the crash windows between committing our database update, publishing the follow-up event and acknowledging the message", "should_trigger": true},
+  {"query": "choose stable event and business idempotency keys for producer retries and repeated invoice requests", "should_trigger": true},
+  {"query": "our worker calls a payment API outside its database transaction; design idempotency and reconciliation for uncertain outcomes", "should_trigger": true},
+  {"query": "define bounded retries, poison-message handling and dead-letter redrive rules for this queue consumer", "should_trigger": true},
+  {"query": "plan a safe replay with a dry run, durable cursor, rate limits and explicit stop conditions", "should_trigger": true},
+  {"query": "work out how long processed-event records must live compared with broker retention and our replay horizon", "should_trigger": true},
+  {"query": "design inbox and transactional outbox handling for a service that consumes one event and emits another", "should_trigger": true},
+  {"query": "add backpressure and concurrency limits so retries do not overwhelm the dependency or starve fresh messages", "should_trigger": true},
+  {"query": "prove our consumer remains correct when acknowledgement fails after commit and an outbox relay publishes twice", "should_trigger": true},
+  {"query": "production consumers are crashing and the queue is growing right now; help us triage the outage", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "add queue-depth dashboards, retry counters, traces and alerts for our asynchronous workers", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "design the REST endpoints, error schema, pagination and HTTP idempotency header for our public API", "should_trigger": false, "expected": "api-design"},
+  {"query": "turn our approved dead-letter redrive process into an on-call runbook with exact commands and decision steps", "should_trigger": false, "expected": "runbook"},
+  {"query": "design backup retention and regional disaster recovery for the message broker and its databases", "should_trigger": false, "expected": "backup-recovery-design"},
+  {"query": "run a failure exercise that kills queue workers and measures whether on-call restores throughput", "should_trigger": false, "expected": "game-day"},
+  {"query": "write a postmortem for yesterday's duplicate payment incident and identify contributing factors", "should_trigger": false, "expected": "postmortem"},
+  {"query": "plan the production cutover from the old broker to the new broker, including rollback and traffic switching", "should_trigger": false, "expected": "cutover"},
+  {"query": "review the authentication and authorisation model for customers calling our event ingestion endpoint", "should_trigger": false, "expected": "auth-design"},
+  {"query": "estimate worker replicas and broker throughput needed for next year's peak event volume", "should_trigger": false, "expected": "capacity-planning"}
+]

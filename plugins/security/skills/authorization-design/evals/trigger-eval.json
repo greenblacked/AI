@@ -1,0 +1,22 @@
+[
+  {"query": "design authorization for our multi-tenant project app: owners can delete, editors can update, and viewers can only read", "should_trigger": true},
+  {"query": "should we use RBAC, ABAC, or ReBAC for document sharing with teams, folders, and external collaborators", "should_trigger": true},
+  {"query": "our invoice endpoint takes tenant_id and owner_id from the request before allowing a download; help fix the authorization model", "should_trigger": true},
+  {"query": "map every authorization check we need for reads, search, counts, bulk updates, CSV exports, and background jobs", "should_trigger": true},
+  {"query": "how do we prevent IDOR and cross-tenant object access when users can guess sequential resource IDs", "should_trigger": true},
+  {"query": "design a default-deny permission matrix for users, support agents, services, actions, and resource states", "should_trigger": true},
+  {"query": "our queued export checks the user's role when queued but may run after access is revoked; what should execution verify", "should_trigger": true},
+  {"query": "can we cache authorization decisions for five minutes, and how do policy changes and membership revocation invalidate them", "should_trigger": true},
+  {"query": "plan positive and negative tests for object ownership, tenant isolation, list filtering, mixed-tenant bulk requests, and stale permissions", "should_trigger": true},
+  {"query": "we need to shadow-evaluate a new policy engine and roll it back without restoring emergency-revoked access", "should_trigger": true},
+  {"query": "design the auth for our customer portal, including OIDC login, refresh token rotation, session cookies, and logout", "should_trigger": false, "expected": "auth-design"},
+  {"query": "the quarterly IAM certification is due; find unused cloud roles and remove standing admin without breaking jobs", "should_trigger": false, "expected": "access-review"},
+  {"query": "security review this pull request that adds file upload parsing and a third-party image library", "should_trigger": false, "expected": "security-review"},
+  {"query": "review this coding agent's proposed shell command and decide whether its tool permission should be approved", "should_trigger": false, "expected": "agent-security-review"},
+  {"query": "should this REST endpoint return 403 or 404, and what should the error body and pagination shape look like", "should_trigger": false, "expected": "api-design"},
+  {"query": "design a Redis caching layer for product pages, including eviction, stampede prevention, capacity, and hit-rate metrics", "should_trigger": false, "expected": "application-caching"},
+  {"query": "a production API token was committed to GitHub; contain it and rotate it without downtime", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "threat model our new marketplace before implementation, including assets, trust boundaries, abuse cases, and mitigations", "should_trigger": false, "expected": "threat-model"},
+  {"query": "review this Terraform plan that changes IAM bindings, KMS permissions, and public load balancer rules", "should_trigger": false, "expected": "iac-review"},
+  {"query": "map the personal data collected by our signup flow, set retention periods, and design deletion request handling", "should_trigger": false, "expected": "data-privacy"}
+]

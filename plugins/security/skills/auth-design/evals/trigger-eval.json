@@ -18,5 +18,6 @@
   {"query": "should we return 403 or 404 when the caller is authenticated but not allowed to see that order", "should_trigger": false, "expected": "api-design"},
   {"query": "offset or cursor pagination for the orders list endpoint, and how do we version it later", "should_trigger": false, "expected": "api-design"},
   {"query": "terraform plan wants to replace the cognito user pool, is that safe to apply", "should_trigger": false, "expected": "iac-review"},
-  {"query": "can you look over this branch before i merge, it's mostly restructuring the checkout service", "should_trigger": false, "expected": "code-review"}
+  {"query": "can you look over this branch before i merge, it's mostly restructuring the checkout service", "should_trigger": false, "expected": "code-review"},
+  {"query": "design authorization for our multi-tenant project app: owners can delete, editors can update, and viewers can only read", "should_trigger": false, "expected": "authorization-design"}
 ]

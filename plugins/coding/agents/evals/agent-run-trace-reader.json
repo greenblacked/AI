@@ -1,0 +1,22 @@
+[
+  {"query": "read this exported multi-agent event stream and build an evidence ledger by task and attempt", "should_trigger": true},
+  {"query": "these worker transcripts are huge; tell me which tool calls have observed returns and which are unanswered", "should_trigger": true},
+  {"query": "reconstruct the recorded status of each coding agent as of the final timestamp in these supplied logs", "should_trigger": true},
+  {"query": "compare the workers' claims about changed files and passing tests with the diffs and exit records in this artifact bundle", "should_trigger": true},
+  {"query": "an old attempt reported success after generation two started; read the run export and mark stale evidence", "should_trigger": true},
+  {"query": "inspect these agent task events for duplicate and reordered records without double-counting totals", "should_trigger": true},
+  {"query": "the transcript says stop accepted; determine whether the supplied events actually confirm worker and child-process quiescence", "should_trigger": true},
+  {"query": "summarize progress, errors, missing events, unanswered calls, and verification gaps from these coding-agent artifacts", "should_trigger": true},
+  {"query": "audit this tool transcript and distinguish invocations from successful returns and narrative claims from independent evidence", "should_trigger": true},
+  {"query": "give me a provenance-scored ledger of the attached worker logs, with exact evidence we still need to query", "should_trigger": true},
+  {"query": "coordinate these live coding agents, retry the failed task, and decide whether to integrate the late result", "should_trigger": false, "expected": "agent-orchestration"},
+  {"query": "the worker is live but stalled; stop it, confirm it is quiescent, and reassign its files", "should_trigger": false, "expected": "agent-orchestration"},
+  {"query": "read these production traces and tell me which service owns the checkout latency", "should_trigger": false, "expected": "telemetry-reader"},
+  {"query": "read this failed GitHub Actions run and identify the first failing step", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "build a benchmark and judge whether our repository agent produces high-quality patches", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "prepare a durable continuation packet so another agent can resume this interrupted coding task", "should_trigger": false, "expected": "agent-handoff"},
+  {"query": "threat-model our tool-using agent and prevent prompt injection from untrusted tool output", "should_trigger": false, "expected": "agent-security-review"},
+  {"query": "review this pull request diff for correctness, security flaws, and missing tests", "should_trigger": false, "expected": "code-review"},
+  {"query": "inspect this Terraform plan JSON and tell me what resources the apply will destroy", "should_trigger": false, "expected": "plan-reviewer"},
+  {"query": "find the root cause of this deadlock in the worker service and implement the fix", "should_trigger": false, "expected": "debugging"}
+]

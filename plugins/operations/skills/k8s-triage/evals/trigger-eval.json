@@ -9,6 +9,7 @@
   {"query": "403 forbidden: User system:serviceaccount:prod:api cannot list secrets, started after the chart bump", "should_trigger": true},
   {"query": "readiness never passes on the new version, container is up, logs stop after 'listening on 8080'", "should_trigger": true},
   {"query": "k8s is down, api server returning etcdserver: request timed out. what do i do first", "should_trigger": true},
+  {"query": "read this saved Kubernetes bundle of pod snapshots, events, rollout records, and current and previous logs without querying the live cluster", "should_trigger": false, "expected": "k8s-evidence-reader"},
   {"query": "write the deployment, service and hpa manifests for a new grpc service", "should_trigger": false, "expected": "code-scaffold"},
   {"query": "scaffold a helm chart for our internal admin tool", "should_trigger": false, "expected": "code-scaffold"},
   {"query": "write the postmortem for tuesday's outage, i've got the timeline and the graphs", "should_trigger": false, "expected": "postmortem"},

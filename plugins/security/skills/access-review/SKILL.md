@@ -14,7 +14,7 @@ Permissions accumulate in one direction. Someone is granted admin at 2am to unbl
 
 Use for: a scheduled or compliance-driven review of an existing estate; a targeted least-privilege reduction of one role, policy or service account; an offboarding, transfer or contractor-ending sweep; finding unused identities, wildcard policies, standing admin and privilege-escalation paths so they can be closed; setting up break-glass properly; deciding a review cadence a team will sustain.
 
-Do not use for: rotating, revoking or containing a credential that has leaked (that is `secret-rotation`), designing an authentication or authorisation system, reviewing an infrastructure-as-code diff (that is `iac-review`), hardening a container image (that is `image-hardening`), or anything intended to obtain or test access you were not granted. This is defensive procedure. Describing an escalation path so it can be found and closed is the entire point; producing steps to exploit one is not, and this skill does not do it.
+Do not use for: rotating, revoking or containing a credential that has leaked (that is `secret-rotation`), designing authentication (that is `auth-design`), designing application authorisation policy or enforcement (that is `authorization-design`), reviewing an infrastructure-as-code diff (that is `iac-review`), hardening a container image (that is `image-hardening`), or anything intended to obtain or test access you were not granted. This is defensive procedure. Describing an escalation path so it can be found and closed is the entire point; producing steps to exploit one is not, and this skill does not do it.
 
 ## Hard gates
 

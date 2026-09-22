@@ -1,0 +1,22 @@
+[
+  {"query": "design a backup and disaster recovery strategy for our checkout platform with a four hour RTO and fifteen minute RPO", "should_trigger": true},
+  {"query": "what exactly do we need to back up besides the postgres database so the service can come back in another region", "should_trigger": true},
+  {"query": "review whether our production backups are isolated enough to survive a compromised cloud administrator", "should_trigger": true},
+  {"query": "help tier our business services by RTO and RPO and turn that into retention and recovery architecture", "should_trigger": true},
+  {"query": "we replicate the database cross-region but ransomware would replicate too; design an immutable recovery copy", "should_trigger": true},
+  {"query": "how should break-glass identity and KMS keys work if SSO and the production project are both unavailable", "should_trigger": true},
+  {"query": "map the restore order for identity, networking, databases, applications, queues and search indexes", "should_trigger": true},
+  {"query": "can daily snapshots really meet our RPO when the job takes six hours, and what evidence should we require", "should_trigger": true},
+  {"query": "compare warm standby with restore-on-demand including the full annual cost and recovery timeline", "should_trigger": true},
+  {"query": "design GCP backup coverage for Cloud SQL, Cloud Storage and persistent disks against a regional loss", "should_trigger": true},
+  {"query": "run a production restore drill next Thursday and define the injected failure, abort threshold and observers", "should_trigger": false, "expected": "game-day"},
+  {"query": "we restored the backup in staging; plan a game day to measure whether on-call can recover within two hours", "should_trigger": false, "expected": "game-day"},
+  {"query": "write the minute-by-minute runbook for promoting the replica and switching traffic during Saturday's DR failover", "should_trigger": false, "expected": "cutover"},
+  {"query": "plan our phased move from AWS to GCP including coexistence, data sync, rollback and legacy retirement", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "production is down now and the database primary will not accept writes; help me coordinate recovery", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "terraform state is truncated after a failed apply and the backend version is missing; recover it safely", "should_trigger": false, "expected": "terraform-state"},
+  {"query": "decide how GDPR deletion requests should propagate into archives and expired customer backups", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "our cloud storage bill doubled this month; find the cost driver and recommend immediate savings", "should_trigger": false, "expected": "cost-review"},
+  {"query": "design account recovery, session invalidation and passkey fallback for our customer login", "should_trigger": false, "expected": "auth-design"},
+  {"query": "turn this already-approved database recovery procedure into an operator runbook with exact commands and checks", "should_trigger": false, "expected": "runbook"}
+]

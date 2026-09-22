@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: "Review a change — a diff, a pull request, a branch — in a fixed severity order: correctness first (does it do what its description claims, what happens on the error path, what happens under concurrency, what happens with hostile input), then tests, then maintainability, with a severity label on every finding and nits named as nits. Covers reviewing a diff you cannot run, sampling a large diff honestly, and writing a comment that gets acted on. Use this skill whenever someone asks you to look over a change — \"review my PR\", \"can you check this diff before I merge\", \"is this safe to ship\", \"what did I miss in #412\", \"give this branch a once-over\". Not for a red pipeline, which is ci-triage; not for designing a test suite, which is test-design; not for restructuring without behaviour change, which is refactoring; not for modelling a design before it is built, which is threat-model."
+description: "Review a change — a diff, pull request or branch — in a fixed severity order: correctness first (claim, error path, concurrency and hostile input), then tests, then maintainability, with a severity on every finding and nits named as nits. Covers a diff you cannot run, honest sampling and comments that get acted on. Use for \"review my PR\", \"check this before I merge\", \"is this safe to ship\", \"what did I miss in #412\" or \"give this branch a once-over\". For a large or cross-cutting supplied diff whose callers, entry points, contracts and tests need inventorying before judgment, hand the bulk read to change-impact-reader and retain the correctness and merge decision here. Not for a red pipeline (ci-triage), test-suite design (test-design), behaviour-preserving restructuring (refactoring), or pre-build threat modelling (threat-model)."
 allowed-tools: "Read, Grep, Glob, Bash(git:*), Bash(gh:*), Bash(rg:*)"
 ---
 
@@ -52,6 +52,12 @@ rg -n 'chargeCustomer\(' --glob '!*test*' --glob '!*spec*'
 git log -n 5 --oneline -- path/to/changed_file.py
 git log -S 'retryOnTimeout' --oneline          # when this behaviour arrived, and why
 ```
+
+When a large or cross-cutting diff makes that caller and contract inventory bulky,
+delegate the supplied diff and matching repository evidence to `change-impact-reader`.
+Ask it for changed symbols, direct callers, entry points, config/schema/contract edges
+and related tests with paths and line ranges. Use its confirmed and inferred chains as
+coverage evidence here; do not transfer correctness, severity or merge judgment to it.
 
 The reviews that catch real defects are the ones that ask what the change means at the call sites, not what it means on its own lines. A new parameter with a default is safe in the function and wrong at every existing caller that should have passed something else. A widened return type is safe until you read the three places that switch on it.
 
