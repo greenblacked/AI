@@ -2,8 +2,9 @@
 
 Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
 frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md) for
-one of the fourteen this repository ships today, three with `coding`, five with
-`operations`, three with `security`, two with `manager` and one with `gamedev` — and in `.claude/agents/`
+one of the fifteen this repository ships today, three with `coding`, five with
+`operations`, three with `security`, two with `manager`, one with `gamedev` and one with
+`delivery` — and in `.claude/agents/`
 for the four that serve work on this repository rather than shipping to anyone,
 described in [the two loops](#the-two-loops) below. A subagent is a
 separate Claude instance with its own context window, its own system prompt, and its own
@@ -33,7 +34,7 @@ tools: Read, Glob, Grep, Bash
   already omits those tools, so this is a statement rather than a restriction: it says in
   the file that the subagent must not change anything, where a reader will see it, and it
   survives someone later adding `Bash` to `tools` for a checker.
-- **`model`** — optional. The model the subagent runs on. None of the fourteen here set it.
+- **`model`** — optional. The model the subagent runs on. None of the fifteen here set it.
 - Also accepted, because a plugin-shipped subagent supports them: `effort`, `maxTurns`,
   `skills`, `memory`, `background`, `isolation`, `omitClaudeMd`. The last is the one
   worth knowing: it starts the subagent without the user's, the project's and the local
@@ -196,9 +197,9 @@ inline.
 ## The subagents in this repository
 
 Each plugin discovers its own `agents/` directory — nothing lists them in
-[`marketplace.json`](../.claude-plugin/marketplace.json). Fourteen ship: three with `coding`,
-five with `operations`, three with `security`, two with `manager` and one with
-`gamedev`.
+[`marketplace.json`](../.claude-plugin/marketplace.json). Fifteen ship: three with `coding`,
+five with `operations`, three with `security`, two with `manager`, one with
+`gamedev` and one with `delivery`.
 
 - **`skill-reviewer`** — reviews a candidate `SKILL.md` against this repository's rules
   and against what makes a skill actually trigger. Runs the validator first to settle
@@ -242,6 +243,9 @@ a pile of peer feedback into themes with a source count, refusing to present a
 single-source theme as consensus. In `gamedev`, `frame-capture-reader` reads a profiler
 capture and returns whether the frame is CPU-bound or GPU-bound with the three numbers
 that decided it, then hands the decision about what to change to `game-performance`.
+In `delivery`, `changelog-reader` inventories a release range by audience, flags likely
+breaking changes and collapses noise, then hands writing the notes and choosing the
+version to `release-notes`.
 
 Each plugin discovers its own `agents/` directory rather than listing files in the
 manifest — so there is no list to fall out of date. What the validator still checks is

@@ -1,0 +1,23 @@
+[
+  {"query": "here is the git log since v2.3.0, 400 commits, classify what belongs in the release notes by audience", "should_trigger": true},
+  {"query": "don't paste the history at me — read the range from the last shipped tag and give me the breaking changes and the noise to collapse", "should_trigger": true},
+  {"query": "attached are 180 merged PRs since the last release, sort them into action-required vs everyone-else vs internal", "should_trigger": true},
+  {"query": "the dependabot wall is huge this cycle, inventory the range and collapse the routine bumps", "should_trigger": true},
+  {"query": "read v1.9.0..HEAD and tell me which commits look breaking before anyone writes the notes", "should_trigger": true},
+  {"query": "go through the merge commits since the production tag and return an audience-sorted inventory, keep the log out of my context", "should_trigger": true},
+  {"query": "which changes in this 90-commit range are operator-facing vs integrator-facing", "should_trigger": true},
+  {"query": "scan the PR titles since last release and flag anything that looks like a removal or required migration", "should_trigger": true},
+  {"query": "here's gh pr list --state merged for the last six weeks, classify and collapse the noise", "should_trigger": true},
+  {"query": "the major has an opaque merge history, read it and return what is action-required versus internal only", "should_trigger": true},
+
+  {"query": "write the release notes for 2.4", "should_trigger": false, "expected": "release-notes"},
+  {"query": "is this a minor or a major, and draft the changelog", "should_trigger": false, "expected": "release-notes"},
+  {"query": "how should we word the migration for the breaking API change", "should_trigger": false, "expected": "release-notes"},
+  {"query": "run the pre-publish checklist and state the rollback", "should_trigger": false, "expected": "release-notes"},
+  {"query": "how do we roll this out with a canary and bake times", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "we're flipping DNS to the new stack on Saturday, plan the cutover", "should_trigger": false, "expected": "cutover"},
+  {"query": "will this ALTER TABLE lock production, how do we expand and contract", "should_trigger": false, "expected": "db-migration"},
+  {"query": "here is the failed CI run, which of the five classes is it", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "read the DPA and tell me what the sub-processor clause commits us to", "should_trigger": false, "expected": "contract-reader"},
+  {"query": "draft this week's status update for stakeholders", "should_trigger": false, "expected": "status-update"}
+]

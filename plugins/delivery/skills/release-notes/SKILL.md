@@ -48,6 +48,8 @@ Reconcile against the deploy record, not only against git. Name the previous ver
 
 ### 2. Sort by who is affected, not by what changed
 
+When the range is longer than a screen — hundreds of commits, a dependabot wall, an opaque merge history — hand it to the `changelog-reader` subagent instead of reading it here. It returns an audience-sorted inventory with likely breaking changes flagged and noise collapsed, and the raw history never enters this conversation; pick up at step 3 with its answer. The ordering that follows is for ranges small enough to read.
+
 Component ordering is the default because it falls out of the repository layout. It is the wrong axis, because a reader arrives with a role and needs to know whether this release creates work for them.
 
 | Audience section | What belongs in it | Why it is first or last |

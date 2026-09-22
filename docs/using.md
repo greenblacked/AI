@@ -53,10 +53,10 @@ move when you know exactly what you want.
 
 ### Subagents
 
-Eleven ship across five plugins, and they work differently: the main agent delegates to one
+Fifteen ship across six plugins, and they work differently: the main agent delegates to one
 when the work would otherwise flood your context with material you do not need afterwards.
-A megabyte of CI logs, a Terraform plan, a billing export. You get the conclusion; the raw
-material never enters your session.
+A megabyte of CI logs, a Terraform plan, a billing export, a release range. You get the
+conclusion; the raw material never enters your session.
 
 You do not usually invoke them either. Paste a failing run and `ci-log-reader` is chosen.
 Ask for one by name when you want to be sure.
