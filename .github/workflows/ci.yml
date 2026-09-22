@@ -109,6 +109,19 @@ jobs:
             echo "${unexpected}"
             exit 1
           fi
+          # The grep above assumes a warning is printed as an indented `> ` line. If a
+          # future CLI changes that shape it matches nothing, `unexpected` is empty, and
+          # a whole new warning class lands green — the same way check_shell.py once
+          # reported "0 blocks parsed" and passed. The eight known warnings are the
+          # control: finding none of them means the format moved, not that the tree got
+          # cleaner, because a git-sourced marketplace always has them.
+          known=$(grep -c 'version: No version specified' validate.log || true)
+          if [ "${known}" -eq 0 ]; then
+            echo "::error::plugin validate printed none of the warnings this check is" \
+              "written against. Either its output format moved, or the eight known" \
+              "warnings were cleared; re-baseline this control against the new output"
+            exit 1
+          fi
 
   test:
     name: test
@@ -347,6 +360,10 @@ jobs:
         with:
           args: --offline --no-progress './**/*.md'
           fail: true
+          # Already the default at this pin, and set explicitly because it is the guard
+          # against the glob matching nothing: without it lychee reports zero links,
+          # zero broken, and exits 0, and the check passes having read no file.
+          failIfEmpty: true
 
   package:
     name: package
