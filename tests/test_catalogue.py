@@ -716,7 +716,7 @@ def test_lookaround_without_pcre2_is_caught(command):
         "rg -Pn 'a(?!b)' .",  # P need not be last in the bundle
         "rg -F '(?!' plugins/",  # a literal search for the defect is not the defect
         "rg --fixed-strings '(?!' .",
-        "rg -nF '(?!' ."
+        "rg -nF '(?!' .",
         r"rg -n '^\s*(- )?uses:\s*\S+@' .",  # the anchored form that replaced it
     ],
 )

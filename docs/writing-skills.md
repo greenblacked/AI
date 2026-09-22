@@ -218,8 +218,8 @@ decision gets made on both numbers rather than on the alarming one.
 
 This repository's descriptions total about 77,500 characters — roughly 16,700 tokens —
 which is why they are split across eight plugins rather than three. Only `career` and
-`personal` fit the default budget on their own. The other six do not,
-and only the first three of those are ones nobody installs alongside much else:
+`personal` fit the default budget on their own. The other six do not. Of those,
+`coding`, `manager` and `gamedev` are ones nobody installs alongside much else, while
 `operations` is the plugin most likely to be installed next to `delivery` and `security`,
 so its descriptions are the ones most at risk of being dropped in a real session. Read
 that alongside the token figures rather than the character ones — `operations` is over

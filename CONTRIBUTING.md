@@ -30,8 +30,8 @@ how a badly formatted example in a reference file reached a red build rather tha
 one.
 
 If you edit this repository with Claude Code, `.claude/settings.json` registers a
-`PostToolUse` hook that runs the validator against whichever skill you just wrote and
-reports only that skill's errors. It exists so a dangling `references/` pointer surfaces
+`PostToolUse` hook that runs the validator against whichever skill, subagent, command or
+rule you just wrote, and reports only that file's errors. It exists so a dangling `references/` pointer surfaces
 while you are still holding the context, rather than in a CI log twenty minutes later.
 Warnings are left out of it deliberately — a hook that interrupts on a judgement call is
 a hook people delete.
