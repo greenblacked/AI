@@ -23,7 +23,7 @@ documented guest-flush handling. For a database or a transaction spanning disks,
 the application boundary and validate recovery rather than assuming simultaneous API
 requests create a consistent set.
 
-Source: [Create application-consistent disk snapshots](https://cloud.google.com/compute/docs/disks/creating-application-consistent-snapshots).
+Source: [Create Linux application consistent disk snapshots](https://docs.cloud.google.com/compute/docs/disks/creating-linux-application-consistent-pd-snapshots).
 
 ## Location and recovery scope must match
 
