@@ -5,10 +5,10 @@
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-77-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-87-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-77 agent skills, eleven read-only subagents and six slash commands, in eight
+87 agent skills, fourteen read-only subagents and six slash commands, in eight
 plugins you install separately. They cover the daily loop of changing code, keeping a
 system running, shipping a change, securing it, making a game, leading a team, a career,
 and the parts of life that are nobody's job.
@@ -30,11 +30,11 @@ outside a runtime that can trigger them for you.
 
 | Plugin | Focus | Contents |
 | --- | --- | --- |
-| `coding` | Reading, reviewing, testing and changing code | 14 skills, 1 subagent |
+| `coding` | Reading, reviewing, testing and changing code | 18 skills, 3 subagents |
 | `gamedev` | Making games, and shipping them | 9 skills, 1 subagent, 1 command |
-| `operations` | Keeping a running system alive | 13 skills, 4 subagents, 2 commands |
-| `delivery` | Getting a change into production | 7 skills |
-| `security` | The defensive side of shipping software | 9 skills, 3 subagents, 2 commands |
+| `operations` | Keeping a running system alive | 15 skills, 5 subagents, 2 commands |
+| `delivery` | Getting a change into production | 9 skills |
+| `security` | The defensive side of shipping software | 11 skills, 3 subagents, 2 commands |
 | `manager` | Engineering leadership | 13 skills, 2 subagents, 1 command |
 | `personal` | Money, travel, admin, habits and health | 7 skills |
 | `career` | Applications, negotiation, speaking and writing | 5 skills |
@@ -61,18 +61,18 @@ you describe the situation, and the one whose description matches is loaded.
 Install the plugins you will use rather than all of them. Every description a plugin ships
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
-least, which leaves them invocable by name and stops them being chosen on their own. Four
+least, which leaves them invocable by name and stops them being chosen on their own. Three
 of the eight plugins fit the default budget on their own, and the split exists for exactly
 this reason.
 
-Trimming is not the answer and the arithmetic says so: all 77 descriptions average 899
-characters against a 900-character target, so capping every one of them at the target
-saves 1.8% and leaves the listing eight times over budget. Fitting all of them inside the
-default would mean a mean of 104 characters, which is a label rather than a description.
-So either install what you need, or raise the budget in `~/.claude/settings.json`:
+The description budget is shared across installed plugins. Splitting a plugin does not
+reduce the total when both halves are installed, and shortening every description to a
+label sacrifices the trigger phrases that distinguish neighbouring skills. Check the
+current totals with `scripts/check_listing_budget.py`; either install only what you need
+or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.08 }
+{ "skillListingBudgetFraction": 0.09 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -170,7 +170,11 @@ Reading, reviewing, testing and changing code.
 
 | Skill | What it does |
 | --- | --- |
+| [`agent-evaluation`](plugins/coding/skills/agent-evaluation/SKILL.md) | Evaluate an agent against reproducible tasks, tool-call outcomes and calibrated judges, with held-out cases and explicit release gates. |
+| [`agent-handoff`](plugins/coding/skills/agent-handoff/SKILL.md) | Preserve one agent task as a durable checkpoint another session can resume, with verified state, evidence, decisions, the next action and the completion test. |
+| [`agent-orchestration`](plugins/coding/skills/agent-orchestration/SKILL.md) | Coordinate a live team of agents: split independent ownership, schedule within the concurrency limit, track progress, resolve blockers and synthesise the results. |
 | [`api-design`](plugins/coding/skills/api-design/SKILL.md) | Design an interface that can still be changed after other people depend on it — compatibility rules, error structure, pagination, and deprecation with usage telemetry. |
+| [`application-caching`](plugins/coding/skills/application-caching/SKILL.md) | Design a runtime data cache from its correctness contract: define authority and allowed staleness, make keys preserve isolation, close stale-fill races, control miss load and outage fallback, then roll out against measured safety gates. |
 | [`code-review`](plugins/coding/skills/code-review/SKILL.md) | Review a change in a fixed order — the claim, the error path, concurrency, hostile input — finishing correctness before the first style comment, with a severity on every finding and coverage declared rather than implied. |
 | [`code-scaffold`](plugins/coding/skills/code-scaffold/SKILL.md) | Write new code that survives a 3am cron run: strict error handling, meaningful exit codes, structured logging, validated input, idempotent re-runs. |
 | [`codebase-orientation`](plugins/coding/skills/codebase-orientation/SKILL.md) | Get oriented in code you did not write: what it does before how it is built, one real request traced end to end, the tests as specification and the history as evidence, ending in a map and a first change. |
@@ -208,10 +212,12 @@ Keeping a running system alive.
 | Skill | What it does |
 | --- | --- |
 | [`alert-design`](plugins/operations/skills/alert-design/SKILL.md) | Write, review or delete alerting rules so every page is user-visible and actionable now: symptom over mechanism, multiwindow burn-rate rules, and pruning by how often anyone acted rather than by how often it fired. |
+| [`backup-recovery-design`](plugins/operations/skills/backup-recovery-design/SKILL.md) | Design recoverability around business recovery objectives, backup consistency, independent recovery access and dependency-ordered restoration. |
 | [`capacity-planning`](plugins/operations/skills/capacity-planning/SKILL.md) | Work out whether a system survives an expected load: a demand model first, the one saturating resource, and a defined behaviour past capacity. |
 | [`ci-triage`](plugins/operations/skills/ci-triage/SKILL.md) | Classify a red pipeline before debugging it — real failure, flake, runner, config, or dependency drift — starting with whether the default branch is already broken. Quarantine policy and retry hygiene included. |
 | [`cost-review`](plugins/operations/skills/cost-review/SKILL.md) | Investigate a bill that grew, or reduce spend deliberately: attribute before acting, read the top movers rather than the top spenders, and name what each saving degrades. |
 | [`docker-compose`](plugins/operations/skills/docker-compose/SKILL.md) | Compose containers into a working environment for local development and CI: every dependency edge gated on a healthcheck condition, because started is not ready, plus service discovery, mount semantics, config layering and digest pinning. |
+| [`event-driven-reliability`](plugins/operations/skills/event-driven-reliability/SKILL.md) | Make an event consumer safe to retry and replay: state delivery assumptions, map every crash window, choose durable identities and atomicity boundaries, bound retries and dead letters, and verify duplicates, reordering and recovery. |
 | [`game-day`](plugins/operations/skills/game-day/SKILL.md) | Plan and run a reliability exercise around a falsifiable hypothesis, with a blast radius chosen in advance and an abort that was executed before the experiment started. |
 | [`instrumentation`](plugins/operations/skills/instrumentation/SKILL.md) | Add telemetry so the next incident is diagnosable — instrument backwards from the questions you will need answered at 3am, with cardinality bounded on purpose. |
 | [`k8s-triage`](plugins/operations/skills/k8s-triage/SKILL.md) | Mitigate first, diagnose second. The deploy-related question, the fixed evidence order, and a decode table for the failure modes that account for most of them. |
@@ -227,9 +233,11 @@ Getting a change into production without a bad night.
 
 | Skill | What it does |
 | --- | --- |
+| [`ai-review-integration`](plugins/delivery/skills/ai-review-integration/SKILL.md) | Design or implement an advisory AI reviewer for GitLab merge requests around a trusted controller, immutable MR versions, explicit diff coverage, deterministic finding validation, reconciled comments, and a staged rollout with a kill switch. |
 | [`ci-pipeline-design`](plugins/delivery/skills/ci-pipeline-design/SKILL.md) | Design a pipeline that does not exist yet, or restructure one that grew badly: decide what may block a merge first, then a stage graph that waits on nothing it does not use, cache keys tied to what invalidates them, and one artefact promoted by digest. |
 | [`cutover`](plugins/delivery/skills/cutover/SKILL.md) | Run the change that has a point of no return — a traffic switch, a provider move, a region migration — from a rehearsed runbook with a rollback deadline computed before the window opens. |
 | [`db-migration`](plugins/delivery/skills/db-migration/SKILL.md) | Ship a schema change to a live database without a stuck lock: expand and contract, each phase its own revertible deploy, batched backfills, and the Postgres operations that are safe versus the ones that rewrite the table. |
+| [`gitops-operations`](plugins/delivery/skills/gitops-operations/SKILL.md) | Operate GitOps reconciliation safely: identify desired-state ownership, review sync and pruning effects, and recover without fighting the controller. |
 | [`pipeline-hardening`](plugins/delivery/skills/pipeline-hardening/SKILL.md) | Audit or harden a CI/CD workflow's own definition against what an attacker can reach through it: untrusted input into a `run:` step, `pull_request_target` paired with a checkout of fork code, credential reach per job, and every pin, with zizmor findings judged rather than counted. |
 | [`plan-platform-migration`](plugins/delivery/skills/plan-platform-migration/SKILL.md) | Plan a production migration around invariants, state authority, phased evidence gates, rehearsed rollback, controlled cutover, and explicit legacy retirement. |
 | [`release-notes`](plugins/delivery/skills/release-notes/SKILL.md) | Turn a range of merged changes into notes the affected reader can act on, sorted by who is affected rather than by component, every breaking change carrying the migration it demands. |
@@ -242,7 +250,9 @@ The defensive side of shipping software.
 | Skill | What it does |
 | --- | --- |
 | [`access-review`](plugins/security/skills/access-review/SKILL.md) | Reduce who and what can do what toward least privilege without breaking production: evidence over intent, and an audit-only window before enforcement. |
+| [`agent-security-review`](plugins/security/skills/agent-security-review/SKILL.md) | Review an agent from untrusted content to privileged effect: trace provenance into tool arguments, enforce authorization and tenant scope at execution, bind approval to the exact action, constrain capabilities and prove deny paths with inert tests. |
 | [`auth-design`](plugins/security/skills/auth-design/SKILL.md) | Design or review how a system proves who a caller is and keeps that proof safe: whether to build identity at all, the flow that fits each client type, session rotation on every privilege change, and where a token's claims can be trusted. |
+| [`authorization-design`](plugins/security/skills/authorization-design/SKILL.md) | Design application permissions around trusted subject, tenant and resource facts, with default-deny policy, server-side enforcement on every path, bounded revocation latency and tests for allowed actions and tenant boundaries. |
 | [`data-privacy`](plugins/security/skills/data-privacy/SKILL.md) | Handle personal data end to end: settle controller or processor before anything else, classify what is held, enforce retention with a job rather than a document, and make deletion reach the search index, the caches and the restore path instead of only the primary row. |
 | [`dependency-triage`](plugins/security/skills/dependency-triage/SKILL.md) | Work a queue of vulnerability alerts into a decision each — reachability before severity, the two signals that mean today rather than this quarter, safe patches batched and risky ones isolated, and suppression that expires. |
 | [`iac-review`](plugins/security/skills/iac-review/SKILL.md) | Review a Terraform change against the plan JSON rather than the plan text, so replacements and destroys surface first instead of being skimmed past. |
@@ -299,7 +309,7 @@ Applications, negotiation, speaking and writing.
 
 ## Subagents
 
-Eleven subagents ship across five plugins. Each exists to keep bulk out of the main context
+Fourteen subagents ship across five plugins. Each exists to keep bulk out of the main context
 — the input is a log, a plan, a billing export, a contract, a pile of feedback, and the
 answer is short — and to be denied the tools it should not have. A reviewer that can apply
 is not a reviewer.
@@ -308,6 +318,7 @@ is not a reviewer.
 | --- | --- | --- | --- |
 | `ci-log-reader` | `operations` | A failing run's logs | One of five triage classes and the line that decided it |
 | `telemetry-reader` | `operations` | Traces and structured logs | The critical path, or why the data cannot answer |
+| `k8s-evidence-reader` | `operations` | Captured Kubernetes evidence | Up to five capture-time evidence chains, with contradictions and missing evidence |
 | `frame-capture-reader` | `gamedev` | A profiler capture or frame trace | CPU-bound or GPU-bound with the numbers, or what to capture instead |
 | `cost-analyst` | `operations` | A cloud billing export | The top movers period over period, not the top spenders |
 | `incident-scribe` | `operations` | Raw triage notes and scrollback | A blameless postmortem draft |
@@ -315,6 +326,8 @@ is not a reviewer.
 | `policy-auditor` | `security` | IAM policies and access logs | The gap between permitted and used, with the window stated |
 | `pii-reader` | `security` | A schema dump, a row sample or a log excerpt | Which fields carry personal data, their class and where they flow |
 | `skill-reviewer` | `coding` | A candidate SKILL.md | What is wrong, why it costs something, the smallest fix |
+| `change-impact-reader` | `coding` | A diff and matching repository snapshots | Up to five impact chains, their evidence and unresolved boundaries |
+| `agent-run-trace-reader` | `coding` | Historical agent-run artifacts | A task-and-attempt evidence ledger with unanswered calls and verification gaps |
 | `contract-reader` | `manager` | A contract, DPA or SOC 2 report | The clauses that decide the deal, quoted and located |
 | `feedback-synthesiser` | `manager` | Collected peer feedback | Themes with a source count and a quoted example |
 

@@ -22,11 +22,10 @@ That prints every description in full, free, with no model call — any one targ
 since the listing it renders is the whole catalogue. Adding `--budget 8000` instead shows
 what survives when the listing overflows, which is a different question: it blanks
 descriptions until the rest fits, so it is for seeing what is lost, never for reading.
-Worked example: 27 skill bodies in this repository mention a cache and four descriptions
-claim one — CI caches, prompt caching, deletion reaching caches, BuildKit cache mounts —
-and not one of the four claims application-level caching. A word search would have
-reported that gap backwards in both directions: present by body-count, absent by what
-actually fires.
+A cache mention in a skill body does not establish coverage: CI caches, prompt caching
+and BuildKit cache mounts do not imply ownership of runtime application caching. Inspect
+the complete descriptions to decide which procedure actually claims the request; a word
+search can report a gap backwards in both directions.
 
 ## 2. Generate candidates from the library's own dangling demand, not free-form
 
@@ -49,7 +48,8 @@ disagrees with what that step actually says, this command is wrong, not the skil
 Four numbers bind:
 
 - the plugin ceiling in `listing-budget.json`, raisable with a reason in the commit
-- the 8,000-character runtime default, which is not raisable
+- the 8,000-character runtime default, distinct from the recorded plugin ceiling and a
+  user's configured listing budget
 - `DESCRIPTION_TARGET` of 900 for anything new
 - the 500-character floor `short-description` warns under
 

@@ -1,0 +1,23 @@
+[
+  {"query": "coordinate research, implementation and independent review agents for a repository change with disjoint file ownership", "should_trigger": true},
+  {"query": "split this monorepo migration across coding agents, track dependencies, and integrate their changes safely", "should_trigger": true},
+  {"query": "run three agents in parallel on independent modules but keep the lockfile and final tests under one owner", "should_trigger": true},
+  {"query": "manage an agent team to investigate the API, implement both clients, and review the combined diff", "should_trigger": true},
+  {"query": "one coding worker timed out and may still be editing; safely stop or reassign its files without double ownership", "should_trigger": true},
+  {"query": "plan a dependency graph for delegated repository work and start only the tasks whose prerequisites are ready", "should_trigger": true},
+  {"query": "an old agent attempt returned after we retried its task; decide how to handle the stale result and integrate current work", "should_trigger": true},
+  {"query": "coordinate multiple implementers with exclusive path ownership, then run combined validation and a fresh review", "should_trigger": true},
+  {"query": "orchestrate coding agents for this feature and make sure none of them silently pushes or deploys", "should_trigger": true},
+  {"query": "recover a live multi-agent coding run after one worker failed and an external publish outcome is uncertain", "should_trigger": true},
+  {"query": "read this exported bundle of old worker events and tool transcripts and return a provenance ledger without coordinating the live run", "should_trigger": false, "expected": "agent-run-trace-reader"},
+  {"query": "the coding agent ran out of context; prepare a checkpoint so a new session can continue the unfinished change safely", "should_trigger": false, "expected": "agent-handoff"},
+  {"query": "build a benchmark with holdout tasks and deterministic graders for our repository editing agent", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "review this pull request for correctness, security issues, and missing tests", "should_trigger": false, "expected": "code-review"},
+  {"query": "write a new production-ready Python command line tool with validation and structured logging", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "find the root cause of this intermittent deadlock and fix the existing service", "should_trigger": false, "expected": "debugging"},
+  {"query": "map this unfamiliar codebase and explain how requests reach the persistence layer", "should_trigger": false, "expected": "codebase-orientation"},
+  {"query": "design unit and integration tests for the retry policy in this worker queue", "should_trigger": false, "expected": "test-design"},
+  {"query": "assess whether this tool-using agent can be tricked into leaking secrets through untrusted output", "should_trigger": false, "expected": "agent-security-review"},
+  {"query": "help engineering managers roll out AI coding assistants with training and adoption metrics", "should_trigger": false, "expected": "ai-enablement"},
+  {"query": "refactor this oversized payment class without changing its public behaviour", "should_trigger": false, "expected": "refactoring"}
+]

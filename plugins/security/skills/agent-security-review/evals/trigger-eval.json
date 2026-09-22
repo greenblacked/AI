@@ -1,0 +1,22 @@
+[
+  {"query": "review our RAG agent before it can update customer records from retrieved documents", "should_trigger": true},
+  {"query": "can a malicious web page make our browsing agent send an email with its logged-in account", "should_trigger": true},
+  {"query": "our assistant asks for confirmation before transfers, but can it change the amount after approval", "should_trigger": true},
+  {"query": "check that this multi-tenant agent cannot use a tool to fetch another tenant's documents", "should_trigger": true},
+  {"query": "audit the boundary between tool output, the model, and the next privileged tool call", "should_trigger": true},
+  {"query": "how should we sandbox an agent that can run code and access two internal APIs", "should_trigger": true},
+  {"query": "review whether our tool schemas and egress allowlist contain prompt injection impact", "should_trigger": true},
+  {"query": "the agent remembers approval from an earlier chat and reuses it for a purchase; is that safe", "should_trigger": true},
+  {"query": "design benign negative tests for indirect prompt injection without sending real messages", "should_trigger": true},
+  {"query": "does our CRM tool enforce authorization itself or are we trusting the model's tenant id", "should_trigger": true},
+  {"query": "threat model our new payments platform using STRIDE across every trust boundary", "should_trigger": false, "expected": "threat-model"},
+  {"query": "security review this ordinary API pull request for SQL injection and SSRF", "should_trigger": false, "expected": "security-review"},
+  {"query": "use our CloudTrail history to remove unused permissions from these IAM roles", "should_trigger": false, "expected": "access-review"},
+  {"query": "build a holdout benchmark and release gate for our support agent", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "design OAuth, session expiry and token validation for our customer portal", "should_trigger": false, "expected": "auth-design"},
+  {"query": "write a retention and deletion policy for personal data in our vector store", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "our production agent failed several tasks; inspect traces and calibrate a model judge", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "which engineers still need standing admin in our cloud accounts", "should_trigger": false, "expected": "access-review"},
+  {"query": "map threats for a new queue-based service before implementation starts", "should_trigger": false, "expected": "threat-model"},
+  {"query": "a pull request removed an ownership check from the invoice endpoint; can it merge", "should_trigger": false, "expected": "security-review"}
+]

@@ -37,14 +37,15 @@ The same test runs in reverse: surveying a whole library for what it does not co
 The directory name and the `name` field must be identical — lowercase, digits and single hyphens, at most 64 characters. Name it after the job, not the tool: `image-hardening` outlives the scanner you happen to use this year.
 
 ```text
-skills/<category>/<name>/
+plugins/<plugin>/skills/<name>/
   SKILL.md
   evals/trigger-eval.json
   references/*.md      # optional, only if you write them
   scripts/*.sh         # optional, executable, with a shebang
 ```
 
-In a plugin marketplace the skill also has to be listed in the manifest, or it installs for nobody.
+Plugins discover skills under their `skills/` directory automatically. Register the
+plugin in the marketplace manifest; do not list its skills individually there.
 
 ## 3. Write the body before the description
 

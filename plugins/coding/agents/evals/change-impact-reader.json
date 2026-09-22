@@ -1,0 +1,22 @@
+[
+  {"query": "read this 1800-line diff and map the five impact chains from changed symbols to callers and entry points", "should_trigger": true},
+  {"query": "given the base and target snapshots, which code consumes the config keys changed in this patch", "should_trigger": true},
+  {"query": "inventory the callers, schema dependencies and related tests for the symbols changed here; don't judge correctness", "should_trigger": true},
+  {"query": "this PR changes a shared return type; trace direct consumers and mark dynamic or cross-repo clients as unknown", "should_trigger": true},
+  {"query": "map the blast surface of these moved handlers using only the supplied diff and source tree", "should_trigger": true},
+  {"query": "tell me which entry points can reach the functions in this patch and cite every link by file and line", "should_trigger": true},
+  {"query": "read this protobuf diff and find generated inputs, registrations, consumers and contract tests in the matching snapshot", "should_trigger": true},
+  {"query": "before reviewing this huge branch, give me a bounded affected-path inventory for its changed symbols", "should_trigger": true},
+  {"query": "trace the route and callback registrations affected by this patch, separating static evidence from inference", "should_trigger": true},
+  {"query": "compare this supplied base diff with its source snapshots and identify missing deleted-file or external-client evidence", "should_trigger": true},
+  {"query": "review this PR for correctness, grade every finding and tell me whether it is safe to merge", "should_trigger": false, "expected": "code-review"},
+  {"query": "I just inherited this repository; map its architecture and trace a normal request end to end", "should_trigger": false, "expected": "codebase-orientation"},
+  {"query": "split this well-understood service class into smaller units without changing behaviour", "should_trigger": false, "expected": "refactoring"},
+  {"query": "the checkout endpoint intermittently returns 500; reproduce it and find the root cause", "should_trigger": false, "expected": "debugging"},
+  {"query": "design the unit and integration test strategy for our retry subsystem", "should_trigger": false, "expected": "test-design"},
+  {"query": "design versioning, pagination and error contracts for our new public API", "should_trigger": false, "expected": "api-design"},
+  {"query": "the checks on this pull request are red; classify the failure and get the pipeline moving", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "upgrade this application from Django 4.2 to 5.2 and make the required edits", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "profile the slow parser and tell me which code change will reduce its CPU time", "should_trigger": false, "expected": "profiling"},
+  {"query": "write a production Python worker that consumes these queue messages", "should_trigger": false, "expected": "code-scaffold"}
+]
