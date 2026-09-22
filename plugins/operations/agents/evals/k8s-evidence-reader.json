@@ -1,0 +1,22 @@
+[
+  {"query": "read this captured kubernetes incident bundle and give me the five decisive event and log chains", "should_trigger": true},
+  {"query": "these pod snapshots and describe outputs are huge; summarize recorded state by namespace, UID, and capture time", "should_trigger": true},
+  {"query": "compare the current and --previous container logs in this bundle without mixing the restart attempts", "should_trigger": true},
+  {"query": "inspect these saved events, pod YAML files, and rollout records and tell me what the artifacts actually establish", "should_trigger": true},
+  {"query": "this offline k8s evidence archive mixes two clusters and several timestamps; separate identities and flag stale snapshots", "should_trigger": true},
+  {"query": "the incident notes blame the deploy; check the captured ReplicaSet, image digest, warning events, and alert times for correlation only", "should_trigger": true},
+  {"query": "read the saved CrashLoopBackOff evidence and distinguish empty current logs from the previous failed container logs", "should_trigger": true},
+  {"query": "the events file is empty but the capture was late; report what can and cannot be concluded from this bundle", "should_trigger": true},
+  {"query": "extract a redacted evidence report from these Kubernetes JSON snapshots without reproducing Secret values", "should_trigger": true},
+  {"query": "find contradictions and missing evidence across these captured pod conditions, events, rollout history, and logs", "should_trigger": true},
+  {"query": "the production pod is CrashLoopBackOff right now; query the cluster, diagnose it, and decide whether to roll back", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "use kubectl to inspect current events and previous logs, then restart the broken deployment", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "checkout p99 is high; read this OpenTelemetry trace export and find the slow span", "should_trigger": false, "expected": "telemetry-reader"},
+  {"query": "read this failed CI job log and identify the first Kubernetes setup step that failed", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "write the postmortem from this Kubernetes incident timeline and assign follow-up owners", "should_trigger": false, "expected": "postmortem"},
+  {"query": "review this Terraform plan for an EKS node group replacement before we apply it", "should_trigger": false, "expected": "iac-review"},
+  {"query": "create deployment, service, and HPA manifests for a new worker", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "plan our Kubernetes version upgrade and node-pool migration", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "analyze our cluster billing export and find the main cost increase", "should_trigger": false, "expected": "cost-analyst"},
+  {"query": "harden this container image so it passes our restricted pod security policy", "should_trigger": false, "expected": "image-hardening"}
+]

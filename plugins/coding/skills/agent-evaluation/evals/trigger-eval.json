@@ -1,0 +1,22 @@
+[
+  {"query": "we changed our coding agent's system prompt and need a holdout benchmark plus a release gate before rolling it out", "should_trigger": true},
+  {"query": "how should we score whether an agent actually updated the jira issue instead of merely saying it did", "should_trigger": true},
+  {"query": "our tool-using assistant gets the right answer but takes different paths every run; how do we evaluate it fairly", "should_trigger": true},
+  {"query": "help me diagnose these failed agent traces and find the earliest decision that caused the regression", "should_trigger": true},
+  {"query": "i need to calibrate an llm judge against human labels before its scores can block an agent release", "should_trigger": true},
+  {"query": "design a reproducible eval dataset for a repo-editing agent with hidden cases and isolated workspaces", "should_trigger": true},
+  {"query": "the new model wins on average but fails two database-write tasks; should the agent release pass", "should_trigger": true},
+  {"query": "how many repeated trials should we report when comparing two stochastic agents on the same tasks", "should_trigger": true},
+  {"query": "our agent benchmark counts sandbox setup timeouts as model failures and the score swings every run", "should_trigger": true},
+  {"query": "build deterministic graders for an agent task, then use a rubric judge only for the explanation quality", "should_trigger": true},
+  {"query": "what unit and integration tests should cover this retry function, including its timeout boundary", "should_trigger": false, "expected": "test-design"},
+  {"query": "a customer order sometimes loses its shipping address; reproduce it and find the root cause", "should_trigger": false, "expected": "debugging"},
+  {"query": "our playwright checkout test flakes in CI and uses fixed sleeps everywhere", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "write trigger eval queries to prove this new repository skill routes against its neighbours", "should_trigger": false, "expected": "new-skill"},
+  {"query": "our agent uses eighty tool calls per task and the token bill doubled; help us cap spend", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "review this pull request for correctness, security issues and missing error handling", "should_trigger": false, "expected": "code-review"},
+  {"query": "the build job is red after a dependency update; classify the failure and get CI moving", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "profile this python service and explain why one endpoint spends 600ms on cpu", "should_trigger": false, "expected": "profiling"},
+  {"query": "design the request and error contract for a new pagination API", "should_trigger": false, "expected": "api-design"},
+  {"query": "orient me in this unfamiliar monorepo and trace how an HTTP request reaches the billing adapter", "should_trigger": false, "expected": "codebase-orientation"}
+]

@@ -18,5 +18,6 @@
   {"query": "should we page someone when a certificate is 21 days from expiry or is that a ticket", "should_trigger": false, "expected": "alert-design"},
   {"query": "the deploy workflow dies at docker login with denied: requested access to the resource is denied", "should_trigger": false, "expected": "ci-triage"},
   {"query": "compare okta and entra id for us, we are picking an identity provider this quarter", "should_trigger": false, "expected": "vendor-evaluation"},
-  {"query": "what metrics and spans should this new service emit on day one so incidents are debuggable", "should_trigger": false, "expected": "instrumentation"}
+  {"query": "what metrics and spans should this new service emit on day one so incidents are debuggable", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "design authorization for our multi-tenant project app: owners can delete, editors can update, and viewers can only read", "should_trigger": false, "expected": "authorization-design"}
 ]

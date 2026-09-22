@@ -1,6 +1,6 @@
 ---
 name: k8s-triage
-description: "Triage and mitigate a broken Kubernetes workload or a live production incident, mitigation first and diagnosis second — declare, test whether it is deploy-related and roll back, scope the blast radius, capture evidence before mutating anything, pattern-match the symptom, then escalate through rollback, scale-out, load shedding, failover, drain and restore. Use this skill whenever a pod, deployment, service or cluster is misbehaving — CrashLoopBackOff, OOMKilled, ImagePullBackOff, Pending or unschedulable pods, running but never Ready, stuck Terminating, DNS failures, RBAC 403s, a Service with no endpoints — and equally for casual phrasings like \"my pod won't start\", \"the deploy broke prod\", \"k8s is down\", \"why is this pending\", or \"we have an incident\". Not for authoring new manifests, capacity planning, or writing the postmortem once service is restored."
+description: "Triage and mitigate a broken Kubernetes workload or a live production incident, mitigation first and diagnosis second — declare, test whether it is deploy-related and roll back, scope the blast radius, capture evidence before mutating anything, pattern-match the symptom, then escalate through rollback, scale-out, load shedding, failover, drain and restore. Use this skill whenever a pod, deployment, service or cluster is misbehaving — CrashLoopBackOff, OOMKilled, ImagePullBackOff, Pending or unschedulable pods, running but never Ready, stuck Terminating, DNS failures, RBAC 403s, a Service with no endpoints — and equally for casual phrasings like \"my pod won't start\", \"the deploy broke prod\", \"k8s is down\", \"why is this pending\", or \"we have an incident\". For bulky captured Kubernetes evidence, use k8s-evidence-reader before deciding here. Not for authoring new manifests, capacity planning, or writing the postmortem once service is restored."
 allowed-tools: Bash(kubectl:*), Bash(helm:*), Bash(jq:*), Read, Grep, Glob
 ---
 
@@ -71,6 +71,12 @@ One pod of many replicas points at that pod or its node. Every pod on one node p
 ### 3. Capture evidence, in this order, before mutating anything
 
 Fixed order because it runs in about thirty seconds and because each command answers a question the next one depends on. Save the output into the incident document.
+
+When already captured snapshots, events, object exports, rollout records, and current or
+previous container logs are too bulky to read here, hand those artifacts to
+`k8s-evidence-reader`. It returns identity- and attempt-scoped evidence, capture-time
+status, rollout correlation, and gaps. Bring that report back here for live diagnosis
+and mitigation decisions; the reader does not query the cluster or choose an action.
 
 ```bash
 # 1. State of every pod, with the reasons, in one shot
