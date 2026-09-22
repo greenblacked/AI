@@ -87,8 +87,64 @@ def test_malformed_or_empty_input_is_ignored(mini_repo, monkeypatch, stdin):
     assert run_hook(monkeypatch, mini_repo, stdin) == (0, "")
 
 
-def test_edited_skill_walks_up_to_the_directory_holding_skill_md(mini_repo, monkeypatch):
+def test_edited_target_walks_up_to_the_directory_holding_skill_md(mini_repo, monkeypatch):
     monkeypatch.setattr(hook, "ROOT", mini_repo)
     deep = mini_repo / "plugins" / "engineering" / "skills" / "alpha" / "scripts" / "x.sh"
-    assert hook.edited_skill(payload(deep)) == Path("plugins/engineering/skills/alpha")
-    assert hook.edited_skill(payload(mini_repo / "AGENTS.md")) is None
+    assert hook.edited_target(payload(deep)) == (
+        "plugins/engineering/skills/alpha",
+        "plugins/engineering/skills/alpha/",
+    )
+    assert hook.edited_target(payload(mini_repo / "AGENTS.md")) is None
+
+
+# The validator covers subagents, commands and rules too, and for the first year of this
+# hook's life it said nothing about any of them: `edited_skill` walked up looking for a
+# `SKILL.md` and gave up. Editing a subagent meant finding out in CI instead, which is
+# the delay the hook exists to remove.
+
+
+@pytest.mark.parametrize(
+    "relative",
+    [
+        "plugins/engineering/agents/reader.md",
+        ".claude/agents/reviewer.md",
+        "plugins/engineering/commands/ship.md",
+        ".claude/commands/ship.md",
+        ".claude/commands/nested/deeper.md",
+        ".claude/rules/skills.md",
+    ],
+)
+def test_a_subagent_command_or_rule_owns_only_its_own_findings(mini_repo, monkeypatch, relative):
+    monkeypatch.setattr(hook, "ROOT", mini_repo)
+    target = hook.edited_target(payload(mini_repo / relative))
+    assert target == (relative, f"{relative}:"), relative
+
+
+@pytest.mark.parametrize(
+    "relative",
+    [
+        "plugins/engineering/skills/alpha/references/depth.md",  # a skill, matched by directory
+        "agents/stray.md",  # a top-level agents/ the validator reports as unowned
+        "docs/writing-skills.md",
+        ".claude/settings.json",
+        ".claude/rules/notes.txt",  # not Markdown, so not a rule
+    ],
+)
+def test_paths_that_are_not_a_single_file_target(mini_repo, monkeypatch, relative):
+    monkeypatch.setattr(hook, "ROOT", mini_repo)
+    assert not hook._is_file_target(Path(relative)), relative
+
+
+def test_a_broken_subagent_is_reported_against_its_own_file(mini_repo, monkeypatch):
+    agents = mini_repo / "plugins" / "engineering" / "agents"
+    agents.mkdir(parents=True, exist_ok=True)
+    broken = agents / "reader.md"
+    # `name` disagreeing with the filename is the silent failure check_agent exists for:
+    # delegation simply never happens and nothing anywhere says so.
+    broken.write_text(
+        "---\nname: not-reader\ndescription: Read a thing and report what it says.\n---\n\nBody.\n",
+        encoding="utf-8",
+    )
+    code, err = run_hook(monkeypatch, mini_repo, payload(broken))
+    assert code == 2
+    assert "plugins/engineering/agents/reader.md" in err
