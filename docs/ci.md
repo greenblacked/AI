@@ -225,7 +225,10 @@ Three outcomes that are green on purpose:
   a notice and stands down, because a red check a contributor has no way to make green is
   a check everybody learns to ignore. The same is now true of the scheduled run of
   `evaluate`: a scheduled run skips with a notice, and only a dispatched run — where a person
-  asked for a score and is owed the error — fails on a missing credential.
+  asked for a score and is owed the error — fails on a missing credential. A pull request
+  from this same repository with no credential configured is a third case: it still
+  stands down rather than failing, but the step emits a warning annotation and says
+  scoring is inactive, rather than the fork's notice claiming something false of it.
 - **A score between 0.7 and 0.8.** Reported in the summary and as a notice annotation,
   and advisory.
 
@@ -388,17 +391,18 @@ the job's token into `.git/config`, where any subsequent step — including anyt
 build script pulls in — can read it and push with it. None of these jobs push, so none of
 them need the credential to survive the checkout step.
 
-Every job sets `timeout-minutes` — ten for most, twenty for CodeQL, forty-five for the
-eval scoring, five for the aggregators. The default is six hours, which is long enough
-that a hung step looks like a slow one for most of a working day, and it holds a runner
-the whole time. A timeout turns that into a failure with a name.
+Every job sets `timeout-minutes` — ten for most, twenty for CodeQL, two hours for the
+monthly eval job, forty-five for the pull request eval job, five for the aggregators.
+The default is six hours, which is long enough that a hung step looks like a slow one
+for most of a working day, and it holds a runner the whole time. A timeout turns that
+into a failure with a name.
 
 Both of those are enforced rather than remembered: `permissions-audit` fails the
 `security` gate for a job with no `timeout-minutes` and for a checkout that does not set
 `persist-credentials: false`. They were conventions held by habit for as long as the
 workflows existed, and a convention held by habit is one the next job quietly skips.
 
-The six jobs that install from PyPI cache `~/.cache/pip`, and `validate-plugin` caches
+The five jobs that install from PyPI cache `~/.cache/pip`, and `validate-plugin` caches
 `~/.npm`. Each key names the job and then a hash of the file that records the pins, so
 it busts whenever that file changes — every pin change, and also edits that change
 nothing a cache holds. That over-busting is the deliberate side of the trade: the
