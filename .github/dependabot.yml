@@ -11,3 +11,21 @@ updates:
       default-days: 7
     commit-message:
       prefix: ci
+    # One pull request for the routine bumps rather than one per action: every pull
+    # request here runs the whole of `ci` and `security`, so three separate patch
+    # bumps cost three full matrices. Majors stay out of the group and arrive on their
+    # own, because a grouped major is a breaking change hidden among patches. Two
+    # edits would quietly break that. Adding `group-by` is the first: reading
+    # dependabot-core, a dependency the semver rule rejects is only marked handled when
+    # a group sets that key, so majors would be dropped rather than raised separately.
+    # The documented schema describes the key without mentioning that interaction, so
+    # re-read the source before adding it rather than trusting either. The second is
+    # pinning an action to a SHA carrying no upstream tag, which the semver rule cannot
+    # classify, so it falls out onto individual pull requests.
+    groups:
+      actions:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
