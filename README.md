@@ -371,6 +371,13 @@ that can apply is not a reviewer.
 Four more sit in [`.claude/agents/`](.claude/agents) and ship to nobody. They are for
 working on this repository, in two loops that share a judge.
 
+| Subagent | Loop | Role |
+| --- | --- | --- |
+| `explorer` | build | Surveys what already covers a change |
+| `implementer` | build | Writes it and runs the gates |
+| `investigator` | verify | Settles one claim against primary sources |
+| `reviewer` | both | Judges the result on a fresh context with no editing tools |
+
 To build something: `explorer` surveys what already covers a change, `implementer` writes
 it and runs the gates, and `reviewer` judges the result on a fresh context with no editing
 tools. [`/ship`](.claude/commands/ship.md) runs those three in order.

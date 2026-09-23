@@ -9,6 +9,7 @@ import io
 import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -50,6 +51,37 @@ def test_a_broken_skill_exits_two_with_only_its_own_errors(mini_repo, monkeypatc
     assert "found 1 error(s) in plugins/engineering/skills/alpha" in err
     assert "dangling-reference" in err
     assert "beta" not in err
+
+
+def test_other_files_broken_stays_silent_for_a_clean_edit(mini_repo, monkeypatch):
+    """The validator exits 1 whenever anything in the repository has findings, not only
+    when the edited file does. A hook that read "nonzero exit" as "crashed" would nag on
+    every edit as soon as anything else in the tree was already broken."""
+    alpha = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    beta = mini_repo / "plugins" / "engineering" / "skills" / "beta"
+    (beta / "SKILL.md").write_text("---\nname: other\n---\n\nBody.\n", encoding="utf-8")
+
+    assert run_hook(monkeypatch, mini_repo, payload(alpha / "SKILL.md")) == (0, "")
+
+
+def test_a_validator_crash_is_reported_rather_than_silent(mini_repo, monkeypatch):
+    """A nonzero exit with no ERROR line anywhere — a SyntaxError in rules.py, an
+    uncaught exception — used to be read the same as "some other file has findings" and
+    the hook returned 0, turning itself off with no signal."""
+    alpha = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+
+    def crashed(*args, **kwargs):
+        return SimpleNamespace(
+            returncode=1,
+            stdout="",
+            stderr="Traceback (most recent call last):\n  ...\nSyntaxError: invalid syntax\n",
+        )
+
+    monkeypatch.setattr(hook.subprocess, "run", crashed)
+    code, err = run_hook(monkeypatch, mini_repo, payload(alpha / "SKILL.md"))
+    assert code == 2
+    assert "did not run to completion" in err
+    assert "SyntaxError" in err
 
 
 def test_an_edit_to_a_reference_file_is_attributed_to_its_skill(mini_repo, monkeypatch):
