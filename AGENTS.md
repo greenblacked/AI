@@ -24,6 +24,7 @@ different set. Honour an explicit per-task assignment over either default split 
   when assigned.
 - **Claude Code:** use the tier each agent in `.claude/agents/` declares, which
   `CLAUDE.md` spells out.
+- **Any other tool:** report which models it offers rather than guessing at a mapping.
 
 Whichever tool runs it, research agents verify facts before implementation begins. Give
 implementation agents disjoint files, then have the reviewer validate the combined diff.
