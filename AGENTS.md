@@ -15,21 +15,28 @@ Everything here is prose and configuration. There is no application. The only co
 
 ## Multi-agent workflow
 
-For multi-agent work, use Astra at medium effort only for review and decisions; use Sol
-at low effort for research into agent features or configuration and for implementation;
-use Terra at low effort for branch synchronisation and integration when assigned. Honour
-an explicit per-task assignment over this default split. Research agents verify facts
-before implementation begins. Give implementation agents disjoint files, then have the
-reviewer validate the combined diff. Do not substitute another model automatically; if a
-requested model is unavailable, report that limitation. Model and effort choices apply
-when starting agents and cannot change an already active session.
+Which models to use depends on the tool running the session, because each tool offers a
+different set. Honour an explicit per-task assignment over either default split below.
+
+- **Codex and ChatGPT:** use Astra at medium effort only for review and decisions; use
+  Sol at low effort for research into agent features or configuration and for
+  implementation; use Terra at low effort for branch synchronisation and integration
+  when assigned.
+- **Claude Code:** use the tier each agent in `.claude/agents/` declares, which
+  `CLAUDE.md` spells out.
+
+Whichever tool runs it, research agents verify facts before implementation begins. Give
+implementation agents disjoint files, then have the reviewer validate the combined diff.
+Do not substitute another model automatically; if a requested model is unavailable,
+report that limitation. Model and effort choices apply when starting agents and cannot
+change an already active session.
 
 ## Repository layout
 
 | Path | What lives there |
 | --- | --- |
 | `AGENTS.md` | This file: the rules, in the form Codex and Gemini CLI read too |
-| `CLAUDE.md` | The `@AGENTS.md` import plus the three notes that are only true of Claude Code |
+| `CLAUDE.md` | The `@AGENTS.md` import plus the four notes that are only true of Claude Code |
 | `.claude/rules/` | Path-scoped rules loaded when a file matching the glob is read; `docs/project-structure.md` explains when each fires |
 | `.claude/settings.json` | The `PostToolUse` hook registration, checked by `scripts/check_settings.py`; nothing else yet |
 | `plugins/coding/skills/` | Reading, reviewing, testing and changing code |
