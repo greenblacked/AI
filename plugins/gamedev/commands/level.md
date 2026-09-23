@@ -118,6 +118,11 @@ import presets that were added.
 None of these is a stage in this chain. Each is cheap now and expensive later, which
 is why they are named here rather than discovered at submission.
 
+- **Before stage 1, if the idea itself is not yet chosen**: `game-greenlight` is what
+  turns a concept into a decision to build it at all — a pitch, a feasibility read, the
+  one riskiest question a prototype should answer, and go, no-go or pivot criteria
+  written before the prototype exists. Run it first; `/level` assumes the idea has
+  already cleared that gate.
 - **Shipping to a console or a store**: `game-certification` owns the submission gate,
   and its calendar — ratings, platform accounts, storefront lead time — is not something
   this chain can compress.
@@ -127,6 +132,11 @@ is why they are named here rather than discovered at submission.
 - **The feature touches multiplayer**: `game-netcode` should choose the authority model
   before stage 3 assumes one by default — `game-builder`'s own anti-patterns name a
   netcode model decided late as the rewrite it becomes.
+- **After certification and launch, for a game with a planned life afterward**:
+  `game-live-ops` runs the season and content calendar, the economy-tuning schedule and
+  its guardrails, KPIs and a stop rule, and the patch-and-hotfix rhythm — on its own
+  calendar, continuously, the way `game-certification`'s runs before ship rather than as
+  a stage of this chain.
 
 ## Finish
 
