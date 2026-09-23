@@ -1238,14 +1238,21 @@ def test_this_repository_has_plugins_that_go_silent(capsys):
 # --- the install advice against the listing it describes ---------------------------
 
 
+CLAIM_SENTENCE = "Only `engineering` fit the default budget on its own.\n\n"
+
+
 def readme_with(root, fraction: str):
     """Write the fraction verbatim.
 
     A float here formats as `1e-07` for small values, which the regex reads as `1` — so
-    the string is the literal the README would contain.
+    the string is the literal the README would contain. It also carries the
+    fit-the-default-budget claim, true of the fixture's single small plugin, so that
+    these tests exercise only the fraction check they are written for and not the claim
+    check `check_listing_budget.py` now also runs against README.md.
     """
     (root / "README.md").write_text(
-        f'# Mini\n\nRaise it:\n\n```json\n{{ "skillListingBudgetFraction": {fraction} }}\n```\n',
+        f"# Mini\n\n{CLAIM_SENTENCE}"
+        f'Raise it:\n\n```json\n{{ "skillListingBudgetFraction": {fraction} }}\n```\n',
         encoding="utf-8",
     )
 
@@ -1277,10 +1284,13 @@ def test_a_readme_that_stops_naming_the_fraction_fails(mini_repo, capsys):
     assert "no longer names skillListingBudgetFraction" in capsys.readouterr().out
 
 
-def test_a_tree_with_no_readme_skips_the_advice_check(mini_repo):
+def test_a_tree_with_no_readme_skips_the_advice_check(mini_repo, capsys):
     budget.check(mini_repo, update=True)
     (mini_repo / "README.md").unlink(missing_ok=True)
     assert budget.check(mini_repo) == 0
+    out = capsys.readouterr().out
+    assert "README.md: not present, fraction advice not checked" in out
+    assert "README.md: not present, fit-the-default-budget claim not checked" in out
 
 
 # The README was checked and `docs/using.md` was not, so when #34 corrected 0.04 in the
@@ -1293,7 +1303,8 @@ def using_md_with(root, fraction: str) -> None:
     doc = root / "docs"
     doc.mkdir(exist_ok=True)
     (doc / "using.md").write_text(
-        f'# Using\n\nRaise it:\n\n```json\n{{ "skillListingBudgetFraction": {fraction} }}\n```\n',
+        f"# Using\n\n{CLAIM_SENTENCE}"
+        f'Raise it:\n\n```json\n{{ "skillListingBudgetFraction": {fraction} }}\n```\n',
         encoding="utf-8",
     )
 
@@ -1318,10 +1329,120 @@ def test_using_md_that_stops_naming_the_fraction_fails(mini_repo, capsys):
     assert "no longer names skillListingBudgetFraction" in capsys.readouterr().out
 
 
-def test_a_tree_with_no_using_md_skips_that_file(mini_repo):
+def test_a_tree_with_no_using_md_skips_that_file(mini_repo, capsys):
     # Every other repository using this script has a README and no docs/using.md; a
-    # missing companion is not a defect.
+    # missing companion is not a defect, but the absence is a printed notice rather
+    # than silence — a bare `continue` reads, from the output, exactly like a file
+    # that was checked and found correct.
     budget.check(mini_repo, update=True)
     readme_with(mini_repo, "0.5")
     assert not (mini_repo / "docs" / "using.md").exists()
     assert budget.check(mini_repo) == 0
+    out = capsys.readouterr().out
+    assert "docs/using.md: not present, fraction advice not checked" in out
+    assert "docs/using.md: not present, fit-the-default-budget claim not checked" in out
+
+
+# --- the "which plugins fit" claim against the listing it describes -----------------
+
+# README.md, docs/using.md and docs/writing-skills.md all say, in prose, which plugins
+# fit the runtime's default budget installed alone. Nothing checked that claim against
+# the measurement until now, which is how `delivery` at 8,025 characters and `gamedev`
+# at 8,048 — a few dozen characters over the ~8,000 default — could silently be a
+# character or two from making the claim wrong in three places at once.
+
+
+def test_a_claim_matching_the_measured_fit_passes(mini_repo):
+    budget.check(mini_repo, update=True)
+    readme_with(mini_repo, "0.5")  # readme_with's CLAIM_SENTENCE names `engineering`,
+    assert budget.check(mini_repo) == 0  # which does fit this fixture's small listing
+
+
+def test_a_claim_naming_a_plugin_that_is_over_the_default_fails(mini_repo, capsys):
+    # The claim says `engineering` fits. Forcing the runtime default below what it
+    # measures makes that false, and only the file making the wrong claim should fail.
+    budget.check(mini_repo, update=True)
+    readme_with(mini_repo, "0.5")
+    monkey = budget.RUNTIME_DEFAULT
+    budget.RUNTIME_DEFAULT = 1
+    try:
+        assert budget.check(mini_repo) == 1
+    finally:
+        budget.RUNTIME_DEFAULT = monkey
+    out = capsys.readouterr().out
+    assert "file=README.md" in out
+    assert "says only engineering fit the default budget; measured, none do" in out
+
+
+def test_a_claim_omitting_a_plugin_that_fits_fails(mini_repo, capsys):
+    # The other direction: a claim that names no plugin at all while one measures under
+    # the default is just as wrong as naming one that does not.
+    budget.check(mini_repo, update=True)
+    (mini_repo / "README.md").write_text(
+        "# Mini\n\nNo plugin here fit the default budget on its own.\n\n"
+        'Raise it:\n\n```json\n{ "skillListingBudgetFraction": 0.5 }\n```\n',
+        encoding="utf-8",
+    )
+    assert budget.check(mini_repo) == 1
+    out = capsys.readouterr().out
+    assert "file=README.md" in out
+    assert "says only none fit the default budget; measured, engineering do" in out
+
+
+def test_a_readme_that_drops_the_fit_claim_sentence_fails(mini_repo, capsys):
+    # Rewording the claim out of existence must not retire the check silently, the same
+    # reasoning as a fraction file with no fraction left in it.
+    budget.check(mini_repo, update=True)
+    (mini_repo / "README.md").write_text(
+        '# Mini\n\nRaise it:\n\n```json\n{ "skillListingBudgetFraction": 0.5 }\n```\n',
+        encoding="utf-8",
+    )
+    assert budget.check(mini_repo) == 1
+    out = capsys.readouterr().out
+    assert "file=README.md" in out
+    assert "no longer names which plugins fit the default budget" in out
+
+
+def test_a_missing_claim_file_is_a_notice_not_a_failure(mini_repo, capsys):
+    # docs/writing-skills.md is a claim file with no equivalent helper in this suite —
+    # mini_repo never creates it — so it is the case that exercises the plain "absent"
+    # path end to end rather than through a helper that happens to write it.
+    budget.check(mini_repo, update=True)
+    readme_with(mini_repo, "0.5")
+    assert not (mini_repo / "docs" / "writing-skills.md").exists()
+    assert budget.check(mini_repo) == 0
+    out = capsys.readouterr().out
+    assert "docs/writing-skills.md: not present, fit-the-default-budget claim not checked" in out
+
+
+# --- the fraction advice regex, anchored to a whole-line JSON object ----------------
+
+# `"skillListingBudgetFraction": 0.04` unanchored would match a value quoted in prose as
+# a counter-example, the same failure mode `check_readme.py`'s digit-count check guards
+# against elsewhere in this file. Anchoring to `^\s*\{ ... \}\s*$` on its own line, and
+# checking every match rather than only the first, is what these two exist for.
+
+
+def test_an_inline_prose_mention_is_not_read_as_a_recommendation(mini_repo, capsys):
+    budget.check(mini_repo, update=True)
+    (mini_repo / "README.md").write_text(
+        f"# Mini\n\n{CLAIM_SENTENCE}"
+        'Do not just set `"skillListingBudgetFraction": 0.04` inline; use the block below.\n\n'
+        '```json\n{ "skillListingBudgetFraction": 0.5 }\n```\n',
+        encoding="utf-8",
+    )
+    assert budget.check(mini_repo) == 0
+
+
+def test_a_second_insufficient_value_in_a_later_block_fails(mini_repo, capsys):
+    budget.check(mini_repo, update=True)
+    (mini_repo / "README.md").write_text(
+        f"# Mini\n\n{CLAIM_SENTENCE}"
+        'First:\n\n```json\n{ "skillListingBudgetFraction": 0.5 }\n```\n\n'
+        'Or, less headroom:\n\n```json\n{ "skillListingBudgetFraction": 0.0000001 }\n```\n',
+        encoding="utf-8",
+    )
+    assert budget.check(mini_repo) == 1
+    out = capsys.readouterr().out
+    assert "0.0000001" in out
+    assert "it needs at least" in out

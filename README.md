@@ -68,9 +68,8 @@ stays in context for the whole session, and the runtime caps that listing at abo
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
 `career` and `personal` fit the default budget on their own. The other six are over it —
-`delivery` and `gamedev` by a few dozen characters, the rest by enough to lose two or
-more descriptions on their own — and the split exists to keep that number as small as it can
-be.
+each by enough that installed alone at least one of its descriptions is dropped — and the
+split exists to keep that number as small as it can be.
 
 The description budget is shared across installed plugins. Splitting a plugin does not
 reduce the total when both halves are installed, and shortening every description to a

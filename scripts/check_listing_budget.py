@@ -76,9 +76,47 @@ README = Path("README.md")
 # `docs/using.md` was not, which is how it kept recommending 0.04 after the README stopped:
 # the fix went to the page people read first and not to the one it links to for detail.
 ADVICE_FILES = (README, Path("docs/using.md"))
-# `{ "skillListingBudgetFraction": <n> }` in each advice file — the setting it tells a
-# reader to raise when they install several plugins.
-FRACTION_RE = re.compile(r'"skillListingBudgetFraction"\s*:\s*([0-9.]+)')
+# `{ "skillListingBudgetFraction": <n> }` on its own line in each advice file — the
+# setting it tells a reader to raise when they install several plugins. Anchored to a
+# whole-line JSON object rather than searched for anywhere: prose that quotes a wrong
+# value as a counter-example (as this very check's fixtures do) would otherwise read as
+# a second recommendation and fail a page that is correct. `re.MULTILINE` is what lets
+# `^`/`$` mean the start and end of a line rather than of the whole file, and every match
+# is checked rather than only the first, because a page can recommend the setting more
+# than once and each has to cover the listing on its own.
+FRACTION_RE = re.compile(
+    r'^\s*\{\s*"skillListingBudgetFraction"\s*:\s*([0-9.]+)\s*\}\s*$', re.MULTILINE
+)
+# Every file that claims which plugins fit the default budget installed alone. Like
+# ADVICE_FILES above, this is a measurement restated as prose in more than one place, and
+# a measurement restated anywhere goes stale the moment the number it restates moves:
+# `delivery` and `gamedev` sit close enough to RUNTIME_DEFAULT that a few dozen
+# characters of rewording either side flips which plugins the claim should name.
+CLAIM_FILES = (README, Path("docs/using.md"), Path("docs/writing-skills.md"))
+# The sentence making that claim, isolated by the periods on either side of it rather
+# than by one fixed wording: the three files phrase it "on their own", "by themselves"
+# and across a line break, and collapsing whitespace before matching handles the line
+# break while leaving the phrasing free. What has to survive a rewording is the literal
+# phrase "fit the default budget" — lose that and the claim can no longer be found, which
+# is treated the same as a fraction file with no fraction in it: an error, not a skip.
+CLAIM_SENTENCE_RE = re.compile(r"[^.]*fit the default budget[^.]*\.")
+NAME_RE = re.compile(r"`([\w-]+)`")
+
+
+def claimed_fits(text: str) -> set[str] | None:
+    """Plugin names a claim file says fit the default budget on their own, or None if
+    the sentence making that claim is not there to find.
+
+    Only the backticked names before the word "fit" count. The sentence goes on, in the
+    same breath, to name the plugins that do not — those are not the claim being made,
+    and counting them would fail a file for correctly saying who is over the line.
+    """
+    match = CLAIM_SENTENCE_RE.search(" ".join(text.split()))
+    if match is None:
+        return None
+    before_fit = match.group(0).split("fit", 1)[0]
+    return set(NAME_RE.findall(before_fit))
+
 
 # How much slack a recorded ceiling carries over the measured total. A description is
 # 500-900 characters, so this lets prose be reworded and refuses to let a skill be added
@@ -359,6 +397,34 @@ def check(root: Path, update: bool = False) -> int:
             f"skillListingBudgetFraction {needed:.3f}"
         )
 
+    # Which plugins the claim files say fit the default budget, against which plugins
+    # measure at or under it. A file that is missing gets a notice rather than silence —
+    # the same reasoning as the fraction-advice files below, and for the same failure
+    # mode: a bare `continue` here reads, from the output, exactly like a claim that was
+    # checked and found correct.
+    fits = {name for name in sizes if sizes[name] <= RUNTIME_DEFAULT}
+    for claim in CLAIM_FILES:
+        path = root / claim
+        if not path.is_file():
+            print(f"{claim}: not present, fit-the-default-budget claim not checked")
+            continue
+        claimed = claimed_fits(path.read_text(encoding="utf-8"))
+        if claimed is None:
+            print(
+                f"::error file={claim}::{claim} no longer names which plugins fit the "
+                f"default budget, so the claim cannot be checked against the listing "
+                f"it describes"
+            )
+            failed = True
+            continue
+        if claimed != fits:
+            print(
+                f"::error file={claim}::{claim} says only "
+                f"{', '.join(sorted(claimed)) or 'none'} fit the default budget; "
+                f"measured, {', '.join(sorted(fits)) or 'none'} do"
+            )
+            failed = True
+
     # Both files that tell a reader to raise `skillListingBudgetFraction` name a
     # number, and that number is a claim about this library's size, so it goes stale
     # the way any recorded measurement does: the README said 0.04 while the listing
@@ -370,9 +436,11 @@ def check(root: Path, update: bool = False) -> int:
     for advice in ADVICE_FILES:
         path = root / advice
         if not path.is_file():
+            print(f"{advice}: not present, fraction advice not checked")
             continue
-        match = FRACTION_RE.search(path.read_text(encoding="utf-8"))
-        if match is None:
+        text = path.read_text(encoding="utf-8")
+        matches = list(FRACTION_RE.finditer(text))
+        if not matches:
             print(
                 f"::error file={advice}::{advice} no longer names "
                 f"skillListingBudgetFraction, so the install advice cannot be checked "
@@ -380,15 +448,16 @@ def check(root: Path, update: bool = False) -> int:
             )
             failed = True
             continue
-        covers = float(match.group(1)) * CONTEXT_WINDOW_TOKENS * CHARS_PER_TOKEN
-        if covers < total:
-            print(
-                f"::error file={advice}::the install advice recommends "
-                f"skillListingBudgetFraction {match.group(1)}, which covers "
-                f"{covers / total:.0%} of the {total:,} characters this marketplace "
-                f"ships; it needs at least {needed:.3f}"
-            )
-            failed = True
+        for match in matches:
+            covers = float(match.group(1)) * CONTEXT_WINDOW_TOKENS * CHARS_PER_TOKEN
+            if covers < total:
+                print(
+                    f"::error file={advice}::the install advice recommends "
+                    f"skillListingBudgetFraction {match.group(1)}, which covers "
+                    f"{covers / total:.0%} of the {total:,} characters this marketplace "
+                    f"ships; it needs at least {needed:.3f}"
+                )
+                failed = True
 
     # Last, because it is the finer grain: the plugin block above is the one a reader
     # comes here for, and this says which single description moved.
