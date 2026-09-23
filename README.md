@@ -67,7 +67,7 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`career` and `personal` fit the default budget on their own. The other six are over it —
+`career`, `delivery` and `personal` fit the default budget on their own. The other five are over it —
 each by enough that installed alone at least one of its descriptions is dropped — and the
 split exists to keep that number as small as it can be.
 
