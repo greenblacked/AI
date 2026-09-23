@@ -74,6 +74,12 @@ def test_a_missing_frontmatter_block_is_reported_once(tmp_path):
     assert codes(check_agent(path, tmp_path)) == {"frontmatter"}
 
 
+def test_a_file_that_is_not_utf8_reports_rather_than_crashing(tmp_path):
+    path = write_agent(tmp_path, "demo-agent")
+    path.write_bytes("---\nname: demo-agent\ndescription: caf\xe9.\n---\n".encode("latin-1"))
+    assert codes(check_agent(path, tmp_path)) == {"not-utf8"}
+
+
 def test_find_agents_is_sorted_and_ignores_other_files(tmp_path):
     write_agent(tmp_path, "b-agent")
     write_agent(tmp_path, "a-agent")
@@ -92,27 +98,32 @@ def test_find_agents_is_sorted_and_ignores_other_files(tmp_path):
         "background",
         "isolation",
         "omitClaudeMd",
+        "color",
+        "experimental",
     ],
 )
 def test_the_documented_plugin_agent_keys_are_allowed(tmp_path, key):
+    # `color` and `experimental` were added to the plugins reference after this
+    # validator shipped; https://code.claude.com/docs/en/plugins-reference.md (checked
+    # 2026-09-23) lists both alongside the other twelve.
     text = GOOD.replace("tools: Read, Grep\n", f"tools: Read, Grep\n{key}: value\n")
     assert check_agent(write_agent(tmp_path, "demo-agent", text), tmp_path) == []
 
 
-@pytest.mark.parametrize("key", ["color", "initialPrompt"])
+@pytest.mark.parametrize("key", ["initialPrompt"])
 def test_keys_the_plugins_reference_does_not_list_are_refused(tmp_path, key):
-    # Both were accepted here once, on the assumption that a subagent file's key set and
-    # a plugin-shipped subagent's are the same. They are not: the plugins reference lists
-    # twelve keys a plugin agent supports and neither of these is among them, so an author
-    # following the validator could ship one and never learn that nothing read it.
+    # Accepted here once, on the assumption that a subagent file's key set and a
+    # plugin-shipped subagent's are the same. They are not: the plugins reference lists
+    # the keys a plugin agent supports and this is not among them, so an author
+    # following the validator could ship it and never learn that nothing read it.
     #
     # That absence is the whole reason, and it is worth being exact about what it is not.
     # A plugin agent *can* run as the main session agent — `claude --agent my-plugin:name`
     # is documented — so "it is never the main agent" would be a false argument for
-    # refusing `initialPrompt`, and the next reader who discovers that would restore both
-    # keys. The second assertion pins the other half: these are ordinary unknown keys, not
-    # the security-reasoned refusal that `hooks`, `mcpServers` and `permissionMode` get,
-    # because that message states a reason untrue of a display colour.
+    # refusing `initialPrompt`, and the next reader who discovers that would restore it.
+    # The second assertion pins the other half: this is an ordinary unknown key, not the
+    # security-reasoned refusal that `hooks`, `mcpServers` and `permissionMode` get,
+    # because that message states a reason untrue of an initial prompt.
     text = GOOD.replace("tools: Read, Grep\n", f"tools: Read, Grep\n{key}: value\n")
     findings = check_agent(write_agent(tmp_path, "demo-agent", text), tmp_path)
     assert codes(findings) == {"unknown-key"}

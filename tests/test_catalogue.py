@@ -290,14 +290,41 @@ def test_a_repo_local_agent_named_in_the_readme_passes(mini_repo, capsys):
         "---\nname: searcher\ndescription: " + "f" * 60 + "\ntools: Read\n---\n\nBody.\n",
         encoding="utf-8",
     )
-    write_readme(mini_repo, README + "\n\nAlso `searcher`, which ships to nobody.\n")
+    write_readme(
+        mini_repo,
+        README + "\n\n| Local subagent | Role |\n| --- | --- |\n| `searcher` | Finds things |\n",
+    )
     assert readme.check(mini_repo) == 0
+
+
+def test_a_repo_local_agent_named_only_in_prose_fails(mini_repo, capsys):
+    """A backticked name used to satisfy this check wherever it appeared, prose
+    included, so a subagent could be discussed at length and still have no row anyone
+    could point at — the same gap `SKILL_ROW_RE` never had for a skill."""
+    agents = mini_repo / ".claude" / "agents"
+    agents.mkdir(parents=True, exist_ok=True)
+    (agents / "searcher.md").write_text(
+        "---\nname: searcher\ndescription: " + "f" * 60 + "\ntools: Read\n---\n\nBody.\n",
+        encoding="utf-8",
+    )
+    write_readme(mini_repo, README + "\n\nAlso `searcher`, which ships to nobody.\n")
+    assert readme.check(mini_repo) == 1
+    assert "searcher is in .claude/ and has no row" in capsys.readouterr().out
 
 
 def test_a_matching_readme_passes(mini_repo, capsys):
     write_readme(mini_repo)
     assert readme.check(mini_repo) == 0
     assert "README is current" in capsys.readouterr().out
+
+
+def test_on_disk_does_not_hide_a_plugin_skill_named_template(mini_repo):
+    """`on_disk` calls `find_skills` scoped to one plugin's `skills/` directory, which
+    is exactly the caller a `template/`-vs-`skills/` mixup used to hide a skill from —
+    a plugin shipping `skills/template/` would be missing from this set entirely, and
+    every check built on it would report the skill as never having existed."""
+    write_skill(mini_repo, "engineering", "template")
+    assert "template" in readme.on_disk(mini_repo)["engineering"]["skills"]
 
 
 def test_a_skill_with_no_row_fails(mini_repo, capsys):
@@ -336,6 +363,16 @@ def test_a_stale_contents_count_fails(mini_repo, capsys):
 
 def test_a_subagent_with_no_row_fails(mini_repo, capsys):
     write_readme(mini_repo, README.replace("| `reader` | Things |\n", ""))
+    assert readme.check(mini_repo) == 1
+    assert "subagent reader ships with engineering and has no row" in capsys.readouterr().out
+
+
+def test_a_plugin_subagent_named_only_in_prose_still_fails(mini_repo, capsys):
+    """The row is gone and the name is still mentioned in passing — a backticked name
+    appearing anywhere used to be read as "listed", so this prose survived the check
+    that the missing row above is meant to catch."""
+    text = README.replace("| `reader` | Things |\n", "") + "\nSee `reader` for the read path.\n"
+    write_readme(mini_repo, text)
     assert readme.check(mini_repo) == 1
     assert "subagent reader ships with engineering and has no row" in capsys.readouterr().out
 
@@ -524,6 +561,84 @@ def test_a_path_in_a_worked_example_is_not_treated_as_a_pointer(mini_repo):
     assert unresolved == []
 
 
+def test_a_nested_reference_is_inlined_and_its_pointer_rewritten(mini_repo):
+    """The local pointer regex this export used to carry only matched a flat
+    `references/<x>.md`, so a nested one was neither inlined nor reported: the pointer
+    stayed in the document unresolved and `unresolved` stayed empty, which is exactly
+    the silent failure the validator's own regex exists to catch."""
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    (skill / "references" / "deep").mkdir(parents=True)
+    (skill / "references" / "deep" / "topic.md").write_text(
+        "# Deep topic\n\nDetail.\n", encoding="utf-8"
+    )
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text(encoding="utf-8") + "\nRead `references/deep/topic.md` when stuck.\n",
+        encoding="utf-8",
+    )
+    name, _, document, unresolved = portable.render_skill(skill)
+    assert name == "alpha"
+    assert unresolved == []
+    assert "references/deep/topic.md" not in document
+    assert 'the "Deep topic" section below' in document
+
+
+def test_a_non_markdown_asset_is_inlined_and_its_pointer_rewritten(mini_repo):
+    """`assets/*.md` was the only asset extension the local regex matched, so
+    `assets/checklist.txt` was neither inlined nor reported — the same silent gap the
+    nested-reference case above exercises for `references/`."""
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    (skill / "assets").mkdir()
+    (skill / "assets" / "checklist.txt").write_text("- one\n- two\n", encoding="utf-8")
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text(encoding="utf-8") + "\nFill in `assets/checklist.txt` first.\n",
+        encoding="utf-8",
+    )
+    name, _, document, unresolved = portable.render_skill(skill)
+    assert name == "alpha"
+    assert unresolved == []
+    assert "`assets/checklist.txt`" not in document  # the raw pointer is gone
+    assert 'the "assets/checklist.txt" section below' in document
+    assert "### assets/checklist.txt" in document
+    assert "- one" in document and "- two" in document
+    # A .txt asset is fenced as `text`, not the `markdown` every asset used to get
+    # regardless of its own extension.
+    assert "```text" in document
+    assert "```markdown" not in document
+
+
+def test_an_asset_language_is_read_from_its_extension(mini_repo):
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    (skill / "assets").mkdir()
+    (skill / "assets" / "config.yaml").write_text("key: value\n", encoding="utf-8")
+    (skill / "assets" / "unknown.xyz").write_text("opaque\n", encoding="utf-8")
+    _, _, document, _ = portable.render_skill(skill)
+    assert "```yaml" in document
+    assert "```text" in document  # the fallback for an extension with no mapping
+
+
+def test_a_script_section_is_titled_by_its_path_not_its_first_comment(mini_repo):
+    """A script's title used to come from its first `# ` line — an ordinary shell
+    comment, not a heading — so a script whose first line explained something unrelated
+    became the section title. The relative path always tells the reader which file to
+    create, which is the point of inlining a script at all."""
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    (skill / "scripts").mkdir()
+    (skill / "scripts" / "bisect-probe.sh").write_text(
+        "#!/bin/sh\n# Not a title, just an ordinary comment\necho ok\n", encoding="utf-8"
+    )
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text(encoding="utf-8") + "\nRun `scripts/bisect-probe.sh` to check.\n",
+        encoding="utf-8",
+    )
+    _, _, document, unresolved = portable.render_skill(skill)
+    assert unresolved == []
+    assert "### scripts/bisect-probe.sh" in document
+    assert "### Not a title, just an ordinary comment" not in document
+
+
 def test_headings_inside_a_code_fence_are_left_alone():
     text = "# Title\n\n```bash\n# not a heading, a comment\nls\n```\n\n## Real\n"
     out = portable.demote(text, 2)
@@ -555,6 +670,17 @@ def test_export_writes_a_file_per_skill_a_bundle_per_plugin_and_an_index(mini_re
     index = (out / "index.md").read_text(encoding="utf-8")
     assert "- **alpha**" in index and "- **beta**" in index
     assert (out / "README.md").is_file()
+
+
+def test_export_does_not_hide_a_plugin_skill_named_template(mini_repo, tmp_path):
+    """`export` walks `find_skills(plugin / "skills")` per plugin — the same narrowed
+    `root` that used to make a `skills/template/` skill look like the repository's own
+    template and drop it from the export, so `--check` reported the tree as clean while
+    one fewer skill than actually shipped ever reached `dist/portable`."""
+    write_skill(mini_repo, "engineering", "template")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    assert (out / "skills" / "template.md").is_file()
 
 
 def test_every_exported_file_carries_the_attribution_notice(mini_repo, tmp_path):
@@ -1238,14 +1364,21 @@ def test_this_repository_has_plugins_that_go_silent(capsys):
 # --- the install advice against the listing it describes ---------------------------
 
 
+CLAIM_SENTENCE = "Only `engineering` fits the default budget on its own.\n\n"
+
+
 def readme_with(root, fraction: str):
     """Write the fraction verbatim.
 
     A float here formats as `1e-07` for small values, which the regex reads as `1` — so
-    the string is the literal the README would contain.
+    the string is the literal the README would contain. It also carries the
+    fit-the-default-budget claim, true of the fixture's single small plugin, so that
+    these tests exercise only the fraction check they are written for and not the claim
+    check `check_listing_budget.py` now also runs against README.md.
     """
     (root / "README.md").write_text(
-        f'# Mini\n\nRaise it:\n\n```json\n{{ "skillListingBudgetFraction": {fraction} }}\n```\n',
+        f"# Mini\n\n{CLAIM_SENTENCE}"
+        f'Raise it:\n\n```json\n{{ "skillListingBudgetFraction": {fraction} }}\n```\n',
         encoding="utf-8",
     )
 
@@ -1277,10 +1410,13 @@ def test_a_readme_that_stops_naming_the_fraction_fails(mini_repo, capsys):
     assert "no longer names skillListingBudgetFraction" in capsys.readouterr().out
 
 
-def test_a_tree_with_no_readme_skips_the_advice_check(mini_repo):
+def test_a_tree_with_no_readme_skips_the_advice_check(mini_repo, capsys):
     budget.check(mini_repo, update=True)
     (mini_repo / "README.md").unlink(missing_ok=True)
     assert budget.check(mini_repo) == 0
+    out = capsys.readouterr().out
+    assert "README.md: not present, fraction advice not checked" in out
+    assert "README.md: not present, fit-the-default-budget claim not checked" in out
 
 
 # The README was checked and `docs/using.md` was not, so when #34 corrected 0.04 in the
@@ -1293,7 +1429,8 @@ def using_md_with(root, fraction: str) -> None:
     doc = root / "docs"
     doc.mkdir(exist_ok=True)
     (doc / "using.md").write_text(
-        f'# Using\n\nRaise it:\n\n```json\n{{ "skillListingBudgetFraction": {fraction} }}\n```\n',
+        f"# Using\n\n{CLAIM_SENTENCE}"
+        f'Raise it:\n\n```json\n{{ "skillListingBudgetFraction": {fraction} }}\n```\n',
         encoding="utf-8",
     )
 
@@ -1318,10 +1455,129 @@ def test_using_md_that_stops_naming_the_fraction_fails(mini_repo, capsys):
     assert "no longer names skillListingBudgetFraction" in capsys.readouterr().out
 
 
-def test_a_tree_with_no_using_md_skips_that_file(mini_repo):
+def test_a_tree_with_no_using_md_skips_that_file(mini_repo, capsys):
     # Every other repository using this script has a README and no docs/using.md; a
-    # missing companion is not a defect.
+    # missing companion is not a defect, but the absence is a printed notice rather
+    # than silence — a bare `continue` reads, from the output, exactly like a file
+    # that was checked and found correct.
     budget.check(mini_repo, update=True)
     readme_with(mini_repo, "0.5")
     assert not (mini_repo / "docs" / "using.md").exists()
     assert budget.check(mini_repo) == 0
+    out = capsys.readouterr().out
+    assert "docs/using.md: not present, fraction advice not checked" in out
+    assert "docs/using.md: not present, fit-the-default-budget claim not checked" in out
+
+
+# --- the "which plugins fit" claim against the listing it describes -----------------
+
+# README.md, docs/using.md and docs/writing-skills.md all say, in prose, which plugins
+# fit the runtime's default budget installed alone. Nothing checked that claim against
+# the measurement before this, when `delivery` measured 8,025 characters and `gamedev`
+# 8,048 — a few dozen over the ~8,000 default — so a small rewording could have made the
+# claim wrong in three places at once.
+
+
+def test_a_claim_matching_the_measured_fit_passes(mini_repo):
+    budget.check(mini_repo, update=True)
+    readme_with(mini_repo, "0.5")  # readme_with's CLAIM_SENTENCE names `engineering`,
+    assert budget.check(mini_repo) == 0  # which does fit this fixture's small listing
+
+
+def test_a_claim_naming_a_plugin_that_is_over_the_default_fails(mini_repo, capsys):
+    # The claim says `engineering` fits. Forcing the runtime default below what it
+    # measures makes that false, and only the file making the wrong claim should fail.
+    budget.check(mini_repo, update=True)
+    readme_with(mini_repo, "0.5")
+    monkey = budget.RUNTIME_DEFAULT
+    budget.RUNTIME_DEFAULT = 1
+    try:
+        assert budget.check(mini_repo) == 1
+    finally:
+        budget.RUNTIME_DEFAULT = monkey
+    out = capsys.readouterr().out
+    assert "file=README.md" in out
+    assert "says only engineering fit the default budget; measured, none do" in out
+
+
+def test_a_claim_omitting_a_plugin_that_fits_fails(mini_repo, capsys):
+    # The other direction: a claim that names no plugin at all while one measures under
+    # the default is just as wrong as naming one that does not.
+    budget.check(mini_repo, update=True)
+    (mini_repo / "README.md").write_text(
+        "# Mini\n\nNo plugin here fit the default budget on its own.\n\n"
+        'Raise it:\n\n```json\n{ "skillListingBudgetFraction": 0.5 }\n```\n',
+        encoding="utf-8",
+    )
+    assert budget.check(mini_repo) == 1
+    out = capsys.readouterr().out
+    assert "file=README.md" in out
+    assert "says only none fit the default budget; measured, engineering do" in out
+
+
+def test_a_readme_that_drops_the_fit_claim_sentence_fails(mini_repo, capsys):
+    # Rewording the claim out of existence must not retire the check silently, the same
+    # reasoning as a fraction file with no fraction left in it.
+    budget.check(mini_repo, update=True)
+    (mini_repo / "README.md").write_text(
+        '# Mini\n\nRaise it:\n\n```json\n{ "skillListingBudgetFraction": 0.5 }\n```\n',
+        encoding="utf-8",
+    )
+    assert budget.check(mini_repo) == 1
+    out = capsys.readouterr().out
+    assert "file=README.md" in out
+    assert "no longer names which plugins fit the default budget" in out
+
+
+def test_a_missing_claim_file_is_a_notice_not_a_failure(mini_repo, capsys):
+    # docs/writing-skills.md is a claim file with no equivalent helper in this suite —
+    # mini_repo never creates it — so it is the case that exercises the plain "absent"
+    # path end to end rather than through a helper that happens to write it.
+    budget.check(mini_repo, update=True)
+    readme_with(mini_repo, "0.5")
+    assert not (mini_repo / "docs" / "writing-skills.md").exists()
+    assert budget.check(mini_repo) == 0
+    out = capsys.readouterr().out
+    assert "docs/writing-skills.md: not present, fit-the-default-budget claim not checked" in out
+
+
+# --- the fraction advice regex, anchored to a whole-line JSON object ----------------
+
+# `"skillListingBudgetFraction": <n>` unanchored would match a value quoted in prose as
+# a counter-example, the same failure mode `check_readme.py`'s digit-count check guards
+# against elsewhere in this file. Anchoring to `^\s*\{ ... \}\s*$` on its own line, and
+# checking every match rather than only the first, is what these two exist for.
+
+
+def test_an_inline_prose_mention_is_not_read_as_a_recommendation(mini_repo, capsys):
+    budget.check(mini_repo, update=True)
+    (mini_repo / "README.md").write_text(
+        f"# Mini\n\n{CLAIM_SENTENCE}"
+        'Do not just set `"skillListingBudgetFraction": 0.0000001` inline; use the block below.\n\n'
+        '```json\n{ "skillListingBudgetFraction": 0.5 }\n```\n',
+        encoding="utf-8",
+    )
+    assert budget.check(mini_repo) == 0
+
+
+def test_a_second_insufficient_value_in_a_later_block_fails(mini_repo, capsys):
+    budget.check(mini_repo, update=True)
+    (mini_repo / "README.md").write_text(
+        f"# Mini\n\n{CLAIM_SENTENCE}"
+        'First:\n\n```json\n{ "skillListingBudgetFraction": 0.5 }\n```\n\n'
+        'Or, less headroom:\n\n```json\n{ "skillListingBudgetFraction": 0.0000001 }\n```\n',
+        encoding="utf-8",
+    )
+    assert budget.check(mini_repo) == 1
+    out = capsys.readouterr().out
+    assert "0.0000001" in out
+    assert "it needs at least" in out
+
+
+def test_claimed_fits_reads_singular_and_ignores_fit_inside_a_word():
+    # The singular is the grammatical form the day only one plugin fits, and "benefit"
+    # before the names used to cut the sentence short at the substring.
+    assert budget.claimed_fits("Only `career` fits the default budget on its own.") == {"career"}
+    assert budget.claimed_fits(
+        "For the benefit of readers: only `career` and `personal` fit the default budget."
+    ) == {"career", "personal"}

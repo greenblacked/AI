@@ -216,12 +216,12 @@ not necessarily spent one per cent of anything, so `make catalogue` prints the t
 equivalent under its summary line for exactly the plugins that cross the default, and the
 decision gets made on both numbers rather than on the alarming one.
 
-This repository's descriptions total about 77,500 characters — roughly 16,700 tokens —
-which is why they are split across eight plugins rather than three. Only `career` and
-`personal` fit the default budget on their own. The other six do not. Of those,
-`coding`, `manager` and `gamedev` are ones nobody installs alongside much else, while
-`operations` is the plugin most likely to be installed next to `delivery` and `security`,
-so its descriptions are the ones most at risk of being dropped in a real session. Read
+This repository's descriptions total about 77,400 characters — roughly 16,700 tokens —
+which is why they are split across eight plugins rather than three. Only `career`,
+`delivery` and `personal` fit the default budget on their own. The other five do not. Of
+those, `coding`, `manager` and `gamedev` are ones nobody installs alongside much else,
+while `operations` and `security` are the two most likely to be installed together, so
+their descriptions are the ones most at risk of being dropped in a real session. Read
 that alongside the token figures rather than the character ones — `operations` is over
 the 8,000-character default and over one per cent of a window too — and note what the
 runtime drops first: a skill nobody has used yet. The newest skills in an over-budget
@@ -248,7 +248,7 @@ python scripts/check_listing_budget.py --update  # raise them deliberately
 
 The same file carries a second ratchet, per skill rather than per plugin. `AGENTS.md`
 puts a description at 500 to 900 characters and nothing enforced the top of that range,
-so 33 of the 73 descriptions here had drifted past it — the longest at 971. Trimming
+so 34 of the 87 descriptions here had drifted past it — the longest at 971. Trimming
 those to turn a new gate green would mean editing descriptions to satisfy a check, which
 is a boundary this repository names, and each of them was written against a measured
 routing score. So what exists is recorded at what it measures and pinned there, and a
@@ -571,6 +571,7 @@ subagent](writing-agents.md) for why.
 
 | Code | Level | Meaning | Fix |
 | --- | --- | --- | --- |
+| `not-utf8` | error | The file is not valid UTF-8. | Re-save it as UTF-8. Reported rather than raised, because one mis-encoded file used to abort validation for every other subagent. |
 | `frontmatter` | error | The block could not be parsed, as above. | Follow the message. |
 | `unknown-key` | error | A key outside the set in [writing a subagent](writing-agents.md#frontmatter). | Rename or delete it. `allowed-tools` here is the usual cause; the subagent key is `tools`. |
 | `missing-name` | error | No `name`, or blank. | Add it. |

@@ -1,6 +1,6 @@
 ---
 description: Create the directory, SKILL.md and eval-set stub for a new skill in this repository, from the template, in the right plugin.
-argument-hint: [skill-name] [engineering, manager or personal]
+argument-hint: "[skill-name] [plugin: coding, operations, delivery, gamedev, security, manager, personal or career]"
 allowed-tools: Bash(mkdir:*), Bash(cp:*), Bash(python3:*), Read, Write, Glob
 ---
 

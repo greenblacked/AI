@@ -106,6 +106,12 @@ def test_a_pointer_that_exists_is_accepted(tmp_path):
     assert check_rule(write_rule(tmp_path, "p", text), tmp_path) == []
 
 
+def test_a_file_that_is_not_utf8_reports_rather_than_crashing(tmp_path):
+    path = write_rule(tmp_path, "bad-encoding", "placeholder")
+    path.write_bytes("# caf\xe9\n".encode("latin-1"))
+    assert codes(check_rule(path, tmp_path)) == {"not-utf8"}
+
+
 def test_shouting_in_a_rule_is_a_warning(tmp_path):
     text = "# Loud\n\nNEVER do the thing.\n"
     findings = check_rule(write_rule(tmp_path, "loud", text), tmp_path)
@@ -190,6 +196,18 @@ def test_a_blank_line_before_the_first_entry_does_not_hide_it(tmp_path):
     text = "---\npaths:\n\n  - nowhere/**\n---\n\n# B\n\nBody.\n"
     findings = check_rule(write_rule(tmp_path, "b", text), tmp_path)
     assert [f.code for f in findings] == ["dangling-glob"]
+
+
+def test_a_comment_line_inside_the_list_does_not_end_it(tmp_path):
+    """A `# comment` line between two entries used to read as the end of the sequence,
+    so every glob written after it went unchecked for matching nothing."""
+    (tmp_path / "AGENTS.md").write_text("", encoding="utf-8")
+    text = (
+        "---\npaths:\n  - AGENTS.md\n  # explaining the next glob\n  - nowhere/**\n"
+        "---\n\n# Commented\n\nBody.\n"
+    )
+    findings = check_rule(write_rule(tmp_path, "commented", text), tmp_path)
+    assert [(f.code, f.line) for f in findings] == [("dangling-glob", 5)]
 
 
 @pytest.mark.parametrize("pattern", ['""', '"a/"'])

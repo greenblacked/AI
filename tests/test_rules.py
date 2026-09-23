@@ -179,6 +179,32 @@ def test_find_skills_returns_every_skill_directory(tmp_path):
     assert [p.name for p in find_skills(tmp_path)] == ["one", "two"]
 
 
+def test_find_skills_excludes_only_the_top_level_template_directory(tmp_path):
+    (tmp_path / "template").mkdir()
+    (tmp_path / "template" / "SKILL.md").write_text("---\nname: template\n---\n", encoding="utf-8")
+    assert find_skills(tmp_path) == []
+
+
+def test_find_skills_does_not_exclude_a_skill_named_template(tmp_path):
+    """Matching the word anywhere in the path, rather than only at the root, used to
+    exclude any skill named `template` at any depth — a plugin shipping
+    `skills/template/` lost that skill from every check silently."""
+    directory = write_skill(tmp_path, "template")
+    assert find_skills(tmp_path) == [directory]
+
+
+def test_find_skills_does_not_exclude_a_skill_named_template_when_scoped_to_skills_dir(tmp_path):
+    """Several callers pass a single plugin's `skills/` directory as `root` rather than
+    the repository root — `check_marketplace`'s owned-skill set, `check_readme.py` and
+    `export_portable.py` among them. Checking only the top-level directory name against
+    that narrower `root` reintroduced the same bug one level down: `skills/template/`
+    again looked like the repository's own template and was hidden from exactly the
+    callers most likely to be scoped this way."""
+    directory = write_skill(tmp_path, "template")
+    skills_dir = tmp_path / "plugins" / "engineering" / "skills"
+    assert find_skills(skills_dir) == [directory]
+
+
 def write_plugin(root, name="engineering"):
     """Make a fixture directory into a real plugin."""
     manifest = root / "plugins" / name / ".claude-plugin"
@@ -368,6 +394,24 @@ def test_a_file_that_is_not_utf8_reports_rather_than_crashing(tmp_path):
         "---\nname: demo\ndescription: caf\xe9.\n---\n".encode("latin-1")
     )
     assert codes(check_skill(directory, tmp_path), ERROR) == {"not-utf8"}
+
+
+def test_a_bundled_script_that_is_not_utf8_reports_rather_than_crashing(tmp_path):
+    """One mis-encoded script used to abort the whole run with a traceback and zero
+    findings for every other skill, which in CI reads as "the validator is broken"."""
+    directory = write_skill(tmp_path, "demo")
+    scripts = directory / "scripts"
+    scripts.mkdir()
+    (scripts / "run.sh").write_bytes("#!/bin/sh\necho caf\xe9\n".encode("latin-1"))
+    assert "not-utf8" in codes(check_skill(directory, tmp_path), ERROR)
+
+
+def test_a_reference_that_is_not_utf8_reports_rather_than_crashing(tmp_path):
+    directory = write_skill(tmp_path, "demo")
+    references = directory / "references"
+    references.mkdir()
+    (references / "depth.md").write_bytes("# caf\xe9\n".encode("latin-1"))
+    assert "not-utf8" in codes(check_skill(directory, tmp_path), ERROR)
 
 
 def test_two_skills_may_not_share_a_name(tmp_path):

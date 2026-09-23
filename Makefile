@@ -11,7 +11,7 @@ RUFF_PIN := $(shell sed -n "s/^ *RUFF_VERSION: *'\(.*\)'/\1/p" .github/workflows
 MARKDOWNLINT_PIN := 0.23.2
 CODESPELL_PIN := $(shell sed -n "s/^ *CODESPELL_VERSION: *'\(.*\)'/\1/p" .github/workflows/ci.yml)
 
-.PHONY: help validate catalogue test coverage lint package portable install clean
+.PHONY: help validate catalogue providers test coverage lint package portable install clean
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
@@ -19,13 +19,17 @@ help: ## Show this help
 validate: ## Validate every skill, subagent and the marketplace manifest
 	PYTHONPATH=src $(PYTHON) -m skillcheck . --strict
 
-catalogue: ## Check listing ceilings, README and CI drift, workflows, shell, and the hook
+catalogue: ## Check listing ceilings, README and CI drift, workflows, shell, the hook, providers table
 	@$(PYTHON) scripts/check_listing_budget.py .
 	@$(PYTHON) scripts/check_readme.py .
 	@$(PYTHON) scripts/check_ci_docs.py .
 	@$(PYTHON) scripts/check_workflows.py .
 	@$(PYTHON) scripts/check_shell.py .
 	@$(PYTHON) scripts/check_settings.py .
+	@$(PYTHON) scripts/providers_table.py .
+
+providers: ## Regenerate the README's AI tools table from providers.json
+	@$(PYTHON) scripts/providers_table.py --write .
 
 test: ## Run the validator's own test suite
 	PYTHONPATH=src pytest

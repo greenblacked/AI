@@ -18,5 +18,6 @@
   {"query": "the pipeline is red, is it a flake or a real failure", "should_trigger": false, "expected": "ci-triage"},
   {"query": "scaffold a python service with tests and a linter", "should_trigger": false, "expected": "code-scaffold"},
   {"query": "harden this Dockerfile and pin the base image by digest", "should_trigger": false, "expected": "image-hardening"},
-  {"query": "run a game day to test whether we survive losing an availability zone", "should_trigger": false, "expected": "game-day"}
+  {"query": "run a game day to test whether we survive losing an availability zone", "should_trigger": false, "expected": "game-day"},
+  {"query": "we just cut over to the new primary last night, when is it safe to decommission the old one and who signs off", "should_trigger": false, "expected": "cutover"}
 ]

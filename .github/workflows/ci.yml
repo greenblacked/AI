@@ -255,6 +255,14 @@ jobs:
         run: |
           set -Eeuo pipefail
           python scripts/check_settings.py .
+      - name: The README's AI tools table matches providers.json
+        # Every row is a claim about a third-party tool, kept as data with its sources
+        # and the date it was checked, and the README carries only a rendering of it. A
+        # hand edit to the table or an unrendered data edit fails here; a row past its
+        # re-check date is a warning, because the calendar moving is not a broken build.
+        run: |
+          set -Eeuo pipefail
+          python scripts/providers_table.py .
 
   spelling:
     name: lint spelling

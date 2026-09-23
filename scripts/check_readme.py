@@ -61,6 +61,14 @@ from skillcheck.rules import find_agents, find_commands, find_plugins, find_skil
 
 # `[`name`](plugins/<plugin>/skills/<name>/SKILL.md)` — the shape every skill row uses.
 SKILL_ROW_RE = re.compile(r"\[`([a-z0-9-]+)`\]\((plugins/[^)]*?/skills/[^)]*?/SKILL\.md)\)")
+# A table row's first cell: `name` for a subagent, `/name` for a command. Anchored to
+# the start of the line — unlike `SKILL_ROW_RE` above, whose distinctive
+# `[`name`](path)` link shape only ever occurs in a table row in practice, a bare
+# backticked name has no such shape of its own and needs the anchor to tell a row apart
+# from a mention in prose, e.g. "the `weekly` command reads pull requests". Before this
+# was anchored, that prose mention alone made the check pass with no table row anywhere
+# for the name it was actually about.
+AGENT_OR_COMMAND_ROW_RE = re.compile(r"^\|\s*`(/?[a-z0-9-]+)`", re.M)
 BADGE_RE = re.compile(r"img\.shields\.io/badge/skills-(\d+)-")
 # The version list is URL-encoded in the badge ("3.10%20%7C%203.11") and is decoded
 # before comparison. The trailing colour is what bounds the capture.
@@ -165,6 +173,7 @@ def check(root: Path) -> int:
     text = readme.read_text(encoding="utf-8")
     contents = on_disk(root)
     problems: list[str] = []
+    row_names = set(AGENT_OR_COMMAND_ROW_RE.findall(text))
 
     def fail(message: str) -> None:
         problems.append(message)
@@ -222,12 +231,13 @@ def check(root: Path) -> int:
             )
 
     # --- subagents and commands: every shipped one has a row --------------------------
-    for kind, key in (("subagent", "subagents"), ("command", "commands")):
+    # A row is the first cell of a table line, not a backticked name anywhere in the
+    # document: a mention in prose used to satisfy this check with no table row for the
+    # name it was actually about, the same gap `SKILL_ROW_RE` never had for a skill.
+    for kind, key, mark in (("subagent", "subagents", ""), ("command", "commands", "/")):
         for plugin in sorted(contents):
             for name in sorted(contents[plugin][key]):
-                # A command is written `/name` in its table and a subagent as `name`;
-                # matching the backticked name covers both without parsing the table.
-                if f"`{name}`" not in text and f"`/{name}`" not in text:
+                if f"{mark}{name}" not in row_names:
                     fail(f"{kind} {name} ships with {plugin} and has no row in the README")
 
     # --- the repository's own agents and commands -------------------------------------
@@ -241,7 +251,7 @@ def check(root: Path) -> int:
     ):
         finder = find_agents if kind == "subagent" else find_commands
         for path in finder(directory):
-            if f"`{mark}{path.stem}`" not in text:
+            if f"{mark}{path.stem}" not in row_names:
                 fail(f"{kind} {mark}{path.stem} is in .claude/ and has no row in the README")
 
     # --- counts spelled out in the prose ----------------------------------------------

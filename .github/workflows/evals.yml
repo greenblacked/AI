@@ -377,27 +377,49 @@ jobs:
       - name: Check the backend has a credential
         id: credentials
         if: steps.targets.outputs.count != '0'
-        # A pull request from a fork is handed no secrets, so this cannot be an error:
-        # the contributor could do nothing about it, and a red check nobody can make
-        # green is a check everybody learns to ignore.
+        # A pull request from a fork is handed no secrets, so a missing credential
+        # there cannot be an error: the contributor could do nothing about it, and a red
+        # check nobody can make green is a check everybody learns to ignore. A pull
+        # request from this same repository is a different case — the maintainer could
+        # set the secret and has not, so a notice claiming "expected on a fork" would be
+        # false for them, and it is how the 0.7 floor below went unenforced with nothing
+        # saying so. SAME_REPO is computed in `env`, never interpolated into the script
+        # itself, so the head repo's name never reaches the shell as literal text.
+        # A same-repository pull request opened by Dependabot is a third shape: GitHub
+        # withholds repository secrets from those too, so this warning can still fire
+        # there even with CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY configured — that
+        # is expected, not a sign the secret is missing or misnamed.
         run: |
           set -Eeuo pipefail
           if [ -n "${CLAUDE_CODE_OAUTH_TOKEN:-}${ANTHROPIC_API_KEY:-}" ]; then
             echo "skip=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          echo "::notice title=no credentials::Not scoring the changed skills:" \
-            "this run has no CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY," \
-            "which is expected on a pull request from a fork"
           echo "skip=true" >> "$GITHUB_OUTPUT"
-          {
-            echo "Not scored: this run has no model credential. That is expected on a"
-            echo "pull request from a fork, and is not a failure."
-            echo ""
-          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$SAME_REPO" = "true" ]; then
+            echo "::warning title=no credential configured::Trigger-eval scoring is" \
+              "inactive: set CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY as a" \
+              "repository secret to enforce the 0.7 floor on pull requests"
+            {
+              echo "Not scored: no model credential is configured as a repository"
+              echo "secret. Scoring is inactive until CLAUDE_CODE_OAUTH_TOKEN or"
+              echo "ANTHROPIC_API_KEY is set."
+              echo ""
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::notice title=no credentials::Not scoring the changed skills:" \
+              "this run has no CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY," \
+              "which is expected on a pull request from a fork"
+            {
+              echo "Not scored: this run has no model credential. That is expected on a"
+              echo "pull request from a fork, and is not a failure."
+              echo ""
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SAME_REPO: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         if: steps.targets.outputs.count != '0' && steps.credentials.outputs.skip != 'true'
         with:

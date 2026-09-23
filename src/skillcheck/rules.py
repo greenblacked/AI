@@ -139,14 +139,27 @@ def find_plugins(repo_root: Path) -> list[Path]:
 def find_skills(root: Path) -> list[Path]:
     """Return every skill directory under ``root``, sorted by path.
 
-    A skill directory is one that directly contains a ``SKILL.md``. ``template/`` is
-    excluded: it is a starting point to copy, not a skill that ships.
+    A skill directory is one that directly contains a ``SKILL.md``. The repository's own
+    ``template/`` is excluded: it is the starting point the "Adding a skill" instructions
+    say to copy, not a skill that ships, and it sits at the repository root rather than
+    inside any plugin's ``skills/`` directory.
+
+    Checking ``parts[0]`` against ``root`` used to be how that exclusion was written, but
+    several callers pass a single plugin's ``skills/`` directory as ``root`` rather than
+    the repository root — ``check_marketplace``'s owned-skill set, `check_readme.py` and
+    `export_portable.py` among them — and for those, a skill directory literally named
+    ``template`` (``plugins/<plugin>/skills/template/``) again had ``parts[0] ==
+    "template"`` and was silently hidden from every one of them. What actually
+    distinguishes the two is the *grandparent* of the ``SKILL.md``: a ``template/``
+    sitting directly inside a ``skills/`` directory is always a real, shippable skill,
+    whichever root a caller happened to scope the walk to; the repository's own template
+    is the one whose parent is not a ``skills/`` directory at all.
     """
     return sorted(
         {
             path.parent
             for path in root.rglob("SKILL.md")
-            if "template" not in path.relative_to(root).parts
+            if not (path.parent.name == "template" and path.parent.parent.name != "skills")
         }
     )
 
@@ -478,7 +491,14 @@ def _check_bundled_paths(
 
 def _check_scripts(directory: Path, repo_root: Path, add) -> list[Finding]:
     for script in sorted((directory / "scripts").rglob("*.sh")):
-        first = script.read_text(encoding="utf-8").split("\n", 1)[0]
+        try:
+            first = script.read_text(encoding="utf-8").split("\n", 1)[0]
+        except UnicodeDecodeError as error:
+            # A mis-encoded script used to abort the whole run with a traceback and
+            # zero findings, which reads in CI as "the validator is broken" rather
+            # than "this one file is".
+            add(ERROR, "not-utf8", f"file is not valid UTF-8: {error}", 1, script)
+            continue
         if not first.startswith("#!"):
             add(ERROR, "no-shebang", "shell script has no shebang line", 1, script)
         if not script.stat().st_mode & 0o111:
@@ -496,7 +516,11 @@ def _check_length(text: str, directory: Path, repo_root: Path, add) -> list[Find
             "push depth into references/ instead",
         )
     for reference in sorted((directory / "references").rglob("*.md")):
-        content = reference.read_text(encoding="utf-8")
+        try:
+            content = reference.read_text(encoding="utf-8")
+        except UnicodeDecodeError as error:
+            add(ERROR, "not-utf8", f"file is not valid UTF-8: {error}", 1, reference)
+            continue
         count = len(content.split("\n"))
         if count > REFERENCE_MAX_LINES_WITHOUT_TOC and not TOC_RE.search(content):
             add(
@@ -625,7 +649,9 @@ def check_marketplace(repo_root: Path) -> list[Finding]:
 # The source is the plugins reference's "Plugin agents support ..." line, not the
 # sub-agents page: the two list different keys, and only the former is scoped to what
 # survives being shipped inside a plugin. Re-check it there rather than trusting this
-# copy. `color` and `initialPrompt` are absent from it and were once accepted here.
+# copy — checked 2026-09-23 against
+# https://code.claude.com/docs/en/plugins-reference.md. `initialPrompt` is absent from
+# it and was once accepted here.
 AGENT_ALLOWED_KEYS = frozenset(
     {
         "name",
@@ -640,6 +666,8 @@ AGENT_ALLOWED_KEYS = frozenset(
         "background",
         "isolation",
         "omitClaudeMd",
+        "color",
+        "experimental",
     }
 )
 # Accepted in a project-level agent, refused in one a plugin ships — a plugin must not
@@ -691,7 +719,13 @@ def check_agent(path: Path, repo_root: Path, known: frozenset[str] | None = None
         findings.append(Finding(level, relative, line, code, message))
 
     try:
-        front = parse(path.read_text(encoding="utf-8"))
+        text = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as error:
+        add(ERROR, "not-utf8", f"file is not valid UTF-8: {error}")
+        return findings
+
+    try:
+        front = parse(text)
     except FrontmatterError as error:
         add(ERROR, "frontmatter", error.message, error.line)
         return findings
@@ -998,7 +1032,11 @@ def check_command(path: Path, repo_root: Path) -> list[Finding]:
     def add(level: str, code: str, message: str, line: int = 1) -> None:
         findings.append(Finding(level, relative, line, code, message))
 
-    text = path.read_text(encoding="utf-8")
+    try:
+        text = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as error:
+        add(ERROR, "not-utf8", f"file is not valid UTF-8: {error}")
+        return findings
     try:
         front = parse(text)
     except FrontmatterError as error:
@@ -1121,7 +1159,13 @@ def _rule_globs(text: str, closing: int) -> list[tuple[str, int]]:
         else:
             index += 1
             while index < closing:
-                if not lines[index].strip():
+                stripped = lines[index].strip()
+                # A blank line or a standalone comment does not end the list: only a
+                # line that is not itself an entry — a dedent, or the next key — does.
+                # Treating a `# comment` line as the end used to stop the scan there,
+                # so every glob written after an explanatory comment inside the list
+                # went unchecked for matching nothing.
+                if not stripped or stripped.startswith("#"):
                     index += 1
                     continue
                 match = RULE_GLOB_ENTRY_RE.match(lines[index])
@@ -1175,7 +1219,11 @@ def check_rule(path: Path, repo_root: Path) -> list[Finding]:
     def add(level: str, code: str, message: str, line: int = 1) -> None:
         findings.append(Finding(level, relative, line, code, message))
 
-    text = path.read_text(encoding="utf-8")
+    try:
+        text = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as error:
+        add(ERROR, "not-utf8", f"file is not valid UTF-8: {error}")
+        return findings
     body_start = 0
     if text.startswith("---"):
         try:

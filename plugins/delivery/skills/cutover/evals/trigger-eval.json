@@ -18,5 +18,8 @@
   {"query": "we're putting the new checkout behind a feature flag at 5% of users, what should we watch", "should_trigger": false, "expected": "release-strategy"},
   {"query": "we ship four times a day but lead time is still nine days, where is the time going", "should_trigger": false, "expected": "delivery-review"},
   {"query": "document the decision on whether we go with kafka or sqs for the event bus", "should_trigger": false, "expected": "decision-record"},
-  {"query": "the terraform plan on this PR wants to replace the RDS instance, is that safe to apply", "should_trigger": false, "expected": "iac-review"}
+  {"query": "the terraform plan on this PR wants to replace the RDS instance, is that safe to apply", "should_trigger": false, "expected": "iac-review"},
+  {"query": "we need the phased plan for moving off our current cloud provider, invariants and dependency inventory and all", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "what's the multi-phase strategy for retiring the legacy identity system over the next two quarters", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "review this migration plan and tell me what phase it's missing before we get anywhere near a cutover window", "should_trigger": false, "expected": "plan-platform-migration"}
 ]
