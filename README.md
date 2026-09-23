@@ -111,13 +111,13 @@ not verified here, so rely on it only in Claude Code.
 | Provider | Tool | Reads `AGENTS.md` | Loads skills | How to use this library | Checked |
 | --- | --- | --- | --- | --- | --- |
 | Anthropic | Claude Code | Yes when there is no `CLAUDE.md`; beside one, through an `@AGENTS.md` import | Yes — plugins, `~/.claude/skills`, `.claude/skills` | Install the plugins from this marketplace | [2026-09-23](https://code.claude.com/docs/en/memory), [2](https://code.claude.com/docs/en/skills) |
-| DeepSeek | DeepSeek API | Not applicable — a model API, not an agent tool | Through whichever agent tool calls it | Route an agent tool from this table to a DeepSeek model; see docs/deepseek.md for two gateway routes | [2026-09-23](https://github.com/deepseek-ai/DeepSeek-V3) |
+| DeepSeek | DeepSeek API | Not applicable — a model API, not an agent tool | Through whichever agent tool calls it | Route an agent tool from this table to a DeepSeek model; see docs/deepseek.md for the gateway routes | [2026-09-23](https://github.com/deepseek-ai/DeepSeek-V3) |
 | GitHub | Copilot | Yes; in VS Code, files outside the workspace root are off by default | Yes — `.github/skills`, `.claude/skills`, `.agents/skills`, `~/.copilot/skills`, `~/.agents/skills` | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-09-23](https://github.com/github/docs/blob/main/content/copilot/concepts/agents/about-agent-skills.md), [2](https://github.com/github/docs/blob/main/content/copilot/how-tos/configure-custom-instructions-in-your-ide/add-repository-instructions-in-your-ide.md) |
 | Google | Gemini CLI | Opt-in — add `AGENTS.md` to `context.fileName` in `settings.json`; the default is `GEMINI.md` | Yes — `.agents/skills`, `.gemini/skills`, and both under `~` | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-09-23](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/skills.md), [2](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/gemini-md.md) |
 | Maxim | Bifrost (gateway) | Not applicable — a gateway in front of an agent tool | Through the agent tool routed through it | Route Claude Code or Codex to DeepSeek, unsupported by Anthropic; see docs/deepseek.md | [2026-09-23](https://github.com/maximhq/bifrost/blob/main/docs/cli-agents/claude-code.mdx), [2](https://github.com/maximhq/bifrost/blob/main/docs/cli-agents/codex-cli.mdx), [3](https://github.com/maximhq/bifrost/blob/main/docs/providers/supported-providers/deepseek.mdx) |
 | Mistral | Mistral Vibe | Yes — `~/.vibe/AGENTS.md` and project directories; needs folder trust | Yes — `.agents/skills`, `.vibe/skills`, `~/.vibe/skills`, `~/.agents/skills` | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-09-23](https://github.com/mistralai/mistral-vibe/blob/main/README.md) |
 | OpenAI | Codex CLI | Yes — each `AGENTS.md` from the project root down to the working directory | Yes — `~/.codex/skills` (or `$CODEX_HOME/skills`) | `CLAUDE_SKILLS_DIR=~/.codex/skills make install` | [2026-09-23](https://github.com/openai/codex/blob/main/codex-rs/core/src/agents_md.rs), [2](https://github.com/openai/codex/blob/main/codex-rs/skills/src/lib.rs), [3](https://github.com/openai/codex/blob/main/codex-rs/utils/home-dir/src/lib.rs) |
-| OpenRouter | OpenRouter (gateway) | Not applicable — a gateway in front of an agent tool | Through the agent tool routed through it | Route Claude Code to DeepSeek, unsupported by Anthropic; see docs/deepseek.md | [2026-09-23](https://github.com/OpenRouterTeam/docs/blob/main/cookbook/coding-agents/claude-code-integration.mdx) |
+| OpenRouter | OpenRouter (gateway) | Not applicable — a gateway in front of an agent tool | Through the agent tool routed through it | Route Claude Code to DeepSeek, or Codex to it through Bifrost, unsupported by Anthropic; see docs/deepseek.md | [2026-09-23](https://github.com/OpenRouterTeam/docs/blob/main/cookbook/coding-agents/claude-code-integration.mdx) |
 | xAI | Grok Build | Yes, and `CLAUDE.md`; needs folder trust | Yes — `.grok/skills`, `.agents/skills`, and `~/.claude/skills` | `make install` already links every skill where it looks | [2026-09-23](https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/docs/user-guide/08-skills.md), [2](https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/docs/user-guide/12-project-rules.md) |
 
 <!-- providers-table:end -->
@@ -145,6 +145,22 @@ a single `skills/<name>.md` into any chat, or append a bundle to the `AGENTS.md`
 repository a terminal agent is working in. [Using the skills](docs/using.md) has the
 instruction text that makes a Project reach for them, and says plainly what does not
 survive the trip.
+
+### Running the skills on DeepSeek
+
+The provider table above lists Bifrost and OpenRouter as separate gateway rows, but they
+do not have to be used one at a time — Bifrost can front OpenRouter the same way it fronts
+DeepSeek directly, giving Codex and Claude Code a second path to the same model. Every
+route this repository takes a position on is below, each linked to its full configuration
+in [`docs/deepseek.md`](docs/deepseek.md).
+
+| Route | Tool | Gateway chain | Set this | Status |
+| --- | --- | --- | --- | --- |
+| [Claude Code → Bifrost → DeepSeek](docs/deepseek.md#route-1-claude-code-through-bifrost-to-deepseek) | Claude Code | Bifrost | `ANTHROPIC_BASE_URL=http://localhost:8080/anthropic`, model `deepseek/<model-id>` | Follows Bifrost's documented provider/model rule; not an example its docs show; unsupported by Anthropic |
+| [Claude Code → OpenRouter → DeepSeek](docs/deepseek.md#route-2-claude-code-through-openrouter-to-deepseek) | Claude Code | OpenRouter | `ANTHROPIC_BASE_URL=https://openrouter.ai/api`, `ANTHROPIC_API_KEY` empty, model = OpenRouter's DeepSeek id | OpenRouter only guarantees its Anthropic first-party provider; unsupported by Anthropic |
+| [Codex → Bifrost → DeepSeek](docs/deepseek.md#route-3-codex-through-bifrost-to-deepseek) | Codex | Bifrost | Bifrost provider at `http://localhost:8080/openai/v1`, `wire_api = "responses"`, model `deepseek/<model-id>` | Documented by Bifrost — `deepseek` is on its Codex provider list |
+| [Codex → Bifrost → OpenRouter → DeepSeek](docs/deepseek.md#route-4-codex-through-bifrost-and-openrouter-to-deepseek) | Codex | Bifrost, then OpenRouter | Bifrost `openrouter` provider keyed by `env.OPENROUTER_API_KEY`, model `openrouter/deepseek/<model-id>` | `openrouter` is on Bifrost's Codex provider list; that the rest of the string reaches OpenRouter as its own vendor-prefixed id follows from Bifrost's provider/model rule and is not an example its docs show |
+| [Claude Code → Bifrost → OpenRouter → DeepSeek](docs/deepseek.md#claude-code-through-bifrost-and-openrouter) | Claude Code | Bifrost, then OpenRouter | model `openrouter/deepseek/<model-id>` | Not recommended — Bifrost warns that OpenRouter, at the time of writing, does not stream tool-call arguments properly, so Claude Code fails on file operations |
 
 ### Working on the skills themselves
 
