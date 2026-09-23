@@ -1,14 +1,16 @@
 # Using the skills
 
 This library is a set of procedures written as Markdown. How you load them depends on
-what you are using, and only the first option below gives you the thing that makes a
-skill worth having: automatic triggering, where the assistant recognises the situation
-and reaches for the procedure without being told.
+what you are using, and only a tool that loads skills natively gives you the thing that
+makes a skill worth having: automatic triggering, where the assistant recognises the
+situation and reaches for the procedure without being told. Claude Code is the first
+option below; the [table in the README](../README.md#chatgpt-grok-codex-and-everything-else) says which other agent tools do the same,
+and where each one looks.
 
 - [Claude Code](#claude-code) — install the plugins; skills fire on their own
 - [ChatGPT](#chatgpt) — upload the bundles to a Project or a Custom GPT
 - [Grok](#grok) — paste the skill, or attach a bundle
-- [Codex, Gemini CLI and other terminal agents](#terminal-agents-that-read-agentsmd)
+- [Codex, Gemini CLI and other terminal agents](#terminal-agents-that-read-agentsmd) — several now load skills natively; see the [README table](../README.md#chatgpt-grok-codex-and-everything-else)
 - [Anything else, or nobody at all](#no-assistant-at-all)
 
 ## Claude Code
@@ -30,8 +32,9 @@ Install the plugins you will actually use. Every description a plugin ships sits
 context for the whole session, and the runtime caps that listing at about 1% of the
 context window. Past the cap it drops the descriptions of the skills you invoke least,
 which leaves them invocable by name and stops them being chosen on their own — silently.
-Only `career` and `personal` fit the default budget by themselves. If you install any of
-the other six, or more than one plugin, raise it in `~/.claude/settings.json`:
+Only `career`, `delivery` and `personal` fit the default budget by themselves. If you
+install any of the other five, or more than one plugin, raise it in
+`~/.claude/settings.json`:
 
 ```json
 { "skillListingBudgetFraction": 0.09 }
@@ -149,8 +152,12 @@ project text above with a bundle attached.
 
 ## Terminal agents that read AGENTS.md
 
-Codex, Gemini CLI and most other terminal agents read `AGENTS.md` from the working
-directory. Append what you want to the repository you are working in:
+Several terminal agents, Codex and Gemini CLI among them, now load `SKILL.md` skills
+natively and fire them on their own. That is the better route where it exists: the
+[table in the README](../README.md#chatgpt-grok-codex-and-everything-else) says which tools do and how to install for each.
+
+For one that does not, most terminal agents read `AGENTS.md` from the working directory.
+Append what you want to the repository you are working in:
 
 ```bash
 cat dist/portable/plugins/coding.md >> AGENTS.md
@@ -176,7 +183,8 @@ someone who wanted the checklist more than the automation.
 
 Be clear about what you lose outside Claude Code, because it is the valuable part:
 
-- **Automatic triggering.** Everywhere else you either tell the assistant to check the
+- **Automatic triggering**, except in the agent tools that load skills natively — the
+  [README table](../README.md#chatgpt-grok-codex-and-everything-else) lists them. Everywhere else you either tell the assistant to check the
   library, or name the skill yourself. The instruction text above is the closest
   approximation and it is not the same thing.
 - **Tool restriction.** `allowed-tools` and a subagent's denied `Write` are enforced by

@@ -67,10 +67,9 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`career` and `personal` fit the default budget on their own. The other six are over it —
-`delivery` and `gamedev` by a few dozen characters, the rest by enough to lose two or
-more descriptions on their own — and the split exists to keep that number as small as it can
-be.
+`career`, `delivery` and `personal` fit the default budget on their own. The other five are over it —
+each by enough that installed alone at least one of its descriptions is dropped — and the
+split exists to keep that number as small as it can be.
 
 The description budget is shared across installed plugins. Splitting a plugin does not
 reduce the total when both halves are installed, and shortening every description to a
@@ -92,7 +91,37 @@ added.
 
 ### ChatGPT, Grok, Codex and everything else
 
-There is no marketplace to read, so the skills are flattened into files that stand alone
+Several agent tools now load the same `SKILL.md` format natively and activate a skill when
+it is relevant; the table below says which, and where each one looks. Gemini CLI, Copilot
+and Mistral Vibe all read the shared `.agents/skills` location, and one command links every
+skill there:
+
+```bash
+git clone https://github.com/greenblacked/AI.git && cd AI
+CLAUDE_SKILLS_DIR=~/.agents/skills make install
+```
+
+This repository's subagents are a Claude Code feature and do not travel. Grok Build and
+Mistral Vibe read the `allowed-tools` key, but whether they enforce it as a restriction is
+not verified here, so rely on it only in Claude Code.
+
+<!-- providers-table:start -->
+<!-- Generated from providers.json by `python scripts/providers_table.py --write .`. Do not edit this table by hand: edit that file and regenerate. -->
+
+| Provider | Tool | Reads `AGENTS.md` | Loads skills | How to use this library | Checked |
+| --- | --- | --- | --- | --- | --- |
+| Anthropic | Claude Code | Yes when there is no `CLAUDE.md`; beside one, through an `@AGENTS.md` import | Yes — plugins, `~/.claude/skills`, `.claude/skills` | Install the plugins from this marketplace | [2026-09-23](https://code.claude.com/docs/en/memory), [2](https://code.claude.com/docs/en/skills) |
+| DeepSeek | DeepSeek API | Not applicable — a model API, not an agent tool | Through whichever agent tool calls it | Point an agent tool from this table at a DeepSeek model; skills load in the tool, not the model | [2026-09-23](https://github.com/deepseek-ai/DeepSeek-V3) |
+| GitHub | Copilot | Yes; in VS Code, files outside the workspace root are off by default | Yes — `.github/skills`, `.claude/skills`, `.agents/skills`, `~/.copilot/skills`, `~/.agents/skills` | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-09-23](https://github.com/github/docs/blob/main/content/copilot/concepts/agents/about-agent-skills.md), [2](https://github.com/github/docs/blob/main/content/copilot/how-tos/configure-custom-instructions-in-your-ide/add-repository-instructions-in-your-ide.md) |
+| Google | Gemini CLI | Opt-in — add `AGENTS.md` to `context.fileName` in `settings.json`; the default is `GEMINI.md` | Yes — `.agents/skills`, `.gemini/skills`, and both under `~` | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-09-23](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/skills.md), [2](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/gemini-md.md) |
+| Mistral | Mistral Vibe | Yes — `~/.vibe/AGENTS.md` and project directories; needs folder trust | Yes — `.agents/skills`, `.vibe/skills`, `~/.vibe/skills`, `~/.agents/skills` | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-09-23](https://github.com/mistralai/mistral-vibe/blob/main/README.md) |
+| OpenAI | Codex CLI | Yes — each `AGENTS.md` from the project root down to the working directory | Yes — `~/.codex/skills` (or `$CODEX_HOME/skills`) | `CLAUDE_SKILLS_DIR=~/.codex/skills make install` | [2026-09-23](https://github.com/openai/codex/blob/main/codex-rs/core/src/agents_md.rs), [2](https://github.com/openai/codex/blob/main/codex-rs/skills/src/lib.rs), [3](https://github.com/openai/codex/blob/main/codex-rs/utils/home-dir/src/lib.rs) |
+| xAI | Grok Build | Yes, and `CLAUDE.md`; needs folder trust | Yes — `.grok/skills`, `.agents/skills`, and `~/.claude/skills` | `make install` already links every skill where it looks | [2026-09-23](https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/docs/user-guide/08-skills.md), [2](https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/docs/user-guide/12-project-rules.md) |
+
+<!-- providers-table:end -->
+
+For a chat product with no skills loader, the portable export still applies. There is no
+marketplace to read there, so the skills are flattened into files that stand alone
 — frontmatter becomes a plain "Use this when" line and every reference file is inlined, so
 nothing is left pointing at a path the reader cannot open.
 
@@ -342,6 +371,13 @@ that can apply is not a reviewer.
 Four more sit in [`.claude/agents/`](.claude/agents) and ship to nobody. They are for
 working on this repository, in two loops that share a judge.
 
+| Subagent | Loop | Role |
+| --- | --- | --- |
+| `explorer` | build | Surveys what already covers a change |
+| `implementer` | build | Writes it and runs the gates |
+| `investigator` | verify | Settles one claim against primary sources |
+| `reviewer` | both | Judges the result on a fresh context with no editing tools |
+
 To build something: `explorer` surveys what already covers a change, `implementer` writes
 it and runs the gates, and `reviewer` judges the result on a fresh context with no editing
 tools. [`/ship`](.claude/commands/ship.md) runs those three in order.
@@ -389,7 +425,7 @@ dependency, including skipped jobs. See the [execution flow](docs/ci.md#executio
 
 ```bash
 make validate   # frontmatter contract, dangling references, marketplace cross-check
-make catalogue  # listing ceilings, the README and CI docs, workflows, shell, the hook
+make catalogue  # listing ceilings, the README and CI docs, workflows, shell, the hook, providers
 make test       # the validator's own test suite
 make coverage   # the same, with the coverage floor CI enforces
 make package    # a .skill archive per skill

@@ -2,11 +2,11 @@
 """PostToolUse hook: validate what was just written, not in CI.
 
 Claude Code passes the tool call as JSON on stdin. If the file just written is one the
-validator covers — a skill, a subagent, a slash command or a rule — run the validator
-and report only the errors belonging to it. Exiting 2 is what puts the message in
-front of the agent that made the edit, which is the whole point: a dangling
-`references/` pointer costs nothing to fix now and is invisible until someone reads
-the CI log twenty minutes later.
+validator covers — a skill, a subagent (including its `agents/evals/<name>.json`
+trigger-eval set), a slash command or a rule — run the validator and report only the
+errors belonging to it. Exiting 2 is what puts the message in front of the agent that
+made the edit, which is the whole point: a dangling `references/` pointer costs nothing
+to fix now and is invisible until someone reads the CI log twenty minutes later.
 
 Warnings are deliberately not reported here. They are judgement calls, and a hook that
 interrupts on a judgement call teaches people to remove the hook.
@@ -46,6 +46,32 @@ def _is_file_target(path: Path) -> bool:
     return False
 
 
+def _is_agent_eval(path: Path) -> bool:
+    """Is this a subagent's own trigger-eval set, `agents/evals/<name>.json`?
+
+    It needs a check of its own rather than folding into `_is_file_target` above: the
+    validator's `_check_eval_file` reports every content error — thin-eval-set,
+    unbalanced-eval-set, a malformed entry — against the eval JSON's own path, not
+    against the agent's `.md`, so the hook has to key on the JSON directly or the errors
+    an edit here just caused go unmatched and the hook stays silent. A skill's eval set
+    at `skills/<name>/evals/trigger-eval.json` needs no equivalent: the directory walk
+    above already finds that skill's `SKILL.md` and keys on the whole directory, since a
+    skill owns everything under it, evals included.
+    """
+    if path.suffix != ".json":
+        return False
+    parts = path.parts
+    if len(parts) < 3 or parts[-2] != "evals":
+        return False
+    index = len(parts) - 3
+    if parts[index] != "agents":
+        return False
+    prefix = parts[:index]
+    if prefix == (".claude",):
+        return True
+    return len(prefix) == 2 and prefix[0] == "plugins"
+
+
 def edited_target(payload: object) -> tuple[str, str] | None:
     """Return what the edit belongs to, and the prefix its findings start with.
 
@@ -67,7 +93,7 @@ def edited_target(payload: object) -> tuple[str, str] | None:
     for parent in [path, *path.parents]:
         if (ROOT / parent / "SKILL.md").is_file():
             return str(parent), f"{parent}/"
-    if _is_file_target(path):
+    if _is_file_target(path) or _is_agent_eval(path):
         return str(path), f"{path}:"
     return None
 
@@ -92,8 +118,26 @@ def main() -> int:
         check=False,
     )
 
+    stdout_lines = result.stdout.splitlines()
+    if result.returncode != 0 and not any(line.startswith("ERROR   ") for line in stdout_lines):
+        # A nonzero exit with no ERROR line anywhere means the validator itself did not
+        # run to completion — a SyntaxError in rules.py, an uncaught exception, a bad
+        # invocation — rather than another file in the repository having findings. Going
+        # silent here would turn a broken validator into a hook nobody notices is off.
+        # A nonzero exit *with* ERROR lines for other files is the ordinary case and
+        # must stay silent for an edit that did not cause them.
+        print(
+            f"skillcheck exited {result.returncode} without reporting any findings — it "
+            "did not run to completion, so this edit was not validated",
+            file=sys.stderr,
+        )
+        tail = "\n".join(result.stderr.strip().splitlines()[-20:])
+        if tail:
+            print(tail, file=sys.stderr)
+        return 2
+
     prefix = f"ERROR   {key}"
-    errors = [line for line in result.stdout.splitlines() if line.startswith(prefix)]
+    errors = [line for line in stdout_lines if line.startswith(prefix)]
     if not errors:
         return 0
 

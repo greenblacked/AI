@@ -30,8 +30,8 @@ how a badly formatted example in a reference file reached a red build rather tha
 one.
 
 If you edit this repository with Claude Code, `.claude/settings.json` registers a
-`PostToolUse` hook that runs the validator against whichever skill, subagent, command or
-rule you just wrote, and reports only that file's errors. It exists so a dangling `references/` pointer surfaces
+`PostToolUse` hook that runs the validator against whichever skill, subagent (or its eval set), command
+or rule you just wrote, and reports only that file's errors. It exists so a dangling `references/` pointer surfaces
 while you are still holding the context, rather than in a CI log twenty minutes later.
 Warnings are left out of it deliberately — a hook that interrupts on a judgement call is
 a hook people delete.
@@ -43,7 +43,7 @@ Follow [`docs/writing-skills.md`](docs/writing-skills.md). In short: copy
 `description` last and make it explicit about when the skill should fire, put depth in
 `references/` and write every file you name, and write `evals/trigger-eval.json`. There is
 nothing to register: each plugin discovers its own `skills/`, so the only structural rule
-is that the skill sits inside one of the seven under `plugins/`. Pick the plugin by the
+is that the skill sits inside one of the eight under `plugins/`. Pick the plugin by the
 work it belongs to, not by who would do it — a skill stranded outside a plugin installs
 for nobody, and the validator says so.
 

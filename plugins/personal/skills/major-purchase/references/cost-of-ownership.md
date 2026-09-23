@@ -113,7 +113,7 @@ moment those can be found. They are shapes, not forecasts.
 
 | Category | Year 1 | Year 3 cumulative | Year 5 cumulative | Notes |
 | --- | --- | --- | --- | --- |
-| New mass-market car | 20-30% | 40-50% | 45-55% | Varies most with brand and fuel type, and the whole curve moved sharply with used-car supply — current market data puts average five-year depreciation near 42%. Check listings for the same model at target age. |
+| New mass-market car | 20-30% | 40-50% | 45-55% | Varies most with brand and fuel type, and the whole curve moved sharply with used-car supply in recent years. Check listings for the same model at target age rather than trusting this range. |
 | One-to-three-year-old car | 10-15% a year | — | — | The flatter part of the curve, which is the whole argument for buying here. |
 | Laptop or phone | 25-40% | 55-70% | 70-80% | Cliff-edged at the end of security support rather than gradual, and that end usually arrives before year five. Five-year-old flagship phones and laptops still fetch 20-30% of list; models below flagship approach zero. |
 | Large appliance | steep and irrelevant | — | — | Second-hand market is thin; assume no resale and plan on service life instead. |

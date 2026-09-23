@@ -4,9 +4,10 @@
 The skills in this repository are plain procedures. Nothing in them is specific to one
 vendor — two files mention Claude at all, and both do it because the fact is about Claude
 — but the *packaging* is: a `SKILL.md` with YAML frontmatter, sitting in a plugin with a
-manifest, discovered by a marketplace. ChatGPT, Grok and the rest have no marketplace to
-read, so the work does not travel, and pasting a `SKILL.md` into one of them hands the
-reader frontmatter it cannot use and `references/` pointers it cannot open.
+manifest, discovered by a marketplace. Chat assistants such as ChatGPT have no skill
+loader and no marketplace to read, so the work does not travel there, and pasting a
+`SKILL.md` into one of them hands the reader frontmatter it cannot use and `references/`
+pointers it cannot open.
 
 This flattens each skill into one file that stands alone:
 
@@ -41,24 +42,52 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from skillcheck.frontmatter import FrontmatterError, parse  # noqa: E402
-from skillcheck.rules import find_plugins, find_skills  # noqa: E402
+from skillcheck.rules import BUNDLED_PATH_RE, find_plugins, find_skills  # noqa: E402
 
-# Everything a skill can ship and name in prose. `scripts/` is here because a skill
-# that hands an agent a script to run is handing it a path, and a path is the one thing
-# a flattened copy cannot provide — `git bisect run ./scripts/bisect-probe.sh` reaches a
-# reader with no such file.
-BUNDLED_RE = re.compile(
-    r"(?<![A-Za-z0-9_./-])(?:\./)?"
-    r"((?:references|assets)/[A-Za-z0-9_.-]+\.md|scripts/[A-Za-z0-9_.-]+\.[A-Za-z0-9]+)"
-)
+# Reusing the validator's own pointer regex, rather than a narrower local copy, is the
+# point: the local copy only matched a flat `references/<x>.md`, `assets/<x>.md` or
+# `scripts/<x>.<ext>`, so a nested `references/deep/topic.md` or a non-Markdown
+# `assets/checklist.txt` was neither inlined nor reported — `--check` said clean while
+# the export still pointed at a file the reader could not open. `BUNDLED_PATH_RE` has no
+# capturing group, so callers below match on ``match.group(0)``.
+BUNDLED_RE = BUNDLED_PATH_RE
 # How to fence a shipped script, by extension. Anything unlisted is fenced without a
 # language rather than guessed at.
 SCRIPT_LANGUAGES = {".sh": "bash", ".bash": "bash", ".py": "python", ".js": "javascript"}
+# How to fence a shipped asset, by extension. Unlike a script, an asset with no
+# recognised extension still gets a language rather than none: `text` says the block
+# was checked rather than guessed at, and every asset used to be fenced as `markdown`
+# regardless of its actual extension — a checklist.txt or a config.yaml labelled that
+# way reads as a claim about its syntax that is simply wrong.
+ASSET_LANGUAGES = {
+    ".md": "markdown",
+    ".yaml": "yaml",
+    ".yml": "yaml",
+    ".json": "json",
+    ".toml": "toml",
+    ".txt": "text",
+}
 # Any fence opener, with its full run of markers: the closing fence has to use the same
 # character and be at least as long, or a four-backtick block quoting a three-backtick
 # example closes early and everything after it is read as prose.
 FENCE_RE = re.compile(r"^(`{3,}|~{3,})")
 ATX_RE = re.compile(r"^(#{1,6})(\s+)")
+
+
+def _pointer(match: re.Match[str]) -> str:
+    """The path a `BUNDLED_RE` match names, normalised to how it appears on disk.
+
+    Unlike the old local regex, `BUNDLED_PATH_RE` has no capturing group excluding a
+    leading `./`, so a mention written `./references/x.md` and one written
+    `references/x.md` would otherwise become two different dictionary keys for the same
+    file — one resolved by the directory walk, the other never matching it, and the
+    file inlined or left dangling depending on which form the prose happened to use.
+
+    No trailing-punctuation stripping happens here: `BUNDLED_PATH_RE`'s character class
+    cannot end a match on a `.`, `,`, `;` or `:`, so a match is never left holding one —
+    `references/x.md.` and `references/x.md,` both already match as `references/x.md`.
+    """
+    return match.group(0).removeprefix("./")
 
 
 def demote(text: str, levels: int) -> str:
@@ -136,6 +165,18 @@ def language_of(relative: str) -> str:
     return SCRIPT_LANGUAGES.get(Path(relative).suffix, "")
 
 
+def asset_language_of(relative: str) -> str:
+    """The fence language for a shipped asset, by extension, falling back to `text`.
+
+    A script left unfenced when its extension is unknown is a judgement call an author
+    can override by naming the extension in `SCRIPT_LANGUAGES`. An asset has no such
+    author in the loop — it is whatever the reader's own project needs it to be — so it
+    always gets a language, and `text` is the honest one when the extension names
+    nothing more specific.
+    """
+    return ASSET_LANGUAGES.get(Path(relative).suffix, "text")
+
+
 def drop_title(text: str) -> str:
     """A reference file's own H1, removed: the section heading already carries it, and
     keeping both renders as a title followed immediately by the same title again."""
@@ -194,11 +235,22 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         if fenced:
             continue
         for match in BUNDLED_RE.finditer(line):
-            if match.group(1) not in order:
-                order.append(match.group(1))
-                named.append(match.group(1))
-    for pattern in ("references/*.md", "assets/*.md", "scripts/*"):
-        for path in sorted(directory.glob(pattern)):
+            candidate = _pointer(match)
+            tail = candidate.rsplit("/", 1)[-1]
+            if "." not in tail:
+                continue  # a directory mentioned generically, not a pointer to a file
+            if candidate not in order:
+                order.append(candidate)
+                named.append(candidate)
+    # Walked recursively and at any extension, matching what the validator itself
+    # accepts as a pointer: a nested references/deep/topic.md or a non-Markdown
+    # assets/checklist.txt is bundled the same as a flat references/x.md, rather than
+    # silently passing through neither inlined nor reported.
+    for sub in ("references", "assets", "scripts"):
+        base = directory / sub
+        if not base.is_dir():
+            continue
+        for path in sorted(base.rglob("*")):
             if path.is_file():
                 relative = path.relative_to(directory).as_posix()
                 if relative not in order:
@@ -214,12 +266,19 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             sources[relative] = path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             continue  # a binary asset cannot be inlined as text; leave the pointer be
-        titles[relative] = title_of(sources[relative], Path(relative).stem)
+        if relative.startswith("references/"):
+            titles[relative] = title_of(sources[relative], Path(relative).stem)
+        else:
+            # A script's or asset's title is the path to create, not its content — the
+            # first "# " line of a shell script is a comment, not a heading, and using
+            # it as the title silently mistitled the section with unrelated prose.
+            titles[relative] = relative
 
     def rewrite(text: str) -> str:
         def one(match: re.Match[str]) -> str:
-            title = titles.get(match.group(1))
-            return f'the "{title}" section below' if title else match.group(1)
+            candidate = _pointer(match)
+            title = titles.get(candidate)
+            return f'the "{title}" section below' if title else match.group(0)
 
         out = []
         for line, fenced in zip(text.split("\n"), fence_spans(text), strict=True):
@@ -237,11 +296,22 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             continue
         title, text = titles[relative], sources[relative]
         if relative.startswith("references/"):
-            sections.append(f"### {title}\n\n{demote(drop_title(text), 3).strip()}")
+            # Rewritten before the heading is attached: a reference's own body can name
+            # a sibling pointer, but the heading must not be run through the same
+            # rewrite — a script or asset title is now the path itself, and reusing this
+            # branch for those would have that path rewritten into a self-referential
+            # "the ... section below" the moment it fed back through `BUNDLED_RE`.
+            content = rewrite(demote(drop_title(text), 3).strip())
+            sections.append(f"### {title}\n\n{content}")
         else:
-            language = "markdown" if relative.startswith("assets/") else language_of(relative)
+            # Fenced verbatim, so there is no prose inside to rewrite, and the heading
+            # — the file's own path — must stay exactly as written for the same reason.
+            language = (
+                asset_language_of(relative)
+                if relative.startswith("assets/")
+                else (language_of(relative))
+            )
             sections.append(f"### {title}\n\n```{language}\n{text.rstrip()}\n```")
-    sections = [rewrite(section) for section in sections]
 
     body = rewrite(body)
     unresolved = [relative for relative in named if relative not in titles]
@@ -293,8 +363,12 @@ surface, so the single-skill files are usually the better unit there.
 
 ## Codex, Gemini CLI and other terminal agents
 
-These read `AGENTS.md` from the working directory. Append the skills you want, or point
-at them:
+Several of these now load skills natively and fire them on their own, which beats any
+file here: the table in the repository README says which, and how to install for each —
+<https://github.com/greenblacked/AI#chatgpt-grok-codex-and-everything-else>
+
+For one that does not, most read `AGENTS.md` from the working directory. Append the
+skills you want, or point at them:
 
 ```bash
 cat dist/portable/plugins/coding.md >> AGENTS.md

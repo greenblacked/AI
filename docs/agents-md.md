@@ -39,9 +39,13 @@ in context with no marker for which one is current.
 
 This is the part people get wrong.
 
-**Claude Code reads `CLAUDE.md`, not `AGENTS.md`.** Dropping an `AGENTS.md` into a
-repository does nothing for Claude Code on its own. The supported pattern is a
-`CLAUDE.md` that imports it:
+**Claude Code reads `AGENTS.md` only when there is no `CLAUDE.md`.** Since v2.1.277 an
+`AGENTS.md` with no `CLAUDE.md`, `.claude/CLAUDE.md` or `CLAUDE.local.md` in the working
+directory or above it is read as the project instructions. Once a `CLAUDE.md` exists,
+Claude Code reads that instead and ignores `AGENTS.md`, and some sessions (on Amazon
+Bedrock, or with telemetry disabled) cannot read `AGENTS.md` at all. A repository that
+needs Claude-specific notes therefore has a `CLAUDE.md`, and the supported pattern is one
+that imports `AGENTS.md`:
 
 ```markdown
 @AGENTS.md
@@ -94,12 +98,14 @@ overview, the repository layout as a table, setup and testing commands, how to a
 skill, code style, commit and pull-request rules, security considerations, an explicit
 boundaries section, and a closing review checklist.
 
-[`CLAUDE.md`](../CLAUDE.md) is the `@AGENTS.md` import plus three notes that are only
+[`CLAUDE.md`](../CLAUDE.md) is the `@AGENTS.md` import plus four notes that are only
 true of Claude Code: that the subagents under `plugins/*/agents/` are the intended way to
 do heavy reading here, that `/ship` runs the three-stage loop in `.claude/agents/` over a
-change to this repository, and that plan mode is wanted for anything touching
+change to this repository, that plan mode is wanted for anything touching
 `src/skillcheck/` or `.github/workflows/`, since those two decide whether every other
-change is allowed to merge.
+change is allowed to merge, and which Claude model each agent in `.claude/agents/` runs
+on, since the model names in `AGENTS.md` belong to Codex and ChatGPT and mean nothing to
+Claude Code.
 
 The import, rather than a symlink, because a symlink needs Administrator or Developer
 Mode on Windows and this repository is public.

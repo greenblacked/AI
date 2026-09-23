@@ -15,21 +15,29 @@ Everything here is prose and configuration. There is no application. The only co
 
 ## Multi-agent workflow
 
-For multi-agent work, use Astra at medium effort only for review and decisions; use Sol
-at low effort for research into agent features or configuration and for implementation;
-use Terra at low effort for branch synchronisation and integration when assigned. Honour
-an explicit per-task assignment over this default split. Research agents verify facts
-before implementation begins. Give implementation agents disjoint files, then have the
-reviewer validate the combined diff. Do not substitute another model automatically; if a
-requested model is unavailable, report that limitation. Model and effort choices apply
-when starting agents and cannot change an already active session.
+Which models to use depends on the tool running the session, because each tool offers a
+different set. Honour an explicit per-task assignment over either default split below.
+
+- **Codex and ChatGPT:** use Astra at medium effort only for review and decisions; use
+  Sol at low effort for research into agent features or configuration and for
+  implementation; use Terra at low effort for branch synchronisation and integration
+  when assigned.
+- **Claude Code:** use the tier each agent in `.claude/agents/` declares, which
+  `CLAUDE.md` spells out.
+- **Any other tool:** report which models it offers rather than guessing at a mapping.
+
+Whichever tool runs it, research agents verify facts before implementation begins. Give
+implementation agents disjoint files, then have the reviewer validate the combined diff.
+Do not substitute another model automatically; if a requested model is unavailable,
+report that limitation. Model and effort choices apply when starting agents and cannot
+change an already active session.
 
 ## Repository layout
 
 | Path | What lives there |
 | --- | --- |
 | `AGENTS.md` | This file: the rules, in the form Codex and Gemini CLI read too |
-| `CLAUDE.md` | The `@AGENTS.md` import plus the three notes that are only true of Claude Code |
+| `CLAUDE.md` | The `@AGENTS.md` import plus the four notes that are only true of Claude Code |
 | `.claude/rules/` | Path-scoped rules loaded when a file matching the glob is read; `docs/project-structure.md` explains when each fires |
 | `.claude/settings.json` | The `PostToolUse` hook registration, checked by `scripts/check_settings.py`; nothing else yet |
 | `plugins/coding/skills/` | Reading, reviewing, testing and changing code |
@@ -53,7 +61,8 @@ when starting agents and cannot change an already active session.
 | `.claude-plugin/marketplace.json` | Lists the eight plugins; each discovers its own skills |
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
-| `scripts/` | Packaging, install, the eval harness, the portable export, and the six catalogue checks |
+| `providers.json` | Which AI tools read `AGENTS.md` and load skills, with sources and a checked date; `scripts/providers_table.py` renders it into the README |
+| `scripts/` | Packaging, install, the eval harness, the portable export, and the seven catalogue checks |
 | `scripts/hooks/` | The `PostToolUse` hook `.claude/settings.json` registers, which validates a skill, subagent, command or rule as it is written |
 
 ## Setup commands
@@ -65,7 +74,7 @@ needs anything installed.
 ```bash
 python -m pip install pytest coverage   # only for `make test` and `make coverage`
 make validate                  # every skill, subagent and the marketplace manifest
-make catalogue                 # listing ceilings, the README, shell blocks, the hook
+make catalogue                 # listing ceilings, the README, shell blocks, the hook, providers
 make test                      # the validator's own test suite
 make coverage                  # the same, failing below the floor in pyproject.toml
 make package                   # build a .skill archive per skill into dist/
@@ -78,12 +87,14 @@ make install                   # symlink every skill into ~/.claude/skills
 three before finishing; a change to `rules.py` that does not also change `tests/` is
 almost always missing a case.
 
-`make catalogue` is the six checks on what the repository claims about itself: the
+`make catalogue` is the seven checks on what the repository claims about itself: the
 listing ceilings, the README against the tree, `docs/ci.md` against the jobs the
 workflows actually define, that each workflow's aggregate names every job in it and each
-pinned version means one thing, that every shell block and shipped script parses, and
-that the hook `.claude/settings.json` registers points at a script that exists and can
-run.
+pinned version means one thing, that every shell block and shipped script parses, that
+the hook `.claude/settings.json` registers points at a script that exists and can run,
+and that the README's table of AI tools is what `providers.json` renders to. Edit that
+file rather than the table and run `make providers`; a row not re-checked within
+`stale_after_days` warns without failing.
 Adding a skill pushes its plugin's listing past the ceiling in `listing-budget.json`,
 on purpose: past the runtime's budget the descriptions of a plugin's least-used skills
 are dropped silently, so growth has to be a decision rather than a drift. Raise the ceiling with

@@ -54,8 +54,8 @@ yours rather than the project's —
 the scratch directory you use, the service you point a local run at. Git-ignore it;
 this repository does.
 
-**`AGENTS.md`.** Not a Claude Code feature. It is the cross-tool convention Codex,
-Gemini CLI and others read, and the reason this repository keeps its rules there and has
+**`AGENTS.md`.** The cross-tool convention Codex, Gemini CLI and others read. Claude
+Code reads it too, but only when there is no `CLAUDE.md`, which is the reason this repository keeps its rules there and has
 `CLAUDE.md` import them with `@AGENTS.md` — one set of rules rather than two that drift.
 [AGENTS.md](agents-md.md) covers what that split costs and what it buys.
 
@@ -85,10 +85,11 @@ be relevant.
 That conditional loading is also its failure mode, and the reason `skillcheck` validates
 this directory. A glob with a typo in it matches nothing, so the rule never loads, and
 nothing anywhere reports it — the author simply believes a gate is in place that is not.
-`make validate` checks this directory for three things:
+`make validate` checks this directory for four things:
 
 | Code | Means | Fix |
 | --- | --- | --- |
+| `not-utf8` | The file is not valid UTF-8. | Re-save it as UTF-8. Reported rather than raised, because one mis-encoded file used to abort validation for every other rule. |
 | `dangling-glob` | A `paths:` entry selects nothing in the repository, so the rule never loads. | Correct the glob, or drop the key and let the rule load every session. |
 | `empty-paths` | `paths:` is present with no entries, which scopes the rule to nothing. | List a glob, or remove the key. |
 | `empty-rule` | The file has no content to load. | Write it or delete it. |
