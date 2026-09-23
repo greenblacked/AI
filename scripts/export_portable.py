@@ -4,9 +4,10 @@
 The skills in this repository are plain procedures. Nothing in them is specific to one
 vendor — two files mention Claude at all, and both do it because the fact is about Claude
 — but the *packaging* is: a `SKILL.md` with YAML frontmatter, sitting in a plugin with a
-manifest, discovered by a marketplace. ChatGPT, Grok and the rest have no marketplace to
-read, so the work does not travel, and pasting a `SKILL.md` into one of them hands the
-reader frontmatter it cannot use and `references/` pointers it cannot open.
+manifest, discovered by a marketplace. Chat assistants such as ChatGPT have no skill
+loader and no marketplace to read, so the work does not travel there, and pasting a
+`SKILL.md` into one of them hands the reader frontmatter it cannot use and `references/`
+pointers it cannot open.
 
 This flattens each skill into one file that stands alone:
 

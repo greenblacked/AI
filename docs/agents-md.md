@@ -39,9 +39,13 @@ in context with no marker for which one is current.
 
 This is the part people get wrong.
 
-**Claude Code reads `CLAUDE.md`, not `AGENTS.md`.** Dropping an `AGENTS.md` into a
-repository does nothing for Claude Code on its own. The supported pattern is a
-`CLAUDE.md` that imports it:
+**Claude Code reads `AGENTS.md` only when there is no `CLAUDE.md`.** Since v2.1.277 an
+`AGENTS.md` with no `CLAUDE.md`, `.claude/CLAUDE.md` or `CLAUDE.local.md` in the working
+directory or above it is read as the project instructions. Once a `CLAUDE.md` exists,
+Claude Code reads that instead and ignores `AGENTS.md`, and some sessions (on Amazon
+Bedrock, or with telemetry disabled) cannot read `AGENTS.md` at all. A repository that
+needs Claude-specific notes therefore has a `CLAUDE.md`, and the supported pattern is one
+that imports `AGENTS.md`:
 
 ```markdown
 @AGENTS.md

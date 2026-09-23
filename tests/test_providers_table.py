@@ -339,3 +339,10 @@ def test_today_defaults_to_the_real_date(tmp_path, capsys):
 def test_the_committed_readme_matches_the_committed_providers_file(capsys):
     assert providers.main([str(REPO)]) == 0
     assert "providers table is current" in capsys.readouterr().out
+
+
+def test_today_comes_from_the_flag_not_the_clock(tmp_path, capsys):
+    # Every other test passes the real date, so ignoring --today survived them all.
+    root = setup(tmp_path, stale_after_days=1)
+    assert providers.main([str(root), "--write", "--today", "2026-09-03"]) == 0
+    assert "last checked 2026-09-01, 2 days ago" in capsys.readouterr().out

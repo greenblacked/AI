@@ -54,8 +54,8 @@ yours rather than the project's —
 the scratch directory you use, the service you point a local run at. Git-ignore it;
 this repository does.
 
-**`AGENTS.md`.** Not a Claude Code feature. It is the cross-tool convention Codex,
-Gemini CLI and others read, and the reason this repository keeps its rules there and has
+**`AGENTS.md`.** The cross-tool convention Codex, Gemini CLI and others read. Claude
+Code reads it too, but only when there is no `CLAUDE.md`, which is the reason this repository keeps its rules there and has
 `CLAUDE.md` import them with `@AGENTS.md` — one set of rules rather than two that drift.
 [AGENTS.md](agents-md.md) covers what that split costs and what it buys.
 
