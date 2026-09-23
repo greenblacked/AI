@@ -11,10 +11,10 @@ RUFF_PIN := $(shell sed -n "s/^ *RUFF_VERSION: *'\(.*\)'/\1/p" .github/workflows
 MARKDOWNLINT_PIN := 0.23.2
 CODESPELL_PIN := $(shell sed -n "s/^ *CODESPELL_VERSION: *'\(.*\)'/\1/p" .github/workflows/ci.yml)
 
-.PHONY: help validate catalogue providers test coverage lint package portable install clean
+.PHONY: help validate catalogue providers test coverage lint package attribution portable install clean
 
 help: ## Show this help
-	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
+	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
 validate: ## Validate every skill, subagent and the marketplace manifest
 	PYTHONPATH=src $(PYTHON) -m skillcheck . --strict
@@ -60,6 +60,9 @@ lint: ## Lint python, markdown, YAML and workflows (skips a tool when it is not 
 
 package: ## Build a .skill archive for every skill into dist/
 	@PYTHONPATH=src $(PYTHON) scripts/package_skills.py
+
+attribution: ## Check commits since origin/main, the branch name and PR text for tool attribution
+	@$(PYTHON) scripts/check_attribution.py . --range origin/main..HEAD
 
 portable: ## Flatten every skill into dist/portable for ChatGPT, Grok and other assistants
 	@PYTHONPATH=src $(PYTHON) scripts/export_portable.py .

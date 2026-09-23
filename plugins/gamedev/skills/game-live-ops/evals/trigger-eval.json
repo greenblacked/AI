@@ -1,0 +1,22 @@
+[
+  {"query": "help us plan the content calendar for next season", "should_trigger": true},
+  {"query": "what KPIs should we track for this live service season, and when do we stop it", "should_trigger": true},
+  {"query": "should this bug ship as a hotfix or wait for the next scheduled patch", "should_trigger": true},
+  {"query": "we need a season cadence and event schedule for our F2P mobile game", "should_trigger": true},
+  {"query": "how do we write patch notes players will actually trust", "should_trigger": true},
+  {"query": "plan the economy tuning schedule for this quarter with some guardrails", "should_trigger": true},
+  {"query": "how honest should our public roadmap be about upcoming features", "should_trigger": true},
+  {"query": "we need a known-issues policy for our live game's patch notes", "should_trigger": true},
+  {"query": "what's a good cadence for content drops in our competitive multiplayer game", "should_trigger": true},
+  {"query": "set a stop rule before we launch this season's event", "should_trigger": true},
+  {"query": "is this weapon's win rate telling us it's overpowered", "should_trigger": false, "expected": "game-balance"},
+  {"query": "size the change for this cooldown nerf and predict the win rate movement", "should_trigger": false, "expected": "game-balance"},
+  {"query": "our build was rejected in cert, what does the requirement mean", "should_trigger": false, "expected": "game-certification"},
+  {"query": "players are reporting stutter since the last patch, help me profile the frame budget", "should_trigger": false, "expected": "game-performance"},
+  {"query": "write the release notes and changelog for version 2.4 from the merged PRs", "should_trigger": false, "expected": "release-notes"},
+  {"query": "what percent should we start this feature flag rollout at", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "the site is down right now, what do we tell customers on the status page", "should_trigger": false, "expected": "incident-comms"},
+  {"query": "draft the blameless writeup for last week's outage", "should_trigger": false, "expected": "postmortem"},
+  {"query": "should we even build this game concept, or is it not feasible", "should_trigger": false, "expected": "game-greenlight"},
+  {"query": "spec out this new matchmaking feature before anyone builds it", "should_trigger": false, "expected": "game-design-doc"}
+]

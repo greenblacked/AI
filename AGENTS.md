@@ -59,7 +59,7 @@ change an already active session.
 | `docs/` | How to write skills, subagents, commands, `AGENTS.md`, what the project layout loads, and what CI checks |
 | `template/SKILL.md` | Starting point for a new skill |
 | `.claude-plugin/marketplace.json` | Lists the eight plugins; each discovers its own skills |
-| `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml` |
+| `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
 | `providers.json` | Which AI tools read `AGENTS.md` and load skills, with sources and a checked date; `scripts/providers_table.py` renders it into the README |
 | `scripts/` | Packaging, install, the eval harness, the portable export, and the seven catalogue checks |
@@ -206,7 +206,12 @@ Shell in this repository, including inline `run:` blocks in workflows, uses
   tag that SHA belongs to — `# v7.0.1`, not `# v7`. The SHA is what makes it immutable;
   the comment is what lets Dependabot bump it. A major-version comment goes stale
   silently the moment upstream moves the floating tag, and zizmor fails the build for it.
-- Checkouts set `persist-credentials: false`. Nothing here pushes from CI.
+- Checkouts set `persist-credentials: false`. Nothing here pushes from CI. The one
+  exception is `dependabot-auto-merge.yml`'s single job, the only job that can write to
+  repository contents or pull requests: it can enable auto-merge on a Dependabot pull
+  request that is a patch or minor update and whose head branch is in this repository,
+  which stays bounded because GitHub only completes that merge once the `ci` and
+  `security` checks the branch ruleset requires have both reported `success`.
 - Skills may describe security tooling and defensive procedure. They must not contain
   working exploit code, credentials, or instructions whose obvious use is unauthorised
   access.

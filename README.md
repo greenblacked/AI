@@ -5,10 +5,10 @@
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-87-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-89-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-87 agent skills, seventeen read-only subagents and six slash commands, in eight
+89 agent skills, seventeen read-only subagents and six slash commands, in eight
 plugins you install separately. They cover the daily loop of changing code, keeping a
 system running, shipping a change, securing it, making a game, leading a team, a career,
 and the parts of life that are nobody's job.
@@ -31,7 +31,7 @@ outside a runtime that can trigger them for you.
 | Plugin | Focus | Contents |
 | --- | --- | --- |
 | `coding` | Reading, reviewing, testing and changing code | 18 skills, 3 subagents |
-| `gamedev` | Making games, and shipping them | 9 skills, 1 subagent, 1 command |
+| `gamedev` | Making games, and shipping them | 11 skills, 1 subagent, 1 command |
 | `operations` | Keeping a running system alive | 15 skills, 5 subagents, 2 commands |
 | `delivery` | Getting a change into production | 9 skills, 1 subagent |
 | `security` | The defensive side of shipping software | 11 skills, 3 subagents, 2 commands |
@@ -232,6 +232,7 @@ through this plugin's skills by production scale and game type.
 
 | Skill | What it does |
 | --- | --- |
+| [`game-greenlight`](plugins/gamedev/skills/game-greenlight/SKILL.md) | Turn a game concept into a chosen idea before any design document exists: a one-page pitch, a feasibility read against team, time, money, platform and technical risk, a risk register naming the one riskiest assumption, and go, no-go and pivot criteria written before the prototype exists to argue for itself. |
 | [`game-assets`](plugins/gamedev/skills/game-assets/SKILL.md) | Get art and audio into the build without it eating the disk, the memory or the download — source kept out of the import path, large binaries behind LFS before the history is too big, and per-platform texture compression chosen rather than defaulted. |
 | [`game-balance`](plugins/gamedev/skills/game-balance/SKILL.md) | Tune a game's numbers against evidence rather than taste: decide what balanced means for this game first, read pick rate against win rate by skill band, change one thing with a window, and run playtests where you watch instead of asking. |
 | [`game-builder`](plugins/gamedev/skills/game-builder/SKILL.md) | Build a playable game scaled to the brief — core loop first in grey boxes, then a game-feel floor tuned against numbers — or review one that exists for feel, frame time and structure. |
@@ -241,6 +242,7 @@ through this plugin's skills by production scale and game type.
 | [`game-certification`](plugins/gamedev/skills/game-certification/SKILL.md) | Clear platform certification and store submission on the first try: work backwards from the release date to a content lock, run the checks that can fail cert before the ones that only polish, and declare ratings and data collection against what the build actually does. |
 | [`game-save-system`](plugins/gamedev/skills/game-save-system/SKILL.md) | Name the compatibility promise before the format — how many builds back a save must load — then version the schema, migrate one step per bump, write atomically so an interrupted save is not a corrupt one, and settle cloud conflicts by lineage rather than by timestamp. |
 | [`game-performance`](plugins/gamedev/skills/game-performance/SKILL.md) | Hold a frame budget on the hardware you ship to: milliseconds not FPS, captured from a real build on the device, judged at the 1% low, and CPU-bound proved against GPU-bound before a single optimisation. |
+| [`game-live-ops`](plugins/gamedev/skills/game-live-ops/SKILL.md) | Run a game after launch: a content and season calendar planned ahead rather than assembled week to week, economy tuning scheduled with guardrails, KPIs and a stop rule chosen before the season starts, a patch-and-hotfix rhythm, and community communication that keeps the roadmap honest. |
 
 ### Operations
 
@@ -453,7 +455,7 @@ skill that fires on everything.
 ## Documentation
 
 - [Using the skills](docs/using.md) — installing and using them in Claude Code, ChatGPT, Grok and terminal agents
-- [Gamedev: start here](docs/gamedev.md) — picking a production scale and a game type, and the route through the nine gamedev skills
+- [Gamedev: start here](docs/gamedev.md) — picking a production scale and a game type, and the route through the eleven gamedev skills
 - [Project structure](docs/project-structure.md) — what Claude Code loads from a project, what it loads only when relevant, and what is only a convention
 - [Writing a skill](docs/writing-skills.md) — the contract, every validator code, and how to write a description that actually triggers
 - [Writing a subagent](docs/writing-agents.md) — when a subagent beats doing the work inline

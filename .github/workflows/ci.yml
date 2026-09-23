@@ -381,6 +381,44 @@ jobs:
           # zero broken, and exits 0, and the check passes having read no file.
           failIfEmpty: true
 
+  attribution:
+    name: attribution
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          # `check_attribution.py` reads a commit range against the base branch, which
+          # needs its history, not just the pull request's own commits.
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.13'
+      - name: Check commits, branch name and pull request text for tool attribution
+        # Only a pull request has a base ref to diff against and text to read; a push
+        # to main or a merge-group run rebuilds a tree whose commits already passed
+        # this check on the pull request that produced them, so the job succeeds
+        # without re-deriving a range rather than skipping — a job this aggregate
+        # depends on has to report success, not skipped, on every event `ci` runs for.
+        # PR_TITLE and PR_BODY carry pull-request-controlled text, so they go through
+        # `env:` rather than into the script inline, the same as every other job here
+        # that touches something a contributor wrote.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -Eeuo pipefail
+          if [ "${EVENT_NAME}" != "pull_request" ]; then
+            echo "::notice title=attribution::not a pull request; nothing to scan"
+            exit 0
+          fi
+          PYTHONPATH=src python scripts/check_attribution.py . \
+            --range "origin/${GITHUB_BASE_REF}..HEAD"
+
   package:
     name: package
     needs:
@@ -469,6 +507,7 @@ jobs:
       - lint-yaml
       - lint-actions
       - links
+      - attribution
       - package
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -485,4 +524,4 @@ jobs:
           set -Eeuo pipefail
           python3 scripts/check_job_results.py \
             validate-skills validate-plugin test catalogue spelling \
-            lint-markdown lint-yaml lint-actions links package
+            lint-markdown lint-yaml lint-actions links attribution package

@@ -1,0 +1,22 @@
+[
+  {"query": "should we even build this game idea, or is it a waste of time", "should_trigger": true},
+  {"query": "help me write a one-page pitch for a new game concept", "should_trigger": true},
+  {"query": "is this game idea feasible for a three-person team with six weeks", "should_trigger": true},
+  {"query": "what should our prototype actually prove before we sink months into this", "should_trigger": true},
+  {"query": "we need to decide go or no-go on this concept before pre-production starts", "should_trigger": true},
+  {"query": "how do I pitch this game idea to the studio for greenlight", "should_trigger": true},
+  {"query": "what's the riskiest assumption in this game concept and how do we test it", "should_trigger": true},
+  {"query": "we keep debating whether to keep building this prototype or kill it", "should_trigger": true},
+  {"query": "write kill criteria for our prototype before we start building it", "should_trigger": true},
+  {"query": "should this pitch pivot to a different platform or die here", "should_trigger": true},
+  {"query": "write a design doc spec for the crafting system we already decided on", "should_trigger": false, "expected": "game-design-doc"},
+  {"query": "build me a snake game prototype in one HTML file", "should_trigger": false, "expected": "game-builder"},
+  {"query": "make a jam entry from this mechanic we already chose", "should_trigger": false, "expected": "game-builder"},
+  {"query": "record the decision we made last week about the netcode model, with the options we rejected", "should_trigger": false, "expected": "decision-record"},
+  {"query": "is this weapon overpowered based on our playtest win rates", "should_trigger": false, "expected": "game-balance"},
+  {"query": "should we build this feature in-house or buy a vendor solution for it", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "our build got rejected by cert, what does the requirement mean", "should_trigger": false, "expected": "game-certification"},
+  {"query": "plan our season calendar and events for the next quarter", "should_trigger": false, "expected": "game-live-ops"},
+  {"query": "what frame budget should we target on the base console for this build", "should_trigger": false, "expected": "game-performance"},
+  {"query": "turn this design chat into an implementation-ready feature spec", "should_trigger": false, "expected": "game-design-doc"}
+]

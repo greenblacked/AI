@@ -1,6 +1,6 @@
 # Gamedev: start here
 
-The `gamedev` plugin is nine skills, one subagent and one command. This page is the map:
+The `gamedev` plugin is eleven skills, one subagent and one command. This page is the map:
 how to size a project so the right amount of each skill's procedure applies, how to read
 what a game type needs from the plugin, and what order to run the skills in. It does not
 repeat any skill's procedure — every line below points at the section that carries the
@@ -33,7 +33,7 @@ signal, not the team photo.
 
 ## Pick your game type
 
-The plugin has no per-genre skill; genre changes which sections of the nine skills carry
+The plugin has no per-genre skill; genre changes which sections of the eleven skills carry
 the risk, not which skill applies. Six types come up often enough to name directly:
 
 | Type | Where the risk sits |
@@ -51,7 +51,13 @@ anything else on this list.
 
 ## The route
 
-`/level` runs six of the nine skills in order for one feature or level:
+Before any of this, `game-greenlight` is what turns a concept into a chosen idea: a
+pitch, a feasibility read, the one riskiest question a prototype has to answer, and a
+go, no-go or pivot call made against criteria written before the prototype existed. It
+hands a chosen idea to `game-design-doc`, which is where `/level`'s chain below starts,
+and the prototype itself to `game-builder`.
+
+`/level` runs six of the eleven skills in order for one feature or level:
 `game-design-doc` → `game-level-design` → `game-builder` → `game-balance` →
 `game-performance` → `game-assets`, each with a stop condition, each handing the next
 one something specific. `game-netcode` and `game-save-system` are not stages in that
@@ -61,6 +67,13 @@ is not a stage either; it owns the submission gate once a build is ready to ship
 calendar runs alongside the whole chain rather than after it. `frame-capture-reader`
 is not a stage of its own — it is the subagent `game-performance` hands a large capture
 to at its step 4, so the capture never enters the main conversation.
+
+After certification and launch, `game-live-ops` takes over for a game with a planned
+life after release: the season and content calendar, an economy-tuning schedule with
+guardrails that still hands each single number to `game-balance`, KPIs and a stop rule,
+the patch-and-hotfix rhythm, and player-facing communication. It is not a stage of
+`/level` either — it runs continuously once a build has shipped, on its own calendar,
+the way `game-certification`'s does before ship.
 
 | Scale | How to run the chain |
 | --- | --- |
@@ -74,23 +87,9 @@ Where the risk concentrates for each type, in the order the route above runs:
 
 | Game type | Skills carrying the most risk | Why |
 | --- | --- | --- |
-| Mobile casual / F2P | `game-balance`, `game-certification` | The economy corridor is the game's business model, and this genre carries the heaviest paid-random-item and data declarations at cert |
-| 2D / small single-player | `game-builder` | The feel floor and the grey-box loop are almost the whole game; the other eight skills apply lightly or not at all |
+| Mobile casual / F2P | `game-balance`, `game-certification`, `game-live-ops` | The economy corridor is the game's business model, this genre carries the heaviest paid-random-item and data declarations at cert, and the season and event cadence after launch is close to the whole product |
+| 2D / small single-player | `game-builder`, `game-greenlight` | The feel floor and the grey-box loop are almost the whole game; a small team is also usually self-greenlighting with its only runway on one concept, so the pitch and feasibility read carry more weight here than anywhere else on this list |
 | Narrative / story-driven | `game-design-doc`, `game-level-design` | Branching state lives in the spec's states-and-transitions section, and pacing is a beat chart, not a difficulty curve |
-| Competitive multiplayer / live service | `game-netcode`, `game-balance` | The authority model has to be right from the first line of code, and balance is read from telemetry by skill band rather than by feel |
+| Competitive multiplayer / live service | `game-netcode`, `game-balance`, `game-live-ops` | The authority model has to be right from the first line of code, balance is read from telemetry by skill band rather than by feel, and running the season, KPIs and patch rhythm afterward is most of the post-launch job |
 | Open world / large 3D | `game-level-design`, `game-performance` | Streaming seams are a layout decision made while the macro-structure can still move, and the frame budget has to hold under a full open scene, not a test level |
 | VR / XR | `game-performance`, `game-builder` | The frame budget is a comfort requirement, not a preference, and the feel floor has to be met at that fixed rate rather than tuned down to reach it |
-
-## Not covered yet
-
-Two gaps this survey found, named rather than filled with an invented skill:
-
-- **A concept or greenlight stage before `game-design-doc`.** Nothing in this plugin
-  helps decide whether to build the game at all — a pitch, a feasibility read, a
-  greenlight decision. `game-design-doc` starts from an idea already chosen; getting
-  from nothing to that idea is not here.
-- **Live ops after launch.** Nothing in this plugin covers running a live game once it
-  has shipped — a content and season cadence, ongoing economy tuning as a planned
-  calendar rather than a single patch, or community management. `game-balance` covers
-  changing one number with evidence; it does not cover planning what changes next
-  quarter.

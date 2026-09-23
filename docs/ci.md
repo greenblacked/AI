@@ -3,9 +3,10 @@
 CI is the source of truth for whether this repository is correct. Everything a reviewer
 would otherwise check by eye — that a skill validates, that its reference files exist,
 that it is listed in the marketplace, that no secret is in history — is a job that either
-passes or does not. Four workflows run it: two that gate every change, one that runs
-weekly, and one that scores trigger evals — monthly over everything, and on every pull
-request over what that pull request touched.
+passes or does not. Five workflows run it: two that gate every change, one that runs
+weekly, one that scores trigger evals — monthly over everything, and on every pull
+request over what that pull request touched — and one that neither gates nor scores,
+merging a Dependabot pull request once the other two have.
 
 ## Execution flow
 
@@ -65,8 +66,9 @@ gives, and at workflow level so a cache key can name one.
 | `lint-yaml` | `lint yaml` | yamllint in `--strict` mode found a problem. Config in `.yamllint.yaml`, version in `YAMLLINT_VERSION`: a release that adds a rule would otherwise redden the build on YAML nobody touched. |
 | `lint-actions` | `lint workflows` | actionlint rejected a workflow. It also runs shellcheck over every inline `run:` block, which is where all of this repository's shell lives. The binary is downloaded at a pinned version and checked against a recorded digest before it runs. |
 | `links` | `check links` | lychee found a broken link. It runs `--offline`, so only local paths are resolved — a relative link between documents, or from a document into the source tree, that does not exist. |
+| `attribution` | `attribution` | [`scripts/check_attribution.py`](../scripts/check_attribution.py) found a Co-authored-by trailer, a footer or trailer naming a coding assistant, an assistant session link, a tool-named branch prefix, or a commit author or committer naming a coding assistant, in the pull request's own commits, branch name, title or body. It needs a base ref and pull request text to mean anything, so it only scans on a pull request; a push to `main` or a merge-group run reports success without one, because those commits already passed this check on the pull request that produced them. It is not part of `make catalogue` for the same reason — there is no base ref to diff against outside a pull request — but `make attribution` reproduces it against `origin/main` locally. |
 | `package` | `package` | `scripts/package_skills.py` could not build a `.skill` archive for every skill, or an archive it built is not loadable. It refuses to package a skill that does not validate, so this failing after `validate-skills` passed means a packaging problem, not a content one. Each archive is then opened and checked for a `SKILL.md` at its root whose `name` matches the archive, because building without error only proves a zip was written — a broken layout would ship green and fail at install, for someone else. The archives upload as the `skills` artifact. |
-| `ci` | `ci` | Any of its ten dependencies did not report exactly `success`, or the result payload did not match the expected jobs. A skipped package after a failed prerequisite also fails this gate. |
+| `ci` | `ci` | Any of its eleven dependencies did not report exactly `success`, or the result payload did not match the expected jobs. A skipped package after a failed prerequisite also fails this gate. |
 
 `validate-skills` runs `PYTHONPATH=src python -m skillcheck . --strict`, the same
 invocation as `make validate`. The flag is the point: without it, a description one edit
@@ -149,6 +151,47 @@ each exists because breaking it is silent:
 The last two held by habit until they were gated. Both were correct across all twenty
 jobs and eighteen checkouts on the day the check landed, which is the point: a ratchet
 goes on while the invariant is true, not after it has already been broken.
+
+## `.github/workflows/dependabot-auto-merge.yml` — Dependabot auto-merge
+
+Triggers on `pull_request` (`opened`, `synchronize`, `reopened`), never
+`pull_request_target` — the base-branch checkout and secret exposure that trigger allows
+is exactly what zizmor's dangerous-triggers audit exists to catch, and nothing here needs
+it. Top-level `permissions: {}`; the one job grants itself `contents: write` and
+`pull-requests: write` — the only job in this repository that can write to repository
+contents or pull requests (`codeql` in `security.yml` also writes, but only
+`security-events`, to publish its scan results, not to change anything a person reads
+as the repository's content). Not a required check — it names no other job and has no
+aggregator, the same as `scheduled.yml` and `evals.yml` — because nothing depends on it
+and the two gates that do matter, `ci` and `security`, do the deciding.
+
+A human push to a Dependabot pull request — a person amending the branch by hand — keeps
+it eligible: `github.event.pull_request.user.login` stays `dependabot[bot]` regardless of
+who pushed the newest commit, since it names who opened the pull request rather than who
+last touched it. Those commits still have to clear `ci`, `security` and `attribution`
+before the ruleset lets anything merge, the same as every other commit on the branch.
+
+| Job | Check name | Failing means |
+| --- | --- | --- |
+| `auto-merge` | `dependabot auto-merge` | `dependabot/fetch-metadata` could not read the pull request, or `gh pr merge --auto --squash` failed after auto-merge was confirmed enabled — a conflict, a branch protection change, or a transient API error. A major-version pull request that skips because its update-type is not patch or minor, and a repository with auto-merge left disabled in Settings, are not failures: the job says so in a warning annotation and a step-summary line and exits 0. |
+
+The job only proceeds for a pull request opened by `dependabot[bot]` whose head branch
+lives in this repository — `user.login`, not `github.actor`, because the actor is
+spoofable and the login is what zizmor's bot-conditions check recommends; the
+`head.repo.full_name` comparison is what actually excludes a fork, since a constant
+`github.repository == 'owner/repo'` matches every pull request including one from
+outside. `dependabot/fetch-metadata` reports the highest semver level across every
+dependency a grouped pull request touches, and reports nothing it cannot classify, so the
+gate lists exactly what is allowed — patch or minor — rather than excluding major, which
+a null result would then pass.
+
+Merging with `GITHUB_TOKEN` does not trigger a push-triggered workflow on `main`, so this
+does not chain into another `ci` or `security` run; the pull request's own checks, already
+required by the ruleset and already green, are what gated the tree the merge produces. If
+the pull request is already mergeable by the time this job runs, `gh pr merge --auto`
+merges immediately rather than waiting — still safe, because mergeable means the required
+checks already passed against this pull request merged onto the current tip of `main`,
+which the ruleset's strict mode guarantees.
 
 ## `.github/workflows/scheduled.yml` — Scheduled checks
 
@@ -607,6 +650,7 @@ make test       # pytest — the test job
 make coverage   # the same run under coverage, failing below the floor
 make lint       # ruff, markdownlint, yamllint, actionlint, codespell — the lint jobs
 make package    # .skill archives into dist/ — the package job
+make attribution  # commits since origin/main against the attribution rules — the attribution job
 ```
 
 `make validate` passes `--strict`, exactly as the job does, so a warning fails locally
