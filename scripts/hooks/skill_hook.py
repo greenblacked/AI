@@ -118,8 +118,26 @@ def main() -> int:
         check=False,
     )
 
+    stdout_lines = result.stdout.splitlines()
+    if result.returncode != 0 and not any(line.startswith("ERROR   ") for line in stdout_lines):
+        # A nonzero exit with no ERROR line anywhere means the validator itself did not
+        # run to completion — a SyntaxError in rules.py, an uncaught exception, a bad
+        # invocation — rather than another file in the repository having findings. Going
+        # silent here would turn a broken validator into a hook nobody notices is off.
+        # A nonzero exit *with* ERROR lines for other files is the ordinary case and
+        # must stay silent for an edit that did not cause them.
+        print(
+            f"skillcheck exited {result.returncode} without reporting any findings — it "
+            "did not run to completion, so this edit was not validated",
+            file=sys.stderr,
+        )
+        tail = "\n".join(result.stderr.strip().splitlines()[-20:])
+        if tail:
+            print(tail, file=sys.stderr)
+        return 2
+
     prefix = f"ERROR   {key}"
-    errors = [line for line in result.stdout.splitlines() if line.startswith(prefix)]
+    errors = [line for line in stdout_lines if line.startswith(prefix)]
     if not errors:
         return 0
 

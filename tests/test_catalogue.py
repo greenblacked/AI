@@ -290,14 +290,41 @@ def test_a_repo_local_agent_named_in_the_readme_passes(mini_repo, capsys):
         "---\nname: searcher\ndescription: " + "f" * 60 + "\ntools: Read\n---\n\nBody.\n",
         encoding="utf-8",
     )
-    write_readme(mini_repo, README + "\n\nAlso `searcher`, which ships to nobody.\n")
+    write_readme(
+        mini_repo,
+        README + "\n\n| Local subagent | Role |\n| --- | --- |\n| `searcher` | Finds things |\n",
+    )
     assert readme.check(mini_repo) == 0
+
+
+def test_a_repo_local_agent_named_only_in_prose_fails(mini_repo, capsys):
+    """A backticked name used to satisfy this check wherever it appeared, prose
+    included, so a subagent could be discussed at length and still have no row anyone
+    could point at — the same gap `SKILL_ROW_RE` never had for a skill."""
+    agents = mini_repo / ".claude" / "agents"
+    agents.mkdir(parents=True, exist_ok=True)
+    (agents / "searcher.md").write_text(
+        "---\nname: searcher\ndescription: " + "f" * 60 + "\ntools: Read\n---\n\nBody.\n",
+        encoding="utf-8",
+    )
+    write_readme(mini_repo, README + "\n\nAlso `searcher`, which ships to nobody.\n")
+    assert readme.check(mini_repo) == 1
+    assert "searcher is in .claude/ and has no row" in capsys.readouterr().out
 
 
 def test_a_matching_readme_passes(mini_repo, capsys):
     write_readme(mini_repo)
     assert readme.check(mini_repo) == 0
     assert "README is current" in capsys.readouterr().out
+
+
+def test_on_disk_does_not_hide_a_plugin_skill_named_template(mini_repo):
+    """`on_disk` calls `find_skills` scoped to one plugin's `skills/` directory, which
+    is exactly the caller a `template/`-vs-`skills/` mixup used to hide a skill from —
+    a plugin shipping `skills/template/` would be missing from this set entirely, and
+    every check built on it would report the skill as never having existed."""
+    write_skill(mini_repo, "engineering", "template")
+    assert "template" in readme.on_disk(mini_repo)["engineering"]["skills"]
 
 
 def test_a_skill_with_no_row_fails(mini_repo, capsys):
@@ -336,6 +363,16 @@ def test_a_stale_contents_count_fails(mini_repo, capsys):
 
 def test_a_subagent_with_no_row_fails(mini_repo, capsys):
     write_readme(mini_repo, README.replace("| `reader` | Things |\n", ""))
+    assert readme.check(mini_repo) == 1
+    assert "subagent reader ships with engineering and has no row" in capsys.readouterr().out
+
+
+def test_a_plugin_subagent_named_only_in_prose_still_fails(mini_repo, capsys):
+    """The row is gone and the name is still mentioned in passing — a backticked name
+    appearing anywhere used to be read as "listed", so this prose survived the check
+    that the missing row above is meant to catch."""
+    text = README.replace("| `reader` | Things |\n", "") + "\nSee `reader` for the read path.\n"
+    write_readme(mini_repo, text)
     assert readme.check(mini_repo) == 1
     assert "subagent reader ships with engineering and has no row" in capsys.readouterr().out
 
@@ -524,6 +561,84 @@ def test_a_path_in_a_worked_example_is_not_treated_as_a_pointer(mini_repo):
     assert unresolved == []
 
 
+def test_a_nested_reference_is_inlined_and_its_pointer_rewritten(mini_repo):
+    """The local pointer regex this export used to carry only matched a flat
+    `references/<x>.md`, so a nested one was neither inlined nor reported: the pointer
+    stayed in the document unresolved and `unresolved` stayed empty, which is exactly
+    the silent failure the validator's own regex exists to catch."""
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    (skill / "references" / "deep").mkdir(parents=True)
+    (skill / "references" / "deep" / "topic.md").write_text(
+        "# Deep topic\n\nDetail.\n", encoding="utf-8"
+    )
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text(encoding="utf-8") + "\nRead `references/deep/topic.md` when stuck.\n",
+        encoding="utf-8",
+    )
+    name, _, document, unresolved = portable.render_skill(skill)
+    assert name == "alpha"
+    assert unresolved == []
+    assert "references/deep/topic.md" not in document
+    assert 'the "Deep topic" section below' in document
+
+
+def test_a_non_markdown_asset_is_inlined_and_its_pointer_rewritten(mini_repo):
+    """`assets/*.md` was the only asset extension the local regex matched, so
+    `assets/checklist.txt` was neither inlined nor reported — the same silent gap the
+    nested-reference case above exercises for `references/`."""
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    (skill / "assets").mkdir()
+    (skill / "assets" / "checklist.txt").write_text("- one\n- two\n", encoding="utf-8")
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text(encoding="utf-8") + "\nFill in `assets/checklist.txt` first.\n",
+        encoding="utf-8",
+    )
+    name, _, document, unresolved = portable.render_skill(skill)
+    assert name == "alpha"
+    assert unresolved == []
+    assert "`assets/checklist.txt`" not in document  # the raw pointer is gone
+    assert 'the "assets/checklist.txt" section below' in document
+    assert "### assets/checklist.txt" in document
+    assert "- one" in document and "- two" in document
+    # A .txt asset is fenced as `text`, not the `markdown` every asset used to get
+    # regardless of its own extension.
+    assert "```text" in document
+    assert "```markdown" not in document
+
+
+def test_an_asset_language_is_read_from_its_extension(mini_repo):
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    (skill / "assets").mkdir()
+    (skill / "assets" / "config.yaml").write_text("key: value\n", encoding="utf-8")
+    (skill / "assets" / "unknown.xyz").write_text("opaque\n", encoding="utf-8")
+    _, _, document, _ = portable.render_skill(skill)
+    assert "```yaml" in document
+    assert "```text" in document  # the fallback for an extension with no mapping
+
+
+def test_a_script_section_is_titled_by_its_path_not_its_first_comment(mini_repo):
+    """A script's title used to come from its first `# ` line — an ordinary shell
+    comment, not a heading — so a script whose first line explained something unrelated
+    became the section title. The relative path always tells the reader which file to
+    create, which is the point of inlining a script at all."""
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    (skill / "scripts").mkdir()
+    (skill / "scripts" / "bisect-probe.sh").write_text(
+        "#!/bin/sh\n# Not a title, just an ordinary comment\necho ok\n", encoding="utf-8"
+    )
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text(encoding="utf-8") + "\nRun `scripts/bisect-probe.sh` to check.\n",
+        encoding="utf-8",
+    )
+    _, _, document, unresolved = portable.render_skill(skill)
+    assert unresolved == []
+    assert "### scripts/bisect-probe.sh" in document
+    assert "### Not a title, just an ordinary comment" not in document
+
+
 def test_headings_inside_a_code_fence_are_left_alone():
     text = "# Title\n\n```bash\n# not a heading, a comment\nls\n```\n\n## Real\n"
     out = portable.demote(text, 2)
@@ -555,6 +670,17 @@ def test_export_writes_a_file_per_skill_a_bundle_per_plugin_and_an_index(mini_re
     index = (out / "index.md").read_text(encoding="utf-8")
     assert "- **alpha**" in index and "- **beta**" in index
     assert (out / "README.md").is_file()
+
+
+def test_export_does_not_hide_a_plugin_skill_named_template(mini_repo, tmp_path):
+    """`export` walks `find_skills(plugin / "skills")` per plugin — the same narrowed
+    `root` that used to make a `skills/template/` skill look like the repository's own
+    template and drop it from the export, so `--check` reported the tree as clean while
+    one fewer skill than actually shipped ever reached `dist/portable`."""
+    write_skill(mini_repo, "engineering", "template")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    assert (out / "skills" / "template.md").is_file()
 
 
 def test_every_exported_file_carries_the_attribution_notice(mini_repo, tmp_path):
