@@ -100,7 +100,8 @@ do heavy reading here, that `/ship` runs the three-stage loop in `.claude/agents
 change to this repository, that plan mode is wanted for anything touching
 `src/skillcheck/` or `.github/workflows/`, since those two decide whether every other
 change is allowed to merge, and which Claude model each agent in `.claude/agents/` runs
-on, since the model names in `AGENTS.md` are Codex's and mean nothing to Claude Code.
+on, since the model names in `AGENTS.md` belong to Codex and ChatGPT and mean nothing to
+Claude Code.
 
 The import, rather than a symlink, because a symlink needs Administrator or Developer
 Mode on Windows and this repository is public.

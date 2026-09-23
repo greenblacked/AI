@@ -21,6 +21,5 @@ Claude-specific notes:
   more expensive than it looks.
 - The models follow `.claude/agents/`, not the Codex split in `AGENTS.md`: Sonnet
   surveys and researches (`explorer`), the newest Opus implements and checks claims
-  against sources (`implementer`, `investigator`), and Fable reviews (`reviewer`), on a
-  fresh context with no editing tools. When a model changes, change the agent's `model:`
-  line and this sentence together.
+  against sources (`implementer`, `investigator`), and Fable reviews (`reviewer`). When a
+  model changes, change the agent's `model:` line and this sentence together.
