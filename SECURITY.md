@@ -3,7 +3,7 @@
 ## Reporting
 
 Report a suspected vulnerability or a leaked credential privately through GitHub's
-security advisory form for this repository, rather than opening an issue. If the finding
+[security advisory form](https://github.com/greenblacked/AI/security/advisories/new) for this repository, rather than opening an issue. If the finding
 is a credential visible in this repository or its history, say so in the first line so it
 can be revoked before anything else is discussed.
 

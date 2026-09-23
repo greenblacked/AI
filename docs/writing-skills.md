@@ -216,10 +216,10 @@ not necessarily spent one per cent of anything, so `make catalogue` prints the t
 equivalent under its summary line for exactly the plugins that cross the default, and the
 decision gets made on both numbers rather than on the alarming one.
 
-This repository's descriptions total about 69,200 characters — roughly 14,900 tokens —
-which is why they are split across eight plugins rather than three. Four of the eight fit
-the default budget on their own. `coding`, `manager`, `gamedev` and `operations` do not,
-and only the first three of those are ones nobody installs alongside much else:
+This repository's descriptions total about 77,500 characters — roughly 16,700 tokens —
+which is why they are split across eight plugins rather than three. Only `career` and
+`personal` fit the default budget on their own. The other six do not. Of those,
+`coding`, `manager` and `gamedev` are ones nobody installs alongside much else, while
 `operations` is the plugin most likely to be installed next to `delivery` and `security`,
 so its descriptions are the ones most at risk of being dropped in a real session. Read
 that alongside the token figures rather than the character ones — `operations` is over
@@ -234,7 +234,7 @@ into a warning:
 PYTHONPATH=src python -m skillcheck . --listing-budget 8000
 ```
 
-A single threshold cannot gate this, because four plugins are already above the runtime
+A single threshold cannot gate this, because six plugins are already above the runtime
 default and a gate set there would fail on every run forever. So the gate is a ratchet
 instead, in the same shape as the coverage floor: `listing-budget.json` records a ceiling
 per plugin with a few hundred characters of slack, `make catalogue` enforces it, and

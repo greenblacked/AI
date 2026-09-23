@@ -30,11 +30,11 @@ Install the plugins you will actually use. Every description a plugin ships sits
 context for the whole session, and the runtime caps that listing at about 1% of the
 context window. Past the cap it drops the descriptions of the skills you invoke least,
 which leaves them invocable by name and stops them being chosen on their own — silently.
-Four of the eight plugins fit the default budget by themselves. If you install several,
-raise it in `~/.claude/settings.json`:
+Only `career` and `personal` fit the default budget by themselves. If you install any of
+the other six, or more than one plugin, raise it in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.04 }
+{ "skillListingBudgetFraction": 0.09 }
 ```
 
 ### How a skill fires
@@ -187,7 +187,7 @@ Be clear about what you lose outside Claude Code, because it is the valuable par
   cut narrowly. Uploading one bundle to a Project has no such cap, which is a genuine
   advantage of that route.
 
-The content itself travels intact. Of seventy-five skills, two name Claude anywhere in
+The content itself travels intact. Of eighty-seven skills, two name Claude anywhere in
 their text: `new-skill`, which is about authoring a skill in this format and could not
 avoid it, and `website-builder`, which names a real constraint of Claude.ai artifacts.
 The rest are procedures about code, systems, teams and life, and nothing in them assumes

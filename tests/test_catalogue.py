@@ -14,6 +14,8 @@ from __future__ import annotations
 import json
 import re
 
+import pytest
+
 from tests.conftest import REPO, load_script, write_skill
 
 budget = load_script("check_listing_budget.py")
@@ -673,6 +675,86 @@ def test_main_accepts_a_root(tmp_path):
     assert shell.main([str(tmp_path)]) == 0
 
 
+# `bash -n` proves a block parses, not that it runs, and `.claude/rules/skills.md` asks
+# for the second. This is the one mechanically checkable case: ripgrep's default engine
+# has no lookaround at all, so a pattern using it is a parse error at the keyboard while
+# the shell around it is perfectly valid. It shipped once, in pipeline-hardening, and was
+# caught by a person running the command rather than by any gate.
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        r"""rg -n 'uses:\s*[^@]+@(?!\w{40})' .github/workflows/*.yml""",  # the one that shipped
+        "rg 'a(?=b)' .",
+        "rg 'a(?<=b)' .",
+        "rg 'a(?<!b)' .",
+        "cat x | rg 'a(?!b)'",  # after a pipe
+        "ripgrep 'a(?!b)' .",  # spelled out
+        "if rg -q 'a(?!b)' .; then :; fi",  # the common conditional form
+        "xargs rg 'a(?!b)'",
+        "/usr/bin/rg 'a(?!b)' .",  # an absolute path
+    ],
+)
+def test_lookaround_without_pcre2_is_caught(command):
+    assert shell.rg_without_pcre2(command)
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "rg -P 'a(?!b)' .",
+        "rg -nP 'a(?!b)' .",  # bundled into a short-flag run
+        "rg --pcre2 'a(?!b)' .",
+        "rg --auto-hybrid-regex 'a(?!b)' .",
+        "grep -P 'a(?!b)' file",  # grep has lookaround without a flag
+        "rg 'a(?i)b' .",  # an inline flag group, not lookaround
+        "# rg 'a(?!b)' .",  # a comment is not a command anyone runs
+        "rg --engine pcre2 'a(?!b)' .",  # the documented spelling
+        "rg --engine=pcre2 'a(?!b)' .",
+        "rg --engine auto 'a(?!b)' .",
+        "rg -Pn 'a(?!b)' .",  # P need not be last in the bundle
+        "rg -F '(?!' plugins/",  # a literal search for the defect is not the defect
+        "rg --fixed-strings '(?!' .",
+        "rg -nF '(?!' .",
+        r"rg -n '^\s*(- )?uses:\s*\S+@' .",  # the anchored form that replaced it
+    ],
+)
+def test_what_the_lookaround_check_leaves_alone(command):
+    assert not shell.rg_without_pcre2(command)
+
+
+def test_a_comment_ending_in_a_backslash_does_not_swallow_the_next_command():
+    # bash does not continue a comment. Joining them anyway drops whatever follows,
+    # which would make a stray trailing backslash switch the check off silently.
+    assert shell.rg_without_pcre2("# see foo \\\nrg 'a(?!b)' .")
+
+
+def test_a_continuation_line_is_one_command():
+    # The flag that would make it legal is as likely to be on the second line as the
+    # first, so the two have to be judged together.
+    assert not shell.rg_without_pcre2("rg 'a(?!b)' \\\n  -P .")
+    assert shell.rg_without_pcre2("rg 'a(?!b)' \\\n  --glob '*.md'")
+
+
+def test_a_block_with_lookaround_fails_and_names_the_line(tmp_path, capsys):
+    (tmp_path / "plugins").mkdir()
+    (tmp_path / "plugins" / "a.md").write_text(
+        "intro\n\n```bash\nls\nrg 'x(?!y)' .\n```\n", "utf-8"
+    )
+    assert shell.check(tmp_path) == 1
+    out = capsys.readouterr().out
+    assert "file=plugins/a.md,line=5" in out
+    assert "lookaround needs -P" in out
+
+
+def test_a_shipped_script_with_lookaround_is_caught_too(tmp_path, capsys):
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts" / "s.sh").write_text("#!/usr/bin/env bash\nrg 'x(?!y)' .\n", "utf-8")
+    assert shell.check(tmp_path) == 1
+    assert "lookaround needs -P" in capsys.readouterr().out
+
+
 def test_a_nested_shorter_fence_does_not_close_a_longer_one():
     # A four-backtick block quoting a three-backtick example is one block. Closing on
     # the inner fence makes the rest of the block parse as prose, and the failure is
@@ -1198,4 +1280,48 @@ def test_a_readme_that_stops_naming_the_fraction_fails(mini_repo, capsys):
 def test_a_tree_with_no_readme_skips_the_advice_check(mini_repo):
     budget.check(mini_repo, update=True)
     (mini_repo / "README.md").unlink(missing_ok=True)
+    assert budget.check(mini_repo) == 0
+
+
+# The README was checked and `docs/using.md` was not, so when #34 corrected 0.04 in the
+# README it stayed wrong in the page the README links to for detail. Checking one file
+# and not its companion is how a corrected figure survives in the place a reader reaches
+# second.
+
+
+def using_md_with(root, fraction: str) -> None:
+    doc = root / "docs"
+    doc.mkdir(exist_ok=True)
+    (doc / "using.md").write_text(
+        f'# Using\n\nRaise it:\n\n```json\n{{ "skillListingBudgetFraction": {fraction} }}\n```\n',
+        encoding="utf-8",
+    )
+
+
+def test_a_stale_fraction_in_using_md_fails(mini_repo, capsys):
+    budget.check(mini_repo, update=True)
+    readme_with(mini_repo, "0.5")  # the README is fine; only the companion is stale
+    using_md_with(mini_repo, "0.0000001")
+    assert budget.check(mini_repo) == 1
+    out = capsys.readouterr().out
+    assert "docs/using.md" in out
+    assert "it needs at least" in out
+    assert "file=README.md" not in out  # the README was fine; only the companion failed
+
+
+def test_using_md_that_stops_naming_the_fraction_fails(mini_repo, capsys):
+    budget.check(mini_repo, update=True)
+    readme_with(mini_repo, "0.5")
+    using_md_with(mini_repo, "0.5")
+    (mini_repo / "docs" / "using.md").write_text("# Using\n\nNo advice.\n", encoding="utf-8")
+    assert budget.check(mini_repo) == 1
+    assert "no longer names skillListingBudgetFraction" in capsys.readouterr().out
+
+
+def test_a_tree_with_no_using_md_skips_that_file(mini_repo):
+    # Every other repository using this script has a README and no docs/using.md; a
+    # missing companion is not a defect.
+    budget.check(mini_repo, update=True)
+    readme_with(mini_repo, "0.5")
+    assert not (mini_repo / "docs" / "using.md").exists()
     assert budget.check(mini_repo) == 0

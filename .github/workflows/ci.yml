@@ -102,11 +102,32 @@ jobs:
           # source is a git ref, so Claude Code derives the version from the commit SHA
           # and installers track every commit rather than waiting for a manual bump.
           # Anything else is new and fails the build.
-          unexpected=$(grep -E '^[[:space:]]+> ' validate.log \
+          # The CLI marks each warning with an indented `❯` (U+276F), not an ASCII `>`.
+          # This grep matched `> ` alone until the control below proved it had never
+          # matched a line of real output, so it now takes either marker.
+          unexpected=$(grep -E '^[[:space:]]+(>|❯) ' validate.log \
             | grep -v 'version: No version specified' || true)
           if [ -n "${unexpected}" ]; then
             echo "::error::plugin validate reported an unexpected warning"
             echo "${unexpected}"
+            exit 1
+          fi
+          # The grep above depends on the marker the CLI prints before each warning. If
+          # that changes it matches nothing, `unexpected` is empty, and a whole new
+          # warning class lands green — the same way check_shell.py once reported "0
+          # blocks parsed" and passed. The eight known warnings are the control, matched
+          # by the same shape the check uses: finding none means the format moved, not
+          # that the tree got cleaner, because a git-sourced marketplace always has them.
+          # Counting the message text anywhere would still find eight after the marker
+          # changed, and pass while the check had gone blind — which is how the ASCII
+          # `>` above stayed wrong from the day it was written until this control caught
+          # it.
+          known=$(grep -cE '^[[:space:]]+(>|❯) .*version: No version specified' \
+            validate.log || true)
+          if [ "${known}" -eq 0 ]; then
+            echo "::error::plugin validate printed none of the warnings this check is" \
+              "written against. Either its output format moved, or the eight known" \
+              "warnings were cleared; re-baseline this control against the new output"
             exit 1
           fi
 
@@ -347,6 +368,10 @@ jobs:
         with:
           args: --offline --no-progress './**/*.md'
           fail: true
+          # Already the default at this pin, and set explicitly because it is the guard
+          # against the glob matching nothing: without it lychee reports zero links,
+          # zero broken, and exits 0, and the check passes having read no file.
+          failIfEmpty: true
 
   package:
     name: package

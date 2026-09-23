@@ -42,6 +42,11 @@ outside a runtime that can trigger them for you.
 Install one plugin or all eight. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
 
+Install what you will use, though, rather than everything by reflex. Every description you
+install stays resident in context, and Claude Code's default listing budget is about 8,000
+characters against this library's 77,500 — so installing all eight at the default drops
+most of them, silently. The Install section below says what to set instead.
+
 ## Install
 
 ### Claude Code
@@ -61,9 +66,11 @@ you describe the situation, and the one whose description matches is loaded.
 Install the plugins you will use rather than all of them. Every description a plugin ships
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
-least, which leaves them invocable by name and stops them being chosen on their own. Three
-of the eight plugins fit the default budget on their own, and the split exists for exactly
-this reason.
+least, which leaves them invocable by name and stops them being chosen on their own. Only
+`career` and `personal` fit the default budget on their own. The other six are over it —
+`delivery` and `gamedev` by a few dozen characters, the rest by enough to lose two or
+more descriptions on their own — and the split exists to keep that number as small as it can
+be.
 
 The description budget is shared across installed plugins. Splitting a plugin does not
 reduce the total when both halves are installed, and shortening every description to a
@@ -382,6 +389,7 @@ dependency, including skipped jobs. See the [execution flow](docs/ci.md#executio
 
 ```bash
 make validate   # frontmatter contract, dangling references, marketplace cross-check
+make catalogue  # listing ceilings, the README and CI docs, workflows, shell, the hook
 make test       # the validator's own test suite
 make coverage   # the same, with the coverage floor CI enforces
 make package    # a .skill archive per skill
@@ -397,8 +405,8 @@ every workflow declares a `permissions:` block, and every action is pinned to a 
 SHA.
 
 Subagents are held to the same contract, and every skill carries a trigger eval set —
-twenty queries it should fire on and near-misses it should not, with each near-miss naming
-the sibling that ought to win it. The schema is checked on every push because that is
+twenty queries it should fire on and near-misses it should not, with most near-misses
+naming the sibling that ought to win it. The schema is checked on every push because that is
 free; scoring the queries needs a model, so it runs on demand rather than gating anything.
 Each query is judged against the whole catalogue of descriptions, which is what catches a
 skill that fires on everything.
@@ -412,7 +420,7 @@ skill that fires on everything.
 - [Writing a slash command](docs/writing-commands.md) — when a command beats a skill, and why most do not
 - [AGENTS.md](docs/agents-md.md) — the standard, and how it relates to `CLAUDE.md`
 - [CI](docs/ci.md) — what each check means and how to make it required
-- [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
+- [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Code of conduct](CODE_OF_CONDUCT.md)
 
 Repository conventions for agents live in [`AGENTS.md`](AGENTS.md).
 
@@ -429,5 +437,5 @@ Copyright (c) 2026 greenblacked (https://github.com/greenblacked/AI)
 
 Keep it in a `LICENSE` file, a header, or a credits page — anywhere a reader of the copy
 will find it. If you lift a single skill into another assistant, the portable export
-already puts the line at the foot of every file it writes, so `make portable` needs no
-extra step. What the licence does not require is asking first, or sharing changes back.
+already puts an attribution line naming this repository and the licence at the foot of
+every file it writes, so `make portable` needs no extra step. What the licence does not require is asking first, or sharing changes back.
