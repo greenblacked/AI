@@ -78,7 +78,7 @@
       "tool": "DeepSeek API",
       "agents_md": "Not applicable — a model API, not an agent tool",
       "skills": "Through whichever agent tool calls it",
-      "use": "Route an agent tool from this table to a DeepSeek model; see docs/deepseek.md for two gateway routes",
+      "use": "Route an agent tool from this table to a DeepSeek model; see docs/deepseek.md for the gateway routes",
       "sources": [
         "https://github.com/deepseek-ai/DeepSeek-V3"
       ],
@@ -102,7 +102,7 @@
       "tool": "OpenRouter (gateway)",
       "agents_md": "Not applicable — a gateway in front of an agent tool",
       "skills": "Through the agent tool routed through it",
-      "use": "Route Claude Code to DeepSeek, unsupported by Anthropic; see docs/deepseek.md",
+      "use": "Route Claude Code to DeepSeek, or Codex to it through Bifrost, unsupported by Anthropic; see docs/deepseek.md",
       "sources": [
         "https://github.com/OpenRouterTeam/docs/blob/main/cookbook/coding-agents/claude-code-integration.mdx"
       ],

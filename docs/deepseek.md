@@ -152,6 +152,88 @@ mode for the DeepSeek model configured here. Codex loads this repository's skill
 `~/.codex/skills` regardless of which model provider is configured, so nothing here
 changes how `make install` or the [provider table](../README.md#chatgpt-grok-codex-and-everything-else)'s Codex row apply.
 
+## Route 4: Codex through Bifrost and OpenRouter to DeepSeek
+
+This route reuses Route 3's Bifrost gateway and Codex configuration, but registers
+OpenRouter as a second provider inside Bifrost instead of reaching DeepSeek directly.
+Bifrost's own OpenRouter page shows the same key form used for DeepSeek in Route 1,
+keyed to its own provider name:
+
+```json
+{
+  "providers": {
+    "openrouter": {
+      "keys": [
+        {
+          "name": "openrouter-key-1",
+          "value": "env.OPENROUTER_API_KEY",
+          "models": [
+            "*"
+          ],
+          "weight": 1.0
+        }
+      ]
+    }
+  }
+}
+```
+
+Codex's `config.toml` is otherwise identical to Route 3 — the same named `bifrost`
+provider, the same `wire_api = "responses"`, the same `supports_websockets = false` —
+with only the model string changed to route through OpenRouter instead of DeepSeek
+directly:
+
+```toml
+model_provider = "bifrost"
+model = "openrouter/deepseek/<model-id>"
+
+[model_providers.bifrost]
+name = "Bifrost"
+base_url = "http://localhost:8080/openai/v1"
+env_key = "OPENAI_API_KEY"
+wire_api = "responses"
+supports_websockets = false
+```
+
+`openrouter/deepseek/<model-id>` carries two slashes for two separate reasons. Bifrost's
+Codex guide lists `openrouter` among the same twenty providers it accepts in
+`provider/model-name` form that Route 3 uses for `deepseek/<model-id>`, so the first slash picks Bifrost's OpenRouter provider and everything after it should be forwarded on as the model. Bifrost's docs show no two-slash example, so this follows the rule rather than an example. What comes after is OpenRouter's own catalogue id, and those ids already
+carry a vendor prefix of their own: Bifrost's provider-routing guide looks a bare
+`claude-3-5-sonnet` up in OpenRouter's catalogue as `anthropic/claude-3-5-sonnet`, and its
+OpenRouter embeddings table lists ids like `cohere/embed-multilingual-v3.0` — so
+`deepseek/<model-id>` here is that same shape, not something Bifrost invents for this
+route. Find the exact id on OpenRouter's own model list at
+[openrouter.ai/models](https://openrouter.ai/models), filtered to DeepSeek, the same way
+Route 2 does; current ids could not be verified from here, so none is printed on this
+page.
+
+Choosing this over Route 3's direct `deepseek/<model-id>` is mostly a matter of which
+account you would rather manage: one OpenRouter key billing every model it fronts, reused
+by both Codex here and any Claude Code session run through Route 2 or the note below,
+against a separate DeepSeek key used only for Route 1 and Route 3. Neither option was
+measured for cost or reliability from this machine, so treat the choice as bookkeeping
+rather than a performance recommendation.
+
+## Claude Code through Bifrost and OpenRouter
+
+The same `openrouter/deepseek/<model-id>` model string works from Route 1's Claude Code
+configuration too, following the same general rule Bifrost documents for pinning any
+provider it supports — set `ANTHROPIC_DEFAULT_SONNET_MODEL` and
+`ANTHROPIC_DEFAULT_HAIKU_MODEL` to it in place of `deepseek/<model-id>`. This is not
+recommended. Bifrost's own Claude Code guide warns, under Provider Compatibility:
+
+> Streaming tool-call arguments must be implemented correctly by the upstream. Some
+> providers (notably **OpenRouter** at the time of writing) do not stream function-call
+> arguments properly — tool calls arrive with empty `arguments` fields and Claude Code
+> fails on file operations. If this happens, switch to a different provider in your
+> Bifrost configuration.
+
+That warning is Bifrost's, about OpenRouter as a provider sitting behind Bifrost, and is
+independent of DeepSeek. Whether OpenRouter's own Anthropic-compatible endpoint in Route 2
+streams tool-call arguments the same way is not established by either guide: OpenRouter's
+says only that Claude Code is guaranteed to work with its Anthropic first-party provider
+and may not work correctly with others.
+
 ## What to expect
 
 Anthropic does not support this arrangement, in its own words: "Anthropic doesn't
@@ -178,15 +260,17 @@ None of these is DeepSeek-specific; they follow from routing Claude Code through
 non-Anthropic gateway at all, DeepSeek included. Subagents shipped in this repository's
 plugins are not exempt: none of them sets a `model` key, so Claude Code falls through its
 documented order — a per-invocation choice, then the frontmatter, then
-`CLAUDE_CODE_SUBAGENT_MODEL`, then the main conversation's model — and under either route
-above that ends at the DeepSeek model the session is running on, with the same caveats.
+`CLAUDE_CODE_SUBAGENT_MODEL`, then the main conversation's model — and under any of the
+Claude Code routes above that ends at the DeepSeek model the session is running on, with
+the same caveats.
 To put them on a different model, set `CLAUDE_CODE_SUBAGENT_MODEL` to another model id
 the gateway serves.
 
 ## Checking it works
 
-In Claude Code (Routes 1 and 2), run `/status` first: OpenRouter's guide shows it
-printing an `Auth token` line naming `ANTHROPIC_AUTH_TOKEN` and an `Anthropic base URL`
+In Claude Code (Routes 1 and 2, and the Bifrost-and-OpenRouter configuration above), run
+`/status` first: OpenRouter's guide shows it printing an `Auth token` line naming
+`ANTHROPIC_AUTH_TOKEN` and an `Anthropic base URL`
 line naming the gateway, which confirms the environment reached the session before
 anything else does. Then ask the tool something that should trigger a skill or list what
 is installed — "what skills do you have installed" or a prompt that should match one by
@@ -206,6 +290,13 @@ Pointing Claude Code directly at DeepSeek's own Anthropic-compatible Messages en
 with no gateway in front of it, is not documented here: Bifrost's DeepSeek page says the
 endpoint exists, but using it directly with Claude Code was not verified.
 
-Codex through OpenRouter is not documented on this page either: Codex requires a provider
-that speaks the OpenAI Responses API, and whether OpenRouter exposes one could not be
-confirmed from here.
+Codex pointed directly at OpenRouter, with no gateway between them, is not documented on
+this page either: Codex requires a provider that speaks the OpenAI Responses API, and
+whether OpenRouter exposes one directly could not be confirmed from here — Route 4 above
+covers going through Bifrost instead.
+
+Bifrost's fallbacks are not documented here as a route. The `fallbacks` array on its
+retries-and-fallbacks page is a per-request field that neither Claude Code nor Codex
+sends; Bifrost can also build a fallback chain on its own side, from a virtual key's
+`provider_configs`, a routing rule, or its load balancer, but the prefixed model strings
+above pin the provider, and none of that was configured or verified here.
