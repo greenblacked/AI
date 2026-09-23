@@ -18,5 +18,5 @@
   {"query": "how many players per matchmaking node can we take at launch and what saturates first", "should_trigger": false, "expected": "capacity-planning"},
   {"query": "our prometheus cardinality exploded because someone put player id on a metric label", "should_trigger": false, "expected": "instrumentation"},
   {"query": "what spans should the inventory service emit so the next 3am page is diagnosable", "should_trigger": false, "expected": "instrumentation"},
-  {"query": "write the patch notes for this season's balance changes so players understand them", "should_trigger": false, "expected": "release-notes"}
+  {"query": "write the patch notes for this season's balance changes so players understand them", "should_trigger": false, "expected": "game-live-ops"}
 ]
