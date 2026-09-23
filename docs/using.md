@@ -28,6 +28,10 @@ The first line registers the marketplace; it downloads nothing on its own. Each
 `/plugin install` adds one plugin. `/reload-plugins` makes them live in the current
 session — without it you will wonder why nothing fires.
 
+Installing `gamedev`: [`docs/gamedev.md`](gamedev.md) picks a production scale and a game
+type and routes through the plugin's nine skills from there, rather than leaving you to
+read all nine cold.
+
 Install the plugins you will actually use. Every description a plugin ships sits in
 context for the whole session, and the runtime caps that listing at about 1% of the
 context window. Past the cap it drops the descriptions of the skills you invoke least,

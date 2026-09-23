@@ -227,7 +227,8 @@ Reading, reviewing, testing and changing code.
 
 ### Gamedev
 
-Making games, and shipping them.
+Making games, and shipping them. [`docs/gamedev.md`](docs/gamedev.md) is the route
+through this plugin's skills by production scale and game type.
 
 | Skill | What it does |
 | --- | --- |
@@ -452,6 +453,7 @@ skill that fires on everything.
 ## Documentation
 
 - [Using the skills](docs/using.md) — installing and using them in Claude Code, ChatGPT, Grok and terminal agents
+- [Gamedev: start here](docs/gamedev.md) — picking a production scale and a game type, and the route through the nine gamedev skills
 - [Project structure](docs/project-structure.md) — what Claude Code loads from a project, what it loads only when relevant, and what is only a convention
 - [Writing a skill](docs/writing-skills.md) — the contract, every validator code, and how to write a description that actually triggers
 - [Writing a subagent](docs/writing-agents.md) — when a subagent beats doing the work inline

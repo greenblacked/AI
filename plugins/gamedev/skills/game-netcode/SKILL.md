@@ -16,6 +16,18 @@ Use for: choosing an authority model, adding multiplayer to a game, diagnosing r
 
 Do not use for: building or reviewing the game itself, including its feel and its frame budget — that is `game-builder`. A backend HTTP or RPC interface that happens to belong to a game is `api-design`. How many machines the fleet needs at launch is `capacity-planning`. A crash or logic bug that happens to show up in a networked build, with no networking in the causal chain, is `debugging`.
 
+## Scale and game type
+
+Scale here means what the work requires rather than a headcount or a budget: indie/A is one small team wearing every hat; AA adds specialised roles, several platforms and a publisher's milestones; AAA adds many specialised disciplines, external studios and a simultaneous multi-platform launch.
+
+| | Indie/A | AA | AAA |
+| --- | --- | --- | --- |
+| Topology (step 1) | A listen server or peer connections — nobody is paying for a dedicated fleet | A small dedicated fleet, sized with `capacity-planning` | A global dedicated fleet, sized for a simultaneous launch |
+| What's at stake (step 1) | Friends in a private lobby — client-authoritative is often acceptable | Ranked or monetised play, so server-authoritative is close to mandatory | Ranked, monetised and publicly scrutinised — anti-cheat investment scales with it |
+| Testing (step 8) | Run the degraded-network profiles yourself before launch | A network QA pass runs the profile table per milestone build | The same, per platform, against a certification calendar |
+
+Competitive multiplayer and live-service games are what this skill exists for — pick the authority model from step 2's table before writing a line of code. Rollback is specifically for fighting games and small-count reaction games, per the same table, and is the wrong choice for anything else.
+
 ## Workflow
 
 ### 1. Establish the five facts that decide the model

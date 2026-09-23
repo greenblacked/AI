@@ -16,6 +16,18 @@ Use for: designing a save system, versioning a save schema, writing or reviewing
 
 Do not use for: a schema change to a live relational database on a server — that is `db-migration`, and none of the atomicity or cloud-conflict work here applies to it. A player-account, inventory or leaderboard service reached over HTTP is `api-design`. Building the game, including where autosaves sit in the loop for feel, is `game-builder`. Replicating state between a server and a client during play is `game-netcode`. Tuning the numbers a save happens to store is `game-balance`. Getting save behaviour through platform certification is `game-certification`.
 
+## Scale and game type
+
+Scale here means what the work requires rather than a headcount or a budget: indie/A is one small team wearing every hat; AA adds specialised roles, several platforms and a publisher's milestones; AAA adds many specialised disciplines, external studios and a simultaneous multi-platform launch.
+
+| | Indie/A | AA | AAA |
+| --- | --- | --- | --- |
+| Promise (step 1) | Fine only before the first external playtest — the promise table fits "saves do not survive an update" to closed testing and jam entries; a shipped indie game needs the last N versions or better | The last N versions load, matching a publisher's patch cadence | Every save ever written loads — a live economy cannot break a save on any patch |
+| Cloud sync (step 7) | Often skipped — one device, no sync | Cross-device sync for the platforms shipped | Cross-device and cross-platform sync, with lineage resolution tested |
+| Certification interplay | The same person who writes the save code checks the platform's write-timing rules | `game-certification`'s save-data messaging row is a separate sign-off | The same, across every platform in a simultaneous launch |
+
+Open world and large 3D games carry the most risk here, because a large persistent world needs the migration-chain discipline in step 3 from the first save file, and whether the game is save-anywhere or checkpoint-only is the cadence decided at step 4 — this skill owns what the write costs, and `game-builder` owns where autosaves sit for feel. Any game with a traded economy or a leaderboard needs step 10's server-authoritative case from day one, which is most often competitive multiplayer and live-service titles.
+
 ## Workflow
 
 ### 1. Name the compatibility promise before anything else

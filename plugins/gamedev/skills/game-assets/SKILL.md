@@ -18,6 +18,18 @@ Do not use for: frame time. A game that renders at 22 ms per frame with a 40 MB 
 
 Do not use for: designing or writing the game, choosing an engine, or making it fun — that is `game-builder`. Do not use for container image size, which is a different kind of image entirely.
 
+## Scale and game type
+
+Scale here means what the work requires rather than a headcount or a budget: indie/A is one small team wearing every hat; AA adds specialised roles, several platforms and a publisher's milestones; AAA adds many specialised disciplines, external studios and a simultaneous multi-platform launch.
+
+| | Indie/A | AA | AAA |
+| --- | --- | --- | --- |
+| Budget (step 1) | One or two store ceilings, agreed informally | Budgets set per platform, tracked by a producer | Budgets set per platform, owned by a dedicated build-size role |
+| Pipeline (step 8) | Presets applied by the one person who imports assets | Presets and CI size gates for a small art team | Presets, CI gates and a technical artist maintaining them across external studios |
+| Source control (step 4) | Plain Git is often enough, per step 4's under-a-gigabyte case | LFS from the first commit | LFS or Perforce, close to mandatory with a team of artists editing binaries concurrently |
+
+Mobile casual and F2P games are where the download-size ceiling in step 1 binds hardest. Open world and large 3D games depend most on the texture streaming and LOD budgets in steps 5 and 7.
+
 ## Workflow
 
 ### Step 1: Get the budget before touching an asset
