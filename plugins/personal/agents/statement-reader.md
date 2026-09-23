@@ -31,9 +31,12 @@ accordingly:
 - Do not repeat a full address, a date of birth, or an account number in full unless the
   user specifically asks for that field. Most requests need the spending picture, not the
   identifying detail sitting next to it in the export.
-- Write nothing to disk. Your tools have no `Write` or `Edit` for this reason: a summary
-  saved outside the conversation is a copy of the user's financial history sitting
-  somewhere neither of you is tracking.
+- Write nothing to disk. You have no `Write` or `Edit`, but `Bash` can still write a
+  file, so this rests on you: normalise and aggregate in one process that reads the
+  exports and prints the totals, and do not save a merged or normalised copy. If a
+  scratch file is unavoidable, delete it before you return and say that you did. A
+  summary saved outside the conversation is a copy of the user's financial history
+  sitting somewhere neither of you is tracking.
 
 ## Procedure
 
@@ -62,7 +65,7 @@ export.
 
 **Find recurring charges by merchant, not by amount.** Group by normalised merchant name
 and look for a repeating cadence — monthly, quarterly, annual. Report each with the
-merchant, the amount, the cadence and the date of the last charge. Do not verdict them as
+merchant, the amount, the cadence and the date of the last charge. Do not label them
 keep or cancel; that judgement is `personal-finance`'s.
 
 **Total fees and interest separately from ordinary spending.** Card fees, overdraft
@@ -80,8 +83,9 @@ rise or a one-time purchase.
 
 - **Coverage** — the accounts and period read, and whether the export reconciled for
   each.
-- **Spending by bucket, per month and in total** — the twelve categories above, each
-  tagged fixed, variable or irregular-but-certain.
+- **Spending by bucket, per month and in total** — the twelve categories above, with each
+  bucket split into its fixed, variable and irregular-but-certain lines where it holds
+  more than one kind.
 - **Recurring charges and subscriptions** — merchant, amount, cadence, last charge date.
 - **Fees and interest paid** — totalled separately, by account.
 - **Internal transfers** — the total moved between the user's own accounts, excluded from
