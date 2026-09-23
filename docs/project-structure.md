@@ -85,10 +85,11 @@ be relevant.
 That conditional loading is also its failure mode, and the reason `skillcheck` validates
 this directory. A glob with a typo in it matches nothing, so the rule never loads, and
 nothing anywhere reports it — the author simply believes a gate is in place that is not.
-`make validate` checks this directory for three things:
+`make validate` checks this directory for four things:
 
 | Code | Means | Fix |
 | --- | --- | --- |
+| `not-utf8` | The file is not valid UTF-8. | Re-save it as UTF-8. Reported rather than raised, because one mis-encoded file used to abort validation for every other rule. |
 | `dangling-glob` | A `paths:` entry selects nothing in the repository, so the rule never loads. | Correct the glob, or drop the key and let the rule load every session. |
 | `empty-paths` | `paths:` is present with no entries, which scopes the rule to nothing. | List a glob, or remove the key. |
 | `empty-rule` | The file has no content to load. | Write it or delete it. |
