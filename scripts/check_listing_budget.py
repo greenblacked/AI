@@ -72,6 +72,10 @@ RUNTIME_DEFAULT = 8000
 CHARS_PER_TOKEN = 4.63
 CONTEXT_WINDOW_TOKENS = 200_000
 README = Path("README.md")
+# Every file that tells a reader which fraction to set. The README was checked alone and
+# `docs/using.md` was not, which is how it kept recommending 0.04 after the README stopped:
+# the fix went to the page people read first and not to the one it links to for detail.
+ADVICE_FILES = (README, Path("docs/using.md"))
 # `{ "skillListingBudgetFraction": 0.04 }` in the README's install section — the setting
 # it tells a reader to raise when they install several plugins.
 FRACTION_RE = re.compile(r'"skillListingBudgetFraction"\s*:\s*([0-9.]+)')
@@ -355,33 +359,35 @@ def check(root: Path, update: bool = False) -> int:
             f"skillListingBudgetFraction {needed:.3f}"
         )
 
-    # The README tells a reader to raise `skillListingBudgetFraction` when they install
-    # several plugins, and names a number. That number is a claim about this library's
-    # size, so it goes stale the way any recorded measurement does: it said 0.04 while
-    # the listing needed 0.075, which covers a little over half of it and leaves the
-    # reader believing they have fixed the problem. Checked here rather than in
-    # check_readme.py because the measurement lives here, and two measurements of one
-    # thing eventually disagree.
-    readme = root / README
-    if readme.is_file():
-        needed = total / CHARS_PER_TOKEN / CONTEXT_WINDOW_TOKENS
-        match = FRACTION_RE.search(readme.read_text(encoding="utf-8"))
+    # Both files that tell a reader to raise `skillListingBudgetFraction` name a
+    # number, and that number is a claim about this library's size, so it goes stale
+    # the way any recorded measurement does: the README said 0.04 while the listing
+    # needed 0.075, which covers a little over half and leaves the reader believing
+    # they have fixed the problem. Checked here rather than in check_readme.py
+    # because the measurement lives here, and two measurements of one thing
+    # eventually disagree.
+    needed = total / CHARS_PER_TOKEN / CONTEXT_WINDOW_TOKENS
+    for advice in ADVICE_FILES:
+        path = root / advice
+        if not path.is_file():
+            continue
+        match = FRACTION_RE.search(path.read_text(encoding="utf-8"))
         if match is None:
             print(
-                f"::error::{README} no longer names skillListingBudgetFraction, so the "
+                f"::error::{advice} no longer names skillListingBudgetFraction, so the "
                 f"install advice cannot be checked against the listing it describes"
             )
             failed = True
-        else:
-            covers = float(match.group(1)) * CONTEXT_WINDOW_TOKENS * CHARS_PER_TOKEN
-            if covers < total:
-                print(
-                    f"::error file={README}::the install section recommends "
-                    f"skillListingBudgetFraction {match.group(1)}, which covers "
-                    f"{covers / total:.0%} of the {total:,} characters this marketplace "
-                    f"ships; it needs at least {needed:.3f}"
-                )
-                failed = True
+            continue
+        covers = float(match.group(1)) * CONTEXT_WINDOW_TOKENS * CHARS_PER_TOKEN
+        if covers < total:
+            print(
+                f"::error file={advice}::the install advice recommends "
+                f"skillListingBudgetFraction {match.group(1)}, which covers "
+                f"{covers / total:.0%} of the {total:,} characters this marketplace "
+                f"ships; it needs at least {needed:.3f}"
+            )
+            failed = True
 
     # Last, because it is the finer grain: the plugin block above is the one a reader
     # comes here for, and this says which single description moved.

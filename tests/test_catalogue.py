@@ -1281,3 +1281,46 @@ def test_a_tree_with_no_readme_skips_the_advice_check(mini_repo):
     budget.check(mini_repo, update=True)
     (mini_repo / "README.md").unlink(missing_ok=True)
     assert budget.check(mini_repo) == 0
+
+
+# The README was checked and `docs/using.md` was not, so when #34 corrected 0.04 in the
+# README it stayed wrong in the page the README links to for detail. Checking one file
+# and not its companion is how a corrected figure survives in the place a reader reaches
+# second.
+
+
+def using_md_with(root, fraction: str) -> None:
+    doc = root / "docs"
+    doc.mkdir(exist_ok=True)
+    (doc / "using.md").write_text(
+        f'# Using\n\nRaise it:\n\n```json\n{{ "skillListingBudgetFraction": {fraction} }}\n```\n',
+        encoding="utf-8",
+    )
+
+
+def test_a_stale_fraction_in_using_md_fails(mini_repo, capsys):
+    budget.check(mini_repo, update=True)
+    readme_with(mini_repo, "0.5")  # the README is fine; only the companion is stale
+    using_md_with(mini_repo, "0.0000001")
+    assert budget.check(mini_repo) == 1
+    out = capsys.readouterr().out
+    assert "docs/using.md" in out
+    assert "it needs at least" in out
+
+
+def test_using_md_that_stops_naming_the_fraction_fails(mini_repo, capsys):
+    budget.check(mini_repo, update=True)
+    readme_with(mini_repo, "0.5")
+    using_md_with(mini_repo, "0.5")
+    (mini_repo / "docs" / "using.md").write_text("# Using\n\nNo advice.\n", encoding="utf-8")
+    assert budget.check(mini_repo) == 1
+    assert "no longer names skillListingBudgetFraction" in capsys.readouterr().out
+
+
+def test_a_tree_with_no_using_md_skips_that_file(mini_repo):
+    # Every other repository using this script has a README and no docs/using.md; a
+    # missing companion is not a defect.
+    budget.check(mini_repo, update=True)
+    readme_with(mini_repo, "0.5")
+    assert not (mini_repo / "docs" / "using.md").exists()
+    assert budget.check(mini_repo) == 0
