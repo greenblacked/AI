@@ -28,6 +28,10 @@ The first line registers the marketplace; it downloads nothing on its own. Each
 `/plugin install` adds one plugin. `/reload-plugins` makes them live in the current
 session — without it you will wonder why nothing fires.
 
+Installing `gamedev`: [`docs/gamedev.md`](gamedev.md) picks a production scale and a game
+type and routes through the plugin's nine skills from there, rather than leaving you to
+read all nine cold.
+
 Install the plugins you will actually use. Every description a plugin ships sits in
 context for the whole session, and the runtime caps that listing at about 1% of the
 context window. Past the cap it drops the descriptions of the skills you invoke least,
@@ -56,7 +60,7 @@ move when you know exactly what you want.
 
 ### Subagents
 
-Fifteen ship across six plugins, and they work differently: the main agent delegates to one
+Seventeen ship across seven plugins, and they work differently: the main agent delegates to one
 when the work would otherwise flood your context with material you do not need afterwards.
 A megabyte of CI logs, a Terraform plan, a billing export, a release range. You get the
 conclusion; the raw material never enters your session.

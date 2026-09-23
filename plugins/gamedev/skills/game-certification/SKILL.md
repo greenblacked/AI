@@ -16,6 +16,18 @@ Use for: preparing a first submission to a console, mobile or PC storefront; bui
 
 Do not use for: getting a change out gradually once the game is already live — feature flags, percentage or ring rollouts, canaries, blue/green, bake times and promotion gates are `release-strategy`, and none of that is what a platform review is. A performance pass, a frame budget or a stutter, including the frame-rate floor a platform sets, is `game-performance`. Build size against a store ceiling and the texture and audio work underneath it is `game-assets`. Making the game, or its export pipeline for an itch.io or web release, is `game-builder`. The save write path itself is `game-save-system`, though the platform's rules about when it may run are here. A red build pipeline is `ci-triage`; a dependency vulnerability alert is `dependency-triage`; the notes that accompany a patch are `release-notes`.
 
+## Scale and game type
+
+Scale here means what the work requires rather than a headcount or a budget: indie/A is one small team wearing every hat; AA adds specialised roles, several platforms and a publisher's milestones; AAA adds many specialised disciplines, external studios and a simultaneous multi-platform launch.
+
+| | Indie/A | AA | AAA |
+| --- | --- | --- | --- |
+| Ownership (step 1) | The people who build the game work the checklist and compute the calendar themselves | A producer owns the calendar against a publisher's milestones | A dedicated certification team owns the calendar and the platform relationships |
+| Resubmission budget (step 1) | Often none — a rejection is a real schedule hit | Usually one budgeted | Budgeted per platform, across a simultaneous multi-platform launch |
+| Localisation and compliance (steps 4, 5) | Whatever the team can do itself, often none | A localisation vendor for the storefront's required languages | Dedicated localisation, legal and compliance teams reviewing every declaration |
+
+Mobile F2P games carry the heaviest weight in steps 3 and 4's paid-random-item and privacy declarations. Competitive multiplayer and live-service games hit step 5's account sign-out, network-loss and save-data-messaging rows hardest, because those states occur constantly in play rather than rarely.
+
 ## Workflow
 
 ### 1. Work backwards from the date before touching the checklist

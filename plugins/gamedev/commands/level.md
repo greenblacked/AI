@@ -17,6 +17,9 @@ condition, stop the chain there and report — a stage that was skipped is not a
 passed, and reporting it as one is how a level reaches review with no frame budget behind
 it.
 
+Read each skill's own "Scale and game type" section before deciding how heavily to run
+its stage — what a jam entry can skip, a AAA submission cannot.
+
 ## 1. Specify — `game-design-doc`
 
 Write out of scope before scope. Mark every statement as a decision, an assumption, a
@@ -112,7 +115,7 @@ import presets that were added.
 
 ## What comes after, and what runs alongside
 
-Neither of these is a stage in this chain. Both are cheap now and expensive later, which
+None of these is a stage in this chain. Each is cheap now and expensive later, which
 is why they are named here rather than discovered at submission.
 
 - **Shipping to a console or a store**: `game-certification` owns the submission gate,
@@ -121,6 +124,9 @@ is why they are named here rather than discovered at submission.
 - **The feature touches persistent state**: progress, unlocks, checkpoints, currency or
   inventory all mean `game-save-system` should decide the compatibility promise and the
   format before stage 3 fixes it by whatever the build happened to serialise.
+- **The feature touches multiplayer**: `game-netcode` should choose the authority model
+  before stage 3 assumes one by default — `game-builder`'s own anti-patterns name a
+  netcode model decided late as the rewrite it becomes.
 
 ## Finish
 
