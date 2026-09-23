@@ -56,7 +56,7 @@ move when you know exactly what you want.
 
 ### Subagents
 
-Fifteen ship across six plugins, and they work differently: the main agent delegates to one
+Seventeen ship across seven plugins, and they work differently: the main agent delegates to one
 when the work would otherwise flood your context with material you do not need afterwards.
 A megabyte of CI logs, a Terraform plan, a billing export, a release range. You get the
 conclusion; the raw material never enters your session.

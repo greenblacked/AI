@@ -45,7 +45,7 @@ Say which variable is unknown rather than going vague. The structure of the advi
 
 ### 1. Build the picture from real statements
 
-Ask for twelve months of transactions from every account — current accounts, credit cards, and any account a direct debit leaves from. Twelve months, because anything shorter misses the annual renewals that are the whole point. Export to CSV and work from the file rather than a summary screen.
+Ask for twelve months of transactions from every account — current accounts, credit cards, and any account a direct debit leaves from. Twelve months, because anything shorter misses the annual renewals that are the whole point. Export to CSV and work from the file rather than a summary screen. Where that is several files or thousands of rows across more than a couple of accounts — more than a screenful — hand the exports to `statement-reader` and work from the categorised summary it returns rather than reading the raw rows yourself.
 
 Reconcile before categorising: total inflows minus total outflows should equal the change in balances across the period. If it does not, an account is missing. A picture that does not reconcile is a picture that will be wrong in the direction of flattering.
 

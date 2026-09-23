@@ -8,7 +8,7 @@
 [![Skills](https://img.shields.io/badge/skills-87-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-87 agent skills, fifteen read-only subagents and six slash commands, in eight
+87 agent skills, seventeen read-only subagents and six slash commands, in eight
 plugins you install separately. They cover the daily loop of changing code, keeping a
 system running, shipping a change, securing it, making a game, leading a team, a career,
 and the parts of life that are nobody's job.
@@ -36,7 +36,7 @@ outside a runtime that can trigger them for you.
 | `delivery` | Getting a change into production | 9 skills, 1 subagent |
 | `security` | The defensive side of shipping software | 11 skills, 3 subagents, 2 commands |
 | `manager` | Engineering leadership | 13 skills, 2 subagents, 1 command |
-| `personal` | Money, travel, admin, habits and health | 7 skills |
+| `personal` | Money, travel, admin, habits and health | 7 skills, 2 subagents |
 | `career` | Applications, negotiation, speaking and writing | 5 skills |
 
 Install one plugin or all eight. Each is a self-contained directory under `plugins/` with
@@ -345,7 +345,7 @@ Applications, negotiation, speaking and writing.
 
 ## Subagents
 
-Fifteen subagents ship across six plugins. Each exists to keep bulk out of the main context
+Seventeen subagents ship across seven plugins. Each exists to keep bulk out of the main context
 — the input is a log, a plan, a billing export, a contract, a pile of feedback, a release
 range, and the answer is short — and to be denied the tools it should not have. A reviewer
 that can apply is not a reviewer.
@@ -367,6 +367,8 @@ that can apply is not a reviewer.
 | `contract-reader` | `manager` | A contract, DPA or SOC 2 report | The clauses that decide the deal, quoted and located |
 | `feedback-synthesiser` | `manager` | Collected peer feedback | Themes with a source count and a quoted example |
 | `changelog-reader` | `delivery` | A release range of commits and PRs | Audience-sorted inventory, breaking changes flagged, noise collapsed |
+| `statement-reader` | `personal` | Bank, credit-card and digital-wallet transaction exports | Spending by category bucket, recurring charges, fees, transfers and anomalies |
+| `terms-reader` | `personal` | An insurance policy, tenancy, loan or subscription's terms | The renewal date, notice period, exit charges and exclusions, each quoted and located |
 
 Four more sit in [`.claude/agents/`](.claude/agents) and ship to nobody. They are for
 working on this repository, in two loops that share a judge.
