@@ -62,7 +62,7 @@ change an already active session.
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
 | `scripts/` | Packaging, install, the eval harness, the portable export, and the six catalogue checks |
-| `scripts/hooks/` | The `PostToolUse` hook `.claude/settings.json` registers, which validates a skill as it is written |
+| `scripts/hooks/` | The `PostToolUse` hook `.claude/settings.json` registers, which validates a skill, subagent, command or rule as it is written |
 
 ## Setup commands
 

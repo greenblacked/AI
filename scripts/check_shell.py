@@ -56,6 +56,28 @@ SEARCH_DIRS = ("plugins", "docs", "scripts", ".claude", "template")
 # above has stopped finding anything. It shares no pattern with FENCE_OPEN_RE on
 # purpose: two spellings of one regex fail together, which is no check at all.
 LOOKS_LIKE_A_FENCE = ("bash", "sh", "shell")
+# ripgrep uses the Rust regex crate, which has no lookaround at all: `(?=`, `(?!`, `(?<=`
+# and `(?<!` are a parse error rather than a slow path, and `-P` is what switches it to
+# PCRE2 where they work. `bash -n` cannot see this, because the command is valid shell
+# and only fails when someone runs it — which is how `rg -n 'uses:\s*[^@]+@(?!\w{40})'`
+# shipped in a skill whose own rule says every command it prints must run. This is the
+# narrow, mechanical half of that rule: it proves nothing about a flag that does not
+# exist, and a person still has to run the thing.
+# `rg` as any whitespace-delimited token, with an optional path prefix, so `if rg -q`,
+# `xargs rg` and `/usr/bin/rg` are seen. The false positive that buys — `echo rg` with a
+# lookaround later on the same line — is far rarer than `if rg -q`.
+RG_RE = re.compile(r"(?:^|[\s|;&(`]|\$\()(?:\S*/)?(?:rg|ripgrep)\s")
+LOOKAROUND_RE = re.compile(r"\(\?(?:=|!|<=|<!)")
+# Every spelling that reaches PCRE2: `--pcre2`, `--engine pcre2` or `auto` in either
+# separator, `--auto-hybrid-regex` (the deprecated alias for `--engine auto`), and `P`
+# anywhere in a bundled short-flag run — `-Pn` and `-nP` are the same flag.
+PCRE2_RE = re.compile(
+    r"(?:^|\s)(?:--pcre2|--auto-hybrid-regex|--engine[= ](?:pcre2|auto)"
+    r"|-[A-Za-z]*P[A-Za-z]*)(?:\s|=|$)"
+)
+# A literal search switches the pattern off entirely, so `rg -F '(?!'` — the sweep you
+# would write to find this very defect — is not a defect.
+LITERAL_RE = re.compile(r"(?:^|\s)(?:--fixed-strings|-[A-Za-z]*F[A-Za-z]*)(?:\s|=|$)")
 
 
 def fence_openers(text: str) -> int:
@@ -91,6 +113,41 @@ def blocks(text: str):
             end += 1
         yield start + 1, "\n".join(lines[start:end])
         index = end + 1
+
+
+def logical_lines(source: str):
+    """Yield (offset, command), joining lines a trailing backslash continues.
+
+    A command split across lines is one command, and the flag that would make it legal
+    is as likely to be on the second line as the first.
+    """
+    buffer = ""
+    start = 0
+    for offset, raw in enumerate(source.split("\n")):
+        line = raw.rstrip()
+        if not buffer:
+            start = offset
+        if line.endswith("\\") and not line.lstrip().startswith("#"):
+            buffer += line[:-1] + " "
+            continue
+        yield start, buffer + line
+        buffer = ""
+    if buffer:
+        yield start, buffer
+
+
+def rg_without_pcre2(source: str) -> list[tuple[int, str]]:
+    """Every ripgrep invocation using lookaround without asking for PCRE2."""
+    found = []
+    for offset, command in logical_lines(source):
+        stripped = command.strip()
+        if stripped.startswith("#") or not RG_RE.search(command):
+            continue
+        if PCRE2_RE.search(command) or LITERAL_RE.search(command):
+            continue
+        if LOOKAROUND_RE.search(command):
+            found.append((offset, stripped))
+    return found
 
 
 def bash() -> str | None:
@@ -130,10 +187,18 @@ def check(root: Path) -> int:
     for directory in SEARCH_DIRS:
         for path in sorted((root / directory).rglob("*.sh")):
             scripts += 1
-            problem = parses(path.read_text(encoding="utf-8"), executable)
+            text = path.read_text(encoding="utf-8")
+            problem = parses(text, executable)
             if problem is not None:
                 rel = path.relative_to(root)
                 print(f"::error file={rel},line=1::{rel} is not valid shell — {problem}")
+                failures += 1
+            for offset, command in rg_without_pcre2(text):
+                rel = path.relative_to(root)
+                print(
+                    f"::error file={rel},line={offset + 1}::ripgrep cannot run this as "
+                    f"written — lookaround needs -P. {command}"
+                )
                 failures += 1
 
     checked = 0
@@ -148,6 +213,13 @@ def check(root: Path) -> int:
                 if not source.strip():
                     continue  # an empty block is nothing to parse, but it was found
                 checked += 1
+                for offset, command in rg_without_pcre2(source):
+                    rel = path.relative_to(root)
+                    print(
+                        f"::error file={rel},line={line + offset}::ripgrep cannot run "
+                        f"this as written — lookaround needs -P. {command}"
+                    )
+                    failures += 1
                 problem = parses(source, executable)
                 if problem is not None:
                     rel = path.relative_to(root)

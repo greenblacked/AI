@@ -30,8 +30,8 @@ how a badly formatted example in a reference file reached a red build rather tha
 one.
 
 If you edit this repository with Claude Code, `.claude/settings.json` registers a
-`PostToolUse` hook that runs the validator against whichever skill you just wrote and
-reports only that skill's errors. It exists so a dangling `references/` pointer surfaces
+`PostToolUse` hook that runs the validator against whichever skill, subagent, command or
+rule you just wrote, and reports only that file's errors. It exists so a dangling `references/` pointer surfaces
 while you are still holding the context, rather than in a CI log twenty minutes later.
 Warnings are left out of it deliberately — a hook that interrupts on a judgement call is
 a hook people delete.
@@ -79,3 +79,9 @@ argue that it is wrong and change it deliberately.
 
 One logical change per commit, imperative subject line, and a body that explains why when
 the diff does not. Please do not add tool-attribution or `Co-Authored-By` trailers.
+
+## Conduct
+
+Taking part here means agreeing to the [Code of Conduct](CODE_OF_CONDUCT.md). It also
+sets out how to report a problem privately, which matters more than the policy text: a
+reporting route nobody can find is the same as not having one.
