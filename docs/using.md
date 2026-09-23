@@ -12,6 +12,9 @@ and where each one looks.
 - [Grok](#grok) — paste the skill, or attach a bundle
 - [Codex, Gemini CLI and other terminal agents](#terminal-agents-that-read-agentsmd) — several now load skills natively; see the [README table](../README.md#chatgpt-grok-codex-and-everything-else)
 - [Anything else, or nobody at all](#no-assistant-at-all)
+- Routing Claude Code or Codex to a DeepSeek model through a gateway instead of Claude or
+  GPT: [`docs/deepseek.md`](deepseek.md), not covered below — the tool still loads the
+  skills, only the model behind it changes.
 
 ## Claude Code
 

@@ -377,6 +377,37 @@ def test_a_plugin_subagent_named_only_in_prose_still_fails(mini_repo, capsys):
     assert "subagent reader ships with engineering and has no row" in capsys.readouterr().out
 
 
+def test_a_contents_row_linked_to_its_section_passes(mini_repo, capsys):
+    row = "| `engineering` | Things | 2 skills, 1 subagent |\n"
+    linked = "| [`engineering`](#engineering) | Things | 2 skills, 1 subagent |\n"
+    write_readme(mini_repo, README.replace(row, linked) + "\n### Engineering\n")
+    assert readme.check(mini_repo) == 0
+
+
+def test_a_contents_row_linked_to_another_section_fails(mini_repo, capsys):
+    row = "| `engineering` | Things | 2 skills, 1 subagent |\n"
+    linked = "| [`engineering`](#career) | Things | 2 skills, 1 subagent |\n"
+    write_readme(mini_repo, README.replace(row, linked) + "\n### Engineering\n")
+    assert readme.check(mini_repo) == 1
+    assert "links engineering to #career; its section is #engineering" in capsys.readouterr().out
+
+
+def test_a_contents_row_linked_to_a_missing_heading_fails(mini_repo, capsys):
+    row = "| `engineering` | Things | 2 skills, 1 subagent |\n"
+    linked = "| [`engineering`](#engineering) | Things | 2 skills, 1 subagent |\n"
+    write_readme(mini_repo, README.replace(row, linked))
+    assert readme.check(mini_repo) == 1
+    assert "and no heading makes it" in capsys.readouterr().out
+
+
+def test_a_linked_contents_row_still_has_its_counts_checked(mini_repo, capsys):
+    row = "| `engineering` | Things | 2 skills, 1 subagent |\n"
+    linked = "| [`engineering`](#engineering) | Things | 7 skills, 1 subagent |\n"
+    write_readme(mini_repo, README.replace(row, linked) + "\n### Engineering\n")
+    assert readme.check(mini_repo) == 1
+    assert "says engineering has 7 skills, and it has 2" in capsys.readouterr().out
+
+
 def test_a_plugin_missing_from_the_contents_table_fails(mini_repo, capsys):
     write_readme(
         mini_repo, README.replace("| `engineering` | Things | 2 skills, 1 subagent |\n", "")

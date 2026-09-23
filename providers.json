@@ -78,9 +78,33 @@
       "tool": "DeepSeek API",
       "agents_md": "Not applicable — a model API, not an agent tool",
       "skills": "Through whichever agent tool calls it",
-      "use": "Point an agent tool from this table at a DeepSeek model; skills load in the tool, not the model",
+      "use": "Route an agent tool from this table to a DeepSeek model; see docs/deepseek.md for two gateway routes",
       "sources": [
         "https://github.com/deepseek-ai/DeepSeek-V3"
+      ],
+      "verified": "2026-09-23"
+    },
+    {
+      "provider": "Maxim",
+      "tool": "Bifrost (gateway)",
+      "agents_md": "Not applicable — a gateway in front of an agent tool",
+      "skills": "Through the agent tool routed through it",
+      "use": "Route Claude Code or Codex to DeepSeek, unsupported by Anthropic; see docs/deepseek.md",
+      "sources": [
+        "https://github.com/maximhq/bifrost/blob/main/docs/cli-agents/claude-code.mdx",
+        "https://github.com/maximhq/bifrost/blob/main/docs/cli-agents/codex-cli.mdx",
+        "https://github.com/maximhq/bifrost/blob/main/docs/providers/supported-providers/deepseek.mdx"
+      ],
+      "verified": "2026-09-23"
+    },
+    {
+      "provider": "OpenRouter",
+      "tool": "OpenRouter (gateway)",
+      "agents_md": "Not applicable — a gateway in front of an agent tool",
+      "skills": "Through the agent tool routed through it",
+      "use": "Route Claude Code to DeepSeek, unsupported by Anthropic; see docs/deepseek.md",
+      "sources": [
+        "https://github.com/OpenRouterTeam/docs/blob/main/cookbook/coding-agents/claude-code-integration.mdx"
       ],
       "verified": "2026-09-23"
     }
