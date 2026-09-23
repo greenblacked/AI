@@ -58,7 +58,7 @@ gives, and at workflow level so a cache key can name one.
 | `validate-skills` | `validate skills` | A skill, a subagent, a command or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed eval set for a skill or a subagent, a `.claude/rules/` glob that matches nothing, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output; it also prints the per-plugin description total, which is the listing cost every installer pays. |
 | `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the workflow's `env` for the same reason the scanners are. |
 | `test` | `test (3.10)` … `test (3.13)` | The full test suite failed on that interpreter. Python 3.10–3.12 run plain pytest; 3.13 additionally measures line and branch coverage and enforces the unchanged floor in [`pyproject.toml`](../pyproject.toml). Compatibility remains checked on all four versions, with coverage instrumentation paid for once. pytest and coverage retain their existing version pins. The coverage table lands in the 3.13 job summary. |
-| `catalogue` | `check catalogue` | A plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), the README stopped matching the tree, this file stopped listing the jobs CI runs, a workflow's aggregate stopped naming every job in it or a pinned version came to mean two things, a shell block or shipped script no longer parses, or the hook registration in `.claude/settings.json` names a script that is missing or not executable. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. The same file also records each skill's own description length: a new skill must arrive at or under 900 characters, and one already above that is pinned where it measures rather than trimmed to fit a gate. |
+| `catalogue` | `check catalogue` | A plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), the README stopped matching the tree, this file stopped listing the jobs CI runs, a workflow's aggregate stopped naming every job in it or a pinned version came to mean two things, a shell block or shipped script no longer parses, the hook registration in `.claude/settings.json` names a script that is missing or not executable, or the README's table of AI tools no longer matches [`providers.json`](../providers.json) or that file is malformed — regenerate the table with `make providers` rather than editing it; a row past `stale_after_days` only warns. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. The same file also records each skill's own description length: a new skill must arrive at or under 900 characters, and one already above that is pinned where it measures rather than trimmed to fit a gate. |
 | `package` (portable step) | `package` | `make portable` could not flatten every skill into a file that stands alone. References are inlined and their pointers rewritten, so the export works without a filesystem. Portable outputs upload as `portable-skills` only after the preceding CI checks pass. |
 | `spelling` | `lint spelling` | codespell found a likely typo. It ran weekly and warn-only until it was made a gate; the false positives are listed in [`pyproject.toml`](../pyproject.toml) with the reason each is one, which is what lets the check sit at zero and mean something. |
 | `lint-markdown` | `lint markdown` | markdownlint-cli2 found a violation in a `*.md` file. Config in `.markdownlint-cli2.yaml`. |
@@ -597,7 +597,7 @@ An empty result means the eval jobs are standing down on every run.
 
 ```bash
 make validate   # skills, subagents, commands, rules and the manifest — the validate-skills job
-make catalogue  # listing ceilings, README and CI drift, workflows, shell — the catalogue job
+make catalogue  # listing ceilings, README and CI drift, workflows, shell, providers — the catalogue job
 make portable   # flatten every skill for ChatGPT, Grok and other assistants
 make test       # pytest — the test job
 make coverage   # the same run under coverage, failing below the floor
@@ -619,21 +619,25 @@ the packager were in before the suite covered them, not to be chased.
 `make lint` skips a tool that is not installed and prints how to get it, so a partial
 local toolchain does not block you; CI has all of them.
 
-`make catalogue` needs nothing installed beyond `bash`. It is the six checks that
+`make catalogue` needs nothing installed beyond `bash`. It is the seven checks that
 keep the repository's claims about itself true — the per-plugin listing ceilings and
 the two install claims they underwrite (which plugins fit the default budget, and the
 `skillListingBudgetFraction` to set when they do not), whether
 the README still lists every skill, subagent and command that exists and nothing that
 does not, whether this file still lists every job CI runs, whether each workflow's
 aggregate still names every job in it and each pinned version still means one thing,
-whether every shell block and shipped script actually parses, and whether the hook
-registered in `.claude/settings.json` names a script that is there and executable.
+whether every shell block and shipped script actually parses, whether the hook
+registered in `.claude/settings.json` names a script that is there and executable, and
+whether the README's table of AI tools is still what `providers.json` renders to.
 Each failure is invisible without a gate: the first costs you the skills you use least,
 silently; the second and third are only ever caught by someone reading; the fourth is the
 worst of them, because a job left out of the aggregate makes the required check report
 success while that job is red; the fifth ships a command that reads fine and fails in
-someone else's terminal; and the sixth turns the hook off, so skills are written
-unvalidated and the first sign of it is one reaching CI weeks later.
+someone else's terminal; the sixth turns the hook off, so skills are written
+unvalidated and the first sign of it is one reaching CI weeks later; and the seventh
+leaves a hand edit to the table disagreeing with the data and sources behind it. A row
+nobody has re-checked within `stale_after_days` is a warning rather than a failure,
+because a claim about someone else's tool ages whether or not anything here changed.
 `.claude/settings.json` is read by the runtime and by nothing else here, which is why
 the path in `command` needed a check of its own rather than a habit.
 

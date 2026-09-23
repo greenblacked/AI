@@ -293,8 +293,12 @@ surface, so the single-skill files are usually the better unit there.
 
 ## Codex, Gemini CLI and other terminal agents
 
-These read `AGENTS.md` from the working directory. Append the skills you want, or point
-at them:
+Several of these now load skills natively and fire them on their own, which beats any
+file here: the table in the repository README says which, and how to install for each —
+<https://github.com/greenblacked/AI#chatgpt-grok-codex-and-everything-else>
+
+For one that does not, most read `AGENTS.md` from the working directory. Append the
+skills you want, or point at them:
 
 ```bash
 cat dist/portable/plugins/coding.md >> AGENTS.md
