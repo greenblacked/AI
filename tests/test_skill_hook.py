@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.conftest import load_script, write_skill
+from tests.conftest import eval_set, load_script, write_agent, write_skill
 
 hook = load_script("hooks/skill_hook.py")
 
@@ -156,3 +156,57 @@ def test_a_broken_subagent_is_reported_against_its_own_file(mini_repo, monkeypat
     assert code == 2
     assert "plugins/engineering/agents/reader.md" in err
     assert "writer" not in err
+
+
+# `_check_eval_file` reports content errors — a thin set, an unbalanced one, a malformed
+# entry — against the eval JSON's own path, `agents/evals/<name>.json`, not against the
+# agent's `.md`. Discovered by breaking one in a scratch copy of this repository and
+# running `python -m skillcheck . --skip-marketplace`: the finding read
+# `plugins/gamedev/agents/evals/frame-capture-reader.json:1 [thin-eval-set] ...`, never
+# the agent file. The hook has to key on that path directly.
+
+
+def test_a_broken_agent_eval_set_is_reported_against_its_own_file(mini_repo, monkeypatch):
+    reader_evals = mini_repo / "plugins" / "engineering" / "agents" / "evals" / "reader.json"
+    reader_evals.write_text(json.dumps([{"query": "q", "should_trigger": True}]), encoding="utf-8")
+
+    # Break a sibling's eval set too, the same shape as the reader.md/writer.md test
+    # above: the `:` terminator is the whole point, and a prefix match on the shared
+    # `agents/evals/` directory would pass an assertion that only looks for the edited
+    # file's own path.
+    write_agent(mini_repo, "engineering", "writer", evals=eval_set("writer", expected="reader"))
+    writer_evals = mini_repo / "plugins" / "engineering" / "agents" / "evals" / "writer.json"
+    writer_evals.write_text(json.dumps([{"query": "q", "should_trigger": True}]), encoding="utf-8")
+
+    code, err = run_hook(monkeypatch, mini_repo, payload(reader_evals))
+    assert code == 2
+    assert "plugins/engineering/agents/evals/reader.json" in err
+    assert "thin-eval-set" in err
+    assert "writer" not in err
+
+
+@pytest.mark.parametrize(
+    "relative",
+    [
+        "plugins/engineering/agents/evals/reader.json",
+        ".claude/agents/evals/reviewer.json",
+    ],
+)
+def test_an_agent_eval_set_owns_only_its_own_findings(mini_repo, monkeypatch, relative):
+    monkeypatch.setattr(hook, "ROOT", mini_repo)
+    target = hook.edited_target(payload(mini_repo / relative))
+    assert target == (relative, f"{relative}:"), relative
+
+
+@pytest.mark.parametrize(
+    "relative",
+    [
+        "plugins/engineering/skills/alpha/evals/trigger-eval.json",  # a skill's own set
+        "plugins/engineering/agents/reader.md",  # the agent itself, not its eval set
+        "plugins/engineering/agents/evals/reader.md",  # right directory, wrong suffix
+        "plugins/engineering/agents/reader.json",  # right suffix, not inside evals/
+        "agents/evals/stray.json",  # no plugins/ or .claude/ prefix
+    ],
+)
+def test_paths_that_are_not_an_agent_eval_set(relative):
+    assert not hook._is_agent_eval(Path(relative)), relative
