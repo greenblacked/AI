@@ -3,7 +3,7 @@
 ## Claude Code
 
 `AGENTS.md` above is the whole contract; this file exists because Claude Code reads
-`CLAUDE.md` rather than `AGENTS.md`, and an import keeps them from drifting apart. Three
+`CLAUDE.md` rather than `AGENTS.md`, and an import keeps them from drifting apart. Four
 Claude-specific notes:
 
 - The subagents under `plugins/*/agents/` are the intended way to do the heavy reading in this
@@ -19,3 +19,8 @@ Claude-specific notes:
 - Use plan mode for anything that touches `src/skillcheck/` or `.github/workflows/`.
   Those two decide whether every other change is allowed to merge, so a mistake there is
   more expensive than it looks.
+- The models follow `.claude/agents/`, not the Codex split in `AGENTS.md`: Sonnet
+  surveys and researches (`explorer`), the newest Opus implements and checks claims
+  against sources (`implementer`, `investigator`), and Fable reviews (`reviewer`), on a
+  fresh context with no editing tools. When a model changes, change the agent's `model:`
+  line and this sentence together.
