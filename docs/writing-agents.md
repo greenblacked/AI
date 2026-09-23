@@ -29,19 +29,25 @@ tools: Read, Glob, Grep, Bash
   the main agent's full tool set, which is almost never what you want. Present, it must
   be a non-empty list with no blank entries; a trailing comma is the usual way to get
   that wrong.
-- **`disallowedTools`** — optional, and every subagent here sets it to
-  `Write, Edit, NotebookEdit`. A denylist applied before the allowlist. The allowlist
-  already omits those tools, so this is a statement rather than a restriction: it says in
-  the file that the subagent must not change anything, where a reader will see it, and it
-  survives someone later adding `Bash` to `tools` for a checker.
+- **`disallowedTools`** — optional. A denylist applied before the allowlist. Every
+  subagent here that must not change anything sets it to `Write, Edit, NotebookEdit` —
+  three (`agent-run-trace-reader`, `change-impact-reader`, `k8s-evidence-reader`) add
+  `Bash` to that list too, even though their `tools` allowlist already omits it. The
+  allowlist already omits `Write`, `Edit` and `NotebookEdit` for every subagent that sets
+  the denylist, so this is a statement rather than a restriction: it says in the file
+  that the subagent must not change anything, where a reader will see it, and it
+  survives someone later adding the tool back to `tools` for a checker — the same reason
+  those three name `Bash` explicitly rather than leaving its absence from `tools` to
+  speak for itself. `implementer`, the one loop stage whose job is to write the change,
+  sets no `disallowedTools` at all.
 - **`model`** — optional. The model the subagent runs on. None of the fifteen here set it.
 - Also accepted, because a plugin-shipped subagent supports them: `effort`, `maxTurns`,
-  `skills`, `memory`, `background`, `isolation`, `omitClaudeMd`. The last is the one
-  worth knowing: it starts the subagent without the user's, the project's and the local
-  `CLAUDE.md`, which for a narrow reader is the difference between a clean context and
-  inheriting the whole contract of wherever it ran. Managed policy files still load, and
-  it needs Claude Code v2.1.271 — on an older client it is ignored in silence, the same
-  failure this file guards against elsewhere.
+  `skills`, `memory`, `background`, `isolation`, `color`, `experimental`, `omitClaudeMd`.
+  The last is the one worth knowing: it starts the subagent without the user's, the
+  project's and the local `CLAUDE.md`, which for a narrow reader is the difference
+  between a clean context and inheriting the whole contract of wherever it ran. Managed
+  policy files still load, and it needs Claude Code v2.1.271 — on an older client it is
+  ignored in silence, the same failure this file guards against elsewhere.
 
 The key set is the documented one for a plugin-shipped subagent, not a house restriction
 — unlike a skill, there is no upload route forcing it closed. Three keys that work in a
