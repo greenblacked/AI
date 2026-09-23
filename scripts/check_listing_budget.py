@@ -79,7 +79,7 @@ ADVICE_FILES = (README, Path("docs/using.md"))
 # `{ "skillListingBudgetFraction": <n> }` on its own line in each advice file — the
 # setting it tells a reader to raise when they install several plugins. Anchored to a
 # whole-line JSON object rather than searched for anywhere: prose that quotes a wrong
-# value as a counter-example (as this very check's fixtures do) would otherwise read as
+# value as a counter-example would otherwise read as
 # a second recommendation and fail a page that is correct. `re.MULTILINE` is what lets
 # `^`/`$` mean the start and end of a line rather than of the whole file, and every match
 # is checked rather than only the first, because a page can recommend the setting more
@@ -90,16 +90,18 @@ FRACTION_RE = re.compile(
 # Every file that claims which plugins fit the default budget installed alone. Like
 # ADVICE_FILES above, this is a measurement restated as prose in more than one place, and
 # a measurement restated anywhere goes stale the moment the number it restates moves:
-# `delivery` and `gamedev` sit close enough to RUNTIME_DEFAULT that a few dozen
-# characters of rewording either side flips which plugins the claim should name.
+# when this was added, `delivery` and `gamedev` sat close enough to RUNTIME_DEFAULT
+# that a small rewording on either side would flip which plugins the claim should name.
 CLAIM_FILES = (README, Path("docs/using.md"), Path("docs/writing-skills.md"))
 # The sentence making that claim, isolated by the periods on either side of it rather
 # than by one fixed wording: the three files phrase it "on their own", "by themselves"
 # and across a line break, and collapsing whitespace before matching handles the line
 # break while leaving the phrasing free. What has to survive a rewording is the literal
-# phrase "fit the default budget" — lose that and the claim can no longer be found, which
-# is treated the same as a fraction file with no fraction in it: an error, not a skip.
-CLAIM_SENTENCE_RE = re.compile(r"[^.]*fit the default budget[^.]*\.")
+# phrase "fit the default budget", singular or plural — lose that and the claim can no
+# longer be found, which is treated the same as a fraction file with no fraction in it:
+# an error, not a skip.
+CLAIM_SENTENCE_RE = re.compile(r"[^.]*\bfits? the default budget[^.]*\.")
+FIT_RE = re.compile(r"\bfits?\b")
 NAME_RE = re.compile(r"`([\w-]+)`")
 
 
@@ -114,7 +116,9 @@ def claimed_fits(text: str) -> set[str] | None:
     match = CLAIM_SENTENCE_RE.search(" ".join(text.split()))
     if match is None:
         return None
-    before_fit = match.group(0).split("fit", 1)[0]
+    # Split on the word, not the substring: "benefit" or "profit" before the names
+    # would otherwise cut the sentence short.
+    before_fit = FIT_RE.split(match.group(0), maxsplit=1)[0]
     return set(NAME_RE.findall(before_fit))
 
 

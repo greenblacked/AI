@@ -1238,7 +1238,7 @@ def test_this_repository_has_plugins_that_go_silent(capsys):
 # --- the install advice against the listing it describes ---------------------------
 
 
-CLAIM_SENTENCE = "Only `engineering` fit the default budget on its own.\n\n"
+CLAIM_SENTENCE = "Only `engineering` fits the default budget on its own.\n\n"
 
 
 def readme_with(root, fraction: str):
@@ -1347,9 +1347,9 @@ def test_a_tree_with_no_using_md_skips_that_file(mini_repo, capsys):
 
 # README.md, docs/using.md and docs/writing-skills.md all say, in prose, which plugins
 # fit the runtime's default budget installed alone. Nothing checked that claim against
-# the measurement until now, which is how `delivery` at 8,025 characters and `gamedev`
-# at 8,048 — a few dozen characters over the ~8,000 default — could silently be a
-# character or two from making the claim wrong in three places at once.
+# the measurement before this, when `delivery` measured 8,025 characters and `gamedev`
+# 8,048 — a few dozen over the ~8,000 default — so a small rewording could have made the
+# claim wrong in three places at once.
 
 
 def test_a_claim_matching_the_measured_fit_passes(mini_repo):
@@ -1417,7 +1417,7 @@ def test_a_missing_claim_file_is_a_notice_not_a_failure(mini_repo, capsys):
 
 # --- the fraction advice regex, anchored to a whole-line JSON object ----------------
 
-# `"skillListingBudgetFraction": 0.04` unanchored would match a value quoted in prose as
+# `"skillListingBudgetFraction": <n>` unanchored would match a value quoted in prose as
 # a counter-example, the same failure mode `check_readme.py`'s digit-count check guards
 # against elsewhere in this file. Anchoring to `^\s*\{ ... \}\s*$` on its own line, and
 # checking every match rather than only the first, is what these two exist for.
@@ -1427,7 +1427,7 @@ def test_an_inline_prose_mention_is_not_read_as_a_recommendation(mini_repo, caps
     budget.check(mini_repo, update=True)
     (mini_repo / "README.md").write_text(
         f"# Mini\n\n{CLAIM_SENTENCE}"
-        'Do not just set `"skillListingBudgetFraction": 0.04` inline; use the block below.\n\n'
+        'Do not just set `"skillListingBudgetFraction": 0.0000001` inline; use the block below.\n\n'
         '```json\n{ "skillListingBudgetFraction": 0.5 }\n```\n',
         encoding="utf-8",
     )
@@ -1446,3 +1446,12 @@ def test_a_second_insufficient_value_in_a_later_block_fails(mini_repo, capsys):
     out = capsys.readouterr().out
     assert "0.0000001" in out
     assert "it needs at least" in out
+
+
+def test_claimed_fits_reads_singular_and_ignores_fit_inside_a_word():
+    # The singular is the grammatical form the day only one plugin fits, and "benefit"
+    # before the names used to cut the sentence short at the substring.
+    assert budget.claimed_fits("Only `career` fits the default budget on its own.") == {"career"}
+    assert budget.claimed_fits(
+        "For the benefit of readers: only `career` and `personal` fit the default budget."
+    ) == {"career", "personal"}

@@ -620,7 +620,9 @@ the packager were in before the suite covered them, not to be chased.
 local toolchain does not block you; CI has all of them.
 
 `make catalogue` needs nothing installed beyond `bash`. It is the six checks that
-keep the repository's claims about itself true — the per-plugin listing ceilings, whether
+keep the repository's claims about itself true — the per-plugin listing ceilings and
+the two install claims they underwrite (which plugins fit the default budget, and the
+`skillListingBudgetFraction` to set when they do not), whether
 the README still lists every skill, subagent and command that exists and nothing that
 does not, whether this file still lists every job CI runs, whether each workflow's
 aggregate still names every job in it and each pinned version still means one thing,
