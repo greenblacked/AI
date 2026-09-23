@@ -2,9 +2,9 @@
 
 Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
 frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md) for
-one of the fifteen this repository ships today, three with `coding`, five with
-`operations`, three with `security`, two with `manager`, one with `gamedev` and one with
-`delivery` — and in `.claude/agents/`
+one of the seventeen this repository ships today, three with `coding`, five with
+`operations`, three with `security`, two with `manager`, one with `gamedev`, one with
+`delivery` and two with `personal` — and in `.claude/agents/`
 for the four that serve work on this repository rather than shipping to anyone,
 described in [the two loops](#the-two-loops) below. A subagent is a
 separate Claude instance with its own context window, its own system prompt, and its own
@@ -40,7 +40,7 @@ tools: Read, Glob, Grep, Bash
   those three name `Bash` explicitly rather than leaving its absence from `tools` to
   speak for itself. `implementer`, the one loop stage whose job is to write the change,
   sets no `disallowedTools` at all.
-- **`model`** — optional. The model the subagent runs on. None of the fifteen here set it.
+- **`model`** — optional. The model the subagent runs on. None of the seventeen here set it.
 - Also accepted, because a plugin-shipped subagent supports them: `effort`, `maxTurns`,
   `skills`, `memory`, `background`, `isolation`, `color`, `experimental`, `omitClaudeMd`.
   The last is the one worth knowing: it starts the subagent without the user's, the
@@ -203,9 +203,9 @@ inline.
 ## The subagents in this repository
 
 Each plugin discovers its own `agents/` directory — nothing lists them in
-[`marketplace.json`](../.claude-plugin/marketplace.json). Fifteen ship: three with `coding`,
-five with `operations`, three with `security`, two with `manager`, one with
-`gamedev` and one with `delivery`.
+[`marketplace.json`](../.claude-plugin/marketplace.json). Seventeen ship: three with
+`coding`, five with `operations`, three with `security`, two with `manager`, one with
+`gamedev`, one with `delivery` and two with `personal`.
 
 - **`skill-reviewer`** — reviews a candidate `SKILL.md` against this repository's rules
   and against what makes a skill actually trigger. Runs the validator first to settle

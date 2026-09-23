@@ -133,7 +133,7 @@ Appeal deadlines are short — often 14 to 28 days from the decision — and are
 
 ## Recurring admin
 
-Most of the emergencies are renewals nobody diarised. The fix is a single list, reviewed once, that covers everything with an expiry date: identity documents, driving and vehicle records, insurance policies, professional registrations, tenancy and mortgage terms, subscriptions on annual renewal, guarantees and warranties, and anything with a fixed-term rate that reverts to a worse one.
+Most of the emergencies are renewals nobody diarised. The fix is a single list, reviewed once, that covers everything with an expiry date: identity documents, driving and vehicle records, insurance policies, professional registrations, tenancy and mortgage terms, subscriptions on annual renewal, guarantees and warranties, and anything with a fixed-term rate that reverts to a worse one. Where one of those is a long policy document or agreement rather than a line on the list — a full insurance policy, a tenancy agreement, a mortgage offer — hand it to `terms-reader` and work from the quoted clauses it returns rather than reading the document yourself.
 
 For each, record the expiry date, the required lead time, and where the document lives. Then set two alerts: one at the lead time, and one a week before the deadline itself. Anything that auto-renews gets a separate alert before the cancellation window closes, because the renewal price is rarely the price you would be offered as a new customer. `references/recurring-admin.md` has the inventory template and a review cadence; read it when setting this up for the first time or after a renewal has been missed.
 
