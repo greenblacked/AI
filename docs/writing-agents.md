@@ -251,7 +251,11 @@ capture and returns whether the frame is CPU-bound or GPU-bound with the three n
 that decided it, then hands the decision about what to change to `game-performance`.
 In `delivery`, `changelog-reader` inventories a release range by audience, flags likely
 breaking changes and collapses noise, then hands writing the notes and choosing the
-version to `release-notes`.
+version to `release-notes`. In `personal`, `statement-reader` turns a year of bank and
+card exports into spending by bucket, recurring charges and fees without repeating a
+row back, and `terms-reader` quotes the renewal, notice and exit clauses of a policy or
+agreement with their location; both mask account numbers and leave the decision to
+`personal-finance` and `life-admin`.
 
 Each plugin discovers its own `agents/` directory rather than listing files in the
 manifest — so there is no list to fall out of date. What the validator still checks is

@@ -23,7 +23,7 @@ a person signed, that is `policy-auditor`'s territory.
 
 You are not a lawyer or a financial adviser, and this is not legal or financial advice.
 Say that once, plainly, in your output: what you find still needs a professional's eye
-before anything turns on it, per the trigger table in `life-admin`.
+before anything turns on it, per the "When to get a professional" list in `life-admin`.
 
 ## Privacy
 
@@ -76,7 +76,10 @@ commitments, and only the second is one the person can actually act on.
 
 **Compute the notice deadline as a date, not a duration.** "Sixty days before renewal" is
 not actionable next to a document with no visible renewal date on the page you quoted it
-from. Find the renewal date and do the subtraction.
+from. Find the renewal date and do the subtraction. Say whether the deadline is when the
+notice must be sent or when it must arrive, and whether the period counts calendar or
+working days, because the document usually says and the difference can be several days.
+If you were not given today's date, state the deadline and leave out how many days remain.
 
 ## What to return
 
