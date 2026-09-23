@@ -54,7 +54,7 @@ offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to
-the maintainer privately, through GitHub's security advisory form for this repository.
+the maintainer privately, through GitHub's [security advisory form](https://github.com/greenblacked/AI/security/advisories/new) for this repository.
 That form is used here because it is the only reporting channel on GitHub that is private
 by default and reaches the maintainer directly. Say in the first line that the report
 concerns conduct rather than a vulnerability, so it is not triaged as a security finding.

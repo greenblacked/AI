@@ -115,7 +115,8 @@ jobs:
           # reported "0 blocks parsed" and passed. The eight known warnings are the
           # control: finding none of them means the format moved, not that the tree got
           # cleaner, because a git-sourced marketplace always has them.
-          known=$(grep -c 'version: No version specified' validate.log || true)
+          known=$(grep -cE '^[[:space:]]+> .*version: No version specified' validate.log \
+            || true)
           if [ "${known}" -eq 0 ]; then
             echo "::error::plugin validate printed none of the warnings this check is" \
               "written against. Either its output format moved, or the eight known" \

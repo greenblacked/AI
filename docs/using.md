@@ -187,7 +187,7 @@ Be clear about what you lose outside Claude Code, because it is the valuable par
   cut narrowly. Uploading one bundle to a Project has no such cap, which is a genuine
   advantage of that route.
 
-The content itself travels intact. Of seventy-five skills, two name Claude anywhere in
+The content itself travels intact. Of eighty-seven skills, two name Claude anywhere in
 their text: `new-skill`, which is about authoring a skill in this format and could not
 avoid it, and `website-builder`, which names a real constraint of Claude.ai artifacts.
 The rest are procedures about code, systems, teams and life, and nothing in them assumes

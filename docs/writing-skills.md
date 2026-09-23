@@ -234,7 +234,7 @@ into a warning:
 PYTHONPATH=src python -m skillcheck . --listing-budget 8000
 ```
 
-A single threshold cannot gate this, because four plugins are already above the runtime
+A single threshold cannot gate this, because six plugins are already above the runtime
 default and a gate set there would fail on every run forever. So the gate is a ratchet
 instead, in the same shape as the coverage floor: `listing-budget.json` records a ceiling
 per plugin with a few hundred characters of slack, `make catalogue` enforces it, and

@@ -1306,6 +1306,7 @@ def test_a_stale_fraction_in_using_md_fails(mini_repo, capsys):
     out = capsys.readouterr().out
     assert "docs/using.md" in out
     assert "it needs at least" in out
+    assert "file=README.md" not in out  # the README was fine; only the companion failed
 
 
 def test_using_md_that_stops_naming_the_fraction_fails(mini_repo, capsys):
