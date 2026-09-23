@@ -119,6 +119,7 @@ Commands are validated on the same run as skills and subagents.
 
 | Code | Level | Means | Fix |
 | --- | --- | --- | --- |
+| `not-utf8` | error | The file is not valid UTF-8. | Re-save it as UTF-8. Reported rather than raised, because one mis-encoded file used to abort validation for every other command. |
 | `frontmatter` | error | The block is missing, unterminated, or not a flat mapping. | Fix the syntax at the reported line. |
 | `unknown-key` | error | A key outside the five above. `name` is the usual cause. | Delete it; the filename is the name. |
 | `bad-command-name` | error | The filename is not a lowercase hyphenated slug. | Rename the file. |

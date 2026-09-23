@@ -35,11 +35,11 @@ read long after it stopped being true.
 - **Your description costs nothing against the listing ceiling.** Subagents bill against
   the vendor's separate 15,000-token budget, and this repository uses a small fraction of
   it. Keeping a description artificially short buys nothing.
-- **Twelve frontmatter keys, from the plugins reference.** `name`, `description`,
+- **Fourteen frontmatter keys, from the plugins reference.** `name`, `description`,
   `model`, `effort`, `maxTurns`, `tools`, `disallowedTools`, `skills`, `memory`,
-  `background`, `omitClaudeMd`, `isolation`. The sub-agents page lists more; only the
-  plugins reference is scoped to what survives being shipped. `color` and
-  `initialPrompt` were accepted here once and are not on it.
+  `background`, `omitClaudeMd`, `isolation`, `color`, `experimental`. The sub-agents
+  page lists more; only the plugins reference is scoped to what survives being
+  shipped. `initialPrompt` was accepted here once and is not on it.
 - **Readers get no `Write` and no `Edit`**, and say so in `disallowedTools` where a
   reader will see it. `incident-scribe` carried `Write` in both lists; the denylist
   quietly won and the file said otherwise.

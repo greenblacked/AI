@@ -571,6 +571,7 @@ subagent](writing-agents.md) for why.
 
 | Code | Level | Meaning | Fix |
 | --- | --- | --- | --- |
+| `not-utf8` | error | The file is not valid UTF-8. | Re-save it as UTF-8. Reported rather than raised, because one mis-encoded file used to abort validation for every other subagent. |
 | `frontmatter` | error | The block could not be parsed, as above. | Follow the message. |
 | `unknown-key` | error | A key outside the set in [writing a subagent](writing-agents.md#frontmatter). | Rename or delete it. `allowed-tools` here is the usual cause; the subagent key is `tools`. |
 | `missing-name` | error | No `name`, or blank. | Add it. |

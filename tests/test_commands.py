@@ -73,6 +73,12 @@ def test_a_filename_that_is_not_a_slug_is_an_error(tmp_path, name):
     assert "bad-command-name" in codes(findings)
 
 
+def test_a_file_that_is_not_utf8_reports_rather_than_crashing(tmp_path):
+    path = write_command(tmp_path, "demo")
+    path.write_bytes("---\ndescription: caf\xe9.\n---\n\nBody.\n".encode("latin-1"))
+    assert codes(check_command(path, tmp_path)) == {"not-utf8"}
+
+
 def test_a_command_with_no_body_is_an_error(tmp_path):
     text = "---\ndescription: A thing.\n---\n"
     findings = check_command(write_command(tmp_path, "demo", text), tmp_path)
