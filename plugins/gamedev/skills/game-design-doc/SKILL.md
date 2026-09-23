@@ -16,6 +16,17 @@ Use for: turning a game idea, a pitch, a design conversation or a chat log into 
 
 Do not use for: designing and building a playable game, choosing the engine or tuning game feel — that is `game-builder`, which makes the thing, where this specifies it before anyone does. Capturing a single decision and the alternatives that lost, after the decision is taken, is `decision-record` in the manager plugin. READMEs, onboarding guides and architecture overviews for software with a named reader and a Diátaxis mode are `technical-docs` in the coding plugin. A publishable article is `write-technical-article` in the career plugin. Choosing the numbers this document parameterises is `game-balance`. Save schema versioning and migration is `game-save-system`, and the authority model is `game-netcode`: name what the feature needs from each here, and cede the mechanics to them.
 
+## Scale and game type
+
+Scale here means what the work requires rather than a headcount or a budget: indie/A is one small team wearing every hat; AA adds specialised roles, several platforms and a publisher's milestones; AAA adds many specialised disciplines, external studios and a simultaneous multi-platform launch.
+
+| | Indie/A | AA | AAA |
+| --- | --- | --- | --- |
+| Readers (step 1) | Often you and one or two teammates, so several of the eight roles are the same person | Each reader in step 1 is a different person, and the discipline read in step 9 is a real review meeting | Each reader is a different team, some external, and the spec earns sign-off from a discipline lead per team |
+| Formality | Keep all twenty sections, but let several honestly read "not applicable" | Circulate a full draft for the step 9 read before build starts | The same review runs across studios and time zones, so open-question owners and dates have to survive without you in the room |
+
+Narrative and story-driven games lean hardest on the user flow and states-and-transitions sections, because that is where branching lives. Competitive multiplayer and live-service games lean hardest on the analytics events and multiplayer behaviour in step 7, because the economy and matchmaking decisions in `game-balance` and `game-netcode` depend on what this document commits to measuring.
+
 ## Workflow
 
 ### 1. Name the readers before you write a section

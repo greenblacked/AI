@@ -18,6 +18,18 @@ Use for: laying out a level, a map, an arena, a hub or a mission space; fixing a
 
 Do not use for: choosing an engine, building the core loop or tuning how the character feels to control — that is `game-builder`, which makes the thing this skill lays out space for. Enemy statistics, difficulty curves, spawn counts and economy are `game-balance`: this skill owns the shape of the arena and hands over everything that is a number on an enemy. Frame budgets, capture and the optimisation pass are `game-performance`; the only part of that here is the layout consequence of where a streaming or occlusion boundary lands. The feature specification, its acceptance criteria and the cross-functional review process are `game-design-doc`. Texture compression, LOD and import settings are `game-assets`.
 
+## Scale and game type
+
+Scale here means what the work requires rather than a headcount or a budget: indie/A is one small team wearing every hat; AA adds specialised roles, several platforms and a publisher's milestones; AAA adds many specialised disciplines, external studios and a simultaneous multi-platform launch.
+
+| | Indie/A | AA | AAA |
+| --- | --- | --- | --- |
+| Who builds and tests | One person owns metrics, blockout and the step 7 playtest | Level design and the playtest are different people, and streaming seams are a shared call with an engineer | A level team per zone, plus a dedicated streaming or technical-art owner for step 6 |
+| Playtesting (step 7) | A handful of testers, run by whoever built the level | Internal QA runs the wayfinding pass on a schedule rather than ad hoc | Playtests run at the order of magnitude step 7 cites, across multiple builds |
+| Streaming seams (step 6) | Streaming may be skipped when the level fits in memory whole, but the occlusion and culling seams step 6 describes — areaportals on windowless doors, where the engine needs them — still apply | Settle while the macro-structure can still move | Mandatory before the structure locks, across every zone that streams |
+
+Open world and large 3D games carry the most risk from this skill: the streaming and occlusion work in step 6 and a metrics-first blockout are load-bearing rather than optional. Competitive multiplayer levels lean instead on the arena properties in step 4 — route count, verticality and flanking space — over the pacing chart in step 3, which assumes a single-player beat structure.
+
 ## Workflow
 
 ### 1. Fix the player metrics before any geometry exists

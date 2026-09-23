@@ -16,6 +16,18 @@ Use for: deciding what balanced means for a specific game, designing the telemet
 
 Do not use for: building a game or a prototype, or tuning how it feels to control — that is `game-builder`. Frame budget and performance, netcode and latency, and server-side capacity or telemetry are each someone else's job; a 200 ms hit that does not register is a netcode problem no damage number fixes.
 
+## Scale and game type
+
+Scale here means what the work requires rather than a headcount or a budget: indie/A is one small team wearing every hat; AA adds specialised roles, several platforms and a publisher's milestones; AAA adds many specialised disciplines, external studios and a simultaneous multi-platform launch.
+
+| | Indie/A | AA | AAA |
+| --- | --- | --- | --- |
+| Telemetry (step 2) | Often none yet — the honest deliverable is the event schema, not a nerf | Telemetry exists, and the sample sizes in step 3's table are reachable within weeks | Telemetry at the scale step 3 assumes, across skill bands at once |
+| Playtesting (step 6) | Five testers, run by the person tuning the numbers | A scheduled playtest with recruited testers | First-session and retention tests run separately, across multiple builds |
+| Change cadence (step 5) | One change, played immediately, no formal patch process | One change per patch, on a publisher's cadence | One change per patch, coordinated across a live-service calendar with a written prediction |
+
+Mobile F2P and competitive multiplayer or live-service games are where this skill carries the most weight: the economy corridor and the per-skill-band win rate in step 1's table are what those genres are built to be measured by. Single-player and narrative games use the difficulty-curve row instead. Before a game has the volume step 3 needs, step 4's dominance check — arithmetic on the design, doable before a single match is played — is the honest pre-volume answer; step 6's playtests find comprehension problems, not balance ones.
+
 ## Workflow
 
 ### 1. Name the target before touching a number

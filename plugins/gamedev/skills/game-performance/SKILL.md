@@ -16,6 +16,18 @@ Use for: a game missing its frame rate, stuttering, hitching or dropping frames;
 
 Do not use for: building a game, choosing an engine, or fixing controls that feel floaty or unresponsive, which is `game-builder` — a floaty jump at a steady 16 ms is a design problem, not a performance one. A wrong result rather than a slow one is `debugging`. Server frame time, matchmaking latency, tick-rate cost on a dedicated server and load headroom are `capacity-planning` and `instrumentation`.
 
+## Scale and game type
+
+Scale here means what the work requires rather than a headcount or a budget: indie/A is one small team wearing every hat; AA adds specialised roles, several platforms and a publisher's milestones; AAA adds many specialised disciplines, external studios and a simultaneous multi-platform launch. The frame budget table in step 1 does not change by scale — the target frame rate is a genre and platform decision, not a production one.
+
+| | Indie/A | AA | AAA |
+| --- | --- | --- | --- |
+| Devices (step 1) | One or two named devices, often the developer's own | The platform holder's certified device matrix | The full matrix across every simultaneous-launch platform, plus minimum spec |
+| Capture | Profile locally, no dedicated rig | A lab or devkit capture process, repeated per milestone | Large captures handed to `frame-capture-reader` as routine |
+| Cadence | Run this pass before a deadline or launch | A performance pass per milestone | The step 6 lock-in — recorded numbers, a repeatable capture route — run continuously against every content drop |
+
+Open world and large 3D games carry the most performance risk here, because a hitch (step 3) is the dominant symptom once streaming is involved. VR and XR leave no slack at all: the frame budget table's 72 to 90 fps rows are a comfort floor, not a target chosen for looks. The working-budget discount in step 1 applies to every phone, since thermal throttling is a property of the device rather than of the genre.
+
 ## Workflow
 
 ### 1. Fix the budget in milliseconds, on named hardware

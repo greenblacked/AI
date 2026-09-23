@@ -1,0 +1,22 @@
+[
+  {"query": "here's my car insurance policy, 40 pages, when does it renew and what's the notice period to cancel", "should_trigger": true},
+  {"query": "attached is the tenancy agreement, what are the early-exit charges if i leave before the end of the fixed term", "should_trigger": true},
+  {"query": "this is the mortgage offer document, does it let me overpay without a penalty and what's the deadline to accept", "should_trigger": true},
+  {"query": "here's the pdf of my gym membership terms, does it auto renew and how do i actually cancel it", "should_trigger": true},
+  {"query": "read my home insurance policy and tell me the excess for each claim type", "should_trigger": true},
+  {"query": "the loan agreement is 30 pages, what happens if i want to pay it off early, is there a charge", "should_trigger": true},
+  {"query": "attached is the renewal notice and the original policy, has the price changed and where does it say so", "should_trigger": true},
+  {"query": "i can't find whether this subscription auto-renews, here are the terms, quote me the clause", "should_trigger": true},
+  {"query": "here's my landlord's tenancy agreement, what exclusions or restrictions are buried in it", "should_trigger": true},
+  {"query": "this insurance policy document is 60 pages, what's actually excluded from cover", "should_trigger": true},
+  {"query": "here's the vendor's msa and order form, what clauses decide the deal", "should_trigger": false, "expected": "contract-reader"},
+  {"query": "attached is the soc 2 report from our supplier, what matters", "should_trigger": false, "expected": "contract-reader"},
+  {"query": "read the iam policies and tell me what's unused", "should_trigger": false, "expected": "policy-auditor"},
+  {"query": "the insurer rejected my claim, what do i do next", "should_trigger": false, "expected": "life-admin"},
+  {"query": "my landlord is refusing to return the deposit, what are my options", "should_trigger": false, "expected": "life-admin"},
+  {"query": "should i renew this policy or switch to a different insurer", "should_trigger": false, "expected": "life-admin"},
+  {"query": "should i overpay the mortgage or put more into the pension", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "help me decide whether to buy or lease the car", "should_trigger": false, "expected": "major-purchase"},
+  {"query": "which of these three vendors should we pick", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "write the on-call runbook for restoring the database", "should_trigger": false, "expected": "runbook"}
+]

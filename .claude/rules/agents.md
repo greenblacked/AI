@@ -43,6 +43,13 @@ read long after it stopped being true.
 - **Readers get no `Write` and no `Edit`**, and say so in `disallowedTools` where a
   reader will see it. `incident-scribe` carried `Write` in both lists; the denylist
   quietly won and the file said otherwise.
+- **A reader of the user's own personal data returns aggregates and quotes, never the
+  material back.** `statement-reader` and `terms-reader` mask an account, card or policy
+  number to its last four digits, name what they are returning rather than the address,
+  date of birth or full number sitting next to it, and keep no copy on disk. The whole
+  point of delegating the read is that the raw document stays out of the caller's context,
+  and a summary that repeats it back or saves a copy undoes that. A reader granted `Bash`
+  can still write a file, so say this in its body; the tool list alone does not stop it.
 
 Score it before you commit, one run at a time: `scripts/run_trigger_eval.py --agent
 <path> --runs 3 --jobs 2`. Several concurrent runs cause the model CLI to time out and

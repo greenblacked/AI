@@ -19,6 +19,17 @@ Decide which one applies before doing anything else, and say which was chosen.
 
 A game that "needs a redesign" starts in Mode B — play it first, because the existing build holds the tuning, the content and the list of things not to repeat — and moves into Mode A step A3 once the problem is named. Say when the handover happens.
 
+## Scale and game type
+
+Scale here means what the work requires rather than a headcount or a budget: indie/A is one small team wearing every hat; AA adds specialised roles, several platforms and a publisher's milestones; AAA adds many specialised disciplines, external studios and a simultaneous multi-platform launch. The tier table in step A2 is a separate, technical axis — engine and stack — from this one, and the two move together more often than not: an indie/A brief is usually tier 1 or 2, and a AAA one is always tier 3 or 4.
+
+| | Indie/A | AA | AAA |
+| --- | --- | --- | --- |
+| Concept directions (A3) | You choose from the two or three directions yourself | A producer and a creative lead choose, against a pitch a publisher has seen | A producer and a creative director choose — the A3 gate still holds, so one direction is built, not several |
+| Review (Mode B) | You review your own build | A dedicated QA pass runs `references/review.md` against a milestone build | Review runs per platform and per discipline, and feeds `game-certification` |
+
+Mobile casual/F2P and 2D or small single-player games are most often built at tier 1 or 2 in the step A2 table, where this skill is close to the whole job. Open world and large 3D games almost always sit at tier 3 or above, where Mode B's architecture-and-update-order dimension carries more of the risk than feel does.
+
 ## Mode A: Build a new game
 
 Steps A1 and A3 are gates. Do not write project code before the user has chosen a concept direction, and do not build anything that is not the core loop before the loop has been played. Rebuilding menus around a mechanic that turned out not to be fun is the most common way a small game is never finished.

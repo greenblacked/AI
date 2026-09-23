@@ -1,0 +1,22 @@
+[
+  {"query": "here's twelve months of csv from my current account, credit card and paypal, three files, can you tell me what i'm actually spending per category", "should_trigger": true},
+  {"query": "i exported two years of bank statements as csv, over 4000 rows, summarise spending by month before i sit down and budget", "should_trigger": true},
+  {"query": "attached are exports from four accounts, i just want the recurring subscriptions listed with amounts and how often they charge", "should_trigger": true},
+  {"query": "pull the fees and interest out of these credit card statements, i don't want to scroll through 800 rows myself", "should_trigger": true},
+  {"query": "here are the csv exports for the year, flag any duplicate charges or anything that looks like fraud", "should_trigger": true},
+  {"query": "i moved money between my own accounts a lot this year and it's messing up my spending total, can you separate transfers from real spending in this export", "should_trigger": true},
+  {"query": "three csv files, current account, savings, and a digital wallet, twelve months each, i need the monthly totals by category before i even think about a budget", "should_trigger": true},
+  {"query": "there's a charge from a merchant i don't recognise somewhere in these bank exports, can you find it", "should_trigger": true},
+  {"query": "here's my full year of transactions across two banks as csv, tell me the recurring charges and when each last billed", "should_trigger": true},
+  {"query": "1800 lines of transaction data from my credit card and current account, i just want it categorised and totalled, don't summarise from memory", "should_trigger": true},
+  {"query": "where is my money actually going every month, i earn fine and there's nothing left", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "should i overpay the mortgage or invest the extra each month", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "should i cancel these subscriptions or keep them, what would you do", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "our aws bill jumped 40% last month, the cur is in this bucket, tell me what moved", "should_trigger": false, "expected": "cost-analyst"},
+  {"query": "here's the gcp billing export, 300k rows, which service actually changed", "should_trigger": false, "expected": "cost-analyst"},
+  {"query": "read this schema dump and tell me which columns hold personal data", "should_trigger": false, "expected": "pii-reader"},
+  {"query": "here's a sample of rows from the users table, what counts as pii in here", "should_trigger": false, "expected": "pii-reader"},
+  {"query": "help me decide whether to buy the car outright or finance it", "should_trigger": false, "expected": "major-purchase"},
+  {"query": "my landlord won't return the deposit, what do i do", "should_trigger": false, "expected": "life-admin"},
+  {"query": "plan my week, i've got too much going on", "should_trigger": false, "expected": "weekly-review"}
+]
