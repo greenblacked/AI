@@ -30,14 +30,14 @@ outside a runtime that can trigger them for you.
 
 | Plugin | Focus | Contents |
 | --- | --- | --- |
-| `coding` | Reading, reviewing, testing and changing code | 18 skills, 3 subagents |
-| `gamedev` | Making games, and shipping them | 11 skills, 1 subagent, 1 command |
-| `operations` | Keeping a running system alive | 15 skills, 5 subagents, 2 commands |
-| `delivery` | Getting a change into production | 9 skills, 1 subagent |
-| `security` | The defensive side of shipping software | 11 skills, 3 subagents, 2 commands |
-| `manager` | Engineering leadership | 13 skills, 2 subagents, 1 command |
-| `personal` | Money, travel, admin, habits and health | 7 skills, 2 subagents |
-| `career` | Applications, negotiation, speaking and writing | 5 skills |
+| [`coding`](#coding) | Reading, reviewing, testing and changing code | 18 skills, 3 subagents |
+| [`gamedev`](#gamedev) | Making games, and shipping them | 11 skills, 1 subagent, 1 command |
+| [`operations`](#operations) | Keeping a running system alive | 15 skills, 5 subagents, 2 commands |
+| [`delivery`](#delivery) | Getting a change into production | 9 skills, 1 subagent |
+| [`security`](#security) | The defensive side of shipping software | 11 skills, 3 subagents, 2 commands |
+| [`manager`](#manager) | Engineering leadership | 13 skills, 2 subagents, 1 command |
+| [`personal`](#personal) | Money, travel, admin, habits and health | 7 skills, 2 subagents |
+| [`career`](#career) | Applications, negotiation, speaking and writing | 5 skills |
 
 Install one plugin or all eight. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.

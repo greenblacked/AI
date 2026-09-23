@@ -77,8 +77,13 @@ PYTHON_BADGE_RE = re.compile(r"img\.shields\.io/badge/python-(.+?)-[0-9a-f]{6}\)
 COVERAGE_BADGE_RE = re.compile(r"img\.shields\.io/badge/coverage-(?:%E2%89%A5)?(\d+)%25-")
 CI_MATRIX_RE = re.compile(r"python-version:\s*\[([^\]]*)\]")
 FAIL_UNDER_RE = re.compile(r"^fail_under\s*=\s*(\d+)", re.M)
-# A row in the "What is included" table: | `coding` | focus | 12 skills, 1 subagent |
-CONTENTS_ROW_RE = re.compile(r"^\|\s*`([a-z0-9-]+)`\s*\|[^|]*\|([^|]*)\|", re.M)
+# A row in the "What is included" table: | `coding` | focus | 12 skills, 1 subagent |,
+# or with the name linked to that plugin's section: | [`coding`](#coding) | ... |
+CONTENTS_ROW_RE = re.compile(
+    r"^\|\s*\[?`([a-z0-9-]+)`(?:\]\(([^)\s]*)\))?\s*\|[^|]*\|([^|]*)\|", re.M
+)
+# The skills section a linked contents row points at, e.g. "### Coding" for #coding.
+SECTION_HEADING_RE = re.compile(r"^#{2,3}\s+(.+?)\s*$", re.M)
 COUNT_RES = {
     "skills": re.compile(r"(\d+)\s+skills?\b"),
     "subagents": re.compile(r"(\d+)\s+subagents?\b"),
@@ -278,10 +283,21 @@ def check(root: Path) -> int:
 
     # --- the per-plugin contents table ------------------------------------------------
     seen_in_table = set()
-    for plugin, cell in CONTENTS_ROW_RE.findall(text):
+    # A linked name has to land on that plugin's own section: the link renders and
+    # resolves whatever it points at, so a row copied from its neighbour would send the
+    # reader to the wrong plugin with nothing else to notice.
+    headings = {h.strip().lower() for h in SECTION_HEADING_RE.findall(text)}
+    for plugin, target, cell in CONTENTS_ROW_RE.findall(text):
         if plugin not in contents:
             continue  # a backticked name in some other table; the checks above own those
         seen_in_table.add(plugin)
+        # Only an in-page link is a contents-table link; a skill or command row that
+        # happens to share a plugin's name links to a file path and is not this check's.
+        in_page = target.startswith("#")
+        if in_page and target != f"#{plugin}":
+            fail(f"the contents table links {plugin} to {target}; its section is #{plugin}")
+        elif in_page and plugin not in headings:
+            fail(f"the contents table links {plugin} to #{plugin}, and no heading makes it")
         for key, pattern in COUNT_RES.items():
             match = pattern.search(cell)
             stated = int(match.group(1)) if match else 0
