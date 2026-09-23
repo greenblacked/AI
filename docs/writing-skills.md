@@ -216,14 +216,14 @@ not necessarily spent one per cent of anything, so `make catalogue` prints the t
 equivalent under its summary line for exactly the plugins that cross the default, and the
 decision gets made on both numbers rather than on the alarming one.
 
-This repository's descriptions total about 77,400 characters — roughly 16,700 tokens —
+This repository's descriptions total about 79,200 characters — roughly 17,100 tokens —
 which is why they are split across eight plugins rather than three. Only `career`,
 `delivery` and `personal` fit the default budget on their own. The other five do not. Of
 those, `coding`, `manager` and `gamedev` are ones nobody installs alongside much else,
 while `operations` and `security` are the two most likely to be installed together, so
 their descriptions are the ones most at risk of being dropped in a real session. Read
-that alongside the token figures rather than the character ones — `operations` is over
-the 8,000-character default and over one per cent of a window too — and note what the
+that alongside the token figures rather than the character ones — `operations`, `security` and
+`gamedev` are over the 8,000-character default and over one per cent of a window too — and note what the
 runtime drops first: a skill nobody has used yet. The newest skills in an over-budget
 plugin are the ones that lose their descriptions, which is an argument for splitting a
 plugin rather than for raising its ceiling indefinitely. `make validate` prints the

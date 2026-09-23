@@ -1,0 +1,89 @@
+---
+# Turns a green Dependabot pull request into a merged one, for patch and minor bumps
+# only. It never decides whether the change is safe — the branch ruleset on `main`
+# still requires `ci` and `security` to report `success`, strict, before GitHub will
+# complete the merge this job requests. A major bump is left for a person, because a
+# breaking change grouped or not is a judgement call rather than a formality.
+#
+# `pull_request`, not `pull_request_target`: the former runs with the pull request's
+# own ref and a token scoped to this workflow, the latter runs against the base branch
+# with repository secrets available to whatever the pull request's workflow files say,
+# which is the shape zizmor's dangerous-triggers audit flags. Dependabot's own commits
+# never carry a workflow change that would need `pull_request_target` to see.
+name: Dependabot auto-merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions: {}
+
+jobs:
+  auto-merge:
+    name: dependabot auto-merge
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # `user.login` rather than `github.actor`: the actor is whoever triggered the run,
+    # which a crafted pull request can arrange to look like Dependabot, while the pull
+    # request's own author is not. The second half excludes a fork: Dependabot itself
+    # never opens one, so a pull request that claims to be Dependabot's but whose head
+    # lives in another repository is not the thing this job exists to merge.
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    # The only job that can write to repository contents or pull requests (`codeql` in
+    # security.yml also writes, but only `security-events`, to publish scan results).
+    # What this job can do with them is narrow: enable auto-merge on a Dependabot pull
+    # request, for this repository, for a patch or minor bump, after the two required
+    # gates already passed. No checkout, so no source ever runs with this token.
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Read what kind of update this is
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98  # v3.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Enable auto-merge for a patch or minor update
+        # Positive gate on purpose: a grouped pull request's update-type is the highest
+        # semver level across everything in the group, and it can be null when
+        # Dependabot cannot classify a dependency. `!= 'version-update:semver-major'`
+        # would let both of those through; only listing what is allowed here does not.
+        if: >-
+          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -Eeuo pipefail
+          # A repository with auto-merge switched off in Settings > General turns this
+          # into a permanently red check on every Dependabot pull request, which is
+          # worse than not running the job at all, so the owner is told once and the
+          # job still succeeds.
+          allowed=$(gh api "repos/${REPO}" --jq '.allow_auto_merge')
+          if [ "${allowed}" != "true" ]; then
+            echo "::warning title=auto-merge disabled::Enable Settings > General >" \
+              "Pull Requests > Allow auto-merge so Dependabot pull requests can merge" \
+              "on their own once required checks pass."
+            {
+              echo "Auto-merge is disabled for this repository, so ${PR_URL} was left"
+              echo "for a person. Enable it in Settings > General > Pull Requests >"
+              echo "Allow auto-merge."
+            } >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+          # If the pull request is already mergeable — the required checks already
+          # reported before this job ran — `gh pr merge --auto` merges immediately
+          # rather than waiting for anything further. That is still safe: mergeable
+          # means the checks the branch ruleset requires already passed, and the
+          # ruleset's strict mode means those checks ran against this pull request
+          # merged onto the current tip of main, which is the tree this produces.
+          #
+          # A merge made with GITHUB_TOKEN does not trigger a push-triggered workflow
+          # on main, so this does not chain into another run of `ci` or `security`; the
+          # pull request's own checks, already required and already green, are what
+          # gated the tree this creates.
+          gh pr merge --auto --squash "${PR_URL}"

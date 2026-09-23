@@ -29,8 +29,8 @@ The first line registers the marketplace; it downloads nothing on its own. Each
 session — without it you will wonder why nothing fires.
 
 Installing `gamedev`: [`docs/gamedev.md`](gamedev.md) picks a production scale and a game
-type and routes through the plugin's nine skills from there, rather than leaving you to
-read all nine cold.
+type and routes through the plugin's eleven skills from there, rather than leaving you to
+read all eleven cold.
 
 Install the plugins you will actually use. Every description a plugin ships sits in
 context for the whole session, and the runtime caps that listing at about 1% of the
@@ -199,7 +199,7 @@ Be clear about what you lose outside Claude Code, because it is the valuable par
   cut narrowly. Uploading one bundle to a Project has no such cap, which is a genuine
   advantage of that route.
 
-The content itself travels intact. Of eighty-seven skills, two name Claude anywhere in
+The content itself travels intact. Of eighty-nine skills, two name Claude anywhere in
 their text: `new-skill`, which is about authoring a skill in this format and could not
 avoid it, and `website-builder`, which names a real constraint of Claude.ai artifacts.
 The rest are procedures about code, systems, teams and life, and nothing in them assumes
