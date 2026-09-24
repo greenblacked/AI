@@ -123,3 +123,27 @@ def test_a_stale_symlink_into_this_repository_still_needs_force(tmp_path):
     assert result.returncode == 3
     assert "use --force" in result.stderr
     assert os.readlink(target / SKILLS[0]) == str(REPO / "plugins" / "nowhere")
+
+
+def test_a_link_reached_through_a_symlinked_alias_is_still_recognised(tmp_path):
+    # REPO_ROOT is computed from the running script's own path, so invoking install.sh
+    # through a symlinked alias of this repository builds a skill_dir that is spelled
+    # differently but is physically the same directory. A later run through the
+    # canonical path used to compare the two spellings as strings and report every
+    # already-linked skill as a conflict.
+    target = tmp_path / "skills"
+    alias = tmp_path / "alias-repo"
+    alias.symlink_to(REPO)
+
+    first = subprocess.run(  # noqa: S603
+        ["bash", str(alias / "scripts" / "install.sh")],  # noqa: S607
+        capture_output=True,
+        text=True,
+        env={**os.environ, "CLAUDE_SKILLS_DIR": str(target)},
+        check=False,
+    )
+    assert first.returncode == 0, first.stderr
+
+    second = run(target)  # the canonical, non-aliased path this time
+    assert second.returncode == 0, second.stderr
+    assert f"done: 0 linked, {len(SKILLS)} unchanged" in second.stderr

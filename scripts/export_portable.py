@@ -397,6 +397,56 @@ condition.
 """
 
 
+EXPORT_SENTINEL = ".portable-export"
+SENTINEL_TEXT = (
+    "This directory was produced by scripts/export_portable.py, which checks for this "
+    "file before deleting a directory in its own way. Delete it yourself if you no "
+    "longer want the directory recognised as a previous export.\n"
+)
+
+
+def _looks_like_a_previous_export(out: Path) -> bool:
+    """Whether ``out`` was, as best this script can tell, produced by this script.
+
+    The sentinel is the primary signal: a one-line file whose content never changes, so
+    it survives edits to ``HOW_TO_USE`` that would otherwise make every future export
+    refuse to overwrite the one before it purely because the prose in its README had
+    since been reworded. The README check is kept alongside it for a directory from
+    before the sentinel existed.
+    """
+    if (out / EXPORT_SENTINEL).is_file():
+        return True
+    marker = out / "README.md"
+    return marker.is_file() and marker.read_text(encoding="utf-8") == HOW_TO_USE
+
+
+def _unsafe_to_remove(root: Path, out: Path) -> str | None:
+    """Why ``out`` must not be handed to ``shutil.rmtree``, or ``None`` if it may be.
+
+    ``--out .`` would otherwise delete the working tree: this is called only when ``out``
+    already exists, right before it would be replaced, and the caller was never asked to
+    confirm anything more specific than a path. Three things make a directory too
+    dangerous to remove outright — being the repository, containing it, or being the
+    directory a stray argument most plausibly resolves to when nobody meant one at all —
+    and a fourth catches everything else: this export writes a recognisable marker on
+    every successful run, so a directory that formed some other way is left alone rather
+    than guessed at.
+    """
+    resolved_root = root.resolve()
+    resolved_out = out.resolve()
+    if resolved_out == Path.home().resolve():
+        return "it is the home directory"
+    if resolved_out == resolved_root or resolved_out in resolved_root.parents:
+        return "it is the repository root or a directory that contains it"
+    if not _looks_like_a_previous_export(resolved_out):
+        return (
+            f"it does not look like a previous export (no {EXPORT_SENTINEL} and no "
+            "README.md matching this script's own marker text) — delete the directory "
+            "yourself if you are sure"
+        )
+    return None
+
+
 def export(root: Path, out: Path, check: bool = False) -> int:
     plugins = find_plugins(root)
     if not plugins:
@@ -430,10 +480,15 @@ def export(root: Path, out: Path, check: bool = False) -> int:
         return 0
 
     if out.exists():
+        unsafe = _unsafe_to_remove(root, out)
+        if unsafe is not None:
+            print(f"refusing to delete {out}: {unsafe}", file=sys.stderr)
+            return 2
         shutil.rmtree(out)
     (out / "skills").mkdir(parents=True)
     (out / "plugins").mkdir(parents=True)
     (out / "README.md").write_text(HOW_TO_USE, encoding="utf-8")
+    (out / EXPORT_SENTINEL).write_text(SENTINEL_TEXT, encoding="utf-8")
 
     index = ["# Skill index", "", f"{total} procedures across {len(rendered)} groups.", ""]
     for plugin in sorted(rendered):
