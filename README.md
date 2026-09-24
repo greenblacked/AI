@@ -500,3 +500,12 @@ Keep it in a `LICENSE` file, a header, or a credits page — anywhere a reader o
 will find it. If you lift a single skill into another assistant, the portable export
 already puts an attribution line naming this repository and the licence at the foot of
 every file it writes, so `make portable` needs no extra step. What the licence does not require is asking first, or sharing changes back.
+
+### Independence and disclaimer
+
+This is an independent personal project. It is not affiliated with, endorsed by or made
+on behalf of any employer or any company named in it. The research, drafting and testing
+used AI models reached through the author's own personal subscriptions and accounts,
+paid for by the author, and nothing here is professional advice. [`NOTICE`](NOTICE) has
+the full statement, including the trademark note; it does not change the terms of the
+MIT licence above.
