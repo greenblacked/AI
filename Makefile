@@ -16,10 +16,10 @@ RUFF_PIN := $(shell sed -En "s/^ *RUFF_VERSION: *[\"']?([^\"' #]+)[\"']?.*/\1/p"
 MARKDOWNLINT_PIN := 0.23.2
 CODESPELL_PIN := $(shell sed -En "s/^ *CODESPELL_VERSION: *[\"']?([^\"' #]+)[\"']?.*/\1/p" .github/workflows/ci.yml)
 
-.PHONY: help validate catalogue providers test coverage lint package attribution portable install clean
+.PHONY: help validate catalogue providers test coverage lint package attribution portable install clean release-prepare release
 
 help: ## Show this help
-	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
+	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-17s\033[0m %s\n", $$1, $$2}'
 
 validate: ## Validate every skill, subagent and the marketplace manifest
 	PYTHONPATH=src $(PYTHON) -m skillcheck . --strict
@@ -74,6 +74,14 @@ portable: ## Flatten every skill into dist/portable for ChatGPT, Grok and other 
 
 install: ## Symlink every skill into ~/.claude/skills
 	@scripts/install.sh
+
+release-prepare: ## Move CHANGELOG's Unreleased section into VERSION=x.y.z, on a branch
+	@if [ -z "$(VERSION)" ]; then echo "VERSION is required, e.g. make release-prepare VERSION=1.2.3" >&2; exit 1; fi
+	$(PYTHON) scripts/release.py prepare "$(VERSION)"
+
+release: ## Tag VERSION=x.y.z from CHANGELOG.md, on main after the prepare PR has merged
+	@if [ -z "$(VERSION)" ]; then echo "VERSION is required, e.g. make release VERSION=1.2.3" >&2; exit 1; fi
+	$(PYTHON) scripts/release.py tag "$(VERSION)"
 
 clean: ## Remove build output and caches
 	rm -rf dist .pytest_cache .coverage htmlcov
