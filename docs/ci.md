@@ -101,7 +101,7 @@ upgrade would fail the build on skill prose that was green the day before.
 | `workflows` | `workflow audit` | zizmor found a workflow vulnerability at medium severity or above. |
 | `python` | `python security lint` | `ruff check` or `ruff format --check` failed. |
 | `codeql` | `codeql` | CodeQL's `security-extended` query suite found something in the Python source. |
-| `permissions-audit` | `permissions audit` | A workflow has no top-level `permissions:` block, an action is not pinned to a SHA, a job sets no `timeout-minutes`, or an `actions/checkout` does not set `persist-credentials: false`. |
+| `permissions-audit` | `permissions audit` | A workflow has no top-level `permissions:` block, or one that is `write-all`, `read-all`, or grants `write` on any scope; an action is not pinned to a SHA; a job sets no `timeout-minutes`; or an `actions/checkout` does not set `persist-credentials: false`. |
 | `security` | `security` | Any of its five dependencies did not report exactly `success`, or the result payload did not match the expected jobs. |
 
 ### The security jobs in detail
@@ -134,9 +134,17 @@ because asserting is what tests do.
 deliberately not a tool. Each is one of the workflow conventions `AGENTS.md` states, and
 each exists because breaking it is silent:
 
-- Every workflow file must set a top-level `permissions:` block. An absent block means
-  jobs inherit the repository default, which is often read and write on everything. The
-  failure is silent and permanent, which is exactly the kind worth a one-line check.
+- Every workflow file must set a top-level `permissions:` block that grants nothing. An
+  absent block means jobs inherit the repository default, which is often read and write
+  on everything — checking only that a `permissions:` line existed once let
+  `permissions: write-all` through with the same silent, permanent effect, so the check
+  also rejects that shorthand, its `read-all` sibling, a single-line flow map granting
+  `write` on any scope (`{contents: write}`), and the block form of the same thing,
+  quoted or not (`write`, `"write"` or `'write'`). A trailing comment on the
+  `permissions:` line is stripped before it is judged — otherwise
+  `permissions:  # least privilege` read as a value rather than as the empty,
+  block-form line it is — and a comment at the start of a line inside the block no
+  longer ends the scan before the grant on the line after it is read.
 - Every action must be pinned to a commit SHA. The check is inverted rather than
   matching known-bad shapes: a ref that is not forty hex characters fails, whatever it
   looks like. Matching `@v1.2`, `@main` and `@master` let the likeliest regression

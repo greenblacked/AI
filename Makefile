@@ -7,9 +7,14 @@ SHELL := bash
 # Markdown fences and 0.15 does not, so an older one reports a tree clean that CI then
 # rejects. That has happened here twice, once because an older binary earlier on PATH
 # shadowed the pinned one.
-RUFF_PIN := $(shell sed -n "s/^ *RUFF_VERSION: *'\(.*\)'/\1/p" .github/workflows/security.yml)
+#
+# `check_workflows.py` accepts a pin written bare, single-quoted or double-quoted — YAML
+# gives all three the same value, and nothing here enforces one spelling over another.
+# This extraction has to accept the same three, or a pin re-quoted a way `check_workflows`
+# still reads fine turns RUFF_PIN empty and `make lint` starts comparing against nothing.
+RUFF_PIN := $(shell sed -En "s/^ *RUFF_VERSION: *[\"']?([^\"' #]+)[\"']?.*/\1/p" .github/workflows/security.yml)
 MARKDOWNLINT_PIN := 0.23.2
-CODESPELL_PIN := $(shell sed -n "s/^ *CODESPELL_VERSION: *'\(.*\)'/\1/p" .github/workflows/ci.yml)
+CODESPELL_PIN := $(shell sed -En "s/^ *CODESPELL_VERSION: *[\"']?([^\"' #]+)[\"']?.*/\1/p" .github/workflows/ci.yml)
 
 .PHONY: help validate catalogue providers test coverage lint package attribution portable install clean release-prepare release
 

@@ -1,6 +1,6 @@
 ---
 description: Run a claim a change rests on through the verification loop — investigator settles it against primary sources and labels what it could not verify, reviewer judges whether the finding supports the change.
-argument-hint: [the claim to check, for example "kubectl drain --force skips the grace period"]
+argument-hint: '[the claim to check, for example "kubectl drain --force skips the grace period"]'
 allowed-tools: Agent(investigator), Agent(reviewer), Read, Grep, Glob, Bash(make:*), Bash(git status:*), Bash(git diff:*)
 ---
 

@@ -3,14 +3,33 @@
 from __future__ import annotations
 
 import json
+from pathlib import PureWindowsPath
 
-from skillcheck.cli import main
+from skillcheck.cli import _summary, main
+from skillcheck.rules import ERROR, Finding
 from tests.test_rules import write_skill
 
 
 def test_a_tree_with_no_skills_exits_two(tmp_path, capsys):
     assert main([str(tmp_path)]) == 2
     assert "no SKILL.md found" in capsys.readouterr().err
+
+
+def test_summary_matches_a_finding_under_windows_style_separators():
+    # `_summary` used to join with a literal "/": str(PureWindowsPath(...)) joins with
+    # "\", so a finding one directory below a skill — an eval-set finding, in practice —
+    # never matched the skill it belonged to and silently fell out of the table.
+    root = PureWindowsPath(r"C:\repo")
+    skill = PureWindowsPath(r"C:\repo\plugins\demo\skills\alpha")
+    finding = Finding(
+        level=ERROR,
+        path=PureWindowsPath(r"plugins\demo\skills\alpha\evals\trigger-eval.json"),
+        line=1,
+        code="thin-eval-set",
+        message="not enough queries",
+    )
+    output = _summary([skill], [finding], root)
+    assert "❌ 1 error(s)" in output
 
 
 def test_a_warning_only_fails_under_strict(tmp_path, monkeypatch):

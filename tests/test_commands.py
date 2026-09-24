@@ -14,7 +14,7 @@ from skillcheck.rules import ERROR, WARNING, check_command, find_commands
 
 GOOD = """---
 description: Do one narrow thing with the argument it is given.
-argument-hint: [path]
+argument-hint: '[path]'
 allowed-tools: Read, Grep
 ---
 
@@ -100,8 +100,16 @@ def test_reading_an_argument_without_a_hint_warns(tmp_path, token):
 
 
 def test_a_declared_hint_clears_the_warning(tmp_path):
-    text = "---\ndescription: A thing.\nargument-hint: [path]\n---\n\nRun against $1.\n"
+    text = "---\ndescription: A thing.\nargument-hint: '[path]'\n---\n\nRun against $1.\n"
     assert check_command(write_command(tmp_path, "demo", text), tmp_path) == []
+
+
+def test_an_unquoted_argument_hint_is_ambiguous_yaml(tmp_path):
+    # A real YAML parser reads `[path]` as a one-element list, not the string it looks
+    # like here — eleven command files in this repository carried exactly this shape.
+    text = "---\ndescription: A thing.\nargument-hint: [path]\n---\n\nRun against $1.\n"
+    findings = check_command(write_command(tmp_path, "demo", text), tmp_path)
+    assert "ambiguous-yaml" in codes(findings)
 
 
 def test_a_dollar_inside_a_fence_does_not_demand_a_hint(tmp_path):
@@ -130,6 +138,14 @@ def test_shouting_in_the_body_warns(tmp_path):
     text = "---\ndescription: A thing.\n---\n\nYou must ALWAYS do the thing.\n"
     findings = check_command(write_command(tmp_path, "demo", text), tmp_path)
     assert "shouting" in codes(findings, WARNING)
+
+
+def test_shouting_in_the_description_warns(tmp_path):
+    text = "---\ndescription: You must NEVER skip this.\n---\n\nBody.\n"
+    findings = check_command(write_command(tmp_path, "demo", text), tmp_path)
+    shouting = [f for f in findings if f.code == "shouting"]
+    assert len(shouting) == 1
+    assert shouting[0].line == 2
 
 
 def test_find_commands_skips_a_readme_and_recurses(tmp_path):

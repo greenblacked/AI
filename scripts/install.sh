@@ -34,6 +34,17 @@ USAGE
 log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >&2; }
 die() { log "error: $*"; exit 1; }
 
+# Canonicalise a directory to the physical path `cd`+`pwd -P` resolves it to, rather than
+# `realpath`/`readlink -f` - neither is guaranteed present or consistent across GNU and
+# BSD. Empty output (a dangling target, or one that is not a directory) compares unequal
+# to everything, which is the right answer: a broken link is still a conflict.
+resolved_dir() { (cd "$1" 2>/dev/null && pwd -P); }
+
+# A symlink's recorded target, resolved the way the kernel would follow it: `readlink`
+# returns exactly what was written, which is relative to the link's own directory when
+# it is not already absolute.
+resolved_link() { (cd "$(dirname "$1")" && cd "$(readlink "$1")" 2>/dev/null && pwd -P); }
+
 while (($# > 0)); do
   case "$1" in
     --dry-run) DRY_RUN=1 ;;
@@ -61,7 +72,16 @@ while IFS= read -r -d '' skill_md; do
 
   if [[ -L "$link" ]]; then
     current="$(readlink "$link")"
-    if [[ "$current" == "$skill_dir" ]]; then
+    # Compared as resolved, physical paths rather than as strings: a correct link
+    # reached through a symlinked alias - REPO_ROOT itself sitting behind one, most
+    # commonly - has a different spelling but the same target, and a string compare
+    # reported that as a conflict. Resolved once into a variable: it is a subshell plus
+    # a `cd`, and nothing about the link changes between the emptiness check and the
+    # comparison that follows it. `|| true`: a dangling target makes the resolution
+    # fail, and under `set -e` an assignment's own exit status would otherwise end the
+    # whole script rather than simply leaving this one comparison unequal.
+    current_resolved="$(resolved_link "$link")" || true
+    if [[ -n "$current_resolved" && "$current_resolved" == "$(resolved_dir "$skill_dir")" ]]; then
       skipped=$((skipped + 1))
       continue
     fi
