@@ -164,13 +164,6 @@ def find_skills(root: Path) -> list[Path]:
     )
 
 
-def _line_of(text: str, needle: str) -> int:
-    index = text.find(needle)
-    if index < 0:
-        return 1
-    return text.count("\n", 0, index) + 1
-
-
 def check_skill(
     directory: Path, repo_root: Path, known: frozenset[str] | None = None
 ) -> list[Finding]:
@@ -209,7 +202,7 @@ def check_skill(
     try:
         front: Frontmatter = parse(text)
     except FrontmatterError as error:
-        add(ERROR, "frontmatter", error.message, error.line)
+        add(ERROR, error.code, error.message, error.line)
         return findings
 
     findings.extend(_check_keys(front, add))
@@ -219,11 +212,10 @@ def check_skill(
     findings.extend(_check_compatibility(front, add))
 
     body_lines = text.split("\n")[front.end_line :]
-    body = "\n".join(body_lines)
     findings.extend(_check_bundled_paths(body_lines, front.end_line + 1, directory, add))
     findings.extend(_check_scripts(directory, repo_root, add))
     findings.extend(_check_length(text, directory, repo_root, add))
-    findings.extend(_check_tone(body, text, add))
+    findings.extend(_check_tone(front, body_lines, front.end_line + 1, add))
     findings.extend(check_evals(directory, repo_root, known))
 
     return findings
@@ -533,16 +525,35 @@ def _check_length(text: str, directory: Path, repo_root: Path, add) -> list[Find
     return []
 
 
-def _check_tone(body: str, text: str, add) -> list[Finding]:
-    for match in SHOUTING_RE.finditer(body):
+def _report_shouting(text: str, first_line: int, add) -> None:
+    """Report every ALWAYS/NEVER in ``text``, ``first_line`` being ``text``'s own line 1.
+
+    Shared by the skill, command and rule checks so the three read one hit the same way:
+    every occurrence rather than only the first, and never one that a fenced code example
+    only looks like it contains.
+    """
+    for match in SHOUTING_RE.finditer(text):
         add(
             WARNING,
             "shouting",
             f"{match.group(0)} in capitals — explaining why a rule matters travels "
             "further than shouting it",
-            _line_of(text, match.group(0)),
+            first_line + text[: match.start()].count("\n"),
         )
-        break
+
+
+def _check_tone(front: Frontmatter, body_lines: list[str], first_line: int, add) -> list[Finding]:
+    """ALWAYS/NEVER in capitals, in the description or the body outside fenced code.
+
+    A skill's description is loaded before the rest of the file and is the one place a
+    shouted rule reaches every session regardless of whether the body is ever read, so it
+    is scanned the same as the body rather than left out of the check that exists for
+    exactly this. Fenced code is masked first for the same reason the command and rule
+    checks already mask it: a shell comment or a quoted example is not this skill
+    shouting at its reader.
+    """
+    _report_shouting("\n".join(_mask_fenced_blocks(body_lines)), first_line, add)
+    _report_shouting(front.get("description") or "", front.line_of("description"), add)
     return []
 
 
@@ -727,7 +738,7 @@ def check_agent(path: Path, repo_root: Path, known: frozenset[str] | None = None
     try:
         front = parse(text)
     except FrontmatterError as error:
-        add(ERROR, "frontmatter", error.message, error.line)
+        add(ERROR, error.code, error.message, error.line)
         return findings
 
     for key in sorted(front.values):
@@ -1040,7 +1051,7 @@ def check_command(path: Path, repo_root: Path) -> list[Finding]:
     try:
         front = parse(text)
     except FrontmatterError as error:
-        add(ERROR, "frontmatter", error.message, error.line)
+        add(ERROR, error.code, error.message, error.line)
         return findings
 
     for key in sorted(front.values):
@@ -1096,14 +1107,8 @@ def check_command(path: Path, repo_root: Path) -> list[Finding]:
         )
 
     _check_bundled_paths(body_lines, front.end_line + 1, path.parent, add, label=path.name)
-    for match in SHOUTING_RE.finditer(masked):
-        add(
-            WARNING,
-            "shouting",
-            f"{match.group(0)} in capitals — explaining why a rule matters travels "
-            "further than shouting it",
-            front.end_line + 1 + masked[: match.start()].count("\n"),
-        )
+    _report_shouting(masked, front.end_line + 1, add)
+    _report_shouting(front.get("description") or "", front.line_of("description"), add)
     return findings
 
 
@@ -1229,7 +1234,7 @@ def check_rule(path: Path, repo_root: Path) -> list[Finding]:
         try:
             front = parse(text)
         except FrontmatterError as error:
-            add(ERROR, "frontmatter", error.message, error.line)
+            add(ERROR, error.code, error.message, error.line)
             return findings
         body_start = front.end_line
         globs = _rule_globs(text, front.end_line - 1)
@@ -1257,14 +1262,7 @@ def check_rule(path: Path, repo_root: Path) -> list[Finding]:
 
     masked = "\n".join(_mask_fenced_blocks(body_lines))
     _check_bundled_paths(body_lines, body_start + 1, repo_root, add, label=path.name)
-    for match in SHOUTING_RE.finditer(masked):
-        add(
-            WARNING,
-            "shouting",
-            f"{match.group(0)} in capitals — explaining why a rule matters travels "
-            "further than shouting it",
-            body_start + 1 + masked[: match.start()].count("\n"),
-        )
+    _report_shouting(masked, body_start + 1, add)
     return findings
 
 

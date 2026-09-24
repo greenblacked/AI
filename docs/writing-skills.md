@@ -525,6 +525,7 @@ Every code the validator can emit is below, grouped by what it is looking at.
 | `duplicate-skill-name` | error | Two skill directories share a name. | Rename one. `name` equals the directory name, so a duplicate directory is a duplicate skill: the second silently replaces the first on install and in `dist/`, and every counter still reports success. |
 | `nested-skill` | error | A second `SKILL.md` below the skill directory. | Move it to its own directory under `plugins/<plugin>/skills/`. |
 | `frontmatter` | error | The block could not be parsed at all: missing or unclosed `---`, a tab, a byte-order mark, indentation, a duplicate key, an unreadable line. | Follow the message; it carries the line. |
+| `ambiguous-yaml` | error | A value parses here but a real YAML parser reads it differently: a value starting with `[`, `{`, `&`, `*`, `!`, `%`, `@`, `#` or a backtick; one starting with a hyphen and a space; a bare `>` or a bare pipe that is not one of the six block-scalar headers; or a wrapped value with no block-scalar header whose body has a line that reads as `key: value`. The first content line of a wrapped, indicator-less value gets the same leading-character checks as a single-line value — `description:` followed by an indented `- foo` is a list to a real parser for the same reason `description: - foo` is. A comment line there is called out on its own rather than filed under the others: it is not read as any kind of node, it is simply dropped. | Quote the value, or start it with `>` or a pipe if it is meant to wrap. |
 | `unknown-key` | error | A key outside the allowed six. | Rename it, or delete it. The message names the likely intended key. |
 | `missing-name` | error | No `name`. | Add it. |
 | `empty-name` | error | `name` present but blank. | Fill it in. |
@@ -573,6 +574,7 @@ subagent](writing-agents.md) for why.
 | --- | --- | --- | --- |
 | `not-utf8` | error | The file is not valid UTF-8. | Re-save it as UTF-8. Reported rather than raised, because one mis-encoded file used to abort validation for every other subagent. |
 | `frontmatter` | error | The block could not be parsed, as above. | Follow the message. |
+| `ambiguous-yaml` | error | A value parses here but a real YAML parser reads it differently, as above. | Quote the value, or start it with `>` or a pipe if it is meant to wrap. |
 | `unknown-key` | error | A key outside the set in [writing a subagent](writing-agents.md#frontmatter). | Rename or delete it. `allowed-tools` here is the usual cause; the subagent key is `tools`. |
 | `missing-name` | error | No `name`, or blank. | Add it. |
 | `bad-name` | error | Not lowercase letters, digits and single hyphens, or over 64 characters. | Rewrite it in kebab-case. |

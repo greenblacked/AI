@@ -52,6 +52,11 @@ FENCE_CLOSE_RE = re.compile(r"^(`{3,}|~{3,})\s*$")
 # here-string or `sort <in >` stays checkable rather than being rewritten away.
 PLACEHOLDER_RE = re.compile(r"<[A-Za-z](?:[A-Za-z0-9 _.:/-]*[A-Za-z0-9_.:/-])?>")
 SEARCH_DIRS = ("plugins", "docs", "scripts", ".claude", "template")
+# README.md, AGENTS.md, CONTRIBUTING.md and the other top-level files sit outside every
+# directory SEARCH_DIRS names, so a fence in one of them used to ship unchecked. Globbed
+# rather than added to SEARCH_DIRS itself, because SEARCH_DIRS is walked with `rglob` and
+# a bare "." there would re-walk every directory above through it a second time.
+ROOT_MARKDOWN_GLOB = "*.md"
 # A deliberately dumber test for the same thing, used only to notice that the scanner
 # above has stopped finding anything. It shares no pattern with FENCE_OPEN_RE on
 # purpose: two spellings of one regex fail together, which is no check at all.
@@ -174,6 +179,19 @@ def parses(source: str, shell: str | None = None) -> str | None:
     return complaint[-1] if complaint else f"bash -n exited {result.returncode}"
 
 
+def markdown_files(root: Path) -> list[Path]:
+    """Every Markdown file this check scans: the top-level ones plus SEARCH_DIRS.
+
+    A set rather than a plain concatenation, because ``ROOT_MARKDOWN_GLOB`` and a
+    ``SEARCH_DIRS`` entry could otherwise both match the same path if one were ever
+    pointed at ``.``; deduplicating here is cheaper than a rule against that.
+    """
+    found = set(root.glob(ROOT_MARKDOWN_GLOB))
+    for directory in SEARCH_DIRS:
+        found.update((root / directory).rglob("*.md"))
+    return sorted(found)
+
+
 def check(root: Path) -> int:
     executable = bash()
     if executable is None:
@@ -204,32 +222,31 @@ def check(root: Path) -> int:
     checked = 0
     apparent = 0
     seen = 0
-    for directory in SEARCH_DIRS:
-        for path in sorted((root / directory).rglob("*.md")):
-            text = path.read_text(encoding="utf-8")
-            apparent += fence_openers(text)
-            for line, source in blocks(text):
-                seen += 1
-                if not source.strip():
-                    continue  # an empty block is nothing to parse, but it was found
-                checked += 1
-                for offset, command in rg_without_pcre2(source):
-                    rel = path.relative_to(root)
-                    print(
-                        f"::error file={rel},line={line + offset}::ripgrep cannot run "
-                        f"this as written — lookaround needs -P. {command}"
-                    )
-                    failures += 1
-                problem = parses(source, executable)
-                if problem is not None:
-                    rel = path.relative_to(root)
-                    print(
-                        f"::error file={rel},line={line}::shell block does not parse — "
-                        f"{problem}. If this is not shell, tag the fence with the right "
-                        f"language; if it is, fix it or write the variable part as a "
-                        f"<placeholder>"
-                    )
-                    failures += 1
+    for path in markdown_files(root):
+        text = path.read_text(encoding="utf-8")
+        apparent += fence_openers(text)
+        for line, source in blocks(text):
+            seen += 1
+            if not source.strip():
+                continue  # an empty block is nothing to parse, but it was found
+            checked += 1
+            for offset, command in rg_without_pcre2(source):
+                rel = path.relative_to(root)
+                print(
+                    f"::error file={rel},line={line + offset}::ripgrep cannot run "
+                    f"this as written — lookaround needs -P. {command}"
+                )
+                failures += 1
+            problem = parses(source, executable)
+            if problem is not None:
+                rel = path.relative_to(root)
+                print(
+                    f"::error file={rel},line={line}::shell block does not parse — "
+                    f"{problem}. If this is not shell, tag the fence with the right "
+                    f"language; if it is, fix it or write the variable part as a "
+                    f"<placeholder>"
+                )
+                failures += 1
 
     # The same rule as the missing-bash branch above, for the other way this can report
     # success without having looked: if the tree plainly contains shell fences and the

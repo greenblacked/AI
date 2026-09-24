@@ -168,6 +168,34 @@ def test_shouting_warns_but_does_not_fail(tmp_path):
     assert not any(f.failed for f in findings)
 
 
+def test_shouting_is_reported_for_every_occurrence_not_only_the_first(tmp_path):
+    body = "You must ALWAYS check the exit code. NEVER ignore a nonzero one.\n"
+    directory = write_skill(tmp_path, "demo", body=body)
+    findings = [f for f in check_skill(directory, tmp_path) if f.code == "shouting"]
+    assert len(findings) == 2
+
+
+def test_shouting_inside_a_fenced_code_block_is_not_reported(tmp_path):
+    # A shell comment or a quoted example is not the skill shouting at its reader — the
+    # command and rule checks already masked fences for this reason; the skill body
+    # check did not.
+    body = "```bash\n# ALWAYS quote your variables\necho hi\n```\n"
+    directory = write_skill(tmp_path, "demo", body=body)
+    findings = [f for f in check_skill(directory, tmp_path) if f.code == "shouting"]
+    assert findings == []
+
+
+def test_shouting_in_the_description_is_reported(tmp_path):
+    # The description loads every session regardless of whether the body is ever read,
+    # so a shouted rule there was invisible to this check even though it is the one
+    # place shouting reaches every time.
+    description = GOOD_DESCRIPTION + " NEVER skip this step."
+    directory = write_skill(tmp_path, "demo", description=description)
+    findings = [f for f in check_skill(directory, tmp_path) if f.code == "shouting"]
+    assert len(findings) == 1
+    assert findings[0].line == 3
+
+
 def test_an_over_long_skill_body_warns(tmp_path):
     directory = write_skill(tmp_path, "demo", body="line\n" * 520)
     assert "long-skill" in codes(check_skill(directory, tmp_path), WARNING)

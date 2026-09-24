@@ -1,6 +1,6 @@
 ---
 description: Classify a failing CI run as a real failure, a flake, an infrastructure fault, a config or permission problem, or dependency drift, working from annotations rather than whole logs.
-argument-hint: [run id, or blank for the latest failing run on this branch]
+argument-hint: '[run id, or blank for the latest failing run on this branch]'
 allowed-tools: Bash(gh:*), Bash(git:*), Read, Grep
 ---
 

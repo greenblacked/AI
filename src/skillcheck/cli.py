@@ -64,17 +64,21 @@ def _summary(skills: list[Path], findings: list[Finding], root: Path) -> str:
     # `<skill>/evals/trigger-eval.json`, and matching on the suffix silently dropped it,
     # so a skill whose only defect was its eval set rendered as a green tick while the
     # build failed.
-    keys = sorted((str(skill.relative_to(root)) for skill in skills), key=len, reverse=True)
+    # `.as_posix()` rather than `str()`: on Windows the latter joins with `\`, and the
+    # `key + "/"` prefix check below would then never match a finding one directory
+    # below a skill — an eval-set finding, say — because the separator right after the
+    # skill's own name would disagree with the one being tested for.
+    keys = sorted((skill.relative_to(root).as_posix() for skill in skills), key=len, reverse=True)
     by_skill: dict[str, list[Finding]] = {}
     for finding in findings:
-        path = str(finding.path)
+        path = finding.path.as_posix()
         match = next((key for key in keys if path == key or path.startswith(key + "/")), None)
         if match is not None:
             by_skill.setdefault(match, []).append(finding)
 
     rows = ["| Skill | Result |", "| --- | --- |"]
     for skill in skills:
-        key = str(skill.relative_to(root))
+        key = skill.relative_to(root).as_posix()
         related = by_skill.get(key, [])
         errors = sum(1 for item in related if item.failed)
         warnings = len(related) - errors

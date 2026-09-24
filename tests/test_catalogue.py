@@ -745,8 +745,11 @@ def test_check_fails_on_a_pointer_that_would_not_survive_the_export(mini_repo, t
 
 
 def test_export_rewrites_the_output_directory(mini_repo, tmp_path):
+    # The directory has to be a real previous export, not merely an existing one —
+    # `_unsafe_to_remove` refuses to delete anything else, so the "stale" content here is
+    # left over from a first, genuine run rather than hand-built to look like one.
     out = tmp_path / "portable"
-    out.mkdir()
+    assert portable.export(mini_repo, out) == 0
     (out / "stale.md").write_text("from an older run", encoding="utf-8")
     assert portable.export(mini_repo, out) == 0
     assert not (out / "stale.md").exists()
@@ -754,6 +757,72 @@ def test_export_rewrites_the_output_directory(mini_repo, tmp_path):
 
 def test_export_reports_a_tree_with_no_plugins(tmp_path):
     assert portable.main([str(tmp_path)]) == 2
+
+
+# --- the rmtree safety guard -------------------------------------------------------
+
+
+def test_export_refuses_to_delete_the_repository_root(mini_repo, tmp_path, capsys):
+    # `--out .` pointed at the repository root, or any ancestor of it, used to be handed
+    # straight to shutil.rmtree.
+    assert portable.export(mini_repo, mini_repo) == 2
+    assert "refusing to delete" in capsys.readouterr().err
+
+
+def test_export_refuses_to_delete_an_ancestor_of_the_repository(mini_repo, tmp_path, capsys):
+    assert portable.export(mini_repo, mini_repo.parent) == 2
+    assert "refusing to delete" in capsys.readouterr().err
+
+
+def test_export_refuses_to_delete_the_home_directory(mini_repo, tmp_path, monkeypatch, capsys):
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    monkeypatch.setattr(portable.Path, "home", staticmethod(lambda: fake_home))
+    assert portable.export(mini_repo, fake_home) == 2
+    assert "refusing to delete" in capsys.readouterr().err
+
+
+def test_export_refuses_to_delete_a_directory_that_is_not_a_previous_export(
+    mini_repo, tmp_path, capsys
+):
+    # An existing directory with no marker of this script's own making is left alone
+    # rather than guessed at — the whole tree it might be is not this export's to judge.
+    out = tmp_path / "not-an-export"
+    out.mkdir()
+    (out / "notes.txt").write_text("someone else's files", encoding="utf-8")
+    assert portable.export(mini_repo, out) == 2
+    message = capsys.readouterr().err
+    assert "refusing to delete" in message
+    # The message has to say what to do about it, not just that it refused.
+    assert "delete the directory yourself if you are sure" in message
+    assert (out / "notes.txt").exists()
+
+
+def test_export_deletes_a_directory_that_is_a_previous_export(mini_repo, tmp_path):
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    # A second run over its own prior output is exactly the case the guard has to allow.
+    assert portable.export(mini_repo, out) == 0
+
+
+def test_export_writes_a_sentinel_file(mini_repo, tmp_path):
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    assert (out / portable.EXPORT_SENTINEL).is_file()
+
+
+def test_a_sentinel_alone_is_recognised_as_a_previous_export_even_if_the_readme_changed(
+    mini_repo, tmp_path
+):
+    # The marker's whole point is to survive a prose edit to HOW_TO_USE: a directory
+    # from an export whose README no longer matches the current text verbatim must
+    # still be recognised, or every future export refuses to overwrite the last one
+    # purely because the README was reworded in between.
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    (out / "README.md").write_text("some future, reworded README\n", encoding="utf-8")
+    assert portable.export(mini_repo, out) == 0
+    assert (out / "README.md").read_text(encoding="utf-8") == portable.HOW_TO_USE
 
 
 # --- shell that ships or is printed ----------------------------------------------------
@@ -811,6 +880,16 @@ def test_check_fails_and_names_the_line(tmp_path, capsys):
     (tmp_path / "plugins" / "a.md").write_text("intro\n\n```bash\nif true\n```\n", "utf-8")
     assert shell.check(tmp_path) == 1
     assert "file=plugins/a.md,line=4" in capsys.readouterr().out
+
+
+def test_check_scans_root_level_markdown_too(tmp_path, capsys):
+    # README.md, AGENTS.md and CONTRIBUTING.md live at the repository root, not inside
+    # any of plugins/, docs/, scripts/, .claude/ or template/ — the five directories
+    # SEARCH_DIRS names — so a broken fence in one of them used to ship unchecked.
+    (tmp_path / "plugins").mkdir()
+    (tmp_path / "README.md").write_text("intro\n\n```bash\nif true\n```\n", "utf-8")
+    assert shell.check(tmp_path) == 1
+    assert "file=README.md,line=4" in capsys.readouterr().out
 
 
 def test_a_shipped_script_is_checked_too(tmp_path, capsys):

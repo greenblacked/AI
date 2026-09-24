@@ -158,21 +158,63 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
-      - name: Every workflow must set a top-level permissions block
-        # An absent `permissions:` block means the job inherits the repository
-        # default, which is usually read and write on everything. This is a
-        # one-line check because the failure is silent and permanent.
+      - name: Every workflow must set a top-level permissions block that grants nothing
+        # An absent `permissions:` block means the job inherits the repository default,
+        # which is usually read and write on everything — but so does one that is
+        # present and over-broad. Checking only that the line existed let
+        # `permissions: write-all` through with the same silent, permanent effect as
+        # having no block at all, so this also rejects that shorthand, its `read-all`
+        # sibling, a single-line flow map granting `write` on any scope
+        # (`{contents: write}`), and the block form of the same thing - quoted or not.
+        # A trailing comment is stripped from the value first, and a comment at column
+        # zero no longer ends the block scan, so `permissions:  # least privilege`
+        # followed by `  contents: write` cannot hide the grant behind either one.
         run: |
           set -Eeuo pipefail
-          missing=0
+          bad=0
           shopt -s nullglob
           for file in .github/workflows/*.yml .github/workflows/*.yaml; do
-            if ! grep -qE '^permissions:' "$file"; then
+            line_no=$(grep -nE '^permissions:' "$file" | head -n1 | cut -d: -f1) || true
+            if [ -z "$line_no" ]; then
               echo "::error file=$file,title=no permissions block::$file does not set top-level permissions"
-              missing=1
+              bad=1
+              continue
+            fi
+            value=$(sed -n "${line_no}s/^permissions:[[:space:]]*//p" "$file")
+            value=$(printf '%s\n' "$value" | sed -E 's/[[:space:]]*#.*$//')
+            # Quotes stripped before every comparison below, so `write`, `"write"` and
+            # 'write' are judged the same way whether they sit in a flow map or a block.
+            normalised=$(printf '%s\n' "$value" | sed -E 's/["'"'"']//g')
+            if printf '%s\n' "$normalised" | grep -qiE '^(write-all|read-all)[[:space:]]*$'; then
+              echo "::error file=$file,title=over-broad permissions::$file sets top-level permissions: ${value}"
+              bad=1
+              continue
+            fi
+            if [ -n "$value" ]; then
+              if [ "$value" = "{}" ]; then
+                continue  # grants nothing
+              fi
+              if printf '%s\n' "$normalised" |
+                grep -qE '(^\{|[,{])[[:space:]]*[A-Za-z_-]+[[:space:]]*:[[:space:]]*write[[:space:]]*($|[,}])'; then
+                echo "::error file=$file,title=over-broad permissions::$file grants write at the top level: ${value}"
+                bad=1
+              fi
+              continue
+            fi
+            block=$(awk -v start="$line_no" '
+              NR <= start { next }
+              /^[^[:space:]#]/ { exit }
+              { print }
+            ' "$file")
+            writes=$(printf '%s\n' "$block" |
+              sed -E 's/["'"'"']//g' |
+              grep -E '^[[:space:]]+[A-Za-z_-]+:[[:space:]]*write[[:space:]]*(#.*)?$') || true
+            if [ -n "$writes" ]; then
+              echo "::error file=$file,title=over-broad permissions::$file grants write at the top level: ${writes}"
+              bad=1
             fi
           done
-          exit "$missing"
+          exit "$bad"
       - name: Every third-party action must be pinned to a commit SHA
         # Matching known-bad shapes let the likeliest regression through: this repo's
         # own convention is `uses: x@<sha>  # v7.0.1`, so keeping the comment and pasting a

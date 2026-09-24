@@ -1,6 +1,6 @@
 ---
 description: Draft a weekly status update from what actually shipped — merged pull requests, commits and closed issues — bottom line first, with every number sourced or marked missing.
-argument-hint: [since date, default 7 days ago]
+argument-hint: '[since date, default 7 days ago]'
 allowed-tools: Bash(gh:*), Bash(git:*), Read, Glob
 ---
 
