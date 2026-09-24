@@ -1,0 +1,110 @@
+---
+# Cuts a GitHub Release from a `vX.Y.Z` tag: notes from CHANGELOG.md, the .skill
+# archives and the portable bundle attached. Cutting the tag itself is a maintainer
+# step (`make release`, see scripts/release.py); this workflow only publishes what a
+# tag that already exists on main describes.
+name: Release
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+
+permissions: {}
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # The one job here that can write to the repository, and it is bounded three ways:
+    # it only runs on a `vX.Y.Z` tag push, and it refuses a tagged commit that is not an
+    # ancestor of `main` — see the step below and docs/ci.md's release section.
+    permissions:
+      contents: write  # spent on creating the release and uploading assets via gh, never on pushing code
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.13'
+          # No `cache:` here on purpose. zizmor's cache-poisoning audit flags a
+          # dependency cache on a tag-triggered workflow at high severity: restoring a
+          # cache seeded by an earlier, less trusted run is a way to smuggle a modified
+          # dependency into a job that is about to publish a release.
+
+      - name: Verify the tagged commit is on main
+        # A tag pushed at an unreviewed branch commit must not be able to publish. This
+        # is the check that makes that true regardless of what the tag's message claims.
+        run: |
+          set -Eeuo pipefail
+          git fetch origin main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main; then
+            echo "::error::$TAG points at $GITHUB_SHA, which is not on main" >&2
+            exit 1
+          fi
+
+      - name: Validate every skill, subagent and the marketplace manifest
+        # The same invocation ci.yml's validate-skills job runs. A tag is cut from a
+        # commit that already passed this on its pull request, so this is a repeat
+        # rather than new information — but a release published from a state this
+        # workflow never itself checked is not a guarantee, it is a hope.
+        run: |
+          set -Eeuo pipefail
+          PYTHONPATH=src python -m skillcheck . --strict
+
+      - name: Write the release notes from CHANGELOG.md
+        run: |
+          set -Eeuo pipefail
+          notes_file="$RUNNER_TEMP/notes.md"
+          python scripts/release.py notes "$TAG" > "$notes_file"
+          if [ ! -s "$notes_file" ]; then
+            echo "::error::release notes for $TAG are empty" >&2
+            exit 1
+          fi
+          echo "NOTES_FILE=$notes_file" >> "$GITHUB_ENV"
+
+      - name: Build a .skill archive for every skill
+        # Exactly ci.yml's package job: build, then verify with the same script so the
+        # two paths that ship an archive cannot drift against each other.
+        run: |
+          set -Eeuo pipefail
+          PYTHONPATH=src python scripts/package_skills.py
+      - name: Every archive holds a loadable skill
+        run: |
+          set -Eeuo pipefail
+          PYTHONPATH=src python scripts/verify_archives.py .
+
+      - name: Flatten every skill and zip the portable bundle
+        run: |
+          set -Eeuo pipefail
+          PYTHONPATH=src python scripts/export_portable.py .
+          (cd dist && python -m zipfile -c "portable-skills-$TAG.zip" portable)
+
+      - name: Create or update the GitHub release
+        # A re-run after a partial failure — the release created but an asset upload
+        # failing partway through, say — has to be safe to repeat rather than erroring
+        # on "release already exists" or leaving a stale asset from the failed attempt
+        # behind. If the release already exists, this only replaces its assets, with
+        # `--clobber` overwriting anything the earlier attempt managed to upload;
+        # otherwise it creates the release fresh.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -Eeuo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" --clobber \
+              dist/*.skill "dist/portable-skills-$TAG.zip"
+          else
+            gh release create "$TAG" --verify-tag --title "$TAG" \
+              --notes-file "$NOTES_FILE" \
+              dist/*.skill "dist/portable-skills-$TAG.zip"
+          fi

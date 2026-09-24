@@ -59,10 +59,10 @@ change an already active session.
 | `docs/` | How to write skills, subagents, commands, `AGENTS.md`, what the project layout loads, and what CI checks |
 | `template/SKILL.md` | Starting point for a new skill |
 | `.claude-plugin/marketplace.json` | Lists the eight plugins; each discovers its own skills |
-| `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml` |
+| `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `release.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
 | `providers.json` | Which AI tools read `AGENTS.md` and load skills, with sources and a checked date; `scripts/providers_table.py` renders it into the README |
-| `scripts/` | Packaging, install, the eval harness, the portable export, and the seven catalogue checks |
+| `scripts/` | Packaging (`package_skills.py`, `verify_archives.py`), install, the eval harness, the portable export, cutting a release (`release.py`), and the seven catalogue checks |
 | `scripts/hooks/` | The `PostToolUse` hook `.claude/settings.json` registers, which validates a skill, subagent, command or rule as it is written |
 
 ## Setup commands
@@ -79,6 +79,8 @@ make test                      # the validator's own test suite
 make coverage                  # the same, failing below the floor in pyproject.toml
 make package                   # build a .skill archive per skill into dist/
 make install                   # symlink every skill into ~/.claude/skills
+make release-prepare VERSION=x.y.z  # on a branch: move Unreleased into a dated section
+make release VERSION=x.y.z          # on main, after that PR merges: tag the release
 ```
 
 ## Testing instructions
@@ -206,12 +208,16 @@ Shell in this repository, including inline `run:` blocks in workflows, uses
   tag that SHA belongs to — `# v7.0.1`, not `# v7`. The SHA is what makes it immutable;
   the comment is what lets Dependabot bump it. A major-version comment goes stale
   silently the moment upstream moves the floating tag, and zizmor fails the build for it.
-- Checkouts set `persist-credentials: false`. Nothing here pushes from CI. The one
-  exception is `dependabot-auto-merge.yml`'s single job, the only job that can write to
-  repository contents or pull requests: it can enable auto-merge on a Dependabot pull
-  request that is a patch or minor update and whose head branch is in this repository,
-  which stays bounded because GitHub only completes that merge once the `ci` and
-  `security` checks the branch ruleset requires have both reported `success`.
+- Checkouts set `persist-credentials: false`. Nothing here pushes from CI. There are two
+  bounded exceptions. `dependabot-auto-merge.yml`'s single job is the first: it can enable
+  auto-merge on a Dependabot pull request that is a patch or minor update and whose head
+  branch is in this repository, which stays bounded because GitHub only completes that
+  merge once the `ci` and `security` checks the branch ruleset requires have both reported
+  `success`. `release.yml`'s single job is the second: it holds `contents: write` and
+  nothing else, runs only on a `vX.Y.Z` tag push, and refuses to proceed when the tagged
+  commit is not an ancestor of `main`. It spends that permission creating a GitHub Release
+  and uploading assets to it through the preinstalled `gh` CLI, never on pushing a commit
+  — its checkout still sets `persist-credentials: false`, the same as every other job here.
 - Skills may describe security tooling and defensive procedure. They must not contain
   working exploit code, credentials, or instructions whose obvious use is unauthorised
   access.

@@ -78,10 +78,13 @@ rule, and they fail the build anyway, because a warning nobody has to clear is a
 that accumulates until the whole category is ignored.
 
 `validate-plugin` runs without `--strict`, and that is deliberate: each
-`plugins/<name>/.claude-plugin/plugin.json` omits `version`, which the CLI warns about.
-With a git-sourced marketplace, omitting the version is the documented behaviour — every
-commit then resolves as a new version — so the three warnings are the correct state and
-`--strict` would force a version field that exists only to silence them.
+`plugins/<name>/.claude-plugin/plugin.json` omits `version`, which the CLI warns about —
+one warning per plugin. With a git-sourced marketplace, omitting the version is the
+documented behaviour — every commit then resolves as a new version — so those warnings
+are the correct state and `--strict` would force a version field that exists only to
+silence them. Releases are cut as git tags instead, described below in [releasing a
+version](#releasing-a-version); the manifests still carry no `version` field, and pinning
+to a release means pinning to the tag, not to anything in a manifest.
 
 ## `.github/workflows/security.yml` — Security
 
@@ -200,6 +203,52 @@ the pull request is already mergeable by the time this job runs, `gh pr merge --
 merges immediately rather than waiting — still safe, because mergeable means the required
 checks already passed against this pull request merged onto the current tip of `main`,
 which the ruleset's strict mode guarantees.
+
+## `.github/workflows/release.yml` — Release
+
+Triggers only on a tag push matching `vX.Y.Z`. Top-level `permissions: {}`; the one job
+grants itself `contents: write` — the second exception to "nothing here pushes from CI",
+alongside `dependabot-auto-merge.yml`'s job. It is bounded three ways: it only runs on a
+version-tag push, it refuses a tagged commit that is not an ancestor of `main`, and the
+write access is spent on creating a release and uploading assets through the preinstalled
+`gh` CLI, never on pushing a commit — its checkout still sets `persist-credentials: false`.
+See [releasing a version](#releasing-a-version) for the two-step procedure that gets a tag
+onto `main` in the first place.
+
+| Job | Check name | Failing means |
+| --- | --- | --- |
+| `release` | `release` | The tagged commit is not on `main`, the strict validator failed, [`scripts/release.py notes`](../scripts/release.py) found no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md) for the tag, [`scripts/package_skills.py`](../scripts/package_skills.py) or [`scripts/verify_archives.py`](../scripts/verify_archives.py) failed, [`scripts/export_portable.py`](../scripts/export_portable.py) failed, or `gh release create` or `gh release upload` could not create the release or upload an asset. |
+
+Not a required check — nothing merges against it, and it only ever runs after a tag has
+already been pushed. `git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main`
+is what keeps a tag pushed at a branch commit from publishing anything: `GITHUB_SHA` is
+the tagged commit on a tag-push event, and the check fails before anything is built if
+that commit never reached `main`. The strict validator then repeats what the tagged
+commit's own pull request already passed — not new information, but a release published
+from a state this workflow never itself checked would be a hope rather than a guarantee.
+
+The archives and the portable export are built exactly as `ci.yml`'s `package` job builds
+them, calling the same two scripts, so the two paths that ship a `.skill` archive cannot
+drift against each other. `python -m zipfile -c` zips `dist/portable` into
+`dist/portable-skills-<tag>.zip` from inside `dist/`, so the archive's own top-level entry
+reads `portable/…` rather than `dist/portable/…`.
+
+The last step is written to be safe to re-run. `gh release view "$TAG"` decides which of
+two things happens: if the release does not exist yet, `gh release create "$TAG"
+--verify-tag` makes it, attaching the notes file the earlier step wrote and refused to
+proceed on empty, along with every `.skill` archive and the portable zip. If the release
+already exists — the shape a re-run after a partial failure takes, such as the release
+having been created but an asset upload failing partway through — `gh release upload
+"$TAG" --clobber` replaces its assets instead, overwriting anything a failed earlier
+attempt managed to upload rather than erroring on "already exists" or leaving a stale one
+behind. Re-running the workflow on the same tag is therefore the recovery procedure for a
+failed run; nothing about it is destructive to a release that already succeeded, since
+the assets it rebuilds are deterministic from the tagged commit.
+
+No dependency caching: `setup-python`'s `cache:` key would restore whatever an earlier,
+less trusted run wrote, on the one workflow with write access to the repository and about
+to publish a release — zizmor's cache-poisoning audit flags exactly this on a
+tag-triggered workflow.
 
 ## `.github/workflows/scheduled.yml` — Scheduled checks
 
@@ -347,6 +396,44 @@ Three numbers come back per skill: pass rate over all queries, recall over the p
 and specificity over the negatives. Reading them, and writing the queries in the first
 place, is covered in [writing a skill](writing-skills.md).
 
+## Releasing a version
+
+A release is a git tag matching `vX.Y.Z` plus the [`CHANGELOG.md`](../CHANGELOG.md)
+section it describes. The plugin manifests carry no `version` field either way — see
+`validate-plugin` above — so a tag is what lets an installer pin to a release rather than
+tracking the latest commit on `main`; [using the skills](using.md#updating-and-removing)
+covers the install-time side of that.
+
+`main` requires a pull request, so cutting a release is two steps, both wrapped by
+[`scripts/release.py`](../scripts/release.py):
+
+1. **On a branch:** `make release-prepare VERSION=x.y.z`. Moves `## [Unreleased]`'s body
+   into a new `## [x.y.z] - YYYY-MM-DD` section dated today in UTC, leaves an empty
+   `Unreleased` above it, and updates the compare-link footer at the bottom of the file if
+   it carries one. It refuses an empty `Unreleased` section, a malformed version, and a
+   version that is not greater than every version already in the changelog, already
+   tagged locally, or — when an `origin` remote is configured — already tagged there,
+   since a branch may not have fetched a tag another release just pushed; with no
+   `origin` configured it says so and skips that one check rather than failing. Commit
+   the result, open a pull request, and merge it.
+2. **On `main`, after that pull request merges:** `make release VERSION=x.y.z`, which
+   checks things in this order: the branch is `main`; the working tree is clean,
+   including untracked files; `CHANGELOG.md` has a non-empty `[x.y.z]` section; the tag
+   does not already exist locally or on `origin`; and only then does it fetch and confirm
+   `HEAD` matches `origin/main`. The tag-existence checks run before the fetch on
+   purpose — fetching `--tags` pulls any tag `origin` already has into a local ref of its
+   own, which would make the local check true for a tag this run never created and hide
+   an "already exists on origin" refusal behind a misleading "already exists locally"
+   one. Once every check passes it creates an annotated tag `vx.y.z` — with
+   `--cleanup=verbatim`, so a `### Added`-style subheading in the section survives rather
+   than being stripped as a comment line — whose message is that section's notes, and
+   does not push: it prints `git push origin vx.y.z` as the last thing it does. Run that
+   command to publish, which is what triggers `release.yml` above.
+
+`scripts/release.py notes x.y.z` prints one version's section body and nothing else; it is
+what `release.yml` writes into a file for `gh release create --notes-file`, and what a
+maintainer can run by hand to preview a release's notes before tagging.
+
 ## Why the aggregator jobs exist
 
 `ci` and `security` name every other job in their workflow in `needs:`, run
@@ -370,9 +457,14 @@ the aggregate must run and explicitly reject every non-success dependency. The w
 checker also verifies the required aggregate's identity and result-check wiring; a
 renamed or disconnected gate must not pass the repository's own checks.
 
-`scheduled.yml` and `evals.yml` have no aggregator, because nothing requires them. An
-aggregator exists to give branch protection a stable name to point at; a workflow that
-gates nothing has no use for one.
+Every workflow besides `ci.yml` and `security.yml` has no aggregator, because nothing
+requires them — currently `dependabot-auto-merge.yml`, `scheduled.yml`, `evals.yml` and
+`release.yml`. An aggregator exists to give branch protection a stable name to point at;
+a workflow that gates nothing, or that runs once per tag rather than on every commit, has
+no use for one. `scripts/check_workflows.py` is what actually enforces this: it looks for
+a job carrying both `if: always()` and `needs:` in each workflow and treats one it finds
+as that workflow's required aggregate, so this list is a summary of what it finds today
+rather than the source of truth.
 
 ## Why there is no `paths:` filter
 

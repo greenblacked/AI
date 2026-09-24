@@ -450,32 +450,12 @@ jobs:
         # Building without error only proves the zip was written. What the upload route
         # needs is a SKILL.md at the archive root whose `name` matches the archive, and
         # a broken layout would ship silently: the build is green and the install is
-        # what fails, for someone else, later.
+        # what fails, for someone else, later. `release.yml` runs this same script
+        # before attaching these archives to a GitHub Release, so the two paths that
+        # ship an archive share one check rather than two that can drift.
         run: |
           set -Eeuo pipefail
-          PYTHONPATH=src python - <<'EOF'
-          import pathlib
-          import zipfile
-
-          from skillcheck.frontmatter import parse
-
-          archives = sorted(pathlib.Path("dist").glob("*.skill"))
-          if not archives:
-              raise SystemExit("no archives in dist/")
-          for archive in archives:
-              stem = archive.stem
-              with zipfile.ZipFile(archive) as bundle:
-                  bad = bundle.testzip()
-                  if bad is not None:
-                      raise SystemExit(f"{archive}: corrupt member {bad}")
-                  member = f"{stem}/SKILL.md"
-                  if member not in bundle.namelist():
-                      raise SystemExit(f"{archive}: no {member} in the archive")
-                  values = parse(bundle.read(member).decode("utf-8")).values
-              if values.get("name") != stem:
-                  raise SystemExit(f"{archive}: declares name {values.get('name')!r}")
-          print(f"{len(archives)} archive(s) verified")
-          EOF
+          PYTHONPATH=src python scripts/verify_archives.py .
       - name: Flatten every skill into a file that stands alone
         run: |
           set -Eeuo pipefail

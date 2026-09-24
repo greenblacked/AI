@@ -97,9 +97,21 @@ editing tools. See [writing a subagent](writing-agents.md#the-two-loops).
 /plugin uninstall coding@greenblacked-ai
 ```
 
-There are no version numbers. The marketplace source is a git ref, so Claude Code derives
-a version from the commit and an update takes you to the latest commit on the default
-branch.
+Updates still follow the latest commit on `main` by default: the marketplace source is a
+git ref, so Claude Code derives a version from the commit, and `/plugin marketplace
+update` takes you to whatever that ref points at now.
+
+To pin to a release instead, append `@ref` to the GitHub shorthand when you add the
+marketplace:
+
+```shell
+/plugin marketplace add greenblacked/AI@v1.0.0
+```
+
+A relative plugin path resolves against that checkout, so a marketplace added with a tag
+ref stays on that ref — `/plugin marketplace update` re-fetches the same tag rather than
+moving to a newer commit. [`CHANGELOG.md`](../CHANGELOG.md) lists what changed in each
+tagged version.
 
 ### When something does not work
 
