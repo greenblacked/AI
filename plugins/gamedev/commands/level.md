@@ -1,6 +1,6 @@
 ---
 description: Run a level or feature from idea to reviewable through the gamedev skills in order — spec the scope, lay out the space against fixed player metrics, grey-box the loop in it, tune the curve, measure the frame cost on the target device, then size what it adds to the build — with a gate between each stage rather than one pass that does all six badly.
-argument-hint: [what to build, for example "a timed escape level for the flooded district"]
+argument-hint: '[what to build, for example "a timed escape level for the flooded district"]'
 allowed-tools: Skill, Agent(frame-capture-reader), Read, Grep, Glob, Write, Edit
 ---
 
