@@ -7,7 +7,9 @@ packaged is a skill nobody can install.
 
 The archive contains a single top-level directory named after the skill, matching what
 the Skills API expects on upload. ``evals/`` is excluded — it belongs beside a skill in
-source control but not inside the artefact.
+source control but not inside the artefact. ``LICENSE.txt`` and ``NOTICE.txt`` — copies
+of this repository's own ``LICENSE`` and ``NOTICE`` — are added beside ``SKILL.md``, so
+the MIT copyright notice travels with the skill once it is unzipped somewhere else.
 """
 
 from __future__ import annotations
@@ -23,6 +25,10 @@ from skillcheck.rules import check_skill, find_skills  # noqa: E402
 EXCLUDED_DIRS = {"__pycache__", "node_modules", ".git"}
 ROOT_EXCLUDED_DIRS = {"evals"}
 EXCLUDED_NAMES = {".DS_Store"}
+# Archive member name -> file at the repository root it is a copy of. Named ".txt"
+# because that is the per-skill licence file name the public skill repositories use,
+# and it reads as plain text to someone who never sees this repository.
+LICENSE_MEMBERS = {"LICENSE.txt": "LICENSE", "NOTICE.txt": "NOTICE"}
 
 
 def _included(path: Path, skill: Path) -> bool:
@@ -56,12 +62,37 @@ def package(skill: Path, output_dir: Path, repo_root: Path) -> Path:
                 "and neither matches the tree."
             )
 
+    # A skill that already ships its own LICENSE.txt or NOTICE.txt has said something
+    # deliberate there; silently replacing it with the repository's own copy would lose
+    # that without anyone noticing until the archive was inspected.
+    for member, source_name in LICENSE_MEMBERS.items():
+        if (skill / member).exists():
+            raise SystemExit(
+                f"refusing to package {skill.name}: it already has a {member}, and "
+                f"packaging would overwrite it with the repository's own {source_name}. "
+                "Rename or remove the skill's own file."
+            )
+
+    # Checked before anything is written: a `ZipFile` opened in write mode truncates the
+    # archive path immediately, so finding a missing LICENSE or NOTICE only once inside
+    # the `with` block below left a valid-looking but incomplete `.skill` file in
+    # `dist/` — every skill file present, the licence missing, and nothing about the
+    # failed run visible from the archive itself.
+    for source_name in LICENSE_MEMBERS.values():
+        if not (repo_root / source_name).is_file():
+            raise SystemExit(
+                f"refusing to package {skill.name}: no {source_name} at the "
+                f"repository root ({repo_root})"
+            )
+
     output_dir.mkdir(parents=True, exist_ok=True)
     archive = output_dir / f"{skill.name}.skill"
     with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as bundle:
         for path in sorted(skill.rglob("*")):
             if path.is_file() and _included(path, skill):
                 bundle.write(path, path.relative_to(skill.parent))
+        for member, source_name in LICENSE_MEMBERS.items():
+            bundle.write(repo_root / source_name, f"{skill.name}/{member}")
     return archive
 
 

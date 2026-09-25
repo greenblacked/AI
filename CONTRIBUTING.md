@@ -89,6 +89,11 @@ since the version and its date are only decided at release time.
 One logical change per commit, imperative subject line, and a body that explains why when
 the diff does not. Please do not add tool-attribution or `Co-Authored-By` trailers.
 
+## Licensing
+
+By opening a pull request you agree that your contribution is licensed under this
+repository's [MIT licence](LICENSE) — inbound the same as outbound.
+
 ## Conduct
 
 Taking part here means agreeing to the [Code of Conduct](CODE_OF_CONDUCT.md). It also

@@ -3,7 +3,7 @@
   "name": "greenblacked-ai",
   "description": "Agent skills, subagents and slash commands for software engineering, making games, engineering leadership, and life outside work. Eight focused plugins; install only the ones you want.",
   "owner": {
-    "name": "greenblacked",
+    "name": "Serhii Zolotov",
     "url": "https://github.com/greenblacked"
   },
   "plugins": [

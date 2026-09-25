@@ -114,6 +114,10 @@ def mini_repo(tmp_path: Path) -> Path:
     write_agent(root, "engineering", "reader", evals=eval_set("reader", expected="alpha"))
     # The scripts locate `src/` relative to the repository root they are given.
     shutil.copytree(REPO / "src", root / "src")
+    # package_skills.py and export_portable.py both copy these into what they build, so
+    # a fixture repository without them cannot exercise either script end to end.
+    (root / "LICENSE").write_text("MIT License\n\nCopyright (c) 2026 Test\n", encoding="utf-8")
+    (root / "NOTICE").write_text("NOTICE\n\nCopyright (c) 2026 Test\n", encoding="utf-8")
     return root
 
 

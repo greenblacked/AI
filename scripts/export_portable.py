@@ -23,9 +23,10 @@ This flattens each skill into one file that stands alone:
 - a path inside a fenced block is left exactly as written. It is part of a command, and
   the command needs it; the inlined section is what tells the reader which file to create
 
-Output lands in `dist/portable/`: one file per skill, one per plugin, and an index that
-lists every description so a model can choose between them the way a skills runtime
-would. CI builds it on every run and uploads the result, so the files exist for someone
+Output lands in `dist/portable/`: one file per skill, one per plugin, an index that lists
+every description so a model can choose between them the way a skills runtime would, and
+a `LICENSE` and `NOTICE` copied from the repository root so the release zip carries them
+too. CI builds it on every run and uploads the result, so the files exist for someone
 with no toolchain; `--check` verifies without writing, for when you only want the gate.
 
 Standard library only, like the validator it imports.
@@ -191,11 +192,17 @@ def drop_title(text: str) -> str:
 # a single file forwarded on — and until this line existed it left with no notice at
 # all. It sits at the foot of every exported file, below the reference material, so a
 # reader who scrolls to the end finds where the text came from and what they may do
-# with it.
+# with it. MIT's actual condition is that the copyright notice and the licence text
+# travel with the copy, not merely a line saying where it came from, so this names the
+# copyright holder in full and points at the LICENSE this export ships alongside it
+# rather than asking the reader to keep a sentence.
 NOTICE = (
     "---\n"
-    "From https://github.com/greenblacked/AI by greenblacked. MIT licensed: use, change "
-    "and redistribute it freely, keeping this line."
+    "Copyright (c) 2026 Serhii Zolotov (GitHub: greenblacked), "
+    "https://github.com/greenblacked/AI. Licensed under the MIT License: the full text "
+    "ships as LICENSE with this export and is at "
+    "https://github.com/greenblacked/AI/blob/main/LICENSE. Keep the copyright notice "
+    "and the licence with any copy."
 )
 
 
@@ -391,9 +398,12 @@ skill and export again.
 
 ## Licence
 
-MIT, from https://github.com/greenblacked/AI by greenblacked. Every file here ends with
-that line; keep it when you copy the file on, and you have met the licence's one
-condition.
+MIT. Copyright (c) 2026 Serhii Zolotov (GitHub: greenblacked),
+https://github.com/greenblacked/AI. The full text is in the `LICENSE` file in this
+directory and at <https://github.com/greenblacked/AI/blob/main/LICENSE>; `NOTICE` here
+adds statements of fact that do not change its terms. Every skill file ends with a short
+copy of the same notice — keep the copyright line and the `LICENSE` file with any copy
+you make.
 """
 
 
@@ -479,6 +489,15 @@ def export(root: Path, out: Path, check: bool = False) -> int:
         print(f"export is clean: {total} skill(s) across {len(rendered)} plugin(s)")
         return 0
 
+    # The export is the copy most likely to leave the repository, so it has to carry the
+    # same LICENSE and NOTICE the repository ships rather than only the per-file footer
+    # — checked before anything is deleted, so a repository missing either fails without
+    # first destroying whatever was at `out`.
+    for name in ("LICENSE", "NOTICE"):
+        if not (root / name).is_file():
+            print(f"::error::no {name} at the repository root ({root})", file=sys.stderr)
+            return 2
+
     if out.exists():
         unsafe = _unsafe_to_remove(root, out)
         if unsafe is not None:
@@ -489,6 +508,8 @@ def export(root: Path, out: Path, check: bool = False) -> int:
     (out / "plugins").mkdir(parents=True)
     (out / "README.md").write_text(HOW_TO_USE, encoding="utf-8")
     (out / EXPORT_SENTINEL).write_text(SENTINEL_TEXT, encoding="utf-8")
+    for name in ("LICENSE", "NOTICE"):
+        shutil.copy(root / name, out / name)
 
     index = ["# Skill index", "", f"{total} procedures across {len(rendered)} groups.", ""]
     for plugin in sorted(rendered):
