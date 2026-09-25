@@ -487,19 +487,24 @@ Repository conventions for agents live in [`AGENTS.md`](AGENTS.md).
 
 ## Licence
 
-[MIT](LICENSE). Use it, copy it, change it, ship it inside something you sell — the one
-condition is that the copyright notice travels with it. That notice names
-**greenblacked** and links to this repository, so any copy, fork or derivative has to say
-where it came from:
+[MIT](LICENSE). Use it, copy it, change it, ship it inside something you sell — the
+condition, in MIT's own words, is that the copyright notice and the permission notice
+(the full licence text) are included in all copies or substantial portions of the
+software, not merely that the notice travels with it. The notice names **Serhii
+Zolotov**, the username **greenblacked**, and links to this repository, so any copy,
+fork or derivative has to say where it came from:
 
 ```text
-Copyright (c) 2026 greenblacked (https://github.com/greenblacked/AI)
+Copyright (c) 2026 Serhii Zolotov (GitHub: greenblacked), https://github.com/greenblacked/AI
 ```
 
-Keep it in a `LICENSE` file, a header, or a credits page — anywhere a reader of the copy
-will find it. If you lift a single skill into another assistant, the portable export
-already puts an attribution line naming this repository and the licence at the foot of
-every file it writes, so `make portable` needs no extra step. What the licence does not require is asking first, or sharing changes back.
+Keep both the notice and the licence text with it — in a `LICENSE` file, a header, or a
+credits page, anywhere a reader of the copy will find them. The copies this repository
+produces already comply: every `.skill` archive carries `LICENSE.txt` and `NOTICE.txt`
+beside `SKILL.md`, and `make portable`'s output carries `LICENSE` and `NOTICE` at its
+root plus a short copy of the notice at the foot of every skill file and plugin bundle,
+so lifting one of those elsewhere needs no extra step from you. What the licence does
+not require is asking first, or sharing changes back.
 
 ### Independence and disclaimer
 

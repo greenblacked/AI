@@ -3,6 +3,9 @@ name = "skillcheck"
 version = "0.1.0"
 description = "Validation for the Claude Code skills in this repository"
 requires-python = ">=3.10"
+authors = [{ name = "Serhii Zolotov" }]
+license = "MIT"
+license-files = ["LICENSE", "NOTICE"]
 # Intentionally empty, and enforced by the CI matrix: the validator has to run on a
 # bare interpreter, because that is what a fresh runner gives you.
 dependencies = []

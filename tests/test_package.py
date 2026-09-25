@@ -30,7 +30,12 @@ def test_the_archive_has_one_top_level_directory_named_after_the_skill(mini_repo
     archive = packager.package(skill, tmp_path / "dist", mini_repo)
     assert archive.name == "alpha.skill"
     names = names_in(archive)
-    assert names == ["alpha/SKILL.md", "alpha/references/depth.md"]
+    assert names == [
+        "alpha/LICENSE.txt",
+        "alpha/NOTICE.txt",
+        "alpha/SKILL.md",
+        "alpha/references/depth.md",
+    ]
 
 
 def test_evals_pycache_and_ds_store_are_excluded(mini_repo, tmp_path):
@@ -41,7 +46,47 @@ def test_evals_pycache_and_ds_store_are_excluded(mini_repo, tmp_path):
     (skill / "scripts").mkdir()
     (skill / "scripts" / "helper.py").write_text("print()\n", encoding="utf-8")
     archive = packager.package(skill, tmp_path / "dist", mini_repo)
-    assert names_in(archive) == ["alpha/SKILL.md", "alpha/scripts/helper.py"]
+    assert names_in(archive) == [
+        "alpha/LICENSE.txt",
+        "alpha/NOTICE.txt",
+        "alpha/SKILL.md",
+        "alpha/scripts/helper.py",
+    ]
+
+
+def test_license_and_notice_are_copies_of_the_repository_root_files(mini_repo, tmp_path):
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    archive = packager.package(skill, tmp_path / "dist", mini_repo)
+    with zipfile.ZipFile(archive) as bundle:
+        license_text = bundle.read("alpha/LICENSE.txt").decode("utf-8")
+        notice_text = bundle.read("alpha/NOTICE.txt").decode("utf-8")
+    assert license_text == (mini_repo / "LICENSE").read_text(encoding="utf-8")
+    assert notice_text == (mini_repo / "NOTICE").read_text(encoding="utf-8")
+
+
+def test_a_skill_with_its_own_license_txt_is_refused(mini_repo, tmp_path):
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    (skill / "LICENSE.txt").write_text("a different licence\n", encoding="utf-8")
+    with pytest.raises(SystemExit, match="already has a LICENSE.txt"):
+        packager.package(skill, tmp_path / "dist", mini_repo)
+
+
+def test_a_skill_with_its_own_notice_txt_is_refused(mini_repo, tmp_path):
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    (skill / "NOTICE.txt").write_text("a different notice\n", encoding="utf-8")
+    with pytest.raises(SystemExit, match="already has a NOTICE.txt"):
+        packager.package(skill, tmp_path / "dist", mini_repo)
+
+
+def test_no_repository_license_fails_loudly(mini_repo, tmp_path):
+    (mini_repo / "LICENSE").unlink()
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    with pytest.raises(SystemExit, match="no LICENSE at the repository root"):
+        packager.package(skill, tmp_path / "dist", mini_repo)
+    # The check has to run before anything is written, or a missing LICENSE leaves a
+    # valid-looking but incomplete archive behind — every skill file present, the
+    # licence missing, and nothing about the failed run visible from dist/ itself.
+    assert not (tmp_path / "dist" / "alpha.skill").exists()
 
 
 def test_a_skill_that_does_not_validate_is_refused(mini_repo, tmp_path):
@@ -98,4 +143,4 @@ def test_a_cache_directory_nested_below_the_top_level_is_excluded(mini_repo, tmp
     (skill / "references" / "__pycache__").mkdir(parents=True)
     (skill / "references" / "__pycache__" / "x.txt").write_text("x", encoding="utf-8")
     archive = packager.package(skill, tmp_path / "dist", mini_repo)
-    assert names_in(archive) == ["alpha/SKILL.md"]
+    assert names_in(archive) == ["alpha/LICENSE.txt", "alpha/NOTICE.txt", "alpha/SKILL.md"]

@@ -1,7 +1,7 @@
 NOTICE
 
 greenblacked/AI
-Copyright (c) 2026 greenblacked (https://github.com/greenblacked/AI)
+Copyright (c) 2026 Serhii Zolotov (GitHub: greenblacked), https://github.com/greenblacked/AI
 
 This notice accompanies the MIT License in the LICENSE file. It adds statements of fact
 and disclaimers only. It does not add to, remove from or modify the terms of that
@@ -48,3 +48,8 @@ substitute for advice from a qualified professional about your own circumstances
 As the LICENSE states, this material is provided "as is", without warranty of any kind,
 and neither the author nor any copyright holder is liable for any claim, damages or other
 liability arising from, out of or in connection with it or its use.
+
+7. Third-party text
+
+CODE_OF_CONDUCT.md is adapted from the Contributor Covenant, version 2.1, used under
+CC BY 4.0. That file is not covered by the MIT licence above.
