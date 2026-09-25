@@ -703,6 +703,25 @@ def test_export_writes_a_file_per_skill_a_bundle_per_plugin_and_an_index(mini_re
     assert (out / "README.md").is_file()
 
 
+def test_export_writes_license_and_notice_at_the_output_root(mini_repo, tmp_path):
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    assert (out / "LICENSE").read_text(encoding="utf-8") == (mini_repo / "LICENSE").read_text(
+        encoding="utf-8"
+    )
+    assert (out / "NOTICE").read_text(encoding="utf-8") == (mini_repo / "NOTICE").read_text(
+        encoding="utf-8"
+    )
+
+
+def test_export_fails_loudly_with_no_repository_license(mini_repo, tmp_path, capsys):
+    (mini_repo / "LICENSE").unlink()
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 2
+    assert "no LICENSE at the repository root" in capsys.readouterr().err
+    assert not out.exists()
+
+
 def test_export_does_not_hide_a_plugin_skill_named_template(mini_repo, tmp_path):
     """`export` walks `find_skills(plugin / "skills")` per plugin — the same narrowed
     `root` that used to make a `skills/template/` skill look like the repository's own

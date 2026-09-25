@@ -31,6 +31,11 @@ First tagged release. The catalogue at this tag:
 - **CI and Security gates**: `ci` validates, tests, lints and packages; `security` runs
   gitleaks, zizmor, ruff's flake8-bandit rules and CodeQL. Both are required checks on
   `main`.
+- **Licence notice in every distributed artefact**: each `.skill` archive carries a
+  `LICENSE.txt` and a `NOTICE.txt` beside `SKILL.md`, and the portable export carries
+  `LICENSE` and `NOTICE` at its root and a short copy of the notice at the foot of every
+  skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
+  greenblacked).
 
 [Unreleased]: https://github.com/greenblacked/AI/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/greenblacked/AI/releases/tag/v1.0.0
