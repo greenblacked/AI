@@ -195,7 +195,9 @@ Shell in this repository, including inline `run:` blocks in workflows, uses
   bodies, or files.
 - One logical change per commit; a subject line in the imperative under about 70
   characters, and a body explaining why when the reason is not obvious from the diff.
-- Branch names describe the change, not the tool that made it.
+- Branch names describe the change, not the tool that made it, following the
+  `<type>/<short-kebab-description>` convention [`CONTRIBUTING.md`](CONTRIBUTING.md#naming-a-branch)
+  documents.
 - `ci` and `security` both have to be green before merge.
 
 ## Security considerations

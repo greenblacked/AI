@@ -84,6 +84,40 @@ Releases are git tags, cut by the maintainer in two steps documented in
 `## [Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md) rather than to a version section,
 since the version and its date are only decided at release time.
 
+## Naming a branch
+
+Branch from `main` as `<type>/<short-kebab-description>`: lowercase, hyphen-separated
+words after the slash, no further slashes, and a description of the change rather than
+of who or what made it. `scripts/check_attribution.py` enforces the shape below on every
+pull request, so a branch that does not match fails the `attribution` job with a message
+pointing back here.
+
+| Prefix | Use for | Example |
+| --- | --- | --- |
+| `feat/` | New capability: a skill, subagent, command, script feature | `feat/subagent-handoff-lines` |
+| `fix/` | A bug or a wrong statement | `fix/dead-gcp-snapshot-link` |
+| `chore/` | Pins, tooling, housekeeping | `chore/project-hygiene` |
+| `docs/` | Documentation only | `docs/code-of-conduct` |
+| `ci/` | Workflow changes | `ci/dependabot-auto-merge-and-attribution` |
+| `test/` | Tests only | reserved; this repository has not needed it yet, because a test change here has so far always ridden along with the code it covers |
+
+`feat/` is the Conventional Commits spelling, not an abbreviation such as `fb/` — one
+word should mean one thing, rather than every contributor picking their own shortening.
+
+- Lowercase kebab-case after the slash, `[a-z0-9]+(-[a-z0-9]+)*`, with no further
+  slashes — a nested path reads as a namespace this repository does not have, and the
+  check has to parse one shape rather than guess at several.
+- Describe the change, not the person or the tool — a branch outlives whoever pushed it,
+  and the next reader needs to know what it does, not who did it.
+- Never a tool or vendor prefix (`claude/`, `codex/`, `copilot/`, `ai/`, `bot/`) — that is
+  what `AGENTS.md` means by a branch named for the tool rather than the change, and
+  `check_attribution.py` rejects it with its own message.
+- Keep it to around five words — it appears in every CI log line, in the pull request
+  header, and in `git branch -r` for everyone who fetches, and a long one crowds all
+  three.
+- `dependabot/...` is the one exception to the `<type>/` shape, since Dependabot owns
+  that namespace and writes its own branch names.
+
 ## Commits
 
 One logical change per commit, imperative subject line, and a body that explains why when
