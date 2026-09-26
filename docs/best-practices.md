@@ -1,0 +1,108 @@
+# Best practices: CI, security, and branching and merging
+
+This page is for anyone deciding what to change next in this repository's engineering
+process — the maintainer, and any agent asked to propose the next hardening step. It
+lists the practice, why it matters, how (or whether) this repository applies it today,
+and a status.
+
+Status is judged against what is actually in the tree or documented as configured on
+GitHub — or, where noted, verified against the GitHub API at the time of writing — not
+against intent: **Adopted** means a file or check enforces it today, **Partial** means
+it holds in practice but nothing gates or fully covers it, and **Not yet adopted** means
+nothing here does it. One change is in progress elsewhere at the time of writing — a CI
+naming lint for branches, commits and file names — and is marked as being added rather
+than as already running.
+
+## CI
+
+| Practice | Why it matters | How this repository applies it | Status |
+| --- | --- | --- | --- |
+| One aggregate required check per workflow | A matrix job's check name carries its parameters (`test (3.13)`); requiring it directly breaks the day the matrix changes. A fixed-name aggregate does not. | `ci` and `security` in [`docs/ci.md`](ci.md#why-the-aggregator-jobs-exist), enforced by `scripts/check_workflows.py` | Adopted |
+| Every job the aggregate needs is actually named in `needs:` | A job left out of the aggregate can go red while the required check still reports success. | `scripts/check_workflows.py`, part of `make catalogue`, checks the aggregate names every job in its own workflow | Adopted |
+| Fast lint before slow tests | A style or spelling failure that could be caught in seconds should not wait behind a multi-version test matrix. | Lint jobs (`spelling`, `lint-markdown`, `lint-yaml`, `lint-actions`, `links`) run in parallel with `test`, not serialised after it, in [`ci.yml`](../.github/workflows/ci.yml) | Partial — parallel rather than gated first, so a lint failure does not shorten the run |
+| A matrix only where it proves something | A matrix that does not change behaviour between legs costs runner time for no information. | `test` runs Python 3.10–3.13 because the validator promises to run on a bare interpreter across that range ([`docs/ci.md`](ci.md#githubworkflowsciyml--ci)); nothing else here is matrixed | Adopted |
+| Timeouts on every job | Without one, a hung job runs to the six-hour platform default and holds a runner the whole time. | `permissions-audit` in `security.yml` fails the `security` gate for any job missing `timeout-minutes` ([`docs/ci.md`](ci.md#the-security-jobs-in-detail)) | Adopted |
+| Concurrency cancelling superseded runs | Rerunning a stale check for a PR that has already moved on wastes runner time and can report on code nobody will merge. | [`docs/ci.md`](ci.md#execution-flow)'s table: a newer PR run supersedes the older one; `release.yml` groups by tag with `cancel-in-progress: false`, deliberately, since a release must not be cancelled mid-publish | Adopted |
+| Caching, and never on release triggers | Restoring a cache seeded by an earlier, less trusted run onto a job about to publish with write access is how a cache becomes a supply-chain hole. | The five PyPI-installing jobs and `validate-plugin` cache; `release.yml` explicitly does not, citing zizmor's cache-poisoning audit ([`docs/ci.md`](ci.md#githubworkflowsreleaseyml--release)) | Adopted |
+| Pinned tool versions with a digest | An unpinned or tag-pinned tool changes underneath the build; a green run stops meaning anything about the code. | Every downloaded binary (actionlint, gitleaks) is fetched at a pinned version and checked against a recorded SHA-256 before running ([`docs/ci.md`](ci.md#pinning-timeouts-and-checkout-conventions)) | Adopted |
+| The same commands locally as in CI | A gate a contributor cannot reproduce is a gate they learn to ignore until CI disagrees with them. | `make validate` and `make catalogue` are exactly what their jobs run, down to the flags. `make test` reproduces the plain-pytest legs (3.10–3.12); the 3.13 leg additionally enforces the coverage floor, which `make coverage` reproduces rather than `make test` alone ([`AGENTS.md`](../AGENTS.md#testing-instructions)) | Adopted |
+| Coverage floors | A floor that only ever rises catches a script sliding back to untested without demanding coverage for its own sake. | `test (3.13)` measures coverage and enforces the floor in [`pyproject.toml`](../pyproject.toml) | Adopted |
+| Docs that list every job | A job with no row in the docs is a red check someone has to reverse-engineer out of YAML. | `scripts/check_ci_docs.py`, part of `make catalogue`, checks [`docs/ci.md`](ci.md) against the jobs each workflow actually defines | Adopted |
+| Scheduled runs for drift | Some facts (an upstream pin falling behind, an external link rotting) only change with the passage of time, not with a commit here. | [`scheduled.yml`](../.github/workflows/scheduled.yml) runs `external-links` and `pin-freshness` weekly | Adopted |
+| Model-dependent evals kept out of the merge gate | A required check that is occasionally wrong on sampling noise is a check people learn to override. | [`evals.yml`](../.github/workflows/evals.yml) has no aggregate and requires nothing; its PR job reports a floor under the scoring bar for exactly this reason ([`docs/ci.md`](ci.md#githubworkflowsevalsyml--trigger-evals)) | Partial — the design keeps it out of the gate, but the credential that would let it score anything is absent, so it currently scores nothing ([`docs/ci.md`](ci.md#the-eval-credential)) |
+| Flaky-test policy: never skip, root-cause | A skipped flaky test is a gap in coverage wearing a green checkmark. | No documented policy or precedent exists yet — the test suite has not produced a flaky case to set one against | Not yet adopted |
+| Naming lint for branches, commits and file names | A convention enforced only by review is a convention that erodes; a gate catches it on the branch that breaks it. | Branch naming is already checked by `scripts/check_attribution.py` ([`CONTRIBUTING.md`](../CONTRIBUTING.md#naming-a-branch)); a broader naming lint covering commits and file names, plus ruff's pep8-naming rules, is being added separately | Partial — branch names are covered today; the wider lint is being added |
+
+## Security
+
+| Practice | Why it matters | How this repository applies it | Status |
+| --- | --- | --- | --- |
+| Top-level `permissions: {}` | An absent `permissions:` block inherits the repository default, which is usually write access to everything. | Every workflow sets an empty top-level block; `permissions-audit`'s shell check in `security.yml` rejects a missing block or one that is `write-all`, `read-all`, or grants `write` on any scope ([`AGENTS.md`](../AGENTS.md#security-considerations)) | Adopted |
+| Least privilege per job | The top-level block being empty says nothing about whether an individual job then asks for more than it uses. | Each job's own `permissions:` is set by hand to what it needs; `permissions-audit`'s shell check inspects only the top-level block, not per-job grants, so a job that over-asks is not caught there. zizmor's `excessive-permissions` audit does flag over-broad grants at both workflow and job level, and a workflow-level grant that jobs then inherit — but it does not compare a job's grant against what its own steps actually use; its own docs point to `GitHubSecurityLab/actions-permissions` for that | Partial |
+| Actions pinned to full SHAs with exact version comments | A tag is mutable; a SHA is not. The comment is what lets Dependabot bump a SHA it cannot otherwise identify. | `permissions-audit` rejects any ref that is not forty hex characters; zizmor's `ref-version-mismatch` catches a stale comment ([`docs/ci.md`](ci.md#pinning-timeouts-and-checkout-conventions)) | Adopted |
+| `persist-credentials: false` | The default leaves the job's token in `.git/config`, readable and pushable by any later step. | `permissions-audit` rejects any `actions/checkout` that omits it, including one with no `with:` block at all | Adopted |
+| No `${{ }}` interpolation in `run:` blocks | Interpolating untrusted input directly into a shell command is template injection into CI. | Every workflow passes such values through an `env:` block instead; zizmor's template-injection audit is one of the checks `workflows` runs | Adopted |
+| `pull_request_target` avoided | Combined with a checkout of untrusted code, it runs with base-branch secrets against a fork's content. | `dependabot-auto-merge.yml` uses plain `pull_request` and says why in its own header comment | Adopted |
+| Secret scanning over history | A secret committed and later removed is still leaked — the object remains reachable. | `secrets` job runs `gitleaks dir .` and `gitleaks git .` with `fetch-depth: 0` ([`docs/ci.md`](ci.md#the-security-jobs-in-detail)) | Adopted |
+| SAST | Static analysis catches classes of bug review does not reliably. | CodeQL's `security-extended` suite over Python, plus ruff's flake8-bandit (`S`) rule set ([`docs/ci.md`](ci.md#the-security-jobs-in-detail)) | Adopted |
+| Workflow audit | CI configuration is itself an attack surface — a workflow can grant itself more than the job needs. | zizmor at `--min-severity=medium` in the `workflows` job | Adopted |
+| Dependency updates with bounded auto-merge | Routine bumps should not need a human, but a major version is a judgement call. | [`.github/dependabot.yml`](../.github/dependabot.yml) groups minor/patch actions updates weekly with a seven-day cooldown; [`dependabot-auto-merge.yml`](../.github/workflows/dependabot-auto-merge.yml) merges only patch/minor Dependabot PRs, and only once `ci` and `security` both report success | Adopted |
+| Signed commits | A signature ties a commit to a key, which is one more thing an attacker would need to forge alongside push access. | `git log --show-signature` reports a signature on recent `main` commits, but the key (`B5690EEEBB952194`) and committer are GitHub's own web-flow bot, not the maintainer's — that is what a squash merge through the web UI produces, not evidence the maintainer signs anything locally. Local `--show-signature` cannot verify it either way without GitHub's own public key. The branch ruleset documented in [`docs/ci.md`](ci.md#making-ci-authoritative) has no required-signatures rule | Not yet adopted |
+| CODEOWNERS | Routes review to the person who should see a given path change. | No `CODEOWNERS` file exists in the tree, and the documented ruleset sets `require_code_owner_review: false` | Not yet adopted |
+| Branch and tag rulesets | Encodes "PR required, no direct push, checks must be up to date" as a platform rule rather than a habit. | The ruleset in [`docs/ci.md`](ci.md#making-ci-authoritative) requires a pull request (0 approvals — this repository has one maintainer), strict `ci` and `security`, and blocks deletion and force-push on `main`; no separate tag ruleset is documented | Partial — branch ruleset documented and adopted; no tag ruleset |
+| Release provenance or attestations (SLSA) | Lets a consumer verify what built an artefact and from what source, rather than trusting the upload. | [`release.yml`](../.github/workflows/release.yml) builds and uploads `.skill` archives and a portable zip via `gh release`, with no signed provenance attestation attached (see the [SLSA build levels](https://raw.githubusercontent.com/slsa-framework/slsa/v1.2/docs/spec/v1.0/levels.md)) | Not yet adopted |
+| OIDC instead of long-lived secrets | Removes a standing credential that can leak; a cloud provider issues a short-lived token per run instead. | Nothing here deploys to a cloud provider that OIDC would authenticate to — the only secrets in use are `GITHUB_TOKEN` (already short-lived and scoped) and the eval workflow's model API keys, which are not something [GitHub's OIDC support](https://raw.githubusercontent.com/github/docs/main/content/actions/concepts/security/openid-connect.md) replaces | Not yet adopted (not currently applicable) |
+| A GitHub environment with required reviewers gating a release | Adds a human approval step between a tag existing and a release being published, regardless of what the workflow itself checks. | `release.yml` has no `environment:` key; nothing pauses it for review beyond its own automated checks (see [GitHub's environments doc](https://raw.githubusercontent.com/github/docs/main/content/actions/reference/workflows-and-actions/deployments-and-environments.md)) | Not yet adopted |
+| A SECURITY.md disclosure policy | A reporting route nobody can find is equivalent to not having one. | [`SECURITY.md`](../SECURITY.md) points to GitHub's private security advisory form | Adopted |
+| The licence notice travelling with artefacts | An extracted `.skill` archive or portable export should carry the licence it was distributed under, not rely on the source repository. | `scripts/package_skills.py` and `scripts/export_portable.py` both copy `LICENSE` and `NOTICE` into every artefact they build | Adopted |
+| No attribution (no tool or AI-assistant trailers in commits or PRs) | A commit's authorship should read as the person who wrote it; a trailer naming a tool misattributes it. | `scripts/check_attribution.py` runs as the `attribution` job on every pull request and rejects `Co-authored-by` trailers, assistant footers and session links ([`AGENTS.md`](../AGENTS.md#commit-and-pull-request-instructions)) | Adopted |
+| The OpenSSF Scorecard itself | An external, standardised score covering most of the rows above in one number, comparable across repositories (see the [Scorecard checks](https://raw.githubusercontent.com/ossf/scorecard/main/docs/checks.md)). | Not run against this repository, on demand or on a schedule | Not yet adopted |
+
+## Branching and merging
+
+| Practice | Why it matters | How this repository applies it | Status |
+| --- | --- | --- | --- |
+| Trunk-based development with short-lived branches from `main` | Long-lived branches accumulate drift and merge conflicts; short branches keep review small and `main` close to what is deployed. | Every change here is a branch from `main` merged back through a pull request; the changelog and release process assume a single trunk ([`CHANGELOG.md`](../CHANGELOG.md)) | Adopted |
+| `<type>/<kebab>` branch names | One shape for every branch means the attribution and naming checks only have to parse one thing, and a reader knows what a branch does without opening it. | [`CONTRIBUTING.md#naming-a-branch`](../CONTRIBUTING.md#naming-a-branch), enforced by `scripts/check_attribution.py` | Adopted |
+| Pull request required, no direct push to `main` | Puts every change through the checks that only run on a pull request, and gives it a place to be reviewed. | The ruleset's `pull_request` rule in [`docs/ci.md`](ci.md#making-ci-authoritative); `AGENTS.md`'s boundary against pushing to `main` directly | Adopted |
+| Required checks with strict "up to date" | Without strict mode, two individually green pull requests can still combine into a red `main`. | `strict_required_status_checks_policy: true` in the documented ruleset ([`docs/ci.md`](ci.md#making-ci-authoritative)) | Adopted |
+| Squash merge with the PR title as the subject | Keeps `main`'s history at one commit per change, with a subject a reader chose rather than one assembled from every fixup. | Merged commit subjects on `main` carry the PR number in the shape GitHub's default squash merge produces (for example, "Document and enforce the branch naming convention (#63)"), but the ruleset's `allowed_merge_methods` was left at GitHub's default of all three methods rather than restricted to squash ([`docs/ci.md`](ci.md#making-ci-authoritative)) | Partial |
+| Delete branches on merge | An unpruned branch list is dead weight in `git branch -r` and confusing to a contributor unsure whether it is still live. | The repository setting is enabled (`delete_branch_on_merge: true`), but nothing in this tree records that it is — it has no row yet in [`docs/ci.md`'s "Settings no file here can see"](ci.md#settings-no-file-here-can-see) table, the section that exists precisely to record a GitHub setting no file can otherwise see | Adopted |
+| Auto-merge only where checks gate it | Auto-merge without a gate behind it is just deferred direct-push. | `dependabot-auto-merge.yml` only calls `gh pr merge --auto` after confirming the update is patch or minor, and the merge itself still waits on `ci` and `security` | Adopted |
+| Releases as tags cut from `main` | Ties every published release to a reviewed, merged commit rather than to whatever a branch happened to contain. | [`docs/ci.md#releasing-a-version`](ci.md#releasing-a-version); `release.yml` refuses a tag whose commit is not an ancestor of `main` | Adopted |
+| Hygiene for stale branches | A pile of long-dead branches makes it harder to tell an abandoned attempt from a live one. | The naming rule is `branch_problem` in `scripts/check_attribution.py`; run `git ls-remote --heads origin` and check each name against it to see the current list rather than trust a count here, which goes stale on the next push. At the time of writing that turned up eight — `bump-stale-tool-pins`, `ci/bump-codeql-action-4.37.9`, `document-platform-settings`, `feature/delivery-agents`, `gate-workflow-structure`, `guard-checks-against-passing-blind`, `harden-ci-pins-and-gates` and `keep-the-install-advice-true` — all already-merged pull requests (#17 and #29–#34, and #41) left over from before delete-branch-on-merge was enabled, so deleting them loses nothing. No scheduled job or process prunes a branch left behind by a merge from before the setting was turned on | Not yet adopted |
+| Merging a stale head is prevented by an expected-head-SHA merge | Two different races, both worth closing: the PR's head moving after it was inspected, and `main` moving underneath it before the merge lands. | These are two separate controls. An expected-head-SHA merge (`gh pr merge --match-head-commit`, which maps to the GraphQL `mergePullRequest` mutation's `expectedHeadOid` input) guards the first — that the commit being merged is still the one that was reviewed and checked — and nothing here passes one to the merge API. Strict required-status-checks guards the second — that the branch is up to date with `main` before merging — and that part is in the documented ruleset ([`docs/ci.md`](ci.md#making-ci-authoritative)) | Partial — the base-moved race is covered by strict mode, the head-moved race is not |
+| A linear history | Makes `git log` and `git bisect` on `main` read as one line of changes rather than a lattice of merge commits. | Linear since #4 — two merge commits exist on `main`, from #1 and #4, before the repository settled on squash merges; the ruleset does not itself force linearity, since `allowed_merge_methods` was not restricted (see the row above) | Partial |
+| Review guidelines for pull requests | Names what a reviewer should look for so review does not depend on whoever happens to be doing it that day. | [`AGENTS.md`'s "Review guidelines"](../AGENTS.md#review-guidelines) points a reviewer — human, `reviewer`, or a managed code-review product — at what the automated gates cannot see; [`REVIEW.md`](../REVIEW.md) redefines severity for Claude Code's managed GitHub code review specifically | Adopted |
+
+## Next steps, in priority order
+
+1. **Restrict `allowed_merge_methods` to squash-only in the branch ruleset.** The
+   repository already merges this way in practice; the ruleset payload in
+   [`docs/ci.md`](ci.md#making-ci-authoritative) needs `"allowed_merge_methods": ["squash"]`
+   added explicitly, which also settles the linear-history and squash-merge rows above.
+2. **Document delete-branch-on-merge, then prune what predates it.** Add a row for
+   `delete_branch_on_merge` to [`docs/ci.md`'s "Settings no file here can see"](ci.md#settings-no-file-here-can-see)
+   table — the setting is already on but nothing records it, which is exactly the gap
+   that table exists to close. Then run `git ls-remote --heads origin` against
+   `branch_problem` in `scripts/check_attribution.py` to get the current list of
+   non-conforming branches — the eight named in the hygiene row above are what that
+   produced at the time of writing — and delete them; every one already merged, so
+   nothing is lost.
+3. **Fund the eval credential.** `evals.yml`'s scoring machinery — the harness, every
+   skill's eval set, and the docs describing what the numbers mean — has run against no
+   credential since it was built, per [`docs/ci.md`](ci.md#the-eval-credential); one
+   `CLAUDE_CODE_OAUTH_TOKEN` secret turns the evals row above from Partial to Adopted,
+   measured monthly and on every relevant pull request.
+4. **Add a `CODEOWNERS` file, even a one-line one.** With a single maintainer it cannot
+   route review to a second person yet, but it is the file a second maintainer's review
+   requirement would attach to, and its absence is otherwise silent.
+5. **Add a GitHub environment with required reviewers to gate `release.yml`.** The
+   workflow already bounds its `contents: write` grant three ways; an environment adds a
+   human checkpoint between a tag existing and a release being published, independent of
+   what the automated checks already covered.
+
+No step is listed for the OpenSSF Scorecard row: running it once would only restate
+practices already covered, row by row, above it. It is worth revisiting once enough of
+this list is Adopted that the Scorecard's own number becomes informative rather than a
+restatement of what this page already says.
