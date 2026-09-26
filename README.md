@@ -482,6 +482,7 @@ skill that fires on everything.
 - [Review lessons](docs/review-lessons.md) — defect classes review on this repository has actually caught, read after `AGENTS.md` by the build and verify loops
 - [AGENTS.md](docs/agents-md.md) — the standard, and how it relates to `CLAUDE.md`
 - [CI](docs/ci.md) — what each check means and how to make it required
+- [Best practices](docs/best-practices.md) — CI, security, and branching and merging: the practice, why it matters, how this repository applies it, and what is not yet adopted
 - [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Code of conduct](CODE_OF_CONDUCT.md)
 
 Repository conventions for agents live in [`AGENTS.md`](AGENTS.md).
