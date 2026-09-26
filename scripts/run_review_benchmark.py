@@ -56,7 +56,16 @@ VERDICT_RE = re.compile(
     # where it should pass. A following letter is the only thing that actually needs
     # to be excluded (to keep "SHIPPING" from reading as "SHIP"); a lookahead against
     # one, rather than `\b`, is what lets a closing `_`, `*` or backtick through.
-    r"^[ \t]*(?:[#>*_`-]+\s*)*Verdict:\s*(?:[*_`]+\s*)?(SHIP|FIX|STOP)(?![A-Za-z])",
+    #
+    # The leading decoration is one flat character class under a single `*`, not a
+    # repeated group each carrying its own `+` — `(?:[...]+\s*)*` nests an unbounded
+    # quantifier inside another, and a run of nothing but decoration characters (a
+    # long line of `#`, say) has exponentially many ways to split across the two
+    # repetitions, which is what CodeQL's py/redos flagged it for. A flat class has
+    # only one way to match a given run, so it stays linear regardless of input
+    # length; folding whitespace into the same class costs nothing here, since
+    # decoration and indentation never need to be told apart.
+    r"^[ \t#>*_\x60-]*Verdict:\s*(?:[*_`]+\s*)?(SHIP|FIX|STOP)(?![A-Za-z])",
     re.M,
 )
 

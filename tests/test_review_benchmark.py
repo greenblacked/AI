@@ -16,6 +16,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -811,6 +812,27 @@ def test_verdict_re_matches_every_decorated_form(report, verdict):
 )
 def test_verdict_re_does_not_match_prose_mentioning_the_word(report):
     assert benchmark.VERDICT_RE.search(report) is None
+
+
+@pytest.mark.parametrize(
+    "report",
+    [
+        "#" * 50000 + "x",
+        "> " * 20000 + "Verdict",
+    ],
+)
+def test_verdict_re_stays_linear_on_a_long_run_of_decoration(report):
+    # CodeQL's py/redos flagged an earlier version of VERDICT_RE: a repeated group
+    # each carrying its own unbounded quantifier (`(?:[...]+\s*)*`) has exponentially
+    # many ways to split a long run of decoration characters across the two
+    # quantifiers. Neither input here reaches "Verdict:" cleanly (the first has no
+    # colon at all; the second never gets to the literal word inside the class), so
+    # both are expected to return None — the regression is a hang, not a false match.
+    start = time.monotonic()
+    match = benchmark.VERDICT_RE.search(report)
+    elapsed = time.monotonic() - start
+    assert match is None
+    assert elapsed < 1.0, f"took {elapsed:.3f}s, should be linear in the input length"
 
 
 # --- capturing what the model said on a "no verdict" outcome -------------------------
