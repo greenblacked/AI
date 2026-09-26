@@ -12,6 +12,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   merging practices: what each one is, why it matters, how this repository applies it
   today with a link to the file that proves it, and an honest not-yet-adopted where it
   does not.
+- Added a `naming` CI job and `make naming`, checking branch names, commit subjects and
+  the pull request title against the conventions `CONTRIBUTING.md` documents, plus
+  every tracked skill, agent, command, reference, eval, script and doc file name
+  against the convention for its category. Code identifiers are covered separately by
+  ruff's `pep8-naming` rules, already running in the security lint job.
 
 ## [1.0.0] - 2026-09-24
 

@@ -11,7 +11,6 @@ from __future__ import annotations
 import os
 import re
 import subprocess
-from pathlib import Path
 
 import pytest
 
@@ -264,50 +263,20 @@ def test_a_dependabot_branch_passes_the_whole_check(repo, capsys):
     assert attribution.check(repo, "base..HEAD", branch="dependabot/pip/foo-1.2.3") == 0
 
 
-# --- the `<type>/<short-kebab-description>` shape ----------------------------------
+# --- what branch_problem here does not judge ----------------------------------------
+#
+# The `<type>/<short-kebab-description>` shape moved to `scripts/check_naming.py` along
+# with its own `branch_problem`, `_BRANCH_TYPES` and the CONTRIBUTING-table-equals-
+# constant test — see `tests/test_naming.py`. This one only ever returns the tool-prefix
+# message or None, which the next test shows directly.
 
 
-@pytest.mark.parametrize(
-    "branch",
-    [
-        "feat/subagent-handoff-lines",
-        "fix/dead-gcp-snapshot-link",
-        "chore/project-hygiene",
-        "docs/code-of-conduct",
-        "ci/dependabot-auto-merge-and-attribution",
-        "test/attribution-branch-shape",
-    ],
-)
-def test_each_allowed_prefix_passes(branch):
-    assert attribution.branch_problem(branch) is None
-
-
-@pytest.mark.parametrize(
-    "branch",
-    [
-        "feat/Add-Thing",  # uppercase
-        "feat/add_thing",  # underscore
-        "feat/add/thing",  # nested slash
-        "feat/",  # empty description
-    ],
-)
-def test_a_malformed_description_fails(branch):
-    problem = attribution.branch_problem(branch)
-    assert problem is not None
-    assert "CONTRIBUTING.md#naming-a-branch" in problem
-
-
-def test_a_missing_prefix_fails():
-    problem = attribution.branch_problem("add-a-thing")
-    assert problem is not None
-    assert "CONTRIBUTING.md#naming-a-branch" in problem
-
-
-def test_a_tool_prefix_still_produces_its_own_message_not_the_shape_one():
-    problem = attribution.branch_problem(f"{CLAUDE}/fix-thing")
-    assert problem is not None
-    assert "tool-named prefix" in problem
-    assert "CONTRIBUTING.md" not in problem
+def test_an_ordinary_type_shaped_branch_passes_here_regardless_of_shape():
+    # Not attribution's concern either way: a branch this check has never rejected for
+    # shape, and one check_naming.py *would* reject, both pass branch_problem here,
+    # because this function only looks for a tool-named prefix.
+    assert attribution.branch_problem("ci/dependabot-auto-merge-and-attribution") is None
+    assert attribution.branch_problem("add-a-thing-with-no-type-prefix") is None
 
 
 def test_main_passes():
@@ -316,18 +285,6 @@ def test_main_passes():
 
 def test_a_detached_head_passes():
     assert attribution.branch_problem("HEAD") is None
-
-
-def test_contributing_lists_exactly_the_allowed_prefixes():
-    contributing = (Path(__file__).resolve().parent.parent / "CONTRIBUTING.md").read_text(
-        encoding="utf-8"
-    )
-    table = contributing.split("## Naming a branch", 1)[1].split("## Commits", 1)[0]
-    # Relies on each row's first cell being written as a backticked `<prefix>/` —
-    # `CONTRIBUTING.md`'s table — so a row that drops the backticks or the slash
-    # would silently fall out of `documented` rather than fail loudly.
-    documented = set(re.findall(r"^\| `([a-z]+)/`", table, re.MULTILINE))
-    assert documented == set(attribution._BRANCH_TYPES)
 
 
 def test_the_dependabot_branch_allowance_holds_even_if_prefixes_widen(monkeypatch):

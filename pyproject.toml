@@ -42,8 +42,10 @@ target-version = "py310"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
-# "S" is flake8-bandit: the security rules CI relies on in the python job.
-select = ["E", "F", "I", "UP", "B", "SIM", "S"]
+# "S" is flake8-bandit: the security rules CI relies on in the python job. "N" is
+# pep8-naming, part of the naming lint alongside scripts/check_naming.py — the file,
+# branch and commit conventions live there because pep8-naming only ever sees Python.
+select = ["E", "F", "I", "UP", "B", "SIM", "S", "N"]
 
 [tool.ruff.lint.isort]
 # The test modules import their shared helpers as `tests.conftest`.

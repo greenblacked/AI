@@ -16,7 +16,7 @@ RUFF_PIN := $(shell sed -En "s/^ *RUFF_VERSION: *[\"']?([^\"' #]+)[\"']?.*/\1/p"
 MARKDOWNLINT_PIN := 0.23.2
 CODESPELL_PIN := $(shell sed -En "s/^ *CODESPELL_VERSION: *[\"']?([^\"' #]+)[\"']?.*/\1/p" .github/workflows/ci.yml)
 
-.PHONY: help validate catalogue providers test coverage lint package attribution portable install clean release-prepare release
+.PHONY: help validate catalogue providers test coverage lint package attribution naming portable install clean release-prepare release
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-17s\033[0m %s\n", $$1, $$2}'
@@ -68,6 +68,9 @@ package: ## Build a .skill archive for every skill into dist/
 
 attribution: ## Check commits since origin/main, the branch name and PR text for tool attribution
 	@GITHUB_HEAD_REF="$$(git rev-parse --abbrev-ref HEAD)" $(PYTHON) scripts/check_attribution.py . --range origin/main..HEAD
+
+naming: ## Check tracked file names, the branch name, commit subjects and PR title for naming convention
+	@GITHUB_HEAD_REF="$$(git rev-parse --abbrev-ref HEAD)" $(PYTHON) scripts/check_naming.py . --range origin/main..HEAD
 
 portable: ## Flatten every skill into dist/portable for ChatGPT, Grok and other assistants
 	@PYTHONPATH=src $(PYTHON) scripts/export_portable.py .
