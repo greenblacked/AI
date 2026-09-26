@@ -932,17 +932,21 @@ def test_verdict_re_does_not_match_prose_mentioning_the_word(report):
 @pytest.mark.parametrize(
     "report",
     [
+        "#" * 30 + "x",
+        "-" * 30 + "x",
         "#" * 50000 + "x",
-        "> " * 20000 + "Verdict",
     ],
 )
 def test_verdict_re_stays_linear_on_a_long_run_of_decoration(report):
     # CodeQL's py/redos flagged an earlier version of VERDICT_RE: a repeated group
     # each carrying its own unbounded quantifier (`(?:[...]+\s*)*`) has exponentially
-    # many ways to split a long run of decoration characters across the two
-    # quantifiers. Neither input here reaches "Verdict:" cleanly (the first has no
-    # colon at all; the second never gets to the literal word inside the class), so
-    # both are expected to return None — the regression is a hang, not a false match.
+    # many ways to split a run of decoration characters across the two quantifiers.
+    # None of these inputs reaches "Verdict:" cleanly, so all are expected to return
+    # None — the regression is a hang, not a false match. The two short inputs are
+    # the ones that actually exercise the exponential blowup on the old pattern
+    # (seconds, not milliseconds, at only 30-odd characters); the 50,000-character
+    # input returns quickly even on the old pattern, so on its own it would not have
+    # caught the regression at all.
     start = time.monotonic()
     match = benchmark.VERDICT_RE.search(report)
     elapsed = time.monotonic() - start
