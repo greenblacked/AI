@@ -20,8 +20,8 @@ states what to skip, as short as it can be — length here dilutes it.
 - a secret;
 - tool attribution in a commit, PR body or file.
 
-A violation of `AGENTS.md`'s or `CLAUDE.md`'s Boundaries is always 🔴 Important, even
-where it would otherwise read as a nit.
+A violation of `AGENTS.md`'s Boundaries is always 🔴 Important, even where it would
+otherwise read as a nit.
 
 🟡 Nit (not blocking) is everything else worth a comment. Cap nits at about five per
 review; past that, name the pattern once and stop repeating it.
@@ -30,5 +30,6 @@ review; past that, name the pattern once and stop repeating it.
 
 ## Skip
 
-Do not flag: generated or built output (`dist/`); fixtures under `tests/` recorded
-deliberately wrong to exercise a rule; and style a linter already owns.
+Do not flag: generated or built output (`dist/`); a deliberately invalid skill,
+workflow or file that a test constructs to exercise a rule; and style a linter already
+owns.

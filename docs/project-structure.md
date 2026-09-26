@@ -134,6 +134,13 @@ instead.
 
 ## Not discovered at all
 
+**`REVIEW.md`.** Not read by a local Claude Code session at all — it is review-only
+instructions for Claude Code's managed GitHub code review, which reads it from the
+repository root the way it reads `CLAUDE.md` as project context. The local
+`/code-review` command reads `CLAUDE.md` but not this file, so [Review
+guidelines](../AGENTS.md#review-guidelines) and [`REVIEW.md`](../REVIEW.md) cover what
+each tool actually reads.
+
 **`.claude/hooks/*.sh`.** Nothing scans this directory. Hooks are configured in a
 settings file, as a `hooks` block naming an event, a matcher and a command:
 
