@@ -8,6 +8,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Changed
+
+- Define the GitHub pull request review thread lifecycle for findings, replies and resolution.
+
 ## [1.0.0] - 2026-09-24
 
 First tagged release. The catalogue at this tag:
