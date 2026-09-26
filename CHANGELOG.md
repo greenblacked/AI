@@ -8,6 +8,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+- Added `docs/best-practices.md`, a status page for CI, security, and branching and
+  merging practices: what each one is, why it matters, how this repository applies it
+  today with a link to the file that proves it, and an honest not-yet-adopted where it
+  does not.
+
 ## [1.0.0] - 2026-09-24
 
 First tagged release. The catalogue at this tag:
