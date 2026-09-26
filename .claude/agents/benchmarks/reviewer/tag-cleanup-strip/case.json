@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the tag invocation in scripts/release.py by dropping a flag that duplicates git's default behaviour, so the command reads more plainly.",
+  "lesson": "A tag's message drops its own subheadings",
+  "must_mention": [
+    "release\\.py",
+    "cleanup(=|\\s*=?\\s*)verbatim",
+    "cleanup|verbatim|strip"
+  ]
+}

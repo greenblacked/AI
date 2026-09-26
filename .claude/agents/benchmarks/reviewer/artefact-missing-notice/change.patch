@@ -1,0 +1,13 @@
+diff --git a/scripts/export_portable.py b/scripts/export_portable.py
+index b7b83f6..79208d0 100644
+--- a/scripts/export_portable.py
++++ b/scripts/export_portable.py
+@@ -508,8 +508,6 @@ def export(root: Path, out: Path, check: bool = False) -> int:
+     (out / "plugins").mkdir(parents=True)
+     (out / "README.md").write_text(HOW_TO_USE, encoding="utf-8")
+     (out / EXPORT_SENTINEL).write_text(SENTINEL_TEXT, encoding="utf-8")
+-    for name in ("LICENSE", "NOTICE"):
+-        shutil.copy(root / name, out / name)
+ 
+     index = ["# Skill index", "", f"{total} procedures across {len(rendered)} groups.", ""]
+     for plugin in sorted(rendered):

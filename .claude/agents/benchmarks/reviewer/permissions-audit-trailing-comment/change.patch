@@ -1,0 +1,12 @@
+diff --git a/.github/workflows/security.yml b/.github/workflows/security.yml
+index 8afb8ad..e8fd044 100644
+--- a/.github/workflows/security.yml
++++ b/.github/workflows/security.yml
+@@ -181,7 +181,6 @@ jobs:
+               continue
+             fi
+             value=$(sed -n "${line_no}s/^permissions:[[:space:]]*//p" "$file")
+-            value=$(printf '%s\n' "$value" | sed -E 's/[[:space:]]*#.*$//')
+             # Quotes stripped before every comparison below, so `write`, `"write"` and
+             # 'write' are judged the same way whether they sit in a flow map or a block.
+             normalised=$(printf '%s\n' "$value" | sed -E 's/["'"'"']//g')

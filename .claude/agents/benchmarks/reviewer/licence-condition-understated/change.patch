@@ -1,0 +1,17 @@
+diff --git a/README.md b/README.md
+index 396e847..6df5d4b 100644
+--- a/README.md
++++ b/README.md
+@@ -488,10 +488,8 @@ Repository conventions for agents live in [`AGENTS.md`](AGENTS.md).
+ 
+ ## Licence
+ 
+-[MIT](LICENSE). Use it, copy it, change it, ship it inside something you sell — the
+-condition, in MIT's own words, is that the copyright notice and the permission notice
+-(the full licence text) are included in all copies or substantial portions of the
+-software, not merely that the notice travels with it. The notice names **Serhii
++[MIT](LICENSE). Use it, copy it, change it, ship it inside something you sell — the one
++condition is that the copyright notice travels with any copy. The notice names **Serhii
+ Zolotov**, the username **greenblacked**, and links to this repository, so any copy,
+ fork or derivative has to say where it came from:
+ 

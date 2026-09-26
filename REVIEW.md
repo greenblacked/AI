@@ -31,5 +31,6 @@ review; past that, name the pattern once and stop repeating it.
 ## Skip
 
 Do not flag: generated or built output (`dist/`); a deliberately invalid skill,
-workflow or file that a test constructs to exercise a rule; and style a linter already
-owns.
+workflow or file that a test constructs to exercise a rule; a case under
+`.claude/agents/benchmarks/` — its `change.patch` is a deliberately defective patch fed
+to `reviewer`, not a change to review on its own terms; and style a linter already owns.
