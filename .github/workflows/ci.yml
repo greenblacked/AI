@@ -419,6 +419,42 @@ jobs:
           PYTHONPATH=src python scripts/check_attribution.py . \
             --range "origin/${GITHUB_BASE_REF}..HEAD"
 
+  naming:
+    name: naming
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          # `check_naming.py` reads a commit range against the base branch on a pull
+          # request, which needs its history, not just the pull request's own commits.
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.13'
+      - name: Check tracked file names, and on a pull request the branch, commits and title
+        # Every tracked file's name is checked on every event `ci` runs for. The branch,
+        # commit subjects and pull request title need a base ref and pull-request text to
+        # mean anything, so only a pull request passes `--range`; a push to main or a
+        # merge-group run checks file names alone, the same reduced scope `attribution`
+        # gives those events and for the same reason. PR_TITLE carries pull-request-
+        # controlled text, so it goes through `env:` rather than into the script inline,
+        # the same as every other job here that touches something a contributor wrote.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -Eeuo pipefail
+          if [ "${EVENT_NAME}" = "pull_request" ]; then
+            PYTHONPATH=src python scripts/check_naming.py . \
+              --range "origin/${GITHUB_BASE_REF}..HEAD"
+          else
+            PYTHONPATH=src python scripts/check_naming.py .
+          fi
+
   package:
     name: package
     needs:
@@ -488,6 +524,7 @@ jobs:
       - lint-actions
       - links
       - attribution
+      - naming
       - package
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -504,4 +541,4 @@ jobs:
           set -Eeuo pipefail
           python3 scripts/check_job_results.py \
             validate-skills validate-plugin test catalogue spelling \
-            lint-markdown lint-yaml lint-actions links attribution package
+            lint-markdown lint-yaml lint-actions links attribution naming package

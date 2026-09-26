@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Make docs/ci.md's line about validate-plugin's warnings more concrete now that there are eight plugins.",
+  "lesson": "A count in prose goes stale",
+  "must_mention": [
+    "ci\\.md",
+    "eight warnings|one warning per plugin",
+    "stale|drift|plugin count"
+  ]
+}

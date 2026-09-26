@@ -98,14 +98,16 @@ overview, the repository layout as a table, setup and testing commands, how to a
 skill, code style, commit and pull-request rules, security considerations, an explicit
 boundaries section, and a closing review checklist.
 
-[`CLAUDE.md`](../CLAUDE.md) is the `@AGENTS.md` import plus four notes that are only
+[`CLAUDE.md`](../CLAUDE.md) is the `@AGENTS.md` import plus five notes that are only
 true of Claude Code: that the subagents under `plugins/*/agents/` are the intended way to
 do heavy reading here, that `/ship` runs the three-stage loop in `.claude/agents/` over a
 change to this repository, that plan mode is wanted for anything touching
 `src/skillcheck/` or `.github/workflows/`, since those two decide whether every other
-change is allowed to merge, and which Claude model each agent in `.claude/agents/` runs
+change is allowed to merge, which Claude model each agent in `.claude/agents/` runs
 on, since the model names in `AGENTS.md` belong to Codex and ChatGPT and mean nothing to
-Claude Code.
+Claude Code, and where review guidance lives — `AGENTS.md`'s Review guidelines and, for
+the managed GitHub code review, `REVIEW.md` — since the local `/code-review` command
+reads `CLAUDE.md` but not `REVIEW.md`.
 
 The import, rather than a symlink, because a symlink needs Administrator or Developer
 Mode on Windows and this repository is public.

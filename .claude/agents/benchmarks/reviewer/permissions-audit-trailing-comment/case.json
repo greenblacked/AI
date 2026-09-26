@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the permissions-audit step in .github/workflows/security.yml by dropping a redundant sed pass over the permissions value.",
+  "lesson": "A shell audit parses YAML with grep, sed or awk",
+  "must_mention": [
+    "security\\.yml",
+    "trailing comment",
+    "write-all|over-broad permissions|evad|bypass"
+  ]
+}

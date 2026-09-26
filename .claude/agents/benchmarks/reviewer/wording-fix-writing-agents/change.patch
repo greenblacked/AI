@@ -1,0 +1,15 @@
+diff --git a/docs/writing-agents.md b/docs/writing-agents.md
+index d85ed02..26d31b8 100644
+--- a/docs/writing-agents.md
++++ b/docs/writing-agents.md
+@@ -109,8 +109,8 @@ failing step with the decisive log lines" is.
+ 
+ ## Restricting tools
+ 
+-Grant the minimum. Work out what the subagent must read, must search, and must execute,
+-and grant exactly those.
++Grant the minimum. Work out what the subagent must read, search and execute, and grant
++exactly those.
+ 
+ - A reviewer or analyst gets `Read`, `Glob`, `Grep`, and `Bash` only if it needs to run a
+   checker. No `Write`, no `Edit`.

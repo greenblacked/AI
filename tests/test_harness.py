@@ -271,19 +271,19 @@ def test_an_echoed_label_still_scores_as_fired(fake_claude):
 
 def test_a_failing_cli_raises_rather_than_scoring(fake_claude):
     fake_claude(mode="fail")
-    with pytest.raises(harness.ToolFailure, match="exited 1"):
+    with pytest.raises(harness.ToolFailureError, match="exited 1"):
         harness.ask("x", CLAUDE, 30)
 
 
 def test_an_empty_answer_raises_rather_than_scoring(fake_claude):
     fake_claude(mode="empty")
-    with pytest.raises(harness.ToolFailure, match="returned nothing"):
+    with pytest.raises(harness.ToolFailureError, match="returned nothing"):
         harness.ask("x", CLAUDE, 30)
 
 
 def test_a_missing_cli_raises_rather_than_scoring(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", str(tmp_path))  # nothing on it
-    with pytest.raises(harness.ToolFailure, match="`claude` CLI is not on PATH"):
+    with pytest.raises(harness.ToolFailureError, match="`claude` CLI is not on PATH"):
         harness.ask("x", CLAUDE, 30)
 
 
@@ -366,7 +366,7 @@ def test_a_custom_command_runs_whatever_was_named(fake_cli, tmp_path, monkeypatc
 def test_a_failure_names_the_cli_that_failed(fake_cli):
     configure = fake_cli("codex")
     configure(mode="fail")
-    with pytest.raises(harness.ToolFailure, match="the `codex` CLI exited 1"):
+    with pytest.raises(harness.ToolFailureError, match="the `codex` CLI exited 1"):
         harness.ask("x", harness.build_command("codex", None, None), 30)
 
 
@@ -438,7 +438,7 @@ def test_a_tool_failure_aborts_with_scores_so_far_written(
     def flaky(target, entries, args):
         calls.append(target.name)
         if target.name == "beta":
-            raise harness.ToolFailure("simulated")
+            raise harness.ToolFailureError("simulated")
         return original(target, entries, args)
 
     monkeypatch.setattr(harness, "score", flaky)
@@ -527,7 +527,7 @@ def test_the_prompt_names_the_query_and_the_catalogue():
 
 def test_a_hanging_cli_raises_rather_than_scoring(fake_claude):
     fake_claude(mode="hang")
-    with pytest.raises(harness.ToolFailure, match="timed out after 1s"):
+    with pytest.raises(harness.ToolFailureError, match="timed out after 1s"):
         harness.ask("x", CLAUDE, 1)
 
 
@@ -582,7 +582,7 @@ def test_parallel_jobs_score_the_same_as_one(mini_repo, fake_claude):
 def test_a_client_that_never_names_an_entry_aborts_rather_than_scoring_zero(mini_repo, fake_claude):
     queries = [f"alpha positive {i}" for i in range(8)] + [f"alpha negative {i}" for i in range(8)]
     fake_claude({q: "Sure, here is my analysis of the request" for q in queries})
-    with pytest.raises(harness.ToolFailure, match="named a catalogue entry"):
+    with pytest.raises(harness.ToolFailureError, match="named a catalogue entry"):
         harness.score(_alpha(mini_repo), harness.catalogue(mini_repo), Args())
 
 

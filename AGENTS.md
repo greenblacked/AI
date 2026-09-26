@@ -40,7 +40,8 @@ change an already active session.
 | Path | What lives there |
 | --- | --- |
 | `AGENTS.md` | This file: the rules, in the form Codex and Gemini CLI read too |
-| `CLAUDE.md` | The `@AGENTS.md` import plus the four notes that are only true of Claude Code |
+| `CLAUDE.md` | The `@AGENTS.md` import plus the five notes that are only true of Claude Code |
+| `REVIEW.md` | Review-only instructions for Claude Code's managed GitHub code review: this repository's severity redefinition, skip rules and nit cap; points back to `AGENTS.md`'s Review guidelines for triggers and comment format rather than repeating them |
 | `.claude/rules/` | Path-scoped rules loaded when a file matching the glob is read; `docs/project-structure.md` explains when each fires |
 | `.claude/settings.json` | The `PostToolUse` hook registration, checked by `scripts/check_settings.py`; nothing else yet |
 | `plugins/coding/skills/` | Reading, reviewing, testing and changing code |
@@ -55,6 +56,7 @@ change an already active session.
 | `plugins/*/commands/` | Slash commands the plugin ships, validated on the same run |
 | `.claude/commands/` | Slash commands for working on this repository, not shipped to installers |
 | `.claude/agents/` | Two loops — `explorer`, `implementer`, `reviewer` to build; `investigator` and `reviewer` to verify — for working on this repository, validated on the same run |
+| `.claude/agents/benchmarks/` | Cases for `scripts/run_review_benchmark.py`: a `change.patch` seeding a known defect or an honest clean change, and a `case.json` naming what `reviewer` should say about it. Deliberately defective patches, not something to review as a change in its own right |
 | `src/skillcheck/` | The validator: `frontmatter.py` parses, `rules.py` decides, `cli.py` reports |
 | `tests/` | pytest over the validator, including a check that this repository validates clean |
 | `plugins/*/skills/*/evals/` | Trigger eval sets: the queries a skill should and should not fire on |
@@ -179,8 +181,9 @@ worse version of a skill whose description should have triggered.
 ## Code style
 
 Prose in skills is imperative and explains why a rule matters rather than shouting it —
-a capitalised ALWAYS or NEVER earns a warning for that reason. No emoji, no marketing, no
-exclamation marks. Be consistent with spelling inside a file.
+a capitalised ALWAYS or NEVER earns a warning for that reason. No emoji other than the
+three severity markers in Review guidelines, no marketing, no exclamation marks. Be
+consistent with spelling inside a file.
 
 Python follows `ruff` with the configuration in `pyproject.toml`; run `ruff format`
 before finishing. Comments explain why, not what.
@@ -257,6 +260,72 @@ blocking finding or a failing `ci` or `security` gate.
   `health-coach` were written by hand; new reference files match them rather than the
   other way round.
 - Do not push to `main` directly.
+
+## Review guidelines
+
+This section is tool-agnostic; where a given tool reads it, and what it reads instead,
+is `CLAUDE.md`'s business. It exists to point a reviewer — human, `reviewer`, or a
+managed code-review product — at what the automated gates cannot see, not to restate
+what they already enforce.
+
+**Before reviewing.** Read this file, then `docs/review-lessons.md` — the defect classes
+review here has already caught once. Do not re-report what CI already checks: `ci.yml`
+runs the validator, the catalogue checks, the test suite and coverage on every pull
+request; `security.yml` runs gitleaks, zizmor, ruff's flake8-bandit rules and CodeQL. A
+finding that only restates a failing gate wastes the comment; a finding about what a
+gate cannot see is the job.
+
+**Triggers.** What a change touches decides what extra review it gets, beyond the
+standard pass. Four of the rows below correspond to a `.claude/rules/` glob, named
+alongside them; the rest are extra triggers this section adds.
+
+| Path or change | Extra review required | Why |
+| --- | --- | --- |
+| `src/skillcheck/**` (`.claude/rules/validator.md`) | Line by line; plan mode first | Decides whether every other change is allowed to merge |
+| `.github/workflows/**` (`.claude/rules/workflows.md`) | Line by line, plan mode first, plus a security review (permissions, pinning, injection through `${{ }}`, secrets) | Same reason, and a workflow runs with real credentials |
+| `scripts/**` | A matching case in `tests/` and a check of the failure path | A script with no test is a claim, not a guarantee |
+| `SKILL.md` `description` (`.claude/rules/skills.md`) | The trigger eval and the listing budget; never edited only to make a check pass | The description decides whether the skill ever fires |
+| Agent frontmatter (`.claude/rules/agents.md`) | Routing against its paired skill, and its declared tier | A collision loses queries silently; the wrong tier is a cost nobody notices until it recurs |
+| `tests/**` | Whether a test was deleted or an assertion loosened rather than a case added | A weaker suite is a silent way to make a broken change look green |
+| `pyproject.toml` | The coverage floor and the codespell ignore list, each against a stated reason | Lowering either quietly turns a gate into a formality |
+| `listing-budget.json` | A raised ceiling carries a stated reason in the commit | A ceiling raised to pass a check rather than because content changed is the same defect as an edited description |
+| `.claude/settings.json`, `scripts/hooks/` | Read as code that runs on every write, not as configuration | A hook is not sandboxed the way a skill's prose is |
+| `LICENSE`, `NOTICE`, other legal text | Factual and legal accuracy against the primary source | A licence claim that is broader or narrower than the text itself is wrong in a way nobody re-derives later |
+| `release.yml`, or any change handling a token | A security review | Holds `contents: write`; a mistake there is a repository takeover path |
+| A new third-party action or tool | Pin to a commit SHA and a checked digest | An unpinned dependency is whatever its publisher moved it to this morning |
+| Personal data, or anything credential-shaped | A security review | The one class this repository refuses outright, in any form |
+
+**Security review.** Triggered by the workflow, token, action and credential-shaped rows
+above, and by anything else touching authentication, authorisation or a secret. Walk the
+classes in the order the `security-review` skill sets out, and check the change against
+`AGENTS.md`'s Security considerations above. Every finding states a reachable path, the
+impact if it merges, and the fix — never a class name alone and never exploit code.
+
+**Comments.**
+
+- One issue per comment, anchored at file:line.
+- State the problem, the concrete consequence if it merges, and the smallest fix. A
+  suggestion block is for a trivially correct one-line fix only.
+- A severity label on every comment, defined once here: 🔴 Important (blocks merge), 🟡
+  Nit (not blocking) and 🟣 Pre-existing (not introduced by this change, never blocking).
+  🔴 maps to `reviewer.md`'s FIX verdict, 🟡 and 🟣 map to SHIP. STOP has no marker of
+  its own: it is a decision for the main conversation to make, not a finding a comment
+  can carry.
+- No praise-only comments and no comments that restate the diff. Ask a question only
+  when intent genuinely cannot be read from the diff.
+- A summary comment leads with the verdict, not with a list of what was read.
+- The author resolves a thread by fixing it or by replying why not — a thread left open
+  with no reply is not resolved.
+- The same finding recurring across a review means the root cause is unfixed, not that
+  the finding is minor; fix the cause once rather than flagging each instance.
+- No tool attribution in review text, the same rule the commit instructions state for
+  commits.
+
+**What not to flag.** Generated or built output (`dist/`); a deliberately invalid skill,
+workflow or file that a test constructs to exercise a rule; a case under
+`.claude/agents/benchmarks/` — its `change.patch` is a deliberately defective patch the
+benchmark feeds to `reviewer`, not a change to review on its own terms; and style a
+linter already owns.
 
 ## Review checklist
 

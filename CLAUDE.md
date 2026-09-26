@@ -3,7 +3,7 @@
 ## Claude Code
 
 `AGENTS.md` above is the whole contract; this file exists because Claude Code reads
-`CLAUDE.md` rather than `AGENTS.md`, and an import keeps them from drifting apart. Four
+`CLAUDE.md` rather than `AGENTS.md`, and an import keeps them from drifting apart. Five
 Claude-specific notes:
 
 - The subagents under `plugins/*/agents/` are the intended way to do the heavy reading in this
@@ -23,3 +23,7 @@ Claude-specific notes:
   surveys and researches (`explorer`), the newest Opus implements and checks claims
   against sources (`implementer`, `investigator`), and Fable reviews (`reviewer`). When a
   model changes, change the agent's `model:` line and this sentence together.
+- Review guidance lives in `AGENTS.md`'s Review guidelines section and, for the managed
+  GitHub code review, in `REVIEW.md`. The local `/code-review` command reads `CLAUDE.md`
+  as project context but not `REVIEW.md`, so run it with `REVIEW.md`'s severity
+  redefinition and skip rules in mind rather than assuming it applies them for you.

@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Trim api-design's description to fit the listing ceiling, dropping one of its redundant quoted examples.",
+  "lesson": "Editing a description or raising a listing ceiling to make a check pass",
+  "must_mention": [
+    "api-design",
+    "description",
+    "trim|ceiling|listing.budget|edited"
+  ]
+}

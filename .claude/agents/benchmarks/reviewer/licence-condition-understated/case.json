@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the wording of the README's Licence section so it reads more plainly for someone skimming it.",
+  "lesson": "A legal or factual claim states more, or less, than the facts",
+  "must_mention": [
+    "README",
+    "licen[cs]e text|permission notice|full licen[cs]e",
+    "understat|narrow|more than.*copyright|not (only|merely) the copyright|drops? (the )?licen[cs]e text"
+  ]
+}
