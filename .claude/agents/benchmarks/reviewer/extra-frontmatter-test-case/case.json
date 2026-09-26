@@ -1,0 +1,4 @@
+{
+  "kind": "clean",
+  "intent": "Add a parametrised case to tests/test_frontmatter.py covering a bare sequence item at the top level of the frontmatter block, which the reader already rejects but had no direct test for."
+}

@@ -1,0 +1,12 @@
+diff --git a/tests/test_frontmatter.py b/tests/test_frontmatter.py
+index 3e5dbc7..c060db9 100644
+--- a/tests/test_frontmatter.py
++++ b/tests/test_frontmatter.py
+@@ -50,6 +50,7 @@ def test_ignores_comments_and_blank_lines():
+         # a block that is flat. The real rule is that a value stays on one line.
+         ("---\n  name: demo\n---\n", "one line"),
+         ("---\nnot a mapping line\n---\n", "cannot read"),
++        ("---\nname: demo\n- one\n---\n", "cannot read"),
+     ],
+ )
+ def test_rejects_malformed_blocks(text, fragment):

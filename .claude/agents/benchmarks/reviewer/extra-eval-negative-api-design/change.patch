@@ -1,0 +1,12 @@
+diff --git a/plugins/coding/skills/api-design/evals/trigger-eval.json b/plugins/coding/skills/api-design/evals/trigger-eval.json
+index f4bdc2d..e423cf5 100644
+--- a/plugins/coding/skills/api-design/evals/trigger-eval.json
++++ b/plugins/coding/skills/api-design/evals/trigger-eval.json
+@@ -18,5 +18,6 @@
+   {"query": "the api pods have been OOMKilled since the 10:15 deploy. what do i do right now", "should_trigger": false, "expected": "k8s-triage"},
+   {"query": "the contract test job fails intermittently in github actions, passes on re-run. flake?", "should_trigger": false, "expected": "ci-triage"},
+   {"query": "should we page someone when the api p99 goes over 800ms, or is that a ticket", "should_trigger": false, "expected": "alert-design"},
+-  {"query": "audit who still has admin scope on the production api keys and revoke what isn't used", "should_trigger": false, "expected": "access-review"}
++  {"query": "audit who still has admin scope on the production api keys and revoke what isn't used", "should_trigger": false, "expected": "access-review"},
++  {"query": "review this pull request diff for naming and error handling before I merge it, nothing about the interface shape", "should_trigger": false, "expected": "code-review"}
+ ]

@@ -135,6 +135,45 @@ for a read, is the strongest negative — "how should I approach triaging this" 
 Name that owner with `expected`, so the score distinguishes "did not fire" from "routed to
 the right place". See [trigger eval sets](writing-skills.md#trigger-eval-sets).
 
+## Measuring what an agent returns
+
+A trigger eval only answers whether a subagent gets chosen. It says nothing about what
+comes back once it runs: `reviewer` could be selected on every one of its positives and
+still wave through every seeded defect, or stall every honest change on an invented
+objection, and the routing score would show 100% either way. For a subagent whose whole
+job is judgement rather than a read — `reviewer` is the one this repository ships —
+routing is necessary and not sufficient, and something has to measure the verdict itself
+against a known answer.
+
+`scripts/run_review_benchmark.py` does that for `reviewer`. Cases live at
+`.claude/agents/benchmarks/reviewer/<case>/`: a `change.patch` — an uncommitted unified
+diff against today's tree — and a `case.json` naming the case `"defect"` or `"clean"`,
+the intent a caller would honestly pass, and, for a defect, which entry in
+[`docs/review-lessons.md`](review-lessons.md) it reproduces and the regexes its report
+has to mention. The harness applies each patch in an isolated `git worktree`, runs the
+real `reviewer` subagent through the `claude` CLI against it, and checks the verdict: a
+defect passes on `FIX` or `STOP` with every `must_mention` pattern present, a clean case
+passes on `SHIP`.
+
+Two rates come back. **Catch rate** is defects correctly flagged over defects seeded —
+low, and the lessons file's own defect classes stop being caught a second time. **False-
+alarm rate** is clean cases not shipped over clean cases run — high, and `reviewer`
+becomes a tax on every honest change rather than a gate on the dishonest ones, which is
+the failure mode that gets a reviewer disabled rather than trusted. The two trade off
+against each other in the obvious way, which is why both are reported rather than one
+score.
+
+Like the trigger harness, this needs a model and a credential and is not a `make`
+target — see [the trigger evals](ci.md#running-the-checks-locally) for the same reasoning.
+Run it directly, and budget for it: every case run is a real `reviewer` invocation, so a
+run over the full set costs real money, the same way a run of `run_trigger_eval.py`
+against the whole catalogue does.
+
+```bash
+python scripts/run_review_benchmark.py
+python scripts/run_review_benchmark.py --case stale-count-in-prose
+```
+
 ## Writing the description so delegation happens
 
 Same failure mode as skills: descriptions written for someone who already knows what the

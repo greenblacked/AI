@@ -1,0 +1,13 @@
+diff --git a/src/skillcheck/frontmatter.py b/src/skillcheck/frontmatter.py
+index 1e68c10..ade5853 100644
+--- a/src/skillcheck/frontmatter.py
++++ b/src/skillcheck/frontmatter.py
+@@ -250,8 +250,6 @@ def _reject_mapping_like_body(key: str, lines: list[str], first_line: int) -> No
+         stripped = line.strip()
+         if not stripped:
+             continue
+-        if key == "paths" and stripped.startswith("#"):
+-            continue
+         if key == "paths" and (stripped == "-" or stripped.startswith("- ")):
+             break
+         if stripped.startswith("#"):

@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Tidy up package_skills.py by moving the LICENSE/NOTICE presence check next to where those files are actually written into the archive.",
+  "lesson": "A script that fails midway leaves a valid-looking partial artefact",
+  "must_mention": [
+    "package_skills\\.py",
+    "ZipFile|zipfile",
+    "before|prior|ahead|partial|truncate(s|d)?"
+  ]
+}

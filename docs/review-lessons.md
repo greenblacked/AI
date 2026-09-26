@@ -26,6 +26,13 @@ memory afterwards. Four parts, in this order:
   this, so the entry doubles as a pointer to where the guarantee actually lives.
 - **Where it was first caught** — the pull request number.
 
+Add a case to [`scripts/run_review_benchmark.py`](../scripts/run_review_benchmark.py)'s
+benchmark alongside the entry, at
+`.claude/agents/benchmarks/reviewer/<case>/`: the smallest real patch that reproduces the
+defect against today's tree, and a `case.json` naming this entry's heading as its
+`lesson`. A lesson with no case is a class `reviewer` is asked to remember but nothing
+ever checks whether it still does.
+
 ## The entries
 
 ### A tag's message drops its own subheadings

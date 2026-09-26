@@ -1,0 +1,13 @@
+diff --git a/scripts/release.py b/scripts/release.py
+index 70f51d6..0c0ae3d 100644
+--- a/scripts/release.py
++++ b/scripts/release.py
+@@ -398,7 +398,7 @@ def tag(root: Path, version: str) -> int:
+         # tag message drops every line starting with `#`, and a changelog section
+         # commonly has `### Added` / `### Fixed` subheadings that would otherwise
+         # vanish from the tag silently.
+-        [git, "tag", "-a", tag_name, "--cleanup=verbatim", "-F", "-"],
++        [git, "tag", "-a", tag_name, "-F", "-"],
+         cwd=root,
+         input=body + "\n",
+         capture_output=True,

@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the paths: exemption in src/skillcheck/frontmatter.py's mapping-like-body check by removing a branch that looked redundant with the one below it.",
+  "lesson": "A new strictness rule rejects a form a real parser accepts",
+  "must_mention": [
+    "frontmatter\\.py",
+    "paths",
+    "comment"
+  ]
+}

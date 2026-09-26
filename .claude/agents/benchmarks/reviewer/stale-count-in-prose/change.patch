@@ -1,0 +1,13 @@
+diff --git a/docs/ci.md b/docs/ci.md
+index bebc077..ee2d65d 100644
+--- a/docs/ci.md
++++ b/docs/ci.md
+@@ -79,7 +79,7 @@ that accumulates until the whole category is ignored.
+ 
+ `validate-plugin` runs without `--strict`, and that is deliberate: each
+ `plugins/<name>/.claude-plugin/plugin.json` omits `version`, which the CLI warns about —
+-one warning per plugin. With a git-sourced marketplace, omitting the version is the
++the eight warnings. With a git-sourced marketplace, omitting the version is the
+ documented behaviour — every commit then resolves as a new version — so those warnings
+ are the correct state and `--strict` would force a version field that exists only to
+ silence them. Releases are cut as git tags instead, described below in [releasing a

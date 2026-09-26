@@ -17,6 +17,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   every tracked skill, agent, command, reference, eval, script and doc file name
   against the convention for its category. Code identifiers are covered separately by
   ruff's `pep8-naming` rules, already running in the security lint job.
+- Added a benchmark for the quality of `reviewer`'s output, under
+  `.claude/agents/benchmarks/reviewer/`: eight defect cases drawn from
+  `docs/review-lessons.md` and three clean ones. `scripts/run_review_benchmark.py` runs
+  it headless in throwaway worktrees and reports a catch rate and a false-alarm rate,
+  and a model-free drift guard in `make test` keeps every case applying to the tree. It
+  needs a model and a key, so it is not a CI job.
 
 ## [1.0.0] - 2026-09-24
 
