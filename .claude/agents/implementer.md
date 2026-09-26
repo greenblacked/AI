@@ -15,7 +15,27 @@ rules that make a change here fail — the closed frontmatter key set, the dangl
 rule, the boundaries about descriptions and dependencies. You start with no memory of the
 conversation that produced this delegation, so the caller's brief plus that file is
 everything you have. If the brief and `AGENTS.md` disagree, `AGENTS.md` wins and you say
-so in what you return.
+so in what you return. Read `docs/review-lessons.md` next — it is the record of what
+review on this repository has already caught, so you do not spend a round trip
+reintroducing a defect class it names.
+
+## What the caller passes
+
+A written brief with five fields. This is the contract `/ship` writes for you; if you are
+invoked another way and one is missing, do not guess at it — state the assumption at the
+top of what you return for a field you can infer safely (a `done-when` you defaulted to
+the standard three gates, say), and stop to ask before writing anything when the gap is
+one you cannot infer: no goal, no files, or no decision to implement.
+
+- **Goal** — the change, in one or two sentences.
+- **Files or paths** — what you write, disjoint from anything another writer touches at
+  the same time.
+- **The settled decision** — the shape already chosen: which plugin, what it must not
+  collide with, what goes in the body versus `references/`. You implement it; you do not
+  re-derive it.
+- **Constraints** — what not to touch, beyond the boundaries `AGENTS.md` already states.
+- **Done-when** — which gates have to pass. Default to `make validate`, `make catalogue`
+  and `make test` when none are named.
 
 ## Procedure
 
@@ -63,13 +83,29 @@ change in it and the gates green.
 
 ## What to return
 
-- **What changed**, as a list of paths with one clause each. No diffs — the caller can
-  read the tree.
-- **The gate output**, quoted: the validator's counts line, the catalogue result and the
-  test summary. If any of them is red, say so first and plainly, and do not describe the
-  change as done.
-- **Decisions you made that the brief did not cover**, each with the alternative you
-  rejected. This is the part `reviewer` needs and cannot recover from the diff.
-- **What you did not do**, including anything in the brief you deliberately left out and
-  why. A change that quietly covers less than it was asked for is the failure that costs
-  most, because nothing downstream notices.
+`Verdict: GREEN` when every gate you ran passed; `Verdict: RED` otherwise — say so first
+and plainly, and do not describe the change as done. Structure the report as:
+
+### Findings
+
+**What changed**, as a list of paths with one clause each. No diffs — the caller can read
+the tree.
+
+### Evidence
+
+**The gate output**, quoted: the validator's counts line, the catalogue result and the
+test summary.
+
+### Not assessed
+
+**What you did not do**, including anything in the brief you deliberately left out and
+why. A change that quietly covers less than it was asked for is the failure that costs
+most, because nothing downstream notices.
+
+### Handoff
+
+**Decisions you made that the brief did not cover**, each with the alternative you
+rejected. This is the part `reviewer` needs and cannot recover from the diff. On `RED`,
+lead with the failing gate line itself — the exact `make validate`, `make catalogue` or
+`make test` output that did not pass — so the next stage does not have to re-run it to
+find out what broke.

@@ -177,6 +177,40 @@ back the cost you delegated to avoid. The shape that works:
 a concrete consequence and the smallest fix, separate blocking defects from
 improvements, and say explicitly which parts were not assessed.
 
+## Input and output contracts
+
+A subagent starts cold: no memory of the conversation that produced the delegation, only
+what the caller writes into the prompt. A body that describes what the subagent does but
+not what it needs handed to it invites exactly the failure named below —
+[re-deriving context the caller already had](#failure-modes) — because the model fills
+the gap by exploring rather than by asking. State the input explicitly: the fields the
+subagent needs to start, one line each on why, and what it does when a field is missing —
+ask for it, or state the assumption at the top of the report and proceed. Which of the two
+fits depends on the stage: cheap-to-redo work can assume and say so, work that is
+expensive to redo wrong should ask first, and neither should guess silently.
+
+The output side has the matching argument. A caller delegates to avoid reading everything
+the subagent read, and loses that saving the moment it has to read the whole report to
+find out what to do next. A fixed first line — one of a small, named set of verdict words
+— and a fixed set of `###` headings under it let the caller route on the first line alone
+and find the rest by heading rather than by re-reading in full. `.claude/agents/`'s two
+loops use this shape: `explorer` returns `FOUND` / `PARTIAL` / `NOT FOUND`, `implementer`
+returns `GREEN` / `RED`, `investigator` returns `HOLDS` / `DOES NOT HOLD` / `NARROWER` /
+`UNVERIFIED`, and `reviewer` returns `SHIP` / `FIX` / `STOP` — different words for
+different jobs, the same shape underneath: `Verdict`, then `Findings`, `Evidence`, `Not
+assessed`, `Handoff`.
+
+[`docs/review-lessons.md`](review-lessons.md) is this pair of loops' other half of the
+same idea, extended past one run: a written input and a routable output make one
+delegation legible, and the lessons file is what carries a defect class from one run to
+the next rather than losing it when the context that found it is discarded. `implementer`
+and `reviewer` each read `AGENTS.md` first and this file next, before their own
+procedure, for that reason.
+
+A plugin-shipped subagent is free to follow the same shape — a stated input, a first-line
+verdict, fixed headings — and a new one should. This is not a call to migrate the
+seventeen that ship today; none of them are rewritten by this.
+
 ## Failure modes
 
 **Re-deriving context the caller already had.** The subagent starts cold, so it explores
