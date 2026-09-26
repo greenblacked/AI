@@ -695,6 +695,34 @@ stops working without it.
 | Required SHA pinning for actions | Whether the platform refuses a workflow referencing an action by tag | Only the `grep` in `permissions-audit` stands between a floating tag and a build, and it runs after the fact rather than instead of |
 | Secret scanning, and push protection | Whether a credential is caught as it is pushed | gitleaks still catches it in CI, one step later and after it has left the machine |
 | Default workflow token permissions | The floor every job's `permissions:` block narrows from | An absent block inherits write access rather than read |
+| Delete branch on merge | Whether a merged pull request's head branch is deleted automatically | An unpruned branch list piles up, and a stale one is hard to tell from a live one |
+| Code scanning setup on advanced, not default | That CodeQL runs from `security.yml`'s `codeql` job with the `security-extended` suite this repository configures, rather than GitHub's own default setup | GitHub documents that an advanced-configuration workflow's analyses cannot be processed while default setup is also enabled on the same repository, so turning default setup on risks the workflow's CodeQL uploads being rejected |
+
+### Recorded state
+
+Everything above is what a setting decides, not whether it is on. As of 2026-09-26 the
+repository owner confirmed, directly in Settings → Code security rather than through any
+command here, that secret scanning, push protection, Dependabot alerts and Dependabot
+security updates are all on. That confirmation is the record; nothing in this repository
+re-checks it, because the API responses those four settings live behind are hidden from a
+non-admin call.
+
+Delete branch on merge is also on, but unlike the four above it does not rest on the
+owner's word: the public repository API returns it directly
+(`gh api /repos/greenblacked/AI --jq '.delete_branch_on_merge'`), so it is confirmed
+rather than merely reported.
+
+For the branch ruleset, private vulnerability reporting, required SHA pinning, default
+workflow token permissions and code scanning setup, this section records no state — read
+each back with the commands below rather than assume this page still matches what GitHub
+reports.
+
+None of the four settings confirmed above replace a check already documented in this
+file; each sits alongside it. Push protection stops a credential at push time, and
+gitleaks still scans the tree and history in CI exactly as before, one step later.
+Dependabot alerts surface a published advisory against something pinned here;
+`.github/dependabot.yml`'s version updates, covered in the row above, remain the
+separate feature they always were.
 
 Read the current state of all of them:
 
@@ -704,6 +732,7 @@ gh api /repos/greenblacked/AI/private-vulnerability-reporting
 gh api /repos/greenblacked/AI/actions/permissions
 gh api /repos/greenblacked/AI --jq '.security_and_analysis'
 gh api /repos/greenblacked/AI/vulnerability-alerts && echo "alerts enabled"
+gh api /repos/greenblacked/AI --jq '.delete_branch_on_merge'
 ```
 
 And set the three that are a single call each:
