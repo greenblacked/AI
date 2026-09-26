@@ -942,11 +942,10 @@ def test_verdict_re_stays_linear_on_a_long_run_of_decoration(report):
     # each carrying its own unbounded quantifier (`(?:[...]+\s*)*`) has exponentially
     # many ways to split a run of decoration characters across the two quantifiers.
     # None of these inputs reaches "Verdict:" cleanly, so all are expected to return
-    # None — the regression is a hang, not a false match. The two short inputs are
-    # the ones that actually exercise the exponential blowup on the old pattern
-    # (seconds, not milliseconds, at only 30-odd characters); the 50,000-character
-    # input returns quickly even on the old pattern, so on its own it would not have
-    # caught the regression at all.
+    # None — the regression is a hang, not a false match. The 50,000-character input
+    # also catches the old pattern, but by hanging until the job timeout rather than
+    # failing. The two 30-character inputs, about 51s each on the old pattern, are
+    # there so a regression instead fails as a red assertion within seconds.
     start = time.monotonic()
     match = benchmark.VERDICT_RE.search(report)
     elapsed = time.monotonic() - start
