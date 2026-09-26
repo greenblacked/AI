@@ -1,0 +1,4 @@
+{
+  "kind": "clean",
+  "intent": "Add one more negative query to api-design's evals/trigger-eval.json, naming code-review as the expected winner, since a code-review request that says nothing about the interface shape is exactly the kind of neighbour collision the negatives are supposed to catch."
+}

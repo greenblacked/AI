@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Trim a redundant step from export_portable.py's export() now that every exported document already carries the notice text inline.",
+  "lesson": "Release artefacts missing the licence notice",
+  "must_mention": [
+    "export_portable\\.py",
+    "LICENSE",
+    "NOTICE"
+  ]
+}

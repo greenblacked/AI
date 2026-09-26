@@ -1,0 +1,35 @@
+diff --git a/scripts/package_skills.py b/scripts/package_skills.py
+index d79fb6c..85275f6 100755
+--- a/scripts/package_skills.py
++++ b/scripts/package_skills.py
+@@ -73,24 +73,18 @@ def package(skill: Path, output_dir: Path, repo_root: Path) -> Path:
+                 "Rename or remove the skill's own file."
+             )
+ 
+-    # Checked before anything is written: a `ZipFile` opened in write mode truncates the
+-    # archive path immediately, so finding a missing LICENSE or NOTICE only once inside
+-    # the `with` block below left a valid-looking but incomplete `.skill` file in
+-    # `dist/` — every skill file present, the licence missing, and nothing about the
+-    # failed run visible from the archive itself.
+-    for source_name in LICENSE_MEMBERS.values():
+-        if not (repo_root / source_name).is_file():
+-            raise SystemExit(
+-                f"refusing to package {skill.name}: no {source_name} at the "
+-                f"repository root ({repo_root})"
+-            )
+-
+     output_dir.mkdir(parents=True, exist_ok=True)
+     archive = output_dir / f"{skill.name}.skill"
+     with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as bundle:
+         for path in sorted(skill.rglob("*")):
+             if path.is_file() and _included(path, skill):
+                 bundle.write(path, path.relative_to(skill.parent))
++        for source_name in LICENSE_MEMBERS.values():
++            if not (repo_root / source_name).is_file():
++                raise SystemExit(
++                    f"refusing to package {skill.name}: no {source_name} at the "
++                    f"repository root ({repo_root})"
++                )
+         for member, source_name in LICENSE_MEMBERS.items():
+             bundle.write(repo_root / source_name, f"{skill.name}/{member}")
+     return archive
