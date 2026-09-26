@@ -88,9 +88,12 @@ since the version and its date are only decided at release time.
 
 Branch from `main` as `<type>/<short-kebab-description>`: lowercase, hyphen-separated
 words after the slash, no further slashes, and a description of the change rather than
-of who or what made it. `scripts/check_attribution.py` enforces the shape below on every
-pull request, so a branch that does not match fails the `attribution` job with a message
-pointing back here.
+of who or what made it. `scripts/check_naming.py` enforces the shape below on every pull
+request, so a branch that does not match fails the `naming` job with a message pointing
+back here. A branch that instead names the tool that wrote the change — `claude/`,
+`codex/`, `copilot/`, `ai/` or `bot/` — fails `scripts/check_attribution.py`'s own check
+in the `attribution` job with a different message, because that is a question of who
+wrote the change rather than of its shape.
 
 | Prefix | Use for | Example |
 | --- | --- | --- |
@@ -122,6 +125,42 @@ word should mean one thing, rather than every contributor picking their own shor
 
 One logical change per commit, imperative subject line, and a body that explains why when
 the diff does not. Please do not add tool-attribution or `Co-Authored-By` trailers.
+
+A subject is 72 characters or fewer, excluding a squash-merge-appended trailing
+`(#123)` (with the space before it); starts with a capital letter; carries no trailing period; and is not one of
+`WIP`, `fixup!`, `squash!` or `amend!`. Write it in the imperative — "Add a feature", not
+"Added a feature" or "Adds a feature" — and without a Conventional Commits type prefix
+such as `feat:` or `fix(scope):`: the branch already carries the type, and this
+repository's subjects never have one. `scripts/check_naming.py` enforces all of this on
+every commit in a pull request's range and on the pull request's own title, in the
+`naming` job; a merge commit and anything from Dependabot are exempt, since neither
+subject was written by a person choosing a convention. `make naming` reproduces the same
+check locally.
+
+## Naming
+
+One script, `scripts/check_naming.py`, decides four things and reports them together in
+the `naming` job:
+
+- **Files and folders.** A skill directory, an agent or command file, a
+  `references/*.md` or `evals/*.json` name is kebab-case; a Python module under
+  `scripts/`, `src/` or `tests/` is snake_case, and a test module directly under `tests/`
+  starts with `test_`; a workflow is a kebab-case `.yml`; a shell script is kebab-case or
+  snake_case; a doc under `docs/` is a kebab-case `.md`. A short, commented allowlist in
+  the script covers the conventional exceptions — `README.md`, `Makefile`, dotfiles and
+  the rest — rather than editing the check to stop looking at a file.
+- **Branch names**, the `<type>/<short-kebab-description>` shape above.
+- **Commit subjects and the pull request title**, the rule directly above.
+- **Code identifiers**, which is ruff's job rather than this script's: `pep8-naming`
+  (`N`) is enabled in `pyproject.toml`'s `select` and runs in the existing
+  `python security lint` job, because that check already reads every Python file here.
+
+File names are checked on every event `ci` runs for, against every file `git ls-files`
+tracks rather than only what a pull request changed. The branch, commit and title checks
+need a base ref and pull request text to mean anything, so they only run on a pull
+request — a push to `main` or a merge-group run checks file names alone, the same
+reduced scope `attribution` gives those events. `make naming` reproduces the full check
+locally, against `origin/main`.
 
 ## Licensing
 

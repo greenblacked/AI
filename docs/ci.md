@@ -66,9 +66,10 @@ gives, and at workflow level so a cache key can name one.
 | `lint-yaml` | `lint yaml` | yamllint in `--strict` mode found a problem. Config in `.yamllint.yaml`, version in `YAMLLINT_VERSION`: a release that adds a rule would otherwise redden the build on YAML nobody touched. |
 | `lint-actions` | `lint workflows` | actionlint rejected a workflow. It also runs shellcheck over every inline `run:` block, which is where all of this repository's shell lives. The binary is downloaded at a pinned version and checked against a recorded digest before it runs. |
 | `links` | `check links` | lychee found a broken link. It runs `--offline`, so only local paths are resolved — a relative link between documents, or from a document into the source tree, that does not exist. |
-| `attribution` | `attribution` | [`scripts/check_attribution.py`](../scripts/check_attribution.py) found a Co-authored-by trailer, a footer or trailer naming a coding assistant, an assistant session link, a branch name that is either tool-prefixed or does not match the `<type>/<short-kebab-description>` shape [`CONTRIBUTING.md`](../CONTRIBUTING.md#naming-a-branch) documents, or a commit author or committer naming a coding assistant, in the pull request's own commits, branch name, title or body. It needs a base ref and pull request text to mean anything, so it only scans on a pull request; a push to `main` or a merge-group run reports success without one, because those commits already passed this check on the pull request that produced them. It is not part of `make catalogue` for the same reason — there is no base ref to diff against outside a pull request — but `make attribution` reproduces it against `origin/main` locally. |
+| `attribution` | `attribution` | [`scripts/check_attribution.py`](../scripts/check_attribution.py) found a Co-authored-by trailer, a footer or trailer naming a coding assistant, an assistant session link, a branch name prefixed for a tool rather than the change it makes, or a commit author or committer naming a coding assistant, in the pull request's own commits, branch name, title or body. It needs a base ref and pull request text to mean anything, so it only scans on a pull request; a push to `main` or a merge-group run reports success without one, because those commits already passed this check on the pull request that produced them. It is not part of `make catalogue` for the same reason — there is no base ref to diff against outside a pull request — but `make attribution` reproduces it against `origin/main` locally. Whether the rest of a branch name matches `<type>/<short-kebab-description>` is `naming`'s row below, not this one — a tool-named branch still fails here first, since naming who wrote a change is attribution's job and the rest of the shape is a naming-convention question. |
+| `naming` | `naming` | [`scripts/check_naming.py`](../scripts/check_naming.py) found a naming-convention violation: a skill directory, agent or command file, `references/*.md`, `evals/*.json`, Python module, workflow or doc whose name does not match its category's convention (checked against every file `git ls-files` tracks, not only what the pull request touched); a branch name that does not match the `<type>/<short-kebab-description>` shape [`CONTRIBUTING.md`](../CONTRIBUTING.md#naming-a-branch) documents; or, on a pull request, a commit subject or the pull request title that is over 72 characters excluding a squash-merge-appended `(#123)`, does not start with a capital letter, ends with a trailing period, carries a `WIP`, `fixup!`, `squash!` or `amend!` marker, opens with a past-tense or third-person verb rather than the imperative, or carries a Conventional Commits type prefix this repository's own history never uses. A merge commit and anything from Dependabot — by author or by a `dependabot/` branch — are exempt from the commit and title checks. File names are checked on every event; the branch, commit and title checks need a base ref and pull request text, so only a pull request supplies `--range`, the same reduced scope `attribution` gives a push or merge-group run. `make naming` reproduces the full check against `origin/main` locally. Code identifiers are a separate, existing gate: ruff's `pep8-naming` (`N`) rules run in `python security lint` in `security.yml`, because that check only ever sees Python and this one would just reimplement it. |
 | `package` | `package` | `scripts/package_skills.py` could not build a `.skill` archive for every skill, or an archive it built is not loadable. It refuses to package a skill that does not validate, so this failing after `validate-skills` passed means a packaging problem, not a content one. Each archive is then opened and checked for a `SKILL.md` at its root whose `name` matches the archive, because building without error only proves a zip was written — a broken layout would ship green and fail at install, for someone else. The archives upload as the `skills` artifact. |
-| `ci` | `ci` | Any of its eleven dependencies did not report exactly `success`, or the result payload did not match the expected jobs. A skipped package after a failed prerequisite also fails this gate. |
+| `ci` | `ci` | Any of its twelve dependencies did not report exactly `success`, or the result payload did not match the expected jobs. A skipped package after a failed prerequisite also fails this gate. |
 
 `validate-skills` runs `PYTHONPATH=src python -m skillcheck . --strict`, the same
 invocation as `make validate`. The flag is the point: without it, a description one edit
@@ -122,10 +123,12 @@ compromise a repository through CI: template injection into `run:` blocks, over-
 token permissions, unpinned third-party actions, and `pull_request_target` combined with
 a checkout of untrusted code.
 
-**ruff carries the flake8-bandit rules.** `[tool.ruff.lint]` selects `S` alongside
-`E`, `F`, `I`, `UP`, `B` and `SIM`. `S` is flake8-bandit, so the security lint is the
-same tool as the style lint with one more rule set enabled. `tests/*` ignores `S101`,
-because asserting is what tests do.
+**ruff carries the flake8-bandit rules, and pep8-naming.** `[tool.ruff.lint]` selects
+`S` and `N` alongside `E`, `F`, `I`, `UP`, `B` and `SIM`. `S` is flake8-bandit, so the
+security lint is the same tool as the style lint with two more rule sets enabled. `N` is
+`pep8-naming` — the code-identifier quarter of the naming lint, alongside `naming`'s file,
+branch and commit checks in `ci.yml` — and runs here rather than in its own job because it
+only ever sees Python. `tests/*` ignores `S101`, because asserting is what tests do.
 
 **CodeQL** runs `github/codeql-action` init and analyze with `languages: python` and
 `queries: security-extended`. It is the only job that needs `security-events: write`.
@@ -751,6 +754,7 @@ make coverage   # the same run under coverage, failing below the floor
 make lint       # ruff, markdownlint, yamllint, actionlint, codespell — the lint jobs
 make package    # .skill archives into dist/ — the package job
 make attribution  # commits since origin/main against the attribution rules — the attribution job
+make naming     # file names, branch, commits and title against naming conventions — the naming job
 ```
 
 `make validate` passes `--strict`, exactly as the job does, so a warning fails locally

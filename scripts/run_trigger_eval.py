@@ -130,7 +130,7 @@ def render(entries: dict[str, tuple[str, str]], budget: int | None, target: str)
     return "\n".join(lines)
 
 
-class ToolFailure(RuntimeError):
+class ToolFailureError(RuntimeError):
     """The model could not be reached, so no answer exists to score."""
 
 
@@ -201,22 +201,22 @@ def ask(prompt: str, command: list[str], timeout: int, names: frozenset[str] = f
             stdin=subprocess.DEVNULL,
         )
     except FileNotFoundError as error:
-        raise ToolFailure(f"{tool} is not on PATH") from error
+        raise ToolFailureError(f"{tool} is not on PATH") from error
     except OSError as error:
-        raise ToolFailure(f"could not run {tool}: {error}") from error
+        raise ToolFailureError(f"could not run {tool}: {error}") from error
     except subprocess.TimeoutExpired as error:
-        raise ToolFailure(f"{tool} timed out after {timeout}s") from error
+        raise ToolFailureError(f"{tool} timed out after {timeout}s") from error
 
     if result.returncode != 0:
         detail = (result.stderr or result.stdout).strip().splitlines()
-        raise ToolFailure(
+        raise ToolFailureError(
             f"{tool} exited {result.returncode}: {detail[-1] if detail else 'no output'}"
         )
     # The answer is the last line that carries anything. A client that wraps its reply
     # in a code fence ends on a line of backticks, which is not the answer.
     lines = [line for line in result.stdout.splitlines() if line.strip().strip("`")]
     if not lines:
-        raise ToolFailure(f"{tool} returned nothing")
+        raise ToolFailureError(f"{tool} returned nothing")
     canonical = {name.lower(): name for name in names}
     for line in reversed(lines):
         answer = normalise(line)
@@ -289,7 +289,7 @@ def score(target: Target, entries: dict, args) -> dict:
             try:
                 for index, answer in pool.map(one, work):
                     answers[index].append(answer)
-            except ToolFailure:
+            except ToolFailureError:
                 pool.shutdown(cancel_futures=True)
                 raise
 
@@ -323,7 +323,7 @@ def score(target: Target, entries: dict, args) -> dict:
     if results and unrecognised == len(results):
         # Every answer was something other than a catalogue entry. That is not a set
         # of misses; it is a client whose output this script is not reading correctly.
-        raise ToolFailure(
+        raise ToolFailureError(
             f"no reply for {target.name} named a catalogue entry (last was "
             f"{results[-1]['chose']!r}); the CLI is printing something other than the answer"
         )
@@ -452,7 +452,7 @@ def main() -> int:
         print(f"scoring {target.name}", file=sys.stderr)
         try:
             reports.append(score(target, entries, args))
-        except ToolFailure as error:
+        except ToolFailureError as error:
             print(f"\naborting: {error}", file=sys.stderr)
             print(
                 "Scores so far are written out; nothing is reported for the rest, "
