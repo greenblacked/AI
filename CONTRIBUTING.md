@@ -107,9 +107,12 @@ wrote the change rather than of its shape.
 `feat/` is the Conventional Commits spelling, not an abbreviation such as `fb/` — one
 word should mean one thing, rather than every contributor picking their own shortening.
 
-- Lowercase kebab-case after the slash, `[a-z0-9]+(-[a-z0-9]+)*`, with no further
-  slashes — a nested path reads as a namespace this repository does not have, and the
-  check has to parse one shape rather than guess at several.
+- Lowercase kebab-case after the slash, `[a-z0-9]+(?:-[a-z0-9]+|\.[0-9]+)*`, with no
+  further slashes — a nested path reads as a namespace this repository does not have,
+  and the check has to parse one shape rather than guess at several. A dot is allowed
+  only when followed by digits, so a version number reads as one — `ci/bump-codeql-action-4.37.9`,
+  `fix/py3.13-compat` and `chore/release-1.2.0` all pass — rather than as a second kind of
+  separator: `feat/foo.bar` and `feat/a..b` still fail.
 - Describe the change, not the person or the tool — a branch outlives whoever pushed it,
   and the next reader needs to know what it does, not who did it.
 - Never a tool or vendor prefix (`claude/`, `codex/`, `copilot/`, `ai/`, `bot/`) — that is
@@ -127,20 +130,23 @@ One logical change per commit, imperative subject line, and a body that explains
 the diff does not. Please do not add tool-attribution or `Co-Authored-By` trailers.
 
 A subject is 72 characters or fewer, excluding a squash-merge-appended trailing
-`(#123)` (with the space before it); starts with a capital letter; carries no trailing period; and is not one of
-`WIP`, `fixup!`, `squash!` or `amend!`. Write it in the imperative — "Add a feature", not
-"Added a feature" or "Adds a feature" — and without a Conventional Commits type prefix
-such as `feat:` or `fix(scope):`: the branch already carries the type, and this
-repository's subjects never have one. `scripts/check_naming.py` enforces all of this on
-every commit in a pull request's range and on the pull request's own title, in the
-`naming` job; a merge commit and anything from Dependabot are exempt, since neither
-subject was written by a person choosing a convention. `make naming` reproduces the same
-check locally.
+`(#123)` (with the space before it); starts with a capital letter; carries no trailing
+period; and does not contain `WIP`, `fixup!`, `squash!` or `amend!`. Write it in the
+imperative — "Add a feature", not "Added a feature" or "Adds a feature" — and without a
+Conventional Commits type prefix such as `feat:` or `fix(scope):`: the branch already
+carries the type, and this repository's subjects have matched that since squash merging
+started (two commits from before squash merging began (PR #4) do carry a `feat:`/`docs:`
+prefix and are not re-checked, since only a pull request's own range is scanned). The
+72-character cap is new rather than a codified habit, and tighter than past practice.
+`scripts/check_naming.py` enforces all of this on every commit in a pull request's range
+and on the pull request's own title, in the `naming` job; a merge commit and anything
+from Dependabot are exempt, since neither subject was written by a person choosing a
+convention. `make naming` reproduces the same check locally.
 
 ## Naming
 
-One script, `scripts/check_naming.py`, decides four things and reports them together in
-the `naming` job:
+`scripts/check_naming.py` is also where the branch and commit rules above live, and it
+checks one more thing besides:
 
 - **Files and folders.** A skill directory, an agent or command file, a
   `references/*.md` or `evals/*.json` name is kebab-case; a Python module under
@@ -149,18 +155,14 @@ the `naming` job:
   snake_case; a doc under `docs/` is a kebab-case `.md`. A short, commented allowlist in
   the script covers the conventional exceptions — `README.md`, `Makefile`, dotfiles and
   the rest — rather than editing the check to stop looking at a file.
-- **Branch names**, the `<type>/<short-kebab-description>` shape above.
-- **Commit subjects and the pull request title**, the rule directly above.
-- **Code identifiers**, which is ruff's job rather than this script's: `pep8-naming`
-  (`N`) is enabled in `pyproject.toml`'s `select` and runs in the existing
-  `python security lint` job, because that check already reads every Python file here.
 
 File names are checked on every event `ci` runs for, against every file `git ls-files`
-tracks rather than only what a pull request changed. The branch, commit and title checks
-need a base ref and pull request text to mean anything, so they only run on a pull
-request — a push to `main` or a merge-group run checks file names alone, the same
-reduced scope `attribution` gives those events. `make naming` reproduces the full check
-locally, against `origin/main`.
+tracks rather than only what a pull request changed — unlike the branch and commit
+checks above, which need a base ref and pull request text and so only run on a pull
+request. `make naming` reproduces the full check locally, against `origin/main`. Code
+identifiers are a separate, existing gate rather than a fifth thing this script checks:
+ruff's `pep8-naming` (`N`) runs in `python security lint`, because that job already reads
+every Python file here.
 
 ## Licensing
 

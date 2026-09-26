@@ -98,6 +98,18 @@ def test_a_work_in_progress_marker_fails(marker):
     assert any("work-in-progress marker" in p for p in problems)
 
 
+def test_wip_only_matches_on_a_word_boundary():
+    # "WIP" is checked as a word, not a substring, so a subject that merely contains
+    # those three letters inside a longer word is not a work-in-progress marker.
+    problems = naming.subject_problems("Add WIPE support")
+    assert not any("work-in-progress marker" in p for p in problems)
+
+
+def test_wip_as_its_own_word_still_fails():
+    problems = naming.subject_problems("WIP: thing")
+    assert any("work-in-progress marker" in p for p in problems)
+
+
 def test_a_subject_over_72_characters_fails():
     subject = "A" + "x" * 80
     problems = naming.subject_problems(subject)
@@ -256,6 +268,33 @@ def test_each_allowed_prefix_passes(branch):
 @pytest.mark.parametrize(
     "branch",
     [
+        "ci/bump-codeql-action-4.37.9",
+        "fix/py3.13-compat",
+        "chore/release-1.2.0",
+    ],
+)
+def test_a_dot_between_digits_passes(branch):
+    # A version number reads as one rather than as a second kind of separator, so long
+    # as the dot sits between two digits.
+    assert naming.branch_problem(branch) is None
+
+
+@pytest.mark.parametrize(
+    "branch",
+    [
+        "feat/foo.bar",  # a dot between letters, not digits
+        "feat/a..b",  # a bare double dot
+    ],
+)
+def test_a_dot_not_between_digits_fails(branch):
+    problem = naming.branch_problem(branch)
+    assert problem is not None
+    assert "CONTRIBUTING.md#naming-a-branch" in problem
+
+
+@pytest.mark.parametrize(
+    "branch",
+    [
         "feat/Add-Thing",  # uppercase
         "feat/add_thing",  # underscore
         "feat/add/thing",  # nested slash
@@ -298,6 +337,19 @@ def test_contributing_lists_exactly_the_allowed_prefixes():
     table = contributing.split("## Naming a branch", 1)[1].split("## Commits", 1)[0]
     documented = set(re.findall(r"^\| `([a-z]+)/`", table, re.MULTILINE))
     assert documented == set(naming._BRANCH_TYPES)
+
+
+def test_contributing_prints_the_same_description_pattern_check_naming_enforces():
+    # CONTRIBUTING.md prints the shape as a literal string for a reader; this ties that
+    # string to the constant the check actually runs, so a change to one cannot silently
+    # stop matching the other.
+    contributing = (Path(__file__).resolve().parent.parent / "CONTRIBUTING.md").read_text(
+        encoding="utf-8"
+    )
+    table = contributing.split("## Naming a branch", 1)[1].split("## Commits", 1)[0]
+    printed = re.search(r"`\[a-z0-9\]\+\(\?:[^`]+\)\*`", table)
+    assert printed is not None
+    assert printed.group(0).strip("`") == naming._BRANCH_DESCRIPTION_RE_TEXT
 
 
 # --- file and folder names -------------------------------------------------------------

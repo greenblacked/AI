@@ -15,10 +15,15 @@ Four families, one job, so a contributor has one place to look rather than four:
   `<type>/<short-kebab-description>` rule and its constants are unchanged; only the
   file that owns them moved.
 - **Commit subjects and the pull request title**, checked against ordinary git commit
-  message practice adapted to what this repository's own history already does: plain
-  imperative subjects with no Conventional Commits type prefix. A merge commit and
-  anything from Dependabot — by author or by a `dependabot/` branch — are exempt, since
-  neither is a subject a person chose by hand.
+  message practice adapted to this repository. The imperative-mood and no-Conventional-
+  Commits-prefix rules match this history since squash merging started: two commits from
+  before squash merging began (PR #4) do carry a `feat:`/`docs:` prefix, and are not
+  re-checked because only the pull request's own range is scanned. The 72-character cap
+  on the subject is new and tighter than past practice, not a codified habit — when this
+  check landed (#67), about one in five of the squash subjects on main was already over
+  it — so it is a decision going forward rather than a claim about what this repository
+  has always done. A merge commit and anything from Dependabot — by author or by a
+  `dependabot/` branch — are exempt, since neither is a subject a person chose by hand.
 - **Code identifiers** are ruff's job, not this script's: `pep8-naming` (`N`) runs in
   the existing `python security lint` job because it only ever sees Python, and this
   script would just be reimplementing it worse.
@@ -179,7 +184,15 @@ def file_naming_problems(paths: list[str]) -> list[str]:
 
 _ALLOWED_BRANCH_PREFIX = "dependabot/"
 _BRANCH_TYPES = ("feat", "fix", "chore", "docs", "ci", "test")
-_BRANCH_NAME_RE = re.compile(r"^(?:" + "|".join(_BRANCH_TYPES) + r")/[a-z0-9]+(?:-[a-z0-9]+)*$")
+# A dot is allowed only when followed by digits, so a version number in a branch —
+# bumping a pin, a language runtime, a release — reads as one, rather than as a second,
+# unwanted separator alongside the hyphen. `CONTRIBUTING.md#naming-a-branch` prints this
+# same pattern as a literal string, and `tests/test_naming.py` ties the two together so
+# they cannot drift apart.
+_BRANCH_DESCRIPTION_RE_TEXT = r"[a-z0-9]+(?:-[a-z0-9]+|\.[0-9]+)*"
+_BRANCH_NAME_RE = re.compile(
+    r"^(?:" + "|".join(_BRANCH_TYPES) + r")/" + _BRANCH_DESCRIPTION_RE_TEXT + r"$"
+)
 _EXEMPT_BRANCH_NAMES = {"main", "master", "HEAD"}
 
 # A tool-named branch is still attribution's concern — it is naming the tool that wrote
@@ -208,7 +221,12 @@ def branch_problem(branch: str | None) -> str | None:
 # --- commit subjects and the pull request title ----------------------------------------
 
 _TRAILING_PR_NUMBER_RE = re.compile(r"\s\(#\d+\)$")
-_WIP_MARKERS = ("WIP", "fixup!", "squash!", "amend!")
+# `WIP` on its own is a word, not a substring — "Add WIPE support" is an ordinary subject
+# about wiping something, not a work-in-progress marker, so this one is matched on a word
+# boundary. `fixup!`, `squash!` and `amend!` carry their own punctuation, which nothing
+# else in an ordinary subject produces, so a plain substring match is enough for them.
+_WIP_WORD_RE = re.compile(r"\bWIP\b")
+_WIP_PUNCTUATED_MARKERS = ("fixup!", "squash!", "amend!")
 _FIRST_WORD_RE = re.compile(r"^([A-Za-z]+)")
 # Conventional Commits types this repository has never used and does not start; a match
 # here is checked before the imperative-mood list below, since a lowercase type prefix
@@ -260,7 +278,9 @@ def subject_problems(raw: str) -> list[str]:
         return []
 
     problems = []
-    for marker in _WIP_MARKERS:
+    if _WIP_WORD_RE.search(subject):
+        problems.append(f"subject carries the work-in-progress marker `WIP` — {subject!r}")
+    for marker in _WIP_PUNCTUATED_MARKERS:
         if marker in subject:
             problems.append(f"subject carries the work-in-progress marker `{marker}` — {subject!r}")
 
