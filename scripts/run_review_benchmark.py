@@ -37,7 +37,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -464,7 +463,7 @@ def diagnose_failure(data: dict) -> str | None:
 
 
 def judge(case: dict, verdict: str | None, report: str) -> tuple[bool, str]:
-    """Return (passed, reason) for one case given its majority verdict and report."""
+    """Return (passed, reason) for one case given its verdict and report."""
     if verdict is None:
         return False, "no verdict"
     if case["kind"] == "defect":
@@ -477,6 +476,29 @@ def judge(case: dict, verdict: str | None, report: str) -> tuple[bool, str]:
     if verdict != "SHIP":
         return False, f"false alarm: verdict {verdict}, wanted SHIP"
     return True, ""
+
+
+def judge_run(case: dict, run: dict) -> tuple[bool, str, dict]:
+    """Judge a single run, folding in the harness-level diagnostics `judge()` cannot
+    see: a denied tool call, an exhausted budget or a hit turn limit each explain a
+    missing verdict better than "no verdict" does, and a genuine "no verdict" carries
+    the head, tail and stop reason of what the model actually said.
+    """
+    detail = {
+        "result_head": "",
+        "result_tail": "",
+        "num_turns": None,
+        "subtype": None,
+        "stop_reason": None,
+    }
+    passed, reason = judge(case, run["verdict"], run["report"])
+    if run["verdict"] is None and run["diagnostic"]:
+        passed, reason = False, run["diagnostic"]
+    elif run["verdict"] is None:
+        reason, extra = no_verdict_detail(run["data"], run["report"])
+        passed = False
+        detail.update(extra)
+    return passed, reason, detail
 
 
 def run_case(case_dir: Path, repo_root: Path, argv: list[str], args) -> dict:
@@ -511,22 +533,29 @@ def run_case(case_dir: Path, repo_root: Path, argv: list[str], args) -> dict:
         if worktree is not None:
             remove_worktree(repo_root, worktree)
 
-    votes = Counter(r["verdict"] for r in runs)
-    majority_verdict, _ = votes.most_common(1)[0]
-    chosen = next((r for r in runs if r["verdict"] == majority_verdict), runs[0])
-    passed, reason = judge(case, majority_verdict, chosen["report"])
-    result_head = result_tail = ""
-    num_turns = subtype = stop_reason = None
-    if majority_verdict is None and chosen["diagnostic"]:
-        passed, reason = False, chosen["diagnostic"]
-    elif majority_verdict is None:
-        reason, detail = no_verdict_detail(chosen["data"], chosen["report"])
-        passed = False
-        result_head = detail["result_head"]
-        result_tail = detail["result_tail"]
-        num_turns = detail["num_turns"]
-        subtype = detail["subtype"]
-        stop_reason = detail["stop_reason"]
+    # Vote on the judged outcome of each run, not on the raw verdict word: three runs
+    # split FIX/STOP/SHIP are three different words but two hits and a miss, and voting
+    # on the words lets whichever ran first win regardless of who was right.
+    judged = [judge_run(case, r) for r in runs]
+    passes = sum(1 for one_passed, _, _ in judged if one_passed)
+    fails = len(runs) - passes
+    # A tie is scored as a failure rather than broken by whichever ran first: the
+    # benchmark should not reward a reviewer whose verdict is a coin flip.
+    winner = passes > fails
+    group = [
+        (r, one_passed, one_reason, one_detail)
+        for r, (one_passed, one_reason, one_detail) in zip(runs, judged, strict=True)
+        if one_passed == winner
+    ]
+    chosen, passed, reason, detail = next(
+        (g for g in group if g[0]["verdict"] is not None), group[0]
+    )
+    majority_verdict = chosen["verdict"]
+    result_head = detail["result_head"]
+    result_tail = detail["result_tail"]
+    num_turns = detail["num_turns"]
+    subtype = detail["subtype"]
+    stop_reason = detail["stop_reason"]
     total_cost = sum(r["cost"] for r in runs if isinstance(r["cost"], (int, float)))
     denials = sorted({tool for r in runs for tool in r["denials"]})
 
@@ -556,6 +585,7 @@ def run_case(case_dir: Path, repo_root: Path, argv: list[str], args) -> dict:
         "models": models,
         "denials": denials,
         "runs": len(runs),
+        "passes": passes,
         "result_head": result_head,
         "result_tail": result_tail,
         "num_turns": num_turns,
@@ -572,8 +602,8 @@ def main() -> int:
         "--runs",
         type=int,
         default=1,
-        help="samples per case, majority of verdicts wins; a tie goes to whichever "
-        "verdict was reached first, since nothing here breaks a tie by re-running",
+        help="samples per case, majority of judged pass/fail outcomes wins; a tie "
+        "counts as a fail, since nothing here breaks a tie by re-running",
     )
     parser.add_argument("--jobs", type=int, default=1, help="cases in flight at once")
     parser.add_argument("--max-turns", type=int, default=40)

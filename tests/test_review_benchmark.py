@@ -566,6 +566,121 @@ def test_majority_vote_across_runs_uses_the_winning_report(tmp_path, fake_claude
     assert result["runs"] == 3
 
 
+def test_a_defect_split_fix_stop_ship_passes_on_two_judged_hits(tmp_path, fake_claude):
+    # FIX, STOP and SHIP are three different verdict words, so a vote over the words
+    # alone is a three-way tie broken by whichever ran first (SHIP, a miss). Voting on
+    # the judged outcome instead sees two hits (FIX, STOP) and one miss (SHIP).
+    root = make_repo(tmp_path)
+    patch = make_patch(root, "one\ntwo\nthree\nfour\n")
+    write_case(
+        root,
+        "defect-three-way",
+        kind="defect",
+        intent="Drop a redundant flag.",
+        patch_text=patch,
+        must_mention=["file\\.txt"],
+    )
+    fake_claude(
+        {
+            fake_query("Drop a redundant flag."): [
+                cli_answer("Verdict: FIX\n\nfile.txt lost a safeguard."),
+                cli_answer("Verdict: STOP\n\nfile.txt lost a safeguard."),
+                cli_answer("Verdict: SHIP\n\nLooks fine."),
+            ]
+        }
+    )
+    result = benchmark.run_case(
+        root / ".claude" / "agents" / "benchmarks" / "reviewer" / "defect-three-way",
+        root,
+        benchmark.build_command(None, None, 40, 2.00),
+        Args(runs=3),
+    )
+    assert result["passed"] is True
+    assert result["passes"] == 2
+    assert result["verdict"] in ("FIX", "STOP")
+
+
+def test_a_first_fix_run_missing_must_mention_still_passes_on_later_hits(tmp_path, fake_claude):
+    # The first run's report is the one an earlier version checked `must_mention`
+    # against, regardless of which verdict word actually won. Here the first FIX run
+    # misses the mention and the STOP and FIX runs that follow both carry it: two of
+    # three runs are judged hits, and the case should pass on them.
+    root = make_repo(tmp_path)
+    patch = make_patch(root, "one\ntwo\nthree\nfour\n")
+    write_case(
+        root,
+        "defect-later-hit",
+        kind="defect",
+        intent="Drop a redundant flag.",
+        patch_text=patch,
+        must_mention=["file\\.txt"],
+    )
+    fake_claude(
+        {
+            fake_query("Drop a redundant flag."): [
+                cli_answer("Verdict: FIX\n\nSomething is missing here."),
+                cli_answer("Verdict: STOP\n\nfile.txt lost a safeguard."),
+                cli_answer("Verdict: FIX\n\nfile.txt lost a safeguard."),
+            ]
+        }
+    )
+    result = benchmark.run_case(
+        root / ".claude" / "agents" / "benchmarks" / "reviewer" / "defect-later-hit",
+        root,
+        benchmark.build_command(None, None, 40, 2.00),
+        Args(runs=3),
+    )
+    assert result["passed"] is True
+    assert result["passes"] == 2
+
+
+def test_a_clean_case_split_ship_fix_fix_fails(tmp_path, fake_claude):
+    root = make_repo(tmp_path)
+    patch = make_patch(root, "one\ntwo\nthree\nfour\n")
+    write_case(root, "clean-split", kind="clean", intent="Add a trailing line.", patch_text=patch)
+    fake_claude(
+        {
+            fake_query("Add a trailing line."): [
+                cli_answer("Verdict: SHIP\n\nNothing further is owed."),
+                cli_answer("Verdict: FIX\n\nfalse alarm one."),
+                cli_answer("Verdict: FIX\n\nfalse alarm two."),
+            ]
+        }
+    )
+    result = benchmark.run_case(
+        root / ".claude" / "agents" / "benchmarks" / "reviewer" / "clean-split",
+        root,
+        benchmark.build_command(None, None, 40, 2.00),
+        Args(runs=3),
+    )
+    assert result["passed"] is False
+    assert result["passes"] == 1
+
+
+def test_a_tied_vote_with_two_runs_fails(tmp_path, fake_claude):
+    # A tie is a coin flip, not a decision. Rewarding whichever run happened to come
+    # first would let an unstable reviewer pass by luck of ordering.
+    root = make_repo(tmp_path)
+    patch = make_patch(root, "one\ntwo\nthree\nfour\n")
+    write_case(root, "clean-tie", kind="clean", intent="Add a trailing line.", patch_text=patch)
+    fake_claude(
+        {
+            fake_query("Add a trailing line."): [
+                cli_answer("Verdict: SHIP\n\nNothing further is owed."),
+                cli_answer("Verdict: FIX\n\nfalse alarm."),
+            ]
+        }
+    )
+    result = benchmark.run_case(
+        root / ".claude" / "agents" / "benchmarks" / "reviewer" / "clean-tie",
+        root,
+        benchmark.build_command(None, None, 40, 2.00),
+        Args(runs=2),
+    )
+    assert result["passed"] is False
+    assert result["passes"] == 1
+
+
 # --- the least-privilege allowlist and harness-level failure diagnostics ------------
 
 FORBIDDEN_SUBSTRINGS = ("push", "fetch", "curl", "write", "edit", "notebookedit")
