@@ -67,7 +67,7 @@ package: ## Build a .skill archive for every skill into dist/
 	@PYTHONPATH=src $(PYTHON) scripts/package_skills.py
 
 attribution: ## Check commits since origin/main, the branch name and PR text for tool attribution
-	@$(PYTHON) scripts/check_attribution.py . --range origin/main..HEAD
+	@GITHUB_HEAD_REF="$$(git rev-parse --abbrev-ref HEAD)" $(PYTHON) scripts/check_attribution.py . --range origin/main..HEAD
 
 portable: ## Flatten every skill into dist/portable for ChatGPT, Grok and other assistants
 	@PYTHONPATH=src $(PYTHON) scripts/export_portable.py .
