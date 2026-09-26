@@ -41,6 +41,7 @@ change an already active session.
 | --- | --- |
 | `AGENTS.md` | This file: the rules, in the form Codex and Gemini CLI read too |
 | `CLAUDE.md` | The `@AGENTS.md` import plus the four notes that are only true of Claude Code |
+| `REVIEW.md` | Review-only instructions for Claude Code's managed GitHub code review: this repository's severity redefinition, skip rules and nit cap; points back to `AGENTS.md`'s Review guidelines for triggers and comment format rather than repeating them |
 | `.claude/rules/` | Path-scoped rules loaded when a file matching the glob is read; `docs/project-structure.md` explains when each fires |
 | `.claude/settings.json` | The `PostToolUse` hook registration, checked by `scripts/check_settings.py`; nothing else yet |
 | `plugins/coding/skills/` | Reading, reviewing, testing and changing code |
@@ -247,6 +248,64 @@ Shell in this repository, including inline `run:` blocks in workflows, uses
   `health-coach` were written by hand; new reference files match them rather than the
   other way round.
 - Do not push to `main` directly.
+
+## Review guidelines
+
+This section is tool-agnostic; where a given tool reads it, and what it reads instead,
+is `CLAUDE.md`'s business. It exists to point a reviewer — human, `reviewer`, or a
+managed code-review product — at what the automated gates cannot see, not to restate
+what they already enforce.
+
+**Before reviewing.** Read this file, then `docs/review-lessons.md` — the defect classes
+review here has already caught once. Do not re-report what CI already checks: `ci.yml`
+runs the validator, the catalogue checks, the test suite and coverage on every push;
+`security.yml` runs gitleaks, zizmor, ruff's flake8-bandit rules and CodeQL. A finding
+that only restates a failing gate wastes the comment; a finding about what a gate cannot
+see is the job.
+
+**Triggers.** What a change touches decides what extra review it gets, beyond the
+standard pass. The path groups below are the same ones `.claude/rules/` loads by glob.
+
+| Path or change | Extra review required | Why |
+| --- | --- | --- |
+| `src/skillcheck/**` (`.claude/rules/validator.md`) | Line by line; plan mode first | Decides whether every other change is allowed to merge |
+| `.github/workflows/**` (`.claude/rules/workflows.md`) | Line by line, plan mode first, plus a security review (permissions, pinning, injection through `${{ }}`, secrets) | Same reason, and a workflow runs with real credentials |
+| `scripts/**` | A matching case in `tests/` and a check of the failure path | A script with no test is a claim, not a guarantee |
+| `SKILL.md` `description` (`.claude/rules/skills.md`) | The trigger eval and the listing budget; never edited only to make a check pass | The description decides whether the skill ever fires |
+| Agent frontmatter (`.claude/rules/agents.md`) | Routing against its paired skill, and its declared tier | A collision loses queries silently; the wrong tier is a cost nobody notices until it recurs |
+| `LICENSE`, `NOTICE`, other legal text | Factual and legal accuracy against the primary source | A licence claim that is broader or narrower than the text itself is wrong in a way nobody re-derives later |
+| `release.yml`, or any change handling a token | A security review | Holds `contents: write`; a mistake there is a repository takeover path |
+| A new third-party action or tool | Pin to a commit SHA and a checked digest | An unpinned dependency is whatever its publisher moved it to this morning |
+| Personal data, or anything credential-shaped | A security review | The one class this repository refuses outright, in any form |
+
+**Security review.** Triggered by the workflow, token, action and credential-shaped rows
+above, and by anything else touching authentication, authorisation or a secret. Walk the
+classes in the order the `security-review` skill sets out, and check the change against
+`AGENTS.md`'s Security considerations above. Every finding states a reachable path, the
+impact if it merges, and the fix — never a class name alone and never exploit code.
+
+**Comments.**
+
+- One issue per comment, anchored at file:line.
+- State the problem, the concrete consequence if it merges, and the smallest fix. A
+  suggestion block is for a trivially correct one-line fix only.
+- A severity label on every comment, defined once here: 🔴 Important (blocks merge), 🟡
+  Nit (not blocking) and 🟣 Pre-existing (not introduced by this change, never blocking).
+  🔴 maps to `reviewer.md`'s FIX verdict, 🟡 and 🟣 map to SHIP.
+- No praise-only comments and no comments that restate the diff. Ask a question only
+  when intent genuinely cannot be read from the diff.
+- A summary comment leads with the verdict, not with a list of what was read.
+- The author resolves a thread by fixing it or by replying why not — a thread left open
+  with no reply is not resolved.
+- The same finding recurring across a review means the root cause is unfixed, not that
+  the finding is minor; fix the cause once rather than flagging each instance.
+- No tool attribution in review text, the same rule the commit instructions state for
+  commits.
+
+**What not to flag.** Generated or built output (`dist/`); fixtures under `tests/` that
+are deliberately wrong on purpose — a fixture recorded to trip a rule under test is the
+pattern the rule exists to discourage, not a live defect, and `docs/review-lessons.md`
+says which; and style a linter already owns.
 
 ## Review checklist
 
