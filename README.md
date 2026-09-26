@@ -479,6 +479,7 @@ skill that fires on everything.
 - [Writing a skill](docs/writing-skills.md) — the contract, every validator code, and how to write a description that actually triggers
 - [Writing a subagent](docs/writing-agents.md) — when a subagent beats doing the work inline
 - [Writing a slash command](docs/writing-commands.md) — when a command beats a skill, and why most do not
+- [Review lessons](docs/review-lessons.md) — defect classes review on this repository has actually caught, read after `AGENTS.md` by the build and verify loops
 - [AGENTS.md](docs/agents-md.md) — the standard, and how it relates to `CLAUDE.md`
 - [CI](docs/ci.md) — what each check means and how to make it required
 - [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Code of conduct](CODE_OF_CONDUCT.md)
