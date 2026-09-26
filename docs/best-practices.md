@@ -6,13 +6,12 @@ lists the practice, why it matters, how (or whether) this repository applies it 
 and a status.
 
 Status is judged against what is actually in the tree or documented as configured on
-GitHub, not against intent: **Adopted** means a file or check enforces it today,
-**Partial** means it holds in practice but nothing gates or fully covers it, and **Not
-yet adopted** means nothing here does it — or, where noted, verified against the GitHub
-API at the time of writing. Two changes are in progress elsewhere at the
-time of writing — a CI naming lint for branches, commits and file names, and review
-guidelines being added to `AGENTS.md` and a new `REVIEW.md` — and are marked as being
-added rather than as already running.
+GitHub — or, where noted, verified against the GitHub API at the time of writing — not
+against intent: **Adopted** means a file or check enforces it today, **Partial** means
+it holds in practice but nothing gates or fully covers it, and **Not yet adopted** means
+nothing here does it. One change is in progress elsewhere at the time of writing — a CI
+naming lint for branches, commits and file names — and is marked as being added rather
+than as already running.
 
 ## CI
 
@@ -74,7 +73,7 @@ added rather than as already running.
 | Hygiene for stale branches | A pile of long-dead branches makes it harder to tell an abandoned attempt from a live one. | The naming rule is `branch_problem` in `scripts/check_attribution.py`; run `git ls-remote --heads origin` and check each name against it to see the current list rather than trust a count here, which goes stale on the next push. At the time of writing that turned up eight — `bump-stale-tool-pins`, `ci/bump-codeql-action-4.37.9`, `document-platform-settings`, `feature/delivery-agents`, `gate-workflow-structure`, `guard-checks-against-passing-blind`, `harden-ci-pins-and-gates` and `keep-the-install-advice-true` — all already-merged pull requests (#17 and #29–#34, and #41) left over from before delete-branch-on-merge was enabled, so deleting them loses nothing. No scheduled job or process prunes a branch left behind by a merge from before the setting was turned on | Not yet adopted |
 | Merging a stale head is prevented by an expected-head-SHA merge | Two different races, both worth closing: the PR's head moving after it was inspected, and `main` moving underneath it before the merge lands. | These are two separate controls. An expected-head-SHA merge (`gh pr merge --match-head-commit`, which maps to the GraphQL `mergePullRequest` mutation's `expectedHeadOid` input) guards the first — that the commit being merged is still the one that was reviewed and checked — and nothing here passes one to the merge API. Strict required-status-checks guards the second — that the branch is up to date with `main` before merging — and that part is in the documented ruleset ([`docs/ci.md`](ci.md#making-ci-authoritative)) | Partial — the base-moved race is covered by strict mode, the head-moved race is not |
 | A linear history | Makes `git log` and `git bisect` on `main` read as one line of changes rather than a lattice of merge commits. | Linear since #4 — two merge commits exist on `main`, from #1 and #4, before the repository settled on squash merges; the ruleset does not itself force linearity, since `allowed_merge_methods` was not restricted (see the row above) | Partial |
-| Review guidelines for pull requests | Names what a reviewer should look for so review does not depend on whoever happens to be doing it that day. | Being added to `AGENTS.md` and a new `REVIEW.md`; neither exists on `main` at the time of writing | Not yet adopted |
+| Review guidelines for pull requests | Names what a reviewer should look for so review does not depend on whoever happens to be doing it that day. | [`AGENTS.md`'s "Review guidelines"](../AGENTS.md#review-guidelines) points a reviewer — human, `reviewer`, or a managed code-review product — at what the automated gates cannot see; [`REVIEW.md`](../REVIEW.md) redefines severity for Claude Code's managed GitHub code review specifically | Adopted |
 
 ## Next steps, in priority order
 
