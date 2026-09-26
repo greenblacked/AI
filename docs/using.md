@@ -249,12 +249,14 @@ file `git ls-files --others --exclude-standard` names, in full. The diff alone o
 untracked files, which on a change that adds one is the whole change. Pasting rather than
 pointing removes the material only when the reviewing conversation cannot reach the
 checkout; in a terminal agent sitting in the repository it has the tree whatever you
-paste, so open the review somewhere that does not. Ask for the same output
-contract a reviewing subagent is written to produce: a one-line verdict; blocking defects
-ranked by cost, each with the observation, the concrete consequence and the smallest fix
-described rather than written; non-blocking findings kept separate from blocking ones;
-the gate output quoted rather than summarised; and what was not assessed, said plainly
-rather than left to be inferred from silence.
+paste, so open the review somewhere that does not. Ask for the same output contract a
+reviewing subagent is written to produce: a first line reading `Verdict: SHIP`,
+`Verdict: FIX` or `Verdict: STOP`; then `Findings` — blocking defects ranked by cost,
+each with a file:line, the concrete consequence if it ships, and the smallest fix
+described rather than written, with non-blocking improvements kept separate; `Evidence` —
+the gate output quoted rather than summarised; `Not assessed`, said plainly rather than
+left to be inferred from silence; and `Handoff` — what the writing conversation needs
+from this verdict in one to three lines.
 
 Carry what it finds back to the writing conversation. Never paste a fix into the
 reviewing one — that single move is what collapses the two stages back into one, because

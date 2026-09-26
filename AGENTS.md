@@ -23,7 +23,10 @@ different set. Honour an explicit per-task assignment over either default split 
   implementation; use Terra at low effort for branch synchronisation and integration
   when assigned.
 - **Claude Code:** use the tier each agent in `.claude/agents/` declares, which
-  `CLAUDE.md` spells out.
+  `CLAUDE.md` spells out. Its two loops hand off through a written brief going in and a
+  report's `Handoff` section coming back, never a paraphrase of the whole thing; whichever
+  stage writes or judges the change reads this file first and `docs/review-lessons.md`
+  next.
 - **Any other tool:** report which models it offers rather than guessing at a mapping.
 
 Whichever tool runs it, research agents verify facts before implementation begins. Give
@@ -57,6 +60,7 @@ change an already active session.
 | `plugins/*/skills/*/evals/` | Trigger eval sets: the queries a skill should and should not fire on |
 | `plugins/*/agents/evals/` | The same for each subagent, one `<name>.json` per agent file |
 | `docs/` | How to write skills, subagents, commands, `AGENTS.md`, what the project layout loads, and what CI checks |
+| `docs/review-lessons.md` | Defect classes review on this repository has actually caught, each with how it shows up, the check that catches it and the PR that found it first; `implementer` and `reviewer` read it before writing or judging anything |
 | `template/SKILL.md` | Starting point for a new skill |
 | `.claude-plugin/marketplace.json` | Lists the eight plugins; each discovers its own skills |
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `release.yml` |

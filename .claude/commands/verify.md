@@ -10,6 +10,23 @@ Run the two stages in order, and do not collapse them. The second exists because
 first is the wrong context — and in this loop, the wrong kind of evidence — to do that
 work in.
 
+## Handoff protocol
+
+Each stage passes forward the previous stage's `Handoff` section, not a paraphrase of the
+whole report. `investigator` receives the claim and what it rests on as a short brief,
+the same way `implementer` does in [`/ship`](ship.md) — settle both in this conversation
+before delegating, because that judgement travels badly through a cold prompt.
+
+From `investigator`: `DOES NOT HOLD`, `NARROWER` or `UNVERIFIED` means the change needs
+editing — take the finding to the files or to `implementer` rather than investigating
+again, then go to stage 2 with the edit; `HOLDS` goes to stage 2 directly. `UNVERIFIED` is
+a real result: report it as such, do not retry it. From `reviewer`: `FIX` returns the
+named findings to the files or to `implementer`; `STOP` comes to the user for a decision;
+`SHIP` ends the loop. There is no round limit, but the same finding recurring means the
+edit fixed a symptom rather than the premise — stop and address that before trying a
+third time. A report with no `Verdict:` line is a question, and comes back to this
+conversation.
+
 ## 1. Decide, then investigate
 
 Pick the claim that matters yourself. A change usually rests on several checkable things
@@ -23,11 +40,6 @@ and reads it, prefers refuting to confirming, labels each finding primary, conse
 inference, and reports what it could not verify.
 
 Send one claim. Three gets you a finding about none of them.
-
-If it comes back "does not hold" or "unverified", the change needs editing, not a second
-investigation. Take the finding to the files — or to `implementer` — rather than asking
-another agent for another opinion, which is how a refuted claim gets confirmed on the
-third attempt.
 
 ## 2. Judge
 
