@@ -203,6 +203,16 @@ Shell in this repository, including inline `run:` blocks in workflows, uses
   documents.
 - `ci` and `security` both have to be green before merge.
 
+## Pull request review threads
+
+For reviews on this repository, use one inline thread per distinct actionable finding.
+Prefix findings with `blocking`, `should-fix`, `consider` or `nit`, as the
+`code-review` skill defines. The reviewer owns verification and resolution of blocking
+threads after the author replies with a fix commit and check results. Keep follow-up on
+the original thread; open a new one only for a different defect. Put the verdict,
+coverage and checks in the overall review, and do not recommend merge with an unresolved
+blocking finding or a failing `ci` or `security` gate.
+
 ## Security considerations
 
 - No secrets in this repository, ever — gitleaks scans the working tree *and* history,
