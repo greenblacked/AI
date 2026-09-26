@@ -9,7 +9,10 @@ Status is judged against what is actually in the tree or documented as configure
 GitHub — or, where noted, verified against the GitHub API at the time of writing — not
 against intent: **Adopted** means a file or check enforces it today, **Partial** means
 it holds in practice but nothing gates or fully covers it, and **Not yet adopted** means
-nothing here does it.
+nothing here does it. For a GitHub setting specifically, that line falls where the
+confirmation does: the public API confirming it is Adopted, and only the owner having
+confirmed it by hand is Partial, because no file or check here re-verifies the owner's
+word.
 
 ## CI
 

@@ -701,11 +701,11 @@ stops working without it.
 ### Recorded state
 
 Everything above is what a setting decides, not whether it is on. As of 2026-09-26 the
-repository owner confirmed, directly in Settings → Code security rather than through any
-command here, that secret scanning, push protection, Dependabot alerts and Dependabot
-security updates are all on. That confirmation is the record; nothing in this repository
-re-checks it, because the API responses those four settings live behind are hidden from a
-non-admin call.
+repository owner confirmed, directly in Settings, then **Advanced Security** in the
+Security section of the sidebar, rather than through any command here, that secret
+scanning, push protection, Dependabot alerts and Dependabot security updates are all on.
+That confirmation is the record; nothing in this repository re-checks it, because the API
+responses those four settings live behind are hidden from a non-admin call.
 
 Delete branch on merge is also on, but unlike the four above it does not rest on the
 owner's word: the public repository API returns it directly
