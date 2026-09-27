@@ -30,6 +30,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   `docs/assets/banner-dark.svg`) above the README's header, switching with the reader's
   GitHub theme via the `<picture>` pattern.
 
+### Removed
+
+- Remove Bifrost, and OpenRouter as a general-purpose gateway, from the provider table,
+  `docs/deepseek.md` and `providers.json`. OpenRouter stays as the one documented route
+  to a DeepSeek model, for Claude Code only.
+
 ## [1.0.0] - 2026-09-24
 
 First tagged release. The catalogue at this tag:
