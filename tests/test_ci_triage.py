@@ -14,7 +14,7 @@ import json
 import re
 import urllib.request
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 
@@ -36,6 +36,10 @@ class FakeGitHub:
 
     def __init__(self):
         self.runs: list[dict] = []
+        # Set only by tests that care what head SHA the runs listing was actually
+        # asked for; every other test leaves this empty and gets `self.runs` back
+        # regardless of the query, same as before this existed.
+        self.runs_by_sha: dict[str, list[dict]] = {}
         self.jobs: dict[int, list[dict]] = {}
         self.comments: list[dict] = []
         self.labels: list[str] = []
@@ -63,7 +67,9 @@ class FakeGitHub:
             }
             return 200, {}, json.dumps(pr).encode()
         if path == f"/repos/{OWNER}/{REPO}/actions/runs":
-            return 200, {}, json.dumps({"workflow_runs": self.runs}).encode()
+            head_sha = parse_qs(parsed.query).get("head_sha", [None])[0]
+            runs = self.runs_by_sha.get(head_sha, self.runs) if self.runs_by_sha else self.runs
+            return 200, {}, json.dumps({"workflow_runs": runs}).encode()
         match = re.match(rf"^/repos/{OWNER}/{REPO}/actions/runs/(\d+)/jobs$", path)
         if match:
             run_id = int(match.group(1))
@@ -210,12 +216,22 @@ def test_keeps_the_red_report_while_a_recovery_run_is_still_in_flight():
     assert fake.labels == ["ci-failed"]
 
 
-def test_a_stale_sha_is_ignored():
+def test_recomputes_for_the_pull_requests_current_head_not_the_triggers_stale_sha():
+    # The concurrency group can complete a run for a since-superseded commit after
+    # the current head's own event was queued and dropped: GitHub keeps only one
+    # *pending* run per group, and a newer pending run there replaces an older
+    # pending one, not the group's most recently completed run. So the trigger's
+    # SHA (an old, failing run) must not be what gets reported — the pull
+    # request's actual current head (green here) must be.
     fake = FakeGitHub()
-    fake.runs = [{**green(1, "CI"), "conclusion": "failure"}]
-    fake.pr_head = "newer0000000"
-    result = run(fake)
-    assert "has moved on" in result
+    old_sha = "old0000000"
+    fake.pr_head = HEAD
+    fake.runs_by_sha = {
+        old_sha: [{**green(1, "CI"), "conclusion": "failure"}],
+        HEAD: [green(2, "CI", 2), green(3, "Security")],
+    }
+    result = run(fake, make_trigger(head_sha=old_sha))
+    assert result == "#7: green"
     assert fake.comments == []
     assert fake.labels == []
 
@@ -435,6 +451,28 @@ def test_an_unwatched_workflow_run_is_ignored():
     assert fake.comments == []
 
 
+def test_silence_holds_when_one_watched_workflow_has_not_started_yet():
+    # No run at all for Security yet is pending, not passing: it must not read as
+    # "nothing failed" and post nothing on a pull request that never failed.
+    fake = FakeGitHub()
+    fake.runs = [green(1, "CI")]
+    result = run(fake)
+    assert result == "#7: pending"
+    assert fake.comments == []
+    assert fake.labels == []
+
+
+def test_a_missing_watched_run_keeps_a_standing_red_report_and_label():
+    fake = FakeGitHub()
+    body_before = _labelled_red_report(fake)
+    # CI has since gone green, but Security has no run at all yet for this head.
+    fake.runs = [green(4, "CI", 2)]
+    result = run(fake)
+    assert result == "#7: pending"
+    assert fake.comments[0]["body"] == body_before
+    assert fake.labels == ["ci-failed"]
+
+
 def test_the_higher_run_number_wins_when_two_runs_share_a_workflow_name():
     fake = FakeGitHub()
     fake.runs = [
@@ -489,7 +527,7 @@ def test_a_failed_run_with_no_reported_jobs_falls_back_to_the_runs_own_conclusio
 
 def test_removing_the_label_raises_on_an_unexpected_status():
     fake = FakeGitHub()
-    fake.runs = [{**green(1, "CI"), "conclusion": "failure"}]
+    fake.runs = [{**green(1, "CI"), "conclusion": "failure"}, green(2, "Security")]
     fake.jobs[1] = [
         {
             "name": "check catalogue",
@@ -499,7 +537,7 @@ def test_removing_the_label_raises_on_an_unexpected_status():
         }
     ]
     run(fake)  # labels the PR
-    fake.runs = [green(4, "CI", 2)]  # recovers
+    fake.runs = [green(4, "CI", 2), green(5, "Security")]  # both recover
 
     real_call = fake.__call__
 

@@ -27,18 +27,30 @@ or removes the label on the strength of nothing.
 
 Each run recomputes the whole picture from the API for the pull request's
 *current* head commit rather than trusting the single `workflow_run` event
-that woke it up: GitHub keeps at most one pending run per concurrency group
-and cancels the rest, so an event can be dropped, and recomputing everything
-makes any surviving run correct regardless of what it was told.
+that woke it up. That matters because of how `.github/workflows/ci-triage.yml`
+serialises: its concurrency group is keyed on head repository and branch with
+`cancel-in-progress: false`, and GitHub keeps only one *pending* run per
+group — a newer pending run there replaces an older pending one, not the
+group's most recently completed run. So a rerun of a since-superseded commit
+can complete, and wake this script, after the event for the pull request's
+actual current head was already queued and dropped. Comparing the trigger's
+SHA to the pull request's current head and standing down on a mismatch would
+silently leave a stale comment and label the next time that happens; instead
+the trigger's SHA is used only to find the pull request, and every field of
+the report from there on is recomputed for whatever head that pull request
+has *right now*.
 
 What it does, in order:
 
 1. Find the open pull request for the triggering run — `pull_requests` on the
    event first, then the commit's associated pull requests, then a fork
-   lookup by head branch — and skip if that pull request has since moved past
-   the commit this run was for.
+   lookup by head branch.
 2. Recompute the latest run of each watched workflow (`CI`, `Security`) for
-   the pull request's current head SHA, so a dropped event loses nothing.
+   the pull request's current head SHA, so a dropped or superseded event
+   loses nothing. A watched workflow with no run yet for that head — not
+   started, or queued behind something — counts as pending, not as passing:
+   a standing red report must not be read as recovered just because nothing
+   has run yet.
 3. For a failed run, find each failed job's first failed step and look up a
    likely cause in `CAUSES`, a table keyed on this repository's own job
    names and kept in step with `docs/ci.md`'s "Failing means" column —
@@ -408,11 +420,12 @@ def triage(transport: Transport, token: str, owner: str, repo: str, trigger: dic
     _, pr, _ = api(transport, token, "GET", f"/repos/{owner}/{repo}/pulls/{number}")
     if pr is None or pr.get("state") != "open":
         return f"#{number} is not open; nothing to do."
+    # The trigger's SHA served only to find this pull request above. Whatever it
+    # named is not compared against the pull request's head from here on: the
+    # concurrency group can complete a stale event after the current head's own
+    # event was queued and dropped, and standing down on a mismatch would leave a
+    # comment and label frozen at whatever that stale event last said.
     head_sha = pr["head"]["sha"]
-    if head_sha != trigger["head_sha"]:
-        return (
-            f"#{number} has moved on to {head_sha}; ignoring the result for {trigger['head_sha']}."
-        )
 
     runs = latest_runs(transport, token, owner, repo, head_sha)
     rows: list[dict[str, str]] = []
@@ -421,6 +434,14 @@ def triage(transport: Transport, token: str, owner: str, repo: str, trigger: dic
     for workflow in WATCHED:
         run = runs.get(workflow)
         if run is None:
+            # Not started yet, or queued behind something else for this head. This
+            # counts as pending rather than being skipped: skipping it entirely
+            # left both `failing` and `pending` False whenever every watched run
+            # was still absent, which read as "green" and rewrote a standing red
+            # report to "Recovered" — and removed `ci-failed` — on the strength of
+            # nothing having run yet, rather than nothing having failed.
+            pending = True
+            rows.append({"workflow": workflow, "result": "pending (not started)"})
             continue
         html_url = run.get("html_url", "")
         if run.get("status") != "completed":
