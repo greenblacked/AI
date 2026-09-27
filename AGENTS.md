@@ -65,7 +65,7 @@ change an already active session.
 | `docs/review-lessons.md` | Defect classes review on this repository has actually caught, each with how it shows up, the check that catches it and the PR that found it first; `implementer` and `reviewer` read it before writing or judging anything |
 | `template/SKILL.md` | Starting point for a new skill |
 | `.claude-plugin/marketplace.json` | Lists the eight plugins; each discovers its own skills |
-| `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `release.yml` |
+| `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `release.yml`, `ci-triage.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
 | `providers.json` | Which AI tools read `AGENTS.md` and load skills, with sources and a checked date; `scripts/providers_table.py` renders it into the README |
 | `scripts/` | Packaging (`package_skills.py`, `verify_archives.py`), install, the eval harness, the portable export, cutting a release (`release.py`), and the seven catalogue checks |
@@ -227,16 +227,27 @@ blocking finding or a failing `ci` or `security` gate.
   tag that SHA belongs to — `# v7.0.1`, not `# v7`. The SHA is what makes it immutable;
   the comment is what lets Dependabot bump it. A major-version comment goes stale
   silently the moment upstream moves the floating tag, and zizmor fails the build for it.
-- Checkouts set `persist-credentials: false`. Nothing here pushes from CI. There are two
-  bounded exceptions. `dependabot-auto-merge.yml`'s single job is the first: it can enable
-  auto-merge on a Dependabot pull request that is a patch or minor update and whose head
-  branch is in this repository, which stays bounded because GitHub only completes that
-  merge once the `ci` and `security` checks the branch ruleset requires have both reported
-  `success`. `release.yml`'s single job is the second: it holds `contents: write` and
-  nothing else, runs only on a `vX.Y.Z` tag push, and refuses to proceed when the tagged
-  commit is not an ancestor of `main`. It spends that permission creating a GitHub Release
-  and uploading assets to it through the preinstalled `gh` CLI, never on pushing a commit
-  — its checkout still sets `persist-credentials: false`, the same as every other job here.
+- Checkouts set `persist-credentials: false`. Nothing here pushes from CI. There are
+  three bounded exceptions. `dependabot-auto-merge.yml`'s single job is the first: it can
+  enable auto-merge on a Dependabot pull request that is a patch or minor update and whose
+  head branch is in this repository, which stays bounded because GitHub only completes
+  that merge once the `ci` and `security` checks the branch ruleset requires have both
+  reported `success`. `release.yml`'s single job is the second: it holds `contents:
+  write` and nothing else, runs only on a `vX.Y.Z` tag push, and refuses to proceed when
+  the tagged commit is not an ancestor of `main`. It spends that permission creating a
+  GitHub Release and uploading assets to it through the preinstalled `gh` CLI, never on
+  pushing a commit — its checkout still sets `persist-credentials: false`, the same as
+  every other job here. `ci-triage.yml`'s single job is the third: it runs only on
+  `workflow_run` for `CI` or `Security` completing on a pull request, and grants itself
+  `actions: read`, `contents: read`, `issues: write` and `pull-requests: write` — never
+  `contents: write`, and it pushes nothing. `workflow_run` can hold a write token even
+  when the triggering run came from a fork, so its checkout takes only the default
+  branch, sparsely, for the triage script itself, never the pull request's head, and
+  every job or step name the script reads back out of the API is treated as untrusted
+  data and escaped before it is ever rendered into the comment it writes. zizmor's
+  dangerous-triggers audit still flags `workflow_run` at that severity regardless of what
+  the job does with it, so this workflow carries this repository's first suppression,
+  `# zizmor: ignore[dangerous-triggers]`, with that reasoning written beside it.
 - Skills may describe security tooling and defensive procedure. They must not contain
   working exploit code, credentials, or instructions whose obvious use is unauthorised
   access.

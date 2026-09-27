@@ -1,0 +1,74 @@
+---
+# Explains a failed CI or Security run in one comment per pull request, kept up to
+# date, and keeps a `ci-failed` label in step with it. A pull request that never
+# fails gets no comment at all.
+#
+# `workflow_run` is privileged: it can hold a write token even when the run that
+# triggered it came from a fork. So this job never checks out or executes anything
+# from the pull request. It checks out only the default branch, sparsely, for
+# `scripts/ci_triage.py`, and everything else is GitHub API reads plus one comment
+# and one label. Job and step names read back out of the API come from a workflow
+# file at the pull request's head, so a fork controls their text; `ci_triage.py`
+# escapes them before they are ever rendered.
+#
+# zizmor's dangerous-triggers audit flags any `workflow_run` trigger at High
+# severity, which would fail the `security` gate regardless of what the job
+# actually does with the privilege — the audit cannot see the paragraph above. This
+# is this repository's first suppression, `# zizmor: ignore[dangerous-triggers]`,
+# because the alternative was tuning the audit itself in configuration for one job,
+# which would blind it to a future `workflow_run` trigger that is not this careful.
+#
+# `workflow_run` fires only for a workflow file already on the default branch, so
+# this starts working once it is merged to `main`, not before.
+name: CI triage
+
+on:  # zizmor: ignore[dangerous-triggers]
+  workflow_run:
+    workflows: [CI, Security]
+    types: [completed]
+
+permissions: {}
+
+concurrency:
+  # Serialised per head repository and branch: the script recomputes the whole
+  # state each time, so a run the queue drops loses nothing.
+  group: >-
+    ci-triage-${{ github.event.workflow_run.head_repository.full_name }}-${{
+    github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    name: triage
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          # Trusted code only: the default branch, never the pull request's head.
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: scripts
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.13'
+      - name: Recompute the pull request's CI state and update its comment and label
+        # Every event value goes through env: rather than into the command line, so
+        # nothing the trigger carries — much of which a fork controls — ever
+        # reaches a shell as text.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          HEAD_REPOSITORY_OWNER: ${{ github.event.workflow_run.head_repository.owner.login }}
+          PULL_REQUESTS_JSON: ${{ toJSON(github.event.workflow_run.pull_requests) }}
+        run: |
+          set -Eeuo pipefail
+          python3 scripts/ci_triage.py
