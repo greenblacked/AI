@@ -598,7 +598,7 @@ as cheap as a cache restore and one fewer moving part in the path a binary reach
 Each curl retries up to three times on a transient failure, with a 20-second
 connect timeout and a 60-second cap per attempt so a stalled connection fails well
 inside the job's own timeout. `--retry-max-time 150` caps how long curl keeps
-scheduling retries at all, including any wait a `Retry-After` header on a 429 or 5xx
+scheduling retries at all, including any wait a `Retry-After` header on a 429 or 503
 response asks for: `--max-time` only bounds a single transfer, not the sleep between
 attempts, so a server-requested delay long enough on its own could otherwise still run
 past the job's five-minute `timeout-minutes` even though every individual attempt

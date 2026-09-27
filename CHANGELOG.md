@@ -20,7 +20,7 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   a stale, still-idempotent run instead of racing it.
 - Add `--retry-max-time 150` to the same two curl calls: `--retry` honours a server's
   `Retry-After` header and `--max-time` only bounds a single transfer, not the wait
-  between retries, so a 429 or 5xx with a long enough `Retry-After` could otherwise still
+  between retries, so a 429 or 503 with a long enough `Retry-After` could otherwise still
   run past the job's five-minute `timeout-minutes` even with every other cap in place. No
   retry is scheduled after 150 seconds, so the last attempt finishes within the job
   timeout regardless of what a server asks for.
