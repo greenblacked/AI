@@ -2,7 +2,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
-  <img alt="Agent skills banner, listing the eight plugins: coding, operations, delivery, security, gamedev, manager, personal, career" src="docs/assets/banner-light.svg" width="100%">
+  <img alt="The eight plugins: coding, operations, delivery, security, gamedev, manager, personal and career" src="docs/assets/banner-light.svg" width="100%">
 </picture>
 
 # Agent skills
