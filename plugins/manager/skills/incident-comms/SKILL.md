@@ -1,6 +1,6 @@
 ---
 name: incident-comms
-description: "Communicate outward during and after an incident — status page posts, customer notices, executive briefings, internal channel updates and the public write-up. Covers a dedicated comms role, acknowledging on impact rather than on diagnosis, a next-update promise you keep, separate messages per audience, severity-to-comms rules agreed in advance, regulatory and SLA clocks that start at detection, and the follow-through after resolution. Use this skill whenever something is broken and someone outside the response has to be told, or told again afterwards — including phrasings like \"what do we put on the status page\", \"customers are asking what is happening\", \"the CEO wants an update\", \"do we have to notify anyone\", or \"write the customer-facing writeup for last week's outage\". Do not use it for technical diagnosis or mitigation (k8s-triage), the internal blameless analysis (postmortem), routine reporting (status-update), or rehearsing a response (game-day)."
+description: "Communicate outward during and after an incident — status page posts, customer notices, executive briefings and internal channel updates. Covers a dedicated comms role, acknowledging on impact rather than on diagnosis, a next-update promise you keep, separate messages per audience, severity-to-comms rules agreed in advance, regulatory and SLA clocks that start at detection, and the follow-through after resolution. Use this skill whenever something is broken and someone outside the response has to be told, or told again afterwards — including phrasings like \"what do we put on the status page\", \"customers are asking what is happening\", \"the CEO wants an update\", or \"write the customer-facing writeup for last week's outage\". Do not use it for technical diagnosis or mitigation (incident-response, or k8s-triage for Kubernetes), the internal blameless analysis (postmortem), routine reporting (status-update), or rehearsing a response (game-day)."
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
@@ -14,7 +14,7 @@ The job is hard for a structural reason: the people who understand the incident 
 
 Use for: the first acknowledgement, ongoing updates, status page discipline, executive and internal briefings, the workaround notice, the all-clear, the customer-facing post-incident write-up, and the follow-through with affected accounts.
 
-Do not use for: diagnosing or mitigating the technical failure, which is `k8s-triage`; the internal blameless analysis of causes and action items, which is `postmortem` and which this skill's public write-up must be consistent with; routine weekly or executive reporting when nothing is on fire, which is `status-update`; or planning a drill, which is `game-day`.
+Do not use for: diagnosing or mitigating the technical failure, which is `incident-response` (or `k8s-triage` for a Kubernetes workload); the internal blameless analysis of causes and action items, which is `postmortem` and which this skill's public write-up must be consistent with; routine weekly or executive reporting when nothing is on fire, which is `status-update`; or planning a drill, which is `game-day`.
 
 ## Hard gates
 

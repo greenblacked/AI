@@ -13,7 +13,7 @@
   {"query": "we restored the backup in staging; plan a game day to measure whether on-call can recover within two hours", "should_trigger": false, "expected": "game-day"},
   {"query": "write the minute-by-minute runbook for promoting the replica and switching traffic during Saturday's DR failover", "should_trigger": false, "expected": "cutover"},
   {"query": "plan our phased move from AWS to GCP including coexistence, data sync, rollback and legacy retirement", "should_trigger": false, "expected": "plan-platform-migration"},
-  {"query": "production is down now and the database primary will not accept writes; help me coordinate recovery", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "production is down now and the database primary will not accept writes; help me coordinate recovery", "should_trigger": false, "expected": "incident-response"},
   {"query": "terraform state is truncated after a failed apply and the backend version is missing; recover it safely", "should_trigger": false, "expected": "terraform-state"},
   {"query": "decide how GDPR deletion requests should propagate into archives and expired customer backups", "should_trigger": false, "expected": "data-privacy"},
   {"query": "our cloud storage bill doubled this month; find the cost driver and recommend immediate savings", "should_trigger": false, "expected": "cost-review"},

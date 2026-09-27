@@ -14,7 +14,7 @@ Alerting is where good intentions turn into pager fatigue. Every incident ends w
 
 Use for: deciding whether a signal should page, ticket, or only sit on a dashboard; writing or fixing a Prometheus, Alertmanager, Datadog or CloudWatch rule; defining SLO burn-rate alerts and an error budget policy; adding runbooks, owners and severities to an existing rule set; auditing a quarter of pages and deleting what nobody acted on; adding deadman, absence-of-data and dependency-suppression coverage.
 
-Do not use for: diagnosing an incident that is burning right now (that is `k8s-triage`), designing dashboards, capacity planning, choosing between monitoring vendors, or writing up the incident afterwards (that is `postmortem`).
+Do not use for: diagnosing an incident that is burning right now (that is `incident-response`, or `k8s-triage` for a Kubernetes workload), designing dashboards, capacity planning, choosing between monitoring vendors, or writing up the incident afterwards (that is `postmortem`).
 
 ## The gate
 
