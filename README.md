@@ -17,9 +17,9 @@ plugins you install separately.
 
 </div>
 
-They cover the daily loop of changing code, keeping a system running, shipping a change,
-securing it, making a game, leading a team, a career, and the parts of life that are
-nobody's job.
+Between them they cover the daily loop of changing code, keeping a system running,
+shipping a change, securing it, making a game, leading a team, a career, and the parts of
+life that are nobody's job.
 
 A skill is a Markdown procedure an agent loads when it recognises the situation. Nothing
 here wraps a model's general knowledge. The useful part of a skill is the opinionated
@@ -114,7 +114,7 @@ Mistral Vibe read the `allowed-tools` key, but whether they enforce it as a rest
 not verified here, so rely on it only in Claude Code.
 
 <details>
-<summary>Provider comparison table</summary>
+<summary>Which tools read AGENTS.md and load skills</summary>
 
 <!-- providers-table:start -->
 <!-- Generated from providers.json by `python scripts/providers_table.py --write .`. Do not edit this table by hand: edit that file and regenerate. -->
