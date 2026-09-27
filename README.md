@@ -1,4 +1,9 @@
+<div align="center">
+
 # Agent skills
+
+89 agent skills, seventeen read-only subagents and six slash commands, in eight
+plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
 [![Security](https://github.com/greenblacked/AI/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/security.yml)
@@ -8,10 +13,13 @@
 [![Skills](https://img.shields.io/badge/skills-89-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-89 agent skills, seventeen read-only subagents and six slash commands, in eight
-plugins you install separately. They cover the daily loop of changing code, keeping a
-system running, shipping a change, securing it, making a game, leading a team, a career,
-and the parts of life that are nobody's job.
+[Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
+
+</div>
+
+They cover the daily loop of changing code, keeping a system running, shipping a change,
+securing it, making a game, leading a team, a career, and the parts of life that are
+nobody's job.
 
 A skill is a Markdown procedure an agent loads when it recognises the situation. Nothing
 here wraps a model's general knowledge. The useful part of a skill is the opinionated
@@ -25,22 +33,6 @@ installs them as plugins and fires them automatically; `make portable` flattens 
 into a standalone file for ChatGPT, Grok, Codex or anything else that reads text.
 [Using the skills](docs/using.md) covers each route, and is honest about what you lose
 outside a runtime that can trigger them for you.
-
----
-
-## Contents
-
-- [What is included](#what-is-included)
-- [Install](#install)
-- [What a real week looks like](#what-a-real-week-looks-like)
-- [Skills](#skills)
-- [Subagents](#subagents)
-- [Commands](#commands)
-- [CI is the source of truth](#ci-is-the-source-of-truth)
-- [Documentation](#documentation)
-- [Licence](#licence)
-
----
 
 ## What is included
 
@@ -62,8 +54,6 @@ Install what you will use, though, rather than everything by reflex. Every descr
 install stays resident in context, and Claude Code's default listing budget is about 8,000
 characters against this library's 77,500 — so installing all eight at the default drops
 most of them, silently. The Install section below says what to set instead.
-
----
 
 ## Install
 
@@ -193,8 +183,6 @@ git clone https://github.com/greenblacked/AI.git && cd AI
 ./scripts/install.sh             # symlink every skill into ~/.claude/skills
 ```
 
----
-
 ## What a real week looks like
 
 You never type a skill name. You describe the situation in the words you would use to a
@@ -240,8 +228,6 @@ Two things in that week are worth naming. The subagent on Thursday exists so a
 "what it makes you do first" column is the actual value: the model already knows what a
 liveness probe is, but it will happily write you one that checks a database and restarts
 healthy pods during someone else's outage. The gate is the skill.
-
----
 
 ## Skills
 
@@ -391,8 +377,6 @@ Applications, negotiation, speaking and writing.
 | [`offer-negotiation`](plugins/career/skills/offer-negotiation/SKILL.md) | Evaluate and negotiate an offer: total compensation decomposed, levelling as the negotiation that compounds, and nothing real until it is in writing. |
 | [`write-technical-article`](plugins/career/skills/write-technical-article/SKILL.md) | Turn real engineering experience and verifiable sources into a publishable technical article with a defensible thesis and no invented authority. |
 
----
-
 ## Subagents
 
 Seventeen subagents ship across seven plugins. Each exists to keep bulk out of the main context
@@ -445,8 +429,6 @@ Each runs on the tier its stage needs.
 [Writing a subagent](docs/writing-agents.md#the-two-loops) explains why the splits earn
 their round trips.
 
----
-
 ## Commands
 
 A command never fires on its own — you type it — which makes it the right shape for work
@@ -467,8 +449,6 @@ Each does the mechanical part and points at the skill holding the full procedure
 | `/skill-gap` | this repository | Survey the library for coverage it lacks, from its own dangling demand, and say which of skill, subagent, command or nothing the gap deserves. |
 | `/ship` | this repository | Take a change through the build loop: survey what already exists, write it and run the gates, then judge the result independently. |
 | `/verify` | this repository | Take a claim through the verification loop: settle it against primary sources, labelling what is verified and what is not, then judge whether the finding supports the change. |
-
----
 
 ## CI is the source of truth
 
@@ -514,8 +494,6 @@ free; scoring the queries needs a model, so it runs on demand rather than gating
 Each query is judged against the whole catalogue of descriptions, which is what catches a
 skill that fires on everything.
 
----
-
 ## Documentation
 
 - [Using the skills](docs/using.md) — installing and using them in Claude Code, ChatGPT, Grok and terminal agents
@@ -533,8 +511,6 @@ skill that fires on everything.
 - [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Code of conduct](CODE_OF_CONDUCT.md)
 
 Repository conventions for agents live in [`AGENTS.md`](AGENTS.md).
-
----
 
 ## Licence
 
