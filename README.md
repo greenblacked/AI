@@ -1,5 +1,10 @@
 <div align="center">
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
+  <img alt="The eight plugins: coding, operations, delivery, security, gamedev, manager, personal and career" src="docs/assets/banner-light.svg" width="100%">
+</picture>
+
 # Agent skills
 
 89 agent skills, seventeen read-only subagents and six slash commands, in eight
