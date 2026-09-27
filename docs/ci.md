@@ -946,3 +946,5 @@ picks up automatically.
 For the reasoning behind the rules `validate-skills` enforces, see [writing a
 skill](writing-skills.md). For the subagents referenced by the manifest, see [writing a
 subagent](writing-agents.md).
+
+This sentence exists only to recieve a spelling failure for a live triage check.
