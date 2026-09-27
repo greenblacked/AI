@@ -176,9 +176,11 @@ Triggers on `pull_request` (`opened`, `synchronize`, `reopened`), never
 is exactly what zizmor's dangerous-triggers audit exists to catch, and nothing here needs
 it. Top-level `permissions: {}`; the one job grants itself `contents: write` and
 `pull-requests: write` — the only job in this repository that can write to repository
-contents or pull requests (`codeql` in `security.yml` also writes, but only
-`security-events`, to publish its scan results, not to change anything a person reads
-as the repository's content). Not a required check — it names no other job and has no
+contents (`codeql` in `security.yml` also writes, but only `security-events`, to
+publish its scan results, not to change anything a person reads as the repository's
+content). `ci-triage.yml`'s job also holds `pull-requests: write`, but spends it only
+on the one triage comment and the `ci-failed` label, never on merging or pushing
+anything. Not a required check — it names no other job and has no
 aggregator, the same as `scheduled.yml` and `evals.yml` — because nothing depends on it
 and the two gates that do matter, `ci` and `security`, do the deciding. A `concurrency:`
 group keyed on the pull request number, with `cancel-in-progress: true`, cancels a stale
@@ -223,14 +225,16 @@ starts working once this file itself has been merged to `main`** — a pull requ
 only adds it triggers nothing.
 
 Top-level `permissions: {}`; the one job grants itself `actions: read`, `contents:
-read`, `issues: write` and `pull-requests: read` — the third bounded exception
-`AGENTS.md`'s Security considerations names, never `contents: write` or
-`pull-requests: write`, and nothing pushed. Every write the script makes — the one
-triage comment, the `ci-failed` label — is an Issues endpoint, which `issues: write`
-alone covers; `pull-requests` never needs more than `read`. `workflow_run` can hold a
-write token even when the run that triggered it came from a fork, so the checkout
-takes only the default branch, sparsely, for `scripts/`, and never the pull request's
-head; job and step names read back out of the API do come from a workflow file at
+read` and `pull-requests: write` — the third bounded exception `AGENTS.md`'s Security
+considerations names, never `contents: write`, and nothing pushed. `GITHUB_TOKEN`
+posting the one triage comment or the `ci-failed` label onto a pull request needs
+`pull-requests: write`: `issues: write` alone returns a 403, despite GitHub's
+published endpoint data listing issue-comment and label endpoints under "Issues *or*
+Pull requests", so that grant is spent only on that comment and that label.
+`workflow_run` can hold a write token even when the run that triggered it came from a
+fork, so the checkout takes only the default branch, sparsely, for `scripts/`, and
+never the pull request's head; job and step names read back out of the API do come
+from a workflow file at
 that head, so `scripts/ci_triage.py` treats them as untrusted text and escapes them
 before they reach the comment it writes. zizmor's dangerous-triggers audit flags any
 `workflow_run` trigger regardless of what a job does with the privilege, so the `on:`

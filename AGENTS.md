@@ -239,11 +239,12 @@ blocking finding or a failing `ci` or `security` gate.
   pushing a commit — its checkout still sets `persist-credentials: false`, the same as
   every other job here. `ci-triage.yml`'s single job is the third: it runs only on
   `workflow_run` for `CI` or `Security` completing on a pull request, and grants itself
-  `actions: read`, `contents: read`, `issues: write` and `pull-requests: read` — never
-  `contents: write` or `pull-requests: write`, and it pushes nothing. Every write it makes
-  — the one triage comment, the `ci-failed` label — is an Issues endpoint, which
-  `issues: write` alone covers; `pull-requests` stays at `read` because nothing here
-  ever needs to write to a pull request itself. `workflow_run` can hold a write token
+  `actions: read`, `contents: read` and `pull-requests: write` — never `contents: write`,
+  and it pushes nothing. `GITHUB_TOKEN` posting a comment or a label on a pull request
+  needs `pull-requests: write`; `issues: write` alone returns a 403, despite GitHub's
+  published endpoint data listing issue-comment and label endpoints under "Issues *or*
+  Pull requests". That grant is spent only on the one triage comment and the
+  `ci-failed` label. `workflow_run` can hold a write token
   even when the triggering run came from a fork, so its checkout takes only the default
   branch, sparsely, for the triage script itself, never the pull request's head, and
   every job or step name the script reads back out of the API is treated as untrusted
