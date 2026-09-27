@@ -147,7 +147,8 @@ You do not need a toolchain to get them. Every CI run builds them and attaches t
 the **portable-skills** artifact: open the
 [latest run](https://github.com/greenblacked/AI/actions/workflows/ci.yml?query=branch%3Amain),
 scroll to Artifacts, and download. Inside are one file per skill, one bundle per plugin,
-an index of every description, and a README explaining where each goes.
+an index of every description, a router sized to fit inside a terminal agent's own
+document budget, and a README explaining where each goes.
 
 If you do have a terminal, build them yourself instead:
 
@@ -157,10 +158,11 @@ make portable       # writes dist/portable/
 ```
 
 Either way: upload the `plugins/*.md` bundles to a ChatGPT Project or a Custom GPT, paste
-a single `skills/<name>.md` into any chat, or append a bundle to the `AGENTS.md` of the
-repository a terminal agent is working in. [Using the skills](docs/using.md) has the
-instruction text that makes a Project reach for them, and says plainly what does not
-survive the trip.
+a single `skills/<name>.md` into any chat, or paste `router.md` — or one narrower
+`router-<plugin>.md` — into the `AGENTS.md` of the repository a terminal agent is working
+in, with `skills/` copied in beside it. [Using the skills](docs/using.md) has the
+instruction text that makes a Project reach for them, why a terminal agent gets the
+router rather than a bundle, and says plainly what does not survive the trip.
 
 ### Running the skills on DeepSeek
 
