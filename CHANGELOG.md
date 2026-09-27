@@ -11,8 +11,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 ### Changed
 
 - Define the GitHub pull request review thread lifecycle for findings, replies and resolution.
-- Bring the README's CI section and documentation list up to date with the naming lint,
-  the review instructions doc and the settings GitHub records outside this tree.
+- Bring the README's CI section and documentation list, and CONTRIBUTING.md's pre-PR
+  command list, up to date with the naming and attribution checks, the review
+  instructions doc and the settings GitHub records outside this tree.
 
 ## [1.0.0] - 2026-09-24
 
