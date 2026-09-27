@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Narrow ci-triage.yml's job permissions from pull-requests: write back to pull-requests: read, keeping issues: write, since GitHub's published endpoint data lists the comment and label endpoints ci_triage.py calls under \"Issues or Pull requests\" and issues: write looks sufficient on its own for both. No live run against a real pull request.",
+  "lesson": "A permission narrowed on documentation alone breaks the one path that used it",
+  "must_mention": [
+    "pull-requests: write",
+    "403",
+    "live run|live check|throwaway"
+  ]
+}
