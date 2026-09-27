@@ -469,8 +469,9 @@ pull request title, which is checked only in CI, once the pull request exists.
 
 Some repository controls live in GitHub's settings rather than in this tree — the branch
 ruleset, secret scanning and push protection, Dependabot alerts and security updates —
-and no file here can see whether they are switched on. [CI](docs/ci.md) names those
-controls and how to read their state, since a repository can look rigorous while a
+and no file here can see whether they are switched on. [CI](docs/ci.md#recorded-state)
+names those controls, records which ones the owner has confirmed as on, and gives the
+commands to read each one's state back, since a repository can look rigorous while a
 control it describes is silently off.
 
 Subagents are held to the same contract, and every skill carries a trigger eval set —
