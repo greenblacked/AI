@@ -1,4 +1,9 @@
+<div align="center">
+
 # Agent skills
+
+89 agent skills, seventeen read-only subagents and six slash commands, in eight
+plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
 [![Security](https://github.com/greenblacked/AI/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/security.yml)
@@ -8,10 +13,13 @@
 [![Skills](https://img.shields.io/badge/skills-89-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-89 agent skills, seventeen read-only subagents and six slash commands, in eight
-plugins you install separately. They cover the daily loop of changing code, keeping a
-system running, shipping a change, securing it, making a game, leading a team, a career,
-and the parts of life that are nobody's job.
+[Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
+
+</div>
+
+Between them they cover the daily loop of changing code, keeping a system running,
+shipping a change, securing it, making a game, leading a team, a career, and the parts of
+life that are nobody's job.
 
 A skill is a Markdown procedure an agent loads when it recognises the situation. Nothing
 here wraps a model's general knowledge. The useful part of a skill is the opinionated
@@ -105,6 +113,9 @@ This repository's subagents are a Claude Code feature and do not travel. Grok Bu
 Mistral Vibe read the `allowed-tools` key, but whether they enforce it as a restriction is
 not verified here, so rely on it only in Claude Code.
 
+<details>
+<summary>Which tools read AGENTS.md and load skills</summary>
+
 <!-- providers-table:start -->
 <!-- Generated from providers.json by `python scripts/providers_table.py --write .`. Do not edit this table by hand: edit that file and regenerate. -->
 
@@ -121,6 +132,8 @@ not verified here, so rely on it only in Claude Code.
 | xAI | Grok Build | Yes, and `CLAUDE.md`; needs folder trust | Yes — `.grok/skills`, `.agents/skills`, and `~/.claude/skills` | `make install` already links every skill where it looks | [2026-09-23](https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/docs/user-guide/08-skills.md), [2](https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/docs/user-guide/12-project-rules.md) |
 
 <!-- providers-table:end -->
+
+</details>
 
 For a chat product with no skills loader, the portable export still applies. There is no
 marketplace to read there, so the skills are flattened into files that stand alone
