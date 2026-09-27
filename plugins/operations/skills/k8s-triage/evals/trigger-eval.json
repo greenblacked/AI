@@ -1,6 +1,6 @@
 [
   {"query": "my pod won't start, CrashLoopBackOff, 47 restarts and climbing", "should_trigger": true},
-  {"query": "the deploy broke prod, checkout is 502ing. roll back?", "should_trigger": true},
+  {"query": "kubectl rollout history shows revision 52 shipped nine minutes before checkout started 502ing, undo the rollout?", "should_trigger": true},
   {"query": "pods stuck Pending for twenty minutes in the ml namespace, the node group looks like it has room", "should_trigger": true},
   {"query": "svc/orders has no endpoints but the pods are all Running, what am i missing", "should_trigger": true},
   {"query": "worker deployment gets OOMKilled every couple of hours since we bumped the batch size", "should_trigger": true},
