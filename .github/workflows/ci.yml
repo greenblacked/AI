@@ -52,7 +52,7 @@ jobs:
   validate-skills:
     name: validate skills
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -203,7 +203,7 @@ jobs:
   catalogue:
     name: check catalogue
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -272,7 +272,7 @@ jobs:
   spelling:
     name: lint spelling
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -301,7 +301,7 @@ jobs:
   lint-markdown:
     name: lint markdown
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -315,7 +315,7 @@ jobs:
   lint-yaml:
     name: lint yaml
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -339,7 +339,7 @@ jobs:
   lint-actions:
     name: lint workflows
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -357,7 +357,8 @@ jobs:
         run: |
           set -Eeuo pipefail
           archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
-          curl -fsSL -o "$archive" \
+          curl -fsSL --retry 3 --retry-connrefused --retry-delay 2 \
+            --connect-timeout 20 --max-time 60 -o "$archive" \
             "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/${archive}"
           echo "${ACTIONLINT_SHA256}  ${archive}" | sha256sum --check --status
           tar -xzf "$archive" actionlint
@@ -366,7 +367,7 @@ jobs:
   links:
     name: check links
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -389,7 +390,7 @@ jobs:
   attribution:
     name: attribution
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -427,7 +428,7 @@ jobs:
   naming:
     name: naming
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:

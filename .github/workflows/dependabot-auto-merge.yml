@@ -18,6 +18,13 @@ on:
 
 permissions: {}
 
+# Keyed on the pull request number so a second push while the first run is still
+# enabling auto-merge cancels the stale one rather than racing it; the job is
+# idempotent, so nothing here is lost by cancelling an in-progress run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   auto-merge:
     name: dependabot auto-merge

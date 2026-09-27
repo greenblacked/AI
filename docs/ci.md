@@ -180,7 +180,10 @@ contents or pull requests (`codeql` in `security.yml` also writes, but only
 `security-events`, to publish its scan results, not to change anything a person reads
 as the repository's content). Not a required check — it names no other job and has no
 aggregator, the same as `scheduled.yml` and `evals.yml` — because nothing depends on it
-and the two gates that do matter, `ci` and `security`, do the deciding.
+and the two gates that do matter, `ci` and `security`, do the deciding. A `concurrency:`
+group keyed on the pull request number, with `cancel-in-progress: true`, cancels a stale
+run when a newer push arrives for the same pull request; the job is idempotent, so
+nothing is lost by cancelling one that was still enabling auto-merge.
 
 A human push to a Dependabot pull request — a person amending the branch by hand — keeps
 it eligible: `github.event.pull_request.user.login` stays `dependabot[bot]` regardless of
@@ -540,11 +543,12 @@ the job's token into `.git/config`, where any subsequent step — including anyt
 build script pulls in — can read it and push with it. None of these jobs push, so none of
 them need the credential to survive the checkout step.
 
-Every job sets `timeout-minutes` — ten for most, twenty for CodeQL, two hours for the
-monthly eval job, forty-five for the pull request eval job, five for the aggregators.
-The default is six hours, which is long enough that a hung step looks like a slow one
-for most of a working day, and it holds a runner the whole time. A timeout turns that
-into a failure with a name.
+Every job sets `timeout-minutes` — five for most, ten for `validate-plugin`, `test`,
+`package` and the two `scheduled.yml` jobs, fifteen for the release job, twenty for
+CodeQL, two hours for the monthly eval job, and forty-five for the pull request eval
+job. The default is six hours, which is long enough that a hung step looks like a slow
+one for most of a working day, and it holds a runner the whole time. A timeout turns
+that into a failure with a name.
 
 Both of those are enforced rather than remembered: `permissions-audit` fails the
 `security` gate for a job with no `timeout-minutes` and for a checkout that does not set
@@ -591,8 +595,12 @@ measured from actual runs rather than inferred from job count.
 Four jobs that fetch something are deliberately not cached. `lint-actions` and `secrets`
 curl a single pinned tarball each and verify it against a digest, which is already about
 as cheap as a cache restore and one fewer moving part in the path a binary reaches CI by.
-The two `evals.yml` jobs install a CLI globally with npm and are not on the critical path
-of any gate.
+Each curl retries up to three times on a transient failure, with a 20-second
+connect timeout and a 60-second cap per attempt so a stalled connection fails well
+inside the job's own timeout; the digest check afterwards runs on whatever arrives,
+retried or not, so a retry that succeeds is verified exactly as a first-try download
+would be. The two `evals.yml` jobs install a CLI globally with npm and are not on the
+critical path of any gate.
 
 ## Making CI authoritative
 
