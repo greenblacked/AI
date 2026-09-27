@@ -11,26 +11,16 @@ merging a Dependabot pull request once the other two have.
 ## Execution flow
 
 Validation, lint, compatibility tests and security scans run in parallel. Packaging
-starts as soon as `validate-skills` succeeds, rather than waiting on every check, then
-builds and verifies the skill archives and portable exports. That is narrower than it
-looks: `package_skills.py` refuses to package a skill that does not validate, so
-`validate-skills` is the one dependency packaging actually reads; `test` is deliberately
-not one of its `needs:`, since it is this workflow's longest job and keeping it there
-would put packaging back on the critical path for a check it does not rely on. Nothing
-ships from red code regardless — the `ci` gate still requires all twelve jobs including
-`test` before it reports success, and `release.yml` builds its own archives from the
-tag rather than trusting this job's artifacts. `ci` and `security` remain the two
-required check names. Both reject failed, cancelled, skipped, missing or malformed
-dependency results.
+starts only after every CI check succeeds, then builds and verifies the skill archives
+and portable exports. `ci` and `security` remain the two required check names. Both reject
+failed, cancelled, skipped, missing or malformed dependency results.
 
 ```mermaid
 flowchart TD
-  E["PR, main push, merge group or manual run"] --> V["validate-skills"]
-  E --> C["Parallel lint, tests and other checks"]
+  E["PR, main push, merge group or manual run"] --> C["Parallel validation, lint and tests"]
   E --> S["Parallel security scans"]
-  V --> P["Build and verify artifacts"]
-  V --> G["ci gate"]
-  C --> G
+  C --> P["Build and verify artifacts"]
+  C --> G["ci gate"]
   P --> G
   S --> H["security gate"]
   G --> M["Merge eligibility"]
@@ -73,7 +63,7 @@ gives, and at workflow level so a cache key can name one.
 | `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the workflow's `env` for the same reason the scanners are. |
 | `test` | `test (3.10)` … `test (3.13)` | The full test suite failed on that interpreter. Python 3.10–3.12 run plain pytest; 3.13 additionally measures line and branch coverage and enforces the unchanged floor in [`pyproject.toml`](../pyproject.toml). Compatibility remains checked on all four versions, with coverage instrumentation paid for once. pytest and coverage retain their existing version pins. The coverage table lands in the 3.13 job summary. |
 | `catalogue` | `check catalogue` | A plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), the README stopped matching the tree, this file stopped listing the jobs CI runs, a workflow's aggregate stopped naming every job in it or a pinned version came to mean two things, a shell block or shipped script no longer parses, the hook registration in `.claude/settings.json` names a script that is missing or not executable, or the README's table of AI tools no longer matches [`providers.json`](../providers.json) or that file is malformed — regenerate the table with `make providers` rather than editing it; a row past `stale_after_days` only warns. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. The same file also records each skill's own description length: a new skill must arrive at or under 900 characters, and one already above that is pinned where it measures rather than trimmed to fit a gate. |
-| `package` (portable step) | `package` | `make portable` could not flatten every skill into a file that stands alone. References are inlined and their pointers rewritten, so the export works without a filesystem. Portable outputs upload as `portable-skills` only after `validate-skills` passes, not after every CI check. |
+| `package` (portable step) | `package` | `make portable` could not flatten every skill into a file that stands alone. References are inlined and their pointers rewritten, so the export works without a filesystem. Portable outputs upload as `portable-skills` only after the preceding CI checks pass. |
 | `spelling` | `lint spelling` | codespell found a likely typo. It ran weekly and warn-only until it was made a gate; the false positives are listed in [`pyproject.toml`](../pyproject.toml) with the reason each is one, which is what lets the check sit at zero and mean something. |
 | `lint-markdown` | `lint markdown` | markdownlint-cli2 found a violation in a `*.md` file. Config in `.markdownlint-cli2.yaml`. |
 | `lint-yaml` | `lint yaml` | yamllint in `--strict` mode found a problem. Config in `.yamllint.yaml`, version in `YAMLLINT_VERSION`: a release that adds a rule would otherwise redden the build on YAML nobody touched. |
@@ -597,10 +587,9 @@ advisory trigger-eval job without credentials still means no routing score was m
 No branch-protection migration is needed because `ci` and `security` keep their names.
 To roll back, revert the CI redesign commit through a PR and require both existing
 checks before merging. The extra artifact stage may lengthen the critical path; the
-benefit is that packaging starts only once `validate-skills` passes, rather than
-unconditionally, while the separate checks continue to give early failure feedback.
-Runner-minute or wall-clock savings must be measured from actual runs rather than
-inferred from job count.
+benefit is that packaging starts only after the checks pass, while the separate checks
+continue to give early failure feedback. Runner-minute or wall-clock savings must be
+measured from actual runs rather than inferred from job count.
 
 Four jobs that fetch something are deliberately not cached. `lint-actions` and `secrets`
 curl a single pinned tarball each and verify it against a digest, which is already about
