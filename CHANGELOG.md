@@ -24,6 +24,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 - Stop `docs/ci.md` and `CONTRIBUTING.md` from implying `make naming` and `make
   attribution` check the pull request title and body locally: the Makefile targets never
   set `PR_TITLE` or `PR_BODY`, so only CI checks them, once the pull request exists.
+- Give the README a centred header with a navigation line, and collapse the provider
+  comparison table behind a `<details>` toggle.
 
 ## [1.0.0] - 2026-09-24
 
