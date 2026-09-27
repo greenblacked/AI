@@ -14,6 +14,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 - Bring the README's CI section and documentation list, and CONTRIBUTING.md's pre-PR
   command list, up to date with the naming and attribution checks, the review
   instructions doc and the settings GitHub records outside this tree.
+- Record that the owner enabled GitHub's native secret scanning, push protection,
+  Dependabot alerts and Dependabot security updates on 2026-09-26, alongside the existing
+  CI checks rather than in place of them, in `docs/ci.md`'s settings section and
+  `docs/best-practices.md`'s status tables.
 
 ## [1.0.0] - 2026-09-24
 
