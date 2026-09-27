@@ -239,13 +239,17 @@ blocking finding or a failing `ci` or `security` gate.
   pushing a commit — its checkout still sets `persist-credentials: false`, the same as
   every other job here. `ci-triage.yml`'s single job is the third: it runs only on
   `workflow_run` for `CI` or `Security` completing on a pull request, and grants itself
-  `actions: read`, `contents: read` and `pull-requests: write` — never `contents: write`,
-  and it pushes nothing. `GITHUB_TOKEN` posting a comment or a label on a pull request
-  needs `pull-requests: write`; `issues: write` alone returns a 403, despite GitHub's
-  published endpoint data listing issue-comment and label endpoints under "Issues *or*
-  Pull requests". That grant is spent only on the one triage comment and the
-  `ci-failed` label. `workflow_run` can hold a write token
-  even when the triggering run came from a fork, so its checkout takes only the default
+  `actions: read`, `contents: read`, `issues: write` and `pull-requests: write` — never
+  `contents: write`, and it pushes nothing. A live run's first write, the comment POST,
+  returned a 403 under the narrower `issues: write` plus `pull-requests: read` grant a
+  documentation-only reading of GitHub's endpoints had left it with; the run never
+  reached the label POST. `GITHUB_TOKEN` needs `pull-requests: write` to comment on or
+  label a pull request, and separately needs `issues: write` to create the `ci-failed`
+  label the first time any pull request needs it, since the label does not exist until
+  then — `actions/labeler` documents label creation as needing `issues: write`, where
+  adding an existing label needs only `pull-requests: write`. Both grants are spent only
+  on that one comment and that one label. `workflow_run` can hold a write token even
+  when the triggering run came from a fork, so its checkout takes only the default
   branch, sparsely, for the triage script itself, never the pull request's head, and
   every job or step name the script reads back out of the API is treated as untrusted
   data and escaped before it is ever rendered into the comment it writes. Every GitHub

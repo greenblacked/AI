@@ -1,16 +1,17 @@
 --- a/.github/workflows/ci-triage.yml
 +++ b/.github/workflows/ci-triage.yml
-@@ -44,10 +44,10 @@
+@@ -44,12 +44,11 @@
      runs-on: ubuntu-latest
      timeout-minutes: 5
      permissions:
 -      actions: read         # list the pull request's own workflow runs and their jobs
 -      contents: read        # checkout, sparse and default-branch only
--      pull-requests: write  # read head SHA, state and labels; create or edit the one
--                             # triage comment; add or remove ci-failed
 +      actions: read        # list the pull request's own workflow runs and their jobs
 +      contents: read       # checkout, sparse and default-branch only
-+      issues: write        # create or edit the one triage comment, add or remove ci-failed
+       issues: write         # create the ci-failed label itself, the first time any
+                              # pull request needs it: it does not exist until then
+-      pull-requests: write  # read head SHA, state and labels; comment on and add or
+-                             # remove an existing label on the pull request
 +      pull-requests: read  # read the pull request's head SHA, state and labels
      steps:
        - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1

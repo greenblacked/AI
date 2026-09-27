@@ -61,11 +61,14 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
-- Give `ci-triage.yml`'s job `pull-requests: write` in place of `issues: write`: a live
-  run showed `GITHUB_TOKEN` posting the triage comment or the `ci-failed` label to a
-  pull request returning a 403 under `issues: write` and `pull-requests: read`, since
-  both endpoints need `pull-requests: write` regardless of GitHub's published endpoint
-  data listing them under "Issues *or* Pull requests".
+- Give `ci-triage.yml`'s job `pull-requests: write` alongside `issues: write`, rather
+  than `issues: write` with `pull-requests: read`: a live run's first write, the
+  triage comment, returned a 403 under the narrower grant, since `GITHUB_TOKEN` needs
+  `pull-requests: write` to comment on or label a pull request regardless of GitHub's
+  published endpoint data listing those endpoints under "Issues *or* Pull requests".
+  `issues: write` stays, since creating the `ci-failed` label the first time a pull
+  request needs it — the label does not exist until then — needs that grant
+  separately from labelling with it once it exists.
 
 ## [1.0.0] - 2026-09-24
 
