@@ -18,6 +18,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   Dependabot alerts and Dependabot security updates on 2026-09-26, alongside the existing
   CI checks rather than in place of them, in `docs/ci.md`'s settings section and
   `docs/best-practices.md`'s status tables.
+- Stop `docs/ci.md` and `CONTRIBUTING.md` from implying `make naming` and `make
+  attribution` check the pull request title and body locally: the Makefile targets never
+  set `PR_TITLE` or `PR_BODY`, so only CI checks them, once the pull request exists.
 
 ## [1.0.0] - 2026-09-24
 
