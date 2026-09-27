@@ -18,6 +18,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   so a hang there is caught sooner; and add a `concurrency` group to
   `dependabot-auto-merge.yml`, the one workflow that had none, so a second push cancels
   a stale, still-idempotent run instead of racing it.
+- Add `--retry-max-time 150` to the same two curl calls: `--retry` honours a server's
+  `Retry-After` header and `--max-time` only bounds a single transfer, not the wait
+  between retries, so a 429 or 5xx with a long enough `Retry-After` could otherwise still
+  run past the job's five-minute `timeout-minutes` even with every other cap in place. No
+  retry is scheduled after 150 seconds, so the last attempt finishes within the job
+  timeout regardless of what a server asks for.
 - Re-run `ci.yml` when a pull request's title, body or base branch is edited, so the
   `naming` and `attribution` jobs check the current text instead of leaving a stale
   result standing.

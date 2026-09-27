@@ -597,7 +597,12 @@ curl a single pinned tarball each and verify it against a digest, which is alrea
 as cheap as a cache restore and one fewer moving part in the path a binary reaches CI by.
 Each curl retries up to three times on a transient failure, with a 20-second
 connect timeout and a 60-second cap per attempt so a stalled connection fails well
-inside the job's own timeout; the digest check afterwards runs on whatever arrives,
+inside the job's own timeout. `--retry-max-time 150` caps how long curl keeps
+scheduling retries at all, including any wait a `Retry-After` header on a 429 or 5xx
+response asks for: `--max-time` only bounds a single transfer, not the sleep between
+attempts, so a server-requested delay long enough on its own could otherwise still run
+past the job's five-minute `timeout-minutes` even though every individual attempt
+respected its own cap. The digest check afterwards runs on whatever arrives,
 retried or not, so a retry that succeeds is verified exactly as a first-try download
 would be. The two `evals.yml` jobs install a CLI globally with npm and are not on the
 critical path of any gate.
