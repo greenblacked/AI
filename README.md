@@ -452,7 +452,7 @@ make catalogue  # listing ceilings, the README and CI docs, workflows, shell, th
 make test       # the validator's own test suite
 make coverage   # the same, with the coverage floor CI enforces
 make package    # a .skill archive per skill
-make naming     # branch, commit, PR-title and file-naming conventions
+make naming     # branch, commit and file-naming conventions
 ```
 
 The check that earns its place is the dangling-pointer one. Two of these skills shipped
@@ -464,13 +464,14 @@ over the workflows themselves, ruff's flake8-bandit rules, CodeQL, and two invar
 every workflow declares a `permissions:` block, and every action is pinned to a commit
 SHA. A `naming` gate checks the same shape this repository holds contributors to — branch
 names, commit subjects, pull-request titles, and file and folder names — against
-[`CONTRIBUTING.md`](CONTRIBUTING.md#naming-a-branch); `make naming` reproduces it locally.
+[`CONTRIBUTING.md`](CONTRIBUTING.md#naming); `make naming` reproduces everything but the
+pull request title, which is checked only in CI, once the pull request exists.
 
 Some repository controls live in GitHub's settings rather than in this tree — the branch
 ruleset, secret scanning and push protection, Dependabot alerts and security updates —
-and no file here can see whether they are switched on. [CI](docs/ci.md) records what is
-currently configured, since a repository can look rigorous while a control it describes
-is silently off.
+and no file here can see whether they are switched on. [CI](docs/ci.md) names those
+controls and how to read their state, since a repository can look rigorous while a
+control it describes is silently off.
 
 Subagents are held to the same contract, and every skill carries a trigger eval set —
 twenty queries it should fire on and near-misses it should not, with most near-misses

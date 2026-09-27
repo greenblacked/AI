@@ -18,9 +18,9 @@ make attribution
 
 These are what CI runs. `make lint` runs ruff, markdownlint, yamllint, actionlint and
 codespell when they are installed and tells you the install command when they are not.
-`make naming` and `make attribution` reproduce their CI jobs' full scope — branch, commit
-and title conventions, and tool-attribution trailers — by diffing against `origin/main`,
-the same base ref a pull request gives those jobs.
+`make naming` and `make attribution` diff against `origin/main` to check the branch name
+and commit subjects, and commits for tool attribution; the pull request title and body
+are checked only in CI, once the pull request exists.
 
 `make catalogue` is the one that fails on work that feels finished. A new skill has no row
 in the README yet, and it pushes its plugin's listing past the ceiling recorded in
