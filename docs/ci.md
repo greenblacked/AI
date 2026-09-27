@@ -784,7 +784,7 @@ make test       # pytest — the test job
 make coverage   # the same run under coverage, failing below the floor
 make lint       # ruff, markdownlint, yamllint, actionlint, codespell — the lint jobs
 make package    # .skill archives into dist/ — the package job
-make attribution  # commits since origin/main against the attribution rules — the attribution job
+make attribution  # commits since origin/main and the branch name against the attribution rules — the attribution job
 make naming     # file names, branch and commits against naming conventions — the naming job
 ```
 
