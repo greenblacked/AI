@@ -40,7 +40,7 @@ jobs:
   secrets:
     name: secret scan
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -60,7 +60,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
-          curl -fsSL -o "$archive" \
+          curl -fsSL --retry 3 --retry-connrefused --retry-delay 2 -o "$archive" \
             "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${archive}"
           echo "${GITLEAKS_SHA256}  ${archive}" | sha256sum --check --status
           tar -xzf "$archive" gitleaks
@@ -74,7 +74,7 @@ jobs:
   workflows:
     name: workflow audit
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -108,7 +108,7 @@ jobs:
   python:
     name: python security lint
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -151,7 +151,7 @@ jobs:
   permissions-audit:
     name: permissions audit
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:

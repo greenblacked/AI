@@ -10,6 +10,14 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Start `ci.yml`'s `package` job as soon as `validate-skills` succeeds instead of
+  waiting on all nine preceding checks, since `test` was the long pole and packaging
+  reads only `validate-skills`; retry the actionlint and gitleaks downloads on a
+  transient network failure; drop the smaller, fast-finishing jobs in `ci.yml` and
+  `security.yml` from a ten-minute to a five-minute timeout, so a hang there is caught
+  sooner; and add a `concurrency` group to `dependabot-auto-merge.yml`, the one
+  workflow that had none, so a second push cancels a stale, still-idempotent run
+  instead of racing it.
 - Re-run `ci.yml` when a pull request's title, body or base branch is edited, so the
   `naming` and `attribution` jobs check the current text instead of leaving a stale
   result standing.
