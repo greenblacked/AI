@@ -46,8 +46,10 @@ and [concurrency behavior](https://docs.github.com/en/actions/writing-workflows/
 
 ## `.github/workflows/ci.yml` — CI
 
-Triggers on push to `main`, on every pull request, on merge-group `checks_requested`,
-and on `workflow_dispatch`. Top-level
+Triggers on push to `main`; on a pull request opened, synchronized, reopened or edited
+— `edited` is included because the naming and attribution jobs below read the title and
+body from the event payload, so changing either has to produce a fresh run; on
+merge-group `checks_requested`; and on `workflow_dispatch`. Top-level
 `permissions: {}`; each job grants itself the minimum. Every tool the workflow installs
 or downloads is pinned in the workflow-level `env` block — `CLAUDE_CODE_VERSION`,
 `CODESPELL_VERSION`, `YAMLLINT_VERSION`, `PYTEST_VERSION`, `COVERAGE_VERSION`,
