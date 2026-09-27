@@ -452,6 +452,7 @@ make catalogue  # listing ceilings, the README and CI docs, workflows, shell, th
 make test       # the validator's own test suite
 make coverage   # the same, with the coverage floor CI enforces
 make package    # a .skill archive per skill
+make naming     # branch, commit and file-naming conventions
 ```
 
 The check that earns its place is the dangling-pointer one. Two of these skills shipped
@@ -461,7 +462,17 @@ where it expected depth, and no error was ever raised. CI now fails on it.
 Alongside `ci`, a `security` gate runs gitleaks over the working tree and history, zizmor
 over the workflows themselves, ruff's flake8-bandit rules, CodeQL, and two invariants:
 every workflow declares a `permissions:` block, and every action is pinned to a commit
-SHA.
+SHA. A `naming` gate checks the same shape this repository holds contributors to — branch
+names, commit subjects, pull-request titles, and file and folder names — against
+[`CONTRIBUTING.md`](CONTRIBUTING.md#naming); `make naming` reproduces everything but the
+pull request title, which is checked only in CI, once the pull request exists.
+
+Some repository controls live in GitHub's settings rather than in this tree — the branch
+ruleset, secret scanning and push protection, Dependabot alerts and security updates —
+and no file here can see whether they are switched on. [CI](docs/ci.md#recorded-state)
+names those controls, records which ones the owner has confirmed as on, and gives the
+commands to read each one's state back, since a repository can look rigorous while a
+control it describes is silently off.
 
 Subagents are held to the same contract, and every skill carries a trigger eval set —
 twenty queries it should fire on and near-misses it should not, with most near-misses
@@ -480,6 +491,7 @@ skill that fires on everything.
 - [Writing a subagent](docs/writing-agents.md) — when a subagent beats doing the work inline
 - [Writing a slash command](docs/writing-commands.md) — when a command beats a skill, and why most do not
 - [Review lessons](docs/review-lessons.md) — defect classes review on this repository has actually caught, read after `AGENTS.md` by the build and verify loops
+- [Review instructions](REVIEW.md) — severity redefined for Claude Code's managed GitHub code review, and what it skips; points back to `AGENTS.md`'s Review guidelines for the triggers and comment format
 - [AGENTS.md](docs/agents-md.md) — the standard, and how it relates to `CLAUDE.md`
 - [CI](docs/ci.md) — what each check means and how to make it required
 - [Best practices](docs/best-practices.md) — CI, security, and branching and merging: the practice, why it matters, how this repository applies it, and what is not yet adopted
