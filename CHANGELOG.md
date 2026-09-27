@@ -26,6 +26,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   set `PR_TITLE` or `PR_BODY`, so only CI checks them, once the pull request exists.
 - Give the README a centred header with a navigation line, and collapse the provider
   comparison table behind a `<details>` toggle.
+- Add a light and dark banner (`docs/assets/banner-light.svg`,
+  `docs/assets/banner-dark.svg`) above the README's header, switching with the reader's
+  GitHub theme via the `<picture>` pattern.
 
 ## [1.0.0] - 2026-09-24
 
