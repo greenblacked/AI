@@ -10,6 +10,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add an `incident-response` skill to `operations`: platform-agnostic incident command,
+  severity and mitigation-by-symptom for a live production incident on any surface — a
+  managed database, a third-party dependency, a VM fleet, serverless, a CDN or DNS
+  provider — with `references/incident-command.md` moved from `k8s-triage`, which now
+  hands off to it for anything that is not a Kubernetes workload.
 - Add `.github/workflows/ci-triage.yml` and `scripts/ci_triage.py`, a Python port of
   `greenblacked/status-page`'s `ci-triage.cjs`: on a pull request's `CI` or `Security`
   run completing, keep one self-updating comment naming each failed job, its failed
@@ -19,6 +24,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Narrow `k8s-triage` to Kubernetes workload symptoms: drop its "or a live production
+  incident" claim and the generic declare, comms-cadence, handoff and
+  mitigated-versus-resolved steps, each replaced with a pointer to the new
+  `incident-response` skill, which now owns them for every surface, Kubernetes included.
 - Retry the actionlint and gitleaks downloads in `ci.yml` and `security.yml` on a
   transient network failure, with a 20-second connect timeout and a 60-second cap
   applied per attempt rather than libcurl's 300-second default, so the worst case of
