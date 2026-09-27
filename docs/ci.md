@@ -223,21 +223,23 @@ starts working once this file itself has been merged to `main`** — a pull requ
 only adds it triggers nothing.
 
 Top-level `permissions: {}`; the one job grants itself `actions: read`, `contents:
-read`, `issues: write` and `pull-requests: write` — the third bounded exception
-`AGENTS.md`'s Security considerations names, never `contents: write` and nothing
-pushed. `workflow_run` can hold a write token even when the run that triggered it came
-from a fork, so the checkout takes only the default branch, sparsely, for `scripts/`,
-and never the pull request's head; job and step names read back out of the API do come
-from a workflow file at that head, so `scripts/ci_triage.py` treats them as untrusted
-text and escapes them before they reach the comment it writes. zizmor's
-dangerous-triggers audit flags any `workflow_run` trigger regardless of what a job
-does with the privilege, so the `on:` block carries this repository's first
-suppression, `# zizmor: ignore[dangerous-triggers]`, reasoned through in the
-workflow's own header comment.
+read`, `issues: write` and `pull-requests: read` — the third bounded exception
+`AGENTS.md`'s Security considerations names, never `contents: write` or
+`pull-requests: write`, and nothing pushed. Every write the script makes — the one
+triage comment, the `ci-failed` label — is an Issues endpoint, which `issues: write`
+alone covers; `pull-requests` never needs more than `read`. `workflow_run` can hold a
+write token even when the run that triggered it came from a fork, so the checkout
+takes only the default branch, sparsely, for `scripts/`, and never the pull request's
+head; job and step names read back out of the API do come from a workflow file at
+that head, so `scripts/ci_triage.py` treats them as untrusted text and escapes them
+before they reach the comment it writes. zizmor's dangerous-triggers audit flags any
+`workflow_run` trigger regardless of what a job does with the privilege, so the `on:`
+block carries this repository's first suppression, `# zizmor:
+ignore[dangerous-triggers]`, reasoned through in the workflow's own header comment.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
-| `triage` | `triage` | `scripts/ci_triage.py` raised — most likely an unexpected GitHub API response, such as a label-removal call that returned neither success nor 404. Not a required check and has no aggregate, the same as `dependabot-auto-merge.yml`, `scheduled.yml` and `evals.yml` above and below: nothing depends on whether a pull request gets a triage comment. |
+| `triage` | `triage` | `scripts/ci_triage.py` raised `GitHubAPIError` — any GitHub API response outside 200-299 that the call did not ask to tolerate. The one tolerance is a 404 removing the `ci-failed` label, since the label already being gone is the outcome being asked for; every other call, read or write, fails the job rather than being read as an empty or successful result. Not a required check and has no aggregate, the same as `dependabot-auto-merge.yml`, `scheduled.yml` and `evals.yml` above and below: nothing depends on whether a pull request gets a triage comment. |
 
 It recomputes the whole picture from the API for the pull request's current head SHA
 rather than trusting the single event that woke it: GitHub keeps at most one pending
@@ -248,6 +250,12 @@ command each failure suggests, and a link to that job's section on this page.
 `tests/test_ci_triage.py` parses `ci.yml` and `security.yml` directly and fails if a
 job exists with no entry, so a job added without updating the table is caught rather
 than rendering "unclassified" in a live pull request comment.
+
+The transport also refuses to follow a redirect: the `Authorization` header carries
+this job's live token, scoped to `api.github.com` by the script's own URL check, and
+nothing about a 3xx response re-validates where it points before following it would
+resend that same header off this host. A redirect is treated as any other non-2xx
+response instead.
 
 ## `.github/workflows/release.yml` — Release
 

@@ -239,13 +239,19 @@ blocking finding or a failing `ci` or `security` gate.
   pushing a commit — its checkout still sets `persist-credentials: false`, the same as
   every other job here. `ci-triage.yml`'s single job is the third: it runs only on
   `workflow_run` for `CI` or `Security` completing on a pull request, and grants itself
-  `actions: read`, `contents: read`, `issues: write` and `pull-requests: write` — never
-  `contents: write`, and it pushes nothing. `workflow_run` can hold a write token even
-  when the triggering run came from a fork, so its checkout takes only the default
+  `actions: read`, `contents: read`, `issues: write` and `pull-requests: read` — never
+  `contents: write` or `pull-requests: write`, and it pushes nothing. Every write it makes
+  — the one triage comment, the `ci-failed` label — is an Issues endpoint, which
+  `issues: write` alone covers; `pull-requests` stays at `read` because nothing here
+  ever needs to write to a pull request itself. `workflow_run` can hold a write token
+  even when the triggering run came from a fork, so its checkout takes only the default
   branch, sparsely, for the triage script itself, never the pull request's head, and
   every job or step name the script reads back out of the API is treated as untrusted
-  data and escaped before it is ever rendered into the comment it writes. zizmor's
-  dangerous-triggers audit still flags `workflow_run` at that severity regardless of what
+  data and escaped before it is ever rendered into the comment it writes. Every GitHub
+  API call the script makes also raises on a non-2xx response — a failed read is never
+  read as "zero items", and a failed write is never read as "done" — and it never
+  follows a redirect, so its token cannot be forwarded off `api.github.com`. zizmor's
+  dangerous-triggers audit still flags `workflow_run` at High severity regardless of what
   the job does with it, so this workflow carries this repository's first suppression,
   `# zizmor: ignore[dangerous-triggers]`, with that reasoning written beside it.
 - Skills may describe security tooling and defensive procedure. They must not contain
