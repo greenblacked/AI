@@ -357,7 +357,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
-          curl -fsSL --retry 3 --retry-connrefused --retry-delay 2 \
+          curl -fsSL --retry 3 --retry-connrefused --retry-delay 2 --retry-max-time 150 \
             --connect-timeout 20 --max-time 60 -o "$archive" \
             "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/${archive}"
           echo "${ACTIONLINT_SHA256}  ${archive}" | sha256sum --check --status
