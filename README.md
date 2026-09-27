@@ -471,24 +471,27 @@ where it expected depth, and no error was ever raised. CI now fails on it.
 
 Alongside `ci`, a `security` gate runs gitleaks over the working tree and history, zizmor
 over the workflows themselves, ruff's flake8-bandit rules, CodeQL, and four invariants:
-every workflow declares a `permissions:` block, every action is pinned to a commit SHA,
-every job sets `timeout-minutes`, and every checkout sets `persist-credentials: false`.
-The two tools CI fetches directly rather than through an action — actionlint and gitleaks
-— are pinned to a version and checked against a recorded digest, with retries capped by a
-total deadline so a slow mirror cannot run past a job's own timeout. A `naming` gate
-checks the same shape this repository holds contributors to — branch names, commit
-subjects, pull-request titles, and file and folder names — against
-[`CONTRIBUTING.md`](CONTRIBUTING.md#naming); `make naming` reproduces everything but the
-pull request title, which is checked only in CI, once the pull request exists.
+every workflow declares a top-level `permissions:` block that grants nothing, every action
+is pinned to a commit SHA, every job sets `timeout-minutes`, and every checkout sets
+`persist-credentials: false`. actionlint and gitleaks, the two binaries CI downloads by
+hand rather than installing through an action, are pinned to a version and checked against
+a recorded digest, with retries capped by a total deadline so a slow or rate-limiting
+server cannot run past a job's own timeout. A `naming` gate checks the same shape this
+repository holds contributors to — branch names, commit subjects, pull-request titles, and
+file and folder names — against [`CONTRIBUTING.md`](CONTRIBUTING.md#naming); `make naming`
+reproduces everything but the pull request title, which is checked only in CI, once the
+pull request exists.
 
 When `ci` or `security` goes red on a pull request,
 [`ci-triage.yml`](docs/ci.md#githubworkflowsci-triageyml--ci-triage) posts one comment
 naming each failed job, its first failed step, the likely cause, the local command that
 reproduces it, and a link to that job's log — plus a `ci-failed` label kept in step with
-it. A later green run edits the same comment to say Recovered and drops the label; a pull
-request that never fails gets no comment at all. It runs only from the workflow file
-already on `main`, never a pull request's own head, and carries a read-mostly token spent
-on nothing but that one comment and that one label.
+it. A later green run edits the same comment to say `Recovered` and drops the label; a
+pull request that never fails gets no comment at all. It runs only from the workflow file
+already on `main`, never a pull request's own head, and holds `actions: read`, `contents:
+read`, `issues: write` and `pull-requests: write` — enough to read runs and comment on and
+label the pull request, never to write to contents or push anything, and spent only on
+that one comment and that one label.
 
 Some repository controls live in GitHub's settings rather than in this tree — the branch
 ruleset, secret scanning and push protection, Dependabot alerts and security updates —
