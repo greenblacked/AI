@@ -8,6 +8,15 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- Add `.github/workflows/ci-triage.yml` and `scripts/ci_triage.py`, a Python port of
+  `greenblacked/status-page`'s `ci-triage.cjs`: on a pull request's `CI` or `Security`
+  run completing, keep one self-updating comment naming each failed job, its failed
+  step and a likely local command, with a `ci-failed` label kept in step with it. Reads
+  only run, job and step metadata through the GitHub API, checks out only the default
+  branch, and never touches the pull request's head.
+
 ### Changed
 
 - Retry the actionlint and gitleaks downloads in `ci.yml` and `security.yml` on a
