@@ -74,7 +74,7 @@ class FakeGitHub:
                 comment = {
                     "id": len(self.comments) + 1,
                     "body": body["body"],
-                    "user": {"type": "Bot"},
+                    "user": {"type": "Bot", "login": "github-actions[bot]"},
                 }
                 self.comments.append(comment)
                 return 201, {}, json.dumps(comment).encode()
@@ -507,7 +507,7 @@ def test_removing_the_label_raises_on_an_unexpected_status():
             return 500, {}, b'{"message": "server error"}'
         return real_call(method, url, headers, data)
 
-    with pytest.raises(RuntimeError, match="could not remove"):
+    with pytest.raises(ci_triage.GitHubAPIError, match="returned HTTP 500"):
         ci_triage.triage(flaky, TOKEN, OWNER, REPO, make_trigger())
 
 
@@ -539,3 +539,166 @@ def test_main_defaults_the_optional_env_vars(monkeypatch, capsys):
     monkeypatch.setattr(ci_triage, "http_transport", fake)
     assert ci_triage.main() == 0
     assert capsys.readouterr().out.strip() == f"No open pull request for {HEAD}; nothing to do."
+
+
+# --- an API error must fail the run, never read as an empty, successful result ---
+
+
+def _labelled_red_report(fake: FakeGitHub) -> str:
+    """A standing red report and label, the state each error test starts from."""
+    fake.runs = [{**green(1, "CI"), "conclusion": "failure"}, green(2, "Security")]
+    fake.jobs[1] = [
+        {
+            "name": "check catalogue",
+            "conclusion": "failure",
+            "html_url": "j",
+            "steps": [{"name": "step", "number": 1, "conclusion": "failure"}],
+        }
+    ]
+    run(fake)
+    assert fake.labels == ["ci-failed"]
+    return fake.comments[0]["body"]
+
+
+def test_a_503_on_the_runs_listing_raises_and_leaves_the_red_report_in_place():
+    fake = FakeGitHub()
+    body_before = _labelled_red_report(fake)
+
+    real_call = fake.__call__
+
+    def flaky(method, url, headers, data):
+        if method == "GET" and "/actions/runs?" in url:
+            return 503, {}, b'{"message": "server error"}'
+        return real_call(method, url, headers, data)
+
+    with pytest.raises(ci_triage.GitHubAPIError, match="returned HTTP 503"):
+        ci_triage.triage(flaky, TOKEN, OWNER, REPO, make_trigger())
+    # Neither the standing comment nor the label moved: the run stopped before either
+    # was touched, rather than the missing runs being read as a recovery.
+    assert fake.comments[0]["body"] == body_before
+    assert fake.labels == ["ci-failed"]
+
+
+def test_a_403_on_the_jobs_listing_raises_rather_than_rendering_a_placeholder():
+    fake = FakeGitHub()
+    fake.runs = [{**green(1, "CI"), "conclusion": "failure"}]
+
+    real_call = fake.__call__
+
+    def flaky(method, url, headers, data):
+        if method == "GET" and re.search(r"/actions/runs/\d+/jobs", url):
+            return 403, {}, b'{"message": "forbidden"}'
+        return real_call(method, url, headers, data)
+
+    with pytest.raises(ci_triage.GitHubAPIError, match="returned HTTP 403"):
+        ci_triage.triage(flaky, TOKEN, OWNER, REPO, make_trigger())
+    # No comment was ever posted claiming "failure · [run](...)" off the back of a
+    # jobs listing that actually failed to load.
+    assert fake.comments == []
+
+
+def test_a_5xx_on_get_pull_request_raises_rather_than_reading_as_not_open():
+    fake = FakeGitHub()
+
+    real_call = fake.__call__
+
+    def flaky(method, url, headers, data):
+        if method == "GET" and url.endswith("/pulls/7"):
+            return 500, {}, b'{"message": "server error"}'
+        return real_call(method, url, headers, data)
+
+    with pytest.raises(ci_triage.GitHubAPIError, match="returned HTTP 500"):
+        ci_triage.triage(flaky, TOKEN, OWNER, REPO, make_trigger())
+
+
+# --- redirects must never carry the token off api.github.com ---
+
+
+def test_the_redirect_handler_refuses_every_redirect():
+    handler = ci_triage._NoRedirect()
+    refused = handler.redirect_request(None, None, 302, "Found", {}, "https://evil.example/steal")
+    assert refused is None
+
+
+# --- untrusted values reach a query string only percent-encoded ---
+
+
+def test_the_fork_lookup_percent_encodes_owner_and_branch():
+    fake = FakeGitHub()
+    fake.commit_prs = []
+    fake.fork_prs = [{"number": 7}]
+    fake.runs = [green(1, "CI"), green(2, "Security")]
+    captured = {}
+
+    real_call = fake.__call__
+
+    def capturing(method, url, headers, data):
+        if urlparse(url).path == f"/repos/{OWNER}/{REPO}/pulls":
+            captured["url"] = url
+        return real_call(method, url, headers, data)
+
+    result = ci_triage.triage(
+        capturing,
+        TOKEN,
+        OWNER,
+        REPO,
+        make_trigger(pull_requests=[], head_repository_owner="some&one", head_branch="feature#1=x"),
+    )
+    assert result == "#7: green"
+    assert "some%26one" in captured["url"]
+    assert "feature%231%3Dx" in captured["url"]
+    # And the colon `head=owner:branch` needs stays literal, since that is the
+    # separator GitHub's own filter expects, not something being encoded away.
+    assert "some%26one:feature%231%3Dx" in captured["url"]
+
+
+# --- comment ownership is the bot's login, not merely "some bot or other" ---
+
+
+def test_a_bot_comment_from_another_login_carrying_the_marker_is_ignored():
+    fake = FakeGitHub()
+    fake.comments = [
+        {
+            "id": 99,
+            "body": f"{ci_triage.MARKER}\nsomeone else's bot comment",
+            "user": {"type": "Bot", "login": "some-other-bot"},
+        }
+    ]
+    fake.runs = [{**green(1, "CI"), "conclusion": "failure"}]
+    fake.jobs[1] = [
+        {
+            "name": "check catalogue",
+            "conclusion": "failure",
+            "html_url": "j",
+            "steps": [{"name": "step", "number": 1, "conclusion": "failure"}],
+        }
+    ]
+    run(fake)
+    # The foreign comment was left alone, and a new one was created rather than this
+    # job mistaking someone else's bot comment for its own.
+    assert len(fake.comments) == 2
+    assert fake.comments[0]["body"].startswith(f"{ci_triage.MARKER}\nsomeone else's bot")
+    assert fake.comments[1]["body"].startswith(ci_triage.MARKER)
+    assert "CI failing" in fake.comments[1]["body"]
+
+
+# --- cancelled is not a verdict either way ---
+
+
+def test_does_not_declare_recovery_when_the_rerun_was_cancelled():
+    fake = FakeGitHub()
+    fake.runs = [{**green(1, "CI"), "conclusion": "failure"}]
+    fake.jobs[1] = [
+        {
+            "name": "check catalogue",
+            "conclusion": "failure",
+            "html_url": "j",
+            "steps": [{"name": "step", "number": 1, "conclusion": "failure"}],
+        }
+    ]
+    run(fake)
+    fake.runs = [{**green(4, "CI", 2), "conclusion": "cancelled"}]
+    result = run(fake)
+    assert result == "#7: pending"
+    assert "CI failing" in fake.comments[0]["body"]
+    assert fake.labels == ["ci-failed"]

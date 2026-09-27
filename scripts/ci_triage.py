@@ -19,6 +19,12 @@ step *names*, by contrast, come from a workflow file that lives in the pull
 request, so a fork controls their text. `escape_name` is what keeps that text
 inert before it goes anywhere near this comment's Markdown table.
 
+`api()` raises `GitHubAPIError` for any response outside 200-299, the one
+exception being a 404 on removing a label. A failed read is not "zero items"
+and a failed write is not "done" — either one has to fail the job loudly
+rather than be misread as a clean, empty result that then declares recovery
+or removes the label on the strength of nothing.
+
 Each run recomputes the whole picture from the API for the pull request's
 *current* head commit rather than trusting the single `workflow_run` event
 that woke it up: GitHub keeps at most one pending run per concurrency group
@@ -56,6 +62,7 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable
 from typing import Any
+from urllib.parse import quote
 
 API = "https://api.github.com"
 MARKER = "<!-- ai-ci-triage -->"
@@ -207,15 +214,40 @@ def resolve_url(path: str) -> str:
     return url
 
 
-def api(
-    transport: Transport, token: str, method: str, path: str, body: dict[str, Any] | None = None
-) -> tuple[int, Any, dict[str, str]]:
-    """One authenticated GitHub API call. Never raises on a non-2xx status.
+class GitHubAPIError(RuntimeError):
+    """A GitHub API call returned a status the caller did not ask to tolerate.
 
-    Every caller decides for itself what a given status means here - success,
-    "already gone" on a 404 label removal, or something worth surfacing - rather
-    than this function guessing which statuses are acceptable for every endpoint it
-    is used for.
+    Raised rather than swallowed: the JavaScript this file ports throws on any
+    non-2xx Octokit response, and losing that on the way to Python is what let a
+    503 on the runs listing read as "zero runs", a 403 on the jobs listing read as
+    "no jobs", and a 5xx on the pull request itself read as "not open" — each one
+    turning a failed API call into a false "Recovered" comment and a removed label
+    instead of a red job.
+    """
+
+    def __init__(self, method: str, path: str, status: int) -> None:
+        super().__init__(f"{method} {path} returned HTTP {status}")
+        self.method = method
+        self.path = path
+        self.status = status
+
+
+def api(
+    transport: Transport,
+    token: str,
+    method: str,
+    path: str,
+    body: dict[str, Any] | None = None,
+    ok: tuple[int, ...] = (),
+) -> tuple[int, Any, dict[str, str]]:
+    """One authenticated GitHub API call.
+
+    Raises `GitHubAPIError` for any status outside 200-299 that is not listed in
+    `ok`. `ok` exists for exactly one caller — removing a label tolerates 404,
+    because the label already being gone is the outcome being asked for. Every
+    other call, read or write, gets no such tolerance: a failed read must stop the
+    run rather than be read as "zero items", and a failed write must stop the run
+    rather than be read as "done".
     """
     url = resolve_url(path)
     headers = {
@@ -230,6 +262,8 @@ def api(
         headers["Content-Type"] = "application/json"
     status, response_headers, raw = transport(method, url, headers, data)
     parsed = json.loads(raw) if raw else None
+    if status not in ok and not (200 <= status < 300):
+        raise GitHubAPIError(method, path, status)
     return status, parsed, response_headers
 
 
@@ -272,15 +306,16 @@ def find_pull_request(
             return pr["number"]
 
     # `workflow_run.pull_requests` is empty for a fork's pull request; match on the
-    # head branch instead.
+    # head branch instead. Both come from the trigger event — a fork's own repository
+    # owner and branch name — so each is percent-encoded on its own before it joins
+    # the query string; only the literal `:` GitHub's `head` filter expects sits
+    # unencoded between them.
     fork_owner = trigger.get("head_repository_owner")
     branch = trigger.get("head_branch")
     if fork_owner and branch:
+        head = f"{quote(fork_owner, safe='')}:{quote(branch, safe='')}"
         _, by_branch, _ = api(
-            transport,
-            token,
-            "GET",
-            f"/repos/{owner}/{repo}/pulls?state=open&head={fork_owner}:{branch}",
+            transport, token, "GET", f"/repos/{owner}/{repo}/pulls?state=open&head={head}"
         )
         if by_branch:
             return by_branch[0]["number"]
@@ -421,11 +456,14 @@ def triage(transport: Transport, token: str, owner: str, repo: str, trigger: dic
     comments = paginate(
         transport, token, f"/repos/{owner}/{repo}/issues/{number}/comments?per_page=100"
     )
+    # `login`, not `type == "Bot"`: any bot can carry the marker in its own comment,
+    # and matching on type alone would let this job edit or "own" someone else's.
+    # `github-actions[bot]` is the login `GITHUB_TOKEN` posts as.
     existing = next(
         (
             c
             for c in comments
-            if (c.get("user") or {}).get("type") == "Bot"
+            if (c.get("user") or {}).get("login") == "github-actions[bot]"
             and (c.get("body") or "").startswith(MARKER)
         ),
         None,
@@ -463,30 +501,57 @@ def triage(transport: Transport, token: str, owner: str, repo: str, trigger: dic
             {"labels": [LABEL]},
         )
     elif not failing and not pending and labelled:
-        status, _, _ = api(
-            transport, token, "DELETE", f"/repos/{owner}/{repo}/issues/{number}/labels/{LABEL}"
+        # 404 is tolerated: the label already being gone is the outcome being asked
+        # for. Anything else — a 403, a 5xx — still raises through `api`.
+        api(
+            transport,
+            token,
+            "DELETE",
+            f"/repos/{owner}/{repo}/issues/{number}/labels/{LABEL}",
+            ok=(404,),
         )
-        if status not in (200, 204, 404):
-            raise RuntimeError(f"could not remove the {LABEL} label from #{number}: HTTP {status}")
 
     return f"#{number}: {'failing' if failing else 'pending' if pending else 'green'}"
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Refuse to follow a redirect rather than silently resending the token to it.
+
+    `Authorization` above carries this job's live token, scoped to
+    `api.github.com` by `resolve_url` before any request is ever made. Nothing
+    about a 3xx response re-validates where it points before urllib would
+    otherwise follow it — and resend that same header, off this host, without
+    `resolve_url` ever seeing the new one. Returning `None` here refuses every
+    redirect outright: the 3xx falls through to the same non-2xx handling `api`
+    gives every other status, rather than a hop this file never chose.
+    """
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+_opener = urllib.request.build_opener(_NoRedirect)
+
+
 def http_transport(
     method: str, url: str, headers: dict[str, str], data: bytes | None
-) -> tuple[int, dict[str, str], bytes]:  # pragma: no cover
+) -> tuple[int, dict[str, str], bytes]:
     """The one function in this file that reaches the network.
 
-    Left untested for the reason `check_pin_freshness.py`'s `fetch` gives: exercising
-    it would put the suite on the network, and a suite that can make a request is one
-    that fails when GitHub does. `resolve_url`, called from `api` before this is ever
-    reached, is where the scheme and host are actually decided, and that is tested.
+    Left uncovered on purpose rather than hidden behind a pragma, the same way
+    `check_pin_freshness.py`'s `fetch` is: exercising it would put the suite on the
+    network, and a suite that can make a request is one that fails when GitHub
+    does. The coverage report naming these lines is the honest record that
+    nothing in the suite sends a request, which is the property worth keeping.
+    Everything that decides anything — the scheme and host in `resolve_url`,
+    redirects being refused in `_NoRedirect` — is tested without ever reaching
+    this function.
     """
     request = urllib.request.Request(  # noqa: S310 - resolve_url enforces https and the API host
         url, data=data, headers=headers, method=method
     )
     try:
-        with urllib.request.urlopen(request, timeout=30) as response:  # noqa: S310
+        with _opener.open(request, timeout=30) as response:
             return response.status, dict(response.headers.items()), response.read()
     except urllib.error.HTTPError as error:
         return error.code, dict((error.headers or {}).items()), error.read()
