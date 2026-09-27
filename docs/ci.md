@@ -733,6 +733,7 @@ gh api /repos/greenblacked/AI/actions/permissions
 gh api /repos/greenblacked/AI --jq '.security_and_analysis'
 gh api /repos/greenblacked/AI/vulnerability-alerts && echo "alerts enabled"
 gh api /repos/greenblacked/AI --jq '.delete_branch_on_merge'
+gh api /repos/greenblacked/AI/code-scanning/default-setup --jq .state
 ```
 
 And set the three that are a single call each:
