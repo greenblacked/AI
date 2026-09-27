@@ -66,10 +66,10 @@ lint: ## Lint python, markdown, YAML and workflows (skips a tool when it is not 
 package: ## Build a .skill archive for every skill into dist/
 	@PYTHONPATH=src $(PYTHON) scripts/package_skills.py
 
-attribution: ## Check commits since origin/main, the branch name and PR text for tool attribution
+attribution: ## Check commits since origin/main and the branch name for tool attribution
 	@GITHUB_HEAD_REF="$$(git rev-parse --abbrev-ref HEAD)" $(PYTHON) scripts/check_attribution.py . --range origin/main..HEAD
 
-naming: ## Check tracked file names, the branch name, commit subjects and PR title for naming convention
+naming: ## Check tracked file names, the branch name and commit subjects for naming convention
 	@GITHUB_HEAD_REF="$$(git rev-parse --abbrev-ref HEAD)" $(PYTHON) scripts/check_naming.py . --range origin/main..HEAD
 
 portable: ## Flatten every skill into dist/portable for ChatGPT, Grok and other assistants
