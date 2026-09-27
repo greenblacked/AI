@@ -32,7 +32,8 @@ This needs a commit range to mean anything — the default, `origin/main..HEAD`,
 pull request's own commits against the branch it targets — so it is not part of
 `make catalogue`, which runs with nothing but the working tree. `.github/workflows/ci.yml`
 supplies the range, the head branch and the pull request's title and body as a job on
-every pull request; `make attribution` reproduces it locally against `origin/main`.
+every pull request; `make attribution` reproduces the commit and branch checks locally
+against `origin/main`, and the pull request title and body are checked only in CI.
 
 Standard library only, like the checks it sits beside. It shells out to `git log`, the
 only way to read commit trailers, authors and committers without a third-party library,

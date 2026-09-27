@@ -146,7 +146,9 @@ prefix and are not re-checked, since only a pull request's own range is scanned)
 `scripts/check_naming.py` enforces all of this on every commit in a pull request's range
 and on the pull request's own title, in the `naming` job; a merge commit and anything
 from Dependabot are exempt, since neither subject was written by a person choosing a
-convention. `make naming` reproduces the same check locally.
+convention. `make naming` reproduces the commit-subject check locally, against
+`origin/main`; the pull request's own title is checked only in CI, once the pull request
+exists.
 
 ## Naming
 
@@ -164,8 +166,10 @@ checks one more thing besides:
 File names are checked on every event `ci` runs for, against every file `git ls-files`
 tracks rather than only what a pull request changed — unlike the branch and commit
 checks above, which need a base ref and pull request text and so only run on a pull
-request. `make naming` reproduces the full check locally, against `origin/main`. Code
-identifiers are a separate, existing gate rather than a fifth thing this script checks:
+request. `make naming` reproduces the file-name, branch and commit checks locally,
+against `origin/main`; the pull request title is checked only in CI, once the pull
+request exists. Code identifiers are a separate, existing gate rather than a fifth thing
+this script checks:
 ruff's `pep8-naming` (`N`) runs in `python security lint`, because that job already reads
 every Python file here.
 
