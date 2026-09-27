@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import re
+import urllib.request
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -618,6 +619,12 @@ def test_the_redirect_handler_refuses_every_redirect():
     handler = ci_triage._NoRedirect()
     refused = handler.redirect_request(None, None, 302, "Found", {}, "https://evil.example/steal")
     assert refused is None
+
+
+def test_the_opener_uses_the_refusing_handler_in_place_of_the_default():
+    handlers = ci_triage._opener.handlers
+    assert any(isinstance(h, ci_triage._NoRedirect) for h in handlers)
+    assert not any(type(h) is urllib.request.HTTPRedirectHandler for h in handlers)
 
 
 # --- untrusted values reach a query string only percent-encoded ---
