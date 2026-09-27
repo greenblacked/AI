@@ -778,6 +778,62 @@ def test_export_reports_a_tree_with_no_plugins(tmp_path):
     assert portable.main([str(tmp_path)]) == 2
 
 
+# --- the router --------------------------------------------------------------------
+
+
+def test_first_sentence_trims_to_the_cap():
+    # Short enough to survive whole: the cap is a ceiling, not a target length.
+    assert portable.first_sentence("Do the thing. Then another.", 100) == "Do the thing."
+    # Long enough to need trimming: cut inside the cap and marked as cut, rather than
+    # silently reading as a complete, if oddly short, sentence.
+    long_sentence = "Do " + "x" * 200 + " thing."
+    trimmed = portable.first_sentence(long_sentence, 20)
+    assert len(trimmed) == 20
+    assert trimmed.endswith("…")
+
+
+def test_export_writes_a_router_and_one_per_plugin(mini_repo, tmp_path):
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    assert (out / "router.md").is_file()
+    # mini_repo carries exactly one plugin, named engineering.
+    assert (out / "router-engineering.md").is_file()
+    router = (out / "router.md").read_text(encoding="utf-8")
+    assert "## engineering" in router
+    assert "- **alpha**" in router and "- **beta**" in router
+    assert "`skills/alpha.md`" in router and "`skills/beta.md`" in router
+    per_plugin = (out / "router-engineering.md").read_text(encoding="utf-8")
+    assert "- **alpha**" in per_plugin and "- **beta**" in per_plugin
+
+
+def test_every_path_a_router_names_exists_in_the_export(mini_repo, tmp_path):
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for router_path in [out / "router.md", out / "router-engineering.md"]:
+        text = router_path.read_text(encoding="utf-8")
+        paths = re.findall(r"`(skills/[\w.-]+\.md)`", text)
+        assert paths, router_path.name  # the pattern itself must find something to check
+        for relative in paths:
+            assert (out / relative).is_file(), f"{router_path.name} names {relative}"
+
+
+def test_router_over_budget_fails_without_writing(mini_repo, tmp_path, monkeypatch, capsys):
+    # A budget smaller than the preamble alone makes every router fail, whatever the
+    # skills measure — the point is only that the check fires and stops the export.
+    monkeypatch.setattr(portable, "ROUTER_BUDGET_BYTES", 10)
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 1
+    message = capsys.readouterr().err
+    assert "router.md is" in message
+    assert "against a budget of 10" in message
+    assert not out.exists()
+
+
+def test_router_over_budget_fails_check_mode_too(mini_repo, tmp_path, monkeypatch):
+    monkeypatch.setattr(portable, "ROUTER_BUDGET_BYTES", 10)
+    assert portable.export(mini_repo, tmp_path / "portable", check=True) == 1
+
+
 # --- the rmtree safety guard -------------------------------------------------------
 
 
