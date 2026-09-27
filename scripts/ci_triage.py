@@ -79,6 +79,9 @@ from urllib.parse import quote
 API = "https://api.github.com"
 MARKER = "<!-- ai-ci-triage -->"
 LABEL = "ci-failed"
+# Both must run on every pull request head, which is why neither has a `paths:`
+# filter: a watched workflow with no run for the head reads as pending, so one that
+# skipped a head would hold a standing red report and its label there for good.
 WATCHED = ("CI", "Security")
 # Only these count as a failure. `cancelled` says nothing about the code, so it holds
 # whatever verdict already stood rather than declaring either failure or recovery.

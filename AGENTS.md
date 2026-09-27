@@ -249,9 +249,9 @@ blocking finding or a failing `ci` or `security` gate.
   every job or step name the script reads back out of the API is treated as untrusted
   data and escaped before it is ever rendered into the comment it writes. Every GitHub
   API call the script makes also raises on a non-2xx response, save a 404 when removing
-  a label that is already gone — a failed read is never
-  read as "zero items", and a failed write is never read as "done" — and it never
-  follows a redirect, so its token cannot be forwarded off `api.github.com`. zizmor's
+  a label that is already gone — a failed read is never read as "zero items", and a
+  failed write is never read as "done" — and it never follows a redirect, so its
+  token cannot be forwarded off `api.github.com`. zizmor's
   dangerous-triggers audit still flags `workflow_run` at High severity regardless of what
   the job does with it, so this workflow carries this repository's first suppression,
   `# zizmor: ignore[dangerous-triggers]`, with that reasoning written beside it.
