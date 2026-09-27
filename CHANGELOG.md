@@ -11,13 +11,13 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 ### Changed
 
 - Retry the actionlint and gitleaks downloads in `ci.yml` and `security.yml` on a
-  transient network failure, bounded by a 20-second connect timeout and a 120-second
-  total so a stalled connection fails within the job timeout instead of eating
-  libcurl's 300-second default per attempt; drop the thirteen fast-finishing jobs
-  across both workflows from a ten-minute to a five-minute timeout, so a hang there is
-  caught sooner; and add a `concurrency` group to `dependabot-auto-merge.yml`, the one
-  workflow that had none, so a second push cancels a stale, still-idempotent run
-  instead of racing it.
+  transient network failure, with a 20-second connect timeout and a 60-second cap
+  applied per attempt rather than libcurl's 300-second default, so the worst case of
+  four attempts stays inside the five-minute job timeout; drop the thirteen
+  fast-finishing jobs across both workflows from a ten-minute to a five-minute timeout,
+  so a hang there is caught sooner; and add a `concurrency` group to
+  `dependabot-auto-merge.yml`, the one workflow that had none, so a second push cancels
+  a stale, still-idempotent run instead of racing it.
 - Re-run `ci.yml` when a pull request's title, body or base branch is edited, so the
   `naming` and `attribution` jobs check the current text instead of leaving a stale
   result standing.
