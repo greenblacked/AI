@@ -33,6 +33,7 @@ prove the separate security workflow passed. Merge still requires both gates.
 | Event | Required workflows | Cancellation |
 | --- | --- | --- |
 | Pull request opened, reopened or updated | CI and Security | A newer run for the same PR supersedes the older run |
+| Pull request title, body or base branch edited | CI only | Supersedes an in-progress CI run for that PR. Security's existing result on the head commit stands, since `security.yml` does not list `edited`. |
 | Push to `main` | CI and Security | Each run has its own concurrency group |
 | Merge queue `checks_requested` | CI and Security | Each candidate run has its own concurrency group |
 | Manual dispatch | CI and Security when dispatched individually | Each run has its own concurrency group |
@@ -46,8 +47,10 @@ and [concurrency behavior](https://docs.github.com/en/actions/writing-workflows/
 
 ## `.github/workflows/ci.yml` — CI
 
-Triggers on push to `main`, on every pull request, on merge-group `checks_requested`,
-and on `workflow_dispatch`. Top-level
+Triggers on push to `main`; on a pull request opened, synchronized, reopened or edited
+— `edited` is included because the naming and attribution jobs below read the title and
+body from the event payload, so changing either has to produce a fresh run; on
+merge-group `checks_requested`; and on `workflow_dispatch`. Top-level
 `permissions: {}`; each job grants itself the minimum. Every tool the workflow installs
 or downloads is pinned in the workflow-level `env` block — `CLAUDE_CODE_VERSION`,
 `CODESPELL_VERSION`, `YAMLLINT_VERSION`, `PYTEST_VERSION`, `COVERAGE_VERSION`,

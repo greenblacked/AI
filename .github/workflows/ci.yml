@@ -8,7 +8,12 @@ name: CI
 on:
   push:
     branches: [main]
+  # The naming and attribution jobs below read the title and body straight out of the
+  # event payload, so an edit to either has to produce a fresh run, or a stale result
+  # stands in either direction: a false red once a bad title or footer is fixed, and a
+  # false green once one is introduced.
   pull_request:
+    types: [opened, synchronize, reopened, edited]
   merge_group:
     types: [checks_requested]
   workflow_dispatch:
