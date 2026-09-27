@@ -234,8 +234,8 @@ Pull requests", so that grant is spent only on that comment and that label.
 `workflow_run` can hold a write token even when the run that triggered it came from a
 fork, so the checkout takes only the default branch, sparsely, for `scripts/`, and
 never the pull request's head; job and step names read back out of the API do come
-from a workflow file at
-that head, so `scripts/ci_triage.py` treats them as untrusted text and escapes them
+from a workflow file at that head, so `scripts/ci_triage.py` treats them as untrusted
+text and escapes them
 before they reach the comment it writes. zizmor's dangerous-triggers audit flags any
 `workflow_run` trigger regardless of what a job does with the privilege, so the `on:`
 block carries this repository's first suppression, `# zizmor:
