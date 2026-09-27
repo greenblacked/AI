@@ -7,7 +7,7 @@
 
 # Agent skills
 
-89 agent skills, seventeen read-only subagents and six slash commands, in eight
+89 agent skills, eighteen read-only subagents and six slash commands, in eight
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -45,7 +45,7 @@ outside a runtime that can trigger them for you.
 | --- | --- | --- |
 | [`coding`](#coding) | Reading, reviewing, testing and changing code | 18 skills, 3 subagents |
 | [`gamedev`](#gamedev) | Making games, and shipping them | 11 skills, 1 subagent, 1 command |
-| [`operations`](#operations) | Keeping a running system alive | 15 skills, 5 subagents, 2 commands |
+| [`operations`](#operations) | Keeping a running system alive | 15 skills, 6 subagents, 2 commands |
 | [`delivery`](#delivery) | Getting a change into production | 9 skills, 1 subagent |
 | [`security`](#security) | The defensive side of shipping software | 11 skills, 3 subagents, 2 commands |
 | [`manager`](#manager) | Engineering leadership | 13 skills, 2 subagents, 1 command |
@@ -375,7 +375,7 @@ Applications, negotiation, speaking and writing.
 
 ## Subagents
 
-Seventeen subagents ship across seven plugins. Each exists to keep bulk out of the main context
+Eighteen subagents ship across seven plugins. Each exists to keep bulk out of the main context
 — the input is a log, a plan, a billing export, a contract, a pile of feedback, a release
 range, and the answer is short — and to be denied the tools it should not have. A reviewer
 that can apply is not a reviewer.
@@ -388,6 +388,7 @@ that can apply is not a reviewer.
 | `frame-capture-reader` | `gamedev` | A profiler capture or frame trace | CPU-bound or GPU-bound with the numbers, or what to capture instead |
 | `cost-analyst` | `operations` | A cloud billing export | The top movers period over period, not the top spenders |
 | `incident-scribe` | `operations` | Raw triage notes and scrollback | A blameless postmortem draft |
+| `page-history-reader` | `operations` | A quarter of pager or alert history | Per-rule fires, action rate, off-hours share and a suggested keep/tighten/demote/delete bucket |
 | `plan-reviewer` | `security` | A Terraform plan JSON | The blast radius, destroys first |
 | `policy-auditor` | `security` | IAM policies and access logs | The gap between permitted and used, with the window stated |
 | `pii-reader` | `security` | A schema dump, a row sample or a log excerpt | Which fields carry personal data, their class and where they flow |

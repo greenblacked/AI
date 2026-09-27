@@ -10,6 +10,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `page-history-reader` subagent to `operations`, reading a quarter of pager or
+  alert history — PagerDuty, Opsgenie, Grafana OnCall or Cloud IRM, a Prometheus `ALERTS`
+  range query, or a plain CSV — and returning per-rule fires, action rate, off-hours share
+  and a suggested keep/tighten/demote/delete bucket for `alert-design`'s step 10, so the
+  raw export never enters the caller's context.
 - Add `.github/workflows/ci-triage.yml` and `scripts/ci_triage.py`, a Python port of
   `greenblacked/status-page`'s `ci-triage.cjs`: on a pull request's `CI` or `Security`
   run completing, keep one self-updating comment naming each failed job, its failed
