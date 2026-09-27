@@ -172,3 +172,23 @@ when the claim is checkable in isolation, and `reviewer`'s when it is one line a
 in a larger change.
 
 **First caught:** #61.
+
+### A permission narrowed on documentation alone breaks the one path that used it
+
+**Class.** Narrowing a workflow's grant on the strength of a provider's published
+documentation, with no live run against the real API before trusting it, can leave the
+only job that uses that grant unable to do the one thing it exists for.
+
+**How it shows up.** A 403 on the first real write after merge, not on any gate before
+it: `ci-triage.yml`'s `pull-requests: write` was narrowed to `read` (with `issues: write`
+added instead) because GitHub's published endpoint data lists issue-comment and label
+endpoints under "Issues *or* Pull requests", so `issues: write` looked sufficient on its
+own. In practice `GITHUB_TOKEN` posting a comment or a label on a pull request needs
+`pull-requests: write`, and the narrower grant failed the job's first write once it ran
+for real.
+
+**The check that catches it.** A throwaway live run against the real API before trusting
+a narrowed grant — no validator or offline gate reads a permission against what the API
+actually enforces, so the first genuine write is the only place this shows up.
+
+**First caught:** #79, the live check of #78's triage.

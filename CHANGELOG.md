@@ -59,6 +59,17 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   `docs/deepseek.md` and `providers.json`. OpenRouter stays as the one documented route
   to a DeepSeek model, for Claude Code only.
 
+### Fixed
+
+- Give `ci-triage.yml`'s job `pull-requests: write` alongside `issues: write`, rather
+  than `issues: write` with `pull-requests: read`: a live run's first write, the
+  triage comment, returned a 403 under the narrower grant, since `GITHUB_TOKEN` needs
+  `pull-requests: write` to comment on or label a pull request regardless of GitHub's
+  published endpoint data listing those endpoints under "Issues *or* Pull requests".
+  `issues: write` stays, since creating the `ci-failed` label the first time a pull
+  request needs it — the label does not exist until then — needs that grant
+  separately from labelling with it once it exists.
+
 ## [1.0.0] - 2026-09-24
 
 First tagged release. The catalogue at this tag:
