@@ -33,6 +33,7 @@ prove the separate security workflow passed. Merge still requires both gates.
 | Event | Required workflows | Cancellation |
 | --- | --- | --- |
 | Pull request opened, reopened or updated | CI and Security | A newer run for the same PR supersedes the older run |
+| Pull request title, body or base branch edited | CI only | Supersedes an in-progress CI run for that PR. Security's existing result on the head commit stands, because nothing it checks changed. |
 | Push to `main` | CI and Security | Each run has its own concurrency group |
 | Merge queue `checks_requested` | CI and Security | Each candidate run has its own concurrency group |
 | Manual dispatch | CI and Security when dispatched individually | Each run has its own concurrency group |

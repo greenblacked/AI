@@ -10,10 +10,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
-- Re-run `ci.yml`'s `naming` and `attribution` jobs when a pull request's title or body
-  is edited, not only when it is opened, synchronized or reopened, since both jobs read
-  that text from the event payload and an edit otherwise leaves a stale result standing
-  in either direction.
+- Re-run `ci.yml` when a pull request's title, body or base branch is edited, so the
+  `naming` and `attribution` jobs check the current text instead of leaving a stale
+  result standing.
 - Define the GitHub pull request review thread lifecycle for findings, replies and resolution.
 - Bring the README's CI section and documentation list, and CONTRIBUTING.md's pre-PR
   command list, up to date with the naming and attribution checks, the review
