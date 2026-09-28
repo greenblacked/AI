@@ -407,12 +407,13 @@ working on this repository, in two loops that share a judge.
 | --- | --- | --- |
 | `explorer` | build | Surveys what already covers a change |
 | `implementer` | build | Writes it and runs the gates |
-| `investigator` | verify | Settles one claim against primary sources |
+| `investigator` | both | Settles one claim against primary sources |
 | `reviewer` | both | Judges the result on a fresh context with no editing tools |
 
-To build something: `explorer` surveys what already covers a change, `implementer` writes
-it and runs the gates, and `reviewer` judges the result on a fresh context with no editing
-tools. [`/ship`](.claude/commands/ship.md) runs those three in order.
+To build something: [`/ship`](.claude/commands/ship.md) runs `explorer` and, when the
+change rests on an outside claim, `investigator` in parallel, then `implementer`, then
+`reviewer`, then opens one pull request and merges once `reviewer`, `ci` and `security`
+pass.
 
 To establish whether something is true: `investigator` settles one claim against primary
 sources, labels every finding primary, consensus or inference, and says what it could not
@@ -443,7 +444,7 @@ Each does the mechanical part and points at the skill holding the full procedure
 | `/eval-skill` | this repository | Score whether one description actually triggers, and name the phrasing it is missing. |
 | `/skill-doctor` | this repository | Diagnose one skill: validator findings, description health, eval-set balance, and which siblings it collides with. |
 | `/skill-gap` | this repository | Survey the library for coverage it lacks, from its own dangling demand, and say which of skill, subagent, command or nothing the gap deserves. |
-| `/ship` | this repository | Take a change through the build loop: survey what already exists, write it and run the gates, then judge the result independently. |
+| `/ship` | this repository | Take a change from survey to merge: research in parallel, write it and run the gates, judge it independently, then open one pull request and merge once review, `ci` and `security` pass. |
 | `/verify` | this repository | Take a claim through the verification loop: settle it against primary sources, labelling what is verified and what is not, then judge whether the finding supports the change. |
 
 ## CI is the source of truth

@@ -354,16 +354,17 @@ Building something, run by [`/ship`](../.claude/commands/ship.md):
 
 | Stage | Subagent | Runs on | Editing tools |
 | --- | --- | --- | --- |
-| Survey | [`explorer`](../.claude/agents/explorer.md) | the fast tier | none |
-| Write | [`implementer`](../.claude/agents/implementer.md) | the capable tier | `Write`, `Edit` |
-| Judge | [`reviewer`](../.claude/agents/reviewer.md) | the most capable tier | none |
+| Survey | [`explorer`](../.claude/agents/explorer.md) | Sonnet, medium effort | none |
+| Survey (parallel) | [`investigator`](../.claude/agents/investigator.md) | Sonnet, medium effort | none |
+| Write | [`implementer`](../.claude/agents/implementer.md) | Sonnet, high effort | `Write`, `Edit` |
+| Judge | [`reviewer`](../.claude/agents/reviewer.md) | Fable | none |
 
 Establishing whether something is true, run by [`/verify`](../.claude/commands/verify.md):
 
 | Stage | Subagent | Runs on | Editing tools |
 | --- | --- | --- | --- |
-| Establish | [`investigator`](../.claude/agents/investigator.md) | the capable tier | none |
-| Judge | [`reviewer`](../.claude/agents/reviewer.md) | the most capable tier | none |
+| Establish | [`investigator`](../.claude/agents/investigator.md) | Sonnet, medium effort | none |
+| Judge | [`reviewer`](../.claude/agents/reviewer.md) | Fable | none |
 
 The second loop exists because prose in this repository has twice asserted something that
 the source contradicted — a `kubectl drain` flag said to skip graceful shutdown when it
@@ -424,8 +425,8 @@ never fixed it, because the overlap was structural. The cheap-then-expensive spl
 real idea and it may come back as two steps inside one agent; it did not survive as two
 agents.
 
-The tier is set per subagent with the `model` key, which is the only place in this
-repository that key is used. Claude Code resolves a subagent's model from the
+The tier is set per subagent with the `model` and `effort` keys, the only place in this
+repository either key is used. Claude Code resolves a subagent's model from the
 per-invocation argument first, then this frontmatter, then the `CLAUDE_CODE_SUBAGENT_MODEL`
 environment variable, then the main conversation's model. Frontmatter winning over the
 environment variable is what makes the tiering hold: someone who has set that variable
@@ -446,10 +447,12 @@ and returns findings rather than patches; carrying them back to `implementer` is
 the verdict worth having. Reviewing is also the stage where being wrong is most expensive,
 which is why it gets the capable model and the survey does not.
 
-[`/ship`](../.claude/commands/ship.md) runs the three in order. The middle decision —
-which plugin owns the change, what it must not collide with — stays in the main
-conversation, because that is the one part that depends on judgement built up over the
-session and travels badly through a cold prompt.
+[`/ship`](../.claude/commands/ship.md) runs `explorer` — beside `investigator` in
+parallel when the change rests on an outside claim — then `implementer`, then
+`reviewer`, then opens and merges one pull request once review, `ci` and `security`
+pass. The middle decision — which plugin owns the change, what it must not collide
+with — stays in the main conversation, because that is the one part that depends on
+judgement built up over the session and travels badly through a cold prompt.
 
 Nothing about this is committed into `.claude/settings.json`, which applies to everyone
 who opens the repository. To pin a main-conversation model or set a subagent default for

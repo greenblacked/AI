@@ -85,10 +85,12 @@ than when merely relevant.
 
 ### Working on this repository
 
-If you cloned this repository to change the skills themselves, `/ship` runs the
-three-stage loop over a change: `explorer` surveys what already covers it, `implementer`
-writes it and runs the gates, `reviewer` judges the result on a fresh context with no
-editing tools. See [writing a subagent](writing-agents.md#the-two-loops).
+If you cloned this repository to change the skills themselves, `/ship` runs the loop
+from survey to merge over a change: `explorer` surveys what already covers it, alongside
+`investigator` in parallel when the change rests on an outside claim; `implementer`
+writes it and runs the gates; `reviewer` judges the result on a fresh context with no
+editing tools; then `/ship` opens the pull request and merges once `reviewer`, `ci` and
+`security` pass. See [writing a subagent](writing-agents.md#the-two-loops).
 
 ### Updating and removing
 
@@ -224,8 +226,11 @@ which assistant is reading. CI builds the export on every run, so that stays tru
 
 The "Subagents" loss above is the one worth a substitute rather than just a note, because
 `/ship` and `/verify` are how changes to this repository get made. Without a runtime that
-can spawn an isolated subagent, the replacement is three conversations rather than three
-agents — the same stages, run by hand, in separate windows instead of separate contexts.
+can spawn an isolated subagent, the replacement is a run of conversations rather than
+agents — the same stages, survey then write then review, run by hand in separate windows
+instead of separate contexts. Once review passes, open and merge the pull request by
+hand the same way `/ship` would, with `ci` and `security` green; that step needs no
+separate conversation.
 
 **Survey**, in a new conversation, report-only. Describe the change and ask what already
 covers it, where the affected files are, and which existing description its trigger

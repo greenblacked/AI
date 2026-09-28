@@ -52,6 +52,15 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 - Add a light and dark banner (`docs/assets/banner-light.svg`,
   `docs/assets/banner-dark.svg`) above the README's header, switching with the reader's
   GitHub theme via the `<picture>` pattern.
+- Extend `/ship` to run `explorer` and, when the change rests on an outside claim,
+  `investigator` in parallel for the survey stage, then merge the reviewed change itself
+  once `reviewer`, `ci` and `security` pass, rather than stopping at judgement; move
+  `implementer` and `investigator` off Opus onto Sonnet, with `effort` set per stage
+  (`implementer` high, `explorer` and `investigator` medium); widen
+  `docs/review-lessons.md`'s ledger to any review of a change here — the review stage, an
+  automated PR reviewer, or a live run — and add a live-run trigger to `AGENTS.md`'s
+  Review guidelines for a workflow `permissions:` change, a new API write in a shipped
+  script, or a `workflow_run`/`schedule`/`pull_request_target` trigger.
 
 ### Removed
 
