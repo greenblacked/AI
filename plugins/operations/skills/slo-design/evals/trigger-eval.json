@@ -1,0 +1,92 @@
+[
+  {
+    "query": "define an SLO for checkout success across web and mobile users",
+    "should_trigger": true
+  },
+  {
+    "query": "which requests should count in our availability SLI, including retries and 4xx?",
+    "should_trigger": true
+  },
+  {
+    "query": "is 99.99 percent a realistic target for our API given last quarter's incidents?",
+    "should_trigger": true
+  },
+  {
+    "query": "design an end to end user journey SLO for placing an order",
+    "should_trigger": true
+  },
+  {
+    "query": "how many failed requests can we afford at 99.9 percent over 30 days?",
+    "should_trigger": true
+  },
+  {
+    "query": "select a latency SLI threshold for search without hiding slow customers",
+    "should_trigger": true
+  },
+  {
+    "query": "define a freshness objective for Pub/Sub consumers processing events",
+    "should_trigger": true
+  },
+  {
+    "query": "we have sparse traffic; what reliable SLI and period should we choose?",
+    "should_trigger": true
+  },
+  {
+    "query": "review our error budget calculation and decide who owns release policy",
+    "should_trigger": true
+  },
+  {
+    "query": "what do we measure when one region masks failures in another?",
+    "should_trigger": true
+  },
+  {
+    "query": "write multiwindow PrometheusRule burn-rate alerts for checkout",
+    "should_trigger": false,
+    "expected": "alert-design"
+  },
+  {
+    "query": "our pager fires on CPU every night, remove noisy alerts",
+    "should_trigger": false,
+    "expected": "alert-design"
+  },
+  {
+    "query": "configure Alertmanager routing and inhibition for two regions",
+    "should_trigger": false,
+    "expected": "alert-design"
+  },
+  {
+    "query": "set a page versus ticket threshold for the existing SLO",
+    "should_trigger": false,
+    "expected": "alert-design"
+  },
+  {
+    "query": "run a production restore drill and measure actual RTO",
+    "should_trigger": false,
+    "expected": "game-day"
+  },
+  {
+    "query": "checkout is down now, lead the incident",
+    "should_trigger": false,
+    "expected": "incident-response"
+  },
+  {
+    "query": "add request counters and histogram instrumentation to the API",
+    "should_trigger": false,
+    "expected": "instrumentation"
+  },
+  {
+    "query": "design backup retention and immutable copies for a regional loss",
+    "should_trigger": false,
+    "expected": "backup-recovery-design"
+  },
+  {
+    "query": "forecast GKE node count for next quarter",
+    "should_trigger": false,
+    "expected": "capacity-planning"
+  },
+  {
+    "query": "write the on-call procedure for recovering checkout",
+    "should_trigger": false,
+    "expected": "runbook"
+  }
+]
