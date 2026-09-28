@@ -7,7 +7,7 @@
 
 # Agent skills
 
-91 agent skills, eighteen read-only subagents and six slash commands, in eight
+91 agent skills, nineteen read-only subagents and six slash commands, in eight
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -43,7 +43,7 @@ outside a runtime that can trigger them for you.
 
 | Plugin | Focus | Contents |
 | --- | --- | --- |
-| [`coding`](#coding) | Reading, reviewing, testing and changing code | 18 skills, 3 subagents |
+| [`coding`](#coding) | Reading, reviewing, testing and changing code | 18 skills, 4 subagents |
 | [`gamedev`](#gamedev) | Making games, and shipping them | 11 skills, 1 subagent, 1 command |
 | [`operations`](#operations) | Keeping a running system alive | 16 skills, 6 subagents, 2 commands |
 | [`delivery`](#delivery) | Getting a change into production | 9 skills, 1 subagent |
@@ -381,7 +381,7 @@ Applications, negotiation, speaking and writing.
 
 ## Subagents
 
-Eighteen subagents ship across seven plugins. Each exists to keep bulk out of the main context
+Nineteen subagents ship across seven plugins. Each exists to keep bulk out of the main context
 — the input is a log, a plan, a billing export, a contract, a pile of feedback, a release
 range, and the answer is short — and to be denied the tools it should not have. A reviewer
 that can apply is not a reviewer.
@@ -401,6 +401,7 @@ that can apply is not a reviewer.
 | `skill-reviewer` | `coding` | A candidate SKILL.md | What is wrong, why it costs something, the smallest fix |
 | `change-impact-reader` | `coding` | A diff and matching repository snapshots | Up to five impact chains, their evidence and unresolved boundaries |
 | `agent-run-trace-reader` | `coding` | Historical agent-run artifacts | A task-and-attempt evidence ledger with unanswered calls and verification gaps |
+| `test-history-reader` | `coding` | Hundreds of JUnit, pytest or go test reports across many CI runs | A flake-rate ledger with a denominator, co-failure clusters and a quarantine order by CI time and retries burned |
 | `contract-reader` | `manager` | A contract, DPA or SOC 2 report | The clauses that decide the deal, quoted and located |
 | `feedback-synthesiser` | `manager` | Collected peer feedback | Themes with a source count and a quoted example |
 | `changelog-reader` | `delivery` | A release range of commits and PRs | Audience-sorted inventory, breaking changes flagged, noise collapsed |

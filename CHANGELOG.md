@@ -10,6 +10,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `test-history-reader` subagent to `coding`, reading hundreds of JUnit, pytest or
+  `go test -json` reports across many CI runs into a flake-rate ledger for non-browser
+  suites — each test's rate with its denominator, co-failure clusters, and a quarantine
+  order ranked by CI time and retries burned — leaving the quarantine policy itself to
+  `ci-triage`. `ci-triage` and `e2e-testing` now hand off to it by name for the bulk
+  historical read.
 - Add `router.md` and one `router-<plugin>.md` per plugin to the portable export: a
   line per skill naming when it applies and the `skills/<name>.md` path to open then,
   sized to fit inside a terminal agent's own document budget rather than a whole
