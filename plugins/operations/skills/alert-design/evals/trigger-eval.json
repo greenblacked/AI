@@ -10,7 +10,7 @@
   {"query": "what is a sensible for: duration, we scrape every 30s and i keep getting alerts from a single missed scrape", "should_trigger": true},
   {"query": "customers reported the outage before we did. what alert should have caught it", "should_trigger": true},
   {"query": "pods in staging went CrashLoopBackOff right after the 11:40 deploy, roll back or dig in?", "should_trigger": false, "expected": "k8s-triage"},
-  {"query": "we have an incident, checkout is down for maybe 20% of users and im IC", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "we have an incident, checkout is down for maybe 20% of users and im IC", "should_trigger": false, "expected": "incident-response"},
   {"query": "build me a grafana dashboard for the checkout service with latency and traffic panels", "should_trigger": false},
   {"query": "how many nodes do we need next quarter if traffic keeps growing 8% a month", "should_trigger": false, "expected": "capacity-planning"},
   {"query": "datadog vs grafana cloud vs self hosted prometheus, which should we buy", "should_trigger": false, "expected": "vendor-evaluation"},

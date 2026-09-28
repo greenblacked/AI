@@ -14,7 +14,7 @@ Alerting is where good intentions turn into pager fatigue. Every incident ends w
 
 Use for: deciding whether a signal should page, ticket, or only sit on a dashboard; writing or fixing a Prometheus, Alertmanager, Datadog or CloudWatch rule; defining SLO burn-rate alerts and an error budget policy; adding runbooks, owners and severities to an existing rule set; auditing a quarter of pages and deleting what nobody acted on; adding deadman, absence-of-data and dependency-suppression coverage.
 
-Do not use for: diagnosing an incident that is burning right now (that is `k8s-triage`), designing dashboards, capacity planning, choosing between monitoring vendors, or writing up the incident afterwards (that is `postmortem`).
+Do not use for: diagnosing an incident that is burning right now (that is `incident-response`, or `k8s-triage` for a Kubernetes workload), designing dashboards, capacity planning, choosing between monitoring vendors, or writing up the incident afterwards (that is `postmortem`).
 
 ## The gate
 
@@ -188,7 +188,7 @@ Dependency suppression only works if the dependency is expressed in labels. If y
 
 Adding alerts is the easy half. The review is what keeps the set trustworthy.
 
-Pull the last 90 days of pages from the alerting system and, for each rule, answer three questions: how many times did it fire, how many times did a human take an action because of it, and what was that action. The action rate is the only number that matters — "action taken" means a mitigation, a rollback, an escalation or a code change, not acknowledging the page and watching it clear.
+Pull the last 90 days of pages from the alerting system and, for each rule, answer three questions: how many times did it fire, how many times did a human take an action because of it, and what was that action. The action rate is the only number that matters — "action taken" means a mitigation, a rollback, an escalation or a code change, not acknowledging the page and watching it clear. When the export itself is the bulky part — a quarter of PagerDuty incidents, an Opsgenie or Grafana OnCall alert dump, a Prometheus `ALERTS` range query — hand it to `page-history-reader` and work from its per-rule numbers rather than reading the raw rows yourself; it suggests a bucket against the same thresholds below, and you make the call.
 
 | Action rate over 90 days | Verdict |
 | --- | --- |

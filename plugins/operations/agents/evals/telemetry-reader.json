@@ -13,7 +13,7 @@
   {"query": "our traces stop at the queue, how do we propagate context across it", "should_trigger": false, "expected": "instrumentation"},
   {"query": "the metric labels have customer id on them and prometheus is dying, fix the cardinality", "should_trigger": false, "expected": "instrumentation"},
   {"query": "the pod is CrashLoopBackOff, roll back or dig in", "should_trigger": false, "expected": "k8s-triage"},
-  {"query": "we have an incident, the api is down, im IC", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "we have an incident, the api is down, im IC", "should_trigger": false, "expected": "incident-response"},
   {"query": "here's the billing export, what moved", "should_trigger": false, "expected": "cost-analyst"},
   {"query": "ci is red on the perf test job, read the run and classify it", "should_trigger": false, "expected": "ci-log-reader"},
   {"query": "what should page a human for this service and what should just be a ticket", "should_trigger": false, "expected": "alert-design"},

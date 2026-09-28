@@ -9,7 +9,7 @@
   {"query": "fire drill for the incident response process - i want to see if anyone can write a status page update in ten minutes", "should_trigger": true},
   {"query": "we ran a chaos exercise last week and produced a doc full of observations that nobody has acted on", "should_trigger": true},
   {"query": "prove the runbook is right by actually breaking the thing it describes, with an observer taking notes", "should_trigger": true},
-  {"query": "we have an incident, checkout is down for maybe 20% of users and im IC", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "we have an incident, checkout is down for maybe 20% of users and im IC", "should_trigger": false, "expected": "incident-response"},
   {"query": "pods in staging went CrashLoopBackOff right after the 11:40 deploy, roll back or dig in?", "should_trigger": false, "expected": "k8s-triage"},
   {"query": "run a k6 load test and find where the api starts falling over at 5000 rps", "should_trigger": false, "expected": "capacity-planning"},
   {"query": "set up a red team engagement to see if anyone can pivot from the web tier into the database", "should_trigger": false},

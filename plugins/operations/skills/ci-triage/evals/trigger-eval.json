@@ -67,7 +67,7 @@
   {
     "query": "we have an incident, checkout is down for maybe 20% of users and im IC",
     "should_trigger": false,
-    "expected": "k8s-triage"
+    "expected": "incident-response"
   },
   {
     "query": "terraform plan on the PR says it's replacing the RDS instance, safe to approve or not",

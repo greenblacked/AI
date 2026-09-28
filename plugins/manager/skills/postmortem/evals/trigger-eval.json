@@ -10,7 +10,7 @@
   {"query": "turn this incident timeline into something the exec review will accept, without anyone's name in it", "should_trigger": true},
   {"query": "we failed over to the secondary region wednesday night. everything is fine now but i owe a document", "should_trigger": true},
   {"query": "pods are crashlooping in prod right now, OOMKilled, what do i do first", "should_trigger": false, "expected": "k8s-triage"},
-  {"query": "fifteen minutes into an incident, api is throwing 502s and i am the IC. talk me through the next moves", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "fifteen minutes into an incident, api is throwing 502s and i am the IC. talk me through the next moves", "should_trigger": false, "expected": "incident-response"},
   {"query": "our failed deployment recovery time looks awful across every team. is the team unhealthy or is the metric wrong", "should_trigger": false, "expected": "delivery-review"},
   {"query": "help me prioritise the reliability backlog for next quarter, there are about thirty items", "should_trigger": false, "expected": "delivery-review"},
   {"query": "the engineer who ran the migration has done this twice now. how do i handle that conversation", "should_trigger": false, "expected": "difficult-conversation"},

@@ -15,7 +15,7 @@
   {"query": "why does everything take so long here. i want an actual diagnosis, not another status", "should_trigger": false, "expected": "delivery-review"},
   {"query": "need to write priya's mid year performance summary, she led the migration", "should_trigger": false, "expected": "growth-review"},
   {"query": "my exec sponsor wants a rollout plan for AI tooling across the org by month end", "should_trigger": false, "expected": "ai-enablement"},
-  {"query": "customers are on the phone, checkout is down, what do i check first", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "customers are on the phone, checkout is down, what do i check first", "should_trigger": false, "expected": "incident-response"},
   {"query": "cover note for a head of platform role, here is the job description", "should_trigger": false, "expected": "job-search"},
   {"query": "summarise this article on flow metrics into my notes", "should_trigger": false, "expected": "learning-notes"},
   {"query": "put together the agenda for tomorrow's steering committee, an hour with six people", "should_trigger": false, "expected": "design-team-cadence"}

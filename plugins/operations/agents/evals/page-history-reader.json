@@ -1,0 +1,22 @@
+[
+  {"query": "here's our pagerduty export for q3, three months of incidents and log entries, which alerts should go", "should_trigger": true},
+  {"query": "i pulled 90 days of opsgenie alerts as json, tell me the action rate per rule before our alert review", "should_trigger": true},
+  {"query": "attached is a csv export of every page from the last quarter, one row per fire, which rules are just noise", "should_trigger": true},
+  {"query": "we switched to grafana oncall six months ago, here's the alert_groups export, which rules does nobody ever acknowledge", "should_trigger": true},
+  {"query": "quarterly alert review is next week, here's the pagerduty incidents dump, i need fires and actions per rule before the meeting", "should_trigger": true},
+  {"query": "our cloud irm export covers a year of alert groups, which rules fired the most with zero human action on them", "should_trigger": true},
+  {"query": "i ran the prometheus ALERTS range query for the last quarter and exported the json, which rules never actually fired", "should_trigger": true},
+  {"query": "opsgenie export attached, ack and close times for every alert this quarter, which ones take forever for someone to acknowledge", "should_trigger": true},
+  {"query": "here's a csv of every page from the last 90 days across two teams, which two rules look like they're firing together as duplicates", "should_trigger": true},
+  {"query": "pulling together the alert audit, this is the raw pagerduty log entries export, separate the off-hours fires from the daytime ones for me", "should_trigger": true},
+  {"query": "someone wants to add an alert for CPU over 80% after last night's incident, is that actually a good idea", "should_trigger": false, "expected": "alert-design"},
+  {"query": "we have 180 alert rules and the on-call rota ignores basically all of them, where do i even start cutting", "should_trigger": false, "expected": "alert-design"},
+  {"query": "our cloud spend jumped 35% last month, here's the billing export as csv, tell me which service actually moved", "should_trigger": false, "expected": "cost-analyst"},
+  {"query": "checkout pods went CrashLoopBackOff right after the 11:40 deploy, roll back or dig in", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "we have an incident right now, checkout is down for maybe 20% of users and i'm IC", "should_trigger": false, "expected": "incident-response"},
+  {"query": "service is back, turn the slack scrollback from the incident channel into a postmortem draft", "should_trigger": false, "expected": "incident-scribe"},
+  {"query": "yesterday's outage ran an hour, is this even worth a postmortem or was it too minor", "should_trigger": false, "expected": "postmortem"},
+  {"query": "the nightly build is red again, read the run and tell me if it's a flake or the actual change", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "checkout is slow, here's the trace bundle for the endpoint, where is the time actually going", "should_trigger": false, "expected": "telemetry-reader"},
+  {"query": "the disk-full alert has no runbook and paged someone with no idea what to check first, write one", "should_trigger": false, "expected": "runbook"}
+]

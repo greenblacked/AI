@@ -16,7 +16,7 @@ The job is hard because runbooks are written in the wrong state of mind for the 
 
 Use for: writing the runbook behind an alert or a recurring symptom; a failover, restore, key-rotation or scale-out procedure; reviewing an existing runbook against the system it claims to describe; repairing one that failed during a real incident; deciding which steps have earned automation.
 
-Do not use for: diagnosing a live Kubernetes or production failure (`k8s-triage`), deciding whether a signal should page at all (`alert-design`), writing the incident write-up afterwards (`postmortem`), planning a rehearsal or chaos exercise (`game-day`), or drafting customer-facing status updates (`incident-comms`).
+Do not use for: diagnosing a live production failure (`incident-response`, or `k8s-triage` for a Kubernetes workload), deciding whether a signal should page at all (`alert-design`), writing the incident write-up afterwards (`postmortem`), planning a rehearsal or chaos exercise (`game-day`), or drafting customer-facing status updates (`incident-comms`).
 
 ## The reader is the design constraint
 

@@ -31,9 +31,9 @@ Do not use for: reviewing an Ansible or Terraform diff that someone has already 
 which is `iac-review`; rotating or containing a leaked credential, which is
 `secret-rotation`; an estate-wide least-privilege review, which is `access-review`; a
 live service incident whose cause is not yet known to be the network, which is
-`k8s-triage`; or a network device from another vendor, because the commands, the gates and
-the recovery ladder here are RouterOS-specific and following them elsewhere produces
-confident nonsense.
+`incident-response`, or `k8s-triage` for a Kubernetes workload; or a network device from
+another vendor, because the commands, the gates and the recovery ladder here are
+RouterOS-specific and following them elsewhere produces confident nonsense.
 
 ## Hard gates
 

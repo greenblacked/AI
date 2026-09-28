@@ -2,7 +2,7 @@
 
 Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
 frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md) for
-one of the seventeen this repository ships today, three with `coding`, five with
+one of the eighteen this repository ships today, three with `coding`, six with
 `operations`, three with `security`, two with `manager`, one with `gamedev`, one with
 `delivery` and two with `personal` — and in `.claude/agents/`
 for the four that serve work on this repository rather than shipping to anyone,
@@ -40,7 +40,7 @@ tools: Read, Glob, Grep, Bash
   those three name `Bash` explicitly rather than leaving its absence from `tools` to
   speak for itself. `implementer`, the one loop stage whose job is to write the change,
   sets no `disallowedTools` at all.
-- **`model`** — optional. The model the subagent runs on. None of the seventeen here set it.
+- **`model`** — optional. The model the subagent runs on. None of the eighteen here set it.
 - Also accepted, because a plugin-shipped subagent supports them: `effort`, `maxTurns`,
   `skills`, `memory`, `background`, `isolation`, `color`, `experimental`, `omitClaudeMd`.
   The last is the one worth knowing: it starts the subagent without the user's, the
@@ -248,7 +248,7 @@ procedure, for that reason.
 
 A plugin-shipped subagent is free to follow the same shape — a stated input, a first-line
 verdict, fixed headings — and a new one should. This is not a call to migrate the
-seventeen that ship today; none of them are rewritten by this.
+eighteen that ship today; none of them are rewritten by this.
 
 ## Failure modes
 
@@ -276,8 +276,8 @@ inline.
 ## The subagents in this repository
 
 Each plugin discovers its own `agents/` directory — nothing lists them in
-[`marketplace.json`](../.claude-plugin/marketplace.json). Seventeen ship: three with
-`coding`, five with `operations`, three with `security`, two with `manager`, one with
+[`marketplace.json`](../.claude-plugin/marketplace.json). Eighteen ship: three with
+`coding`, six with `operations`, three with `security`, two with `manager`, one with
 `gamedev`, one with `delivery` and two with `personal`.
 
 - **`skill-reviewer`** — reviews a candidate `SKILL.md` against this repository's rules
@@ -313,10 +313,15 @@ Each plugin discovers its own `agents/` directory — nothing lists them in
   names, and a literal `[TK: metric]` wherever a figure was not supplied.
 
 The others follow the same shape. `cost-analyst` reads a billing export and returns the
-movers rather than the spenders; `policy-auditor` compares what a policy permits against
-what the identity used, and refuses to apply the reduction it proposes; `telemetry-reader`
-returns the critical path from a trace bundle, and treats "the data cannot answer this"
-as a first-class result. In the `manager` plugin, `contract-reader` quotes the four or
+movers rather than the spenders; `page-history-reader` reads a quarter or more of pager
+or alert history and returns per-rule fires, and, where the action count is known, an
+action rate and a suggested keep, tighten, demote or delete bucket, leaving the verdict
+itself to `alert-design`; `pii-reader` reads a schema dump, row sample or log excerpt and
+returns which fields carry personal data and where it flows, leaving what to do about it
+to `data-privacy`; `policy-auditor` compares what a policy permits against what the
+identity used, and refuses to apply the reduction it proposes; `telemetry-reader` returns
+the critical path from a trace bundle, and treats "the data cannot answer this" as a
+first-class result. In the `manager` plugin, `contract-reader` quotes the four or
 five clauses in a vendor agreement that decide the deal, and `feedback-synthesiser` turns
 a pile of peer feedback into themes with a source count, refusing to present a
 single-source theme as consensus. In `gamedev`, `frame-capture-reader` reads a profiler
@@ -354,16 +359,17 @@ Building something, run by [`/ship`](../.claude/commands/ship.md):
 
 | Stage | Subagent | Runs on | Editing tools |
 | --- | --- | --- | --- |
-| Survey | [`explorer`](../.claude/agents/explorer.md) | the fast tier | none |
-| Write | [`implementer`](../.claude/agents/implementer.md) | the capable tier | `Write`, `Edit` |
-| Judge | [`reviewer`](../.claude/agents/reviewer.md) | the most capable tier | none |
+| Survey | [`explorer`](../.claude/agents/explorer.md) | Sonnet, medium effort | none |
+| Survey (parallel) | [`investigator`](../.claude/agents/investigator.md) | Sonnet, medium effort | none |
+| Write | [`implementer`](../.claude/agents/implementer.md) | Sonnet, high effort | `Write`, `Edit` |
+| Judge | [`reviewer`](../.claude/agents/reviewer.md) | Fable | none |
 
 Establishing whether something is true, run by [`/verify`](../.claude/commands/verify.md):
 
 | Stage | Subagent | Runs on | Editing tools |
 | --- | --- | --- | --- |
-| Establish | [`investigator`](../.claude/agents/investigator.md) | the capable tier | none |
-| Judge | [`reviewer`](../.claude/agents/reviewer.md) | the most capable tier | none |
+| Establish | [`investigator`](../.claude/agents/investigator.md) | Sonnet, medium effort | none |
+| Judge | [`reviewer`](../.claude/agents/reviewer.md) | Fable | none |
 
 The second loop exists because prose in this repository has twice asserted something that
 the source contradicted — a `kubectl drain` flag said to skip graceful shutdown when it
@@ -424,8 +430,8 @@ never fixed it, because the overlap was structural. The cheap-then-expensive spl
 real idea and it may come back as two steps inside one agent; it did not survive as two
 agents.
 
-The tier is set per subagent with the `model` key, which is the only place in this
-repository that key is used. Claude Code resolves a subagent's model from the
+The tier is set per subagent with the `model` and `effort` keys, the only place in this
+repository either key is used. Claude Code resolves a subagent's model from the
 per-invocation argument first, then this frontmatter, then the `CLAUDE_CODE_SUBAGENT_MODEL`
 environment variable, then the main conversation's model. Frontmatter winning over the
 environment variable is what makes the tiering hold: someone who has set that variable
@@ -446,10 +452,12 @@ and returns findings rather than patches; carrying them back to `implementer` is
 the verdict worth having. Reviewing is also the stage where being wrong is most expensive,
 which is why it gets the capable model and the survey does not.
 
-[`/ship`](../.claude/commands/ship.md) runs the three in order. The middle decision —
-which plugin owns the change, what it must not collide with — stays in the main
-conversation, because that is the one part that depends on judgement built up over the
-session and travels badly through a cold prompt.
+[`/ship`](../.claude/commands/ship.md) runs `explorer` — beside `investigator` in
+parallel when the change rests on an outside claim — then `implementer`, then
+`reviewer`, then opens and merges one pull request once review, `ci` and `security`
+pass. The middle decision — which plugin owns the change, what it must not collide
+with — stays in the main conversation, because that is the one part that depends on
+judgement built up over the session and travels badly through a cold prompt.
 
 Nothing about this is committed into `.claude/settings.json`, which applies to everyone
 who opens the repository. To pin a main-conversation model or set a subagent default for

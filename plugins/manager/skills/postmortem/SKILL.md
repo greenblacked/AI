@@ -14,7 +14,7 @@ Postmortems fail in two directions. They become prosecutions, at which point eng
 
 Use for: writing a postmortem after an incident, reviewing a draft before publication, deciding whether an incident meets the bar, and preparing the action-item set for a sprint planning conversation.
 
-Do not use for: live triage during an ongoing incident — that is a different job, and for Kubernetes-shaped incidents the `k8s-triage` skill covers it. Also not for individual performance discussions; a postmortem that feeds one has already failed.
+Do not use for: live triage during an ongoing incident — that is `incident-response`, or `k8s-triage` for a Kubernetes-shaped one. Also not for individual performance discussions; a postmortem that feeds one has already failed.
 
 ## Workflow
 

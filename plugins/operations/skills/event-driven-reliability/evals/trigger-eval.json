@@ -9,7 +9,7 @@
   {"query": "design inbox and transactional outbox handling for a service that consumes one event and emits another", "should_trigger": true},
   {"query": "add backpressure and concurrency limits so retries do not overwhelm the dependency or starve fresh messages", "should_trigger": true},
   {"query": "prove our consumer remains correct when acknowledgement fails after commit and an outbox relay publishes twice", "should_trigger": true},
-  {"query": "production consumers are crashing and the queue is growing right now; help us triage the outage", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "production consumers are crashing and the queue is growing right now; help us triage the outage", "should_trigger": false, "expected": "incident-response"},
   {"query": "add queue-depth dashboards, retry counters, traces and alerts for our asynchronous workers", "should_trigger": false, "expected": "instrumentation"},
   {"query": "design the REST endpoints, error schema, pagination and HTTP idempotency header for our public API", "should_trigger": false, "expected": "api-design"},
   {"query": "turn our approved dead-letter redrive process into an on-call runbook with exact commands and decision steps", "should_trigger": false, "expected": "runbook"},

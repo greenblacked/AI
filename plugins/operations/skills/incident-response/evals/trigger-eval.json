@@ -1,0 +1,22 @@
+[
+  {"query": "the deploy broke prod, checkout is 502ing. roll back?", "should_trigger": true},
+  {"query": "our RDS primary won't accept writes and the standby hasn't promoted, prod is down", "should_trigger": true},
+  {"query": "the payment provider's status page just went red, checkout is failing for everyone", "should_trigger": true},
+  {"query": "lambda error rate on the checkout function jumped to 40% right after the last deploy", "should_trigger": true},
+  {"query": "every vm in the fleet is out of disk and the app is refusing writes", "should_trigger": true},
+  {"query": "our dns provider is having an incident and half our traffic can't resolve the domain", "should_trigger": true},
+  {"query": "we have an incident, customers are locked out and nobody has declared or named an IC yet", "should_trigger": true},
+  {"query": "prod is down and I'm IC, what do I do in the first five minutes", "should_trigger": true},
+  {"query": "is this a SEV1 or a SEV2, people on the call keep arguing about it", "should_trigger": true},
+  {"query": "the cdn is serving stale and broken assets to some regions, what do we do right now", "should_trigger": true},
+  {"query": "pods are crashlooping since the 11:40 deploy, roll back or dig in?", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "write the postmortem for tuesday's outage, i have the timeline and the graphs", "should_trigger": false, "expected": "postmortem"},
+  {"query": "draft the status page update customers will see while checkout is degraded", "should_trigger": false, "expected": "incident-comms"},
+  {"query": "write the runbook for what the on-call should do when the queue backs up", "should_trigger": false, "expected": "runbook"},
+  {"query": "our pager went off 40 times last night for one bad deploy, help me prune the rules", "should_trigger": false, "expected": "alert-design"},
+  {"query": "can we kill an availability zone in staging on purpose and see what happens", "should_trigger": false, "expected": "game-day"},
+  {"query": "CI is red again on the payments service, third time today, same job different test", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "how many nodes do we need for black friday, p95 cpu is sitting around 40 percent today", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "turn last night's raw scrollback and slack log into a first postmortem draft", "should_trigger": false, "expected": "incident-scribe"},
+  {"query": "our aws bill jumped 30% last month, where is all this money going", "should_trigger": false, "expected": "cost-review"}
+]

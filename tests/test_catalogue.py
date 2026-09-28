@@ -778,6 +778,157 @@ def test_export_reports_a_tree_with_no_plugins(tmp_path):
     assert portable.main([str(tmp_path)]) == 2
 
 
+# --- the router --------------------------------------------------------------------
+
+
+def test_first_sentence_trims_to_the_cap():
+    # Short enough to survive whole: the cap is a ceiling, not a target length.
+    assert portable.first_sentence("Do the thing. Then another.", 100) == "Do the thing."
+    # Long enough to need trimming: cut inside the cap and marked as cut, rather than
+    # silently reading as a complete, if oddly short, sentence.
+    long_sentence = " ".join(["word"] * 20) + "."
+    trimmed = portable.first_sentence(long_sentence, 20)
+    assert len(trimmed) <= 20
+    assert trimmed.endswith("…")
+
+
+def test_first_sentence_hard_cuts_a_single_overlong_word():
+    # A leading word longer than the cap has no space inside it to cut at; falling back
+    # to a hard cut keeps this a short, honestly truncated line instead of an empty one.
+    long_sentence = "x" * 200 + " thing."
+    trimmed = portable.first_sentence(long_sentence, 20)
+    assert len(trimmed) == 20
+    assert trimmed.endswith("…")
+
+
+def test_first_sentence_prefers_a_later_use_when_sentence():
+    # agent-handoff, profiling, refactoring and other skills here put the sentence naming
+    # when they apply after a first sentence that summarises the procedure instead — the
+    # router line should name the situation, not the summary.
+    description = (
+        "Summarise the whole procedure in one dense opening line. Use when someone asks "
+        "for exactly this. Further detail that never gets read here."
+    )
+    assert portable.first_sentence(description, 200) == ("Use when someone asks for exactly this.")
+    # With no such sentence, the first one is exactly what ships.
+    assert portable.first_sentence("Just one plain sentence.", 200) == "Just one plain sentence."
+
+
+def test_first_sentence_cuts_at_a_word_boundary():
+    description = "Handle the incoming webhook payload safely before anything else runs."
+    trimmed = portable.first_sentence(description, 30)
+    # Cut after a whole word ("webhook"), not mid-word ("webho…") — the untrimmed word
+    # immediately before the ellipsis has to appear whole in the original sentence.
+    assert trimmed == "Handle the incoming webhook…"
+    assert trimmed[:-1].rsplit(" ", 1)[-1] in description.split()
+
+
+def test_first_sentence_does_not_split_on_common_abbreviations():
+    description = "Fix the root cause, e.g. a null pointer, not the symptom. Then verify."
+    assert portable.first_sentence(description, 200) == (
+        "Fix the root cause, e.g. a null pointer, not the symptom."
+    )
+    description = "Cover the common cases, etc. before the rare ones. Then ship."
+    assert portable.first_sentence(description, 200) == (
+        "Cover the common cases, etc. before the rare ones."
+    )
+    description = "Rotate the credential, i.e. the API key, before it expires. Then verify."
+    assert portable.first_sentence(description, 200) == (
+        "Rotate the credential, i.e. the API key, before it expires."
+    )
+
+
+@pytest.mark.parametrize(
+    "opening",
+    ["Use this skill whenever", "Use whenever", "Use for", "Use this when", "Trigger"],
+)
+def test_first_sentence_recognises_every_use_when_shape(opening):
+    # Descriptions here phrase the "when it applies" sentence several ways; each has to
+    # win over the summary sentence that comes first, not only the two literal openers
+    # ("use when", "use this when") the router used to look for.
+    description = f"Summarise the procedure first. {opening} the situation applies here."
+    assert portable.first_sentence(description, 200) == f"{opening} the situation applies here."
+
+
+def test_first_sentence_prefers_an_earlier_use_sentence_over_a_later_trigger_sentence():
+    # learning-notes and health-coach both open with "Use this skill whenever..." and add
+    # a later "Trigger ... casual phrasings" sentence; the router line should resolve to
+    # the earlier, more specific sentence rather than the later, supplementary one.
+    description = (
+        "Use this skill whenever someone pastes an article to keep. Trigger on casual "
+        'phrasings too, like "worth keeping?".'
+    )
+    assert portable.first_sentence(description, 200) == (
+        "Use this skill whenever someone pastes an article to keep."
+    )
+
+
+def test_first_sentence_is_linear_in_the_length_of_an_unterminated_description():
+    # No ".", "!" or "?" anywhere: the old lazy `.*?` scan tried every starting position
+    # in turn and rescanned to the end of the text each time it found no terminator,
+    # quadratic in the length of the text. This asserts only that the call returns a
+    # sensibly trimmed result, not a time budget — a quadratic regression here is slow
+    # enough that the test would hang rather than needing a clock to catch it.
+    text = "word " * 20_000  # 100,000 characters
+    assert len(text) == 100_000
+    trimmed = portable.first_sentence(text, 40)
+    assert len(trimmed) <= 40
+    assert trimmed.endswith("…")
+
+
+def test_export_writes_a_router_and_one_per_plugin(mini_repo, tmp_path):
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    assert (out / "router.md").is_file()
+    # mini_repo carries exactly one plugin, named engineering.
+    assert (out / "router-engineering.md").is_file()
+    router = (out / "router.md").read_text(encoding="utf-8")
+    assert "## engineering" in router
+    assert "- **alpha**" in router and "- **beta**" in router
+    assert "`skills/alpha.md`" in router and "`skills/beta.md`" in router
+    per_plugin = (out / "router-engineering.md").read_text(encoding="utf-8")
+    assert "- **alpha**" in per_plugin and "- **beta**" in per_plugin
+
+
+def test_every_path_a_router_names_exists_in_the_export(mini_repo, tmp_path):
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for router_path in [out / "router.md", out / "router-engineering.md"]:
+        text = router_path.read_text(encoding="utf-8")
+        paths = re.findall(r"`(skills/[\w.-]+\.md)`", text)
+        assert paths, router_path.name  # the pattern itself must find something to check
+        for relative in paths:
+            assert (out / relative).is_file(), f"{router_path.name} names {relative}"
+
+
+def test_router_over_budget_fails_without_touching_a_previous_export(
+    mini_repo, tmp_path, monkeypatch, capsys
+):
+    # A budget smaller than the preamble alone makes every router fail, whatever the
+    # skills measure — the point is only that the check fires and stops the export.
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    before = {path: path.read_bytes() for path in out.rglob("*") if path.is_file()}
+
+    monkeypatch.setattr(portable, "ROUTER_BUDGET_BYTES", 10)
+    assert portable.export(mini_repo, out) == 1
+    message = capsys.readouterr().err
+    assert "router.md is" in message
+    assert "against a budget of 10" in message
+    # The router budget is checked, from the rendered skills alone, before `out` is
+    # touched at all — the same reason LICENSE/NOTICE are checked before shutil.rmtree,
+    # rather than after a partial export already exists. A real previous export,
+    # sentinel and all, survives an over-budget run completely unchanged.
+    assert (out / portable.EXPORT_SENTINEL).is_file()
+    after = {path: path.read_bytes() for path in out.rglob("*") if path.is_file()}
+    assert after == before
+
+
+def test_router_over_budget_fails_check_mode_too(mini_repo, tmp_path, monkeypatch):
+    monkeypatch.setattr(portable, "ROUTER_BUDGET_BYTES", 10)
+    assert portable.export(mini_repo, tmp_path / "portable", check=True) == 1
+
+
 # --- the rmtree safety guard -------------------------------------------------------
 
 

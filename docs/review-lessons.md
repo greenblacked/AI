@@ -1,11 +1,11 @@
 # Review lessons
 
-A curated ledger of defect classes caught by the review stage of this repository's
-`/ship` loop before merge — not a general list of good practice, and not everything a
-gate has ever flagged. Each entry is a class specific enough that naming it saves the
-round trip of rediscovering it: `implementer` reads this before writing, so it does not
-reintroduce a class already caught once; `reviewer` reads it after `AGENTS.md` and
-checks the change against it before anything else.
+A curated ledger of defect classes caught by any review of a change here — the review
+stage, an automated PR reviewer, or a live run — not a general list of good practice, and
+not everything a gate has ever flagged. Each entry is a class specific enough that naming
+it saves the round trip of rediscovering it: `implementer` reads this before writing, so
+it does not reintroduce a class already caught once; `reviewer` reads it after
+`AGENTS.md` and checks the change against it before anything else.
 
 This file is memory, not a rulebook. A rule that fully replaces the need to remember —
 because a validator check or a CI gate now makes the mistake impossible rather than
@@ -24,7 +24,8 @@ memory afterwards. Four parts, in this order:
 - **How it shows up** — the concrete shape it took, specific enough to search for.
 - **The check that catches it** — the test, validator rule or CI step that now exercises
   this, so the entry doubles as a pointer to where the guarantee actually lives.
-- **Where it was first caught** — the pull request number.
+- **Where it was first caught** — the pull request number, plus which one caught it: the
+  review stage, an automated PR reviewer, or a live run.
 
 Add a case to [`scripts/run_review_benchmark.py`](../scripts/run_review_benchmark.py)'s
 benchmark alongside the entry, at

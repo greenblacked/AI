@@ -1,6 +1,6 @@
 ---
 name: k8s-triage
-description: "Triage and mitigate a broken Kubernetes workload or a live production incident, mitigation first and diagnosis second — declare, test whether it is deploy-related and roll back, scope the blast radius, capture evidence before mutating anything, pattern-match the symptom, then escalate through rollback, scale-out, load shedding, failover, drain and restore. Use this skill whenever a pod, deployment, service or cluster is misbehaving — CrashLoopBackOff, OOMKilled, ImagePullBackOff, Pending or unschedulable pods, running but never Ready, stuck Terminating, DNS failures, RBAC 403s, a Service with no endpoints — and equally for casual phrasings like \"my pod won't start\", \"the deploy broke prod\", \"k8s is down\", \"why is this pending\", or \"we have an incident\". For bulky captured Kubernetes evidence, use k8s-evidence-reader before deciding here. Not for authoring new manifests, capacity planning, or writing the postmortem once service is restored."
+description: "Triage and mitigate a broken Kubernetes workload, mitigation first and diagnosis second — test whether it is deploy-related and roll back, scope the blast radius, capture evidence before mutating anything, pattern-match the symptom, then escalate through rollback, scale-out, load shedding, failover, drain and restore. Use this skill whenever a pod, deployment, service or cluster is misbehaving — CrashLoopBackOff, OOMKilled, ImagePullBackOff, Pending or unschedulable pods, running but never Ready, stuck Terminating, DNS failures, RBAC 403s, a Service with no endpoints — and equally for casual phrasings like \"my pod won't start\", \"the rollout broke prod\", \"k8s is down\", or \"why is this pending\". For bulky captured Kubernetes evidence, use k8s-evidence-reader before deciding here. Not for authoring new manifests, capacity planning, writing the postmortem once service is restored, or a live incident on a non-Kubernetes surface (incident-response)."
 allowed-tools: Bash(kubectl:*), Bash(helm:*), Bash(jq:*), Read, Grep, Glob
 ---
 
@@ -12,9 +12,9 @@ The job is hard because the instinct that makes someone a good engineer — unde
 
 ## Scope
 
-Use for: a workload that will not start, will not stay up or will not serve; a live incident of any severity; a cluster or control-plane problem; deciding whether to roll back.
+Use for: a workload that will not start, will not stay up or will not serve; a cluster or control-plane problem; deciding whether to roll back.
 
-Do not use for: writing new manifests or Helm charts, capacity and cost planning, cluster upgrades planned in advance, or writing the postmortem after service is restored — that is the companion `postmortem` skill's job, and this skill hands off to it.
+Do not use for: writing new manifests or Helm charts, capacity and cost planning, cluster upgrades planned in advance, writing the postmortem after service is restored — that is the companion `postmortem` skill's job, and this skill hands off to it — or a live incident on a surface that is not Kubernetes, which is `incident-response`.
 
 ## Workflow
 
@@ -22,11 +22,10 @@ Steps 0 and 1 are ordered and non-negotiable. Everything after them adapts to wh
 
 ### 0. Declare
 
-Name an Incident Commander, open one channel, open one live incident document. Say the three out loud in the channel so there is no ambiguity about who is running this.
-
-Declare if you need a second team, if it is customer-visible, if it is unresolved after an hour of focused analysis, or if you are about to do something you cannot undo. If unsure, declare — de-escalation costs one message, and the alternative is a two-hour "I've almost got it" that ends in an escalation with no timeline and no artefacts.
-
-Open the postmortem document now, empty. See `references/incident-command.md` for roles, severity, the document template and comms cadence.
+Declaring, naming an Incident Commander, setting severity and opening the live incident
+document are the companion `incident-response` skill's job, not this one's — it covers
+every surface, Kubernetes included. Do that there first, using its incident report
+template, then come back here for the Kubernetes-specific diagnosis and mitigation below.
 
 ### 1. Is it deploy-related?
 
@@ -145,53 +144,23 @@ Verify against the SLI after each one. If the first mitigation does not work, go
 
 ### 6. Communicate on a cadence
 
-Publish every 30 minutes for SEV1 and SEV2, from the declaration, and publish even when there is nothing new. Every update states impact in customer terms and names the time of the next update.
-
-> **14:30 UTC — INC-241, SEV2, still investigating.** Roughly 12% of checkout requests are timing out. We have ruled out the 13:58 deploy. No change since the last update. Next update 15:00 UTC.
-
-The no-news update is the one that matters: silence is what generates DMs to the person who must not be interrupted. Naming the next update time turns an open-ended outage into a bounded wait.
+The cadence discipline — publish on a fixed interval, publish even when there is nothing new, name the time of the next update — is the companion `incident-response` skill's job, and outward-facing wording is `incident-comms`'s. Nothing about that discipline is Kubernetes-specific; read it there rather than here.
 
 ### 7. Hand off explicitly
 
-Every two to three hours on an active incident, before the commander is tired enough to decide badly. The handoff states current state, what is in flight, what must not be done, and when the next update is due — and the incoming commander acknowledges it in the channel before the outgoing one leaves. Never hand off IC and Operations Lead in the same five minutes. The script is in `references/incident-command.md`.
+Same discipline as `incident-response`'s hand-off step — current state, what is in flight, what must not be done, acknowledged before the outgoing commander leaves. Read it there; nothing here is Kubernetes-specific about the handoff itself.
 
 ### 8. Mitigated is not resolved
 
-Mitigated means customer impact has stopped. Resolved means the cause is fixed and the temporary measures are gone. Use those exact words so nobody mistakes one for the other — the gap between them is where a rolled-back release quietly gets re-applied and where a "temporary" memory limit becomes the design.
-
-Before closing: the SLI has been normal long enough to be believable; every temporary change either has a decision to keep it or a ticket to revert it; the postmortem opened at declare time has an owner and a date. The companion `postmortem` skill in this repository covers the writing itself — hand off to it rather than attempting it in the incident channel.
-
-## Incident report format
-
-Fill this in as you go, not at the end:
-
-```markdown
-## Impact
-[Who is affected, how, and the SLI with its current value.]
-
-## Status
-INVESTIGATING | MITIGATING | MITIGATED | RESOLVED — with the time it changed.
-
-## Timeline (UTC)
-[First alert, declaration, each decision, each mutation, each verification.]
-
-## Evidence
-[Pod states, exit codes, the decisive log lines and events. Paste, do not summarise.]
-
-## Changes made
-[Every mutation, who ran it, and whether it is permanent or must be reverted.]
-
-## Current hypothesis
-[One or two sentences. Strike through disproved ones rather than deleting them.]
-
-## Follow-ups
-[Owner and ticket for each. Includes anything temporary still in place.]
-```
+Same distinction and close-out checklist as `incident-response`'s step of the same name. What is Kubernetes-specific is only the evidence you attach to it: the ReplicaSet you rolled back to, the decode-table match from step 4, and anything captured in step 3. Hand off to the companion `postmortem` skill for the write-up itself, once resolved.
 
 ## Reference files
 
 - `references/decode-table.md` — the full symptom table: CrashLoopBackOff and exit codes, OOMKilled, image pull failures, Pending and unschedulable, Running but not Ready, stuck Terminating, DNS, RBAC 403, Services with no endpoints. Read it at step 4, and read the relevant section before proposing any cause.
-- `references/incident-command.md` — roles and why separation increases autonomy, declaration criteria, severity levels, the live incident document template, comms cadence, the handoff script. Read it at step 0, or whenever the response grows past two people.
+
+The incident-command role structure, severity table, live incident document template,
+comms cadence and handoff script are the companion `incident-response` skill's reference
+file — read it there, at step 0, or whenever the response grows past two people.
 
 ## Anti-patterns
 
