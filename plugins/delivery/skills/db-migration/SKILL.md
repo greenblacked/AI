@@ -14,7 +14,7 @@ The job is hard for two reasons that only appear in production. The first is loc
 
 Use for: a schema change against a database that is serving traffic — columns, indexes, constraints, types, table splits — plus the backfill that populates it, the release sequencing around it, and the decision about whether a change can be rolled back.
 
-Do not use for: choosing a database engine, ORM or framework setup, tuning a slow query or adding an index purely for performance analysis, or building an ETL or analytics pipeline. If the migration is one step inside a larger switchover event with a point of no return, the sequencing here still applies but the event belongs to the `cutover` skill.
+Do not use for: choosing a database engine, ORM or framework setup, tuning a slow query or adding an index purely for performance analysis, designing a new schema before anything is live (`schema-design` — hand the agreed DDL here once nothing has shipped yet), or building an ETL or analytics pipeline. If the migration is one step inside a larger switchover event with a point of no return, the sequencing here still applies but the event belongs to the `cutover` skill.
 
 ## Hard gates
 

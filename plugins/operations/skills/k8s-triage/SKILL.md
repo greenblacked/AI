@@ -14,7 +14,7 @@ The job is hard because the instinct that makes someone a good engineer — unde
 
 Use for: a workload that will not start, will not stay up or will not serve; a cluster or control-plane problem; deciding whether to roll back.
 
-Do not use for: writing new manifests or Helm charts, capacity and cost planning, cluster upgrades planned in advance, writing the postmortem after service is restored — that is the companion `postmortem` skill's job, and this skill hands off to it — or a live incident on a surface that is not Kubernetes, which is `incident-response`.
+Do not use for: writing new manifests or Helm charts, capacity and cost planning, a cluster upgrade planned in advance — that is `k8s-upgrade`'s job, from finding removed APIs before the window to sequencing add-ons and node pools — writing the postmortem after service is restored — that is the companion `postmortem` skill's job, and this skill hands off to it — or a live incident on a surface that is not Kubernetes, which is `incident-response`.
 
 ## Workflow
 

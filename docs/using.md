@@ -39,12 +39,12 @@ Install the plugins you will actually use. Every description a plugin ships sits
 context for the whole session, and the runtime caps that listing at about 1% of the
 context window. Past the cap it drops the descriptions of the skills you invoke least,
 which leaves them invocable by name and stops them being chosen on their own — silently.
-Only `career`, `delivery` and `personal` fit the default budget by themselves. If you
-install any of the other five, or more than one plugin, raise it in
+Only `career` and `personal` fit the default budget by themselves. If you
+install any of the other six, or more than one plugin, raise it in
 `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.09 }
+{ "skillListingBudgetFraction": 0.093 }
 ```
 
 ### How a skill fires
@@ -63,7 +63,7 @@ move when you know exactly what you want.
 
 ### Subagents
 
-Eighteen ship across seven plugins, and they work differently: the main agent delegates to one
+21 ship across seven plugins, and they work differently: the main agent delegates to one
 when the work would otherwise flood your context with material you do not need afterwards.
 A megabyte of CI logs, a Terraform plan, a billing export, a release range. You get the
 conclusion; the raw material never enters your session.
@@ -73,7 +73,7 @@ Ask for one by name when you want to be sure.
 
 ### Slash commands
 
-Six ship, and unlike skills they never fire on their own — you type them. That makes them
+Eight ship, and unlike skills they never fire on their own — you type them. That makes them
 the right shape for work that takes an argument, or that should happen when asked rather
 than when merely relevant.
 
