@@ -1,0 +1,22 @@
+[
+  {"query": "we're about to submit our first ios build with phased release turned on, what should the rollback plan actually be", "should_trigger": true},
+  {"query": "google play staged rollout is at 10% and crash rate ticked up, do we halt or wait it out", "should_trigger": true},
+  {"query": "app store rejected our build citing a guideline number, how do we respond", "should_trigger": true},
+  {"query": "we have clients on an app version from two years ago still hitting the api, how do we force them to update", "should_trigger": true},
+  {"query": "what crash-free rate should stop a phased release from advancing to the next percentage", "should_trigger": true},
+  {"query": "our binary already shipped to 20% of users and we found a bug, can we pull it back", "should_trigger": true},
+  {"query": "how far in advance do we need to submit to apple before our marketing launch date", "should_trigger": true},
+  {"query": "play console staged rollout percentages, what's a sane schedule for a risky release", "should_trigger": true},
+  {"query": "minimum supported app version check on the backend, how should that behave", "should_trigger": true},
+  {"query": "our app got bounced from testflight review for a metadata issue, what's the fix and how fast can we resubmit", "should_trigger": true},
+  {"query": "we're doing a canary on the checkout service, what percent should we start at and how long before promoting", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "our game keeps failing platform TRC on suspend and resume, what should we test before resubmitting", "should_trigger": false, "expected": "game-certification"},
+  {"query": "need to design a kill switch for the recommendations service before black friday", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "what's our age rating process look like for the new game build", "should_trigger": false, "expected": "game-certification"},
+  {"query": "blue-green or percentage rollout for a jvm upgrade on the api servers", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "we're migrating off heroku next saturday, need the cutover runbook", "should_trigger": false, "expected": "cutover"},
+  {"query": "renaming a column on a 200 million row table without downtime", "should_trigger": false, "expected": "db-migration"},
+  {"query": "our ci pipeline for the mobile app build is red on every pr, why", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "how should we write the changelog for the next mobile release", "should_trigger": false, "expected": "release-notes"},
+  {"query": "app icon and texture sizes are blowing past the store's package size limit", "should_trigger": false, "expected": "game-assets"}
+]

@@ -33,6 +33,19 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   across a full traffic peak before rolling the rest. `k8s-triage`'s cede for a cluster
   upgrade planned in advance now names it. Raise the `operations` plugin's listing
   ceiling to 15,500 for the new skill.
+- Add a `mobile-release` skill to `delivery`: stage or phase a shipped iOS or Android
+  build through the app store's own rollout, where the binary itself cannot be
+  recalled — an agreed crash-free halt threshold set before the rollout starts, a
+  server-side flag for every risky behaviour, the API compatibility window and
+  force-upgrade path for old clients, and a store rejection triaged against the
+  guideline it cites. Apple's fixed phased-release schedule, its 30-day pause limit,
+  its release-to-all-users override, and that a manual download always gets the
+  current version are stated as fact; Play Store mechanics are left to the console,
+  which the skill points at for its current staged-rollout options rather than
+  assuming a schedule for Android.
+  `release-strategy` and `game-certification` now cede a shipped binary's own rollout
+  to it. Raise the `delivery` plugin's listing ceiling to 9,500 for the new skill, and
+  `gamedev`'s to 10,500 for `game-certification`'s longer cede clause.
 - Add `router.md` and one `router-<plugin>.md` per plugin to the portable export: a
   line per skill naming when it applies and the `skills/<name>.md` path to open then,
   sized to fit inside a terminal agent's own document budget rather than a whole
