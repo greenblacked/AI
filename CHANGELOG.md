@@ -10,6 +10,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `/agent-diff-audit` command to `coding`, running mechanical detectors over an
+  agent-written diff against a base ref — shrunk test counts, newly silenced checks
+  including ESLint's `--suppress-all` and suppressions-file surface, and dependency lines
+  that 404 against their own registry — then handing the flagged list to `code-review`.
 - Add the `review-comment-miner` subagent to `coding`, reading a pile of exported PR
   review comments or postmortem action items and returning recurring clusters with an
   independent-instance count and a quoted example, leaving the choice of what a recurring
