@@ -194,8 +194,8 @@ narrower `dist/portable/router-<plugin>.md` per plugin. Paste the one you want i
 `AGENTS.md` itself sits, not to `dist/portable/`.
 
 ```bash
-cat dist/portable/router-coding.md >> AGENTS.md
-cp -r dist/portable/skills path/to/your/repo/skills
+cat dist/portable/router-coding.md >> path/to/your/repo/AGENTS.md
+mkdir -p path/to/your/repo/skills && cp -r dist/portable/skills/. path/to/your/repo/skills/
 ```
 
 The agent reads each line on every turn and opens the file it names only once the

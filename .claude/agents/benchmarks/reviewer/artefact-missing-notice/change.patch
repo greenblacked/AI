@@ -1,8 +1,8 @@
 diff --git a/scripts/export_portable.py b/scripts/export_portable.py
-index 2ea8686..fca1c04 100644
+index 4300bfa..6d0fcdb 100644
 --- a/scripts/export_portable.py
 +++ b/scripts/export_portable.py
-@@ -624,8 +624,6 @@ def export(root: Path, out: Path, check: bool = False) -> int:
+@@ -676,8 +676,6 @@ def export(root: Path, out: Path, check: bool = False) -> int:
      (out / "plugins").mkdir(parents=True)
      (out / "README.md").write_text(HOW_TO_USE, encoding="utf-8")
      (out / EXPORT_SENTINEL).write_text(SENTINEL_TEXT, encoding="utf-8")

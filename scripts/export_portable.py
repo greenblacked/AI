@@ -76,23 +76,34 @@ ASSET_LANGUAGES = {
 # example closes early and everything after it is read as prose.
 FENCE_RE = re.compile(r"^(`{3,}|~{3,})")
 ATX_RE = re.compile(r"^(#{1,6})(\s+)")
-# No leading anchor: used with .finditer() to walk every sentence in a description in
-# turn, looking for one that states when the skill applies rather than only the first.
-# The negative lookbehinds keep "e.g." and "etc." from reading as a sentence end —
+# A split point between two sentences, not a match on a sentence itself: matching the
+# boundary and splitting on it is linear in the length of the description, where the old
+# `.*?` lazy match tried every starting position in turn and rescanned to the end of the
+# text each time it found no terminator to stop at — quadratic on a long description with
+# none. The negative lookbehinds keep "e.g." and "etc." from reading as a sentence end —
 # without them, "fix the workload, e.g. a slow query." split after "e.g." itself, which
 # is not a sentence boundary a reader would recognise as one.
-SENTENCE_RE = re.compile(r"(.*?(?<!e\.g)(?<!etc)[.!?])(?:\s|$)", re.IGNORECASE)
-# 13 of this repository's descriptions state when a skill applies in a sentence that
+SENTENCE_RE = re.compile(r"(?<=[.!?])(?<!e\.g\.)(?<!etc\.)\s+")
+# Several descriptions in this repository state when a skill applies in a sentence that
 # comes after a first sentence summarising the procedure instead — "Use when someone
-# says...", further in, rather than at the start. Preferring that sentence, when one
-# exists, over whichever happens to come first is what keeps the router line naming a
-# situation rather than a summary.
-USE_WHEN_RE = re.compile(r"^(use when|use this when|trigger)\b", re.IGNORECASE)
+# says...", further in, rather than at the start. Preferring the earliest such sentence,
+# when one exists, over whichever happens to come first is what keeps the router line
+# naming a situation rather than a summary. Descriptions here phrase that sentence
+# several ways — "Use when", "Use this when", "Use whenever", "Use this skill whenever",
+# "Use for", "Use this skill for", "Use it when" — so every "use ... when/whenever/for"
+# shape is covered alongside the standalone "Trigger" some descriptions add later for a
+# casual phrasing.
+USE_WHEN_RE = re.compile(
+    r"^(use (?:this skill |this |it )?(?:when|whenever|for)\b|trigger\b)", re.IGNORECASE
+)
 
 # A router line has room for one sentence, not the full description a plugin's own
 # listing carries. This is a sane cap rather than a measured one: at 100 characters the
-# combined router for this repository's own eight plugins measures well inside
-# ROUTER_BUDGET_BYTES below, with headroom for the descriptions to be reworded.
+# combined router for this repository's own eight plugins already sits well into
+# ROUTER_BUDGET_BYTES below, and the budget is meant to bite as the catalogue grows
+# rather than to sit unused — a new skill or a longer "use when" sentence is expected to
+# push it there, at which point the answer is to trim a description or split the plugin,
+# not to raise the cap by reflex.
 ROUTER_USE_WHEN_CAP = 100
 
 # Codex's default project-doc budget is 32 KiB (openai/codex, codex-rs/config/src/
@@ -107,10 +118,11 @@ ROUTER_BUDGET_BYTES = 16 * 1024
 # pastes into AGENTS.md, the file names both counterparts so the other is discoverable
 # without reading this script.
 ROUTER_PREAMBLE = (
-    "Paste this file into AGENTS.md and keep `skills/` beside it: an agent that reads "
-    "AGENTS.md in full opens the file named on the matching line instead of loading "
-    "every skill inline. `router.md` covers every plugin; `router-<plugin>.md` covers "
-    "one alone, for a narrower AGENTS.md."
+    "Each line below names a skill and the situation it applies to. When a line matches "
+    "the task at hand, open the `skills/<name>.md` file it names rather than loading "
+    "every skill inline; otherwise skip it. `router.md` holds these lines for every "
+    "plugin; the sibling `router-<plugin>.md` files hold the same lines split one file "
+    "per plugin, for a narrower file."
 )
 
 
@@ -397,14 +409,15 @@ def _trim_to_word_boundary(sentence: str, cap: int) -> str:
 def first_sentence(description: str, cap: int) -> str:
     """A short line drawn from ``description``, trimmed to ``cap`` characters.
 
-    Prefers the sentence stating when the skill applies — one starting "Use when", "Use
-    this when" or "Trigger" — over whichever sentence happens to come first: 13
+    Prefers the earliest sentence stating when the skill applies — one starting "Use
+    when", "Use whenever", "Use for", "Use this skill whenever" or "Trigger", among other
+    shapes ``USE_WHEN_RE`` covers — over whichever sentence happens to come first: several
     descriptions in this repository put that sentence after a first one summarising the
     procedure instead, and a router line naming a situation is more useful than one
     naming a summary. Falls back to the first sentence when no such sentence exists.
     """
     text = " ".join(description.split())
-    sentences = [match.group(1).strip() for match in SENTENCE_RE.finditer(text)] or [text]
+    sentences = SENTENCE_RE.split(text) if text else [text]
     sentence = next(
         (candidate for candidate in sentences if USE_WHEN_RE.match(candidate)), sentences[0]
     )
@@ -492,7 +505,7 @@ wherever `AGENTS.md` itself sits, not to here.
 
 ```bash
 cat router-coding.md >> /path/to/your/repo/AGENTS.md
-cp -r skills /path/to/your/repo/skills
+mkdir -p /path/to/your/repo/skills && cp -r skills/. /path/to/your/repo/skills/
 ```
 
 A single large skill file is fine to open on demand once a router line matches —

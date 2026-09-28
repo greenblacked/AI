@@ -802,8 +802,8 @@ def test_first_sentence_hard_cuts_a_single_overlong_word():
 
 
 def test_first_sentence_prefers_a_later_use_when_sentence():
-    # agent-handoff, profiling, refactoring and ten others put the sentence naming when
-    # they apply after a first sentence that summarises the procedure instead — the
+    # agent-handoff, profiling, refactoring and other skills here put the sentence naming
+    # when they apply after a first sentence that summarises the procedure instead — the
     # router line should name the situation, not the summary.
     description = (
         "Summarise the whole procedure in one dense opening line. Use when someone asks "
@@ -832,6 +832,44 @@ def test_first_sentence_does_not_split_on_common_abbreviations():
     assert portable.first_sentence(description, 200) == (
         "Cover the common cases, etc. before the rare ones."
     )
+
+
+@pytest.mark.parametrize(
+    "opening",
+    ["Use this skill whenever", "Use whenever", "Use for", "Use this when", "Trigger"],
+)
+def test_first_sentence_recognises_every_use_when_shape(opening):
+    # Descriptions here phrase the "when it applies" sentence several ways; each has to
+    # win over the summary sentence that comes first, not only the two literal openers
+    # ("use when", "use this when") the router used to look for.
+    description = f"Summarise the procedure first. {opening} the situation applies here."
+    assert portable.first_sentence(description, 200) == f"{opening} the situation applies here."
+
+
+def test_first_sentence_prefers_an_earlier_use_sentence_over_a_later_trigger_sentence():
+    # learning-notes and health-coach both open with "Use this skill whenever..." and add
+    # a later "Trigger ... casual phrasings" sentence; the router line should resolve to
+    # the earlier, more specific sentence rather than the later, supplementary one.
+    description = (
+        "Use this skill whenever someone pastes an article to keep. Trigger on casual "
+        'phrasings too, like "worth keeping?".'
+    )
+    assert portable.first_sentence(description, 200) == (
+        "Use this skill whenever someone pastes an article to keep."
+    )
+
+
+def test_first_sentence_is_linear_in_the_length_of_an_unterminated_description():
+    # No ".", "!" or "?" anywhere: the old lazy `.*?` scan tried every starting position
+    # in turn and rescanned to the end of the text each time it found no terminator,
+    # quadratic in the length of the text. This asserts only that the call returns a
+    # sensibly trimmed result, not a time budget — a quadratic regression here is slow
+    # enough that the test would hang rather than needing a clock to catch it.
+    text = "word " * 20_000  # 100,000 characters
+    assert len(text) == 100_000
+    trimmed = portable.first_sentence(text, 40)
+    assert len(trimmed) <= 40
+    assert trimmed.endswith("…")
 
 
 def test_export_writes_a_router_and_one_per_plugin(mini_repo, tmp_path):
