@@ -10,6 +10,13 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add a `schema-design` skill to `coding`: model the tables for a new feature before any
+  migration exists — the query list first, a deliberate primary-key strategy, constraints
+  pushed into the database, soft delete as a whole-table decision with its partial unique
+  index, and every type chosen on purpose instead of inherited from an ORM default. Points
+  finished DDL at `db-migration` and unresolved query tuning at `sql-performance`; those
+  two skills, plus `api-design`, now cede back to it for greenfield schema work. Raise the
+  `coding` plugin's listing ceiling to 17,000 for the new skill.
 - Add `router.md` and one `router-<plugin>.md` per plugin to the portable export: a
   line per skill naming when it applies and the `skills/<name>.md` path to open then,
   sized to fit inside a terminal agent's own document budget rather than a whole

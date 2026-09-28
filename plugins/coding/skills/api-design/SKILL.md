@@ -14,7 +14,7 @@ An API is a promise, and the cost of a design mistake is paid by everyone who in
 
 Use for: designing a new HTTP or RPC interface; reviewing one before it ships or after it has; resource modelling and endpoint naming; error taxonomies and status code mapping; pagination, filtering and sorting; idempotency and retry semantics; deciding whether a change is breaking; choosing a versioning strategy; planning a deprecation.
 
-Do not use for: writing the implementation or scaffolding a service (`code-scaffold`), recording the decision between two competing designs for posterity (`decision-record`), rolling a change out gradually behind a flag (`release-strategy`), or changing the database schema underneath it (`db-migration`).
+Do not use for: writing the implementation or scaffolding a service (`code-scaffold`), recording the decision between two competing designs for posterity (`decision-record`), rolling a change out gradually behind a flag (`release-strategy`), designing the underlying table schema before any migration exists (`schema-design`), or changing the database schema underneath it once it is live (`db-migration`).
 
 ## Workflow
 
