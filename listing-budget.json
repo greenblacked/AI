@@ -4,7 +4,7 @@
   "description_target": 900,
   "plugins": {
     "career": 5000,
-    "coding": 17000,
+    "coding": 18000,
     "delivery": 9500,
     "gamedev": 10500,
     "manager": 12500,
@@ -14,9 +14,10 @@
   },
   "skills": {
     "access-review": 945,
+    "agent-delegation": 746,
     "agent-evaluation": 863,
     "agent-handoff": 840,
-    "agent-orchestration": 805,
+    "agent-orchestration": 824,
     "agent-security-review": 806,
     "ai-enablement": 912,
     "ai-review-integration": 832,

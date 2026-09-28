@@ -1,6 +1,6 @@
 ---
 name: agent-orchestration
-description: "Coordinate multiple coding agents through a live repository task: decompose work into a dependency graph, delegate independent research, implementation and review with explicit contracts, assign exclusive file and shared-resource ownership, monitor runtime state, recover safely from stalls or failed workers, integrate the combined change, and run final gates. Use when someone asks to split coding work across agents, run work in parallel, manage an agent team, or coordinate implementers and reviewers. When supplied run artifacts are too bulky to inspect here, use agent-run-trace-reader for the bounded evidence ledger while this skill retains live decisions. Not for benchmarks, agent security, a single bounded change, or a durable checkpoint; use agent-handoff for paused-work transfer and resume."
+description: "Coordinate multiple coding agents through a live repository task: decompose work into a dependency graph, delegate independent research, implementation and review with explicit contracts, assign exclusive file and shared-resource ownership, monitor runtime state, recover safely from stalls or failed workers, integrate the combined change, and run final gates. Use when someone asks to split coding work across agents, run work in parallel, manage an agent team, or coordinate implementers and reviewers. When supplied run artifacts are too bulky to inspect here, use agent-run-trace-reader for the bounded evidence ledger while this skill retains live decisions. Not for benchmarks, agent security, a single bounded change (agent-delegation), or a durable checkpoint; use agent-handoff for paused-work transfer and resume."
 ---
 
 # Agent Orchestration
@@ -21,8 +21,9 @@ implementation, validation, or review can benefit from multiple agents.
 
 Do not use for: measuring agent quality or building benchmarks; reviewing an untrusted
 agent's tool access; rolling out AI practices to a team; implementing one bounded change
-that has no useful independent branches; or transferring one paused task to a later
-session. Use `agent-handoff` for a durable checkpoint and stale-state reconciliation.
+that has no useful independent branches, which is `agent-delegation`; or transferring one
+paused task to a later session. Use `agent-handoff` for a durable checkpoint and
+stale-state reconciliation.
 
 This skill describes coordination through whatever delegation interface the current
 host actually exposes. It does not imply that an agent can be spawned, interrupted,

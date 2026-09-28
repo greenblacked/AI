@@ -19,5 +19,6 @@
   {"query": "design unit and integration tests for the retry policy in this worker queue", "should_trigger": false, "expected": "test-design"},
   {"query": "assess whether this tool-using agent can be tricked into leaking secrets through untrusted output", "should_trigger": false, "expected": "agent-security-review"},
   {"query": "help engineering managers roll out AI coding assistants with training and adoption metrics", "should_trigger": false, "expected": "ai-enablement"},
-  {"query": "refactor this oversized payment class without changing its public behaviour", "should_trigger": false, "expected": "refactoring"}
+  {"query": "refactor this oversized payment class without changing its public behaviour", "should_trigger": false, "expected": "refactoring"},
+  {"query": "write a brief for one bounded task before handing it to a single coding agent overnight", "should_trigger": false, "expected": "agent-delegation"}
 ]
