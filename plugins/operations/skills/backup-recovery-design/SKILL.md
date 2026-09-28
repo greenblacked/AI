@@ -1,6 +1,6 @@
 ---
 name: backup-recovery-design
-description: "Design or review backup and disaster-recovery architecture for production services, databases, object stores and control planes. Turns business impact into workload-specific RTO, RPO and retention targets; maps recoverable state and dependencies; chooses consistent backup, replication, immutability, encryption and isolation patterns; defines identity bootstrap, restore order, acceptance evidence, ownership and cost. Use for backup strategy, DR architecture, ransomware recovery, regional-loss planning, restore design, backup coverage reviews, or questions such as \"what must we back up\" and \"can we meet a four-hour RTO\". Not for executing a recovery drill (`game-day`), running a migration or failover window (`cutover`), responding to a live outage, privacy deletion policy, or repairing Terraform state (`terraform-state`)."
+description: "Design or review backup and disaster-recovery architecture for production services, databases, object stores and control planes. Turns business impact into workload-specific RTO, RPO and retention targets; maps recoverable state and dependencies; chooses consistent backup, replication, immutability, encryption and isolation patterns; defines identity bootstrap, restore order, acceptance evidence, ownership and cost. Use for backup strategy, DR architecture, ransomware recovery, regional-loss planning, restore design, backup coverage reviews, or questions such as \"what must we back up\" and \"can we meet a four-hour RTO\". For a restore-from-copy rehearsal with measured outcomes use disaster-recovery-exercise; for live failover experiments use game-day."
 allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
@@ -158,7 +158,7 @@ For every recovery tier, write an acceptance contract:
 Attach evidence: recovery-point identifier and timestamp, source and target scope, data
 volume, elapsed times by phase, validation results, exceptions and approver. Set an
 evidence freshness requirement based on change rate and risk. Hand the contract to
-`game-day` for execution; feed measured timings and failures back into this design.
+`disaster-recovery-exercise` for a restore-from-copy rehearsal; feed measured timings and failures back into this design. Use `game-day` for live failover experiments without restoration from a copy.
 
 ### 8. Reconcile objectives, evidence and cost
 

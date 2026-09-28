@@ -9,7 +9,7 @@
   {"query": "can daily snapshots really meet our RPO when the job takes six hours, and what evidence should we require", "should_trigger": true},
   {"query": "compare warm standby with restore-on-demand including the full annual cost and recovery timeline", "should_trigger": true},
   {"query": "design GCP backup coverage for Cloud SQL, Cloud Storage and persistent disks against a regional loss", "should_trigger": true},
-  {"query": "run a production restore drill next Thursday and define the injected failure, abort threshold and observers", "should_trigger": false, "expected": "game-day"},
+  {"query": "rehearse a complete restore from isolated backups and measure observed RTO/RPO with business sign-off", "should_trigger": false, "expected": "disaster-recovery-exercise"},
   {"query": "we restored the backup in staging; plan a game day to measure whether on-call can recover within two hours", "should_trigger": false, "expected": "game-day"},
   {"query": "write the minute-by-minute runbook for promoting the replica and switching traffic during Saturday's DR failover", "should_trigger": false, "expected": "cutover"},
   {"query": "plan our phased move from AWS to GCP including coexistence, data sync, rollback and legacy retirement", "should_trigger": false, "expected": "plan-platform-migration"},
