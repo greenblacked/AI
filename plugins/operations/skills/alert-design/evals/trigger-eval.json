@@ -18,5 +18,6 @@
   {"query": "CI is red again on the payments service, third time today. same job, different test each time", "should_trigger": false, "expected": "ci-triage"},
   {"query": "terraform plan on the PR says it's replacing the RDS instance, safe to approve or not", "should_trigger": false, "expected": "iac-review"},
   {"query": "plan a chaos exercise where we kill an availability zone and see if failover works", "should_trigger": false, "expected": "game-day"},
+  {"query": "define the checkout SLI, SLO target, compliance period and error budget before writing any rules", "should_trigger": false, "expected": "slo-design"},
   {"query": "have a look at this Dockerfile, it's 1.2GB and the process runs as root", "should_trigger": false, "expected": "image-hardening"}
 ]
