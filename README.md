@@ -57,8 +57,9 @@ its own manifest, so installing one does not pull in another's files.
 
 Install what you will use, though, rather than everything by reflex. Every description you
 install stays resident in context, and Claude Code's default listing budget is about 8,000
-characters against this library's 77,500 — so installing all eight at the default drops
-most of them, silently. The Install section below says what to set instead.
+characters against this library's total — `make validate` prints the current figure — so
+installing all eight at the default drops most of them, silently. The Install section
+below says what to set instead.
 
 ## Install
 

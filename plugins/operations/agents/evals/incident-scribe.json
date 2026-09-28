@@ -13,7 +13,7 @@
   {"query": "is last night's blip worth a postmortem", "should_trigger": false, "expected": "postmortem"},
   {"query": "review this postmortem before i publish it, is the root cause section any good", "should_trigger": false, "expected": "postmortem"},
   {"query": "our action items never get done, how should we structure them", "should_trigger": false, "expected": "postmortem"},
-  {"query": "checkout is down for 20% of users right now, i'm IC", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "checkout is down for 20% of users right now, i'm IC", "should_trigger": false, "expected": "incident-response"},
   {"query": "the pipeline has been red since the outage, read the failed run and say what class it is", "should_trigger": false, "expected": "ci-log-reader"},
   {"query": "we need to tell customers about the outage, draft the status page update", "should_trigger": false, "expected": "incident-comms"},
   {"query": "reviews are due friday and this incident is going to come up for the engineer involved, how do i handle that", "should_trigger": false, "expected": "growth-review"},

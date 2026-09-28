@@ -52,8 +52,11 @@ all three out loud so there is no ambiguity about who is running this. Declare i
 a second team, if it is customer-visible, if it is unresolved after an hour of focused
 analysis, or if you are about to do something you cannot undo. If unsure, declare —
 de-escalation costs one message, and the alternative is an unbounded "I've almost got it"
-with no timeline and no artefacts. See `references/incident-command.md` for the full role
-structure, when to declare, and how roles scale down for a small incident.
+with no timeline and no artefacts. Open an empty postmortem document at the same time,
+even with nothing in it yet — it gives the write-up an owner and a place to land evidence
+from the first minute rather than a scramble to reconstruct one afterwards. See
+`references/incident-command.md` for the full role structure, when to declare, and how
+roles scale down for a small incident.
 
 ### 1. Assign roles — the IC is not a resolver
 
@@ -116,10 +119,9 @@ postmortem with evidence and a shrug.
 Name a comms owner in the first few minutes who is not the IC and not touching the
 system, and hand outward-facing wording to `incident-comms` — acknowledging on impact
 rather than on diagnosis, and a next-update promise that gets kept even when there is
-nothing new. A responder call can go quiet; a stakeholder update cannot: "provide regular
-status updates … to the executive team," PagerDuty's Internal Liaison role states,
-"roughly every 30 minutes." Naming the next update time turns an open-ended outage into a
-bounded wait.
+nothing new. A responder call can go quiet; a stakeholder update cannot: PagerDuty's
+Internal Liaison role is written to give the executive team a status update roughly every
+30 minutes. Naming the next update time turns an open-ended outage into a bounded wait.
 
 ### 7. Hand off explicitly
 
