@@ -2,7 +2,7 @@
 
 Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
 frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md) for
-one of the nineteen this repository ships today, four with `coding`, six with
+one of the twenty this repository ships today, five with `coding`, six with
 `operations`, three with `security`, two with `manager`, one with `gamedev`, one with
 `delivery` and two with `personal` — and in `.claude/agents/`
 for the four that serve work on this repository rather than shipping to anyone,
@@ -40,7 +40,7 @@ tools: Read, Glob, Grep, Bash
   those three name `Bash` explicitly rather than leaving its absence from `tools` to
   speak for itself. `implementer`, the one loop stage whose job is to write the change,
   sets no `disallowedTools` at all.
-- **`model`** — optional. The model the subagent runs on. None of the nineteen here set it.
+- **`model`** — optional. The model the subagent runs on. None of the twenty here set it.
 - Also accepted, because a plugin-shipped subagent supports them: `effort`, `maxTurns`,
   `skills`, `memory`, `background`, `isolation`, `color`, `experimental`, `omitClaudeMd`.
   The last is the one worth knowing: it starts the subagent without the user's, the
@@ -248,7 +248,7 @@ procedure, for that reason.
 
 A plugin-shipped subagent is free to follow the same shape — a stated input, a first-line
 verdict, fixed headings — and a new one should. This is not a call to migrate the
-nineteen that ship today; none of them are rewritten by this.
+twenty that ship today; none of them are rewritten by this.
 
 ## Failure modes
 
@@ -276,7 +276,7 @@ inline.
 ## The subagents in this repository
 
 Each plugin discovers its own `agents/` directory — nothing lists them in
-[`marketplace.json`](../.claude-plugin/marketplace.json). Nineteen ship: four with
+[`marketplace.json`](../.claude-plugin/marketplace.json). Twenty ship: five with
 `coding`, six with `operations`, three with `security`, two with `manager`, one with
 `gamedev`, one with `delivery` and two with `personal`.
 
@@ -300,6 +300,10 @@ Each plugin discovers its own `agents/` directory — nothing lists them in
   flake-rate ledger for non-browser suites with a denominator per test, co-failure
   clusters, and a quarantine order by CI time and retries burned rather than raw failure
   count, leaving the quarantine policy itself to `ci-triage`.
+- **[`review-comment-miner`](../plugins/coding/agents/review-comment-miner.md)** — reads a
+  pile of exported PR review comments or postmortem action items and returns recurring
+  clusters, each with an independent-instance count and a quoted example, leaving the choice of
+  what a recurring finding becomes to whoever owns that surface.
 - **[`ci-log-reader`](../plugins/operations/agents/ci-log-reader.md)** — reads a failed pipeline run and
   returns a classification. This is the canonical context-isolation case: whole CI logs
   are large, and the caller needs the failing step and the decisive lines, not the log.
