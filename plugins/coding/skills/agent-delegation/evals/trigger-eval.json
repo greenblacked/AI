@@ -1,0 +1,22 @@
+[
+  {"query": "write a brief for Claude to fix this bug so I can hand it off and check the diff later", "should_trigger": true},
+  {"query": "have the coding agent implement this ticket, what should I put in the prompt", "should_trigger": true},
+  {"query": "the agent keeps rewriting files nobody asked it to touch, how do I scope this better", "should_trigger": true},
+  {"query": "what's a good done-check to give an AI coding tool before I let it run unattended", "should_trigger": true},
+  {"query": "draft a task brief for the agent to add this one field, what should it not be allowed to edit", "should_trigger": true},
+  {"query": "how do I stop an agent from editing the test file to make its own change pass", "should_trigger": true},
+  {"query": "I want to delegate one bounded task to an agent overnight, what goes in the brief", "should_trigger": true},
+  {"query": "how do I brief the next task so the agent's report proves it actually worked", "should_trigger": true},
+  {"query": "what stop conditions should I give an agent before it goes off script", "should_trigger": true},
+  {"query": "brief this one PR-sized change for an AI coding tool", "should_trigger": true},
+  {"query": "coordinate three agents working on different modules of this migration", "should_trigger": false, "expected": "agent-orchestration"},
+  {"query": "the agent ran out of context halfway through, how do I hand this off to a new session", "should_trigger": false, "expected": "agent-handoff"},
+  {"query": "review this diff an agent just produced for correctness and security", "should_trigger": false, "expected": "code-review"},
+  {"query": "roll out AI coding tools across the whole team, what should we measure", "should_trigger": false, "expected": "ai-enablement"},
+  {"query": "benchmark whether our repo agent produces safe patches across many held-out tasks", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "one worker stalled, stop it and reassign its files without double ownership", "should_trigger": false, "expected": "agent-orchestration"},
+  {"query": "orient me in this unfamiliar codebase before I touch anything", "should_trigger": false, "expected": "codebase-orientation"},
+  {"query": "design the tests this change needs before the agent writes any code", "should_trigger": false, "expected": "test-design"},
+  {"query": "is this agent's tool-calling vulnerable to prompt injection from untrusted output", "should_trigger": false, "expected": "agent-security-review"},
+  {"query": "preserve the current dirty worktree and next safe action so a successor can resume it", "should_trigger": false, "expected": "agent-handoff"}
+]

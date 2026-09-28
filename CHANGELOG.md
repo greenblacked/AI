@@ -17,6 +17,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   finished DDL at `db-migration` and unresolved query tuning at `sql-performance`; those
   two skills, plus `api-design`, now cede back to it for greenfield schema work. Raise the
   `coding` plugin's listing ceiling to 17,000 for the new skill.
+- Add an `agent-delegation` skill to `coding`: brief one coding agent on one bounded task
+  with a runnable done-check set before anything else, the failing evidence pasted in
+  rather than described, an explicit scope fence over tests, CI config, lint and coverage
+  thresholds and lockfiles, named stop conditions, and evidence required back rather than
+  a claim of "done". `agent-orchestration`'s cede for "a single bounded change" now names
+  it as the owner. Raise the `coding` plugin's listing ceiling to 18,000 for the new skill.
 - Add `router.md` and one `router-<plugin>.md` per plugin to the portable export: a
   line per skill naming when it applies and the `skills/<name>.md` path to open then,
   sized to fit inside a terminal agent's own document budget rather than a whole
