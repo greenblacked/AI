@@ -18,5 +18,5 @@
   {"query": "assess how the team is adopting AI-assisted engineering", "should_trigger": false, "expected": "ai-enablement"},
   {"query": "compare three observability vendors and recommend one", "should_trigger": false, "expected": "vendor-evaluation"},
   {"query": "cycle time has doubled this quarter, where is the queue", "should_trigger": false, "expected": "delivery-review"},
-  {"query": "facilitate the incident call happening right now", "should_trigger": false, "expected": "k8s-triage"}
+  {"query": "facilitate the incident call happening right now", "should_trigger": false, "expected": "incident-response"}
 ]

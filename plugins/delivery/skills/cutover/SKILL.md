@@ -14,7 +14,7 @@ The difficulty is not technical. It is that a cutover is an operation with a poi
 
 Use for: a planned switchover with a point of no return — traffic or DNS moved to a new system, a region or datacentre move, a hosting or payment or email provider swap, carving a service out of a monolith, a database promotion or failover, a system-of-record replacement.
 
-Do not use for: routine deploys or a progressive feature-flag rollout, which are reversible by design; a live unplanned incident, which is `k8s-triage`; the writeup afterwards, which is `postmortem`; or the schema change and backfill mechanics themselves, which are `db-migration` and are usually finished well before the cutover window opens.
+Do not use for: routine deploys or a progressive feature-flag rollout, which are reversible by design; a live unplanned incident, which is `incident-response`, or `k8s-triage` for a Kubernetes workload; the writeup afterwards, which is `postmortem`; or the schema change and backfill mechanics themselves, which are `db-migration` and are usually finished well before the cutover window opens.
 
 ## What separates a cutover from a deploy
 

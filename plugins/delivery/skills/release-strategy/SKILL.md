@@ -14,7 +14,7 @@ The thing teams get wrong is treating deploy and release as one event. Code reac
 
 Use for: choosing between a feature flag, a percentage or ring rollout, blue/green and shadow traffic for a specific change; designing the rings, bake times and promotion gates; picking guardrail metrics and the automated rollback signal; adding a kill switch to a risky dependency or an expensive path; auditing a flag estate and removing what should have gone months ago; deciding what result would stop a rollout, before it starts.
 
-Do not use for: a hard-to-reverse one-off switchover with a point of no return — a DNS flip, a region move, a provider swap — which is `cutover`; planning a multi-phase platform or tooling migration, which is `plan-platform-migration`; the schema change underneath a feature, which is `db-migration`; a broken pipeline, which is `ci-triage`; or an incident happening now, which is `k8s-triage`.
+Do not use for: a hard-to-reverse one-off switchover with a point of no return — a DNS flip, a region move, a provider swap — which is `cutover`; planning a multi-phase platform or tooling migration, which is `plan-platform-migration`; the schema change underneath a feature, which is `db-migration`; a broken pipeline, which is `ci-triage`; or an incident happening now, which is `incident-response`, or `k8s-triage` for a Kubernetes workload.
 
 ## Deploy is not release
 

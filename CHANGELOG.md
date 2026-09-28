@@ -31,6 +31,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   `check_listing_budget.py --update`: both are the script recomputing every plugin's
   ceiling and every skill's recorded length from what is actually on disk today, not a
   change made to either skill.
+- Add an `incident-response` skill to `operations`: platform-agnostic incident command,
+  severity and mitigation-by-symptom for a live production incident on any surface — a
+  managed database, a third-party dependency, a VM fleet, serverless, a CDN or DNS
+  provider — with `references/incident-command.md` moved from `k8s-triage`, which now
+  hands off to it for anything that is not a Kubernetes workload. Raise the `operations`
+  plugin's listing ceiling to 14,500 for the new skill and the cedes retargeted at it.
 - Add `.github/workflows/ci-triage.yml` and `scripts/ci_triage.py`, a Python port of
   `greenblacked/status-page`'s `ci-triage.cjs`: on a pull request's `CI` or `Security`
   run completing, keep one self-updating comment naming each failed job, its failed
@@ -50,6 +56,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   ("provider", "whenever") elsewhere in the same description to keep it clear of the
   validator's headroom warning; its recorded length moved from 967 to 973 characters
   accordingly, and the `security` plugin stays well under its 11,000 ceiling at 10,473.
+- Narrow `k8s-triage` to Kubernetes workload symptoms: drop its "or a live production
+  incident" claim and the generic declare, comms-cadence, handoff and
+  mitigated-versus-resolved steps, each replaced with a pointer to the new
+  `incident-response` skill, which now owns them for every surface, Kubernetes included.
 - Retry the actionlint and gitleaks downloads in `ci.yml` and `security.yml` on a
   transient network failure, with a 20-second connect timeout and a 60-second cap
   applied per attempt rather than libcurl's 300-second default, so the worst case of
