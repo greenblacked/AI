@@ -1,6 +1,6 @@
 ---
 name: alert-design
-description: "Write, review or delete alerting rules so every page is user-visible, urgent and actionable — classify each signal as page, ticket or dashboard-only, alert on SLO burn rather than on the mechanism, write multiwindow multi-burn-rate Prometheus rules, give every alert an owner, a runbook link and a title naming what is broken for whom, and prune an existing rule set by how often anyone acted on it. Use this skill whenever someone is adding an alert, tuning a threshold, writing PrometheusRule or Alertmanager config, defining an SLO or an error budget policy, or complaining about pager fatigue — including \"should this page someone?\", \"our pager is out of control\", \"add an alert for high CPU\", or \"why didn't we get paged for that\". Do not use it for debugging an incident happening now, building dashboards, capacity planning, or choosing a monitoring vendor."
+description: "Write, review or delete alerting rules so every page is user-visible, urgent and actionable — classify each signal as page, ticket or dashboard-only, alert on SLO burn rather than on the mechanism, write multiwindow multi-burn-rate Prometheus rules, give every alert an owner, a runbook link and a title naming what is broken for whom, and prune an existing rule set by how often anyone acted on it. Use this skill whenever someone is adding an alert, tuning a threshold, writing PrometheusRule or Alertmanager config, defining an error budget response policy, or complaining about pager fatigue — including \"should this page someone?\", \"our pager is out of control\", \"add an alert for high CPU\", or \"why didn't we get paged for that\". For selecting SLIs, targets, windows and budget ownership before rules exist, use slo-design."
 allowed-tools: Read, Grep, Glob, Edit, Write, Bash(promtool:*), Bash(amtool:*), Bash(kubectl:*), Bash(git:*)
 ---
 
@@ -12,7 +12,7 @@ Alerting is where good intentions turn into pager fatigue. Every incident ends w
 
 ## Scope
 
-Use for: deciding whether a signal should page, ticket, or only sit on a dashboard; writing or fixing a Prometheus, Alertmanager, Datadog or CloudWatch rule; defining SLO burn-rate alerts and an error budget policy; adding runbooks, owners and severities to an existing rule set; auditing a quarter of pages and deleting what nobody acted on; adding deadman, absence-of-data and dependency-suppression coverage.
+Use for: deciding whether a signal should page, ticket, or only sit on a dashboard; writing or fixing a Prometheus, Alertmanager, Datadog or CloudWatch rule; defining SLO burn-rate alerts and an error budget response policy; adding runbooks, owners and severities to an existing rule set; auditing a quarter of pages and deleting what nobody acted on; adding deadman, absence-of-data and dependency-suppression coverage. If no SLI and target exist, use `slo-design` first, then return here to implement the alert.
 
 Do not use for: diagnosing an incident that is burning right now (that is `incident-response`, or `k8s-triage` for a Kubernetes workload), designing dashboards, capacity planning, choosing between monitoring vendors, or writing up the incident afterwards (that is `postmortem`).
 
