@@ -188,7 +188,7 @@ Dependency suppression only works if the dependency is expressed in labels. If y
 
 Adding alerts is the easy half. The review is what keeps the set trustworthy.
 
-Pull the last 90 days of pages from the alerting system and, for each rule, answer three questions: how many times did it fire, how many times did a human take an action because of it, and what was that action. The action rate is the only number that matters — "action taken" means a mitigation, a rollback, an escalation or a code change, not acknowledging the page and watching it clear.
+Pull the last 90 days of pages from the alerting system and, for each rule, answer three questions: how many times did it fire, how many times did a human take an action because of it, and what was that action. The action rate is the only number that matters — "action taken" means a mitigation, a rollback, an escalation or a code change, not acknowledging the page and watching it clear. When the export itself is the bulky part — a quarter of PagerDuty incidents, an Opsgenie or Grafana OnCall alert dump, a Prometheus `ALERTS` range query — hand it to `page-history-reader` and work from its per-rule numbers rather than reading the raw rows yourself; it suggests a bucket against the same thresholds below, and you make the call.
 
 | Action rate over 90 days | Verdict |
 | --- | --- |
