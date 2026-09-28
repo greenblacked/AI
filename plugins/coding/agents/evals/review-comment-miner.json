@@ -1,0 +1,22 @@
+[
+  {"query": "here are 300 exported PR review comments from the last quarter, what keeps coming up", "should_trigger": true},
+  {"query": "read these postmortem action items and tell me which recommendations show up more than once", "should_trigger": true},
+  {"query": "mine this pile of review threads for a recurring finding worth turning into a rule", "should_trigger": true},
+  {"query": "we have years of code review comments exported, find the patterns across authors", "should_trigger": true},
+  {"query": "cluster these retro notes and tell me which ones are backed by more than one incident", "should_trigger": true},
+  {"query": "read this dump of resolved review threads and find what reviewers keep flagging", "should_trigger": true},
+  {"query": "is this review comment a one-off or does it recur across the team, from this export", "should_trigger": true},
+  {"query": "summarize what our review comments actually complain about most, from this CSV export", "should_trigger": true},
+  {"query": "which of these recurring PR comments has enough independent examples to justify a lint rule", "should_trigger": true},
+  {"query": "read this bulk export of review feedback and separate the anecdote from the pattern", "should_trigger": true},
+  {"query": "review this one pull request for correctness and security", "should_trigger": false, "expected": "code-review"},
+  {"query": "write the skill for the pattern we just found in review comments", "should_trigger": false, "expected": "new-skill"},
+  {"query": "synthesize this peer feedback about one engineer for their review cycle", "should_trigger": false, "expected": "feedback-synthesiser"},
+  {"query": "run mechanical checks over this agent's diff for shrunk test counts and invented dependencies", "should_trigger": false},
+  {"query": "is our test suite actually testing anything meaningful", "should_trigger": false, "expected": "test-design"},
+  {"query": "triage this red CI pipeline", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "should this PR be split into smaller commits", "should_trigger": false, "expected": "code-review"},
+  {"query": "read this exported bundle of old agent worker events and return a provenance ledger", "should_trigger": false, "expected": "agent-run-trace-reader"},
+  {"query": "write a postmortem draft from these raw incident notes", "should_trigger": false, "expected": "incident-scribe"},
+  {"query": "what should our AI coding rollout measure this quarter", "should_trigger": false, "expected": "ai-enablement"}
+]

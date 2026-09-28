@@ -7,7 +7,7 @@
 
 # Agent skills
 
-96 agent skills, twenty read-only subagents and six slash commands, in eight
+96 agent skills, 21 read-only subagents and six slash commands, in eight
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -43,7 +43,7 @@ outside a runtime that can trigger them for you.
 
 | Plugin | Focus | Contents |
 | --- | --- | --- |
-| [`coding`](#coding) | Reading, reviewing, testing and changing code | 20 skills, 4 subagents |
+| [`coding`](#coding) | Reading, reviewing, testing and changing code | 20 skills, 5 subagents |
 | [`gamedev`](#gamedev) | Making games, and shipping them | 11 skills, 1 subagent, 1 command |
 | [`operations`](#operations) | Keeping a running system alive | 17 skills, 6 subagents, 2 commands |
 | [`delivery`](#delivery) | Getting a change into production | 10 skills, 1 subagent |
@@ -386,7 +386,7 @@ Applications, negotiation, speaking and writing.
 
 ## Subagents
 
-Twenty subagents ship across seven plugins. Each exists to keep bulk out of the main context
+21 subagents ship across seven plugins. Each exists to keep bulk out of the main context
 — the input is a log, a plan, a billing export, a contract, a pile of feedback, a release
 range, and the answer is short — and to be denied the tools it should not have. A reviewer
 that can apply is not a reviewer.
@@ -408,6 +408,7 @@ that can apply is not a reviewer.
 | `change-impact-reader` | `coding` | A diff and matching repository snapshots | Up to five impact chains, their evidence and unresolved boundaries |
 | `agent-run-trace-reader` | `coding` | Historical agent-run artifacts | A task-and-attempt evidence ledger with unanswered calls and verification gaps |
 | `test-history-reader` | `coding` | Hundreds of JUnit, pytest or go test reports across many CI runs | A flake-rate ledger with a denominator, co-failure clusters and a quarantine order by CI time and retries burned |
+| `review-comment-miner` | `coding` | A pile of exported PR review comments or postmortem action items | Recurring clusters with an independent-instance count, a quoted example and candidate destinations |
 | `contract-reader` | `manager` | A contract, DPA or SOC 2 report | The clauses that decide the deal, quoted and located |
 | `feedback-synthesiser` | `manager` | Collected peer feedback | Themes with a source count and a quoted example |
 | `changelog-reader` | `delivery` | A release range of commits and PRs | Audience-sorted inventory, breaking changes flagged, noise collapsed |

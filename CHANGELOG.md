@@ -10,6 +10,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `review-comment-miner` subagent to `coding`, reading a pile of exported PR
+  review comments or postmortem action items and returning recurring clusters with an
+  independent-instance count and a quoted example, leaving the choice of what a recurring
+  finding becomes to whoever owns that surface. `new-skill` now hands off to it by name
+  when a candidate skill comes from an uncounted backlog of complaints.
 - Add the `test-history-reader` subagent to `coding`, reading hundreds of JUnit, pytest or
   `go test -json` reports across many CI runs into a flake-rate ledger for non-browser
   suites — each test's rate with its denominator, co-failure clusters, and a quarantine
