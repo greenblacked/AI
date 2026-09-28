@@ -10,6 +10,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `test-history-reader` subagent to `coding`, reading hundreds of JUnit, pytest or
+  `go test -json` reports across many CI runs into a flake-rate ledger for non-browser
+  suites — each test's rate with its denominator, co-failure clusters, and a quarantine
+  order ranked by CI time and retries burned — leaving the quarantine policy itself to
+  `ci-triage`. `ci-triage` and `e2e-testing` now hand off to it by name for the bulk
+  historical read.
 - Add the `supply-chain-exposure-reader` subagent to `security`: given a compromised
   package, action SHA or version window, it walks lockfile git history and CI run logs
   across every repository in scope and returns which repositories, workflow runs and

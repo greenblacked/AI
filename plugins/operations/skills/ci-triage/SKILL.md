@@ -167,6 +167,8 @@ Flakes need a policy, not a judgment call per test, because the per-test judgmen
 
 **Cap.** Cap the quarantine list — 1% of the suite, or a flat number the team picks once. Hitting the cap is a stop-the-line event: no new quarantines until the list drains. The cap is what stops quarantine from becoming the default response to every red run.
 
+**Ranking many at once.** Deciding entry and cap from memory works for one test someone is looking at; ranking a whole suite's worth requires reading months of CI history across hundreds of runs, which is bulk work that belongs to the `test-history-reader` subagent rather than to this policy. Hand it the historical export for non-browser suites and it returns a flake-rate ledger with a denominator per test, co-failure clusters, and a quarantine order by CI time and retries burned rather than raw failure count — apply the entry threshold and cap above to what it returns, rather than to whichever failure was noticed last.
+
 Grounding: Google reported flaky tests as roughly 16% of all test failures, taking about 1.5x longer to fix than ordinary failures. Flakes are not a rounding error, and they are more expensive per unit than real bugs.
 
 ## Retry hygiene
