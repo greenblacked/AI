@@ -1,0 +1,92 @@
+[
+  {
+    "query": "plan a restore drill from immutable backups and measure checkout RTO and RPO",
+    "should_trigger": true
+  },
+  {
+    "query": "test whether a regional rebuild from backup restores the whole service within four hours",
+    "should_trigger": true
+  },
+  {
+    "query": "we restored Cloud SQL but how do we validate business transactions before signing off DR?",
+    "should_trigger": true
+  },
+  {
+    "query": "rehearse recovery identity and KMS access when production SSO is down",
+    "should_trigger": true
+  },
+  {
+    "query": "measure the critical path from disaster declaration through customer acceptance",
+    "should_trigger": true
+  },
+  {
+    "query": "how should we calculate observed RPO from the last usable transaction in a restore test?",
+    "should_trigger": true
+  },
+  {
+    "query": "prepare an isolated production-scale restore exercise without replaying into live queues",
+    "should_trigger": true
+  },
+  {
+    "query": "review our backup restore test report: database green, no app or business sign-off",
+    "should_trigger": true
+  },
+  {
+    "query": "plan a ransomware recovery rehearsal using a copy outside production administration",
+    "should_trigger": true
+  },
+  {
+    "query": "run a dependency ordered recovery exercise and record every blocked restore edge",
+    "should_trigger": true
+  },
+  {
+    "query": "design backup retention and immutable cross-account copies",
+    "should_trigger": false,
+    "expected": "backup-recovery-design"
+  },
+  {
+    "query": "set business RTO and RPO tiers for our platform",
+    "should_trigger": false,
+    "expected": "backup-recovery-design"
+  },
+  {
+    "query": "draw the restore dependency graph for a new disaster recovery architecture",
+    "should_trigger": false,
+    "expected": "backup-recovery-design"
+  },
+  {
+    "query": "kill an AZ and see whether the live service remains available",
+    "should_trigger": false,
+    "expected": "game-day"
+  },
+  {
+    "query": "run an unannounced synthetic page to time the on-call response",
+    "should_trigger": false,
+    "expected": "game-day"
+  },
+  {
+    "query": "inject latency into a dependency and verify graceful degradation",
+    "should_trigger": false,
+    "expected": "game-day"
+  },
+  {
+    "query": "test live failover of the primary database without restoring backups",
+    "should_trigger": false,
+    "expected": "game-day"
+  },
+  {
+    "query": "production is down; coordinate a real recovery now",
+    "should_trigger": false,
+    "expected": "incident-response"
+  },
+  {
+    "query": "write operator commands for an already approved restore procedure",
+    "should_trigger": false,
+    "expected": "runbook"
+  },
+  {
+    "query": "plan Saturday migration cutover to the new region with live traffic",
+    "should_trigger": false,
+    "expected": "cutover"
+  }
+]

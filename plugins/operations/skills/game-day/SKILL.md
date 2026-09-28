@@ -1,6 +1,6 @@
 ---
 name: game-day
-description: "Plan and run a deliberate reliability exercise — a chaos experiment, a failover or disaster-recovery drill, an unannounced on-call rehearsal — and convert what it finds into owned, dated work: a falsifiable hypothesis, a measured steady state, a blast radius with a tested abort, the right failure to inject, game master, responder, observer and comms roles, timings for the humans as well as the system, and a ticket per finding. Use this skill whenever someone wants to test resilience on purpose — \"let us run a game day\", \"can we kill an AZ and see what happens\", \"we should test the failover\", \"does our DR plan actually work\", \"chaos engineering experiment\", or \"fire drill for the on-call rota\". Do not use it for an incident happening now, load or performance testing, security red-teaming, or writing up a real outage."
+description: "Plan and run a deliberate reliability exercise — a chaos experiment, a live failover or an unannounced on-call rehearsal — and convert what it finds into owned, dated work: a falsifiable hypothesis, measured steady state, bounded blast radius with tested abort, roles, human and system timings, and a ticket per finding. Use this skill whenever someone wants to test resilience through fault injection or live failover: \"let us run a game day\", \"kill an AZ and see what happens\", \"test the failover\", \"chaos engineering experiment\", or \"fire drill for the on-call rota\". For restoration from recovery copies with measured RTO, RPO and business acceptance use disaster-recovery-exercise. Do not use for an incident happening now or load testing."
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash(kubectl:*), Bash(aws:*), Bash(gh:*)
 ---
 
@@ -14,7 +14,7 @@ The other half of the job is that most of what a game day finds is about people,
 
 ## Scope
 
-Use for: planning and running a chaos experiment, an AZ or region failover drill, a disaster-recovery or restore-from-backup test, a dependency-degradation experiment, an unannounced on-call rehearsal, or a comms and incident-command drill; and for turning the results of any of those into tickets.
+Use for: planning and running a chaos experiment, an AZ or region live failover drill, a dependency-degradation experiment, an unannounced on-call rehearsal, or a comms and incident-command drill; and for turning the results of any of those into tickets. Use `disaster-recovery-exercise` for restoration from recovery copies, including business acceptance and observed RTO/RPO.
 
 Do not use for: a live incident (that is `incident-response`, or `k8s-triage` for a Kubernetes workload), load or performance testing, security red-teaming or penetration testing (that is `security-test-engagement`), writing the postmortem for a real outage (that is `postmortem`), or a planned production migration where the goal is for nothing to break (that is `cutover`).
 

@@ -1,7 +1,7 @@
 [
   {"query": "we want to run a game day next month, where do we even start", "should_trigger": true},
   {"query": "can we kill one availability zone in prod and see whether the failover actually holds", "should_trigger": true},
-  {"query": "nobody has ever restored one of our backups. how do i test that properly without wrecking anything", "should_trigger": true},
+  {"query": "restore from independent backups in a separate region and prove transaction integrity and RTO/RPO", "should_trigger": false, "expected": "disaster-recovery-exercise"},
   {"query": "i want to page the on call unannounced with a fake alert and time how long detection takes. is that a terrible idea", "should_trigger": true},
   {"query": "help me write a chaos experiment hypothesis for injecting 500ms of latency into the payments dependency", "should_trigger": true},
   {"query": "our DR plan has only ever been tested in staging and leadership thinks that counts", "should_trigger": true},

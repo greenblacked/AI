@@ -7,7 +7,7 @@
 
 # Agent skills
 
-97 agent skills, 21 read-only subagents and eight slash commands, in eight
+98 agent skills, 21 read-only subagents and eight slash commands, in eight
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-97-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-98-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -45,7 +45,7 @@ outside a runtime that can trigger them for you.
 | --- | --- | --- |
 | [`coding`](#coding) | Reading, reviewing, testing and changing code | 20 skills, 5 subagents, 1 command |
 | [`gamedev`](#gamedev) | Making games, and shipping them | 11 skills, 1 subagent, 1 command |
-| [`operations`](#operations) | Keeping a running system alive | 18 skills, 6 subagents, 2 commands |
+| [`operations`](#operations) | Keeping a running system alive | 19 skills, 6 subagents, 2 commands |
 | [`delivery`](#delivery) | Getting a change into production | 10 skills, 1 subagent |
 | [`security`](#security) | The defensive side of shipping software | 13 skills, 4 subagents, 2 commands |
 | [`manager`](#manager) | Engineering leadership | 13 skills, 2 subagents, 2 commands |
@@ -288,6 +288,7 @@ Keeping a running system alive.
 | [`capacity-planning`](plugins/operations/skills/capacity-planning/SKILL.md) | Work out whether a system survives an expected load: a demand model first, the one saturating resource, and a defined behaviour past capacity. |
 | [`ci-triage`](plugins/operations/skills/ci-triage/SKILL.md) | Classify a red pipeline before debugging it — real failure, flake, runner, config, or dependency drift — starting with whether the default branch is already broken. Quarantine policy and retry hygiene included. |
 | [`cost-review`](plugins/operations/skills/cost-review/SKILL.md) | Investigate a bill that grew, or reduce spend deliberately: attribute before acting, read the top movers rather than the top spenders, and name what each saving degrades. |
+| [`disaster-recovery-exercise`](plugins/operations/skills/disaster-recovery-exercise/SKILL.md) | Rehearse restoration from recovery copies, measure end-to-end RTO and RPO, verify integrity, and obtain business acceptance with an isolated target and tested abort. |
 | [`docker-compose`](plugins/operations/skills/docker-compose/SKILL.md) | Compose containers into a working environment for local development and CI: every dependency edge gated on a healthcheck condition, because started is not ready, plus service discovery, mount semantics, config layering and digest pinning. |
 | [`event-driven-reliability`](plugins/operations/skills/event-driven-reliability/SKILL.md) | Make an event consumer safe to retry and replay: state delivery assumptions, map every crash window, choose durable identities and atomicity boundaries, bound retries and dead letters, and verify duplicates, reordering and recovery. |
 | [`game-day`](plugins/operations/skills/game-day/SKILL.md) | Plan and run a reliability exercise around a falsifiable hypothesis, with a blast radius chosen in advance and an abort that was executed before the experiment started. |
