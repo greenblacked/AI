@@ -46,7 +46,7 @@ State explicitly what the returned report must contain: the exact command that w
 
 ### 6. Judge the result on a fresh context
 
-Once the diff comes back, hand it to `code-review` for the correctness and merge decision, on a context that has not seen the agent's own account of what it did. Never accept the authoring agent's own summary of its diff as the verdict — the agent that wrote the change is the one party least able to notice what it got wrong.
+Once the diff comes back, hand it to `code-review` for the correctness and merge decision, on a context that has not seen the agent's own account of what it did. Never accept the authoring agent's own summary of its diff as the verdict — the agent that wrote the change is the one party least able to notice what it got wrong. `/agent-diff-audit` can run the mechanical checks — shrunk test counts, newly silenced checks, invented dependencies — first, so `code-review` starts from a flagged list rather than a blank diff.
 
 ## Anti-patterns
 

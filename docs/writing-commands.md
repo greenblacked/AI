@@ -86,10 +86,15 @@ without the "Use this whenever" pushiness a skill description needs.
 `$ARGUMENTS` is everything the caller typed. Individual arguments are
 **zero-indexed**: `$ARGUMENTS[0]` is the first, and `$N` is shorthand for the same thing,
 so `$0` is the first argument and `$1` is the second. This catches people out — it is not
-shell numbering, and getting it wrong is silent, because an index with no argument at that
-position expands to nothing rather than erroring. Write the body so it still does
-something sensible when the argument is absent: `/ci-fail` with no run id should find the
-latest failing run rather than stop.
+shell numbering, and getting it wrong is silent in a specific way: an index with no
+argument at that position is left in the prompt as literal text, the two characters `$0`,
+rather than being replaced with an empty string or raising an error. Never pass it into a
+shell expansion expecting a real positional parameter — `${0:-default}` does not fall back
+to `default` when no argument was given, because the substitution happens as plain text
+before any shell runs, not as a shell evaluating its own `$0`. Decide the default in prose
+instead, before constructing any command: write the body so it still does something
+sensible when the argument is absent — `/ci-fail` with no run id should find the latest
+failing run rather than stop.
 
 If the body reads an argument, declare `argument-hint`. Without it the picker shows the
 command with no indication that it takes anything, so people type the bare name and it
@@ -110,7 +115,7 @@ than telling Claude to go and run something:
 - `@path` attaches a file's contents, so `@plan.json` puts the plan in front of the model
   without a Read step.
 
-None of the twelve commands here use them yet; the mechanism is documented so the next
+None of the thirteen commands here use them yet; the mechanism is documented so the next
 one can.
 
 ## What the validator checks
