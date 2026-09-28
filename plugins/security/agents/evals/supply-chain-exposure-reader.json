@@ -1,0 +1,23 @@
+[
+  {"query": "a malicious version of a popular npm package just got announced, which of our 40 repos actually pulled it and when", "should_trigger": true},
+  {"query": "we think a github action's sha was compromised, find every workflow run across the org that executed it before we pulled it", "should_trigger": true},
+  {"query": "here's a list of 12 repositories, cross-reference their lockfile history against these bad package versions and give me the blast radius", "should_trigger": true},
+  {"query": "a supply-chain worm hit our npm scope, I need every CI run across the estate that installed one of the affected versions and what secrets those jobs held", "should_trigger": true},
+  {"query": "across the whole org, which repositories resolved this typosquatted package between march and may, and which builds actually ran it", "should_trigger": true},
+  {"query": "check lockfile git history, not the current lockfile, for this compromised version across every service we own", "should_trigger": true},
+  {"query": "for every ci run that executed the bad install script, what secrets and tokens did that job have access to", "should_trigger": true},
+  {"query": "did any of our workflows actually run the compromised action, or just reference the sha without ever triggering", "should_trigger": true},
+  {"query": "give me every repo and workflow run that resolved this bad dependency version org-wide, with the tokens each run held", "should_trigger": true},
+  {"query": "we rotated the obvious secrets already, but which other ci jobs across the whole organisation were exposed to the compromised package", "should_trigger": true},
+
+  {"query": "the scanner flagged twelve alerts in this one repo, help me decide which to fix first", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "should we upgrade this dependency now or wait, given it's a medium severity finding", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "we found a malicious package in this one repo, walk me through the response", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "an aws access key for the reporting service is sitting in a public repo, what do we rotate first", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "how long do we leave the old key inactive before we actually delete it", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "audit our github actions workflows for fork-triggered injection risk", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "should we move ci off long-lived aws keys and onto oidc", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "review this terraform plan, it says it's going to replace the database", "should_trigger": false, "expected": "iac-review"},
+  {"query": "harden our base container image against known vulnerabilities", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "audit who still has admin on the production aws account and clean up stale access", "should_trigger": false, "expected": "access-review"}
+]

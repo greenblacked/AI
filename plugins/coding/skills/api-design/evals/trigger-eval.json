@@ -18,5 +18,6 @@
   {"query": "the api pods have been OOMKilled since the 10:15 deploy. what do i do right now", "should_trigger": false, "expected": "k8s-triage"},
   {"query": "the contract test job fails intermittently in github actions, passes on re-run. flake?", "should_trigger": false, "expected": "ci-triage"},
   {"query": "should we page someone when the api p99 goes over 800ms, or is that a ticket", "should_trigger": false, "expected": "alert-design"},
-  {"query": "audit who still has admin scope on the production api keys and revoke what isn't used", "should_trigger": false, "expected": "access-review"}
+  {"query": "audit who still has admin scope on the production api keys and revoke what isn't used", "should_trigger": false, "expected": "access-review"},
+  {"query": "we're modelling the tables for a brand new feature, what keys and constraints should they have", "should_trigger": false, "expected": "schema-design"}
 ]

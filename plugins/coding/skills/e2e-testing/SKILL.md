@@ -49,6 +49,12 @@ jq -s '
 ' "$out"/*/*.json
 ```
 
+The aggregation above is scoped to this tier. The same historical read for pytest, JUnit
+or `go test -json` suites outside the browser is the `test-history-reader` subagent's job,
+not this skill's — hand it the export rather than reimplementing this jq pipeline for a
+different framework; it returns a flake-rate ledger with a denominator, co-failure
+clusters, and a quarantine order by CI time and retries burned.
+
 Then set the ceiling, and set it by derivation rather than by borrowing a number. There is no published industry threshold that applies to a particular suite, and a figure quoted without its suite size means nothing, because the same per-test rate produces a different experience at 40 tests and at 400. The number is the team's decision, and this is how to make it a decision they can actually take:
 
 1. Ask what fraction of runs must be green on the first attempt before people stop reflexively rerunning. Call it `G`. Teams answer this one readily — "nine in ten" — where they cannot answer a question about per-test probabilities.

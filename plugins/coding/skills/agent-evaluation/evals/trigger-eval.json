@@ -9,6 +9,8 @@
   {"query": "how many repeated trials should we report when comparing two stochastic agents on the same tasks", "should_trigger": true},
   {"query": "our agent benchmark counts sandbox setup timeouts as model failures and the score swings every run", "should_trigger": true},
   {"query": "build deterministic graders for an agent task, then use a rubric judge only for the explanation quality", "should_trigger": true},
+  {"query": "we want to swap gpt-4o for a newer model in the classifier step, is that safe to ship", "should_trigger": true},
+  {"query": "our model alias moved overnight and the eval scores changed, how do we pin this down", "should_trigger": true},
   {"query": "what unit and integration tests should cover this retry function, including its timeout boundary", "should_trigger": false, "expected": "test-design"},
   {"query": "a customer order sometimes loses its shipping address; reproduce it and find the root cause", "should_trigger": false, "expected": "debugging"},
   {"query": "our playwright checkout test flakes in CI and uses fixed sleeps everywhere", "should_trigger": false, "expected": "e2e-testing"},

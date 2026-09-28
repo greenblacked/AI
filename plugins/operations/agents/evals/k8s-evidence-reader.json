@@ -16,7 +16,7 @@
   {"query": "write the postmortem from this Kubernetes incident timeline and assign follow-up owners", "should_trigger": false, "expected": "postmortem"},
   {"query": "review this Terraform plan for an EKS node group replacement before we apply it", "should_trigger": false, "expected": "iac-review"},
   {"query": "create deployment, service, and HPA manifests for a new worker", "should_trigger": false, "expected": "code-scaffold"},
-  {"query": "plan our Kubernetes version upgrade and node-pool migration", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "plan our Kubernetes version upgrade and node-pool migration", "should_trigger": false, "expected": "k8s-upgrade"},
   {"query": "analyze our cluster billing export and find the main cost increase", "should_trigger": false, "expected": "cost-analyst"},
   {"query": "harden this container image so it passes our restricted pod security policy", "should_trigger": false, "expected": "image-hardening"}
 ]

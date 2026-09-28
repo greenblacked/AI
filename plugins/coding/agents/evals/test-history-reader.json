@@ -1,0 +1,22 @@
+[
+  {"query": "here are 50 CI runs worth of JUnit XML, tell me which tests are actually flaky and how often", "should_trigger": true},
+  {"query": "read these pytest reports across the last three months and give me a flake rate per test", "should_trigger": true},
+  {"query": "which tests keep failing together in the same runs, from this export of go test JSON", "should_trigger": true},
+  {"query": "rank these tests for quarantine by how much CI time and how many retries they've cost, not just fail count", "should_trigger": true},
+  {"query": "I have a pile of CI artifacts, find the tests that only fail on a particular runner or shard", "should_trigger": true},
+  {"query": "read this bulk export of test results and separate flaky-on-retry from actually-broken from PR-only failures", "should_trigger": true},
+  {"query": "do any of our unit tests fail more often depending on run order, from these historical reports", "should_trigger": true},
+  {"query": "aggregate these hundreds of JUnit files into one ledger of test reliability", "should_trigger": true},
+  {"query": "which non-browser tests should we quarantine first based on months of CI history", "should_trigger": true},
+  {"query": "read this dump of go test JSON output across many runs and tell me the denominator behind each failure rate", "should_trigger": true},
+  {"query": "what should I do about this one red run right now — rerun, quarantine or fix", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "how should I approach deciding what to quarantine and for how long", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "our playwright suite is flaky, help me find the real flake rate", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "design the test cases this new feature needs", "should_trigger": false, "expected": "test-design"},
+  {"query": "find the root cause of this intermittent deadlock in the worker service", "should_trigger": false, "expected": "debugging"},
+  {"query": "read this one failed GitHub Actions run and tell me the failing step", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "should this case be a unit test or an integration test", "should_trigger": false, "expected": "test-design"},
+  {"query": "our e2e suite passes locally and fails in CI, why", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "the deploy is stuck, is main red too", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "restructure this test helper without changing behaviour", "should_trigger": false, "expected": "refactoring"}
+]

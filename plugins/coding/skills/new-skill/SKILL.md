@@ -32,6 +32,8 @@ Then check what already exists. Two skills with overlapping descriptions do not 
 
 The same test runs in reverse: surveying a whole library for what it does not cover, rather than judging one candidate already in hand. That direction reads descriptions, not bodies — a body can mention a topic that no description ever claims, which is coverage that never fires and a word search would miss going either way. A documented refusal, the candidate not clearing the bar above, is the normal outcome of that survey and not a failure of it.
 
+When the candidate itself comes from a backlog of review comments or retro notes that seem to repeat, hand that pile to the `review-comment-miner` subagent before drafting anything. It returns recurring clusters with an independent-instance count and a quoted example, so the decision above is made from a number rather than from whichever complaint is most memorable.
+
 ## 2. Name it and place it
 
 The directory name and the `name` field must be identical — lowercase, digits and single hyphens, at most 64 characters. Name it after the job, not the tool: `image-hardening` outlives the scanner you happen to use this year.

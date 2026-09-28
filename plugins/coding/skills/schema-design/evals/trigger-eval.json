@@ -1,0 +1,22 @@
+[
+  {"query": "how should I design the tables for a multi-tenant subscriptions feature before we write any migration", "should_trigger": true},
+  {"query": "should this be a UUID primary key or a bigint identity column", "should_trigger": true},
+  {"query": "do we soft-delete these rows or hard-delete them", "should_trigger": true},
+  {"query": "what's the right way to model a many-to-many relationship between users and teams", "should_trigger": true},
+  {"query": "we're starting a new service, what constraints should the schema itself enforce", "should_trigger": true},
+  {"query": "should tenant_id be part of every unique index on this table", "should_trigger": true},
+  {"query": "designing the schema for an orders and line-items table from scratch", "should_trigger": true},
+  {"query": "timestamp or timestamptz for this brand new table", "should_trigger": true},
+  {"query": "how do I store money in this new table, float or integer cents", "should_trigger": true},
+  {"query": "greenfield: what indexes does this new schema need before we ship it", "should_trigger": true},
+  {"query": "we need to add a nullable column to the existing users table without locking it", "should_trigger": false, "expected": "db-migration"},
+  {"query": "this query against the orders table is taking 4 seconds, how do I speed it up", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "how do I safely rename a column with zero downtime on a live database", "should_trigger": false, "expected": "db-migration"},
+  {"query": "should we cache this read path in redis", "should_trigger": false, "expected": "application-caching"},
+  {"query": "how do I add a new index to speed up this existing slow query", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "build the API contract for this new resource", "should_trigger": false, "expected": "api-design"},
+  {"query": "the deploy is stuck because a migration is holding a lock", "should_trigger": false, "expected": "db-migration"},
+  {"query": "how should this event-driven pipeline handle retries and idempotency", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "review this pull request for correctness and missing tests", "should_trigger": false, "expected": "code-review"},
+  {"query": "design cursor pagination and an error taxonomy for this collection endpoint", "should_trigger": false, "expected": "api-design"}
+]

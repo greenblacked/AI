@@ -16,7 +16,7 @@ The other half of the job is that most of what a game day finds is about people,
 
 Use for: planning and running a chaos experiment, an AZ or region failover drill, a disaster-recovery or restore-from-backup test, a dependency-degradation experiment, an unannounced on-call rehearsal, or a comms and incident-command drill; and for turning the results of any of those into tickets.
 
-Do not use for: a live incident (that is `incident-response`, or `k8s-triage` for a Kubernetes workload), load or performance testing, security red-teaming or penetration testing, writing the postmortem for a real outage (that is `postmortem`), or a planned production migration where the goal is for nothing to break (that is `cutover`).
+Do not use for: a live incident (that is `incident-response`, or `k8s-triage` for a Kubernetes workload), load or performance testing, security red-teaming or penetration testing (that is `security-test-engagement`), writing the postmortem for a real outage (that is `postmortem`), or a planned production migration where the goal is for nothing to break (that is `cutover`).
 
 ## Hard gates
 

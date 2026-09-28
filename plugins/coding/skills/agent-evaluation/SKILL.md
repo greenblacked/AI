@@ -47,6 +47,8 @@ Keep expected results and judge exemplars out of the agent context. Record prove
 
 Run every baseline and candidate from the same disposable snapshot. Give the run only the tool permissions and credentials its task requires. Record the dataset version, case id, initial revision, model identifier, prompt or agent revision, tool definitions, dependency image, parameters, random seed when supported, limits and retry policy.
 
+The model identifier recorded here must be a dated snapshot, never a moving alias: an alias can move under you with no deploy on your side, which turns a passed evaluation into a claim about a model that no longer exists by the time it ships. Read `references/model-lifecycle.md` when a prompt or model change is about to go out, for the production drift signals to watch once it is live and the retirement-calendar discipline that keeps a vendor's own deprecation date from becoming a self-inflicted outage.
+
 Reset files, services, clocks and test data between runs. Block undeclared network or shared-state dependencies. A rerun must not inherit a package, cache, file or database row created by the previous agent.
 
 Pair baseline and candidate on the same case snapshot. When order can matter, vary or randomise their order and record it. A comparison across different task revisions or environments measures the environment as much as the agent.
@@ -155,3 +157,4 @@ Report an evaluation in this shape:
 
 - `references/evaluation-design.md` — read when constructing datasets, deterministic graders, judge calibration, repeated trials or a release gate.
 - `references/trace-diagnosis.md` — read when a failure or score change needs to be localised in an agent trajectory.
+- `references/model-lifecycle.md` — read at step 3, before a model or prompt swap ships: why a moving alias invalidates the evaluation that passed it, the retirement-calendar pattern, the production drift signals to track once a version is live, and the coordination checklist that hands the cost delta to `llm-cost` and the rollout to `release-strategy`.

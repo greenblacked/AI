@@ -10,6 +10,85 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `/agent-ready` command to `manager`, cloning a repository and actually running
+  the fenced shell commands its `AGENTS.md` contains — after listing them and stopping for
+  confirmation, and with a stripped environment, which is not a sandbox — checking the
+  `AGENTS.md` chain's size against Codex's 32 KiB project-doc cap and its
+  silent-truncation behaviour, and flagging the path and shape of an exposed secret before
+  anyone hands the repository to an agent.
+- Add the `/agent-diff-audit` command to `coding`, running mechanical detectors over an
+  agent-written diff against a base ref — shrunk test counts, newly silenced checks
+  including ESLint's `--suppress-all` and suppressions-file surface, and dependency lines
+  that 404 against their own registry — then handing the flagged list to `code-review`.
+- Add the `review-comment-miner` subagent to `coding`, reading a pile of exported PR
+  review comments or postmortem action items and returning recurring clusters with an
+  independent-instance count and a quoted example, leaving the choice of what a recurring
+  finding becomes to whoever owns that surface. `new-skill` now hands off to it by name
+  when a candidate skill comes from an uncounted backlog of complaints.
+- Add the `test-history-reader` subagent to `coding`, reading hundreds of JUnit, pytest or
+  `go test -json` reports across many CI runs into a flake-rate ledger for non-browser
+  suites — each test's rate with its denominator, co-failure clusters, and a quarantine
+  order ranked by CI time and retries burned — leaving the quarantine policy itself to
+  `ci-triage`. `ci-triage` and `e2e-testing` now hand off to it by name for the bulk
+  historical read.
+- Add the `supply-chain-exposure-reader` subagent to `security`: given a compromised
+  package, action SHA or version window, it walks lockfile git history and CI run logs
+  across every repository in scope and returns which repositories, workflow runs and
+  jobs actually resolved or executed the bad version, split from merely present in
+  history, with the secrets each executed run's job could reach — never a secret's
+  value, only its name — so the raw logs and history never enter the caller's context.
+  `dependency-triage`'s cross-repository blast-radius step now hands off to it by name.
+- Add the `security-test-engagement` skill to the `security` plugin, covering
+  commissioning and running an authorised penetration test, red-team exercise or
+  bug-bounty engagement from the asset owner's side: signed authorisation and scope
+  before anything starts, rules of engagement with stop conditions, a confirmed
+  emergency contact, rules for test data and accounts, and a path from each finding to a
+  confirmed retest. The skill's own text carries no attack technique, tool command or
+  payload. `game-day` now names it as the owner of the "security red-teaming or
+  penetration testing" exclusion it already carried. Raise the `security` plugin's
+  listing ceiling to 11,500 for the new skill.
+- Add a `k8s-upgrade` skill to `operations`: sequence a planned Kubernetes minor
+  upgrade — control plane, add-ons, node pools — finding removed and deprecated APIs
+  from live traffic before the window opens rather than from git manifests, clearing
+  every blocking PodDisruptionBudget before the drain, and canarying one node pool
+  across a full traffic peak before rolling the rest. `k8s-triage`'s cede for a cluster
+  upgrade planned in advance now names it. Raise the `operations` plugin's listing
+  ceiling to 15,500 for the new skill.
+- Add a `mobile-release` skill to `delivery`: stage or phase a shipped iOS or Android
+  build through the app store's own rollout, where the binary itself cannot be
+  recalled — an agreed crash-free halt threshold set before the rollout starts, a
+  server-side flag for every risky behaviour, the API compatibility window and
+  force-upgrade path for old clients, and a store rejection triaged against the
+  guideline it cites. Apple's fixed phased-release schedule, its 30-day pause limit,
+  its release-to-all-users override, and that a manual download always gets the
+  current version are stated as fact; Play Store mechanics are left to the console,
+  which the skill points at for its current staged-rollout options rather than
+  assuming a schedule for Android.
+  `release-strategy` and `game-certification` now cede a shipped binary's own rollout
+  to it. Raise the `delivery` plugin's listing ceiling to 9,500 for the new skill, and
+  `gamedev`'s to 10,500 for `game-certification`'s longer cede clause.
+- Fold the `llm-model-lifecycle` idea into `agent-evaluation` as
+  `references/model-lifecycle.md` rather than shipping it as its own skill, since
+  `agent-evaluation`'s description already claims the release-gate act it deepens:
+  pin a dated model snapshot rather than a moving alias, track a vendor's own
+  retirement date on a named owner's calendar the way `certificate-automation` tracks
+  a certificate's expiry, and the production drift signals — refusal rate,
+  schema-violation rate, output-length distribution — to watch once a version is
+  live. No new listing cost.
+- Add a `schema-design` skill to `coding`: model the tables for a new feature before any
+  migration exists — the query list first, a deliberate primary-key strategy, constraints
+  pushed into the database, soft delete as a whole-table decision with its partial unique
+  index, and every type chosen on purpose instead of inherited from an ORM default. Points
+  finished DDL at `db-migration` and unresolved query tuning at `sql-performance`; those
+  two skills, plus `api-design`, now cede back to it for greenfield schema work. Raise
+  the coding ceiling for the new description.
+- Add an `agent-delegation` skill to `coding`: brief one coding agent on one bounded task
+  with a runnable done-check set before anything else, the failing evidence pasted in
+  rather than described, an explicit scope fence over tests, CI config, lint and coverage
+  thresholds and lockfiles, named stop conditions, and evidence required back rather than
+  a claim of "done". `agent-orchestration`'s cede for "a single bounded change" now names
+  it as the owner. Raise the coding plugin's listing ceiling from 16,000 to 18,000 across
+  schema-design and agent-delegation.
 - Add `router.md` and one `router-<plugin>.md` per plugin to the portable export: a
   line per skill naming when it applies and the `skills/<name>.md` path to open then,
   sized to fit inside a terminal agent's own document budget rather than a whole

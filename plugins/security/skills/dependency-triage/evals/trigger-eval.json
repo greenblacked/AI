@@ -19,5 +19,6 @@
   {"query": "check this terraform plan before I apply it", "should_trigger": false, "expected": "iac-review"},
   {"query": "an aws access key got pushed to a public repo an hour ago", "should_trigger": false, "expected": "secret-rotation"},
   {"query": "CI went red right after the lockfile update and I cannot tell why", "should_trigger": false, "expected": "ci-triage"},
-  {"query": "the tests on this dependabot PR keep failing, is it a flake", "should_trigger": false, "expected": "ci-triage"}
+  {"query": "the tests on this dependabot PR keep failing, is it a flake", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "the compromised action ran in our CI last week, which of our 200 repos pulled it and which secrets did those runs see", "should_trigger": false, "expected": "supply-chain-exposure-reader"}
 ]

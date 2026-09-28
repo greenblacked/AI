@@ -1,0 +1,23 @@
+[
+  {"query": "we're bringing in an external firm to pentest our payment api, what do we need signed before they start", "should_trigger": true},
+  {"query": "writing rules of engagement for a red team exercise against our corporate network", "should_trigger": true},
+  {"query": "what should our emergency stop process look like during an authorised pentest", "should_trigger": true},
+  {"query": "the bug bounty program found a real vuln, how do we get it fixed and confirmed closed", "should_trigger": true},
+  {"query": "should the pentester get real customer data or synthetic accounts", "should_trigger": true},
+  {"query": "scoping an internal red team engagement, what has to be in writing before anything starts", "should_trigger": true},
+  {"query": "who do we name as the emergency contact for the security test happening next week", "should_trigger": true},
+  {"query": "our external auditor wants a signed authorisation letter for the penetration test, what goes in it", "should_trigger": true},
+  {"query": "a finding from last quarter's pentest was marked fixed, how do we confirm that before closing it", "should_trigger": true},
+  {"query": "what are the stop conditions we should give a red team before they start social engineering our staff", "should_trigger": true},
+
+  {"query": "walk me through a stride threat model for the new payments service", "should_trigger": false, "expected": "threat-model"},
+  {"query": "review this pull request for security issues before merge", "should_trigger": false, "expected": "security-review"},
+  {"query": "can we run a chaos day and kill an az to see what happens", "should_trigger": false, "expected": "game-day"},
+  {"query": "our llm agent can send emails, review whether prompt injection can trigger that", "should_trigger": false, "expected": "agent-security-review"},
+  {"query": "clean up who still has standing admin access on the production account", "should_trigger": false, "expected": "access-review"},
+  {"query": "this terraform plan says it's going to recreate the rds instance, why", "should_trigger": false, "expected": "iac-review"},
+  {"query": "we have twelve open vulnerability alerts from the scanner, help me triage which ones matter", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "design the oauth login flow for the new mobile app", "should_trigger": false, "expected": "auth-design"},
+  {"query": "how long do we retain customer support tickets under data protection law", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "a production credential leaked in a log line, what do we rotate first", "should_trigger": false, "expected": "secret-rotation"}
+]

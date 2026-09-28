@@ -18,5 +18,6 @@
   {"query": "write me a python job that syncs salesforce records into the warehouse every night", "should_trigger": false, "expected": "code-scaffold"},
   {"query": "write up the postmortem for last tuesday's outage, i already have the timeline in a doc", "should_trigger": false, "expected": "postmortem"},
   {"query": "this Dockerfile is 1.2GB and the process runs as root, can you tidy it up", "should_trigger": false, "expected": "image-hardening"},
-  {"query": "set up sqlalchemy models and alembic for a brand new service, there's no data in it yet", "should_trigger": false, "expected": "code-scaffold"}
+  {"query": "set up sqlalchemy models and alembic for a brand new service, there's no data in it yet", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "greenfield: what tables, keys and indexes should this new service start with", "should_trigger": false, "expected": "schema-design"}
 ]

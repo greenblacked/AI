@@ -12,7 +12,7 @@
   {"query": "we have an incident, checkout is down for maybe 20% of users and im IC", "should_trigger": false, "expected": "incident-response"},
   {"query": "pods in staging went CrashLoopBackOff right after the 11:40 deploy, roll back or dig in?", "should_trigger": false, "expected": "k8s-triage"},
   {"query": "run a k6 load test and find where the api starts falling over at 5000 rps", "should_trigger": false, "expected": "capacity-planning"},
-  {"query": "set up a red team engagement to see if anyone can pivot from the web tier into the database", "should_trigger": false},
+  {"query": "set up a red team engagement to see if anyone can pivot from the web tier into the database", "should_trigger": false, "expected": "security-test-engagement"},
   {"query": "write up the postmortem for last week's outage, i have the timeline in a doc already", "should_trigger": false, "expected": "postmortem"},
   {"query": "someone wants to add an alert for CPU over 80% after the incident. is that actually a good idea", "should_trigger": false, "expected": "alert-design"},
   {"query": "plan the cutover for moving the orders service to the new cluster this saturday with a rollback plan", "should_trigger": false, "expected": "cutover"},
