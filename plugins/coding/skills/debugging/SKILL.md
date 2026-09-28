@@ -14,7 +14,7 @@ The job goes wrong in four ways, all of which feel like progress. The first is e
 
 Use for: a crash, a wrong answer, a hang, a leak, a corruption, an intermittent failure, a performance cliff; a test that fails only in one environment; a regression that appeared without an obvious change; narrowing a failure to the commit, the input or the configuration that causes it.
 
-Do not use for: classifying a red pipeline and deciding whether it is a flake, infra or a real break, which is `ci-triage` — come here once it is classified as a real application defect; restoring a misbehaving Kubernetes workload or running a live outage, which is `k8s-triage`; reviewing a change for defects nobody has observed yet, which is `code-review`; deciding what a suite should cover once the bug is fixed, which is `test-design`; restructuring code that already works, which is `refactoring`.
+Do not use for: classifying a red pipeline and deciding whether it is a flake, infra or a real break, which is `ci-triage` — come here once it is classified as a real application defect; running a live outage, which is `incident-response`, or restoring a misbehaving Kubernetes workload, which is `k8s-triage`; reviewing a change for defects nobody has observed yet, which is `code-review`; deciding what a suite should cover once the bug is fixed, which is `test-design`; restructuring code that already works, which is `refactoring`.
 
 ## Hard gates
 

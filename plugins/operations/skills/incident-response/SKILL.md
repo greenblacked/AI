@@ -16,7 +16,7 @@ during an outage, and the platform underneath makes no difference to that fact. 
 managed Postgres failover, a payment provider's status page turning red and a Lambda
 error-rate spike are three different diagnoses and the same discipline: declare, name who
 is in charge, stop the bleeding with the cheapest reversible action, and capture the
-evidence that platform will delete on its own schedule. This skill is the platform-agnostic
+evidence that the platform will delete on its own schedule. This skill is the platform-agnostic
 half of that discipline — command, severity, mitigation strategy, evidence, comms cadence,
 handoff, and the line between mitigated and resolved. It hands off the moment the failing
 surface is a Kubernetes workload, because that half has its own commands and its own
@@ -210,7 +210,7 @@ SEV1 or a SEV2 is a minute not spent mitigating, and the argument is never settl
 discussion — it is settled by defaulting to the higher severity and moving on.
 
 **Not escalating.** Hesitating to page someone more senior at 3am because the problem
-might resolve itself, or might not be that bad, costs more than the page does: "if you're
-stuck on a problem and it's 3am, don't hesitate to page someone more knowledgeable"
-(PagerDuty). The cost of an unnecessary page is a few minutes of someone's night; the cost
-of an incident that needed them and did not get them is measured in hours.
+might resolve itself, or might not be that bad, costs more than the page does: PagerDuty's
+guidance is not to hesitate to page someone more knowledgeable when stuck on a problem at
+3am. The cost of an unnecessary page is a few minutes of someone's night; the cost of an
+incident that needed them and did not get them is measured in hours.
