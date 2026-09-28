@@ -177,15 +177,36 @@ Several terminal agents, Codex and Gemini CLI among them, now load `SKILL.md` sk
 natively and fire them on their own. That is the better route where it exists: the
 [table in the README](../README.md#chatgpt-grok-codex-and-everything-else) says which tools do and how to install for each.
 
-For one that does not, most terminal agents read `AGENTS.md` from the working directory.
-Append what you want to the repository you are working in:
+For one that does not, most terminal agents read `AGENTS.md` from the working directory,
+and what lands there has to fit inside what that tool actually reads. Codex's default is
+`project_doc_max_bytes`, 32 KiB, and it is configurable — but past whatever it is set to,
+Codex truncates `AGENTS.md` silently: the cut shows up as a `tracing::warn!` log line,
+never as anything the interactive session is told, so a file over budget reads as
+complete right up until the missing part turns out to be the part you needed. Grok Build
+documents no cap at all — it loads the file in full. Gemini CLI, GitHub Copilot and
+Mistral Vibe have no documented cap in the sources checked, which is a narrower claim than
+"no cap": it says nobody has written one down, not that none exists.
+
+That budget is why the router, not a bundle or `index.md`, is what belongs in
+`AGENTS.md`. `make portable` writes `dist/portable/router.md` — one line per skill, drawn
+from its own description, naming when it applies and the path to open then — plus a
+narrower `dist/portable/router-<plugin>.md` per plugin. Paste the one you want into
+`AGENTS.md`, and copy `dist/portable/skills/` to a `skills/` directory next to that
+`AGENTS.md`: the router's own paths are `skills/<name>.md`, relative to wherever
+`AGENTS.md` itself sits, not to `dist/portable/`.
 
 ```bash
-cat dist/portable/plugins/coding.md >> AGENTS.md
+cat dist/portable/router-coding.md >> path/to/your/repo/AGENTS.md
+mkdir -p path/to/your/repo/skills && cp -r dist/portable/skills/. path/to/your/repo/skills/
 ```
 
-That is blunt and it works. For something narrower, append one skill instead, or keep the
-index in `AGENTS.md` and the individual files beside it.
+The agent reads each line on every turn and opens the file it names only once the
+situation matches. A single large skill file is fine to open that way —
+`website-builder.md` alone is about 70 KB, already over Codex's default on its own, which
+is exactly why it is something opened on demand rather than pasted whole. Never append a
+plugin bundle (well over a hundred kilobytes each) or `index.md` (about 80 KB) to `AGENTS.md`
+directly: both are far past 32 KiB by themselves, and the router exists precisely so
+neither one has to be.
 
 The trigger eval harness in this repository already speaks to several of these. It scores
 whether a description actually fires, against whichever CLI you have signed in:
@@ -212,9 +233,13 @@ Be clear about what you lose outside Claude Code, because it is the valuable par
   the runtime. In a chat window they are a description of intent.
 - **Subagents.** Context isolation needs a runtime that can spawn one. A flattened
   subagent is just a prompt you can paste.
-- **The listing budget**, which is a real constraint and also the reason the plugins are
-  cut narrowly. Uploading one bundle to a Project has no such cap, which is a genuine
-  advantage of that route.
+- **The listing budget** specifically — the mechanism where Claude Code drops the
+  least-used descriptions past about 1% of the context window — is Claude Code's own, and
+  uploading one bundle to a Project genuinely has no equivalent of it. That is not the
+  same as saying nowhere else has a cap of any kind: Codex still truncates `AGENTS.md`
+  past `project_doc_max_bytes` (32 KiB by default), silently, which is the reason the
+  [terminal-agent section above](#terminal-agents-that-read-agentsmd) hands you a router
+  rather than a bundle.
 
 The content itself travels intact. Of eighty-nine skills, two name Claude anywhere in
 their text: `new-skill`, which is about authoring a skill in this format and could not
