@@ -241,7 +241,7 @@ Be clear about what you lose outside Claude Code, because it is the valuable par
   [terminal-agent section above](#terminal-agents-that-read-agentsmd) hands you a router
   rather than a bundle.
 
-The content itself travels intact. Of eighty-nine skills, two name Claude anywhere in
+The content itself travels intact. Of the skills here, two name Claude anywhere in
 their text: `new-skill`, which is about authoring a skill in this format and could not
 avoid it, and `website-builder`, which names a real constraint of Claude.ai artifacts.
 The rest are procedures about code, systems, teams and life, and nothing in them assumes

@@ -1,0 +1,22 @@
+[
+  {"query": "we need to move our whole fleet of certs from a manual annual renewal to ACME before the CA/Browser Forum cuts validity again", "should_trigger": true},
+  {"query": "find every TLS certificate our organization actually has, including the ones nobody on the team knows about", "should_trigger": true},
+  {"query": "our certs are 90 days now but I hear that's shrinking, how do we get ahead of the shorter renewal window", "should_trigger": true},
+  {"query": "set up cert-manager so this cluster's certificates renew themselves instead of someone doing it by hand", "should_trigger": true},
+  {"query": "we have a load balancer appliance that can't run an ACME client, how do we keep its certificate current without someone forgetting", "should_trigger": true},
+  {"query": "what's the right renewal cadence for certbot now that certificate lifetimes are getting shorter", "should_trigger": true},
+  {"query": "check certificate transparency logs for our domain, I want to know what's been issued that we didn't request", "should_trigger": true},
+  {"query": "should we schedule renewal off ACME renewal information or just pick a fixed number of days before expiry", "should_trigger": true},
+  {"query": "half our certs renew automatically and half still need someone to click through a vendor console, how do we close that gap", "should_trigger": true},
+  {"query": "our automated renewal job hasn't actually renewed anything in months and nobody caught it, how do we monitor for that", "should_trigger": true},
+  {"query": "is a cert 21 days from expiry a page or a ticket", "should_trigger": false, "expected": "alert-design"},
+  {"query": "our TLS private key leaked in a public repo, what do we do", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "review this terraform diff, it changes an ACM certificate resource", "should_trigger": false, "expected": "iac-review"},
+  {"query": "this Dockerfile bakes a TLS certificate into the image layer, can you tighten that up", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "design the login and session flow for our new customer portal", "should_trigger": false, "expected": "auth-design"},
+  {"query": "what metrics and traces should this checkout service emit", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "who on the team actually has access to the private CA signing key", "should_trigger": false, "expected": "access-review"},
+  {"query": "we want to move off our current CA and PKI vendor entirely onto a different one", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "the pipeline is failing at the TLS handshake step, can you work out why", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "we rotate our TLS private keys every year on purpose, walk me through doing it without downtime", "should_trigger": false, "expected": "secret-rotation"}
+]

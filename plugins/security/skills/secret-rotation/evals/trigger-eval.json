@@ -18,5 +18,6 @@
   {"query": "pods went CrashLoopBackOff right after the 11:40 deploy, roll back or dig in", "should_trigger": false, "expected": "k8s-triage"},
   {"query": "gitleaks is failing CI on a fake key in a test fixture, how do i allowlist that path in the config", "should_trigger": false},
   {"query": "we need to add a not null column to the users table without locking it, plan the migration", "should_trigger": false, "expected": "db-migration"},
-  {"query": "write up the postmortem for tuesday's outage, i already have the timeline in a doc", "should_trigger": false, "expected": "postmortem"}
+  {"query": "write up the postmortem for tuesday's outage, i already have the timeline in a doc", "should_trigger": false, "expected": "postmortem"},
+  {"query": "set up ACME so our whole fleet of TLS certificates renews itself before the CA/Browser Forum shortens validity again", "should_trigger": false, "expected": "certificate-automation"}
 ]
