@@ -14,7 +14,7 @@ Instrumentation is almost never added calmly. It is added the week after the inc
 
 Use for: deciding what a new service should emit before it ships; adding the signals an incident proved missing; choosing between a metric, a span and a log for a given question; adopting OpenTelemetry, its SDK, collector and semantic conventions; fixing a cardinality explosion or an observability bill; getting trace context through a queue, a batch job or a thread pool; putting trace ids into log lines; designing sampling and retention.
 
-Do not use for: deciding what should page a human or writing the alerting rule (that is `alert-design`), diagnosing an incident happening right now (that is `k8s-triage`), profiling a slow function or hunting an allocation, or choosing between observability vendors (that is `vendor-evaluation`).
+Do not use for: deciding what should page a human or writing the alerting rule (that is `alert-design`), diagnosing an incident happening right now (that is `incident-response`, or `k8s-triage` for a Kubernetes workload), profiling a slow function or hunting an allocation, or choosing between observability vendors (that is `vendor-evaluation`).
 
 ## The gate
 

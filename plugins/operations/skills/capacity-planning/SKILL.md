@@ -14,7 +14,7 @@ The work goes wrong before any measurement happens. Someone reaches for a load-t
 
 Use for: sizing a system for a launch, a marketing event, a seasonal peak, a large tenant onboarding or a migration that doubles traffic; finding which resource actually constrains throughput; designing a load, stress or soak test and interpreting what it produced; choosing between vertical and horizontal scaling; setting autoscaling parameters and pre-scaling for a known event; deciding what the system does when demand exceeds capacity.
 
-Do not use for: a live incident or a workload that is failing now, which is `k8s-triage`; a deliberate failure-injection exercise or DR drill, which is `game-day`; reducing a cloud bill on a system that already copes, which is `cost-review`; adding metrics, spans or logs, which is `instrumentation`; the rollout mechanics of a change, which is `release-strategy`.
+Do not use for: a live incident, which is `incident-response` (a Kubernetes workload failing now is `k8s-triage`); a deliberate failure-injection exercise or DR drill, which is `game-day`; reducing a cloud bill on a system that already copes, which is `cost-review`; adding metrics, spans or logs, which is `instrumentation`; the rollout mechanics of a change, which is `release-strategy`.
 
 ## Hard gates
 

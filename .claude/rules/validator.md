@@ -9,8 +9,9 @@ paths:
 `AGENTS.md` is the authority; this is the part of it that applies to the file you just
 opened, loaded now rather than hoped for.
 
-- **Plan mode first.** This package decides whether every other change is allowed to
-  merge, so a mistake here is more expensive than it looks.
+- **Plan mode first, in the main conversation before delegating; a subagent working from
+  a settled brief never enters it.** This package decides whether every other change is
+  allowed to merge, so a mistake here is more expensive than it looks.
 - **No third-party imports.** CI runs the validator on Python 3.10 through 3.13 with
   nothing installed, and that guarantee is what the whole pipeline rests on. A dependency
   here breaks it silently on the interpreter you did not test.

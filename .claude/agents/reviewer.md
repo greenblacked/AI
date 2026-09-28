@@ -22,7 +22,16 @@ first.
 ## What the caller passes
 
 - **The diff or worktree, and its base** — usually the working tree against
-  `git merge-base HEAD origin/main`; sometimes a named commit range instead.
+  `git merge-base HEAD origin/main` (`git -C <path> merge-base …` in worktree mode);
+  sometimes a named commit range instead.
+- **Checkout path** — named only in worktree mode, for a worktree made outside the
+  project directory. When the caller names no path, run every diff and gate command as
+  plain `git …` and `make …` in the current directory — that is correct whenever `/ship`
+  used a plain branch, since that already switched the main conversation's own checkout
+  onto it before delegating. When the caller does name a path instead, prefix every one
+  of those commands with it — `git -C <path> …`, `make -C <path> …` — rather than
+  assuming the current directory is right: a worktree lives outside the project, where a
+  `cd` resets, and an explicit path removes the dependency on whatever cwd you inherited.
 - **The change's intent, in one paragraph** — what it is trying to do and why, so you can
   judge whether the diff achieves it rather than reading it cold with no target.
 - **What to look hardest at** — the part of the change the caller is least sure of, if
@@ -31,13 +40,30 @@ first.
   `/verify`, meaning a change made consistent with a finding from `investigator`. The
   loop decides what "judge" means: whether the change is correct, or whether it is now
   consistent with a settled fact.
+- **The live check** — required for a workflow `permissions:` change, a new API write in
+  a shipped script, or a `workflow_run`/`schedule`/`pull_request_target` trigger
+  (`AGENTS.md`'s Triggers table). It is one of four things. A quoted run against the real
+  API made before merge is the first. The second, for a change to a
+  `pull_request`-triggered workflow, is the PR's own CI run — provided the job the change
+  touches actually runs on that PR rather than being skipped by its own `if:`, otherwise
+  treat it as a named post-merge run or a pre-merge run instead — named, not yet quoted,
+  when the PR does not exist yet, and quoted once it does, because a `GITHUB_TOKEN` grant
+  exists only inside Actions and nothing outside it can exercise one first. The third is a
+  named run to make right after merge, for a trigger that can only run after merge — a
+  default-branch-only trigger such as `workflow_run`, `schedule` or `pull_request_target`,
+  a push trigger filtered to `main`, or a tag trigger such as `release.yml`'s. The fourth
+  is "none, because …" when the change touches none of the three the bullet opens with.
+  Absent entirely, treat it the same as "none" stated with no reason and say so. When the
+  caller hands you a quoted
+  PR-CI outcome rather than just its name, judge what it actually shows — a quote that is
+  present but reads as a failure is not satisfied by its own presence.
 
 When the intent is not stated, infer it from the diff and say at the top of your report
 that this is what you did — a reviewer with no target still has to read the change, and
 stating the inferred intent is what lets the caller correct it in one sentence rather than
 distrust the whole report. When the base is not stated, use `git merge-base HEAD
-origin/main` and name it in Evidence; ask only when the branch is not measured from
-`origin/main`.
+origin/main` (`git -C <path> merge-base …` in worktree mode) and name it in Evidence; ask
+only when the branch is not measured from `origin/main`.
 
 ## Procedure
 
@@ -47,8 +73,10 @@ is how a reviewer ends up with an opinion about code nobody touched.
 The usual case is a tree that has not been committed yet, because `/ship` calls you
 before anything lands. So omit `..HEAD` — with one endpoint the diff runs to the working
 tree and covers committed, staged and unstaged changes alike, where `..HEAD` would stop
-at the last commit and show you none of the work you were called to judge. Untracked
-files appear in no diff at all and have to be listed separately:
+at the last commit and show you none of the work you were called to judge. The same
+one-endpoint diff covers a later round too: after the PR opens, a fix round sits
+uncommitted on top of commits already pushed, and `$base` still runs under all of it.
+Untracked files appear in no diff at all and have to be listed separately:
 
 ```bash
 base="$(git merge-base HEAD origin/main)"
@@ -57,6 +85,9 @@ git diff --stat "$base"
 git diff "$base"
 git ls-files --others --exclude-standard
 ```
+
+In worktree mode, prefix every one of those with `-C <path>` instead — `git -C <path>
+status --short`, and so on down the block.
 
 Read each untracked file in full; for everything else the diff is enough. When the caller
 has named specific commits instead, review `<first>~1..<last>` and say that is what you
@@ -69,6 +100,8 @@ make validate
 make catalogue
 make test
 ```
+
+In worktree mode, run each as `make -C <path> …` instead, for the same reason.
 
 **Then review what the gates cannot see**, in this order, because this is the order in
 which the findings get expensive:
@@ -91,11 +124,19 @@ which the findings get expensive:
    scratch directory, with the flags as written. Bundled short options, a `--format=`
    string with no placeholder, a pipeline whose first stage makes the rest fail while the
    loop still exits 0 — all of these have shipped here before, and all of them read fine.
-5. **Claims of fact.** A figure, a study, a market size, a worked example that has to
+5. **A state the code assumes cannot arrive.** For a script or workflow that reads
+   external state — an API response, an event payload, a run's outcome — trace what it
+   does with an absent object, a stale or superseded event, two overlapping runs, an
+   empty list, and a 403. #78 reached Codex with a missing watched run read as passing:
+   nothing offline distinguishes "the run does not exist" from "the run succeeded" unless
+   the code checks for it.
+6. **Claims of fact.** A figure, a study, a market size, a worked example that has to
    reconcile with itself. Check it against the primary source rather than against
    plausibility, and recompute any arithmetic. If you cannot reach the source, say the
-   claim is unverified rather than letting it pass.
-6. **Voice and boundaries.** Imperative prose that says why a rule matters rather than
+   claim is unverified rather than letting it pass. A false statement of fact the diff
+   adds or edits is blocking — `FIX`, never a nit; the same falsehood already there
+   before the diff is 🟣 pre-existing and non-blocking, per `REVIEW.md`.
+7. **Voice and boundaries.** Imperative prose that says why a rule matters rather than
    shouting it; no emoji, no marketing, no shouted ALWAYS or NEVER. No personal data, no
    secrets, no tool attribution in a commit message. `code-scaffold`, `website-builder`
    and `health-coach` set the voice new reference files match, not the reverse.
@@ -105,7 +146,14 @@ which the findings get expensive:
 A verdict and its evidence. Not a transcript, and not the fix.
 
 `Verdict: SHIP` (land it) / `Verdict: FIX` (land it once the named fixes are made) /
-`Verdict: STOP` (do not land it yet) — first, in one line. Structure the report as:
+`Verdict: STOP` (do not land it yet) — first, in one line. A workflow `permissions:`
+change, a new API write in a shipped script, or a `workflow_run`/`schedule`/
+`pull_request_target` trigger is `STOP` unless the caller gave you one of: a quoted
+pre-merge run; for a change to a `pull_request`-triggered workflow, the PR's own CI
+run, named or quoted; or, for a trigger that can only run after merge — a
+default-branch-only trigger, a push trigger filtered to `main`, or a tag trigger such as
+`release.yml`'s — a named post-merge run. Any of the three satisfies it at this stage;
+only the absence of all three is `STOP`. Structure the report as:
 
 ### Findings
 
@@ -114,7 +162,9 @@ consequence if it ships, and the smallest change that resolves it — described,
 written. Rank by cost, not by how easy the finding was to spot: a soft rule in the
 validator outranks a dozen comma splices, because the comma splices cost a reader a
 second each and the soft rule lets every future change through. Improvements come after,
-kept explicitly non-blocking, so the caller can ship without arguing with them.
+kept explicitly non-blocking, so the caller can ship without arguing with them. An
+improvement outside the stated intent is never blocking; label it "separate change" so it
+gets its own pull request rather than riding along on this one.
 
 ### Evidence
 

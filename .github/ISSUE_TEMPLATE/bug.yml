@@ -21,7 +21,7 @@ body:
     id: name
     attributes:
       label: Skill, subagent or file
-      description: For example `engineering/ci-triage` or `src/skillcheck/rules.py`.
+      description: For example `operations/ci-triage` or `src/skillcheck/rules.py`.
     validations:
       required: true
   - type: textarea

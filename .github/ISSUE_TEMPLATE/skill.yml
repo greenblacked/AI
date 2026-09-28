@@ -23,9 +23,14 @@ body:
     attributes:
       label: Category
       options:
-        - engineering
+        - coding
+        - gamedev
+        - operations
+        - delivery
+        - security
         - manager
         - personal
+        - career
     validations:
       required: true
   - type: textarea

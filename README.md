@@ -7,7 +7,7 @@
 
 # Agent skills
 
-89 agent skills, seventeen read-only subagents and six slash commands, in eight
+91 agent skills, eighteen read-only subagents and six slash commands, in eight
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-89-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-91-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -45,9 +45,9 @@ outside a runtime that can trigger them for you.
 | --- | --- | --- |
 | [`coding`](#coding) | Reading, reviewing, testing and changing code | 18 skills, 3 subagents |
 | [`gamedev`](#gamedev) | Making games, and shipping them | 11 skills, 1 subagent, 1 command |
-| [`operations`](#operations) | Keeping a running system alive | 15 skills, 5 subagents, 2 commands |
+| [`operations`](#operations) | Keeping a running system alive | 16 skills, 6 subagents, 2 commands |
 | [`delivery`](#delivery) | Getting a change into production | 9 skills, 1 subagent |
-| [`security`](#security) | The defensive side of shipping software | 11 skills, 3 subagents, 2 commands |
+| [`security`](#security) | The defensive side of shipping software | 12 skills, 3 subagents, 2 commands |
 | [`manager`](#manager) | Engineering leadership | 13 skills, 2 subagents, 1 command |
 | [`personal`](#personal) | Money, travel, admin, habits and health | 7 skills, 2 subagents |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 5 skills |
@@ -57,8 +57,9 @@ its own manifest, so installing one does not pull in another's files.
 
 Install what you will use, though, rather than everything by reflex. Every description you
 install stays resident in context, and Claude Code's default listing budget is about 8,000
-characters against this library's 77,500 — so installing all eight at the default drops
-most of them, silently. The Install section below says what to set instead.
+characters against this library's total — `make validate` prints the current figure — so
+installing all eight at the default drops most of them, silently. The Install section
+below says what to set instead.
 
 ## Install
 
@@ -147,7 +148,8 @@ You do not need a toolchain to get them. Every CI run builds them and attaches t
 the **portable-skills** artifact: open the
 [latest run](https://github.com/greenblacked/AI/actions/workflows/ci.yml?query=branch%3Amain),
 scroll to Artifacts, and download. Inside are one file per skill, one bundle per plugin,
-an index of every description, and a README explaining where each goes.
+an index of every description, a router sized to fit inside a terminal agent's own
+document budget, and a README explaining where each goes.
 
 If you do have a terminal, build them yourself instead:
 
@@ -157,10 +159,11 @@ make portable       # writes dist/portable/
 ```
 
 Either way: upload the `plugins/*.md` bundles to a ChatGPT Project or a Custom GPT, paste
-a single `skills/<name>.md` into any chat, or append a bundle to the `AGENTS.md` of the
-repository a terminal agent is working in. [Using the skills](docs/using.md) has the
-instruction text that makes a Project reach for them, and says plainly what does not
-survive the trip.
+a single `skills/<name>.md` into any chat, or paste `router.md` — or one narrower
+`router-<plugin>.md` — into the `AGENTS.md` of the repository a terminal agent is working
+in, with `skills/` copied in beside it. [Using the skills](docs/using.md) has the
+instruction text that makes a Project reach for them, why a terminal agent gets the
+router rather than a bundle, and says plainly what does not survive the trip.
 
 ### Running the skills on DeepSeek
 
@@ -207,6 +210,7 @@ fired each step.
 | You say | What loads | What it makes you do first |
 | --- | --- | --- |
 | "pods are in CrashLoopBackOff and I am on call" | `k8s-triage` | Restore service first; diagnosis is the second job |
+| "the payment provider's status page just went red" | `incident-response` | Name an IC who will not debug, set severity once, and mitigate by symptom |
 | *(a 200MB CI log)* | `ci-log-reader` *(subagent)* | Returns which of five triage classes it is and the log line that decided it |
 | "what do we tell customers" | `incident-comms` | Acknowledge on impact, not on diagnosis, and promise a next update you keep |
 
@@ -285,6 +289,7 @@ Keeping a running system alive.
 | [`docker-compose`](plugins/operations/skills/docker-compose/SKILL.md) | Compose containers into a working environment for local development and CI: every dependency edge gated on a healthcheck condition, because started is not ready, plus service discovery, mount semantics, config layering and digest pinning. |
 | [`event-driven-reliability`](plugins/operations/skills/event-driven-reliability/SKILL.md) | Make an event consumer safe to retry and replay: state delivery assumptions, map every crash window, choose durable identities and atomicity boundaries, bound retries and dead letters, and verify duplicates, reordering and recovery. |
 | [`game-day`](plugins/operations/skills/game-day/SKILL.md) | Plan and run a reliability exercise around a falsifiable hypothesis, with a blast radius chosen in advance and an abort that was executed before the experiment started. |
+| [`incident-response`](plugins/operations/skills/incident-response/SKILL.md) | Declare, command and mitigate a live production incident on any surface — a managed database failover, a third-party outage, a VM fleet, serverless, a CDN or DNS provider — mitigating by symptom before the diagnosis is complete, and handing off to `k8s-triage` for a Kubernetes workload. |
 | [`instrumentation`](plugins/operations/skills/instrumentation/SKILL.md) | Add telemetry so the next incident is diagnosable — instrument backwards from the questions you will need answered at 3am, with cardinality bounded on purpose. |
 | [`k8s-triage`](plugins/operations/skills/k8s-triage/SKILL.md) | Mitigate first, diagnose second. The deploy-related question, the fixed evidence order, and a decode table for the failure modes that account for most of them. |
 | [`k8s-workloads`](plugins/operations/skills/k8s-workloads/SKILL.md) | Specify a workload so it holds under pressure: measure before setting any number, then requests and limits knowing CPU throttles where memory kills, distinct probes, a disruption budget that does not deadlock drains, and the SIGTERM race closed. |
@@ -319,6 +324,7 @@ The defensive side of shipping software.
 | [`agent-security-review`](plugins/security/skills/agent-security-review/SKILL.md) | Review an agent from untrusted content to privileged effect: trace provenance into tool arguments, enforce authorization and tenant scope at execution, bind approval to the exact action, constrain capabilities and prove deny paths with inert tests. |
 | [`auth-design`](plugins/security/skills/auth-design/SKILL.md) | Design or review how a system proves who a caller is and keeps that proof safe: whether to build identity at all, the flow that fits each client type, session rotation on every privilege change, and where a token's claims can be trusted. |
 | [`authorization-design`](plugins/security/skills/authorization-design/SKILL.md) | Design application permissions around trusted subject, tenant and resource facts, with default-deny policy, server-side enforcement on every path, bounded revocation latency and tests for allowed actions and tenant boundaries. |
+| [`certificate-automation`](plugins/security/skills/certificate-automation/SKILL.md) | Move a certificate estate onto automated ACME issuance and renewal ahead of the CA/Browser Forum's shrinking maximum lifetimes: inventory from outside first, classify every endpoint by ACME capability, schedule by ACME Renewal Information with a lifetime-fraction backstop, and alert on renewal failure. |
 | [`data-privacy`](plugins/security/skills/data-privacy/SKILL.md) | Handle personal data end to end: settle controller or processor before anything else, classify what is held, enforce retention with a job rather than a document, and make deletion reach the search index, the caches and the restore path instead of only the primary row. |
 | [`dependency-triage`](plugins/security/skills/dependency-triage/SKILL.md) | Work a queue of vulnerability alerts into a decision each — reachability before severity, the two signals that mean today rather than this quarter, safe patches batched and risky ones isolated, and suppression that expires. |
 | [`iac-review`](plugins/security/skills/iac-review/SKILL.md) | Review a Terraform change against the plan JSON rather than the plan text, so replacements and destroys surface first instead of being skimmed past. |
@@ -375,7 +381,7 @@ Applications, negotiation, speaking and writing.
 
 ## Subagents
 
-Seventeen subagents ship across seven plugins. Each exists to keep bulk out of the main context
+Eighteen subagents ship across seven plugins. Each exists to keep bulk out of the main context
 — the input is a log, a plan, a billing export, a contract, a pile of feedback, a release
 range, and the answer is short — and to be denied the tools it should not have. A reviewer
 that can apply is not a reviewer.
@@ -388,6 +394,7 @@ that can apply is not a reviewer.
 | `frame-capture-reader` | `gamedev` | A profiler capture or frame trace | CPU-bound or GPU-bound with the numbers, or what to capture instead |
 | `cost-analyst` | `operations` | A cloud billing export | The top movers period over period, not the top spenders |
 | `incident-scribe` | `operations` | Raw triage notes and scrollback | A blameless postmortem draft |
+| `page-history-reader` | `operations` | A quarter of pager or alert history | Per-rule fires, action rate, off-hours share and a suggested keep/tighten/demote/delete bucket |
 | `plan-reviewer` | `security` | A Terraform plan JSON | The blast radius, destroys first |
 | `policy-auditor` | `security` | IAM policies and access logs | The gap between permitted and used, with the window stated |
 | `pii-reader` | `security` | A schema dump, a row sample or a log excerpt | Which fields carry personal data, their class and where they flow |
@@ -407,12 +414,13 @@ working on this repository, in two loops that share a judge.
 | --- | --- | --- |
 | `explorer` | build | Surveys what already covers a change |
 | `implementer` | build | Writes it and runs the gates |
-| `investigator` | verify | Settles one claim against primary sources |
+| `investigator` | both | Settles one claim against primary sources |
 | `reviewer` | both | Judges the result on a fresh context with no editing tools |
 
-To build something: `explorer` surveys what already covers a change, `implementer` writes
-it and runs the gates, and `reviewer` judges the result on a fresh context with no editing
-tools. [`/ship`](.claude/commands/ship.md) runs those three in order.
+To build something: [`/ship`](.claude/commands/ship.md) runs `explorer` and, when the
+change rests on an outside claim, `investigator` in parallel, then `implementer`, then
+`reviewer`, then opens one pull request and merges once `reviewer`, `ci` and `security`
+pass.
 
 To establish whether something is true: `investigator` settles one claim against primary
 sources, labels every finding primary, consensus or inference, and says what it could not
@@ -443,7 +451,7 @@ Each does the mechanical part and points at the skill holding the full procedure
 | `/eval-skill` | this repository | Score whether one description actually triggers, and name the phrasing it is missing. |
 | `/skill-doctor` | this repository | Diagnose one skill: validator findings, description health, eval-set balance, and which siblings it collides with. |
 | `/skill-gap` | this repository | Survey the library for coverage it lacks, from its own dangling demand, and say which of skill, subagent, command or nothing the gap deserves. |
-| `/ship` | this repository | Take a change through the build loop: survey what already exists, write it and run the gates, then judge the result independently. |
+| `/ship` | this repository | Take a change from survey to merge: research in parallel, write it and run the gates, judge it independently, then open one pull request and merge once review, `ci` and `security` pass. |
 | `/verify` | this repository | Take a claim through the verification loop: settle it against primary sources, labelling what is verified and what is not, then judge whether the finding supports the change. |
 
 ## CI is the source of truth

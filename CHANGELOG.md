@@ -10,6 +10,33 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add `router.md` and one `router-<plugin>.md` per plugin to the portable export: a
+  line per skill naming when it applies and the `skills/<name>.md` path to open then,
+  sized to fit inside a terminal agent's own document budget rather than a whole
+  bundle. `scripts/export_portable.py` fails the export before writing anything if a
+  router grows past `ROUTER_BUDGET_BYTES`.
+- Add the `page-history-reader` subagent to `operations`, reading a quarter of pager or
+  alert history — PagerDuty, Opsgenie, Grafana OnCall or Cloud IRM, a Prometheus `ALERTS`
+  range query, or a plain CSV — and returning per-rule fires, action rate, off-hours share
+  and a suggested keep/tighten/demote/delete bucket for `alert-design`'s step 10, so the
+  raw export never enters the caller's context.
+- Add the `certificate-automation` skill to the `security` plugin: inventory a whole
+  estate's TLS certificates from certificate-transparency logs and endpoint scans first,
+  classify every endpoint by ACME capability, automate issuance and renewal on ACME
+  Renewal Information with a lifetime-fraction backstop, and monitor for renewal failure —
+  ahead of the CA/Browser Forum's ballot SC-081 cutting maximum certificate validity from
+  398 to 200 days on 2026-03-15, 100 days on 2027-03-15 and 47 days on 2029-03-15. Raise
+  the `security` plugin's listing ceiling accordingly. The `operations` plugin's ceiling
+  and `game-live-ops`'s recorded description length also moved in this run of
+  `check_listing_budget.py --update`: both are the script recomputing every plugin's
+  ceiling and every skill's recorded length from what is actually on disk today, not a
+  change made to either skill.
+- Add an `incident-response` skill to `operations`: platform-agnostic incident command,
+  severity and mitigation-by-symptom for a live production incident on any surface — a
+  managed database, a third-party dependency, a VM fleet, serverless, a CDN or DNS
+  provider — with `references/incident-command.md` moved from `k8s-triage`, which now
+  hands off to it for anything that is not a Kubernetes workload. Raise the `operations`
+  plugin's listing ceiling to 14,500 for the new skill and the cedes retargeted at it.
 - Add `.github/workflows/ci-triage.yml` and `scripts/ci_triage.py`, a Python port of
   `greenblacked/status-page`'s `ci-triage.cjs`: on a pull request's `CI` or `Security`
   run completing, keep one self-updating comment naming each failed job, its failed
@@ -19,6 +46,20 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Point terminal-agent AGENTS.md advice at the new router instead of a whole plugin
+  bundle or `index.md`, in `docs/using.md`, `README.md` and the portable export's own
+  shipped README: both are far past Codex's 32 KiB `project_doc_max_bytes` default,
+  which truncates silently past that budget.
+- Add a cede clause to `secret-rotation`'s description pointing scheduled renewal or an
+  ACME rollout at the new `certificate-automation` skill — a genuine routing boundary
+  between the two, not a change made to pass a check. Trimmed repeated filler
+  ("provider", "whenever") elsewhere in the same description to keep it clear of the
+  validator's headroom warning; its recorded length moved from 967 to 973 characters
+  accordingly, and the `security` plugin stays well under its 11,000 ceiling at 10,473.
+- Narrow `k8s-triage` to Kubernetes workload symptoms: drop its "or a live production
+  incident" claim and the generic declare, comms-cadence, handoff and
+  mitigated-versus-resolved steps, each replaced with a pointer to the new
+  `incident-response` skill, which now owns them for every surface, Kubernetes included.
 - Retry the actionlint and gitleaks downloads in `ci.yml` and `security.yml` on a
   transient network failure, with a 20-second connect timeout and a 60-second cap
   applied per attempt rather than libcurl's 300-second default, so the worst case of
@@ -52,6 +93,15 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 - Add a light and dark banner (`docs/assets/banner-light.svg`,
   `docs/assets/banner-dark.svg`) above the README's header, switching with the reader's
   GitHub theme via the `<picture>` pattern.
+- Extend `/ship` to run `explorer` and, when the change rests on an outside claim,
+  `investigator` in parallel for the survey stage, then merge the reviewed change itself
+  once `reviewer`, `ci` and `security` pass, rather than stopping at judgement; move
+  `implementer` and `investigator` off Opus onto Sonnet, with `effort` set per stage
+  (`implementer` high, `explorer` and `investigator` medium); widen
+  `docs/review-lessons.md`'s ledger to any review of a change here — the review stage, an
+  automated PR reviewer, or a live run — and add a live-run trigger to `AGENTS.md`'s
+  Review guidelines for a workflow `permissions:` change, a new API write in a shipped
+  script, or a `workflow_run`/`schedule`/`pull_request_target` trigger.
 
 ### Removed
 

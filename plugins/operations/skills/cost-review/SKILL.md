@@ -14,7 +14,7 @@ Cost work fails in two opposite directions and both are common. In the first, so
 
 Use for: explaining a bill that grew and finding the specific cause; a deliberate spend-reduction target; building cost attribution, tagging or showback where none exists; rightsizing, purchase-model and commitment decisions; data-transfer and retention investigations; Kubernetes per-namespace or per-workload cost; setting budgets and anomaly alerts; adding a cost line to architecture review.
 
-Do not use for: debugging why something is slow, which is a performance problem that happens to have a cost; capacity planning for a launch, where the question is whether it survives rather than what it costs; choosing between vendors or tools, which is `vendor-evaluation`; a live incident, which is `k8s-triage`; or the migration itself when the recommendation turns out to be a replatform, which is `plan-platform-migration`.
+Do not use for: debugging why something is slow, which is a performance problem that happens to have a cost; capacity planning for a launch, where the question is whether it survives rather than what it costs; choosing between vendors or tools, which is `vendor-evaluation`; a live incident, which is `incident-response`; or the migration itself when the recommendation turns out to be a replatform, which is `plan-platform-migration`.
 
 ## Two gates
 
