@@ -17,6 +17,15 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   history, with the secrets each executed run's job could reach — never a secret's
   value, only its name — so the raw logs and history never enter the caller's context.
   `dependency-triage`'s cross-repository blast-radius step now hands off to it by name.
+- Add the `security-test-engagement` skill to the `security` plugin, covering
+  commissioning and running an authorised penetration test, red-team exercise or
+  bug-bounty engagement from the asset owner's side: signed authorisation and scope
+  before anything starts, rules of engagement with stop conditions, a confirmed
+  emergency contact, rules for test data and accounts, and a path from each finding to a
+  confirmed retest. The skill's own text carries no attack technique, tool command or
+  payload. `game-day` now names it as the owner of the "security red-teaming or
+  penetration testing" exclusion it already carried. Raise the `security` plugin's
+  listing ceiling to 11,500 for the new skill.
 - Add `router.md` and one `router-<plugin>.md` per plugin to the portable export: a
   line per skill naming when it applies and the `skills/<name>.md` path to open then,
   sized to fit inside a terminal agent's own document budget rather than a whole
