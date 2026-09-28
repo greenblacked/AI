@@ -10,6 +10,13 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `supply-chain-exposure-reader` subagent to `security`: given a compromised
+  package, action SHA or version window, it walks lockfile git history and CI run logs
+  across every repository in scope and returns which repositories, workflow runs and
+  jobs actually resolved or executed the bad version, split from merely present in
+  history, with the secrets each executed run's job could reach — never a secret's
+  value, only its name — so the raw logs and history never enter the caller's context.
+  `dependency-triage`'s cross-repository blast-radius step now hands off to it by name.
 - Add `router.md` and one `router-<plugin>.md` per plugin to the portable export: a
   line per skill naming when it applies and the `skills/<name>.md` path to open then,
   sized to fit inside a terminal agent's own document budget rather than a whole
