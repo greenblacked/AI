@@ -786,10 +786,52 @@ def test_first_sentence_trims_to_the_cap():
     assert portable.first_sentence("Do the thing. Then another.", 100) == "Do the thing."
     # Long enough to need trimming: cut inside the cap and marked as cut, rather than
     # silently reading as a complete, if oddly short, sentence.
-    long_sentence = "Do " + "x" * 200 + " thing."
+    long_sentence = " ".join(["word"] * 20) + "."
+    trimmed = portable.first_sentence(long_sentence, 20)
+    assert len(trimmed) <= 20
+    assert trimmed.endswith("…")
+
+
+def test_first_sentence_hard_cuts_a_single_overlong_word():
+    # A leading word longer than the cap has no space inside it to cut at; falling back
+    # to a hard cut keeps this a short, honestly truncated line instead of an empty one.
+    long_sentence = "x" * 200 + " thing."
     trimmed = portable.first_sentence(long_sentence, 20)
     assert len(trimmed) == 20
     assert trimmed.endswith("…")
+
+
+def test_first_sentence_prefers_a_later_use_when_sentence():
+    # agent-handoff, profiling, refactoring and ten others put the sentence naming when
+    # they apply after a first sentence that summarises the procedure instead — the
+    # router line should name the situation, not the summary.
+    description = (
+        "Summarise the whole procedure in one dense opening line. Use when someone asks "
+        "for exactly this. Further detail that never gets read here."
+    )
+    assert portable.first_sentence(description, 200) == ("Use when someone asks for exactly this.")
+    # With no such sentence, the first one is exactly what ships.
+    assert portable.first_sentence("Just one plain sentence.", 200) == "Just one plain sentence."
+
+
+def test_first_sentence_cuts_at_a_word_boundary():
+    description = "Handle the incoming webhook payload safely before anything else runs."
+    trimmed = portable.first_sentence(description, 30)
+    # Cut after a whole word ("webhook"), not mid-word ("webho…") — the untrimmed word
+    # immediately before the ellipsis has to appear whole in the original sentence.
+    assert trimmed == "Handle the incoming webhook…"
+    assert trimmed[:-1].rsplit(" ", 1)[-1] in description.split()
+
+
+def test_first_sentence_does_not_split_on_common_abbreviations():
+    description = "Fix the root cause, e.g. a null pointer, not the symptom. Then verify."
+    assert portable.first_sentence(description, 200) == (
+        "Fix the root cause, e.g. a null pointer, not the symptom."
+    )
+    description = "Cover the common cases, etc. before the rare ones. Then ship."
+    assert portable.first_sentence(description, 200) == (
+        "Cover the common cases, etc. before the rare ones."
+    )
 
 
 def test_export_writes_a_router_and_one_per_plugin(mini_repo, tmp_path):
@@ -817,16 +859,27 @@ def test_every_path_a_router_names_exists_in_the_export(mini_repo, tmp_path):
             assert (out / relative).is_file(), f"{router_path.name} names {relative}"
 
 
-def test_router_over_budget_fails_without_writing(mini_repo, tmp_path, monkeypatch, capsys):
+def test_router_over_budget_fails_without_touching_a_previous_export(
+    mini_repo, tmp_path, monkeypatch, capsys
+):
     # A budget smaller than the preamble alone makes every router fail, whatever the
     # skills measure — the point is only that the check fires and stops the export.
-    monkeypatch.setattr(portable, "ROUTER_BUDGET_BYTES", 10)
     out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    before = {path: path.read_bytes() for path in out.rglob("*") if path.is_file()}
+
+    monkeypatch.setattr(portable, "ROUTER_BUDGET_BYTES", 10)
     assert portable.export(mini_repo, out) == 1
     message = capsys.readouterr().err
     assert "router.md is" in message
     assert "against a budget of 10" in message
-    assert not out.exists()
+    # The router budget is checked, from the rendered skills alone, before `out` is
+    # touched at all — the same reason LICENSE/NOTICE are checked before shutil.rmtree,
+    # rather than after a partial export already exists. A real previous export,
+    # sentinel and all, survives an over-budget run completely unchanged.
+    assert (out / portable.EXPORT_SENTINEL).is_file()
+    after = {path: path.read_bytes() for path in out.rglob("*") if path.is_file()}
+    assert after == before
 
 
 def test_router_over_budget_fails_check_mode_too(mini_repo, tmp_path, monkeypatch):

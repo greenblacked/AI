@@ -186,22 +186,25 @@ Mistral Vibe have no documented cap in the sources checked, which is a narrower 
 "no cap": it says nobody has written one down, not that none exists.
 
 That budget is why the router, not a bundle or `index.md`, is what belongs in
-`AGENTS.md`. `make portable` writes `dist/portable/router.md` — one line per skill naming
-its use-when trigger and the path to open when it matches — plus a narrower
-`dist/portable/router-<plugin>.md` per plugin. Paste the one you want into `AGENTS.md` and
-keep `dist/portable/skills/` beside it:
+`AGENTS.md`. `make portable` writes `dist/portable/router.md` — one line per skill, drawn
+from its own description, naming when it applies and the path to open then — plus a
+narrower `dist/portable/router-<plugin>.md` per plugin. Paste the one you want into
+`AGENTS.md`, and copy `dist/portable/skills/` to a `skills/` directory next to that
+`AGENTS.md`: the router's own paths are `skills/<name>.md`, relative to wherever
+`AGENTS.md` itself sits, not to `dist/portable/`.
 
 ```bash
 cat dist/portable/router-coding.md >> AGENTS.md
+cp -r dist/portable/skills path/to/your/repo/skills
 ```
 
-The agent reads the trigger line on every turn and opens the file it names only once the
+The agent reads each line on every turn and opens the file it names only once the
 situation matches. A single large skill file is fine to open that way —
-`website-builder.md` alone is 72,729 bytes, already over Codex's default on its own, which
+`website-builder.md` alone is about 70 KB, already over Codex's default on its own, which
 is exactly why it is something opened on demand rather than pasted whole. Never append a
-plugin bundle (`plugins/coding.md` is 672,412 bytes) or `index.md` (81,963 bytes) to
-`AGENTS.md` directly: both are far past 32 KiB by themselves, and the router exists
-precisely so neither one has to be.
+plugin bundle (several hundred kilobytes each) or `index.md` (about 80 KB) to `AGENTS.md`
+directly: both are far past 32 KiB by themselves, and the router exists precisely so
+neither one has to be.
 
 The trigger eval harness in this repository already speaks to several of these. It scores
 whether a description actually fires, against whichever CLI you have signed in:

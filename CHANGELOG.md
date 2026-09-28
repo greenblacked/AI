@@ -10,6 +10,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add `router.md` and one `router-<plugin>.md` per plugin to the portable export: a
+  line per skill naming when it applies and the `skills/<name>.md` path to open then,
+  sized to fit inside a terminal agent's own document budget rather than a whole
+  bundle. `scripts/export_portable.py` fails the export before writing anything if a
+  router grows past `ROUTER_BUDGET_BYTES`.
 - Add `.github/workflows/ci-triage.yml` and `scripts/ci_triage.py`, a Python port of
   `greenblacked/status-page`'s `ci-triage.cjs`: on a pull request's `CI` or `Security`
   run completing, keep one self-updating comment naming each failed job, its failed
@@ -19,6 +24,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Point terminal-agent AGENTS.md advice at the new router instead of a whole plugin
+  bundle or `index.md`, in `docs/using.md`, `README.md` and the portable export's own
+  shipped README: both are far past Codex's 32 KiB `project_doc_max_bytes` default,
+  which truncates silently past that budget.
 - Retry the actionlint and gitleaks downloads in `ci.yml` and `security.yml` on a
   transient network failure, with a 20-second connect timeout and a 60-second cap
   applied per attempt rather than libcurl's 300-second default, so the worst case of

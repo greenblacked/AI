@@ -25,12 +25,12 @@ This flattens each skill into one file that stands alone:
 
 Output lands in `dist/portable/`: one file per skill, one per plugin, an index that lists
 every description so a model can choose between them the way a skills runtime would, a
-router — one line per skill, its trigger and the path to open when it matches, small
-enough to paste into a repository's own `AGENTS.md` rather than pointing at a whole
-bundle — plus one narrower router per plugin, and a `LICENSE` and `NOTICE` copied from
-the repository root so the release zip carries them too. CI builds it on every run and
-uploads the result, so the files exist for someone with no toolchain; `--check` verifies
-without writing, for when you only want the gate.
+router — one line per skill, drawn from its own description, naming when it applies and
+the path to open then, small enough to paste into a repository's own `AGENTS.md` rather
+than pointing at a whole bundle — plus one narrower router per plugin, and a `LICENSE`
+and `NOTICE` copied from the repository root so the release zip carries them too. CI
+builds it on every run and uploads the result, so the files exist for someone with no
+toolchain; `--check` verifies without writing, for when you only want the gate.
 
 Standard library only, like the validator it imports.
 """
@@ -76,12 +76,23 @@ ASSET_LANGUAGES = {
 # example closes early and everything after it is read as prose.
 FENCE_RE = re.compile(r"^(`{3,}|~{3,})")
 ATX_RE = re.compile(r"^(#{1,6})(\s+)")
-SENTENCE_RE = re.compile(r"^(.*?[.!?])(?:\s|$)")
+# No leading anchor: used with .finditer() to walk every sentence in a description in
+# turn, looking for one that states when the skill applies rather than only the first.
+# The negative lookbehinds keep "e.g." and "etc." from reading as a sentence end —
+# without them, "fix the workload, e.g. a slow query." split after "e.g." itself, which
+# is not a sentence boundary a reader would recognise as one.
+SENTENCE_RE = re.compile(r"(.*?(?<!e\.g)(?<!etc)[.!?])(?:\s|$)", re.IGNORECASE)
+# 13 of this repository's descriptions state when a skill applies in a sentence that
+# comes after a first sentence summarising the procedure instead — "Use when someone
+# says...", further in, rather than at the start. Preferring that sentence, when one
+# exists, over whichever happens to come first is what keeps the router line naming a
+# situation rather than a summary.
+USE_WHEN_RE = re.compile(r"^(use when|use this when|trigger)\b", re.IGNORECASE)
 
-# A router line has room for a trigger, not the full description a plugin's own listing
-# carries. This is a sane cap rather than a measured one: at 100 characters the combined
-# router for this repository's own eight plugins measures well inside ROUTER_BUDGET_BYTES
-# below, with headroom for the descriptions to be reworded.
+# A router line has room for one sentence, not the full description a plugin's own
+# listing carries. This is a sane cap rather than a measured one: at 100 characters the
+# combined router for this repository's own eight plugins measures well inside
+# ROUTER_BUDGET_BYTES below, with headroom for the descriptions to be reworded.
 ROUTER_USE_WHEN_CAP = 100
 
 # Codex's default project-doc budget is 32 KiB (openai/codex, codex-rs/config/src/
@@ -366,32 +377,57 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
     return name, description, "\n".join(parts).rstrip() + "\n", unresolved
 
 
-def first_sentence(description: str, cap: int) -> str:
-    """The description's first sentence, whitespace collapsed, trimmed to ``cap`` characters.
+def _trim_to_word_boundary(sentence: str, cap: int) -> str:
+    """``sentence``, cut at the last space at or before ``cap`` characters, not mid-word.
 
-    A router line has room for a trigger, not the full multi-sentence description a
-    plugin's own listing carries — ``ROUTER_BUDGET_BYTES`` is what makes that a byte
-    constraint rather than a style choice. Trimming mid-sentence rather than dropping the
-    whole description keeps the line a trigger a reader can still match against, instead
-    of an ellipsis that names nothing.
+    A cut mid-word reads as a typo rather than a truncation — "netcod…" names nothing a
+    reader could search for. Falling back to a hard cut only when the leading word is
+    itself longer than the cap keeps a single very long token from producing an empty
+    line instead of a short, honestly truncated one.
+    """
+    if len(sentence) <= cap:
+        return sentence
+    truncated = sentence[:cap]
+    boundary = truncated.rfind(" ")
+    if boundary <= 0:
+        boundary = cap - 1
+    return truncated[:boundary].rstrip() + "…"
+
+
+def first_sentence(description: str, cap: int) -> str:
+    """A short line drawn from ``description``, trimmed to ``cap`` characters.
+
+    Prefers the sentence stating when the skill applies — one starting "Use when", "Use
+    this when" or "Trigger" — over whichever sentence happens to come first: 13
+    descriptions in this repository put that sentence after a first one summarising the
+    procedure instead, and a router line naming a situation is more useful than one
+    naming a summary. Falls back to the first sentence when no such sentence exists.
     """
     text = " ".join(description.split())
-    match = SENTENCE_RE.match(text)
-    sentence = match.group(1) if match else text
-    if len(sentence) > cap:
-        sentence = sentence[: cap - 1].rstrip() + "…"
-    return sentence
+    sentences = [match.group(1).strip() for match in SENTENCE_RE.finditer(text)] or [text]
+    sentence = next(
+        (candidate for candidate in sentences if USE_WHEN_RE.match(candidate)), sentences[0]
+    )
+    return _trim_to_word_boundary(sentence, cap)
 
 
 def render_router(title: str, groups: list[tuple[str, list[tuple[str, str]]]]) -> str:
-    """One line per skill: its use-when trigger and the path to open when it matches.
+    """One line per skill: when it applies, drawn from its own description, and the path
+    to open when it does.
 
     This, not a bundle or ``index.md``, is what belongs in ``AGENTS.md``: a terminal
     agent that reads ``AGENTS.md`` in full pays for every byte of it on every turn, so
-    the router carries only the trigger and a pointer, and ``skills/<name>.md`` stays
+    the router carries only that line and a pointer, and ``skills/<name>.md`` stays
     something opened on demand rather than something paid for whether or not it fires.
+
+    The title and preamble sit inside an HTML comment, not a heading and a paragraph:
+    `cat`ting a router into a repository's own `AGENTS.md` would otherwise inject a
+    stray "# Skill router" title and a paragraph that talks about "this file" in a
+    document that is no longer this file, into prose that already has its own structure.
+    A comment carries the same words for whoever opens the router directly without
+    rendering as either.
     """
-    lines = [f"# {title}", "", ROUTER_PREAMBLE, ""]
+    lines = ["<!--", title, "", ROUTER_PREAMBLE, "-->", ""]
     for plugin, skills in groups:
         lines += [f"## {plugin}", ""]
         for name, use_when in skills:
@@ -409,10 +445,10 @@ own reference material inline, so it works wherever you can paste or upload text
 `index.md` lists every skill with its full description, for a surface that retrieves from
 uploaded files rather than reading one whole document per turn — a ChatGPT Project,
 mainly. For a surface that reads one file in full and pays for every byte of it on every
-turn, `router.md` is the router instead — one line per skill naming its use-when trigger
-and the path to open when it matches — and `router-<plugin>.md` covers one plugin alone,
-for a narrower file. See "Codex, Gemini CLI and other terminal agents" below for why the
-distinction matters there and not here.
+turn, `router.md` is the router instead — one line per skill, drawn from its own
+description, naming when it applies and the path to open then — and `router-<plugin>.md`
+covers one plugin alone, for a narrower file. See "Codex, Gemini CLI and other terminal
+agents" below for why the distinction matters there and not here.
 
 ## ChatGPT
 
@@ -450,18 +486,21 @@ Gemini CLI, GitHub Copilot and Mistral Vibe have no documented cap in the source
 checked — that is not the same claim as none existing.
 
 That budget is why `router.md` or `router-<plugin>.md`, not a bundle or `index.md`, is
-what belongs in `AGENTS.md`. Paste one in and keep `skills/` beside it:
+what belongs in `AGENTS.md`. Paste one in, and copy the `skills/` directory here to sit
+next to that `AGENTS.md`: the router's own paths are `skills/<name>.md`, relative to
+wherever `AGENTS.md` itself sits, not to here.
 
 ```bash
-cat dist/portable/router-coding.md >> AGENTS.md
+cat router-coding.md >> /path/to/your/repo/AGENTS.md
+cp -r skills /path/to/your/repo/skills
 ```
 
-A single large skill file is fine to open on demand once the router's trigger line
-matches — `website-builder.md` alone is 72,729 bytes and already over Codex's default,
-which is exactly why it is opened rather than pasted. Never append a whole bundle
-(`plugins/coding.md` is 672,412 bytes) or `index.md` (81,963 bytes) to `AGENTS.md`
-directly: both are far past 32 KiB on their own, and the router exists so you never have
-to carry either one there.
+A single large skill file is fine to open on demand once a router line matches —
+`website-builder.md` alone is about 70 KB and already over Codex's default, which is
+exactly why it is opened rather than pasted. Never append a whole bundle (several
+hundred kilobytes each) or `index.md` (about 80 KB) to `AGENTS.md` directly: both are far
+past 32 KiB on their own, and the router exists so you never have to carry either one
+there.
 
 ## Claude Code
 
