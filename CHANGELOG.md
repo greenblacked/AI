@@ -10,6 +10,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `/agent-ready` command to `manager`, cloning a repository and actually running
+  the fenced shell commands its `AGENTS.md` contains — after listing them and stopping for
+  confirmation, and with a stripped environment, which is not a sandbox — checking the
+  `AGENTS.md` chain's size against Codex's 32 KiB project-doc cap and its
+  silent-truncation behaviour, and flagging the path and shape of an exposed secret before
+  anyone hands the repository to an agent.
 - Add the `/agent-diff-audit` command to `coding`, running mechanical detectors over an
   agent-written diff against a base ref — shrunk test counts, newly silenced checks
   including ESLint's `--suppress-all` and suppressions-file surface, and dependency lines

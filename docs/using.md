@@ -73,7 +73,7 @@ Ask for one by name when you want to be sure.
 
 ### Slash commands
 
-Seven ship, and unlike skills they never fire on their own — you type them. That makes them
+Eight ship, and unlike skills they never fire on their own — you type them. That makes them
 the right shape for work that takes an argument, or that should happen when asked rather
 than when merely relevant.
 
