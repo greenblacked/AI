@@ -7,7 +7,7 @@
 
 # Agent skills
 
-91 agent skills, twenty read-only subagents and seven slash commands, in eight
+91 agent skills, twenty read-only subagents and eight slash commands, in eight
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -48,7 +48,7 @@ outside a runtime that can trigger them for you.
 | [`operations`](#operations) | Keeping a running system alive | 16 skills, 6 subagents, 2 commands |
 | [`delivery`](#delivery) | Getting a change into production | 9 skills, 1 subagent |
 | [`security`](#security) | The defensive side of shipping software | 12 skills, 3 subagents, 2 commands |
-| [`manager`](#manager) | Engineering leadership | 13 skills, 2 subagents, 1 command |
+| [`manager`](#manager) | Engineering leadership | 13 skills, 2 subagents, 2 commands |
 | [`personal`](#personal) | Money, travel, admin, habits and health | 7 skills, 2 subagents |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 5 skills |
 
@@ -450,6 +450,7 @@ Each does the mechanical part and points at the skill holding the full procedure
 | `/blast-radius` | `security` | Read a Terraform plan as JSON and report destroys first, with the attribute forcing each replacement. |
 | `/image-audit` | `security` | Audit a built image for secrets in layers, root execution, base currency and a gate that will not get bypassed. |
 | `/weekly` | `manager` | Draft a bottom-line-first status update from merged pull requests and commits, every number sourced. |
+| `/agent-ready` | `manager` | Clone a repository and actually run its AGENTS.md, checking instruction-file size against a known agent tool cap and flagging dangling paths and exposed secrets. |
 | `/scaffold-skill` | this repository | Create the directory, SKILL.md and eval stub for a new skill, in the right plugin, refusing a duplicate name. |
 | `/eval-skill` | this repository | Score whether one description actually triggers, and name the phrasing it is missing. |
 | `/skill-doctor` | this repository | Diagnose one skill: validator findings, description health, eval-set balance, and which siblings it collides with. |
