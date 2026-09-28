@@ -18,5 +18,6 @@
   {"query": "what should actually page someone when the database starts degrading", "should_trigger": false, "expected": "alert-design"},
   {"query": "the migration job in github actions went red on main, flake or a real break", "should_trigger": false, "expected": "ci-triage"},
   {"query": "our rds bill doubled last quarter and nobody knows where the money went", "should_trigger": false, "expected": "cost-review"},
-  {"query": "write up how the reporting module works for whoever inherits it", "should_trigger": false, "expected": "technical-docs"}
+  {"query": "write up how the reporting module works for whoever inherits it", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "before writing a single CREATE TABLE, what indexes does this brand new schema need", "should_trigger": false, "expected": "schema-design"}
 ]

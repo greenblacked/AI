@@ -4,7 +4,7 @@
   "description_target": 900,
   "plugins": {
     "career": 5000,
-    "coding": 16000,
+    "coding": 17000,
     "delivery": 9500,
     "gamedev": 10500,
     "manager": 12500,
@@ -93,6 +93,7 @@
     "release-strategy": 958,
     "routeros-config": 856,
     "runbook": 914,
+    "schema-design": 831,
     "secret-rotation": 973,
     "security-review": 894,
     "security-test-engagement": 836,
