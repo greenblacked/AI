@@ -239,7 +239,7 @@ The response, in order:
 
 1. **Stop the spread.** Pin away from the bad version and block it — an `overrides` entry or a registry deny rule — before anything else, because CI is still resolving it while you investigate.
 2. **Treat it as credential exposure, not as a version bump.** Install-time code on a CI runner sees whatever that runner holds: registry publish tokens, cloud credentials, cache contents, the checkout's `.git` config. Upgrading to a clean version does not undo execution. Hand the credential work to `secret-rotation` and start it in parallel rather than after.
-3. **Establish the blast radius from the lockfile history**, not from memory. `git log -p -- package-lock.json` tells you when the bad version entered and which builds ran after it.
+3. **Establish the blast radius from the lockfile history**, not from memory. `git log -p -- package-lock.json` tells you when the bad version entered and which builds ran after it. Across more than a handful of repositories, hand this read to the `supply-chain-exposure-reader` subagent rather than repeating it by hand in each one — it returns the same table for every repository in scope, split into resolved and executed, with the secrets each executed run's job could reach.
 4. **Remove rather than upgrade** where the package is dispensable. A registry account that has been compromised once is not a stronger dependency after the fix than it was before.
 5. **Report it** to the registry's security contact and to the OSV malicious-packages process, so the next team's scanner catches it.
 
