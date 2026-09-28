@@ -10,6 +10,13 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add a `k8s-upgrade` skill to `operations`: sequence a planned Kubernetes minor
+  upgrade — control plane, add-ons, node pools — finding removed and deprecated APIs
+  from live traffic before the window opens rather than from git manifests, clearing
+  every blocking PodDisruptionBudget before the drain, and canarying one node pool
+  across a full traffic peak before rolling the rest. `k8s-triage`'s cede for a cluster
+  upgrade planned in advance now names it. Raise the `operations` plugin's listing
+  ceiling to 15,500 for the new skill.
 - Add `router.md` and one `router-<plugin>.md` per plugin to the portable export: a
   line per skill naming when it applies and the `skills/<name>.md` path to open then,
   sized to fit inside a terminal agent's own document budget rather than a whole

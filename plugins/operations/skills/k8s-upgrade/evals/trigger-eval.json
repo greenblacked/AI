@@ -1,0 +1,22 @@
+[
+  {"query": "we need to bump EKS from 1.28 to 1.29 next maintenance window, what's the plan", "should_trigger": true},
+  {"query": "kubernetes 1.28 goes end of support next month, walk me through the upgrade", "should_trigger": true},
+  {"query": "before we upgrade the cluster, how do we find out what's using apis that are going away", "should_trigger": true},
+  {"query": "is our ingress-nginx and CNI compatible with the new control plane version before we bump it", "should_trigger": true},
+  {"query": "we're three minors behind on GKE, how do we catch up without an outage", "should_trigger": true},
+  {"query": "will this cluster upgrade break anything, and how do we know before it happens", "should_trigger": true},
+  {"query": "plan the maintenance window for moving the whole fleet to kubernetes 1.30", "should_trigger": true},
+  {"query": "our AKS cluster auto-upgrade wants to go to 1.29, what should we check first", "should_trigger": true},
+  {"query": "which PodDisruptionBudgets will block the node pool upgrade this weekend", "should_trigger": true},
+  {"query": "we're on a version that's about to lose vendor support, what's the upgrade sequence", "should_trigger": true},
+  {"query": "a pod is stuck CrashLoopBackOff right now, help", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "what should the memory limit be for this deployment", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "will this PodDisruptionBudget block a node drain", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "we're moving off self-hosted Jenkins to a whole new managed Kubernetes provider", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "plan the DNS cutover window for the new cluster", "should_trigger": false, "expected": "cutover"},
+  {"query": "how many replicas do we need for the launch", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "should we upgrade postgres to the next major version", "should_trigger": false},
+  {"query": "is this Dockerfile hardened enough against known cves", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "twelve dependabot PRs came in this week, which ones matter", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "harden our GitHub Actions workflows against a compromised fork PR", "should_trigger": false, "expected": "pipeline-hardening"}
+]
