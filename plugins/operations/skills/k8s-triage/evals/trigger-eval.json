@@ -12,7 +12,7 @@
   {"query": "read this saved Kubernetes bundle of pod snapshots, events, rollout records, and current and previous logs without querying the live cluster", "should_trigger": false, "expected": "k8s-evidence-reader"},
   {"query": "write the deployment, service and hpa manifests for a new grpc service", "should_trigger": false, "expected": "code-scaffold"},
   {"query": "write the postmortem for tuesday's outage, i've got the timeline and the graphs", "should_trigger": false, "expected": "postmortem"},
-  {"query": "we're planning the 1.29 to 1.31 upgrade next quarter, what order do we do things in", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "we're planning the 1.29 to 1.31 upgrade next quarter, what order do we do things in", "should_trigger": false, "expected": "k8s-upgrade"},
   {"query": "how many nodes do we need for black friday, p95 cpu is sitting around 40 percent today", "should_trigger": false, "expected": "capacity-planning"},
   {"query": "our staging cluster costs 4k a month, where is the money actually going", "should_trigger": false, "expected": "cost-review"},
   {"query": "the e2e workflow has failed six times in a row at the kind cluster setup step", "should_trigger": false, "expected": "ci-triage"},

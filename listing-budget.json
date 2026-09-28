@@ -8,7 +8,7 @@
     "delivery": 8500,
     "gamedev": 10000,
     "manager": 12500,
-    "operations": 14500,
+    "operations": 15500,
     "personal": 6500,
     "security": 11500
   },
@@ -72,6 +72,7 @@
     "instrumentation": 939,
     "job-search": 935,
     "k8s-triage": 957,
+    "k8s-upgrade": 877,
     "k8s-workloads": 898,
     "learning-notes": 853,
     "life-admin": 856,

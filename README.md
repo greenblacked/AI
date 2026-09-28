@@ -7,7 +7,7 @@
 
 # Agent skills
 
-92 agent skills, nineteen read-only subagents and six slash commands, in eight
+93 agent skills, nineteen read-only subagents and six slash commands, in eight
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-92-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-93-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -45,7 +45,7 @@ outside a runtime that can trigger them for you.
 | --- | --- | --- |
 | [`coding`](#coding) | Reading, reviewing, testing and changing code | 18 skills, 3 subagents |
 | [`gamedev`](#gamedev) | Making games, and shipping them | 11 skills, 1 subagent, 1 command |
-| [`operations`](#operations) | Keeping a running system alive | 16 skills, 6 subagents, 2 commands |
+| [`operations`](#operations) | Keeping a running system alive | 17 skills, 6 subagents, 2 commands |
 | [`delivery`](#delivery) | Getting a change into production | 9 skills, 1 subagent |
 | [`security`](#security) | The defensive side of shipping software | 13 skills, 4 subagents, 2 commands |
 | [`manager`](#manager) | Engineering leadership | 13 skills, 2 subagents, 1 command |
@@ -292,6 +292,7 @@ Keeping a running system alive.
 | [`incident-response`](plugins/operations/skills/incident-response/SKILL.md) | Declare, command and mitigate a live production incident on any surface — a managed database failover, a third-party outage, a VM fleet, serverless, a CDN or DNS provider — mitigating by symptom before the diagnosis is complete, and handing off to `k8s-triage` for a Kubernetes workload. |
 | [`instrumentation`](plugins/operations/skills/instrumentation/SKILL.md) | Add telemetry so the next incident is diagnosable — instrument backwards from the questions you will need answered at 3am, with cardinality bounded on purpose. |
 | [`k8s-triage`](plugins/operations/skills/k8s-triage/SKILL.md) | Mitigate first, diagnose second. The deploy-related question, the fixed evidence order, and a decode table for the failure modes that account for most of them. |
+| [`k8s-upgrade`](plugins/operations/skills/k8s-upgrade/SKILL.md) | Upgrade a Kubernetes cluster one minor at a time: find deprecated API usage from live traffic before the window opens, clear every blocking PodDisruptionBudget, and canary each node pool across a full traffic peak. |
 | [`k8s-workloads`](plugins/operations/skills/k8s-workloads/SKILL.md) | Specify a workload so it holds under pressure: measure before setting any number, then requests and limits knowing CPU throttles where memory kills, distinct probes, a disruption budget that does not deadlock drains, and the SIGTERM race closed. |
 | [`llm-cost`](plugins/operations/skills/llm-cost/SKILL.md) | Control what an LLM feature costs without degrading it: attribute spend to a prompt path first, judge caching on reads per write rather than hit rate, route cheap steps against a measured quality bar, and decide degrade, queue or refuse before a budget runs out. |
 | [`routeros-config`](plugins/operations/skills/routeros-config/SKILL.md) | Change, upgrade or recover a MikroTik RouterOS device without locking yourself out: a second way in proven before the change, a text export either side of it, the change made under safe mode, and verification over a path you did not touch. |
