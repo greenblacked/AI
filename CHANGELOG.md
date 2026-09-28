@@ -30,6 +30,14 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   `release-strategy` and `game-certification` now cede a shipped binary's own rollout
   to it. Raise the `delivery` plugin's listing ceiling to 9,500 for the new skill, and
   `gamedev`'s to 10,500 for `game-certification`'s longer cede clause.
+- Fold the `llm-model-lifecycle` idea into `agent-evaluation` as
+  `references/model-lifecycle.md` rather than shipping it as its own skill, since
+  `agent-evaluation`'s description already claims the release-gate act it deepens:
+  pin a dated model snapshot rather than a moving alias, track a vendor's own
+  retirement date on a named owner's calendar the way `certificate-automation` tracks
+  a certificate's expiry, and the production drift signals — refusal rate,
+  schema-violation rate, output-length distribution — to watch once a version is
+  live. No new listing cost.
 - Add `router.md` and one `router-<plugin>.md` per plugin to the portable export: a
   line per skill naming when it applies and the `skills/<name>.md` path to open then,
   sized to fit inside a terminal agent's own document budget rather than a whole
