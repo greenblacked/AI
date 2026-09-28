@@ -8,9 +8,9 @@
     "delivery": 8500,
     "gamedev": 10000,
     "manager": 12500,
-    "operations": 13500,
+    "operations": 14000,
     "personal": 6500,
-    "security": 10000
+    "security": 11000
   },
   "skills": {
     "access-review": 945,
@@ -27,6 +27,7 @@
     "authorization-design": 799,
     "backup-recovery-design": 831,
     "capacity-planning": 951,
+    "certificate-automation": 894,
     "ci-pipeline-design": 861,
     "ci-triage": 882,
     "code-review": 841,
@@ -55,7 +56,7 @@
     "game-design-doc": 894,
     "game-greenlight": 886,
     "game-level-design": 894,
-    "game-live-ops": 896,
+    "game-live-ops": 894,
     "game-netcode": 889,
     "game-performance": 867,
     "game-save-system": 896,
@@ -89,7 +90,7 @@
     "release-strategy": 916,
     "routeros-config": 856,
     "runbook": 914,
-    "secret-rotation": 967,
+    "secret-rotation": 973,
     "security-review": 894,
     "sql-performance": 957,
     "status-update": 915,
