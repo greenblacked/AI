@@ -36,6 +36,22 @@ ever checks whether it still does.
 
 ## The entries
 
+### A completed fence loses its terminal state
+
+**Class.** An idempotent control reports its result from the current in-flight pointer
+instead of the retained state of the operation it controls.
+
+**How it shows up.** Settling an already fenced mock submission a second time reported
+`fenced: false`, although its late callback remained cancelled. A safe retry after a
+fresh absent lookup failed the grader because the mock contradicted its own state.
+
+**The check that catches it.** `tests/test_recovery_mock.py` checks repeated settlement
+and repeats an older fence while a newer attempt is pending. Retained fence state stays
+true; only the matching attempt can clear the pending pointer. The reviewer benchmark
+removes the retained-state lookup.
+
+**First caught:** the review stage on `feat/captured-recovery-traces`.
+
 ### A read-only diagnostic initializes a provider that writes
 
 **Class.** A procedure assumes that reading data or creating a plan cannot write to the

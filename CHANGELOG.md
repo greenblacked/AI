@@ -10,6 +10,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add a bounded mock recovery runner that generates observations and final state from
+  evaluator-controlled outcomes, independently of candidate tool request sequences.
+
 - Add an offline recovery trace grader with deterministic cases for stale repository
   state, uncertain remote writes, worker quiescence and superseded generations. Its
   synthetic fixtures validate the grader rather than claiming live model performance.

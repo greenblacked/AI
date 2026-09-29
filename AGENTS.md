@@ -133,7 +133,7 @@ so the eval harness can be exercised without a model. A change to a script under
 test job when coverage drops below the floor in `pyproject.toml`.
 
 [Recovery trace evaluation](docs/recovery-evals.md) describes the offline recovery
-grader, its trusted capture requirements and executable examples. Fixture and grader
+grader, mock capture runner, trusted capture requirements and executable examples. Fixture and grader
 tests establish the checks, not that a model follows a skill. Keep expected outcomes
 and authoritative capture outside an evaluated worker's writable scope.
 
