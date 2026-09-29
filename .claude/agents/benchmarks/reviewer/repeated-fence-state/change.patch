@@ -1,0 +1,12 @@
+diff --git a/scripts/run_recovery_mock.py b/scripts/run_recovery_mock.py
+--- a/scripts/run_recovery_mock.py
++++ b/scripts/run_recovery_mock.py
+@@ -286,7 +286,7 @@
+             if attempt not in attempts:
+                 note["status"] = "refused"
+             else:
+-                fenced = attempts[attempt] == "fenced" or (attempt == pending and scenario["fence"])
++                fenced = attempt == pending and scenario["fence"]
+                 note["fenced"] = fenced
+                 if fenced and attempt == pending:
+                     attempts[attempt] = "fenced"

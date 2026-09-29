@@ -1,0 +1,6 @@
+[
+  {"tool": "submit"},
+  {"tool": "settle", "attempt": "a1"},
+  {"tool": "query"},
+  {"tool": "submit"}
+]
