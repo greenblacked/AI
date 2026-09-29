@@ -4,6 +4,10 @@
     "should_trigger": true
   },
   {
+    "query": "Before importing this existing production bucket into Terraform state, verify the backend key, workspace, and effective provider account match the intended environment.",
+    "should_trigger": true
+  },
+  {
     "query": "how do i import existing resources into terraform without it recreating them",
     "should_trigger": true
   },

@@ -27,9 +27,30 @@ document are the companion `incident-response` skill's job, not this one's — i
 every surface, Kubernetes included. Do that there first, using its incident report
 template, then come back here for the Kubernetes-specific diagnosis and mitigation below.
 
-### 1. Is it deploy-related?
+### 1. Verify the live target, then ask whether it is deploy-related
 
-The highest-yield question in Kubernetes operations, and the reason to ask it before anything else is that it is answerable in under a minute and its answer is also the fix.
+Before a rollback or other mutation, capture `kubectl config current-context` and read
+the `kube-system` namespace UID from that same context's live API. Compare the UID with
+a trusted cluster inventory and confirm the intended namespace and workload. Context and server
+names are hints, not proof of cluster identity; `kubectl auth can-i` is only an
+authorization hint, not cluster identity or a guarantee of admission. A missing or empty
+context or UID, failed read, or mismatch blocks mutations. If there is no trusted
+baseline, obtain an independent authoritative platform identity or an operator's
+verified identification before a destructive action. Use explicit `--context="$CTX"`
+and `-n "$NS"` flags for subsequent commands where practical; recheck the target before
+a mutation if the context or credentials may have changed. Keep the existing Incident Commander decision and
+Operations Lead mutation ownership for high-impact actions.
+
+```bash
+set -Eeuo pipefail
+CTX="$(kubectl config current-context)"
+test -n "$CTX"
+kubectl --context="$CTX" get namespace kube-system -o jsonpath='{.metadata.uid}{"\n"}'
+```
+
+Require a nonempty UID and compare it with the trusted inventory before continuing.
+The highest-yield diagnostic question after identity is whether the outage followed a
+deploy; it is answerable quickly and often supplies the fix.
 
 ```bash
 kubectl rollout history deploy/"$NAME" -n "$NS"
@@ -43,9 +64,9 @@ The newest ReplicaSet's `creationTimestamp` is the rollout time. Compare it agai
 If the answer is yes, or probably yes, roll back now:
 
 ```bash
-kubectl rollout undo deploy/"$NAME" -n "$NS"                     # previous revision
-kubectl rollout undo deploy/"$NAME" -n "$NS" --to-revision=<n>   # a known-good one
-kubectl rollout status deploy/"$NAME" -n "$NS" --timeout=180s
+kubectl --context="$CTX" rollout undo deploy/"$NAME" -n "$NS"                     # previous revision
+kubectl --context="$CTX" rollout undo deploy/"$NAME" -n "$NS" --to-revision=<n>   # a known-good one
+kubectl --context="$CTX" rollout status deploy/"$NAME" -n "$NS" --timeout=180s
 ```
 
 Then verify the SLI recovered — the actual customer-facing metric, not pod readiness. Pods can be Ready while the error rate stays at 40%.
@@ -105,16 +126,16 @@ When the container has no shell, or crashes before you can exec in, use ephemera
 ```bash
 # Attach a debug container sharing the target's process and network namespace.
 # --target is required to see the app's processes; distroless images need this.
-kubectl debug -it "$POD" -n "$NS" --image=busybox:1.28 --target="$CONTAINER" --profile=general
+kubectl --context="$CTX" debug -it "$POD" -n "$NS" --image=busybox:1.28 --target="$CONTAINER" --profile=general
 
 # Copy the pod and override the crashing entrypoint, leaving the original untouched
-kubectl debug "$POD" -n "$NS" -it --copy-to="$POD"-dbg --set-image='*=busybox:1.28' -- sh
+kubectl --context="$CTX" debug "$POD" -n "$NS" -it --copy-to="$POD"-dbg --set-image='*=busybox:1.28' -- sh
 
 # Copy with process namespace sharing, to inspect the real process from a debug image
-kubectl debug "$POD" -n "$NS" -it --image=ubuntu --share-processes --copy-to="$POD"-dbg
+kubectl --context="$CTX" debug "$POD" -n "$NS" -it --image=ubuntu --share-processes --copy-to="$POD"-dbg
 
 # Node-level: host filesystem under /host, host namespaces
-kubectl debug node/"$NODE" -it --image=ubuntu --profile=sysadmin
+kubectl --context="$CTX" debug node/"$NODE" -it --image=ubuntu --profile=sysadmin
 ```
 
 `--profile` values are `legacy`, `general`, `baseline`, `restricted`, `netadmin` and `sysadmin`. `legacy` is the default and is on its way out — pass `general` explicitly. Use `netadmin` for packet capture and `NET_RAW` work, `sysadmin` for privileged host access, and `restricted` where Pod Security admission enforces the restricted policy. Delete the copied pod when finished; it counts against quota and confuses the next responder.
@@ -131,11 +152,11 @@ Take the cheapest reversible action that stops customer impact. Each step is mor
 
 | Order | Mitigation | Use when | Cost |
 | --- | --- | --- | --- |
-| 1 | `kubectl rollout undo` | Anything correlating with a deploy | Seconds, fully reversible |
-| 2 | Scale out — `kubectl scale --replicas=N` | Saturation, or too few healthy replicas | Cost only, if capacity exists |
+| 1 | `kubectl --context="$CTX" rollout undo -n "$NS"` | Anything correlating with a deploy | Seconds, fully reversible |
+| 2 | Scale out — `kubectl --context="$CTX" scale -n "$NS" --replicas=N` | Saturation, or too few healthy replicas | Cost only, if capacity exists |
 | 3 | Shed load or disable a feature flag | The system is up but overwhelmed; one code path is the culprit | Degraded feature, no restart |
 | 4 | Fail over — shift traffic to another region, cluster or AZ | The failure is scoped to one location | Minutes, and failing back is work |
-| 5 | `kubectl cordon` then `kubectl drain --ignore-daemonsets --delete-emptydir-data` | One node is the fault and pods can move | Reschedules everything; needs capacity |
+| 5 | `kubectl --context="$CTX" cordon "$NODE"` then `kubectl --context="$CTX" drain "$NODE" --ignore-daemonsets --delete-emptydir-data` | One node is the fault and pods can move | Reschedules everything; needs capacity |
 | 6 | Restore from backup | Data loss or corruption | Slow, lossy, hardest to undo — needs an explicit IC decision |
 
 Announce each action in the channel before running it and record it in the "changes made" section of the incident document, including anything temporary that must be reverted later. Only the Operations Lead runs mutations.
