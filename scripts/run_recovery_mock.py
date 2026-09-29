@@ -178,6 +178,18 @@ def execute(scenario, requests):
         for request in requests
     ):
         return _error("fail", "unknown candidate result token")
+    permitted_effects = {
+        "patch": {"patch_apply"},
+        "submit": {"submit", "settle"},
+        "reassign": {"assign", "result_accept", "stop_ack"},
+    }
+    effect_tools = set().union(*permitted_effects.values())
+    if any(
+        request["tool"] in effect_tools
+        and request["tool"] not in permitted_effects[scenario["goal"]]
+        for request in requests
+    ):
+        return _error("fail", "mutation tool does not match scenario goal")
     if not requests:
         return _error("fail", "no observed candidate action")
     try:
@@ -196,6 +208,7 @@ def _run(scenario, requests):
     results = {}
     used_results = set()
     outcome_index = schedule_index = 0
+    duplicate_patch = False
     schedule = scenario["schedule"]
 
     def scheduled(item):
@@ -243,7 +256,10 @@ def _run(scenario, requests):
             note["head"] = state["head"]
             events.append({"type": kind, "head": state["head"]})
         elif kind == "patch_apply":
-            if request["based_on"] != state["head"]:
+            if state["effects"] > 0:
+                note["status"] = "refused"
+                duplicate_patch = True
+            elif request["based_on"] != state["head"]:
                 note["status"] = "refused"
             else:
                 state["effects"] += 1
@@ -337,6 +353,13 @@ def _run(scenario, requests):
     result = _grader()(capture)
     if result["verdict"] == "invalid":
         raise AdapterError("mock capture inconsistent with grader schema")
+    if duplicate_patch:
+        return {
+            "capture": capture,
+            "observations": observations,
+            "verdict": "fail",
+            "reasons": ["duplicate patch application attempt", *result["reasons"]],
+        }
     return {"capture": capture, "observations": observations, **result}
 
 

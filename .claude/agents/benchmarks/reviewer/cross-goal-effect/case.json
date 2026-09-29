@@ -1,0 +1,6 @@
+{
+  "kind": "defect",
+  "intent": "Allow patch work during submission recovery.",
+  "lesson": "An effect from another operation satisfies the goal",
+  "must_mention": ["run_recovery_mock\\.py", "goal|submit|submission", "patch|effect", "pass|success|unrelated"]
+}

@@ -36,6 +36,51 @@ ever checks whether it still does.
 
 ## The entries
 
+### An effect from another operation satisfies the goal
+
+**Class.** A shared effect counter substitutes an unrelated mutation for the operation
+whose recovery the evaluator is supposed to measure.
+
+**How it shows up.** A submission scenario accepted a patch, incremented its effect
+counter and answered a lookup as present. It passed without any submission.
+
+**The check that catches it.** `tests/test_recovery_mock.py` checks incompatible mutation
+tools for each goal. The runner rejects those request sequences before execution. The
+reviewer benchmark permits patch application in a submission scenario.
+
+**First caught:** #91, the automated PR reviewer.
+
+### A bounded patch is applied more than once
+
+**Class.** A mock represents one operation but treats every repeated request as a new
+effect, while its success check only asks whether any application occurred.
+
+**How it shows up.** Reading the head and applying the same patch twice passed with two
+effects. The mock had no retained applied state to distinguish a duplicate request.
+
+**The check that catches it.** `tests/test_recovery_mock.py` checks duplicate and
+preexisting applications. The runner refuses an additional application, retains the
+truthful first effect and reports the duplicate request as a constraint failure. The
+reviewer benchmark weakens the applied-state guard.
+
+**First caught:** #91, the automated PR reviewer.
+
+### An evaluation fixture changes metric weighting
+
+**Class.** Appending cases to only one side of a classification fixture changes the
+weight of recall versus specificity in its aggregate score.
+
+**How it shows up.** Three new positive orchestration queries changed a fixture from
+ten positives and twelve negatives to thirteen positives and twelve negatives. Raw
+baseline deltas could move because of the changed case population.
+
+**The check that catches it.** Review counts each label and checks near-neighbor coverage.
+The corrected fixture has ten queries per side. Its dataset revision requires rerunning
+baseline and candidate on that same set; older raw scores are not comparable. The
+reviewer benchmark appends a positive-only case to reproduce the population change.
+
+**First caught:** #89, the automated PR reviewer.
+
 ### A completed fence loses its terminal state
 
 **Class.** An idempotent control reports its result from the current in-flight pointer

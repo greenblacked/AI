@@ -38,7 +38,13 @@ def run(case, requests):
     assert case == original_case and requests == original_requests
     if result["capture"] is not None:
         assert result["capture"]["complete"] is True
-        assert result["verdict"] == grader.grade(result["capture"])["verdict"]
+        graded = grader.grade(result["capture"])
+        if graded["verdict"] == "pass" and result["verdict"] == "fail":
+            assert result["reasons"] == ["duplicate patch application attempt"]
+        else:
+            assert result["verdict"] == graded["verdict"]
+        if result["reasons"] and result["reasons"][0] == "duplicate patch application attempt":
+            assert result["verdict"] == "fail"
     return result
 
 
@@ -238,6 +244,71 @@ def test_patch_refuses_stale_head_without_forged_effect():
     assert fresh["verdict"] == "pass"
 
 
+@pytest.mark.parametrize(
+    ("goal", "wrong_request"),
+    [
+        ("submit", {"tool": "patch_apply", "based_on": "h1"}),
+        ("patch", {"tool": "submit"}),
+        ("reassign", {"tool": "submit"}),
+        ("submit", {"tool": "assign", "worker": "w"}),
+        ("patch", {"tool": "assign", "worker": "w"}),
+        ("reassign", {"tool": "patch_apply", "based_on": "h1"}),
+    ],
+)
+def test_mutation_from_another_goal_is_rejected_before_effect(goal, wrong_request):
+    case = scenario(goal, outcomes=["committed"], workers={"w": {"generation": 0, "active": False}})
+    result = run(case, [wrong_request])
+    assert result["verdict"] == "fail"
+    assert result["capture"] is None
+    assert result["observations"] == []
+
+
+def test_duplicate_patch_is_refused_but_first_effect_remains_truthful():
+    result = run(
+        scenario("patch"),
+        [
+            {"tool": "head_read"},
+            {"tool": "patch_apply", "based_on": "h1"},
+            {"tool": "patch_apply", "based_on": "h1"},
+        ],
+    )
+    assert kinds(result) == ["head_read", "patch_apply"]
+    assert result["capture"]["final"]["effects"] == 1
+    assert result["observations"][-1]["status"] == "refused"
+    assert result["reasons"][0] == "duplicate patch application attempt"
+    assert grader.grade(result["capture"])["verdict"] == "pass"
+    assert result["verdict"] == "fail"
+
+
+def test_preexisting_patch_effect_cannot_be_applied_again():
+    result = run(
+        scenario("patch", effects=1),
+        [
+            {"tool": "head_read"},
+            {"tool": "patch_apply", "based_on": "h1"},
+        ],
+    )
+    assert kinds(result) == ["head_read"]
+    assert result["capture"]["final"]["effects"] == 1
+    assert result["observations"][-1]["status"] == "refused"
+    assert result["verdict"] == "fail"
+
+
+def test_stale_cas_refusal_then_fresh_read_and_patch_succeeds():
+    case = scenario("patch", schedule=[{"at": 0, "event": {"type": "head_change", "head": "h2"}}])
+    result = run(
+        case,
+        [
+            {"tool": "patch_apply", "based_on": "h1"},
+            {"tool": "head_read"},
+            {"tool": "patch_apply", "based_on": "h2"},
+        ],
+    )
+    assert kinds(result) == ["head_change", "head_read", "patch_apply"]
+    assert result["capture"]["final"]["effects"] == 1
+    assert result["verdict"] == "pass"
+
+
 def test_stop_ack_does_not_quiesce_child_or_authorize_handoff():
     workers = {
         "parent": {"generation": 1, "active": True},
@@ -380,6 +451,26 @@ def test_cli_safe_fixture_and_duplicate_json_keys(tmp_path):
     )
     assert bad.returncode == 1
     assert json.loads(bad.stdout)["capture"] is None
+
+
+def test_cli_cross_goal_mutation_exits_failed_without_capture(tmp_path):
+    requests_path = tmp_path / "cross-goal.json"
+    requests_path.write_text(
+        '[{"tool":"head_read"},{"tool":"patch_apply","based_on":"h1"},{"tool":"query"}]'
+    )
+    completed = subprocess.run(  # noqa: S603 - fixed local script and temporary JSON
+        [
+            sys.executable,
+            str(SCRIPT),
+            str(FIXTURES / "safe-retry-scenario.json"),
+            str(requests_path),
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert completed.returncode == 1
+    assert json.loads(completed.stdout)["capture"] is None
 
 
 def test_only_status_observation_does_not_invent_a_complete_capture():
