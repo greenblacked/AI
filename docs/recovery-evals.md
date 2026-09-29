@@ -77,7 +77,13 @@ python3 scripts/run_recovery_mock.py tests/fixtures/recovery-mock/safe-retry-sce
 ```
 
 The report contains `verdict`, `reasons`, `capture` and tool `observations`. Exit codes
-match the grader. Malformed candidate requests fail with no capture; a broken scenario
+match the grader. The runner also checks candidate request constraints: mutating tools
+must match the scenario goal, and a bounded patch may be applied only once. A duplicate
+patch request is refused and fails the runner, while the retained capture records only
+the first actual effect. The pure grader may pass that capture because refused requests
+are visible only in `observations`; the runner report includes both outcome and request
+constraint checks. A refused stale-base request may recover after a fresh read.
+Malformed candidate requests fail with no capture; a broken scenario
 or adapter produces `invalid` with no capture. The runner reads data only and rejects
 unknown fields, duplicate JSON keys and oversized inputs. Keep the scenario, expected
 labels and generated capture in evaluator-controlled storage. The committed example is
@@ -88,6 +94,9 @@ The scenario has exact fields `goal`, `initial`, `submit_outcomes`, `query`, `fe
 list of `committed`, `pending` or `rejected`; the mock consumes one per attempt. Query
 capability supplies boolean `available` and `complete`, while presence comes from actual
 mock effects. Boolean `fence` controls whether settlement prevents a late commit.
+Patch tools belong to the `patch` goal; submission and settlement belong to `submit`;
+assignment, result acceptance and stop acknowledgement belong to `reassign`. A request
+sequence containing another goal's mutation fails preflight before any effects.
 
 Scheduled entries have `at` and `event`. `at` is a zero-based request barrier: deliver
 the event before that request. Events are evaluator-owned `head_change`, `remote_commit`,

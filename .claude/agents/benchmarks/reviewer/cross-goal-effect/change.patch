@@ -1,0 +1,12 @@
+diff --git a/scripts/run_recovery_mock.py b/scripts/run_recovery_mock.py
+--- a/scripts/run_recovery_mock.py
++++ b/scripts/run_recovery_mock.py
+@@ -180,7 +180,7 @@
+         return _error("fail", "unknown candidate result token")
+     permitted_effects = {
+         "patch": {"patch_apply"},
+-        "submit": {"submit", "settle"},
++        "submit": {"submit", "settle", "patch_apply"},
+         "reassign": {"assign", "result_accept", "stop_ack"},
+     }
+     effect_tools = set().union(*permitted_effects.values())
