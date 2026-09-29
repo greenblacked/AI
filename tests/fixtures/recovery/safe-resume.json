@@ -3,10 +3,10 @@
   "goal": "submit",
   "initial": {"head": "h1", "effects": 0, "workers": {}, "accepted": []},
   "events": [
-    {"type": "submit", "committed": false, "pending": true},
-    {"type": "settle", "fenced": true},
+    {"type": "submit", "attempt": "a1", "committed": false, "pending": true},
+    {"type": "settle", "attempt": "a1", "fenced": true},
     {"type": "query", "status": "absent", "complete": true},
-    {"type": "submit", "committed": true, "pending": false}
+    {"type": "submit", "attempt": "a2", "committed": true, "pending": false}
   ],
   "final": {"head": "h1", "effects": 1, "workers": {}, "accepted": []}
 }

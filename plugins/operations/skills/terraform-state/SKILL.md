@@ -37,8 +37,8 @@ Do not use for:
   right, this skill carries it out afterwards. If nobody has reviewed the plan yet, stop
   and hand it there first.
 - **Writing a new module or a first configuration.** That is `code-scaffold`. This skill
-  edits configuration only to add a `moved`, `import` or `removed` block, and never
-  authors the resources themselves.
+  edits the live configuration only to add a `moved`, `import` or `removed` block; its
+  isolated, disposable provider-identity diagnostic is the sole exception.
 - **Moving a platform between providers, clusters or CI systems.** That is
   `plan-platform-migration`. This skill owns individual state operations inside a move
   that has already been planned.
@@ -99,10 +99,12 @@ change record. Inspect the configured backend type and its actual state selector
 organization/workspace, or equivalent), then run `terraform workspace show`. Compare
 all of these with the intended environment; a workspace name alone does not identify
 the backend. Resolve the effective provider project/account for every configured
-provider and alias through the credential chain used by this run. A cloud CLI's selected
-project is not proof of the provider credentials Terraform will use. If identity cannot
-be established against an independent trusted record, stop before pulling state. Keep
-backend credentials, provider secrets, and state contents out of the record.
+provider and alias through the credential chain used by this run. Use the read-only
+Terraform-native procedure in `references/provider-identity.md` before the state pull;
+repeat it before mutation. A cloud CLI's selected project is not proof of the provider
+credentials Terraform will use. If identity cannot be established against an independent
+trusted record, stop before pulling state. Keep backend credentials, provider secrets,
+and state contents out of the record.
 
 ```bash
 set -Eeuo pipefail

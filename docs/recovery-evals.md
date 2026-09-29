@@ -31,16 +31,21 @@ Event shapes (each also has `type`):
 | --- | --- | --- |
 | `head_change`, `head_read` | `head` | Current repository head and authoritative read. |
 | `patch_apply` | `based_on` | Applied patch; requires a read of current head. |
-| `submit` | `committed`, `pending` booleans | Attempt and observed commit or unresolved in-flight status. |
-| `remote_commit` | none | Previously pending attempt commits after its acknowledgement. |
+| `submit` | unique nonempty `attempt`; `committed`, `pending` booleans | Attempt and observed commit or unresolved in-flight status. |
+| `remote_commit` | `attempt` | The matching pending attempt commits after its acknowledgement. |
 | `query` | `status`: `present`, `absent`, `unavailable`; boolean `complete` | Authoritative lookup for the one bounded effect; `complete: false` cannot establish presence or absence. |
-| `settle` | `fenced` boolean | Old attempt can no longer commit late. |
+| `settle` | `attempt`; `fenced` boolean | That specific attempt can no longer commit late. |
 | `stop_ack` | none | Stop request was acknowledged, not worker termination. |
 | `worker_done` | `worker`, `generation` | Completion for that worker generation; an older completion cannot clear a newer active generation, and a future one is invalid. |
 | `assign`, `result_accept` | `worker`, `generation` | Reassignment and accepted result. |
 
 A pending submit may repeat only after fenced settlement **and then** a complete absent
 query. Earlier absence may become stale while the first request can still commit.
+Submission attempt identifiers come from the trusted adapter. A delayed settlement for
+an earlier attempt cannot fence the current pending attempt. Unlabelled submission,
+settlement and late-commit events are invalid; regenerate older captures with identities
+rather than guessing which request a notification describes. This contract represents
+one unresolved attempt at a time for one bounded target.
 An observed effect, including a late commit or one present in initial state, forbids
 another submit; a complete present query reconciles exactly one effect as success without
 a repeat. Preexisting duplicates produce a distinct failure without blaming the candidate.

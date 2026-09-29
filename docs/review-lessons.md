@@ -36,6 +36,38 @@ ever checks whether it still does.
 
 ## The entries
 
+### A read-only diagnostic initializes a provider that writes
+
+**Class.** A procedure assumes that reading data or creating a plan cannot write to the
+remote system, overlooking provider initialization side effects.
+
+**How it shows up.** A backend-free identity diagnostic copied AzureRM provider settings
+without disabling automatic resource-provider registration. Planning could register
+providers before the cloud target had been verified.
+
+**The check that catches it.** The provider-identity reference requires the pinned
+provider's registration opt-out and stops when initialization cannot be made read-only.
+The reviewer benchmark removes that safety step; review checks provider lifecycle
+behavior against its primary documentation rather than inferring it from `plan`.
+
+**First caught:** #90, the review stage.
+
+### A stale fence authorizes a newer request
+
+**Class.** A delayed notification about an earlier attempt changes the safety state of
+the currently pending request because settlement is stored as an unscoped boolean.
+
+**How it shows up.** A rejected submission followed by a pending submission, the older
+submission's fence, an absent lookup and a committed retry passed the recovery grader.
+The pending submission could still commit after the retry and create a duplicate effect.
+
+**The check that catches it.** `tests/test_recovery_trace.py` reproduces the stale fence
+sequence. Submission, settlement and late-commit events carry adapter-owned attempt
+identifiers; only settlement of the current pending attempt authorizes its retry.
+The reviewer benchmark seeds a removed identity comparison.
+
+**First caught:** #90, the automated PR reviewer.
+
 ### A recovery grade reuses an earlier generation's success
 
 **Class.** A recovery grader keeps worker identifiers across attempts and mistakes an

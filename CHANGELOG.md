@@ -206,6 +206,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Bind recovery fences and late commits to submission attempt identities, so delayed
+  notifications cannot authorize a retry of a newer pending request.
+
 - Compare recall, specificity and expected-neighbour routing alongside aggregate rate
   in trigger-eval baseline reports, including legacy reports with missing metrics.
 

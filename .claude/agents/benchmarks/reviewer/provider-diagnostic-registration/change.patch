@@ -1,0 +1,25 @@
+diff --git a/plugins/operations/skills/terraform-state/references/provider-identity.md b/plugins/operations/skills/terraform-state/references/provider-identity.md
+--- a/plugins/operations/skills/terraform-state/references/provider-identity.md
++++ b/plugins/operations/skills/terraform-state/references/provider-identity.md
+@@ -21,21 +21,6 @@
+ backend selector separately in the live configuration. Do not paste credentials into
+ diagnostic HCL or logs. If credentials are available only in remote execution, run the
+ diagnostic there under the same identity or stop.
+-
+-Before initialization or planning, inspect the documentation for the pinned provider
+-version for configuration-time effects. AzureRM can automatically register Azure
+-Resource Providers during provider configuration, even in a plan. Disable that effect
+-in **each diagnostic AzureRM provider block**: use
+-`resource_provider_registrations = "none"` and
+-`resource_providers_to_register = []` where the pinned version supports them, or the
+-legacy `skip_provider_registration = true` where that is the documented option. This
+-registration opt-out is the only permitted difference from the real provider settings;
+-it must not change tenant, subscription, identity, aliases, or credential source. If the
+-pinned version's opt-out is unknown, rejected, or cannot be shown to prevent writes,
+-stop before running the diagnostic. Apply the same read-only scrutiny to other provider
+-families: `init` and data reads are safe here only when their actual provider behaviour
+-is known not to mutate external state. A Terraform plan is not inherently side-effect
+-free at provider initialization.
+ 
+ Add one data block and a narrow output per relevant provider configuration. For aliases,
+ set `provider = aws.NAME`, `google.NAME`, or `azurerm.NAME` in each data block. These
