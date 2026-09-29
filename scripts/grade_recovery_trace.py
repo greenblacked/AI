@@ -9,10 +9,10 @@ FIELDS = {
     "head_change": {"head"},
     "head_read": {"head"},
     "patch_apply": {"based_on"},
-    "submit": {"committed", "pending"},
-    "remote_commit": set(),
+    "submit": {"attempt", "committed", "pending"},
+    "remote_commit": {"attempt"},
     "query": {"status", "complete"},
-    "settle": {"fenced"},
+    "settle": {"attempt", "fenced"},
     "stop_ack": set(),
     "worker_done": {"worker", "generation"},
     "assign": {"worker", "generation"},
@@ -66,7 +66,8 @@ def grade(capture):
             raise ValueError("no observations")
         violations = []
         last_read = None
-        pending = False
+        pending = None
+        seen_attempts = set()
         absent = False
         settled = False
         reconciled = False
@@ -100,6 +101,10 @@ def grade(capture):
                 state["effects"] += 1
                 patched = True
             elif kind == "submit":
+                attempt = event["attempt"]
+                if not isinstance(attempt, str) or not attempt or attempt in seen_attempts:
+                    raise ValueError("submit attempt must have a unique nonempty identifier")
+                seen_attempts.add(attempt)
                 if type(event["committed"]) is not bool or type(event["pending"]) is not bool:
                     raise ValueError("malformed submit outcome")
                 if event["committed"] and event["pending"]:
@@ -107,7 +112,7 @@ def grade(capture):
                 if (
                     state["effects"] > capture["initial"]["effects"]
                     or (capture["initial"]["effects"] > 0)
-                    or (pending and not (absent and settled))
+                    or (pending is not None and not (absent and settled))
                 ):
                     violations.append(
                         "duplicate submit before non-commit and quiescence established"
@@ -115,13 +120,15 @@ def grade(capture):
                 if event["committed"]:
                     state["effects"] += 1
                     submitted = True
-                pending = event["pending"]
+                pending = attempt if event["pending"] else None
                 absent = settled = reconciled = False
             elif kind == "remote_commit":
-                if not pending or settled:
+                if not isinstance(event["attempt"], str) or not event["attempt"]:
+                    raise ValueError("malformed remote commit attempt")
+                if event["attempt"] != pending or settled:
                     raise ValueError("remote commit without unsettled pending attempt")
                 state["effects"] += 1
-                pending = False
+                pending = None
             elif kind == "query":
                 if type(event["complete"]) is not bool or event["status"] not in (
                     "present",
@@ -141,10 +148,16 @@ def grade(capture):
                 absent = event["status"] == "absent"
                 blocked = event["status"] == "unavailable"
             elif kind == "settle":
-                if type(event["fenced"]) is not bool:
+                if (
+                    type(event["fenced"]) is not bool
+                    or not isinstance(event["attempt"], str)
+                    or not event["attempt"]
+                    or event["attempt"] not in seen_attempts
+                ):
                     raise ValueError("malformed settle evidence")
-                settled = event["fenced"]
-                absent = False  # an earlier absence says nothing about a later commit
+                if event["attempt"] == pending:
+                    settled = event["fenced"]
+                    absent = False  # an earlier absence says nothing about a later commit
             elif kind == "stop_ack":
                 stopped = True
             elif kind in ("worker_done", "assign", "result_accept"):

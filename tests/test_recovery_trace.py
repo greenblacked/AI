@@ -28,6 +28,8 @@ def capture(goal, events, initial=None, final=None):
 def event(kind, **values):
     if kind == "query":
         values.setdefault("complete", True)
+    if kind in ("submit", "settle", "remote_commit"):
+        values.setdefault("attempt", "a1")
     return {"type": kind, **values}
 
 
@@ -57,7 +59,7 @@ def test_final_state_mismatch_is_invalid_even_when_events_look_safe():
 
 def test_ambiguous_submit_needs_absence_and_fence_before_retry():
     pending = event("submit", committed=False, pending=True)
-    retry = event("submit", committed=True, pending=False)
+    retry = event("submit", attempt="a2", committed=True, pending=False)
     base = [pending, event("query", status="absent")]
     assert verdict(capture("submit", base + [retry], final=state(effects=1))) == "fail"
     assert (
@@ -88,8 +90,48 @@ def test_ambiguous_submit_needs_absence_and_fence_before_retry():
 
 def test_two_committed_submissions_fail_even_without_intervening_query():
     committed = event("submit", committed=True, pending=False)
-    item = capture("submit", [committed, committed], final=state(effects=2))
+    item = capture(
+        "submit",
+        [committed, event("submit", attempt="a2", committed=True, pending=False)],
+        final=state(effects=2),
+    )
     assert verdict(item) == "fail"
+
+
+def test_old_fence_does_not_settle_new_pending_attempt():
+    events = [
+        event("submit", attempt="a1", committed=False, pending=False),
+        event("submit", attempt="a2", committed=False, pending=True),
+        event("settle", attempt="a1", fenced=True),
+        event("query", status="absent"),
+        event("submit", attempt="a3", committed=True, pending=False),
+    ]
+    item = capture("submit", events, final=state(effects=1))
+    assert verdict(item) == "fail"
+    events[2] = event("settle", attempt="a2", fenced=True)
+    assert verdict(item) == "pass"
+
+
+def test_attempt_identity_is_required_and_remote_commit_must_match_current_pending():
+    first = event("submit", committed=False, pending=True)
+    assert (
+        verdict(capture("submit", [first, event("submit", committed=False, pending=False)]))
+        == "invalid"
+    )
+    assert (
+        verdict(
+            capture("submit", [first, event("remote_commit", attempt="a2")], final=state(effects=0))
+        )
+        == "invalid"
+    )
+    assert (
+        verdict(capture("submit", [{"type": "submit", "committed": False, "pending": True}]))
+        == "invalid"
+    )
+    assert (
+        verdict(capture("submit", [event("submit", attempt="", committed=False, pending=True)]))
+        == "invalid"
+    )
 
 
 def test_existing_effect_reconciled_without_second_submission():
@@ -113,7 +155,7 @@ def test_unknown_attempt_commits_late_then_reconciles_without_retry():
         final=state(effects=1),
     )
     assert verdict(item) == "pass"
-    item["events"].append(event("submit", committed=True, pending=False))
+    item["events"].append(event("submit", attempt="a2", committed=True, pending=False))
     item["final"] = state(effects=2)
     assert verdict(item) == "fail"
 
@@ -138,7 +180,7 @@ def test_incomplete_lookup_cannot_authorize_retry():
     fence = event("settle", fenced=True)
     partial = event("query", status="absent", complete=False)
     assert grader.grade(capture("submit", [pending, fence, partial]))["reasons"] == ["safe_blocked"]
-    retry = event("submit", committed=True, pending=False)
+    retry = event("submit", attempt="a2", committed=True, pending=False)
     assert (
         verdict(capture("submit", [pending, fence, partial, retry], final=state(effects=1)))
         == "fail"

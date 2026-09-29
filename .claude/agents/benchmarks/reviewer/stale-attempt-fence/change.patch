@@ -1,0 +1,15 @@
+diff --git a/scripts/grade_recovery_trace.py b/scripts/grade_recovery_trace.py
+--- a/scripts/grade_recovery_trace.py
++++ b/scripts/grade_recovery_trace.py
+@@ -155,9 +155,8 @@
+                     or event["attempt"] not in seen_attempts
+                 ):
+                     raise ValueError("malformed settle evidence")
+-                if event["attempt"] == pending:
+-                    settled = event["fenced"]
+-                    absent = False  # an earlier absence says nothing about a later commit
++                settled = event["fenced"]
++                absent = False  # an earlier absence says nothing about a later commit
+             elif kind == "stop_ack":
+                 stopped = True
+             elif kind in ("worker_done", "assign", "result_accept"):
