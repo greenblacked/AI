@@ -49,7 +49,7 @@ and latest-assignment acceptance. The grader binds both to generation identities
 requires a newly captured result for every latest assignment. The reviewer benchmark
 seeds the accumulated-acceptance shortcut so a future review has to recognise it.
 
-**First caught:** this change's review stage on `feat/verified-agent-recovery`.
+**First caught:** #90, the review stage.
 
 ### A tag's message drops its own subheadings
 
