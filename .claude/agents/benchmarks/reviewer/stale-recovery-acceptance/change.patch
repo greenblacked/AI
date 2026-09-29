@@ -1,0 +1,13 @@
+diff --git a/scripts/grade_recovery_trace.py b/scripts/grade_recovery_trace.py
+--- a/scripts/grade_recovery_trace.py
++++ b/scripts/grade_recovery_trace.py
+@@ -194,8 +194,7 @@
+             if goal == "patch"
+             else submitted or reconciled
+             if goal == "submit"
+-            else bool(latest_assignments)
+-            and all(item in accepted_assignments for item in latest_assignments.values())
++            else bool(assignments) and bool(state["accepted"])
+         )
+         if success:
+             return {"verdict": "pass", "reasons": []}

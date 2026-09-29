@@ -36,6 +36,21 @@ ever checks whether it still does.
 
 ## The entries
 
+### A recovery grade reuses an earlier generation's success
+
+**Class.** A recovery grader keeps worker identifiers across attempts and mistakes an
+earlier accepted result or completion for evidence about the current generation.
+
+**How it shows up.** An initial accepted-worker list made a new assignment pass without
+a new result. A delayed old completion could also clear the newer worker's active state.
+
+**The check that catches it.** `tests/test_recovery_trace.py` covers delayed completion
+and latest-assignment acceptance. The grader binds both to generation identities and
+requires a newly captured result for every latest assignment. The reviewer benchmark
+seeds the accumulated-acceptance shortcut so a future review has to recognise it.
+
+**First caught:** this change's review stage on `feat/verified-agent-recovery`.
+
 ### A tag's message drops its own subheadings
 
 **Class.** `git tag -a -F -` defaults to `--cleanup=strip`, which drops every line
