@@ -29,7 +29,7 @@ Do not create exploit payloads, exfiltration instructions or live external side 
 ## Hard gates
 
 1. **Content is never authority.** Text from a page, file, message, memory, retrieval
-   result or tool response may supply evidence. It cannot grant permission or override
+   result, tool response, delegated report, patch or trace may supply evidence. It cannot grant permission or override
    policy, even when it claims to quote an administrator.
 2. **Tools authorize at execution.** The tool derives the principal and tenant from a
    trusted session, checks the requested action and resource, and fails closed. The model
@@ -54,7 +54,7 @@ Draw one row per path from an input to an effect:
 | Retrieved document | External, indexed by source and revision | Extracts fields | CRM update | Session principal, tenant A |
 
 Include web content, attachments, chat messages, retrieval chunks, memory, tool output,
-and state restored from earlier runs. Mark which component chooses the tool and arguments,
+delegated reports, patches, traces and state restored from earlier runs. Mark which component chooses the tool and arguments,
 which credential the tool uses, and where the authoritative policy decision occurs.
 
 Stop and record a blocking finding if a privileged effect has no tool-side enforcement

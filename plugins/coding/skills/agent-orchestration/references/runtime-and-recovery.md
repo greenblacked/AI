@@ -14,7 +14,8 @@ Keep one record per task attempt:
 | Generation | Distinguishes current and superseded attempts |
 | Owner and scope | Prevents concurrent writers |
 | Start revision | Detects stale output and hidden rebases |
-| Runtime state | Ready, running, stop requested, quiescent, complete, failed |
+| Runtime observation | Ready, running, stop requested, quiescent, ended, unknown; stop acknowledgement alone is not quiescence |
+| Task status | Pending, running, complete, blocked, failed, cancelled; verify worker claims against acceptance evidence |
 | Evidence | Progress, diff, tests, external effect IDs |
 | Dependencies | Controls which tasks may start or must be cancelled |
 
@@ -22,6 +23,10 @@ Accept a completion report only from the current generation. A superseded result
 contain a useful diff or diagnosis, but inspect and reapply it under current ownership
 rather than merging it as if it still controlled the task. Generation IDs classify
 reports; they do not fence a live process or prevent late writes.
+An ended or quiescent attempt may have a complete, failed, or blocked task status.
+Cancellation records the coordinator's decision to abandon a node, including a dependent
+node no longer needed; confirm runtime quiescence separately before releasing write scope.
+Neither cancellation nor a stopped worker delivers the original requested outcome.
 
 ## Diagnose before recovery
 
