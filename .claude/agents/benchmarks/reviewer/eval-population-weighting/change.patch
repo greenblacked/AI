@@ -1,0 +1,9 @@
+diff --git a/plugins/coding/skills/agent-orchestration/evals/trigger-eval.json b/plugins/coding/skills/agent-orchestration/evals/trigger-eval.json
+--- a/plugins/coding/skills/agent-orchestration/evals/trigger-eval.json
++++ b/plugins/coding/skills/agent-orchestration/evals/trigger-eval.json
+@@ -1,4 +1,5 @@
+ [
++  {"query": "coordinate an interrupted agent team before repeating a publication with unknown commit status", "should_trigger": true},
+   {"query": "coordinate research, implementation and independent review agents for a repository change with disjoint file ownership", "should_trigger": true},
+   {"query": "split this monorepo migration across coding agents, track dependencies, and integrate their changes safely", "should_trigger": true},
+   {"query": "run three agents in parallel on independent modules but keep the lockfile and final tests under one owner", "should_trigger": true},

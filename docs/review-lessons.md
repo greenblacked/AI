@@ -36,6 +36,22 @@ ever checks whether it still does.
 
 ## The entries
 
+### An evaluation fixture changes metric weighting
+
+**Class.** Appending cases to only one side of a classification fixture changes the
+weight of recall versus specificity in its aggregate score.
+
+**How it shows up.** Three new positive orchestration queries changed a fixture from
+ten positives and twelve negatives to thirteen positives and twelve negatives. Raw
+baseline deltas could move because of the changed case population.
+
+**The check that catches it.** Review counts each label and checks near-neighbor coverage.
+The corrected fixture has ten queries per side. Its dataset revision requires rerunning
+baseline and candidate on that same set; older raw scores are not comparable. The
+reviewer benchmark appends a positive-only case to reproduce the population change.
+
+**First caught:** #89, the automated PR reviewer.
+
 ### A read-only diagnostic initializes a provider that writes
 
 **Class.** A procedure assumes that reading data or creating a plan cannot write to the

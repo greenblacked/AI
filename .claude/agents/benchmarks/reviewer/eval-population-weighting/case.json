@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Add coverage for publication recovery to the orchestration trigger evaluation.",
+  "lesson": "An evaluation fixture changes metric weighting",
+  "must_mention": [
+    "trigger-eval\\.json",
+    "positive|balance|weight|population",
+    "baseline|aggregate|rate|score|metric"
+  ]
+}
