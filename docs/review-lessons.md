@@ -50,7 +50,7 @@ and repeats an older fence while a newer attempt is pending. Retained fence stat
 true; only the matching attempt can clear the pending pointer. The reviewer benchmark
 removes the retained-state lookup.
 
-**First caught:** the review stage on `feat/captured-recovery-traces`.
+**First caught:** #91, the review stage.
 
 ### A read-only diagnostic initializes a provider that writes
 
