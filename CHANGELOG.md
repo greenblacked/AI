@@ -125,6 +125,14 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Align live agent task and runtime status records, check ownership overlaps before
+  dispatch, and filter untrusted worker evidence before relaying it. Add a copyable
+  checkpoint and successor receipt for interrupted work.
+- Cover delegated agent output in security review and distinguish candidate-caused
+  permission failures from evaluation infrastructure outages.
+- Clarify that ambiguous GitLab publication failures require reconciliation before a
+  write retry, even when the failure appears transient.
+
 - Point terminal-agent AGENTS.md advice at the new router instead of a whole plugin
   bundle or `index.md`, in `docs/using.md`, `README.md` and the portable export's own
   shipped README: both are far past Codex's 32 KiB `project_doc_max_bytes` default,
@@ -189,6 +197,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   to a DeepSeek model, for Claude Code only.
 
 ### Fixed
+
+- Compare recall, specificity and expected-neighbour routing alongside aggregate rate
+  in trigger-eval baseline reports, including legacy reports with missing metrics.
 
 - Give `ci-triage.yml`'s job `pull-requests: write` alongside `issues: write`, rather
   than `issues: write` with `pull-requests: read`: a live run's first write, the
