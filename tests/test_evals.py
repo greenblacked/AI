@@ -264,3 +264,68 @@ def test_an_expected_that_is_not_a_name_is_an_error(tmp_path):
     entries[-1]["expected"] = ["beta"]
     findings = check_evals(write_evals(tmp_path, entries), tmp_path)
     assert any("'expected' must be a name" in f.message for f in findings)
+
+
+def test_a_positive_that_differs_only_in_punctuation_is_a_conflict(tmp_path):
+    from skillcheck.rules import check_eval_conflicts
+
+    a = write_eval_set(tmp_path, "engineering", "alpha", [POSITIVE])
+    b = write_eval_set(
+        tmp_path, "engineering", "beta", [{"query": "Ship it!", "should_trigger": True}]
+    )
+    findings = check_eval_conflicts([a, b], tmp_path)
+    assert [f.code for f in findings] == ["conflicting-eval-query"]
+
+
+def write_description(root, plugin, skill, description):
+    directory = root / "plugins" / plugin / "skills" / skill
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "SKILL.md").write_text(
+        f'---\nname: {skill}\ndescription: "{description}"\n---\n\n# {skill}\n',
+        encoding="utf-8",
+    )
+    return directory
+
+
+CLAUSE = "Use when someone asks to ship the release to production"
+
+
+def test_an_identical_trigger_clause_is_a_warning(tmp_path):
+    from skillcheck.rules import check_trigger_collisions
+
+    a = write_description(tmp_path, "engineering", "alpha", f"Alpha. {CLAUSE}.")
+    b = write_description(tmp_path, "engineering", "beta", f"Beta. {CLAUSE}.")
+    findings = check_trigger_collisions([a, b], tmp_path)
+    assert [f.code for f in findings] == ["copied-trigger-clause"]
+    assert findings[0].level == WARNING
+
+
+def test_a_short_shared_clause_is_not_a_collision(tmp_path):
+    # Too generic to call a copy: two people can write the same three-word trigger
+    # without ever having seen each other's description.
+    from skillcheck.rules import check_trigger_collisions
+
+    a = write_description(tmp_path, "engineering", "alpha", "Alpha. Use when coding.")
+    b = write_description(tmp_path, "engineering", "beta", "Beta. Use when coding.")
+    assert check_trigger_collisions([a, b], tmp_path) == []
+
+
+def test_different_trigger_clauses_do_not_collide(tmp_path):
+    from skillcheck.rules import check_trigger_collisions
+
+    a = write_description(tmp_path, "engineering", "alpha", f"Alpha. {CLAUSE}.")
+    b = write_description(
+        tmp_path,
+        "engineering",
+        "beta",
+        "Beta. Use when documenting an internal tool for the platform team.",
+    )
+    assert check_trigger_collisions([a, b], tmp_path) == []
+
+
+def test_a_query_that_differs_only_in_punctuation_is_a_duplicate(tmp_path):
+    entries = balanced()
+    entries[0]["query"] = "ship it"
+    entries[1]["query"] = "Ship it!"
+    findings = check_evals(write_evals(tmp_path, entries), tmp_path)
+    assert "duplicate-eval-query" in codes(findings)

@@ -340,12 +340,13 @@ routing number over the negatives that carry one. Write it on every negative whe
 can name the owner; leave it off the genuinely ownerless ones.
 
 The validator checks the schema of that file on every run, and nothing more: at least 16
-queries, at least 8 on each side, no query string appearing twice, no keys beyond `query`,
-`should_trigger` and `expected`, `should_trigger` a real boolean rather than the string
-`"true"`, and `expected` only on a negative, never naming the skill itself, and naming a
-skill or subagent that exists — a misspelling there is a permanent miss. It also warns
-when a set's negatives name no winner at all, which is the state that makes the routing
-number meaningless rather than merely incomplete. The codes are `no-evals` and
+queries, at least 8 on each side, no query appearing twice (ignoring case, whitespace and
+punctuation, because a near-copy is the conflict people actually create), no keys beyond
+`query`, `should_trigger` and `expected`, `should_trigger` a real boolean rather than the
+string `"true"`, and `expected` only on a negative, never naming the skill itself, and
+naming a skill or subagent that exists — a misspelling there is a permanent miss. It also
+warns when a set's negatives name no winner at all, which is the state that makes the
+routing number meaningless rather than merely incomplete. The codes are `no-evals` and
 `no-routing` (the two warnings), `bad-eval-json`, `bad-eval-shape`, `bad-eval-entry`,
 `unknown-expected`, `duplicate-eval-query`, `thin-eval-set` and `unbalanced-eval-set`.
 
@@ -361,6 +362,14 @@ whichever skill wins the invocation, the other is scored as a miss, so one of th
 permanently below its threshold for a reason that has nothing to do with its description.
 That is `conflicting-eval-query`, and the fix is to decide which skill owns the query and
 make it a negative in the other.
+
+The same collision has a cheap half the validator can see without a model: two descriptions
+that carry the same trigger clause. That is `copied-trigger-clause`, a warning, and it is
+worth taking seriously because a copied clause makes the two descriptions fire on the same
+requests — the eval that would show it is the one nobody runs. The comparison runs from
+`Use when…` to the description's cede clause or its end, and only fires on a match longer
+than forty characters, because a short trigger is generic enough that two people write it
+without ever having seen each other's work.
 
 The reverse is not a conflict and is worth doing deliberately: a query that is a positive
 for one skill and a negative for its neighbour is the strongest test either set can
@@ -543,6 +552,7 @@ Every code the validator can emit is below, grouped by what it is looking at.
 | `short-description` | warning | Under 500 characters. | Say what the skill owns and what people type. Brevity here costs queries. |
 | `dangling-cede` | error | A cede clause — one opened by `Not for`, `not for`, `Do not use` or `Not to be used` — names something that is not a skill or subagent here. | Fix the name, or drop the clause. Only text after one of those openers is scanned, so a parenthesised aside earlier in the description is never read as a pointer. The bare `which is name` form is caught only for hyphenated names, because widening it would match `which is faster`. |
 | `no-trigger` | warning | No explicit "use when…" clause. | Add one naming the situations. |
+| `copied-trigger-clause` | warning | This description's trigger clause is character-for-character the same as another skill's or subagent's, once case and whitespace are folded. The clause runs from `Use when…` to the cede clause or the end, and only a match over forty characters counts. | Rewrite the clause around what this skill does rather than what the other one does. A copied clause makes the two fire on the same requests, and the eval that would show it never runs here. |
 | `long-compatibility` | error | `compatibility` over 500 characters. | Shorten it. |
 | `dangling-reference` | error | A `references/`, `scripts/` or `assets/` path named in prose does not exist. | Write the file, remove the pointer, or fence it if it was only an illustration. |
 | `no-shebang` | error | A `scripts/*.sh` file has no `#!` line. | Add `#!/usr/bin/env bash`. |
@@ -559,7 +569,7 @@ Every code the validator can emit is below, grouped by what it is looking at.
 | `bad-eval-json` | error | The file is not valid JSON. | Fix the syntax; the message carries the parser's reason. |
 | `bad-eval-shape` | error | The top level is not a JSON array. | Wrap the entries in `[ … ]`. |
 | `bad-eval-entry` | error | An entry is not an object, has no usable `query`, has a `should_trigger` that is not a real boolean, or carries a key other than `query`, `should_trigger` and optional `expected`. | The message names the entry's index. |
-| `duplicate-eval-query` | error | The same query string appears twice. | Replace one of them; a duplicate inflates the count without testing anything. |
+| `duplicate-eval-query` | error | The same query string appears twice, ignoring case, whitespace and punctuation. | Replace one of them; a duplicate inflates the count without testing anything. |
 | `thin-eval-set` | error | Fewer than 16 queries. | Add more. Below that the pass rate moves too far on one result. |
 | `unbalanced-eval-set` | error | Fewer than 8 on either side. | Add to the short side — usually the negatives, which are what catch a description that fires on everything. |
 | `unknown-expected` | error | A negative names an `expected` winner that is not a skill or subagent here. | Fix the spelling. Left alone it scores as a permanent miss. |

@@ -25,6 +25,7 @@ from .rules import (
     check_marketplace,
     check_rule,
     check_skill,
+    check_trigger_collisions,
     find_agents,
     find_all_agents,
     find_commands,
@@ -154,6 +155,7 @@ def main(argv: list[str] | None = None) -> int:
         findings.extend(check_skill(skill, root, known))
     findings.extend(check_duplicate_names(skills, root))
     findings.extend(check_eval_conflicts(skills, root, agents))
+    findings.extend(check_trigger_collisions(skills, root, agents))
     for agent in agents:
         findings.extend(check_agent(agent, root, known))
         findings.extend(check_agent_evals(agent, root, known))

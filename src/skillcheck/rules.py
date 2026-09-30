@@ -918,7 +918,8 @@ def _check_eval_file(
         if not trigger and entry.get("expected"):
             routed += 1
 
-    duplicates = {q for q in queries if queries.count(q) > 1}
+    keys = [_query_key(q) for q in queries]
+    duplicates = {key for key in keys if keys.count(key) > 1}
     for duplicate in sorted(duplicates):
         add(ERROR, "duplicate-eval-query", f"query appears more than once: {duplicate!r}", path)
 
@@ -1302,6 +1303,16 @@ def _expand_braces(pattern: str) -> list[str]:
     return expanded
 
 
+def _query_key(query: str) -> str:
+    """A query's identity for collision purposes.
+
+    Case, surrounding whitespace and punctuation are noise: two skills that take the same
+    request differ in those rather than in the request itself, so a near-copy has to read
+    as the same query or the check catches only the exact duplicate.
+    """
+    return re.sub(r"[^\w\s]", "", " ".join(query.split()).casefold())
+
+
 def check_eval_conflicts(
     skills: list[Path], repo_root: Path, agents: list[Path] = ()
 ) -> list[Finding]:
@@ -1334,7 +1345,7 @@ def check_eval_conflicts(
             query = entry.get("query")
             if not isinstance(query, str):
                 continue
-            key = " ".join(query.split()).casefold()
+            key = _query_key(query)
             first = claimed.get(key)
             if first is None:
                 claimed[key] = (owner, path)
@@ -1353,4 +1364,69 @@ def check_eval_conflicts(
                     "a negative in the other",
                 )
             )
+    return findings
+
+
+# A trigger clause shorter than this is too generic to call a copy — "Use when writing
+# code" could be written twice by two people who never saw each other's work. A longer
+# one that matches character for character is a copy-paste, and the description that
+# carries it fires on the other skill's queries.
+TRIGGER_CLAUSE_MIN = 40
+
+
+def _trigger_clause(description: str) -> str | None:
+    """The description's trigger sentence, from its marker to its cede clause or end."""
+    marker = TRIGGER_RE.search(description)
+    if marker is None:
+        return None
+    clause = description[marker.start() :]
+    cede = CEDE_MARKER_RE.search(clause)
+    if cede is not None:
+        clause = clause[: cede.start()]
+    return " ".join(clause.split()).casefold()
+
+
+def check_trigger_collisions(
+    skills: list[Path], repo_root: Path, agents: list[Path] = ()
+) -> list[Finding]:
+    """Two descriptions may not share an identical trigger clause.
+
+    The trigger-eval harness catches one skill taking a neighbour's queries, but it needs
+    a model and a credential and so never runs here. A copied trigger clause is the
+    cheap, deterministic half of that collision: the description fires on the same
+    requests as the skill it was copied from, and the eval that would show it is the one
+    nobody runs.
+    """
+    findings: list[Finding] = []
+    seen: dict[str, tuple[str, Path]] = {}
+    subjects = [(d.name, d / "SKILL.md") for d in skills]
+    subjects += [(a.stem, a) for a in agents]
+    for owner, path in subjects:
+        if not path.is_file():
+            continue
+        try:
+            front = parse(path.read_text(encoding="utf-8"))
+        except (FrontmatterError, UnicodeDecodeError, OSError):
+            continue  # check_skill reports a malformed frontmatter; do not report it twice
+        clause = _trigger_clause((front.get("description") or "").strip())
+        if clause is None or len(clause) < TRIGGER_CLAUSE_MIN:
+            continue
+        first = seen.get(clause)
+        if first is None:
+            seen[clause] = (owner, path)
+            continue
+        if first[0] == owner:
+            continue
+        findings.append(
+            Finding(
+                WARNING,
+                path.relative_to(repo_root),
+                1,
+                "copied-trigger-clause",
+                f"the trigger clause is identical to {first[0]!r} "
+                f"({first[1].relative_to(repo_root)}); a description copied this way "
+                "fires on the other skill's requests, which is the collision the trigger "
+                "eval exists to catch and never runs here",
+            )
+        )
     return findings
