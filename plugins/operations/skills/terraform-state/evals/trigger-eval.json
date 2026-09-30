@@ -8,10 +8,6 @@
     "should_trigger": true
   },
   {
-    "query": "how do i import existing resources into terraform without it recreating them",
-    "should_trigger": true
-  },
-  {
     "query": "about 200 s3 buckets were made by hand before we had terraform, any way to bulk adopt them",
     "should_trigger": true
   },
