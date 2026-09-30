@@ -1,0 +1,12 @@
+diff --git a/plugins/manager/skills/retention-review/SKILL.md b/plugins/manager/skills/retention-review/SKILL.md
+--- a/plugins/manager/skills/retention-review/SKILL.md
++++ b/plugins/manager/skills/retention-review/SKILL.md
+@@ -34,7 +34,7 @@
+ 
+ ### 2. Aggregate the exit data over time
+ 
+-One exit interview is limited evidence, but a credible individual report can warrant action now. Aggregate exits to test recurring patterns; mark uncertainty when samples are small and do not wait for a fixed count before addressing a plausible risk.
++One exit interview is an anecdote. Twenty are a pattern, and the pattern is the only thing worth acting on.
+ 
+ - Collect the reasons in a fixed set of categories, so the counts are comparable year to year.
+ - Separate the stated reason from the probable one. "Better opportunity" is what people say; the follow-up question is what the opportunity offered that this role did not.
