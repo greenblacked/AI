@@ -1,0 +1,12 @@
+diff --git a/plugins/security/skills/host-hardening/references/audit-and-detection.md b/plugins/security/skills/host-hardening/references/audit-and-detection.md
+--- a/plugins/security/skills/host-hardening/references/audit-and-detection.md
++++ b/plugins/security/skills/host-hardening/references/audit-and-detection.md
+@@ -37,6 +37,7 @@
+ sudo augenrules --load          # rebuild and load from /etc/audit/rules.d
+ sudo auditctl -l                # save and compare the loaded rules before reboot
+ sudo systemctl is-enabled auditd
++sudo systemctl restart auditd  # prove the rules survive reboot
+ # Reboot the canary during the approved window using the tested console path.
+ # After the host comes back, from a new session:
+ sudo systemctl is-active auditd
+--

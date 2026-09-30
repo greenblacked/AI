@@ -1,0 +1,9 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the host hardening workflow while preserving safe operation.",
+  "lesson": "Peer liveness is mistaken for user inactivity",
+  "must_mention": [
+    "ClientAlive|keepalive|liveness",
+    "idle|inactiv"
+  ]
+}

@@ -36,6 +36,89 @@ ever checks whether it still does.
 
 ## The entries
 
+### A loop body consumes its input inventory
+
+**Class.** A subprocess inherits the stream that controls its caller's iteration.
+
+**How it shows up.** SSH inside a loop reading hosts.txt could forward the remaining
+host list as remote stdin, skipping later hosts while reporting successful verification.
+
+**The check that catches it.** Review isolates SSH stdin with `-n` and verifies that a
+stdin-consuming command cannot shorten the host inventory. The reviewer benchmark removes
+that isolation.
+
+**First caught:** #87, the review stage.
+
+### A privileged command leaves its redirection unprivileged
+
+**Class.** The caller opens an output file before the privileged command starts.
+
+**How it shows up.** Host exports used sudo commands with caller-owned redirection into /root, failing for ordinary operators.
+
+**The check that catches it.** Review verifies redirection occurs inside the privileged shell with a restrictive umask and that producer failure remains observable. The reviewer benchmark restores the faulty redirection.
+
+**First caught:** #87, the automated PR reviewer.
+
+### A stateful firewall permits replies in the wrong direction
+
+**Class.** A connection-state rule protects the wrong packet path.
+
+**How it shows up.** An inbound default-deny policy allowed established outbound traffic, leaving incoming replies blocked.
+
+**The check that catches it.** Review follows host-initiated traffic through the input chain and checks established/related acceptance before deny. The reviewer benchmark reverses the direction.
+
+**First caught:** #87, the automated PR reviewer.
+
+### Rollback omits included configuration
+
+**Class.** A saved parent configuration is mistaken for the complete effective input.
+
+**How it shows up.** SSH and sudoers backups omitted included files; restoring the parent left edited or new drop-ins active.
+
+**The check that catches it.** Review inventories affected includes, saved originals and newly created paths, then checks full restoration before validation. The reviewer benchmark removes that inventory.
+
+**First caught:** #87, the review stage.
+
+### Removing persistent configuration leaves runtime state active
+
+**Class.** Deleting a configuration file is presented as rollback of an already applied setting.
+
+**How it shows up.** The sysctl reference promised a file-delete revert, leaving changed kernel values active.
+
+**The check that catches it.** Review requires saved values for every changed key and explicit runtime restoration alongside persistent configuration. The reviewer benchmark restores the file-delete claim.
+
+**First caught:** #87, the review stage.
+
+### Global configuration verification misses conditional policy
+
+**Class.** An unconditional configuration dump is treated as proof for every connection class.
+
+**How it shows up.** Plain sshd -T missed Match-specific authentication policy.
+
+**The check that catches it.** Review checks representative access contexts using sshd -T -C and fresh connections, with command failures preserved. The reviewer benchmark removes context-specific verification.
+
+**First caught:** #87, the review stage.
+
+### A service restart is mistaken for boot verification
+
+**Class.** A generic daemon-control command is assumed portable and sufficient to prove reboot persistence.
+
+**How it shows up.** The audit reference used systemctl restart auditd on a scope including RHEL and did not distinguish daemon restart from a canary reboot.
+
+**The check that catches it.** Review uses the distro-supported lifecycle and verifies rules after a real approved canary reboot. The reviewer benchmark substitutes the unsupported restart.
+
+**First caught:** #87, the review stage.
+
+### Peer liveness is mistaken for user inactivity
+
+**Class.** A keepalive control is claimed to enforce an idle-user policy.
+
+**How it shows up.** The SSH table called ClientAlive settings an idle timeout even though responsive idle clients can remain connected.
+
+**The check that catches it.** Review checks the documented signal and names user inactivity separately. The reviewer benchmark restores the incorrect timeout claim.
+
+**First caught:** #87, the review stage.
+
 ### An evaluation fixture changes metric weighting
 
 **Class.** Appending cases to only one side of a classification fixture changes the
