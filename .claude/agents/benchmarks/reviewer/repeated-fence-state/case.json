@@ -1,0 +1,11 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the mock's settlement result calculation.",
+  "lesson": "A completed fence loses its terminal state",
+  "must_mention": [
+    "run_recovery_mock\\.py",
+    "repeat|already|idempotent|retained|completed",
+    "fence|settle",
+    "false|fail|state|pending"
+  ]
+}

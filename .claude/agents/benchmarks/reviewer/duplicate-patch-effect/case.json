@@ -1,0 +1,6 @@
+{
+  "kind": "defect",
+  "intent": "Adjust the mock patch guard to handle effect counts.",
+  "lesson": "A bounded patch is applied more than once",
+  "must_mention": ["run_recovery_mock\\.py", "duplicate|repeat|twice|second", "patch", "effect|apply|appli"]
+}
