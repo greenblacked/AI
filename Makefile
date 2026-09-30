@@ -12,9 +12,9 @@ SHELL := bash
 # gives all three the same value, and nothing here enforces one spelling over another.
 # This extraction has to accept the same three, or a pin re-quoted a way `check_workflows`
 # still reads fine turns RUFF_PIN empty and `make lint` starts comparing against nothing.
-RUFF_PIN := $(shell sed -En "s/^ *RUFF_VERSION: *[\"']?([^\"' #]+)[\"']?.*/\1/p" .github/workflows/security.yml)
+RUFF_PIN := $(shell sed -En "s/^ *RUFF_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/security.yml)
 MARKDOWNLINT_PIN := 0.23.2
-CODESPELL_PIN := $(shell sed -En "s/^ *CODESPELL_VERSION: *[\"']?([^\"' #]+)[\"']?.*/\1/p" .github/workflows/ci.yml)
+CODESPELL_PIN := $(shell sed -En "s/^ *CODESPELL_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml)
 
 .PHONY: help validate catalogue providers test coverage lint package attribution naming portable install clean release-prepare release
 
@@ -24,11 +24,12 @@ help: ## Show this help
 validate: ## Validate every skill, subagent and the marketplace manifest
 	PYTHONPATH=src $(PYTHON) -m skillcheck . --strict
 
-catalogue: ## Check listing ceilings, README and CI drift, workflows, shell, the hook, providers table
+catalogue: ## Check listing ceilings, README and CI drift, workflows, Makefile, shell, the hook, providers table
 	@$(PYTHON) scripts/check_listing_budget.py .
 	@$(PYTHON) scripts/check_readme.py .
 	@$(PYTHON) scripts/check_ci_docs.py .
 	@$(PYTHON) scripts/check_workflows.py .
+	@$(PYTHON) scripts/check_makefile.py .
 	@$(PYTHON) scripts/check_shell.py .
 	@$(PYTHON) scripts/check_settings.py .
 	@$(PYTHON) scripts/providers_table.py .

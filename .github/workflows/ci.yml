@@ -243,6 +243,16 @@ jobs:
         run: |
           set -Eeuo pipefail
           python scripts/check_workflows.py .
+      - name: The Makefile still wraps the same commands CI runs
+        # `docs/ci.md` says `make validate` is the same invocation as the job, down to
+        # the flag. Nothing read that claim: the Makefile's pin extraction used a `#`
+        # inside a `$(shell …)` call that GNU Make 3.81 truncates, so every local
+        # command broke on a Mac while CI stayed green, and `make lint` ran an
+        # unpinned `actionlint`. This compares each target's scripts and flags to the
+        # job it wraps, both ways for `make catalogue`.
+        run: |
+          set -Eeuo pipefail
+          python scripts/check_makefile.py .
       - name: Every shell block and shipped script parses
         # The commands inside a fenced block are the part an agent follows most
         # literally, and they were the one part of a skill nothing checked: the
