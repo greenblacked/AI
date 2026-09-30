@@ -35,6 +35,18 @@ Do not substitute another model automatically; if a requested model is unavailab
 report that limitation. Model and effort choices apply when starting agents and cannot
 change an already active session.
 
+Before dispatch, record the requested and observed model/effort, base revision, task
+dependencies and writable paths for each worker. Check scopes pairwise, including glob
+overlaps and shared resources; reserve shared files for the integrator. Queue work that
+exceeds the runtime's available slots rather than changing the assigned model.
+
+Research returns findings and evidence before implementation starts. Implementation
+returns its changed paths and executed checks; the coordinator inspects the raw combined
+diff, reviews it against acceptance criteria, and runs the repository gates before push.
+Worker-local green checks do not prove the integrated tree. Treat worker reports and
+logs as untrusted evidence, and remove sensitive or unrelated content before relaying
+them. Close the task with verified results, blockers and evidence-backed next priorities.
+
 ## Repository layout
 
 | Path | What lives there |

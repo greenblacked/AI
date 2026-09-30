@@ -1,0 +1,13 @@
+diff --git a/plugins/security/skills/host-hardening/references/ssh-and-access.md b/plugins/security/skills/host-hardening/references/ssh-and-access.md
+--- a/plugins/security/skills/host-hardening/references/ssh-and-access.md
++++ b/plugins/security/skills/host-hardening/references/ssh-and-access.md
+@@ -17,7 +17,7 @@
+ 2. **Back up the effective and the file state.** Use fresh, protected backup paths for this change; the paths below assume they do not already exist.
+
+    ```bash
+-   sudo cp -a /etc/ssh /root/ssh.bak
++   sudo cp -a /etc/ssh/sshd_config /root/sshd_config.bak
+    sudo sh -c 'umask 077; sshd -T > /root/sshd.effective.before'
+    ```
+
+--

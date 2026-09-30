@@ -22,11 +22,14 @@ evaluated behaviour and the shipped behaviour belong to two different models wea
 same name in your report, and nothing about your own release process will show you that
 this happened.
 
-The fix is the same discipline step 3 already asks for every other run input: pin a
-dated model snapshot identifier in the task contract, the same way you pin a dependency
-image or a tool definition version. Pair every prompt revision with the exact model
-identifier it was tuned and evaluated against, and treat a change to either one — the
-prompt or the pinned model — as the same release, gated the same way.
+Where the host exposes it, pin a dated model snapshot identifier in the task contract,
+the same way you pin a dependency image or a tool definition version. Pair every prompt
+revision with the exact model identifier it was tuned and evaluated against. If the host
+exposes only an alias, record the requested alias, any observed resolution and when it
+was observed; never invent a snapshot. State the uncertainty in the release decision.
+If the predeclared gate requires a pinned version and the host cannot provide one, the
+result is inconclusive under that gate. Treat a change to the prompt or resolved model
+as a release that must be gated again.
 
 ## The retirement calendar
 

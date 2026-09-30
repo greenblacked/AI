@@ -55,7 +55,7 @@ For each control that does not apply, write the reason rather than leaving the r
 
 ## Kernel and sysctl
 
-Put changes in a drop-in file (`/etc/sysctl.d/99-hardening.conf`) so the diff is reviewable and the revert is a file delete.
+Put changes in a drop-in file (`/etc/sysctl.d/99-hardening.conf`) so the diff is reviewable. Before applying it, save any file it would replace and record the current runtime value of each changed key. To revert, restore the prior persistent file (or remove only the newly created drop-in), run `sudo sysctl --system`, then explicitly restore the recorded runtime values with `sudo sysctl -w key=value` and verify them. A deleted drop-in does not reset a live kernel value, and another persistent file may not specify that key at all.
 
 ```text
 net.ipv4.conf.all.rp_filter = 1

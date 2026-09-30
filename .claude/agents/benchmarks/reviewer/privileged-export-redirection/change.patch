@@ -1,0 +1,13 @@
+diff --git a/plugins/security/skills/host-hardening/SKILL.md b/plugins/security/skills/host-hardening/SKILL.md
+--- a/plugins/security/skills/host-hardening/SKILL.md
++++ b/plugins/security/skills/host-hardening/SKILL.md
+@@ -43,7 +43,7 @@
+ Before hardening, capture what you are about to change and prove the escape hatch. The backup paths below must be fresh and protected for this change; `cp -a` into an existing backup directory could nest the source under it and leave an ambiguous restore point.
+
+ ```bash
+-sudo sh -c 'umask 077; sshd -T > /root/sshd.effective.before' # evidence, not a restore source
++sudo sshd -T > /root/sshd.effective.before # evidence, not a restore source
+ sudo cp -a /etc/ssh /root/ssh.bak
+ sudo cp -a /etc/sudoers /root/sudoers.bak
+ sudo cp -a /etc/sudoers.d /root/sudoers.d.bak
+--

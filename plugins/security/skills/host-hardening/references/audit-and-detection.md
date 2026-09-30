@@ -31,16 +31,20 @@ Rules are ordered and can be expensive. A rule that watches a hot path at the sy
 
 ## Verifying the rules survive a reboot
 
-The common failure is a rule set that loads in the session where it was added and is gone after a restart. The host then looks monitored and is not.
+The common failure is a rule set that loads in the session where it was added and is gone after a reboot. The host then looks monitored and is not. Schedule the canary reboot in a role-approved window after proving console access and writing the recovery step; do not reboot a host whose service cannot tolerate it.
 
 ```bash
 sudo augenrules --load          # rebuild and load from /etc/audit/rules.d
-sudo auditctl -l                # what is loaded now
-sudo systemctl restart auditd
-sudo auditctl -l                # what survived
+sudo auditctl -l                # save and compare the loaded rules before reboot
+sudo systemctl is-enabled auditd
+# Reboot the canary during the approved window using the tested console path.
+# After the host comes back, from a new session:
+sudo systemctl is-active auditd
+sudo auditctl -l                # compare with the expected pre-reboot rules
+sudo auditctl -s                # check enabled/immutable status
 ```
 
-Confirm `auditd` is enabled at boot (`systemctl is-enabled auditd`) and that the immutable flag, if the baseline asks for it (`-e 2`), is the last line — once set, rules cannot be changed until reboot, which is a deliberate trade of flexibility for tamper resistance.
+Confirm that the expected rules and service state survived the actual reboot; restarting `auditd` is not a boot-persistence test. If the baseline asks for immutable mode (`-e 2`), place it last in the rule source and verify `enabled 2` in `auditctl -s` after reboot. Once immutable mode is set, `augenrules --load` cannot change the live rules until another reboot; stage and check the files before setting it.
 
 ## Log shipping and retention
 

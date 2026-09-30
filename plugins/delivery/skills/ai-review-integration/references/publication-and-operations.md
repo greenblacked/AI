@@ -49,8 +49,11 @@ declared supersession policy. Never mark a human thread resolved.
 
 ## Retry and budget policy
 
-Classify failures before retrying. Retry transient fetch, provider and GitLab errors with
-bounded exponential backoff, jitter and a total deadline. Honour rate-limit guidance.
+Classify failures before retrying. Automatically retry transient reads and writes proven
+not to have committed with bounded exponential backoff, jitter and a total deadline.
+Honour rate-limit guidance. After a comment-creation POST times out, loses its connection
+or returns a 5xx with ambiguous commit status, reconcile against GitLab as above; do not
+repeat it until non-commit is proven or the first request is quiescent and cannot commit late.
 Do not retry authentication, authorisation, schema, policy, invalid-anchor or stale-version
 failures without a changed input or operator action.
 

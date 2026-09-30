@@ -489,11 +489,116 @@ def test_baseline_prints_a_delta_and_new_for_unknown_targets(
         "0",
     )
     out = capsys.readouterr().out
-    lines = {line.split()[0]: line for line in out.splitlines() if line and line[0].isalpha()}
-    assert "delta" in lines["target"]
-    assert lines["alpha"].rstrip().endswith("+50%")  # 0.5 -> 1.0
-    assert lines["beta"].rstrip().endswith("-50%")  # 1.0 -> 0.5; legacy `skill` key still read
-    assert lines["reader"].rstrip().endswith("new")
+    aggregate = out.split("Per-target deltas")[0]
+    aggregate_lines = {
+        line.split()[0]: line for line in aggregate.splitlines() if line and line[0].isalpha()
+    }
+    assert "delta" in aggregate_lines["target"]
+    assert aggregate_lines["alpha"].rstrip().endswith("+50%")
+    assert aggregate_lines["beta"].rstrip().endswith("-50%")  # legacy `skill` key
+    assert aggregate_lines["reader"].rstrip().endswith("new")
+    lines = {
+        line.split()[0]: line
+        for line in out.split("Per-target deltas")[1].splitlines()
+        if line and line[0].isalpha()
+    }
+    assert lines["alpha"].split()[1:] == ["+50%", "n/a", "n/a", "n/a"]
+    assert lines["beta"].split()[1:] == ["-50%", "n/a", "n/a", "n/a"]
+    assert lines["reader"].split()[1:] == ["n/a"] * 4
+
+
+def test_baseline_exposes_slice_regressions_despite_aggregate_improvement(
+    mini_repo, fake_claude, monkeypatch, capsys, tmp_path
+):
+    baseline = tmp_path / "baseline.json"
+    baseline.write_text(
+        json.dumps(
+            [
+                {
+                    "target": "alpha",
+                    "rate": 0.75,
+                    "recall": 1.0,
+                    "specificity": 0.5,
+                    "routing": 1.0,
+                }
+            ]
+        )
+    )
+    answers = {f"alpha positive {i}": "alpha" for i in range(7)}
+    answers.update({f"alpha negative {i}": "beta" for i in range(8)})
+    answers["alpha negative 0"] = "reader"  # expected beta: routing regresses
+    fake_claude(answers)
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    assert (
+        run_main(
+            monkeypatch,
+            "--skill",
+            str(skill),
+            "--root",
+            str(mini_repo),
+            "--baseline",
+            str(baseline),
+            "--threshold",
+            "0",
+        )
+        == 0
+    )
+    delta = capsys.readouterr().out.split("Per-target deltas")[1]
+    assert delta.splitlines()[-1].split() == ["alpha", "+12%", "-12%", "+38%", "-25%"]
+
+
+def test_null_and_missing_baseline_metrics_are_unavailable(
+    mini_repo, fake_claude, monkeypatch, capsys, tmp_path
+):
+    baseline = tmp_path / "baseline.json"
+    baseline.write_text(
+        json.dumps([{"skill": "alpha", "rate": 0.5, "recall": None, "routing": None}])
+    )
+    fake_claude({f"alpha positive {i}": "alpha" for i in range(8)})
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
+    run_main(
+        monkeypatch,
+        "--skill",
+        str(skill),
+        "--root",
+        str(mini_repo),
+        "--baseline",
+        str(baseline),
+        "--threshold",
+        "0",
+    )
+    delta = capsys.readouterr().out.split("Per-target deltas")[1]
+    assert delta.splitlines()[-1].split() == ["alpha", "+25%", "n/a", "n/a", "n/a"]
+
+
+def test_absent_current_routing_is_unavailable_with_a_numeric_baseline(
+    mini_repo, fake_claude, monkeypatch, capsys, tmp_path
+):
+    directory = mini_repo / "plugins" / "engineering" / "skills" / "beta"
+    (directory / "evals" / "trigger-eval.json").write_text(
+        json.dumps(eval_set("beta")), encoding="utf-8"
+    )
+    baseline = tmp_path / "baseline.json"
+    baseline.write_text(json.dumps([{"target": "beta", "rate": 0.5, "routing": 1.0}]))
+    fake_claude({f"beta positive {i}": "beta" for i in range(8)})
+    run_main(
+        monkeypatch,
+        "--skill",
+        str(directory),
+        "--root",
+        str(mini_repo),
+        "--baseline",
+        str(baseline),
+        "--threshold",
+        "0",
+    )
+    assert capsys.readouterr().out.split("Per-target deltas")[1].splitlines()[-1].split() == [
+        "beta",
+        "+50%",
+        "n/a",
+        "n/a",
+        "n/a",
+    ]
 
 
 def test_a_missing_baseline_is_an_error(mini_repo, fake_claude, monkeypatch, tmp_path):

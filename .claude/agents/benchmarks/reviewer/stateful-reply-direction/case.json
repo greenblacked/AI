@@ -1,0 +1,9 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the host hardening workflow while preserving safe operation.",
+  "lesson": "A stateful firewall permits replies in the wrong direction",
+  "must_mention": [
+    "inbound|input",
+    "repl|return|direction"
+  ]
+}

@@ -19,7 +19,7 @@ Do not use for: a container image, which is `image-hardening`; a MikroTik or oth
 ## Hard gates
 
 1. A second way in is proven before anything is changed: a second session already open, an out-of-band console, or a serial/IPMI path you have actually tested. "It should work" is not a second way in.
-2. The current state is exported to a file you can restore from — the full `sshd_config`, `sudoers`, `sysctl -a`, the service list, the firewall ruleset — before the first edit.
+2. Back up the files you may need to restore — SSH and sudo configuration including drop-ins and external includes, prior persistent sysctl settings and the firewall ruleset — before the first edit. Capture effective values and the service list separately as evidence; an effective-state dump is not a restorable configuration.
 3. One class of change at a time, on one canary host, with the rest of the fleet untouched until the canary has run production traffic for a full cycle.
 4. The rollback command is written down before the change, not reconstructed during the incident. For sshd and sudoers this is a saved copy plus the exact restore command.
 5. Every change is verified over a connection opened after it, not from the session that made it.
@@ -40,18 +40,21 @@ Name the baseline before either: a CIS benchmark level, a vendor baseline, or a 
 
 ### 2. Preserve access, then inventory
 
-Before hardening, capture what you are about to change and prove the escape hatch.
+Before hardening, capture what you are about to change and prove the escape hatch. The backup paths below must be fresh and protected for this change; `cp -a` into an existing backup directory could nest the source under it and leave an ambiguous restore point.
 
 ```bash
-sudo sshd -T > /root/sshd.effective.before      # the effective config, not the file
-sudo cp -a /etc/ssh/sshd_config /root/sshd_config.bak
+sudo sh -c 'umask 077; sshd -T > /root/sshd.effective.before' # evidence, not a restore source
+sudo cp -a /etc/ssh /root/ssh.bak
 sudo cp -a /etc/sudoers /root/sudoers.bak
+sudo cp -a /etc/sudoers.d /root/sudoers.d.bak
 sudo visudo -c                                  # must pass before you edit
-sudo sysctl -a > /root/sysctl.before
-sudo ss -tulpn > /root/listening.before
+sudo sh -c 'umask 077; sysctl -a > /root/sysctl.before'
+sudo sh -c 'umask 077; ss -tulpn > /root/listening.before'
 ```
 
 Keep a root shell open, or a `tmux`/`screen` session on the console, for the whole of an sshd or firewall change. A session that survives your own rule change is the only proof that the rule did not cut you off.
+Before editing, identify every SSH `Include` path (including paths outside `/etc/ssh`) and sudo include path, back up any external files you will change, and record the exact restore commands and the distro's SSH service name. Capture the existing persistent sysctl files and the runtime values of each key you will change; the `sysctl -a` dump is evidence, not a command to replay.
+Inventory the names of the SSH and sudo files and drop-ins before editing so rollback can remove newly added files as well as restore changed or deleted ones. Use a fresh, protected backup location per change; do not overwrite a previous recovery copy.
 
 ### 3. Patch and package policy
 
@@ -79,7 +82,7 @@ Most sysctl findings are about network stack behaviour and information exposure.
 
 - Network: disable IP forwarding and source routing on a host that is not a router; enable SYN cookies; ignore ICMP redirects; disable IPv6 router advertisements where IPv6 is not used.
 - Memory and crash: restrict `dmesg` to root, disable the magic SysRq where the console is not trusted, set `kernel.kptr_restrict` and `kernel.dmesg_restrict`.
-- Apply with `sysctl --system`, verify with `sysctl -a`, and know that a typo in a drop-in can prevent a service or a boot from coming up cleanly.
+- Apply with `sysctl --system`, verify the changed keys at runtime, and know that a typo in a drop-in can prevent a service or a boot from coming up cleanly. To revert, restore prior persistent files and explicitly write the recorded prior runtime value of each changed key; removing a drop-in and running `sysctl --system` alone may leave a value in memory.
 
 `references/linux-baseline.md` maps the common controls to CIS and NIST, including the ones that break a router, a container host or a Kubernetes node if applied blindly.
 
@@ -122,7 +125,7 @@ Hardening without a record of what happened is incomplete, and this is the contr
 The host firewall is the last line when a network control is misconfigured, and it is also where a careless change cuts your own session.
 
 - Write the rules so the management path (your SSH source, the console) is accepted before the default deny, and keep the second session open while you apply them.
-- Default deny inbound, allow established outbound, and name the ports that are genuinely needed.
+- Default deny inbound; accept established and related traffic in the inbound chain before the deny so replies to permitted outbound connections return. Allow new inbound traffic only on named service and management paths. Set the outbound policy separately to match the host's required egress.
 - Persist the ruleset and verify it survives a reboot on the canary.
 - Prefer the platform's own mechanism (security groups, a managed firewall) for fleet-wide rules, and keep the host firewall for the residual.
 

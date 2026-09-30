@@ -1,0 +1,13 @@
+diff --git a/plugins/security/skills/host-hardening/references/ssh-and-access.md b/plugins/security/skills/host-hardening/references/ssh-and-access.md
+--- a/plugins/security/skills/host-hardening/references/ssh-and-access.md
++++ b/plugins/security/skills/host-hardening/references/ssh-and-access.md
+@@ -46,7 +46,7 @@
+ | `AllowUsers` / `AllowGroups` | the named set | A new user is locked out until added |
+ | `MaxAuthTries` | `3` to `6` | Too low and a flaky agent locks people out |
+ | `LoginGraceTime` | `30` to `60` | Too low and slow MFA fails |
+-| `ClientAliveInterval` / `ClientAliveCountMax` | a deliberate peer-liveness probe policy | An unresponsive client may be disconnected; these settings do not measure human inactivity |
++| `ClientAliveInterval` / `ClientAliveCountMax` | a defined idle timeout | Long-running sessions get cut |
+ | `X11Forwarding` | `no` on a server | Breaks X forwarding if anyone relied on it |
+ | `AllowAgentForwarding` | `no` unless needed | Breaks the hop-through workflow |
+ | `UsePAM` | `yes` | Disabling it breaks account and session modules |
+--
