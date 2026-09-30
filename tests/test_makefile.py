@@ -179,3 +179,106 @@ def test_a_missing_target_is_reported(tmp_path, capsys):
 def test_main_runs_the_check_over_a_root(tmp_path):
     write_mini(tmp_path)
     assert makefile_check.main([str(tmp_path)]) == 0
+
+
+def test_grouped_shell_regex_does_not_end_the_make_call(tmp_path, capsys):
+    text = 'PIN := $(shell sed -En "s/(prefix)[^#]+/value/p" w.yml)\n'
+    assert makefile_check.unescaped_hashes_in_call("\n" + text) == [2]
+    assert makefile_check.unescaped_hashes_in_call(text.replace("#", r"\#")) == []
+    write_mini(tmp_path, makefile=MAKEFILE + text)
+    assert makefile_check.check(tmp_path) == 1
+    assert "GNU Make 3.81" in capsys.readouterr().out
+
+
+def test_nested_calls_and_braces_preserve_hash_line_numbers():
+    text = "PIN := ${shell echo (group) # hash}\nNEXT := $(strip $(shell echo (x) # hash))\n"
+    assert makefile_check.unescaped_hashes_in_call(text) == [1, 2]
+    assert makefile_check.unescaped_hashes_in_call("# $(unterminated # comment\n") == []
+
+
+def test_actual_make_pin_expansion_strips_comment_whitespace(tmp_path):
+    import shutil
+    import subprocess
+
+    import pytest
+
+    # Exercise the real extraction expressions, not a Python imitation of sed or Make.
+    make = shutil.which("make")
+    assert make is not None
+    source = (REPO / "Makefile").read_text(encoding="utf-8")
+    pins = "\n".join(line for line in source.splitlines() if "_PIN :=" in line)
+    workflows = tmp_path / ".github" / "workflows"
+    workflows.mkdir(parents=True)
+    for quote in ("", "'", '"'):
+        for comment in ("", "   # pinned version"):
+            (workflows / "security.yml").write_text(
+                f"  RUFF_VERSION: {quote}0.16.9{quote}{comment}\n", encoding="utf-8"
+            )
+            (workflows / "ci.yml").write_text(
+                f"  CODESPELL_VERSION: {quote}2.4.1{quote}{comment}\n"
+                f"  ACTIONLINT_VERSION: {quote}1.7.12{quote}{comment}\n",
+                encoding="utf-8",
+            )
+            makefile = tmp_path / "Makefile"
+            makefile.write_text(
+                pins + '\ncheck:\n\t@test "$(RUFF_PIN)" = "0.16.9"\n'
+                '\t@test "$(CODESPELL_PIN)" = "2.4.1"\n'
+                '\t@test "$(ACTIONLINT_PIN)" = "1.7.12"\n',
+                encoding="utf-8",
+            )
+            result = subprocess.run(  # noqa: S603 - trusted repository Makefile extraction
+                [make, "-C", str(tmp_path), "check"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if result.returncode:
+                pytest.fail(result.stdout + result.stderr)
+
+
+def test_actionlint_strict_version_uses_first_line_and_rejects_missing(tmp_path):
+    import os
+    import shutil
+    import subprocess
+
+    make = shutil.which("make")
+    sed = shutil.which("sed")
+    assert make is not None and sed is not None
+    source = (REPO / "Makefile").read_text(encoding="utf-8")
+    start = source.index("\t@if command -v actionlint")
+    end = source.index("\t@if command -v codespell", start)
+    (tmp_path / "Makefile").write_text(
+        "ACTIONLINT_PIN := 1.7.12\nLINT_STRICT := 1\nSHELL := /bin/bash\ncheck:\n"
+        + source[start:end],
+        encoding="utf-8",
+    )
+    binaries = tmp_path / "bin"
+    binaries.mkdir()
+    (binaries / "sed").symlink_to(sed)
+    tool = binaries / "actionlint"
+    for version, expected in (("1.7.12", 0), ("v1.7.12", 0), ("1.7.11", 2)):
+        tool.write_text(
+            '#!/bin/sh\nif [ "$1" = "--version" ]; then\n'
+            f"printf '{version}\\ninstalled by building from source\\nbuilt with go1.25.0\\n'\n"
+            "else exit 0; fi\n",
+            encoding="utf-8",
+        )
+        tool.chmod(0o755)
+        result = subprocess.run(  # noqa: S603 - trusted extracted recipe and test stub
+            [make, "-C", str(tmp_path), "check"],
+            env={**os.environ, "PATH": str(binaries)},
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert result.returncode == expected, result.stdout + result.stderr
+    tool.unlink()
+    result = subprocess.run(  # noqa: S603 - trusted extracted recipe
+        [make, "-C", str(tmp_path), "check"],
+        env={**os.environ, "PATH": str(binaries)},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode != 0
+    assert "actionlint not installed" in result.stdout

@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Remove the reviewer benchmark package installation to shorten setup.",
+  "lesson": "An isolated reviewer lacks the dependencies its contract requires",
+  "must_mention": [
+    "evals\\.yml",
+    "pytest|coverage",
+    "install|dependenc|make test"
+  ]
+}

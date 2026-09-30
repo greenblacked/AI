@@ -103,17 +103,31 @@ def unescaped_hashes_in_call(text: str) -> list[int]:
     unterminated. The escape `\\#` is what tells the older parser to keep it.
     """
     problems: list[int] = []
-    depth = 0
+    delimiters: list[str] = []
     line = 1
+    in_comment = False
+    backslashes = 0
     for index, char in enumerate(text):
+        escaped = backslashes % 2 == 1
+        backslashes = backslashes + 1 if char == "\\" else 0
         if char == "\n":
             line += 1
-        elif char == "$" and index + 1 < len(text) and text[index + 1] in "({":
-            depth += 1
-        elif depth > 0 and char in ")}":
-            depth -= 1
-        elif char == "#" and depth > 0 and (index == 0 or text[index - 1] != "\\"):
-            problems.append(line)
+            in_comment = False
+        elif in_comment:
+            continue
+        elif char == "#" and not escaped:
+            if delimiters:
+                problems.append(line)
+            else:
+                in_comment = True
+        elif char in "({" and (
+            (index > 0 and text[index - 1] == "$") or (delimiters and char == delimiters[-1])
+        ):
+            # Make balances ordinary matching delimiters within a function argument,
+            # including shell regex groups; quotes do not hide them from Make.
+            delimiters.append(char)
+        elif delimiters and char == (")" if delimiters[-1] == "(" else "}"):
+            delimiters.pop()
     return problems
 
 

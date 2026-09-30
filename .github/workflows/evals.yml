@@ -96,6 +96,8 @@ env:
   CLAUDE_CODE_VERSION: '2.1.284'
   CODEX_VERSION: '0.159.0'
   GEMINI_CLI_VERSION: '0.61.0'
+  PYTEST_VERSION: '9.1.1'
+  COVERAGE_VERSION: '7.16.2'
 
 jobs:
   evaluate:
@@ -647,6 +649,11 @@ jobs:
         if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'
         with:
           node-version: '22'
+      - name: Install the reviewer repository test dependencies
+        if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'
+        run: |
+          set -Eeuo pipefail
+          python -m pip install "pytest==${PYTEST_VERSION}" "coverage==${COVERAGE_VERSION}"
       - name: Benchmark the reviewer
         id: benchmark
         if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'

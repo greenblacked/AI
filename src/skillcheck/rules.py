@@ -1310,7 +1310,7 @@ def _query_key(query: str) -> str:
     request differ in those rather than in the request itself, so a near-copy has to read
     as the same query or the check catches only the exact duplicate.
     """
-    return re.sub(r"[^\w\s]", "", " ".join(query.split()).casefold())
+    return " ".join(re.sub(r"[^\w\s]", "", query.casefold()).split())
 
 
 def check_eval_conflicts(

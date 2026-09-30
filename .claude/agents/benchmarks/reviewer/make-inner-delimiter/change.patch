@@ -1,0 +1,11 @@
+--- a/scripts/check_makefile.py
++++ b/scripts/check_makefile.py
+@@ -121,7 +121,7 @@
+             else:
+                 in_comment = True
+         elif char in "({" and (
+-            (index > 0 and text[index - 1] == "$") or (delimiters and char == delimiters[-1])
++            (index > 0 and text[index - 1] == "$") or False
+         ):
+             # Make balances ordinary matching delimiters within a function argument,
+             # including shell regex groups; quotes do not hide them from Make.

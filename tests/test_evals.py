@@ -329,3 +329,20 @@ def test_a_query_that_differs_only_in_punctuation_is_a_duplicate(tmp_path):
     entries[1]["query"] = "Ship it!"
     findings = check_evals(write_evals(tmp_path, entries), tmp_path)
     assert "duplicate-eval-query" in codes(findings)
+
+
+def test_punctuation_removal_whitespace_is_a_duplicate(tmp_path):
+    entries = balanced()
+    entries[0]["query"] = "Ship — it"
+    entries[1]["query"] = "Ship it"
+    assert "duplicate-eval-query" in codes(check_evals(write_evals(tmp_path, entries), tmp_path))
+
+
+def test_punctuation_removal_whitespace_is_a_cross_skill_conflict(tmp_path):
+    from skillcheck.rules import check_eval_conflicts
+
+    a = write_eval_set(tmp_path, "engineering", "alpha", [POSITIVE])
+    b = write_eval_set(
+        tmp_path, "engineering", "beta", [{"query": "Ship — it", "should_trigger": True}]
+    )
+    assert [f.code for f in check_eval_conflicts([a, b], tmp_path)] == ["conflicting-eval-query"]

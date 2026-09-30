@@ -1,0 +1,11 @@
+--- a/src/skillcheck/rules.py
++++ b/src/skillcheck/rules.py
+@@ -1310,7 +1310,7 @@
+     request differ in those rather than in the request itself, so a near-copy has to read
+     as the same query or the check catches only the exact duplicate.
+     """
+-    return " ".join(re.sub(r"[^\w\s]", "", query.casefold()).split())
++    return re.sub(r"[^\w\s]", "", " ".join(query.split()).casefold())
+ 
+ 
+ def check_eval_conflicts(
