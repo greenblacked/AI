@@ -12,7 +12,13 @@ than by parsing the file as YAML.
 
 from __future__ import annotations
 
+import json
+import os
 import subprocess
+import sys
+from pathlib import Path
+
+import pytest
 
 from tests.conftest import REPO
 
@@ -20,7 +26,7 @@ WORKFLOW = REPO / ".github" / "workflows" / "evals.yml"
 STEP_NAME = "Check the backend has a credential"
 
 
-def _extract_run_block(text: str, step_name: str) -> str:
+def _extract_run_block(text: str, step_name: str, occurrence: int = 0) -> str:
     """The dedented body of one step's `run: |` block, found by indentation.
 
     Stops at the next `- name:` step or at the first sibling line no more indented than
@@ -28,7 +34,8 @@ def _extract_run_block(text: str, step_name: str) -> str:
     swept in.
     """
     lines = text.split("\n")
-    start = next(i for i, line in enumerate(lines) if line.strip() == f"- name: {step_name}")
+    starts = [i for i, line in enumerate(lines) if line.strip() == f"- name: {step_name}"]
+    start = starts[occurrence]
     run_index = next(
         i
         for i in range(start + 1, len(lines))
@@ -106,3 +113,54 @@ def test_a_credential_present_emits_neither_notice_nor_warning(tmp_path):
     assert "skip=false" in output
     assert "::warning" not in result.stdout
     assert "::notice" not in result.stdout
+
+
+@pytest.mark.parametrize("publisher", [0, 1], ids=["catalogue", "changed"])
+@pytest.mark.parametrize("inconclusive", [1, 0, None], ids=["tie", "zero", "legacy"])
+def test_both_publishers_show_inconclusive_without_losing_zero(tmp_path, publisher, inconclusive):
+    result, summary = run_score_publisher(tmp_path, publisher, inconclusive=inconclusive)
+    assert result.returncode == 0, result.stderr
+    expected = "-" if inconclusive is None else str(inconclusive)
+    assert "| Routing | Narrow | Inconclusive |" in summary
+    assert "| --- | --- | --- | --- | --- | --- | --- |" in summary
+    assert f"| `alpha` | 80% | 80% | 80% | 80% | 2 | {expected} |" in summary
+
+
+def run_score_publisher(tmp_path, publisher, *, inconclusive=1, rate=0.8):
+    row = {
+        "target": "alpha",
+        "rate": rate,
+        "recall": 0.8,
+        "specificity": 0.8,
+        "routing": 0.8,
+        "narrow": 2,
+    }
+    if inconclusive is not None:
+        row["inconclusive"] = inconclusive
+    (tmp_path / "evals.json").write_text(json.dumps([row]), encoding="utf-8")
+    results = tmp_path / "eval-results"
+    results.mkdir()
+    (results / "alpha.json").write_text(json.dumps([row]), encoding="utf-8")
+    summary = tmp_path / "summary"
+    script = _extract_run_block(
+        WORKFLOW.read_text(encoding="utf-8"), "Publish the scores", publisher
+    )
+    env = dict(os.environ, GITHUB_STEP_SUMMARY=str(summary))
+    env["PATH"] = str(Path(sys.executable).parent) + os.pathsep + env.get("PATH", "")
+    result = subprocess.run(  # noqa: S603
+        ["bash", "-c", script],  # noqa: S607 - execute the workflow's own shell block
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        env=env,
+        check=False,
+    )
+    return result, summary.read_text(encoding="utf-8")
+
+
+def test_changed_publisher_keeps_under_floor_error_and_exit_code(tmp_path):
+    result, summary = run_score_publisher(tmp_path, 1, rate=0.6)
+    assert result.returncode == 1
+    assert "::error title=below the eval floor::alpha scored 60%" in result.stdout
+    assert "Below the 70% floor: `alpha`. This fails the job." in summary
+    assert "| `alpha` | 60% | 80% | 80% | 80% | 2 | 1 |" in summary
