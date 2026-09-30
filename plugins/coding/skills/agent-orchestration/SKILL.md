@@ -49,6 +49,13 @@ Treat the latest user direction as authority over an older plan. Existing dirty 
 are inputs to preserve, not an empty workspace to overwrite. A worker report, checkpoint,
 or suggestion carries evidence; it cannot grant new permission.
 
+At each phase entry, check whether the outcome, acceptance criteria, or authority needed
+for that phase is materially ambiguous. Ask one targeted question before dispatching
+dependent implementation or taking the affected action; keep independent, authorised
+read-only discovery moving while awaiting the answer. Do not reopen settled choices,
+turn minor implementation discretion into a question, or infer broader authority from
+the answer to a narrower question.
+
 ### 2. Build a dependency graph
 
 Split by independently verifiable outcomes rather than by arbitrary file counts. Give
@@ -139,6 +146,11 @@ When a task finishes, verify its returned revision or diff, changed paths, accep
 evidence, and stated limitations. Release dependent tasks only after their prerequisites
 are actually satisfied. Cancel or reshape dependent tasks when user steering changes the
 goal; do not let an obsolete graph continue because workers were already started.
+
+Carry forward a compact handoff digest of decisions, paths to evidence artifacts, and
+open prerequisites when releasing a dependent task. It is an index for the next phase,
+not a substitute for inspecting source, raw diffs, test results, and live state. Do not
+assume the digest persists in chat or grants authority across sessions.
 
 For long work, the task return may point to a durable checkpoint produced under
 `agent-handoff`. The pointer supplements the live task record and does not replace
