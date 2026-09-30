@@ -7,6 +7,7 @@ situation and reaches for the procedure without being told. Claude Code is the f
 option below; the [table in the README](../README.md#chatgpt-grok-codex-and-everything-else) says which other agent tools do the same,
 and where each one looks.
 
+- [First run with Codex](#first-run-with-codex) — preview, install and try a real task
 - [Claude Code](#claude-code) — install the plugins; skills fire on their own
 - [ChatGPT](#chatgpt) — upload the bundles to a Project or a Custom GPT
 - [Grok](#grok) — paste the skill, or attach a bundle
@@ -15,6 +16,54 @@ and where each one looks.
 - Routing Claude Code to a DeepSeek model through OpenRouter instead of Claude:
   [`docs/deepseek.md`](deepseek.md), not covered below — the tool still loads the
   skills, only the model behind it changes.
+
+## First run with Codex
+
+This walkthrough uses the existing symlink installer and an installed Codex CLI. You
+need Git, Bash, Make and standard Unix tools. It installs **every skill**, not just the
+coding plugin; marketplace plugin selection belongs to the Claude Code route below.
+It does not install this repository's Claude Code subagents or slash commands.
+[Codex documents](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)
+`$HOME/.agents/skills` as its user discovery location and supports symlinked folders.
+
+1. Clone the library into a directory you will keep, then preview the links:
+
+   ```bash
+   git clone https://github.com/greenblacked/AI.git
+   cd AI
+   CLAUDE_SKILLS_DIR="$HOME/.agents/skills" ./scripts/install.sh --dry-run
+   ```
+
+2. Read the preview, then install into Codex's skills directory:
+
+   ```bash
+   CLAUDE_SKILLS_DIR="$HOME/.agents/skills" make install
+   readlink "$HOME/.agents/skills/codebase-orientation"
+   ```
+
+   The last command should print the `plugins/coding/skills/codebase-orientation`
+   directory in your checkout. Keep the checkout there: these are links, not copies.
+   An existing file or a link to another checkout is skipped; the installer exits 3
+   and `make install` reports failure. Inspect the conflict rather than adding
+   `--force` blindly. A real directory is never
+   replaced, even with `--force`.
+
+3. Start a new Codex session in a repository you want to understand. Ask:
+
+   > Use the codebase-orientation skill to map this repository. Start with its purpose,
+   > entry points and one real execution path. Report the evidence and proposed first
+   > change before editing files or running commands that change external state.
+
+   Check that the response follows the [procedure](../plugins/coding/skills/codebase-orientation/SKILL.md)
+   and names files and evidence from your repository. A successful symlink check proves
+   installation, not model routing or completion of the task. If the skill is not
+   available, check the destination against the [tool table](../README.md#chatgpt-grok-codex-and-everything-else)
+   and read the skill directly while investigating.
+
+To update this local installation, pull the checkout and start a new session; the links
+still point to the same files. To remove it, unlink only the skill links that point to
+this checkout, leaving unrelated skills alone. For other tools and portable chat files,
+continue with the routes below.
 
 ## Claude Code
 
@@ -103,17 +152,11 @@ Updates still follow the latest commit on `main` by default: the marketplace sou
 git ref, so Claude Code derives a version from the commit, and `/plugin marketplace
 update` takes you to whatever that ref points at now.
 
-To pin to a release instead, append `@ref` to the GitHub shorthand when you add the
-marketplace:
-
-```shell
-/plugin marketplace add greenblacked/AI@v1.0.0
-```
-
-A relative plugin path resolves against that checkout, so a marketplace added with a tag
-ref stays on that ref — `/plugin marketplace update` re-fetches the same tag rather than
-moving to a newer commit. [`CHANGELOG.md`](../CHANGELOG.md) lists what changed in each
-tagged version.
+There is no published release tag to recommend yet. Use the default `main` route above;
+do not copy an example release name that does not exist. For a reproducible checkout,
+choose an existing commit from the [repository history](https://github.com/greenblacked/AI/commits/main/)
+and record its full SHA. [`CHANGELOG.md`](../CHANGELOG.md) records the changes, but an
+Unreleased section is not a downloadable release.
 
 ### When something does not work
 
