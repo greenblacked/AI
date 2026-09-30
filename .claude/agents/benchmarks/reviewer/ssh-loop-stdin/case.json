@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the fleet SSH verification loop.",
+  "lesson": "A loop body consumes its input inventory",
+  "must_mention": [
+    "stdin|input",
+    "ssh",
+    "skip|consum|host"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the host hardening workflow while preserving safe operation.",
+  "lesson": "A privileged command leaves its redirection unprivileged",
+  "must_mention": [
+    "sudo|privileg|redirection",
+    "shell|caller|permission"
+  ]
+}

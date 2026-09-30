@@ -354,13 +354,16 @@ def _write(path: Path | None, reports: list[dict]) -> None:
         path.write_text(json.dumps(reports, indent=2) + "\n", encoding="utf-8")
 
 
-def _load_baseline(path: Path | None) -> dict[str, float]:
+METRICS = ("rate", "recall", "specificity", "routing")
+
+
+def _load_baseline(path: Path | None) -> dict[str, dict]:
     if path is None:
         return {}
     if not path.is_file():
         raise SystemExit(f"no baseline at {path}")
     data = json.loads(path.read_text(encoding="utf-8"))
-    return {r.get("target", r.get("skill")): r["rate"] for r in data}
+    return {r.get("target", r.get("skill")): r for r in data}
 
 
 def main() -> int:
@@ -479,8 +482,29 @@ def main() -> int:
         )
         if baseline:
             before = baseline.get(report["target"])
-            line += f" {report['rate'] - before:>+7.0%}" if before is not None else f" {'new':>7}"
+            previous_rate = before.get("rate") if before else None
+            line += (
+                f" {report['rate'] - previous_rate:>+7.0%}"
+                if previous_rate is not None
+                else f" {'new' if before is None else 'n/a':>7}"
+            )
         print(line)
+
+    if baseline:
+        print("\nPer-target deltas (candidate minus baseline; n/a means unavailable):")
+        print(f"{'target':22} " + " ".join(f"{metric:>12}" for metric in METRICS))
+        for report in reports:
+            before = baseline.get(report["target"])
+            changes = []
+            for metric in METRICS:
+                old = before.get(metric) if before else None
+                current = report[metric]
+                changes.append(
+                    f"{current - old:>+12.0%}"
+                    if old is not None and current is not None
+                    else f"{'n/a':>12}"
+                )
+            print(f"{report['target']:22} " + " ".join(changes))
 
     failing = [r for r in reports if r["rate"] < args.threshold]
     for report in failing:

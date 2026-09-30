@@ -1,0 +1,13 @@
+diff --git a/plugins/security/skills/host-hardening/SKILL.md b/plugins/security/skills/host-hardening/SKILL.md
+--- a/plugins/security/skills/host-hardening/SKILL.md
++++ b/plugins/security/skills/host-hardening/SKILL.md
+@@ -125,7 +125,7 @@
+ The host firewall is the last line when a network control is misconfigured, and it is also where a careless change cuts your own session.
+
+ - Write the rules so the management path (your SSH source, the console) is accepted before the default deny, and keep the second session open while you apply them.
+-- Default deny inbound; accept established and related traffic in the inbound chain before the deny so replies to permitted outbound connections return. Allow new inbound traffic only on named service and management paths. Set the outbound policy separately to match the host's required egress.
++- Default deny inbound; accept established and related traffic in the outbound chain before the deny so replies to permitted outbound connections return. Allow new inbound traffic only on named service and management paths. Set the outbound policy separately to match the host's required egress.
+ - Persist the ruleset and verify it survives a reboot on the canary.
+ - Prefer the platform's own mechanism (security groups, a managed firewall) for fleet-wide rules, and keep the host firewall for the residual.
+
+--
