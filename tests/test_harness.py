@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import sys
+from itertools import permutations
 
 import pytest
 
@@ -211,6 +212,126 @@ def test_a_split_vote_is_counted_as_narrow_and_the_majority_wins(mini_repo, fake
     assert (
         by_query["alpha positive 1"]["margin"] == 1
         and by_query["alpha positive 1"]["chose"] == "NONE"
+    )
+
+
+@pytest.mark.parametrize(
+    "samples",
+    sorted(set(permutations(["alpha", "beta", "NONE"])))
+    + sorted(set(permutations(["alpha", "alpha", "beta", "beta", "NONE"]))),
+)
+@pytest.mark.parametrize(
+    "case",
+    [
+        {"query": "tie", "should_trigger": True},
+        {"query": "tie", "should_trigger": False},
+        {"query": "tie", "should_trigger": False, "expected": "beta"},
+        {"query": "tie", "should_trigger": False, "expected": "NONE"},
+    ],
+)
+def test_tied_top_counts_have_no_winner_or_correct_credit(mini_repo, monkeypatch, samples, case):
+    target = _alpha(mini_repo)
+    target.eval_set.write_text(json.dumps([case]))
+    replies = iter(samples)
+    monkeypatch.setattr(harness, "ask", lambda *args: next(replies))
+    report = harness.score(target, harness.catalogue(mini_repo), Args(runs=len(samples)))
+    assert report["total"] == 1 and report["passed"] == 0
+    assert report["rate"] == report["recall"] == report["specificity"] == 0.0
+    assert report["routing"] == (0.0 if case.get("expected") else None)
+    assert report["inconclusive"] == report["narrow"] == 1
+    assert report["unrecognised"] == 0
+    failure = report["failures"][0]
+    assert failure["chose"] is None and failure["margin"] == 0
+    assert failure["reason"] == "INCONCLUSIVE: tied highest vote counts"
+
+
+@pytest.mark.parametrize(
+    "samples",
+    [
+        ("alpha",),
+        ("alpha", "alpha", "NONE"),
+        ("alpha", "alpha", "alpha", "beta", "beta", "reader", "NONE"),
+    ],
+)
+def test_unique_top_count_wins_even_without_absolute_majority(mini_repo, monkeypatch, samples):
+    target = _alpha(mini_repo)
+    target.eval_set.write_text(json.dumps([{"query": "winner", "should_trigger": True}]))
+    replies = iter(samples)
+    monkeypatch.setattr(harness, "ask", lambda *args: next(replies))
+    report = harness.score(target, harness.catalogue(mini_repo), Args(runs=len(samples)))
+    assert report["rate"] == 1.0 and report["failures"] == []
+    assert report["inconclusive"] == 0
+
+
+def test_invalid_replies_that_tie_still_abort(mini_repo, monkeypatch):
+    replies = iter(["invalid one", "invalid two", "invalid three"] * 16)
+    monkeypatch.setattr(harness, "ask", lambda *args: next(replies))
+    with pytest.raises(harness.ToolFailureError, match="named a catalogue entry"):
+        harness.score(_alpha(mini_repo), harness.catalogue(mini_repo), Args())
+
+
+@pytest.mark.parametrize(
+    "samples", sorted(set(permutations(["bad-one", "bad-one", "bad-two", "bad-two", "alpha"])))
+)
+def test_invalid_tied_top_labels_abort_despite_lower_valid_reply(mini_repo, monkeypatch, samples):
+    target = _alpha(mini_repo)
+    target.eval_set.write_text(json.dumps([{"query": "bad tie", "should_trigger": True}]))
+    replies = iter(samples)
+    monkeypatch.setattr(harness, "ask", lambda *args: next(replies))
+    with pytest.raises(harness.ToolFailureError, match="named a catalogue entry"):
+        harness.score(target, harness.catalogue(mini_repo), Args(runs=5))
+
+
+@pytest.mark.parametrize("valid", ["alpha", "NONE"])
+@pytest.mark.parametrize("order", sorted(set(permutations([0, 0, 1, 1, 2]))))
+def test_mixed_valid_invalid_top_tie_does_not_abort(mini_repo, monkeypatch, valid, order):
+    target = _alpha(mini_repo)
+    target.eval_set.write_text(json.dumps([{"query": "mixed tie", "should_trigger": False}]))
+    labels = ["invalid", valid, "beta"]
+    replies = iter(labels[index] for index in order)
+    monkeypatch.setattr(harness, "ask", lambda *args: next(replies))
+    report = harness.score(target, harness.catalogue(mini_repo), Args(runs=5))
+    assert report["unrecognised"] == 0
+    assert report["inconclusive"] == 1 and report["rate"] == 0.0
+    assert report["failures"][0]["chose"] is None
+
+
+def test_inconclusive_is_visible_in_verbose_and_summary_output(
+    mini_repo, fake_claude, monkeypatch, capsys, tmp_path
+):
+    fake_claude({"alpha positive 0": ["alpha", "beta", "NONE"]})
+    output = tmp_path / "report.json"
+    assert (
+        run_main(
+            monkeypatch,
+            "--skill",
+            str(_alpha(mini_repo).source),
+            "--root",
+            str(mini_repo),
+            "--threshold",
+            "0",
+            "--jobs",
+            "1",
+            "--verbose",
+            "--json",
+            str(output),
+        )
+        == 0
+    )
+    captured = capsys.readouterr()
+    assert "INCONCLUSIVE" in captured.err and "inconclusive" in captured.out
+    assert json.loads(output.read_text())[0]["inconclusive"] == 1
+
+
+def test_pre_tie_fix_protocol_baselines_are_incompatible(mini_repo, monkeypatch):
+    target = _alpha(mini_repo)
+    cases = json.loads(target.eval_set.read_text())
+    current = harness.comparison(target, cases, Args())
+    monkeypatch.setattr(harness, "EVAL_PROTOCOL", "majority-vote-routing-v1")
+    old = harness.comparison(target, cases, Args())
+    assert harness._comparable({"comparison": old}, {"comparison": current}) == (
+        False,
+        "different prompt_sha256",
     )
 
 
