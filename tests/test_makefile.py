@@ -159,6 +159,21 @@ def test_a_catalogue_check_the_makefile_omits_fails(tmp_path, capsys):
     assert "make catalogue" in capsys.readouterr().out
 
 
+def test_a_target_specific_variable_does_not_erase_the_recipe(tmp_path, capsys):
+    # `validate: EXTRA := 1` matches the target regex but is a variable, not a rule. It
+    # sits after the recipe, so reading it as a new target would blank the recipe above
+    # and let a one-way parity check pass on nothing.
+    makefile = MAKEFILE.replace(
+        "validate:\n\tPYTHONPATH=src $(PYTHON) -m skillcheck . --strict\n",
+        "validate:\n\tPYTHONPATH=src $(PYTHON) -m skillcheck . --strict\n"
+        "\t@$(PYTHON) scripts/check_extra.py .\n"
+        "validate: EXTRA := 1\n",
+    )
+    write_mini(tmp_path, makefile=makefile)
+    assert makefile_check.check(tmp_path) == 1
+    assert "check_extra.py" in capsys.readouterr().out
+
+
 def test_a_stale_catalogue_count_word_fails(tmp_path, capsys):
     write_mini(tmp_path, doc=CI_DOC.replace("the one checks", "the seven checks"))
     assert makefile_check.check(tmp_path) == 1
