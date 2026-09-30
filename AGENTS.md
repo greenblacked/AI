@@ -132,6 +132,11 @@ so the eval harness can be exercised without a model. A change to a script under
 `scripts/` should come with a case in the matching `tests/test_*.py`, and CI fails the
 test job when coverage drops below the floor in `pyproject.toml`.
 
+[Recovery trace evaluation](docs/recovery-evals.md) describes the offline recovery
+grader, its trusted capture requirements and executable examples. Fixture and grader
+tests establish the checks, not that a model follows a skill. Keep expected outcomes
+and authoritative capture outside an evaluated worker's writable scope.
+
 The block-scalar cases in `tests/fixtures/block_scalars.json` are recorded from PyYAML
 by `tests/fixtures/generate_block_scalars.py`. Regenerate them when `frontmatter.py`
 changes; the generator refuses to write the file while the two parsers disagree.

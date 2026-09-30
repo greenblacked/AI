@@ -135,6 +135,59 @@ reviewer benchmark appends a positive-only case to reproduce the population chan
 
 **First caught:** #89, the automated PR reviewer.
 
+**Recurrence:** #90 appended positive-only Kubernetes and Terraform identity queries.
+Keep those cases by replacing redundant positives; trim Kubernetes' pre-existing
+extra distant negative. Both revised sets contain ten cases per side. Rerun baseline
+and candidate on each revised set before comparing scores; prior raw scores are not
+comparable to the changed population.
+
+### A read-only diagnostic initializes a provider that writes
+
+**Class.** A procedure assumes that reading data or creating a plan cannot write to the
+remote system, overlooking provider initialization side effects.
+
+**How it shows up.** A backend-free identity diagnostic copied AzureRM provider settings
+without disabling automatic resource-provider registration. Planning could register
+providers before the cloud target had been verified.
+
+**The check that catches it.** The provider-identity reference requires the pinned
+provider's registration opt-out and stops when initialization cannot be made read-only.
+The reviewer benchmark removes that safety step; review checks provider lifecycle
+behavior against its primary documentation rather than inferring it from `plan`.
+
+**First caught:** #90, the review stage.
+
+### A stale fence authorizes a newer request
+
+**Class.** A delayed notification about an earlier attempt changes the safety state of
+the currently pending request because settlement is stored as an unscoped boolean.
+
+**How it shows up.** A rejected submission followed by a pending submission, the older
+submission's fence, an absent lookup and a committed retry passed the recovery grader.
+The pending submission could still commit after the retry and create a duplicate effect.
+
+**The check that catches it.** `tests/test_recovery_trace.py` reproduces the stale fence
+sequence. Submission, settlement and late-commit events carry adapter-owned attempt
+identifiers; only settlement of the current pending attempt authorizes its retry.
+The reviewer benchmark seeds a removed identity comparison.
+
+**First caught:** #90, the automated PR reviewer.
+
+### A recovery grade reuses an earlier generation's success
+
+**Class.** A recovery grader keeps worker identifiers across attempts and mistakes an
+earlier accepted result or completion for evidence about the current generation.
+
+**How it shows up.** An initial accepted-worker list made a new assignment pass without
+a new result. A delayed old completion could also clear the newer worker's active state.
+
+**The check that catches it.** `tests/test_recovery_trace.py` covers delayed completion
+and latest-assignment acceptance. The grader binds both to generation identities and
+requires a newly captured result for every latest assignment. The reviewer benchmark
+seeds the accumulated-acceptance shortcut so a future review has to recognise it.
+
+**First caught:** #90, the review stage.
+
 ### A tag's message drops its own subheadings
 
 **Class.** `git tag -a -F -` defaults to `--cleanup=strip`, which drops every line

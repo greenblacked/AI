@@ -37,8 +37,8 @@ Do not use for:
   right, this skill carries it out afterwards. If nobody has reviewed the plan yet, stop
   and hand it there first.
 - **Writing a new module or a first configuration.** That is `code-scaffold`. This skill
-  edits configuration only to add a `moved`, `import` or `removed` block, and never
-  authors the resources themselves.
+  edits the live configuration only to add a `moved`, `import` or `removed` block; its
+  isolated, disposable provider-identity diagnostic is the sole exception.
 - **Moving a platform between providers, clusters or CI systems.** That is
   `plan-platform-migration`. This skill owns individual state operations inside a move
   that has already been planned.
@@ -87,18 +87,31 @@ rather than assuming parity at any given version.
 | S3 backend `use_lockfile` | Locks without a DynamoDB table | Terraform 1.10, general in 1.11 |
 
 Below those versions the fallbacks are `terraform state mv`, `terraform import` and
-`terraform state rm`, which mutate immediately. Gate 1 is the only thing standing behind
-them.
+`terraform state rm`, which mutate immediately. The target identity check and gate 1's
+backup both stand behind these immediate changes.
 
 ## Workflow
 
 ### 1. Fix the ground truth before touching anything
+
+First verify the intended repository and configuration revision against the trusted
+change record. Inspect the configured backend type and its actual state selector (key,
+organization/workspace, or equivalent), then run `terraform workspace show`. Compare
+all of these with the intended environment; a workspace name alone does not identify
+the backend. Resolve the effective provider project/account for every configured
+provider and alias through the credential chain used by this run. Use the read-only
+Terraform-native procedure in `references/provider-identity.md` before the state pull;
+repeat it before mutation. A cloud CLI's selected project is not proof of the provider
+credentials Terraform will use. If identity cannot be established against an independent
+trusted record, stop before pulling state. Keep backend credentials, provider secrets,
+and state contents out of the record.
 
 ```bash
 set -Eeuo pipefail
 umask 077
 work="$(mktemp -d)"
 terraform version
+terraform workspace show
 terraform state pull > "$work/before.tfstate"
 jq -r '"serial=\(.serial) lineage=\(.lineage) resources=\(.resources | length)"' "$work/before.tfstate"
 terraform state list > "$work/addresses.txt"
@@ -107,6 +120,12 @@ terraform state list > "$work/addresses.txt"
 Record the serial and lineage. They are how you later prove which state you started from,
 and a lineage that changes underneath you means you are pointed at a different state than
 you think. `umask 077` is not decoration: `before.tfstate` is a credential file.
+Where a trusted prior state baseline exists, compare lineage and serial with it before
+continuing; an unexpected lineage or regressed serial blocks the operation. If serial
+advanced since the backup, reconcile the intervening writer and take a fresh backup.
+Recheck the
+backend, workspace, effective provider identities, and state identity immediately before
+each state mutation or apply, since credentials and configuration can change after backup.
 
 ### 2. Classify what you are looking at
 

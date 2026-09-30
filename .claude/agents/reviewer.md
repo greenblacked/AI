@@ -78,6 +78,15 @@ one-endpoint diff covers a later round too: after the PR opens, a fix round sits
 uncommitted on top of commits already pushed, and `$base` still runs under all of it.
 Untracked files appear in no diff at all and have to be listed separately:
 
+Before reading, record `HEAD`, the base-branch tip and merge-base, plus content identity
+for committed, staged, unstaged and untracked changes. A path list alone cannot identify
+untracked content. Capture a stable snapshot or fingerprint when the host supports it,
+and check for active writers and quiescence where possible. Recheck those identities
+after the gates and just before the verdict; if they changed, invalidate the verdict
+and affected gate evidence, capture the new content and review it again. If the host
+cannot capture content identity or quiescence, name the limitation instead of claiming
+a stable-tree verdict. The merge-base is not the base-branch tip.
+
 ```bash
 base="$(git merge-base HEAD origin/main)"
 git status --short
@@ -169,7 +178,9 @@ gets its own pull request rather than riding along on this one.
 ### Evidence
 
 **Gate output**, quoted: the validator's counts line, the catalogue result and the test
-summary. Any command you executed to check a claim, with its result.
+summary. Any command you executed to check a claim, with its result. State the reviewed
+identity (HEAD, base tip, merge-base, tracked and untracked content), its before/after
+comparison, and any unavailable snapshot or writer evidence.
 
 ### Not assessed
 
