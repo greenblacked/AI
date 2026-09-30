@@ -47,7 +47,7 @@ Keep expected results and judge exemplars out of the agent context. Record prove
 
 Run every baseline and candidate from the same disposable snapshot. Give the run only the tool permissions and credentials its task requires. Record the dataset version, case id, initial revision, model identifier, prompt or agent revision, tool definitions, dependency image, parameters, random seed when supported, limits and retry policy.
 
-The model identifier recorded here must be a dated snapshot, never a moving alias: an alias can move under you with no deploy on your side, which turns a passed evaluation into a claim about a model that no longer exists by the time it ships. Read `references/model-lifecycle.md` when a prompt or model change is about to go out, for the production drift signals to watch once it is live and the retirement-calendar discipline that keeps a vendor's own deprecation date from becoming a self-inflicted outage.
+Prefer a dated model snapshot over a moving alias: an alias can move without a deploy. Record the requested identifier and the observed resolved version when the host exposes it. If only an alias is available, record that fact and the uncertainty; do not invent a dated snapshot or claim the evaluation fixes the underlying version. Read `references/model-lifecycle.md` when a prompt or model change is about to go out, for production drift signals and retirement planning.
 
 Reset files, services, clocks and test data between runs. Block undeclared network or shared-state dependencies. A rerun must not inherit a package, cache, file or database row created by the previous agent.
 
@@ -57,7 +57,7 @@ Pair baseline and candidate on the same case snapshot. When order can matter, va
 
 Apply graders in this order:
 
-1. **Harness validity:** did setup complete, did the agent receive the full task, and did capture finish? Mark evaluator, sandbox or service outages as invalid. An agent exhausting its declared deadline, step or token limit is a valid failed trial.
+1. **Harness validity:** did setup complete, did the agent receive the full task, and did capture finish? Mark evaluator setup, sandbox or service outages as invalid. A permission or authentication denial caused by the candidate that prevents a required authorized outcome is a valid failed trial; an expected policy rejection is scored against the case contract. An agent exhausting its declared deadline, step or token limit is also a valid failed trial.
 2. **Deterministic outcome:** run executable tests, schema or artifact validators, state queries and exact checks that directly establish the user outcome.
 3. **Constraint checks:** inspect the diff, filesystem, service state and audit log for forbidden changes, destructive calls, missing approvals or leaked data.
 4. **Semantic rubric:** use a human or calibrated model judge only for qualities that cannot be reduced to a stable check, such as whether an explanation identifies the material limitation.

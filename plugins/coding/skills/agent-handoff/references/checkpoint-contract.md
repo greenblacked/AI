@@ -5,7 +5,8 @@ not replace unknown values with guesses.
 
 ## Identity and authority
 
-- Checkpoint version, durable location, content hash, writer, and UTC time.
+- Checkpoint version, durable location, writer, and UTC time. Hash a sealed artifact
+  separately, excluding its own digest field; never claim a self-referential hash.
 - User goal, observable acceptance criteria, non-goals, and latest steering.
 - Sources for project instructions, file ownership, constraints, and approvals.
 - Existing permission scope and explicit exclusions for irreversible effects.
@@ -64,3 +65,27 @@ condition. On resume, append or update a receipt containing:
 
 The receipt records continuation; it does not expand authority or certify old tests
 against a changed tree.
+
+## Copyable checkpoint
+
+Fill unknown or inapplicable fields explicitly; keep recoverable content in durable
+artifacts referenced below rather than substituting a filename for the content.
+
+```markdown
+Version/location/writer/UTC: [version; durable URI; identity; timestamp]
+Sealed artifact digest: [algorithm/value, separately recorded; unknown/inapplicable]
+Goal/acceptance/latest steering: [requested outcome; observable criteria; latest direction]
+Authority: [user and project instruction sources; granted actions; excluded effects]
+Runtime requested/observed: [model, effort, limits requested / verified observation or unknown]
+Git: [root; worktree; branch/detached; HEAD; verified base object or unknown]
+Dirty state: [staged; unstaged; untracked; submodules; nested repos; user-owned paths]
+Recovery artifacts: [durable content and access for each changed state, or unrecoverable]
+Snapshot: [commands, results, UTC time; active writer/paths; quiescent/unknown]
+Work: [item ID; completed/partial/not started; facts vs hypotheses; blocker; next action]
+Evidence: [command; HEAD/diff identity; environment; UTC; exit/output;
+           fresh/stale/not run/unavailable/interrupted]
+Effects: [system; action; ID/idempotency key; actual/failed/unknown; source; reconcile first?]
+Next: [smallest safe action; preconditions; expected observation; stop condition]
+Receipt: [successor/time; sources reread; reconciliation/stale resolution; accepted item,
+          action and evidence; revised next action; pending until resumed]
+```
