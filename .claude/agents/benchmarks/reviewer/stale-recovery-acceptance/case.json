@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Simplify recovery success detection by reusing the accumulated accepted worker IDs.",
+  "lesson": "A recovery grade reuses an earlier generation's success",
+  "must_mention": [
+    "grade_recovery_trace\\.py",
+    "initial|earlier|stale|previous|prior",
+    "accept|result|generation"
+  ]
+}

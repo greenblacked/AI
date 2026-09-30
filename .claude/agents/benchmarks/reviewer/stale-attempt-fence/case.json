@@ -1,0 +1,11 @@
+{
+  "kind": "defect",
+  "intent": "Simplify settlement handling in the recovery grader.",
+  "lesson": "A stale fence authorizes a newer request",
+  "must_mention": [
+    "grade_recovery_trace\\.py",
+    "stale|older|earlier|previous|prior",
+    "attempt|request",
+    "fence|settle|retry"
+  ]
+}

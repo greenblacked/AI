@@ -10,6 +10,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add an offline recovery trace grader with deterministic cases for stale repository
+  state, uncertain remote writes, worker quiescence and superseded generations. Its
+  synthetic fixtures validate the grader rather than claiming live model performance.
+
 - Add the `/agent-ready` command to `manager`, cloning a repository and actually running
   the fenced shell commands its `AGENTS.md` contains — after listing them and stopping for
   confirmation, and with a stripped environment, which is not a sandbox — checking the
@@ -125,6 +129,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Verify Terraform backend/provider identity and the live Kubernetes target before
+  state operations or incident mutations. Bind review evidence to remote revision
+  identities or a recorded local tree, and recheck freshness before the verdict.
+
 - Align live agent task and runtime status records, check ownership overlaps before
   dispatch, and filter untrusted worker evidence before relaying it. Add a copyable
   checkpoint and successor receipt for interrupted work.
@@ -197,6 +205,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   to a DeepSeek model, for Claude Code only.
 
 ### Fixed
+
+- Bind recovery fences and late commits to submission attempt identities, so delayed
+  notifications cannot authorize a retry of a newer pending request.
 
 - Compare recall, specificity and expected-neighbour routing alongside aggregate rate
   in trigger-eval baseline reports, including legacy reports with missing metrics.

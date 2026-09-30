@@ -34,10 +34,28 @@ Breaking one of these does not make the review slower, it makes it dishonest.
 Read the title, description, linked issue and commit messages before the diff. Write down, in one sentence, what this change is supposed to do and what it is supposed not to do. Everything below tests that sentence.
 
 ```bash
-gh pr view 412 --json title,body,files,additions,deletions,commits
+gh pr view 412 --json title,body,files,additions,deletions,commits,baseRefOid,headRefOid
 gh pr diff 412
 git log --oneline main..HEAD && git diff main...HEAD --stat
 ```
+
+For a remote review, record the provider's base and head object IDs before reading the
+diff. On GitHub, use `baseRefOid` and `headRefOid` from the PR; on GitLab, record the diff
+version ID and its base, start, and head SHAs. Obtain the reviewed diff or source from
+those pinned objects or immutable diff version and verify its returned identity against
+the recorded tuple. The merge-base of local branches is not the base branch tip. The
+mutable `gh pr diff` and branch diff examples above are orientation only, not snapshot
+proof. Compare provider IDs again before submitting a verdict; if they changed, obtain
+the new pinned material and revisit affected findings and gates.
+
+For a local working-tree review, record `HEAD`, base-branch tip, merge-base, and the
+identity of tracked committed, staged, unstaged, and untracked content before reading.
+Capture a content snapshot or fingerprint when supported, including untracked file
+contents rather than their names alone. Check for active writers and establish
+quiescence where possible. Compare the same identities after gates and immediately
+before the verdict. Changed identity invalidates the verdict and affected gate evidence:
+capture the new content and review it again before approval. When identity or quiescence
+cannot be established, report that limitation and do not claim a stable-tree verdict.
 
 Two things to catch here, before any code. A change whose diff touches areas the description never mentions is either mislabelled or is two changes — say which. And a description that describes intent in terms of behaviour ("orders now retry on timeout") gives you a testable claim, while one that describes mechanism ("added a retry wrapper") gives you nothing to check; ask for the first.
 
@@ -183,6 +201,11 @@ the team intends to close optional discussions before merge.
 
 ## Coverage
 [Which files were read fully, which were sampled, which were not opened. What would change the verdict.]
+
+## Reviewed identity
+[Provider base/head IDs (and GitLab diff version ID/base/start/head), or local HEAD,
+base tip, merge-base and staged/unstaged/untracked content identity; before/after
+comparison and any unavailable snapshot or quiescence evidence.]
 
 ## Blocking
 [Each: file:line, the quoted code, the input or sequence that makes it fail, the consequence.]

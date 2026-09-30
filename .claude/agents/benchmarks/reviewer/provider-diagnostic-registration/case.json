@@ -1,0 +1,11 @@
+{
+  "kind": "defect",
+  "intent": "Simplify preparation of the isolated provider identity diagnostic.",
+  "lesson": "A read-only diagnostic initializes a provider that writes",
+  "must_mention": [
+    "provider-identity\\.md",
+    "Azure|azurerm",
+    "register|registration",
+    "plan|initial|configur"
+  ]
+}
