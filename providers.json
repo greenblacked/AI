@@ -17,13 +17,14 @@
       "provider": "OpenAI",
       "tool": "Codex CLI",
       "agents_md": "Yes — each `AGENTS.md` from the project root down to the working directory",
-      "skills": "Yes — `~/.agents/skills` (user), `.agents/skills` (repository)",
+      "skills": "Yes — `~/.agents/skills` (user), `.agents/skills` (repository); also `$CODEX_HOME/skills` (default `~/.codex/skills`, legacy compatibility)",
       "use": "`CLAUDE_SKILLS_DIR=~/.agents/skills make install`",
       "sources": [
         "https://github.com/openai/codex/blob/main/codex-rs/core/src/agents_md.rs",
         "https://github.com/openai/codex/blob/main/codex-rs/skills/src/lib.rs",
         "https://github.com/openai/codex/blob/main/codex-rs/utils/home-dir/src/lib.rs",
-        "https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills"
+        "https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills",
+        "https://github.com/openai/codex/blob/rust-v0.144.0-alpha.4/codex-rs/core-skills/src/loader.rs"
       ],
       "verified": "2026-09-30"
     },
