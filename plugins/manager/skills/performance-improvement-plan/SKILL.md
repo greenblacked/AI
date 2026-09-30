@@ -1,6 +1,6 @@
 ---
 name: performance-improvement-plan
-description: "Run the formal performance-improvement process after the informal conversation has not worked: deciding plan, role change or managed exit, writing a plan whose gaps are observable behaviour with the support offered, the measures and a dated timeline, partnering with HR and legal from day one, running the period honestly rather than towards a pre-decided outcome, and the decision meeting itself. Use this skill whenever someone needs a formal plan for underperformance. Triggers include how to put an engineer on a plan, what a PIP should contain, how long it should run, when to end it, or how to document underperformance formally — including phrasings like \"how do i start a pip\", \"nothing changed after the last talk\", or \"hr wants a written plan\". Do not use it for the first, informal conversation (difficult-conversation), the written review or rating (growth-review), or making the hire decision (hiring-loop)."
+description: "Run the formal performance-improvement process after the informal conversation has not worked — deciding plan, role change or managed exit, writing a plan whose gaps are observable behaviour with the support offered, the measures and a dated timeline, partnering with HR and legal from day one, running the period honestly rather than towards a pre-decided outcome, and the decision meeting itself. Use this skill whenever someone asks how to put an engineer on a performance plan, what a PIP should contain, how long it should run, when to end it, or how to document underperformance formally — including phrasings like \"how do i start a pip\", \"nothing changed after the last talk\", or \"hr wants a written plan\". Do not use it for the first, informal conversation (difficult-conversation), the written review or rating (growth-review), or making the hire decision (hiring-loop)."
 allowed-tools: Read, Write, Grep, Glob
 ---
 
@@ -53,7 +53,7 @@ The same self-check `onboarding-plan` uses applies here, and it belongs in the w
 - Was the support offered actually delivered?
 - Is anything here a mismatch between the person and the role rather than a shortfall?
 
-Where any answer is no, fix it and restart the clock on the judgement. That is accurate, it is fair, and it is part of what has to change.
+Where any of the first four answers is no, or the last answer is yes, address the gap and restart the clock on the judgement. That is accurate, fair, and part of what has to change.
 
 ### 3. State the gaps as observable behaviour
 
@@ -100,7 +100,7 @@ At the end date, there are three outcomes, and the plan said what each leads to.
 
 ### 7. Handle the team aftermath
 
-The rest of the team watches how this is run, and draws a conclusion about how it would be run for them. Say what can be said: that a plan happened, that the person was supported, and that the outcome was reached fairly. Do not discuss the person's details. Redistribute the work explicitly, and check that nobody has concluded that a plan is the price of a bad quarter.
+The rest of the team watches how this is run, and draws a conclusion about how it would be run for them. Share only neutral operational changes that affect their work, such as coverage, handover and ownership. Keep the plan's existence, support, assessment and outcome within the approved need-to-know group; agree any communication with HR. Redistribute the work explicitly, and check that nobody has concluded that a bad quarter puts their job at risk.
 
 ## Output format
 

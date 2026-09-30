@@ -413,6 +413,13 @@ line by line for exactly this.
 
 **First caught:** #23.
 
+**Recurrence:** #97 reshaped three manager-skill trigger sentences and raised their
+ratchets solely to clear the portable router's 16 KiB gate. Restore the original trigger
+text and ratchets; reduce duplicated router markup while keeping the byte gate and its
+100-character per-entry trigger cap. The `description-edited-to-pass` benchmark covers
+the original class; `tests/test_catalogue.py` now checks the compact router retains
+each skill's trigger and link.
+
 ### A count in prose goes stale
 
 **Class.** A specific number written into documentation prose drifts the moment the thing
@@ -499,3 +506,63 @@ a narrowed grant — no validator or offline gate reads a permission against wha
 actually enforces, so the first genuine write is the only place this shows up.
 
 **First caught:** #79, the live check of #78's triage.
+
+### A personnel plan is disclosed through an operational update
+
+**Class.** The team-aftermath guidance disclosed the existence and outcome of a personnel plan outside the approved group.
+
+**How it shows up.** In #97, `plugins/manager/skills/performance-improvement-plan/SKILL.md` needed this correction.
+
+**The check that catches it.** Review who may receive plan status separately from who needs an operational handover; the benchmark seeds a status disclosure. Patch applicability and schema tests verify the fixture only; they do not prove that a reviewer detects it.
+
+**First caught:** #97, the review stage.
+
+### A mixed-polarity self-check treats yes as no
+
+**Class.** Four prerequisite questions require no to trigger repair, while the last role-mismatch question requires yes. One blanket no rule inverted that last decision.
+
+**How it shows up.** In #97, `plugins/manager/skills/performance-improvement-plan/SKILL.md` needed this correction.
+
+**The check that catches it.** Evaluate each question against its own failure answer; the benchmark reintroduces the blanket rule. Patch applicability and schema tests verify the fixture only; they do not prove that a reviewer detects it.
+
+**First caught:** #97, the review stage.
+
+### An equity comparison omits ownership and conflates share classes
+
+**Class.** The offer reference omitted the fully diluted denominator and treated a preferred financing price as the value of employee common equity.
+
+**How it shows up.** In #97, `plugins/manager/skills/compensation-benchmarking/references/offers-and-equity.md` needed this correction.
+
+**The check that catches it.** Check ownership arithmetic and dated common versus preferred terms separately; the benchmark seeds both errors. Patch applicability and schema tests verify the fixture only; they do not prove that a reviewer detects it.
+
+**First caught:** #97, the review stage.
+
+### Range penetration at a symmetric midpoint is misstated
+
+**Class.** The reference claimed compa-ratio 1.0 could imply different positions in symmetric bands, although midpoint salary is always 50% of each range.
+
+**How it shows up.** In #97, `plugins/manager/skills/compensation-benchmarking/references/band-construction.md` needed this correction.
+
+**The check that catches it.** Recompute the formulas at compa-ratio 1.0 and away from it; the benchmark seeds the false midpoint comparison. Patch applicability and schema tests verify the fixture only; they do not prove that a reviewer detects it.
+
+**First caught:** #97, the review stage.
+
+### An attrition cluster is called a manager cause
+
+**Class.** The manager row called a cluster a finding about the manager without checking team, pay, level, cohort or reorganisation conditions.
+
+**How it shows up.** In #97, `plugins/manager/skills/retention-review/SKILL.md` needed this correction.
+
+**The check that catches it.** Treat clustering as an investigation signal and compare plausible conditions before attribution; the benchmark seeds a causal assertion. Patch applicability and schema tests verify the fixture only; they do not prove that a reviewer detects it.
+
+**First caught:** #97, the review stage.
+
+### A fixed exit count delays a credible report
+
+**Class.** The review told managers to act only on a twenty-exit pattern, delaying credible individual concerns and implying certainty for small aggregate samples.
+
+**How it shows up.** In #97, `plugins/manager/skills/retention-review/SKILL.md` needed this correction.
+
+**The check that catches it.** Separate action on a credible report from confidence in a population trend; the benchmark restores the fixed threshold. Patch applicability and schema tests verify the fixture only; they do not prove that a reviewer detects it.
+
+**First caught:** #97, the review stage.

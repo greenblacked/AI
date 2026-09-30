@@ -98,9 +98,11 @@ range penetration    = (salary - band_min) / (band_max - band_min)
 | 0.85 – 1.15 | The working range; most people should sit here |
 | Above 1.15 | Above midpoint; fine for a strong performer, an exception if the band has a ceiling |
 
-Range penetration tells you something compa-ratio does not: two people at compa-ratio 1.0
-sit at the midpoint, but one may have no headroom left in the band and the other may be
-early in it. Look at both, next to tenure and performance.
+In a band symmetric around its midpoint, compa-ratio 1.0 always means 50% range
+penetration. The measures diverge away from the midpoint when band widths differ: with
+a £100,000 midpoint and £110,000 salary, compa-ratio is 1.10 in either a £80,000–£120,000
+band (75% penetration) or a £70,000–£130,000 band (about 67% penetration). Look at
+both, next to tenure and performance.
 
 ## Compression and inversion
 

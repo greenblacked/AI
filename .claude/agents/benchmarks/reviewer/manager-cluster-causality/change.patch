@@ -1,0 +1,12 @@
+diff --git a/plugins/manager/skills/retention-review/SKILL.md b/plugins/manager/skills/retention-review/SKILL.md
+--- a/plugins/manager/skills/retention-review/SKILL.md
++++ b/plugins/manager/skills/retention-review/SKILL.md
+@@ -27,7 +27,7 @@
+ | Regretted or not | Losing someone you wanted to keep is the signal; a managed exit is a different event |
+ | Voluntary or involuntary | Only voluntary regretted loss is what retention addresses |
+ | Level and role | Losing seniors and staff is usually structural; losing juniors is often ramp and management |
+-| Team and manager | A cluster is a signal to investigate management practices, support, team size, pay, level mix, cohort and recent reorganisation before attributing a cause |
++| Team and manager | A cluster under one manager proves that manager caused the departures |
+ | Tenure at exit | Under a year is hiring and onboarding; two to four years is growth and pay |
+ 
+ Compute each over comparable periods with headcount denominators, ideally at least a year, and against the team's own baseline rather than a company-wide figure that hides the cluster.

@@ -32,20 +32,22 @@ band, which sets the ceiling for the next hire without a decision.
 
 ## Equity mechanics
 
-For options and RSUs, four numbers decide the real value, and candidates rarely check all
-four.
+For options and RSUs, ask for these terms before comparing grants. They help frame
+possible outcomes; no single quoted value establishes what the grant will realise.
 
 | Number | Why it matters |
 | --- | --- |
 | Grant size | Shares or units, not a currency figure whose value is the company's own optimistic estimate |
 | Strike price | For options, the exercise cost; a low strike is worth more than a large grant with a high one |
 | Vesting schedule | Four years with a one-year cliff is standard; a longer cliff is a retention lever and a risk |
-| Valuation basis | The 409A or last-round price the grant was struck against, and how old it is |
+| Fully diluted shares | Ask for the total fully diluted share count and calculate ownership percentage as 100 × grant shares / fully diluted shares; confirm the share class and dilution assumptions |
+| Valuation basis | Ask for the dated common-share 409A valuation used for the option strike and the dated preferred-share price from the last financing separately; preferred shares carry different rights and their price is not the value of employee common shares |
 
 Refresh grants matter for retention: a person four years in has vested everything and is
 being paid below market on the equity line, which is a compression problem wearing a
 different hat. Model equity as a range with the assumptions stated, never as a single
-number presented as certain.
+number presented as certain. Neither a 409A value nor a preferred financing price
+guarantees a future cash outcome; liquidity, dilution, taxes and exercise costs matter.
 
 ## The counter-offer decision
 

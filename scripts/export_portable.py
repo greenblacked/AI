@@ -101,9 +101,8 @@ USE_WHEN_RE = re.compile(
 # listing carries. This is a sane cap rather than a measured one: at 100 characters the
 # combined router for this repository's own eight plugins already sits well into
 # ROUTER_BUDGET_BYTES below, and the budget is meant to bite as the catalogue grows
-# rather than to sit unused — a new skill or a longer skill name is expected to push it
-# there, at which point the answer is to trim a description or split the plugin, not to
-# raise the cap by reflex.
+# rather than to sit unused. If growth reaches the budget, first remove duplicated
+# router markup or reconsider its structure while preserving descriptions and triggers.
 ROUTER_USE_WHEN_CAP = 100
 
 # Codex's default project-doc budget is 32 KiB (openai/codex, codex-rs/config/src/
@@ -443,7 +442,7 @@ def render_router(title: str, groups: list[tuple[str, list[tuple[str, str]]]]) -
     for plugin, skills in groups:
         lines += [f"## {plugin}", ""]
         for name, use_when in skills:
-            lines.append(f"- **{name}** — {use_when} — `skills/{name}.md`")
+            lines.append(f"- [{name}](skills/{name}.md): {use_when}")
         lines.append("")
     return "\n".join(lines).rstrip() + "\n"
 
@@ -644,8 +643,8 @@ def export(root: Path, out: Path, check: bool = False) -> int:
         if size > ROUTER_BUDGET_BYTES:
             print(
                 f"::error::{filename} is {size:,} bytes against a budget of "
-                f"{ROUTER_BUDGET_BYTES:,}; trim a description, split the plugin, or raise "
-                "ROUTER_BUDGET_BYTES in export_portable.py and say why in the commit",
+                f"{ROUTER_BUDGET_BYTES:,}; reduce router markup or split the router "
+                "without removing skill triggers or changing the budget by default",
                 file=sys.stderr,
             )
             router_failed = True

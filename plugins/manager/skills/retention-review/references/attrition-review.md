@@ -70,9 +70,11 @@ not, because it is a courtesy. When a leaver will not go past the stated reason,
 A company-wide attrition rate hides every cluster. Cut the regretted voluntary losses by
 each of these and look for one that stands out.
 
-- **Team** — a team losing at twice the baseline is a finding about that team.
-- **Manager** — losses clustered under one manager, especially across different teams over
-  time.
+- **Team** — a team losing at twice the baseline warrants investigation, with its
+  headcount and uncertainty stated.
+- **Manager** — losses clustered under one manager warrant investigation, especially
+  across different teams over time; compare management practices and support, team size,
+  pay, level mix, cohort and any reorganisation before drawing a causal conclusion.
 - **Level** — a level losing people is usually a growth or pay structure problem.
 - **Tenure** — under a year is hiring and onboarding; two to four years is growth and pay;
   five-plus is usually a change in the work or the company.
@@ -89,12 +91,13 @@ A 40-person engineering group, baseline attrition 12%.
 | --- | --- | --- | --- |
 | All voluntary | 7 | 17.5% | Above baseline, but the mix matters |
 | Regretted voluntary | 4 | 10% | The retention signal |
-| Not regretted | 3 | 7.5% | Managed or welcome exits; not retention |
-| Senior and staff | 3 of 4 regretted | — | Structural, not individual |
-| Under one manager | 3 of 4 regretted | — | A cluster: examine the manager, not the leavers |
-| Tenure 2–4 years | 4 of 4 regretted | — | Growth and pay, not onboarding |
+| Other voluntary | 3 | 7.5% | Not regretted voluntary departures; separate from involuntary exits |
+| Senior and staff | 3 of 4 regretted | — | Examine growth and pay by level |
+| Under one manager | 3 of 4 regretted | — | Investigate the cluster and comparable teams |
+| Tenure 2–4 years | 4 of 4 regretted | — | Investigate growth, pay and team conditions |
 
-The reading here is not "attrition is up". It is that four regretted losses sit in one
-manager's team, at senior level, at two-to-four years' tenure — which points at a growth
-path and a band in that area rather than at the individuals. That is the finding a rate
-alone would have hidden, and it is what the actions should address.
+The four regretted losses all had two-to-four years' tenure. Three were senior or staff,
+and three were under one manager; the table does not say whether those are the same three
+people. This is a signal to examine growth paths, pay and team conditions against
+comparable groups, not proof that any one manager or band caused the departures. Four
+exits make the rates volatile; report the counts and uncertainty alongside the baseline.

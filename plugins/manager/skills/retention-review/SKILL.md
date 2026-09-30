@@ -1,6 +1,6 @@
 ---
 name: retention-review
-description: "Review why people actually leave and what keeps them: regretted-attrition analysis over time rather than one exit interview, themes aggregated across departures, stay interviews that surface a risk before the resignation, flight-risk signals, engagement-survey results turned into a few owned actions, and a counter-offer policy agreed in advance. Use this skill whenever someone asks why people are leaving. Triggers include how to reduce attrition, what a stay interview or exit interview should ask, whether to counter an offer, how to read an engagement survey, or how to spot who is at risk — including phrasings like \"two people quit this quarter\" or \"we keep losing seniors\". Do not use it for onboarding a joiner (onboarding-plan), the pay mechanics behind a retention case (compensation-benchmarking), team delivery health (delivery-review), or writing up an incident (postmortem)."
+description: "Review why people actually leave and what keeps them — regretted-attrition analysis over time rather than one exit interview, themes aggregated across departures, stay interviews that surface a risk before the resignation, flight-risk signals, engagement-survey results turned into a few owned actions, and a counter-offer policy agreed in advance. Use this skill whenever someone asks why people are leaving, how to reduce attrition, what a stay interview or exit interview should ask, whether to counter an offer, how to read an engagement survey, or how to spot who is at risk of leaving — including phrasings like \"two people quit this quarter\" or \"we keep losing seniors\". Do not use it for onboarding a joiner (onboarding-plan), the pay mechanics behind a retention case (compensation-benchmarking), team delivery health (delivery-review), or writing up an incident (postmortem)."
 allowed-tools: Read, Write, Grep, Glob
 ---
 
@@ -27,14 +27,14 @@ A single attrition rate mixes things that need different responses. Split it fir
 | Regretted or not | Losing someone you wanted to keep is the signal; a managed exit is a different event |
 | Voluntary or involuntary | Only voluntary regretted loss is what retention addresses |
 | Level and role | Losing seniors and staff is usually structural; losing juniors is often ramp and management |
-| Team and manager | Attrition clustered under one manager is a finding about the manager |
+| Team and manager | A cluster is a signal to investigate management practices, support, team size, pay, level mix, cohort and recent reorganisation before attributing a cause |
 | Tenure at exit | Under a year is hiring and onboarding; two to four years is growth and pay |
 
-Compute each over at least a year, and against the team's own baseline rather than a company-wide figure that hides the cluster.
+Compute each over comparable periods with headcount denominators, ideally at least a year, and against the team's own baseline rather than a company-wide figure that hides the cluster.
 
 ### 2. Aggregate the exit data over time
 
-One exit interview is an anecdote. Twenty are a pattern, and the pattern is the only thing worth acting on.
+One exit interview is limited evidence, but a credible individual report can warrant action now. Aggregate exits to test recurring patterns; mark uncertainty when samples are small and do not wait for a fixed count before addressing a plausible risk.
 
 - Collect the reasons in a fixed set of categories, so the counts are comparable year to year.
 - Separate the stated reason from the probable one. "Better opportunity" is what people say; the follow-up question is what the opportunity offered that this role did not.
