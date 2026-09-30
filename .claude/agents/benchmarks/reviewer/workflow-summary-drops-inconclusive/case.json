@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Keep the workflow summary tables compact by showing pass rates and split votes without an additional inconclusive column.",
+  "lesson": "A report publisher silently omits a newly added metric",
+  "must_mention": [
+    "evals\\.yml",
+    "inconclusive",
+    "summary|publish|column"
+  ]
+}
