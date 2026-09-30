@@ -1,0 +1,18 @@
+diff --git a/plugins/security/skills/host-hardening/references/ssh-and-access.md b/plugins/security/skills/host-hardening/references/ssh-and-access.md
+--- a/plugins/security/skills/host-hardening/references/ssh-and-access.md
++++ b/plugins/security/skills/host-hardening/references/ssh-and-access.md
+@@ -78,11 +78,11 @@
+ ```bash
+ set -Eeuo pipefail
+ # On the canary, from a new session:
+-effective=$(ssh -n -o BatchMode=yes canary 'sudo -n sshd -T -C user=deploy,host=client.example,addr=192.0.2.10')
++effective=$(ssh -n -o BatchMode=yes canary 'sudo -n sshd -T')
+ printf '%s\n' "$effective" | grep -E 'passwordauthentication|permitrootlogin'
+ # Confirm the fleet still matches the intended state after rollout:
+ while IFS= read -r h; do
+-  effective=$(ssh -n -o BatchMode=yes "$h" 'sudo -n sshd -T -C user=deploy,host=client.example,addr=192.0.2.10') || exit 1
++  effective=$(ssh -n -o BatchMode=yes "$h" 'sudo -n sshd -T') || exit 1
+   printf '%s\n' "$effective" | sha256sum
+ done < hosts.txt
+ ```
+--

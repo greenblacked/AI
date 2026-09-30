@@ -7,7 +7,7 @@
 
 # Agent skills
 
-98 agent skills, 21 read-only subagents and eight slash commands, in eight
+99 agent skills, 21 read-only subagents and eight slash commands, in eight
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-98-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-99-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -47,7 +47,7 @@ outside a runtime that can trigger them for you.
 | [`gamedev`](#gamedev) | Making games, and shipping them | 11 skills, 1 subagent, 1 command |
 | [`operations`](#operations) | Keeping a running system alive | 19 skills, 6 subagents, 2 commands |
 | [`delivery`](#delivery) | Getting a change into production | 10 skills, 1 subagent |
-| [`security`](#security) | The defensive side of shipping software | 13 skills, 4 subagents, 2 commands |
+| [`security`](#security) | The defensive side of shipping software | 14 skills, 4 subagents, 2 commands |
 | [`manager`](#manager) | Engineering leadership | 13 skills, 2 subagents, 2 commands |
 | [`personal`](#personal) | Money, travel, admin, habits and health | 7 skills, 2 subagents |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 5 skills |
@@ -92,7 +92,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.094 }
+{ "skillListingBudgetFraction": 0.095 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -333,6 +333,7 @@ The defensive side of shipping software.
 | [`certificate-automation`](plugins/security/skills/certificate-automation/SKILL.md) | Move a certificate estate onto automated ACME issuance and renewal ahead of the CA/Browser Forum's shrinking maximum lifetimes: inventory from outside first, classify every endpoint by ACME capability, schedule by ACME Renewal Information with a lifetime-fraction backstop, and alert on renewal failure. |
 | [`data-privacy`](plugins/security/skills/data-privacy/SKILL.md) | Handle personal data end to end: settle controller or processor before anything else, classify what is held, enforce retention with a job rather than a document, and make deletion reach the search index, the caches and the restore path instead of only the primary row. |
 | [`dependency-triage`](plugins/security/skills/dependency-triage/SKILL.md) | Work a queue of vulnerability alerts into a decision each — reachability before severity, the two signals that mean today rather than this quarter, safe patches batched and risky ones isolated, and suppression that expires. |
+| [`host-hardening`](plugins/security/skills/host-hardening/SKILL.md) | Harden a Linux or Unix host against a named baseline without locking yourself out: preserve a second way in before touching sshd or sudo, export the config either side, change one class at a time on a canary, and verify over a path you did not edit — across SSH, sudo, auditd, sysctl, services and permissions. |
 | [`iac-review`](plugins/security/skills/iac-review/SKILL.md) | Review a Terraform change against the plan JSON rather than the plan text, so replacements and destroys surface first instead of being skimmed past. |
 | [`image-hardening`](plugins/security/skills/image-hardening/SKILL.md) | Build or audit a container image: minimal base, digest pinning, numeric non-root UID, no secrets in layers, SBOM, a scan gate that will not get bypassed, signing that is actually verified. |
 | [`secret-rotation`](plugins/security/skills/secret-rotation/SKILL.md) | Rotate a credential, or contain one that has leaked. The two run in opposite orders, and the skill makes you pick which one you are in before it does anything else. |

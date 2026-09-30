@@ -10,7 +10,7 @@
     "manager": 12500,
     "operations": 17000,
     "personal": 6500,
-    "security": 11500
+    "security": 12500
   },
   "skills": {
     "access-review": 945,
@@ -67,6 +67,7 @@
     "habit-change": 823,
     "health-coach": 747,
     "hiring-loop": 887,
+    "host-hardening": 872,
     "iac-review": 837,
     "image-hardening": 872,
     "incident-comms": 951,
