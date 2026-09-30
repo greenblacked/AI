@@ -7,7 +7,7 @@
     "coding": 18000,
     "delivery": 9500,
     "gamedev": 10500,
-    "manager": 12500,
+    "manager": 13500,
     "operations": 17000,
     "personal": 6500,
     "security": 12500
@@ -34,6 +34,7 @@
     "code-review": 841,
     "code-scaffold": 760,
     "codebase-orientation": 909,
+    "compensation-benchmarking": 898,
     "conference-talk": 919,
     "cost-review": 935,
     "cutover": 909,
