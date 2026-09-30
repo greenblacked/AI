@@ -161,6 +161,9 @@ baseline deltas could move because of the changed case population.
 The corrected fixture has ten queries per side. Its dataset revision requires rerunning
 baseline and candidate on that same set; older raw scores are not comparable. The
 reviewer benchmark appends a positive-only case to reproduce the population change.
+`tests/test_harness.py` also checks that the trigger runner suppresses baseline deltas
+when query text, labels, expected winners, ordering or declared run settings differ;
+legacy scores without comparison metadata must be rerun rather than annotated by guess.
 
 **First caught:** #89, the automated PR reviewer.
 

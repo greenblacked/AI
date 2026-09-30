@@ -42,6 +42,7 @@ override.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shlex
 import subprocess
@@ -69,6 +70,36 @@ none of them applies. No explanation, no punctuation, no other text."""
 # Claude Code caps each listing entry's description at this many characters regardless
 # of the overall budget (the `skillListingMaxDescChars` setting).
 ENTRY_CAP = 1536
+COMPARISON_SCHEMA = 1
+EVAL_PROTOCOL = "majority-vote-routing-v1"
+
+
+def _digest(value: object) -> str:
+    encoded = json.dumps(value, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def comparison(target: Target, cases: list[dict], args) -> dict:
+    """Identify the measurement setup, excluding the description under test.
+
+    Custom command arguments may contain secrets, so they are never persisted or
+    hashed; custom-client results cannot be verified as comparable.
+    """
+    client = getattr(args, "client_kind", args.command[0])
+    known_template = BACKENDS.get(client)
+    return {
+        "schema": COMPARISON_SCHEMA,
+        "cases_sha256": _digest(
+            [[c["query"], c["should_trigger"], c.get("expected")] for c in cases]
+        ),
+        "kind": target.kind,
+        "model": args.model,
+        "client": client if known_template else "custom",
+        "command_sha256": _digest(known_template) if known_template else None,
+        "runs": args.runs,
+        "budget": args.budget,
+        "prompt_sha256": _digest([PROMPT, ENTRY_CAP, EVAL_PROTOCOL]),
+    }
 
 
 class Target:
@@ -337,6 +368,7 @@ def score(target: Target, entries: dict, args) -> dict:
         "kind": target.kind,
         "backend": args.command[0],
         "model": args.model,
+        "comparison": comparison(target, cases, args),
         "total": len(results),
         "passed": sum(r["passed"] for r in results),
         "rate": rate(results) or 0.0,
@@ -364,6 +396,29 @@ def _load_baseline(path: Path | None) -> dict[str, dict]:
         raise SystemExit(f"no baseline at {path}")
     data = json.loads(path.read_text(encoding="utf-8"))
     return {r.get("target", r.get("skill")): r for r in data}
+
+
+def _comparable(before: dict | None, report: dict) -> tuple[bool, str]:
+    if before is None:
+        return False, "new target"
+    old = before.get("comparison")
+    new = report["comparison"]
+    if (
+        not isinstance(old, dict)
+        or type(old.get("schema")) is not int
+        or old["schema"] != COMPARISON_SCHEMA
+    ):
+        return False, "legacy or unsupported comparison metadata"
+    if new["client"] == "custom" or old.get("client") == "custom":
+        return False, "custom-client command identity unverifiable"
+    differences = [
+        key
+        for key in new
+        if key not in old or type(old[key]) is not type(new[key]) or old[key] != new[key]
+    ]
+    if differences:
+        return False, "different " + ", ".join(differences)
+    return True, ""
 
 
 def main() -> int:
@@ -424,6 +479,7 @@ def main() -> int:
         parser.error("--runs must be a positive odd number, so that a vote cannot tie")
     if args.jobs < 1:
         parser.error("--jobs must be at least 1")
+    args.client_kind = "custom" if args.command else args.backend
     try:
         args.command = build_command(args.backend, args.command, args.model)
     except ValueError as error:
@@ -482,11 +538,12 @@ def main() -> int:
         )
         if baseline:
             before = baseline.get(report["target"])
-            previous_rate = before.get("rate") if before else None
+            comparable, _ = _comparable(before, report)
+            previous_rate = before.get("rate") if comparable else None
             line += (
                 f" {report['rate'] - previous_rate:>+7.0%}"
                 if previous_rate is not None
-                else f" {'new' if before is None else 'n/a':>7}"
+                else f" {'n/a':>7}"
             )
         print(line)
 
@@ -495,16 +552,19 @@ def main() -> int:
         print(f"{'target':22} " + " ".join(f"{metric:>12}" for metric in METRICS))
         for report in reports:
             before = baseline.get(report["target"])
+            comparable, reason = _comparable(before, report)
             changes = []
             for metric in METRICS:
-                old = before.get(metric) if before else None
+                old = before.get(metric) if comparable else None
                 current = report[metric]
                 changes.append(
                     f"{current - old:>+12.0%}"
                     if old is not None and current is not None
                     else f"{'n/a':>12}"
                 )
-            print(f"{report['target']:22} " + " ".join(changes))
+            print(
+                f"{report['target']:22} " + " ".join(changes) + (f"  ({reason})" if reason else "")
+            )
 
     failing = [r for r in reports if r["rate"] < args.threshold]
     for report in failing:
