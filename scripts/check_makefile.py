@@ -87,6 +87,12 @@ COUNT_CLAIMS = (
 )
 
 TARGET_RE = re.compile(r"^([a-z][a-z0-9-]*):")
+# `lint: LINT_STRICT := 0` matches TARGET_RE too, but it is a target-specific variable, not
+# a rule: it must not be read as a fresh target whose recipe starts empty, or a recipe
+# that sits above it is forgotten and a one-way parity check passes on nothing.
+TARGET_VAR_RE = re.compile(
+    r"^\s*(?:export\s+|override\s+|private\s+)*[A-Za-z_][A-Za-z0-9_.-]*\s*[:?+]?="
+)
 JOBS_RE = re.compile(r"^jobs:\s*(?:#.*)?$")
 JOB_RE = re.compile(r"^ {2}([A-Za-z0-9_.-]+):\s*(?:#.*)?$")
 TOP_LEVEL_RE = re.compile(r"^[^\s#]")
@@ -128,6 +134,13 @@ def make_targets(text: str) -> dict[str, str]:
             continue
         match = TARGET_RE.match(line)
         if match:
+            if TARGET_VAR_RE.match(line[match.end() :]):
+                # A target-specific variable: keep the recipe an earlier rule line for
+                # this target accumulated, and let any tab lines that follow still attach
+                # to it, rather than treating the assignment as a new empty rule.
+                current = match.group(1)
+                targets.setdefault(current, "")
+                continue
             current = match.group(1)
             targets[current] = ""
         else:
