@@ -1,0 +1,14 @@
+--- a/.github/workflows/evals.yml
++++ b/.github/workflows/evals.yml
+@@ -649,11 +649,6 @@
+         if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'
+         with:
+           node-version: '22'
+-      - name: Install the reviewer repository test dependencies
+-        if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'
+-        run: |
+-          set -Eeuo pipefail
+-          python -m pip install "pytest==${PYTEST_VERSION}" "coverage==${COVERAGE_VERSION}"
+       - name: Benchmark the reviewer
+         id: benchmark
+         if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'

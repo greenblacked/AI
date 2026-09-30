@@ -1433,6 +1433,8 @@ jobs:
 
 CI_DOC = """# CI
 
+The introduction names every workflow, and this one is `demo.yml`.
+
 ## `.github/workflows/demo.yml` — Demo
 
 | Job | Check name | Failing means |
@@ -1456,6 +1458,23 @@ def test_a_documented_workflow_passes(tmp_path, capsys):
     write_ci(tmp_path)
     assert ci_docs.check(tmp_path) == 0
     assert "2 job(s) across 1 workflow(s)" in capsys.readouterr().out
+
+
+def test_the_introduction_must_name_every_workflow(tmp_path, capsys):
+    # The failure this exists for: the page opened with "Five workflows run it" while
+    # seven existed, because the count was prose and nothing owned it. Naming each file
+    # in the introduction and comparing the set to the tree leaves no number to drift.
+    write_ci(tmp_path, doc=CI_DOC.replace("and this one is `demo.yml`", "and nothing else"))
+    assert ci_docs.check(tmp_path) == 1
+    assert "introduction does not name demo.yml" in capsys.readouterr().out
+
+
+def test_the_introduction_may_not_name_a_workflow_that_is_gone(tmp_path, capsys):
+    # The reverse direction: a workflow is removed and the introduction keeps naming it,
+    # sending a reader after a file that is not there.
+    write_ci(tmp_path, doc=CI_DOC.replace("this one is `demo.yml`", "this one is `ghost.yml`"))
+    assert ci_docs.check(tmp_path) == 1
+    assert "introduction names ghost.yml" in capsys.readouterr().out
 
 
 def test_a_job_with_no_row_fails(tmp_path, capsys):

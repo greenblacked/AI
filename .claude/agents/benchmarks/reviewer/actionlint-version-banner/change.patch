@@ -1,0 +1,11 @@
+--- a/Makefile
++++ b/Makefile
+@@ -82,7 +82,7 @@
+ 		echo "yamllint not installed - run: pipx install yamllint"; \
+ 	 fi
+ 	@if command -v actionlint >/dev/null 2>&1; then \
+-		have=$$(actionlint --version | sed -n '1{s/^v//;p;}'); \
++		have=$$(actionlint --version); \
+ 		if [ "$$have" != "$(ACTIONLINT_PIN)" ]; then \
+ 			msg="actionlint $$have is first on PATH but CI pins $(ACTIONLINT_PIN) - run: go install github.com/rhysd/actionlint/cmd/actionlint@v$(ACTIONLINT_PIN)"; \
+ 			if [ "$(LINT_STRICT)" = "1" ]; then echo "error: $$msg"; exit 1; else echo "warning: $$msg"; fi; \

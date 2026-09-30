@@ -164,3 +164,77 @@ def test_changed_publisher_keeps_under_floor_error_and_exit_code(tmp_path):
     assert "::error title=below the eval floor::alpha scored 60%" in result.stdout
     assert "Below the 70% floor: `alpha`. This fails the job." in summary
     assert "| `alpha` | 60% | 80% | 80% | 80% | 2 | 1 |" in summary
+
+
+def test_reviewer_dependencies_match_ci_and_follow_scoring_gates():
+    import re
+
+    text = WORKFLOW.read_text(encoding="utf-8")
+    ci = (REPO / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    for name in ("PYTEST_VERSION", "COVERAGE_VERSION"):
+        pattern = rf"^  {name}: '([^']+)'$"
+        assert re.search(pattern, text, re.MULTILINE).group(1) == re.search(
+            pattern, ci, re.MULTILINE
+        ).group(1)
+    job = text.split("  reviewer-benchmark:", 1)[1]
+    install = job.index("- name: Install the reviewer repository test dependencies")
+    assert job.index("id: credentials") < install < job.index("- name: Benchmark the reviewer")
+    step = job[install : job.index("- name: Benchmark the reviewer")]
+    assert (
+        "if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'" in step
+    )
+    script = _extract_run_block(text, "Install the reviewer repository test dependencies")
+    assert (
+        'python -m pip install "pytest==${PYTEST_VERSION}" "coverage==${COVERAGE_VERSION}"'
+        in script
+    )
+
+
+@pytest.mark.parametrize("event", ["pull_request", "schedule", "workflow_dispatch"])
+@pytest.mark.parametrize("credential", [False, True])
+def test_reviewer_credential_gate_preserves_stand_down(tmp_path, event, credential):
+    script = _extract_run_block(
+        WORKFLOW.read_text(encoding="utf-8"), "Check the benchmark has a credential"
+    )
+    output = tmp_path / "output"
+    env = {"PATH": "/usr/bin:/bin", "GITHUB_EVENT_NAME": event, "GITHUB_OUTPUT": str(output)}
+    if credential:
+        env["CLAUDE_CODE_OAUTH_TOKEN"] = "fixture"  # noqa: S105 - fixture only
+    result = subprocess.run(  # noqa: S603 - execute actual workflow gate offline
+        ["bash", "-c", script],  # noqa: S607 - same PATH as workflow
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert output.read_text(encoding="utf-8") == f"skip={str(not credential).lower()}\n"
+    assert result.returncode == (1 if event == "workflow_dispatch" and not credential else 0)
+
+
+@pytest.mark.parametrize(
+    ("event", "reviewer", "expected"),
+    [
+        ("schedule", "", "true"),
+        ("workflow_dispatch", "true", "true"),
+        ("workflow_dispatch", "false", "false"),
+    ],
+)
+def test_reviewer_selection_gate_preserves_dispatch_opt_in(tmp_path, event, reviewer, expected):
+    script = _extract_run_block(
+        WORKFLOW.read_text(encoding="utf-8"), "Decide whether the benchmark measures this change"
+    )
+    output = tmp_path / "output"
+    result = subprocess.run(  # noqa: S603 - execute workflow gate without scoring
+        ["bash", "-c", script],  # noqa: S607 - same PATH as workflow
+        env={
+            "PATH": "/usr/bin:/bin",
+            "GITHUB_EVENT_NAME": event,
+            "REVIEWER_INPUT": reviewer,
+            "GITHUB_OUTPUT": str(output),
+        },
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert output.read_text(encoding="utf-8") == f"run={expected}\n"

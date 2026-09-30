@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Normalize whitespace before removing query punctuation.",
+  "lesson": "Normalization creates whitespace after its whitespace pass",
+  "must_mention": [
+    "rules\\.py",
+    "whitespace|space",
+    "collision|conflict|duplicate"
+  ]
+}

@@ -36,6 +36,61 @@ ever checks whether it still does.
 
 ## The entries
 
+### An isolated reviewer lacks the dependencies its contract requires
+
+**Class.** A workflow initializes an interpreter but relies on undeclared runner packages
+for commands that an isolated worker must execute without installation permission.
+
+**How it shows up.** The reviewer benchmark required `make test` but installed neither
+pytest nor coverage before invoking its restricted reviewer workers.
+
+**The check that catches it.** `tests/test_evals_workflow.py` checks installation ordering,
+shared CI pins and the existing selection and credential gates without scoring a model.
+The reviewer benchmark removes the dependency installation.
+
+**First caught:** #95, the review stage.
+
+### A version comparison treats a tool banner as a version
+
+**Class.** A strict version gate compares an entire multi-line version report with a
+single version pin instead of isolating the version field.
+
+**How it shows up.** A correctly pinned actionlint installation failed `lint-strict`
+because its version command also reports installation and compiler information.
+
+**The check that catches it.** `tests/test_makefile.py` runs the actual actionlint
+recipe against realistic multi-line output, a mismatched version and a missing tool.
+The reviewer benchmark restores the whole-banner comparison.
+
+**First caught:** #95, the review stage.
+
+### A delimiter scanner closes a call at an inner expression
+
+**Class.** A scanner counts only explicit function openings but consumes every closing
+delimiter, so ordinary nested expressions end the enclosing call too early.
+
+**How it shows up.** A shell regular-expression group inside a Make call hid a later
+unescaped hash from the GNU Make 3.81 portability check.
+
+**The check that catches it.** `tests/test_makefile.py` checks grouped shell regexes,
+escaped hashes, nested calls and line reporting. The reviewer benchmark restores the
+premature closing behavior.
+
+**First caught:** #95, the automated PR reviewer.
+
+### Normalization creates whitespace after its whitespace pass
+
+**Class.** A normalizer removes punctuation after collapsing whitespace, leaving new
+whitespace differences in the identity used by duplicate and collision checks.
+
+**How it shows up.** `Ship — it` and `Ship it` escaped both same-skill duplicate checks
+and cross-skill positive-query conflicts because removing the dash left two spaces.
+
+**The check that catches it.** `tests/test_evals.py` exercises both duplicate and
+cross-skill conflict paths. The reviewer benchmark reverses the normalization order.
+
+**First caught:** #95, the automated PR reviewer.
+
 ### A report publisher silently omits a newly added metric
 
 **Class.** A measurement adds an important result field but its downstream report

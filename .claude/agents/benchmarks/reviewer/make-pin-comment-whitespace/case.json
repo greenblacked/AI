@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Simplify local workflow pin extraction by removing redundant whitespace stripping.",
+  "lesson": "A shell audit parses YAML with grep, sed or awk",
+  "must_mention": [
+    "Makefile",
+    "comment|whitespace|space",
+    "pin|version"
+  ]
+}

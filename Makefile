@@ -12,11 +12,12 @@ SHELL := bash
 # gives all three the same value, and nothing here enforces one spelling over another.
 # This extraction has to accept the same three, or a pin re-quoted a way `check_workflows`
 # still reads fine turns RUFF_PIN empty and `make lint` starts comparing against nothing.
-RUFF_PIN := $(shell sed -En "s/^ *RUFF_VERSION: *[\"']?([^\"' #]+)[\"']?.*/\1/p" .github/workflows/security.yml)
+RUFF_PIN := $(strip $(shell sed -En "s/^ *RUFF_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/security.yml))
 MARKDOWNLINT_PIN := 0.23.2
-CODESPELL_PIN := $(shell sed -En "s/^ *CODESPELL_VERSION: *[\"']?([^\"' #]+)[\"']?.*/\1/p" .github/workflows/ci.yml)
+CODESPELL_PIN := $(strip $(shell sed -En "s/^ *CODESPELL_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml))
+ACTIONLINT_PIN := $(strip $(shell sed -En "s/^ *ACTIONLINT_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml))
 
-.PHONY: help validate catalogue providers test coverage lint package attribution naming portable install clean release-prepare release
+.PHONY: help validate catalogue providers test coverage lint lint-strict _lint package attribution naming portable install clean release-prepare release
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-17s\033[0m %s\n", $$1, $$2}'
@@ -24,11 +25,12 @@ help: ## Show this help
 validate: ## Validate every skill, subagent and the marketplace manifest
 	PYTHONPATH=src $(PYTHON) -m skillcheck . --strict
 
-catalogue: ## Check listing ceilings, README and CI drift, workflows, shell, the hook, providers table
+catalogue: ## Check listing ceilings, README and CI drift, workflows, Makefile, shell, the hook, providers table
 	@$(PYTHON) scripts/check_listing_budget.py .
 	@$(PYTHON) scripts/check_readme.py .
 	@$(PYTHON) scripts/check_ci_docs.py .
 	@$(PYTHON) scripts/check_workflows.py .
+	@$(PYTHON) scripts/check_makefile.py .
 	@$(PYTHON) scripts/check_shell.py .
 	@$(PYTHON) scripts/check_settings.py .
 	@$(PYTHON) scripts/providers_table.py .
@@ -44,24 +46,60 @@ coverage: ## Run the tests under coverage and fail below the floor in pyproject.
 	$(PYTHON) -m coverage report
 
 lint: ## Lint python, markdown, YAML and workflows (skips a tool when it is not installed)
+lint: LINT_STRICT := 0
+
+lint-strict: ## Lint as CI does: a missing or mis-versioned tool fails rather than skips
+lint-strict: LINT_STRICT := 1
+
+lint lint-strict: _lint
+
+_lint:
 	@if command -v ruff >/dev/null 2>&1; then \
 		have=$$(ruff --version | awk '{print $$2}'); \
 		if [ "$$have" != "$(RUFF_PIN)" ]; then \
-			echo "warning: ruff $$have is first on PATH but CI pins $(RUFF_PIN)."; \
-			echo "         0.16 formats Python inside Markdown fences and older versions do not,"; \
-			echo "         so this run can pass where CI fails - run: pipx install ruff==$(RUFF_PIN)"; \
+			msg="ruff $$have is first on PATH but CI pins $(RUFF_PIN); 0.16 formats Python inside Markdown fences and older versions do not, so this run can pass where CI fails - run: pipx install ruff==$(RUFF_PIN)"; \
+			if [ "$(LINT_STRICT)" = "1" ]; then echo "error: $$msg"; exit 1; else echo "warning: $$msg"; fi; \
 		fi; \
 		ruff check .; rc=$$?; ruff format --check .; fc=$$?; \
 		[ $$rc -eq 0 ] && [ $$fc -eq 0 ]; \
-		else echo "ruff not installed - run: pipx install ruff==$(RUFF_PIN) (the version CI pins)"; fi
-	@if command -v markdownlint-cli2 >/dev/null 2>&1; then markdownlint-cli2 "**/*.md"; \
-		else echo "markdownlint-cli2 not installed - run: npx markdownlint-cli2@$(MARKDOWNLINT_PIN) '**/*.md'"; fi
-	@if command -v yamllint >/dev/null 2>&1; then yamllint --strict .; \
-		else echo "yamllint not installed - run: pipx install yamllint"; fi
-	@if command -v actionlint >/dev/null 2>&1; then actionlint; \
-		else echo "actionlint not installed - see https://github.com/rhysd/actionlint"; fi
-	@if command -v codespell >/dev/null 2>&1; then codespell; \
-		else echo "codespell not installed - run: pipx install codespell==$(CODESPELL_PIN)"; fi
+	 elif [ "$(LINT_STRICT)" = "1" ]; then \
+		echo "error: ruff not installed - run: pipx install ruff==$(RUFF_PIN)"; exit 1; \
+	 else \
+		echo "ruff not installed - run: pipx install ruff==$(RUFF_PIN) (the version CI pins)"; \
+	 fi
+	@if command -v markdownlint-cli2 >/dev/null 2>&1; then \
+		markdownlint-cli2 "**/*.md"; \
+	 elif [ "$(LINT_STRICT)" = "1" ]; then \
+		echo "error: markdownlint-cli2 not installed - run: npx markdownlint-cli2@$(MARKDOWNLINT_PIN) '**/*.md'"; exit 1; \
+	 else \
+		echo "markdownlint-cli2 not installed - run: npx markdownlint-cli2@$(MARKDOWNLINT_PIN) '**/*.md'"; \
+	 fi
+	@if command -v yamllint >/dev/null 2>&1; then \
+		yamllint --strict .; \
+	 elif [ "$(LINT_STRICT)" = "1" ]; then \
+		echo "error: yamllint not installed - run: pipx install yamllint"; exit 1; \
+	 else \
+		echo "yamllint not installed - run: pipx install yamllint"; \
+	 fi
+	@if command -v actionlint >/dev/null 2>&1; then \
+		have=$$(actionlint --version | sed -n '1{s/^v//;p;}'); \
+		if [ "$$have" != "$(ACTIONLINT_PIN)" ]; then \
+			msg="actionlint $$have is first on PATH but CI pins $(ACTIONLINT_PIN) - run: go install github.com/rhysd/actionlint/cmd/actionlint@v$(ACTIONLINT_PIN)"; \
+			if [ "$(LINT_STRICT)" = "1" ]; then echo "error: $$msg"; exit 1; else echo "warning: $$msg"; fi; \
+		fi; \
+		actionlint; \
+	 elif [ "$(LINT_STRICT)" = "1" ]; then \
+		echo "error: actionlint not installed - see https://github.com/rhysd/actionlint"; exit 1; \
+	 else \
+		echo "actionlint not installed - see https://github.com/rhysd/actionlint"; \
+	 fi
+	@if command -v codespell >/dev/null 2>&1; then \
+		codespell; \
+	 elif [ "$(LINT_STRICT)" = "1" ]; then \
+		echo "error: codespell not installed - run: pipx install codespell==$(CODESPELL_PIN)"; exit 1; \
+	 else \
+		echo "codespell not installed - run: pipx install codespell==$(CODESPELL_PIN)"; \
+	 fi
 
 package: ## Build a .skill archive for every skill into dist/
 	@PYTHONPATH=src $(PYTHON) scripts/package_skills.py

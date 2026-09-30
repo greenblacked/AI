@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Compare the actionlint version report directly to the pinned version.",
+  "lesson": "A version comparison treats a tool banner as a version",
+  "must_mention": [
+    "Makefile",
+    "actionlint",
+    "multiline|multi-line|banner|installation|compiler"
+  ]
+}

@@ -1,7 +1,9 @@
 ---
-# Trigger evaluation. Two jobs: the whole catalogue monthly or on request, and the
-# skills a pull request changed plus their declared neighbours on every pull request.
-# Neither is a required check, and the pull request one fails only below a floor well
+# Trigger evaluation. Three jobs: the whole catalogue monthly or on request, the skills
+# a pull request changed plus their declared neighbours on every pull request, and a
+# quality benchmark of the `reviewer` subagent — monthly, on request, or on a pull
+# request that changes the benchmark itself. None is a required check, and the pull
+# request one fails only below a floor well
 # under its reporting bar: scoring costs money, it is sampled rather than deterministic,
 # and a gate that is occasionally wrong is a gate people learn to override. The schema of
 # every eval set is checked on every push by `skillcheck`; this workflow scores the
@@ -64,6 +66,13 @@ on:
         required: false
         default: ''
         type: string
+      reviewer:
+        description: >-
+          Also run the reviewer quality benchmark (the `reviewer-benchmark` job);
+          off by default because it costs a full review run per case
+        required: false
+        default: false
+        type: boolean
 
 permissions: {}
 
@@ -87,6 +96,8 @@ env:
   CLAUDE_CODE_VERSION: '2.1.284'
   CODEX_VERSION: '0.159.0'
   GEMINI_CLI_VERSION: '0.61.0'
+  PYTEST_VERSION: '9.1.1'
+  COVERAGE_VERSION: '7.16.2'
 
 jobs:
   evaluate:
@@ -536,4 +547,166 @@ jobs:
         with:
           name: trigger-evals-changed
           path: eval-results
+          if-no-files-found: ignore
+
+  reviewer-benchmark:
+    name: benchmark the reviewer
+    # The trigger eval asks whether `reviewer` gets chosen; this asks whether what comes
+    # back is any good — whether a seeded defect from docs/review-lessons.md is caught,
+    # and whether an honest clean change is shipped rather than stalled on an invented
+    # objection. It runs the real subagent through the real CLI, so it costs a model call
+    # per case per sample. On a pull request it therefore runs only when the thing it
+    # measures changed: the cases, the agent, or the harness. A scheduled or dispatched
+    # run always goes. The job carries no job-level `if:`, because one that skips reports
+    # success but a pull request that touches none of those inputs should still get a
+    # green check rather than a Pending one; the gate step below decides instead.
+    runs-on: ubuntu-latest
+    # Twenty-seven cases, three samples each, four in flight — every sample a full review
+    # run with up to forty turns. Two hours covers that with headroom, and each sample is
+    # also bounded by the harness's own per-run timeout.
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          # The base branch has to be reachable for the diff the gate step runs.
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.13'
+      - name: Decide whether the benchmark measures this change
+        id: gate
+        run: |
+          set -Eeuo pipefail
+          case "${GITHUB_EVENT_NAME}" in
+            schedule)
+              echo "run=true" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+            workflow_dispatch)
+              # A dispatch is usually a person re-scoring one skill; the benchmark costs a
+              # full review run per case, so it only goes when the `reviewer` input asks.
+              if [ "${REVIEWER_INPUT}" = "true" ]; then
+                echo "run=true" >> "$GITHUB_OUTPUT"
+              else
+                echo "run=false" >> "$GITHUB_OUTPUT"
+              fi
+              exit 0
+              ;;
+          esac
+          # A pull request: run only when it changes one of the three things a benchmark
+          # number depends on — the cases, the agent under test, or the harness.
+          if ! git rev-parse --verify --quiet "origin/${GITHUB_BASE_REF}" > /dev/null; then
+            git fetch --no-tags --prune --quiet origin \
+              "+refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}"
+          fi
+          git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD" > changed-paths.txt
+          measured='^(\.claude/agents/benchmarks/|\.claude/agents/reviewer\.md$|scripts/run_review_benchmark\.py$)'
+          if grep -Eq "$measured" changed-paths.txt; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### Reviewer benchmark"
+              echo ""
+              echo "Not run: this pull request changes nothing the benchmark measures."
+              echo ""
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+        env:
+          REVIEWER_INPUT: ${{ inputs.reviewer }}
+      - name: Check the benchmark has a credential
+        id: credentials
+        if: steps.gate.outputs.run == 'true'
+        # Same split as `evaluate`: a scheduled run with no secret stands down with a
+        # notice, because a red mark nobody can clear is one people learn to ignore, and
+        # a pull request from a fork is handed no secrets at all. A run somebody asked
+        # for is owed the error and fails loudly.
+        run: |
+          set -Eeuo pipefail
+          if [ -n "${CLAUDE_CODE_OAUTH_TOKEN:-}${ANTHROPIC_API_KEY:-}" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+          case "${GITHUB_EVENT_NAME}" in
+            schedule | pull_request)
+              echo "::notice title=no credentials::Skipping the reviewer benchmark:" \
+                "set CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY to enable it"
+              ;;
+            *)
+              echo "::error title=no credentials::Set CLAUDE_CODE_OAUTH_TOKEN or" \
+                "ANTHROPIC_API_KEY to run the reviewer benchmark"
+              exit 1
+              ;;
+          esac
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'
+        with:
+          node-version: '22'
+      - name: Install the reviewer repository test dependencies
+        if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'
+        run: |
+          set -Eeuo pipefail
+          python -m pip install "pytest==${PYTEST_VERSION}" "coverage==${COVERAGE_VERSION}"
+      - name: Benchmark the reviewer
+        id: benchmark
+        if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'
+        # The harness exits 1 when a rate is below its threshold and 2 when it cannot run
+        # at all; both leave the JSON on disk for the publish step, and the step's own
+        # exit code is the signal either way.
+        run: |
+          set -Eeuo pipefail
+          npm install --global "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
+          python scripts/run_review_benchmark.py \
+            --runs 3 --jobs 4 --json reviewer-benchmark.json
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - name: Publish the benchmark
+        if: always() && steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'
+        run: |
+          set -Eeuo pipefail
+          [ -f reviewer-benchmark.json ] || exit 0
+          python - >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          import json
+          import pathlib
+
+          rows = json.loads(pathlib.Path("reviewer-benchmark.json").read_text(encoding="utf-8"))
+          lines = [
+              "### Reviewer benchmark",
+              "",
+              "| Case | Kind | Verdict | Result | Cost |",
+              "| --- | --- | --- | --- | --- |",
+          ]
+          for row in rows:
+              verdict = row["verdict"] or "-"
+              result = "pass" if row["passed"] else "FAIL"
+              cost = f"${row['cost_usd']:.2f}" if row.get("cost_usd") else "-"
+              lines.append(
+                  f"| `{row['case']}` | {row['kind']} | {verdict} | {result} | {cost} |"
+              )
+          defects = [r for r in rows if r["kind"] == "defect"]
+          clean = [r for r in rows if r["kind"] == "clean"]
+          caught = sum(1 for r in defects if r["passed"])
+          false_alarms = sum(1 for r in clean if not r["passed"])
+          spent = sum(r.get("cost_usd") or 0 for r in rows)
+          lines.append("")
+          lines.append(
+              f"catch rate: {caught}/{len(defects)}; "
+              f"false alarms: {false_alarms}/{len(clean)}; total cost: ${spent:.2f}"
+          )
+          lines.append("")
+          print("\n".join(lines))
+          EOF
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        if: always() && steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'
+        with:
+          name: reviewer-benchmark
+          path: reviewer-benchmark.json
           if-no-files-found: ignore

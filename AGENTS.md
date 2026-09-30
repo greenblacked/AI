@@ -80,7 +80,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `release.yml`, `ci-triage.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
 | `providers.json` | Which AI tools read `AGENTS.md` and load skills, with sources and a checked date; `scripts/providers_table.py` renders it into the README |
-| `scripts/` | Packaging (`package_skills.py`, `verify_archives.py`), install, the eval harness, the portable export, cutting a release (`release.py`), and the seven catalogue checks |
+| `scripts/` | Packaging (`package_skills.py`, `verify_archives.py`), install, the eval harness, the portable export, cutting a release (`release.py`), and the eight catalogue checks |
 | `scripts/hooks/` | The `PostToolUse` hook `.claude/settings.json` registers, which validates a skill, subagent, command or rule as it is written |
 
 ## Setup commands
@@ -107,14 +107,14 @@ make release VERSION=x.y.z          # on main, after that PR merges: tag the rel
 three before finishing; a change to `rules.py` that does not also change `tests/` is
 almost always missing a case.
 
-`make catalogue` is the seven checks on what the repository claims about itself: the
+`make catalogue` is the eight checks on what the repository claims about itself: the
 listing ceilings, the README against the tree, `docs/ci.md` against the jobs the
 workflows actually define, that each workflow's aggregate names every job in it and each
-pinned version means one thing, that every shell block and shipped script parses, that
-the hook `.claude/settings.json` registers points at a script that exists and can run,
-and that the README's table of AI tools is what `providers.json` renders to. Edit that
-file rather than the table and run `make providers`; a row not re-checked within
-`stale_after_days` warns without failing.
+pinned version means one thing, that the Makefile still wraps the same commands CI runs,
+that every shell block and shipped script parses, that the hook `.claude/settings.json`
+registers points at a script that exists and can run, and that the README's table of AI
+tools is what `providers.json` renders to. Edit that file rather than the table and run
+`make providers`; a row not re-checked within `stale_after_days` warns without failing.
 Adding a skill pushes its plugin's listing past the ceiling in `listing-budget.json`,
 on purpose: past the runtime's budget the descriptions of a plugin's least-used skills
 are dropped silently, so growth has to be a decision rather than a drift. Raise the ceiling with
