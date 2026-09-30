@@ -7,7 +7,7 @@
     "coding": 18000,
     "delivery": 9500,
     "gamedev": 10500,
-    "manager": 14000,
+    "manager": 15000,
     "operations": 17000,
     "personal": 6500,
     "security": 12500
@@ -96,6 +96,7 @@
     "refactoring": 899,
     "release-notes": 878,
     "release-strategy": 958,
+    "retention-review": 885,
     "routeros-config": 856,
     "runbook": 914,
     "schema-design": 831,
