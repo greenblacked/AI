@@ -1,0 +1,22 @@
+[
+  {"query": "how do i start a pip for an engineer who has not improved", "should_trigger": true},
+  {"query": "nothing changed after the last conversation, i think it has to become formal now", "should_trigger": true},
+  {"query": "hr wants a written performance plan, what should be in it", "should_trigger": true},
+  {"query": "how long should a performance improvement plan run", "should_trigger": true},
+  {"query": "draft the measures for the improvement plan so they are actually observable", "should_trigger": true},
+  {"query": "can i end the plan early if they clearly are not going to make it", "should_trigger": true},
+  {"query": "what support do i have to offer during a formal plan", "should_trigger": true},
+  {"query": "i inherited a pip from another manager, how do i run the rest of it fairly", "should_trigger": true},
+  {"query": "how do i document underperformance properly so it is defensible", "should_trigger": true},
+  {"query": "they are on a plan and improving slowly, do we extend it or close it", "should_trigger": true},
+  {"query": "how do i tell him his work is not good enough, i have been putting it off", "should_trigger": false, "expected": "difficult-conversation"},
+  {"query": "help me write the opening two sentences for the conversation about the missed deadline", "should_trigger": false, "expected": "difficult-conversation"},
+  {"query": "write her performance review for this cycle, reviews are due friday", "should_trigger": false, "expected": "growth-review"},
+  {"query": "is she ready for staff, build the promotion case from evidence", "should_trigger": false, "expected": "growth-review"},
+  {"query": "the new hire is ramping slowly, how do i work out why", "should_trigger": false, "expected": "onboarding-plan"},
+  {"query": "design the interview loop for a senior role and the rubric", "should_trigger": false, "expected": "hiring-loop"},
+  {"query": "i need to lay off two engineers, how do i run the process and the conversations", "should_trigger": false},
+  {"query": "how do i hold a conversation with my own manager about my workload", "should_trigger": false, "expected": "difficult-conversation"},
+  {"query": "our lead time keeps slipping, work out why shipping feels slow", "should_trigger": false, "expected": "delivery-review"},
+  {"query": "write up yesterday's outage as a blameless postmortem", "should_trigger": false, "expected": "postmortem"}
+]

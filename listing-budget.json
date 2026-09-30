@@ -7,7 +7,7 @@
     "coding": 18000,
     "delivery": 9500,
     "gamedev": 10500,
-    "manager": 13500,
+    "manager": 14000,
     "operations": 17000,
     "personal": 6500,
     "security": 12500
@@ -87,6 +87,7 @@
     "offer-negotiation": 957,
     "okr-planning": 964,
     "onboarding-plan": 927,
+    "performance-improvement-plan": 879,
     "personal-finance": 898,
     "pipeline-hardening": 868,
     "plan-platform-migration": 917,
