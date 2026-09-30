@@ -1,0 +1,12 @@
+diff --git a/scripts/run_recovery_mock.py b/scripts/run_recovery_mock.py
+--- a/scripts/run_recovery_mock.py
++++ b/scripts/run_recovery_mock.py
+@@ -256,7 +256,7 @@
+             note["head"] = state["head"]
+             events.append({"type": kind, "head": state["head"]})
+         elif kind == "patch_apply":
+-            if state["effects"] > 0:
++            if state["effects"] < 0:
+                 note["status"] = "refused"
+                 duplicate_patch = True
+             elif request["based_on"] != state["head"]:

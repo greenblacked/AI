@@ -1,0 +1,8 @@
+{
+  "goal": "submit",
+  "initial": {"head": "h1", "effects": 0, "workers": {}, "accepted": []},
+  "submit_outcomes": ["pending", "committed"],
+  "query": {"available": true, "complete": true},
+  "fence": true,
+  "schedule": [{"at": 20, "event": {"type": "remote_commit", "attempt": "a1"}}]
+}
