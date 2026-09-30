@@ -1,0 +1,22 @@
+[
+  {"query": "we keep losing engineers to companies paying 20% more, can you look at our bands", "should_trigger": true},
+  {"query": "refresh the salary bands for the platform team, the market has moved since last year", "should_trigger": true},
+  {"query": "is 95k a fair offer for a mid level backend engineer in lisbon", "should_trigger": true},
+  {"query": "check our pay data for equity gaps before the compensation cycle", "should_trigger": true},
+  {"query": "two new hires are on more than the seniors who have been here three years, what do we do", "should_trigger": true},
+  {"query": "build a merit matrix for a 4% raise budget across fourteen engineers", "should_trigger": true},
+  {"query": "how do i set the salary range for a staff engineer role", "should_trigger": true},
+  {"query": "what should our counter offer be, she has an external offer 15% above her band", "should_trigger": true},
+  {"query": "our compa-ratios are all over the place, audit them and tell me who is out of range", "should_trigger": true},
+  {"query": "we are opening an office in poland, what should the band be relative to london", "should_trigger": true},
+  {"query": "write up her performance review, reviews are due friday", "should_trigger": false, "expected": "growth-review"},
+  {"query": "is he ready for staff, build the promotion case", "should_trigger": false, "expected": "growth-review"},
+  {"query": "design the interview loop for a senior sre role and the written rubric", "should_trigger": false, "expected": "hiring-loop"},
+  {"query": "the panel is split on the candidate, how do we decide hire or no hire", "should_trigger": false, "expected": "hiring-loop"},
+  {"query": "how do i tell my report that the raise is smaller than she hoped", "should_trigger": false, "expected": "difficult-conversation"},
+  {"query": "i need to have the conversation that his work is not good enough", "should_trigger": false, "expected": "difficult-conversation"},
+  {"query": "our lead time has doubled, work out why shipping feels slow", "should_trigger": false, "expected": "delivery-review"},
+  {"query": "the offer i got is low, help me negotiate it up", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "should we buy this comp benchmarking tool or build our own", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "write this week's status update for the reorg programme, exec audience", "should_trigger": false, "expected": "status-update"}
+]

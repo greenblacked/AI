@@ -1,0 +1,14 @@
+diff --git a/plugins/manager/skills/compensation-benchmarking/references/offers-and-equity.md b/plugins/manager/skills/compensation-benchmarking/references/offers-and-equity.md
+--- a/plugins/manager/skills/compensation-benchmarking/references/offers-and-equity.md
++++ b/plugins/manager/skills/compensation-benchmarking/references/offers-and-equity.md
+@@ -40,8 +40,8 @@
+ | Grant size | Shares or units, not a currency figure whose value is the company's own optimistic estimate |
+ | Strike price | For options, the exercise cost; a low strike is worth more than a large grant with a high one |
+ | Vesting schedule | Four years with a one-year cliff is standard; a longer cliff is a retention lever and a risk |
+-| Fully diluted shares | Ask for the total fully diluted share count and calculate ownership percentage as 100 × grant shares / fully diluted shares; confirm the share class and dilution assumptions |
+-| Valuation basis | Ask for the dated common-share 409A valuation used for the option strike and the dated preferred-share price from the last financing separately; preferred shares carry different rights and their price is not the value of employee common shares |
++| Fully diluted shares | The grant size alone shows how much of the company the candidate owns |
++| Valuation basis | Use the last preferred financing price as the value of employee common shares |
+ 
+ Refresh grants matter for retention: a person four years in has vested everything and is
+ being paid below market on the equity line, which is a compression problem wearing a

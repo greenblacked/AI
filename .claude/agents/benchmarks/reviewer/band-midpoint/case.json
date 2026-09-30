@@ -1,0 +1,9 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the manager guidance while preserving its decision quality.",
+  "lesson": "Range penetration at a symmetric midpoint is misstated",
+  "must_mention": [
+    "compa.ratio|midpoint",
+    "50%|penetration"
+  ]
+}

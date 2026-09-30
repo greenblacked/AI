@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the manager guidance while preserving its decision quality.",
+  "lesson": "An equity comparison omits ownership and conflates share classes",
+  "must_mention": [
+    "fully.diluted|denominator|ownership",
+    "409A|common",
+    "preferred|value"
+  ]
+}

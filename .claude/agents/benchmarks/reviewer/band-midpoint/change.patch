@@ -1,0 +1,19 @@
+diff --git a/plugins/manager/skills/compensation-benchmarking/references/band-construction.md b/plugins/manager/skills/compensation-benchmarking/references/band-construction.md
+--- a/plugins/manager/skills/compensation-benchmarking/references/band-construction.md
++++ b/plugins/manager/skills/compensation-benchmarking/references/band-construction.md
+@@ -98,11 +98,10 @@
+ | 0.85 – 1.15 | The working range; most people should sit here |
+ | Above 1.15 | Above midpoint; fine for a strong performer, an exception if the band has a ceiling |
+ 
+-In a band symmetric around its midpoint, compa-ratio 1.0 always means 50% range
+-penetration. The measures diverge away from the midpoint when band widths differ: with
+-a £100,000 midpoint and £110,000 salary, compa-ratio is 1.10 in either a £80,000–£120,000
+-band (75% penetration) or a £70,000–£130,000 band (about 67% penetration). Look at
+-both, next to tenure and performance.
++Range penetration tells you something compa-ratio does not: two people at compa-ratio 1.0
++can sit at different positions in bands symmetric around their midpoints. One may have
++no headroom left while the other is early in the band. Look at both, next to tenure
++and performance.
+ 
+ ## Compression and inversion
+ 

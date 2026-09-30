@@ -1,0 +1,22 @@
+[
+  {"query": "two people quit this quarter and both were seniors, i need to understand why", "should_trigger": true},
+  {"query": "we keep losing engineers at the two year mark, work out what is going on", "should_trigger": true},
+  {"query": "what should a stay interview ask so it surfaces something before they resign", "should_trigger": true},
+  {"query": "help me read our engagement survey results and turn them into things we will actually do", "should_trigger": true},
+  {"query": "should we counter offer when someone hands in their notice", "should_trigger": true},
+  {"query": "design an exit interview that gets past the polite answers", "should_trigger": true},
+  {"query": "how do i spot who is at risk of leaving before they tell me", "should_trigger": true},
+  {"query": "attrition is clustered under one manager, how do i look at that properly", "should_trigger": true},
+  {"query": "the survey scores dropped this cycle and the team is sceptical anything will change", "should_trigger": true},
+  {"query": "i want to keep a strong engineer who is quietly disengaging, how do i start", "should_trigger": true},
+  {"query": "write up her performance review, reviews are due friday", "should_trigger": false, "expected": "growth-review"},
+  {"query": "is he ready for staff, build the promotion case from the evidence", "should_trigger": false, "expected": "growth-review"},
+  {"query": "how do i run the first week for a new joiner and their buddy", "should_trigger": false, "expected": "onboarding-plan"},
+  {"query": "refresh the salary bands, the market has moved since last year", "should_trigger": false, "expected": "compensation-benchmarking"},
+  {"query": "what should our counter offer number be given the band and the external offer", "should_trigger": false, "expected": "compensation-benchmarking"},
+  {"query": "our lead time has doubled, work out why shipping feels slow", "should_trigger": false, "expected": "delivery-review"},
+  {"query": "write up yesterday's outage as a blameless postmortem", "should_trigger": false, "expected": "postmortem"},
+  {"query": "how do i tell my report his work is not good enough", "should_trigger": false, "expected": "difficult-conversation"},
+  {"query": "design the interview loop for a senior role and the rubric", "should_trigger": false, "expected": "hiring-loop"},
+  {"query": "write this week's status update for the platform programme, exec audience", "should_trigger": false, "expected": "status-update"}
+]

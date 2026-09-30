@@ -1,0 +1,9 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the manager guidance while preserving its decision quality.",
+  "lesson": "A fixed exit count delays a credible report",
+  "must_mention": [
+    "twenty|20|threshold",
+    "individual|report|action"
+  ]
+}
