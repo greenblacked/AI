@@ -881,6 +881,7 @@ make portable   # flatten every skill for ChatGPT, Grok and other assistants
 make test       # pytest — the test job
 make coverage   # the same run under coverage, failing below the floor
 make lint       # ruff, markdownlint, yamllint, actionlint, codespell — the lint jobs
+make lint-strict  # the same, but a missing or mis-versioned tool fails instead of skipping
 make package    # .skill archives into dist/ — the package job
 make attribution  # commits since origin/main and the branch name against the attribution rules — the attribution job
 make naming     # file names, branch and commits against naming conventions — the naming job
@@ -898,7 +899,12 @@ It exists to catch a script sliding back to untested, which is the state the har
 the packager were in before the suite covered them, not to be chased.
 
 `make lint` skips a tool that is not installed and prints how to get it, so a partial
-local toolchain does not block you; CI has all of them.
+local toolchain does not block you; CI has all of them. `make lint-strict` is the same
+run with that tolerance removed: a tool that is absent, or a `ruff` or `actionlint` whose
+version is not the one CI pins, fails instead of warning. Use it when the point is to
+reproduce CI rather than to get a quick local signal, because a tool a version behind can
+pass a tree CI then rejects — ruff 0.16 formats Python inside Markdown fences and older
+versions do not.
 
 `make catalogue` needs nothing installed beyond `bash`. It is the eight checks that
 keep the repository's claims about itself true — the per-plugin listing ceilings and
