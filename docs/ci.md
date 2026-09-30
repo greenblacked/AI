@@ -3,10 +3,12 @@
 CI is the source of truth for whether this repository is correct. Everything a reviewer
 would otherwise check by eye — that a skill validates, that its reference files exist,
 that it is listed in the marketplace, that no secret is in history — is a job that either
-passes or does not. Five workflows run it: two that gate every change, one that runs
-weekly, one that scores trigger evals — monthly over everything, and on every pull
-request over what that pull request touched — and one that neither gates nor scores,
-merging a Dependabot pull request once the other two have.
+passes or does not. Seven workflows run it. `ci.yml` and `security.yml` gate every change.
+`scheduled.yml` runs the checks that need the network or a wordlist, weekly. `evals.yml`
+scores trigger evals — monthly over everything, and on every pull request over what that
+pull request touched. The remaining three gate nothing: `dependabot-auto-merge.yml`
+merges a Dependabot pull request once the two gates have, `ci-triage.yml` explains a
+failed CI or Security run in one comment, and `release.yml` publishes a tagged release.
 
 ## Execution flow
 
