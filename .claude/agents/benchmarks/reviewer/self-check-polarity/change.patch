@@ -1,0 +1,12 @@
+diff --git a/plugins/manager/skills/performance-improvement-plan/SKILL.md b/plugins/manager/skills/performance-improvement-plan/SKILL.md
+--- a/plugins/manager/skills/performance-improvement-plan/SKILL.md
++++ b/plugins/manager/skills/performance-improvement-plan/SKILL.md
+@@ -53,7 +53,7 @@
+ - Was the support offered actually delivered?
+ - Is anything here a mismatch between the person and the role rather than a shortfall?
+ 
+-Where any of the first four answers is no, or the last answer is yes, address the gap and restart the clock on the judgement. That is accurate, fair, and part of what has to change.
++Where any answer is no, address the gap and restart the clock on the judgement. That is accurate, fair, and part of what has to change.
+ 
+ ### 3. State the gaps as observable behaviour
+ 

@@ -1,0 +1,9 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the manager guidance while preserving its decision quality.",
+  "lesson": "An attrition cluster is called a manager cause",
+  "must_mention": [
+    "manager|cluster",
+    "caus|investigat|confound"
+  ]
+}
