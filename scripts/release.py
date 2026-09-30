@@ -52,10 +52,11 @@ HEADING_RE = re.compile(r"^## \[([^\]]+)\](?:\s*-\s*(\d{4}-\d{2}-\d{2}))?\s*$")
 # Anything shaped like it is skipped when looking for the end of a section, so a section
 # with no heading after it (the newest one) does not swallow the footer as its own body.
 FOOTER_LINK_RE = re.compile(r"^\[[^\]]+\]:\s")
-# "[Unreleased]: https://github.com/x/y/compare/v1.0.0...HEAD" — the one footer line
-# `prepare` rewrites, and the one it reads the previous version and the base URL from.
+# The previous release tag, or an immutable initial snapshot before the first release.
+# Arbitrary branch names and shortened hashes are deliberately not release baselines.
 UNRELEASED_LINK_RE = re.compile(
-    r"^\[Unreleased\]:\s*(?P<base>.+)/compare/v(?P<from>\d+\.\d+\.\d+)\.\.\.HEAD\s*$"
+    r"^\[Unreleased\]:\s*(?P<base>.+)/compare/"
+    r"(?P<from>v\d+\.\d+\.\d+|[0-9a-f]{40})\.\.\.HEAD\s*$"
 )
 
 
@@ -204,7 +205,7 @@ def rewrite_footer(lines: list[str], new_version: str) -> None:
 
     Not every changelog does — Keep a Changelog treats the footer as optional — so this
     is a no-op rather than an error when `[Unreleased]:` is not written as a compare
-    link against a previous tag.
+    link against a previous release tag or full commit snapshot.
     """
     for index, line in enumerate(lines):
         match = UNRELEASED_LINK_RE.match(line)
@@ -212,7 +213,7 @@ def rewrite_footer(lines: list[str], new_version: str) -> None:
             base = match.group("base")
             previous = match.group("from")
             lines[index] = f"[Unreleased]: {base}/compare/v{new_version}...HEAD"
-            lines.insert(index + 1, f"[{new_version}]: {base}/compare/v{previous}...v{new_version}")
+            lines.insert(index + 1, f"[{new_version}]: {base}/compare/{previous}...v{new_version}")
             return
 
 

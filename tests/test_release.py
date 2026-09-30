@@ -138,6 +138,53 @@ def test_prepare_moves_unreleased_into_a_new_dated_section(repo, capsys):
     assert "make release VERSION=1.1.0" in out
 
 
+def test_prepare_first_release_from_an_initial_commit_snapshot(repo):
+    baseline = git(repo, "rev-parse", "HEAD").stdout.strip()
+    write_changelog(
+        repo,
+        "# Changelog\n\n## [Unreleased]\n\n- First release changes.\n\n"
+        "## [Initial catalogue] - 2026-01-01\n\n- Initial snapshot.\n\n"
+        f"[Unreleased]: https://example.com/owner/repo/compare/{baseline}...HEAD\n"
+        f"[Initial catalogue]: https://example.com/owner/repo/tree/{baseline}\n",
+    )
+
+    assert release.prepare(repo, "1.0.0") == 0
+    text = (repo / "CHANGELOG.md").read_text(encoding="utf-8")
+    assert "## [1.0.0] - " in text
+    assert "First release changes." in text
+    assert "## [Initial catalogue] - 2026-01-01\n\n- Initial snapshot." in text
+    assert "[Unreleased]: https://example.com/owner/repo/compare/v1.0.0...HEAD" in text
+    assert f"[1.0.0]: https://example.com/owner/repo/compare/{baseline}...v1.0.0" in text
+    assert f"[Initial catalogue]: https://example.com/owner/repo/tree/{baseline}" in text
+    assert "compare/v1.0.0...v1.0.0" not in text
+
+
+@pytest.mark.parametrize(
+    ("baseline", "accepted"),
+    [
+        ("v1.0.0", True),
+        ("a" * 40, True),
+        ("a" * 39, False),
+        ("a" * 41, False),
+        ("g" * 40, False),
+        ("main", False),
+        ("v1.0", False),
+        ("v1.0.0-beta", False),
+    ],
+)
+def test_rewrite_footer_accepts_only_release_tags_or_full_commit_baselines(baseline, accepted):
+    original = f"[Unreleased]: https://example.com/owner/repo/compare/{baseline}...HEAD"
+    lines = [original]
+    release.rewrite_footer(lines, "1.1.0")
+    if accepted:
+        assert lines == [
+            "[Unreleased]: https://example.com/owner/repo/compare/v1.1.0...HEAD",
+            f"[1.1.0]: https://example.com/owner/repo/compare/{baseline}...v1.1.0",
+        ]
+    else:
+        assert lines == [original]
+
+
 def test_prepare_accepts_a_leading_v(repo):
     assert release.prepare(repo, "v1.1.0") == 0
     assert "## [1.1.0] - " in (repo / "CHANGELOG.md").read_text(encoding="utf-8")
