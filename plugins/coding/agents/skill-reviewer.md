@@ -44,6 +44,16 @@ reliably. Say which one should own the case.
 **Would it survive its own advice?** Check that any command shown actually has the flags
 claimed, and flag anything you could not verify rather than assuming it is right.
 
+**Is the promised result observable?** Trace the procedure from trigger to its output:
+does it specify the artifact or report shape needed by its caller, and what evidence
+shows completion rather than merely an attempted step? Flag a missing result or an
+unverifiable completion claim, without imposing a fixed template on unrelated skills.
+
+**Can its instructions coexist with the skills it composes?** Read any referenced skill
+needed for the candidate's workflow. Flag material conflicts in authority, ordering,
+ownership, or evidence expectations; do not count harmless differences in phrasing as
+incompatibilities.
+
 ## Reporting
 
 Rank findings by what they cost. For each: the observation, the concrete consequence,
