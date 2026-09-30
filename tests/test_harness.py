@@ -405,6 +405,15 @@ def run_main(monkeypatch, *argv):
     return harness.main()
 
 
+def comparable_row(target, **metrics):
+    cases = json.loads(target.eval_set.read_text())
+    return {
+        "target": target.name,
+        "comparison": harness.comparison(target, cases, Args()),
+        **metrics,
+    }
+
+
 def test_even_runs_are_rejected(mini_repo, monkeypatch, capsys):
     with pytest.raises(SystemExit) as caught:
         run_main(monkeypatch, "--all", "--root", str(mini_repo), "--runs", "2")
@@ -467,8 +476,10 @@ def test_baseline_prints_a_delta_and_new_for_unknown_targets(
     mini_repo, fake_claude, monkeypatch, capsys, tmp_path
 ):
     baseline = tmp_path / "baseline.json"
+    alpha = _alpha(mini_repo)
+    beta = harness.Target.skill(mini_repo / "plugins" / "engineering" / "skills" / "beta")
     baseline.write_text(
-        json.dumps([{"target": "alpha", "rate": 0.5}, {"skill": "beta", "rate": 1.0}])
+        json.dumps([comparable_row(alpha, rate=0.5), comparable_row(beta, rate=1.0)])
     )
     # alpha scores a perfect run; beta never fires, so it keeps only its negatives;
     # reader has no baseline row at all. beta's routed negatives are answered so they
@@ -495,8 +506,8 @@ def test_baseline_prints_a_delta_and_new_for_unknown_targets(
     }
     assert "delta" in aggregate_lines["target"]
     assert aggregate_lines["alpha"].rstrip().endswith("+50%")
-    assert aggregate_lines["beta"].rstrip().endswith("-50%")  # legacy `skill` key
-    assert aggregate_lines["reader"].rstrip().endswith("new")
+    assert aggregate_lines["beta"].rstrip().endswith("-50%")
+    assert aggregate_lines["reader"].rstrip().endswith("n/a")
     lines = {
         line.split()[0]: line
         for line in out.split("Per-target deltas")[1].splitlines()
@@ -504,7 +515,8 @@ def test_baseline_prints_a_delta_and_new_for_unknown_targets(
     }
     assert lines["alpha"].split()[1:] == ["+50%", "n/a", "n/a", "n/a"]
     assert lines["beta"].split()[1:] == ["-50%", "n/a", "n/a", "n/a"]
-    assert lines["reader"].split()[1:] == ["n/a"] * 4
+    assert lines["reader"].split()[1:5] == ["n/a"] * 4
+    assert "new target" in lines["reader"]
 
 
 def test_baseline_exposes_slice_regressions_despite_aggregate_improvement(
@@ -513,15 +525,7 @@ def test_baseline_exposes_slice_regressions_despite_aggregate_improvement(
     baseline = tmp_path / "baseline.json"
     baseline.write_text(
         json.dumps(
-            [
-                {
-                    "target": "alpha",
-                    "rate": 0.75,
-                    "recall": 1.0,
-                    "specificity": 0.5,
-                    "routing": 1.0,
-                }
-            ]
+            [comparable_row(_alpha(mini_repo), rate=0.75, recall=1.0, specificity=0.5, routing=1.0)]
         )
     )
     answers = {f"alpha positive {i}": "alpha" for i in range(7)}
@@ -552,7 +556,7 @@ def test_null_and_missing_baseline_metrics_are_unavailable(
 ):
     baseline = tmp_path / "baseline.json"
     baseline.write_text(
-        json.dumps([{"skill": "alpha", "rate": 0.5, "recall": None, "routing": None}])
+        json.dumps([comparable_row(_alpha(mini_repo), rate=0.5, recall=None, routing=None)])
     )
     fake_claude({f"alpha positive {i}": "alpha" for i in range(8)})
     skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
@@ -579,7 +583,9 @@ def test_absent_current_routing_is_unavailable_with_a_numeric_baseline(
         json.dumps(eval_set("beta")), encoding="utf-8"
     )
     baseline = tmp_path / "baseline.json"
-    baseline.write_text(json.dumps([{"target": "beta", "rate": 0.5, "routing": 1.0}]))
+    baseline.write_text(
+        json.dumps([comparable_row(harness.Target.skill(directory), rate=0.5, routing=1.0)])
+    )
     fake_claude({f"beta positive {i}": "beta" for i in range(8)})
     run_main(
         monkeypatch,
@@ -599,6 +605,138 @@ def test_absent_current_routing_is_unavailable_with_a_numeric_baseline(
         "n/a",
         "n/a",
     ]
+
+
+@pytest.mark.parametrize(
+    "changed",
+    [
+        "query",
+        "should_trigger",
+        "expected",
+        "order",
+        "kind",
+        "model",
+        "client",
+        "command_sha256",
+        "runs",
+        "budget",
+        "prompt_sha256",
+        "schema",
+    ],
+)
+def test_incompatible_baseline_never_prints_numeric_deltas(
+    changed, mini_repo, fake_claude, monkeypatch, capsys, tmp_path
+):
+    skill = _alpha(mini_repo)
+    row = comparable_row(skill, rate=0.0, recall=0.0, specificity=0.0, routing=0.0)
+    if changed in {"query", "should_trigger", "expected", "order"}:
+        cases = json.loads(skill.eval_set.read_text())
+        if changed == "order":
+            cases.reverse()
+        else:
+            cases[0][changed] = {"query": "different", "should_trigger": False, "expected": "beta"}[
+                changed
+            ]
+        row["comparison"]["cases_sha256"] = harness.comparison(skill, cases, Args())["cases_sha256"]
+    else:
+        row["comparison"][changed] = "different"
+    baseline = tmp_path / "baseline.json"
+    baseline.write_text(json.dumps([row]))
+    fake_claude({f"alpha positive {i}": "alpha" for i in range(8)})
+    assert (
+        run_main(
+            monkeypatch,
+            "--skill",
+            str(skill.source),
+            "--root",
+            str(mini_repo),
+            "--baseline",
+            str(baseline),
+            "--threshold",
+            "0",
+        )
+        == 0
+    )
+    out = capsys.readouterr().out
+    assert out.split("Per-target deltas")[1].splitlines()[-1].split()[1:5] == ["n/a"] * 4
+    assert any(
+        reason in out
+        for reason in (
+            "different ",
+            "unsupported comparison metadata",
+            "custom-client command identity unverifiable",
+        )
+    )
+
+
+def test_legacy_baseline_cannot_be_compared(mini_repo, fake_claude, monkeypatch, capsys, tmp_path):
+    skill = _alpha(mini_repo)
+    baseline = tmp_path / "baseline.json"
+    baseline.write_text(json.dumps([{"skill": "alpha", "rate": 0.0, "recall": 0.0}]))
+    fake_claude({f"alpha positive {i}": "alpha" for i in range(8)})
+    run_main(
+        monkeypatch,
+        "--skill",
+        str(skill.source),
+        "--root",
+        str(mini_repo),
+        "--baseline",
+        str(baseline),
+        "--threshold",
+        "0",
+    )
+    out = capsys.readouterr().out
+    assert "legacy or unsupported comparison metadata" in out
+    assert out.split("Per-target deltas")[1].splitlines()[-1].split()[1:5] == ["n/a"] * 4
+
+
+def test_comparison_ignores_catalogue_description_but_distinguishes_custom_commands(mini_repo):
+    target = _alpha(mini_repo)
+    cases = json.loads(target.eval_set.read_text())
+    before = harness.comparison(target, cases, Args())
+    description = mini_repo / "plugins" / "engineering" / "skills" / "beta" / "SKILL.md"
+    description.write_text(description.read_text().replace("Beta", "Revised beta"))
+    assert harness.comparison(target, cases, Args()) == before
+    custom_a = harness.comparison(
+        target,
+        cases,
+        Args(command=["mycli", "--token=private-a", "{prompt}"], client_kind="custom"),
+    )
+    custom_b = harness.comparison(
+        target,
+        cases,
+        Args(command=["mycli", "--token=private-b", "{prompt}"], client_kind="custom"),
+    )
+    assert custom_a == custom_b
+    assert "private-a" not in json.dumps(custom_a)
+    assert "private-b" not in json.dumps(custom_b)
+    assert custom_a["command_sha256"] is None
+    assert custom_a["client"] == "custom"
+    assert harness._comparable({"comparison": custom_a}, {"comparison": custom_b}) == (
+        False,
+        "custom-client command identity unverifiable",
+    )
+
+
+@pytest.mark.parametrize("field", ["budget", "model"])
+def test_missing_nullable_comparison_field_is_not_assumed_equal(mini_repo, field):
+    row = comparable_row(_alpha(mini_repo), rate=1.0)
+    report = {"comparison": row["comparison"]}
+    old = {"comparison": dict(row["comparison"])}
+    del old["comparison"][field]
+    assert harness._comparable(old, report) == (False, f"different {field}")
+
+
+def test_boolean_metadata_does_not_match_numeric_version_or_runs(mini_repo):
+    row = comparable_row(_alpha(mini_repo), rate=1.0)
+    report = {"comparison": row["comparison"]}
+    old = {"comparison": dict(row["comparison"])}
+    old["comparison"]["schema"] = True
+    assert harness._comparable(old, report)[0] is False
+    old["comparison"]["schema"] = 1
+    old["comparison"]["runs"] = True
+    report["comparison"]["runs"] = 1
+    assert harness._comparable(old, report) == (False, "different runs")
 
 
 def test_a_missing_baseline_is_an_error(mini_repo, fake_claude, monkeypatch, tmp_path):
