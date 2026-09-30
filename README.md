@@ -18,26 +18,30 @@ plugins you install separately.
 [![Skills](https://img.shields.io/badge/skills-99-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-[Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
+[Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
 
 </div>
 
-Between them they cover the daily loop of changing code, keeping a system running,
-shipping a change, securing it, making a game, leading a team, a career, and the parts of
-life that are nobody's job.
+A library of practical Markdown procedures for changing code, operating systems,
+shipping safely, making games, leading teams, and handling career and personal work.
+An agent loads a skill when its description matches your task; the skill supplies the
+ordering, checks and evidence to collect. This is a procedure library, not an application.
 
-A skill is a Markdown procedure an agent loads when it recognises the situation. Nothing
-here wraps a model's general knowledge. The useful part of a skill is the opinionated
-part: the gate that stops you, the ordering that saves an hour, the command with the flag
-that actually produces the evidence. A skill that would only restate what the model
-already does is not in here — there is no commit-message writer and no git-worktree
-helper, because both are ceremony.
+## Start here
 
-They are procedures, not plugin code, so they are not tied to one assistant. Claude Code
-installs them as plugins and fires them automatically; `make portable` flattens every one
-into a standalone file for ChatGPT, Grok, Codex or anything else that reads text.
-[Using the skills](docs/using.md) covers each route, and is honest about what you lose
-outside a runtime that can trigger them for you.
+- **Claude Code:** install a plugin from the [marketplace](#claude-code), then reload it
+- **Codex or another terminal agent:** follow the [first-run walkthrough](docs/using.md#first-run-with-codex) or check the [supported tools](#chatgpt-grok-codex-and-everything-else)
+- **ChatGPT or another chat assistant:** use the [portable files](docs/using.md#chatgpt)
+- **Browse before installing:** the [plugin overview](#what-is-included) links to the full [skills catalogue](#skills), with [subagents](#subagents) and [commands](#commands) below
+
+**Prerequisites:** an installed assistant for its route. Local installation needs Git,
+Bash and standard Unix tools; local validation and packaging need Python 3.10 or newer,
+and the `make` examples need Make. Only the test suite needs pytest. Downloading the
+portable CI artifact needs no local toolchain.
+
+Claude Code installs plugins with automatic triggering. Other tools can load native
+skills or read the portable export; [Using the skills](docs/using.md) explains each route
+and what the runtime does or does not enforce.
 
 ## What is included
 
@@ -132,7 +136,7 @@ not verified here, so rely on it only in Claude Code.
 | GitHub | Copilot | Yes; in VS Code, files outside the workspace root are off by default | Yes — `.github/skills`, `.claude/skills`, `.agents/skills`, `~/.copilot/skills`, `~/.agents/skills` | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-09-23](https://github.com/github/docs/blob/main/content/copilot/concepts/agents/about-agent-skills.md), [2](https://github.com/github/docs/blob/main/content/copilot/how-tos/configure-custom-instructions-in-your-ide/add-repository-instructions-in-your-ide.md) |
 | Google | Gemini CLI | Opt-in — add `AGENTS.md` to `context.fileName` in `settings.json`; the default is `GEMINI.md` | Yes — `.agents/skills`, `.gemini/skills`, and both under `~` | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-09-23](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/skills.md), [2](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/gemini-md.md) |
 | Mistral | Mistral Vibe | Yes — `~/.vibe/AGENTS.md` and project directories; needs folder trust | Yes — `.agents/skills`, `.vibe/skills`, `~/.vibe/skills`, `~/.agents/skills` | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-09-23](https://github.com/mistralai/mistral-vibe/blob/main/README.md) |
-| OpenAI | Codex CLI | Yes — each `AGENTS.md` from the project root down to the working directory | Yes — `~/.codex/skills` (or `$CODEX_HOME/skills`) | `CLAUDE_SKILLS_DIR=~/.codex/skills make install` | [2026-09-23](https://github.com/openai/codex/blob/main/codex-rs/core/src/agents_md.rs), [2](https://github.com/openai/codex/blob/main/codex-rs/skills/src/lib.rs), [3](https://github.com/openai/codex/blob/main/codex-rs/utils/home-dir/src/lib.rs) |
+| OpenAI | Codex CLI | Yes — each `AGENTS.md` from the project root down to the working directory | Yes — `~/.agents/skills` (user), `.agents/skills` (repository); also `$CODEX_HOME/skills` (default `~/.codex/skills`, legacy compatibility) | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-09-30](https://github.com/openai/codex/blob/main/codex-rs/core/src/agents_md.rs), [2](https://github.com/openai/codex/blob/main/codex-rs/skills/src/lib.rs), [3](https://github.com/openai/codex/blob/main/codex-rs/utils/home-dir/src/lib.rs), [4](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills), [5](https://github.com/openai/codex/blob/rust-v0.144.0-alpha.4/codex-rs/core-skills/src/loader.rs) |
 | xAI | Grok Build | Yes, and `CLAUDE.md`; needs folder trust | Yes — `.grok/skills`, `.agents/skills`, and `~/.claude/skills` | `make install` already links every skill where it looks | [2026-09-23](https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/docs/user-guide/08-skills.md), [2](https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/docs/user-guide/12-project-rules.md) |
 
 <!-- providers-table:end -->

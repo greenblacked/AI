@@ -40,7 +40,7 @@ on:
         default: ''
         type: string
       runs:
-        description: Samples per query; a majority vote across them decides
+        description: Samples per query; unique highest count wins, top ties are inconclusive
         required: false
         default: '3'
         type: string
@@ -222,15 +222,15 @@ jobs:
           {
             echo "### Trigger evaluation"
             echo ""
-            echo "| Target | Pass rate | Recall | Specificity | Routing | Narrow |"
-            echo "| --- | --- | --- | --- | --- | --- |"
+            echo "| Target | Pass rate | Recall | Specificity | Routing | Narrow | Inconclusive |"
+            echo "| --- | --- | --- | --- | --- | --- | --- |"
             python -c "
           import json
           for r in json.load(open('evals.json')):
               routing = '-' if r.get('routing') is None else f\"{r['routing']:.0%}\"
               name = r.get('target', r.get('skill'))
               cells = [name, f\"{r['rate']:.0%}\", f\"{r['recall']:.0%}\",
-                       f\"{r['specificity']:.0%}\", routing, str(r.get('narrow', 0))]
+                       f\"{r['specificity']:.0%}\", routing, str(r.get('narrow', 0)), str(r.get('inconclusive', '-'))]
               print('| \`' + cells[0] + '\` | ' + ' | '.join(cells[1:]) + ' |')
           "
           } >> "$GITHUB_STEP_SUMMARY"
@@ -491,8 +491,8 @@ jobs:
               rows.extend(json.loads(path.read_text(encoding="utf-8")))
 
           lines = [
-              "| Target | Pass rate | Recall | Specificity | Routing | Narrow |",
-              "| --- | --- | --- | --- | --- | --- |",
+              "| Target | Pass rate | Recall | Specificity | Routing | Narrow | Inconclusive |",
+              "| --- | --- | --- | --- | --- | --- | --- |",
           ]
           for row in rows:
               routing = "-" if row.get("routing") is None else f"{row['routing']:.0%}"
@@ -504,6 +504,7 @@ jobs:
                   f"{row['specificity']:.0%}",
                   routing,
                   str(row.get("narrow", 0)),
+                  str(row.get("inconclusive", "-")),
               ]
               lines.append("| " + " | ".join(cells) + " |")
 

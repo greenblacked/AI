@@ -36,6 +36,22 @@ ever checks whether it still does.
 
 ## The entries
 
+### A report publisher silently omits a newly added metric
+
+**Class.** A measurement adds an important result field but its downstream report
+publishers keep an older column set, hiding the distinction from readers.
+
+**How it shows up.** Trigger evaluation recorded inconclusive multiclass ties in JSON
+and CLI output, but both workflow summaries showed only the pass rates and narrow count.
+A split vote and a tied vote were indistinguishable in the published report.
+
+**The check that catches it.** `tests/test_evals_workflow.py` executes both workflow
+publisher blocks with tied, zero and legacy reports. Each summary includes Inconclusive,
+preserves measured zero and shows a missing legacy value as unknown. The reviewer
+benchmark removes the metric from both summaries.
+
+**First caught:** #94, the automated PR reviewer.
+
 ### An effect from another operation satisfies the goal
 
 **Class.** A shared effect counter substitutes an unrelated mutation for the operation
@@ -161,6 +177,9 @@ baseline deltas could move because of the changed case population.
 The corrected fixture has ten queries per side. Its dataset revision requires rerunning
 baseline and candidate on that same set; older raw scores are not comparable. The
 reviewer benchmark appends a positive-only case to reproduce the population change.
+`tests/test_harness.py` also checks that the trigger runner suppresses baseline deltas
+when query text, labels, expected winners, ordering or declared run settings differ;
+legacy scores without comparison metadata must be rerun rather than annotated by guess.
 
 **First caught:** #89, the automated PR reviewer.
 

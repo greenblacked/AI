@@ -414,8 +414,12 @@ python scripts/run_trigger_eval.py --all --command 'mycli --quiet {prompt}'
 Score against more than one model before trusting a number. The catalogue is the same but
 the reader is not, and a description that routes cleanly on one model and leaks on another
 is telling you which phrasing carried the decision. Each result records the backend and
-model it was scored with, so a baseline from a different model is not mistaken for a
-regression.
+requested model, plus a versioned `comparison` envelope: the ordered query/label/expected
+winner fingerprint, target kind, built-in client template, sample count, listing budget
+and prompt/scoring protocol. Numeric baseline deltas require matching envelopes.
+Catalogue descriptions are deliberately not frozen: changing them is the candidate
+being measured. Matching metadata establishes comparable declared settings, not a
+paired task-completion evaluation or proof that a moving model alias resolved identically.
 
 Two flags are about time rather than meaning. `--jobs` runs several queries at once,
 four by default, because three thousand calls one at a time do not fit in an afternoon.
@@ -425,10 +429,13 @@ to see whether a description survives the budget, and it costs nothing.
 
 Three flags change what the number means:
 
-- `--runs` samples each query more than once and takes the majority. The default is three
-  and it must be odd, so a vote cannot tie and be broken by whichever sample happened to
-  run first. The `narrow` column counts queries decided by a split, which is where a
-  description sits on the model's decision boundary.
+- `--runs` samples each query more than once and takes the unique highest-count label,
+  even when it has fewer than half the samples. The default is three and it must be a
+  positive odd number. Multiclass votes can still tie: those queries have no winner
+  (`chose: null` in JSON), fail with an `INCONCLUSIVE` reason and remain in every applicable
+  metric's denominator. The `inconclusive` column reports their count separately; a tie
+  involving `NONE` earns no correct-rejection credit. The `narrow` column counts split
+  queries, including ties, which is where a description sits on the model's decision boundary.
 - `--budget` scores descriptions the way the runtime shows them rather than the way they
   are written: it applies the listing budget above and drops the target's own description
   first, which is the realistic case for a skill nobody has used yet. A description that
@@ -439,7 +446,13 @@ Three flags change what the number means:
 - `--baseline` takes an earlier `--json` output and prints the per-target delta. With
   the full catalogue competing for the same queries, the expected consequence of editing
   one is a change in a neighbour's score, and a fixed threshold cannot see a skill slide
-  from 100% to 85%. Commit a run and diff against it.
+  from 100% to 85%. Commit a run and diff against it. Legacy reports without comparison
+  metadata and reports with different case populations or run settings remain readable,
+  but their deltas are `n/a` with a reason. Rerun baseline and candidate on the same
+  revised set; do not invent metadata for an old score. Custom commands also produce
+  `n/a`: arbitrary arguments might contain secrets, so the envelope neither saves nor
+  hashes them to establish client identity. Current scores and threshold decisions
+  still apply when a baseline is unavailable for comparison.
 
 ## Writing the body
 

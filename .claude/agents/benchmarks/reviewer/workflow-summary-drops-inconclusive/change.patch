@@ -1,0 +1,41 @@
+diff --git a/.github/workflows/evals.yml b/.github/workflows/evals.yml
+--- a/.github/workflows/evals.yml
++++ b/.github/workflows/evals.yml
+@@ -213,15 +213,15 @@
+           {
+             echo "### Trigger evaluation"
+             echo ""
+-            echo "| Target | Pass rate | Recall | Specificity | Routing | Narrow | Inconclusive |"
+-            echo "| --- | --- | --- | --- | --- | --- | --- |"
++            echo "| Target | Pass rate | Recall | Specificity | Routing | Narrow |"
++            echo "| --- | --- | --- | --- | --- | --- |"
+             python -c "
+           import json
+           for r in json.load(open('evals.json')):
+               routing = '-' if r.get('routing') is None else f\"{r['routing']:.0%}\"
+               name = r.get('target', r.get('skill'))
+               cells = [name, f\"{r['rate']:.0%}\", f\"{r['recall']:.0%}\",
+-                       f\"{r['specificity']:.0%}\", routing, str(r.get('narrow', 0)), str(r.get('inconclusive', '-'))]
++                       f\"{r['specificity']:.0%}\", routing, str(r.get('narrow', 0))]
+               print('| \`' + cells[0] + '\` | ' + ' | '.join(cells[1:]) + ' |')
+           "
+           } >> "$GITHUB_STEP_SUMMARY"
+@@ -482,8 +482,8 @@
+               rows.extend(json.loads(path.read_text(encoding="utf-8")))
+ 
+           lines = [
+-              "| Target | Pass rate | Recall | Specificity | Routing | Narrow | Inconclusive |",
+-              "| --- | --- | --- | --- | --- | --- | --- |",
++              "| Target | Pass rate | Recall | Specificity | Routing | Narrow |",
++              "| --- | --- | --- | --- | --- | --- |",
+           ]
+           for row in rows:
+               routing = "-" if row.get("routing") is None else f"{row['routing']:.0%}"
+@@ -495,7 +495,6 @@
+                   f"{row['specificity']:.0%}",
+                   routing,
+                   str(row.get("narrow", 0)),
+-                  str(row.get("inconclusive", "-")),
+               ]
+               lines.append("| " + " | ".join(cells) + " |")
+ 

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import sys
+from itertools import permutations
 
 import pytest
 
@@ -214,6 +215,126 @@ def test_a_split_vote_is_counted_as_narrow_and_the_majority_wins(mini_repo, fake
     )
 
 
+@pytest.mark.parametrize(
+    "samples",
+    sorted(set(permutations(["alpha", "beta", "NONE"])))
+    + sorted(set(permutations(["alpha", "alpha", "beta", "beta", "NONE"]))),
+)
+@pytest.mark.parametrize(
+    "case",
+    [
+        {"query": "tie", "should_trigger": True},
+        {"query": "tie", "should_trigger": False},
+        {"query": "tie", "should_trigger": False, "expected": "beta"},
+        {"query": "tie", "should_trigger": False, "expected": "NONE"},
+    ],
+)
+def test_tied_top_counts_have_no_winner_or_correct_credit(mini_repo, monkeypatch, samples, case):
+    target = _alpha(mini_repo)
+    target.eval_set.write_text(json.dumps([case]))
+    replies = iter(samples)
+    monkeypatch.setattr(harness, "ask", lambda *args: next(replies))
+    report = harness.score(target, harness.catalogue(mini_repo), Args(runs=len(samples)))
+    assert report["total"] == 1 and report["passed"] == 0
+    assert report["rate"] == report["recall"] == report["specificity"] == 0.0
+    assert report["routing"] == (0.0 if case.get("expected") else None)
+    assert report["inconclusive"] == report["narrow"] == 1
+    assert report["unrecognised"] == 0
+    failure = report["failures"][0]
+    assert failure["chose"] is None and failure["margin"] == 0
+    assert failure["reason"] == "INCONCLUSIVE: tied highest vote counts"
+
+
+@pytest.mark.parametrize(
+    "samples",
+    [
+        ("alpha",),
+        ("alpha", "alpha", "NONE"),
+        ("alpha", "alpha", "alpha", "beta", "beta", "reader", "NONE"),
+    ],
+)
+def test_unique_top_count_wins_even_without_absolute_majority(mini_repo, monkeypatch, samples):
+    target = _alpha(mini_repo)
+    target.eval_set.write_text(json.dumps([{"query": "winner", "should_trigger": True}]))
+    replies = iter(samples)
+    monkeypatch.setattr(harness, "ask", lambda *args: next(replies))
+    report = harness.score(target, harness.catalogue(mini_repo), Args(runs=len(samples)))
+    assert report["rate"] == 1.0 and report["failures"] == []
+    assert report["inconclusive"] == 0
+
+
+def test_invalid_replies_that_tie_still_abort(mini_repo, monkeypatch):
+    replies = iter(["invalid one", "invalid two", "invalid three"] * 16)
+    monkeypatch.setattr(harness, "ask", lambda *args: next(replies))
+    with pytest.raises(harness.ToolFailureError, match="named a catalogue entry"):
+        harness.score(_alpha(mini_repo), harness.catalogue(mini_repo), Args())
+
+
+@pytest.mark.parametrize(
+    "samples", sorted(set(permutations(["bad-one", "bad-one", "bad-two", "bad-two", "alpha"])))
+)
+def test_invalid_tied_top_labels_abort_despite_lower_valid_reply(mini_repo, monkeypatch, samples):
+    target = _alpha(mini_repo)
+    target.eval_set.write_text(json.dumps([{"query": "bad tie", "should_trigger": True}]))
+    replies = iter(samples)
+    monkeypatch.setattr(harness, "ask", lambda *args: next(replies))
+    with pytest.raises(harness.ToolFailureError, match="named a catalogue entry"):
+        harness.score(target, harness.catalogue(mini_repo), Args(runs=5))
+
+
+@pytest.mark.parametrize("valid", ["alpha", "NONE"])
+@pytest.mark.parametrize("order", sorted(set(permutations([0, 0, 1, 1, 2]))))
+def test_mixed_valid_invalid_top_tie_does_not_abort(mini_repo, monkeypatch, valid, order):
+    target = _alpha(mini_repo)
+    target.eval_set.write_text(json.dumps([{"query": "mixed tie", "should_trigger": False}]))
+    labels = ["invalid", valid, "beta"]
+    replies = iter(labels[index] for index in order)
+    monkeypatch.setattr(harness, "ask", lambda *args: next(replies))
+    report = harness.score(target, harness.catalogue(mini_repo), Args(runs=5))
+    assert report["unrecognised"] == 0
+    assert report["inconclusive"] == 1 and report["rate"] == 0.0
+    assert report["failures"][0]["chose"] is None
+
+
+def test_inconclusive_is_visible_in_verbose_and_summary_output(
+    mini_repo, fake_claude, monkeypatch, capsys, tmp_path
+):
+    fake_claude({"alpha positive 0": ["alpha", "beta", "NONE"]})
+    output = tmp_path / "report.json"
+    assert (
+        run_main(
+            monkeypatch,
+            "--skill",
+            str(_alpha(mini_repo).source),
+            "--root",
+            str(mini_repo),
+            "--threshold",
+            "0",
+            "--jobs",
+            "1",
+            "--verbose",
+            "--json",
+            str(output),
+        )
+        == 0
+    )
+    captured = capsys.readouterr()
+    assert "INCONCLUSIVE" in captured.err and "inconclusive" in captured.out
+    assert json.loads(output.read_text())[0]["inconclusive"] == 1
+
+
+def test_pre_tie_fix_protocol_baselines_are_incompatible(mini_repo, monkeypatch):
+    target = _alpha(mini_repo)
+    cases = json.loads(target.eval_set.read_text())
+    current = harness.comparison(target, cases, Args())
+    monkeypatch.setattr(harness, "EVAL_PROTOCOL", "majority-vote-routing-v1")
+    old = harness.comparison(target, cases, Args())
+    assert harness._comparable({"comparison": old}, {"comparison": current}) == (
+        False,
+        "different prompt_sha256",
+    )
+
+
 def test_verbose_prints_the_split(mini_repo, fake_claude, capsys):
     fake_claude({"alpha positive 0": ["alpha", "NONE", "alpha"]})
     harness.score(_alpha(mini_repo), harness.catalogue(mini_repo), Args(verbose=True))
@@ -405,6 +526,15 @@ def run_main(monkeypatch, *argv):
     return harness.main()
 
 
+def comparable_row(target, **metrics):
+    cases = json.loads(target.eval_set.read_text())
+    return {
+        "target": target.name,
+        "comparison": harness.comparison(target, cases, Args()),
+        **metrics,
+    }
+
+
 def test_even_runs_are_rejected(mini_repo, monkeypatch, capsys):
     with pytest.raises(SystemExit) as caught:
         run_main(monkeypatch, "--all", "--root", str(mini_repo), "--runs", "2")
@@ -467,8 +597,10 @@ def test_baseline_prints_a_delta_and_new_for_unknown_targets(
     mini_repo, fake_claude, monkeypatch, capsys, tmp_path
 ):
     baseline = tmp_path / "baseline.json"
+    alpha = _alpha(mini_repo)
+    beta = harness.Target.skill(mini_repo / "plugins" / "engineering" / "skills" / "beta")
     baseline.write_text(
-        json.dumps([{"target": "alpha", "rate": 0.5}, {"skill": "beta", "rate": 1.0}])
+        json.dumps([comparable_row(alpha, rate=0.5), comparable_row(beta, rate=1.0)])
     )
     # alpha scores a perfect run; beta never fires, so it keeps only its negatives;
     # reader has no baseline row at all. beta's routed negatives are answered so they
@@ -495,8 +627,8 @@ def test_baseline_prints_a_delta_and_new_for_unknown_targets(
     }
     assert "delta" in aggregate_lines["target"]
     assert aggregate_lines["alpha"].rstrip().endswith("+50%")
-    assert aggregate_lines["beta"].rstrip().endswith("-50%")  # legacy `skill` key
-    assert aggregate_lines["reader"].rstrip().endswith("new")
+    assert aggregate_lines["beta"].rstrip().endswith("-50%")
+    assert aggregate_lines["reader"].rstrip().endswith("n/a")
     lines = {
         line.split()[0]: line
         for line in out.split("Per-target deltas")[1].splitlines()
@@ -504,7 +636,8 @@ def test_baseline_prints_a_delta_and_new_for_unknown_targets(
     }
     assert lines["alpha"].split()[1:] == ["+50%", "n/a", "n/a", "n/a"]
     assert lines["beta"].split()[1:] == ["-50%", "n/a", "n/a", "n/a"]
-    assert lines["reader"].split()[1:] == ["n/a"] * 4
+    assert lines["reader"].split()[1:5] == ["n/a"] * 4
+    assert "new target" in lines["reader"]
 
 
 def test_baseline_exposes_slice_regressions_despite_aggregate_improvement(
@@ -513,15 +646,7 @@ def test_baseline_exposes_slice_regressions_despite_aggregate_improvement(
     baseline = tmp_path / "baseline.json"
     baseline.write_text(
         json.dumps(
-            [
-                {
-                    "target": "alpha",
-                    "rate": 0.75,
-                    "recall": 1.0,
-                    "specificity": 0.5,
-                    "routing": 1.0,
-                }
-            ]
+            [comparable_row(_alpha(mini_repo), rate=0.75, recall=1.0, specificity=0.5, routing=1.0)]
         )
     )
     answers = {f"alpha positive {i}": "alpha" for i in range(7)}
@@ -552,7 +677,7 @@ def test_null_and_missing_baseline_metrics_are_unavailable(
 ):
     baseline = tmp_path / "baseline.json"
     baseline.write_text(
-        json.dumps([{"skill": "alpha", "rate": 0.5, "recall": None, "routing": None}])
+        json.dumps([comparable_row(_alpha(mini_repo), rate=0.5, recall=None, routing=None)])
     )
     fake_claude({f"alpha positive {i}": "alpha" for i in range(8)})
     skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha"
@@ -579,7 +704,9 @@ def test_absent_current_routing_is_unavailable_with_a_numeric_baseline(
         json.dumps(eval_set("beta")), encoding="utf-8"
     )
     baseline = tmp_path / "baseline.json"
-    baseline.write_text(json.dumps([{"target": "beta", "rate": 0.5, "routing": 1.0}]))
+    baseline.write_text(
+        json.dumps([comparable_row(harness.Target.skill(directory), rate=0.5, routing=1.0)])
+    )
     fake_claude({f"beta positive {i}": "beta" for i in range(8)})
     run_main(
         monkeypatch,
@@ -599,6 +726,138 @@ def test_absent_current_routing_is_unavailable_with_a_numeric_baseline(
         "n/a",
         "n/a",
     ]
+
+
+@pytest.mark.parametrize(
+    "changed",
+    [
+        "query",
+        "should_trigger",
+        "expected",
+        "order",
+        "kind",
+        "model",
+        "client",
+        "command_sha256",
+        "runs",
+        "budget",
+        "prompt_sha256",
+        "schema",
+    ],
+)
+def test_incompatible_baseline_never_prints_numeric_deltas(
+    changed, mini_repo, fake_claude, monkeypatch, capsys, tmp_path
+):
+    skill = _alpha(mini_repo)
+    row = comparable_row(skill, rate=0.0, recall=0.0, specificity=0.0, routing=0.0)
+    if changed in {"query", "should_trigger", "expected", "order"}:
+        cases = json.loads(skill.eval_set.read_text())
+        if changed == "order":
+            cases.reverse()
+        else:
+            cases[0][changed] = {"query": "different", "should_trigger": False, "expected": "beta"}[
+                changed
+            ]
+        row["comparison"]["cases_sha256"] = harness.comparison(skill, cases, Args())["cases_sha256"]
+    else:
+        row["comparison"][changed] = "different"
+    baseline = tmp_path / "baseline.json"
+    baseline.write_text(json.dumps([row]))
+    fake_claude({f"alpha positive {i}": "alpha" for i in range(8)})
+    assert (
+        run_main(
+            monkeypatch,
+            "--skill",
+            str(skill.source),
+            "--root",
+            str(mini_repo),
+            "--baseline",
+            str(baseline),
+            "--threshold",
+            "0",
+        )
+        == 0
+    )
+    out = capsys.readouterr().out
+    assert out.split("Per-target deltas")[1].splitlines()[-1].split()[1:5] == ["n/a"] * 4
+    assert any(
+        reason in out
+        for reason in (
+            "different ",
+            "unsupported comparison metadata",
+            "custom-client command identity unverifiable",
+        )
+    )
+
+
+def test_legacy_baseline_cannot_be_compared(mini_repo, fake_claude, monkeypatch, capsys, tmp_path):
+    skill = _alpha(mini_repo)
+    baseline = tmp_path / "baseline.json"
+    baseline.write_text(json.dumps([{"skill": "alpha", "rate": 0.0, "recall": 0.0}]))
+    fake_claude({f"alpha positive {i}": "alpha" for i in range(8)})
+    run_main(
+        monkeypatch,
+        "--skill",
+        str(skill.source),
+        "--root",
+        str(mini_repo),
+        "--baseline",
+        str(baseline),
+        "--threshold",
+        "0",
+    )
+    out = capsys.readouterr().out
+    assert "legacy or unsupported comparison metadata" in out
+    assert out.split("Per-target deltas")[1].splitlines()[-1].split()[1:5] == ["n/a"] * 4
+
+
+def test_comparison_ignores_catalogue_description_but_distinguishes_custom_commands(mini_repo):
+    target = _alpha(mini_repo)
+    cases = json.loads(target.eval_set.read_text())
+    before = harness.comparison(target, cases, Args())
+    description = mini_repo / "plugins" / "engineering" / "skills" / "beta" / "SKILL.md"
+    description.write_text(description.read_text().replace("Beta", "Revised beta"))
+    assert harness.comparison(target, cases, Args()) == before
+    custom_a = harness.comparison(
+        target,
+        cases,
+        Args(command=["mycli", "--token=private-a", "{prompt}"], client_kind="custom"),
+    )
+    custom_b = harness.comparison(
+        target,
+        cases,
+        Args(command=["mycli", "--token=private-b", "{prompt}"], client_kind="custom"),
+    )
+    assert custom_a == custom_b
+    assert "private-a" not in json.dumps(custom_a)
+    assert "private-b" not in json.dumps(custom_b)
+    assert custom_a["command_sha256"] is None
+    assert custom_a["client"] == "custom"
+    assert harness._comparable({"comparison": custom_a}, {"comparison": custom_b}) == (
+        False,
+        "custom-client command identity unverifiable",
+    )
+
+
+@pytest.mark.parametrize("field", ["budget", "model"])
+def test_missing_nullable_comparison_field_is_not_assumed_equal(mini_repo, field):
+    row = comparable_row(_alpha(mini_repo), rate=1.0)
+    report = {"comparison": row["comparison"]}
+    old = {"comparison": dict(row["comparison"])}
+    del old["comparison"][field]
+    assert harness._comparable(old, report) == (False, f"different {field}")
+
+
+def test_boolean_metadata_does_not_match_numeric_version_or_runs(mini_repo):
+    row = comparable_row(_alpha(mini_repo), rate=1.0)
+    report = {"comparison": row["comparison"]}
+    old = {"comparison": dict(row["comparison"])}
+    old["comparison"]["schema"] = True
+    assert harness._comparable(old, report)[0] is False
+    old["comparison"]["schema"] = 1
+    old["comparison"]["runs"] = True
+    report["comparison"]["runs"] = 1
+    assert harness._comparable(old, report) == (False, "different runs")
 
 
 def test_a_missing_baseline_is_an_error(mini_repo, fake_claude, monkeypatch, tmp_path):
