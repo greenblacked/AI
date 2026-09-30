@@ -36,6 +36,41 @@ ever checks whether it still does.
 
 ## The entries
 
+### A CLI upgrade changes an implicit permission mode
+
+**Class.** A pinned CLI upgrade changes a procedure's execution policy when the caller
+leaves its permission mode implicit.
+
+**How it shows up.** Claude Code 2.1.285 defaults some non-interactive sessions to auto
+mode. The trigger classifier passed only a prompt, so adopting the pin could also
+permit new tool approvals. Its complete classification input is already in that prompt.
+
+**The check that catches it.** `tests/test_harness.py` checks the built-in command and
+actual fake subprocess arguments with and without a model, keeps custom commands
+unchanged, and rejects comparison with an older implicit-mode baseline. The classifier
+sets `dontAsk` explicitly; this is an approval policy, not tool isolation. The reviewer
+benchmark removes the explicit mode.
+
+**First caught:** the review stage while fixing scheduled run `36423678234`.
+
+### A prepared release is documented as published
+
+**Class.** A changelog's proposed version and links are presented as an existing release
+before its tag has been published.
+
+**How it shows up.** The initial catalogue claimed a first tagged release and linked to
+`v1.0.0`, although the repository had no tags or releases. Both release references
+returned 404 in the weekly external-link check.
+
+**The check that catches it.** The scheduled link check verifies the published targets.
+The initial catalogue now links to its immutable commit; `tests/test_release.py` checks
+that preparing the first real release updates that commit-based comparison and preserves
+the snapshot, while rejecting floating or malformed baselines. The reviewer benchmark
+restores the unpublished release claim and links.
+
+**First caught:** #59's initial release documentation, the live scheduled run
+`36423678234`.
+
 ### An isolated reviewer lacks the dependencies its contract requires
 
 **Class.** A workflow initializes an interpreter but relies on undeclared runner packages

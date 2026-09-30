@@ -209,6 +209,13 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Correct the initial catalogue's unpublished release claim and link to its immutable
+  commit, keeping first-release preparation compatible with that comparison baseline.
+- Refresh the Claude Code, Codex and Gemini CLI pins. Set the Claude trigger classifier's
+  permission mode explicitly to `dontAsk` so the CLI's changed default cannot enable
+  automatic approvals. Codex's unspecified model now defaults to GPT-6.1 Sol; compare
+  eval runs only with the same explicit model and rerun both baseline and candidate.
+
 - Bind recovery fences and late commits to submission attempt identities, so delayed
   notifications cannot authorize a retry of a newer pending request.
 
@@ -224,9 +231,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   request needs it — the label does not exist until then — needs that grant
   separately from labelling with it once it exists.
 
-## [1.0.0] - 2026-09-24
+## [Initial catalogue] - 2026-09-24
 
-First tagged release. The catalogue at this tag:
+Initial catalogue snapshot; no release tag has been published. The catalogue at this commit:
 
 - **89 agent skills** across eight plugins you install separately: `coding` (18 skills,
   3 subagents), `gamedev` (11 skills, 1 subagent, 1 command), `operations` (15 skills, 5
@@ -253,5 +260,5 @@ First tagged release. The catalogue at this tag:
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/greenblacked/AI/releases/tag/v1.0.0
+[Unreleased]: https://github.com/greenblacked/AI/compare/9365d19bd40e79f52463b046927b17cfd448bb79...HEAD
+[Initial catalogue]: https://github.com/greenblacked/AI/tree/9365d19bd40e79f52463b046927b17cfd448bb79

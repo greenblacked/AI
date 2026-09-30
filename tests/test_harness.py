@@ -18,7 +18,7 @@ from tests.conftest import eval_set, load_script
 harness = load_script("run_trigger_eval.py")
 
 
-CLAUDE = ["claude", "-p", "{prompt}"]
+CLAUDE = ["claude", "-p", "{prompt}", "--permission-mode", "dontAsk"]
 
 
 class Args:
@@ -423,8 +423,12 @@ def test_a_model_flag_is_passed_through(fake_claude, tmp_path, monkeypatch):
 @pytest.mark.parametrize(
     ("backend", "model", "argv"),
     [
-        ("claude", None, ["claude", "-p", "{prompt}"]),
-        ("claude", "opus", ["claude", "-p", "{prompt}", "--model", "opus"]),
+        ("claude", None, ["claude", "-p", "{prompt}", "--permission-mode", "dontAsk"]),
+        (
+            "claude",
+            "opus",
+            ["claude", "-p", "{prompt}", "--permission-mode", "dontAsk", "--model", "opus"],
+        ),
         ("codex", None, ["codex", "exec", "--skip-git-repo-check", "{prompt}"]),
         (
             "codex",
@@ -437,6 +441,33 @@ def test_a_model_flag_is_passed_through(fake_claude, tmp_path, monkeypatch):
 )
 def test_each_backend_builds_its_own_argv(backend, model, argv):
     assert harness.build_command(backend, None, model) == argv
+
+
+@pytest.mark.parametrize("model", [None, "opus"])
+def test_claude_subprocess_receives_explicit_permission_mode(
+    fake_claude, tmp_path, monkeypatch, model
+):
+    fake_claude({"classify this": "alpha"})
+    seen = tmp_path / "argv.json"
+    monkeypatch.setenv("FAKE_ARGV_FILE", str(seen))
+    prompt = harness.PROMPT.format(catalogue="- alpha: Example", query="classify this")
+    command = harness.build_command("claude", None, model)
+
+    assert harness.ask(prompt, command, 30) == "alpha"
+    expected = ["-p", prompt, "--permission-mode", "dontAsk"]
+    if model:
+        expected += ["--model", model]
+    assert json.loads(seen.read_text()) == expected
+
+
+def test_claude_permission_mode_change_invalidates_implicit_command_baselines(mini_repo):
+    skill = _alpha(mini_repo)
+    current = comparable_row(skill)
+    before = comparable_row(skill)
+    before["comparison"]["command_sha256"] = harness._digest(
+        (["claude", "-p", "{prompt}"], "--model")
+    )
+    assert harness._comparable(before, current) == (False, "different command_sha256")
 
 
 def test_a_backend_with_a_positional_model_refuses_to_run_without_one():

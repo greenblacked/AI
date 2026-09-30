@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Use the built-in Claude permission default for trigger classification.",
+  "lesson": "A CLI upgrade changes an implicit permission mode",
+  "must_mention": [
+    "run_trigger_eval\\.py",
+    "permission|dontAsk|auto",
+    "default|2\\.1\\.285|approval"
+  ]
+}

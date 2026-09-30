@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Present the initial catalogue snapshot as the first tagged release.",
+  "lesson": "A prepared release is documented as published",
+  "must_mention": [
+    "CHANGELOG\\.md",
+    "tag|publish|release",
+    "v1\\.0\\.0|404|nonexistent|does not exist"
+  ]
+}
