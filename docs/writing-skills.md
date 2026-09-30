@@ -420,10 +420,13 @@ to see whether a description survives the budget, and it costs nothing.
 
 Three flags change what the number means:
 
-- `--runs` samples each query more than once and takes the majority. The default is three
-  and it must be odd, so a vote cannot tie and be broken by whichever sample happened to
-  run first. The `narrow` column counts queries decided by a split, which is where a
-  description sits on the model's decision boundary.
+- `--runs` samples each query more than once and takes the unique highest-count label,
+  even when it has fewer than half the samples. The default is three and it must be a
+  positive odd number. Multiclass votes can still tie: those queries have no winner
+  (`chose: null` in JSON), fail with an `INCONCLUSIVE` reason and remain in every applicable
+  metric's denominator. The `inconclusive` column reports their count separately; a tie
+  involving `NONE` earns no correct-rejection credit. The `narrow` column counts split
+  queries, including ties, which is where a description sits on the model's decision boundary.
 - `--budget` scores descriptions the way the runtime shows them rather than the way they
   are written: it applies the listing budget above and drops the target's own description
   first, which is the realistic case for a skill nobody has used yet. A description that
