@@ -16,10 +16,17 @@ document its checks on the honour system.
 
 What is checked, all of it mechanical:
 
+- the introduction names every workflow in `.github/workflows/`, and no other
 - every workflow in `.github/workflows/` has a section in `docs/ci.md`
 - every job in every workflow has a row in that workflow's section
 - every job named by a row exists in that workflow
 - no section for a workflow file that is gone
+
+The introduction check exists because a count written in prose drifts: the page opened
+with "Five workflows run it" while seven existed, which is the class
+`docs/review-lessons.md` names as "A count in prose goes stale". Naming each file in the
+introduction and comparing the set to the tree is the drift-proof form the lesson asks
+for — there is no numeral to update, only a fact to keep true.
 
 What is deliberately not checked is the second column, the check name. `test` appears
 there as `test (3.10)` … `test (3.13)`, because a matrix job's check name carries its
@@ -61,6 +68,11 @@ DOC = Path("docs") / "ci.md"
 SECTION_RE = re.compile(r"^#{2,}\s+`\.github/workflows/([^`]+)`")
 # Any heading, which is what bounds a section's table.
 HEADING_RE = re.compile(r"^#{1,6}\s")
+# A level-2+ heading, which is what bounds the introduction: the document opens with its
+# own `# CI` title, and the introduction is the prose between that and the first section.
+SECTION_BOUND_RE = re.compile(r"^#{2,}\s")
+# "`ci.yml`" — a workflow file named in the introduction, before any section heading.
+WORKFLOW_TOKEN_RE = re.compile(r"`([^`]+\.ya?ml)`")
 # "| `validate-skills` | `validate skills` | … |" — the job is the first backticked
 # token of the first cell. Anything after it, such as "(portable step)", is prose.
 ROW_RE = re.compile(r"^\|\s*`([^`]+)`")
@@ -115,6 +127,22 @@ def documented(text: str) -> dict[str, dict[str, int]]:
     return sections
 
 
+def intro_workflow_names(text: str) -> set[str]:
+    """Workflow files named in the introduction, before the first heading.
+
+    The paragraph above the first `##` is where a reader learns how many workflows there
+    are and what each one does. A count written there drifts the moment a workflow is
+    added or removed, so the introduction names each file instead and this check asserts
+    the set matches the tree.
+    """
+    names: set[str] = set()
+    for line in text.splitlines():
+        if SECTION_BOUND_RE.match(line):
+            break
+        names.update(WORKFLOW_TOKEN_RE.findall(line))
+    return names
+
+
 def check(root: Path) -> int:
     doc = root / DOC
     if not doc.is_file():
@@ -128,9 +156,23 @@ def check(root: Path) -> int:
         print(f"::error::no workflows in {WORKFLOW_DIR}", file=sys.stderr)
         return 1
 
-    sections = documented(doc.read_text(encoding="utf-8"))
+    text = doc.read_text(encoding="utf-8")
+    sections = documented(text)
+    present = {path.name for path in workflows}
     problems = 0
     counted = 0
+
+    named = intro_workflow_names(text)
+    for name in sorted(present - named):
+        print(
+            f"::error file={DOC}::the introduction does not name {name}; name every "
+            f"workflow there rather than writing a count, so adding one cannot leave a "
+            f"stale number behind"
+        )
+        problems += 1
+    for name in sorted(named - present):
+        print(f"::error file={DOC}::the introduction names {name}, which is not a workflow")
+        problems += 1
 
     for path in workflows:
         name = path.name
@@ -172,7 +214,6 @@ def check(root: Path) -> int:
                 )
                 problems += 1
 
-    present = {path.name for path in workflows}
     for name in sorted(set(sections) - present):
         print(f"::error file={DOC}::there is a section for {name}, which does not exist")
         problems += 1

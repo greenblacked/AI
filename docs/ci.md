@@ -3,10 +3,12 @@
 CI is the source of truth for whether this repository is correct. Everything a reviewer
 would otherwise check by eye — that a skill validates, that its reference files exist,
 that it is listed in the marketplace, that no secret is in history — is a job that either
-passes or does not. Five workflows run it: two that gate every change, one that runs
-weekly, one that scores trigger evals — monthly over everything, and on every pull
-request over what that pull request touched — and one that neither gates nor scores,
-merging a Dependabot pull request once the other two have.
+passes or does not. Seven workflows run it. `ci.yml` and `security.yml` gate every change.
+`scheduled.yml` runs the checks that need the network or a wordlist, weekly. `evals.yml`
+scores trigger evals — monthly over everything, and on every pull request over what that
+pull request touched. The remaining three gate nothing: `dependabot-auto-merge.yml`
+merges a Dependabot pull request once the two gates have, `ci-triage.yml` explains a
+failed CI or Security run in one comment, and `release.yml` publishes a tagged release.
 
 ## Execution flow
 
@@ -62,7 +64,7 @@ gives, and at workflow level so a cache key can name one.
 | `validate-skills` | `validate skills` | A skill, a subagent, a command or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed eval set for a skill or a subagent, a `.claude/rules/` glob that matches nothing, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output; it also prints the per-plugin description total, which is the listing cost every installer pays. |
 | `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the workflow's `env` for the same reason the scanners are. |
 | `test` | `test (3.10)` … `test (3.13)` | The full test suite failed on that interpreter. Python 3.10–3.12 run plain pytest; 3.13 additionally measures line and branch coverage and enforces the unchanged floor in [`pyproject.toml`](../pyproject.toml). Compatibility remains checked on all four versions, with coverage instrumentation paid for once. pytest and coverage retain their existing version pins. The coverage table lands in the 3.13 job summary. |
-| `catalogue` | `check catalogue` | A plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), the README stopped matching the tree, this file stopped listing the jobs CI runs, a workflow's aggregate stopped naming every job in it or a pinned version came to mean two things, a shell block or shipped script no longer parses, the hook registration in `.claude/settings.json` names a script that is missing or not executable, or the README's table of AI tools no longer matches [`providers.json`](../providers.json) or that file is malformed — regenerate the table with `make providers` rather than editing it; a row past `stale_after_days` only warns. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. The same file also records each skill's own description length: a new skill must arrive at or under 900 characters, and one already above that is pinned where it measures rather than trimmed to fit a gate. |
+| `catalogue` | `check catalogue` | A plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), the README stopped matching the tree, this file stopped listing the jobs CI runs, a workflow's aggregate stopped naming every job in it or a pinned version came to mean two things, the Makefile stopped wrapping the same commands the jobs run (or stopped parsing on an older `make`), a shell block or shipped script no longer parses, the hook registration in `.claude/settings.json` names a script that is missing or not executable, or the README's table of AI tools no longer matches [`providers.json`](../providers.json) or that file is malformed — regenerate the table with `make providers` rather than editing it; a row past `stale_after_days` only warns. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. The same file also records each skill's own description length: a new skill must arrive at or under 900 characters, and one already above that is pinned where it measures rather than trimmed to fit a gate. |
 | `package` (portable step) | `package` | `make portable` could not flatten every skill into a file that stands alone, or a router grew past `ROUTER_BUDGET_BYTES`. References are inlined and their pointers rewritten, so the export works without a filesystem; the router is checked against its byte budget before anything is written, so an oversized one fails the export rather than shipping quietly past what a terminal agent's own document budget allows. Portable outputs upload as `portable-skills` only after the preceding CI checks pass. |
 | `spelling` | `lint spelling` | codespell found a likely typo. It ran weekly and warn-only until it was made a gate; the false positives are listed in [`pyproject.toml`](../pyproject.toml) with the reason each is one, which is what lets the check sit at zero and mean something. |
 | `lint-markdown` | `lint markdown` | markdownlint-cli2 found a violation in a `*.md` file. Config in `.markdownlint-cli2.yaml`. |
@@ -339,13 +341,15 @@ prints a table into the job summary, and stops there.
 Three triggers: a monthly `schedule` (`0 7 1 * *`), `workflow_dispatch`, and
 `pull_request`. There is no push trigger and, like `ci.yml`, no `paths:` filter — a
 workflow skipped by a path filter leaves its check Pending forever, which is the failure
-this repository refuses everywhere. Two jobs, and each is guarded by a job-level `if:` so
-that exactly one of them runs on any given event:
+this repository refuses everywhere. Three jobs; the first two are guarded by a job-level
+`if:` so that exactly one of them runs on any given event, and the third decides inside
+itself whether the event is one it measures:
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `evaluate` | `score descriptions` | The whole catalogue, on the schedule or on request; skipped on a pull request. A skill scored below the `threshold` input, or a dispatched run has no credential. Nothing depends on this job and no branch rule requires it. Two-hour timeout, because it makes one model call per query per sample. |
 | `evaluate-changed` | `score changed skills` | Only on a pull request; skipped otherwise. A skill the pull request changed, or one of that skill's declared neighbours, scored below **0.7**. Forty-five-minute timeout. |
+| `reviewer-benchmark` | `benchmark the reviewer` | A seeded defect in `.claude/agents/benchmarks/reviewer/` that `reviewer` does not catch, or a clean case it fails with a false alarm, below its thresholds. Runs on the schedule or on request, and on a pull request only when the cases, `reviewer.md` or the harness changed. Two-hour timeout. |
 
 ### `evaluate-changed`, the pull request job
 
@@ -403,12 +407,37 @@ on; anything higher means the harness itself failed — an unreachable model, a 
 eval set — and stops the job with an error, because a run that cannot reach the model has
 no score to report. The scores already paid for are published and uploaded either way.
 
+### `reviewer-benchmark`, the quality benchmark
+
+The trigger evals measure routing: whether a description gets a skill or subagent chosen.
+They say nothing about what comes back once it is. `reviewer-benchmark` measures that for
+the one subagent whose output quality the repository depends on most — whether a seeded
+defect from [`docs/review-lessons.md`](review-lessons.md) is actually caught, and whether
+an honest clean change is shipped rather than stalled on an invented objection.
+
+Each case under [`.claude/agents/benchmarks/reviewer/`](../.claude/agents/benchmarks/reviewer)
+is a small unified diff and a `case.json` describing it: a `"defect"` case passes when
+`reviewer` returns `FIX` or `STOP` and every `must_mention` regex matches its report, and
+a `"clean"` case passes on `SHIP`. The harness runs each case in an isolated `git
+worktree`, detached from `HEAD`, and never touches the repository's own tree.
+
+It runs on the schedule and on request, and on a pull request only when the diff touches
+`.claude/agents/benchmarks/`, `.claude/agents/reviewer.md` or
+`scripts/run_review_benchmark.py` — the three things a benchmark number depends on. A
+pull request that changes none of them gets a green check with a note rather than the
+expensive run; the job carries no job-level `if:` for the reason above, so a skipped run
+never leaves a check Pending. The credential handling is `evaluate`'s: a scheduled run
+stands down with a notice, a fork's pull request stands down, and a dispatched run fails
+loudly. The harness's exit code is the job's: 1 is a rate below its threshold and 2 is the
+harness failing to run at all, and the JSON is published and uploaded either way.
+
 ### Dispatch inputs
 
-The six inputs belong to `evaluate`; `evaluate-changed` takes none and always scores with
-the `claude` backend at three samples per query. `skill` is marked required and the
-others are not, but all carry a default, so dispatching the form unchanged scores
-everything against Claude:
+The seven inputs are shared by the workflow's jobs. Six belong to `evaluate`;
+`evaluate-changed` takes none and always scores with the `claude` backend at three
+samples per query; `reviewer` belongs to `reviewer-benchmark`. `skill` is marked required
+and the others are not, but all carry a default, so dispatching the form unchanged scores
+everything against Claude and does not run the benchmark:
 
 | Input | Default | What it does |
 | --- | --- | --- |
@@ -418,6 +447,7 @@ everything against Claude:
 | `threshold` | `0.8` | Pass rate below which a target is reported as failing. |
 | `backend` | `claude` | Which model CLI answers: `claude`, `codex` (OpenAI) or `gemini`. The job installs only that one, at the version pinned in the workflow's `env`. |
 | `model` | empty | A model name passed to the CLI. Blank uses the CLI's own default. |
+| `reviewer` | `false` | Also run `reviewer-benchmark`. Off by default because the benchmark costs a full review run per case, so a dispatch that only wants to re-score a skill does not pay for it. |
 
 The harness reads no API key of its own. Each CLI reads the credential it expects, and
 the first step checks that the chosen backend has one, stopping with a one-line annotation
@@ -654,7 +684,7 @@ attempts, so a server-requested delay long enough on its own could otherwise sti
 past the job's five-minute `timeout-minutes` even though every individual attempt
 respected its own cap. The digest check afterwards runs on whatever arrives,
 retried or not, so a retry that succeeds is verified exactly as a first-try download
-would be. The two `evals.yml` jobs install a CLI globally with npm and are not on the
+would be. The `evals.yml` jobs install a CLI globally with npm and are not on the
 critical path of any gate.
 
 ## Making CI authoritative
@@ -819,10 +849,12 @@ automate in Actions.
 
 ### The eval credential
 
-`evals.yml` needs a model credential as a repository secret, and there is none. Both its
-jobs are written to stand down rather than fail when that is the case, which is right for
-a fork and for a check nobody is required to pass — and it means the scoring has never
-run. Every pull request that reached the credential step reported
+`evals.yml` needs a model credential as a repository secret, and there is none. Each of
+its jobs stands down rather than failing on a scheduled run and on a pull request, which
+is right for a fork and for a check nobody is required to pass; only a run somebody
+dispatched by hand fails on the missing credential, because they asked for it and are owed
+the error. In practice the scoring has never run. Every pull request that reached the
+credential step reported
 `::notice title=no credentials::Not scoring the changed skills`, and the monthly run over
 the whole catalogue will do the same.
 
@@ -844,11 +876,12 @@ An empty result means the eval jobs are standing down on every run.
 
 ```bash
 make validate   # skills, subagents, commands, rules and the manifest — the validate-skills job
-make catalogue  # listing ceilings, README and CI drift, workflows, shell, providers — the catalogue job
+make catalogue  # listing ceilings, README and CI drift, workflows, the Makefile, shell, providers — the catalogue job
 make portable   # flatten every skill for ChatGPT, Grok and other assistants
 make test       # pytest — the test job
 make coverage   # the same run under coverage, failing below the floor
 make lint       # ruff, markdownlint, yamllint, actionlint, codespell — the lint jobs
+make lint-strict  # the same, but a missing or mis-versioned tool fails instead of skipping
 make package    # .skill archives into dist/ — the package job
 make attribution  # commits since origin/main and the branch name against the attribution rules — the attribution job
 make naming     # file names, branch and commits against naming conventions — the naming job
@@ -866,25 +899,33 @@ It exists to catch a script sliding back to untested, which is the state the har
 the packager were in before the suite covered them, not to be chased.
 
 `make lint` skips a tool that is not installed and prints how to get it, so a partial
-local toolchain does not block you; CI has all of them.
+local toolchain does not block you; CI has all of them. `make lint-strict` is the same
+run with that tolerance removed: a tool that is absent, or a `ruff` or `actionlint` whose
+version is not the one CI pins, fails instead of warning. Use it when the point is to
+reproduce CI rather than to get a quick local signal, because a tool a version behind can
+pass a tree CI then rejects — ruff 0.16 formats Python inside Markdown fences and older
+versions do not.
 
-`make catalogue` needs nothing installed beyond `bash`. It is the seven checks that
+`make catalogue` needs nothing installed beyond `bash`. It is the eight checks that
 keep the repository's claims about itself true — the per-plugin listing ceilings and
 the two install claims they underwrite (which plugins fit the default budget, and the
 `skillListingBudgetFraction` to set when they do not), whether
 the README still lists every skill, subagent and command that exists and nothing that
 does not, whether this file still lists every job CI runs, whether each workflow's
 aggregate still names every job in it and each pinned version still means one thing,
-whether every shell block and shipped script actually parses, whether the hook
+whether the Makefile still wraps the same commands the jobs run, whether every shell
+block and shipped script actually parses, whether the hook
 registered in `.claude/settings.json` names a script that is there and executable, and
 whether the README's table of AI tools is still what `providers.json` renders to.
 Each failure is invisible without a gate: the first costs you the skills you use least,
 silently; the second and third are only ever caught by someone reading; the fourth is the
 worst of them, because a job left out of the aggregate makes the required check report
-success while that job is red; the fifth ships a command that reads fine and fails in
-someone else's terminal; the sixth turns the hook off, so skills are written
-unvalidated and the first sign of it is one reaching CI weeks later; and the seventh
-leaves a hand edit to the table disagreeing with the data and sources behind it. A row
+success while that job is red; the fifth is a claim about local equivalence nobody reads,
+so `make` and CI drift apart in the direction of whichever was edited last; the sixth
+ships a command that reads fine and fails in someone else's terminal; the seventh turns
+the hook off, so skills are written unvalidated and the first sign of it is one reaching
+CI weeks later; and the eighth leaves a hand edit to the table disagreeing with the data
+and sources behind it. A row
 nobody has re-checked within `stale_after_days` is a warning rather than a failure,
 because a claim about someone else's tool ages whether or not anything here changed.
 `.claude/settings.json` is read by the runtime and by nothing else here, which is why
