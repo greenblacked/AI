@@ -71,7 +71,7 @@ none of them applies. No explanation, no punctuation, no other text."""
 # of the overall budget (the `skillListingMaxDescChars` setting).
 ENTRY_CAP = 1536
 COMPARISON_SCHEMA = 1
-EVAL_PROTOCOL = "majority-vote-routing-v1"
+EVAL_PROTOCOL = "plurality-vote-inconclusive-routing-v2"
 
 
 def _digest(value: object) -> str:
@@ -274,8 +274,10 @@ def normalise(answer: str) -> str:
     return answer
 
 
-def judge(case: dict, chosen: str, name: str) -> tuple[bool, str]:
+def judge(case: dict, chosen: str | None, name: str) -> tuple[bool, str]:
     """Return (passed, reason)."""
+    if chosen is None:
+        return False, "INCONCLUSIVE: tied highest vote counts"
     fired = chosen == name
     if case["should_trigger"]:
         return fired, "" if fired else f"wanted {name}"
@@ -328,12 +330,19 @@ def score(target: Target, entries: dict, args) -> dict:
     unrecognised = 0
     for index, case in enumerate(cases):
         votes = Counter(answers[index])
-        (chosen, count), *rest = votes.most_common()
-        if chosen != "NONE" and chosen not in names:
+        ranked = votes.most_common()
+        chosen, count = ranked[0]
+        margin = count - (ranked[1][1] if len(ranked) > 1 else 0)
+        if margin == 0:
+            chosen = None
+        # Lower-count valid replies cannot rescue an invalid winning label or an
+        # entirely invalid tied top set. Mixed valid/invalid top ties remain inconclusive.
+        if all(
+            answer != "NONE" and answer not in names
+            for answer, tally in votes.items()
+            if tally == count
+        ):
             unrecognised += 1
-        # With an odd number of runs a tie is impossible, so the margin is a real signal
-        # about whether the description sits on the model's decision boundary.
-        margin = count - (rest[0][1] if rest else 0)
         passed, reason = judge(case, chosen, target.name)
         results.append(
             {
@@ -349,7 +358,8 @@ def score(target: Target, entries: dict, args) -> dict:
         if args.verbose:
             mark = "pass" if passed else "FAIL"
             split = f" ({count}-{count - margin} split)" if margin < args.runs else ""
-            print(f"  {mark}  chose={chosen:22} {case['query'][:60]}{split}", file=sys.stderr)
+            display = chosen if chosen is not None else "INCONCLUSIVE"
+            print(f"  {mark}  chose={display:22} {case['query'][:60]}{split}", file=sys.stderr)
 
     if results and unrecognised == len(results):
         # Every answer was something other than a catalogue entry. That is not a set
@@ -376,6 +386,7 @@ def score(target: Target, entries: dict, args) -> dict:
         "specificity": rate(negatives) or 0.0,
         "routing": rate(routed),
         "narrow": sum(1 for r in results if r["margin"] < args.runs),
+        "inconclusive": sum(r["chose"] is None for r in results),
         "unrecognised": unrecognised,
         "failures": [r for r in results if not r["passed"]],
     }
@@ -434,7 +445,7 @@ def main() -> int:
         "--runs",
         type=int,
         default=3,
-        help="samples per query, majority wins; must be odd so a tie cannot be broken by luck",
+        help="samples per query (positive odd); unique highest count wins, ties are inconclusive",
     )
     parser.add_argument("--threshold", type=float, default=0.8, help="minimum pass rate")
     parser.add_argument(
@@ -476,7 +487,7 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.runs < 1 or args.runs % 2 == 0:
-        parser.error("--runs must be a positive odd number, so that a vote cannot tie")
+        parser.error("--runs must be a positive odd number")
     if args.jobs < 1:
         parser.error("--jobs must be at least 1")
     args.client_kind = "custom" if args.command else args.backend
@@ -525,7 +536,8 @@ def main() -> int:
         _write(args.json, reports)
 
     header = (
-        f"{'target':22} {'rate':>6} {'recall':>7} {'specificity':>12} {'routing':>8} {'narrow':>7}"
+        f"{'target':22} {'rate':>6} {'recall':>7} {'specificity':>12} {'routing':>8} "
+        f"{'narrow':>7} {'inconclusive':>12}"
     )
     if baseline:
         header += f" {'delta':>7}"
@@ -534,7 +546,8 @@ def main() -> int:
         routing = f"{report['routing']:>8.0%}" if report["routing"] is not None else f"{'-':>8}"
         line = (
             f"{report['target']:22} {report['rate']:>6.0%} {report['recall']:>7.0%} "
-            f"{report['specificity']:>12.0%} {routing} {report['narrow']:>7}"
+            f"{report['specificity']:>12.0%} {routing} {report['narrow']:>7} "
+            f"{report['inconclusive']:>12}"
         )
         if baseline:
             before = baseline.get(report["target"])
