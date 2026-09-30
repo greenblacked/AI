@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the host hardening workflow while preserving safe operation.",
+  "lesson": "Removing persistent configuration leaves runtime state active",
+  "must_mention": [
+    "sysctl",
+    "runtime|live|kernel",
+    "restor|revert|rollback"
+  ]
+}

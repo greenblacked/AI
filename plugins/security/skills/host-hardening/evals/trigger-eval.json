@@ -1,0 +1,22 @@
+[
+  {"query": "harden the ubuntu hosts themselves, sysctl and auditd and ssh config", "should_trigger": true},
+  {"query": "lock down ssh on the bastion, we still allow password login", "should_trigger": true},
+  {"query": "the CIS benchmark scan shows forty findings on our web servers, where do we start", "should_trigger": true},
+  {"query": "how do I disable services and ports we are not using on this box", "should_trigger": true},
+  {"query": "what sysctl settings should a production database host have", "should_trigger": true},
+  {"query": "we need auditd evidence for the security audit by friday", "should_trigger": true},
+  {"query": "set up a patch and reboot policy for our fleet of VMs", "should_trigger": true},
+  {"query": "harden the host firewall on these instances, only ssh and 443 should be reachable", "should_trigger": true},
+  {"query": "our servers have world-writable files everywhere, tighten the filesystem permissions", "should_trigger": true},
+  {"query": "someone edited sudoers by hand and locked us out, how do we do it safely next time", "should_trigger": true},
+  {"query": "harden this Dockerfile, it runs as root on a full debian base", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "need to harden a new mikrotik before it ships to site, users and management access", "should_trigger": false, "expected": "routeros-config"},
+  {"query": "write me an ansible playbook that hardens sshd on the bastion hosts", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "reviewing an ansible change that rewrites sudoers, how do i tell whether it is idempotent", "should_trigger": false, "expected": "iac-review"},
+  {"query": "sort out who can push to our harbor registry, robot accounts and per project quotas", "should_trigger": false, "expected": "access-review"},
+  {"query": "an api key leaked in a public repo, walk me through rotating it without downtime", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "pods keep getting OOMKilled under load, what should the limits be", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "falco is alerting on a shell spawning inside the api container in prod, what now", "should_trigger": false},
+  {"query": "review the terraform for our ECR repos, lifecycle policy and the cross account access", "should_trigger": false, "expected": "iac-review"},
+  {"query": "is this endpoint vulnerable to idor, here is the diff", "should_trigger": false, "expected": "security-review"}
+]

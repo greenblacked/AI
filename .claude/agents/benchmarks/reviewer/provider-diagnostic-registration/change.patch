@@ -20,6 +20,6 @@ diff --git a/plugins/operations/skills/terraform-state/references/provider-ident
 -families: `init` and data reads are safe here only when their actual provider behaviour
 -is known not to mutate external state. A Terraform plan is not inherently side-effect
 -free at provider initialization.
- 
+
  Add one data block and a narrow output per relevant provider configuration. For aliases,
  set `provider = aws.NAME`, `google.NAME`, or `azurerm.NAME` in each data block. These
