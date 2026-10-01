@@ -348,7 +348,7 @@ itself whether the event is one it measures:
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `evaluate` | `score descriptions` | The whole catalogue, on the schedule or on request; skipped on a pull request. A skill scored below the `threshold` input, or a dispatched run has no credential. Nothing depends on this job and no branch rule requires it. Two-hour timeout, because it makes one model call per query per sample. |
-| `evaluate-changed` | `score changed skills` | Only on a pull request; skipped otherwise. A skill the pull request changed, or one of that skill's declared neighbours, scored below **0.7**. Forty-five-minute timeout. |
+| `evaluate-changed` | `score changed skills` | Only on a pull request; skipped otherwise. A skill or agent the pull request changed, or one of its declared neighbours, scored below **0.7**. Forty-five-minute timeout. |
 | `reviewer-benchmark` | `benchmark the reviewer` | A seeded defect in `.claude/agents/benchmarks/reviewer/` that `reviewer` does not catch, or a clean case it fails with a false alarm, below its thresholds. Runs on the schedule or on request, and on a pull request only when the cases, `reviewer.md` or the harness changed. Two-hour timeout. |
 
 ### `evaluate-changed`, the pull request job
@@ -358,11 +358,11 @@ new skill that it has taken a neighbour's queries, because the score that reveal
 collision belongs to the neighbour: one skill merged at 95% while breaking the eval set
 of the skill next door, and on a monthly cadence nobody would have known for a month.
 
-So the pull request job scores the changed skills **and their declared neighbours** —
-every distinct `expected` value in a changed skill's `evals/trigger-eval.json`, resolved
-to a skill directory under `plugins/*/skills/` or a subagent file under
-`plugins/*/agents/` or `.claude/agents/`. Scoring only the changed skill would not catch
-the case above, because the changed skill is the one that scores well.
+So the pull request job scores changed skills and agents **and their declared neighbours**.
+It reads distinct `expected` values from each changed target's eval set and resolves them
+to skill directories under `plugins/*/skills/` or agent files under
+`plugins/*/agents/` and `.claude/agents/`. Scoring only the changed target would not catch
+the case above, because the changed target is the one that scores well.
 
 What it does, in order:
 
@@ -370,10 +370,14 @@ What it does, in order:
    changed files with `git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD"`. Plain
    git rather than a changed-files action: this is one diff, and an action would be
    another pinned dependency in the supply chain for it.
-2. Maps each changed path back to the skill directory that contains it, adds the
-   neighbours, and caps the list at twelve targets. Past a dozen the run stops being a
-   pull request check and becomes the monthly job; when it truncates, the summary says so
-   and by how many.
+2. Maps changed skill paths to their skill directory. Agent definitions under
+   `plugins/*/agents/<name>.md` and `.claude/agents/<name>.md`, and their paired
+   `evals/<name>.json` files, select that agent. Definition and eval changes select a
+   target only once. Deleted definitions and orphaned eval sets are ignored; surviving
+   definitions without eval sets are listed as unscorable in the summary. It adds the
+   declared neighbours, deduplicates them against changed targets, and caps the list at
+   twelve, with changed targets first. The summary counts only selected changed targets
+   and neighbours and reports how many targets the cap dropped.
 3. Runs [`scripts/run_trigger_eval.py`](../scripts/run_trigger_eval.py) once per target.
    The harness takes exactly one target per invocation and rewrites `--json` wholesale,
    so each target writes its own results file and the publish step merges them into one
@@ -382,7 +386,7 @@ What it does, in order:
 
 Three outcomes that are green on purpose:
 
-- **No skill changed.** The job reports success with a note in the summary rather than
+- **No scorable skill or agent changed.** The job reports success with a note in the summary rather than
   being skipped, so nothing sits Pending.
 - **No credential.** A pull request from a fork is handed no secrets. The job says so in
   a notice and stands down, because a red check a contributor has no way to make green is
@@ -558,9 +562,9 @@ rather than the source of truth.
 ## Why there is no `paths:` filter
 
 No workflow here has a `paths:` filter, and this is deliberate. `evals.yml` is the one
-where the temptation is real — its pull request job has nothing to do unless a skill
-changed — and it runs on every pull request anyway, reporting "no skill changed" in the
-job summary.
+where the temptation is real — its pull request job has nothing to do unless a skill or agent
+changed — and it runs on every pull request anyway, reporting when no changed target has
+a trigger eval set to score in the job summary.
 
 A workflow skipped by a path filter does not report a result at all — its check sits
 Pending forever. If that check is required, the pull request can never merge, and the
