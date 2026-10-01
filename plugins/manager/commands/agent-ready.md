@@ -2,6 +2,7 @@
 description: Clone a repository and run every fenced shell command its AGENTS.md contains — on this machine, with a stripped environment rather than a sandbox — after listing the commands and stopping for confirmation. Use only on a repository you would already trust enough to run its test suite. Also checks instruction-file size against a known agent tool cap and flags dangling paths and exposed secrets.
 argument-hint: '[path or URL to the repository, default the current directory]'
 allowed-tools: Bash(git clone:*), Bash(git worktree:*), Bash(rg:*), Read, Glob, Grep
+disable-model-invocation: true
 ---
 
 Audit `$0` (default `.`, the current directory) for whether an agent can actually work in
