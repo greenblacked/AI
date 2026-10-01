@@ -119,9 +119,12 @@ git clone https://github.com/greenblacked/AI.git && cd AI
 CLAUDE_SKILLS_DIR=~/.agents/skills make install
 ```
 
-This repository's subagents are a Claude Code feature and do not travel. Grok Build and
-Mistral Vibe read the `allowed-tools` key, but whether they enforce it as a restriction is
-not verified here, so rely on it only in Claude Code.
+This repository's `.claude/agents/` YAML definitions and Claude Code plugin installer
+target Claude Code; the symlink skill installer supports other skills locations.
+For adapted coordinator and role prompts, use the [ChatGPT workflow guide](docs/chatgpt-agents.md);
+actual delegation depends on the current session's tools. Grok Build and Mistral Vibe read
+the `allowed-tools` key, but whether they enforce it as a restriction is not verified
+here, so rely on it only in Claude Code.
 
 <details>
 <summary>Which tools read AGENTS.md and load skills</summary>

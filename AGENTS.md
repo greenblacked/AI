@@ -15,6 +15,9 @@ Everything here is prose and configuration. There is no application. The only co
 
 ## Multi-agent workflow
 
+[The ChatGPT workflow guide](docs/chatgpt-agents.md) provides coordinator and role
+prompts, with explicit limits for manual passes and actual delegation.
+
 Which models to use depends on the tool running the session, because each tool offers a
 different set. Honour an explicit per-task assignment over either default split below.
 
