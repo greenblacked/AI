@@ -44,7 +44,8 @@ class Args:
         ({"should_trigger": True}, "beta", False, "wanted alpha"),
         ({"should_trigger": False}, "alpha", False, "wanted not alpha"),
         ({"should_trigger": False}, "NONE", True, ""),
-        ({"should_trigger": False}, "gamma", True, ""),
+        ({"should_trigger": False}, "beta", True, ""),
+        ({"should_trigger": False, "expected": "NONE"}, "NONE", True, ""),
         ({"should_trigger": False, "expected": "beta"}, "beta", True, ""),
         (
             {"should_trigger": False, "expected": "beta"},
@@ -62,7 +63,27 @@ class Args:
     ],
 )
 def test_judge(case, chosen, passed, reason):
-    assert harness.judge(case, chosen, "alpha") == (passed, reason)
+    assert harness.judge(case, chosen, "alpha", frozenset({"alpha", "beta", "gamma"})) == (
+        passed,
+        reason,
+    )
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        {"should_trigger": True},
+        {"should_trigger": False},
+        {"should_trigger": False, "expected": "beta"},
+        {"should_trigger": False, "expected": "NONE"},
+        {"should_trigger": False, "expected": "unknown"},
+    ],
+)
+def test_judge_unknown_winner_never_gets_credit(case):
+    assert harness.judge(case, "unknown", "alpha", frozenset({"alpha", "beta"})) == (
+        False,
+        "UNRECOGNISED: unknown is not a catalogue entry",
+    )
 
 
 # --- render: what the model is shown ------------------------------------------------
@@ -323,11 +344,14 @@ def test_inconclusive_is_visible_in_verbose_and_summary_output(
     assert json.loads(output.read_text())[0]["inconclusive"] == 1
 
 
-def test_pre_tie_fix_protocol_baselines_are_incompatible(mini_repo, monkeypatch):
+@pytest.mark.parametrize(
+    "protocol", ["majority-vote-routing-v1", "plurality-vote-inconclusive-routing-v2"]
+)
+def test_previous_scoring_protocol_baselines_are_incompatible(mini_repo, monkeypatch, protocol):
     target = _alpha(mini_repo)
     cases = json.loads(target.eval_set.read_text())
     current = harness.comparison(target, cases, Args())
-    monkeypatch.setattr(harness, "EVAL_PROTOCOL", "majority-vote-routing-v1")
+    monkeypatch.setattr(harness, "EVAL_PROTOCOL", protocol)
     old = harness.comparison(target, cases, Args())
     assert harness._comparable({"comparison": old}, {"comparison": current}) == (
         False,
@@ -1006,3 +1030,39 @@ def test_zero_jobs_is_rejected(mini_repo, monkeypatch, capsys):
         run_main(monkeypatch, "--all", "--root", str(mini_repo), "--jobs", "0")
     assert caught.value.code == 2
     assert "--jobs must be at least 1" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize(
+    "samples",
+    [("unknown", "unknown", "unknown"), ("unknown", "unknown", "NONE")],
+)
+def test_unknown_negative_winner_fails_in_a_partly_valid_run(mini_repo, monkeypatch, samples):
+    target = _alpha(mini_repo)
+    target.eval_set.write_text(
+        json.dumps(
+            [
+                {"query": "valid", "should_trigger": True},
+                {"query": "unknown negative", "should_trigger": False},
+                {"query": "abstain", "should_trigger": False},
+                {"query": "sibling", "should_trigger": False, "expected": "beta"},
+            ]
+        )
+    )
+    replies = iter(["alpha"] * 3 + list(samples) + ["NONE"] * 3 + ["beta"] * 3)
+    monkeypatch.setattr(harness, "ask", lambda *args: next(replies))
+    report = harness.score(target, harness.catalogue(mini_repo), Args())
+    assert report["passed"] == 3 and report["rate"] == 3 / 4
+    assert report["recall"] == 1.0 and report["specificity"] == 2 / 3
+    assert report["routing"] == 1.0
+    assert report["unrecognised"] == 1 and report["inconclusive"] == 0
+    assert report["failures"] == [
+        {
+            "query": "unknown negative",
+            "should_trigger": False,
+            "expected": None,
+            "chose": "unknown",
+            "margin": 3 if len(set(samples)) == 1 else 1,
+            "passed": False,
+            "reason": "UNRECOGNISED: unknown is not a catalogue entry",
+        }
+    ]
