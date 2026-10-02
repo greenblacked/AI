@@ -85,7 +85,6 @@ ATX_RE = re.compile(r"^(#{1,6})(\s+)")
 # What may sit between the start of a line and a code fence: blockquote markers and one list
 # marker. A fenced example quoted with `>` or nested under a bullet is still a fence.
 CONTAINER_PREFIX_RE = re.compile(r"^(?:\s{0,3}>)*\s*(?P<item>(?:[-*+]|\d+[.)])\s+)?")
-LIST_ITEM_RE = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s")
 # A line that starts a block which can interrupt a paragraph, tested on the text after any
 # container prefix: a thematic break or setext underline, or an HTML block of types 1-6
 # (a comment, a processing instruction, a declaration, or a block-level tag).
@@ -223,8 +222,7 @@ def fence_spans(text: str) -> list[bool]:
         if opening is not None and (
             # A fence inside a blockquote ends with the quote, and one inside a list item
             # with the item, closing marker or not.
-            quotes < depth
-            or (indent and not quotes and line.strip() and len(line) - len(line.lstrip()) < indent)
+            quotes < depth or (indent and line.strip() and len(line) - len(line.lstrip()) < indent)
         ):
             opening = None
         fence = FENCE_RE.match(content)
@@ -464,7 +462,7 @@ def block_layout(block: list[str], starts: list[int]) -> tuple[list[int], list[i
             and bodies[following].strip()
             and depths[following] == depths[index]
             and ATX_RE.match(bodies[following]) is None
-            and LIST_ITEM_RE.match(block[following]) is None
+            and prefixes[following].group("item") is None
             and BLOCK_START_RE.match(bodies[following]) is None
         )
         paragraph[index] = paragraph[following] if continues else starts[index] + len(block[index])
@@ -496,9 +494,12 @@ def inert_ranges(text: str, fenced: list[bool]) -> list[list[tuple[int, int]]]:
     wins, as in CommonMark: a backtick inside a comment is comment text, and `<!--` inside
     a code span is code. A code span or inline comment closes only within its paragraph; a
     comment that begins its line is an HTML block and runs to its `-->` or the end of its
-    container. A fence marker inside a comment or another HTML block is read as a fence by
-    `fence_spans`, an indented fence marker is read as a fence, and a link whose label
-    contains a comment is rewritten in pieces; none of those combinations is handled.
+    container. Not handled: a fence marker inside a comment or another HTML block, which
+    `fence_spans` reads as a fence; an indented fence marker, likewise; a list item inside a
+    blockquote, whose fence outlives the item; a comment opening inside an HTML block
+    already open, or after a blank line at four spaces of indent, which is code; a link
+    whose label contains a comment, which is rewritten in pieces; and a table row, whose
+    cells GitHub parses one at a time.
     """
     lines = text.split("\n")
     ranges: list[list[tuple[int, int]]] = [[] for _ in lines]
@@ -529,6 +530,16 @@ def inert_ranges(text: str, fenced: list[bool]) -> list[list[tuple[int, int]]]:
                 column = position - starts[line_index] - len(block[line_index])
                 column += len(bodies[line_index])
                 block_start = column <= 3 and not bodies[line_index][:column].strip()
+                if position < raw_until:
+                    # Still inside the HTML block that the previous comment closed on this
+                    # line: a comment here is raw HTML and cannot run onto later lines.
+                    close = joined.find("-->", position + 4, raw_until)
+                    if close < 0:
+                        position += 4
+                        continue
+                    found.append((position, close + 3))
+                    position = close + 3
+                    continue
                 limit = container[line_index] if block_start else paragraph[line_index]
                 # Only a comment that begins its line is an HTML block, whose `-->` may
                 # overlap its own `<!--` and which hides the rest of its container when

@@ -755,8 +755,9 @@ and close a fence only from the opener's own container. The benchmark confines c
 closing to one line. Calibrate the boundary rules against a CommonMark reference
 renderer rather than from the spec by memory: a differential run over random documents
 found a quote, a list item, a thematic break and a block-level tag each ending a span,
-comment or fence that the first fix let run on. Unclosed constructs, a fence inside an
-HTML block and an indented fence marker are not handled.
+comment or fence that the first fix let run on. That run left out documents with an
+unbalanced `<!--`, so the unclosed cases rest on the targeted tests; a fence inside an HTML
+block and an indented fence marker are not handled.
 
 **First caught:** #112, the automated PR reviewer, and the review stage for the mirror
 image and the paragraph boundaries.

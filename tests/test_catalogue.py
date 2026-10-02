@@ -3043,6 +3043,9 @@ def test_portable_attribute_with_no_space_before_id_is_still_refused(mini_repo, 
         "- <!-- note\n\n[x](missing.md)\n",
         "> <!-- note\n[x](missing.md)\n",
         "`a <!-- b -->\n\n[x](missing.md) `c`\n",
+        "> Run `git\n> - then [x](missing.md)` more\n",
+        "- ```\n  code\n> [x](missing.md)\n",
+        "<!-- a\nb --> <!-- c\n[x](missing.md) -->\n",
     ],
 )
 def test_portable_block_boundaries_end_what_they_would_otherwise_hide(
