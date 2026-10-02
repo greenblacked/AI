@@ -18,5 +18,5 @@
   {"query": "the build is red after a dependency bump, classify the failure and get CI moving", "should_trigger": false, "expected": "ci-triage"},
   {"query": "which unit tests and boundary cases should cover this retry function", "should_trigger": false, "expected": "test-design"},
   {"query": "design a CI pipeline for a new service with caching and a build matrix", "should_trigger": false, "expected": "ci-pipeline-design"},
-  {"query": "the agent deleted a migration file and I have no idea why it did that", "should_trigger": false}
+  {"query": "the agent deleted a migration file and I have no idea why it did that", "should_trigger": false, "expected": "agent-failure-diagnosis"}
 ]
