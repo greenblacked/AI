@@ -88,11 +88,20 @@ would have done.
    comments flagged for the same problem. A guard that blocks nothing and misses the
    known cases is not calibrated, it is silent.
 
-A replay loop for a guard that reads a unified diff on stdin and exits non-zero to block:
+A replay loop for a guard that reads a unified diff on stdin and follows one exit-code
+contract: 0 means the change passes, 1 means the change is blocked, and any other status
+means the guard itself failed.
 
 ```bash
 set -Eeuo pipefail
-guard="$1"   # command that reads a unified diff on stdin and exits non-zero to block
+# The guard reads a unified diff on stdin. Its exit status is the whole contract:
+#   0      the change passes
+#   1      the change is blocked
+#   other  the guard itself failed (missing, not runnable, crashed, killed by a signal)
+# A guard fault stops the replay with exit 2. It is never counted as a block or a pass,
+# so a broken guard cannot read as a working but noisy one.
+[ "$#" -eq 3 ] || { echo "usage: replay GUARD N BASE" >&2; exit 2; }
+guard="$1"   # path to an executable that follows the contract above
 n="$2"       # how many merged changes to replay, newest first
 base="$3"    # the integration branch, for example origin/main
 
@@ -103,6 +112,22 @@ git rev-parse --verify --quiet "$base^{commit}" >/dev/null || {
   echo "replay: base is not a commit in this clone" >&2
   exit 2
 }
+# A bare name would be looked up on PATH rather than run from here.
+case "$guard" in */*) ;; *) guard="./$guard" ;; esac
+if [ ! -f "$guard" ] || [ ! -x "$guard" ]; then
+  echo "replay: guard is not an executable file: $guard" >&2
+  exit 2
+fi
+
+# The guard reads the diff from a file, not a pipe. Through a pipe, a guard that exits
+# without reading everything makes git die of SIGPIPE, and pipefail would report that
+# 141 as the guard's verdict. From a file, the guard's own status is the only one measured.
+diff_file=$(mktemp) || {
+  echo "replay: could not create a temporary file" >&2
+  exit 2
+}
+trap 'rm -f "$diff_file"' EXIT
+trap 'exit 2' HUP INT TERM
 
 total=0
 blocked=0
@@ -110,11 +135,26 @@ while read -r sha; do
   # A root commit has no parent to diff against; skip it rather than report an error.
   git rev-parse --verify --quiet "$sha^" >/dev/null || continue
   total=$((total + 1))
-  if ! git diff "$sha^" "$sha" | "$guard" >/dev/null; then
-    blocked=$((blocked + 1))
-    # The hash only: author and subject are contributor-written text, so do not echo them.
-    echo "would block: $(git log -1 --format=%h "$sha")"
-  fi
+  # The hash only: author and subject are contributor-written text, so do not echo them.
+  short=$(git log -1 --format=%h "$sha")
+  git diff "$sha^" "$sha" >"$diff_file" || {
+    echo "replay: git diff failed for $short" >&2
+    exit 2
+  }
+  status=0
+  # Only the guard's stdout is dropped; its stderr is where a faulty guard explains itself.
+  "$guard" <"$diff_file" >/dev/null || status=$?
+  case "$status" in
+    0) ;;
+    1)
+      blocked=$((blocked + 1))
+      echo "would block: $short"
+      ;;
+    *)
+      echo "replay: guard failed with status $status on $short; stopped" >&2
+      exit 2
+      ;;
+  esac
 done < <(git log --first-parent --format=%H -n "$n" "$base")
 
 # Zero replayed changes is a failure to measure, never a clean result.
@@ -125,7 +165,10 @@ fi
 echo "replayed $total, would block $blocked"
 ```
 
-Pass the guard as a path to an executable. Walking `--first-parent` makes each merge commit
+Pass the guard as a path to an executable. Keep status 1 for a block and exit 2 or higher
+for the guard's own faults, such as an unreadable input or a missing tool: a guard that
+exits 1 when it crashes cannot be told from one that blocked. A guard fault is not a
+calibration result, so fix the guard and run the replay again from the start. Walking `--first-parent` makes each merge commit
 or squashed commit one change, which is what a pull request was; a shallow clone has too
 little history to replay, so fetch more before drawing a conclusion. A guard that needs the
 tree rather than the diff is run the same way inside a worktree checked out at each commit.
