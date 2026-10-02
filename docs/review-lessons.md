@@ -752,10 +752,14 @@ the inert text is copied verbatim, then asserts the opposite for prose beside it
 missing link after a comment, a paragraph break, or a closed fence still fails the export.
 Find comments and multiline spans in one left-to-right scan where the first starter wins,
 and close a fence only from the opener's own container. The benchmark confines code span
-closing to one line.
+closing to one line. Calibrate the boundary rules against a CommonMark reference
+renderer rather than from the spec by memory: a differential run over random documents
+found a quote, a list item, a thematic break and a block-level tag each ending a span,
+comment or fence that the first fix let run on. Unclosed constructs, a fence inside an
+HTML block and an indented fence marker are not handled.
 
 **First caught:** #112, the automated PR reviewer, and the review stage for the mirror
-image.
+image and the paragraph boundaries.
 
 ### A substring match stands in for an attribute name
 

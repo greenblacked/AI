@@ -2991,7 +2991,7 @@ def test_portable_fence_marker_in_another_container_does_not_close_an_open_fence
     "addition",
     [
         "<!-- don't ` do this -->\n[link](missing.md) `x` here\n",
-        "Use `a\n<!-- b` then [link](missing.md)\nnext [link2](missing.md)\n",
+        "Use `a\nfoo <!-- b` then [link](missing.md)\nnext [link2](missing.md)\n",
     ],
 )
 def test_portable_comment_and_code_span_do_not_open_each_other(
@@ -3026,3 +3026,46 @@ def test_portable_attribute_with_no_space_before_id_is_still_refused(mini_repo, 
     status, _ = _export_alpha(mini_repo, tmp_path, '<a href="x"id="y">\n')
     assert status == 1
     assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "addition",
+    [
+        "`[x](missing.md)\n> b`\n",
+        "> `[x](missing.md)\n>\n> b`\n",
+        "`[x](missing.md)\n---\nb`\n",
+        "`[x](missing.md)\n***\nb`\n",
+        "`[x](missing.md)\n<div>\nb`\n</div>\n",
+        "Text <!-- oops [x](missing.md)\nmore [y](missing.md)\n",
+        "> ```\n> code\n\n[x](missing.md)\n",
+        "1. ```\ntext\n[x](missing.md)\n",
+        "```[x](missing.md)`\n",
+        "- <!-- note\n\n[x](missing.md)\n",
+        "> <!-- note\n[x](missing.md)\n",
+        "`a <!-- b -->\n\n[x](missing.md) `c`\n",
+    ],
+)
+def test_portable_block_boundaries_end_what_they_would_otherwise_hide(
+    mini_repo, tmp_path, addition, capsys
+):
+    # Each shape is one where a renderer ends the code span, comment or fence before the
+    # link, so the link is real and a missing target has to fail the export.
+    status, _ = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_anchor_after_a_blockquote_break_inside_backticks_is_still_refused(
+    mini_repo, tmp_path, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, '> `a\n>\n> <a id="x"> b\n')
+    assert status == 1
+    assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+def test_portable_comment_that_begins_its_line_runs_to_its_close(mini_repo, tmp_path):
+    # A line-initial comment is an HTML block: unclosed it hides the rest of its container.
+    status, out = _export_alpha(mini_repo, tmp_path, "<!-- oops\n[x](missing.md)\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "<!-- oops\n[x](missing.md)" in (out / "skills/alpha.md").read_text()

@@ -86,6 +86,18 @@ ATX_RE = re.compile(r"^(#{1,6})(\s+)")
 # marker. A fenced example quoted with `>` or nested under a bullet is still a fence.
 CONTAINER_PREFIX_RE = re.compile(r"^(?:\s{0,3}>)*\s*(?P<item>(?:[-*+]|\d+[.)])\s+)?")
 LIST_ITEM_RE = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s")
+# A line that starts a block which can interrupt a paragraph, tested on the text after any
+# container prefix: a thematic break or setext underline, or an HTML block of types 1-6
+# (a comment, a processing instruction, a declaration, or a block-level tag).
+BLOCK_START_RE = re.compile(
+    r"^ {0,3}(?:(?:[-*_])(?: *[-*_]){2,} *$|=+ *$|-+ *$|<(?:!--|\?|![A-Za-z]|!\[CDATA\[)"
+    r"|<(?:script|pre|style|textarea)(?:\s|>|$)"
+    r"|</?(?:address|article|aside|blockquote|center|details|dialog|dir|div|dl|dt|dd|fieldset"
+    r"|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend"
+    r"|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|section|source"
+    r"|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul)(?:\s|/?>|$))",
+    re.I,
+)
 # A raw HTML element tag (open, close or self-closing, with attributes) or a comment, the
 # only inline HTML that vanishes from a rendered heading. A tag name must start with a
 # letter and be followed by whitespace, `/` or `>`, which keeps `<https://x>` and
@@ -203,15 +215,33 @@ def fence_spans(text: str) -> list[bool]:
     flags: list[bool] = []
     opening: str | None = None
     depth = 0
+    indent = 0
     for line in text.split("\n"):
         prefix = CONTAINER_PREFIX_RE.match(line)
         content = line[prefix.end() :]
+        quotes = prefix.group().count(">")
+        if opening is not None and (
+            # A fence inside a blockquote ends with the quote, and one inside a list item
+            # with the item, closing marker or not.
+            quotes < depth
+            or (indent and not quotes and line.strip() and len(line) - len(line.lstrip()) < indent)
+        ):
+            opening = None
         fence = FENCE_RE.match(content)
+        # A backtick fence's info string may not contain a backtick: that line is code.
+        if (
+            fence is not None
+            and opening is None
+            and fence.group(1)[0] == "`"
+            and "`" in content[fence.end() :]
+        ):
+            fence = None
         if fence is not None:
             marker = fence.group(1)
             if opening is None:
                 opening = marker
-                depth = prefix.group().count(">")
+                depth = quotes
+                indent = len(prefix.group()) if prefix.group("item") and not quotes else 0
                 flags.append(True)
                 continue
             # Inside a fence every line is content, so a quoted or bulleted fence marker
@@ -220,7 +250,7 @@ def fence_spans(text: str) -> list[bool]:
                 marker[0] == opening[0]
                 and len(marker) >= len(opening)
                 and not content[fence.end() :].strip()
-                and prefix.group().count(">") == depth
+                and quotes == depth
                 and prefix.group("item") is None
             ):
                 opening = None
@@ -411,6 +441,51 @@ def has_custom_anchor(line: str) -> bool:
     return False
 
 
+def block_layout(block: list[str], starts: list[int]) -> tuple[list[int], list[int], list[str]]:
+    """Per line: where its paragraph ends, where its container ends, and its text.
+
+    Both ends are offsets. A code span or an inline comment may not cross the paragraph's,
+    and an HTML comment block runs no further than the container (blockquote or list
+    item) it opened in. A paragraph ends at a blank line, a change of blockquote depth, a
+    heading, a list item, a thematic break or setext underline, or the start of an HTML
+    block of types 1-6, which is what CommonMark lets interrupt one. The text is the line
+    without its container prefix.
+    """
+    prefixes = [CONTAINER_PREFIX_RE.match(line) for line in block]
+    bodies = [line[prefix.end() :] for line, prefix in zip(block, prefixes, strict=True)]
+    depths = [prefix.group().count(">") for prefix in prefixes]
+    paragraph = [0] * len(block)
+    for index in range(len(block) - 1, -1, -1):
+        following = index + 1
+        continues = (
+            following < len(block)
+            and bodies[index].strip()
+            and ATX_RE.match(bodies[index]) is None
+            and bodies[following].strip()
+            and depths[following] == depths[index]
+            and ATX_RE.match(bodies[following]) is None
+            and LIST_ITEM_RE.match(block[following]) is None
+            and BLOCK_START_RE.match(bodies[following]) is None
+        )
+        paragraph[index] = paragraph[following] if continues else starts[index] + len(block[index])
+    container = []
+    for index, prefix in enumerate(prefixes):
+        indent = len(prefix.group()) if prefix.group("item") and not depths[index] else 0
+        last = index
+        while (
+            last + 1 < len(block)
+            and depths[last + 1] >= depths[index]
+            and (
+                not indent
+                or not block[last + 1].strip()
+                or len(block[last + 1]) - len(block[last + 1].lstrip()) >= indent
+            )
+        ):
+            last += 1
+        container.append(starts[last] + len(block[last]))
+    return paragraph, container, bodies
+
+
 def inert_ranges(text: str, fenced: list[bool]) -> list[list[tuple[int, int]]]:
     """Per line, the character ranges that are raw text, not Markdown to rewrite.
 
@@ -419,9 +494,11 @@ def inert_ranges(text: str, fenced: list[bool]) -> list[list[tuple[int, int]]]:
     line break. Neither is visible one line at a time, so each is found over a whole run
     of unfenced lines, in a single left-to-right scan. Whichever construct starts first
     wins, as in CommonMark: a backtick inside a comment is comment text, and `<!--` inside
-    a code span is code. A code span closes only within its own paragraph. A fence marker
-    inside a comment is read as a fence by `fence_spans`, and a link whose label contains
-    a comment is rewritten in pieces; neither combination is handled.
+    a code span is code. A code span or inline comment closes only within its paragraph; a
+    comment that begins its line is an HTML block and runs to its `-->` or the end of its
+    container. A fence marker inside a comment or another HTML block is read as a fence by
+    `fence_spans`, an indented fence marker is read as a fence, and a link whose label
+    contains a comment is rewritten in pieces; none of those combinations is handled.
     """
     lines = text.split("\n")
     ranges: list[list[tuple[int, int]]] = [[] for _ in lines]
@@ -438,40 +515,41 @@ def inert_ranges(text: str, fenced: list[bool]) -> list[list[tuple[int, int]]]:
         for line in block:
             starts.append(offset)
             offset += len(line) + 1
-        # Where each line's paragraph ends, as an offset: a code span may not cross it.
-        ends = [0] * len(block)
-        index = len(block) - 1
-        while index >= 0:
-            if not block[index].strip():
-                ends[index] = starts[index]
-            elif index + 1 < len(block) and not (
-                not block[index + 1].strip()
-                or ATX_RE.match(block[index + 1])
-                or LIST_ITEM_RE.match(block[index + 1])
-                or ATX_RE.match(block[index])
-            ):
-                ends[index] = ends[index + 1]
-            else:
-                ends[index] = starts[index] + len(block[index])
-            index -= 1
+        paragraph, container, bodies = block_layout(block, starts)
         joined = "\n".join(block)
         found: list[tuple[int, int]] = []
-        position = 0
+        position = raw_until = 0
         while position < len(joined):
             char = joined[position]
+            line_index = bisect.bisect_right(starts, position) - 1
+
             if char == "\\":
                 position += 2
             elif joined.startswith("<!--", position):
-                close = joined.find("-->", position + 4)
-                end = len(joined) if close < 0 else close + 3
+                column = position - starts[line_index] - len(block[line_index])
+                column += len(bodies[line_index])
+                block_start = column <= 3 and not bodies[line_index][:column].strip()
+                limit = container[line_index] if block_start else paragraph[line_index]
+                # Only a comment that begins its line is an HTML block, whose `-->` may
+                # overlap its own `<!--` and which hides the rest of its container when
+                # never closed; elsewhere it is inline and an unclosed one is literal.
+                close = joined.find("-->", position + (2 if block_start else 4), limit)
+                if close < 0 and not block_start:
+                    position += 4
+                    continue
+                end = limit if close < 0 else close + 3
                 found.append((position, end))
+                if block_start and close >= 0:
+                    # The rest of the line holding `-->` is part of the HTML block, so no
+                    # code span starts there; it is not marked inert, since a tag in it is
+                    # still real HTML.
+                    closing = bisect.bisect_right(starts, close) - 1
+                    raw_until = min(limit, starts[closing] + len(block[closing]))
                 position = end
-            elif char == "`":
+            elif char == "`" and position >= raw_until:
                 run = len(joined[position:]) - len(joined[position:].lstrip("`"))
-                line_index = bisect.bisect_right(starts, position) - 1
-                limit = ends[line_index]
                 end = position + run
-                for match in re.finditer(r"`+", joined[position + run : limit]):
+                for match in re.finditer(r"`+", joined[position + run : paragraph[line_index]]):
                     if len(match.group()) == run:
                         end = position + run + match.end()
                         if "\n" in joined[position:end]:

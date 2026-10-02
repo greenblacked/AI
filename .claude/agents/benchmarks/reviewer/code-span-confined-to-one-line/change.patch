@@ -1,12 +1,14 @@
 diff --git a/scripts/export_portable.py b/scripts/export_portable.py
 --- a/scripts/export_portable.py
 +++ b/scripts/export_portable.py
-@@ -469,7 +469,7 @@
-             elif char == "`":
+@@ -549,7 +549,9 @@
+             elif char == "`" and position >= raw_until:
                  run = len(joined[position:]) - len(joined[position:].lstrip("`"))
-                 line_index = bisect.bisect_right(starts, position) - 1
--                limit = ends[line_index]
-+                limit = starts[line_index] + len(block[line_index])
                  end = position + run
-                 for match in re.finditer(r"`+", joined[position + run : limit]):
+-                for match in re.finditer(r"`+", joined[position + run : paragraph[line_index]]):
++                for match in re.finditer(
++                    r"`+", joined[position + run : starts[line_index] + len(block[line_index])]
++                ):
                      if len(match.group()) == run:
+                         end = position + run + match.end()
+                         if "\n" in joined[position:end]:
