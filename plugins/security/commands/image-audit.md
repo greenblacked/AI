@@ -2,6 +2,7 @@
 description: Audit a container image for base-image currency, non-root execution, secrets in layers, and a defensible vulnerability gate, from the image itself rather than the Dockerfile.
 argument-hint: '[image reference, ideally by digest]'
 allowed-tools: Bash(docker:*), Bash(trivy:*), Bash(syft:*), Bash(grype:*), Bash(hadolint:*), Read, Grep
+disable-model-invocation: true
 ---
 
 Audit the image `$0`. Read the built image, not only the Dockerfile — what shipped is what

@@ -61,6 +61,18 @@ failure. This differs from outer `complete: false`, which means the evaluator mi
 capture and is invalid. Each reassignment requires a new stop acknowledgment. The fixture covers a bounded
 retry, and tests cover unsafe transitions and contradictory final state.
 
+The grader also enforces two rules on mutation events, so a capture cannot pass on an
+effect that belongs to another operation or on a repeated patch. Each mutation event must
+belong to the capture's goal: `patch` allows `patch_apply`; `submit` allows `submit` and
+`settle`; `reassign` allows `assign`, `result_accept` and `stop_ack`. Any other mutation
+event fails with `mutation event does not match capture goal`. A `patch_apply` when the
+effect count is already above 0 fails with `duplicate patch application`, whether the
+effect came from an earlier `patch_apply` or from `initial.effects`. A `patch` capture
+whose initial state already has an effect therefore has no passing path: applying again is
+a duplicate, and doing nothing fails with `no successful recovery` (`safe_blocked` when an
+unavailable lookup is the reason, or `preexisting duplicate effects` when `initial.effects`
+is above 1), because a successful `patch` goal requires an observed `patch_apply`.
+
 ## Generate a capture from mock tools
 
 `scripts/run_recovery_mock.py` executes a bounded JSON request sequence against an

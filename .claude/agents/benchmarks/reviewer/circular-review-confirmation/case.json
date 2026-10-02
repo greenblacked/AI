@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Require the recipient's no-inherited-transcript confirmation in the initial review packet.",
+  "lesson": "An input packet requires its recipient's later confirmation",
+  "must_mention": [
+    "circular|prerequisite|before.*dispatch",
+    "packet|input",
+    "confirmation|observation|Evidence|output"
+  ]
+}

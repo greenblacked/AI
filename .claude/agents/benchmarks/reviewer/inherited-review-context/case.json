@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Simplify reviewer dispatch by accepting a separate agent identity with default inherited history.",
+  "lesson": "A separate reviewer inherits the implementation context",
+  "must_mention": [
+    "inherit|context|transcript",
+    "independen|fresh",
+    "STOP|boundary|dispatch"
+  ]
+}

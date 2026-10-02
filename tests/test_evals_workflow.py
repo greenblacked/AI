@@ -238,3 +238,115 @@ def test_reviewer_selection_gate_preserves_dispatch_opt_in(tmp_path, event, revi
     )
     assert result.returncode == 0, result.stderr
     assert output.read_text(encoding="utf-8") == f"run={expected}\n"
+
+
+def run_target_selector(tmp_path, changed, targets):
+    """Execute the actual embedded selector against a small catalogue, offline."""
+    for path, queries in targets.items():
+        definition = tmp_path / path
+        definition.parent.mkdir(parents=True, exist_ok=True)
+        definition.write_text("fixture", encoding="utf-8")
+        if queries is not None:
+            eval_path = (
+                definition.parent / "evals" / "trigger-eval.json"
+                if definition.name == "SKILL.md"
+                else definition.parent / "evals" / f"{definition.stem}.json"
+            )
+            eval_path.parent.mkdir(parents=True, exist_ok=True)
+            eval_path.write_text(json.dumps(queries), encoding="utf-8")
+    (tmp_path / "changed-paths.txt").write_text("\n".join(changed), encoding="utf-8")
+    script = (
+        _extract_run_block(
+            WORKFLOW.read_text(encoding="utf-8"), "Work out which targets the pull request touches"
+        )
+        .split("python - <<'EOF'\n", 1)[1]
+        .rsplit("\nEOF", 1)[0]
+    )
+    summary, output = tmp_path / "summary", tmp_path / "output"
+    result = subprocess.run(  # noqa: S603 - execute the workflow's real selector offline
+        [sys.executable, "-c", script],
+        cwd=tmp_path,
+        env=dict(os.environ, GITHUB_STEP_SUMMARY=str(summary), GITHUB_OUTPUT=str(output)),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    return (
+        (tmp_path / "targets.txt").read_text(encoding="utf-8").splitlines(),
+        output.read_text(encoding="utf-8"),
+        summary.read_text(encoding="utf-8"),
+    )
+
+
+@pytest.mark.parametrize("parent", ["plugins/coding/agents", ".claude/agents"])
+@pytest.mark.parametrize("source", ["definition", "eval", "both"])
+def test_agent_only_changes_select_the_paired_target_once(tmp_path, parent, source):
+    definition = f"{parent}/alpha.md"
+    paired = f"{parent}/evals/alpha.json"
+    changed = {"definition": [definition], "eval": [paired], "both": [definition, paired]}[source]
+    selected, output, summary = run_target_selector(tmp_path, changed, {definition: []})
+    assert selected == [f"agent {definition}"]
+    assert output == "count=1\n"
+    assert "Scoring 1 changed target(s) and 0 declared neighbour(s)." in summary
+
+
+def test_mixed_changes_deduplicate_neighbours_and_expand_agent_evals(tmp_path):
+    skill = "plugins/coding/skills/alpha/SKILL.md"
+    agent = "plugins/coding/agents/beta.md"
+    repo_agent = ".claude/agents/gamma.md"
+    selected, output, summary = run_target_selector(
+        tmp_path,
+        [skill, "plugins/coding/skills/alpha/references/detail.md", agent],
+        {
+            skill: [{"expected": "beta"}, {"expected": "gamma"}],
+            agent: [{"expected": "alpha"}, {"expected": "gamma"}, {"expected": "missing"}],
+            repo_agent: [],
+        },
+    )
+    assert selected == [
+        "skill plugins/coding/skills/alpha",
+        f"agent {agent}",
+        f"agent {repo_agent}",
+    ]
+    assert output == "count=3\n"
+    assert "Scoring 2 changed target(s) and 1 declared neighbour(s)." in summary
+
+
+def test_deleted_and_unscorable_targets_do_not_reach_the_harness(tmp_path):
+    orphan = tmp_path / ".claude/agents/evals/deleted.json"
+    orphan.parent.mkdir(parents=True)
+    orphan.write_text("[]", encoding="utf-8")
+    selected, output, summary = run_target_selector(
+        tmp_path,
+        [
+            ".claude/agents/deleted.md",
+            ".claude/agents/evals/deleted.json",
+            ".claude/agents/unscorable.md",
+            "plugins/coding/skills/gone/SKILL.md",
+            ".claude/agents/benchmarks/reviewer/case/case.json",
+            "README.md",
+        ],
+        {".claude/agents/unscorable.md": None},
+    )
+    assert selected == []
+    assert output == "count=0\n"
+    assert "Not scored, no eval set: `.claude/agents/unscorable.md`." in summary
+    assert "deleted" not in summary
+
+
+@pytest.mark.parametrize("changed_count", [11, 14])
+def test_cap_counts_only_selected_changed_targets_and_neighbours(tmp_path, changed_count):
+    definitions = [f".claude/agents/agent-{index:02}.md" for index in range(changed_count)]
+    targets = dict.fromkeys(definitions, [{"expected": "neighbour-a"}, {"expected": "neighbour-b"}])
+    targets.update({".claude/agents/neighbour-a.md": [], ".claude/agents/neighbour-b.md": []})
+    selected, output, summary = run_target_selector(tmp_path, definitions, targets)
+    assert len(selected) == 12
+    assert output == "count=12\n"
+    scored_changed = min(changed_count, 12)
+    assert (
+        f"Scoring {scored_changed} changed target(s) and "
+        f"{12 - scored_changed} declared neighbour(s)." in summary
+    )
+    assert f"Truncated at 12 targets; {changed_count + 2 - 12} more were dropped." in summary
+    assert selected[:scored_changed] == [f"agent {path}" for path in definitions[:12]]

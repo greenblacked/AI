@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Symlink every skill in this repository into ~/.claude/skills.
+# Symlink every skill in this repository into ~/.claude/skills, or only the skills of the
+# plugins named with --plugin.
 #
 # Installing through the plugin marketplace is the better route for normal use — it
 # namespaces the skills and updates with the repository. This script is for working on
@@ -12,11 +13,14 @@ readonly TARGET_DIR="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
 
 DRY_RUN=0
 FORCE=0
+PLUGINS=()
 
 usage() {
   cat <<'USAGE'
-Usage: install.sh [--dry-run] [--force]
+Usage: install.sh [--dry-run] [--force] [--plugin NAME ...]
 
+  --plugin NAME  Install only this plugin; repeat to select more than one.
+                 With no --plugin, install every skill.
   --dry-run   Print what would change without touching the filesystem.
   --force     Replace an existing symlink or file that does not point into this
               repository. A real directory is never removed - remove it yourself.
@@ -25,7 +29,7 @@ Environment:
   CLAUDE_SKILLS_DIR  Install location (default: ~/.claude/skills)
 
 Exit codes:
-  0  every skill is linked
+  0  every selected skill is linked
   2  bad usage
   3  finished, but at least one skill was skipped because something was in the way
 USAGE
@@ -49,6 +53,15 @@ while (($# > 0)); do
   case "$1" in
     --dry-run) DRY_RUN=1 ;;
     --force) FORCE=1 ;;
+    --plugin)
+      if (($# < 2)) || [[ "$2" == -* || -z "$2" ]]; then
+        log "error: --plugin requires a plugin name"
+        usage >&2
+        exit 2
+      fi
+      PLUGINS+=("$2")
+      shift
+      ;;
     -h | --help) usage; exit 0 ;;
     *) usage >&2; exit 2 ;;
   esac
@@ -56,6 +69,23 @@ while (($# > 0)); do
 done
 
 [[ -d "$REPO_ROOT/plugins" ]] || die "no plugins/ directory under $REPO_ROOT"
+
+# Validate the complete selection before creating the destination or linking anything.
+# Restrict names to one directory component so paths cannot escape plugins/.
+SKILL_ROOTS=()
+# The `+` alternate-value expansion below is deliberate: with no --plugin the array is
+# empty, and before bash 4.4 (stock macOS is 3.2) expanding an empty array under `set -u`
+# is a fatal "unbound variable".
+for plugin in ${PLUGINS[@]+"${PLUGINS[@]}"}; do
+  if [[ ! "$plugin" =~ ^[a-z0-9][a-z0-9-]*$ || ! -d "$REPO_ROOT/plugins/$plugin/skills" ]]; then
+    log "error: unknown plugin: $plugin"
+    exit 2
+  fi
+  SKILL_ROOTS+=("$REPO_ROOT/plugins/$plugin/skills")
+done
+if ((${#SKILL_ROOTS[@]} == 0)); then
+  SKILL_ROOTS=("$REPO_ROOT/plugins")
+fi
 
 if ((DRY_RUN == 0)); then
   mkdir -p "$TARGET_DIR"
@@ -120,7 +150,7 @@ while IFS= read -r -d '' skill_md; do
     log "linked $name"
   fi
   linked=$((linked + 1))
-done < <(find "$REPO_ROOT/plugins" -name SKILL.md -print0 | sort -z)
+done < <(find "${SKILL_ROOTS[@]}" -name SKILL.md -print0 | sort -zu)
 
 log "done: $linked linked, $skipped unchanged or skipped"
 ((DRY_RUN == 1)) && log "dry run - nothing was written"
