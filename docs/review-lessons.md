@@ -152,7 +152,8 @@ counter and answered a lookup as present. It passed without any submission.
 
 **The check that catches it.** `tests/test_recovery_mock.py` checks incompatible mutation
 tools for each goal. The runner rejects those request sequences before execution. The
-reviewer benchmark permits patch application in a submission scenario.
+pure grader rejects the same shape in a capture with `mutation event does not match
+capture goal`. The reviewer benchmark permits patch application in a submission scenario.
 
 **First caught:** #91, the automated PR reviewer.
 
@@ -166,8 +167,10 @@ effects. The mock had no retained applied state to distinguish a duplicate reque
 
 **The check that catches it.** `tests/test_recovery_mock.py` checks duplicate and
 preexisting applications. The runner refuses an additional application, retains the
-truthful first effect and reports the duplicate request as a constraint failure. The
-reviewer benchmark weakens the applied-state guard.
+truthful first effect and reports the duplicate request as a constraint failure. The pure
+grader rejects a capture that records a second application, or one applied over an
+initial effect, with `duplicate patch application`. The reviewer benchmark weakens the
+applied-state guard.
 
 **First caught:** #91, the automated PR reviewer.
 
