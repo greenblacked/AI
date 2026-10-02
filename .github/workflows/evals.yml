@@ -1,6 +1,6 @@
 ---
 # Trigger evaluation. Three jobs: the whole catalogue monthly or on request, the skills
-# a pull request changed plus their declared neighbours on every pull request, and a
+# and agents a pull request changed plus their declared neighbours, and a
 # quality benchmark of the `reviewer` subagent — monthly, on request, or on a pull
 # request that changes the benchmark itself. None is a required check, and the pull
 # request one fails only below a floor well
@@ -18,8 +18,8 @@ on:
   # answer changes when the catalogue does.
   schedule:
     - cron: '0 7 1 * *'
-  # On every pull request, for the changed skills only. A monthly cadence measures the
-  # catalogue; it does not tell the author of a new skill that it took a neighbour's
+  # On every pull request, for changed skills and agents plus their neighbours.
+  # A monthly cadence does not tell the author of a new skill that it took a neighbour's
   # queries, and that collision is invisible in the new skill's own score — one merged
   # at 95% while breaking the skill next door. Deliberately no `paths:` filter, for the
   # reason ci.yml gives: a workflow skipped by a path filter leaves its check Pending
@@ -265,7 +265,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: '3.13'
-      - name: Work out which skills the pull request touches
+      - name: Work out which targets the pull request touches
         id: targets
         # Plain git rather than a changed-files action: this is one diff, and an action
         # would be another pinned dependency in the supply chain for it.
@@ -293,12 +293,34 @@ jobs:
           ]
 
 
-          def skill_of(path):
-              """The skill directory a changed path belongs to, if it belongs to one."""
+          def target_of(path):
+              """A changed skill, agent definition, or paired agent eval set."""
               parts = pathlib.PurePosixPath(path).parts
               if len(parts) >= 4 and parts[0] == "plugins" and parts[2] == "skills":
-                  return pathlib.Path(*parts[:4])
+                  return ("skill", pathlib.Path(*parts[:4]))
+              if len(parts) >= 3 and parts[:2] == (".claude", "agents"):
+                  parent, tail = pathlib.Path(*parts[:2]), parts[2:]
+              elif len(parts) >= 4 and parts[0] == "plugins" and parts[2] == "agents":
+                  parent, tail = pathlib.Path(*parts[:3]), parts[3:]
+              else:
+                  return None
+              if len(tail) == 1 and tail[0].endswith(".md"):
+                  return ("agent", parent / tail[0])
+              if len(tail) == 2 and tail[0] == "evals" and tail[1].endswith(".json"):
+                  return ("agent", parent / (pathlib.Path(tail[1]).stem + ".md"))
               return None
+
+
+          def definition(target):
+              kind, path = target
+              return path / "SKILL.md" if kind == "skill" else path
+
+
+          def eval_set(target):
+              kind, path = target
+              if kind == "skill":
+                  return path / "evals" / "trigger-eval.json"
+              return path.parent / "evals" / (path.stem + ".json")
 
 
           def resolve(name):
@@ -308,8 +330,9 @@ jobs:
               near-miss queries are routinely owned by one.
               """
               for candidate in sorted(root.glob(f"plugins/*/skills/{name}")):
-                  if (candidate / "evals" / "trigger-eval.json").is_file():
-                      return ("skill", candidate)
+                  target = ("skill", candidate)
+                  if definition(target).is_file() and eval_set(target).is_file():
+                      return target
               for parent in ("plugins/*/agents", ".claude/agents"):
                   for candidate in sorted(root.glob(f"{parent}/{name}.md")):
                       if (candidate.parent / "evals" / f"{name}.json").is_file():
@@ -319,32 +342,34 @@ jobs:
 
           touched, unscorable = [], []
           for path in changed:
-              directory = skill_of(path)
-              if directory is None or directory in touched or directory in unscorable:
+              target = target_of(path)
+              if target is None or target in touched or target in unscorable:
                   continue
-              if (directory / "evals" / "trigger-eval.json").is_file():
-                  touched.append(directory)
-              elif (directory / "SKILL.md").is_file():
-                  unscorable.append(directory)
+              # Deleted definitions and orphaned eval sets cannot be passed to the harness.
+              if not definition(target).is_file():
+                  continue
+              if eval_set(target).is_file():
+                  touched.append(target)
+              else:
+                  unscorable.append(target)
 
-          # The declared neighbours: every skill or subagent a changed skill's negatives
-          # say should win them. Scoring the changed skill alone cannot see a collision,
-          # because the skill that steals the queries is the one that still scores well.
+          # The declared neighbours: targets that changed targets' negatives say should
+          # win them. Scoring only the changed target cannot see a routing collision.
           neighbours = []
-          for directory in touched:
-              queries = json.loads(
-                  (directory / "evals" / "trigger-eval.json").read_text(encoding="utf-8")
-              )
+          for target in touched:
+              queries = json.loads(eval_set(target).read_text(encoding="utf-8"))
+              kind, path = target
+              own_name = path.name if kind == "skill" else path.stem
               for query in queries:
                   name = query.get("expected")
-                  if not name or name == directory.name:
+                  if not name or name == own_name:
                       continue
-                  target = resolve(name)
-                  if target is None or target[1] in touched or target in neighbours:
+                  neighbour = resolve(name)
+                  if neighbour is None or neighbour in touched or neighbour in neighbours:
                       continue
-                  neighbours.append(target)
+                  neighbours.append(neighbour)
 
-          selected = [("skill", directory) for directory in touched] + neighbours
+          selected = touched + neighbours
           truncated = max(0, len(selected) - CAP)
           selected = selected[:CAP]
 
@@ -352,22 +377,22 @@ jobs:
               "".join(f"{kind} {path.as_posix()}\n" for kind, path in selected), encoding="utf-8"
           )
 
-          notes = ["### Trigger evals for changed skills", ""]
+          notes = ["### Trigger evals for changed skills and agents", ""]
           if not selected:
               notes.append(
-                  "No skill in this pull request has a trigger eval set to score. "
+                  "No skill or agent in this pull request has a trigger eval set to score. "
                   "Nothing to do, and nothing is wrong."
               )
           else:
               notes.append(
-                  f"Scoring {len(touched)} changed skill(s) and "
-                  f"{len(selected) - len(touched)} declared neighbour(s)."
+                  f"Scoring {sum(target in touched for target in selected)} changed target(s) and "
+                  f"{sum(target in neighbours for target in selected)} declared neighbour(s)."
               )
           if unscorable:
               notes.append("")
               notes.append(
                   "Not scored, no eval set: "
-                  + ", ".join(f"`{d.name}`" for d in unscorable)
+                  + ", ".join(f"`{path.as_posix()}`" for _, path in unscorable)
                   + "."
               )
           if truncated:
@@ -418,7 +443,7 @@ jobs:
               echo ""
             } >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "::notice title=no credentials::Not scoring the changed skills:" \
+            echo "::notice title=no credentials::Not scoring the changed skills and agents:" \
               "this run has no CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY," \
               "which is expected on a pull request from a fork"
             {
