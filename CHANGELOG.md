@@ -10,6 +10,22 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add three skills to `coding` for building the environment an agent works in:
+  `agent-instructions` writes or repairs a repository's `AGENTS.md` and the `CLAUDE.md`
+  that imports it, and passes only when a session with no history answers five fixed
+  questions from the repository alone; `agent-guardrails` turns a rule or a repeated
+  agent mistake into the cheapest mechanism that enforces it, proven by failing on a real
+  violation first; `agent-failure-diagnosis` attributes one recurring agent failure to
+  instructions, tools, state, verification or scope and changes one thing at a time. All
+  three work in Claude Code and, through the portable export or the skills directory, in
+  ChatGPT and Codex. `agent-evaluation` gains a reference on removing one harness
+  component at a time to see whether it still earns its place. The coding ceiling in
+  `listing-budget.json` moves from 18,000 to 20,500 because three skills were added, and
+  the install advice's `skillListingBudgetFraction` from 0.098 to 0.101, which the budget
+  check requires at the new total. `ai-enablement` no longer claims writing an
+  `AGENTS.md` in its description, and its eval query about it is now a negative owned by
+  `agent-instructions`, so two descriptions do not claim one request.
+
 - Add a bounded mock recovery runner that generates observations and final state from
   evaluator-controlled outcomes, independently of candidate tool request sequences.
 
