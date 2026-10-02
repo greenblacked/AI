@@ -119,12 +119,13 @@ git clone https://github.com/greenblacked/AI.git && cd AI
 CLAUDE_SKILLS_DIR=~/.agents/skills make install
 ```
 
-This repository's `.claude/agents/` YAML definitions and Claude Code plugin installer
-target Claude Code; the symlink skill installer supports other skills locations.
+This repository's subagents, both the ones shipped under `plugins/*/agents/` and the ones
+under `.claude/agents/`, and its slash commands are a Claude Code feature and do not
+travel. Grok Build and Mistral Vibe read the `allowed-tools` key, but whether they enforce
+it as a restriction is not verified here, so rely on it only in Claude Code.
+
 For adapted coordinator and role prompts, use the [ChatGPT workflow guide](docs/chatgpt-agents.md);
-actual delegation depends on the current session's tools. Grok Build and Mistral Vibe read
-the `allowed-tools` key, but whether they enforce it as a restriction is not verified
-here, so rely on it only in Claude Code.
+whether a session can actually delegate to subagents depends on the tools it exposes.
 
 <details>
 <summary>Which tools read AGENTS.md and load skills</summary>
@@ -542,6 +543,7 @@ skill that fires on everything.
 ## Documentation
 
 - [Using the skills](docs/using.md) — installing and using them in Claude Code, ChatGPT, Grok and terminal agents
+- [The repository workflow in ChatGPT](docs/chatgpt-agents.md) — adapted coordinator and role prompts for the survey, write and review loop, and where actual delegation depends on the session's tools
 - [DeepSeek via OpenRouter](docs/deepseek.md) — routing Claude Code to a DeepSeek model through OpenRouter, and what that costs you
 - [Gamedev: start here](docs/gamedev.md) — picking a production scale and a game type, and the route through the eleven gamedev skills
 - [Project structure](docs/project-structure.md) — what Claude Code loads from a project, what it loads only when relevant, and what is only a convention

@@ -15,16 +15,15 @@ Everything here is prose and configuration. There is no application. The only co
 
 ## Multi-agent workflow
 
-[The ChatGPT workflow guide](docs/chatgpt-agents.md) provides coordinator and role
-prompts, with explicit limits for manual passes and actual delegation.
-
 Which models to use depends on the tool running the session, because each tool offers a
 different set. Honour an explicit per-task assignment over either default split below.
 
 - **Codex and ChatGPT:** use Astra at medium effort only for review and decisions; use
   Sol at low effort for research into agent features or configuration and for
   implementation; use Terra at low effort for branch synchronisation and integration
-  when assigned.
+  when assigned. [The ChatGPT workflow guide](docs/chatgpt-agents.md) provides
+  coordinator and role prompts, with explicit limits for manual passes and actual
+  delegation.
 - **Claude Code:** use the tier each agent in `.claude/agents/` declares, which
   `CLAUDE.md` spells out. Its two loops hand off through a written brief going in and a
   report's `Handoff` section coming back, never a paraphrase of the whole thing; whichever

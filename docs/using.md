@@ -312,9 +312,9 @@ separate conversation.
 
 **Survey**, in a new conversation, report-only. Describe the change and ask what already
 covers it, where the affected files are, and which existing description its trigger
-surface would overlap. Take the answer, then use a fresh conversation for the next report-only stage. Closing
-a conversation does not enforce isolation; reusing the survey for writing changes its
-role and carries the survey history forward.
+surface would overlap. Take the answer, then do not reuse the survey conversation for
+writing. Closing a conversation does not enforce isolation; reusing the survey for
+writing changes its role and carries the survey history forward.
 
 **Decide the shape yourself.** Which plugin owns the change and what it must not collide
 with is not something `/ship` delegates either — that decision needs judgement built up
