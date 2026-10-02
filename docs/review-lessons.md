@@ -584,3 +584,20 @@ unobservable. The benchmark reintroduces identity-only dispatch. Fixture schema 
 patch-applicability tests verify the fixture, not live reviewer detection.
 
 **First caught:** #107, the [automated PR reviewer finding](https://github.com/greenblacked/AI/pull/107#discussion_r4165131426).
+
+### An input packet requires its recipient's later confirmation
+
+**Class.** A required input includes evidence only its recipient can produce after
+receiving that input, creating a circular prerequisite.
+
+**How it shows up.** The ChatGPT review packet required the reviewer's confirmation of
+no inherited transcript before dispatch, although the reviewer could observe its received
+context only after dispatch.
+
+**The check that catches it.** Trace initial inputs separately from recipient outputs:
+supply coordinator-observable boundary evidence first, then require the reviewer's own
+observation in returned Evidence before accepting SHIP. The benchmark restores the
+premature confirmation requirement. Fixture schema and patch-applicability tests verify
+the fixture, not live reviewer detection.
+
+**First caught:** #108, the [automated PR reviewer finding](https://github.com/greenblacked/AI/pull/108#discussion_r4165758838).
