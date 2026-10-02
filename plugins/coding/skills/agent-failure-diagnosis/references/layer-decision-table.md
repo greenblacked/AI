@@ -14,7 +14,7 @@ Use this after the captures exist and the cheaper explanations are ruled out. Th
 
 Each row starts from something visible in a capture, not from a guess about the cause. The confirming check is the cheapest observation that separates that layer from its neighbours; run it before changing anything. The first fix is the smallest change at that layer. A row that sends you to another skill names it, because the wording of an instruction file, the design of a guardrail and the sizing of a task each have an owner.
 
-A fresh session means a session that starts from the repository with none of the earlier conversation: a newly started session in Claude Code, a new task or thread in Codex or ChatGPT.
+A fresh session means a session that starts from the repository with none of the earlier conversation: a newly started session in Claude Code, a new task in Codex, a new conversation with the files the task needs attached or pasted in ChatGPT.
 
 ## The table
 

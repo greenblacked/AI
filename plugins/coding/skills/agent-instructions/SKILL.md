@@ -33,11 +33,14 @@ Find the real commands: the build tooling's own files, the CI workflow, the `Mak
 Then run them from a clean checkout so the result does not depend on state you built up while exploring, and so a command that writes or fails does so away from the working tree. Create it with hooks and the LFS smudge filter disabled, because the checkout step is the first moment a repository's own hooks and `.lfsconfig` are read:
 
 ```bash
+root=$(git rev-parse --show-toplevel)
 scratch=$(mktemp -d)
-GIT_LFS_SKIP_SMUDGE=1 git -c core.hooksPath=/dev/null clone --depth 1 -- "$PWD" "$scratch"
-# or, from inside the repository, a worktree instead of a clone:
+GIT_LFS_SKIP_SMUDGE=1 git -c core.hooksPath=/dev/null clone -- "$root" "$scratch"
+# or a worktree instead of a clone:
 GIT_LFS_SKIP_SMUDGE=1 git -c core.hooksPath=/dev/null worktree add "$scratch" HEAD
 ```
+
+Remove the scratch checkout when the run is finished: delete the directory for a clone, and run `git worktree remove --force "$scratch"` for a worktree so no entry is left in the repository's `.git/worktrees`.
 
 Before running anything, list every command verbatim and in full, one numbered entry per command and a multi-line block shown whole, then stop and wait for the user to confirm which ones to run. Do not proceed on an assumption of consent, and do not run a command that was not on the list the user saw. Redact a credential-shaped string in the printed list. A Makefile target or checked-in script is opaque until it runs, so confirming the list is consent to run the named thing, not a guarantee of everything it does.
 
