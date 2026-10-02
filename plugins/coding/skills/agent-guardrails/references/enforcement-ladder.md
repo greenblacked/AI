@@ -145,7 +145,8 @@ only:
 
 ```bash
 #!/usr/bin/env bash
-# Reads a unified diff on stdin and exits 1 when it adds a suppression comment.
+# Reads a unified diff on stdin. Exits 1 when it adds a suppression comment and 0 when
+# it does not; the replay loop in the messages reference reads those two as block and pass.
 set -Eeuo pipefail
 
 # A file header is only a header outside a hunk: inside one, an added line that reads
