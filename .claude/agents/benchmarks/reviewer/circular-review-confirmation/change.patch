@@ -1,0 +1,15 @@
+diff --git a/docs/chatgpt-agents.md b/docs/chatgpt-agents.md
+--- a/docs/chatgpt-agents.md
++++ b/docs/chatgpt-agents.md
+@@ -197,9 +197,8 @@
+   distinguished from the reviewer's required independent execution.
+ - The requested fresh, non-inherited reviewer context and observed boundary: the runtime's
+   history-inheritance option with actual dispatch value, or observable fresh-session
+-  boundary and supporting coordinator-observable evidence. The recipient's transcript
+-  observation is produced after dispatch in returned Evidence, not supplied in this
+-  initial packet. Names and model changes are not evidence.
++  boundary, supporting evidence and the reviewer's confirmation of no inherited
++  implementation or coordinator transcript. Names and model changes are not evidence.
+ - Actual reviewer capabilities, requested/observed model settings, active writer status
+   and the applicable live check, or “none” with the reason it is not required.
+ 

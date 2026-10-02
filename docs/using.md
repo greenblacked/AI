@@ -311,10 +311,12 @@ role prompts. Its repository gate requires an independent reviewer to execute
 `make validate`, `make catalogue` and `make test` on the reviewed snapshot. Missing
 required execution or independent review means `STOP`, with partial findings and the
 limitation named. Require explicitly fresh, non-inherited reviewer context; record the
-observed boundary and evidence, plus the reviewer's confirmation of no inherited
-implementation or coordinator transcript. A separate agent identity or window does not
-prove independence; an unavailable or unobservable boundary means `STOP`. Pass the
-complete review packet as explicit input, not the whole coordinator transcript.
+coordinator-observable boundary evidence in the initial packet. Pass the complete review
+packet as explicit input, not the whole coordinator transcript. After receiving it, the
+reviewer reports its own observation of any inherited implementation or coordinator
+transcript in returned Evidence; check that Evidence before accepting `SHIP`. A separate
+agent identity or window does not prove independence; an inherited, unavailable or
+unobservable boundary means `STOP`.
 Author logs and exact-revision CI do not substitute.
 
 The "Subagents" loss above is the one worth a substitute rather than just a note, because
