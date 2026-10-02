@@ -2,6 +2,7 @@
 description: Draft a weekly status update from what actually shipped — merged pull requests, commits and closed issues — bottom line first, with every number sourced or marked missing.
 argument-hint: '[since date, default 7 days ago]'
 allowed-tools: Bash(gh:*), Bash(git:*), Read, Glob
+disable-model-invocation: true
 ---
 
 Draft this week's update from evidence rather than memory. Use `$0` as the start of the

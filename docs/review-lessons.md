@@ -152,7 +152,8 @@ counter and answered a lookup as present. It passed without any submission.
 
 **The check that catches it.** `tests/test_recovery_mock.py` checks incompatible mutation
 tools for each goal. The runner rejects those request sequences before execution. The
-reviewer benchmark permits patch application in a submission scenario.
+pure grader rejects the same shape in a capture with `mutation event does not match
+capture goal`. The reviewer benchmark permits patch application in a submission scenario.
 
 **First caught:** #91, the automated PR reviewer.
 
@@ -166,8 +167,10 @@ effects. The mock had no retained applied state to distinguish a duplicate reque
 
 **The check that catches it.** `tests/test_recovery_mock.py` checks duplicate and
 preexisting applications. The runner refuses an additional application, retains the
-truthful first effect and reports the duplicate request as a constraint failure. The
-reviewer benchmark weakens the applied-state guard.
+truthful first effect and reports the duplicate request as a constraint failure. The pure
+grader rejects a capture that records a second application, or one applied over an
+initial effect, with `duplicate patch application`. The reviewer benchmark weakens the
+applied-state guard.
 
 **First caught:** #91, the automated PR reviewer.
 
@@ -566,3 +569,35 @@ actually enforces, so the first genuine write is the only place this shows up.
 **The check that catches it.** Separate action on a credible report from confidence in a population trend; the benchmark restores the fixed threshold. Patch applicability and schema tests verify the fixture only; they do not prove that a reviewer detects it.
 
 **First caught:** #97, the review stage.
+
+### A separate reviewer inherits the implementation context
+
+**Class.** A separate reviewer identity is treated as independent even when it inherits
+implementation or coordinator history.
+
+**How it shows up.** The ChatGPT workflow required a separate reviewer without requiring
+fresh, non-inherited context, so a default history-inheriting dispatch could satisfy SHIP.
+
+**The check that catches it.** Inspect the actual dispatch or fresh-session boundary and
+reviewer's transcript observation; return STOP when independence is unavailable or
+unobservable. The benchmark reintroduces identity-only dispatch. Fixture schema and
+patch-applicability tests verify the fixture, not live reviewer detection.
+
+**First caught:** #107, the [automated PR reviewer finding](https://github.com/greenblacked/AI/pull/107#discussion_r4165131426).
+
+### An input packet requires its recipient's later confirmation
+
+**Class.** A required input includes evidence only its recipient can produce after
+receiving that input, creating a circular prerequisite.
+
+**How it shows up.** The ChatGPT review packet required the reviewer's confirmation of
+no inherited transcript before dispatch, although the reviewer could observe its received
+context only after dispatch.
+
+**The check that catches it.** Trace initial inputs separately from recipient outputs:
+supply coordinator-observable boundary evidence first, then require the reviewer's own
+observation in returned Evidence before accepting SHIP. The benchmark restores the
+premature confirmation requirement. Fixture schema and patch-applicability tests verify
+the fixture, not live reviewer detection.
+
+**First caught:** #108, the [automated PR reviewer finding](https://github.com/greenblacked/AI/pull/108#discussion_r4165758838).

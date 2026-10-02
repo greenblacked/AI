@@ -20,8 +20,9 @@ and where each one looks.
 ## First run with Codex
 
 This walkthrough uses the existing symlink installer and an installed Codex CLI. You
-need Git, Bash, Make and standard Unix tools. It installs **every skill**, not just the
-coding plugin; marketplace plugin selection belongs to the Claude Code route below.
+need Git, Bash and standard Unix tools. Start with **one plugin**, such as `coding`,
+and add others when you need them. Omit `--plugin` to install every skill, or repeat it
+(for example, `--plugin coding --plugin operations`) to select several plugins.
 It does not install this repository's Claude Code subagents or slash commands.
 [Codex documents](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)
 `$HOME/.agents/skills` as its user discovery location and supports symlinked folders.
@@ -31,21 +32,20 @@ It does not install this repository's Claude Code subagents or slash commands.
    ```bash
    git clone https://github.com/greenblacked/AI.git
    cd AI
-   CLAUDE_SKILLS_DIR="$HOME/.agents/skills" ./scripts/install.sh --dry-run
+   CLAUDE_SKILLS_DIR="$HOME/.agents/skills" ./scripts/install.sh --plugin coding --dry-run
    ```
 
 2. Read the preview, then install into Codex's skills directory:
 
    ```bash
-   CLAUDE_SKILLS_DIR="$HOME/.agents/skills" make install
+   CLAUDE_SKILLS_DIR="$HOME/.agents/skills" ./scripts/install.sh --plugin coding
    readlink "$HOME/.agents/skills/codebase-orientation"
    ```
 
    The last command should print the `plugins/coding/skills/codebase-orientation`
    directory in your checkout. Keep the checkout there: these are links, not copies.
-   An existing file or a link to another checkout is skipped; the installer exits 3
-   and `make install` reports failure. Inspect the conflict rather than adding
-   `--force` blindly. A real directory is never
+   An existing file or a link to another checkout is skipped; the installer exits 3.
+   Inspect the conflict rather than adding `--force` blindly. A real directory is never
    replaced, even with `--force`.
 
 3. Start a new Codex session in a repository you want to understand. Ask:
@@ -60,10 +60,19 @@ It does not install this repository's Claude Code subagents or slash commands.
    available, check the destination against the [tool table](../README.md#chatgpt-grok-codex-and-everything-else)
    and read the skill directly while investigating.
 
-To update this local installation, pull the checkout and start a new session; the links
-still point to the same files. To remove it, unlink only the skill links that point to
-this checkout, leaving unrelated skills alone. For other tools and portable chat files,
-continue with the routes below.
+To update this local installation, pull the checkout, rerun the same installation
+command to link any newly added skills, and start a new session. Existing links still
+point to the same files. Selecting a narrower set later does not remove earlier links.
+To remove a skill, inspect its target and unlink it only if it points to this checkout:
+
+```bash
+readlink "$HOME/.agents/skills/codebase-orientation"
+unlink "$HOME/.agents/skills/codebase-orientation"
+```
+
+Repeat that check for each installed skill you want to remove, leaving unrelated skills
+alone. Remove stale links to skills deleted upstream the same way. For other tools and
+portable chat files, continue with the routes below.
 
 ## Claude Code
 
@@ -93,7 +102,7 @@ install any of the other six, or more than one plugin, raise it in
 `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.098 }
+{ "skillListingBudgetFraction": 0.101 }
 ```
 
 ### How a skill fires
@@ -122,9 +131,10 @@ Ask for one by name when you want to be sure.
 
 ### Slash commands
 
-Eight ship, and unlike skills they never fire on their own — you type them. That makes them
-the right shape for work that takes an argument, or that should happen when asked rather
-than when merely relevant.
+Eight ship, and unlike skills they run only when you type them: each declares
+`disable-model-invocation: true`, the reason [writing a slash command](writing-commands.md)
+gives. That makes them the right shape for work that takes an argument, or that should
+happen when asked rather than when merely relevant.
 
 ```shell
 /ci-fail 18234567          # classify a failing run
@@ -169,6 +179,10 @@ Unreleased section is not a downloadable release.
   listing budget. Raise it, or uninstall a plugin you do not use.
 
 ## ChatGPT
+
+For the repository contribution loop, the [ChatGPT workflow guide](chatgpt-agents.md)
+provides copy-ready coordinator and role prompts. It is separate from the skill export
+below and distinguishes sequential passes from actual delegation.
 
 There is no marketplace to read, so the skills are flattened into files that stand alone
 — frontmatter turned into a plain "Use this when" line, and every reference file inlined
@@ -292,6 +306,19 @@ which assistant is reading. CI builds the export on every run, so that stays tru
 
 ## Running the loop without a subagent mechanism
 
+The [ChatGPT workflow guide](chatgpt-agents.md) provides copy-ready coordinator and
+role prompts. Its repository gate requires an independent reviewer to execute
+`make validate`, `make catalogue` and `make test` on the reviewed snapshot. Missing
+required execution or independent review means `STOP`, with partial findings and the
+limitation named. Require explicitly fresh, non-inherited reviewer context; record the
+coordinator-observable boundary evidence in the initial packet. Pass the complete review
+packet as explicit input, not the whole coordinator transcript. After receiving it, the
+reviewer reports its own observation of any inherited implementation or coordinator
+transcript in returned Evidence; check that Evidence before accepting `SHIP`. A separate
+agent identity or window does not prove independence; an inherited, unavailable or
+unobservable boundary means `STOP`.
+Author logs and exact-revision CI do not substitute.
+
 The "Subagents" loss above is the one worth a substitute rather than just a note, because
 `/ship` and `/verify` are how changes to this repository get made. Without a runtime that
 can spawn an isolated subagent, the replacement is a run of conversations rather than
@@ -302,9 +329,9 @@ separate conversation.
 
 **Survey**, in a new conversation, report-only. Describe the change and ask what already
 covers it, where the affected files are, and which existing description its trigger
-surface would overlap. Take the answer, then close the conversation — the closing is what
-does the isolating, not the asking. A survey window left open and reused for writing has
-stopped being a survey.
+surface would overlap. Take the answer, then do not reuse the survey conversation for
+writing. Closing a conversation does not enforce isolation; reusing the survey for
+writing changes its role and carries the survey history forward.
 
 **Decide the shape yourself.** Which plugin owns the change and what it must not collide
 with is not something `/ship` delegates either — that decision needs judgement built up
@@ -322,7 +349,9 @@ file `git ls-files --others --exclude-standard` names, in full. The diff alone o
 untracked files, which on a change that adds one is the whole change. Pasting rather than
 pointing removes the material only when the reviewing conversation cannot reach the
 checkout; in a terminal agent sitting in the repository it has the tree whatever you
-paste, so open the review somewhere that does not. Ask for the same output contract a
+paste. Keep the reviewer report-only, with access to the full candidate checkout and
+execution tools for its own gates; a text-only review can return useful findings but
+must return `STOP` because it cannot execute those gates. Ask for the same output contract a
 reviewing subagent is written to produce: a first line reading `Verdict: SHIP`,
 `Verdict: FIX` or `Verdict: STOP`; then `Findings` — blocking defects ranked by cost,
 each with a file:line, the concrete consequence if it ships, and the smallest fix
@@ -351,22 +380,17 @@ any more; it is the author, with an extra turn.
   happens to be open on, and nothing stops all three running on the same one out of
   convenience.
 
-**What is not lost.** Context isolation is not the runtime's alone to give — it is what
-closing a conversation buys, with or without a subagent mechanism behind it. The cold
-read survives too: a review conversation started fresh from `git diff` alone knows
-exactly as little as a reviewing subagent does. The ordering — survey, then write, then
-review, never collapsed into one sitting — is a discipline kept by opening three
-conversations in sequence, not a property a runtime grants automatically. And the output
-contract above is exactly as enforceable by asking for it in the prompt as by writing it
-into a subagent's system prompt; nothing about it needs a runtime feature.
+**What can be preserved.** A fresh conversation with a complete review packet offers a
+cold reading of the change, but does not enforce context isolation or no-write access.
+The ordering — survey, then write, then independent review — remains a discipline to
+follow. Prompting for the report contract helps make findings usable; it does not make
+missing checks or independence sufficient for `SHIP`.
 
 The four files in `.claude/agents/` are where this repository's current stage names and
 prompts actually live, if the description above is not enough and the wording itself is
 wanted.
 
-One caveat on the tiering point, so as not to overstate it: a more capable model is a
-cost hedge on a review that is expensive to get wrong, not a requirement of the stage
-itself. What review needs is a context that has not written the change and is not
-allowed to — that holds in a fresh conversation on whatever model is already in use, and
-paying for a stronger one on top of that is a choice about how much a missed defect would
-cost, not a precondition for the review being real.
+Follow [AGENTS.md's model mapping](../AGENTS.md#multi-agent-workflow) and explicit task
+assignments. Record requested and observed settings; if a requested model or effort is
+unavailable, report the limitation rather than automatically substituting another one.
+A pasted role prompt cannot enforce model selection or runtime permissions.

@@ -1,0 +1,22 @@
+[
+  {"query": "the agent keeps adding type: ignore comments to get past mypy, how do I stop it", "should_trigger": true},
+  {"query": "we wrote the rule in AGENTS.md and the agent still breaks it, how do I make it enforced instead of written down", "should_trigger": true},
+  {"query": "should this be a lint rule, a test or a hook", "should_trigger": true},
+  {"query": "agents keep skipping the failing test instead of fixing it, what actually blocks that", "should_trigger": true},
+  {"query": "our coding agent edits the CI workflow whenever a check goes red, how do we lock that down", "should_trigger": true},
+  {"query": "I want a check that fails when anyone calls the deprecated helper, with a message the agent can fix itself from", "should_trigger": true},
+  {"query": "before I turn this new lint rule on, how do I find out what it would have blocked in recent merged PRs", "should_trigger": true},
+  {"query": "the same review comment shows up on every agent PR, turn it into something that blocks instead of a comment", "should_trigger": true},
+  {"query": "how do I make sure the agent can't just disable the guardrail we add", "should_trigger": true},
+  {"query": "the agent keeps committing generated files by hand, what is the cheapest way to enforce that it doesn't", "should_trigger": true},
+  {"query": "write the prompt for the agent to fix this one failing test and say what it may not edit", "should_trigger": false, "expected": "agent-delegation"},
+  {"query": "run three agents in parallel on different modules and merge what they return", "should_trigger": false, "expected": "agent-orchestration"},
+  {"query": "the agent ran out of context partway through, write up where it got to so a new session can resume", "should_trigger": false, "expected": "agent-handoff"},
+  {"query": "review this diff an agent produced for correctness and missing error handling", "should_trigger": false, "expected": "code-review"},
+  {"query": "build a held-out benchmark to decide whether our repo agent is safe to ship", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "web pages the agent reads can steer its tool calls, review the agent for prompt injection", "should_trigger": false, "expected": "agent-security-review"},
+  {"query": "the build is red after a dependency bump, classify the failure and get CI moving", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "which unit tests and boundary cases should cover this retry function", "should_trigger": false, "expected": "test-design"},
+  {"query": "design a CI pipeline for a new service with caching and a build matrix", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "the agent deleted a migration file and I have no idea why it did that", "should_trigger": false, "expected": "agent-failure-diagnosis"}
+]

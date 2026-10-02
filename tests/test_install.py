@@ -9,6 +9,7 @@ from is this one, so the count of links is whatever the tree holds.
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -147,3 +148,86 @@ def test_a_link_reached_through_a_symlinked_alias_is_still_recognised(tmp_path):
     second = run(target)  # the canonical, non-aliased path this time
     assert second.returncode == 0, second.stderr
     assert f"done: 0 linked, {len(SKILLS)} unchanged" in second.stderr
+
+
+def plugin_skills(*plugins: str) -> dict[str, Path]:
+    return {
+        path.parent.name: path.parent
+        for plugin in plugins
+        for path in (REPO / "plugins" / plugin / "skills").glob("*/SKILL.md")
+    }
+
+
+@pytest.mark.parametrize("flags", [("--plugin",), ("--plugin", ""), ("--plugin", "--force")])
+def test_plugin_requires_a_name_before_writes(tmp_path, flags):
+    target = tmp_path / "skills"
+    result = run(target, *flags)
+    assert result.returncode == 2
+    assert "--plugin requires a plugin name" in result.stderr
+    assert not target.exists()
+
+
+@pytest.mark.parametrize("name", ["unknown", "../coding", "coding/skills", "/coding"])
+def test_unknown_plugin_rejects_entire_selection_before_writes(tmp_path, name):
+    target = tmp_path / "skills"
+    result = run(target, "--plugin", "coding", "--plugin", name, "--force")
+    assert result.returncode == 2
+    assert "unknown plugin" in result.stderr
+    assert not target.exists()
+
+
+def test_selected_plugin_links_exactly_its_skills_and_is_idempotent(tmp_path):
+    target = tmp_path / "skills"
+    expected = plugin_skills("coding")
+    result = run(target, "--plugin", "coding")
+    assert result.returncode == 0, result.stderr
+    assert {p.name: p.resolve() for p in target.iterdir()} == expected
+    second = run(target, "--plugin", "coding")
+    assert second.returncode == 0, second.stderr
+    assert f"done: 0 linked, {len(expected)} unchanged" in second.stderr
+
+
+def test_multiple_plugins_and_duplicates_install_the_union_once(tmp_path):
+    target = tmp_path / "skills"
+    expected = plugin_skills("coding", "personal")
+    result = run(target, "--plugin", "coding", "--plugin", "personal", "--plugin", "coding")
+    assert result.returncode == 0, result.stderr
+    assert {p.name: p.resolve() for p in target.iterdir()} == expected
+    assert f"done: {len(expected)} linked, 0 unchanged" in result.stderr
+
+
+def test_selected_plugin_dry_run_lists_only_selected_skills(tmp_path):
+    target = tmp_path / "skills"
+    result = run(target, "--dry-run", "--plugin", "personal")
+    assert result.returncode == 0, result.stderr
+    assert not target.exists()
+    names = {
+        line.split("would link ", 1)[1].split(" -> ", 1)[0]
+        for line in result.stderr.splitlines()
+        if "would link " in line
+    }
+    assert names == set(plugin_skills("personal"))
+
+
+def test_selected_plugin_preserves_conflicts_and_unselected_entries(tmp_path):
+    target = tmp_path / "skills"
+    target.mkdir()
+    name = next(iter(plugin_skills("personal")))
+    (target / name).mkdir()
+    marker = target / name / "keep.txt"
+    marker.write_text("mine", encoding="utf-8")
+    unselected = target / "codebase-orientation"
+    unselected.write_text("unselected", encoding="utf-8")
+    for flags in ((), ("--force",)):
+        result = run(target, "--plugin", "personal", *flags)
+        assert result.returncode == 3, result.stderr
+        assert marker.read_text() == "mine"
+        assert unselected.read_text() == "unselected"
+
+
+def test_the_selection_array_is_never_expanded_bare():
+    # Before bash 4.4 (stock macOS is 3.2) expanding an empty array under `set -u` is fatal,
+    # and the default run has no --plugin; the suite runs on bash 5, so it cannot see that.
+    guarded = '${PLUGINS[@]+"${PLUGINS[@]}"}'
+    script = SCRIPT.read_text(encoding="utf-8")
+    assert not re.search(r"\$\{PLUGINS\[@\]", script.replace(guarded, ""))

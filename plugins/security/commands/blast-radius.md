@@ -2,6 +2,7 @@
 description: Report what a Terraform or OpenTofu apply will actually destroy and replace, destroys first, from the plan JSON rather than the plan text.
 argument-hint: '[path to tfplan or plan.json]'
 allowed-tools: Bash(terraform:*), Bash(tofu:*), Bash(jq:*), Read, Glob
+disable-model-invocation: true
 ---
 
 Read the plan at `$0` and report its blast radius. The point of reading the JSON rather

@@ -2,6 +2,7 @@
 description: Survey the library for what it does not cover — a topic with dangling demand and no owner — and say which of skill, subagent, command or nothing it deserves.
 argument-hint: '[plugin name, or a topic to test for coverage]'
 allowed-tools: Bash(python3:*), Read, Grep, Glob
+disable-model-invocation: true
 ---
 
 Survey `$0` for coverage the library does not have. With no argument, survey the whole

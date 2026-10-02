@@ -1,0 +1,22 @@
+[
+  {"query": "the agent keeps forgetting to run the formatter before it commits, every single session in this repo", "should_trigger": true},
+  {"query": "it says done but nothing works when i actually run it, and this is the third time this week", "should_trigger": true},
+  {"query": "claude ignores the rules file in this repo and half the conventions in it never get followed", "should_trigger": true},
+  {"query": "same mistake every session: it hand-edits the generated client instead of regenerating it", "should_trigger": true},
+  {"query": "why does the agent keep skipping the tests and then telling me everything passes", "should_trigger": true},
+  {"query": "our coding agent drops the constraint i give it at the start once the session gets long, how do we find out why", "should_trigger": true},
+  {"query": "i have rewritten the instructions file three times and the agent still repeats the same error, what am i missing", "should_trigger": true},
+  {"query": "codex keeps running the tests from the wrong directory and then declares the suite broken", "should_trigger": true},
+  {"query": "i saved two transcripts of the agent missing the same check, help me work out which part of our setup causes it", "should_trigger": true},
+  {"query": "it repeats an old mistake in a new session, how do i tell whether it is the prompt, the tools or something else", "should_trigger": true},
+  {"query": "the build went red after the agent's pr merged; work out whether it is a flake or a real failure", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "score two versions of our agent prompt against a sealed holdout of tasks and decide whether to ship the new one", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "write the brief for handing this ticket to the agent, with a done-check and the files it must not touch", "should_trigger": false, "expected": "agent-delegation"},
+  {"query": "my session is about to hit its context limit, write a checkpoint so the next agent can continue the half-finished patch", "should_trigger": false, "expected": "agent-handoff"},
+  {"query": "split this migration across three agents working in parallel and merge their branches at the end", "should_trigger": false, "expected": "agent-orchestration"},
+  {"query": "a web page the agent browsed told it to email our customer list, review how untrusted content reaches the send tool", "should_trigger": false, "expected": "agent-security-review"},
+  {"query": "this endpoint returns a 500 only when the cart is empty, find the root cause", "should_trigger": false, "expected": "debugging"},
+  {"query": "our AGENTS.md has grown to 900 lines, restructure it so a new agent session can use it", "should_trigger": false, "expected": "agent-instructions"},
+  {"query": "we already know the rule is never edit files under generated, turn it into a check the agent cannot get around", "should_trigger": false, "expected": "agent-guardrails"},
+  {"query": "reconstruct this large coordinator log from a parallel agent run and list every tool call that never returned", "should_trigger": false, "expected": "agent-run-trace-reader"}
+]

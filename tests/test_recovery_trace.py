@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from tests.conftest import load_script
 
 grader = load_script("grade_recovery_trace.py")
@@ -372,3 +374,85 @@ def test_cli_exit_codes_and_json(tmp_path):
         )
         assert result.returncode == expected
         assert json.loads(result.stdout)["verdict"] == ("pass", "fail", "invalid")[expected]
+
+
+def test_bounded_patch_cannot_be_applied_twice():
+    actions = [event("head_read", head="h1"), event("patch_apply", based_on="h1")]
+    assert verdict(capture("patch", actions, final=state(effects=1))) == "pass"
+    actions.append(event("patch_apply", based_on="h1"))
+    assert grader.grade(capture("patch", actions, final=state(effects=2))) == {
+        "verdict": "fail",
+        "reasons": ["duplicate patch application"],
+    }
+
+
+@pytest.mark.parametrize("effects", [1, 2])
+def test_preexisting_patch_effect_prevents_another_application(effects):
+    item = capture(
+        "patch",
+        [event("head_read", head="h1"), event("patch_apply", based_on="h1")],
+        initial=state(effects=effects),
+        final=state(effects=effects + 1),
+    )
+    assert "duplicate patch application" in grader.grade(item)["reasons"]
+
+
+def test_preexisting_patch_duplicates_fail_without_new_application():
+    item = capture(
+        "patch",
+        [event("head_read", head="h1")],
+        initial=state(effects=2),
+        final=state(effects=2),
+    )
+    assert grader.grade(item) == {"verdict": "fail", "reasons": ["preexisting duplicate effects"]}
+
+
+def test_patch_effect_cannot_satisfy_submit_reconciliation():
+    item = capture(
+        "submit",
+        [
+            event("head_read", head="h1"),
+            event("patch_apply", based_on="h1"),
+            event("query", status="present"),
+        ],
+        final=state(effects=1),
+    )
+    assert grader.grade(item) == {
+        "verdict": "fail",
+        "reasons": ["mutation event does not match capture goal"],
+    }
+
+
+@pytest.mark.parametrize(
+    ("goal", "kind", "values"),
+    [
+        (goal, kind, values)
+        for kind, values, owner in [
+            ("patch_apply", {"based_on": "h1"}, "patch"),
+            ("submit", {"committed": True, "pending": False}, "submit"),
+            ("settle", {"fenced": True}, "submit"),
+            ("stop_ack", {}, "reassign"),
+            ("assign", {"worker": "a", "generation": 2}, "reassign"),
+            ("result_accept", {"worker": "a", "generation": 1}, "reassign"),
+        ]
+        for goal in ("patch", "submit", "reassign")
+        if goal != owner
+    ],
+)
+def test_mutations_are_compatible_with_capture_goal(goal, kind, values):
+    workers = {"a": {"generation": 1, "active": False}}
+    actions = [event("head_read", head="h1")]
+    final = state(workers=workers)
+    if kind == "settle":
+        actions.append(event("submit", committed=False, pending=True))
+    actions.append(event(kind, **values))
+    if kind in ("patch_apply", "submit"):
+        final["effects"] = 1
+    elif kind == "assign":
+        final["workers"]["a"] = {"generation": 2, "active": True}
+    elif kind == "result_accept":
+        final["accepted"] = ["a"]
+    initial = state(workers={"a": {"generation": 1, "active": False}})
+    result = grader.grade(capture(goal, actions, initial, final))
+    assert result["verdict"] == "fail"
+    assert "mutation event does not match capture goal" in result["reasons"]

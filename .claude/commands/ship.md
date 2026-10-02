@@ -2,6 +2,7 @@
 description: Run a change to this repository from survey to merge — two research agents in parallel, implementer writes it and runs the gates, reviewer judges it, then one pull request merged only once reviewer, ci and security pass.
 argument-hint: '[what to change, for example "add a skill for reading flamegraphs"]'
 allowed-tools: Agent(explorer), Agent(investigator), Agent(implementer), Agent(reviewer), Read, Grep, Glob, Bash(make:*), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git fetch:*), Bash(git switch:*), Bash(git worktree:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*)
+disable-model-invocation: true
 ---
 
 Take this change through the loop: $ARGUMENTS

@@ -7,7 +7,7 @@
 
 # Agent skills
 
-102 agent skills, 21 read-only subagents and eight slash commands, in eight
+105 agent skills, 21 read-only subagents and eight slash commands, in eight
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-102-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-105-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -47,7 +47,7 @@ and what the runtime does or does not enforce.
 
 | Plugin | Focus | Contents |
 | --- | --- | --- |
-| [`coding`](#coding) | Reading, reviewing, testing and changing code | 20 skills, 5 subagents, 1 command |
+| [`coding`](#coding) | Reading, reviewing, testing and changing code | 23 skills, 5 subagents, 1 command |
 | [`gamedev`](#gamedev) | Making games, and shipping them | 11 skills, 1 subagent, 1 command |
 | [`operations`](#operations) | Keeping a running system alive | 19 skills, 6 subagents, 2 commands |
 | [`delivery`](#delivery) | Getting a change into production | 10 skills, 1 subagent |
@@ -96,7 +96,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.098 }
+{ "skillListingBudgetFraction": 0.101 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -119,9 +119,13 @@ git clone https://github.com/greenblacked/AI.git && cd AI
 CLAUDE_SKILLS_DIR=~/.agents/skills make install
 ```
 
-This repository's subagents are a Claude Code feature and do not travel. Grok Build and
-Mistral Vibe read the `allowed-tools` key, but whether they enforce it as a restriction is
-not verified here, so rely on it only in Claude Code.
+This repository's subagents, both the ones shipped under `plugins/*/agents/` and the ones
+under `.claude/agents/`, and its slash commands are a Claude Code feature and do not
+travel. Grok Build and Mistral Vibe read the `allowed-tools` key, but whether they enforce
+it as a restriction is not verified here, so rely on it only in Claude Code.
+
+For adapted coordinator and role prompts, use the [ChatGPT workflow guide](docs/chatgpt-agents.md);
+whether a session can actually delegate to subagents depends on the tools it exposes.
 
 <details>
 <summary>Which tools read AGENTS.md and load skills</summary>
@@ -182,9 +186,11 @@ configuration in [`docs/deepseek.md`](docs/deepseek.md).
 
 ```bash
 git clone https://github.com/greenblacked/AI.git && cd AI
-./scripts/install.sh --dry-run   # see what it would link
-./scripts/install.sh             # symlink every skill into ~/.claude/skills
+./scripts/install.sh --plugin coding --dry-run   # preview one plugin
+./scripts/install.sh --plugin coding             # link it into ~/.claude/skills
 ```
+
+Omit `--plugin` to install every skill, or repeat it to select several plugins.
 
 ## What a real week looks like
 
@@ -243,7 +249,10 @@ Reading, reviewing, testing and changing code.
 | --- | --- |
 | [`agent-delegation`](plugins/coding/skills/agent-delegation/SKILL.md) | Brief one coding agent on one bounded task: a runnable done-check, the failing evidence, an explicit scope fence, stop conditions, and evidence required back before anyone accepts the diff. |
 | [`agent-evaluation`](plugins/coding/skills/agent-evaluation/SKILL.md) | Evaluate an agent against reproducible tasks, tool-call outcomes and calibrated judges, with held-out cases and explicit release gates. |
+| [`agent-failure-diagnosis`](plugins/coding/skills/agent-failure-diagnosis/SKILL.md) | Find which layer of an agent's environment makes it repeat one mistake in a repository: capture the failing runs first, rule out cheaper explanations, attribute each failure to instructions, tools, state, verification or scope, and change one thing at a time. |
+| [`agent-guardrails`](plugins/coding/skills/agent-guardrails/SKILL.md) | Turn a rule or a repeated agent mistake into the cheapest mechanism that enforces it: a checkable statement, the lowest rung of the ladder that can hold it, red before green, a failure message the agent can fix from, protected guard paths, and a replay over recent merges before it blocks anyone. |
 | [`agent-handoff`](plugins/coding/skills/agent-handoff/SKILL.md) | Preserve one agent task as a durable checkpoint another session can resume, with verified state, evidence, decisions, the next action and the completion test. |
+| [`agent-instructions`](plugins/coding/skills/agent-instructions/SKILL.md) | Write or repair a repository's AGENTS.md, and a CLAUDE.md that imports it: run the real commands first and keep only what was executed, keep the entry file short with pointers to topic files, give every rule its reason and its enforcer, measure size in bytes, and pass only when a fresh session answers five fixed questions correctly. |
 | [`agent-orchestration`](plugins/coding/skills/agent-orchestration/SKILL.md) | Coordinate a live team of agents: split independent ownership, schedule within the concurrency limit, track progress, resolve blockers and synthesise the results. |
 | [`api-design`](plugins/coding/skills/api-design/SKILL.md) | Design an interface that can still be changed after other people depend on it — compatibility rules, error structure, pagination, and deprecation with usage telemetry. |
 | [`application-caching`](plugins/coding/skills/application-caching/SKILL.md) | Design a runtime data cache from its correctness contract: define authority and allowed staleness, make keys preserve isolation, close stale-fill races, control miss load and outage fallback, then roll out against measured safety gates. |
@@ -453,8 +462,9 @@ their round trips.
 
 ## Commands
 
-A command never fires on its own — you type it — which makes it the right shape for work
-that takes an argument, or that should run when asked rather than when merely relevant.
+Commands here explicitly declare `disable-model-invocation: true`, so they run only
+when invoked explicitly. That makes them the right shape for work that takes an
+argument, or that should run when asked rather than when merely relevant.
 Each does the mechanical part and points at the skill holding the full procedure.
 
 | Command | Ships with | What it does |
@@ -539,6 +549,7 @@ skill that fires on everything.
 ## Documentation
 
 - [Using the skills](docs/using.md) — installing and using them in Claude Code, ChatGPT, Grok and terminal agents
+- [The repository workflow in ChatGPT](docs/chatgpt-agents.md) — adapted coordinator and role prompts for the survey, write and review loop, and where actual delegation depends on the session's tools
 - [DeepSeek via OpenRouter](docs/deepseek.md) — routing Claude Code to a DeepSeek model through OpenRouter, and what that costs you
 - [Gamedev: start here](docs/gamedev.md) — picking a production scale and a game type, and the route through the eleven gamedev skills
 - [Project structure](docs/project-structure.md) — what Claude Code loads from a project, what it loads only when relevant, and what is only a convention
