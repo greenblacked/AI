@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the Claude Code hook example command by removing redundant escaped quotes.",
+  "lesson": "A hook command splits a checkout path at spaces",
+  "must_mention": [
+    "quot|shell",
+    "space",
+    "command|guard_hook|CLAUDE_PROJECT_DIR"
+  ]
+}

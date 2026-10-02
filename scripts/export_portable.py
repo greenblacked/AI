@@ -38,10 +38,15 @@ Standard library only, like the validator it imports.
 from __future__ import annotations
 
 import argparse
+import hashlib
+import html
+import posixpath
 import re
 import shutil
 import sys
+import unicodedata
 from pathlib import Path
+from urllib.parse import unquote
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
@@ -147,18 +152,8 @@ def demote(text: str, levels: int) -> str:
     rewriting it would corrupt a command the reader is meant to run.
     """
     out: list[str] = []
-    opening: str | None = None
-    for line in text.split("\n"):
-        fence = FENCE_RE.match(line.lstrip())
-        if fence is not None:
-            marker = fence.group(1)
-            if opening is None:
-                opening = marker
-            elif marker[0] == opening[0] and len(marker) >= len(opening):
-                opening = None
-            out.append(line)
-            continue
-        match = None if opening is not None else ATX_RE.match(line)
+    for line, fenced in zip(text.split("\n"), fence_spans(text), strict=True):
+        match = None if fenced else ATX_RE.match(line)
         if match is None:
             out.append(line)
             continue
@@ -169,8 +164,8 @@ def demote(text: str, levels: int) -> str:
 
 def title_of(text: str, fallback: str) -> str:
     """A bundled file's own H1, or a title made from its filename."""
-    for line in text.split("\n"):
-        if line.startswith("# "):
+    for line, fenced in zip(text.split("\n"), fence_spans(text), strict=True):
+        if not fenced and line.startswith("# "):
             return line[2:].strip()
     return fallback.replace("-", " ").capitalize()
 
@@ -202,7 +197,11 @@ def fence_spans(text: str) -> list[bool]:
                 opening = marker
                 flags.append(True)
                 continue
-            if marker[0] == opening[0] and len(marker) >= len(opening):
+            if (
+                marker[0] == opening[0]
+                and len(marker) >= len(opening)
+                and not line.lstrip()[fence.end() :].strip()
+            ):
                 opening = None
             flags.append(True)
             continue
@@ -255,134 +254,542 @@ NOTICE = (
 )
 
 
-def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
-    """Return (name, description, the self-contained document, unresolved pointers).
+def source_slug(heading: str) -> str:
+    """GitHub source aliases: formatting/punctuation removed, spaces become hyphens.
 
-    Everything the skill ships is inlined — references as prose with their headings
-    demoted to nest, assets and scripts fenced, because a template or a script is a
-    thing to copy rather than to read. Pointers are then rewritten to name the section
-    instead of the path, in the reference text as well as in the body: a reference file
-    that sends you to a sibling reference is as much a dangling pointer, for a reader
-    with no filesystem, as one in the body.
-
-    "Unresolved" counts only paths the skill's own body names and this export could not
-    inline. Reference files quote paths from the reader's own project —
-    `assets/LICENSES.md` in a game they are building — and those are worked examples.
-    Failing on them would be a gate that cries wolf, so they are left exactly as written.
+    See GitHub basic-writing-and-formatting-syntax, section-links. Duplicate aliases
+    are allocated across each source, including naturally suffixed headings.
     """
+    heading = re.sub(r"<[^>]*>", "", heading)
+    heading = html.unescape(heading).lower().strip()
+    return "".join(
+        "-" if c.isspace() else c
+        for c in heading
+        if c.isspace() or c in "-_" or unicodedata.category(c)[0] in "LN"
+    )
+
+
+def code_span_end(line: str, begin: int) -> int:
+    """Skip closed code only; a closing delimiter must have the same run length."""
+    run = len(line[begin:]) - len(line[begin:].lstrip("`"))
+    for match in re.finditer(r"`+", line[begin + run :]):
+        if len(match.group()) == run:
+            return begin + run + match.end()
+    return begin + run
+
+
+def heading_display(heading: str, bindings: dict[str, str]) -> str:
+    """Keep display labels from inline links and bound source references."""
+    inline = {begin: finish for _, _, begin, finish in destination_spans(heading)}
+    pieces, last, index = [], 0, 0
+    while index < len(heading):
+        if heading[index] == "\\":
+            index += 2
+            continue
+        if heading[index] == "`":
+            index = code_span_end(heading, index)
+            continue
+        if heading[index] != "[":
+            index += 1
+            continue
+        end = bracket_end(heading, index)
+        if end is None:
+            break
+        label = heading[index + 1 : end - 1]
+        finish = end
+        key = reference_key(label)
+        if heading[end : end + 1] == "[":
+            finish = bracket_end(heading, end)
+            if finish is None:
+                break
+            key = reference_key(heading[end + 1 : finish - 1] or label)
+        elif heading[end : end + 1] == "(":
+            finish = inline.get(index)
+            if finish is None:
+                index = end
+                continue
+        if heading[end : end + 1] == "(" or key in bindings:
+            start = index - 1 if image_marker(heading, index) else index
+            pieces.append(heading[last:start] + heading_display(label, bindings))
+            last = finish
+        index = finish
+    return "".join(pieces) + heading[last:]
+
+
+def destination_spans(line: str) -> list[tuple[int, int, int, int]]:
+    """Destination and protected syntax spans for inline links and definitions.
+
+    Supports nested/escaped labels and parentheses, angle destinations, optional
+    titles, and one-line reference definitions. Inline code is protected separately.
+    This intentionally does not claim to be a complete CommonMark parser.
+    """
+    spans = []
+    i = 0
+    while i < len(line):
+        if line[i] == "\\":
+            i += 2
+            continue
+        if line[i] == "`":
+            i = code_span_end(line, i)
+            continue
+        if line[i] != "[":
+            i += 1
+            continue
+        begin = i
+        depth = 1
+        i += 1
+        while i < len(line) and depth:
+            if line[i] == "\\":
+                i += 2
+                continue
+            depth += (line[i] == "[") - (line[i] == "]")
+            i += 1
+        if depth or i >= len(line):
+            continue
+        definition = line[i] == ":" and not line[:begin].strip()
+        if line[i] != "(" and not definition:
+            if line[i] == "[":
+                closing = line.find("]", i + 1)
+                if closing >= 0:
+                    spans.append((i, i, begin, closing + 1))
+                    i = closing + 1
+            continue
+        i += 1
+        while i < len(line) and line[i].isspace():
+            i += 1
+        angle = i < len(line) and line[i] == "<"
+        i += angle
+        dest_start = i
+        depth = 0
+        while i < len(line):
+            c = line[i]
+            if c == "\\":
+                i += 2
+                continue
+            if angle:
+                if c == ">":
+                    break
+            else:
+                if c.isspace() or (c == ")" and depth == 0):
+                    break
+                depth += (c == "(") - (c == ")")
+            i += 1
+        dest_end = i
+        if angle:
+            i += 1
+        if definition:
+            spans.append((dest_start, dest_end, begin, len(line)))
+            break
+        # The optional title may itself contain a parenthesis.
+        quote = None
+        while i < len(line):
+            c = line[i]
+            if c == "\\":
+                i += 2
+                continue
+            if quote:
+                if c == quote:
+                    quote = None
+            elif c in "\"'":
+                quote = c
+            elif c == ")":
+                spans.append((dest_start, dest_end, begin, i + 1))
+                i += 1
+                break
+            i += 1
+    return spans
+
+
+def image_marker(line: str, begin: int) -> bool:
+    """An image opener has an exclamation mark with an even escape prefix."""
+    if line[begin - 1 : begin] != "!":
+        return False
+    prefix = line[: begin - 1]
+    return (len(prefix) - len(prefix.rstrip("\\"))) % 2 == 0
+
+
+def bracket_end(line: str, begin: int) -> int | None:
+    """End of an escape-aware bracket label, including nested display brackets."""
+    depth, index = 1, begin + 1
+    while index < len(line):
+        if line[index] == "\\":
+            index += 2
+            continue
+        depth += (line[index] == "[") - (line[index] == "]")
+        index += 1
+        if depth == 0:
+            return index
+    return None
+
+
+def reference_key(label: str) -> str:
+    """CommonMark reference matching uses casefold and collapsed label whitespace.
+
+    Backslash spelling is retained, independently of rendered display text. See
+    spec.commonmark.org/0.31.2/#reference-links (including first-definition wins).
+    """
+    return " ".join(label.split()).casefold()
+
+
+def definition_label(line: str) -> tuple[int, int] | None:
+    match = re.match(r"^ {0,3}\[", line)
+    if not match:
+        return None
+    begin = match.end() - 1
+    end = bracket_end(line, begin)
+    if end is not None and line[end : end + 1] == ":":
+        return begin, end
+    return None
+
+
+def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
+    """Flatten a safe inventory, preserving original source-relative link identity.
+
+    One-line inline links and reference definitions/uses are supported. Multiline
+    reference bindings fail visibly instead of leaking source-local identifiers.
+    ATX headings outside fences receive explicit anchors; custom HTML anchors are
+    rejected visibly (rather than silently leaking duplicate IDs into a bundle).
+    Bare root-prefixed prose pointers retain their historical section descriptions.
+    """
+    root = directory.resolve()
+    if not (directory / "SKILL.md").resolve().is_relative_to(root):
+        raise OSError("SKILL.md: symlink escapes skill root")
     source = (directory / "SKILL.md").read_text(encoding="utf-8")
     values = parse(source).values
     name = values.get("name", directory.name)
     description = " ".join((values.get("description") or "").split())
-    body = strip_frontmatter(source)
-
-    # The skill's own H1 becomes the document title, so it is not repeated inside. Two
-    # H1s in one file make the bundle read as two documents and break any tool that
-    # splits on heading level.
-    heading = title_of(body, name)
-    if body.startswith("# "):
-        body = body.split("\n", 1)[1].lstrip("\n") if "\n" in body else ""
-
-    # Inline in the order the skill first names them, so a reader meets each section
-    # where the prose sent them rather than in alphabetical order.
-    order: list[str] = []
-    named: list[str] = []
-    for line, fenced in zip(body.split("\n"), fence_spans(body), strict=True):
-        if fenced:
-            continue
-        for match in BUNDLED_RE.finditer(line):
-            candidate = _pointer(match)
-            tail = candidate.rsplit("/", 1)[-1]
-            if "." not in tail:
-                continue  # a directory mentioned generically, not a pointer to a file
-            if candidate not in order:
-                order.append(candidate)
-                named.append(candidate)
-    # Walked recursively and at any extension, matching what the validator itself
-    # accepts as a pointer: a nested references/deep/topic.md or a non-Markdown
-    # assets/checklist.txt is bundled the same as a flat references/x.md, rather than
-    # silently passing through neither inlined nor reported.
+    sources = {"SKILL.md": strip_frontmatter(source)}
+    unresolved: list[str] = []
+    order = []
     for sub in ("references", "assets", "scripts"):
-        base = directory / sub
-        if not base.is_dir():
+        for path in sorted((directory / sub).rglob("*")):
+            if not path.is_file():
+                continue
+            relative = path.relative_to(directory).as_posix()
+            if not path.resolve().is_relative_to(root):
+                unresolved.append(f"{relative}: symlink escapes skill root")
+                continue
+            try:
+                sources[relative] = path.read_text(encoding="utf-8")
+                order.append(relative)
+            except UnicodeDecodeError:
+                continue
+    # Preserve first-mention section ordering without reading destination-selected files.
+    named = []
+    for line, fenced in zip(
+        sources["SKILL.md"].split("\n"), fence_spans(sources["SKILL.md"]), strict=True
+    ):
+        if not fenced:
+            for match in BUNDLED_RE.finditer(line):
+                candidate = _pointer(match)
+                if "." in candidate.rsplit("/", 1)[-1] and candidate not in named:
+                    named.append(candidate)
+    order.sort(
+        key=lambda relative: (named.index(relative) if relative in named else len(named), relative)
+    )
+    titles = {
+        relative: title_of(text, Path(relative).stem)
+        if relative.startswith("references/")
+        else relative
+        for relative, text in sources.items()
+        if relative != "SKILL.md"
+    }
+    # Hex encodings and separators are injective, independent of output heading levels.
+    prefix = "portable-" + directory.parent.parent.name.encode().hex() + "-" + name.encode().hex()
+    roots = {relative: prefix + "-" + relative.encode().hex() + "-root" for relative in sources}
+    # Definitions are source-local in Markdown. Flattening also changes this scope,
+    # so destination anchors alone cannot preserve reference-style link binding.
+    reference_ids: dict[str, dict[str, str]] = {}
+    reference_destinations: dict[str, dict[str, str]] = {}
+    identifier_owners: dict[str, tuple[str, str]] = {}
+    for relative, text in sources.items():
+        reference_ids[relative] = {}
+        reference_destinations[relative] = {}
+        if relative != "SKILL.md" and not relative.startswith("references/"):
             continue
-        for path in sorted(base.rglob("*")):
-            if path.is_file():
-                relative = path.relative_to(directory).as_posix()
-                if relative not in order:
-                    order.append(relative)
+        for line, fenced in zip(text.split("\n"), fence_spans(text), strict=True):
+            if fenced:
+                continue
+            definition = definition_label(line)
+            if definition is None:
+                continue
+            begin, end = definition
+            key = reference_key(line[begin + 1 : end - 1])
+            if not key or not line[end + 1 :].strip():
+                unresolved.append(f"{relative}: unsupported empty/multiline reference definition")
+                continue
+            # Keep emitted labels below CommonMark's 999-character limit even when
+            # the original source path and label are long; assert digest ownership.
+            identity = roots[relative] + "-" + key.encode().hex()
+            scoped = "portable-reference-" + hashlib.sha256(identity.encode()).hexdigest()
+            owner = identifier_owners.setdefault(scoped, (relative, key))
+            if owner != (relative, key):
+                raise OSError("reference identifier namespace collision")
+            reference_ids[relative].setdefault(key, scoped)
+            spans = destination_spans(line)
+            if spans:
+                start, finish, _, _ = spans[0]
+                reference_destinations[relative].setdefault(key, line[start:finish])
 
-    sources: dict[str, str] = {}
-    titles: dict[str, str] = {}
-    for relative in order:
-        path = directory / relative
-        if not path.is_file():
-            continue  # the validator owns dangling pointers; do not report them twice
-        try:
-            sources[relative] = path.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            continue  # a binary asset cannot be inlined as text; leave the pointer be
-        if relative.startswith("references/"):
-            titles[relative] = title_of(sources[relative], Path(relative).stem)
-        else:
-            # A script's or asset's title is the path to create, not its content — the
-            # first "# " line of a shell script is a comment, not a heading, and using
-            # it as the title silently mistitled the section with unrelated prose.
-            titles[relative] = relative
+    aliases: dict[str, dict[str, str]] = {}
+    heading_ids: dict[str, dict[int, str]] = {}
+    for relative, text in sources.items():
+        aliases[relative] = {}
+        heading_ids[relative] = {}
+        if relative != "SKILL.md" and not relative.startswith("references/"):
+            continue
+        used: set[str] = set()
+        for index, (line, fenced) in enumerate(
+            zip(text.split("\n"), fence_spans(text), strict=True)
+        ):
+            if fenced:
+                continue
+            if re.search(r"<[^>]+\b(?:id|name)\s*=", line, re.I):
+                unresolved.append(f"{relative}: unsupported custom HTML anchor")
+            match = ATX_RE.match(line)
+            if not match:
+                continue
+            slug = source_slug(
+                heading_display(
+                    re.sub(r"\s+#+\s*$", "", line[match.end() :]),
+                    reference_destinations[relative],
+                )
+            )
+            alias, suffix = slug, 0
+            while alias in used:
+                suffix += 1
+                alias = f"{slug}-{suffix}"
+            used.add(alias)
+            anchor = roots[relative].removesuffix("root") + f"heading-{index}"
+            aliases[relative][alias] = anchor
+            heading_ids[relative][index] = anchor
 
-    def rewrite(text: str) -> str:
+    for relative, ids in reference_ids.items():
+        if relative != "SKILL.md" and not relative.startswith("references/"):
+            continue
+        # Multi-line labels are legal Markdown, but are outside this line scanner's
+        # supported syntax. Detect actual known bindings rather than arbitrary prose.
+        visible = "\n".join(
+            "" if fenced else re.sub(r"(`+)[^`]*?\1", "", line)
+            for line, fenced in zip(
+                sources[relative].split("\n"), fence_spans(sources[relative]), strict=True
+            )
+        )
+        for match in re.finditer(r"\[([^\[\]]+)\](?:\[([^\[\]]*)\])?", visible):
+            display, explicit = match.groups()
+            key = reference_key(explicit or display)
+            definition = visible[match.end() : match.end() + 1] == ":"
+            if "\n" in match.group(0) and (definition or key in ids):
+                unresolved.append(f"{relative}: unsupported multiline reference binding")
+
+    def scope_references(line: str, current: str, *, images_only: bool = False) -> str:
+        ids = reference_ids[current]
+        definition = definition_label(line)
+        if definition and not images_only:
+            begin, end = definition
+            key = reference_key(line[begin + 1 : end - 1])
+            if key in ids:
+                return line[: begin + 1] + ids[key] + line[end - 1 :]
+            return line
+        pieces, last, index = [], 0, 0
+        while index < len(line):
+            if line[index] == "\\":
+                index += 2
+                continue
+            if line[index] == "`":
+                index = code_span_end(line, index)
+                continue
+            if line[index] != "[" or (images_only and not image_marker(line, index)):
+                index += 1
+                continue
+            begin = index
+            end = bracket_end(line, begin)
+            if end is None:
+                break
+            label = line[begin + 1 : end - 1]
+            scoped_label = scope_references(label, current, images_only=True)
+            if line[end : end + 1] == "(":
+                # Images can bind inside a link label; destinations and titles cannot.
+                inline = destination_spans(line[begin:])
+                index = begin + inline[0][3] if inline and inline[0][2] == 0 else end
+                if image_marker(line, begin) and inline and inline[0][2] == 0:
+                    start, finish, _, _ = inline[0]
+                    resolve(line[begin + start : begin + finish], current, image=True)
+                if scoped_label != label:
+                    pieces.append(line[last:begin] + "[" + scoped_label + line[end - 1 : index])
+                    last = index
+                continue
+            finish = end
+            if line[end : end + 1] == "[":
+                reference_end = bracket_end(line, end)
+                if reference_end is None:
+                    if reference_key(label) in ids:
+                        unresolved.append(f"{current}: unsupported incomplete reference use")
+                    break
+                explicit = line[end + 1 : reference_end - 1]
+                key = reference_key(explicit or label)
+                finish = reference_end
+            else:
+                key = reference_key(label)
+            if key in ids:
+                if image_marker(line, begin):
+                    destination = reference_destinations[current].get(key)
+                    if destination is not None:
+                        resolve(destination, current, image=True)
+                pieces.append(line[last:begin])
+                pieces.append("[" + scoped_label + "][" + ids[key] + "]")
+                last = finish
+            elif scoped_label != label:
+                pieces.append(line[last:begin] + "[" + scoped_label + line[end - 1 : finish])
+                last = finish
+            index = finish
+        pieces.append(line[last:])
+        return "".join(pieces)
+
+    def resolve(destination: str, current: str, *, image: bool = False) -> str | None:
+        decoded = unquote(re.sub(r"\\([!\"#$%&'()*+,./:;<=>?@\[\]\^_`{|}~-])", r"\1", destination))
+        if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", decoded) or decoded.startswith("//"):
+            return None
+        if image:
+            # Flattened section anchors cannot render source-relative image assets.
+            unresolved.append(f"{current}: unsupported local image source: {destination}")
+            return None
+        path, separator, fragment = decoded.partition("#")
+        candidate = (
+            posixpath.normpath(posixpath.join(posixpath.dirname(current), path))
+            if path
+            else current
+        )
+        # Historical root-prefixed references in reference prose are allowed only when
+        # the actual relative target is absent and the exact inventory key exists.
+        if (
+            candidate not in sources
+            and path.removeprefix("./") in sources
+            and path.removeprefix("./").startswith(("references/", "assets/", "scripts/"))
+        ):
+            candidate = path.removeprefix("./")
+        anchor = roots.get(candidate)
+        if separator and fragment:
+            anchor = aliases.get(candidate, {}).get(fragment)
+        if candidate.startswith("../") or candidate.startswith("/") or anchor is None:
+            unresolved.append(f"{current}: {destination}")
+            return None
+        return "#" + anchor
+
+    def bare(text: str, current: str) -> str:
         def one(match: re.Match[str]) -> str:
             candidate = _pointer(match)
-            title = titles.get(candidate)
+            title = prepared_titles.get(candidate)
+            if (
+                not title
+                and current == "SKILL.md"
+                and "." in candidate.rsplit("/", 1)[-1]
+                and candidate not in unresolved
+            ):
+                unresolved.append(candidate)
             return f'the "{title}" section below' if title else match.group(0)
 
+        # Consume fragments along with bare pointers, and verify their original alias.
+        pattern = re.compile(BUNDLED_RE.pattern + r"(?:#[\w%.-]+)?")
+
+        def with_fragment(match: re.Match[str]) -> str:
+            path, separator, fragment = match.group(0).partition("#")
+            if separator:
+                target = resolve(path + "#" + fragment, current)
+                title = prepared_titles.get(path.removeprefix("./"))
+                return f'the "{title}" section below' if target and title else match.group(0)
+            return one(match)
+
+        text = pattern.sub(with_fragment, text)
+        return re.sub(r'`the "([^"]+)" section below`', r'the "\1" section below', text)
+
+    def prose_pointers(text: str, current: str) -> str:
+        chunks = re.split(r"(`+[^`]*`+)", text)
+        return "".join(
+            chunk if chunk.startswith("`") and "[" in chunk else bare(chunk, current)
+            for chunk in chunks
+        )
+
+    def rewrite(text: str, current: str, *, expand_bare: bool = True) -> str:
         out = []
         for line, fenced in zip(text.split("\n"), fence_spans(text), strict=True):
             if fenced:
                 out.append(line)
                 continue
-            line = BUNDLED_RE.sub(one, line)
-            # A pointer inside backticks reads as a path even after rewriting.
-            out.append(re.sub(r'`the "([^"]+)" section below`', r'the "\1" section below', line))
+            line = scope_references(line, current)
+            spans = destination_spans(line)
+            pieces, last = [], 0
+            for start, end, begin, finish in spans:
+                pieces.append(
+                    prose_pointers(line[last:begin], current) if expand_bare else line[last:begin]
+                )
+                replacement = (
+                    resolve(line[start:end], current, image=image_marker(line, begin))
+                    if end > start
+                    else None
+                )
+                pieces.append(
+                    line[begin:start] + (replacement or line[start:end]) + line[end:finish]
+                )
+                last = finish
+            # Protect Markdown examples in inline code while retaining legacy bare paths.
+            tail = line[last:]
+            pieces.append(prose_pointers(tail, current) if expand_bare else tail)
+            out.append("".join(pieces))
         return "\n".join(out)
 
-    sections: list[str] = []
-    for relative in order:
-        if relative not in sources:
-            continue
-        title, text = titles[relative], sources[relative]
-        if relative.startswith("references/"):
-            # Rewritten before the heading is attached: a reference's own body can name
-            # a sibling pointer, but the heading must not be run through the same
-            # rewrite — a script or asset title is now the path itself, and reusing this
-            # branch for those would have that path rewritten into a self-referential
-            # "the ... section below" the moment it fed back through `BUNDLED_RE`.
-            content = rewrite(demote(drop_title(text), 3).strip())
-            sections.append(f"### {title}\n\n{content}")
-        else:
-            # Fenced verbatim, so there is no prose inside to rewrite, and the heading
-            # — the file's own path — must stay exactly as written for the same reason.
-            language = (
-                asset_language_of(relative)
-                if relative.startswith("assets/")
-                else (language_of(relative))
-            )
-            sections.append(f"### {title}\n\n```{language}\n{text.rstrip()}\n```")
+    def prose(relative: str, levels: int) -> tuple[str, str]:
+        text = sources[relative]
+        lines = text.split("\n")
+        title_anchors = f'<a name="{roots[relative]}"></a>'
+        if lines and lines[0].startswith("# "):
+            if 0 in heading_ids[relative]:
+                title_anchors += f'\n<a name="{heading_ids[relative][0]}"></a>'
+            lines[0] = ""
+        for index, anchor in heading_ids[relative].items():
+            if index != 0 or not text.startswith("# "):
+                lines[index] = f'<a name="{anchor}"></a>\n' + lines[index]
+        return title_anchors, demote(rewrite("\n".join(lines), relative), levels).strip()
 
-    body = rewrite(body)
-    unresolved = [relative for relative in named if relative not in titles]
-
+    # Prepare titles in their owning source without recursively expanding filenames.
+    prepared_titles = {
+        relative: rewrite(title, relative, expand_bare=False)
+        if relative.startswith("references/")
+        else title
+        for relative, title in titles.items()
+    }
+    skill_title = rewrite(title_of(sources["SKILL.md"], name), "SKILL.md", expand_bare=False)
+    root_anchors, body = prose("SKILL.md", 0)
     parts = [
-        f"# {heading}",
+        root_anchors,
+        "# " + skill_title,
         "",
         f"**Skill:** `{name}`",
         "",
         f"**Use this when:** {description}",
         "",
-        body.strip(),
+        body,
     ]
+    sections = []
+    for relative in order:
+        text = sources[relative]
+        if relative.startswith("references/"):
+            anchors, content = prose(relative, 3)
+            sections.append(f"{anchors}\n### {prepared_titles[relative]}\n\n{content}")
+        else:
+            language = (
+                asset_language_of(relative)
+                if relative.startswith("assets/")
+                else language_of(relative)
+            )
+            longest = max((len(m.group(0)) for m in re.finditer(r"`{3,}", text)), default=2)
+            fence = "`" * (longest + 1)
+            sections.append(
+                f'<a name="{roots[relative]}"></a>\n### {titles[relative]}\n\n'
+                f"{fence}{language}\n{text.rstrip()}\n{fence}"
+            )
     if sections:
-        parts += ["", "## Reference material", "", *(s + "\n" for s in sections)]
+        parts += ["", "## Reference material", "", *(section + "\n" for section in sections)]
     parts += ["", NOTICE]
     return name, description, "\n".join(parts).rstrip() + "\n", unresolved
 

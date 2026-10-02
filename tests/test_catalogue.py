@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 
 import pytest
 
@@ -1895,3 +1896,649 @@ def test_claimed_fits_reads_singular_and_ignores_fit_inside_a_word():
     assert budget.claimed_fits(
         "For the benefit of readers: only `career` and `personal` fit the default budget."
     ) == {"career", "personal"}
+
+
+def test_portable_links_keep_source_identity_in_individual_and_bundle(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    (refs / "deep").mkdir(parents=True)
+    (refs / "a.md").write_text(
+        "# Shared title\n\n## Contents\n\nA contents.\n\n"
+        "[self](#contents) [sibling](./b.md#contents) "
+        "[nested](deep/n.md#nested)\n\n"
+        "## Topic\n\nFirst topic.\n\n## Topic-1\n\nNatural suffix.\n\n"
+        "## Topic\n\nDuplicate topic.\n",
+        encoding="utf-8",
+    )
+    (refs / "b.md").write_text(
+        "# Shared title\n\n## Contents\n\nB contents.\n\n[title](a.md#shared-title) [root](a.md)\n",
+        encoding="utf-8",
+    )
+    (refs / "deep/n.md").write_text(
+        "# Nested title\n\n## Nested\n\nNested content.\n\n[up](../a.md#topic-2)\n",
+        encoding="utf-8",
+    )
+    (refs / "odd(name).md").write_text("# Odd\n\n## Details\n\nParenthesis target.\n")
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text() + "\n"
+        '[body [nested] label](<references/a.md#contents> "keep title")\n'
+        "[escaped \\] label](references/a.md#topic-1)\n"
+        "[encoded](references/deep/n.md#%6Eested)\n"
+        "[balanced](references/odd(name).md#details)\n"
+        "[escaped destination](references/odd\\(name\\).md#details)\n"
+        "Read `references/a.md#topic-2`.\n"
+        "[references/a.md][target]\n"
+        '[definition][target]\n[target]: references/b.md#contents "definition title"\n'
+        '[external references/a.md](https://example.com/references/a.md "external")\n'
+        "`[example](references/missing.md)`\n"
+        "````markdown\n[example](references/missing.md)\n```\n"
+        "# fenced heading\n````\n",
+        encoding="utf-8",
+    )
+    # A second skill has identical heading names and filenames, so a bundle must keep
+    # both source identities despite their final heading levels and concatenation.
+    second = skill.parent / "beta"
+    second.mkdir(exist_ok=True)
+    (second / "SKILL.md").write_text(
+        source.read_text().replace("name: alpha", "name: beta"), encoding="utf-8"
+    )
+    shutil.copytree(refs, second / "references")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    individual = (out / "skills/alpha.md").read_text()
+    bundle = (out / "plugins/engineering.md").read_text()
+    expected = {
+        "body [nested] label": "A contents.",
+        "self": "A contents.",
+        "sibling": "B contents.",
+        "nested": "Nested content.",
+        "escaped \\] label": "Natural suffix.",
+        "encoded": "Nested content.",
+        "up": "Duplicate topic.",
+        "balanced": "Parenthesis target.",
+        "escaped destination": "Parenthesis target.",
+        "title": "A contents.",
+        "root": "A contents.",
+    }
+    for document in (individual, bundle):
+        anchors = re.findall(r'<a name="([^"]+)"></a>', document)
+        assert len(anchors) == len(set(anchors))
+        for label, content in expected.items():
+            # Examine the actual output destination and its source content independently
+            # of the implementation's source alias map.
+            destination = re.search(re.escape("[" + label + "]") + r"\(<?#([^>\s)]+)", document)
+            assert destination, label
+            anchor = destination.group(1)
+            assert anchor in anchors
+            target = document.split(f'<a name="{anchor}"></a>', 1)[1]
+            assert content in target.split('<a name="', 1)[0] or (
+                label in {"title", "root"}
+                and "Shared title" in target[:200]
+                and content in target[:500]
+            ), (label, target[:200])
+        assert '"keep title"' in document
+        assert re.search(r"\[references/a\.md\]\[portable-reference-[a-f0-9]+\]", document)
+        assert 'Read the "Shared title" section below.' in document
+        assert "section below#topic" not in document
+        assert (
+            '[external references/a.md](https://example.com/references/a.md "external")' in document
+        )
+        assert "`[example](references/missing.md)`" in document
+        assert (
+            "````markdown\n[example](references/missing.md)\n```\n# fenced heading\n````"
+            in document
+        )
+        definition = re.search(
+            r'^\[portable-reference-[a-f0-9]+\]: #([^ ]+) "definition title"$', document, re.M
+        )
+        assert definition and definition.group(1) in anchors
+        assert (
+            "B contents."
+            in document.split(f'<a name="{definition.group(1)}"></a>', 1)[1].split('<a name="', 1)[
+                0
+            ]
+        )
+    assert set(re.findall(r'<a name="([^"]+)"></a>', individual)).issubset(
+        re.findall(r'<a name="([^"]+)"></a>', bundle)
+    )
+
+
+@pytest.mark.parametrize("destination", ["missing.md", "a.md#missing", "../../outside.md"])
+@pytest.mark.parametrize("current", ["SKILL.md", "references/a.md"])
+def test_portable_missing_explicit_reference_links_fail_before_writes(
+    mini_repo, tmp_path, capsys, destination, current
+):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    (refs / "a.md").write_text("# A\n\n## Existing\n\nContent.\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    before = {path.relative_to(out): path.read_bytes() for path in out.rglob("*") if path.is_file()}
+    if current == "SKILL.md" and destination == "a.md#missing":
+        destination = "references/a.md#missing"
+    source = skill / current
+    source.write_text(source.read_text() + f"\n[broken]({destination})\n")
+    for check in (False, True):
+        assert portable.export(mini_repo, out, check=check) == 1
+        assert f"{current}: {destination}" in capsys.readouterr().out
+        assert before == {
+            path.relative_to(out): path.read_bytes() for path in out.rglob("*") if path.is_file()
+        }
+
+
+def test_portable_symlink_escape_is_rejected_and_assets_get_safe_fences(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    assets = skill / "assets"
+    assets.mkdir()
+    (assets / "example.md").write_text("# Example\n```python\nprint(1)\n```\n")
+    _, _, document, unresolved = portable.render_skill(skill)
+    assert not unresolved
+    assert "````markdown\n# Example\n```python\nprint(1)\n```\n````" in document
+    outside = tmp_path / "outside.md"
+    outside.write_text("Private outside content")
+    (assets / "escape.md").symlink_to(outside)
+    _, _, document, unresolved = portable.render_skill(skill)
+    assert unresolved == ["assets/escape.md: symlink escapes skill root"]
+    assert "Private outside content" not in document
+
+
+def test_portable_reference_bindings_stay_local_to_every_source(mini_repo, tmp_path):
+    expected = {}
+    for skill_name in ("alpha", "beta"):
+        skill = mini_repo / "plugins/engineering/skills" / skill_name
+        refs = skill / "references"
+        refs.mkdir()
+        # This shortcut has a definition elsewhere, but no definition in SKILL.md.
+        source = skill / "SKILL.md"
+        source.write_text(source.read_text() + "\n[shared label]\n")
+        for reference_name in ("one", "two"):
+            sentinel = f"{skill_name}-{reference_name} ONLY sentinel"
+            key = f"{skill_name}-{reference_name}"
+            uri = f"https://example.com/{key}/references/example.md"
+            expected[key] = (sentinel, uri)
+            (refs / f"{reference_name}.md").write_text(
+                f"# Same title\n\n## Target\n\n{sentinel}\n\n"
+                f"[{key} full][ ShArEd\tLaBeL ]\n"
+                "[shared label][]\n[SHARED  LABEL]\n"
+                f"[{key} external][external]\n"
+                f'[SHARED LABEL]: #target "{key} local title"\n'
+                '[shared label]: https://wrong.example "duplicate loses"\n'
+                f'[EXTERNAL]: {uri} "{key} external title"\n'
+                "`[shared label] [code][external]`\n"
+                "\\[shared label]\n[undefined]\n"
+                "~~~markdown\n[shared label]\n[external]: https://fenced.example\n~~~\n",
+                encoding="utf-8",
+            )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename, owners in (
+        ("skills/alpha.md", ("alpha",)),
+        ("skills/beta.md", ("beta",)),
+        ("plugins/engineering.md", ("alpha", "beta")),
+    ):
+        document = (out / filename).read_text()
+        # Build the artifact's actual first-definition map independently of all
+        # exporter helpers. This models the binding that a Markdown renderer uses.
+        effective = {}
+        definitions = []
+        uses = []
+        fenced = False
+        for line in document.splitlines():
+            if line.startswith("~~~"):
+                fenced = not fenced
+                continue
+            if fenced or line.startswith("`") or line.startswith("\\"):
+                continue
+            definition = re.fullmatch(r'\[([^]]+)\]: (\S+) "([^"]+)"', line)
+            if definition:
+                identifier, destination, title = definition.groups()
+                normalized = " ".join(identifier.split()).casefold()
+                definitions.append((normalized, destination, title))
+                effective.setdefault(normalized, (destination, title))
+                continue
+            uses.extend(re.findall(r"\[([^]]+)\]\[([^]]+)\]", line))
+        assert len(definitions) == 6 * len(owners)
+        assert len(effective) == 4 * len(owners)
+        assert len(uses) == 8 * len(owners)
+        seen_local = dict.fromkeys(
+            (owner + "-" + ref for owner in owners for ref in ("one", "two")), 0
+        )
+        seen_external = dict.fromkeys(seen_local, 0)
+        identifier_sources = {}
+        for identifier, destination, title in definitions:
+            assert identifier.startswith("portable-reference-")
+            assert len(identifier) <= 999
+            if title == "duplicate loses":
+                assert destination == "https://wrong.example"
+                assert effective[identifier][1] != title
+                continue
+            source_key, kind, _ = title.rsplit(" ", 2)
+            assert source_key in expected and source_key.split("-")[0] in owners
+            previous_owner = identifier_sources.setdefault(identifier, source_key)
+            assert previous_owner == source_key
+            sentinel, uri = expected[source_key]
+            if kind == "local":
+                assert destination.startswith("#")
+                target = document.split(f'<a name="{destination[1:]}"></a>', 1)[1]
+                assert sentinel in target.split('<a name="', 1)[0]
+            else:
+                assert kind == "external" and destination == uri
+        for display, identifier in uses:
+            destination, title = effective[" ".join(identifier.split()).casefold()]
+            source_key, kind, _ = title.rsplit(" ", 2)
+            sentinel, uri = expected[source_key]
+            if kind == "local":
+                assert display in {source_key + " full", "shared label", "SHARED  LABEL"}
+                target = document.split(f'<a name="{destination[1:]}"></a>', 1)[1]
+                assert sentinel in target.split('<a name="', 1)[0]
+                seen_local[source_key] += 1
+            else:
+                assert display == source_key + " external" and destination == uri
+                seen_external[source_key] += 1
+        assert all(count == 3 for count in seen_local.values())
+        assert all(count == 1 for count in seen_external.values())
+        # No definition may accidentally activate a shortcut from a different source.
+        assert "\n[shared label]\n" in document
+        assert "\n[undefined]\n" in document
+        assert "`[shared label] [code][external]`" in document
+        assert "\\[shared label]" in document
+        assert "~~~markdown\n[shared label]\n[external]: https://fenced.example\n~~~" in document
+
+
+@pytest.mark.parametrize(
+    "binding", ["[shared\nlabel]", "[visible][shared\nlabel]", "[shared\nlabel]: #target"]
+)
+def test_portable_unsupported_multiline_reference_binding_fails(mini_repo, tmp_path, binding):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text() + "\n## Target\n\n[shared label]: #target\n" + binding + "\n"
+    )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 1
+    assert portable.export(mini_repo, out) == 1
+    assert not out.exists()
+
+
+def test_portable_nested_image_references_keep_source_bindings(mini_repo, tmp_path):
+    expected = {}
+    protected = (
+        "`[![badge][image]][target]`\n"
+        '[code `![badge][image]`](https://example.com/code "![badge][image]")\n'
+        "~~~markdown\n[![badge][image]][target]\n~~~\n"
+    )
+    for owner in ("alpha", "beta"):
+        skill = mini_repo / "plugins/engineering/skills" / owner
+        refs = skill / "references"
+        refs.mkdir()
+        for source in (skill / "SKILL.md", refs / "one.md", refs / "two.md"):
+            key = owner + "-" + source.stem
+            image = f"https://example.com/{key}.svg"
+            target = f"https://example.com/{key}/details"
+            expected[key] = (image, target)
+            original = source.read_text() if source.exists() else "# Reference\n"
+            source.write_text(
+                original + f"\n{key}\n"
+                "[![badge][image]][target]\n"
+                "[![image][]][target]\n"
+                "[![image]][target]\n"
+                f'[![badge][image]]({target} "outer [image]")\n'
+                f"[![image][]]({target})\n"
+                f"[![image]]({target})\n\n"
+                f'[image]: {image} "image title"\n'
+                f'[target]: {target} "target title"\n\n' + protected
+            )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    for filename, owners in (
+        ("skills/alpha.md", ("alpha",)),
+        ("skills/beta.md", ("beta",)),
+        ("plugins/engineering.md", ("alpha", "beta")),
+    ):
+        document = (out / filename).read_text()
+        definitions = dict(
+            re.findall(r'^\[([^]]+)\]: (\S+) "(?:image|target) title"$', document, re.M)
+        )
+        for key, (image, target) in expected.items():
+            if key.split("-")[0] not in owners:
+                continue
+            section = document.split("\n" + key + "\n", 1)[1].split(protected, 1)[0]
+            uses = re.findall(r"^\[!\[(badge|image)\]\[([^]]+)\]\](.*)$", section, re.M)
+            assert len(uses) == 6
+            for label, image_id, outer in uses:
+                assert label in {"badge", "image"}
+                assert definitions[image_id] == image
+                if outer.startswith("["):
+                    assert definitions[outer[1:-1]] == target
+                else:
+                    assert outer in {f'({target} "outer [image]")', f"({target})"}
+        assert document.count(protected) == 3 * len(owners)
+
+
+@pytest.mark.parametrize("context", ["body", "reference"])
+@pytest.mark.parametrize("outer", ["inline", "reference", "standalone"])
+@pytest.mark.parametrize("binding", ["inline", "full", "collapsed", "shortcut"])
+@pytest.mark.parametrize(
+    "destination", ["existing.svg", "missing.svg", "../../escape.svg", "#alpha"]
+)
+def test_portable_local_image_sources_fail_before_writes(
+    mini_repo, tmp_path, capsys, context, outer, binding, destination
+):
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    before = {p.relative_to(out): p.read_bytes() for p in out.rglob("*") if p.is_file()}
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    source = skill / "SKILL.md" if context == "body" else refs / "one.md"
+    (source.parent / "existing.svg").write_text("<svg></svg>\n")
+    image = {
+        "inline": f'![image](<{destination}> "image title")',
+        "full": "![badge][image]",
+        "collapsed": "![image][]",
+        "shortcut": "![image]",
+    }[binding]
+    use = {
+        "inline": f'[{image}](https://example.com "outer title")',
+        "reference": f"[{image}][target]",
+        "standalone": image,
+    }[outer]
+    original = source.read_text() if source.exists() else "# Reference\n"
+    source.write_text(
+        original
+        + "\n"
+        + use
+        + "\n\n"
+        + (f'[image]: <{destination}> "image title"\n' if binding != "inline" else "")
+        + '[target]: https://example.com "target title"\n'
+    )
+    for check in (True, False):
+        assert portable.export(mini_repo, out, check=check) == 1
+        assert before == {p.relative_to(out): p.read_bytes() for p in out.rglob("*") if p.is_file()}
+        assert "unsupported local image source: " + destination in capsys.readouterr().out
+
+
+def test_portable_nested_inline_external_images_preserve_syntax(mini_repo, tmp_path):
+    protected = (
+        "`[![image](missing.svg)](https://example.com)`\n"
+        '[code `![image](missing.svg)`](https://example.com "![image](missing.svg)")\n'
+        "~~~markdown\n[![image](missing.svg)][target]\n~~~\n"
+    )
+    syntax = (
+        '[![badge](<https://example.com/badge.svg> "image title")]'
+        '(https://example.com "outer title")\n'
+        '[![badge](//example.com/badge.svg "image title")][target]\n'
+    )
+    for owner in ("alpha", "beta"):
+        skill = mini_repo / "plugins/engineering/skills" / owner
+        refs = skill / "references"
+        refs.mkdir()
+        for source in (skill / "SKILL.md", refs / "one.md"):
+            original = source.read_text() if source.exists() else "# Reference\n"
+            source.write_text(
+                original + "\n" + syntax + protected + "\n[target]: https://example.com\n"
+            )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    for filename, count in (
+        ("skills/alpha.md", 2),
+        ("skills/beta.md", 2),
+        ("plugins/engineering.md", 4),
+    ):
+        document = (out / filename).read_text()
+        assert document.count(syntax.splitlines()[0]) == count
+        assert document.count('![badge](//example.com/badge.svg "image title")') == count
+        assert document.count(protected) == count
+
+
+def test_portable_escaped_image_marker_is_a_link(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    (refs / "one.md").write_text("# Reference\nContent.\n")
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + r"\![label](references/one.md)" + "\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        assert re.search(r"\\!\[label\]\(#portable-[^)]+\)", (out / filename).read_text())
+
+
+@pytest.mark.parametrize("heading", ["[Guide][target]", "[Guide][]", "[Guide]"])
+def test_portable_bound_heading_duplicate_targets(mini_repo, tmp_path, heading):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    content = (
+        f"## {heading}\n\nFIRST sentinel\n\n## Guide\n\nSECOND sentinel\n\n"
+        "[first](#guide) [second](#guide-1)\n\n"
+        "[target]: https://example.com/target\n[Guide]: https://example.com/guide\n"
+    )
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\n" + content)
+    (refs / "one.md").write_text("# Reference\n\n" + content)
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        for label, sentinel in (("first", "FIRST"), ("second", "SECOND")):
+            targets = re.findall(rf"\[{label}\]\(#([^)]+)\)", document)
+            assert len(targets) == 2
+            for target in targets:
+                section = document.split(f'<a name="{target}"></a>', 1)[1]
+                section = section.split('<a name="', 1)[0]
+                assert f"{sentinel} sentinel" in section
+
+
+@pytest.mark.parametrize(
+    "heading",
+    [
+        "[Guide](https://example.com/path(a)b)",
+        '[Guide](https://example.com "a (b) c")',
+    ],
+)
+def test_portable_balanced_inline_heading_duplicate_targets(mini_repo, tmp_path, heading):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    content = (
+        f"## {heading}\n\nFIRST sentinel\n\n## Guide\n\nSECOND sentinel\n\n"
+        "[first](#guide) [second](#guide-1)\n\n"
+        "[target]: https://example.com/target\n[Guide]: https://example.com/guide\n"
+    )
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\n" + content)
+    (refs / "one.md").write_text("# Reference\n\n" + content)
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        for label, sentinel in (("first", "FIRST"), ("second", "SECOND")):
+            targets = re.findall(rf"\[{label}\]\(#([^)]+)\)", document)
+            assert len(targets) == 2
+            for target in targets:
+                section = document.split(f'<a name="{target}"></a>', 1)[1]
+                section = section.split('<a name="', 1)[0]
+                assert f"{sentinel} sentinel" in section
+
+
+@pytest.mark.parametrize("run", ["`", "``", "```"])
+def test_portable_unmatched_code_runs_continue_scanning(mini_repo, tmp_path, run):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text()
+        + f"\nLiteral {run} before [target] and [local](#alpha).\n"
+        + "\n[target]: https://example.com/target\n"
+        + "\nClosed `` [target] ` [local](missing.md) `` stays protected.\n"
+    )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        assert re.search(r"Literal `+ before \[target\]\[portable-reference-", document)
+        assert re.search(r"\[local\]\(#portable-", document)
+        assert "Closed `` [target] ` [local](missing.md) `` stays protected." in document
+
+
+@pytest.mark.parametrize(
+    "title", ["[Guide][target]", "![Guide][target]", "[Guide](https://example.com/title)"]
+)
+def test_portable_relocated_titles_rewrite_bindings(mini_repo, tmp_path, title):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    source = skill / "SKILL.md"
+    header = source.read_text().split("---", 2)[:2]
+    source.write_text(
+        "---".join(header) + "---\n# " + title + "\n\n[target]: https://example.com/skill\n"
+    )
+    refs = skill / "references"
+    refs.mkdir()
+    (refs / "one.md").write_text("# " + title + "\n\n[target]: https://example.com/reference\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        headings = [line for line in document.splitlines() if re.match(r"^#{1,6} ", line)]
+        assert len([line for line in headings if "Guide" in line]) == 2
+        assert not any("[Guide][target]" in line for line in headings)
+        if "[target]" in title:
+            assert len(re.findall(r"Guide\]\[portable-reference-", "\n".join(headings))) == 2
+
+
+@pytest.mark.parametrize("location", ["skill", "reference"])
+@pytest.mark.parametrize(
+    "title",
+    ["![badge](missing.svg)", "[![badge](missing.svg)](https://example.com)", "![badge][image]"],
+)
+def test_portable_title_images_reject_before_writes(mini_repo, tmp_path, location, title):
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    before = {p.relative_to(out): p.read_bytes() for p in out.rglob("*") if p.is_file()}
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    if location == "skill":
+        source = skill / "SKILL.md"
+        source.write_text(
+            source.read_text().replace("# alpha", "# " + title) + "\n[image]: SKILL.md\n"
+        )
+    else:
+        refs = skill / "references"
+        refs.mkdir()
+        (refs / "one.md").write_text("# " + title + "\n\n[image]: ../SKILL.md\n")
+    for check in (True, False):
+        assert portable.export(mini_repo, out, check=check) == 1
+        assert before == {p.relative_to(out): p.read_bytes() for p in out.rglob("*") if p.is_file()}
+
+
+@pytest.mark.parametrize("binding", ["full", "collapsed", "shortcut"])
+def test_portable_copied_titles_keep_owner_bindings(mini_repo, tmp_path, binding):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    title = {"full": "[Guide][target]", "collapsed": "[Guide][]", "shortcut": "[Guide]"}[binding]
+    key = "target" if binding == "full" else "Guide"
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text()
+        + f'\n[{key}]: https://example.com/caller "Caller title"\n'
+        + "\nRead one references/one.md.\nRead two references/two.md.\n"
+        + "\nFragment one `references/one.md#guide`.\n"
+        + "Fragment two `references/two.md#guide`.\n"
+        + "\n`[Guide][target]` stays code.\n\n```markdown\nreferences/one.md\n```\n"
+    )
+    for owner in ("one", "two"):
+        (refs / f"{owner}.md").write_text(
+            f'# {title}\n\n{owner} body.\n\n[{key}]: https://example.com/{owner} "{owner} title"\n'
+        )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        definitions = dict(re.findall(r"^\[([^]]+)\]: (.+)$", document, re.M))
+        for owner in ("one", "two"):
+            for prefix in ("Read", "Fragment"):
+                line = next(
+                    line for line in document.splitlines() if line.startswith(f"{prefix} {owner} ")
+                )
+                match = re.search(r"\[Guide\]\[([^]]+)\]", line)
+                assert match
+                assert definitions[match[1]] == f'https://example.com/{owner} "{owner} title"'
+                assert "`" not in line
+        assert "`[Guide][target]` stays code." in document
+        assert "```markdown\nreferences/one.md\n```" in document
+
+
+def test_portable_copied_titles_resolve_local_sections_and_external_images(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\nRead references/one.md.\n")
+    title = (
+        '[Section](two.md#details) ![badge](https://example.com/badge.svg "Badge title") [unknown]'
+    )
+    (refs / "one.md").write_text("# " + title + "\n\nOne body.\n")
+    (refs / "two.md").write_text("# Two\n\n## Details\n\nTARGET sentinel\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        pointer = next(line for line in document.splitlines() if line.startswith("Read "))
+        target = re.search(r"\[Section\]\(#([^)]+)\)", pointer)[1]
+        section = document.split(f'<a name="{target}"></a>', 1)[1].split('<a name="', 1)[0]
+        assert "TARGET sentinel" in section
+        assert '![badge](https://example.com/badge.svg "Badge title") [unknown]' in pointer
+
+
+def test_portable_title_bare_pointers_do_not_expand_recursively(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text().replace("# alpha", "# Alpha references/one.md")
+        + "\nRead references/one.md and references/two.md.\n"
+        + "Read assets/example.txt and scripts/example.py.\n"
+    )
+    (refs / "one.md").write_text("# One references/one.md references/two.md\n\nOne body.\n")
+    (refs / "two.md").write_text("# Two references/one.md\n\nTwo body.\n")
+    for directory, filename, text in (
+        ("assets", "example.txt", "Example asset\n"),
+        ("scripts", "example.py", "print('example')\n"),
+    ):
+        (skill / directory).mkdir()
+        (skill / directory / filename).write_text(text)
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        assert len(document) < 10000
+        assert re.search(r"^#{1,6} Alpha references/one.md$", document, re.M)
+        assert 'the "One references/one.md references/two.md" section below' in document
+        assert 'the "Two references/one.md" section below' in document
+        assert 'the "assets/example.txt" section below' in document
+        assert 'the "scripts/example.py" section below' in document
+        assert re.search(r"^#{1,6} One references/one.md references/two.md$", document, re.M)
+        assert re.search(r"^#{1,6} Two references/one.md$", document, re.M)
+
+
+def test_portable_copied_title_local_image_rejects_before_writes(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\nRead references/one.md.\n")
+    reference = refs / "one.md"
+    reference.write_text("# Guide\n\nReference body.\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    before = {p.relative_to(out): p.read_bytes() for p in out.rglob("*") if p.is_file()}
+    reference.write_text("# ![badge][image]\n\n[image]: ../SKILL.md\n")
+    for check in (True, False):
+        assert portable.export(mini_repo, out, check=check) == 1
+        assert before == {p.relative_to(out): p.read_bytes() for p in out.rglob("*") if p.is_file()}
