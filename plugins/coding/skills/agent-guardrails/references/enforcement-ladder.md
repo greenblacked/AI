@@ -73,8 +73,7 @@ what runs rather than what is written. A rule that tries to approximate those wi
 patterns produces both misses and false positives, which is the signal to move up a rung.
 
 **Worked example.** The agent keeps calling a function the project has deprecated. A banned
-API entry in ruff, which the Python tooling used here already supports, makes the call a
-lint error with a message naming the replacement:
+API entry in ruff, a Python linter, makes the call a lint error with a message naming the replacement:
 
 ```toml
 [tool.ruff.lint]
@@ -149,15 +148,25 @@ only:
 # Reads a unified diff on stdin and exits 1 when it adds a suppression comment.
 set -Eeuo pipefail
 
+# A file header is only a header outside a hunk: inside one, an added line that reads
+# "++ b/x" is content and looks identical. So the hunk's line counts decide which it is.
+# Git quotes a path holding a newline or special bytes as +++ "b/..." with escapes, and
+# appends a tab to a path holding a space; both are normalised before the name is kept.
 hits=$(awk '
-  /^\+\+\+ b\// { file = substr($0, 7); next }
-  /^@@/         { split($3, hunk, ","); line = substr(hunk[1], 2) - 1; next }
-  /^\+/         { line++
-                  if ($0 ~ /(noqa|type: ignore|eslint-disable|@ts-ignore|nolint)/) {
-                    print file ":" line
-                  }
-                  next }
-  /^ /          { line++ }
+  left_old > 0 || left_new > 0 {
+    if (/^\+/)      { left_new--; line++
+                      if ($0 ~ /(noqa|type: ignore|eslint-disable|@ts-ignore|nolint)/) {
+                        print file ":" line
+                      } }
+    else if (/^-/)  { left_old-- }
+    else if (/^ /)  { left_old--; left_new--; line++ }
+    next
+  }
+  /^\+\+\+ /      { file = substr($0, 5); sub(/\t.*$/, "", file)
+                    sub(/^"/, "", file); sub(/"$/, "", file); sub(/^b\//, "", file); next }
+  /^@@ /          { split(substr($2, 2), o, ","); split(substr($3, 2), n, ",")
+                    left_old = (o[2] == "" ? 1 : o[2]); left_new = (n[2] == "" ? 1 : n[2])
+                    line = n[1] - 1 }
 ')
 
 if [ -n "$hits" ]; then
@@ -169,7 +178,8 @@ if [ -n "$hits" ]; then
 fi
 ```
 
-In CI, feed it `git diff origin/main...HEAD`. Locally, against a change that adds
+It expects git's default `a/` and `b/` path prefixes, so run it on output made without
+`--no-prefix` or a `diff.noprefix` setting. In CI, feed it `git diff origin/main...HEAD`. Locally, against a change that adds
 `# noqa: F401` it exits 1 and prints `src/b.py:1`; against a change that adds nothing of
 the kind it exits 0 and prints nothing. The `/agent-diff-audit` command runs the same
 class of detector, plus test-count and dependency checks, as a mechanical pass before
@@ -217,21 +227,19 @@ another tool's, and any session where the hook is not registered. It runs code o
 matching action, so it is reviewed like code: read-only where possible, no network, a
 bounded runtime, and nothing in its output that echoes a secret.
 
-**What this repository establishes.** Hooks are configured in a settings file as a `hooks`
-block naming an event, a matcher and a command, and the path in `command` is the only thing
-that matters: nothing scans a `hooks` directory, so a script dropped into one never runs.
-This repository registers a `PostToolUse` hook on `Write|Edit` that points at
-`scripts/hooks/skill_hook.py`, which validates a skill as it is written, and
-`scripts/check_settings.py` resolves that path on every `make catalogue` so a stale path
-cannot turn the hook off silently. A `PostToolUse` hook fires after the tool has run, so it
-reports on the write rather than preventing it. Confirm event names and how a hook's
-result reaches the agent against the current Claude Code hooks documentation before
-designing around either, because this skill does not restate them.
+**What to rely on.** Hooks are configured in a settings file as a `hooks` block naming an
+event, a matcher and a command, and the path in `command` is the only thing that matters:
+nothing scans a `hooks` directory, so a script dropped into one never runs. A `PostToolUse`
+hook fires after the tool has run, so it reports on the write rather than preventing it.
+Confirm event names, exit-code behaviour and how a hook's result reaches the agent against
+the current Claude Code hooks documentation before designing around any of them, because
+this skill does not restate them.
 
 **Worked example.** Design the hook, then hand the registration to a human. The design is
 a short specification: the event and matcher, the single script path, what the script
 reads, the exact condition it flags, the message it returns, and its privileges. The
-registration is the settings fragment, in the shape this repository already uses:
+registration is the settings fragment. A settings fragment registering a `PostToolUse` hook
+on `Write|Edit` looks like this:
 
 ```json
 {
@@ -240,7 +248,11 @@ registration is the settings fragment, in the shape this repository already uses
       {
         "matcher": "Write|Edit",
         "hooks": [
-          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/scripts/hooks/guard_hook.py" }
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/scripts/hooks/guard_hook.py",
+            "timeout": 10
+          }
         ]
       }
     ]
@@ -248,7 +260,9 @@ registration is the settings fragment, in the shape this repository already uses
 }
 ```
 
-Put the script and that fragment in the proposal and stop. Editing the settings file is
+The `timeout` is in seconds and keeps a hung script from stalling every write; confirm the
+unit and the key name against the current documentation. Put the script and that fragment
+in the proposal and stop. Editing the settings file is
 registering a hook, which this skill does not do.
 
 ## Rung 7: permission or sandbox setting
@@ -266,8 +280,8 @@ cannot edit.
 
 **Worked example.** Rule: the agent may not write to the directory holding the guard's own
 configuration. A path-deny entry in the agent's permission settings expresses that
-directly, spelled in the tool's own syntax, and in ChatGPT or Codex the equivalent is the
-sandbox's writable-paths and approval settings. Pair it with a CI check that fails any
+directly, spelled in the tool's own syntax, or in the tool's own sandbox or approval settings, where
+it has them. Pair it with a CI check that fails any
 change touching that directory, so the rule survives a session where the permission was
 never applied. As with a hook, changing a permission is a human decision: propose the
 entry, name the file it belongs in, and do not loosen or edit it to get a change through.
