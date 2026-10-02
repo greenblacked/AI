@@ -1,0 +1,12 @@
+diff --git a/scripts/export_portable.py b/scripts/export_portable.py
+--- a/scripts/export_portable.py
++++ b/scripts/export_portable.py
+@@ -469,7 +469,7 @@
+             elif char == "`":
+                 run = len(joined[position:]) - len(joined[position:].lstrip("`"))
+                 line_index = bisect.bisect_right(starts, position) - 1
+-                limit = ends[line_index]
++                limit = starts[line_index] + len(block[line_index])
+                 end = position + run
+                 for match in re.finditer(r"`+", joined[position + run : limit]):
+                     if len(match.group()) == run:

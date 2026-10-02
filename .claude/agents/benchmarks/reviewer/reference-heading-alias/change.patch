@@ -1,8 +1,8 @@
 diff --git a/scripts/export_portable.py b/scripts/export_portable.py
 --- a/scripts/export_portable.py
 +++ b/scripts/export_portable.py
-@@ -547,12 +547,7 @@
-             match = ATX_RE.match(line)
+@@ -740,12 +740,7 @@
+             match = ATX_RE.match(visible)
              if not match:
                  continue
 -            slug = source_slug(

@@ -38,6 +38,7 @@ Standard library only, like the validator it imports.
 from __future__ import annotations
 
 import argparse
+import bisect
 import hashlib
 import html
 import posixpath
@@ -81,6 +82,10 @@ ASSET_LANGUAGES = {
 # example closes early and everything after it is read as prose.
 FENCE_RE = re.compile(r"^(`{3,}|~{3,})")
 ATX_RE = re.compile(r"^(#{1,6})(\s+)")
+# What may sit between the start of a line and a code fence: blockquote markers and one list
+# marker. A fenced example quoted with `>` or nested under a bullet is still a fence.
+CONTAINER_PREFIX_RE = re.compile(r"^(?:\s{0,3}>)*\s*(?P<item>(?:[-*+]|\d+[.)])\s+)?")
+LIST_ITEM_RE = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s")
 # A raw HTML element tag (open, close or self-closing, with attributes) or a comment, the
 # only inline HTML that vanishes from a rendered heading. A tag name must start with a
 # letter and be followed by whitespace, `/` or `>`, which keeps `<https://x>` and
@@ -197,18 +202,26 @@ def fence_spans(text: str) -> list[bool]:
     """
     flags: list[bool] = []
     opening: str | None = None
+    depth = 0
     for line in text.split("\n"):
-        fence = FENCE_RE.match(line.lstrip())
+        prefix = CONTAINER_PREFIX_RE.match(line)
+        content = line[prefix.end() :]
+        fence = FENCE_RE.match(content)
         if fence is not None:
             marker = fence.group(1)
             if opening is None:
                 opening = marker
+                depth = prefix.group().count(">")
                 flags.append(True)
                 continue
+            # Inside a fence every line is content, so a quoted or bulleted fence marker
+            # belongs to the example; only a line in the opener's own container closes it.
             if (
                 marker[0] == opening[0]
                 and len(marker) >= len(opening)
-                and not line.lstrip()[fence.end() :].strip()
+                and not content[fence.end() :].strip()
+                and prefix.group().count(">") == depth
+                and prefix.group("item") is None
             ):
                 opening = None
             flags.append(True)
@@ -268,15 +281,19 @@ def source_slug(heading: str) -> str:
     See GitHub basic-writing-and-formatting-syntax, section-links. Duplicate aliases
     are allocated across each source, including naturally suffixed headings.
     """
+
     # Only raw HTML tags vanish from a rendered heading. An autolink such as
     # `<https://example.com>` shows its address and a code span shows its angle brackets,
-    # so a blanket `<...>` removal dropped text GitHub keeps and moved the alias.
+    # so a blanket `<...>` removal dropped text GitHub keeps and moved the alias. Entities
+    # are decoded the same way: `&copy;` is a character in prose and literal text in code.
+    def visible(text: str) -> str:
+        return html.unescape(HTML_TAG_RE.sub("", text))
+
     pieces, last = [], 0
     for begin, end in closed_code_spans(heading):
-        pieces.append(HTML_TAG_RE.sub("", heading[last:begin]) + heading[begin:end])
+        pieces.append(visible(heading[last:begin]) + heading[begin:end])
         last = end
-    heading = "".join(pieces) + HTML_TAG_RE.sub("", heading[last:])
-    heading = html.unescape(heading).lower().strip()
+    heading = ("".join(pieces) + visible(heading[last:])).lower().strip()
     return "".join(
         "-" if c.isspace() else c
         for c in heading
@@ -374,6 +391,108 @@ def without_code_spans(line: str) -> str:
         else:
             index += 1
     return "".join(pieces) + line[last:]
+
+
+def has_custom_anchor(line: str) -> bool:
+    """True when ``line`` carries a raw HTML tag with an `id` or `name` attribute.
+
+    Quoted values are blanked first so `title="name=x"` is not an attribute, and the
+    attribute name has to follow whitespace, so `data-name` is not `name`. Closing tags
+    and comments carry no attributes, and a tag shown inside code is inert.
+    """
+    for tag in HTML_TAG_RE.finditer(without_code_spans(line)):
+        text = tag.group()
+        if text.startswith(("</", "<!--")):
+            continue
+        if re.search(
+            r"(?<![\w:.-])(?:id|name)\s*=", re.sub(r"\"[^\"]*\"|'[^']*'", '""', text), re.I
+        ):
+            return True
+    return False
+
+
+def inert_ranges(text: str, fenced: list[bool]) -> list[list[tuple[int, int]]]:
+    """Per line, the character ranges that are raw text, not Markdown to rewrite.
+
+    Two kinds sit outside a fence and inside a line scanner's blind spot: an HTML comment,
+    whose contents render as nothing, and the part of a code span that continues past a
+    line break. Neither is visible one line at a time, so each is found over a whole run
+    of unfenced lines, in a single left-to-right scan. Whichever construct starts first
+    wins, as in CommonMark: a backtick inside a comment is comment text, and `<!--` inside
+    a code span is code. A code span closes only within its own paragraph. A fence marker
+    inside a comment is read as a fence by `fence_spans`, and a link whose label contains
+    a comment is rewritten in pieces; neither combination is handled.
+    """
+    lines = text.split("\n")
+    ranges: list[list[tuple[int, int]]] = [[] for _ in lines]
+    number = 0
+    while number < len(lines):
+        if fenced[number]:
+            number += 1
+            continue
+        first = number
+        while number < len(lines) and not fenced[number]:
+            number += 1
+        block = lines[first:number]
+        starts, offset = [], 0
+        for line in block:
+            starts.append(offset)
+            offset += len(line) + 1
+        # Where each line's paragraph ends, as an offset: a code span may not cross it.
+        ends = [0] * len(block)
+        index = len(block) - 1
+        while index >= 0:
+            if not block[index].strip():
+                ends[index] = starts[index]
+            elif index + 1 < len(block) and not (
+                not block[index + 1].strip()
+                or ATX_RE.match(block[index + 1])
+                or LIST_ITEM_RE.match(block[index + 1])
+                or ATX_RE.match(block[index])
+            ):
+                ends[index] = ends[index + 1]
+            else:
+                ends[index] = starts[index] + len(block[index])
+            index -= 1
+        joined = "\n".join(block)
+        found: list[tuple[int, int]] = []
+        position = 0
+        while position < len(joined):
+            char = joined[position]
+            if char == "\\":
+                position += 2
+            elif joined.startswith("<!--", position):
+                close = joined.find("-->", position + 4)
+                end = len(joined) if close < 0 else close + 3
+                found.append((position, end))
+                position = end
+            elif char == "`":
+                run = len(joined[position:]) - len(joined[position:].lstrip("`"))
+                line_index = bisect.bisect_right(starts, position) - 1
+                limit = ends[line_index]
+                end = position + run
+                for match in re.finditer(r"`+", joined[position + run : limit]):
+                    if len(match.group()) == run:
+                        end = position + run + match.end()
+                        if "\n" in joined[position:end]:
+                            found.append((position, end))
+                        break
+                position = end
+            else:
+                position += 1
+        for begin, end in found:
+            for index, line in enumerate(block):
+                low, high = starts[index], starts[index] + len(line)
+                if begin < high and end > low:
+                    ranges[first + index].append((max(begin, low) - low, min(end, high) - low))
+    return [sorted(set(found)) for found in ranges]
+
+
+def blank_ranges(line: str, ranges: list[tuple[int, int]]) -> str:
+    """``line`` with each range replaced by spaces, so offsets into it stay valid."""
+    for begin, end in ranges:
+        line = line[:begin] + " " * (end - begin) + line[end:]
+    return line
 
 
 def destination_spans(line: str) -> list[tuple[int, int, int, int]]:
@@ -583,9 +702,14 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         footnote_ids[relative] = {}
         if relative != "SKILL.md" and not relative.startswith("references/"):
             continue
-        for line, fenced in zip(text.split("\n"), fence_spans(text), strict=True):
-            if fenced:
+        fenced_lines = fence_spans(text)
+        inert = inert_ranges(text, fenced_lines)
+        for number, (line, fenced) in enumerate(zip(text.split("\n"), fenced_lines, strict=True)):
+            # A definition inside a comment or a multiline code span defines nothing, so
+            # collecting it would scope a use that the copied definition then fails to match.
+            if fenced or inert[number] and not blank_ranges(line, inert[number]).strip():
                 continue
+            line = blank_ranges(line, inert[number])
             footnote = FOOTNOTE_DEFINITION_RE.match(line)
             if footnote is not None:
                 key = reference_key(footnote.group(1))
@@ -625,14 +749,16 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         if relative != "SKILL.md" and not relative.startswith("references/"):
             continue
         used: set[str] = set()
-        for index, (line, fenced) in enumerate(
-            zip(text.split("\n"), fence_spans(text), strict=True)
-        ):
+        fenced_lines = fence_spans(text)
+        inert = inert_ranges(text, fenced_lines)
+        for index, (line, fenced) in enumerate(zip(text.split("\n"), fenced_lines, strict=True)):
             if fenced:
                 continue
-            if re.search(r"<[^>]+\b(?:id|name)\s*=", without_code_spans(line), re.I):
+            # A comment or the tail of a multiline code span is not a heading or an anchor.
+            visible = blank_ranges(line, inert[index])
+            if has_custom_anchor(visible):
                 unresolved.append(f"{relative}: unsupported custom HTML anchor")
-            match = ATX_RE.match(line)
+            match = ATX_RE.match(visible)
             if not match:
                 continue
             slug = source_slug(
@@ -816,45 +942,58 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         pieces.append(bare(text[last:], current))
         return "".join(pieces)
 
+    def rewrite_prose(line: str, current: str, expand_bare: bool, *, at_start: bool = True) -> str:
+        # A footnote definition's label is scoped and its text is prose like any other,
+        # so links and pointers inside it still resolve; the label itself must not
+        # reach `destination_spans`, which would read the text as a link destination.
+        label = ""
+        footnote = FOOTNOTE_DEFINITION_RE.match(line) if at_start else None
+        # A title such as `[^t]: Title` looks like a definition but was never collected
+        # as one, so it has no scoped label; it is then left as ordinary text.
+        scoped = footnote_ids[current].get(reference_key(footnote.group(1))) if footnote else None
+        if footnote is not None and scoped is not None:
+            label = line[: footnote.start(1)] + scoped + "]:"
+            line = line[footnote.end() :]
+        line = scope_references(line, current)
+        spans = destination_spans(line)
+        pieces, last = [], 0
+        for start, end, begin, finish in spans:
+            pieces.append(
+                prose_pointers(line[last:begin], current) if expand_bare else line[last:begin]
+            )
+            replacement = (
+                resolve(line[start:end], current, image=image_marker(line, begin))
+                if end > start
+                else None
+            )
+            pieces.append(line[begin:start] + (replacement or line[start:end]) + line[end:finish])
+            last = finish
+        # Protect Markdown examples in inline code while retaining legacy bare paths.
+        tail = line[last:]
+        pieces.append(prose_pointers(tail, current) if expand_bare else tail)
+        return label + "".join(pieces)
+
     def rewrite(text: str, current: str, *, expand_bare: bool = True) -> str:
         out = []
-        for line, fenced in zip(text.split("\n"), fence_spans(text), strict=True):
+        fenced_lines = fence_spans(text)
+        inert = inert_ranges(text, fenced_lines)
+        for number, (line, fenced) in enumerate(zip(text.split("\n"), fenced_lines, strict=True)):
             if fenced:
                 out.append(line)
                 continue
-            # A footnote definition's label is scoped and its text is prose like any other,
-            # so links and pointers inside it still resolve; the label itself must not
-            # reach `destination_spans`, which would read the text as a link destination.
-            label = ""
-            footnote = FOOTNOTE_DEFINITION_RE.match(line)
-            # A title such as `[^t]: Title` looks like a definition but was never collected
-            # as one, so it has no scoped label; it is then left as ordinary text.
-            scoped = (
-                footnote_ids[current].get(reference_key(footnote.group(1))) if footnote else None
-            )
-            if footnote is not None and scoped is not None:
-                label = line[: footnote.start(1)] + scoped + "]:"
-                line = line[footnote.end() :]
-            line = scope_references(line, current)
-            spans = destination_spans(line)
+            # Comments and the part of a code span past a line break are copied verbatim;
+            # the prose between them is rewritten on its own.
             pieces, last = [], 0
-            for start, end, begin, finish in spans:
-                pieces.append(
-                    prose_pointers(line[last:begin], current) if expand_bare else line[last:begin]
-                )
-                replacement = (
-                    resolve(line[start:end], current, image=image_marker(line, begin))
-                    if end > start
-                    else None
-                )
-                pieces.append(
-                    line[begin:start] + (replacement or line[start:end]) + line[end:finish]
-                )
-                last = finish
-            # Protect Markdown examples in inline code while retaining legacy bare paths.
-            tail = line[last:]
-            pieces.append(prose_pointers(tail, current) if expand_bare else tail)
-            out.append(label + "".join(pieces))
+            for begin, end in inert[number]:
+                if begin > last:
+                    pieces.append(
+                        rewrite_prose(line[last:begin], current, expand_bare, at_start=last == 0)
+                    )
+                pieces.append(line[begin:end])
+                last = end
+            if last < len(line) or not pieces:
+                pieces.append(rewrite_prose(line[last:], current, expand_bare, at_start=last == 0))
+            out.append("".join(pieces))
         return "\n".join(out)
 
     def prose(relative: str, levels: int) -> tuple[str, str]:

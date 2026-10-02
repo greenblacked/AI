@@ -2823,3 +2823,206 @@ def test_portable_footnote_use_after_an_unbound_reference_label_is_scoped(mini_r
     document = (out / "skills/alpha.md").read_text()
     assert re.search(rf"^See \[word\]{FOOTNOTE_LABEL} here\.$", document, re.M)
     assert len(_footnote_definitions(document)) == 1
+
+
+def _export_alpha(mini_repo, tmp_path, addition, *, check=True):
+    source = mini_repo / "plugins/engineering/skills/alpha/SKILL.md"
+    source.write_text(source.read_text() + "\n" + addition)
+    out = tmp_path / "portable"
+    status = portable.export(mini_repo, out, check=check)
+    return status, out
+
+
+def test_portable_multiline_code_span_is_left_exactly_as_written(mini_repo, tmp_path):
+    example = "Use `a [target] and\n[local](missing.md)` here, then [ref] outside.\n"
+    status, out = _export_alpha(
+        mini_repo,
+        tmp_path,
+        example + "\n[target]: https://example.com\n[ref]: https://example.com/r\n",
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    # The span, spread over two lines, is untouched; the shortcut reference after it is scoped.
+    assert re.search(
+        r"Use `a \[target\] and\n\[local\]\(missing\.md\)` here, then "
+        r"\[ref\]\[?portable-reference-[a-f0-9]+\]",
+        document,
+    )
+    assert "[target][portable-reference-" not in document
+
+
+def test_portable_code_span_does_not_cross_a_paragraph_boundary(mini_repo, tmp_path, capsys):
+    # An unmatched backtick must not swallow a link in the next paragraph or heading.
+    for addition in (
+        "An open `tick\n\n[gone](missing.md) and `close`.\n",
+        "A `tick\n- [gone](missing.md) `x`\n",
+    ):
+        status, _ = _export_alpha(mini_repo, tmp_path, addition)
+        assert status == 1
+        assert "missing.md" in capsys.readouterr().out
+        source = mini_repo / "plugins/engineering/skills/alpha/SKILL.md"
+        source.write_text(source.read_text().replace(addition, ""))
+
+
+def test_portable_html_comment_is_inert_but_prose_around_it_is_not(mini_repo, tmp_path, capsys):
+    refs = mini_repo / "plugins/engineering/skills/alpha/references"
+    refs.mkdir()
+    (refs / "one.md").write_text("# One\n\nBody.\n")
+    addition = (
+        "<!-- [hidden](missing.md)\n[more](gone.md)\n## Not a heading -->\n"
+        "See [one](references/one.md) <!-- [x](missing.md) --> and [two](references/one.md).\n"
+    )
+    status, out = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "<!-- [hidden](missing.md)\n[more](gone.md)\n## Not a heading -->" in document
+    assert "<!-- [x](missing.md) -->" in document
+    line = next(line for line in document.splitlines() if line.startswith("See "))
+    assert "references/one.md" not in line
+    assert line.count("](#portable-") == 2
+    assert "not-a-heading" not in document
+    # The comment protects only what is inside it.
+    status, _ = _export_alpha(mini_repo, tmp_path, "<!-- hidden --> [real](missing.md)\n")
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_html_comment_hides_an_anchor_example_but_not_the_text_after_it(
+    mini_repo, tmp_path, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, '<!-- <a id="x"> -->\n')
+    assert status == 0
+    status, _ = _export_alpha(mini_repo, tmp_path, '<!-- note --> <a id="x">\n')
+    assert status == 1
+    assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("prefix", ["> ", ">> ", "- ", "1. ", "> - "])
+def test_portable_fence_nested_in_a_container_is_code(mini_repo, tmp_path, prefix):
+    pad = " " * len(prefix.replace(">", " "))
+    addition = (
+        f"{prefix}```markdown\n{pad}[x](missing.md) and [y][ref]\n{pad}## Not a heading\n"
+        f"{pad}```\n\nAfter [one](#heading) the fence.\n\n## Heading\n"
+    )
+    if prefix.startswith(">"):
+        addition = addition.replace(f"\n{pad}", f"\n{prefix}")
+    status, out = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "[x](missing.md) and [y][ref]" in document
+    assert "not-a-heading" not in document
+
+
+def test_portable_container_fence_ends_at_its_closing_marker(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(mini_repo, tmp_path, "> ```\n> code\n> ```\n\n[gone](missing.md)\n")
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_heading_slug_keeps_entities_literal_inside_code(mini_repo, tmp_path):
+    addition = (
+        "## Use `&copy;`\n\n## Fish &amp; chips\n\n"
+        "See [code](#use-copy) and [prose](#fish--chips).\n"
+    )
+    status, out = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert document.count("](#portable-") == 2
+    assert "(#use-copy)" not in document
+
+
+@pytest.mark.parametrize(
+    "tag",
+    [
+        '<span data-name="x">hi</span>',
+        '<a title="name=x">t</a>',
+        "<a title='id=x'>t</a>",
+        '<div aria-id="x" class="n">x</div>',
+        '<img src="a.png" alt="name = x">',
+    ],
+)
+def test_portable_attributes_that_only_contain_id_or_name_are_accepted(mini_repo, tmp_path, tag):
+    status, out = _export_alpha(mini_repo, tmp_path, f"{tag}\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert tag in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    "tag",
+    [
+        '<a id="x">',
+        "<a name=x>",
+        "<a href='#' ID = 'x'>",
+        '<span class="c" name="x">',
+        '<a title="n" id=x>',
+    ],
+)
+def test_portable_exact_id_or_name_attributes_are_still_refused(mini_repo, tmp_path, tag, capsys):
+    status, _ = _export_alpha(mini_repo, tmp_path, f"{tag}\n")
+    assert status == 1
+    assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "inner",
+    [
+        "> ```\n> # not a heading\n> [x](missing.md)\n> ```",
+        "- ```\n  [x](missing.md)\n  ```",
+        "~~~\n[x](missing.md)\n~~~",
+    ],
+)
+def test_portable_fence_marker_in_another_container_does_not_close_an_open_fence(
+    mini_repo, tmp_path, inner
+):
+    # Inside a fence every line is content: only a marker in the opener's own container ends it.
+    example = f"```markdown\n{inner}\n```\n"
+    status, out = _export_alpha(mini_repo, tmp_path, example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert example in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    "addition",
+    [
+        "<!-- don't ` do this -->\n[link](missing.md) `x` here\n",
+        "Use `a\n<!-- b` then [link](missing.md)\nnext [link2](missing.md)\n",
+    ],
+)
+def test_portable_comment_and_code_span_do_not_open_each_other(
+    mini_repo, tmp_path, addition, capsys
+):
+    # The construct that starts first wins: a backtick in a comment is comment text, and
+    # `<!--` in a code span is code. Reading them in separate passes hid real links.
+    status, _ = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_adjacent_comments_are_both_inert(mini_repo, tmp_path):
+    status, out = _export_alpha(mini_repo, tmp_path, "<!-- a --><!-- b [x](missing.md) -->\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "<!-- a --><!-- b [x](missing.md) -->" in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_reference_definition_inside_a_comment_defines_nothing(mini_repo, tmp_path):
+    addition = "See [tgt] here.\n\n<!--\n[tgt]: https://example.com\n-->\n"
+    status, out = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "See [tgt] here." in document
+    assert "portable-reference-" not in document
+    assert "<!--\n[tgt]: https://example.com\n-->" in document
+
+
+def test_portable_attribute_with_no_space_before_id_is_still_refused(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(mini_repo, tmp_path, '<a href="x"id="y">\n')
+    assert status == 1
+    assert "unsupported custom HTML anchor" in capsys.readouterr().out

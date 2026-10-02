@@ -732,3 +732,42 @@ benchmark restores alias derivation only; fixture applicability does not prove
 live reviewer detection or general Markdown compliance.
 
 **First caught:** #109, the independent review's rendered-heading probe.
+
+### A line-by-line scanner misses constructs that span lines
+
+**Class.** A scanner that reads one line at a time cannot see a construct that crosses a
+line break or sits inside a container, so it rewrites or validates text that is inert, or
+treats a block's content as the block's end.
+
+**How it shows up.** In #112, a code span that continued onto a second line had its
+reference and link examples rewritten, and a missing path inside one failed the export; an
+HTML comment did the same, and a fence quoted with `>` or nested under a bullet was read as
+prose. The first fix then introduced the mirror image: a quoted fence marker inside an open
+fence closed it early, and a backtick inside a comment, or `<!--` inside a code span, opened
+the other construct in a second pass, so real links were left raw and the export still
+passed.
+
+**The check that catches it.** `tests/test_catalogue.py` exports each shape and asserts
+the inert text is copied verbatim, then asserts the opposite for prose beside it: a real
+missing link after a comment, a paragraph break, or a closed fence still fails the export.
+Find comments and multiline spans in one left-to-right scan where the first starter wins,
+and close a fence only from the opener's own container. The benchmark confines code span
+closing to one line.
+
+**First caught:** #112, the automated PR reviewer, and the review stage for the mirror
+image.
+
+### A substring match stands in for an attribute name
+
+**Class.** A pattern meant to find an HTML attribute matches the same letters inside
+another attribute's name or inside a quoted value.
+
+**How it shows up.** In #112, `<span data-name="x">` and `<a title="name=x">` were
+refused as custom anchors because `name=` matched with no boundary before it.
+
+**The check that catches it.** `tests/test_catalogue.py` accepts prefixed attribute names
+and attribute values and still refuses an exact `id` or `name`, including with no space
+before it. Blank quoted values first, then require a boundary before the name. The
+benchmark drops the boundary.
+
+**First caught:** #112, the automated PR reviewer.

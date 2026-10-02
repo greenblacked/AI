@@ -1,17 +1,17 @@
 diff --git a/scripts/export_portable.py b/scripts/export_portable.py
 --- a/scripts/export_portable.py
 +++ b/scripts/export_portable.py
-@@ -276,6 +276,7 @@
-         pieces.append(HTML_TAG_RE.sub("", heading[last:begin]) + heading[begin:end])
+@@ -286,6 +286,7 @@
+         pieces.append(visible(heading[last:begin]) + heading[begin:end])
          last = end
-     heading = "".join(pieces) + HTML_TAG_RE.sub("", heading[last:])
+     heading = ("".join(pieces) + visible(heading[last:])).lower().strip()
 +    heading = re.sub(r"!?\[([^]]*)\]\([^)]*\)", r"\1", heading)
-     heading = html.unescape(heading).lower().strip()
      return "".join(
          "-" if c.isspace() else c
-@@ -296,8 +297,7 @@
-
-
+         for c in heading
+@@ -305,8 +306,7 @@
+ 
+ 
  def heading_display(heading: str, bindings: dict[str, str]) -> str:
 -    """Keep display labels from inline links and bound source references."""
 -    inline = {begin: finish for _, _, begin, finish in destination_spans(heading)}
@@ -19,7 +19,7 @@ diff --git a/scripts/export_portable.py b/scripts/export_portable.py
      pieces, last, index = [], 0, 0
      while index < len(heading):
          if heading[index] == "\\":
-@@ -321,11 +321,9 @@
+@@ -330,11 +330,9 @@
                  break
              key = reference_key(heading[end + 1 : finish - 1] or label)
          elif heading[end : end + 1] == "(":
