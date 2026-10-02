@@ -22,8 +22,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   component at a time to see whether it still earns its place. The coding ceiling in
   `listing-budget.json` moves from 18,000 to 20,500 because three skills were added, and
   the install advice's `skillListingBudgetFraction` from 0.098 to 0.101, which the budget
-  check requires at the new total. The `ai-enablement` eval query about writing an
-  `AGENTS.md` is now a negative owned by `agent-instructions`.
+  check requires at the new total. `ai-enablement` no longer claims writing an
+  `AGENTS.md` in its description, and its eval query about it is now a negative owned by
+  `agent-instructions`, so two descriptions do not claim one request.
 
 - Add a bounded mock recovery runner that generates observations and final state from
   evaluator-controlled outcomes, independently of candidate tool request sequences.
