@@ -1,15 +1,15 @@
 diff --git a/scripts/export_portable.py b/scripts/export_portable.py
 --- a/scripts/export_portable.py
 +++ b/scripts/export_portable.py
-@@ -260,6 +260,7 @@
-     See GitHub basic-writing-and-formatting-syntax, section-links. Duplicate aliases
-     are allocated across each source, including naturally suffixed headings.
-     """
+@@ -276,6 +276,7 @@
+         pieces.append(HTML_TAG_RE.sub("", heading[last:begin]) + heading[begin:end])
+         last = end
+     heading = "".join(pieces) + HTML_TAG_RE.sub("", heading[last:])
 +    heading = re.sub(r"!?\[([^]]*)\]\([^)]*\)", r"\1", heading)
-     heading = re.sub(r"<[^>]*>", "", heading)
      heading = html.unescape(heading).lower().strip()
      return "".join(
-@@ -279,8 +280,7 @@
+         "-" if c.isspace() else c
+@@ -296,8 +297,7 @@
 
 
  def heading_display(heading: str, bindings: dict[str, str]) -> str:
@@ -19,7 +19,7 @@ diff --git a/scripts/export_portable.py b/scripts/export_portable.py
      pieces, last, index = [], 0, 0
      while index < len(heading):
          if heading[index] == "\\":
-@@ -304,11 +304,9 @@
+@@ -321,11 +321,9 @@
                  break
              key = reference_key(heading[end + 1 : finish - 1] or label)
          elif heading[end : end + 1] == "(":

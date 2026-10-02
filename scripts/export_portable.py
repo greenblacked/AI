@@ -81,6 +81,11 @@ ASSET_LANGUAGES = {
 # example closes early and everything after it is read as prose.
 FENCE_RE = re.compile(r"^(`{3,}|~{3,})")
 ATX_RE = re.compile(r"^(#{1,6})(\s+)")
+# A raw HTML element tag (open, close or self-closing, with attributes) or a comment, the
+# only inline HTML that vanishes from a rendered heading. A tag name must start with a
+# letter and be followed by whitespace, `/` or `>`, which keeps `<https://x>` and
+# `<me@x.com>` (autolinks, whose text is shown) from reading as tags.
+HTML_TAG_RE = re.compile(r"</?[A-Za-z][A-Za-z0-9-]*(?:\s[^<>]*)?/?>|<!--.*?-->", re.S)
 # A GitHub footnote definition: `[^label]:` with a label free of whitespace and brackets.
 # Group 1 is the label.
 FOOTNOTE_DEFINITION_RE = re.compile(r"^ {0,3}\[\^([^\s\[\]]+)\]:")
@@ -263,7 +268,14 @@ def source_slug(heading: str) -> str:
     See GitHub basic-writing-and-formatting-syntax, section-links. Duplicate aliases
     are allocated across each source, including naturally suffixed headings.
     """
-    heading = re.sub(r"<[^>]*>", "", heading)
+    # Only raw HTML tags vanish from a rendered heading. An autolink such as
+    # `<https://example.com>` shows its address and a code span shows its angle brackets,
+    # so a blanket `<...>` removal dropped text GitHub keeps and moved the alias.
+    pieces, last = [], 0
+    for begin, end in closed_code_spans(heading):
+        pieces.append(HTML_TAG_RE.sub("", heading[last:begin]) + heading[begin:end])
+        last = end
+    heading = "".join(pieces) + HTML_TAG_RE.sub("", heading[last:])
     heading = html.unescape(heading).lower().strip()
     return "".join(
         "-" if c.isspace() else c
@@ -272,6 +284,8 @@ def source_slug(heading: str) -> str:
     )
 
 
+# The `unmatched-code-delimiter` reviewer benchmark patch carries three lines of context
+# after this function, so nothing may be inserted directly below it.
 def code_span_end(line: str, begin: int) -> int:
     """Skip closed code only; a closing delimiter must have the same run length."""
     run = len(line[begin:]) - len(line[begin:].lstrip("`"))
@@ -317,6 +331,27 @@ def heading_display(heading: str, bindings: dict[str, str]) -> str:
             last = finish
         index = finish
     return "".join(pieces) + heading[last:]
+
+
+def closed_code_spans(line: str) -> list[tuple[int, int]]:
+    """Start and end of each closed inline code span, found the way the scanners above do.
+
+    An escaped backtick opens nothing, and a span closes only on a run of its own length,
+    so a shorter run inside it is content. An unclosed run is stepped over, not a span.
+    """
+    spans, index = [], 0
+    while index < len(line):
+        if line[index] == "\\":
+            index += 2
+        elif line[index] == "`":
+            run = len(line[index:]) - len(line[index:].lstrip("`"))
+            end = code_span_end(line, index)
+            if end > index + run:
+                spans.append((index, end))
+            index = end
+        else:
+            index += 1
+    return spans
 
 
 def without_code_spans(line: str) -> str:
@@ -769,11 +804,17 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         return re.sub(r'`the "([^"]+)" section below`', r'the "\1" section below', text)
 
     def prose_pointers(text: str, current: str) -> str:
-        chunks = re.split(r"(`+[^`]*`+)", text)
-        return "".join(
-            chunk if chunk.startswith("`") and "[" in chunk else bare(chunk, current)
-            for chunk in chunks
-        )
+        # Delimiter-aware, like every other scanner here: a regex pairing any two backtick
+        # runs took the inner single run of a double-backtick span for a whole span and
+        # rewrote the path inside the example it was meant to leave alone.
+        pieces, last = [], 0
+        for begin, end in closed_code_spans(text):
+            pieces.append(bare(text[last:begin], current))
+            span = text[begin:end]
+            pieces.append(span if "[" in span else bare(span, current))
+            last = end
+        pieces.append(bare(text[last:], current))
+        return "".join(pieces)
 
     def rewrite(text: str, current: str, *, expand_bare: bool = True) -> str:
         out = []

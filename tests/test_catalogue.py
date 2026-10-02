@@ -2367,6 +2367,42 @@ def test_portable_balanced_inline_heading_duplicate_targets(mini_repo, tmp_path,
                 assert f"{sentinel} sentinel" in section
 
 
+@pytest.mark.parametrize(
+    ("heading", "fragment"),
+    [
+        # GitHub keeps the visible text of an autolink and of a code span, and drops only
+        # raw HTML tags; the last three pin that those are still dropped.
+        ("See <https://example.com>", "see-httpsexamplecom"),
+        ("Mail <me@example.com>", "mail-meexamplecom"),
+        ("Use `<tag>`", "use-tag"),
+        ("Use ``<tag>`c``", "use-tagc"),
+        ("<b>Bold</b> word", "bold-word"),
+        ('<span class="x">Span</span> text<br/>', "span-text"),
+        ("Note <!-- hidden --> here", "note--here"),
+    ],
+)
+def test_portable_heading_aliases_keep_visible_text_and_drop_only_html_tags(
+    mini_repo, tmp_path, heading, fragment
+):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    content = f"## {heading}\n\nSENTINEL body\n\n[go](#{fragment})\n"
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\n" + content)
+    (refs / "one.md").write_text("# Reference\n\n" + content)
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        targets = re.findall(r"\[go\]\(#([^)]+)\)", document)
+        assert len(targets) == 2
+        for target in targets:
+            section = document.split(f'<a name="{target}"></a>', 1)[1]
+            assert "SENTINEL body" in section.split('<a name="', 1)[0]
+
+
 @pytest.mark.parametrize("run", ["`", "``", "```"])
 def test_portable_unmatched_code_runs_continue_scanning(mini_repo, tmp_path, run):
     skill = mini_repo / "plugins/engineering/skills/alpha"
@@ -2384,6 +2420,36 @@ def test_portable_unmatched_code_runs_continue_scanning(mini_repo, tmp_path, run
         assert re.search(r"Literal `+ before \[target\]\[portable-reference-", document)
         assert re.search(r"\[local\]\(#portable-", document)
         assert "Closed `` [target] ` [local](missing.md) `` stays protected." in document
+
+
+@pytest.mark.parametrize(
+    "span",
+    [
+        "`` `[x](references/one.md)` ``",
+        "``` ``[x](references/one.md)`` ```",
+    ],
+)
+def test_portable_nested_backtick_spans_stay_inert_beside_real_pointers(mini_repo, tmp_path, span):
+    # An inner shorter run is content, not a closing delimiter: only a run of the same
+    # length closes the span, so the example must survive byte for byte while a real
+    # pointer on the same line, outside any code, is still rewritten.
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    (refs / "one.md").write_text("# Reference\n\nContent.\n")
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text()
+        + f"\nShow {span} then read references/one.md.\n"
+        + "\nA \\* star before references/one.md.\n"
+    )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        assert f'Show {span} then read the "Reference" section below.' in document
+        assert 'A \\* star before the "Reference" section below.' in document
 
 
 @pytest.mark.parametrize(
@@ -2682,6 +2748,8 @@ def test_portable_reference_frontmatter_is_stripped_before_flattening(mini_repo,
     (refs / "one.md").write_text(
         "---\nname: one\ndescription: Reference metadata\n---\n# One\n\nBody text.\n"
     )
+    # A block that never closes is not frontmatter, so it is content and is kept verbatim.
+    (refs / "two.md").write_text("---\nname: two\n# Two\n\nOther text.\n")
     out = tmp_path / "portable"
     assert portable.export(mini_repo, out, check=True) == 0
     assert portable.export(mini_repo, out) == 0
@@ -2691,6 +2759,7 @@ def test_portable_reference_frontmatter_is_stripped_before_flattening(mini_repo,
         assert "description:" not in document
         assert len(re.findall(r"^#{3,} One$", document, re.M)) == 1
         assert "Body text." in document
+        assert "\n---\nname: two\n" in document
 
 
 @pytest.mark.parametrize("anchor", ['<a id="sample">', '<a name="sample"></a>'])
