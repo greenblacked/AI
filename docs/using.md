@@ -310,7 +310,12 @@ The [ChatGPT workflow guide](chatgpt-agents.md) provides copy-ready coordinator 
 role prompts. Its repository gate requires an independent reviewer to execute
 `make validate`, `make catalogue` and `make test` on the reviewed snapshot. Missing
 required execution or independent review means `STOP`, with partial findings and the
-limitation named. Author logs and exact-revision CI do not substitute.
+limitation named. Require explicitly fresh, non-inherited reviewer context; record the
+observed boundary and evidence, plus the reviewer's confirmation of no inherited
+implementation or coordinator transcript. A separate agent identity or window does not
+prove independence; an unavailable or unobservable boundary means `STOP`. Pass the
+complete review packet as explicit input, not the whole coordinator transcript.
+Author logs and exact-revision CI do not substitute.
 
 The "Subagents" loss above is the one worth a substitute rather than just a note, because
 `/ship` and `/verify` are how changes to this repository get made. Without a runtime that
