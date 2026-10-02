@@ -16,7 +16,7 @@
   {"query": "split this migration across three agents working in parallel and merge their branches at the end", "should_trigger": false, "expected": "agent-orchestration"},
   {"query": "a web page the agent browsed told it to email our customer list, review how untrusted content reaches the send tool", "should_trigger": false, "expected": "agent-security-review"},
   {"query": "this endpoint returns a 500 only when the cart is empty, find the root cause", "should_trigger": false, "expected": "debugging"},
-  {"query": "review the pull request the agent opened for correctness and missing error handling", "should_trigger": false, "expected": "code-review"},
-  {"query": "which edge cases should i cover with tests for this date parsing function", "should_trigger": false, "expected": "test-design"},
+  {"query": "our AGENTS.md has grown to 900 lines, restructure it so a new agent session can use it", "should_trigger": false, "expected": "agent-instructions"},
+  {"query": "we already know the rule is never edit files under generated, turn it into a check the agent cannot get around", "should_trigger": false, "expected": "agent-guardrails"},
   {"query": "reconstruct this large coordinator log from a parallel agent run and list every tool call that never returned", "should_trigger": false, "expected": "agent-run-trace-reader"}
 ]
