@@ -9,6 +9,7 @@
   {"query": "where does my team actually sit on AI maturity, we are all just doing tab completion in the editor right now", "should_trigger": true},
   {"query": "i want agents opening PRs in CI. what has to be true before i let that happen", "should_trigger": true},
   {"query": "draft me a 90 day rollout plan for AI tooling across four backend teams", "should_trigger": true},
+  {"query": "six teams are asking for agent access and we can only fund two this quarter. who goes first and what do i check before they start", "should_trigger": true},
   {"query": "cycle time has been creeping up for two quarters and i want to know why before the QBR", "should_trigger": false, "expected": "delivery-review"},
   {"query": "help me rank these fourteen backlog items, one queue and everyone thinks theirs goes first", "should_trigger": false, "expected": "delivery-review"},
   {"query": "we picked Copilot Enterprise over Cursor and i want the rejected options written down so nobody reopens it in january", "should_trigger": false, "expected": "decision-record"},
