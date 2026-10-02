@@ -2542,3 +2542,123 @@ def test_portable_copied_title_local_image_rejects_before_writes(mini_repo, tmp_
     for check in (True, False):
         assert portable.export(mini_repo, out, check=check) == 1
         assert before == {p.relative_to(out): p.read_bytes() for p in out.rglob("*") if p.is_file()}
+
+
+# Footnote labels are document-global in GitHub-flavoured Markdown, unlike reference
+# labels, which only matter inside one file. Flattening several files into one document
+# therefore lets two `[^note]` definitions collide, so the export namespaces them per
+# source file — on the definition and on every use that file makes of it.
+FOOTNOTE_LABEL = r"\[\^(portable-footnote-[a-f0-9]+)\]"
+
+
+def _footnote_definitions(document: str) -> dict[str, str]:
+    return dict(re.findall(rf"^{FOOTNOTE_LABEL}: (.*)$", document, re.M))
+
+
+def test_portable_footnotes_are_not_turned_into_reference_links(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text() + "\nRead references/one.md.\n\nBody claim.[^note] Another.[^2]\n\n"
+        "[^note]: Body details, see [one](references/one.md).\n[^2]: Second body.\n"
+    )
+    (refs / "one.md").write_text(
+        "# One\n\nReference claim.[^note]\n\n[^note]: Reference details.\n"
+    )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        # A footnote renamed into a reference label stops being a footnote.
+        assert "portable-reference-" not in document
+        definitions = _footnote_definitions(document)
+        assert len(definitions) == 3
+        body_label = re.search(rf"Body claim\.{FOOTNOTE_LABEL}", document)[1]
+        reference_label = re.search(rf"Reference claim\.{FOOTNOTE_LABEL}", document)[1]
+        second_label = re.search(rf"Another\.{FOOTNOTE_LABEL}", document)[1]
+        assert len({body_label, reference_label, second_label}) == 3
+        assert definitions[reference_label] == "Reference details."
+        assert definitions[second_label] == "Second body."
+        # The text of a footnote is prose like any other: its link still resolves.
+        assert definitions[body_label].startswith("Body details, see [one](#portable-")
+        assert "references/one.md" not in definitions[body_label]
+
+
+def test_portable_reference_link_beside_a_footnote_on_one_line(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text() + "\n[text][ref] and a claim.[^1]\n\n"
+        "[ref]: https://example.com/ref\n[^1]: Footnote text.\n"
+    )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    line = next(line for line in document.splitlines() if line.startswith("[text]"))
+    assert re.fullmatch(
+        rf"\[text\]\[portable-reference-[a-f0-9]+\] and a claim\.{FOOTNOTE_LABEL}", line
+    )
+    assert re.search(r"^\[portable-reference-[a-f0-9]+\]: https://example.com/ref$", document, re.M)
+    assert list(_footnote_definitions(document).values()) == ["Footnote text."]
+
+
+def test_portable_footnote_syntax_in_code_is_left_exactly_as_written(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    source = skill / "SKILL.md"
+    fenced = "```markdown\nExample.[^1]\n\n[^1]: Example footnote.\n```\n"
+    inline = "Write `[^1]` after a claim, or ``[^1]: text`` to define it.\n"
+    source.write_text(source.read_text() + f"\n{fenced}\n{inline}\nReal.[^1]\n\n[^1]: Real.\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        assert fenced in document
+        assert inline in document
+        assert list(_footnote_definitions(document).values()) == ["Real."]
+
+
+def test_portable_footnote_use_without_a_definition_in_its_own_file_is_left_alone(
+    mini_repo, tmp_path
+):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\nRead references/one.md.\n\nOrphan.[^note]\n")
+    (refs / "one.md").write_text("# One\n\nDefined.[^note]\n\n[^note]: Only here.\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "Orphan.[^note]" in document  # not borrowed by another file's definition
+    assert re.search(rf"Defined\.{FOOTNOTE_LABEL}", document)
+    assert "[^note]:" not in document
+
+
+def test_portable_footnote_labels_stay_distinct_across_files_and_skills(mini_repo, tmp_path):
+    for skill_name in ("alpha", "beta"):
+        skill = mini_repo / "plugins/engineering/skills" / skill_name
+        refs = skill / "references"
+        refs.mkdir(exist_ok=True)
+        source = skill / "SKILL.md"
+        source.write_text(
+            source.read_text() + f"\nRead references/one.md.\n\n{skill_name} body.[^note]\n\n"
+            f"[^note]: {skill_name} body note.\n"
+        )
+        (refs / "one.md").write_text(
+            f"# One\n\n{skill_name} reference.[^note]\n\n[^NOTE]: {skill_name} reference note.\n"
+        )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        definitions = _footnote_definitions(document)
+        assert len(definitions) == (2 if filename.startswith("skills") else 4)
+        for skill_name in ("alpha", "beta"):
+            for kind in ("body", "reference"):
+                for match in re.finditer(rf"{skill_name} {kind}\.{FOOTNOTE_LABEL}", document):
+                    assert definitions[match[1]] == f"{skill_name} {kind} note."
+        # One document may define a label once; two definitions would silently drop one.
+        assert len(re.findall(rf"^{FOOTNOTE_LABEL}:", document, re.M)) == len(definitions)

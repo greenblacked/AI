@@ -81,6 +81,9 @@ ASSET_LANGUAGES = {
 # example closes early and everything after it is read as prose.
 FENCE_RE = re.compile(r"^(`{3,}|~{3,})")
 ATX_RE = re.compile(r"^(#{1,6})(\s+)")
+# A GitHub footnote definition: `[^label]:` with a label free of whitespace and brackets.
+# Group 1 is the label.
+FOOTNOTE_DEFINITION_RE = re.compile(r"^ {0,3}\[\^([^\s\[\]]+)\]:")
 # A split point between two sentences, not a match on a sentence itself: matching the
 # boundary and splitting on it is linear in the length of the description, where the old
 # `.*?` lazy match tried every starting position in turn and rescanned to the end of the
@@ -432,6 +435,10 @@ def reference_key(label: str) -> str:
 
 
 def definition_label(line: str) -> tuple[int, int] | None:
+    # A footnote definition shares the `[label]:` shape but is not a link reference
+    # definition: renaming it into one turns the footnote into a plain link.
+    if FOOTNOTE_DEFINITION_RE.match(line):
+        return None
     match = re.match(r"^ {0,3}\[", line)
     if not match:
         return None
@@ -502,13 +509,30 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
     reference_ids: dict[str, dict[str, str]] = {}
     reference_destinations: dict[str, dict[str, str]] = {}
     identifier_owners: dict[str, tuple[str, str]] = {}
+    # Footnote labels are document-global, so two inlined files that each define
+    # `[^note]` would collide in the flattened document: GitHub keeps the first
+    # definition and drops the second, changing what a reader sees. Namespacing them per
+    # source file keeps both, and a use whose own file defines no such footnote is never
+    # rewritten, so it cannot be captured by another file's definition.
+    footnote_ids: dict[str, dict[str, str]] = {}
     for relative, text in sources.items():
         reference_ids[relative] = {}
         reference_destinations[relative] = {}
+        footnote_ids[relative] = {}
         if relative != "SKILL.md" and not relative.startswith("references/"):
             continue
         for line, fenced in zip(text.split("\n"), fence_spans(text), strict=True):
             if fenced:
+                continue
+            footnote = FOOTNOTE_DEFINITION_RE.match(line)
+            if footnote is not None:
+                key = reference_key(footnote.group(1))
+                identity = roots[relative] + "-footnote-" + key.encode().hex()
+                scoped = "portable-footnote-" + hashlib.sha256(identity.encode()).hexdigest()
+                owner = identifier_owners.setdefault(scoped, (relative, "^" + key))
+                if owner != (relative, "^" + key):
+                    raise OSError("footnote identifier namespace collision")
+                footnote_ids[relative].setdefault(key, scoped)
                 continue
             definition = definition_label(line)
             if definition is None:
@@ -599,6 +623,16 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             if line[index] == "`":
                 index = code_span_end(line, index)
                 continue
+            if line[index : index + 2] == "[^":
+                # Checked before the images-only filter: a footnote use can sit inside a
+                # link label, which is scanned in that mode, and must be scoped there too.
+                close = bracket_end(line, index)
+                if close is not None:
+                    scoped = footnote_ids[current].get(reference_key(line[index + 2 : close - 1]))
+                    if scoped is not None:
+                        pieces.append(line[last:index] + "[^" + scoped + "]")
+                        last = index = close
+                        continue
             if line[index] != "[" or (images_only and not image_marker(line, index)):
                 index += 1
                 continue
@@ -716,6 +750,15 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             if fenced:
                 out.append(line)
                 continue
+            # A footnote definition's label is scoped and its text is prose like any other,
+            # so links and pointers inside it still resolve; the label itself must not
+            # reach `destination_spans`, which would read the text as a link destination.
+            label = ""
+            footnote = FOOTNOTE_DEFINITION_RE.match(line)
+            if footnote is not None:
+                scoped = footnote_ids[current][reference_key(footnote.group(1))]
+                label = line[: footnote.start(1)] + scoped + "]:"
+                line = line[footnote.end() :]
             line = scope_references(line, current)
             spans = destination_spans(line)
             pieces, last = [], 0
@@ -735,7 +778,7 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             # Protect Markdown examples in inline code while retaining legacy bare paths.
             tail = line[last:]
             pieces.append(prose_pointers(tail, current) if expand_bare else tail)
-            out.append("".join(pieces))
+            out.append(label + "".join(pieces))
         return "\n".join(out)
 
     def prose(relative: str, levels: int) -> tuple[str, str]:
