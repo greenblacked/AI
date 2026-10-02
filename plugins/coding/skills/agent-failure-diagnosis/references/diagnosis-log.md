@@ -34,12 +34,12 @@ Each column earns its place:
 - **Evidence** cites the capture and the turn or call that shows it. A layer with no citation is a guess.
 - **Change** is a single edit or setting, described so someone else could make it.
 - **Rerun** lists the cases run, each in a fresh session at the same starting commit, how many times each ran, how many passed, and what the control did.
-- **Decision** is keep, revert or re-attribute. A change that did not move the result is reverted unless it is a correction you would make anyway.
+- **Decision** is keep when the result moved, flat when it did not (the change stays in place and counts toward the stop rule), or re-attribute when the stop rule fires and the flat changes are reverted.
 
 ## Rules for filling it in
 
 1. Write the row before the rerun, then fill in the result. An expected result written afterwards fits whatever happened.
-2. Count flat rows as you go. The third consecutive row that did not move the result triggers the stop rule: revert all three and capture fresh runs.
+2. Count flat rows as you go. A flat row stays in place until the stop rule fires. When three consecutive changes do not move the result, revert every change that did not help and re-attribute from fresh captures.
 3. A control that changes is a result. Record it, and treat the change as too broad.
 4. A fix at a second layer gets its own row, even when a single edit seems to cover both.
 5. Keep the failed attribution in the log. The rows that were wrong tell the next reader which signals misled.
@@ -75,11 +75,11 @@ In each of C1 to C3 the diff held handler and test changes and nothing under `in
 
 | # | Failure | Layer | Evidence | Change | Rerun | Decision |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Reported done with stale generated files | Instructions | C1 turn 14: no mention of generation; rule at line 410 | Move the generation line to the top, under "before you finish" | C1-C3 each run twice: 0 of 6 passed; K1 unchanged | No movement; revert |
-| 2 | Same | Instructions | A fresh session now quotes the rule when asked; the runs still skip it | Rewrite the line as the exact command with its reason | C1-C3 twice each: 0 of 6; K1 unchanged | No movement; revert |
-| 3 | Same | Instructions | Same | Add the line to a checklist the agent must copy into its report | C1-C3 twice each: 0 of 6; K1 unchanged | Third flat row: stop rule; revert |
+| 1 | Reported done with stale generated files | Instructions | C1 turn 14: no mention of generation; rule at line 410 | Move the generation line to the top, under "before you finish" | C1-C3 each run twice: 0 of 6 passed; K1 unchanged | Flat (1 of 3); leave in place |
+| 2 | Same | Instructions | A fresh session now quotes the rule when asked; the runs still skip it | Rewrite the line as the exact command with its reason | C1-C3 twice each: 0 of 6; K1 unchanged | Flat (2 of 3); leave in place |
+| 3 | Same | Instructions | Same | Add the line to a checklist the agent must copy into its report | C1-C3 twice each: 0 of 6; K1 unchanged | Flat (3 of 3): stop rule fires; revert rows 1 to 3 and re-attribute |
 
-After row 2 the agent could quote the rule, which should have prompted a rethink. Quoting a rule is not following it, and the evidence had stopped pointing at instructions. By row 3 the file had gained three edits and the failure was unchanged. The stop rule applied: three consecutive changes had not moved the result. All three edits were reverted, which also returned the file to its original size.
+After row 2 the agent could quote the rule, which should have prompted a rethink. Quoting a rule is not following it, and the evidence had stopped pointing at instructions. By row 3 the file had gained three edits and the failure was unchanged. The stop rule applied: three consecutive changes had not moved the result. Every change that had not helped was reverted, which here meant all three edits and returned the file to its original size.
 
 ### Re-attribution from fresh captures
 
