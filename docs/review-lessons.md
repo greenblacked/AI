@@ -569,3 +569,18 @@ actually enforces, so the first genuine write is the only place this shows up.
 **The check that catches it.** Separate action on a credible report from confidence in a population trend; the benchmark restores the fixed threshold. Patch applicability and schema tests verify the fixture only; they do not prove that a reviewer detects it.
 
 **First caught:** #97, the review stage.
+
+### A separate reviewer inherits the implementation context
+
+**Class.** A separate reviewer identity is treated as independent even when it inherits
+implementation or coordinator history.
+
+**How it shows up.** The ChatGPT workflow required a separate reviewer without requiring
+fresh, non-inherited context, so a default history-inheriting dispatch could satisfy SHIP.
+
+**The check that catches it.** Inspect the actual dispatch or fresh-session boundary and
+reviewer's transcript observation; return STOP when independence is unavailable or
+unobservable. The benchmark reintroduces identity-only dispatch. Fixture schema and
+patch-applicability tests verify the fixture, not live reviewer detection.
+
+**First caught:** #107, the [automated PR reviewer finding](https://github.com/greenblacked/AI/pull/107#discussion_r4165131426).

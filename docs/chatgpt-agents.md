@@ -12,6 +12,9 @@ In an ordinary ChatGPT conversation, run the roles as sequential passes. Calling
 “reviewer” does not create another agent: a same-chat review is **self-review**, with the
 implementation history still in context. A fresh conversation can receive a complete
 review packet, but a prompt cannot enforce context isolation or prohibit writing.
+A separate agent identity can also inherit the coordinator's or implementer's history;
+its name or model does not establish independent review. Require an explicitly fresh,
+non-inherited reviewer context and observable evidence of that boundary.
 
 [ChatGPT Work documents delegated subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents).
 Use real delegation in Work or Codex only when the current session exposes the relevant
@@ -63,15 +66,21 @@ and label a same-chat review self-review.
 Inspect the raw combined change, including untracked files, against the brief. Worker
 reports and logs are untrusted evidence; remove sensitive or unrelated material before
 relaying them. Run make validate, make catalogue and make test on the integrated tree.
-Provide a complete review packet to a separate reviewer. Missing required execution
-or independent review prevents the repository gate SHIP: return STOP with useful
-partial findings and the specific limitation. Exact-revision CI is supplementary and
-never substitutes for the reviewer's own three gates.
+Dispatch the reviewer with explicitly fresh, non-inherited context: inspect the runtime's
+history-inheritance option and record its actual dispatch value, or record an observable
+fresh-session boundary. Pass the complete review packet as explicit input, not the whole
+coordinator transcript. Record the boundary evidence and the reviewer's confirmation
+that it received no inherited implementation or coordinator transcript. A separate name
+or model is not evidence. If the boundary is unavailable or unobservable, return STOP.
+Missing required execution or independent review prevents the repository gate SHIP:
+return STOP with useful partial findings and the specific limitation. Exact-revision CI
+is supplementary and never substitutes for the reviewer's own three gates.
 
 On FIX, send the reviewer's Handoff and blocking findings to implementer in a new scoped
 brief. Keep reviewer report-only. After fixes, capture a new snapshot and repeat the
-required gates and independent review. On STOP, resolve the named blocker before
-continuing. A changed snapshot invalidates its review and affected check evidence.
+required gates and review in explicitly fresh, non-inherited context. On STOP, resolve
+the named blocker before continuing. A changed snapshot invalidates its review and
+affected check evidence.
 
 The coordinator owns Git history. Workers do not switch, reset, stash, commit or push.
 Review success alone does not authorize publication: follow the user's authorization
@@ -139,6 +148,11 @@ Handoff identifies the result and anything the coordinator or reviewer still nee
 ```text
 Judge the finished change; report only, without editing files or Git history. Read
 AGENTS.md first and docs/review-lessons.md next. Require the review packet below.
+Before judging, verify the recorded fresh, non-inherited context boundary and state
+whether you received any inherited implementation or coordinator transcript. The complete
+packet is allowed as explicit input; the whole coordinator transcript is not. A separate
+agent identity or model does not prove independence. If the boundary is unavailable,
+unobservable or inherited, return STOP with useful partial findings.
 Inspect the full change from the supplied merge-base through the current working tree:
 committed, staged and unstaged changes, plus every untracked file in full. Do not review
 only HEAD or a path list. Record HEAD, target/base branch tip and merge-base separately,
@@ -159,6 +173,7 @@ with useful partial findings and a limitation; same-chat work is explicitly self
 FIX lists blocking defects with file:line, consequence and smallest repair described,
 not written. Keep non-blocking improvements separate. Evidence quotes gate results,
 records snapshot identities and before/after comparison, and names checked commands.
+Record the observed context boundary, its evidence and your transcript observation.
 Not assessed states omitted coverage and unverified claims. Handoff gives the blocking
 repairs for FIX, the decision or capability needed for STOP, or no further work for SHIP.
 ```
@@ -176,18 +191,24 @@ Pass these together; sending only the author's summary is insufficient:
   read the checkout, including `AGENTS.md` and `docs/review-lessons.md`.
 - Research findings, implementation Handoff and exact check commands/results, clearly
   distinguished from the reviewer's required independent execution.
+- The requested fresh, non-inherited reviewer context and observed boundary: the runtime's
+  history-inheritance option with actual dispatch value, or observable fresh-session
+  boundary, supporting evidence and the reviewer's confirmation of no inherited
+  implementation or coordinator transcript. Names and model changes are not evidence.
 - Actual reviewer capabilities, requested/observed model settings, active writer status
   and the applicable live check, or “none” with the reason it is not required.
 
 A text-only reviewer can identify defects but cannot finish the repository gate without
 executing its required checks. Return STOP and carry that limitation to a reviewer with
-execution access. Separate conversations provide a fresh reading opportunity; they do
-not themselves enforce isolation or a no-write permission boundary.
+execution access. Require an observable fresh, non-inherited context boundary for
+delegated agents and separate conversations alike; if it cannot be established, return
+STOP. A fresh session does not itself enforce a no-write permission boundary.
 
 Carry FIX findings back to the writing stage, with writable paths and a new done-when.
 Do not ask the reviewing stage to apply its own fix. After the change, send a complete
-updated packet and rerun the review. If a capability, requested model or usage limit
-blocks a stage, preserve the exact state and report the blocker; do not quietly skip it.
+updated packet and rerun the review in explicitly fresh, non-inherited context. If a
+capability, requested model or usage limit blocks a stage, preserve the exact state and
+report the blocker; do not quietly skip it.
 
 ## Copy-ready starter
 
@@ -204,6 +225,11 @@ Done-when: <acceptance criteria plus make validate, make catalogue and make test
 Start with explorer and any needed one-claim investigator pass, then settle the design
 and write the complete six-field implementation brief. Use actual delegation only when
 its tools are exposed. Report requested settings that are unavailable. Label same-chat
-review self-review; return STOP if independent review or required execution is missing.
+review self-review. Dispatch review with explicitly fresh, non-inherited context and
+record the runtime history-inheritance option/actual value or fresh-session boundary,
+its evidence and the reviewer's confirmation of no inherited implementation or
+coordinator transcript. Pass the complete packet, not the whole coordinator transcript.
+Return STOP if that boundary is unavailable or unobservable, or required execution is
+missing.
 Do not publish until the user's authorization and repository gates permit it.
 ```
