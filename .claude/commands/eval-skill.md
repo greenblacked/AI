@@ -2,6 +2,7 @@
 description: Score whether one skill's or subagent's description actually triggers, by running its eval queries against the whole catalogue of descriptions.
 argument-hint: '[skill or subagent name, or --all]'
 allowed-tools: Bash(python3:*), Read, Glob
+disable-model-invocation: true
 ---
 
 Score the trigger eval set for `$0`. A description nobody has tested is a guess, and the

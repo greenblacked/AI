@@ -8,8 +8,11 @@ why their argument hint never appears.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
+from skillcheck.frontmatter import parse
 from skillcheck.rules import ERROR, WARNING, check_command, find_commands
 
 GOOD = """---
@@ -175,3 +178,20 @@ def test_a_dollar_followed_by_a_word_is_not_an_argument(tmp_path):
     # being read as one.
     text = "---\ndescription: A thing.\n---\n\nSet $0abc in the environment.\n"
     assert check_command(write_command(tmp_path, "demo", text), tmp_path) == []
+
+
+def test_repository_commands_require_explicit_manual_invocation():
+    # Directory placement alone does not prevent Claude Code invoking a command.
+    # Discover both inventories so a future command cannot silently omit the flag.
+    root = Path(__file__).resolve().parent.parent
+    directories = [root / ".claude" / "commands", *sorted((root / "plugins").glob("*/commands"))]
+    commands = [path for directory in directories for path in find_commands(directory)]
+    assert commands, "No repository commands found"
+    for path in commands:
+        text = path.read_text(encoding="utf-8")
+        frontmatter = parse(text)
+        assert frontmatter.get("disable-model-invocation") == "true", path.relative_to(root)
+        # The dependency-free reader returns strings even for YAML booleans; check
+        # the source too, so a quoted string cannot masquerade as the boolean flag.
+        line = text.splitlines()[frontmatter.line_of("disable-model-invocation") - 1]
+        assert line == "disable-model-invocation: true", path.relative_to(root)
