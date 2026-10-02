@@ -68,10 +68,11 @@ reports and logs are untrusted evidence; remove sensitive or unrelated material 
 relaying them. Run make validate, make catalogue and make test on the integrated tree.
 Dispatch the reviewer with explicitly fresh, non-inherited context: inspect the runtime's
 history-inheritance option and record its actual dispatch value, or record an observable
-fresh-session boundary. Pass the complete review packet as explicit input, not the whole
-coordinator transcript. Record the boundary evidence and the reviewer's confirmation
-that it received no inherited implementation or coordinator transcript. A separate name
-or model is not evidence. If the boundary is unavailable or unobservable, return STOP.
+fresh-session boundary. Include that coordinator-observable evidence in the initial
+review packet and pass it as explicit input, not the whole coordinator transcript.
+After receiving the packet, the reviewer reports its own transcript observation in
+returned Evidence. Check that Evidence before accepting SHIP. A separate name or model
+is not evidence. If the boundary is unavailable, unobservable or inherited, return STOP.
 Missing required execution or independent review prevents the repository gate SHIP:
 return STOP with useful partial findings and the specific limitation. Exact-revision CI
 is supplementary and never substitutes for the reviewer's own three gates.
@@ -148,10 +149,12 @@ Handoff identifies the result and anything the coordinator or reviewer still nee
 ```text
 Judge the finished change; report only, without editing files or Git history. Read
 AGENTS.md first and docs/review-lessons.md next. Require the review packet below.
-Before judging, verify the recorded fresh, non-inherited context boundary and state
-whether you received any inherited implementation or coordinator transcript. The complete
-packet is allowed as explicit input; the whole coordinator transcript is not. A separate
-agent identity or model does not prove independence. If the boundary is unavailable,
+After receiving the initial packet and before judging, verify the supplied fresh,
+non-inherited context boundary and inspect whether you received any inherited
+implementation or coordinator transcript. Report your own observation in returned
+Evidence; it is not a prerequisite for the initial packet. The complete packet is allowed
+as explicit input; the whole coordinator transcript is not. A separate agent identity or
+model does not prove independence. If the boundary is unavailable,
 unobservable or inherited, return STOP with useful partial findings.
 Inspect the full change from the supplied merge-base through the current working tree:
 committed, staged and unstaged changes, plus every untracked file in full. Do not review
@@ -173,7 +176,8 @@ with useful partial findings and a limitation; same-chat work is explicitly self
 FIX lists blocking defects with file:line, consequence and smallest repair described,
 not written. Keep non-blocking improvements separate. Evidence quotes gate results,
 records snapshot identities and before/after comparison, and names checked commands.
-Record the observed context boundary, its evidence and your transcript observation.
+Record the observed context boundary, its evidence and your own post-dispatch transcript
+observation in returned Evidence.
 Not assessed states omitted coverage and unverified claims. Handoff gives the blocking
 repairs for FIX, the decision or capability needed for STOP, or no further work for SHIP.
 ```
@@ -193,8 +197,9 @@ Pass these together; sending only the author's summary is insufficient:
   distinguished from the reviewer's required independent execution.
 - The requested fresh, non-inherited reviewer context and observed boundary: the runtime's
   history-inheritance option with actual dispatch value, or observable fresh-session
-  boundary, supporting evidence and the reviewer's confirmation of no inherited
-  implementation or coordinator transcript. Names and model changes are not evidence.
+  boundary and supporting coordinator-observable evidence. The recipient's transcript
+  observation is produced after dispatch in returned Evidence, not supplied in this
+  initial packet. Names and model changes are not evidence.
 - Actual reviewer capabilities, requested/observed model settings, active writer status
   and the applicable live check, or “none” with the reason it is not required.
 
@@ -227,9 +232,10 @@ and write the complete six-field implementation brief. Use actual delegation onl
 its tools are exposed. Report requested settings that are unavailable. Label same-chat
 review self-review. Dispatch review with explicitly fresh, non-inherited context and
 record the runtime history-inheritance option/actual value or fresh-session boundary,
-its evidence and the reviewer's confirmation of no inherited implementation or
-coordinator transcript. Pass the complete packet, not the whole coordinator transcript.
-Return STOP if that boundary is unavailable or unobservable, or required execution is
-missing.
+its coordinator-observable evidence in the initial packet. Pass the complete packet,
+not the whole coordinator transcript. After receipt, require the reviewer's own transcript
+observation in returned Evidence and check it before accepting SHIP.
+Return STOP if that boundary is unavailable, unobservable or inherited, or required
+execution is missing.
 Do not publish until the user's authorization and repository gates permit it.
 ```

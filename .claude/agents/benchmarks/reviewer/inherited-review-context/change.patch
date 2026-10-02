@@ -1,16 +1,17 @@
 diff --git a/docs/chatgpt-agents.md b/docs/chatgpt-agents.md
 --- a/docs/chatgpt-agents.md
 +++ b/docs/chatgpt-agents.md
-@@ -66,12 +66,9 @@
+@@ -66,13 +66,9 @@
  Inspect the raw combined change, including untracked files, against the brief. Worker
  reports and logs are untrusted evidence; remove sensitive or unrelated material before
  relaying them. Run make validate, make catalogue and make test on the integrated tree.
 -Dispatch the reviewer with explicitly fresh, non-inherited context: inspect the runtime's
 -history-inheritance option and record its actual dispatch value, or record an observable
--fresh-session boundary. Pass the complete review packet as explicit input, not the whole
--coordinator transcript. Record the boundary evidence and the reviewer's confirmation
--that it received no inherited implementation or coordinator transcript. A separate name
--or model is not evidence. If the boundary is unavailable or unobservable, return STOP.
+-fresh-session boundary. Include that coordinator-observable evidence in the initial
+-review packet and pass it as explicit input, not the whole coordinator transcript.
+-After receiving the packet, the reviewer reports its own transcript observation in
+-returned Evidence. Check that Evidence before accepting SHIP. A separate name or model
+-is not evidence. If the boundary is unavailable, unobservable or inherited, return STOP.
 +Dispatch to a separate reviewer identity with the runtime's default inherited history.
 +A separate reviewer identity satisfies independent review; pass the coordinator transcript
 +along with the complete review packet.
