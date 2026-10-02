@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Symlink every skill in this repository into ~/.claude/skills.
+# Symlink every skill in this repository into ~/.claude/skills, or only the skills of the
+# plugins named with --plugin.
 #
 # Installing through the plugin marketplace is the better route for normal use — it
 # namespaces the skills and updates with the repository. This script is for working on
@@ -72,7 +73,10 @@ done
 # Validate the complete selection before creating the destination or linking anything.
 # Restrict names to one directory component so paths cannot escape plugins/.
 SKILL_ROOTS=()
-for plugin in "${PLUGINS[@]}"; do
+# The `+` alternate-value expansion below is deliberate: with no --plugin the array is
+# empty, and before bash 4.4 (stock macOS is 3.2) expanding an empty array under `set -u`
+# is a fatal "unbound variable".
+for plugin in ${PLUGINS[@]+"${PLUGINS[@]}"}; do
   if [[ ! "$plugin" =~ ^[a-z0-9][a-z0-9-]*$ || ! -d "$REPO_ROOT/plugins/$plugin/skills" ]]; then
     log "error: unknown plugin: $plugin"
     exit 2

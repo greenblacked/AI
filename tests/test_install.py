@@ -9,6 +9,7 @@ from is this one, so the count of links is whatever the tree holds.
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -222,3 +223,11 @@ def test_selected_plugin_preserves_conflicts_and_unselected_entries(tmp_path):
         assert result.returncode == 3, result.stderr
         assert marker.read_text() == "mine"
         assert unselected.read_text() == "unselected"
+
+
+def test_the_selection_array_is_never_expanded_bare():
+    # Before bash 4.4 (stock macOS is 3.2) expanding an empty array under `set -u` is fatal,
+    # and the default run has no --plugin; the suite runs on bash 5, so it cannot see that.
+    guarded = '${PLUGINS[@]+"${PLUGINS[@]}"}'
+    script = SCRIPT.read_text(encoding="utf-8")
+    assert not re.search(r"\$\{PLUGINS\[@\]", script.replace(guarded, ""))
