@@ -71,7 +71,7 @@ none of them applies. No explanation, no punctuation, no other text."""
 # of the overall budget (the `skillListingMaxDescChars` setting).
 ENTRY_CAP = 1536
 COMPARISON_SCHEMA = 1
-EVAL_PROTOCOL = "plurality-vote-inconclusive-routing-v2"
+EVAL_PROTOCOL = "plurality-vote-known-winners-routing-v3"
 
 
 def _digest(value: object) -> str:
@@ -276,10 +276,12 @@ def normalise(answer: str) -> str:
     return answer
 
 
-def judge(case: dict, chosen: str | None, name: str) -> tuple[bool, str]:
+def judge(case: dict, chosen: str | None, name: str, names: frozenset[str]) -> tuple[bool, str]:
     """Return (passed, reason)."""
     if chosen is None:
         return False, "INCONCLUSIVE: tied highest vote counts"
+    if chosen != "NONE" and chosen not in names:
+        return False, f"UNRECOGNISED: {chosen} is not a catalogue entry"
     fired = chosen == name
     if case["should_trigger"]:
         return fired, "" if fired else f"wanted {name}"
@@ -345,7 +347,7 @@ def score(target: Target, entries: dict, args) -> dict:
             if tally == count
         ):
             unrecognised += 1
-        passed, reason = judge(case, chosen, target.name)
+        passed, reason = judge(case, chosen, target.name, names)
         results.append(
             {
                 "query": case["query"],
