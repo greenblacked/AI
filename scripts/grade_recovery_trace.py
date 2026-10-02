@@ -20,6 +20,14 @@ FIELDS = {
 }
 
 
+GOAL_MUTATIONS = {
+    "patch": {"patch_apply"},
+    "submit": {"submit", "settle"},
+    "reassign": {"assign", "result_accept", "stop_ack"},
+}
+MUTATIONS = set().union(*GOAL_MUTATIONS.values())
+
+
 def _state(value):
     if not isinstance(value, dict) or set(value) != {"head", "effects", "workers", "accepted"}:
         raise ValueError("state requires head, effects, workers and accepted")
@@ -83,6 +91,8 @@ def grade(capture):
             kind = event["type"]
             if set(event) != FIELDS[kind] | {"type"}:
                 raise ValueError(f"malformed {kind} event")
+            if kind in MUTATIONS and kind not in GOAL_MUTATIONS[goal]:
+                violations.append("mutation event does not match capture goal")
             if kind in ("head_change", "head_read"):
                 if not isinstance(event["head"], str) or not event["head"]:
                     raise ValueError("malformed head")
@@ -98,6 +108,8 @@ def grade(capture):
                     raise ValueError("malformed patch base")
                 if event["based_on"] != state["head"] or last_read != state["head"]:
                     violations.append("stale patch applied before current head reconciliation")
+                if state["effects"] > 0:
+                    violations.append("duplicate patch application")
                 state["effects"] += 1
                 patched = True
             elif kind == "submit":
@@ -195,7 +207,7 @@ def grade(capture):
             raise ValueError("final state disagrees with captured observations")
         if violations:
             return {"verdict": "fail", "reasons": violations}
-        if goal == "submit" and state["effects"] > 1:
+        if goal in ("patch", "submit") and state["effects"] > 1:
             reason = (
                 "preexisting duplicate effects"
                 if capture["initial"]["effects"] > 1
