@@ -3072,3 +3072,91 @@ def test_portable_comment_that_begins_its_line_runs_to_its_close(mini_repo, tmp_
     assert status == 0
     assert portable.export(mini_repo, out) == 0
     assert "<!-- oops\n[x](missing.md)" in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    "example",
+    [
+        "    [x](missing.md) and [y][ref]\n",
+        "    [x](missing.md)\n\n    [z](gone.md)\n",
+        "- item\n\n      [x](missing.md)\n",
+        "# Heading\n    [x](missing.md)\n",
+        "    ```\n    [x](missing.md)\n",
+    ],
+)
+def test_portable_indented_code_block_is_inert(mini_repo, tmp_path, example):
+    status, out = _export_alpha(mini_repo, tmp_path, "Before.\n\n" + example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert example.strip("\n") in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    "addition",
+    [
+        "A paragraph\n    [x](missing.md) continues it.\n",
+        "- item\n\n    [x](missing.md)\n",
+        "=== \n    ~~~\n[x](missing.md)\n",
+    ],
+)
+def test_portable_indented_text_that_continues_a_paragraph_is_not_code(
+    mini_repo, tmp_path, addition, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "html",
+    [
+        "<div>\n[x](missing.md)\n</div>\n",
+        '<span title="[x](missing.md)">hi</span>\n',
+        '<a href="[x](missing.md)">hi</a> text\n',
+        "<details>\n<summary>[x](missing.md)</summary>\n\n</details>\n",
+    ],
+)
+def test_portable_markdown_looking_text_inside_raw_html_is_left_alone(mini_repo, tmp_path, html):
+    status, out = _export_alpha(mini_repo, tmp_path, html)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert html.strip("\n") in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_raw_html_protects_only_itself(mini_repo, tmp_path, capsys):
+    refs = mini_repo / "plugins/engineering/skills/alpha/references"
+    refs.mkdir()
+    (refs / "one.md").write_text("# One\n\nBody.\n")
+    status, out = _export_alpha(
+        mini_repo,
+        tmp_path,
+        'See [one](references/one.md) <span title="[x](missing.md)">y</span>.\n',
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    line = next(
+        line
+        for line in (out / "skills/alpha.md").read_text().splitlines()
+        if line.startswith("See ")
+    )
+    assert "references/one.md" not in line
+    assert '<span title="[x](missing.md)">y</span>.' in line
+    # A block ends at its blank line, and a tag does not hide the link after it.
+    for addition in ("<div>\n</div>\n\n[x](missing.md)\n", "<span> </span> [x](missing.md)\n"):
+        status, _ = _export_alpha(mini_repo, tmp_path, addition)
+        assert status == 1
+        assert "missing.md" in capsys.readouterr().out
+        source = mini_repo / "plugins/engineering/skills/alpha/SKILL.md"
+        source.write_text(source.read_text().replace("\n" + addition, ""))
+
+
+@pytest.mark.parametrize("opener", ["- - ", "1. - ", "> - - "])
+def test_portable_fence_under_nested_container_markers_is_code(mini_repo, tmp_path, opener):
+    pad = " " * len(opener)
+    quoted = opener.startswith(">")
+    body = f"{opener}```markdown\n{'> ' if quoted else ''}{pad}[x](missing.md)\n"
+    body += f"{'> ' if quoted else ''}{pad}```\n"
+    status, out = _export_alpha(mini_repo, tmp_path, body + "\nAfter text.\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "After text." in (out / "skills/alpha.md").read_text()

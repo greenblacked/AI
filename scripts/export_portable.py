@@ -82,15 +82,30 @@ ASSET_LANGUAGES = {
 # example closes early and everything after it is read as prose.
 FENCE_RE = re.compile(r"^(`{3,}|~{3,})")
 ATX_RE = re.compile(r"^(#{1,6})(\s+)")
-# What may sit between the start of a line and a code fence: blockquote markers and one list
-# marker. A fenced example quoted with `>` or nested under a bullet is still a fence.
-CONTAINER_PREFIX_RE = re.compile(r"^(?:\s{0,3}>)*\s*(?P<item>(?:[-*+]|\d+[.)])\s+)?")
+# Blockquote markers alone, so the indentation left over is the line's own, and a list item
+# marker with the width of its content: group 3 is the spaces after the marker.
+QUOTE_PREFIX_RE = re.compile(r"^(?: {0,3}> ?)*")
+ITEM_RE = re.compile(r"^( *)([-*+]|\d+[.)])(?:( +)(?=\S)|\s*$)")
+# What may sit between the start of a line and a code fence: blockquote markers and list
+# markers, however deeply nested. A fenced example quoted with `>` or nested under a
+# bullet is still a fence.
+CONTAINER_PREFIX_RE = re.compile(r"^(?:\s{0,3}>)*\s*(?P<item>(?:(?:[-*+]|\d+[.)])\s+)+)?")
 # A line that starts a block which can interrupt a paragraph, tested on the text after any
 # container prefix: a thematic break or setext underline, or an HTML block of types 1-6
 # (a comment, a processing instruction, a declaration, or a block-level tag).
 BLOCK_START_RE = re.compile(
     r"^ {0,3}(?:(?:[-*_])(?: *[-*_]){2,} *$|=+ *$|-+ *$|<(?:!--|\?|![A-Za-z]|!\[CDATA\[)"
     r"|<(?:script|pre|style|textarea)(?:\s|>|$)"
+    r"|</?(?:address|article|aside|blockquote|center|details|dialog|dir|div|dl|dt|dd|fieldset"
+    r"|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend"
+    r"|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|section|source"
+    r"|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul)(?:\s|/?>|$))",
+    re.I,
+)
+# The start of an HTML block of types 1-6 (not a comment, which is handled on its own), tested
+# on the text after any container prefix. Group 1 names a type-1 tag, group 2 is a type-6 tag.
+HTML_BLOCK_START_RE = re.compile(
+    r"^ {0,3}(?:<(script|pre|style|textarea)(?:\s|>|$)|<(\?|![A-Za-z]|!\[CDATA\[)"
     r"|</?(?:address|article|aside|blockquote|center|details|dialog|dir|div|dl|dt|dd|fieldset"
     r"|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend"
     r"|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|section|source"
@@ -205,16 +220,23 @@ def strip_frontmatter(text: str) -> str:
 
 
 def fence_spans(text: str) -> list[bool]:
-    """One flag per line: True when the line is inside a fenced code block.
+    """One flag per line: True when the line is inside a fenced or indented code block.
 
     A path inside a fence is part of a command or a worked example. Rewriting it to
     "the … section below" turns a runnable line into prose — `git bisect run` needs a
-    path, and the inlined section is what tells the reader which file to create.
+    path, and the inlined section is what tells the reader which file to create. An
+    indented code block is the same thing without the markers: four spaces past the
+    enclosing list item's content, not continuing a paragraph. Wherever list nesting makes
+    that unclear the line is taken as prose, which can only fail an export loudly.
     """
     flags: list[bool] = []
     opening: str | None = None
     depth = 0
     indent = 0
+    in_paragraph = False
+    list_indent = 0
+    after_blank = True
+    spaces = 0
     for line in text.split("\n"):
         prefix = CONTAINER_PREFIX_RE.match(line)
         content = line[prefix.end() :]
@@ -225,7 +247,29 @@ def fence_spans(text: str) -> list[bool]:
             quotes < depth or (indent and line.strip() and len(line) - len(line.lstrip()) < indent)
         ):
             opening = None
+        if opening is None:
+            rest = line[QUOTE_PREFIX_RE.match(line).end() :]
+            spaces = len(rest) - len(rest.lstrip(" "))
+            if not rest.strip():
+                in_paragraph = False
+                after_blank = True
+                flags.append(False)
+                continue
+            marker = ITEM_RE.match(rest) if spaces < list_indent + 4 else None
+            if spaces >= list_indent + 4 and not in_paragraph and marker is None:
+                flags.append(True)
+                continue
+            if marker is not None:
+                gap = len(marker.group(3) or " ")
+                list_indent = marker.end(2) + (gap if gap <= 4 else 1)
+            elif after_blank and spaces == 0:
+                list_indent = 0
+            after_blank = False
         fence = FENCE_RE.match(content)
+        # Four spaces past the container make text, not a fence; this is only reachable as
+        # the continuation of a paragraph, since otherwise the line was code above.
+        if fence is not None and opening is None and spaces >= list_indent + 4:
+            fence = None
         # A backtick fence's info string may not contain a backtick: that line is code.
         if (
             fence is not None
@@ -235,18 +279,19 @@ def fence_spans(text: str) -> list[bool]:
         ):
             fence = None
         if fence is not None:
-            marker = fence.group(1)
+            marker_text = fence.group(1)
             if opening is None:
-                opening = marker
+                opening = marker_text
                 depth = quotes
                 indent = len(prefix.group()) if prefix.group("item") and not quotes else 0
+                in_paragraph = False
                 flags.append(True)
                 continue
             # Inside a fence every line is content, so a quoted or bulleted fence marker
             # belongs to the example; only a line in the opener's own container closes it.
             if (
-                marker[0] == opening[0]
-                and len(marker) >= len(opening)
+                marker_text[0] == opening[0]
+                and len(marker_text) >= len(opening)
                 and not content[fence.end() :].strip()
                 and quotes == depth
                 and prefix.group("item") is None
@@ -254,6 +299,8 @@ def fence_spans(text: str) -> list[bool]:
                 opening = None
             flags.append(True)
             continue
+        if opening is None:
+            in_paragraph = ATX_RE.match(content) is None
         flags.append(opening is not None)
     return flags
 
@@ -468,7 +515,13 @@ def block_layout(block: list[str], starts: list[int]) -> tuple[list[int], list[i
         paragraph[index] = paragraph[following] if continues else starts[index] + len(block[index])
     container = []
     for index, prefix in enumerate(prefixes):
-        indent = len(prefix.group()) if prefix.group("item") and not depths[index] else 0
+        rest = block[index][QUOTE_PREFIX_RE.match(block[index]).end() :]
+        # An item line ends with its item; any other indented line is taken to sit in one.
+        indent = (
+            len(prefix.group())
+            if prefix.group("item") and not depths[index]
+            else len(rest) - len(rest.lstrip(" "))
+        )
         last = index
         while (
             last + 1 < len(block)
@@ -484,7 +537,45 @@ def block_layout(block: list[str], starts: list[int]) -> tuple[list[int], list[i
     return paragraph, container, bodies
 
 
-def inert_ranges(text: str, fenced: list[bool]) -> list[list[tuple[int, int]]]:
+def html_block_end(
+    block: list[str],
+    bodies: list[str],
+    starts: list[int],
+    container: list[int],
+    index: int,
+    opener: re.Match[str],
+) -> int:
+    """Offset where the HTML block of types 1-6 that begins on line ``index`` ends.
+
+    Types 1-5 run to the line holding their terminator, type 6 to the next blank line, and
+    any of them to the end of their container if that comes first.
+    """
+    last = index
+    if opener.group(1) or opener.group(2):
+        kind = (opener.group(1) or opener.group(2)).lower()
+        if kind in {"script", "pre", "style", "textarea"}:
+            ends = re.compile(rf"</{kind}>", re.I)
+        else:
+            ends = re.compile(r"\?>" if kind == "?" else r"\]\]>" if kind.startswith("![") else ">")
+        for following in range(index, len(block)):
+            if starts[following] > container[index]:
+                break
+            last = following
+            if ends.search(bodies[following], opener.end() if following == index else 0):
+                break
+    else:
+        while (
+            last + 1 < len(block)
+            and bodies[last + 1].strip()
+            and starts[last + 1] <= container[index]
+        ):
+            last += 1
+    return starts[last] + len(block[last])
+
+
+def inert_ranges(
+    text: str, fenced: list[bool], *, markup: bool = True
+) -> list[list[tuple[int, int]]]:
     """Per line, the character ranges that are raw text, not Markdown to rewrite.
 
     Two kinds sit outside a fence and inside a line scanner's blind spot: an HTML comment,
@@ -557,6 +648,25 @@ def inert_ranges(text: str, fenced: list[bool]) -> list[list[tuple[int, int]]]:
                     closing = bisect.bisect_right(starts, close) - 1
                     raw_until = min(limit, starts[closing] + len(block[closing]))
                 position = end
+            elif char == "<" and markup:
+                column = position - starts[line_index] - len(block[line_index])
+                column += len(bodies[line_index])
+                opener = (
+                    HTML_BLOCK_START_RE.match(bodies[line_index][column:])
+                    if column <= 3 and not bodies[line_index][:column].strip()
+                    else None
+                )
+                if opener is not None:
+                    end = html_block_end(block, bodies, starts, container, line_index, opener)
+                    found.append((position, end))
+                    position = end
+                    continue
+                tag = HTML_TAG_RE.match(joined, position, paragraph[line_index])
+                if tag is not None:
+                    found.append((position, tag.end()))
+                    position = tag.end()
+                else:
+                    position += 1
             elif char == "`" and position >= raw_until:
                 run = len(joined[position:]) - len(joined[position:].lstrip("`"))
                 end = position + run
@@ -839,7 +949,7 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             continue
         used: set[str] = set()
         fenced_lines = fence_spans(text)
-        inert = inert_ranges(text, fenced_lines)
+        inert = inert_ranges(text, fenced_lines, markup=False)
         for index, (line, fenced) in enumerate(zip(text.split("\n"), fenced_lines, strict=True)):
             if fenced:
                 continue
