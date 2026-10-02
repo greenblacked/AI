@@ -2,6 +2,7 @@
 description: Diagnose one skill in this repository — validator findings, eval-set balance, and the description properties that decide whether it ever fires.
 argument-hint: '[skill name, for example ci-triage]'
 allowed-tools: Bash(python3:*), Bash(make:*), Read, Grep, Glob
+disable-model-invocation: true
 ---
 
 Diagnose the skill named `$0`.

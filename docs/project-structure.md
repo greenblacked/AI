@@ -127,10 +127,11 @@ covers when delegating beats doing the work inline.
 
 **`.claude/commands/*.md`.** One slash command per file, discovered automatically.
 `$ARGUMENTS` captures everything the caller typed, and `$0`, `$1` pick individual
-arguments out of it, zero-indexed. A command never fires on its own, so it is the
-right shape only for work that takes an argument or that should happen when asked —
-[writing a slash command](writing-commands.md) is mostly an argument for writing a skill
-instead.
+arguments out of it, zero-indexed. Every command in this repository declares
+`disable-model-invocation: true`, so it runs only when someone invokes it explicitly,
+which makes it the right shape only for work that takes an argument or that should happen
+when asked. [Writing a slash command](writing-commands.md) explains why, and is mostly an
+argument for writing a skill instead.
 
 ## Not discovered at all
 

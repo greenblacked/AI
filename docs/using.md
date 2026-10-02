@@ -122,9 +122,10 @@ Ask for one by name when you want to be sure.
 
 ### Slash commands
 
-Eight ship, and unlike skills they never fire on their own — you type them. That makes them
-the right shape for work that takes an argument, or that should happen when asked rather
-than when merely relevant.
+Eight ship, and unlike skills they run only when you type them: each declares
+`disable-model-invocation: true`, the reason [writing a slash command](writing-commands.md)
+gives. That makes them the right shape for work that takes an argument, or that should
+happen when asked rather than when merely relevant.
 
 ```shell
 /ci-fail 18234567          # classify a failing run

@@ -21,8 +21,9 @@ defect in a plugin: a command that restates a skill and adds nothing.
 A **skill** fires on its own, when a description matches what someone is doing. Its
 whole design problem is triggering: it has to be recognised without being asked for.
 
-A **command** never fires on its own. Someone types it. That makes it the right shape
-for exactly two things:
+A **command in this repository** runs only when someone invokes it explicitly. Every
+command declares `disable-model-invocation: true` to enforce that policy. That makes it
+the right shape for exactly two things:
 
 - **Work that takes an argument.** A file path, a run id, a date. A skill cannot be
   handed a parameter; a command is built around one.
@@ -38,9 +39,11 @@ the skill that should have fired.
 Upstream has since collapsed the distinction. In current Claude Code, a file at
 `.claude/commands/deploy.md` and a skill at `.claude/skills/deploy/SKILL.md` both create
 `/deploy` and work the same way; the runtime's own version of "run only when asked" is
-`disable-model-invocation: true` on a skill. The commands here stay as flat files for a
-reason that is this repository's rather than the runtime's: a skill has to survive the
-Skills API upload route, which rejects that key, and a command never goes through it. So
+`disable-model-invocation: true` in frontmatter. Without that flag, commands can also
+be invoked by the model; placement in `commands/` alone does not make them manual-only.
+The commands here stay as flat files for a reason that is this repository's rather than
+the runtime's: a skill has to survive the Skills API upload route, which rejects that
+key, and a command never goes through it. So
 the five-key set below is a house restriction that keeps the two kinds of file distinct,
 not the runtime's contract — and a command is the right home for anything that needs a
 key the portable six do not allow.
@@ -72,14 +75,15 @@ The key set is closed. Only these five are allowed:
 | `argument-hint` | no | What to pass, shown beside the name — `[path to plan.json]`. |
 | `allowed-tools` | no | Comma-separated, scoped where that carries information. |
 | `model` | no | Pin a model for this command. |
-| `disable-model-invocation` | no | Keep it out of automatic invocation entirely. |
+| `disable-model-invocation` | house policy | Set to the unquoted boolean `true` on every command here; prevents model invocation while keeping explicit slash invocation available. |
 
 There is deliberately no `name`: the filename is the name, so a `name` key is a second
 source of truth that can disagree with the first. It is rejected as an `unknown-key`.
 
-Unlike a skill, `description` here is not a triggering mechanism — the caller has already
-decided. It is a picker label. Say what the command does and what it needs, in one line,
-without the "Use this whenever" pushiness a skill description needs.
+With `disable-model-invocation: true`, the command description is not loaded for
+automatic selection — the caller has already decided. It is a picker label. Say what
+the command does and what it needs, in one line, without the "Use this whenever" pushiness
+a skill description needs.
 
 ## Arguments
 
@@ -120,7 +124,11 @@ one can.
 
 ## What the validator checks
 
-Commands are validated on the same run as skills and subagents.
+Commands are validated on the same run as skills and subagents. The validator permits
+`disable-model-invocation` but does not require it for arbitrary command files.
+`tests/test_commands.py` separately enforces the manual-only policy across this
+repository's contributor and shipped commands. Keep the flag on commands, not portable
+`SKILL.md` files: those retain their six-key frontmatter contract.
 
 | Code | Level | Means | Fix |
 | --- | --- | --- | --- |

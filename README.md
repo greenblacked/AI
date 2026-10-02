@@ -453,8 +453,9 @@ their round trips.
 
 ## Commands
 
-A command never fires on its own — you type it — which makes it the right shape for work
-that takes an argument, or that should run when asked rather than when merely relevant.
+Commands here explicitly declare `disable-model-invocation: true`, so they run only
+when invoked explicitly. That makes them the right shape for work that takes an
+argument, or that should run when asked rather than when merely relevant.
 Each does the mechanical part and points at the skill holding the full procedure.
 
 | Command | Ships with | What it does |
