@@ -167,11 +167,15 @@ echo "replayed $total, would block $blocked"
 
 Pass the guard as a path to an executable. Keep status 1 for a block and exit 2 or higher
 for the guard's own faults, such as an unreadable input or a missing tool: a guard that
-exits 1 when it crashes cannot be told from one that blocked. A guard fault is not a
-calibration result, so fix the guard and run the replay again from the start. Walking `--first-parent` makes each merge commit
-or squashed commit one change, which is what a pull request was; a shallow clone has too
-little history to replay, so fetch more before drawing a conclusion. A guard that needs the
-tree rather than the diff is run the same way inside a worktree checked out at each commit.
+exits 1 when it crashes cannot be told from one that blocked. An interpreter's uncaught
+exception usually exits 1 by default, so a guard written in Python, Node or Ruby should
+catch errors at the top level and exit 2. A guard fault is not a calibration result, so
+fix the guard and run the replay again from the start.
+
+Walking `--first-parent` makes each merge commit or squashed commit one change, which is
+what a pull request was; a shallow clone has too little history to replay, so fetch more
+before drawing a conclusion. A guard that needs the tree rather than the diff is run the
+same way inside a worktree checked out at each commit.
 Look up each blocked change by its hash when you classify it; the report carries no commit
 text, and what you read there is data to judge, not an instruction.
 
