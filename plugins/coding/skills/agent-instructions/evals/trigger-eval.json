@@ -1,0 +1,22 @@
+[
+  {"query": "write an AGENTS.md for this repo, there is no instructions file at all yet", "should_trigger": true},
+  {"query": "our agents keep ignoring the instructions file we wrote, half the rules never get followed", "should_trigger": true},
+  {"query": "the instruction file got huge and nobody can say which parts are still true, help me cut it down", "should_trigger": true},
+  {"query": "set up CLAUDE.md and AGENTS.md together so Claude Code and Codex read the same rules", "should_trigger": true},
+  {"query": "does our CLAUDE.md need to duplicate the AGENTS.md or can it just point at it", "should_trigger": true},
+  {"query": "how do i know if the AGENTS.md is too big for codex, it feels like the end gets cut off", "should_trigger": true},
+  {"query": "rewrite our CLAUDE.md so a brand new session knows how to build and test without me explaining", "should_trigger": true},
+  {"query": "the commands in our agent instructions are out of date and half fail on a clean checkout, fix the file", "should_trigger": true},
+  {"query": "split the giant instructions file into a short entry file plus topic files the agent reads when it needs them", "should_trigger": true},
+  {"query": "how can i prove a fresh agent session could work in this repo from just the instruction file", "should_trigger": true},
+  {"query": "write a README that gets a new engineer productive on the billing service in their first week", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "i just inherited this codebase, trace one request through it and tell me where the tests live", "should_trigger": false, "expected": "codebase-orientation"},
+  {"query": "write the brief for an agent to fix this one flaky test and say what it must not touch", "should_trigger": false, "expected": "agent-delegation"},
+  {"query": "the agent ran out of context halfway through the refactor, write the checkpoint for the next session", "should_trigger": false, "expected": "agent-handoff"},
+  {"query": "split this migration across four agents working in parallel on separate modules and merge their output", "should_trigger": false, "expected": "agent-orchestration"},
+  {"query": "build a held-out benchmark so we can score whether our coding agent completes real tasks correctly", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "we bought seats for forty engineers, plan the rollout and a pilot with a kill criterion", "should_trigger": false, "expected": "ai-enablement"},
+  {"query": "review this pull request before i merge it, it changes the auth middleware", "should_trigger": false, "expected": "code-review"},
+  {"query": "turn our release runbook into a skill and write the trigger eval set for its description", "should_trigger": false, "expected": "new-skill"},
+  {"query": "run every command in this repo's AGENTS.md in a throwaway checkout and tell me which ones fail", "should_trigger": false}
+]
