@@ -20,7 +20,7 @@ Use this only in a repository you would already run the test suite in. An unfami
 
 ## Hard gates
 
-1. No instruction goes into the file unless its command was executed, in a scratch checkout and after the user confirmed the list, and the result recorded. A command nobody ran is a guess, and a guess in this file is read as fact.
+1. No command goes into the file unless it was executed, in a scratch checkout and after the user confirmed the list, and the result recorded. A command nobody ran is a guess, and a guess in this file is read as fact.
 2. No file is finished until a fresh session has answered the five questions and each answer was checked by running what it says. Rereading the file yourself is not the test, because you carry the context the file is supposed to supply.
 3. A failed answer is a defect in the file. Never rewrite the question, argue the session misread, or hint the answer; fix the file and rerun.
 

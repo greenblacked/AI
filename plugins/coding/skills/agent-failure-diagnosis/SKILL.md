@@ -21,7 +21,7 @@ Do not use for: writing, restructuring or repairing the instruction file itself,
 1. No capture, no diagnosis. A theory formed from one remembered incident explains the incident the author remembers, which is rarely the one that recurs.
 2. Each failure is attributed to exactly one layer. A failure that fits two layers is two failures and gets two rows in the log.
 3. One change per rerun. Two changes that together fix it leave you not knowing which one to keep, and the unneeded one stays in the repository for good.
-4. When three consecutive changes do not move the result, revert every change that did not help and re-attribute from fresh captures. The attribution is wrong; stop changing things.
+4. Revert a change that does not move the result before the next attempt, so each rerun tests one change against the starting state, and keep its row in the log. When three consecutive changes do not move the result, stop: the attribution is wrong. Confirm nothing from them is still in place and re-attribute from fresh captures.
 
 ## What the words mean in each host
 
@@ -90,7 +90,7 @@ Keep a log with one row per attempt: failure, layer, evidence, change, result. R
 
 ### 5. Apply the stop rules
 
-When three consecutive changes do not move the result, revert every change that did not help and re-attribute from fresh captures. The attribution is wrong, not the changes too timid, and the flat changes altered the repository and bought nothing. Capture two or three fresh failing runs. The old captures are the ones your theory was fitted to. Read them again from the start without the theory, then attribute again.
+Revert a change that does not move the result before the next attempt, so each rerun still tests one change against the starting state; its row stays in the log. When three consecutive changes do not move the result, stop. The attribution is wrong, not the changes too timid. Confirm the repository is back at its starting state, then capture two or three fresh failing runs. The old captures are the ones your theory was fitted to. Read them again from the start without the theory, then attribute again.
 
 Adding more instruction text is the weakest fix and goes last. A written rule is advice the agent can skip, it consumes context in every session, and it leaves no signal when it fails. A check that fails, a tool that exists, or a task small enough to hold in view works without the agent's cooperation. Where the instructions layer is the true cause, repair what is already there first: load it, deduplicate it, resolve the contradiction.
 
