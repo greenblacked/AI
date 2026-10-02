@@ -189,9 +189,10 @@ in `src/skillcheck/` breaks the guarantee CI is built on, so do not add one.
 `docs/writing-skills.md` has the full contract, including every validator code and how to
 fix it.
 
-A slash command is a different thing and is not a substitute for a skill: it never fires
-on its own, so it is the right shape only for work that takes an argument or that should
-happen when asked rather than when merely relevant. A command that restates a skill is a
+A slash command is a different thing and is not a substitute for a skill: every command
+here declares `disable-model-invocation: true`, so it runs only when someone invokes it
+explicitly. That makes it the right shape only for work that takes an argument or that
+should happen when asked rather than when merely relevant. A command that restates a skill is a
 worse version of a skill whose description should have triggered.
 `docs/writing-commands.md` has that contract.
 
