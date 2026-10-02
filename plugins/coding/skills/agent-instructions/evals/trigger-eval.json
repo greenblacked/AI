@@ -1,6 +1,6 @@
 [
   {"query": "write an AGENTS.md for this repo, there is no instructions file at all yet", "should_trigger": true},
-  {"query": "our agents keep ignoring the instructions file we wrote, half the rules never get followed", "should_trigger": true},
+  {"query": "our AGENTS.md is 60kb now and half of it just restates the linter config, trim it down to what an agent actually needs", "should_trigger": true},
   {"query": "the instruction file got huge and nobody can say which parts are still true, help me cut it down", "should_trigger": true},
   {"query": "set up CLAUDE.md and AGENTS.md together so Claude Code and Codex read the same rules", "should_trigger": true},
   {"query": "does our CLAUDE.md need to duplicate the AGENTS.md or can it just point at it", "should_trigger": true},
@@ -18,5 +18,6 @@
   {"query": "we bought seats for forty engineers, plan the rollout and a pilot with a kill criterion", "should_trigger": false, "expected": "ai-enablement"},
   {"query": "review this pull request before i merge it, it changes the auth middleware", "should_trigger": false, "expected": "code-review"},
   {"query": "turn our release runbook into a skill and write the trigger eval set for its description", "should_trigger": false, "expected": "new-skill"},
-  {"query": "run every command in this repo's AGENTS.md in a throwaway checkout and tell me which ones fail", "should_trigger": false}
+  {"query": "run every command in this repo's AGENTS.md in a throwaway checkout and tell me which ones fail", "should_trigger": false},
+  {"query": "our agents keep ignoring the instructions file we wrote, half the rules never get followed", "should_trigger": false, "expected": "agent-failure-diagnosis"}
 ]

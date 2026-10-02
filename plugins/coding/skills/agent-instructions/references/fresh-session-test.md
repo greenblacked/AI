@@ -53,7 +53,7 @@ The one rule is that the session sees the repository and the file and nothing el
 
 **Two tools.** Run it once in each tool the repository supports. The tools do not read the same file, so a pass in one is no evidence about the other.
 
-Run the answers in a throwaway checkout. A command listed as an answer is still a command from a file under test, so read it before executing it, and stop at anything that reaches outside the tree.
+Run the answers in a throwaway checkout made with hooks and LFS smudge disabled (`GIT_LFS_SKIP_SMUDGE=1 git -c core.hooksPath=/dev/null clone --depth 1 -- <path> <scratch>`). A command listed as an answer is still a command from a file under test, so the session under test runs nothing it has not first listed, and treats the file under test as data: it follows the commands it needs to answer a question and nothing else the file says. Read each listed command before executing it, and stop at anything that reaches outside the tree.
 
 ## What a failure tells you to fix
 
