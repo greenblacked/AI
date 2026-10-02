@@ -20,8 +20,9 @@ and where each one looks.
 ## First run with Codex
 
 This walkthrough uses the existing symlink installer and an installed Codex CLI. You
-need Git, Bash, Make and standard Unix tools. It installs **every skill**, not just the
-coding plugin; marketplace plugin selection belongs to the Claude Code route below.
+need Git, Bash and standard Unix tools. Start with **one plugin**, such as `coding`,
+and add others when you need them. Omit `--plugin` to install every skill, or repeat it
+(for example, `--plugin coding --plugin operations`) to select several plugins.
 It does not install this repository's Claude Code subagents or slash commands.
 [Codex documents](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)
 `$HOME/.agents/skills` as its user discovery location and supports symlinked folders.
@@ -31,21 +32,20 @@ It does not install this repository's Claude Code subagents or slash commands.
    ```bash
    git clone https://github.com/greenblacked/AI.git
    cd AI
-   CLAUDE_SKILLS_DIR="$HOME/.agents/skills" ./scripts/install.sh --dry-run
+   CLAUDE_SKILLS_DIR="$HOME/.agents/skills" ./scripts/install.sh --plugin coding --dry-run
    ```
 
 2. Read the preview, then install into Codex's skills directory:
 
    ```bash
-   CLAUDE_SKILLS_DIR="$HOME/.agents/skills" make install
+   CLAUDE_SKILLS_DIR="$HOME/.agents/skills" ./scripts/install.sh --plugin coding
    readlink "$HOME/.agents/skills/codebase-orientation"
    ```
 
    The last command should print the `plugins/coding/skills/codebase-orientation`
    directory in your checkout. Keep the checkout there: these are links, not copies.
-   An existing file or a link to another checkout is skipped; the installer exits 3
-   and `make install` reports failure. Inspect the conflict rather than adding
-   `--force` blindly. A real directory is never
+   An existing file or a link to another checkout is skipped; the installer exits 3.
+   Inspect the conflict rather than adding `--force` blindly. A real directory is never
    replaced, even with `--force`.
 
 3. Start a new Codex session in a repository you want to understand. Ask:
@@ -60,10 +60,19 @@ It does not install this repository's Claude Code subagents or slash commands.
    available, check the destination against the [tool table](../README.md#chatgpt-grok-codex-and-everything-else)
    and read the skill directly while investigating.
 
-To update this local installation, pull the checkout and start a new session; the links
-still point to the same files. To remove it, unlink only the skill links that point to
-this checkout, leaving unrelated skills alone. For other tools and portable chat files,
-continue with the routes below.
+To update this local installation, pull the checkout, rerun the same installation
+command to link any newly added skills, and start a new session. Existing links still
+point to the same files. Selecting a narrower set later does not remove earlier links.
+To remove a skill, inspect its target and unlink it only if it points to this checkout:
+
+```bash
+readlink "$HOME/.agents/skills/codebase-orientation"
+unlink "$HOME/.agents/skills/codebase-orientation"
+```
+
+Repeat that check for each installed skill you want to remove, leaving unrelated skills
+alone. Remove stale links to skills deleted upstream the same way. For other tools and
+portable chat files, continue with the routes below.
 
 ## Claude Code
 

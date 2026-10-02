@@ -182,9 +182,11 @@ configuration in [`docs/deepseek.md`](docs/deepseek.md).
 
 ```bash
 git clone https://github.com/greenblacked/AI.git && cd AI
-./scripts/install.sh --dry-run   # see what it would link
-./scripts/install.sh             # symlink every skill into ~/.claude/skills
+./scripts/install.sh --plugin coding --dry-run   # preview one plugin
+./scripts/install.sh --plugin coding             # link it into ~/.claude/skills
 ```
+
+Omit `--plugin` to install every skill, or repeat it to select several plugins.
 
 ## What a real week looks like
 
