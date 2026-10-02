@@ -319,6 +319,28 @@ def heading_display(heading: str, bindings: dict[str, str]) -> str:
     return "".join(pieces) + heading[last:]
 
 
+def without_code_spans(line: str) -> str:
+    """``line`` with each closed inline code span blanked; an unclosed backtick stays.
+
+    A tag shown as an example inside code is inert text, so scanning raw HTML must not see
+    it. Blanking to a space rather than deleting keeps text on either side from joining.
+    """
+    pieces, last, index = [], 0, 0
+    while index < len(line):
+        if line[index] == "\\":
+            index += 2
+        elif line[index] == "`":
+            run = len(line[index:]) - len(line[index:].lstrip("`"))
+            end = code_span_end(line, index)
+            if end > index + run:  # closed; an unclosed run is stepped over, not consumed
+                pieces.append(line[last:index] + " ")
+                last = end
+            index = end
+        else:
+            index += 1
+    return "".join(pieces) + line[last:]
+
+
 def destination_spans(line: str) -> list[tuple[int, int, int, int]]:
     """Destination and protected syntax spans for inline links and definitions.
 
@@ -477,7 +499,12 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
                 unresolved.append(f"{relative}: symlink escapes skill root")
                 continue
             try:
-                sources[relative] = path.read_text(encoding="utf-8")
+                text = path.read_text(encoding="utf-8")
+                # Reference metadata is not content: left in, it is emitted as YAML and the
+                # H1 behind it is not seen as the first line, so the title is repeated.
+                sources[relative] = (
+                    strip_frontmatter(text) if relative.startswith("references/") else text
+                )
                 order.append(relative)
             except UnicodeDecodeError:
                 continue
@@ -568,7 +595,7 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         ):
             if fenced:
                 continue
-            if re.search(r"<[^>]+\b(?:id|name)\s*=", line, re.I):
+            if re.search(r"<[^>]+\b(?:id|name)\s*=", without_code_spans(line), re.I):
                 unresolved.append(f"{relative}: unsupported custom HTML anchor")
             match = ATX_RE.match(line)
             if not match:
@@ -627,7 +654,9 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
                 # Checked before the images-only filter: a footnote use can sit inside a
                 # link label, which is scanned in that mode, and must be scoped there too.
                 close = bracket_end(line, index)
-                if close is not None:
+                # A destination after the bracket makes this a link or image whose visible
+                # text starts with `^`, so the link path below handles it instead.
+                if close is not None and line[close : close + 1] != "(":
                     scoped = footnote_ids[current].get(reference_key(line[index + 2 : close - 1]))
                     if scoped is not None:
                         pieces.append(line[last:index] + "[^" + scoped + "]")
@@ -662,7 +691,9 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
                     break
                 explicit = line[end + 1 : reference_end - 1]
                 key = reference_key(explicit or label)
-                finish = reference_end
+                # An explicit label that names no reference is not consumed: `[word][^x]`
+                # is a bracket pair followed by a footnote use, which is scanned on its own.
+                finish = reference_end if key in ids else end
             else:
                 key = reference_key(label)
             if key in ids:
@@ -755,8 +786,12 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             # reach `destination_spans`, which would read the text as a link destination.
             label = ""
             footnote = FOOTNOTE_DEFINITION_RE.match(line)
-            if footnote is not None:
-                scoped = footnote_ids[current][reference_key(footnote.group(1))]
+            # A title such as `[^t]: Title` looks like a definition but was never collected
+            # as one, so it has no scoped label; it is then left as ordinary text.
+            scoped = (
+                footnote_ids[current].get(reference_key(footnote.group(1))) if footnote else None
+            )
+            if footnote is not None and scoped is not None:
                 label = line[: footnote.start(1)] + scoped + "]:"
                 line = line[footnote.end() :]
             line = scope_references(line, current)

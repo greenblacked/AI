@@ -2638,13 +2638,17 @@ def test_portable_footnote_use_without_a_definition_in_its_own_file_is_left_alon
 
 
 def test_portable_footnote_labels_stay_distinct_across_files_and_skills(mini_repo, tmp_path):
+    # Footnote labels match case-insensitively, as cmark-gfm does; that follows its source
+    # and spec, and was not checked against GitHub's live renderer. The body uses the
+    # upper-case spelling of a lower-case definition and the reference the reverse, so
+    # that dropping the casefold on either the use lookup or the definition key fails.
     for skill_name in ("alpha", "beta"):
         skill = mini_repo / "plugins/engineering/skills" / skill_name
         refs = skill / "references"
         refs.mkdir(exist_ok=True)
         source = skill / "SKILL.md"
         source.write_text(
-            source.read_text() + f"\nRead references/one.md.\n\n{skill_name} body.[^note]\n\n"
+            source.read_text() + f"\nRead references/one.md.\n\n{skill_name} body.[^NOTE]\n\n"
             f"[^note]: {skill_name} body note.\n"
         )
         (refs / "one.md").write_text(
@@ -2656,9 +2660,97 @@ def test_portable_footnote_labels_stay_distinct_across_files_and_skills(mini_rep
         document = (out / filename).read_text()
         definitions = _footnote_definitions(document)
         assert len(definitions) == (2 if filename.startswith("skills") else 4)
+        resolved = 0
         for skill_name in ("alpha", "beta"):
             for kind in ("body", "reference"):
                 for match in re.finditer(rf"{skill_name} {kind}\.{FOOTNOTE_LABEL}", document):
                     assert definitions[match[1]] == f"{skill_name} {kind} note."
+                    resolved += 1
+        # Every use must have been rewritten, or the loop above proves nothing.
+        assert resolved == len(definitions)
+        assert "[^NOTE]" not in document and "[^note]" not in document
         # One document may define a label once; two definitions would silently drop one.
         assert len(re.findall(rf"^{FOOTNOTE_LABEL}:", document, re.M)) == len(definitions)
+
+
+def test_portable_reference_frontmatter_is_stripped_before_flattening(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\nRead references/one.md.\n")
+    (refs / "one.md").write_text(
+        "---\nname: one\ndescription: Reference metadata\n---\n# One\n\nBody text.\n"
+    )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        assert "Reference metadata" not in document
+        assert "description:" not in document
+        assert len(re.findall(r"^#{3,} One$", document, re.M)) == 1
+        assert "Body text." in document
+
+
+@pytest.mark.parametrize("anchor", ['<a id="sample">', '<a name="sample"></a>'])
+def test_portable_custom_anchor_in_inline_code_is_accepted_but_real_one_is_not(
+    mini_repo, tmp_path, anchor, capsys
+):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    source = skill / "SKILL.md"
+    original = source.read_text()
+    source.write_text(original + f"\nWrite `{anchor}` or ``{anchor}`` to name a target.\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    assert f"`{anchor}`" in (out / "skills/alpha.md").read_text()
+    # An anchor outside code, and one beside an unclosed backtick, must still be refused.
+    for prose in (f"\nWrite {anchor} here.\n", f"\nWrite `{anchor} here.\n", f"\n`x` {anchor}\n"):
+        source.write_text(original + prose)
+        for check in (True, False):
+            assert portable.export(mini_repo, out, check=check) == 1
+            assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+def test_portable_footnote_like_title_without_a_definition_is_reported_not_a_crash(
+    mini_repo, tmp_path, capsys
+):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\nRead references/one.md.\n")
+    (refs / "one.md").write_text("# [^t]: Title\n\nBody.\n")
+    out = tmp_path / "portable"
+    # The title is read as a reference definition whose destination resolves nowhere.
+    assert portable.export(mini_repo, out, check=True) == 1
+    assert "::error::alpha still points at" in capsys.readouterr().out
+    assert not out.exists()
+
+
+def test_portable_footnote_label_followed_by_a_destination_stays_a_link(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text() + "\nSee [^x](https://example.com/a) and "
+        "![^x](https://example.com/i.png) then a claim.[^x]\n\n[^x]: Note.\n"
+    )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    line = next(line for line in document.splitlines() if line.startswith("See "))
+    assert line.startswith("See [^x](https://example.com/a) and ![^x](https://example.com/i.png)")
+    assert re.search(rf"then a claim\.{FOOTNOTE_LABEL}$", line)
+    assert len(_footnote_definitions(document)) == 1
+
+
+def test_portable_footnote_use_after_an_unbound_reference_label_is_scoped(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\nSee [word][^x] here.\n\n[^x]: Note.\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert re.search(rf"^See \[word\]{FOOTNOTE_LABEL} here\.$", document, re.M)
+    assert len(_footnote_definitions(document)) == 1
