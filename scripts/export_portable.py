@@ -1545,6 +1545,12 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         return prefix + rewrite_prose(rest, current, expand_bare, at_start=first)
 
     def rewrite(text: str, current: str, *, expand_bare: bool = True) -> str:
+        def flush(segment: str, at: int, saved: list[str], opener: str, closer: str) -> str:
+            rewritten = rewrite_segment(segment, current, expand_bare, at == 0)
+            if not opener:
+                return rewritten
+            return re.sub(f"{opener}(\\d+){closer}", lambda m: saved[int(m.group(1))], rewritten)
+
         out = []
         fenced_lines = fence_spans(text)
         inert = inert_ranges(text, fenced_lines)
@@ -1552,18 +1558,30 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             if fenced:
                 out.append(line)
                 continue
-            # Comments and the part of a code span past a line break are copied verbatim;
-            # the prose between them is rewritten on its own.
-            pieces, last = [], 0
+            # Comments, tags and the part of a code span past a line break are copied
+            # verbatim. Each is swapped for an opaque token while the line is rewritten, so a
+            # link whose label holds one is still read as a single link; a table's cell
+            # pipes are hard boundaries instead, since a link never crosses a cell.
+            free = [char for char in map(chr, range(0xE000, 0xE010)) if char not in line]
+            opener, closer = free[:2] if len(free) >= 2 else ("", "")
+            saved: list[str] = []
+            pieces, working, start = [], "", 0
+
+            last = 0
             for begin, end in inert[number]:
-                if begin > last:
-                    pieces.append(
-                        rewrite_segment(line[last:begin], current, expand_bare, last == 0)
-                    )
-                pieces.append(line[begin:end])
+                if line[begin:end] == "|" or not opener:
+                    if begin > last or working:
+                        pieces.append(
+                            flush(working + line[last:begin], start, saved, opener, closer)
+                        )
+                    pieces.append(line[begin:end])
+                    working, start = "", end
+                else:
+                    working += line[last:begin] + f"{opener}{len(saved)}{closer}"
+                    saved.append(line[begin:end])
                 last = end
-            if last < len(line) or not pieces:
-                pieces.append(rewrite_segment(line[last:], current, expand_bare, last == 0))
+            if last < len(line) or working or not pieces:
+                pieces.append(flush(working + line[last:], start, saved, opener, closer))
             out.append("".join(pieces))
         return "\n".join(out)
 

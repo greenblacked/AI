@@ -3989,3 +3989,25 @@ def test_portable_character_references_in_a_destination_are_decoded(
     (references / filename).write_text("# Target\n\nBody.\n")
     status, _ = _export_alpha(mini_repo, tmp_path, f"See [t]({destination}).\n")
     assert (status == 0) is resolves
+
+
+@pytest.mark.parametrize(
+    "label",
+    ["read <!-- hidden --> A", "read <b>bold</b> A", 'read <span title="x">A</span>'],
+)
+def test_portable_link_with_inline_html_in_its_label_is_still_rewritten(mini_repo, tmp_path, label):
+    references = mini_repo / "plugins/engineering/skills/alpha/references"
+    references.mkdir(exist_ok=True)
+    (references / "a.md").write_text("# A\n\nBody.\n")
+    status, out = _export_alpha(mini_repo, tmp_path, f"See [{label}](references/a.md).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert f"[{label}](#portable-" in document
+    assert "references/a.md" not in document.split("## Reference material")[0]
+
+
+def test_portable_link_in_a_table_cell_never_crosses_a_pipe(mini_repo, tmp_path):
+    table = "| h1 | h2 |\n| --- | --- |\n| [a | b](missing.md) | c |\n"
+    status, _ = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 0
