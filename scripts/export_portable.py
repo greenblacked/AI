@@ -234,6 +234,32 @@ def strip_frontmatter(text: str) -> str:
     return text.strip()
 
 
+def html_block_start(content: str, in_paragraph: bool) -> tuple[re.Pattern[str] | None, int] | None:
+    """How the HTML block starting on this line ends, or None when none starts here.
+
+    The result is ``(terminator, from)``: a block of types 1-5 ends on the line where
+    ``terminator`` matches at or after offset ``from``; ``None`` as the terminator means a
+    block of type 6 or 7, which ends at a blank line. A generic tag alone on a line
+    (type 7) cannot interrupt a paragraph; the others can.
+    """
+    if content.startswith("<!--"):
+        return re.compile("-->"), 2
+    opener = HTML_BLOCK_START_RE.match(content)
+    if opener is not None:
+        kind = opener.group(1) or opener.group(2)
+        if kind is None:
+            return None, 0
+        kind = kind.lower()
+        if kind in {"script", "pre", "style", "textarea"}:
+            return re.compile(rf"</{kind}>", re.I), opener.end()
+        return re.compile(
+            r"\?>" if kind == "?" else r"\]\]>" if kind.startswith("![") else ">"
+        ), opener.end()
+    if not in_paragraph and HTML_BLOCK_GENERIC_RE.match(content):
+        return None, 0
+    return None
+
+
 def fence_spans(text: str) -> list[bool]:
     """One flag per line: True when the line is inside a fenced or indented code block.
 
@@ -252,6 +278,9 @@ def fence_spans(text: str) -> list[bool]:
     list_indent = 0
     after_blank = True
     spaces = 0
+    in_html = False
+    html_end: re.Pattern[str] | None = None
+    html_from = 0
     for line in text.split("\n"):
         prefix = CONTAINER_PREFIX_RE.match(line)
         content = line[prefix.end() :]
@@ -268,6 +297,8 @@ def fence_spans(text: str) -> list[bool]:
             if not rest.strip():
                 in_paragraph = False
                 after_blank = True
+                if html_end is None:
+                    in_html = False
                 flags.append(False)
                 continue
             marker = ITEM_RE.match(rest) if spaces < list_indent + 4 else None
@@ -280,6 +311,25 @@ def fence_spans(text: str) -> list[bool]:
             elif after_blank and spaces == 0:
                 list_indent = 0
             after_blank = False
+        if opening is None and in_html:
+            # Inside a raw HTML block a fence marker is raw HTML, not a fence.
+            if html_end is not None and html_end.search(content):
+                in_html = False
+            html_from = 0
+            in_paragraph = False
+            flags.append(False)
+            continue
+        if opening is None and spaces < list_indent + 4:
+            started = html_block_start(content, in_paragraph)
+            if started is not None:
+                html_end, html_from = started
+                in_html = True
+                if html_end is not None and html_end.search(content, html_from):
+                    in_html = False
+                html_from = 0
+                in_paragraph = False
+                flags.append(False)
+                continue
         fence = FENCE_RE.match(content)
         # Four spaces past the container make text, not a fence; this is only reachable as
         # the continuation of a paragraph, since otherwise the line was code above.
@@ -607,8 +657,8 @@ def inert_ranges(
     wins, as in CommonMark: a backtick inside a comment is comment text, and `<!--` inside
     a code span is code. A code span or inline comment closes only within its paragraph; a
     comment that begins its line is an HTML block and runs to its `-->` or the end of its
-    container. Not handled: a fence marker inside a comment or another HTML block, which
-    `fence_spans` reads as a fence; an indented fence marker, likewise; a list item inside a
+    container. Not handled: an indented fence marker, which `fence_spans` reads as a fence
+    where the indentation makes it text in some list shapes; a list item inside a
     blockquote, whose fence outlives the item; a comment opening inside an HTML block
     already open, or after a blank line at four spaces of indent, which is code; a link
     whose label contains a comment, which is rewritten in pieces; and a table row, whose

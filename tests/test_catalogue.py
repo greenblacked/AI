@@ -3405,3 +3405,31 @@ def test_portable_html_block_still_audits_its_anchors(mini_repo, tmp_path, capsy
     status, _ = _export_alpha(mini_repo, tmp_path, '<div>\n<a id="x"></a>\n## Hidden\n</div>\n')
     assert status == 1
     assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "addition",
+    [
+        "<div>\n```\n</div>\n\n[broken](missing.md)\n",
+        "<!--\n```\n-->\n[broken](missing.md)\n",
+        "<pre>\n~~~\n</pre>\n\n[broken](missing.md)\n",
+        "<span>\n```\n</span>\n\n[broken](missing.md)\n",
+    ],
+)
+def test_portable_fence_marker_inside_raw_html_opens_no_fence(
+    mini_repo, tmp_path, addition, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_real_fence_after_an_html_block_is_still_a_fence(mini_repo, tmp_path):
+    example = (
+        "<details>\n<summary>Show</summary>\n\n```bash\n[x](missing.md)\n```\n\n</details>\n\n"
+        "<div>\nx\n</div>\n\n```\n[y](gone.md)\n```\n"
+    )
+    status, out = _export_alpha(mini_repo, tmp_path, example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "[x](missing.md)" in (out / "skills/alpha.md").read_text()
