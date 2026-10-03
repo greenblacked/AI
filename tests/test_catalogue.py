@@ -563,7 +563,8 @@ def test_a_reference_is_inlined_and_its_pointer_rewritten(mini_repo):
     assert "references/depth.md" not in document
     assert 'the "Going deeper" section below' in document
     assert "### Going deeper" in document
-    assert "##### A sub-heading" in document  # demoted so it nests
+    # Demoted so it nests; the generated anchor sits inline in the heading, not above it.
+    assert re.search(r'^##### <a name="[^"]+"></a>A sub-heading$', document, re.M)
 
 
 def test_a_pointer_to_a_file_that_is_gone_is_reported_not_swallowed(mini_repo):
@@ -3088,7 +3089,8 @@ def test_portable_indented_code_block_is_inert(mini_repo, tmp_path, example):
     status, out = _export_alpha(mini_repo, tmp_path, "Before.\n\n" + example)
     assert status == 0
     assert portable.export(mini_repo, out) == 0
-    assert example.strip("\n") in (out / "skills/alpha.md").read_text()
+    document = re.sub(r'<a name="portable-[^"]*"></a>', "", (out / "skills/alpha.md").read_text())
+    assert example.strip("\n") in document
 
 
 @pytest.mark.parametrize(
@@ -3500,3 +3502,27 @@ def test_portable_reference_definition_with_its_title_on_one_line_is_accepted(mi
     )
     assert status == 0
     assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_anchor_for_a_heading_in_a_list_keeps_the_list_intact(mini_repo, tmp_path):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, "- item\n\n  ## Nested heading\n\n  child text\n\n- second item\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    # The anchor rides on the heading's own line, so the heading stays inside its item.
+    assert re.search(r'^  ## <a name="portable-[^"]+"></a>Nested heading$', document, re.M)
+    assert not re.search(r'^<a name="portable-[^"]+"></a>\n *##', document, re.M)
+
+
+def test_portable_anchor_for_a_quoted_and_a_setext_heading_stays_in_place(mini_repo, tmp_path):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, "> ## Quoted\n\n- Item title\n  ===\n\nPlain\n-----\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert re.search(r'^> ## <a name="portable-[^"]+"></a>Quoted$', document, re.M)
+    assert re.search(r'^- <a name="portable-[^"]+"></a>Item title$', document, re.M)
+    assert re.search(r'^<a name="portable-[^"]+"></a>Plain$', document, re.M)

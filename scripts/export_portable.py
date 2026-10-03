@@ -1377,8 +1377,13 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             lines[0] = ""
         for index, anchor in heading_ids[relative].items():
             if index != 0 or not text.startswith("# "):
-                quote = QUOTE_PREFIX_RE.match(lines[index]).group()
-                lines[index] = f'{quote}<a name="{anchor}"></a>\n' + lines[index]
+                # Inline, after any quote or list marker and the heading's `#`s: a separate
+                # line at column zero would end the list or quote the heading sits in.
+                line = lines[index]
+                lead = CONTAINER_PREFIX_RE.match(line).end()
+                atx = ATX_RE.match(line[lead:])
+                at = lead + (atx.end() if atx else 0)
+                lines[index] = f'{line[:at]}<a name="{anchor}"></a>{line[at:]}'
         return title_anchors, demote(rewrite("\n".join(lines), relative), levels).strip()
 
     # Prepare titles in their owning source without recursively expanding filenames.
