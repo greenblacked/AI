@@ -3921,3 +3921,32 @@ def test_portable_reference_title_that_is_ordinary_is_accepted(mini_repo, tmp_pa
     status, out = _export_alpha(mini_repo, tmp_path, "See references/notes.md.\n")
     assert status == 0
     assert portable.export(mini_repo, out) == 0
+
+
+@pytest.mark.parametrize(
+    "definition",
+    [
+        "[ref]: https://example.com invalid title",
+        "[ref]: <https://example.com",
+        "[ref]: https://example.com/a(b",
+    ],
+)
+def test_portable_malformed_definition_stays_literal(mini_repo, tmp_path, definition):
+    status, out = _export_alpha(mini_repo, tmp_path, f"See [ref].\n\n{definition}\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "portable-reference-" not in document
+    assert f"\n{definition}\n" in document
+
+
+def test_portable_well_formed_definition_is_still_scoped(mini_repo, tmp_path):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, 'See [ref].\n\n[ref]: https://example.com "title"\n'
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert re.search(
+        r'^\[portable-reference-[a-f0-9]+\]: https://example.com "title"$', document, re.M
+    )

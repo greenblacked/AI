@@ -1198,6 +1198,9 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             if not key or not line[end + 1 :].strip():
                 unresolved.append(f"{relative}: unsupported empty/multiline reference definition")
                 continue
+            if not complete_definition(line):
+                # Trailing text that is not a title makes this paragraph text, not a definition.
+                continue
             # Keep emitted labels below CommonMark's 999-character limit even when
             # the original source path and label are long; assert digest ownership.
             identity = roots[relative] + "-" + key.encode().hex()
@@ -1350,7 +1353,7 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
 
     def scope_references(line: str, current: str, *, images_only: bool = False) -> str:
         ids = reference_ids[current]
-        definition = definition_label(line)
+        definition = definition_label(line) if complete_definition(line) else None
         if definition and not images_only:
             begin, end = definition
             key = reference_key(line[begin + 1 : end - 1])
