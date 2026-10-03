@@ -30,9 +30,14 @@ tool access, so a malicious change here is a supply-chain change. The controls a
 - **GitHub's own controls**, alongside the checks above rather than in place of them:
   private vulnerability reporting, which is what the form under Reporting depends on;
   secret scanning with push protection, which stops a credential as it is pushed rather
-  than one CI run later; and Dependabot alerts and security updates, which surface a
-  published advisory against anything pinned here. Which of these are confirmed on, and
-  how to read each back, is recorded in [`docs/ci.md`](docs/ci.md#recorded-state).
+  than one CI run later; and Dependabot alerts and security updates. Those last two
+  cover less than their names suggest: GitHub raises an alert for an action only when it
+  is referenced by a semantic version, never by a commit SHA, and every action here is
+  pinned by SHA while `pyproject.toml` declares no dependencies. They watch for a
+  manifest added later; today the defence for actions is the weekly version updates in
+  `.github/dependabot.yml`, which do follow a SHA pin through its version comment. Which
+  of these are confirmed on, and how to read each back, is recorded in
+  [`docs/ci.md`](docs/ci.md#recorded-state).
 
 ## What skills may and may not contain
 
