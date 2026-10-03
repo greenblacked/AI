@@ -3433,3 +3433,11 @@ def test_portable_real_fence_after_an_html_block_is_still_a_fence(mini_repo, tmp
     assert status == 0
     assert portable.export(mini_repo, out) == 0
     assert "[x](missing.md)" in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_comment_closed_by_bang_form_ends_its_html_block(mini_repo, tmp_path):
+    example = "<!--\n--!>\n```\n[x](missing.md)\n```\n"
+    status, out = _export_alpha(mini_repo, tmp_path, example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "[x](missing.md)" in (out / "skills/alpha.md").read_text()

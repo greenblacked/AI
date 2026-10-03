@@ -124,7 +124,7 @@ _TAG_ATTRIBUTE = (
     r"""(?:\s+|(?<=["']))[A-Za-z_:][A-Za-z0-9_.:-]*(?:\s*=\s*(?:[^\s"'=<>`]+|'[^']*'|"[^"]*"))?"""
 )
 HTML_TAG_RE = re.compile(
-    rf"<[A-Za-z][A-Za-z0-9-]*(?:{_TAG_ATTRIBUTE})*\s*/?>|</[A-Za-z][A-Za-z0-9-]*\s*>|<!--.*?-->",
+    rf"<[A-Za-z][A-Za-z0-9-]*(?:{_TAG_ATTRIBUTE})*\s*/?>|</[A-Za-z][A-Za-z0-9-]*\s*>|<!--.*?--!?>",
     re.S,
 )
 # A complete tag alone on its line: an HTML block of type 7, which cannot interrupt a paragraph.
@@ -243,7 +243,9 @@ def html_block_start(content: str, in_paragraph: bool) -> tuple[re.Pattern[str] 
     (type 7) cannot interrupt a paragraph; the others can.
     """
     if content.startswith("<!--"):
-        return re.compile("-->"), 2
+        # `--!>` also closes a comment in HTML; ending a block at either errs toward reading
+        # the text after it as Markdown, which can only fail an export loudly.
+        return re.compile(r"--!?>"), 2
     opener = HTML_BLOCK_START_RE.match(content)
     if opener is not None:
         kind = opener.group(1) or opener.group(2)
