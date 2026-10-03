@@ -776,3 +776,21 @@ before it. Blank quoted values first, then require a boundary before the name. T
 benchmark drops the boundary.
 
 **First caught:** #112, the automated PR reviewer.
+
+### A generated identifier shares a namespace with author text
+
+**Class.** An export mints identifiers from a deterministic scheme in a namespace the
+source author also writes into, so an author can arrange for their own text to take the
+identifier meant for something else.
+
+**How it shows up.** In #112, the portable export rewrote local file links to generated
+`portable-<hex>-root` fragments. A skill heading whose rendered slug equalled one of those
+names sat earlier in a bundle than the real `<a name>` target, so the link jumped to the
+heading, whose body the author controlled, instead of the section it named.
+
+**The check that catches it.** `tests/test_catalogue.py` refuses a heading whose slug
+matches the generated shape, by ATX and setext forms alike, and accepts ordinary headings
+that merely start with `portable`. Refuse the collision at the source rather than trying to
+rename around it. The benchmark removes the check.
+
+**First caught:** #112, the automated security review.

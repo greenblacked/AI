@@ -3566,3 +3566,31 @@ def test_portable_indented_heading_outside_any_list_is_still_text(mini_repo, tmp
     )
     assert status == 1
     assert "#not-a-heading" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "heading",
+    [
+        "## portable-6162-root",
+        "## Portable 6162 63 Root",
+        "## portable-6162-6364-heading-7",
+        "portable-6162-root\n-----",
+    ],
+)
+def test_portable_heading_that_collides_with_a_generated_anchor_is_refused(
+    mini_repo, tmp_path, heading, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, f"{heading}\n")
+    assert status == 1
+    assert "collides with a generated anchor" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "heading", ["## Portable export", "## portable-ready", "## Root", "## Heading 7"]
+)
+def test_portable_ordinary_headings_do_not_trip_the_anchor_collision_check(
+    mini_repo, tmp_path, heading
+):
+    status, out = _export_alpha(mini_repo, tmp_path, f"{heading}\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0

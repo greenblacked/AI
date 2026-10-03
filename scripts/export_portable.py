@@ -83,6 +83,8 @@ ASSET_LANGUAGES = {
 FENCE_RE = re.compile(r"^(`{3,}|~{3,})")
 ATX_RE = re.compile(r"^(#{1,6})(\s+)")
 # The underline of a setext heading: a run of `=` or `-` and nothing else.
+# The shape of every anchor this export generates: a section root or a numbered heading.
+GENERATED_ANCHOR_RE = re.compile(r"portable-(?:[0-9a-f]+-)+(?:root|heading-\d+)")
 SETEXT_UNDERLINE_RE = re.compile(r"^ {0,3}(?:=+|-+) *$")
 # A thematic break: three or more of one of `-`, `*` or `_`, with spaces allowed between.
 THEMATIC_BREAK_RE = re.compile(r"^ {0,3}([-*_])(?: *\1){2,} *$")
@@ -1148,6 +1150,9 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
                     paragraph_start = (index, depth, lead if container.group("item") else 0)
                 continue
             slug = source_slug(heading_display(heading, reference_destinations[relative]))
+            # A heading whose own id equals a generated anchor would take links meant for it.
+            if GENERATED_ANCHOR_RE.fullmatch(slug):
+                unresolved.append(f"{relative}: heading collides with a generated anchor")
             alias, suffix = slug, 0
             while alias in used:
                 suffix += 1
