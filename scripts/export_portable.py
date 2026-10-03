@@ -1005,7 +1005,8 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             continue
         fenced_lines = fence_spans(text)
         inert = inert_ranges(text, fenced_lines)
-        for number, (line, fenced) in enumerate(zip(text.split("\n"), fenced_lines, strict=True)):
+        source_lines = text.split("\n")
+        for number, (line, fenced) in enumerate(zip(source_lines, fenced_lines, strict=True)):
             # A definition inside a comment or a multiline code span defines nothing, so
             # collecting it would scope a use that the copied definition then fails to match.
             if fenced or inert[number] and not blank_ranges(line, inert[number]).strip():
@@ -1038,6 +1039,11 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             if owner != (relative, key):
                 raise OSError("reference identifier namespace collision")
             reference_ids[relative].setdefault(key, scoped)
+            # A title may follow the destination on the next line, indented. That form is not
+            # read here, and rewriting its text as prose would corrupt it, so it is refused.
+            following = source_lines[number + 1] if number + 1 < len(source_lines) else ""
+            if re.match(r"""\s+["'(]""", following) and not re.search(r"""["')]\s*$""", line):
+                unresolved.append(f"{relative}: unsupported multiline reference definition title")
             spans = destination_spans(line)
             if spans:
                 start, finish, _, _ = spans[0]
@@ -1139,10 +1145,12 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             continue
         # Multi-line labels are legal Markdown, but are outside this line scanner's
         # supported syntax. Detect actual known bindings rather than arbitrary prose.
+        fenced_lines = fence_spans(sources[relative])
+        inert = inert_ranges(sources[relative], fenced_lines)
         visible = "\n".join(
-            "" if fenced else re.sub(r"(`+)[^`]*?\1", "", line)
-            for line, fenced in zip(
-                sources[relative].split("\n"), fence_spans(sources[relative]), strict=True
+            "" if fenced else re.sub(r"(`+)[^`]*?\1", "", blank_ranges(line, inert[number]))
+            for number, (line, fenced) in enumerate(
+                zip(sources[relative].split("\n"), fenced_lines, strict=True)
             )
         )
         for match in re.finditer(r"\[([^\[\]]+)\](?:\[([^\[\]]*)\])?", visible):

@@ -3457,3 +3457,46 @@ def test_portable_markdown_after_a_bang_form_comment_end_is_checked(
     status, _ = _export_alpha(mini_repo, tmp_path, addition)
     assert status == 1
     assert "missing.md" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "addition",
+    [
+        "<!-- [foo\nbar] -->\n\n[foo bar]: https://example.com\n",
+        "<div>\n[foo\nbar]\n</div>\n\n[foo bar]: https://example.com\n",
+        "Use `[foo\nbar]` here.\n\n[foo bar]: https://example.com\n",
+    ],
+)
+def test_portable_multiline_reference_shape_in_inert_text_is_not_a_binding(
+    mini_repo, tmp_path, addition
+):
+    status, out = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_multiline_label_in_prose_is_still_refused(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(
+        mini_repo, tmp_path, "See [foo\nbar] here.\n\n[foo bar]: https://example.com\n"
+    )
+    assert status == 1
+    assert "multiline reference binding" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("title", ['  "A title [x](missing.md)"', "  'single'", "  (paren)"])
+def test_portable_reference_definition_title_on_the_next_line_is_refused(
+    mini_repo, tmp_path, title, capsys
+):
+    status, _ = _export_alpha(
+        mini_repo, tmp_path, f"See [ref].\n\n[ref]: https://example.com\n{title}\n"
+    )
+    assert status == 1
+    assert "multiline reference definition title" in capsys.readouterr().out
+
+
+def test_portable_reference_definition_with_its_title_on_one_line_is_accepted(mini_repo, tmp_path):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, 'See [ref].\n\n[ref]: https://example.com "A title"\n  more text\n'
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
