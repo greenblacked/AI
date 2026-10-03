@@ -601,3 +601,199 @@ premature confirmation requirement. Fixture schema and patch-applicability tests
 the fixture, not live reviewer detection.
 
 **First caught:** #108, the [automated PR reviewer finding](https://github.com/greenblacked/AI/pull/108#discussion_r4165758838).
+
+### Flattening documents destroys local link identity
+
+**Class.** Rewriting path text without preserving source-relative paths and fragment
+identity creates malformed links or links to the wrong section when documents are flattened.
+
+**How it shows up.** In #109, messages-and-calibration fragment destinations became
+English prose in individual portable skills, while sibling-file links survived unchanged
+in the coding bundle.
+
+**The check that catches it.** `tests/test_catalogue.py` checks destination syntax and
+source context, plus unique anchors and target content in individual skills and bundles.
+The reviewer benchmark bypasses fragment remapping, sending section links to document
+roots. Schema and patch-applicability tests verify the fixture, not reviewer detection.
+
+**First caught:** #109, the review stage's inspection of actual portable exports.
+
+### A hook command splits a checkout path at spaces
+
+**Class.** An executable path in a shell-form hook command is unquoted, so the shell
+splits a checkout directory containing spaces into separate words.
+
+**How it shows up.** In #109, the Claude Code hook JSON command worked in an ordinary
+scratch path but exited 127 in a spaced path, attempting to execute the first path word.
+
+**The check that catches it.** Parse the exact JSON command and run it via `sh -c`
+against a harmless executable stub in ordinary and spaced scratch roots. Both corrected
+runs exit 0. The reviewer benchmark restores only the unquoted command. Schema and
+patch-applicability tests verify the fixture, not actual hook dispatch or reviewer detection.
+
+**First caught:** #109, the review stage, following exact-command scratch reproduction.
+
+### Namespacing definitions skips image uses inside link labels
+
+**Class.** Reference definitions are renamed while nested image uses retain their
+source labels, breaking a valid binding during flattening.
+
+**How it shows up.** In #109, `[![badge][image]][target]` kept the outer destination
+but rendered literal image syntax after the image definition was namespaced. Inline
+outer links had the same traversal defect.
+
+**The check that catches it.** Export repeated source-local image labels in individual
+skills and plugin bundles, check their bindings independently, and render full,
+collapsed and shortcut images inside reference and inline links. Protect code, titles
+and fences. The benchmark removes only nested-label traversal; fixture schema and
+patch-applicability checks do not measure real reviewer behavior.
+
+**First caught:** #109, the fresh independent review of actual portable exports.
+
+### Traversing link labels skips nested image destinations
+
+**Class.** A scanner protects an outer link's syntax without validating image sources
+inside its label, allowing unsupported local assets to bypass preflight validation.
+
+**How it shows up.** In #109, `[![badge](references/missing.svg)](https://example.com)`
+and its reference-style outer link passed check and export, replacing a good previous
+export with missing image paths in individual skills and plugin bundles.
+
+**The check that catches it.** Exercise nested inline and known reference image sources
+from bodies and reference files, including existing, missing, escaping and fragment
+sources. Require visible rejection before any output bytes change, while preserving
+external image URIs, source-local bindings, titles, code and fences. The benchmark
+removes nested inline image validation only; fixture schema and applicability tests
+verify the fixture, not live reviewer quality.
+
+**First caught:** #109, the independent review's actual-export regression probe.
+
+### Reference-bound headings allocate aliases from label identifiers
+
+**Class.** Source section aliases include a bound reference identifier instead of the
+rendered heading text, shifting duplicate allocation and sending links to another section.
+
+**How it shows up.** In #109, `## [Guide][target]` followed by `## Guide` sent
+`#guide` to the second heading in individual skills and plugin bundles.
+
+**The check that catches it.** Export full, collapsed and shortcut heading references
+in source context and assert both duplicate targets' actual section contents. Preserve
+undefined reference text. The benchmark seeds alias derivation only; applicability
+checks do not establish live reviewer detection.
+
+**First caught:** #109, the independent review's actual-export heading probe.
+
+### Relocated titles lose source-local bindings and validation
+
+**Class.** A title is removed before rewriting and inserted raw into its new location,
+so namespaced reference definitions no longer bind and local images bypass validation.
+The same defect affects a reference title copied into a bare-pointer paragraph.
+
+**How it shows up.** In #109, skill and reference H1 links rendered literal reference
+syntax; local images in either emitted title were accepted without a portable asset.
+
+**The check that catches it.** Prepare every emitted title once in its original source
+context with bare-pointer expansion disabled, and reuse it in copied prose and headings.
+Render links and images in individual skills and bundles, check owner collisions and
+bounded self/mutual filename mentions, and reject local title images before any output
+changes. The benchmarks restore raw relocated or copied title emission;
+fixture applicability is separate from live reviewer detection.
+
+**First caught:** #109, the independent review's rendered-title probe; the image
+validation bypass also existed before that change.
+
+### An unmatched backtick hides subsequent links
+
+**Class.** A literal unmatched delimiter is treated as code through the end of a line,
+preventing reference binding and destination scanning that rendered Markdown requires.
+
+**How it shows up.** In #109, a literal backtick before `[target]` left the use raw while
+its definition was namespaced, removing a visible link in both portable output forms.
+
+**The check that catches it.** Exercise unmatched runs and closed spans with unequal
+internal runs. Require an exact-length closing run before protecting code in both
+reference and destination scanners. The benchmark seeds that delimiter rule only;
+applicability checks do not prove reviewer detection or complete CommonMark support.
+
+**First caught:** #109, the independent review's rendered-backtick probe.
+
+### Balanced inline headings leak destination text into aliases
+
+**Class.** A non-balanced expression removes only part of an inline heading link,
+including destination or title suffixes in its source alias.
+
+**How it shows up.** In #109, `[Guide](https://example.com/path(a)b)` and a
+parenthesized optional title displaced `#guide` from the first repeated heading.
+
+**The check that catches it.** Use the existing balanced destination scanner and
+export both forms in skill and reference contexts. Check that `#guide` and
+`#guide-1` reach the first and second section in individuals and bundles. The
+benchmark restores alias derivation only; fixture applicability does not prove
+live reviewer detection or general Markdown compliance.
+
+**First caught:** #109, the independent review's rendered-heading probe.
+
+### A line-by-line scanner misses constructs that span lines
+
+**Class.** A scanner that reads one line at a time cannot see a construct that crosses a
+line break or sits inside a container, so it rewrites or validates text that is inert, or
+treats a block's content as the block's end.
+
+**How it shows up.** In #112, a code span that continued onto a second line had its
+reference and link examples rewritten, and a missing path inside one failed the export; an
+HTML comment did the same, and a fence quoted with `>` or nested under a bullet was read as
+prose. The first fix then introduced the mirror image: a quoted fence marker inside an open
+fence closed it early, and a backtick inside a comment, or `<!--` inside a code span, opened
+the other construct in a second pass, so real links were left raw and the export still
+passed.
+
+**The check that catches it.** `tests/test_catalogue.py` exports each shape and asserts
+the inert text is copied verbatim, then asserts the opposite for prose beside it: a real
+missing link after a comment, a paragraph break, or a closed fence still fails the export.
+Find comments and multiline spans in one left-to-right scan where the first starter wins,
+and close a fence only from the opener's own container. The benchmark confines code span
+closing to one line. Calibrate the boundary rules against a CommonMark reference
+renderer rather than from the spec by memory: a differential run over random documents
+found a quote, a list item, a thematic break and a block-level tag each ending a span,
+comment or fence that the first fix let run on. That run left out documents with an
+unbalanced `<!--`, so the unclosed cases rest on the targeted tests; a fence inside an HTML
+block and an indented fence marker are not handled.
+
+**First caught:** #112, the automated PR reviewer, and the review stage for the mirror
+image and the paragraph boundaries.
+
+### A substring match stands in for an attribute name
+
+**Class.** A pattern meant to find an HTML attribute matches the same letters inside
+another attribute's name or inside a quoted value.
+
+**How it shows up.** In #112, `<span data-name="x">` and `<a title="name=x">` were
+refused as custom anchors because `name=` matched with no boundary before it.
+
+**The check that catches it.** `tests/test_catalogue.py` accepts prefixed attribute names
+and attribute values and still refuses an exact `id` or `name`, including with no space
+before it. Blank quoted values first, then require a boundary before the name. The
+benchmark drops the boundary.
+
+**First caught:** #112, the automated PR reviewer.
+
+### A generated identifier shares a namespace with author text
+
+**Class.** An export mints identifiers from a deterministic scheme in a namespace the
+source author also writes into, so an author can arrange for their own text to take the
+identifier meant for something else.
+
+**How it shows up.** In #112, the portable export rewrote local file links to generated
+`portable-<hex>-root` fragments. A skill heading whose rendered slug equalled one of those
+names sat earlier in a bundle than the real `<a name>` target, so the link jumped to the
+heading, whose body the author controlled, instead of the section it named.
+
+**The check that catches it.** `tests/test_catalogue.py` refuses a heading whose slug
+matches the generated shape or its stem, by ATX and setext forms alike, and accepts ordinary
+headings that merely start with `portable`. The stem counts because GitHub numbers repeated
+headings: the Nth copy of `portable-<hex>-heading` takes the id of a generated anchor. Refuse the collision at the source rather than trying to
+rename around it. The same check covers the titles the exporter writes itself, from a
+reference file's H1 or its filename, because no source heading line exists for the scan to
+see. The benchmark removes the check.
+
+**First caught:** #112, the automated security review.

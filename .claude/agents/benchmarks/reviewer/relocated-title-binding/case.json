@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Seed only relocated-title-binding in portable export.",
+  "lesson": "Relocated titles lose source-local bindings and validation",
+  "must_mention": [
+    "title|heading",
+    "reference|binding",
+    "raw|rewrite|image"
+  ]
+}
