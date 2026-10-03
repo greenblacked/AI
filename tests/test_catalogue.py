@@ -3441,3 +3441,19 @@ def test_portable_comment_closed_by_bang_form_ends_its_html_block(mini_repo, tmp
     assert status == 0
     assert portable.export(mini_repo, out) == 0
     assert "[x](missing.md)" in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    "addition",
+    [
+        "<!-- note --!>\n[broken](missing.md)\n",
+        "text <!-- note --!> [broken](missing.md)\n",
+        "<!--\nnote\n--!>\n\n[broken](missing.md)\n",
+    ],
+)
+def test_portable_markdown_after_a_bang_form_comment_end_is_checked(
+    mini_repo, tmp_path, addition, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out

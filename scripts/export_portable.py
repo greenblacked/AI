@@ -102,6 +102,8 @@ HTML_BLOCK_START_RE = re.compile(
     r"|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul)(?:\s|/?>|$))",
     re.I,
 )
+# What ends an HTML comment. HTML also accepts `--!>`; every scan here ends a comment at either.
+COMMENT_END_RE = re.compile(r"--!?>")
 # A line that starts a block which can interrupt a paragraph, tested on the text after any
 # container prefix: a thematic break or setext underline, or an HTML block of types 1-6
 # (a comment, a processing instruction, a declaration, or a block-level tag).
@@ -245,7 +247,7 @@ def html_block_start(content: str, in_paragraph: bool) -> tuple[re.Pattern[str] 
     if content.startswith("<!--"):
         # `--!>` also closes a comment in HTML; ending a block at either errs toward reading
         # the text after it as Markdown, which can only fail an export loudly.
-        return re.compile(r"--!?>"), 2
+        return COMMENT_END_RE, 2
     opener = HTML_BLOCK_START_RE.match(content)
     if opener is not None:
         kind = opener.group(1) or opener.group(2)
@@ -658,9 +660,9 @@ def inert_ranges(
     of unfenced lines, in a single left-to-right scan. Whichever construct starts first
     wins, as in CommonMark: a backtick inside a comment is comment text, and `<!--` inside
     a code span is code. A code span or inline comment closes only within its paragraph; a
-    comment that begins its line is an HTML block and runs to its `-->` or the end of its
-    container. Not handled: an indented fence marker, which `fence_spans` reads as a fence
-    where the indentation makes it text in some list shapes; a list item inside a
+    comment that begins its line is an HTML block and runs to its `-->` (or `--!>`) or the
+    end of its container. Not handled: an indented fence marker, which `fence_spans` reads as
+    a fence where the indentation makes it text in some list shapes; a list item inside a
     blockquote, whose fence outlives the item; a comment opening inside an HTML block
     already open, or after a blank line at four spaces of indent, which is code; a link
     whose label contains a comment, which is rewritten in pieces; and a table row, whose
@@ -698,22 +700,23 @@ def inert_ranges(
                 if position < raw_until:
                     # Still inside the HTML block that the previous comment closed on this
                     # line: a comment here is raw HTML and cannot run onto later lines.
-                    close = joined.find("-->", position + 4, raw_until)
-                    if close < 0:
+                    ending = COMMENT_END_RE.search(joined, position + 4, raw_until)
+                    if ending is None:
                         position += 4
                         continue
-                    found.append((position, close + 3))
-                    position = close + 3
+                    found.append((position, ending.end()))
+                    position = ending.end()
                     continue
                 limit = container[line_index] if block_start else paragraph[line_index]
                 # Only a comment that begins its line is an HTML block, whose `-->` may
                 # overlap its own `<!--` and which hides the rest of its container when
                 # never closed; elsewhere it is inline and an unclosed one is literal.
-                close = joined.find("-->", position + (2 if block_start else 4), limit)
-                if close < 0 and not block_start:
+                ending = COMMENT_END_RE.search(joined, position + (2 if block_start else 4), limit)
+                if ending is None and not block_start:
                     position += 4
                     continue
-                end = limit if close < 0 else close + 3
+                close = -1 if ending is None else ending.start()
+                end = limit if ending is None else ending.end()
                 found.append((position, end))
                 if block_start and close >= 0:
                     # The rest of the line holding `-->` belongs to the HTML block. Markdown
