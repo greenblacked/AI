@@ -383,7 +383,11 @@ def fence_spans(text: str) -> list[bool]:
             # A heading, a thematic break, or the underline that closes a setext heading leaves no
             # paragraph running for a following indented line to continue.
             in_paragraph = ATX_RE.match(content) is None and not (
-                THEMATIC_BREAK_RE.match(rest) or (in_paragraph and SETEXT_UNDERLINE_RE.match(rest))
+                THEMATIC_BREAK_RE.match(rest)
+                or (in_paragraph and SETEXT_UNDERLINE_RE.match(rest))
+                # A reference definition cannot interrupt a paragraph, but one that starts a
+                # block is complete on its own line and leaves no paragraph running.
+                or (not in_paragraph and definition_label(content) is not None)
             )
         flags.append(opening is not None)
     return flags
@@ -1263,14 +1267,17 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         return "".join(pieces)
 
     def resolve(destination: str, current: str, *, image: bool = False) -> str | None:
-        decoded = unquote(re.sub(r"\\([!\"#$%&'()*+,./:;<=>?@\[\]\^_`{|}~-])", r"\1", destination))
-        if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", decoded) or decoded.startswith("//"):
+        unescaped = re.sub(r"\\([!\"#$%&'()*+,./:;<=>?@\[\]\^_`{|}~-])", r"\1", destination)
+        # Split on the literal `#` first, then percent-decode each part on its own: an encoded
+        # `%23` is part of a filename, not a fragment delimiter.
+        raw_path, separator, raw_fragment = unescaped.partition("#")
+        path, fragment = unquote(raw_path), unquote(raw_fragment)
+        if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", path) or path.startswith("//"):
             return None
         if image:
             # Flattened section anchors cannot render source-relative image assets.
             unresolved.append(f"{current}: unsupported local image source: {destination}")
             return None
-        path, separator, fragment = decoded.partition("#")
         candidate = (
             posixpath.normpath(posixpath.join(posixpath.dirname(current), path))
             if path

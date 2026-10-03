@@ -3594,3 +3594,41 @@ def test_portable_ordinary_headings_do_not_trip_the_anchor_collision_check(
     status, out = _export_alpha(mini_repo, tmp_path, f"{heading}\n")
     assert status == 0
     assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_indented_code_right_after_a_reference_definition_is_inert(mini_repo, tmp_path):
+    example = '[ref]: https://example.com "title"\n    [example](missing.md)\n'
+    status, out = _export_alpha(mini_repo, tmp_path, "See [ref].\n\n" + example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "    [example](missing.md)" in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_definition_inside_a_paragraph_does_not_end_it(mini_repo, tmp_path, capsys):
+    # A definition cannot interrupt a paragraph, so the indented line is still text.
+    status, _ = _export_alpha(
+        mini_repo, tmp_path, "A paragraph\n[ref]: https://example.com\n    [x](missing.md)\n"
+    )
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_encoded_hash_in_a_filename_is_not_a_fragment_delimiter(mini_repo, tmp_path):
+    refs = mini_repo / "plugins/engineering/skills/alpha/references"
+    refs.mkdir()
+    (refs / "a#b.md").write_text("# Hash file\n\nBody.\n")
+    status, out = _export_alpha(mini_repo, tmp_path, "See [it](references/a%23b.md).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "references/a%23b.md" not in document
+
+
+def test_portable_fragment_is_decoded_separately_from_the_path(mini_repo, tmp_path):
+    refs = mini_repo / "plugins/engineering/skills/alpha/references"
+    refs.mkdir()
+    (refs / "one.md").write_text("# One\n\n## Two words\n\nBody.\n")
+    status, out = _export_alpha(mini_repo, tmp_path, "See [it](references/one.md#two%2Dwords).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "#two%2Dwords" not in (out / "skills/alpha.md").read_text()
