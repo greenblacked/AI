@@ -4011,3 +4011,26 @@ def test_portable_link_in_a_table_cell_never_crosses_a_pipe(mini_repo, tmp_path)
     table = "| h1 | h2 |\n| --- | --- |\n| [a | b](missing.md) | c |\n"
     status, _ = _export_alpha(mini_repo, tmp_path, table)
     assert status == 0
+
+
+@pytest.mark.parametrize(
+    "table",
+    [
+        "> | h1 | h2 |\n> | --- | --- |\n> | `a | [x](missing.md)` | b |\n",
+        "- | h1 | h2 |\n  | --- | --- |\n  | `a | [x](missing.md)` | b |\n",
+        "> - | h1 | h2 |\n>   | --- | --- |\n>   | `a | [x](missing.md)` | b |\n",
+        "> h1 | h2\n> --- | ---\n> `a | [x](missing.md)` | b\n",
+    ],
+)
+def test_portable_table_nested_in_a_container_splits_its_cells(mini_repo, tmp_path, table, capsys):
+    status, _ = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_container_text_with_a_pipe_is_not_a_table(mini_repo, tmp_path):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, "> a | b\n> not a delimiter\n> `c | [x](missing.md)`\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0

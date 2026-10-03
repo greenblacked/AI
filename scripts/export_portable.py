@@ -783,18 +783,21 @@ def table_rows(lines: list[str], fenced: list[bool]) -> set[int]:
     inline syntax, so a code span or a link never reaches across one.
     """
     rows: set[int] = set()
+    # A table nested in a blockquote or list item keeps its rows after the container marker,
+    # so each row is read from there.
+    bodies = [line[CONTAINER_PREFIX_RE.match(line).end() :] for line in lines]
     for index in range(1, len(lines)):
         if (
             not fenced[index]
             and not fenced[index - 1]
-            and "|" in lines[index]
-            and TABLE_DELIMITER_RE.match(lines[index])
-            and lines[index - 1].strip()
-            and "|" in lines[index - 1]
+            and "|" in bodies[index]
+            and TABLE_DELIMITER_RE.match(bodies[index])
+            and bodies[index - 1].strip()
+            and "|" in bodies[index - 1]
         ):
             rows.update((index - 1, index))
             following = index + 1
-            while following < len(lines) and lines[following].strip() and not fenced[following]:
+            while following < len(lines) and bodies[following].strip() and not fenced[following]:
                 rows.add(following)
                 following += 1
     return rows
@@ -815,9 +818,9 @@ def inert_ranges(
     end of its container. Not handled: an indented fence marker, which `fence_spans` reads as
     a fence where the indentation makes it text in some list shapes; a list item inside a
     blockquote, whose fence outlives the item; a comment opening inside an HTML block
-    already open, or after a blank line at four spaces of indent, which is code; a link
-    whose label contains a comment, which is rewritten in pieces. A GFM table row is cut at
-    its unescaped pipes, which are marked inert so each cell is read on its own.
+    already open, or after a blank line at four spaces of indent, which is code. A GFM
+    table row, nested in a container or not, is cut at its unescaped pipes, which are marked
+    inert so each cell is read on its own.
     """
     lines = text.split("\n")
     ranges: list[list[tuple[int, int]]] = [[] for _ in lines]
