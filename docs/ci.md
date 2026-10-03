@@ -791,7 +791,7 @@ stops working without it.
 | --- | --- | --- |
 | The branch ruleset above | Whether `ci` and `security` are required, and whether `main` takes direct pushes | Every gate in this repository is advisory and a red build can merge |
 | Private vulnerability reporting | Whether the advisory form `SECURITY.md` tells people to use exists | A reporter follows that instruction, finds nothing, and falls back to a public issue — which for a leaked credential is the outcome the document exists to prevent |
-| Dependabot alerts, and security updates | Whether a published advisory against a dependency GitHub can read is surfaced, and a fix proposed. That excludes everything this repository depends on today: GitHub raises an alert for an action only when it is referenced by a semantic version, not a commit SHA, every action here is pinned by SHA, and `pyproject.toml` declares no dependencies | Nothing would flag a manifest dependency added later. For actions the outcome is the same either way: no alert reaches a SHA pin, so `.github/dependabot.yml`'s version updates — a different feature, which does follow a SHA pin through its version comment — are what keep a vulnerable action from staying in place |
+| Dependabot alerts, and security updates | Whether a published advisory against a dependency GitHub can read is surfaced, and a fix proposed. That excludes nearly everything this repository depends on today: GitHub raises an alert for an action only when it is referenced by a semantic version, not a commit SHA, and every action here is pinned by SHA; the tools CI installs are pinned in workflow variables, and GitHub parses only a workflow's `uses:` references as dependencies; `pyproject.toml` declares no runtime dependencies, and its one third-party package, the unpinned `hatchling` build backend, is fetched only when the validator is built or installed as a package, which CI never does, with no version update covering it | Nothing would flag a manifest dependency added later. For actions the outcome is the same either way: no alert reaches a SHA pin, so `.github/dependabot.yml`'s version updates — a different feature, which does follow a SHA pin through its version comment — are what keep a vulnerable action from staying in place |
 | Required SHA pinning for actions | Whether the platform refuses a workflow referencing an action by tag | Only the `grep` in `permissions-audit` stands between a floating tag and a build, and it runs after the fact rather than instead of |
 | Secret scanning, and push protection | Whether a credential is caught as it is pushed | gitleaks still catches it in CI, one step later and after it has left the machine |
 | Default workflow token permissions | The floor every job's `permissions:` block narrows from | An absent block inherits write access rather than read |
@@ -833,8 +833,10 @@ None of the settings confirmed above replace a check already documented in this 
 each sits alongside it. Push protection stops a credential at push time, and
 gitleaks still scans the tree and history in CI exactly as before, one step later.
 Dependabot alerts and security updates watch for a dependency GitHub can read, which
-today means none: they skip an action pinned by SHA, as every action here is, and
-`pyproject.toml` declares no dependencies. `.github/dependabot.yml`'s version updates,
+today is close to none: they skip an action pinned by SHA, as every action here is, and
+the tools CI installs by pinned version in workflow variables. `pyproject.toml` declares
+no runtime dependencies; its build backend, `hatchling`, is unpinned and outside every
+update, but nothing here builds the package. `.github/dependabot.yml`'s version updates,
 covered in the row above, remain the separate feature they always were, and for actions
 the only one of the two that does anything.
 

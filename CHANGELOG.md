@@ -205,9 +205,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   from `security.yml`'s `codeql` job and that GitHub's default setup must stay off, since
   the two cannot both upload; `SECURITY.md` and the README now name these controls too.
   Stop claiming that Dependabot alerts cover what is pinned here: GitHub raises none for
-  an action pinned by SHA, which every action here is, and `pyproject.toml` declares no
-  dependencies, so `.github/dependabot.yml`'s version updates are what keep actions
-  current.
+  an action pinned by SHA, which every action here is, nor for a tool pinned in a
+  workflow variable, and `pyproject.toml` declares no runtime dependencies, so
+  `.github/dependabot.yml`'s version updates are what keep actions current. Name the
+  unpinned `hatchling` build backend as the one package no update covers.
 - Stop `docs/ci.md` and `CONTRIBUTING.md` from implying `make naming` and `make
   attribution` check the pull request title and body locally: the Makefile targets never
   set `PR_TITLE` or `PR_BODY`, so only CI checks them, once the pull request exists.

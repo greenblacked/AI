@@ -33,8 +33,11 @@ tool access, so a malicious change here is a supply-chain change. The controls a
   than one CI run later; and Dependabot alerts and security updates. Those last two
   cover less than their names suggest: GitHub raises an alert for an action only when it
   is referenced by a semantic version, never by a commit SHA, and every action here is
-  pinned by SHA while `pyproject.toml` declares no dependencies. They watch for a
-  manifest added later; today the defence for actions is the weekly version updates in
+  pinned by SHA. `pyproject.toml` declares no runtime dependencies; its one third-party
+  package is the unpinned `hatchling` build backend, fetched only when the validator is
+  built or installed as a package, which CI never does, and no update covers it. The
+  tools CI installs are pinned in workflow variables, which GitHub does not read as
+  dependencies. Today the defence for actions is the weekly version updates in
   `.github/dependabot.yml`, which do follow a SHA pin through its version comment. Which
   of these are confirmed on, and how to read each back, is recorded in
   [`docs/ci.md`](docs/ci.md#recorded-state).
