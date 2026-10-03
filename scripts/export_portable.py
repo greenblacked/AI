@@ -1155,7 +1155,9 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
                 continue
             slug = source_slug(heading_display(heading, reference_destinations[relative]))
             # A heading whose own id equals a generated anchor would take links meant for it.
-            if GENERATED_ANCHOR_RE.fullmatch(slug):
+            # Underscores are dropped first: `_emphasis_` markers survive in the slug but are
+            # markup to GitHub, which renders the same id as the generated one.
+            if GENERATED_ANCHOR_RE.fullmatch(slug.replace("_", "")):
                 unresolved.append(f"{relative}: heading collides with a generated anchor")
             alias, suffix = slug, 0
             while alias in used:

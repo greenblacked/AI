@@ -3575,6 +3575,10 @@ def test_portable_indented_heading_outside_any_list_is_still_text(mini_repo, tmp
         "## Portable 6162 63 Root",
         "## portable-6162-6364-heading-7",
         "portable-6162-root\n-----",
+        "## portable-6162-_root_",
+        "## _portable-6162-root_",
+        "## **portable-6162-root**",
+        "## `portable-6162-root`",
     ],
 )
 def test_portable_heading_that_collides_with_a_generated_anchor_is_refused(
