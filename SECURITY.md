@@ -25,7 +25,14 @@ tool access, so a malicious change here is a supply-chain change. The controls a
   here pushes from CI.
 - **Pinned actions.** Every third-party action is referenced by full commit SHA. A shell
   check in `security.yml` fails the build if one is not.
-- **Static analysis** with CodeQL and with ruff's flake8-bandit rules.
+- **Static analysis** with CodeQL, run from `security.yml` with the `security-extended`
+  query suite, and with ruff's flake8-bandit rules.
+- **GitHub's own controls**, alongside the checks above rather than in place of them:
+  private vulnerability reporting, which is what the form under Reporting depends on;
+  secret scanning with push protection, which stops a credential as it is pushed rather
+  than one CI run later; and Dependabot alerts and security updates, which surface a
+  published advisory against anything pinned here. Which of these are confirmed on, and
+  how to read each back, is recorded in [`docs/ci.md`](docs/ci.md#recorded-state).
 
 ## What skills may and may not contain
 

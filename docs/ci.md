@@ -801,24 +801,36 @@ stops working without it.
 ### Recorded state
 
 Everything above is what a setting decides, not whether it is on. Secret scanning, push
-protection, Dependabot alerts and Dependabot security updates are owner-confirmed on
-2026-09-26: the repository owner checked them by hand, on the Settings page under
-Security → **Advanced Security**, not through any command in this repository. Nothing
-here re-checks them, because the API responses those four settings live behind are
-hidden from a non-admin call.
+protection, Dependabot alerts and Dependabot security updates are owner-confirmed, first
+on 2026-09-26 and again on 2026-10-03: the repository owner checked them by hand, on the
+Settings page under Security → **Advanced Security**, not through any command in this
+repository. Nothing here re-checks them, because the API responses those four settings
+live behind are hidden from a non-admin call.
 
-Delete branch on merge is also on, but unlike the four above it does not rest on the
-owner's word: the public repository API returns it directly
-(`gh api /repos/greenblacked/AI --jq '.delete_branch_on_merge'`), so it is confirmed
-rather than merely reported.
+Two settings do not rest on the owner's word, because the public API returns them to any
+caller, so they are confirmed rather than merely reported. Delete branch on merge is on
+(`gh api /repos/greenblacked/AI --jq '.delete_branch_on_merge'`). Private vulnerability
+reporting is on, read back on 2026-10-03
+(`gh api /repos/greenblacked/AI/private-vulnerability-reporting --jq .enabled` returns
+`true`), so the advisory form `SECURITY.md` and `CODE_OF_CONDUCT.md` send reporters to
+exists.
 
-For the branch ruleset, private vulnerability reporting, required SHA pinning, default
-workflow token permissions and code scanning setup, this section records no state — read
-each back with the commands below rather than assume this page still matches what GitHub
-reports.
+Code scanning is the one setting with a required value rather than an on or off. On
+2026-10-03 the owner turned on GitHub's default setup alongside the `codeql` job, and then
+chose to keep the job: it runs the `security-extended` suite this repository configures,
+and GitHub documents that it does not process a workflow's CodeQL analysis while default
+setup is also enabled, so with both on the job's upload is rejected and the required
+`security` check can go red. Default setup
+therefore has to stay off. Read it back with the `code-scanning/default-setup` command
+below; `not-configured` is the required answer, and anything else is the conflict this
+paragraph describes, not a stricter configuration.
 
-None of the four settings confirmed above replace a check already documented in this
-file; each sits alongside it. Push protection stops a credential at push time, and
+For the branch ruleset, required SHA pinning and default workflow token permissions, this
+section records no state — read each back with the commands below rather than assume this
+page still matches what GitHub reports.
+
+None of the settings confirmed above replace a check already documented in this file;
+each sits alongside it. Push protection stops a credential at push time, and
 gitleaks still scans the tree and history in CI exactly as before, one step later.
 Dependabot alerts surface a published advisory against something pinned here;
 `.github/dependabot.yml`'s version updates, covered in the row above, remain the
