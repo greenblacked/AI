@@ -1,14 +1,12 @@
 diff --git a/scripts/export_portable.py b/scripts/export_portable.py
 --- a/scripts/export_portable.py
 +++ b/scripts/export_portable.py
-@@ -549,7 +549,9 @@
+@@ -868,7 +868,7 @@
              elif char == "`" and position >= raw_until:
                  run = len(joined[position:]) - len(joined[position:].lstrip("`"))
                  end = position + run
--                for match in re.finditer(r"`+", joined[position + run : paragraph[line_index]]):
-+                for match in re.finditer(
-+                    r"`+", joined[position + run : starts[line_index] + len(block[line_index])]
-+                ):
-                     if len(match.group()) == run:
-                         end = position + run + match.end()
-                         if "\n" in joined[position:end]:
+-                stop = paragraph[line_index]
++                stop = starts[line_index] + len(block[line_index])
+                 if first + line_index in tables:
+                     # A span in a table cell ends at the cell, whatever follows the pipe.
+                     cell_end = CELL_PIPE_RE.search(joined, position + run, stop)

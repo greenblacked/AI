@@ -128,11 +128,19 @@ BLOCK_START_RE = re.compile(
 # `<me@x.com>` (autolinks, whose text is shown) from reading as tags. Quoted values may hold
 # angle brackets. An attribute may follow a closing quote with no space, which a renderer
 # reads as text: refusing an `id` there errs toward failing the export.
-_TAG_ATTRIBUTE = (
-    r"""(?:\s+|(?<=["']))[A-Za-z_:][A-Za-z0-9_.:-]*(?:\s*=\s*(?:[^\s"'=<>`]+|'[^']*'|"[^"]*"))?"""
-)
+_TAG_ATTRIBUTE = r"""\s+[A-Za-z_:][A-Za-z0-9_.:-]*(?:\s*=\s*(?:[^\s"'=<>`]+|'[^']*'|"[^"]*"))?"""
+# CommonMark's tag grammar, which needs whitespace before every attribute. Anything this
+# matches is raw HTML to a renderer, so its text is inert.
 HTML_TAG_RE = re.compile(
     rf"<[A-Za-z][A-Za-z0-9-]*(?:{_TAG_ATTRIBUTE})*\s*/?>|</[A-Za-z][A-Za-z0-9-]*\s*>|<!--.*?--!?>",
+    re.S,
+)
+# The same with an attribute allowed straight after a closing quote, which a renderer reads as
+# text. Only the custom-anchor audit uses it: refusing an `id` there errs toward failing.
+HTML_TAG_AUDIT_RE = re.compile(
+    HTML_TAG_RE.pattern.replace(
+        _TAG_ATTRIBUTE, _TAG_ATTRIBUTE.replace(r"\s+", r"""(?:\s+|(?<=["']))""", 1)
+    ),
     re.S,
 )
 # A complete tag alone on its line: an HTML block of type 7, which cannot interrupt a paragraph.
@@ -621,7 +629,7 @@ def has_custom_anchor(text: str) -> bool:
     attribute name has to follow whitespace, so `data-name` is not `name`. Closing tags
     and comments carry no attributes. The caller blanks code, which is inert.
     """
-    for tag in HTML_TAG_RE.finditer(text):
+    for tag in HTML_TAG_AUDIT_RE.finditer(text):
         text = tag.group()
         if text.startswith(("</", "<!--")):
             continue
@@ -720,6 +728,35 @@ def html_block_end(
     return starts[last] + len(block[last])
 
 
+TABLE_DELIMITER_RE = re.compile(r"^\s*\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)*\|?\s*$")
+CELL_PIPE_RE = re.compile(r"(?<!\\)\|")
+
+
+def table_rows(lines: list[str], fenced: list[bool]) -> set[int]:
+    """Indexes of the lines that are rows of a GFM table: header, delimiter row and body.
+
+    A table is a header line followed by a delimiter row such as `| --- | --- |`; its body
+    runs to the next blank line. GitHub splits each row at unescaped pipes before reading
+    inline syntax, so a code span or a link never reaches across one.
+    """
+    rows: set[int] = set()
+    for index in range(1, len(lines)):
+        if (
+            not fenced[index]
+            and not fenced[index - 1]
+            and "|" in lines[index]
+            and TABLE_DELIMITER_RE.match(lines[index])
+            and lines[index - 1].strip()
+            and "|" in lines[index - 1]
+        ):
+            rows.update((index - 1, index))
+            following = index + 1
+            while following < len(lines) and lines[following].strip() and not fenced[following]:
+                rows.add(following)
+                following += 1
+    return rows
+
+
 def inert_ranges(
     text: str, fenced: list[bool], *, markup: bool = True
 ) -> list[list[tuple[int, int]]]:
@@ -736,11 +773,12 @@ def inert_ranges(
     a fence where the indentation makes it text in some list shapes; a list item inside a
     blockquote, whose fence outlives the item; a comment opening inside an HTML block
     already open, or after a blank line at four spaces of indent, which is code; a link
-    whose label contains a comment, which is rewritten in pieces; and a table row, whose
-    cells GitHub parses one at a time.
+    whose label contains a comment, which is rewritten in pieces. A GFM table row is cut at
+    its unescaped pipes, which are marked inert so each cell is read on its own.
     """
     lines = text.split("\n")
     ranges: list[list[tuple[int, int]]] = [[] for _ in lines]
+    tables = table_rows(lines, fenced)
     number = 0
     while number < len(lines):
         if fenced[number]:
@@ -830,7 +868,12 @@ def inert_ranges(
             elif char == "`" and position >= raw_until:
                 run = len(joined[position:]) - len(joined[position:].lstrip("`"))
                 end = position + run
-                for match in re.finditer(r"`+", joined[position + run : paragraph[line_index]]):
+                stop = paragraph[line_index]
+                if first + line_index in tables:
+                    # A span in a table cell ends at the cell, whatever follows the pipe.
+                    cell_end = CELL_PIPE_RE.search(joined, position + run, stop)
+                    stop = cell_end.start() if cell_end else stop
+                for match in re.finditer(r"`+", joined[position + run : stop]):
                     if len(match.group()) == run:
                         end = position + run + match.end()
                         if "\n" in joined[position:end]:
@@ -844,6 +887,9 @@ def inert_ranges(
                 low, high = starts[index], starts[index] + len(line)
                 if begin < high and end > low:
                     ranges[first + index].append((max(begin, low) - low, min(end, high) - low))
+    if markup:
+        for index in tables:
+            ranges[index].extend((m.start(), m.end()) for m in CELL_PIPE_RE.finditer(lines[index]))
     return [sorted(set(found)) for found in ranges]
 
 
@@ -979,6 +1025,9 @@ def definition_label(line: str) -> tuple[int, int] | None:
         return None
     begin = match.end() - 1
     end = bracket_end(line, begin)
+    # A label holds no unescaped bracket, though link text may: `[a[b]]: url` is prose.
+    if re.search(r"(?<!\\)[\[\]]", line[begin + 1 : end - 1] if end else ""):
+        return None
     if end is not None and line[end : end + 1] == ":":
         return begin, end
     return None
@@ -1131,6 +1180,7 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         fenced_lines = fence_spans(text)
         inert = inert_ranges(text, fenced_lines, markup=False)
         markup_ranges = inert_ranges(text, fenced_lines)
+        table_lines = table_rows(text.split("\n"), fenced_lines)
         scrubbed = []
         source_lines = text.split("\n")
         # The paragraph being read, as (first line, blockquote depth, content column), so that
@@ -1145,7 +1195,11 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
                 continue
             # A comment or the tail of a multiline code span is not a heading or an anchor.
             visible = blank_ranges(line, inert[index])
-            scrubbed.append(without_code_spans(visible))
+            if index in table_lines:
+                # Code never spans a cell, so scrub each cell on its own.
+                scrubbed.append("|".join(without_code_spans(cell) for cell in visible.split("|")))
+            else:
+                scrubbed.append(without_code_spans(visible))
             # Inside a raw HTML block or a comment's closing line nothing is Markdown, so a
             # line that looks like a heading there is not one; the anchor audit above still
             # reads the tags.

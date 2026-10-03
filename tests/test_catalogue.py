@@ -3708,3 +3708,85 @@ def test_portable_fence_in_a_quoted_list_ends_with_its_item(mini_repo, tmp_path,
     status, out = _export_alpha(mini_repo, tmp_path, closed)
     assert status == 0
     assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_adjacent_attributes_are_not_one_tag_for_inert_text(mini_repo, tmp_path, capsys):
+    # CommonMark needs whitespace before every attribute, so this is text and the link is real.
+    status, _ = _export_alpha(mini_repo, tmp_path, '<span title="x"oops="[bad](missing.md)">\n')
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_well_formed_attributes_still_hide_their_text(mini_repo, tmp_path):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, '<span title="x" oops="[ok](missing.md)">y</span>\n'
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_adjacent_attribute_id_is_still_refused_as_an_anchor(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(mini_repo, tmp_path, '<a href="x"id="y">\n')
+    assert status == 1
+    assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("label", ["a[b]", "a[b", "a]b", "[a]"])
+def test_portable_label_with_an_unescaped_bracket_is_not_a_definition(mini_repo, tmp_path, label):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, f"A line with [{label}] in it.\n\n[{label}]: https://example.com\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "portable-reference-" not in document
+    assert f"[{label}]: https://example.com" in document
+
+
+def test_portable_label_with_an_escaped_bracket_is_still_a_definition(mini_repo, tmp_path):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, "See [a\\[b].\n\n[a\\[b]: https://example.com\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "portable-reference-" in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    "row",
+    [
+        "| `code | [broken](missing.md)` |",
+        "| a | `x | [broken](missing.md) y` |",
+        "`only | [broken](missing.md)` | b |",
+    ],
+)
+def test_portable_table_cells_are_scanned_independently(mini_repo, tmp_path, row, capsys):
+    table = f"| h1 | h2 |\n| --- | --- |\n{row}\n"
+    status, _ = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_code_span_inside_one_cell_and_escaped_pipes_stay_inert(mini_repo, tmp_path):
+    table = "| h1 | h2 |\n| --- | --- |\n| `[a](missing.md)` | x |\n| `a \\| [b](gone.md)` | y |\n"
+    status, out = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "`[a](missing.md)`" in document
+    assert "`a \\| [b](gone.md)`" in document
+
+
+def test_portable_pipes_outside_a_table_do_not_split_code(mini_repo, tmp_path):
+    status, out = _export_alpha(mini_repo, tmp_path, "Run `a | [x](missing.md)` now.\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_anchor_in_a_table_cell_after_a_cross_cell_span_is_refused(
+    mini_repo, tmp_path, capsys
+):
+    table = '| h1 | h2 |\n| --- | --- |\n| `a | <a id="x"></a> `b` |\n'
+    status, _ = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 1
+    assert "unsupported custom HTML anchor" in capsys.readouterr().out
