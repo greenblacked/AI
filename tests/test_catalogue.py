@@ -3247,3 +3247,49 @@ def test_portable_underline_after_a_container_or_code_is_not_a_setext_heading(
     status, _ = _export_alpha(mini_repo, tmp_path, f"{before}\n---\n\nSee [x](#item).\n")
     assert status == 1
     assert "#item" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("heading", "fragment"),
+    [
+        ("> ## Quoted target", "quoted-target"),
+        (">> # Deeply quoted", "deeply-quoted"),
+        ("- ## List target", "list-target"),
+        ("1. ### Numbered target", "numbered-target"),
+        ("   ## Indented target", "indented-target"),
+        ("- > ## Both", "both"),
+    ],
+)
+def test_portable_atx_heading_in_a_container_is_a_link_target(
+    mini_repo, tmp_path, heading, fragment
+):
+    status, out = _export_alpha(mini_repo, tmp_path, f"{heading}\n\nSee [t](#{fragment}).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert f"(#{fragment})" not in document
+    assert re.search(r"See \[t\]\(#portable-[0-9a-f-]+-heading-\d+\)\.", document)
+
+
+def test_portable_atx_heading_indented_four_spaces_is_text(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(
+        mini_repo, tmp_path, "Intro paragraph\n    ## Not a heading\n\n[t](#not-a-heading)\n"
+    )
+    assert status == 1
+    assert "#not-a-heading" in capsys.readouterr().out
+
+
+def test_portable_fence_on_a_list_continuation_line_ends_with_its_item(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(
+        mini_repo, tmp_path, "- item\n\n  ~~~\n  code\n\n[broken](missing.md)\n"
+    )
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+    # Closed, the fence is code and its content is left alone.
+    example = "- item\n\n  ~~~\n  [x](missing.md)\n  ~~~\n"
+    source = mini_repo / "plugins/engineering/skills/alpha/SKILL.md"
+    source.write_text(source.read_text().split("- item")[0])
+    status, out = _export_alpha(mini_repo, tmp_path, example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "  [x](missing.md)" in (out / "skills/alpha.md").read_text()

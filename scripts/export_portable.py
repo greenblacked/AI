@@ -89,25 +89,25 @@ SETEXT_UNDERLINE_RE = re.compile(r"^ {0,3}(?:=+|-+) *$")
 QUOTE_PREFIX_RE = re.compile(r"^(?: {0,3}> ?)*")
 ITEM_RE = re.compile(r"^( *)([-*+]|\d+[.)])(?:( +)(?=\S)|\s*$)")
 # What may sit between the start of a line and a code fence: blockquote markers and list
-# markers, however deeply nested. A fenced example quoted with `>` or nested under a
-# bullet is still a fence.
-CONTAINER_PREFIX_RE = re.compile(r"^(?:\s{0,3}>)*\s*(?P<item>(?:(?:[-*+]|\d+[.)])\s+)+)?")
-# A line that starts a block which can interrupt a paragraph, tested on the text after any
-# container prefix: a thematic break or setext underline, or an HTML block of types 1-6
-# (a comment, a processing instruction, a declaration, or a block-level tag).
-BLOCK_START_RE = re.compile(
-    r"^ {0,3}(?:(?:[-*_])(?: *[-*_]){2,} *$|=+ *$|-+ *$|<(?:!--|\?|![A-Za-z]|!\[CDATA\[)"
-    r"|<(?:script|pre|style|textarea)(?:\s|>|$)"
+# markers, however deeply nested and in either order. A fenced example quoted with `>` or
+# nested under a bullet is still a fence. Group `item` is set when any list marker is there.
+CONTAINER_PREFIX_RE = re.compile(r"^(?:\s{0,3}>|\s*(?P<item>(?:[-*+]|\d+[.)])\s+))*\s*")
+# The start of an HTML block of types 1-6 (not a comment, which is handled on its own), tested
+# on the text after any container prefix. Group 1 names a type-1 tag, group 2 is a type-6 tag.
+HTML_BLOCK_START_RE = re.compile(
+    r"^ {0,3}(?:<(script|pre|style|textarea)(?:\s|>|$)|<(\?|![A-Za-z]|!\[CDATA\[)"
     r"|</?(?:address|article|aside|blockquote|center|details|dialog|dir|div|dl|dt|dd|fieldset"
     r"|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend"
     r"|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|section|source"
     r"|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul)(?:\s|/?>|$))",
     re.I,
 )
-# The start of an HTML block of types 1-6 (not a comment, which is handled on its own), tested
-# on the text after any container prefix. Group 1 names a type-1 tag, group 2 is a type-6 tag.
-HTML_BLOCK_START_RE = re.compile(
-    r"^ {0,3}(?:<(script|pre|style|textarea)(?:\s|>|$)|<(\?|![A-Za-z]|!\[CDATA\[)"
+# A line that starts a block which can interrupt a paragraph, tested on the text after any
+# container prefix: a thematic break or setext underline, or an HTML block of types 1-6
+# (a comment, a processing instruction, a declaration, or a block-level tag).
+BLOCK_START_RE = re.compile(
+    r"^ {0,3}(?:(?:[-*_])(?: *[-*_]){2,} *$|=+ *$|-+ *$|<(?:!--|\?|![A-Za-z]|!\[CDATA\[)"
+    r"|<(?:script|pre|style|textarea)(?:\s|>|$)"
     r"|</?(?:address|article|aside|blockquote|center|details|dialog|dir|div|dl|dt|dd|fieldset"
     r"|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend"
     r"|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|section|source"
@@ -298,7 +298,12 @@ def fence_spans(text: str) -> list[bool]:
             if opening is None:
                 opening = marker_text
                 depth = quotes
-                indent = len(prefix.group()) if prefix.group("item") and not quotes else 0
+                if prefix.group("item") and not quotes:
+                    indent = len(prefix.group())
+                elif list_indent and spaces >= list_indent and not quotes:
+                    indent = list_indent  # a continuation line of the item above
+                else:
+                    indent = 0
                 in_paragraph = False
                 flags.append(True)
                 continue
@@ -984,10 +989,14 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             # A comment or the tail of a multiline code span is not a heading or an anchor.
             visible = blank_ranges(line, inert[index])
             scrubbed.append(without_code_spans(visible))
-            match = ATX_RE.match(visible)
+            # A heading may sit in a blockquote or a list item, or be indented up to three
+            # spaces; four spaces make it text.
+            lead = CONTAINER_PREFIX_RE.match(visible).end()
+            match = ATX_RE.match(visible[lead:])
+            quoted = ">" in visible[:lead]
             heading: str | None = None
-            if match:
-                heading = re.sub(r"\s+#+\s*$", "", line[match.end() :])
+            if match and (lead < 4 or quoted):
+                heading = re.sub(r"\s+#+\s*$", "", line[lead + match.end() :])
                 at = index
                 paragraph_start = None
             elif not visible.strip():
@@ -1253,7 +1262,8 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             lines[0] = ""
         for index, anchor in heading_ids[relative].items():
             if index != 0 or not text.startswith("# "):
-                lines[index] = f'<a name="{anchor}"></a>\n' + lines[index]
+                quote = QUOTE_PREFIX_RE.match(lines[index]).group()
+                lines[index] = f'{quote}<a name="{anchor}"></a>\n' + lines[index]
         return title_anchors, demote(rewrite("\n".join(lines), relative), levels).strip()
 
     # Prepare titles in their owning source without recursively expanding filenames.
