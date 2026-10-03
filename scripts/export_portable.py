@@ -84,6 +84,8 @@ FENCE_RE = re.compile(r"^(`{3,}|~{3,})")
 ATX_RE = re.compile(r"^(#{1,6})(\s+)")
 # The underline of a setext heading: a run of `=` or `-` and nothing else.
 SETEXT_UNDERLINE_RE = re.compile(r"^ {0,3}(?:=+|-+) *$")
+# A thematic break: three or more of one of `-`, `*` or `_`, with spaces allowed between.
+THEMATIC_BREAK_RE = re.compile(r"^ {0,3}([-*_])(?: *\1){2,} *$")
 # Blockquote markers alone, so the indentation left over is the line's own, and a list item
 # marker with the width of its content: group 3 is the spaces after the marker.
 QUOTE_PREFIX_RE = re.compile(r"^(?: {0,3}> ?)*")
@@ -305,7 +307,9 @@ def fence_spans(text: str) -> list[bool]:
                     in_html = False
                 flags.append(False)
                 continue
-            marker = ITEM_RE.match(rest) if spaces < list_indent + 4 else None
+            # A thematic break wins over a list item: `- - -` is a rule, not nested bullets.
+            is_rule = THEMATIC_BREAK_RE.match(rest) is not None
+            marker = ITEM_RE.match(rest) if spaces < list_indent + 4 and not is_rule else None
             if spaces >= list_indent + 4 and not in_paragraph and marker is None:
                 flags.append(True)
                 continue
@@ -374,7 +378,11 @@ def fence_spans(text: str) -> list[bool]:
             flags.append(True)
             continue
         if opening is None:
-            in_paragraph = ATX_RE.match(content) is None
+            # A heading, a thematic break, or the underline that closes a setext heading leaves no
+            # paragraph running for a following indented line to continue.
+            in_paragraph = ATX_RE.match(content) is None and not (
+                THEMATIC_BREAK_RE.match(rest) or (in_paragraph and SETEXT_UNDERLINE_RE.match(rest))
+            )
         flags.append(opening is not None)
     return flags
 
@@ -1065,6 +1073,8 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         # The paragraph being read, as (first line, blockquote depth, content column), so that
         # an underline only counts in the container the text is in.
         paragraph_start: tuple[int, int, int] | None = None
+        list_column = 0  # where the content of the latest list item starts
+        after_blank = True
         for index, (line, fenced) in enumerate(zip(source_lines, fenced_lines, strict=True)):
             if fenced:
                 scrubbed.append("")
@@ -1089,9 +1099,18 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             lead = container.end()
             quoted = ">" in visible[:lead]
             depth = container.group().count(">")
+            column = len(visible[:lead].expandtabs(4))
+            if not visible.strip():
+                after_blank = True
+            else:
+                if container.group("item") and not quoted:
+                    list_column = column
+                elif after_blank and not visible[:1].isspace() and not quoted:
+                    list_column = 0
+                after_blank = False
             match = ATX_RE.match(visible[lead:])
             heading: str | None = None
-            if match and (len(visible[:lead].expandtabs(4)) < 4 or quoted):
+            if match and (column - list_column < 4 or quoted):
                 heading = re.sub(r"\s+#+\s*$", "", line[lead + match.end() :])
                 at = index
                 paragraph_start = None

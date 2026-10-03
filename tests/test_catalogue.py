@@ -3526,3 +3526,43 @@ def test_portable_anchor_for_a_quoted_and_a_setext_heading_stays_in_place(mini_r
     assert re.search(r'^> ## <a name="portable-[^"]+"></a>Quoted$', document, re.M)
     assert re.search(r'^- <a name="portable-[^"]+"></a>Item title$', document, re.M)
     assert re.search(r'^<a name="portable-[^"]+"></a>Plain$', document, re.M)
+
+
+@pytest.mark.parametrize("rule", ["***", "---", "___", "- - -", " * * *"])
+def test_portable_indented_code_after_a_thematic_break_is_inert(mini_repo, tmp_path, rule):
+    example = f"{rule}\n    [example](missing.md)\n"
+    status, out = _export_alpha(mini_repo, tmp_path, "Intro.\n\n" + example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "    [example](missing.md)" in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_indented_code_after_a_setext_heading_is_inert(mini_repo, tmp_path):
+    example = "Title\n=====\n    [example](missing.md)\n"
+    status, out = _export_alpha(mini_repo, tmp_path, example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+@pytest.mark.parametrize(
+    ("item", "indent"),
+    [("100. Item", 5), ("1. Item", 3), ("- Item", 2), ("1000. Item", 6), ("-    Item", 5)],
+)
+def test_portable_heading_under_a_wide_list_marker_is_a_link_target(
+    mini_repo, tmp_path, item, indent
+):
+    addition = f"{item}\n\n{' ' * indent}## Nested heading\n\nSee [t](#nested-heading).\n"
+    status, out = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "(#nested-heading)" not in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_indented_heading_outside_any_list_is_still_text(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(
+        mini_repo,
+        tmp_path,
+        "- item\n\nOutside the list.\n\n     ## Not a heading\n\nSee [t](#not-a-heading).\n",
+    )
+    assert status == 1
+    assert "#not-a-heading" in capsys.readouterr().out
