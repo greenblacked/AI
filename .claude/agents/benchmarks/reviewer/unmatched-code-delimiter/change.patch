@@ -1,0 +1,12 @@
+diff --git a/scripts/export_portable.py b/scripts/export_portable.py
+--- a/scripts/export_portable.py
++++ b/scripts/export_portable.py
+@@ -276,7 +276,7 @@
+     for match in re.finditer(r"`+", line[begin + run :]):
+         if len(match.group()) == run:
+             return begin + run + match.end()
+-    return begin + run
++    return len(line)
+
+
+ def heading_display(heading: str, bindings: dict[str, str]) -> str:

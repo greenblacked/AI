@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Seed only balanced inline heading alias derivation in portable export.",
+  "lesson": "Balanced inline headings leak destination text into aliases",
+  "must_mention": [
+    "heading|alias",
+    "balanced|parenthes|title",
+    "duplicate|target"
+  ]
+}

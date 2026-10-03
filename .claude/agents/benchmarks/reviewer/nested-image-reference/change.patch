@@ -1,0 +1,12 @@
+diff --git a/scripts/export_portable.py b/scripts/export_portable.py
+--- a/scripts/export_portable.py
++++ b/scripts/export_portable.py
+@@ -546,7 +546,7 @@
+             if end is None:
+                 break
+             label = line[begin + 1 : end - 1]
+-            scoped_label = scope_references(label, current, images_only=True)
++            scoped_label = label
+             if line[end : end + 1] == "(":
+                 # Images can bind inside a link label; destinations and titles cannot.
+                 inline = destination_spans(line[begin:])

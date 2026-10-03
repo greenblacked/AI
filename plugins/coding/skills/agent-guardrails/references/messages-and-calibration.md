@@ -238,9 +238,9 @@ working in:
 Protect them in layers, because each layer sees something the others do not:
 
 - **Where the agent writes.** A permission or sandbox setting denying writes to those paths
-  (rung 7), and in Claude Code an agent tool hook that reports an edit to one (rung 6). Both
-  are local, and both sit in files the agent might otherwise reach, so neither is
-  authoritative alone.
+  (rung 7), and where the host/version supports it, an agent tool hook that reports an
+  edit to one (rung 6). Both are local, and both sit in files the agent might otherwise
+  reach, so neither is authoritative alone.
 - **Where the change merges.** A required review from a person who owns those paths, and a
   CI check that fails any change touching them without that approval. Run the check from a
   definition the pull request cannot edit: the integration branch's copy, or a required
