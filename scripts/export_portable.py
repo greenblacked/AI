@@ -1430,7 +1430,13 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         return "".join(pieces)
 
     def resolve(destination: str, current: str, *, image: bool = False) -> str | None:
-        unescaped = re.sub(r"\\([!\"#$%&'()*+,./:;<=>?@\[\]\^_`{|}~-])", r"\1", destination)
+        # Backslash escapes and character references are decoded together, so `\\&amp;` stays
+        # literal while `&amp;` becomes `&`; percent-decoding is a separate, later step.
+        unescaped = re.sub(
+            r"\\([!\"#$%&'()*+,./:;<=>?@\[\]\^_`{|}~-])|&(?:#[0-9]{1,7}|#[xX][0-9a-fA-F]{1,6}|[A-Za-z][A-Za-z0-9]{1,31});",
+            lambda m: m.group(1) or html.unescape(m.group()),
+            destination,
+        )
         # Split on the literal `#` first, then percent-decode each part on its own: an encoded
         # `%23` is part of a filename, not a fragment delimiter.
         raw_path, separator, raw_fragment = unescaped.partition("#")
@@ -1593,6 +1599,8 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
     for relative, title in [("SKILL.md", skill_title), *prepared_titles.items()]:
         if GENERATED_ANCHOR_RE.fullmatch(source_slug(title).replace("_", "")):
             unresolved.append(f"{relative}: title collides with a generated anchor")
+        if has_custom_anchor(title):
+            unresolved.append(f"{relative}: unsupported custom HTML anchor in a generated title")
     root_anchors, body = prose("SKILL.md", 0)
     parts = [
         root_anchors,

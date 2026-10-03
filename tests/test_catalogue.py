@@ -3950,3 +3950,42 @@ def test_portable_well_formed_definition_is_still_scoped(mini_repo, tmp_path):
     assert re.search(
         r'^\[portable-reference-[a-f0-9]+\]: https://example.com "title"$', document, re.M
     )
+
+
+def test_portable_asset_filename_with_an_anchor_tag_is_refused(mini_repo, tmp_path, capsys):
+    assets = mini_repo / "plugins/engineering/skills/alpha/assets"
+    assets.mkdir(exist_ok=True)
+    (assets / '<a name="portable-6162-root">.txt').write_text("x\n")
+    status, _ = _export_alpha(mini_repo, tmp_path, "Nothing else.\n")
+    assert status == 1
+    assert "custom HTML anchor in a generated title" in capsys.readouterr().out
+
+
+def test_portable_ordinary_asset_filename_is_accepted(mini_repo, tmp_path):
+    assets = mini_repo / "plugins/engineering/skills/alpha/assets"
+    assets.mkdir(exist_ok=True)
+    (assets / "data-name.txt").write_text("x\n")
+    status, out = _export_alpha(mini_repo, tmp_path, "Nothing else.\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+@pytest.mark.parametrize(
+    ("filename", "destination", "resolves"),
+    [
+        ("a&b.md", "references/a&amp;b.md", True),
+        ("a&b.md", "references/a&#38;b.md", True),
+        ("a&b.md", "references/a&#x26;b.md", True),
+        ("a&b.md", r"references/a\&amp;b.md", False),
+        ("a#b.md", "references/a&#35;b.md", False),
+        ("a b.md", "references/a&nbsp;b.md", False),
+    ],
+)
+def test_portable_character_references_in_a_destination_are_decoded(
+    mini_repo, tmp_path, filename, destination, resolves
+):
+    references = mini_repo / "plugins/engineering/skills/alpha/references"
+    references.mkdir(exist_ok=True)
+    (references / filename).write_text("# Target\n\nBody.\n")
+    status, _ = _export_alpha(mini_repo, tmp_path, f"See [t]({destination}).\n")
+    assert (status == 0) is resolves
