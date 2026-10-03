@@ -3204,3 +3204,46 @@ def test_portable_attribute_names_that_only_contain_id_across_lines_are_accepted
     assert status == 0
     assert portable.export(mini_repo, out) == 0
     assert tag in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    ("heading", "fragment"),
+    [
+        ("Section title\n=============", "section-title"),
+        ("Other part\n----", "other-part"),
+        ("Two line\ntitle here\n===", "two-line-title-here"),
+        ("  Indented `code` title\n  ===", "indented-code-title"),
+    ],
+)
+def test_portable_setext_heading_is_a_link_target(mini_repo, tmp_path, heading, fragment):
+    status, out = _export_alpha(mini_repo, tmp_path, f"{heading}\n\nSee [there](#{fragment}).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert f"(#{fragment})" not in document
+    assert re.search(r"See \[there\]\(#portable-[0-9a-f-]+-heading-\d+\)\.", document)
+
+
+def test_portable_setext_alias_in_a_reference_and_duplicate_suffix(mini_repo, tmp_path):
+    refs = mini_repo / "plugins/engineering/skills/alpha/references"
+    refs.mkdir()
+    (refs / "one.md").write_text(
+        "# One\n\nPart\n====\n\nSee [up](#part) and [other](#part-1).\n\n# Part\n"
+    )
+    status, out = _export_alpha(
+        mini_repo, tmp_path, "Read references/one.md.\n\nPart\n----\n\nSee [here](#part).\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "(#part)" not in document
+    assert "(#part-1)" not in document
+
+
+@pytest.mark.parametrize("before", ["- item", "> quoted", "    code line"])
+def test_portable_underline_after_a_container_or_code_is_not_a_setext_heading(
+    mini_repo, tmp_path, before, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, f"{before}\n---\n\nSee [x](#item).\n")
+    assert status == 1
+    assert "#item" in capsys.readouterr().out

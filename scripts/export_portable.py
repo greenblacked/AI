@@ -82,6 +82,8 @@ ASSET_LANGUAGES = {
 # example closes early and everything after it is read as prose.
 FENCE_RE = re.compile(r"^(`{3,}|~{3,})")
 ATX_RE = re.compile(r"^(#{1,6})(\s+)")
+# The underline of a setext heading: a run of `=` or `-` and nothing else.
+SETEXT_UNDERLINE_RE = re.compile(r"^ {0,3}(?:=+|-+) *$")
 # Blockquote markers alone, so the indentation left over is the line's own, and a list item
 # marker with the width of its content: group 3 is the spaces after the marker.
 QUOTE_PREFIX_RE = re.compile(r"^(?: {0,3}> ?)*")
@@ -972,30 +974,52 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         fenced_lines = fence_spans(text)
         inert = inert_ranges(text, fenced_lines, markup=False)
         scrubbed = []
-        for index, (line, fenced) in enumerate(zip(text.split("\n"), fenced_lines, strict=True)):
+        source_lines = text.split("\n")
+        paragraph_start: int | None = None
+        for index, (line, fenced) in enumerate(zip(source_lines, fenced_lines, strict=True)):
             if fenced:
                 scrubbed.append("")
+                paragraph_start = None
                 continue
             # A comment or the tail of a multiline code span is not a heading or an anchor.
             visible = blank_ranges(line, inert[index])
             scrubbed.append(without_code_spans(visible))
             match = ATX_RE.match(visible)
-            if not match:
+            heading: str | None = None
+            if match:
+                heading = re.sub(r"\s+#+\s*$", "", line[match.end() :])
+                at = index
+                paragraph_start = None
+            elif not visible.strip():
+                paragraph_start = None
                 continue
-            slug = source_slug(
-                heading_display(
-                    re.sub(r"\s+#+\s*$", "", line[match.end() :]),
-                    reference_destinations[relative],
-                )
-            )
+            elif SETEXT_UNDERLINE_RE.match(visible) and paragraph_start is not None:
+                # A setext heading is the paragraph above its underline. Only a plain
+                # top-level paragraph counts: under a list item or quote the underline is a
+                # thematic break or a continuation.
+                heading = " ".join(part.strip() for part in source_lines[paragraph_start:index])
+                at = paragraph_start
+                paragraph_start = None
+            elif (
+                (container := CONTAINER_PREFIX_RE.match(visible)).group("item")
+                or ">" in container.group()
+                or visible.startswith("    ")
+            ):
+                paragraph_start = None
+                continue
+            else:
+                if paragraph_start is None:
+                    paragraph_start = index
+                continue
+            slug = source_slug(heading_display(heading, reference_destinations[relative]))
             alias, suffix = slug, 0
             while alias in used:
                 suffix += 1
                 alias = f"{slug}-{suffix}"
             used.add(alias)
-            anchor = roots[relative].removesuffix("root") + f"heading-{index}"
+            anchor = roots[relative].removesuffix("root") + f"heading-{at}"
             aliases[relative][alias] = anchor
-            heading_ids[relative][index] = anchor
+            heading_ids[relative][at] = anchor
         if has_custom_anchor("\n".join(scrubbed)):
             unresolved.append(f"{relative}: unsupported custom HTML anchor")
 

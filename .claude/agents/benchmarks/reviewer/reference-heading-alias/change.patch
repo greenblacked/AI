@@ -1,17 +1,12 @@
 diff --git a/scripts/export_portable.py b/scripts/export_portable.py
 --- a/scripts/export_portable.py
 +++ b/scripts/export_portable.py
-@@ -740,12 +740,7 @@
-             match = ATX_RE.match(visible)
-             if not match:
+@@ -1007,7 +1007,7 @@
+                 if paragraph_start is None:
+                     paragraph_start = index
                  continue
--            slug = source_slug(
--                heading_display(
--                    re.sub(r"\s+#+\s*$", "", line[match.end() :]),
--                    reference_destinations[relative],
--                )
--            )
-+            slug = source_slug(re.sub(r"\s+#+\s*$", "", line[match.end() :]))
+-            slug = source_slug(heading_display(heading, reference_destinations[relative]))
++            slug = source_slug(heading)
              alias, suffix = slug, 0
              while alias in used:
                  suffix += 1
