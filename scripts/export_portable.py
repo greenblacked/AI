@@ -664,11 +664,17 @@ def inert_ranges(
                 end = limit if close < 0 else close + 3
                 found.append((position, end))
                 if block_start and close >= 0:
-                    # The rest of the line holding `-->` is part of the HTML block, so no
-                    # code span starts there; it is not marked inert, since a tag in it is
-                    # still real HTML.
+                    # The rest of the line holding `-->` belongs to the HTML block. Markdown
+                    # in it is not rewritten, but a tag in it is still real HTML, so the
+                    # anchor audit (`markup=False`) keeps it visible and only stops code
+                    # spans from starting there.
                     closing = bisect.bisect_right(starts, close) - 1
-                    raw_until = min(limit, starts[closing] + len(block[closing]))
+                    line_end = min(limit, starts[closing] + len(block[closing]))
+                    if markup:
+                        end = line_end
+                        found[-1] = (position, end)
+                    else:
+                        raw_until = line_end
                 position = end
             elif char == "<" and markup:
                 column = position - starts[line_index] - len(block[line_index])
@@ -852,6 +858,19 @@ def definition_label(line: str) -> tuple[int, int] | None:
     return None
 
 
+def container_split(line: str) -> tuple[str, str]:
+    """Split a blockquote or list-item prefix off a line that is a definition, else keep it whole.
+
+    A reference or footnote definition may sit inside a container, where it is scoped to the
+    file like any other. Only a definition is split, so ordinary text keeps its prefix.
+    """
+    lead = CONTAINER_PREFIX_RE.match(line).end()
+    rest = line[lead:]
+    if lead and (definition_label(rest) or FOOTNOTE_DEFINITION_RE.match(rest)):
+        return line[:lead], rest
+    return "", line
+
+
 def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
     """Flatten a safe inventory, preserving original source-relative link identity.
 
@@ -937,6 +956,7 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             if fenced or inert[number] and not blank_ranges(line, inert[number]).strip():
                 continue
             line = blank_ranges(line, inert[number])
+            line = container_split(line)[1]
             footnote = FOOTNOTE_DEFINITION_RE.match(line)
             if footnote is not None:
                 key = reference_key(footnote.group(1))
@@ -980,7 +1000,9 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         inert = inert_ranges(text, fenced_lines, markup=False)
         scrubbed = []
         source_lines = text.split("\n")
-        paragraph_start: int | None = None
+        # The paragraph being read, as (first line, blockquote depth, content column), so that
+        # an underline only counts in the container the text is in.
+        paragraph_start: tuple[int, int, int] | None = None
         for index, (line, fenced) in enumerate(zip(source_lines, fenced_lines, strict=True)):
             if fenced:
                 scrubbed.append("")
@@ -991,34 +1013,48 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             scrubbed.append(without_code_spans(visible))
             # A heading may sit in a blockquote or a list item, or be indented up to three
             # spaces; four spaces make it text.
-            lead = CONTAINER_PREFIX_RE.match(visible).end()
-            match = ATX_RE.match(visible[lead:])
+            container = CONTAINER_PREFIX_RE.match(visible)
+            lead = container.end()
             quoted = ">" in visible[:lead]
+            depth = container.group().count(">")
+            match = ATX_RE.match(visible[lead:])
             heading: str | None = None
             if match and (lead < 4 or quoted):
                 heading = re.sub(r"\s+#+\s*$", "", line[lead + match.end() :])
                 at = index
                 paragraph_start = None
-            elif not visible.strip():
+            elif not visible[lead:].strip():
                 paragraph_start = None
                 continue
-            elif SETEXT_UNDERLINE_RE.match(visible) and paragraph_start is not None:
-                # A setext heading is the paragraph above its underline. Only a plain
-                # top-level paragraph counts: under a list item or quote the underline is a
-                # thematic break or a continuation.
-                heading = " ".join(part.strip() for part in source_lines[paragraph_start:index])
-                at = paragraph_start
-                paragraph_start = None
             elif (
-                (container := CONTAINER_PREFIX_RE.match(visible)).group("item")
-                or ">" in container.group()
-                or visible.startswith("    ")
+                SETEXT_UNDERLINE_RE.match(visible[lead:])
+                and paragraph_start is not None
+                and depth == paragraph_start[1]
+                and lead >= paragraph_start[2]
             ):
+                # A setext heading is the paragraph above its underline, in the same
+                # container. An underline outside the item or quote the text is in is a
+                # thematic break.
+                first = paragraph_start[0]
+                heading = " ".join(
+                    source_lines[number][
+                        CONTAINER_PREFIX_RE.match(source_lines[number]).end() :
+                    ].strip()
+                    for number in range(first, index)
+                )
+                at = first
+                paragraph_start = None
+            elif visible.startswith("    ") and not quoted:
                 paragraph_start = None
                 continue
             else:
-                if paragraph_start is None:
-                    paragraph_start = index
+                # An item marker starts a new paragraph; so does a change of quote depth.
+                if (
+                    paragraph_start is None
+                    or container.group("item")
+                    or depth != paragraph_start[1]
+                ):
+                    paragraph_start = (index, depth, lead if container.group("item") else 0)
                 continue
             slug = source_slug(heading_display(heading, reference_destinations[relative]))
             alias, suffix = slug, 0
@@ -1229,6 +1265,11 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         pieces.append(prose_pointers(tail, current) if expand_bare else tail)
         return label + "".join(pieces)
 
+    def rewrite_segment(segment: str, current: str, expand_bare: bool, first: bool) -> str:
+        # A definition inside a blockquote or list item is split from its prefix first.
+        prefix, rest = container_split(segment) if first else ("", segment)
+        return prefix + rewrite_prose(rest, current, expand_bare, at_start=first)
+
     def rewrite(text: str, current: str, *, expand_bare: bool = True) -> str:
         out = []
         fenced_lines = fence_spans(text)
@@ -1243,12 +1284,12 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             for begin, end in inert[number]:
                 if begin > last:
                     pieces.append(
-                        rewrite_prose(line[last:begin], current, expand_bare, at_start=last == 0)
+                        rewrite_segment(line[last:begin], current, expand_bare, last == 0)
                     )
                 pieces.append(line[begin:end])
                 last = end
             if last < len(line) or not pieces:
-                pieces.append(rewrite_prose(line[last:], current, expand_bare, at_start=last == 0))
+                pieces.append(rewrite_segment(line[last:], current, expand_bare, last == 0))
             out.append("".join(pieces))
         return "\n".join(out)
 

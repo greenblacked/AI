@@ -1,9 +1,9 @@
 diff --git a/scripts/export_portable.py b/scripts/export_portable.py
 --- a/scripts/export_portable.py
 +++ b/scripts/export_portable.py
-@@ -1007,7 +1007,7 @@
-                 if paragraph_start is None:
-                     paragraph_start = index
+@@ -1056,7 +1056,7 @@
+                 ):
+                     paragraph_start = (index, depth, lead if container.group("item") else 0)
                  continue
 -            slug = source_slug(heading_display(heading, reference_destinations[relative]))
 +            slug = source_slug(heading)

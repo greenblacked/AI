@@ -2883,8 +2883,8 @@ def test_portable_html_comment_is_inert_but_prose_around_it_is_not(mini_repo, tm
     assert "references/one.md" not in line
     assert line.count("](#portable-") == 2
     assert "not-a-heading" not in document
-    # The comment protects only what is inside it.
-    status, _ = _export_alpha(mini_repo, tmp_path, "<!-- hidden --> [real](missing.md)\n")
+    # An inline comment protects only what is inside it.
+    status, _ = _export_alpha(mini_repo, tmp_path, "text <!-- hidden --> [real](missing.md)\n")
     assert status == 1
     assert "missing.md" in capsys.readouterr().out
 
@@ -3293,3 +3293,66 @@ def test_portable_fence_on_a_list_continuation_line_ends_with_its_item(mini_repo
     assert status == 0
     assert portable.export(mini_repo, out) == 0
     assert "  [x](missing.md)" in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_text_after_a_line_initial_comment_close_is_part_of_its_html_block(
+    mini_repo, tmp_path
+):
+    html = "<!-- note --> [example](missing.md) and [ref][x]\n"
+    status, out = _export_alpha(mini_repo, tmp_path, html)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert html.strip() in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize("prefix", ["> ", "- ", "1. ", "> - "])
+def test_portable_reference_definition_in_a_container_is_scoped_per_file(
+    mini_repo, tmp_path, prefix
+):
+    refs = mini_repo / "plugins/engineering/skills/alpha/references"
+    refs.mkdir()
+    (refs / "one.md").write_text(f"# One\n\nSee [same].\n\n{prefix}[same]: https://one.example/\n")
+    (refs / "two.md").write_text(f"# Two\n\nSee [same].\n\n{prefix}[same]: https://two.example/\n")
+    status, out = _export_alpha(
+        mini_repo, tmp_path, "Read references/one.md and references/two.md.\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    labels = re.findall(
+        rf"^{re.escape(prefix)}\[(portable-reference-[0-9a-f]+)\]: (\S+)$", document, re.M
+    )
+    assert sorted(url for _, url in labels) == ["https://one.example/", "https://two.example/"]
+    assert len({label for label, _ in labels}) == 2
+    assert "[same]:" not in document
+
+
+@pytest.mark.parametrize(
+    ("heading", "fragment"),
+    [
+        ("> Quoted heading\n> ==============", "quoted-heading"),
+        ("> Quoted two\n> ---", "quoted-two"),
+        ("- Item heading\n  ===", "item-heading"),
+        ("1. Numbered heading\n   ---", "numbered-heading"),
+        (">> Deep quote\n>> ===", "deep-quote"),
+    ],
+)
+def test_portable_setext_heading_in_a_container_is_a_link_target(
+    mini_repo, tmp_path, heading, fragment
+):
+    status, out = _export_alpha(mini_repo, tmp_path, f"{heading}\n\nSee [t](#{fragment}).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert f"(#{fragment})" not in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    "before",
+    ["> quoted\n---", "- item\n---", "> quoted\n===", "- a\n- b\n---", "> a\nlazy\n---"],
+)
+def test_portable_underline_outside_the_container_of_its_text_is_not_a_heading(
+    mini_repo, tmp_path, before, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, f"{before}\n\nSee [x](#item).\n")
+    assert status == 1
+    assert "#item" in capsys.readouterr().out
