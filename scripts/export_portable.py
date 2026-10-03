@@ -83,8 +83,10 @@ ASSET_LANGUAGES = {
 FENCE_RE = re.compile(r"^(`{3,}|~{3,})")
 ATX_RE = re.compile(r"^(#{1,6})(\s+)")
 # The underline of a setext heading: a run of `=` or `-` and nothing else.
-# The shape of every anchor this export generates: a section root or a numbered heading.
-GENERATED_ANCHOR_RE = re.compile(r"portable-(?:[0-9a-f]+-)+(?:root|heading-\d+)")
+# The shape of every anchor this export generates, and of its stem: a section root or a numbered
+# heading. The bare stem counts too, since GitHub numbers repeated headings and the Nth copy of
+# `portable-<hex>-heading` would take the id `portable-<hex>-heading-N`.
+GENERATED_ANCHOR_RE = re.compile(r"portable-(?:[0-9a-f]+-)+(?:root|heading)(?:-\d+)?")
 SETEXT_UNDERLINE_RE = re.compile(r"^ {0,3}(?:=+|-+) *$")
 # A thematic break: three or more of one of `-`, `*` or `_`, with spaces allowed between.
 THEMATIC_BREAK_RE = re.compile(r"^ {0,3}([-*_])(?: *\1){2,} *$")

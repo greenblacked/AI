@@ -789,8 +789,9 @@ names sat earlier in a bundle than the real `<a name>` target, so the link jumpe
 heading, whose body the author controlled, instead of the section it named.
 
 **The check that catches it.** `tests/test_catalogue.py` refuses a heading whose slug
-matches the generated shape, by ATX and setext forms alike, and accepts ordinary headings
-that merely start with `portable`. Refuse the collision at the source rather than trying to
+matches the generated shape or its stem, by ATX and setext forms alike, and accepts ordinary
+headings that merely start with `portable`. The stem counts because GitHub numbers repeated
+headings: the Nth copy of `portable-<hex>-heading` takes the id of a generated anchor. Refuse the collision at the source rather than trying to
 rename around it. The benchmark removes the check.
 
 **First caught:** #112, the automated security review.
