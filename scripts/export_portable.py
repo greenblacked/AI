@@ -1585,6 +1585,11 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         for relative, title in titles.items()
     }
     skill_title = rewrite(title_of(sources["SKILL.md"], name), "SKILL.md", expand_bare=False)
+    # A title derived from a filename or a file's H1 becomes a heading too, and the heading
+    # loop never sees it, so check each one the way a source heading is checked.
+    for relative, title in [("SKILL.md", skill_title), *prepared_titles.items()]:
+        if GENERATED_ANCHOR_RE.fullmatch(source_slug(title).replace("_", "")):
+            unresolved.append(f"{relative}: title collides with a generated anchor")
     root_anchors, body = prose("SKILL.md", 0)
     parts = [
         root_anchors,

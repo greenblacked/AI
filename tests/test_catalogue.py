@@ -3893,3 +3893,31 @@ def test_portable_html_block_ends_with_its_blockquote(mini_repo, tmp_path):
     body = '> <span title="x">\n``    \n    [x](missing.md)\n'
     status, _ = _export_alpha(mini_repo, tmp_path, body)
     assert status == 1
+
+
+@pytest.mark.parametrize(
+    ("stem", "body"),
+    [
+        ("portable-6162-root", "Body.\n"),
+        ("notes", "# Portable 6162 root\n\nBody.\n"),
+        ("notes", "# **portable-6162-heading**\n\nBody.\n"),
+    ],
+)
+def test_portable_reference_title_that_collides_with_a_generated_anchor_is_refused(
+    mini_repo, tmp_path, capsys, stem, body
+):
+    references = mini_repo / "plugins/engineering/skills/alpha/references"
+    references.mkdir(exist_ok=True)
+    (references / f"{stem}.md").write_text(body)
+    status, _ = _export_alpha(mini_repo, tmp_path, f"See references/{stem}.md.\n")
+    assert status == 1
+    assert "title collides with a generated anchor" in capsys.readouterr().out
+
+
+def test_portable_reference_title_that_is_ordinary_is_accepted(mini_repo, tmp_path):
+    references = mini_repo / "plugins/engineering/skills/alpha/references"
+    references.mkdir(exist_ok=True)
+    (references / "notes.md").write_text("# Portable notes\n\nBody.\n")
+    status, out = _export_alpha(mini_repo, tmp_path, "See references/notes.md.\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0

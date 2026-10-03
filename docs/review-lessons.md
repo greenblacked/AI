@@ -792,6 +792,8 @@ heading, whose body the author controlled, instead of the section it named.
 matches the generated shape or its stem, by ATX and setext forms alike, and accepts ordinary
 headings that merely start with `portable`. The stem counts because GitHub numbers repeated
 headings: the Nth copy of `portable-<hex>-heading` takes the id of a generated anchor. Refuse the collision at the source rather than trying to
-rename around it. The benchmark removes the check.
+rename around it. The same check covers the titles the exporter writes itself, from a
+reference file's H1 or its filename, because no source heading line exists for the scan to
+see. The benchmark removes the check.
 
 **First caught:** #112, the automated security review.
