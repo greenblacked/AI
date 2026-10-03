@@ -268,6 +268,34 @@ def html_block_start(content: str, in_paragraph: bool) -> tuple[re.Pattern[str] 
     return None
 
 
+def leading_spaces(line: str) -> int:
+    """Columns of indentation after any blockquote markers, with tabs expanded to four."""
+    rest = line[QUOTE_PREFIX_RE.match(line).end() :].expandtabs(4)
+    return len(rest) - len(rest.lstrip(" "))
+
+
+def complete_definition(content: str) -> bool:
+    """True for a reference definition that is whole on this line.
+
+    Its destination may be followed by nothing or by a title in quotes or parentheses; any
+    other trailing text makes the line paragraph text, not a definition.
+    """
+    if definition_label(content) is None:
+        return False
+    spans = destination_spans(content)
+    if not spans:
+        return False
+    after = content[spans[0][1] :]
+    after = after[1:] if after.startswith(">") else after
+    return (
+        not after.strip()
+        or re.fullmatch(
+            r"""\s+(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\((?:[^()\\]|\\.)*\))\s*""", after
+        )
+        is not None
+    )
+
+
 def fence_spans(text: str) -> list[bool]:
     """One flag per line: True when the line is inside a fenced or indented code block.
 
@@ -296,7 +324,7 @@ def fence_spans(text: str) -> list[bool]:
         if opening is not None and (
             # A fence inside a blockquote ends with the quote, and one inside a list item
             # with the item, closing marker or not.
-            quotes < depth or (indent and line.strip() and len(line) - len(line.lstrip()) < indent)
+            quotes < depth or (indent and line.strip() and leading_spaces(line) < indent)
         ):
             opening = None
         if opening is None:
@@ -358,9 +386,11 @@ def fence_spans(text: str) -> list[bool]:
             if opening is None:
                 opening = marker_text
                 depth = quotes
-                if prefix.group("item") and not quotes:
-                    indent = len(prefix.group())
-                elif list_indent and spaces >= list_indent and not quotes:
+                if prefix.group("item"):
+                    # The item's width past any quote markers, which is where its content
+                    # has to start for a following line to stay inside it.
+                    indent = len(prefix.group()) - QUOTE_PREFIX_RE.match(line).end()
+                elif list_indent and spaces >= list_indent:
                     indent = list_indent  # a continuation line of the item above
                 else:
                     indent = 0
@@ -387,7 +417,7 @@ def fence_spans(text: str) -> list[bool]:
                 or (in_paragraph and SETEXT_UNDERLINE_RE.match(rest))
                 # A reference definition cannot interrupt a paragraph, but one that starts a
                 # block is complete on its own line and leaves no paragraph running.
-                or (not in_paragraph and definition_label(content) is not None)
+                or (not in_paragraph and complete_definition(content))
             )
         flags.append(opening is not None)
     return flags
@@ -438,6 +468,31 @@ NOTICE = (
 )
 
 
+def drop_emphasis_underscores(text: str) -> str:
+    """``text`` without the underscores that GitHub reads as emphasis when it builds an id.
+
+    A run opens emphasis when no letter or digit precedes it and a non-space follows, and
+    closes it when a non-space precedes it and no letter or digit follows; an opener and the
+    next closer are paired and dropped. Inside a word (`foo_bar`) and unpaired, an
+    underscore is literal and stays.
+    """
+    runs = [(m.start(), m.end()) for m in re.finditer(r"_+", text)]
+    drop: set[int] = set()
+    openers: list[tuple[int, int]] = []
+    for begin, end in runs:
+        before = text[begin - 1] if begin else " "
+        after = text[end] if end < len(text) else " "
+        can_open = not before.isalnum() and not after.isspace()
+        can_close = not before.isspace() and not after.isalnum()
+        if can_close and openers:
+            opened = openers.pop()
+            drop.update(range(opened[0], opened[1]))
+            drop.update(range(begin, end))
+        elif can_open:
+            openers.append((begin, end))
+    return "".join(c for index, c in enumerate(text) if index not in drop)
+
+
 def source_slug(heading: str) -> str:
     """GitHub source aliases: formatting/punctuation removed, spaces become hyphens.
 
@@ -450,7 +505,7 @@ def source_slug(heading: str) -> str:
     # so a blanket `<...>` removal dropped text GitHub keeps and moved the alias. Entities
     # are decoded the same way: `&copy;` is a character in prose and literal text in code.
     def visible(text: str) -> str:
-        return html.unescape(HTML_TAG_RE.sub("", text))
+        return drop_emphasis_underscores(html.unescape(HTML_TAG_RE.sub("", text)))
 
     pieces, last = [], 0
     for begin, end in closed_code_spans(heading):

@@ -2908,7 +2908,9 @@ def test_portable_fence_nested_in_a_container_is_code(mini_repo, tmp_path, prefi
         f"{pad}```\n\nAfter [one](#heading) the fence.\n\n## Heading\n"
     )
     if prefix.startswith(">"):
-        addition = addition.replace(f"\n{pad}", f"\n{prefix}")
+        # Continuation lines keep the quote markers and indent past the list marker, since a
+        # second marker would start a new item and end the fence.
+        addition = addition.replace(f"\n{pad}", "\n" + re.sub(r"[-*+\d.)]", " ", prefix))
     status, out = _export_alpha(mini_repo, tmp_path, addition)
     assert status == 0
     assert portable.export(mini_repo, out) == 0
@@ -3636,3 +3638,71 @@ def test_portable_fragment_is_decoded_separately_from_the_path(mini_repo, tmp_pa
     assert status == 0
     assert portable.export(mini_repo, out) == 0
     assert "#two%2Dwords" not in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    "definition",
+    [
+        "[ref]: https://example.com invalid title",
+        '[ref]: https://example.com "unterminated',
+        "[ref]: https://example.com extra",
+    ],
+)
+def test_portable_malformed_definition_leaves_the_paragraph_running(
+    mini_repo, tmp_path, definition, capsys
+):
+    # Not a definition, so it is paragraph text and the indented line continues it.
+    status, _ = _export_alpha(mini_repo, tmp_path, f"{definition}\n    [x](missing.md)\n")
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "definition",
+    [
+        "[ref]: https://example.com",
+        '[ref]: https://example.com "A title"',
+        "[ref]: https://example.com 'single'",
+        "[ref]: https://example.com (paren)",
+        '[ref]: <https://example.com/a b> "t"',
+    ],
+)
+def test_portable_valid_definition_ends_paragraph_state(mini_repo, tmp_path, definition):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, f"See [ref].\n\n{definition}\n    [x](missing.md)\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+@pytest.mark.parametrize(
+    ("heading", "fragment"),
+    [
+        ("## _Guide_", "guide"),
+        ("## __Guide__", "guide"),
+        ("## A _quiet_ guide", "a-quiet-guide"),
+        ("## foo_bar", "foo_bar"),
+        ("## snake_case_name", "snake_case_name"),
+        ("## _leading underscore", "_leading-underscore"),
+        ("## `a_b`", "a_b"),
+        ("## _Guide_ and `x_y`", "guide-and-x_y"),
+    ],
+)
+def test_portable_heading_alias_follows_rendered_emphasis(mini_repo, tmp_path, heading, fragment):
+    status, out = _export_alpha(mini_repo, tmp_path, f"{heading}\n\nSee [go](#{fragment}).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert f"(#{fragment})" not in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_fence_in_a_quoted_list_ends_with_its_item(mini_repo, tmp_path, capsys):
+    addition = "> - item\n>\n>   ~~~\n>   code\n>\n> [broken](missing.md)\n"
+    status, _ = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+    source = mini_repo / "plugins/engineering/skills/alpha/SKILL.md"
+    source.write_text(source.read_text().replace("\n" + addition, ""))
+    closed = "> - item\n>\n>   ~~~\n>   [x](missing.md)\n>   ~~~\n"
+    status, out = _export_alpha(mini_repo, tmp_path, closed)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
