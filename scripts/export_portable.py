@@ -488,7 +488,8 @@ def drop_emphasis_underscores(text: str) -> str:
     next closer are paired and dropped. Inside a word (`foo_bar`) and unpaired, an
     underscore is literal and stays.
     """
-    runs = [(m.start(), m.end()) for m in re.finditer(r"_+", text)]
+    # A backslash makes the underscore after it literal, so such a one starts no run.
+    runs = [(m.start(), m.end()) for m in re.finditer(r"(?<!\\)_+", text)]
     drop: set[int] = set()
     openers: list[tuple[int, int]] = []
     for begin, end in runs:
@@ -1027,8 +1028,10 @@ def definition_label(line: str) -> tuple[int, int] | None:
         return None
     begin = match.end() - 1
     end = bracket_end(line, begin)
-    # A label holds no unescaped bracket, though link text may: `[a[b]]: url` is prose.
-    if re.search(r"(?<!\\)[\[\]]", line[begin + 1 : end - 1] if end else ""):
+    label = line[begin + 1 : end - 1] if end else ""
+    # A label holds no unescaped bracket, though link text may, and at most 999 characters:
+    # `[a[b]]: url` and a longer one are prose.
+    if re.search(r"(?<!\\)[\[\]]", label) or len(label) > 999:
         return None
     if end is not None and line[end : end + 1] == ":":
         return begin, end

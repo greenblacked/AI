@@ -3800,3 +3800,44 @@ def test_portable_processing_instruction_in_text_is_inert(mini_repo, tmp_path):
     status, out = _export_alpha(mini_repo, tmp_path, "Use <?php [x](missing.md) ?> here.\n")
     assert status == 0
     assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_label_over_999_characters_is_not_a_definition(mini_repo, tmp_path):
+    label = "a" * 1000
+    status, out = _export_alpha(
+        mini_repo, tmp_path, f"See [{label}].\n\n[{label}]: https://example.com\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "portable-reference-" not in document
+    assert f"[{label}]: https://example.com" in document
+
+
+def test_portable_label_of_999_characters_is_still_a_definition(mini_repo, tmp_path):
+    label = "a" * 999
+    status, out = _export_alpha(
+        mini_repo, tmp_path, f"See [{label}].\n\n[{label}]: https://example.com\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "portable-reference-" in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    ("heading", "fragment"),
+    [
+        (r"## \_Guide\_", "_guide_"),
+        (r"## \_Guide_", "_guide_"),
+        (r"## \__x_", "_x"),
+        (r"## a\_b", "a_b"),
+        (r"## _\_x_", "_x"),
+    ],
+)
+def test_portable_escaped_underscores_in_a_heading_stay_literal(
+    mini_repo, tmp_path, heading, fragment
+):
+    status, out = _export_alpha(mini_repo, tmp_path, f"{heading}\n\nSee [go](#{fragment}).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert f"(#{fragment})" not in (out / "skills/alpha.md").read_text()
