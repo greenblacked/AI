@@ -4092,3 +4092,32 @@ def test_portable_encoded_question_mark_stays_in_the_filename(mini_repo, tmp_pat
     (references / "a.md").write_text("# Target\n")
     status, _ = _export_alpha(mini_repo, tmp_path, "See [t](references/a%3Fx.md).\n")
     assert status == 1
+
+
+@pytest.mark.parametrize(
+    ("heading", "fragment", "resolves"),
+    [
+        (r"## \\_Guide_", "guide", True),
+        (r"## \\_Guide_", "_guide_", False),
+        (r"## \\\_Guide_", "_guide_", True),
+        (r"## \\\\_Guide_", "guide", True),
+    ],
+)
+def test_portable_backslash_parity_decides_whether_an_underscore_is_escaped(
+    mini_repo, tmp_path, heading, fragment, resolves
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, f"{heading}\n\nSee [go](#{fragment}).\n")
+    assert (status == 0) is resolves
+
+
+@pytest.mark.parametrize("definition", ["[^n]: Note", "[ref]: https://example.com"])
+def test_portable_underline_after_a_definition_is_a_break_not_a_heading(
+    mini_repo, tmp_path, definition
+):
+    body = f"Claim.[^n] and [ref].\n\n{definition}\n---\n"
+    status, out = _export_alpha(mini_repo, tmp_path, body)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    shape = r"\[\^?portable-(?:footnote|reference)-[a-f0-9]+\]: "
+    assert re.search(rf"^{shape}", document, re.M), document

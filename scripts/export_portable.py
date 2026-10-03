@@ -518,8 +518,9 @@ def drop_emphasis_underscores(text: str) -> str:
     next closer are paired and dropped. Inside a word (`foo_bar`) and unpaired, an
     underscore is literal and stays.
     """
-    # A backslash makes the underscore after it literal, so such a one starts no run.
-    runs = [(m.start(), m.end()) for m in re.finditer(r"(?<!\\)_+", text)]
+    # An odd run of backslashes makes the underscore after it literal, so that one starts no
+    # run; an even run is a literal backslash and leaves the underscore live.
+    runs = [(m.start(2), m.end(2)) for m in re.finditer(r"(?<!\\)((?:\\\\)*)(_+)", text)]
     drop: set[int] = set()
     openers: list[tuple[int, int]] = []
     for begin, end in runs:
@@ -1335,6 +1336,11 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
                 paragraph_start = None
             elif visible.expandtabs(4).startswith("    ") and not quoted:
                 paragraph_start = None
+                continue
+            elif paragraph_start is None and (
+                FOOTNOTE_DEFINITION_RE.match(visible[lead:]) or complete_definition(visible[lead:])
+            ):
+                # A definition is no heading text, so an underline after it is a thematic break.
                 continue
             else:
                 # An item marker starts a new paragraph; so does a change of quote depth.
