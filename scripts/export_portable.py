@@ -93,6 +93,7 @@ THEMATIC_BREAK_RE = re.compile(r"^ {0,3}([-*_])(?: *\1){2,} *$")
 # Blockquote markers alone, so the indentation left over is the line's own, and a list item
 # marker with the width of its content: group 3 is the spaces after the marker.
 QUOTE_PREFIX_RE = re.compile(r"^(?: {0,3}> ?)*")
+QUOTE_START_RE = re.compile(r" {0,3}>")
 ITEM_RE = re.compile(r"^( *)([-*+]|\d+[.)])(?:( +)(?=\S)|\s*$)")
 # What may sit between the start of a line and a code fence: blockquote markers and list
 # markers, however deeply nested and in either order. A fenced example quoted with `>` or
@@ -775,6 +776,23 @@ def split_cells(row: str) -> list[str]:
     return cells
 
 
+def ends_table(body: str) -> bool:
+    """True when ``body`` starts a block that interrupts a table, which then ends before it.
+
+    Only constructs that can interrupt a paragraph count: a heading, a fence, a thematic
+    break, a quote, a list item or an HTML block of types 1-6. Anything else is a row, since
+    reading a row as text could hide a link in a code span while the reverse fails loudly.
+    """
+    return bool(
+        ATX_RE.match(body)
+        or FENCE_RE.match(body)
+        or THEMATIC_BREAK_RE.match(body)
+        or QUOTE_START_RE.match(body)
+        or ITEM_RE.match(body)
+        or html_block_start(body, True) is not None
+    )
+
+
 def table_rows(lines: list[str], fenced: list[bool]) -> set[int]:
     """Indexes of the lines that are rows of a GFM table: header, delimiter row and body.
 
@@ -785,7 +803,8 @@ def table_rows(lines: list[str], fenced: list[bool]) -> set[int]:
     rows: set[int] = set()
     # A table nested in a blockquote or list item keeps its rows after the container marker,
     # so each row is read from there.
-    bodies = [line[CONTAINER_PREFIX_RE.match(line).end() :] for line in lines]
+    prefixes = [CONTAINER_PREFIX_RE.match(line) for line in lines]
+    bodies = [line[prefix.end() :] for line, prefix in zip(lines, prefixes, strict=True)]
     for index in range(1, len(lines)):
         if (
             not fenced[index]
@@ -797,7 +816,16 @@ def table_rows(lines: list[str], fenced: list[bool]) -> set[int]:
         ):
             rows.update((index - 1, index))
             following = index + 1
-            while following < len(lines) and bodies[following].strip() and not fenced[following]:
+            while (
+                following < len(lines)
+                and bodies[following].strip()
+                and not fenced[following]
+                and not ends_table(bodies[following])
+                # A deeper quote or a new list item is a block of its own, and the marker is
+                # gone from the body by now.
+                and prefixes[following].group().count(">") <= prefixes[index].group().count(">")
+                and (prefixes[following].group("item") is None or prefixes[index].group("item"))
+            ):
                 rows.add(following)
                 following += 1
     return rows

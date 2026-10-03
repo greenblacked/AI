@@ -4034,3 +4034,24 @@ def test_portable_container_text_with_a_pipe_is_not_a_table(mini_repo, tmp_path)
     )
     assert status == 0
     assert portable.export(mini_repo, out) == 0
+
+
+@pytest.mark.parametrize(
+    "interrupt",
+    ["## Heading", "```", "> quote", "- item", "1. item", "---", "<div>"],
+)
+def test_portable_table_ends_at_a_block_that_interrupts_it(mini_repo, tmp_path, interrupt):
+    # After the interruption the code span's pipes are text, so the link inside stays inert.
+    table = f"| h1 | h2 |\n| --- | --- |\n| a | b |\n{interrupt}\n`x | [y](missing.md) | z`\n"
+    if interrupt == "```":
+        table += "```\n"
+    status, out = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_table_continues_over_ordinary_text_rows(mini_repo, tmp_path, capsys):
+    table = "| h1 | h2 |\n| --- | --- |\n| a | b |\nplain | `x | [y](missing.md)` | z\n"
+    status, _ = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
