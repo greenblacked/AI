@@ -1,8 +1,8 @@
 diff --git a/scripts/export_portable.py b/scripts/export_portable.py
 --- a/scripts/export_portable.py
 +++ b/scripts/export_portable.py
-@@ -405,7 +405,7 @@
-         if text.startswith(("</", "<!--")):
+@@ -636,7 +636,7 @@
+         if text.startswith(("</", "<!", "<?")):
              continue
          if re.search(
 -            r"(?<![\w:.-])(?:id|name)\s*=", re.sub(r"\"[^\"]*\"|'[^']*'", '""', text), re.I

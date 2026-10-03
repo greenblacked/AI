@@ -3578,6 +3578,10 @@ def test_portable_indented_heading_outside_any_list_is_still_text(mini_repo, tmp
         "## portable-6162-6364-heading-7",
         "portable-6162-root\n-----",
         "## portable-6162-heading",
+        "## portable-6162-<?probe?>root",
+        "## portable-<!X probe>6162-root",
+        "## portable-6162-<![CDATA[probe]]>root",
+        "## portable-6162-<!-- x -->root",
         "## Portable 6162 6364 Heading",
         "## portable-6162-_root_",
         "## _portable-6162-root_",
@@ -3790,3 +3794,9 @@ def test_portable_anchor_in_a_table_cell_after_a_cross_cell_span_is_refused(
     status, _ = _export_alpha(mini_repo, tmp_path, table)
     assert status == 1
     assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+def test_portable_processing_instruction_in_text_is_inert(mini_repo, tmp_path):
+    status, out = _export_alpha(mini_repo, tmp_path, "Use <?php [x](missing.md) ?> here.\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0

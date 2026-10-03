@@ -129,10 +129,12 @@ BLOCK_START_RE = re.compile(
 # angle brackets. An attribute may follow a closing quote with no space, which a renderer
 # reads as text: refusing an `id` there errs toward failing the export.
 _TAG_ATTRIBUTE = r"""\s+[A-Za-z_:][A-Za-z0-9_.:-]*(?:\s*=\s*(?:[^\s"'=<>`]+|'[^']*'|"[^"]*"))?"""
-# CommonMark's tag grammar, which needs whitespace before every attribute. Anything this
-# matches is raw HTML to a renderer, so its text is inert.
+# CommonMark's inline raw HTML: tags with whitespace before every attribute, comments,
+# processing instructions, declarations and CDATA. Anything this matches is raw HTML to a
+# renderer, so its text is inert and, in a heading, contributes nothing to the id.
 HTML_TAG_RE = re.compile(
-    rf"<[A-Za-z][A-Za-z0-9-]*(?:{_TAG_ATTRIBUTE})*\s*/?>|</[A-Za-z][A-Za-z0-9-]*\s*>|<!--.*?--!?>",
+    rf"<[A-Za-z][A-Za-z0-9-]*(?:{_TAG_ATTRIBUTE})*\s*/?>|</[A-Za-z][A-Za-z0-9-]*\s*>"
+    r"|<!--.*?--!?>|<\?.*?\?>|<![A-Za-z][^>]*>|<!\[CDATA\[.*?\]\]>",
     re.S,
 )
 # The same with an attribute allowed straight after a closing quote, which a renderer reads as
@@ -631,7 +633,7 @@ def has_custom_anchor(text: str) -> bool:
     """
     for tag in HTML_TAG_AUDIT_RE.finditer(text):
         text = tag.group()
-        if text.startswith(("</", "<!--")):
+        if text.startswith(("</", "<!", "<?")):
             continue
         if re.search(
             r"(?<![\w:.-])(?:id|name)\s*=", re.sub(r"\"[^\"]*\"|'[^']*'", '""', text), re.I
