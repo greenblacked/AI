@@ -791,7 +791,7 @@ stops working without it.
 | --- | --- | --- |
 | The branch ruleset above | Whether `ci` and `security` are required, and whether `main` takes direct pushes | Every gate in this repository is advisory and a red build can merge |
 | Private vulnerability reporting | Whether the advisory form `SECURITY.md` tells people to use exists | A reporter follows that instruction, finds nothing, and falls back to a public issue — which for a leaked credential is the outcome the document exists to prevent |
-| Dependabot alerts, and security updates | Whether a published advisory against something pinned here is surfaced at all | Nothing says a pinned action or tool has a known vulnerability. `.github/dependabot.yml` does **not** cover this: it configures version updates, which is a different feature |
+| Dependabot alerts, and security updates | Whether a published advisory against a dependency GitHub can read is surfaced, and a fix proposed. That excludes nearly everything this repository depends on today: GitHub raises an alert for an action only when it is referenced by a semantic version, not a commit SHA, and every action here is pinned by SHA; the tools CI installs are pinned in workflow variables, and GitHub parses only a workflow's `uses:` references as dependencies; `pyproject.toml` declares no runtime dependencies, and its one third-party package, the unpinned `hatchling` build backend, is fetched only when the validator is built or installed as a package, which CI never does, with no version update covering it | Nothing would flag a manifest dependency added later. For actions the outcome is the same either way: no alert reaches a SHA pin, so `.github/dependabot.yml`'s version updates — a different feature, which does follow a SHA pin through its version comment — are what keep a vulnerable action from staying in place |
 | Required SHA pinning for actions | Whether the platform refuses a workflow referencing an action by tag | Only the `grep` in `permissions-audit` stands between a floating tag and a build, and it runs after the fact rather than instead of |
 | Secret scanning, and push protection | Whether a credential is caught as it is pushed | gitleaks still catches it in CI, one step later and after it has left the machine |
 | Default workflow token permissions | The floor every job's `permissions:` block narrows from | An absent block inherits write access rather than read |
@@ -801,28 +801,44 @@ stops working without it.
 ### Recorded state
 
 Everything above is what a setting decides, not whether it is on. Secret scanning, push
-protection, Dependabot alerts and Dependabot security updates are owner-confirmed on
-2026-09-26: the repository owner checked them by hand, on the Settings page under
-Security → **Advanced Security**, not through any command in this repository. Nothing
-here re-checks them, because the API responses those four settings live behind are
-hidden from a non-admin call.
+protection, Dependabot alerts and Dependabot security updates are owner-confirmed, first
+on 2026-09-26 and again on 2026-10-03: the repository owner checked them by hand, on the
+Settings page under Security → **Advanced Security**, not through any command in this
+repository. Nothing here re-checks them, because the API responses those four settings
+live behind are hidden from a non-admin call.
 
-Delete branch on merge is also on, but unlike the four above it does not rest on the
-owner's word: the public repository API returns it directly
-(`gh api /repos/greenblacked/AI --jq '.delete_branch_on_merge'`), so it is confirmed
-rather than merely reported.
+Two settings do not rest on the owner's word, because the public API returns them to any
+caller, so they are confirmed rather than merely reported. Delete branch on merge is on
+(`gh api /repos/greenblacked/AI --jq '.delete_branch_on_merge'`). Private vulnerability
+reporting is on, read back on 2026-10-03
+(`gh api /repos/greenblacked/AI/private-vulnerability-reporting --jq .enabled` returns
+`true`), so the advisory form `SECURITY.md` and `CODE_OF_CONDUCT.md` send reporters to
+exists.
 
-For the branch ruleset, private vulnerability reporting, required SHA pinning, default
-workflow token permissions and code scanning setup, this section records no state — read
-each back with the commands below rather than assume this page still matches what GitHub
-reports.
+Code scanning is the one setting with a required value rather than an on or off. On
+2026-10-03 the owner turned on GitHub's default setup alongside the `codeql` job, and then
+chose to keep the job: it runs the `security-extended` suite this repository configures,
+and GitHub documents that it does not process a workflow's CodeQL analysis while default
+setup is also enabled, so with both on the job's upload is rejected and the required
+`security` check can go red. Default setup
+therefore has to stay off. Read it back with the `code-scanning/default-setup` command
+below; `not-configured` is the required answer, and anything else is the conflict this
+paragraph describes, not a stricter configuration.
 
-None of the four settings confirmed above replace a check already documented in this
-file; each sits alongside it. Push protection stops a credential at push time, and
+For the branch ruleset, required SHA pinning and default workflow token permissions, this
+section records no state — read each back with the commands below rather than assume this
+page still matches what GitHub reports.
+
+None of the settings confirmed above replace a check already documented in this file;
+each sits alongside it. Push protection stops a credential at push time, and
 gitleaks still scans the tree and history in CI exactly as before, one step later.
-Dependabot alerts surface a published advisory against something pinned here;
-`.github/dependabot.yml`'s version updates, covered in the row above, remain the
-separate feature they always were.
+Dependabot alerts and security updates watch for a dependency GitHub can read, which
+today is close to none: they skip an action pinned by SHA, as every action here is, and
+the tools CI installs by pinned version in workflow variables. `pyproject.toml` declares
+no runtime dependencies; its build backend, `hatchling`, is unpinned and outside every
+update, but nothing here builds the package. `.github/dependabot.yml`'s version updates,
+covered in the row above, remain the separate feature they always were, and for actions
+the only one of the two that does anything.
 
 Read the current state of all of them:
 
