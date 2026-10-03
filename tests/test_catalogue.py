@@ -4055,3 +4055,40 @@ def test_portable_table_continues_over_ordinary_text_rows(mini_repo, tmp_path, c
     status, _ = _export_alpha(mini_repo, tmp_path, table)
     assert status == 1
     assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_generated_title_is_checked_as_rendered_text(mini_repo, tmp_path, capsys):
+    references = mini_repo / "plugins/engineering/skills/alpha/references"
+    references.mkdir(exist_ok=True)
+    (references / "[portable-6162-root](mailto:a).md").write_text("Body.\n")
+    status, _ = _export_alpha(mini_repo, tmp_path, "Nothing else.\n")
+    assert status == 1
+    assert "title collides with a generated anchor" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("filename", "destination"),
+    [
+        ("a.md", "references/a.md?plain=1#part"),
+        ("a.md", "references/a.md?plain=1"),
+        ("a?b.md", "references/a%3Fb.md#part"),
+    ],
+)
+def test_portable_query_string_is_not_part_of_a_local_path(
+    mini_repo, tmp_path, filename, destination
+):
+    references = mini_repo / "plugins/engineering/skills/alpha/references"
+    references.mkdir(exist_ok=True)
+    (references / filename).write_text("# Target\n\n## Part\n\nBody.\n")
+    status, out = _export_alpha(mini_repo, tmp_path, f"See [t]({destination}).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert f"]({destination})" not in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_encoded_question_mark_stays_in_the_filename(mini_repo, tmp_path):
+    references = mini_repo / "plugins/engineering/skills/alpha/references"
+    references.mkdir(exist_ok=True)
+    (references / "a.md").write_text("# Target\n")
+    status, _ = _export_alpha(mini_repo, tmp_path, "See [t](references/a%3Fx.md).\n")
+    assert status == 1

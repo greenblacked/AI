@@ -1471,7 +1471,9 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         # Split on the literal `#` first, then percent-decode each part on its own: an encoded
         # `%23` is part of a filename, not a fragment delimiter.
         raw_path, separator, raw_fragment = unescaped.partition("#")
-        path, fragment = unquote(raw_path), unquote(raw_fragment)
+        # A literal `?` starts a query, which names no part of a bundled file; an encoded
+        # `%3F` stays in the filename.
+        path, fragment = unquote(raw_path.partition("?")[0]), unquote(raw_fragment)
         if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", path) or path.startswith("//"):
             return None
         if image:
@@ -1646,7 +1648,9 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
     # A title derived from a filename or a file's H1 becomes a heading too, and the heading
     # loop never sees it, so check each one the way a source heading is checked.
     for relative, title in [("SKILL.md", skill_title), *prepared_titles.items()]:
-        if GENERATED_ANCHOR_RE.fullmatch(source_slug(title).replace("_", "")):
+        # The slug of what renders: a link's destination is not part of the heading text.
+        rendered = heading_display(title, reference_destinations.get(relative, {}))
+        if GENERATED_ANCHOR_RE.fullmatch(source_slug(rendered).replace("_", "")):
             unresolved.append(f"{relative}: title collides with a generated anchor")
         if has_custom_anchor(title):
             unresolved.append(f"{relative}: unsupported custom HTML anchor in a generated title")
