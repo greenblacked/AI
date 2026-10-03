@@ -115,8 +115,21 @@ HTML_BLOCK_START_RE = re.compile(
 # A raw HTML element tag (open, close or self-closing, with attributes) or a comment, the
 # only inline HTML that vanishes from a rendered heading. A tag name must start with a
 # letter and be followed by whitespace, `/` or `>`, which keeps `<https://x>` and
-# `<me@x.com>` (autolinks, whose text is shown) from reading as tags.
-HTML_TAG_RE = re.compile(r"</?[A-Za-z][A-Za-z0-9-]*(?:\s[^<>]*)?/?>|<!--.*?-->", re.S)
+# `<me@x.com>` (autolinks, whose text is shown) from reading as tags. Quoted values may hold
+# angle brackets. An attribute may follow a closing quote with no space, which a renderer
+# reads as text: refusing an `id` there errs toward failing the export.
+_TAG_ATTRIBUTE = (
+    r"""(?:\s+|(?<=["']))[A-Za-z_:][A-Za-z0-9_.:-]*(?:\s*=\s*(?:[^\s"'=<>`]+|'[^']*'|"[^"]*"))?"""
+)
+HTML_TAG_RE = re.compile(
+    rf"<[A-Za-z][A-Za-z0-9-]*(?:{_TAG_ATTRIBUTE})*\s*/?>|</[A-Za-z][A-Za-z0-9-]*\s*>|<!--.*?-->",
+    re.S,
+)
+# A complete tag alone on its line: an HTML block of type 7, which cannot interrupt a paragraph.
+HTML_BLOCK_GENERIC_RE = re.compile(
+    rf"^ {{0,3}}(?:<[A-Za-z][A-Za-z0-9-]*(?:{_TAG_ATTRIBUTE})*\s*/?>"
+    rf"|</[A-Za-z][A-Za-z0-9-]*\s*>)\s*$"
+)
 # A GitHub footnote definition: `[^label]:` with a label free of whitespace and brackets.
 # Group 1 is the label.
 FOOTNOTE_DEFINITION_RE = re.compile(r"^ {0,3}\[\^([^\s\[\]]+)\]:")
@@ -468,14 +481,15 @@ def without_code_spans(line: str) -> str:
     return "".join(pieces) + line[last:]
 
 
-def has_custom_anchor(line: str) -> bool:
-    """True when ``line`` carries a raw HTML tag with an `id` or `name` attribute.
+def has_custom_anchor(text: str) -> bool:
+    """True when ``text`` carries a raw HTML tag with an `id` or `name` attribute.
 
+    The text may span lines, since a tag can: scan it whole rather than line by line.
     Quoted values are blanked first so `title="name=x"` is not an attribute, and the
     attribute name has to follow whitespace, so `data-name` is not `name`. Closing tags
-    and comments carry no attributes, and a tag shown inside code is inert.
+    and comments carry no attributes. The caller blanks code, which is inert.
     """
-    for tag in HTML_TAG_RE.finditer(without_code_spans(line)):
+    for tag in HTML_TAG_RE.finditer(text):
         text = tag.group()
         if text.startswith(("</", "<!--")):
             continue
@@ -543,16 +557,17 @@ def html_block_end(
     starts: list[int],
     container: list[int],
     index: int,
-    opener: re.Match[str],
+    kind: str | None,
 ) -> int:
-    """Offset where the HTML block of types 1-6 that begins on line ``index`` ends.
+    """Offset where the HTML block of types 1-7 that begins on line ``index`` ends.
 
-    Types 1-5 run to the line holding their terminator, type 6 to the next blank line, and
-    any of them to the end of their container if that comes first.
+    ``kind`` names the tag or declaration of types 1-5, which run to the line holding their
+    terminator. Types 6 and 7 (``None``) run to the next blank line. Any of them stops at
+    the end of its container if that comes first.
     """
     last = index
-    if opener.group(1) or opener.group(2):
-        kind = (opener.group(1) or opener.group(2)).lower()
+    if kind is not None:
+        kind = kind.lower()
         if kind in {"script", "pre", "style", "textarea"}:
             ends = re.compile(rf"</{kind}>", re.I)
         else:
@@ -561,7 +576,7 @@ def html_block_end(
             if starts[following] > container[index]:
                 break
             last = following
-            if ends.search(bodies[following], opener.end() if following == index else 0):
+            if ends.search(bodies[following]):
                 break
     else:
         while (
@@ -651,13 +666,19 @@ def inert_ranges(
             elif char == "<" and markup:
                 column = position - starts[line_index] - len(block[line_index])
                 column += len(bodies[line_index])
+                at_start = column <= 3 and not bodies[line_index][:column].strip()
                 opener = (
-                    HTML_BLOCK_START_RE.match(bodies[line_index][column:])
-                    if column <= 3 and not bodies[line_index][:column].strip()
-                    else None
+                    HTML_BLOCK_START_RE.match(bodies[line_index][column:]) if at_start else None
                 )
-                if opener is not None:
-                    end = html_block_end(block, bodies, starts, container, line_index, opener)
+                kind = (opener.group(1) or opener.group(2)) if opener is not None else None
+                # A complete tag alone on its line opens a block only where no paragraph
+                # is running to be interrupted.
+                fresh = line_index == 0 or paragraph[line_index - 1] == (
+                    starts[line_index - 1] + len(block[line_index - 1])
+                )
+                generic = at_start and fresh and HTML_BLOCK_GENERIC_RE.match(bodies[line_index])
+                if opener is not None or generic:
+                    end = html_block_end(block, bodies, starts, container, line_index, kind)
                     found.append((position, end))
                     position = end
                     continue
@@ -950,13 +971,14 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         used: set[str] = set()
         fenced_lines = fence_spans(text)
         inert = inert_ranges(text, fenced_lines, markup=False)
+        scrubbed = []
         for index, (line, fenced) in enumerate(zip(text.split("\n"), fenced_lines, strict=True)):
             if fenced:
+                scrubbed.append("")
                 continue
             # A comment or the tail of a multiline code span is not a heading or an anchor.
             visible = blank_ranges(line, inert[index])
-            if has_custom_anchor(visible):
-                unresolved.append(f"{relative}: unsupported custom HTML anchor")
+            scrubbed.append(without_code_spans(visible))
             match = ATX_RE.match(visible)
             if not match:
                 continue
@@ -974,6 +996,8 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             anchor = roots[relative].removesuffix("root") + f"heading-{index}"
             aliases[relative][alias] = anchor
             heading_ids[relative][index] = anchor
+        if has_custom_anchor("\n".join(scrubbed)):
+            unresolved.append(f"{relative}: unsupported custom HTML anchor")
 
     for relative, ids in reference_ids.items():
         if relative != "SKILL.md" and not relative.startswith("references/"):

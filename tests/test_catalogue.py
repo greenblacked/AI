@@ -3160,3 +3160,47 @@ def test_portable_fence_under_nested_container_markers_is_code(mini_repo, tmp_pa
     assert status == 0
     assert portable.export(mini_repo, out) == 0
     assert "After text." in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_quoted_attribute_may_hold_angle_brackets(mini_repo, tmp_path):
+    html = '<span title="> [x](missing.md) <">hi</span>\n'
+    status, out = _export_alpha(mini_repo, tmp_path, html)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert html.strip() in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_generic_tag_alone_on_a_line_opens_an_html_block(mini_repo, tmp_path, capsys):
+    html = "<span>\n[x](missing.md)\n</span>\n"
+    status, out = _export_alpha(mini_repo, tmp_path, html)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert html.strip() in (out / "skills/alpha.md").read_text()
+    # It cannot interrupt a paragraph, and it ends at a blank line.
+    for addition in ("A paragraph\n<span>\n[x](missing.md)\n", "<span>\n\n[x](missing.md)\n"):
+        status, _ = _export_alpha(mini_repo, tmp_path, addition)
+        assert status == 1
+        assert "missing.md" in capsys.readouterr().out
+        source = mini_repo / "plugins/engineering/skills/alpha/SKILL.md"
+        source.write_text(source.read_text().replace("\n" + addition, ""))
+
+
+@pytest.mark.parametrize(
+    "tag", ['<a\n id="same">', '<a href="x"\n   name=y>', "<img\nalt=1\nid=z>"]
+)
+def test_portable_custom_anchor_in_a_tag_that_spans_lines_is_refused(
+    mini_repo, tmp_path, tag, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, tag + "\n")
+    assert status == 1
+    assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+def test_portable_attribute_names_that_only_contain_id_across_lines_are_accepted(
+    mini_repo, tmp_path
+):
+    tag = '<a\n data-name="x"\n title="id=1">t</a>'
+    status, out = _export_alpha(mini_repo, tmp_path, tag + "\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert tag in (out / "skills/alpha.md").read_text()
