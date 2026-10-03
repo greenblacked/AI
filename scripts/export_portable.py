@@ -263,7 +263,7 @@ def fence_spans(text: str) -> list[bool]:
         ):
             opening = None
         if opening is None:
-            rest = line[QUOTE_PREFIX_RE.match(line).end() :]
+            rest = line[QUOTE_PREFIX_RE.match(line).end() :].expandtabs(4)
             spaces = len(rest) - len(rest.lstrip(" "))
             if not rest.strip():
                 in_paragraph = False
@@ -536,7 +536,7 @@ def block_layout(block: list[str], starts: list[int]) -> tuple[list[int], list[i
         paragraph[index] = paragraph[following] if continues else starts[index] + len(block[index])
     container = []
     for index, prefix in enumerate(prefixes):
-        rest = block[index][QUOTE_PREFIX_RE.match(block[index]).end() :]
+        rest = block[index][QUOTE_PREFIX_RE.match(block[index]).end() :].expandtabs(4)
         # An item line ends with its item; any other indented line is taken to sit in one.
         indent = (
             len(prefix.group())
@@ -998,6 +998,7 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
         used: set[str] = set()
         fenced_lines = fence_spans(text)
         inert = inert_ranges(text, fenced_lines, markup=False)
+        markup_ranges = inert_ranges(text, fenced_lines)
         scrubbed = []
         source_lines = text.split("\n")
         # The paragraph being read, as (first line, blockquote depth, content column), so that
@@ -1011,6 +1012,16 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             # A comment or the tail of a multiline code span is not a heading or an anchor.
             visible = blank_ranges(line, inert[index])
             scrubbed.append(without_code_spans(visible))
+            # Inside a raw HTML block or a comment's closing line nothing is Markdown, so a
+            # line that looks like a heading there is not one; the anchor audit above still
+            # reads the tags.
+            container_end = CONTAINER_PREFIX_RE.match(line).end()
+            if any(
+                begin <= container_end and end >= len(line) > 0
+                for begin, end in markup_ranges[index]
+            ):
+                paragraph_start = None
+                continue
             # A heading may sit in a blockquote or a list item, or be indented up to three
             # spaces; four spaces make it text.
             container = CONTAINER_PREFIX_RE.match(visible)
@@ -1019,7 +1030,7 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             depth = container.group().count(">")
             match = ATX_RE.match(visible[lead:])
             heading: str | None = None
-            if match and (lead < 4 or quoted):
+            if match and (len(visible[:lead].expandtabs(4)) < 4 or quoted):
                 heading = re.sub(r"\s+#+\s*$", "", line[lead + match.end() :])
                 at = index
                 paragraph_start = None
@@ -1044,7 +1055,7 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
                 )
                 at = first
                 paragraph_start = None
-            elif visible.startswith("    ") and not quoted:
+            elif visible.expandtabs(4).startswith("    ") and not quoted:
                 paragraph_start = None
                 continue
             else:

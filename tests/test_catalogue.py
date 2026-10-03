@@ -3356,3 +3356,52 @@ def test_portable_underline_outside_the_container_of_its_text_is_not_a_heading(
     status, _ = _export_alpha(mini_repo, tmp_path, f"{before}\n\nSee [x](#item).\n")
     assert status == 1
     assert "#item" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "example",
+    [
+        "\t[x](missing.md)\n",
+        "\t[x](missing.md)\n\n\t[y][ref]\n\n\t[ref]: other.md\n",
+        "- item\n\n\t\t[x](missing.md)\n",
+    ],
+)
+def test_portable_tab_indented_code_is_inert(mini_repo, tmp_path, example):
+    status, out = _export_alpha(mini_repo, tmp_path, "Before.\n\n" + example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert example.strip("\n") in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_tab_after_a_paragraph_is_text_not_code(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(mini_repo, tmp_path, "A paragraph\n\t[x](missing.md) continues it.\n")
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_heading_shaped_line_in_an_html_block_is_not_a_link_target(
+    mini_repo, tmp_path, capsys
+):
+    block = "<div>\n## Hidden\n</div>\n"
+    status, out = _export_alpha(mini_repo, tmp_path, block)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert block.strip() in document
+    assert '<a name="portable' not in document.split("<div>")[1].split("</div>")[0]
+    # A link to it does not resolve, and a real heading beside it still does.
+    status, _ = _export_alpha(mini_repo, tmp_path, "\nSee [x](#hidden).\n")
+    assert status == 1
+    assert "#hidden" in capsys.readouterr().out
+    source = mini_repo / "plugins/engineering/skills/alpha/SKILL.md"
+    source.write_text(
+        source.read_text().replace("\nSee [x](#hidden).\n", "\n## Real\n\nSee [y](#real).\n")
+    )
+    status, _ = _export_alpha(mini_repo, tmp_path, "")
+    assert status == 0
+
+
+def test_portable_html_block_still_audits_its_anchors(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(mini_repo, tmp_path, '<div>\n<a id="x"></a>\n## Hidden\n</div>\n')
+    assert status == 1
+    assert "unsupported custom HTML anchor" in capsys.readouterr().out
