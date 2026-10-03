@@ -286,6 +286,22 @@ def leading_spaces(line: str) -> int:
     return len(rest) - len(rest.lstrip(" "))
 
 
+def unbalanced_parentheses(destination: str) -> bool:
+    """True when a bare destination closes a parenthesis it never opened or leaves one open."""
+    depth = 0
+    escaped = False
+    for char in destination:
+        if escaped:
+            escaped = False
+        elif char == "\\":
+            escaped = True
+        else:
+            depth += (char == "(") - (char == ")")
+            if depth < 0:
+                return True
+    return depth != 0
+
+
 def complete_definition(content: str) -> bool:
     """True for a reference definition that is whole on this line.
 
@@ -297,8 +313,15 @@ def complete_definition(content: str) -> bool:
     spans = destination_spans(content)
     if not spans:
         return False
-    after = content[spans[0][1] :]
-    after = after[1:] if after.startswith(">") else after
+    start, end = spans[0][:2]
+    after = content[end:]
+    if content[start - 1 : start] == "<":
+        # An angle destination without its closing bracket is paragraph text.
+        if not after.startswith(">"):
+            return False
+        after = after[1:]
+    elif unbalanced_parentheses(content[start:end]):
+        return False
     return (
         not after.strip()
         or re.fullmatch(
@@ -329,10 +352,15 @@ def fence_spans(text: str) -> list[bool]:
     in_html = False
     html_end: re.Pattern[str] | None = None
     html_from = 0
+    html_depth = 0
     for line in text.split("\n"):
         prefix = CONTAINER_PREFIX_RE.match(line)
         content = line[prefix.end() :]
         quotes = prefix.group().count(">")
+        if in_html and quotes < html_depth:
+            # An HTML block takes no lazy continuation, so it ends with its blockquote.
+            in_html = False
+            html_end = None
         if opening is not None and (
             # A fence inside a blockquote ends with the quote, and one inside a list item
             # with the item, closing marker or not.
@@ -373,6 +401,7 @@ def fence_spans(text: str) -> list[bool]:
             started = html_block_start(content, in_paragraph)
             if started is not None:
                 html_end, html_from = started
+                html_depth = quotes
                 in_html = True
                 if html_end is not None and html_end.search(content, html_from):
                     in_html = False
@@ -732,7 +761,18 @@ def html_block_end(
 
 
 TABLE_DELIMITER_RE = re.compile(r"^\s*\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)*\|?\s*$")
-CELL_PIPE_RE = re.compile(r"(?<!\\)\|")
+# A pipe is escaped only by an odd run of backslashes: `\\|` is a backslash and a delimiter.
+CELL_PIPE_RE = re.compile(r"(?<!\\)(?:\\\\)*(\|)")
+
+
+def split_cells(row: str) -> list[str]:
+    """``row`` cut at its unescaped pipes, which are the only ones that end a cell."""
+    cells, begin = [], 0
+    for match in CELL_PIPE_RE.finditer(row):
+        cells.append(row[begin : match.start(1)])
+        begin = match.end(1)
+    cells.append(row[begin:])
+    return cells
 
 
 def table_rows(lines: list[str], fenced: list[bool]) -> set[int]:
@@ -875,7 +915,7 @@ def inert_ranges(
                 if first + line_index in tables:
                     # A span in a table cell ends at the cell, whatever follows the pipe.
                     cell_end = CELL_PIPE_RE.search(joined, position + run, stop)
-                    stop = cell_end.start() if cell_end else stop
+                    stop = cell_end.start(1) if cell_end else stop
                 for match in re.finditer(r"`+", joined[position + run : stop]):
                     if len(match.group()) == run:
                         end = position + run + match.end()
@@ -892,7 +932,9 @@ def inert_ranges(
                     ranges[first + index].append((max(begin, low) - low, min(end, high) - low))
     if markup:
         for index in tables:
-            ranges[index].extend((m.start(), m.end()) for m in CELL_PIPE_RE.finditer(lines[index]))
+            ranges[index].extend(
+                (m.start(1), m.end(1)) for m in CELL_PIPE_RE.finditer(lines[index])
+            )
     return [sorted(set(found)) for found in ranges]
 
 
@@ -1202,7 +1244,7 @@ def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
             visible = blank_ranges(line, inert[index])
             if index in table_lines:
                 # Code never spans a cell, so scrub each cell on its own.
-                scrubbed.append("|".join(without_code_spans(cell) for cell in visible.split("|")))
+                scrubbed.append("|".join(without_code_spans(cell) for cell in split_cells(visible)))
             else:
                 scrubbed.append(without_code_spans(visible))
             # Inside a raw HTML block or a comment's closing line nothing is Markdown, so a

@@ -3841,3 +3841,55 @@ def test_portable_escaped_underscores_in_a_heading_stay_literal(
     assert status == 0
     assert portable.export(mini_repo, out) == 0
     assert f"(#{fragment})" not in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_escaped_pipe_does_not_end_a_cell_in_the_anchor_scrub(mini_repo, tmp_path):
+    table = '| h1 | h2 |\n| --- | --- |\n| `a \\| <a id="x"></a>` | b |\n'
+    status, out = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_pipe_after_an_even_backslash_run_ends_the_cell(mini_repo, tmp_path, capsys):
+    table = "| h1 | h2 |\n| --- | --- |\n| `a \\\\| [x](missing.md)` | b |\n"
+    status, _ = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_pipe_after_an_odd_backslash_run_stays_in_the_cell(mini_repo, tmp_path):
+    table = "| h1 | h2 |\n| --- | --- |\n| `a \\\\\\| [x](missing.md)` | b |\n"
+    status, out = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+@pytest.mark.parametrize(
+    "definition",
+    [
+        "[ref]: <https://example.com",
+        "[ref]: https://example.com/a(b",
+        "[ref]: https://example.com/a)b",
+    ],
+)
+def test_portable_unterminated_destination_is_not_a_definition(mini_repo, tmp_path, definition):
+    # Paragraph text, so the indented line after it continues the paragraph, not code.
+    body = f"{definition}\n    [x](missing.md)\n"
+    status, _ = _export_alpha(mini_repo, tmp_path, body)
+    assert status == 1
+
+
+@pytest.mark.parametrize(
+    "definition", ["[ref]: <https://example.com>", "[ref]: https://example.com/a(b)"]
+)
+def test_portable_terminated_destination_is_a_definition(mini_repo, tmp_path, definition):
+    body = f"{definition}\n    [x](missing.md)\n"
+    status, _ = _export_alpha(mini_repo, tmp_path, body)
+    assert status == 0
+
+
+def test_portable_html_block_ends_with_its_blockquote(mini_repo, tmp_path):
+    # No lazy continuation for an HTML block: the paragraph after it is live Markdown.
+    body = '> <span title="x">\n``    \n    [x](missing.md)\n'
+    status, _ = _export_alpha(mini_repo, tmp_path, body)
+    assert status == 1
