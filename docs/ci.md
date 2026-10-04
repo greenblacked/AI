@@ -9,8 +9,9 @@ evals — monthly over everything, and on every pull request over what that pull
 touched. `dependabot-auto-merge.yml` merges a Dependabot pull request once the two
 gates have, `ci-triage.yml` explains a failed CI or Security run in one comment,
 `release.yml` publishes a tagged release and then deploys that catalogue to Cloudflare,
+`cut-release.yml` creates that tag from the Actions tab and hands it to `release.yml`,
 and `deploy.yml` dry-runs that upload on a pull request and uploads a `stage` Preview of
-the same Worker on a push to `stage`. None of `dependabot-auto-merge.yml`, `ci-triage.yml`, `release.yml` or
+the same Worker on a push to `stage`. None of `dependabot-auto-merge.yml`, `ci-triage.yml`, `cut-release.yml`, `release.yml` or
 `deploy.yml` is a required check.
 
 ## Execution flow
@@ -180,7 +181,7 @@ Triggers on `pull_request` (`opened`, `synchronize`, `reopened`), never
 `pull_request_target` — the base-branch checkout and secret exposure that trigger allows
 is exactly what zizmor's dangerous-triggers audit exists to catch, and nothing here needs
 it. Top-level `permissions: {}`; the one job grants itself `contents: write` and
-`pull-requests: write` (`release.yml`'s `release` job also holds `contents: write`, and
+`pull-requests: write` (`release.yml`'s `release` job and `cut-release.yml`'s job also hold `contents: write`, and
 `codeql`
 in `security.yml` also writes, but only `security-events`, to publish its scan
 results, not to change anything a person reads as the repository's content).
@@ -271,10 +272,16 @@ response instead.
 
 ## `.github/workflows/release.yml` — Release
 
-Triggers only on a tag push matching `vX.Y.Z`. Top-level `permissions: {}`. The
+Triggers on a tag push matching `vX.Y.Z`, and on `workflow_dispatch`, which takes no
+inputs and is what [`cut-release.yml`](#githubworkflowscut-releaseyml--cut-release) sends
+after creating the tag through the API: a tag made with `GITHUB_TOKEN` does not start the
+tag-push trigger, and a dispatch is the one event a `GITHUB_TOKEN` call does start. A
+dispatch starts the workflow at whatever ref it is pointed at, so the first step of both
+jobs fails unless `GITHUB_REF_TYPE` is `tag` and `GITHUB_REF_NAME` is `vX.Y.Z`; a dispatch
+on a branch publishes nothing. Top-level `permissions: {}`. The
 `release` job grants itself `contents: write` — the second exception to "nothing here
 pushes from CI", alongside `dependabot-auto-merge.yml`'s job. It is bounded three ways:
-it only runs on a version-tag push, it refuses a tagged commit that is not an ancestor
+it only runs on a version-tag ref, it refuses a tagged commit that is not an ancestor
 of `main`, and the write access is spent on creating a release and uploading assets
 through the preinstalled `gh` CLI, never on pushing a commit — its checkout still sets
 `persist-credentials: false`. The `cloudflare` job grants itself `contents: read` only.
@@ -286,8 +293,8 @@ secret that job needs before the first tag.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
-| `release` | `release` | The tagged commit is not on `main`, the strict validator failed, [`scripts/release.py notes`](../scripts/release.py) found no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md) for the tag, [`scripts/package_skills.py`](../scripts/package_skills.py) or [`scripts/verify_archives.py`](../scripts/verify_archives.py) failed, [`scripts/export_portable.py`](../scripts/export_portable.py) failed, or `gh release create` or `gh release upload` could not create the release or upload an asset. |
-| `cloudflare` | `cloudflare` | The tagged commit is not on `main`, [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py) or [`scripts/check_wrangler_pin.py`](../scripts/check_wrangler_pin.py) failed, `npm ci` failed, the `production` environment has no `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID`, `wrangler deployments status` could not read the version production is serving or found traffic split between versions, `wrangler deploy` failed, the smoke test did not see this version answer, or the automatic rollback failed. |
+| `release` | `release` | The ref is not a `vX.Y.Z` tag, the tagged commit is not on `main`, the strict validator failed, [`scripts/release.py notes`](../scripts/release.py) found no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md) for the tag, [`scripts/package_skills.py`](../scripts/package_skills.py) or [`scripts/verify_archives.py`](../scripts/verify_archives.py) failed, [`scripts/export_portable.py`](../scripts/export_portable.py) failed, or `gh release create` or `gh release upload` could not create the release or upload an asset. |
+| `cloudflare` | `cloudflare` | The ref is not a `vX.Y.Z` tag, the tagged commit is not on `main`, [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py) or [`scripts/check_wrangler_pin.py`](../scripts/check_wrangler_pin.py) failed, `npm ci` failed, the `production` environment has no `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID`, `wrangler deployments status` could not read the version production is serving or found traffic split between versions, `wrangler deploy` failed, the smoke test did not see this version answer, or the automatic rollback failed. |
 
 Not a required check — nothing merges against it, and it only ever runs after a tag has
 already been pushed. `git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main`
@@ -335,6 +342,36 @@ single version to return to, so the job stops before deploying until the rollout
 finished or reverted, and it also stops if it cannot read the serving version at all.
 The first deploy to an empty Worker has nothing to roll back to, so a smoke failure on
 that first run leaves the job red and says so.
+
+## `.github/workflows/cut-release.yml` — Cut release
+
+Triggers only on `workflow_dispatch`, with one required input, `version` (`X.Y.Z`).
+Top-level `permissions: {}`. The one job, `cut`, grants itself `contents: write` and
+`actions: write` — the fourth exception to "nothing here pushes from CI". The first is
+spent on creating one annotated tag object and the `refs/tags/vX.Y.Z` ref that points at
+it, through `gh api`; it never pushes a commit, and the checkout sets
+`persist-credentials: false` and keeps no credential. The second is spent on dispatching
+`release.yml` on that tag, and on nothing else. It is bounded by when it runs: the job
+has `if: github.ref == 'refs/heads/main'` and its first step fails on any other ref, so
+a dispatch from another branch is visibly refused. The `version` input reaches the job
+only through `env:`, is matched against `^[0-9]+\.[0-9]+\.[0-9]+$` before anything uses
+it, and is never interpolated into a `run:` block. Runs are serialised by the
+`cut-release` concurrency group without cancelling one in flight.
+
+It does not publish. The `production` environment admits only `v*` tags (step 4 of
+[what you set in GitHub and Cloudflare](#what-you-set-in-github-and-cloudflare)), so a run
+on `main` could not deploy; `release.yml` has to run on the tag, and it does because this
+job dispatches it there. Everything `release.yml` checks, including that the tagged
+commit is an ancestor of `main`, therefore applies to a tag cut here exactly as it does to
+one pushed by hand.
+
+| Job | Check name | Failing means |
+| --- | --- | --- |
+| `cut` | `cut` | The run is not on `main`, the version is malformed, [`scripts/release.py check`](../scripts/release.py) refused it (no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md), the tag already on `origin`, a version not greater than an existing tag, or `HEAD` not equal to `origin/main`), the API refused to create the tag object or the ref, or `release.yml` could not be dispatched. In the last case the tag exists: run Release from the Actions tab on that tag rather than cutting again. |
+
+Not a required check — nothing merges against it. The tag message is the changelog
+section, sent to the API as a JSON string built by Python so it arrives verbatim, with
+its `###` subheadings intact; the tagger is the user who dispatched the run.
 
 ## `.github/workflows/deploy.yml` — Cloudflare
 
@@ -645,7 +682,8 @@ tracking the latest commit on `main`; [using the skills](using.md#updating-and-r
 covers the install-time side of that.
 
 `main` requires a pull request, so cutting a release is two steps, both wrapped by
-[`scripts/release.py`](../scripts/release.py):
+[`scripts/release.py`](../scripts/release.py). The first is the same either way; the
+second has two routes, and the Actions one is the usual path.
 
 1. **On a branch:** `make release-prepare VERSION=x.y.z`. Moves `## [Unreleased]`'s body
    into a new `## [x.y.z] - YYYY-MM-DD` section dated today in UTC, leaves an empty
@@ -656,7 +694,16 @@ covers the install-time side of that.
    since a branch may not have fetched a tag another release just pushed; with no
    `origin` configured it says so and skips that one check rather than failing. Commit
    the result, open a pull request, and merge it.
-2. **On `main`, after that pull request merges:** `make release VERSION=x.y.z`, which
+2. **On `main`, after that pull request merges:** open Actions, choose Cut release and
+   Run workflow on `main` with the version. It runs `scripts/release.py check`, which
+   applies `tag`'s validation without the local-branch and working-tree checks — a
+   non-empty changelog section, the tag not on `origin`, a version greater than every
+   existing tag and `HEAD` equal to `origin/main` — creates the annotated tag through
+   the API and dispatches `release.yml` on it; see
+   [`cut-release.yml`](#githubworkflowscut-releaseyml--cut-release). The release and the
+   deploy then run exactly as they do for a hand-pushed tag.
+
+   The local route still works: `make release VERSION=x.y.z`, which
    checks things in this order: the branch is `main`; the working tree is clean,
    including untracked files; `CHANGELOG.md` has a non-empty `[x.y.z]` section; the tag
    does not already exist locally or on `origin`; and only then does it fetch and confirm
@@ -780,7 +827,7 @@ build script pulls in — can read it and push with it. None of these jobs push,
 them need the credential to survive the checkout step.
 
 Every job sets `timeout-minutes` — five for most, ten for `validate-plugin`, `test`,
-`package` and the two `scheduled.yml` jobs, fifteen for the release job, twenty for
+`package`, `cut-release.yml`'s job and the two `scheduled.yml` jobs, fifteen for the release job, twenty for
 CodeQL, two hours for the monthly eval job, and forty-five for the pull request eval
 job. The default is six hours, which is long enough that a hung step looks like a slow
 one for most of a working day, and it holds a runner the whole time. A timeout turns
