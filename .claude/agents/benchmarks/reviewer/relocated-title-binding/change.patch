@@ -1,0 +1,21 @@
+diff --git a/scripts/export_portable.py b/scripts/export_portable.py
+--- a/scripts/export_portable.py
++++ b/scripts/export_portable.py
+@@ -762,7 +762,7 @@
+     root_anchors, body = prose("SKILL.md", 0)
+     parts = [
+         root_anchors,
+-        "# " + skill_title,
++        "# " + title_of(sources["SKILL.md"], name),
+         "",
+         f"**Skill:** `{name}`",
+         "",
+@@ -775,7 +775,7 @@
+         text = sources[relative]
+         if relative.startswith("references/"):
+             anchors, content = prose(relative, 3)
+-            sections.append(f"{anchors}\n### {prepared_titles[relative]}\n\n{content}")
++            sections.append(f"{anchors}\n### {titles[relative]}\n\n{content}")
+         else:
+             language = (
+                 asset_language_of(relative)

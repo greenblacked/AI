@@ -1,0 +1,12 @@
+diff --git a/scripts/export_portable.py b/scripts/export_portable.py
+--- a/scripts/export_portable.py
++++ b/scripts/export_portable.py
+@@ -455,8 +455,6 @@
+         ):
+             candidate = path.removeprefix("./")
+         anchor = roots.get(candidate)
+-        if separator and fragment:
+-            anchor = aliases.get(candidate, {}).get(fragment)
+         if candidate.startswith("../") or candidate.startswith("/") or anchor is None:
+             unresolved.append(f"{current}: {destination}")
+             return None

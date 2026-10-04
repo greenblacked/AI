@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 
 import pytest
 
@@ -562,7 +563,8 @@ def test_a_reference_is_inlined_and_its_pointer_rewritten(mini_repo):
     assert "references/depth.md" not in document
     assert 'the "Going deeper" section below' in document
     assert "### Going deeper" in document
-    assert "##### A sub-heading" in document  # demoted so it nests
+    # Demoted so it nests; the generated anchor sits inline in the heading, not above it.
+    assert re.search(r'^##### <a name="[^"]+"></a>A sub-heading$', document, re.M)
 
 
 def test_a_pointer_to_a_file_that_is_gone_is_reported_not_swallowed(mini_repo):
@@ -1895,3 +1897,2227 @@ def test_claimed_fits_reads_singular_and_ignores_fit_inside_a_word():
     assert budget.claimed_fits(
         "For the benefit of readers: only `career` and `personal` fit the default budget."
     ) == {"career", "personal"}
+
+
+def test_portable_links_keep_source_identity_in_individual_and_bundle(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    (refs / "deep").mkdir(parents=True)
+    (refs / "a.md").write_text(
+        "# Shared title\n\n## Contents\n\nA contents.\n\n"
+        "[self](#contents) [sibling](./b.md#contents) "
+        "[nested](deep/n.md#nested)\n\n"
+        "## Topic\n\nFirst topic.\n\n## Topic-1\n\nNatural suffix.\n\n"
+        "## Topic\n\nDuplicate topic.\n",
+        encoding="utf-8",
+    )
+    (refs / "b.md").write_text(
+        "# Shared title\n\n## Contents\n\nB contents.\n\n[title](a.md#shared-title) [root](a.md)\n",
+        encoding="utf-8",
+    )
+    (refs / "deep/n.md").write_text(
+        "# Nested title\n\n## Nested\n\nNested content.\n\n[up](../a.md#topic-2)\n",
+        encoding="utf-8",
+    )
+    (refs / "odd(name).md").write_text("# Odd\n\n## Details\n\nParenthesis target.\n")
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text() + "\n"
+        '[body [nested] label](<references/a.md#contents> "keep title")\n'
+        "[escaped \\] label](references/a.md#topic-1)\n"
+        "[encoded](references/deep/n.md#%6Eested)\n"
+        "[balanced](references/odd(name).md#details)\n"
+        "[escaped destination](references/odd\\(name\\).md#details)\n"
+        "Read `references/a.md#topic-2`.\n"
+        "[references/a.md][target]\n"
+        '[definition][target]\n[target]: references/b.md#contents "definition title"\n'
+        '[external references/a.md](https://example.com/references/a.md "external")\n'
+        "`[example](references/missing.md)`\n"
+        "````markdown\n[example](references/missing.md)\n```\n"
+        "# fenced heading\n````\n",
+        encoding="utf-8",
+    )
+    # A second skill has identical heading names and filenames, so a bundle must keep
+    # both source identities despite their final heading levels and concatenation.
+    second = skill.parent / "beta"
+    second.mkdir(exist_ok=True)
+    (second / "SKILL.md").write_text(
+        source.read_text().replace("name: alpha", "name: beta"), encoding="utf-8"
+    )
+    shutil.copytree(refs, second / "references")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    individual = (out / "skills/alpha.md").read_text()
+    bundle = (out / "plugins/engineering.md").read_text()
+    expected = {
+        "body [nested] label": "A contents.",
+        "self": "A contents.",
+        "sibling": "B contents.",
+        "nested": "Nested content.",
+        "escaped \\] label": "Natural suffix.",
+        "encoded": "Nested content.",
+        "up": "Duplicate topic.",
+        "balanced": "Parenthesis target.",
+        "escaped destination": "Parenthesis target.",
+        "title": "A contents.",
+        "root": "A contents.",
+    }
+    for document in (individual, bundle):
+        anchors = re.findall(r'<a name="([^"]+)"></a>', document)
+        assert len(anchors) == len(set(anchors))
+        for label, content in expected.items():
+            # Examine the actual output destination and its source content independently
+            # of the implementation's source alias map.
+            destination = re.search(re.escape("[" + label + "]") + r"\(<?#([^>\s)]+)", document)
+            assert destination, label
+            anchor = destination.group(1)
+            assert anchor in anchors
+            target = document.split(f'<a name="{anchor}"></a>', 1)[1]
+            assert content in target.split('<a name="', 1)[0] or (
+                label in {"title", "root"}
+                and "Shared title" in target[:200]
+                and content in target[:500]
+            ), (label, target[:200])
+        assert '"keep title"' in document
+        assert re.search(r"\[references/a\.md\]\[portable-reference-[a-f0-9]+\]", document)
+        assert 'Read the "Shared title" section below.' in document
+        assert "section below#topic" not in document
+        assert (
+            '[external references/a.md](https://example.com/references/a.md "external")' in document
+        )
+        assert "`[example](references/missing.md)`" in document
+        assert (
+            "````markdown\n[example](references/missing.md)\n```\n# fenced heading\n````"
+            in document
+        )
+        definition = re.search(
+            r'^\[portable-reference-[a-f0-9]+\]: #([^ ]+) "definition title"$', document, re.M
+        )
+        assert definition and definition.group(1) in anchors
+        assert (
+            "B contents."
+            in document.split(f'<a name="{definition.group(1)}"></a>', 1)[1].split('<a name="', 1)[
+                0
+            ]
+        )
+    assert set(re.findall(r'<a name="([^"]+)"></a>', individual)).issubset(
+        re.findall(r'<a name="([^"]+)"></a>', bundle)
+    )
+
+
+@pytest.mark.parametrize("destination", ["missing.md", "a.md#missing", "../../outside.md"])
+@pytest.mark.parametrize("current", ["SKILL.md", "references/a.md"])
+def test_portable_missing_explicit_reference_links_fail_before_writes(
+    mini_repo, tmp_path, capsys, destination, current
+):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    (refs / "a.md").write_text("# A\n\n## Existing\n\nContent.\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    before = {path.relative_to(out): path.read_bytes() for path in out.rglob("*") if path.is_file()}
+    if current == "SKILL.md" and destination == "a.md#missing":
+        destination = "references/a.md#missing"
+    source = skill / current
+    source.write_text(source.read_text() + f"\n[broken]({destination})\n")
+    for check in (False, True):
+        assert portable.export(mini_repo, out, check=check) == 1
+        assert f"{current}: {destination}" in capsys.readouterr().out
+        assert before == {
+            path.relative_to(out): path.read_bytes() for path in out.rglob("*") if path.is_file()
+        }
+
+
+def test_portable_symlink_escape_is_rejected_and_assets_get_safe_fences(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    assets = skill / "assets"
+    assets.mkdir()
+    (assets / "example.md").write_text("# Example\n```python\nprint(1)\n```\n")
+    _, _, document, unresolved = portable.render_skill(skill)
+    assert not unresolved
+    assert "````markdown\n# Example\n```python\nprint(1)\n```\n````" in document
+    outside = tmp_path / "outside.md"
+    outside.write_text("Private outside content")
+    (assets / "escape.md").symlink_to(outside)
+    _, _, document, unresolved = portable.render_skill(skill)
+    assert unresolved == ["assets/escape.md: symlink escapes skill root"]
+    assert "Private outside content" not in document
+
+
+def test_portable_reference_bindings_stay_local_to_every_source(mini_repo, tmp_path):
+    expected = {}
+    for skill_name in ("alpha", "beta"):
+        skill = mini_repo / "plugins/engineering/skills" / skill_name
+        refs = skill / "references"
+        refs.mkdir()
+        # This shortcut has a definition elsewhere, but no definition in SKILL.md.
+        source = skill / "SKILL.md"
+        source.write_text(source.read_text() + "\n[shared label]\n")
+        for reference_name in ("one", "two"):
+            sentinel = f"{skill_name}-{reference_name} ONLY sentinel"
+            key = f"{skill_name}-{reference_name}"
+            uri = f"https://example.com/{key}/references/example.md"
+            expected[key] = (sentinel, uri)
+            (refs / f"{reference_name}.md").write_text(
+                f"# Same title\n\n## Target\n\n{sentinel}\n\n"
+                f"[{key} full][ ShArEd\tLaBeL ]\n"
+                "[shared label][]\n[SHARED  LABEL]\n"
+                f"[{key} external][external]\n"
+                f'[SHARED LABEL]: #target "{key} local title"\n'
+                '[shared label]: https://wrong.example "duplicate loses"\n'
+                f'[EXTERNAL]: {uri} "{key} external title"\n'
+                "`[shared label] [code][external]`\n"
+                "\\[shared label]\n[undefined]\n"
+                "~~~markdown\n[shared label]\n[external]: https://fenced.example\n~~~\n",
+                encoding="utf-8",
+            )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename, owners in (
+        ("skills/alpha.md", ("alpha",)),
+        ("skills/beta.md", ("beta",)),
+        ("plugins/engineering.md", ("alpha", "beta")),
+    ):
+        document = (out / filename).read_text()
+        # Build the artifact's actual first-definition map independently of all
+        # exporter helpers. This models the binding that a Markdown renderer uses.
+        effective = {}
+        definitions = []
+        uses = []
+        fenced = False
+        for line in document.splitlines():
+            if line.startswith("~~~"):
+                fenced = not fenced
+                continue
+            if fenced or line.startswith("`") or line.startswith("\\"):
+                continue
+            definition = re.fullmatch(r'\[([^]]+)\]: (\S+) "([^"]+)"', line)
+            if definition:
+                identifier, destination, title = definition.groups()
+                normalized = " ".join(identifier.split()).casefold()
+                definitions.append((normalized, destination, title))
+                effective.setdefault(normalized, (destination, title))
+                continue
+            uses.extend(re.findall(r"\[([^]]+)\]\[([^]]+)\]", line))
+        assert len(definitions) == 6 * len(owners)
+        assert len(effective) == 4 * len(owners)
+        assert len(uses) == 8 * len(owners)
+        seen_local = dict.fromkeys(
+            (owner + "-" + ref for owner in owners for ref in ("one", "two")), 0
+        )
+        seen_external = dict.fromkeys(seen_local, 0)
+        identifier_sources = {}
+        for identifier, destination, title in definitions:
+            assert identifier.startswith("portable-reference-")
+            assert len(identifier) <= 999
+            if title == "duplicate loses":
+                assert destination == "https://wrong.example"
+                assert effective[identifier][1] != title
+                continue
+            source_key, kind, _ = title.rsplit(" ", 2)
+            assert source_key in expected and source_key.split("-")[0] in owners
+            previous_owner = identifier_sources.setdefault(identifier, source_key)
+            assert previous_owner == source_key
+            sentinel, uri = expected[source_key]
+            if kind == "local":
+                assert destination.startswith("#")
+                target = document.split(f'<a name="{destination[1:]}"></a>', 1)[1]
+                assert sentinel in target.split('<a name="', 1)[0]
+            else:
+                assert kind == "external" and destination == uri
+        for display, identifier in uses:
+            destination, title = effective[" ".join(identifier.split()).casefold()]
+            source_key, kind, _ = title.rsplit(" ", 2)
+            sentinel, uri = expected[source_key]
+            if kind == "local":
+                assert display in {source_key + " full", "shared label", "SHARED  LABEL"}
+                target = document.split(f'<a name="{destination[1:]}"></a>', 1)[1]
+                assert sentinel in target.split('<a name="', 1)[0]
+                seen_local[source_key] += 1
+            else:
+                assert display == source_key + " external" and destination == uri
+                seen_external[source_key] += 1
+        assert all(count == 3 for count in seen_local.values())
+        assert all(count == 1 for count in seen_external.values())
+        # No definition may accidentally activate a shortcut from a different source.
+        assert "\n[shared label]\n" in document
+        assert "\n[undefined]\n" in document
+        assert "`[shared label] [code][external]`" in document
+        assert "\\[shared label]" in document
+        assert "~~~markdown\n[shared label]\n[external]: https://fenced.example\n~~~" in document
+
+
+@pytest.mark.parametrize(
+    "binding", ["[shared\nlabel]", "[visible][shared\nlabel]", "[shared\nlabel]: #target"]
+)
+def test_portable_unsupported_multiline_reference_binding_fails(mini_repo, tmp_path, binding):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text() + "\n## Target\n\n[shared label]: #target\n" + binding + "\n"
+    )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 1
+    assert portable.export(mini_repo, out) == 1
+    assert not out.exists()
+
+
+def test_portable_nested_image_references_keep_source_bindings(mini_repo, tmp_path):
+    expected = {}
+    protected = (
+        "`[![badge][image]][target]`\n"
+        '[code `![badge][image]`](https://example.com/code "![badge][image]")\n'
+        "~~~markdown\n[![badge][image]][target]\n~~~\n"
+    )
+    for owner in ("alpha", "beta"):
+        skill = mini_repo / "plugins/engineering/skills" / owner
+        refs = skill / "references"
+        refs.mkdir()
+        for source in (skill / "SKILL.md", refs / "one.md", refs / "two.md"):
+            key = owner + "-" + source.stem
+            image = f"https://example.com/{key}.svg"
+            target = f"https://example.com/{key}/details"
+            expected[key] = (image, target)
+            original = source.read_text() if source.exists() else "# Reference\n"
+            source.write_text(
+                original + f"\n{key}\n"
+                "[![badge][image]][target]\n"
+                "[![image][]][target]\n"
+                "[![image]][target]\n"
+                f'[![badge][image]]({target} "outer [image]")\n'
+                f"[![image][]]({target})\n"
+                f"[![image]]({target})\n\n"
+                f'[image]: {image} "image title"\n'
+                f'[target]: {target} "target title"\n\n' + protected
+            )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    for filename, owners in (
+        ("skills/alpha.md", ("alpha",)),
+        ("skills/beta.md", ("beta",)),
+        ("plugins/engineering.md", ("alpha", "beta")),
+    ):
+        document = (out / filename).read_text()
+        definitions = dict(
+            re.findall(r'^\[([^]]+)\]: (\S+) "(?:image|target) title"$', document, re.M)
+        )
+        for key, (image, target) in expected.items():
+            if key.split("-")[0] not in owners:
+                continue
+            section = document.split("\n" + key + "\n", 1)[1].split(protected, 1)[0]
+            uses = re.findall(r"^\[!\[(badge|image)\]\[([^]]+)\]\](.*)$", section, re.M)
+            assert len(uses) == 6
+            for label, image_id, outer in uses:
+                assert label in {"badge", "image"}
+                assert definitions[image_id] == image
+                if outer.startswith("["):
+                    assert definitions[outer[1:-1]] == target
+                else:
+                    assert outer in {f'({target} "outer [image]")', f"({target})"}
+        assert document.count(protected) == 3 * len(owners)
+
+
+@pytest.mark.parametrize("context", ["body", "reference"])
+@pytest.mark.parametrize("outer", ["inline", "reference", "standalone"])
+@pytest.mark.parametrize("binding", ["inline", "full", "collapsed", "shortcut"])
+@pytest.mark.parametrize(
+    "destination", ["existing.svg", "missing.svg", "../../escape.svg", "#alpha"]
+)
+def test_portable_local_image_sources_fail_before_writes(
+    mini_repo, tmp_path, capsys, context, outer, binding, destination
+):
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    before = {p.relative_to(out): p.read_bytes() for p in out.rglob("*") if p.is_file()}
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    source = skill / "SKILL.md" if context == "body" else refs / "one.md"
+    (source.parent / "existing.svg").write_text("<svg></svg>\n")
+    image = {
+        "inline": f'![image](<{destination}> "image title")',
+        "full": "![badge][image]",
+        "collapsed": "![image][]",
+        "shortcut": "![image]",
+    }[binding]
+    use = {
+        "inline": f'[{image}](https://example.com "outer title")',
+        "reference": f"[{image}][target]",
+        "standalone": image,
+    }[outer]
+    original = source.read_text() if source.exists() else "# Reference\n"
+    source.write_text(
+        original
+        + "\n"
+        + use
+        + "\n\n"
+        + (f'[image]: <{destination}> "image title"\n' if binding != "inline" else "")
+        + '[target]: https://example.com "target title"\n'
+    )
+    for check in (True, False):
+        assert portable.export(mini_repo, out, check=check) == 1
+        assert before == {p.relative_to(out): p.read_bytes() for p in out.rglob("*") if p.is_file()}
+        assert "unsupported local image source: " + destination in capsys.readouterr().out
+
+
+def test_portable_nested_inline_external_images_preserve_syntax(mini_repo, tmp_path):
+    protected = (
+        "`[![image](missing.svg)](https://example.com)`\n"
+        '[code `![image](missing.svg)`](https://example.com "![image](missing.svg)")\n'
+        "~~~markdown\n[![image](missing.svg)][target]\n~~~\n"
+    )
+    syntax = (
+        '[![badge](<https://example.com/badge.svg> "image title")]'
+        '(https://example.com "outer title")\n'
+        '[![badge](//example.com/badge.svg "image title")][target]\n'
+    )
+    for owner in ("alpha", "beta"):
+        skill = mini_repo / "plugins/engineering/skills" / owner
+        refs = skill / "references"
+        refs.mkdir()
+        for source in (skill / "SKILL.md", refs / "one.md"):
+            original = source.read_text() if source.exists() else "# Reference\n"
+            source.write_text(
+                original + "\n" + syntax + protected + "\n[target]: https://example.com\n"
+            )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    for filename, count in (
+        ("skills/alpha.md", 2),
+        ("skills/beta.md", 2),
+        ("plugins/engineering.md", 4),
+    ):
+        document = (out / filename).read_text()
+        assert document.count(syntax.splitlines()[0]) == count
+        assert document.count('![badge](//example.com/badge.svg "image title")') == count
+        assert document.count(protected) == count
+
+
+def test_portable_escaped_image_marker_is_a_link(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    (refs / "one.md").write_text("# Reference\nContent.\n")
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + r"\![label](references/one.md)" + "\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        assert re.search(r"\\!\[label\]\(#portable-[^)]+\)", (out / filename).read_text())
+
+
+@pytest.mark.parametrize("heading", ["[Guide][target]", "[Guide][]", "[Guide]"])
+def test_portable_bound_heading_duplicate_targets(mini_repo, tmp_path, heading):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    content = (
+        f"## {heading}\n\nFIRST sentinel\n\n## Guide\n\nSECOND sentinel\n\n"
+        "[first](#guide) [second](#guide-1)\n\n"
+        "[target]: https://example.com/target\n[Guide]: https://example.com/guide\n"
+    )
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\n" + content)
+    (refs / "one.md").write_text("# Reference\n\n" + content)
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        for label, sentinel in (("first", "FIRST"), ("second", "SECOND")):
+            targets = re.findall(rf"\[{label}\]\(#([^)]+)\)", document)
+            assert len(targets) == 2
+            for target in targets:
+                section = document.split(f'<a name="{target}"></a>', 1)[1]
+                section = section.split('<a name="', 1)[0]
+                assert f"{sentinel} sentinel" in section
+
+
+@pytest.mark.parametrize(
+    "heading",
+    [
+        "[Guide](https://example.com/path(a)b)",
+        '[Guide](https://example.com "a (b) c")',
+    ],
+)
+def test_portable_balanced_inline_heading_duplicate_targets(mini_repo, tmp_path, heading):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    content = (
+        f"## {heading}\n\nFIRST sentinel\n\n## Guide\n\nSECOND sentinel\n\n"
+        "[first](#guide) [second](#guide-1)\n\n"
+        "[target]: https://example.com/target\n[Guide]: https://example.com/guide\n"
+    )
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\n" + content)
+    (refs / "one.md").write_text("# Reference\n\n" + content)
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        for label, sentinel in (("first", "FIRST"), ("second", "SECOND")):
+            targets = re.findall(rf"\[{label}\]\(#([^)]+)\)", document)
+            assert len(targets) == 2
+            for target in targets:
+                section = document.split(f'<a name="{target}"></a>', 1)[1]
+                section = section.split('<a name="', 1)[0]
+                assert f"{sentinel} sentinel" in section
+
+
+@pytest.mark.parametrize(
+    ("heading", "fragment"),
+    [
+        # GitHub keeps the visible text of an autolink and of a code span, and drops only
+        # raw HTML tags; the last three pin that those are still dropped.
+        ("See <https://example.com>", "see-httpsexamplecom"),
+        ("Mail <me@example.com>", "mail-meexamplecom"),
+        ("Use `<tag>`", "use-tag"),
+        ("Use ``<tag>`c``", "use-tagc"),
+        ("<b>Bold</b> word", "bold-word"),
+        ('<span class="x">Span</span> text<br/>', "span-text"),
+        ("Note <!-- hidden --> here", "note--here"),
+    ],
+)
+def test_portable_heading_aliases_keep_visible_text_and_drop_only_html_tags(
+    mini_repo, tmp_path, heading, fragment
+):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    content = f"## {heading}\n\nSENTINEL body\n\n[go](#{fragment})\n"
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\n" + content)
+    (refs / "one.md").write_text("# Reference\n\n" + content)
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        targets = re.findall(r"\[go\]\(#([^)]+)\)", document)
+        assert len(targets) == 2
+        for target in targets:
+            section = document.split(f'<a name="{target}"></a>', 1)[1]
+            assert "SENTINEL body" in section.split('<a name="', 1)[0]
+
+
+@pytest.mark.parametrize("run", ["`", "``", "```"])
+def test_portable_unmatched_code_runs_continue_scanning(mini_repo, tmp_path, run):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text()
+        + f"\nLiteral {run} before [target] and [local](#alpha).\n"
+        + "\n[target]: https://example.com/target\n"
+        + "\nClosed `` [target] ` [local](missing.md) `` stays protected.\n"
+    )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        assert re.search(r"Literal `+ before \[target\]\[portable-reference-", document)
+        assert re.search(r"\[local\]\(#portable-", document)
+        assert "Closed `` [target] ` [local](missing.md) `` stays protected." in document
+
+
+@pytest.mark.parametrize(
+    "span",
+    [
+        "`` `[x](references/one.md)` ``",
+        "``` ``[x](references/one.md)`` ```",
+    ],
+)
+def test_portable_nested_backtick_spans_stay_inert_beside_real_pointers(mini_repo, tmp_path, span):
+    # An inner shorter run is content, not a closing delimiter: only a run of the same
+    # length closes the span, so the example must survive byte for byte while a real
+    # pointer on the same line, outside any code, is still rewritten.
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    (refs / "one.md").write_text("# Reference\n\nContent.\n")
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text()
+        + f"\nShow {span} then read references/one.md.\n"
+        + "\nA \\* star before references/one.md.\n"
+    )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        assert f'Show {span} then read the "Reference" section below.' in document
+        assert 'A \\* star before the "Reference" section below.' in document
+
+
+@pytest.mark.parametrize(
+    "title", ["[Guide][target]", "![Guide][target]", "[Guide](https://example.com/title)"]
+)
+def test_portable_relocated_titles_rewrite_bindings(mini_repo, tmp_path, title):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    source = skill / "SKILL.md"
+    header = source.read_text().split("---", 2)[:2]
+    source.write_text(
+        "---".join(header) + "---\n# " + title + "\n\n[target]: https://example.com/skill\n"
+    )
+    refs = skill / "references"
+    refs.mkdir()
+    (refs / "one.md").write_text("# " + title + "\n\n[target]: https://example.com/reference\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        headings = [line for line in document.splitlines() if re.match(r"^#{1,6} ", line)]
+        assert len([line for line in headings if "Guide" in line]) == 2
+        assert not any("[Guide][target]" in line for line in headings)
+        if "[target]" in title:
+            assert len(re.findall(r"Guide\]\[portable-reference-", "\n".join(headings))) == 2
+
+
+@pytest.mark.parametrize("location", ["skill", "reference"])
+@pytest.mark.parametrize(
+    "title",
+    ["![badge](missing.svg)", "[![badge](missing.svg)](https://example.com)", "![badge][image]"],
+)
+def test_portable_title_images_reject_before_writes(mini_repo, tmp_path, location, title):
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    before = {p.relative_to(out): p.read_bytes() for p in out.rglob("*") if p.is_file()}
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    if location == "skill":
+        source = skill / "SKILL.md"
+        source.write_text(
+            source.read_text().replace("# alpha", "# " + title) + "\n[image]: SKILL.md\n"
+        )
+    else:
+        refs = skill / "references"
+        refs.mkdir()
+        (refs / "one.md").write_text("# " + title + "\n\n[image]: ../SKILL.md\n")
+    for check in (True, False):
+        assert portable.export(mini_repo, out, check=check) == 1
+        assert before == {p.relative_to(out): p.read_bytes() for p in out.rglob("*") if p.is_file()}
+
+
+@pytest.mark.parametrize("binding", ["full", "collapsed", "shortcut"])
+def test_portable_copied_titles_keep_owner_bindings(mini_repo, tmp_path, binding):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    title = {"full": "[Guide][target]", "collapsed": "[Guide][]", "shortcut": "[Guide]"}[binding]
+    key = "target" if binding == "full" else "Guide"
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text()
+        + f'\n[{key}]: https://example.com/caller "Caller title"\n'
+        + "\nRead one references/one.md.\nRead two references/two.md.\n"
+        + "\nFragment one `references/one.md#guide`.\n"
+        + "Fragment two `references/two.md#guide`.\n"
+        + "\n`[Guide][target]` stays code.\n\n```markdown\nreferences/one.md\n```\n"
+    )
+    for owner in ("one", "two"):
+        (refs / f"{owner}.md").write_text(
+            f'# {title}\n\n{owner} body.\n\n[{key}]: https://example.com/{owner} "{owner} title"\n'
+        )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        definitions = dict(re.findall(r"^\[([^]]+)\]: (.+)$", document, re.M))
+        for owner in ("one", "two"):
+            for prefix in ("Read", "Fragment"):
+                line = next(
+                    line for line in document.splitlines() if line.startswith(f"{prefix} {owner} ")
+                )
+                match = re.search(r"\[Guide\]\[([^]]+)\]", line)
+                assert match
+                assert definitions[match[1]] == f'https://example.com/{owner} "{owner} title"'
+                assert "`" not in line
+        assert "`[Guide][target]` stays code." in document
+        assert "```markdown\nreferences/one.md\n```" in document
+
+
+def test_portable_copied_titles_resolve_local_sections_and_external_images(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\nRead references/one.md.\n")
+    title = (
+        '[Section](two.md#details) ![badge](https://example.com/badge.svg "Badge title") [unknown]'
+    )
+    (refs / "one.md").write_text("# " + title + "\n\nOne body.\n")
+    (refs / "two.md").write_text("# Two\n\n## Details\n\nTARGET sentinel\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        pointer = next(line for line in document.splitlines() if line.startswith("Read "))
+        target = re.search(r"\[Section\]\(#([^)]+)\)", pointer)[1]
+        section = document.split(f'<a name="{target}"></a>', 1)[1].split('<a name="', 1)[0]
+        assert "TARGET sentinel" in section
+        assert '![badge](https://example.com/badge.svg "Badge title") [unknown]' in pointer
+
+
+def test_portable_title_bare_pointers_do_not_expand_recursively(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text().replace("# alpha", "# Alpha references/one.md")
+        + "\nRead references/one.md and references/two.md.\n"
+        + "Read assets/example.txt and scripts/example.py.\n"
+    )
+    (refs / "one.md").write_text("# One references/one.md references/two.md\n\nOne body.\n")
+    (refs / "two.md").write_text("# Two references/one.md\n\nTwo body.\n")
+    for directory, filename, text in (
+        ("assets", "example.txt", "Example asset\n"),
+        ("scripts", "example.py", "print('example')\n"),
+    ):
+        (skill / directory).mkdir()
+        (skill / directory / filename).write_text(text)
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        assert len(document) < 10000
+        assert re.search(r"^#{1,6} Alpha references/one.md$", document, re.M)
+        assert 'the "One references/one.md references/two.md" section below' in document
+        assert 'the "Two references/one.md" section below' in document
+        assert 'the "assets/example.txt" section below' in document
+        assert 'the "scripts/example.py" section below' in document
+        assert re.search(r"^#{1,6} One references/one.md references/two.md$", document, re.M)
+        assert re.search(r"^#{1,6} Two references/one.md$", document, re.M)
+
+
+def test_portable_copied_title_local_image_rejects_before_writes(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\nRead references/one.md.\n")
+    reference = refs / "one.md"
+    reference.write_text("# Guide\n\nReference body.\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    before = {p.relative_to(out): p.read_bytes() for p in out.rglob("*") if p.is_file()}
+    reference.write_text("# ![badge][image]\n\n[image]: ../SKILL.md\n")
+    for check in (True, False):
+        assert portable.export(mini_repo, out, check=check) == 1
+        assert before == {p.relative_to(out): p.read_bytes() for p in out.rglob("*") if p.is_file()}
+
+
+# Footnote labels are document-global in GitHub-flavoured Markdown, unlike reference
+# labels, which only matter inside one file. Flattening several files into one document
+# therefore lets two `[^note]` definitions collide, so the export namespaces them per
+# source file — on the definition and on every use that file makes of it.
+FOOTNOTE_LABEL = r"\[\^(portable-footnote-[a-f0-9]+)\]"
+
+
+def _footnote_definitions(document: str) -> dict[str, str]:
+    return dict(re.findall(rf"^{FOOTNOTE_LABEL}: (.*)$", document, re.M))
+
+
+def test_portable_footnotes_are_not_turned_into_reference_links(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text() + "\nRead references/one.md.\n\nBody claim.[^note] Another.[^2]\n\n"
+        "[^note]: Body details, see [one](references/one.md).\n[^2]: Second body.\n"
+    )
+    (refs / "one.md").write_text(
+        "# One\n\nReference claim.[^note]\n\n[^note]: Reference details.\n"
+    )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        # A footnote renamed into a reference label stops being a footnote.
+        assert "portable-reference-" not in document
+        definitions = _footnote_definitions(document)
+        assert len(definitions) == 3
+        body_label = re.search(rf"Body claim\.{FOOTNOTE_LABEL}", document)[1]
+        reference_label = re.search(rf"Reference claim\.{FOOTNOTE_LABEL}", document)[1]
+        second_label = re.search(rf"Another\.{FOOTNOTE_LABEL}", document)[1]
+        assert len({body_label, reference_label, second_label}) == 3
+        assert definitions[reference_label] == "Reference details."
+        assert definitions[second_label] == "Second body."
+        # The text of a footnote is prose like any other: its link still resolves.
+        assert definitions[body_label].startswith("Body details, see [one](#portable-")
+        assert "references/one.md" not in definitions[body_label]
+
+
+def test_portable_reference_link_beside_a_footnote_on_one_line(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text() + "\n[text][ref] and a claim.[^1]\n\n"
+        "[ref]: https://example.com/ref\n[^1]: Footnote text.\n"
+    )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    line = next(line for line in document.splitlines() if line.startswith("[text]"))
+    assert re.fullmatch(
+        rf"\[text\]\[portable-reference-[a-f0-9]+\] and a claim\.{FOOTNOTE_LABEL}", line
+    )
+    assert re.search(r"^\[portable-reference-[a-f0-9]+\]: https://example.com/ref$", document, re.M)
+    assert list(_footnote_definitions(document).values()) == ["Footnote text."]
+
+
+def test_portable_footnote_syntax_in_code_is_left_exactly_as_written(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    source = skill / "SKILL.md"
+    fenced = "```markdown\nExample.[^1]\n\n[^1]: Example footnote.\n```\n"
+    inline = "Write `[^1]` after a claim, or ``[^1]: text`` to define it.\n"
+    source.write_text(source.read_text() + f"\n{fenced}\n{inline}\nReal.[^1]\n\n[^1]: Real.\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        assert fenced in document
+        assert inline in document
+        assert list(_footnote_definitions(document).values()) == ["Real."]
+
+
+def test_portable_footnote_use_without_a_definition_in_its_own_file_is_left_alone(
+    mini_repo, tmp_path
+):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\nRead references/one.md.\n\nOrphan.[^note]\n")
+    (refs / "one.md").write_text("# One\n\nDefined.[^note]\n\n[^note]: Only here.\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "Orphan.[^note]" in document  # not borrowed by another file's definition
+    assert re.search(rf"Defined\.{FOOTNOTE_LABEL}", document)
+    assert "[^note]:" not in document
+
+
+def test_portable_footnote_labels_stay_distinct_across_files_and_skills(mini_repo, tmp_path):
+    # Footnote labels match case-insensitively, as cmark-gfm does; that follows its source
+    # and spec, and was not checked against GitHub's live renderer. The body uses the
+    # upper-case spelling of a lower-case definition and the reference the reverse, so
+    # that dropping the casefold on either the use lookup or the definition key fails.
+    for skill_name in ("alpha", "beta"):
+        skill = mini_repo / "plugins/engineering/skills" / skill_name
+        refs = skill / "references"
+        refs.mkdir(exist_ok=True)
+        source = skill / "SKILL.md"
+        source.write_text(
+            source.read_text() + f"\nRead references/one.md.\n\n{skill_name} body.[^NOTE]\n\n"
+            f"[^note]: {skill_name} body note.\n"
+        )
+        (refs / "one.md").write_text(
+            f"# One\n\n{skill_name} reference.[^note]\n\n[^NOTE]: {skill_name} reference note.\n"
+        )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        definitions = _footnote_definitions(document)
+        assert len(definitions) == (2 if filename.startswith("skills") else 4)
+        resolved = 0
+        for skill_name in ("alpha", "beta"):
+            for kind in ("body", "reference"):
+                for match in re.finditer(rf"{skill_name} {kind}\.{FOOTNOTE_LABEL}", document):
+                    assert definitions[match[1]] == f"{skill_name} {kind} note."
+                    resolved += 1
+        # Every use must have been rewritten, or the loop above proves nothing.
+        assert resolved == len(definitions)
+        assert "[^NOTE]" not in document and "[^note]" not in document
+        # One document may define a label once; two definitions would silently drop one.
+        assert len(re.findall(rf"^{FOOTNOTE_LABEL}:", document, re.M)) == len(definitions)
+
+
+def test_portable_reference_frontmatter_is_stripped_before_flattening(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\nRead references/one.md.\n")
+    (refs / "one.md").write_text(
+        "---\nname: one\ndescription: Reference metadata\n---\n# One\n\nBody text.\n"
+    )
+    # A block that never closes is not frontmatter, so it is content and is kept verbatim.
+    (refs / "two.md").write_text("---\nname: two\n# Two\n\nOther text.\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    for filename in ("skills/alpha.md", "plugins/engineering.md"):
+        document = (out / filename).read_text()
+        assert "Reference metadata" not in document
+        assert "description:" not in document
+        assert len(re.findall(r"^#{3,} One$", document, re.M)) == 1
+        assert "Body text." in document
+        assert "\n---\nname: two\n" in document
+
+
+@pytest.mark.parametrize("anchor", ['<a id="sample">', '<a name="sample"></a>'])
+def test_portable_custom_anchor_in_inline_code_is_accepted_but_real_one_is_not(
+    mini_repo, tmp_path, anchor, capsys
+):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    source = skill / "SKILL.md"
+    original = source.read_text()
+    source.write_text(original + f"\nWrite `{anchor}` or ``{anchor}`` to name a target.\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out, check=True) == 0
+    assert portable.export(mini_repo, out) == 0
+    assert f"`{anchor}`" in (out / "skills/alpha.md").read_text()
+    # An anchor outside code, and one beside an unclosed backtick, must still be refused.
+    for prose in (f"\nWrite {anchor} here.\n", f"\nWrite `{anchor} here.\n", f"\n`x` {anchor}\n"):
+        source.write_text(original + prose)
+        for check in (True, False):
+            assert portable.export(mini_repo, out, check=check) == 1
+            assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+def test_portable_footnote_like_title_without_a_definition_is_reported_not_a_crash(
+    mini_repo, tmp_path, capsys
+):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    refs = skill / "references"
+    refs.mkdir()
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\nRead references/one.md.\n")
+    (refs / "one.md").write_text("# [^t]: Title\n\nBody.\n")
+    out = tmp_path / "portable"
+    # The title is read as a reference definition whose destination resolves nowhere.
+    assert portable.export(mini_repo, out, check=True) == 1
+    assert "::error::alpha still points at" in capsys.readouterr().out
+    assert not out.exists()
+
+
+def test_portable_footnote_label_followed_by_a_destination_stays_a_link(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    source = skill / "SKILL.md"
+    source.write_text(
+        source.read_text() + "\nSee [^x](https://example.com/a) and "
+        "![^x](https://example.com/i.png) then a claim.[^x]\n\n[^x]: Note.\n"
+    )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    line = next(line for line in document.splitlines() if line.startswith("See "))
+    assert line.startswith("See [^x](https://example.com/a) and ![^x](https://example.com/i.png)")
+    assert re.search(rf"then a claim\.{FOOTNOTE_LABEL}$", line)
+    assert len(_footnote_definitions(document)) == 1
+
+
+def test_portable_footnote_use_after_an_unbound_reference_label_is_scoped(mini_repo, tmp_path):
+    skill = mini_repo / "plugins/engineering/skills/alpha"
+    source = skill / "SKILL.md"
+    source.write_text(source.read_text() + "\nSee [word][^x] here.\n\n[^x]: Note.\n")
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert re.search(rf"^See \[word\]{FOOTNOTE_LABEL} here\.$", document, re.M)
+    assert len(_footnote_definitions(document)) == 1
+
+
+def _export_alpha(mini_repo, tmp_path, addition, *, check=True):
+    source = mini_repo / "plugins/engineering/skills/alpha/SKILL.md"
+    source.write_text(source.read_text() + "\n" + addition)
+    out = tmp_path / "portable"
+    status = portable.export(mini_repo, out, check=check)
+    return status, out
+
+
+def test_portable_multiline_code_span_is_left_exactly_as_written(mini_repo, tmp_path):
+    example = "Use `a [target] and\n[local](missing.md)` here, then [ref] outside.\n"
+    status, out = _export_alpha(
+        mini_repo,
+        tmp_path,
+        example + "\n[target]: https://example.com\n[ref]: https://example.com/r\n",
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    # The span, spread over two lines, is untouched; the shortcut reference after it is scoped.
+    assert re.search(
+        r"Use `a \[target\] and\n\[local\]\(missing\.md\)` here, then "
+        r"\[ref\]\[?portable-reference-[a-f0-9]+\]",
+        document,
+    )
+    assert "[target][portable-reference-" not in document
+
+
+def test_portable_code_span_does_not_cross_a_paragraph_boundary(mini_repo, tmp_path, capsys):
+    # An unmatched backtick must not swallow a link in the next paragraph or heading.
+    for addition in (
+        "An open `tick\n\n[gone](missing.md) and `close`.\n",
+        "A `tick\n- [gone](missing.md) `x`\n",
+    ):
+        status, _ = _export_alpha(mini_repo, tmp_path, addition)
+        assert status == 1
+        assert "missing.md" in capsys.readouterr().out
+        source = mini_repo / "plugins/engineering/skills/alpha/SKILL.md"
+        source.write_text(source.read_text().replace(addition, ""))
+
+
+def test_portable_html_comment_is_inert_but_prose_around_it_is_not(mini_repo, tmp_path, capsys):
+    refs = mini_repo / "plugins/engineering/skills/alpha/references"
+    refs.mkdir()
+    (refs / "one.md").write_text("# One\n\nBody.\n")
+    addition = (
+        "<!-- [hidden](missing.md)\n[more](gone.md)\n## Not a heading -->\n"
+        "See [one](references/one.md) <!-- [x](missing.md) --> and [two](references/one.md).\n"
+    )
+    status, out = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "<!-- [hidden](missing.md)\n[more](gone.md)\n## Not a heading -->" in document
+    assert "<!-- [x](missing.md) -->" in document
+    line = next(line for line in document.splitlines() if line.startswith("See "))
+    assert "references/one.md" not in line
+    assert line.count("](#portable-") == 2
+    assert "not-a-heading" not in document
+    # An inline comment protects only what is inside it.
+    status, _ = _export_alpha(mini_repo, tmp_path, "text <!-- hidden --> [real](missing.md)\n")
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_html_comment_hides_an_anchor_example_but_not_the_text_after_it(
+    mini_repo, tmp_path, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, '<!-- <a id="x"> -->\n')
+    assert status == 0
+    status, _ = _export_alpha(mini_repo, tmp_path, '<!-- note --> <a id="x">\n')
+    assert status == 1
+    assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("prefix", ["> ", ">> ", "- ", "1. ", "> - "])
+def test_portable_fence_nested_in_a_container_is_code(mini_repo, tmp_path, prefix):
+    pad = " " * len(prefix.replace(">", " "))
+    addition = (
+        f"{prefix}```markdown\n{pad}[x](missing.md) and [y][ref]\n{pad}## Not a heading\n"
+        f"{pad}```\n\nAfter [one](#heading) the fence.\n\n## Heading\n"
+    )
+    if prefix.startswith(">"):
+        # Continuation lines keep the quote markers and indent past the list marker, since a
+        # second marker would start a new item and end the fence.
+        addition = addition.replace(f"\n{pad}", "\n" + re.sub(r"[-*+\d.)]", " ", prefix))
+    status, out = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "[x](missing.md) and [y][ref]" in document
+    assert "not-a-heading" not in document
+
+
+def test_portable_container_fence_ends_at_its_closing_marker(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(mini_repo, tmp_path, "> ```\n> code\n> ```\n\n[gone](missing.md)\n")
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_heading_slug_keeps_entities_literal_inside_code(mini_repo, tmp_path):
+    addition = (
+        "## Use `&copy;`\n\n## Fish &amp; chips\n\n"
+        "See [code](#use-copy) and [prose](#fish--chips).\n"
+    )
+    status, out = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert document.count("](#portable-") == 2
+    assert "(#use-copy)" not in document
+
+
+@pytest.mark.parametrize(
+    "tag",
+    [
+        '<span data-name="x">hi</span>',
+        '<a title="name=x">t</a>',
+        "<a title='id=x'>t</a>",
+        '<div aria-id="x" class="n">x</div>',
+        '<img src="a.png" alt="name = x">',
+    ],
+)
+def test_portable_attributes_that_only_contain_id_or_name_are_accepted(mini_repo, tmp_path, tag):
+    status, out = _export_alpha(mini_repo, tmp_path, f"{tag}\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert tag in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    "tag",
+    [
+        '<a id="x">',
+        "<a name=x>",
+        "<a href='#' ID = 'x'>",
+        '<span class="c" name="x">',
+        '<a title="n" id=x>',
+    ],
+)
+def test_portable_exact_id_or_name_attributes_are_still_refused(mini_repo, tmp_path, tag, capsys):
+    status, _ = _export_alpha(mini_repo, tmp_path, f"{tag}\n")
+    assert status == 1
+    assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "inner",
+    [
+        "> ```\n> # not a heading\n> [x](missing.md)\n> ```",
+        "- ```\n  [x](missing.md)\n  ```",
+        "~~~\n[x](missing.md)\n~~~",
+    ],
+)
+def test_portable_fence_marker_in_another_container_does_not_close_an_open_fence(
+    mini_repo, tmp_path, inner
+):
+    # Inside a fence every line is content: only a marker in the opener's own container ends it.
+    example = f"```markdown\n{inner}\n```\n"
+    status, out = _export_alpha(mini_repo, tmp_path, example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert example in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    "addition",
+    [
+        "<!-- don't ` do this -->\n[link](missing.md) `x` here\n",
+        "Use `a\nfoo <!-- b` then [link](missing.md)\nnext [link2](missing.md)\n",
+    ],
+)
+def test_portable_comment_and_code_span_do_not_open_each_other(
+    mini_repo, tmp_path, addition, capsys
+):
+    # The construct that starts first wins: a backtick in a comment is comment text, and
+    # `<!--` in a code span is code. Reading them in separate passes hid real links.
+    status, _ = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_adjacent_comments_are_both_inert(mini_repo, tmp_path):
+    status, out = _export_alpha(mini_repo, tmp_path, "<!-- a --><!-- b [x](missing.md) -->\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "<!-- a --><!-- b [x](missing.md) -->" in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_reference_definition_inside_a_comment_defines_nothing(mini_repo, tmp_path):
+    addition = "See [tgt] here.\n\n<!--\n[tgt]: https://example.com\n-->\n"
+    status, out = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "See [tgt] here." in document
+    assert "portable-reference-" not in document
+    assert "<!--\n[tgt]: https://example.com\n-->" in document
+
+
+def test_portable_attribute_with_no_space_before_id_is_still_refused(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(mini_repo, tmp_path, '<a href="x"id="y">\n')
+    assert status == 1
+    assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "addition",
+    [
+        "`[x](missing.md)\n> b`\n",
+        "> `[x](missing.md)\n>\n> b`\n",
+        "`[x](missing.md)\n---\nb`\n",
+        "`[x](missing.md)\n***\nb`\n",
+        "`[x](missing.md)\n<div>\nb`\n</div>\n",
+        "Text <!-- oops [x](missing.md)\nmore [y](missing.md)\n",
+        "> ```\n> code\n\n[x](missing.md)\n",
+        "1. ```\ntext\n[x](missing.md)\n",
+        "```[x](missing.md)`\n",
+        "- <!-- note\n\n[x](missing.md)\n",
+        "> <!-- note\n[x](missing.md)\n",
+        "`a <!-- b -->\n\n[x](missing.md) `c`\n",
+        "> Run `git\n> - then [x](missing.md)` more\n",
+        "- ```\n  code\n> [x](missing.md)\n",
+        "<!-- a\nb --> <!-- c\n[x](missing.md) -->\n",
+    ],
+)
+def test_portable_block_boundaries_end_what_they_would_otherwise_hide(
+    mini_repo, tmp_path, addition, capsys
+):
+    # Each shape is one where a renderer ends the code span, comment or fence before the
+    # link, so the link is real and a missing target has to fail the export.
+    status, _ = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_anchor_after_a_blockquote_break_inside_backticks_is_still_refused(
+    mini_repo, tmp_path, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, '> `a\n>\n> <a id="x"> b\n')
+    assert status == 1
+    assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+def test_portable_comment_that_begins_its_line_runs_to_its_close(mini_repo, tmp_path):
+    # A line-initial comment is an HTML block: unclosed it hides the rest of its container.
+    status, out = _export_alpha(mini_repo, tmp_path, "<!-- oops\n[x](missing.md)\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "<!-- oops\n[x](missing.md)" in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    "example",
+    [
+        "    [x](missing.md) and [y][ref]\n",
+        "    [x](missing.md)\n\n    [z](gone.md)\n",
+        "- item\n\n      [x](missing.md)\n",
+        "# Heading\n    [x](missing.md)\n",
+        "    ```\n    [x](missing.md)\n",
+    ],
+)
+def test_portable_indented_code_block_is_inert(mini_repo, tmp_path, example):
+    status, out = _export_alpha(mini_repo, tmp_path, "Before.\n\n" + example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = re.sub(r'<a name="portable-[^"]*"></a>', "", (out / "skills/alpha.md").read_text())
+    assert example.strip("\n") in document
+
+
+@pytest.mark.parametrize(
+    "addition",
+    [
+        "A paragraph\n    [x](missing.md) continues it.\n",
+        "- item\n\n    [x](missing.md)\n",
+        "=== \n    ~~~\n[x](missing.md)\n",
+    ],
+)
+def test_portable_indented_text_that_continues_a_paragraph_is_not_code(
+    mini_repo, tmp_path, addition, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "html",
+    [
+        "<div>\n[x](missing.md)\n</div>\n",
+        '<span title="[x](missing.md)">hi</span>\n',
+        '<a href="[x](missing.md)">hi</a> text\n',
+        "<details>\n<summary>[x](missing.md)</summary>\n\n</details>\n",
+    ],
+)
+def test_portable_markdown_looking_text_inside_raw_html_is_left_alone(mini_repo, tmp_path, html):
+    status, out = _export_alpha(mini_repo, tmp_path, html)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert html.strip("\n") in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_raw_html_protects_only_itself(mini_repo, tmp_path, capsys):
+    refs = mini_repo / "plugins/engineering/skills/alpha/references"
+    refs.mkdir()
+    (refs / "one.md").write_text("# One\n\nBody.\n")
+    status, out = _export_alpha(
+        mini_repo,
+        tmp_path,
+        'See [one](references/one.md) <span title="[x](missing.md)">y</span>.\n',
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    line = next(
+        line
+        for line in (out / "skills/alpha.md").read_text().splitlines()
+        if line.startswith("See ")
+    )
+    assert "references/one.md" not in line
+    assert '<span title="[x](missing.md)">y</span>.' in line
+    # A block ends at its blank line, and a tag does not hide the link after it.
+    for addition in ("<div>\n</div>\n\n[x](missing.md)\n", "<span> </span> [x](missing.md)\n"):
+        status, _ = _export_alpha(mini_repo, tmp_path, addition)
+        assert status == 1
+        assert "missing.md" in capsys.readouterr().out
+        source = mini_repo / "plugins/engineering/skills/alpha/SKILL.md"
+        source.write_text(source.read_text().replace("\n" + addition, ""))
+
+
+@pytest.mark.parametrize("opener", ["- - ", "1. - ", "> - - "])
+def test_portable_fence_under_nested_container_markers_is_code(mini_repo, tmp_path, opener):
+    pad = " " * len(opener)
+    quoted = opener.startswith(">")
+    body = f"{opener}```markdown\n{'> ' if quoted else ''}{pad}[x](missing.md)\n"
+    body += f"{'> ' if quoted else ''}{pad}```\n"
+    status, out = _export_alpha(mini_repo, tmp_path, body + "\nAfter text.\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "After text." in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_quoted_attribute_may_hold_angle_brackets(mini_repo, tmp_path):
+    html = '<span title="> [x](missing.md) <">hi</span>\n'
+    status, out = _export_alpha(mini_repo, tmp_path, html)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert html.strip() in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_generic_tag_alone_on_a_line_opens_an_html_block(mini_repo, tmp_path, capsys):
+    html = "<span>\n[x](missing.md)\n</span>\n"
+    status, out = _export_alpha(mini_repo, tmp_path, html)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert html.strip() in (out / "skills/alpha.md").read_text()
+    # It cannot interrupt a paragraph, and it ends at a blank line.
+    for addition in ("A paragraph\n<span>\n[x](missing.md)\n", "<span>\n\n[x](missing.md)\n"):
+        status, _ = _export_alpha(mini_repo, tmp_path, addition)
+        assert status == 1
+        assert "missing.md" in capsys.readouterr().out
+        source = mini_repo / "plugins/engineering/skills/alpha/SKILL.md"
+        source.write_text(source.read_text().replace("\n" + addition, ""))
+
+
+@pytest.mark.parametrize(
+    "tag", ['<a\n id="same">', '<a href="x"\n   name=y>', "<img\nalt=1\nid=z>"]
+)
+def test_portable_custom_anchor_in_a_tag_that_spans_lines_is_refused(
+    mini_repo, tmp_path, tag, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, tag + "\n")
+    assert status == 1
+    assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+def test_portable_attribute_names_that_only_contain_id_across_lines_are_accepted(
+    mini_repo, tmp_path
+):
+    tag = '<a\n data-name="x"\n title="id=1">t</a>'
+    status, out = _export_alpha(mini_repo, tmp_path, tag + "\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert tag in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    ("heading", "fragment"),
+    [
+        ("Section title\n=============", "section-title"),
+        ("Other part\n----", "other-part"),
+        ("Two line\ntitle here\n===", "two-line-title-here"),
+        ("  Indented `code` title\n  ===", "indented-code-title"),
+    ],
+)
+def test_portable_setext_heading_is_a_link_target(mini_repo, tmp_path, heading, fragment):
+    status, out = _export_alpha(mini_repo, tmp_path, f"{heading}\n\nSee [there](#{fragment}).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert f"(#{fragment})" not in document
+    assert re.search(r"See \[there\]\(#portable-[0-9a-f-]+-heading-\d+\)\.", document)
+
+
+def test_portable_setext_alias_in_a_reference_and_duplicate_suffix(mini_repo, tmp_path):
+    refs = mini_repo / "plugins/engineering/skills/alpha/references"
+    refs.mkdir()
+    (refs / "one.md").write_text(
+        "# One\n\nPart\n====\n\nSee [up](#part) and [other](#part-1).\n\n# Part\n"
+    )
+    status, out = _export_alpha(
+        mini_repo, tmp_path, "Read references/one.md.\n\nPart\n----\n\nSee [here](#part).\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "(#part)" not in document
+    assert "(#part-1)" not in document
+
+
+@pytest.mark.parametrize("before", ["- item", "> quoted", "    code line"])
+def test_portable_underline_after_a_container_or_code_is_not_a_setext_heading(
+    mini_repo, tmp_path, before, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, f"{before}\n---\n\nSee [x](#item).\n")
+    assert status == 1
+    assert "#item" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("heading", "fragment"),
+    [
+        ("> ## Quoted target", "quoted-target"),
+        (">> # Deeply quoted", "deeply-quoted"),
+        ("- ## List target", "list-target"),
+        ("1. ### Numbered target", "numbered-target"),
+        ("   ## Indented target", "indented-target"),
+        ("- > ## Both", "both"),
+    ],
+)
+def test_portable_atx_heading_in_a_container_is_a_link_target(
+    mini_repo, tmp_path, heading, fragment
+):
+    status, out = _export_alpha(mini_repo, tmp_path, f"{heading}\n\nSee [t](#{fragment}).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert f"(#{fragment})" not in document
+    assert re.search(r"See \[t\]\(#portable-[0-9a-f-]+-heading-\d+\)\.", document)
+
+
+def test_portable_atx_heading_indented_four_spaces_is_text(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(
+        mini_repo, tmp_path, "Intro paragraph\n    ## Not a heading\n\n[t](#not-a-heading)\n"
+    )
+    assert status == 1
+    assert "#not-a-heading" in capsys.readouterr().out
+
+
+def test_portable_fence_on_a_list_continuation_line_ends_with_its_item(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(
+        mini_repo, tmp_path, "- item\n\n  ~~~\n  code\n\n[broken](missing.md)\n"
+    )
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+    # Closed, the fence is code and its content is left alone.
+    example = "- item\n\n  ~~~\n  [x](missing.md)\n  ~~~\n"
+    source = mini_repo / "plugins/engineering/skills/alpha/SKILL.md"
+    source.write_text(source.read_text().split("- item")[0])
+    status, out = _export_alpha(mini_repo, tmp_path, example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "  [x](missing.md)" in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_text_after_a_line_initial_comment_close_is_part_of_its_html_block(
+    mini_repo, tmp_path
+):
+    html = "<!-- note --> [example](missing.md) and [ref][x]\n"
+    status, out = _export_alpha(mini_repo, tmp_path, html)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert html.strip() in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize("prefix", ["> ", "- ", "1. ", "> - "])
+def test_portable_reference_definition_in_a_container_is_scoped_per_file(
+    mini_repo, tmp_path, prefix
+):
+    refs = mini_repo / "plugins/engineering/skills/alpha/references"
+    refs.mkdir()
+    (refs / "one.md").write_text(f"# One\n\nSee [same].\n\n{prefix}[same]: https://one.example/\n")
+    (refs / "two.md").write_text(f"# Two\n\nSee [same].\n\n{prefix}[same]: https://two.example/\n")
+    status, out = _export_alpha(
+        mini_repo, tmp_path, "Read references/one.md and references/two.md.\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    labels = re.findall(
+        rf"^{re.escape(prefix)}\[(portable-reference-[0-9a-f]+)\]: (\S+)$", document, re.M
+    )
+    assert sorted(url for _, url in labels) == ["https://one.example/", "https://two.example/"]
+    assert len({label for label, _ in labels}) == 2
+    assert "[same]:" not in document
+
+
+@pytest.mark.parametrize(
+    ("heading", "fragment"),
+    [
+        ("> Quoted heading\n> ==============", "quoted-heading"),
+        ("> Quoted two\n> ---", "quoted-two"),
+        ("- Item heading\n  ===", "item-heading"),
+        ("1. Numbered heading\n   ---", "numbered-heading"),
+        (">> Deep quote\n>> ===", "deep-quote"),
+    ],
+)
+def test_portable_setext_heading_in_a_container_is_a_link_target(
+    mini_repo, tmp_path, heading, fragment
+):
+    status, out = _export_alpha(mini_repo, tmp_path, f"{heading}\n\nSee [t](#{fragment}).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert f"(#{fragment})" not in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    "before",
+    ["> quoted\n---", "- item\n---", "> quoted\n===", "- a\n- b\n---", "> a\nlazy\n---"],
+)
+def test_portable_underline_outside_the_container_of_its_text_is_not_a_heading(
+    mini_repo, tmp_path, before, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, f"{before}\n\nSee [x](#item).\n")
+    assert status == 1
+    assert "#item" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "example",
+    [
+        "\t[x](missing.md)\n",
+        "\t[x](missing.md)\n\n\t[y][ref]\n\n\t[ref]: other.md\n",
+        "- item\n\n\t\t[x](missing.md)\n",
+    ],
+)
+def test_portable_tab_indented_code_is_inert(mini_repo, tmp_path, example):
+    status, out = _export_alpha(mini_repo, tmp_path, "Before.\n\n" + example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert example.strip("\n") in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_tab_after_a_paragraph_is_text_not_code(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(mini_repo, tmp_path, "A paragraph\n\t[x](missing.md) continues it.\n")
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_heading_shaped_line_in_an_html_block_is_not_a_link_target(
+    mini_repo, tmp_path, capsys
+):
+    block = "<div>\n## Hidden\n</div>\n"
+    status, out = _export_alpha(mini_repo, tmp_path, block)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert block.strip() in document
+    assert '<a name="portable' not in document.split("<div>")[1].split("</div>")[0]
+    # A link to it does not resolve, and a real heading beside it still does.
+    status, _ = _export_alpha(mini_repo, tmp_path, "\nSee [x](#hidden).\n")
+    assert status == 1
+    assert "#hidden" in capsys.readouterr().out
+    source = mini_repo / "plugins/engineering/skills/alpha/SKILL.md"
+    source.write_text(
+        source.read_text().replace("\nSee [x](#hidden).\n", "\n## Real\n\nSee [y](#real).\n")
+    )
+    status, _ = _export_alpha(mini_repo, tmp_path, "")
+    assert status == 0
+
+
+def test_portable_html_block_still_audits_its_anchors(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(mini_repo, tmp_path, '<div>\n<a id="x"></a>\n## Hidden\n</div>\n')
+    assert status == 1
+    assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "addition",
+    [
+        "<div>\n```\n</div>\n\n[broken](missing.md)\n",
+        "<!--\n```\n-->\n[broken](missing.md)\n",
+        "<pre>\n~~~\n</pre>\n\n[broken](missing.md)\n",
+        "<span>\n```\n</span>\n\n[broken](missing.md)\n",
+    ],
+)
+def test_portable_fence_marker_inside_raw_html_opens_no_fence(
+    mini_repo, tmp_path, addition, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_real_fence_after_an_html_block_is_still_a_fence(mini_repo, tmp_path):
+    example = (
+        "<details>\n<summary>Show</summary>\n\n```bash\n[x](missing.md)\n```\n\n</details>\n\n"
+        "<div>\nx\n</div>\n\n```\n[y](gone.md)\n```\n"
+    )
+    status, out = _export_alpha(mini_repo, tmp_path, example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "[x](missing.md)" in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_comment_closed_by_bang_form_ends_its_html_block(mini_repo, tmp_path):
+    example = "<!--\n--!>\n```\n[x](missing.md)\n```\n"
+    status, out = _export_alpha(mini_repo, tmp_path, example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "[x](missing.md)" in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    "addition",
+    [
+        "<!-- note --!>\n[broken](missing.md)\n",
+        "text <!-- note --!> [broken](missing.md)\n",
+        "<!--\nnote\n--!>\n\n[broken](missing.md)\n",
+    ],
+)
+def test_portable_markdown_after_a_bang_form_comment_end_is_checked(
+    mini_repo, tmp_path, addition, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "addition",
+    [
+        "<!-- [foo\nbar] -->\n\n[foo bar]: https://example.com\n",
+        "<div>\n[foo\nbar]\n</div>\n\n[foo bar]: https://example.com\n",
+        "Use `[foo\nbar]` here.\n\n[foo bar]: https://example.com\n",
+    ],
+)
+def test_portable_multiline_reference_shape_in_inert_text_is_not_a_binding(
+    mini_repo, tmp_path, addition
+):
+    status, out = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_multiline_label_in_prose_is_still_refused(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(
+        mini_repo, tmp_path, "See [foo\nbar] here.\n\n[foo bar]: https://example.com\n"
+    )
+    assert status == 1
+    assert "multiline reference binding" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("title", ['  "A title [x](missing.md)"', "  'single'", "  (paren)"])
+def test_portable_reference_definition_title_on_the_next_line_is_refused(
+    mini_repo, tmp_path, title, capsys
+):
+    status, _ = _export_alpha(
+        mini_repo, tmp_path, f"See [ref].\n\n[ref]: https://example.com\n{title}\n"
+    )
+    assert status == 1
+    assert "multiline reference definition title" in capsys.readouterr().out
+
+
+def test_portable_reference_definition_with_its_title_on_one_line_is_accepted(mini_repo, tmp_path):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, 'See [ref].\n\n[ref]: https://example.com "A title"\n  more text\n'
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_anchor_for_a_heading_in_a_list_keeps_the_list_intact(mini_repo, tmp_path):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, "- item\n\n  ## Nested heading\n\n  child text\n\n- second item\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    # The anchor rides on the heading's own line, so the heading stays inside its item.
+    assert re.search(r'^  ## <a name="portable-[^"]+"></a>Nested heading$', document, re.M)
+    assert not re.search(r'^<a name="portable-[^"]+"></a>\n *##', document, re.M)
+
+
+def test_portable_anchor_for_a_quoted_and_a_setext_heading_stays_in_place(mini_repo, tmp_path):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, "> ## Quoted\n\n- Item title\n  ===\n\nPlain\n-----\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert re.search(r'^> ## <a name="portable-[^"]+"></a>Quoted$', document, re.M)
+    assert re.search(r'^- <a name="portable-[^"]+"></a>Item title$', document, re.M)
+    assert re.search(r'^<a name="portable-[^"]+"></a>Plain$', document, re.M)
+
+
+@pytest.mark.parametrize("rule", ["***", "---", "___", "- - -", " * * *"])
+def test_portable_indented_code_after_a_thematic_break_is_inert(mini_repo, tmp_path, rule):
+    example = f"{rule}\n    [example](missing.md)\n"
+    status, out = _export_alpha(mini_repo, tmp_path, "Intro.\n\n" + example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "    [example](missing.md)" in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_indented_code_after_a_setext_heading_is_inert(mini_repo, tmp_path):
+    example = "Title\n=====\n    [example](missing.md)\n"
+    status, out = _export_alpha(mini_repo, tmp_path, example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+@pytest.mark.parametrize(
+    ("item", "indent"),
+    [("100. Item", 5), ("1. Item", 3), ("- Item", 2), ("1000. Item", 6), ("-    Item", 5)],
+)
+def test_portable_heading_under_a_wide_list_marker_is_a_link_target(
+    mini_repo, tmp_path, item, indent
+):
+    addition = f"{item}\n\n{' ' * indent}## Nested heading\n\nSee [t](#nested-heading).\n"
+    status, out = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "(#nested-heading)" not in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_indented_heading_outside_any_list_is_still_text(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(
+        mini_repo,
+        tmp_path,
+        "- item\n\nOutside the list.\n\n     ## Not a heading\n\nSee [t](#not-a-heading).\n",
+    )
+    assert status == 1
+    assert "#not-a-heading" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "heading",
+    [
+        "## portable-6162-root",
+        "## Portable 6162 63 Root",
+        "## portable-6162-6364-heading-7",
+        "portable-6162-root\n-----",
+        "## portable-6162-heading",
+        "## portable-6162-<?probe?>root",
+        "## portable-<!X probe>6162-root",
+        "## portable-6162-<![CDATA[probe]]>root",
+        "## portable-6162-<!-- x -->root",
+        "## Portable 6162 6364 Heading",
+        "## portable-6162-_root_",
+        "## _portable-6162-root_",
+        "## **portable-6162-root**",
+        "## `portable-6162-root`",
+    ],
+)
+def test_portable_heading_that_collides_with_a_generated_anchor_is_refused(
+    mini_repo, tmp_path, heading, capsys
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, f"{heading}\n")
+    assert status == 1
+    assert "collides with a generated anchor" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "heading", ["## Portable export", "## portable-ready", "## Root", "## Heading 7"]
+)
+def test_portable_ordinary_headings_do_not_trip_the_anchor_collision_check(
+    mini_repo, tmp_path, heading
+):
+    status, out = _export_alpha(mini_repo, tmp_path, f"{heading}\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_indented_code_right_after_a_reference_definition_is_inert(mini_repo, tmp_path):
+    example = '[ref]: https://example.com "title"\n    [example](missing.md)\n'
+    status, out = _export_alpha(mini_repo, tmp_path, "See [ref].\n\n" + example)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "    [example](missing.md)" in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_definition_inside_a_paragraph_does_not_end_it(mini_repo, tmp_path, capsys):
+    # A definition cannot interrupt a paragraph, so the indented line is still text.
+    status, _ = _export_alpha(
+        mini_repo, tmp_path, "A paragraph\n[ref]: https://example.com\n    [x](missing.md)\n"
+    )
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_encoded_hash_in_a_filename_is_not_a_fragment_delimiter(mini_repo, tmp_path):
+    refs = mini_repo / "plugins/engineering/skills/alpha/references"
+    refs.mkdir()
+    (refs / "a#b.md").write_text("# Hash file\n\nBody.\n")
+    status, out = _export_alpha(mini_repo, tmp_path, "See [it](references/a%23b.md).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "references/a%23b.md" not in document
+
+
+def test_portable_fragment_is_decoded_separately_from_the_path(mini_repo, tmp_path):
+    refs = mini_repo / "plugins/engineering/skills/alpha/references"
+    refs.mkdir()
+    (refs / "one.md").write_text("# One\n\n## Two words\n\nBody.\n")
+    status, out = _export_alpha(mini_repo, tmp_path, "See [it](references/one.md#two%2Dwords).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "#two%2Dwords" not in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    "definition",
+    [
+        "[ref]: https://example.com invalid title",
+        '[ref]: https://example.com "unterminated',
+        "[ref]: https://example.com extra",
+    ],
+)
+def test_portable_malformed_definition_leaves_the_paragraph_running(
+    mini_repo, tmp_path, definition, capsys
+):
+    # Not a definition, so it is paragraph text and the indented line continues it.
+    status, _ = _export_alpha(mini_repo, tmp_path, f"{definition}\n    [x](missing.md)\n")
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "definition",
+    [
+        "[ref]: https://example.com",
+        '[ref]: https://example.com "A title"',
+        "[ref]: https://example.com 'single'",
+        "[ref]: https://example.com (paren)",
+        '[ref]: <https://example.com/a b> "t"',
+    ],
+)
+def test_portable_valid_definition_ends_paragraph_state(mini_repo, tmp_path, definition):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, f"See [ref].\n\n{definition}\n    [x](missing.md)\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+@pytest.mark.parametrize(
+    ("heading", "fragment"),
+    [
+        ("## _Guide_", "guide"),
+        ("## __Guide__", "guide"),
+        ("## A _quiet_ guide", "a-quiet-guide"),
+        ("## foo_bar", "foo_bar"),
+        ("## snake_case_name", "snake_case_name"),
+        ("## _leading underscore", "_leading-underscore"),
+        ("## `a_b`", "a_b"),
+        ("## _Guide_ and `x_y`", "guide-and-x_y"),
+    ],
+)
+def test_portable_heading_alias_follows_rendered_emphasis(mini_repo, tmp_path, heading, fragment):
+    status, out = _export_alpha(mini_repo, tmp_path, f"{heading}\n\nSee [go](#{fragment}).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert f"(#{fragment})" not in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_fence_in_a_quoted_list_ends_with_its_item(mini_repo, tmp_path, capsys):
+    addition = "> - item\n>\n>   ~~~\n>   code\n>\n> [broken](missing.md)\n"
+    status, _ = _export_alpha(mini_repo, tmp_path, addition)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+    source = mini_repo / "plugins/engineering/skills/alpha/SKILL.md"
+    source.write_text(source.read_text().replace("\n" + addition, ""))
+    closed = "> - item\n>\n>   ~~~\n>   [x](missing.md)\n>   ~~~\n"
+    status, out = _export_alpha(mini_repo, tmp_path, closed)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_adjacent_attributes_are_not_one_tag_for_inert_text(mini_repo, tmp_path, capsys):
+    # CommonMark needs whitespace before every attribute, so this is text and the link is real.
+    status, _ = _export_alpha(mini_repo, tmp_path, '<span title="x"oops="[bad](missing.md)">\n')
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_well_formed_attributes_still_hide_their_text(mini_repo, tmp_path):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, '<span title="x" oops="[ok](missing.md)">y</span>\n'
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_adjacent_attribute_id_is_still_refused_as_an_anchor(mini_repo, tmp_path, capsys):
+    status, _ = _export_alpha(mini_repo, tmp_path, '<a href="x"id="y">\n')
+    assert status == 1
+    assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("label", ["a[b]", "a[b", "a]b", "[a]"])
+def test_portable_label_with_an_unescaped_bracket_is_not_a_definition(mini_repo, tmp_path, label):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, f"A line with [{label}] in it.\n\n[{label}]: https://example.com\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "portable-reference-" not in document
+    assert f"[{label}]: https://example.com" in document
+
+
+def test_portable_label_with_an_escaped_bracket_is_still_a_definition(mini_repo, tmp_path):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, "See [a\\[b].\n\n[a\\[b]: https://example.com\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "portable-reference-" in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    "row",
+    [
+        "| `code | [broken](missing.md)` |",
+        "| a | `x | [broken](missing.md) y` |",
+        "`only | [broken](missing.md)` | b |",
+    ],
+)
+def test_portable_table_cells_are_scanned_independently(mini_repo, tmp_path, row, capsys):
+    table = f"| h1 | h2 |\n| --- | --- |\n{row}\n"
+    status, _ = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_code_span_inside_one_cell_and_escaped_pipes_stay_inert(mini_repo, tmp_path):
+    table = "| h1 | h2 |\n| --- | --- |\n| `[a](missing.md)` | x |\n| `a \\| [b](gone.md)` | y |\n"
+    status, out = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "`[a](missing.md)`" in document
+    assert "`a \\| [b](gone.md)`" in document
+
+
+def test_portable_pipes_outside_a_table_do_not_split_code(mini_repo, tmp_path):
+    status, out = _export_alpha(mini_repo, tmp_path, "Run `a | [x](missing.md)` now.\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_anchor_in_a_table_cell_after_a_cross_cell_span_is_refused(
+    mini_repo, tmp_path, capsys
+):
+    table = '| h1 | h2 |\n| --- | --- |\n| `a | <a id="x"></a> `b` |\n'
+    status, _ = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 1
+    assert "unsupported custom HTML anchor" in capsys.readouterr().out
+
+
+def test_portable_processing_instruction_in_text_is_inert(mini_repo, tmp_path):
+    status, out = _export_alpha(mini_repo, tmp_path, "Use <?php [x](missing.md) ?> here.\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_label_over_999_characters_is_not_a_definition(mini_repo, tmp_path):
+    label = "a" * 1000
+    status, out = _export_alpha(
+        mini_repo, tmp_path, f"See [{label}].\n\n[{label}]: https://example.com\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "portable-reference-" not in document
+    assert f"[{label}]: https://example.com" in document
+
+
+def test_portable_label_of_999_characters_is_still_a_definition(mini_repo, tmp_path):
+    label = "a" * 999
+    status, out = _export_alpha(
+        mini_repo, tmp_path, f"See [{label}].\n\n[{label}]: https://example.com\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert "portable-reference-" in (out / "skills/alpha.md").read_text()
+
+
+@pytest.mark.parametrize(
+    ("heading", "fragment"),
+    [
+        (r"## \_Guide\_", "_guide_"),
+        (r"## \_Guide_", "_guide_"),
+        (r"## \__x_", "_x"),
+        (r"## a\_b", "a_b"),
+        (r"## _\_x_", "_x"),
+    ],
+)
+def test_portable_escaped_underscores_in_a_heading_stay_literal(
+    mini_repo, tmp_path, heading, fragment
+):
+    status, out = _export_alpha(mini_repo, tmp_path, f"{heading}\n\nSee [go](#{fragment}).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert f"(#{fragment})" not in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_escaped_pipe_does_not_end_a_cell_in_the_anchor_scrub(mini_repo, tmp_path):
+    table = '| h1 | h2 |\n| --- | --- |\n| `a \\| <a id="x"></a>` | b |\n'
+    status, out = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_pipe_after_an_even_backslash_run_ends_the_cell(mini_repo, tmp_path, capsys):
+    table = "| h1 | h2 |\n| --- | --- |\n| `a \\\\| [x](missing.md)` | b |\n"
+    status, _ = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_pipe_after_an_odd_backslash_run_stays_in_the_cell(mini_repo, tmp_path):
+    table = "| h1 | h2 |\n| --- | --- |\n| `a \\\\\\| [x](missing.md)` | b |\n"
+    status, out = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+@pytest.mark.parametrize(
+    "definition",
+    [
+        "[ref]: <https://example.com",
+        "[ref]: https://example.com/a(b",
+        "[ref]: https://example.com/a)b",
+    ],
+)
+def test_portable_unterminated_destination_is_not_a_definition(mini_repo, tmp_path, definition):
+    # Paragraph text, so the indented line after it continues the paragraph, not code.
+    body = f"{definition}\n    [x](missing.md)\n"
+    status, _ = _export_alpha(mini_repo, tmp_path, body)
+    assert status == 1
+
+
+@pytest.mark.parametrize(
+    "definition", ["[ref]: <https://example.com>", "[ref]: https://example.com/a(b)"]
+)
+def test_portable_terminated_destination_is_a_definition(mini_repo, tmp_path, definition):
+    body = f"{definition}\n    [x](missing.md)\n"
+    status, _ = _export_alpha(mini_repo, tmp_path, body)
+    assert status == 0
+
+
+def test_portable_html_block_ends_with_its_blockquote(mini_repo, tmp_path):
+    # No lazy continuation for an HTML block: the paragraph after it is live Markdown.
+    body = '> <span title="x">\n``    \n    [x](missing.md)\n'
+    status, _ = _export_alpha(mini_repo, tmp_path, body)
+    assert status == 1
+
+
+@pytest.mark.parametrize(
+    ("stem", "body"),
+    [
+        ("portable-6162-root", "Body.\n"),
+        ("notes", "# Portable 6162 root\n\nBody.\n"),
+        ("notes", "# **portable-6162-heading**\n\nBody.\n"),
+    ],
+)
+def test_portable_reference_title_that_collides_with_a_generated_anchor_is_refused(
+    mini_repo, tmp_path, capsys, stem, body
+):
+    references = mini_repo / "plugins/engineering/skills/alpha/references"
+    references.mkdir(exist_ok=True)
+    (references / f"{stem}.md").write_text(body)
+    status, _ = _export_alpha(mini_repo, tmp_path, f"See references/{stem}.md.\n")
+    assert status == 1
+    assert "title collides with a generated anchor" in capsys.readouterr().out
+
+
+def test_portable_reference_title_that_is_ordinary_is_accepted(mini_repo, tmp_path):
+    references = mini_repo / "plugins/engineering/skills/alpha/references"
+    references.mkdir(exist_ok=True)
+    (references / "notes.md").write_text("# Portable notes\n\nBody.\n")
+    status, out = _export_alpha(mini_repo, tmp_path, "See references/notes.md.\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+@pytest.mark.parametrize(
+    "definition",
+    [
+        "[ref]: https://example.com invalid title",
+        "[ref]: <https://example.com",
+        "[ref]: https://example.com/a(b",
+    ],
+)
+def test_portable_malformed_definition_stays_literal(mini_repo, tmp_path, definition):
+    status, out = _export_alpha(mini_repo, tmp_path, f"See [ref].\n\n{definition}\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert "portable-reference-" not in document
+    assert f"\n{definition}\n" in document
+
+
+def test_portable_well_formed_definition_is_still_scoped(mini_repo, tmp_path):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, 'See [ref].\n\n[ref]: https://example.com "title"\n'
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert re.search(
+        r'^\[portable-reference-[a-f0-9]+\]: https://example.com "title"$', document, re.M
+    )
+
+
+def test_portable_asset_filename_with_an_anchor_tag_is_refused(mini_repo, tmp_path, capsys):
+    assets = mini_repo / "plugins/engineering/skills/alpha/assets"
+    assets.mkdir(exist_ok=True)
+    (assets / '<a name="portable-6162-root">.txt').write_text("x\n")
+    status, _ = _export_alpha(mini_repo, tmp_path, "Nothing else.\n")
+    assert status == 1
+    assert "custom HTML anchor in a generated title" in capsys.readouterr().out
+
+
+def test_portable_ordinary_asset_filename_is_accepted(mini_repo, tmp_path):
+    assets = mini_repo / "plugins/engineering/skills/alpha/assets"
+    assets.mkdir(exist_ok=True)
+    (assets / "data-name.txt").write_text("x\n")
+    status, out = _export_alpha(mini_repo, tmp_path, "Nothing else.\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+@pytest.mark.parametrize(
+    ("filename", "destination", "resolves"),
+    [
+        ("a&b.md", "references/a&amp;b.md", True),
+        ("a&b.md", "references/a&#38;b.md", True),
+        ("a&b.md", "references/a&#x26;b.md", True),
+        ("a&b.md", r"references/a\&amp;b.md", False),
+        ("a#b.md", "references/a&#35;b.md", False),
+        ("a b.md", "references/a&nbsp;b.md", False),
+    ],
+)
+def test_portable_character_references_in_a_destination_are_decoded(
+    mini_repo, tmp_path, filename, destination, resolves
+):
+    references = mini_repo / "plugins/engineering/skills/alpha/references"
+    references.mkdir(exist_ok=True)
+    (references / filename).write_text("# Target\n\nBody.\n")
+    status, _ = _export_alpha(mini_repo, tmp_path, f"See [t]({destination}).\n")
+    assert (status == 0) is resolves
+
+
+@pytest.mark.parametrize(
+    "label",
+    ["read <!-- hidden --> A", "read <b>bold</b> A", 'read <span title="x">A</span>'],
+)
+def test_portable_link_with_inline_html_in_its_label_is_still_rewritten(mini_repo, tmp_path, label):
+    references = mini_repo / "plugins/engineering/skills/alpha/references"
+    references.mkdir(exist_ok=True)
+    (references / "a.md").write_text("# A\n\nBody.\n")
+    status, out = _export_alpha(mini_repo, tmp_path, f"See [{label}](references/a.md).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    assert f"[{label}](#portable-" in document
+    assert "references/a.md" not in document.split("## Reference material")[0]
+
+
+def test_portable_link_in_a_table_cell_never_crosses_a_pipe(mini_repo, tmp_path):
+    table = "| h1 | h2 |\n| --- | --- |\n| [a | b](missing.md) | c |\n"
+    status, _ = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 0
+
+
+@pytest.mark.parametrize(
+    "table",
+    [
+        "> | h1 | h2 |\n> | --- | --- |\n> | `a | [x](missing.md)` | b |\n",
+        "- | h1 | h2 |\n  | --- | --- |\n  | `a | [x](missing.md)` | b |\n",
+        "> - | h1 | h2 |\n>   | --- | --- |\n>   | `a | [x](missing.md)` | b |\n",
+        "> h1 | h2\n> --- | ---\n> `a | [x](missing.md)` | b\n",
+    ],
+)
+def test_portable_table_nested_in_a_container_splits_its_cells(mini_repo, tmp_path, table, capsys):
+    status, _ = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_container_text_with_a_pipe_is_not_a_table(mini_repo, tmp_path):
+    status, out = _export_alpha(
+        mini_repo, tmp_path, "> a | b\n> not a delimiter\n> `c | [x](missing.md)`\n"
+    )
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+@pytest.mark.parametrize(
+    "interrupt",
+    ["## Heading", "```", "> quote", "- item", "1. item", "---", "<div>"],
+)
+def test_portable_table_ends_at_a_block_that_interrupts_it(mini_repo, tmp_path, interrupt):
+    # After the interruption the code span's pipes are text, so the link inside stays inert.
+    table = f"| h1 | h2 |\n| --- | --- |\n| a | b |\n{interrupt}\n`x | [y](missing.md) | z`\n"
+    if interrupt == "```":
+        table += "```\n"
+    status, out = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+
+
+def test_portable_table_continues_over_ordinary_text_rows(mini_repo, tmp_path, capsys):
+    table = "| h1 | h2 |\n| --- | --- |\n| a | b |\nplain | `x | [y](missing.md)` | z\n"
+    status, _ = _export_alpha(mini_repo, tmp_path, table)
+    assert status == 1
+    assert "missing.md" in capsys.readouterr().out
+
+
+def test_portable_generated_title_is_checked_as_rendered_text(mini_repo, tmp_path, capsys):
+    references = mini_repo / "plugins/engineering/skills/alpha/references"
+    references.mkdir(exist_ok=True)
+    (references / "[portable-6162-root](mailto:a).md").write_text("Body.\n")
+    status, _ = _export_alpha(mini_repo, tmp_path, "Nothing else.\n")
+    assert status == 1
+    assert "title collides with a generated anchor" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("filename", "destination"),
+    [
+        ("a.md", "references/a.md?plain=1#part"),
+        ("a.md", "references/a.md?plain=1"),
+        ("a?b.md", "references/a%3Fb.md#part"),
+    ],
+)
+def test_portable_query_string_is_not_part_of_a_local_path(
+    mini_repo, tmp_path, filename, destination
+):
+    references = mini_repo / "plugins/engineering/skills/alpha/references"
+    references.mkdir(exist_ok=True)
+    (references / filename).write_text("# Target\n\n## Part\n\nBody.\n")
+    status, out = _export_alpha(mini_repo, tmp_path, f"See [t]({destination}).\n")
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    assert f"]({destination})" not in (out / "skills/alpha.md").read_text()
+
+
+def test_portable_encoded_question_mark_stays_in_the_filename(mini_repo, tmp_path):
+    references = mini_repo / "plugins/engineering/skills/alpha/references"
+    references.mkdir(exist_ok=True)
+    (references / "a.md").write_text("# Target\n")
+    status, _ = _export_alpha(mini_repo, tmp_path, "See [t](references/a%3Fx.md).\n")
+    assert status == 1
+
+
+@pytest.mark.parametrize(
+    ("heading", "fragment", "resolves"),
+    [
+        (r"## \\_Guide_", "guide", True),
+        (r"## \\_Guide_", "_guide_", False),
+        (r"## \\\_Guide_", "_guide_", True),
+        (r"## \\\\_Guide_", "guide", True),
+    ],
+)
+def test_portable_backslash_parity_decides_whether_an_underscore_is_escaped(
+    mini_repo, tmp_path, heading, fragment, resolves
+):
+    status, _ = _export_alpha(mini_repo, tmp_path, f"{heading}\n\nSee [go](#{fragment}).\n")
+    assert (status == 0) is resolves
+
+
+@pytest.mark.parametrize("definition", ["[^n]: Note", "[ref]: https://example.com"])
+def test_portable_underline_after_a_definition_is_a_break_not_a_heading(
+    mini_repo, tmp_path, definition
+):
+    body = f"Claim.[^n] and [ref].\n\n{definition}\n---\n"
+    status, out = _export_alpha(mini_repo, tmp_path, body)
+    assert status == 0
+    assert portable.export(mini_repo, out) == 0
+    document = (out / "skills/alpha.md").read_text()
+    shape = r"\[\^?portable-(?:footnote|reference)-[a-f0-9]+\]: "
+    assert re.search(rf"^{shape}", document, re.M), document

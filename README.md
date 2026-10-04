@@ -533,8 +533,9 @@ write` — enough to read runs and comment on and label the pull request, never 
 contents or push anything, and spent only on that one comment and that one label.
 
 Some repository controls live in GitHub's settings rather than in this tree — the branch
-ruleset, secret scanning and push protection, Dependabot alerts and security updates —
-and no file here can see whether they are switched on. [CI](docs/ci.md#recorded-state)
+ruleset, private vulnerability reporting, secret scanning and push protection, Dependabot
+alerts and security updates, and which CodeQL setup runs — and no file here can see
+whether they are switched on. [CI](docs/ci.md#recorded-state)
 names those controls, records which ones the owner has confirmed as on, and gives the
 commands to read each one's state back, since a repository can look rigorous while a
 control it describes is silently off.

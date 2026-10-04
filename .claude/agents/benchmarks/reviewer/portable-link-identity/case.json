@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Simplify portable destination resolution by using the bundled document anchor for every local link.",
+  "lesson": "Flattening documents destroys local link identity",
+  "must_mention": [
+    "fragment|section",
+    "root|wrong.target|wrong.section",
+    "export_portable|portable"
+  ]
+}

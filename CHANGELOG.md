@@ -10,6 +10,19 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Publish a released catalogue to Cloudflare Workers. A `vX.Y.Z` tag still cuts the
+  GitHub Release, and the same workflow then uploads that version's skill archives,
+  portable bundle and marketplace manifest as static assets on the Worker `ai`, served
+  at `https://ai.szolotov.com` and on its `workers.dev` host. Pull requests dry-run the
+  upload with no credential. A push to `stage` uploads a Preview named `stage` of the
+  same Worker, served at `https://stage.ai.szolotov.com`; production keeps running the
+  last tagged version. With one Worker the staging token can also deploy production,
+  so `docs/ci.md` has the owner protect `stage` with a ruleset. The Cloudflare token is
+  an environment secret, not a repository secret; what to create is in `docs/ci.md`.
+- `scripts/smoke_site.sh` retries `version.txt` until it reports the expected version,
+  so a host still serving the previous version while a deploy propagates no longer
+  fails a healthy deploy.
+
 - Add three skills to `coding` for building the environment an agent works in:
   `agent-instructions` writes or repairs a repository's `AGENTS.md` and the `CLAUDE.md`
   that imports it, and passes only when a session with no history answers five fixed
@@ -199,6 +212,16 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   Dependabot alerts and Dependabot security updates on 2026-09-26, alongside the existing
   CI checks rather than in place of them, in `docs/ci.md`'s settings section and
   `docs/best-practices.md`'s status tables.
+- Record the security settings as of 2026-10-03: the owner re-confirmed secret scanning,
+  push protection, Dependabot alerts and Dependabot security updates, and private
+  vulnerability reporting is confirmed on from the public API. Record that CodeQL runs
+  from `security.yml`'s `codeql` job and that GitHub's default setup must stay off, since
+  the two cannot both upload; `SECURITY.md` and the README now name these controls too.
+  Stop claiming that Dependabot alerts cover what is pinned here: GitHub raises none for
+  an action pinned by SHA, which every action here is, nor for a tool pinned in a
+  workflow variable, and `pyproject.toml` declares no runtime dependencies, so
+  `.github/dependabot.yml`'s version updates are what keep actions current. Name the
+  unpinned `hatchling` build backend as the one package no update covers.
 - Stop `docs/ci.md` and `CONTRIBUTING.md` from implying `make naming` and `make
   attribution` check the pull request title and body locally: the Makefile targets never
   set `PR_TITLE` or `PR_BODY`, so only CI checks them, once the pull request exists.
@@ -225,6 +248,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Roll a failed production release back to the version that was serving before it. The
+  `cloudflare` job now records that version with `wrangler deployments status --json`
+  before deploying and passes its ID to `wrangler rollback`; without one, Wrangler picks
+  the version uploaded before the newest, which after an earlier failed release is that
+  failed release.
 - Correct the initial catalogue's unpublished release claim and link to its immutable
   commit, keeping first-release preparation compatible with that comparison baseline.
 - Refresh the Claude Code, Codex and Gemini CLI pins. Set the Claude trigger classifier's

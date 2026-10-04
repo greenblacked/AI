@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Seed only unmatched-code-delimiter in portable export.",
+  "lesson": "An unmatched backtick hides subsequent links",
+  "must_mention": [
+    "backtick|delimiter",
+    "unmatched|literal",
+    "reference|link|destination"
+  ]
+}

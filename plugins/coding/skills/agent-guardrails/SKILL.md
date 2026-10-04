@@ -83,13 +83,13 @@ enforces nothing.
 | Permission or sandbox | What the agent is able to do at all | Intent; it cannot tell a good edit to a file from a bad one |
 | Instruction text | Nothing | Everything; it enforces nothing |
 
-The agent tool hook is Claude Code only. In ChatGPT or Codex, and as the default anywhere,
-use the portable rungs — linter, test, CI check, git hook — and add the Claude Code hook
-only as an extra layer. State the facts about hooks plainly: they are configured as a
-`hooks` block in a settings file naming an event, a matcher and a command; nothing
-discovers a hooks directory by its name; and a hook runs before or after a tool call as its
-event says. Confirm event names and exit-code behaviour against the current documentation
-of the tool before relying on them.
+Use the portable rungs — linter, test, CI check, git hook — as the default, and add an
+agent tool hook as an extra local layer where supported. Claude Code and Codex support
+hooks; availability and event/tool coverage depend on the host and installed version.
+On unsupported hosts, rely on the portable rungs. Confirm coverage, event names and
+exit-code behaviour against the current [Claude Code hooks documentation](https://code.claude.com/docs/en/hooks)
+or [Codex hooks documentation](https://learn.chatgpt.com/docs/hooks#tool-coverage)
+before proposing a hook. The settings fragment in the reference is a Claude Code example.
 
 Read [the enforcement ladder](references/enforcement-ladder.md) when choosing between two
 rungs, or when you need what a rung can and cannot see with a worked example for each.

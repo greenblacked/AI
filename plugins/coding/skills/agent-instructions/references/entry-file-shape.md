@@ -122,7 +122,7 @@ Following the procedure, the commands were run in a fresh clone before anything 
 
 The realistic failure is the third row: `pnpm test` fails on a clean checkout because the test suite expects a Postgres on the default port that nothing starts. That is a finding. The old file said "make sure everything works" and never mentioned the database, so every cold session failed at the first test and either gave up or wasted effort on the connection error.
 
-Enforcement was checked the same way. The formatter and linter are configured in the repository and run in CI, so the style rules are redundant. `dist/` is gitignored, so a hand edit never reaches a commit and the rule is harmless but needless. The changelog rule has a CI job that fails when the file is untouched, so it is enforced. "Write tests for everything" and "keep functions small" have no enforcer. The old billing module is covered by a code owner file that requires a review from its team, and the reason the file never gave is that its tests are known to be incomplete.
+Enforcement was checked the same way. The formatter and linter are configured in the repository and run in CI, so the style rules are redundant. `dist/` is disposable generated output, so its hand edits are overwritten by the next build; that is why this example drops the edit rule. `.gitignore` omits untracked output from ordinary `git add`, but it does not prevent forced addition or edits to tracked files. Retain an edit boundary when generated output has a reason to be protected. The changelog rule has a CI job that fails when the file is untouched, so it is enforced. "Write tests for everything" and "keep functions small" have no enforcer. The old billing module is covered by a code owner file that requires a review from its team, and the reason the file never gave is that its tests are known to be incomplete.
 
 ## Worked example: after
 
@@ -183,7 +183,7 @@ Run the fresh-session test on this file. A cold session should answer question 1
 | --- | --- | --- |
 | `npm install`, `npm test`, `npm run lint:fix` | pnpm commands, with the database step | Executed on a clean checkout; the old ones failed |
 | Four style rules | Removed | The formatter and linter already enforce them |
-| "Do not edit the dist folder" | Removed | Gitignored, so it cannot reach a commit |
+| "Do not edit the dist folder" | Removed | Disposable build output; the next build overwrites hand edits |
 | "Write tests for everything", "keep functions small" | Removed | No reason and no enforcer; the testing topic file covers what to test |
 | "Do not touch the old billing module" | A boundary with the reason and the code owner enforcement | The reason is what lets an agent judge an edge case |
 | Four screens of architecture | The layout table, and depth in topic files | Depth is read on demand rather than on every session |
