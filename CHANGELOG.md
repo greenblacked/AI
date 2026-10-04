@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-04
+
 ### Added
 
 - Cut a release from the Actions tab. After the prepare pull request merges, running Cut
@@ -328,5 +330,6 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/9365d19bd40e79f52463b046927b17cfd448bb79...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/greenblacked/AI/compare/9365d19bd40e79f52463b046927b17cfd448bb79...v0.1.0
 [Initial catalogue]: https://github.com/greenblacked/AI/tree/9365d19bd40e79f52463b046927b17cfd448bb79
