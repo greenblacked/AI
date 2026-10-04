@@ -264,8 +264,8 @@ blocking finding or a failing `ci` or `security` gate.
   It runs after `release` succeeds and spends a Cloudflare API token that lives on the
   `production` GitHub environment, never in the repository and never in the step that
   installs Wrangler. `deploy.yml` dry-runs that upload on a pull request and does not
-  name the token; its `preview` job is the `staging` environment, and only a manual run
-  from `main`. `ci-triage.yml`'s single job is the third: it runs only on
+  name the token; its `preview` job is the `staging` environment, and only a push to
+  `stage` or a manual run from that branch. `ci-triage.yml`'s single job is the third: it runs only on
   `workflow_run` for `CI` or `Security` completing on a pull request, and grants itself
   `actions: read`, `contents: read`, `issues: write` and `pull-requests: write` — never
   `contents: write`, and it pushes nothing. A live run's first write, the comment POST,

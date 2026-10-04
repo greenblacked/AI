@@ -6,8 +6,8 @@
 # including one from a fork, cannot read the token by editing a step that already
 # holds it, because no step here holds it.
 #
-# Run workflow, from main only, deploys a separate Worker named
-# greenblacked-ai-staging. Production is not this file. release.yml deploys
+# A push to the stage branch, or Run workflow from that branch, deploys the
+# Worker greenblacked-ai-staging. Production is not this file. release.yml deploys
 # greenblacked-ai after a vX.Y.Z tag has published its GitHub Release. The token
 # for each lives on that GitHub environment, not in the repository. docs/ci.md
 # records the permissions the token needs and the environment rules that keep a
@@ -16,6 +16,8 @@ name: Deploy
 
 on:
   pull_request:
+  push:
+    branches: [stage]
   workflow_dispatch:
 
 permissions: {}
@@ -87,7 +89,7 @@ jobs:
 
   preview:
     name: preview
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -96,14 +98,14 @@ jobs:
       name: staging
       url: ${{ vars.DEPLOY_URL }}
     steps:
-      - name: Staging deploys from main only
+      - name: Staging deploys from the stage branch only
         env:
           REF_TYPE: ${{ github.ref_type }}
           REF_NAME: ${{ github.ref_name }}
         run: |
           set -Eeuo pipefail
-          if [ "$REF_TYPE" != branch ] || [ "$REF_NAME" != main ]; then
-            echo "::error::the staging Worker deploys from main only, not ${REF_TYPE} ${REF_NAME}"
+          if [ "$REF_TYPE" != branch ] || [ "$REF_NAME" != stage ]; then
+            echo "::error::the staging Worker deploys from the stage branch only, not ${REF_TYPE} ${REF_NAME}"
             exit 1
           fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -118,7 +120,7 @@ jobs:
           GIT_SHA: ${{ github.sha }}
         run: |
           set -Eeuo pipefail
-          version="main-${GIT_SHA:0:7}"
+          version="stage-${GIT_SHA:0:7}"
           PYTHONPATH=src python scripts/build_catalogue_site.py --version "$version" --noindex
           echo "version=${version}" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
