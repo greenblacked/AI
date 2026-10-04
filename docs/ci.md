@@ -446,6 +446,18 @@ the release job is safe to repeat.
 
 `make site` builds `dist/site` locally. `VERSION` defaults to `dev`.
 
+What the build writes, besides the `.skill` archives, `portable-skills.zip`, the manifest,
+`version.txt` and `robots.txt`: an `index.html` for the catalogue, one page per plugin under
+`plugins/<plugin>/`, one per skill under `plugins/<plugin>/<skill>/`, and `start/`,
+`workflows/`, `examples/` and `quality/`.
+Every page is generated from the checkout with the standard library, Markdown included
+([`scripts/site_markdown.py`](../scripts/site_markdown.py)) and the stylesheet
+([`scripts/site_style.py`](../scripts/site_style.py)), so the dry-run and the deploy
+need nothing installed to build it. The figures on `quality/` are read from the repository
+at build time, and each section is left out when its source file is absent. Nothing is
+written under `skills/` except archives: the tests assert that directory holds only the
+`.skill` files.
+
 ## `.github/workflows/scheduled.yml` — Scheduled checks
 
 Runs weekly (`cron: '0 6 * * 1'`) and on `workflow_dispatch`. Neither job gates
