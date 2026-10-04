@@ -18,7 +18,7 @@ plugins you install separately.
 [![Skills](https://img.shields.io/badge/skills-105-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-[Website](https://ai.szolotov.com) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
+[Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
 
 </div>
 
@@ -66,6 +66,43 @@ install stays resident in context, and Claude Code's default listing budget is a
 characters against this library's total — `make validate` prints the current figure — so
 installing all eight at the default drops most of them, silently. The Install section
 below says what to set instead.
+
+## Website
+
+[ai.szolotov.com](https://ai.szolotov.com) is this catalogue as a website, rebuilt from
+the repository for every release, so it always shows what the latest version ships.
+
+| Page | What it shows |
+| --- | --- |
+| [Home](https://ai.szolotov.com) | The eight plugins with their skill counts, and a search across plugins and skill names |
+| `/plugins/<plugin>/` | One page per plugin: what it covers, its install line and its skills |
+| `/plugins/<plugin>/<skill>/` | One page per skill: its description, install line and allowed tools, the full procedure, its reference files, and the requests it fires on and hands elsewhere |
+| [Start](https://ai.szolotov.com/start/) | Installing in Claude Code and in other tools, followed by [Using the skills](docs/using.md) |
+| [Workflows](https://ai.szolotov.com/workflows/) | The subagents and slash commands each plugin ships, and how they fit with the skills |
+| [Examples](https://ai.szolotov.com/examples/) | A week of real use, and sample requests for every skill |
+| [Quality](https://ai.szolotov.com/quality/) | Figures computed from the repository: trigger-eval coverage, listing budgets, the coverage floor, reviewer benchmark cases and review lessons |
+
+The same host serves each release's files: [`marketplace.json`](https://ai.szolotov.com/marketplace.json),
+[`portable-skills.zip`](https://ai.szolotov.com/portable-skills.zip), one
+`skills/<name>.skill` archive per skill, and `version.txt` naming the release it was built
+from.
+
+The site is light by day, dark from 20:00 to 06:00 by the visitor's clock, and has a
+switch for either plus a terminal-style console theme. It is static HTML with no analytics
+and no cookies, built with nothing but Python; only its two fonts load from Google Fonts. [`scripts/build_catalogue_site.py`](scripts/build_catalogue_site.py)
+writes every page, and [`scripts/site_markdown.py`](scripts/site_markdown.py) renders the
+Markdown with all source text escaped, raw HTML shown as text, and only `http`, `https`,
+`mailto`, fragment and in-repository links kept. To build and view it locally:
+
+```shell
+make site
+python -m http.server --directory dist/site 8000
+```
+
+A release publishes it: **Cut release** in the Actions tab tags `main`, and the release
+workflow deploys that version to the Cloudflare Worker behind `ai.szolotov.com`, checks it
+answers, and rolls back automatically if it does not. [Releasing a version](docs/ci.md#releasing-a-version)
+has the steps.
 
 ## Install
 
