@@ -30,8 +30,6 @@ concurrency:
 jobs:
   cut:
     name: cut
-    # A dispatch can be pointed at any branch; only main may cut a release.
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -44,9 +42,9 @@ jobs:
       VERSION: ${{ inputs.version }}
     steps:
       - name: Refuse to run anywhere but main
-        # The job-level `if` already skips a dispatch on another branch. This repeats the
-        # check as a step so that removing the `if` later still cannot cut a release
-        # from a branch.
+        # A dispatch can be pointed at any branch; only main may cut a release. This is a
+        # failing step, not a job-level `if`: a skipped job reports success, which would
+        # make a dispatch from the wrong branch look like a release that went ahead.
         run: |
           set -Eeuo pipefail
           if [ "$GITHUB_REF" != "refs/heads/main" ]; then
@@ -139,7 +137,8 @@ jobs:
           set -Eeuo pipefail
           if ! gh workflow run release.yml --ref "v$VERSION"; then
             echo "::error::v$VERSION exists but release.yml was not dispatched." >&2
-            echo "::error::Run Release from the Actions tab on the v$VERSION tag." >&2
+            echo "::error::The tag is in place; do not cut again. Dispatch it with:" >&2
+            echo "::error::gh workflow run release.yml --repo $GH_REPO --ref v$VERSION" >&2
             exit 1
           fi
           runs="$GITHUB_SERVER_URL/$GH_REPO/actions/workflows/release.yml"
