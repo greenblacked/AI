@@ -869,6 +869,98 @@ def test_production_deploys_are_serialized_across_release_tags():
     assert job_header.count("      group:") == 1
 
 
+def _run_blocks(workflow: str) -> list[str]:
+    """The text of every `run:` step, found by indentation rather than a YAML parser."""
+    blocks = []
+    lines = workflow.splitlines()
+    for index, line in enumerate(lines):
+        stripped = line.lstrip()
+        if not stripped.startswith("run:"):
+            continue
+        indent = len(line) - len(stripped)
+        body = [stripped[len("run:") :]]
+        for follow in lines[index + 1 :]:
+            if follow.strip() and len(follow) - len(follow.lstrip()) <= indent:
+                break
+            body.append(follow)
+        blocks.append("\n".join(body))
+    return blocks
+
+
+def test_release_accepts_a_dispatch_only_on_a_version_tag_ref():
+    workflow = (REPO / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    triggers = workflow.split("\non:\n", 1)[1].split("\npermissions:", 1)[0]
+    assert "  push:\n    tags: ['v[0-9]+.[0-9]+.[0-9]+']\n" in triggers
+    assert "  workflow_dispatch:\n" in triggers
+    assert "inputs:" not in triggers
+    release_job = workflow.split("  release:\n", 1)[1].split("  cloudflare:\n", 1)[0]
+    cloudflare = workflow.split("  cloudflare:\n", 1)[1]
+    for job in (release_job, cloudflare):
+        steps = job.split("    steps:\n", 1)[1]
+        first = steps.split("\n      - ", 2)[0] if steps.startswith("      - name:") else ""
+        assert first.startswith("      - name: Refuse anything but a vX.Y.Z tag"), (
+            "the ref guard must be the first step, ahead of checkout"
+        )
+        assert '[ "$GITHUB_REF_TYPE" != "tag" ]' in first
+        assert '[[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\\.[0-9]+\\.[0-9]+$ ]]' in first
+        assert "set -Eeuo pipefail" in first
+        assert "${{" not in first
+        assert "persist-credentials: false" in job
+
+
+def test_cut_release_is_a_main_only_dispatch_with_two_narrow_grants():
+    workflow = (REPO / ".github" / "workflows" / "cut-release.yml").read_text(encoding="utf-8")
+    assert "\npermissions: {}\n" in workflow
+    triggers = workflow.split("\non:\n", 1)[1].split("\npermissions:", 1)[0]
+    assert triggers.startswith("  workflow_dispatch:\n    inputs:\n      version:\n")
+    assert "        required: true\n        type: string\n" in triggers
+    assert triggers.count("  push:") == 0 and "pull_request" not in triggers
+    assert "  group: cut-release\n  cancel-in-progress: false\n" in workflow
+    job = workflow.split("jobs:\n", 1)[1]
+    header = job.split("    steps:\n", 1)[0]
+    assert "    if: github.ref == 'refs/heads/main'\n" in header
+    assert "    timeout-minutes: 10\n" in header
+    permissions = header.split("    permissions:\n", 1)[1].split("    env:\n", 1)[0]
+    grants = [line.split("#")[0].strip() for line in permissions.splitlines()]
+    grants = [grant for grant in grants if grant]
+    assert sorted(grants) == ["actions: write", "contents: write"]
+    assert "      VERSION: ${{ inputs.version }}\n" in header
+    # A dispatch elsewhere is refused by a visible failing step as well as the job `if`.
+    guard = job.split("    steps:\n", 1)[1].split("      - uses:", 1)[0]
+    assert '[ "$GITHUB_REF" != "refs/heads/main" ]' in guard
+    assert "exit 1" in guard
+    assert "persist-credentials: false" in workflow
+    assert "fetch-depth: 0" in workflow
+    assert "cache:" not in workflow.replace("No `cache:`", "")
+    assert 'python scripts/release.py check "$VERSION"' in workflow
+    assert 'gh workflow run release.yml --ref "v$VERSION"' in workflow
+    assert "git push" not in workflow
+
+
+def test_cut_release_never_interpolates_an_input_into_a_shell_block():
+    for name in ("cut-release.yml", "release.yml"):
+        workflow = (REPO / ".github" / "workflows" / name).read_text(encoding="utf-8")
+        blocks = _run_blocks(workflow)
+        assert blocks, name
+        for block in blocks:
+            assert "${{" not in block, f"{name}: an expression inside run: {block!r}"
+            assert "set -Eeuo pipefail" in block, f"{name}: a run: block without strict mode"
+        assert "github.event.inputs" not in workflow
+        assert workflow.count("${{ inputs.") == (1 if name == "cut-release.yml" else 0)
+
+
+def test_cut_release_token_is_scoped_to_the_steps_that_call_the_api():
+    workflow = (REPO / ".github" / "workflows" / "cut-release.yml").read_text(encoding="utf-8")
+    steps = workflow.split("    steps:\n", 1)[1].split("\n      - ")
+    with_token = [step for step in steps if "GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}" in step]
+    without = [step for step in steps if "GH_TOKEN" not in step]
+    assert len(with_token) == 3
+    for step in with_token:
+        assert "gh " in step
+    for step in without:
+        assert "gh api" not in step and "gh workflow" not in step
+
+
 def test_the_smoke_script_rejects_a_url_that_is_not_https():
     script = REPO / "scripts" / "smoke_site.sh"
     refused = subprocess.run(  # noqa: S603 - the script under test, fixed argv
