@@ -287,7 +287,7 @@ secret that job needs before the first tag.
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `release` | `release` | The tagged commit is not on `main`, the strict validator failed, [`scripts/release.py notes`](../scripts/release.py) found no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md) for the tag, [`scripts/package_skills.py`](../scripts/package_skills.py) or [`scripts/verify_archives.py`](../scripts/verify_archives.py) failed, [`scripts/export_portable.py`](../scripts/export_portable.py) failed, or `gh release create` or `gh release upload` could not create the release or upload an asset. |
-| `cloudflare` | `cloudflare` | The tagged commit is not on `main`, [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py) or [`scripts/check_wrangler_pin.py`](../scripts/check_wrangler_pin.py) failed, `npm ci` failed, the `production` environment has no `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID`, `wrangler deploy` failed, the smoke test did not see this version answer, or the automatic rollback failed. |
+| `cloudflare` | `cloudflare` | The tagged commit is not on `main`, [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py) or [`scripts/check_wrangler_pin.py`](../scripts/check_wrangler_pin.py) failed, `npm ci` failed, the `production` environment has no `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID`, `wrangler deployments status` could not read the version production is serving or found traffic split between versions, `wrangler deploy` failed, the smoke test did not see this version answer, or the automatic rollback failed. |
 
 Not a required check — nothing merges against it, and it only ever runs after a tag has
 already been pushed. `git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main`
@@ -325,8 +325,16 @@ The `cloudflare` job builds the same catalogue again and uploads it to the Worke
 `workers.dev` host. The smoke test checks the custom domain every time, whether or not
 `DEPLOY_URL` is set, then the `workers.dev` host Wrangler reports. It does not run when
 `release` failed, and a re-run of the workflow is safe: the release job replaces assets that are already there, and Wrangler replaces
-the Worker version. The first deploy to an empty Worker has nothing to roll back to, so
-a smoke failure on that first run leaves the job red and says so.
+the Worker version. Before deploying, the job reads the version production is serving
+with `wrangler deployments status --json`, and
+[`scripts/read_wrangler_deploy.py --active`](../scripts/read_wrangler_deploy.py) keeps its
+ID. A failed smoke test rolls back to exactly that version: `wrangler rollback` with no
+ID picks the version uploaded before the newest one, which after an earlier failed
+release is that failed release. A deployment that splits traffic between versions has no
+single version to return to, so the job stops before deploying until the rollout is
+finished or reverted, and it also stops if it cannot read the serving version at all.
+The first deploy to an empty Worker has nothing to roll back to, so a smoke failure on
+that first run leaves the job red and says so.
 
 ## `.github/workflows/deploy.yml` — Cloudflare
 
@@ -437,6 +445,18 @@ the release job is safe to repeat.
    is off unless you turn it on.
 
 `make site` builds `dist/site` locally. `VERSION` defaults to `dev`.
+
+What the build writes, besides the `.skill` archives, `portable-skills.zip`, the manifest,
+`version.txt` and `robots.txt`: an `index.html` for the catalogue, one page per plugin under
+`plugins/<plugin>/`, one per skill under `plugins/<plugin>/<skill>/`, and `start/`,
+`workflows/`, `examples/` and `quality/`.
+Every page is generated from the checkout with the standard library, Markdown included
+([`scripts/site_markdown.py`](../scripts/site_markdown.py)) and the stylesheet
+([`scripts/site_style.py`](../scripts/site_style.py)), so the dry-run and the deploy
+need nothing installed to build it. The figures on `quality/` are read from the repository
+at build time, and each section is left out when its source file is absent. Nothing is
+written under `skills/` except archives: the tests assert that directory holds only the
+`.skill` files.
 
 ## `.github/workflows/scheduled.yml` — Scheduled checks
 
