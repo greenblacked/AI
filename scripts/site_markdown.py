@@ -33,7 +33,12 @@ BLOB_URL = "https://github.com/greenblacked/AI/blob/main"
 
 # Ids the page chrome already owns. A heading called "Home" must not take `#home`, which
 # is the header button, so these are treated as taken before the first heading is seen.
-RESERVED_IDS = frozenset({"content", "banner", "home", "theme", "find", "list", "count"})
+RESERVED_IDS = frozenset(
+    {
+        "content", "banner", "home", "theme", "console-theme", "dark-switch",
+        "find", "finder", "list", "count", "none",
+    }
+)  # fmt: skip
 
 # Containers nest only this deep. Deeper input is shown as a paragraph, which stops a
 # line of a few thousand ">" characters from exhausting the interpreter's stack.
@@ -194,6 +199,39 @@ def _skip_label(text: str, begin: int) -> int | None:
     return None
 
 
+def _label_ends(text: str) -> tuple[set[int], dict[int, int]]:
+    """Every ``[`` in one forward pass, and the ``]`` that closes each one that closes.
+
+    It tokenises exactly as ``_skip_label`` does, so for any ``[`` this pass sees it gives
+    the same answer, but once per block rather than once per bracket: a paragraph of
+    unmatched brackets would otherwise rescan its whole suffix for every one of them.
+    """
+    opens: set[int] = set()
+    ends: dict[int, int] = {}
+    stack: list[int] = []
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if ch == "\\":
+            i += 2
+            continue
+        if ch == "`":
+            span = _code_span_end(text, i)
+            if span is not None:
+                i = span[1]
+                continue
+            while i < len(text) and text[i] == "`":
+                i += 1
+            continue
+        if ch == "[":
+            opens.add(i)
+            stack.append(i)
+        elif ch == "]" and stack:
+            ends[stack.pop()] = i
+        i += 1
+    return opens, ends
+
+
 def _parse_destination(text: str, begin: int) -> tuple[str, int] | None:
     """Parse ``(dest "title")`` starting at the ``(`` at ``begin``; the end index follows."""
     i = begin + 1
@@ -284,6 +322,7 @@ def render_inline(text: str, source_dir: str = "", *, links: bool = True) -> str
         return _escape(text)
     out: list[str] = []
     dead: dict[str, int] = {}
+    labels = _label_ends(text) if "[" in text else None
     i = 0
     size = len(text)
     plain_start = 0
@@ -317,7 +356,7 @@ def render_inline(text: str, source_dir: str = "", *, links: bool = True) -> str
             plain_start = i
         elif ch == "!" and text.startswith("![", i):
             flush(i)
-            consumed = _inline_link(text, i + 1, source_dir, links, image=True)
+            consumed = _inline_link(text, i + 1, source_dir, links, image=True, labels=labels)
             if consumed is None:
                 out.append("!")
                 i += 1
@@ -327,7 +366,7 @@ def render_inline(text: str, source_dir: str = "", *, links: bool = True) -> str
             plain_start = i
         elif ch == "[":
             flush(i)
-            consumed = _inline_link(text, i, source_dir, links, image=False)
+            consumed = _inline_link(text, i, source_dir, links, image=False, labels=labels)
             if consumed is None:
                 out.append("[")
                 i += 1
@@ -400,10 +439,19 @@ def _emphasis(
 
 
 def _inline_link(
-    text: str, begin: int, source_dir: str, links: bool, *, image: bool
+    text: str,
+    begin: int,
+    source_dir: str,
+    links: bool,
+    *,
+    image: bool,
+    labels: tuple[set[int], dict[int, int]] | None = None,
 ) -> tuple[str, int] | None:
     """A ``[label](target)`` at ``begin``; returns the HTML and where it ended."""
-    close = _skip_label(text, begin)
+    if labels is not None and begin in labels[0]:
+        close = labels[1].get(begin)
+    else:
+        close = _skip_label(text, begin)
     if close is None or close + 1 >= len(text) or text[close + 1] != "(":
         return None
     parsed = _parse_destination(text, close + 1)
