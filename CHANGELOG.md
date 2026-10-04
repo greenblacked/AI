@@ -10,6 +10,18 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Grow the catalogue site from one page into a full site, in a new design. The front
+  page now lists the eight plugins, each linking to its own page at `/plugins/<plugin>/`
+  with its skills, and each skill to a page at `/plugins/<plugin>/<skill>/` carrying its
+  description, install line, allowed tools, rendered `SKILL.md`, references and the queries
+  it fires on and goes elsewhere for. `/start/`, `/workflows/`, `/examples/` and
+  `/quality/` add the install steps and usage guide, the shipped subagents and commands,
+  example requests, and figures computed from the repository at build time; they are
+  reached from the footer. The header drops the text "Black" button for a day/night
+  switch and a console theme, in Instrument Sans and Newsreader loaded from Google Fonts.
+  The Markdown is rendered by `scripts/site_markdown.py`, standard library only, which
+  escapes all source text, shows raw HTML as text and keeps only `http`, `https`,
+  `mailto`, fragment and in-repository links.
 - Publish a released catalogue to Cloudflare Workers. A `vX.Y.Z` tag still cuts the
   GitHub Release, and the same workflow then uploads that version's skill archives,
   portable bundle and marketplace manifest as static assets on the Worker `ai`, served
