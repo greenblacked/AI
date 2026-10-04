@@ -9,8 +9,8 @@ evals — monthly over everything, and on every pull request over what that pull
 touched. `dependabot-auto-merge.yml` merges a Dependabot pull request once the two
 gates have, `ci-triage.yml` explains a failed CI or Security run in one comment,
 `release.yml` publishes a tagged release and then deploys that catalogue to Cloudflare,
-and `deploy.yml` dry-runs that upload on a pull request and deploys a staging Worker
-on a push to `stage`. None of `dependabot-auto-merge.yml`, `ci-triage.yml`, `release.yml` or
+and `deploy.yml` dry-runs that upload on a pull request and uploads a `stage` Preview of
+the same Worker on a push to `stage`. None of `dependabot-auto-merge.yml`, `ci-triage.yml`, `release.yml` or
 `deploy.yml` is a required check.
 
 ## Execution flow
@@ -321,11 +321,10 @@ to publish a release — zizmor's cache-poisoning audit flags exactly this on a
 tag-triggered workflow.
 
 The `cloudflare` job builds the same catalogue again and uploads it to the Worker
-`greenblacked-ai`. The deploy passes `--env=""` because `deploy/wrangler.json` also
-defines `env.staging`; an empty value is the top-level Worker, and omitting the flag
-makes Wrangler warn that it might not stay that way. It does not run when `release`
-failed, and a re-run of the workflow
-is safe: the release job replaces assets that are already there, and Wrangler replaces
+`ai`, which `deploy/wrangler.json` serves at `https://ai.szolotov.com` and on its
+`workers.dev` host. The smoke test checks the custom domain every time, whether or not
+`DEPLOY_URL` is set, then the `workers.dev` host Wrangler reports. It does not run when
+`release` failed, and a re-run of the workflow is safe: the release job replaces assets that are already there, and Wrangler replaces
 the Worker version. The first deploy to an empty Worker has nothing to roll back to, so
 a smoke failure on that first run leaves the job red and says so.
 
@@ -337,7 +336,7 @@ Neither job grants itself more than `contents: read`. Not a required check.
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `dry-run` | `dry-run deploy` | The site did not build, the Wrangler pin disagreed with [`deploy/package-lock.json`](../deploy/package-lock.json), or `wrangler deploy --dry-run` rejected the Worker. No credential is read. The job does not run on `workflow_dispatch`. |
-| `preview` | `preview` | The run was not from `stage`, the `staging` environment has no Cloudflare credential, the staging Worker did not deploy, or its smoke test failed. A failed smoke test rolls that Worker back. Production is a different Worker and is not touched. The job does not run on a pull request. |
+| `preview` | `preview` | The run was not from `stage`, the `staging` environment has no Cloudflare credential, `wrangler preview` failed, Wrangler did not report `https://stage.ai.szolotov.com` for the Preview, or a smoke test failed. A Preview has no rollback and production is not touched, so the job stays red until the next push. The job does not run on a pull request. |
 
 `dry-run` is the pull request. It builds `dist/site` with [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py)
 and asks Wrangler to compile the Worker without uploading it. `--no-autoconfig` and
@@ -348,16 +347,38 @@ has required `WRANGLER_VERSION` to be the version both `deploy/package.json` and
 lockfile name. There is no package cache: a restored store is not what the lockfile
 hashed.
 
-`preview` runs on a push to `stage`, and on Run workflow from that branch only. It deploys `greenblacked-ai-staging`
-with `robots.txt` set to `Disallow: /`. The Worker is public on `workers.dev` the same
-way production is; the separate name is what keeps it off production traffic, not a
-login. Wrangler publishes the staging custom domain `stage.ai.szolotov.com`; the smoke
-step always checks its HTTPS origin and the `workers.dev` host Wrangler reports.
-`DEPLOY_URL`, when the environment has one, is an additional smoke target (duplicates
-are skipped), not a switch for either required check. A failed check triggers the
-staging Worker version rollback; it does not necessarily undo a custom-domain
-attachment, DNS change or certificate provisioning. Inspect the Cloudflare domain
-state and repair it separately if the route itself failed.
+`preview` runs on a push to `stage`, and on Run workflow from that branch only. It
+runs `wrangler preview --name stage`, which uploads this commit as a Preview of the one
+Worker `ai`, with `robots.txt` set to `Disallow: /`. A Preview is a separate version
+that Cloudflare serves at its own URL: `https://stage.ai.szolotov.com` once the custom
+domain `ai.szolotov.com` has Preview traffic enabled, and a `workers.dev` Preview URL
+besides. Production traffic keeps running the version the last tag deployed; uploading
+a Preview does not change it, and a Preview has no rollback because there is nothing to
+roll back to. `wrangler preview` does not attach custom domains. Routes, including
+`previews_enabled`, come from `wrangler deploy` (the first release applies
+`deploy/wrangler.json`) or from the dashboard, which is why the first push to `stage`
+before that is done fails with an error naming this section. If the Worker `ai` does
+not exist yet, `wrangler preview` creates it first, with `workers.dev` on and no custom
+domain or production deployment, so a Worker appearing after a push to `stage` is that
+and not a stray production deploy.
+
+[`scripts/read_wrangler_deploy.py --preview`](../scripts/read_wrangler_deploy.py) reads
+the `preview` line Wrangler writes to `WRANGLER_OUTPUT_FILE_PATH` and keeps a URL only
+when it is `https`, with no user, port, path or query, on a `workers.dev` host or at or
+below `ai.szolotov.com`. The smoke step always checks `https://stage.ai.szolotov.com`,
+then the `workers.dev` Preview URL when Wrangler reported one. `DEPLOY_URL`, when the
+environment has one, is an additional target (duplicates are skipped), not a switch for
+either required check. If Wrangler did not report the stage host, the step logs an
+error that the owner must enable `ai.szolotov.com` for Preview traffic, still tries the
+fixed host, and fails.
+
+[`scripts/smoke_site.sh`](../scripts/smoke_site.sh) retries `version.txt` until its
+first line is the expected version, because a host can answer with the previous
+version while the new one propagates. The wait is bounded by elapsed time, 90 seconds,
+and no single request may outlast what remains of it, so a host that stalls cannot
+push the release job past its `timeout-minutes`: a job that times out is cancelled, not
+failed, and a cancelled release job would skip its rollback. On timeout it reports the
+last version it saw.
 
 ### What you set in GitHub and Cloudflare
 
@@ -367,16 +388,17 @@ the release job is safe to repeat.
 
 1. In the Cloudflare dashboard, open **My Profile → API Tokens → Create Token** (or
    **Manage Account → Account API Tokens**). Start from the **Edit Cloudflare Workers**
-   template. Scope **Account resources** to the one account. Staging now declares a
-   custom domain in `deploy/wrangler.json`, so scope **Zone resources** to the active
-   `szolotov.com` zone in the same Cloudflare account. The staging token may need
-   **Zone / Workers Routes / Edit** to publish the domain; validate its actual grants
-   with a staging deploy rather than narrowing existing permissions from documentation
-   alone. The template's Workers KV and R2 permissions are unused here and can be
-   removed if the form allows. Keep **Account / Workers Scripts / Edit**, **Account / Workers Tail /
-   Read**, **Account / Account Settings / Read**, and the user membership read the
-   template includes. Those are what `wrangler deploy` and `wrangler rollback` call.
-   Do not use the account's Global API Key. Set an expiry you will actually rotate.
+   template. Scope **Account resources** to the one account and **Zone resources** to
+   the active `szolotov.com` zone in the same account. The token needs **Account /
+   Workers Scripts / Edit**, and on the zone **Zone / Zone / Read**, **Zone / DNS /
+   Edit** and **Zone / Workers Routes / Edit**: `wrangler deploy` creates the custom
+   domain `ai.szolotov.com` with its DNS record and certificate. Keep **Account /
+   Workers Tail / Read**, **Account / Account Settings / Read** and the user
+   membership read the template includes; `wrangler deploy` and `wrangler rollback`
+   call them. The template's Workers KV and R2 permissions are unused here and can be
+   removed if the form allows. Validate the grants with a real deploy rather than
+   narrowing them from documentation alone. Do not use the account's Global API Key.
+   Set an expiry you will actually rotate.
 2. Copy the **Account ID** from the Workers overview, or from the URL when the account
    is open. It is not a secret. It still should not be committed.
 3. In this repository, **Settings → Environments**, create `production` and `staging`
@@ -388,17 +410,29 @@ the release job is safe to repeat.
    the workflow, and an environment whose tags are only `v*` will not hand that token
    to a branch.
 5. On `staging`, set the deployment branch policy to **Selected branches** and allow
-   `stage` only. Add the same secret and the same account-id variable. A second token
-   is optional; if the shared token lacks the staging zone grant, update it or use a
-   separate staging token. Ensure the active `szolotov.com` zone is in the Worker account
-   and that `stage.ai.szolotov.com` has no conflicting CNAME record. Wrangler manages
-   the custom domain's DNS record and TLS certificate during deployment; do not add a
-   separate manual route.
-6. Optional, on either environment: variable `DEPLOY_URL`, an `https` origin with no
+   `stage` only. Add the same secret and the same account-id variable.
+6. In the Cloudflare dashboard, open **Workers & Pages → `ai` → Settings → Domains &
+   Routes** and enable `ai.szolotov.com` for **Production and Preview**, or let the
+   first release apply `deploy/wrangler.json`, whose route sets `previews_enabled`.
+   Until one of the two is done `stage.ai.szolotov.com` does not answer and the
+   `preview` job fails with an error that says so. Delete any `stage.ai` DNS record
+   created by hand: Cloudflare serves a Preview named `stage` from the domain's
+   Preview wildcard, and a record of the same name would shadow it.
+7. Protect the `stage` branch. Under **Settings → Rules → Rulesets**, add a branch
+   ruleset targeting `stage` that requires a pull request, requires the `ci` and
+   `security` status checks, and blocks force pushes and deletion. Keep the `staging`
+   environment restricted to `stage` (step 5). Anyone who can push to `stage` gets a
+   job that holds the Cloudflare token, and with one Worker that token can also deploy
+   production: it is the same Worker, and the token's scope is the account and zone,
+   not an environment. The earlier two-Worker layout kept a staging token away from
+   production; this one does not, and the ruleset is the control that replaces that
+   separation. A second token on `staging` needs the same Workers permissions to upload a
+   Preview, so it does not narrow the risk. This is an accepted trade-off.
+8. Optional, on either environment: variable `DEPLOY_URL`, an `https` origin with no
    path, smoked after every deploy of that environment. Set it only once that host
-   answers. Staging checks `https://stage.ai.szolotov.com` even when this variable is
-   unset; production's optional URL remains unchanged.
-7. Optional: required reviewers on `production` if you want a person to approve the
+   answers. Production smokes `https://ai.szolotov.com`, and `staging` smokes
+   `https://stage.ai.szolotov.com`, even when this variable is unset.
+9. Optional: required reviewers on `production` if you want a person to approve the
    tag deploy. With one maintainer that approval is a click on every release, so it
    is off unless you turn it on.
 
@@ -617,7 +651,7 @@ covers the install-time side of that.
    command to publish, which is what triggers `release.yml` above. That run creates the
    GitHub Release and, when the `production` environment has the Cloudflare credential
    from [the deploy section](#what-you-set-in-github-and-cloudflare), uploads the same
-   catalogue to the `greenblacked-ai` Worker. The release is created first. A missing
+   catalogue to the `ai` Worker. The release is created first. A missing
    credential fails the deploy job and leaves the GitHub Release in place; fix the
    environment and re-run the workflow.
 
