@@ -11,7 +11,6 @@ through a `${{ }}` expression or through anything that evaluates it.
 
 from __future__ import annotations
 
-import os
 import re
 import stat
 import subprocess
@@ -196,4 +195,4 @@ def test_a_non_pull_request_event_never_calls_the_api(tmp_path):
     )
     assert result.returncode == 0
     assert not (tmp_path / "work" / "seen-title").exists()
-    assert os.path.exists(tmp_path / "bin" / "gh")
+    assert "HTTP 502" not in result.stderr and "unexpected" not in result.stderr

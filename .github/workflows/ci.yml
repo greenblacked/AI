@@ -500,6 +500,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           set -Eeuo pipefail
+          pr_json="${RUNNER_TEMP}/pull-request.json"
           # Reads one field of the pull request JSON. A command substitution around it,
           # assigned apart from `export`, fails the job when the read does: `export` would
           # hide the failure behind its own exit status. A null field becomes an empty
@@ -509,7 +510,6 @@ jobs:
               "${pr_json}" "$1"
           }
           if [ "${EVENT_NAME}" = "pull_request" ]; then
-            pr_json="${RUNNER_TEMP}/pull-request.json"
             gh api "repos/$GH_REPO/pulls/$PR_NUMBER" > "${pr_json}"
             PR_TITLE=$(pr_field title)
             export PR_TITLE
