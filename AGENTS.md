@@ -79,7 +79,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `docs/review-lessons.md` | Defect classes review on this repository has actually caught, each with how it shows up, the check that catches it and the PR that found it first; `implementer` and `reviewer` read it before writing or judging anything |
 | `template/SKILL.md` | Starting point for a new skill |
 | `.claude-plugin/marketplace.json` | Lists the eight plugins; each discovers its own skills |
-| `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `release.yml`, `deploy.yml`, `ci-triage.yml` |
+| `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `cut-release.yml`, `release.yml`, `deploy.yml`, `ci-triage.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
 | `providers.json` | Which AI tools read `AGENTS.md` and load skills, with sources and a checked date; `scripts/providers_table.py` renders it into the README |
 | `scripts/` | Packaging (`package_skills.py`, `verify_archives.py`), install, the eval harness, the portable export, cutting a release (`release.py`), and the eight catalogue checks |
@@ -251,13 +251,14 @@ blocking finding or a failing `ci` or `security` gate.
   the comment is what lets Dependabot bump it. A major-version comment goes stale
   silently the moment upstream moves the floating tag, and zizmor fails the build for it.
 - Checkouts set `persist-credentials: false`. Nothing here pushes from CI. There are
-  three bounded exceptions. `dependabot-auto-merge.yml`'s single job is the first: it can
+  four bounded exceptions. `dependabot-auto-merge.yml`'s single job is the first: it can
   enable auto-merge on a Dependabot pull request that is a patch or minor update and whose
   head branch is in this repository, which stays bounded because GitHub only completes
   that merge once the `ci` and `security` checks the branch ruleset requires have both
   reported `success`. `release.yml`'s `release` job is the second: it holds `contents:
-  write` and nothing else, runs only on a `vX.Y.Z` tag push, and refuses to proceed when
-  the tagged commit is not an ancestor of `main`. It spends that permission creating a
+  write` and nothing else, runs only on a `vX.Y.Z` tag ref — a tag push, or a dispatch on
+  a tag ref, which a first step in each job enforces by failing on any other ref type or
+  name — and refuses to proceed when the tagged commit is not an ancestor of `main`. It spends that permission creating a
   GitHub Release and uploading assets to it through the preinstalled `gh` CLI, never on
   pushing a commit — its checkout still sets `persist-credentials: false`, the same as
   every other job here. The `cloudflare` job in that file holds `contents: read` only.
@@ -287,7 +288,20 @@ blocking finding or a failing `ci` or `security` gate.
   token cannot be forwarded off `api.github.com`. zizmor's
   dangerous-triggers audit still flags `workflow_run` at High severity regardless of what
   the job does with it, so this workflow carries this repository's first suppression,
-  `# zizmor: ignore[dangerous-triggers]`, with that reasoning written beside it.
+  `# zizmor: ignore[dangerous-triggers]`, with that reasoning written beside it. `cut-release.yml`'s single job,
+  `cut`, is the fourth: it runs only on `workflow_dispatch` on `main`, where a job-level
+  `if` and a first step both refuse any other ref, and it grants itself `contents: write`
+  and `actions: write`. It spends the first on creating one annotated tag object and the
+  `refs/tags/vX.Y.Z` ref for it through the API, never on pushing a commit, and the second
+  on dispatching `release.yml` on that tag, because a tag made with `GITHUB_TOKEN` starts
+  no push-triggered workflow and the `production` environment admits only `v*` tag refs,
+  so the publish cannot run on `main`. It publishes nothing and holds no Cloudflare
+  credential. Its one input, `version`, reaches it only through `env:`, is matched
+  against `X.Y.Z` before use, and is never interpolated into a `run:` block; its checkout
+  sets `persist-credentials: false`. It refuses a version that has no changelog section,
+  a tag already on `origin`, a version not greater than every existing tag, or a `HEAD`
+  that is not `origin/main`. `release.yml` accepts that dispatch only on a `vX.Y.Z` tag
+  ref, so a dispatch on a branch publishes nothing.
 - Skills may describe security tooling and defensive procedure. They must not contain
   working exploit code, credentials, or instructions whose obvious use is unauthorised
   access.
