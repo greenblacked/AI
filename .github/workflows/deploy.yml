@@ -177,7 +177,8 @@ jobs:
           fi
           staging_url=https://stage.ai.szolotov.com
           urls=("$BUILT_URL" "$staging_url")
-          if [ -n "$CONFIGURED_URL" ] && [ "$CONFIGURED_URL" != "$BUILT_URL" ] && [ "$CONFIGURED_URL" != "$staging_url" ]; then
+          if [ -n "$CONFIGURED_URL" ] && [ "$CONFIGURED_URL" != "$BUILT_URL" ] && \
+            [ "$CONFIGURED_URL" != "$staging_url" ]; then
             urls+=("$CONFIGURED_URL")
           fi
           for target in "${urls[@]}"; do
