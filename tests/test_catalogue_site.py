@@ -1122,3 +1122,14 @@ def test_links_in_rendered_prose_are_underlined():
     """Prose links share the text colour, so the underline is what marks them."""
     rule = re.search(r"\.prose-lab a \{([^}]*)\}", site.site_style.CSS)
     assert rule and "text-decoration: underline" in rule.group(1)
+
+
+def test_every_id_the_page_chrome_writes_is_reserved_from_headings():
+    sources = [
+        Path(site.__file__),
+        Path(site.site_style.__file__),
+    ]
+    written = set()
+    for source in sources:
+        written |= set(re.findall(r'id="([a-z][a-z-]*)"', source.read_text(encoding="utf-8")))
+    assert written <= site.site_markdown.RESERVED_IDS, written - site.site_markdown.RESERVED_IDS
