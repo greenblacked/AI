@@ -248,6 +248,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Roll a failed production release back to the version that was serving before it. The
+  `cloudflare` job now records that version with `wrangler deployments status --json`
+  before deploying and passes its ID to `wrangler rollback`; without one, Wrangler picks
+  the version uploaded before the newest, which after an earlier failed release is that
+  failed release.
 - Correct the initial catalogue's unpublished release claim and link to its immutable
   commit, keeping first-release preparation compatible with that comparison baseline.
 - Refresh the Claude Code, Codex and Gemini CLI pins. Set the Claude trigger classifier's
