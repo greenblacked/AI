@@ -8,6 +8,14 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Fixed
+
+- Stop a pull request description edit from leaving a red `ci` on the head commit. An
+  `edited` event no longer cancels the run in flight, which the `ci` gate counted as a
+  failure, and the `attribution` and `naming` jobs read the title and body from the API
+  when they run, with `pull-requests: read`, instead of from the event payload frozen at
+  the moment the run was triggered.
+
 ## [0.1.0] - 2026-10-04
 
 ### Added
