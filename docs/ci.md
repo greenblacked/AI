@@ -9,8 +9,8 @@ evals — monthly over everything, and on every pull request over what that pull
 touched. `dependabot-auto-merge.yml` merges a Dependabot pull request once the two
 gates have, `ci-triage.yml` explains a failed CI or Security run in one comment,
 `release.yml` publishes a tagged release and then deploys that catalogue to Cloudflare,
-and `deploy.yml` dry-runs that upload on a pull request and previews it from `main` on
-request. None of `dependabot-auto-merge.yml`, `ci-triage.yml`, `release.yml` or
+and `deploy.yml` dry-runs that upload on a pull request and deploys a staging Worker
+on a push to `stage`. None of `dependabot-auto-merge.yml`, `ci-triage.yml`, `release.yml` or
 `deploy.yml` is a required check.
 
 ## Execution flow
@@ -331,13 +331,13 @@ a smoke failure on that first run leaves the job red and says so.
 
 ## `.github/workflows/deploy.yml` — Cloudflare
 
-Runs on every pull request, and on `workflow_dispatch`. Top-level `permissions: {}`.
+Runs on every pull request, on a push to `stage`, and on `workflow_dispatch`. Top-level `permissions: {}`.
 Neither job grants itself more than `contents: read`. Not a required check.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `dry-run` | `dry-run deploy` | The site did not build, the Wrangler pin disagreed with [`deploy/package-lock.json`](../deploy/package-lock.json), or `wrangler deploy --dry-run` rejected the Worker. No credential is read. The job does not run on `workflow_dispatch`. |
-| `preview` | `preview` | The run was not from `main`, the `staging` environment has no Cloudflare credential, the staging Worker did not deploy, or its smoke test failed. A failed smoke test rolls that Worker back. Production is a different Worker and is not touched. The job does not run on a pull request. |
+| `preview` | `preview` | The run was not from `stage`, the `staging` environment has no Cloudflare credential, the staging Worker did not deploy, or its smoke test failed. A failed smoke test rolls that Worker back. Production is a different Worker and is not touched. The job does not run on a pull request. |
 
 `dry-run` is the pull request. It builds `dist/site` with [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py)
 and asks Wrangler to compile the Worker without uploading it. `--no-autoconfig` and
@@ -348,7 +348,7 @@ has required `WRANGLER_VERSION` to be the version both `deploy/package.json` and
 lockfile name. There is no package cache: a restored store is not what the lockfile
 hashed.
 
-`preview` is Run workflow, and only from `main`. It deploys `greenblacked-ai-staging`
+`preview` runs on a push to `stage`, and on Run workflow from that branch only. It deploys `greenblacked-ai-staging`
 with `robots.txt` set to `Disallow: /`. The Worker is public on `workers.dev` the same
 way production is; the separate name is what keeps it off production traffic, not a
 login. `DEPLOY_URL`, when the environment has one, is smoked as well as the
@@ -381,7 +381,7 @@ the release job is safe to repeat.
    the workflow, and an environment whose tags are only `v*` will not hand that token
    to a branch.
 5. On `staging`, set the deployment branch policy to **Selected branches** and allow
-   `main` only. Add the same secret and the same account-id variable. A second token
+   `stage` only. Add the same secret and the same account-id variable. A second token
    is optional; one token scoped to the account can deploy both Worker names.
 6. Optional, on either environment: variable `DEPLOY_URL`, an `https` origin with no
    path, smoked after every deploy of that environment. Set it only once that host

@@ -13,7 +13,7 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 - Publish a released catalogue to Cloudflare Workers. A `vX.Y.Z` tag still cuts the
   GitHub Release, and the same workflow then uploads that version's skill archives,
   portable bundle and marketplace manifest as static assets on the `greenblacked-ai`
-  Worker. Pull requests dry-run the upload with no credential. A manual run from `main`
+  Worker. Pull requests dry-run the upload with no credential. A push to `stage`
   updates a separate staging Worker. The Cloudflare token is an environment secret, not
   a repository secret; what to create is in `docs/ci.md`.
 
