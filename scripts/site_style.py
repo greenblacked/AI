@@ -484,6 +484,7 @@ html[data-theme="night"] .sun { display: none; }
 }
 .prose-lab a {
   color: var(--ink);
+  text-decoration: underline;
   text-underline-offset: 0.15em;
 }
 .prose-lab code {

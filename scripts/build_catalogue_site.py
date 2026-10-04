@@ -650,13 +650,13 @@ def render_start(catalogue: Catalogue, version: str) -> str:
             f"{_esc(_plural(len(archives), 'skill'))}.{said}</li>"
         )
     parts = [
-        f'<h2 id="{slugs.take("Claude Code")}">Claude Code</h2>',
+        f'<h2 id="{slugs.take("Install in Claude Code")}">Install in Claude Code</h2>',
         "<p>Register the marketplace once, install the plugins you will use, and reload. "
         "Every plugin installs on its own; each description a plugin ships sits in context "
         "for the whole session, so install only what you need.</p>",
         _code_block("\n".join(lines)),
         f"<ul>\n{chr(10).join(items)}\n</ul>",
-        f'<h2 id="{slugs.take("Other tools")}">Other tools</h2>',
+        f'<h2 id="{slugs.take("Install in other tools")}">Install in other tools</h2>',
         '<p>Download <a href="/portable-skills.zip"><code>portable-skills.zip</code></a>: '
         "the same skills as plain Markdown files, with a router that says when to open "
         "each one. It works wherever you can attach files or put text in an instructions "
