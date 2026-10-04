@@ -289,8 +289,8 @@ blocking finding or a failing `ci` or `security` gate.
   dangerous-triggers audit still flags `workflow_run` at High severity regardless of what
   the job does with it, so this workflow carries this repository's first suppression,
   `# zizmor: ignore[dangerous-triggers]`, with that reasoning written beside it. `cut-release.yml`'s single job,
-  `cut`, is the fourth: it runs only on `workflow_dispatch` on `main`, where a job-level
-  `if` and a first step both refuse any other ref, and it grants itself `contents: write`
+  `cut`, is the fourth: it runs only on `workflow_dispatch` on `main`, where its first
+  step fails on any other ref before either grant is used, and it grants itself `contents: write`
   and `actions: write`. It spends the first on creating one annotated tag object and the
   `refs/tags/vX.Y.Z` ref for it through the API, never on pushing a commit, and the second
   on dispatching `release.yml` on that tag, because a tag made with `GITHUB_TOKEN` starts
