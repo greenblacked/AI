@@ -353,9 +353,10 @@ Top-level `permissions: {}`. The one job, `cut`, grants itself `contents: write`
 spent on creating one annotated tag object and the `refs/tags/vX.Y.Z` ref that points at
 it, through `gh api`; it never pushes a commit, and the checkout sets
 `persist-credentials: false` and keeps no credential. The second is spent on dispatching
-`release.yml` on that tag, and on nothing else. It is bounded by when it runs: the job
-has `if: github.ref == 'refs/heads/main'` and its first step fails on any other ref, so
-a dispatch from another branch is visibly refused. The `version` input reaches the job
+`release.yml` on that tag, and on nothing else. It is bounded by when it runs: its first
+step fails on any ref but `main`, before checkout and before either grant is used, so a
+dispatch from another branch is visibly refused. It is a failing step rather than a
+job-level `if` because a skipped job reports success. The `version` input reaches the job
 only through `env:`, is matched against `^[0-9]+\.[0-9]+\.[0-9]+$` before anything uses
 it, and is never interpolated into a `run:` block. Runs are serialised by the
 `cut-release` concurrency group without cancelling one in flight.
@@ -369,7 +370,7 @@ one pushed by hand.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
-| `cut` | `cut` | The run is not on `main`, the version is malformed, [`scripts/release.py check`](../scripts/release.py) refused it (no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md), the tag already on `origin`, a version not greater than an existing tag, or `HEAD` not equal to `origin/main`), the API refused to create the tag object or the ref, or `release.yml` could not be dispatched. In the last case the tag exists: run Release from the Actions tab on that tag rather than cutting again. |
+| `cut` | `cut` | The run is not on `main`, the version is malformed, [`scripts/release.py check`](../scripts/release.py) refused it (no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md), the tag already on `origin`, a version not greater than an existing tag, or `HEAD` not equal to `origin/main`), the API refused to create the tag object or the ref, or `release.yml` could not be dispatched. In the last case the tag exists: dispatch Release on it with `gh workflow run release.yml --repo greenblacked/AI --ref vX.Y.Z`, the command the failed step prints, rather than cutting again. |
 
 Not a required check — nothing merges against it. The tag message is the changelog
 section, sent to the API as a JSON string built by Python so it arrives verbatim, with
