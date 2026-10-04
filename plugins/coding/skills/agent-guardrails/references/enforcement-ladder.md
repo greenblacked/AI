@@ -145,7 +145,8 @@ only:
 
 ```bash
 #!/usr/bin/env bash
-# Reads a unified diff on stdin and exits 1 when it adds a suppression comment.
+# Reads a unified diff on stdin. Exits 1 when it adds a suppression comment and 0 when
+# it does not; the replay loop in the messages reference reads those two as block and pass.
 set -Eeuo pipefail
 
 # A file header is only a header outside a hunk: inside one, an added line that reads
@@ -213,9 +214,10 @@ decision of whoever owns the clone.
 
 ## Rung 6: agent tool hook
 
-This rung exists only in Claude Code. In ChatGPT or Codex, skip it and rely on rungs 1 to 5
-and 7, which is also what makes a guardrail hold when the repository is worked on by more
-than one tool.
+Claude Code and Codex support this rung. Availability and event/tool coverage depend on
+the host and installed version. Keep rungs 1 to 5 as the portable default and use an
+agent hook as an extra local layer; on unsupported hosts, rely on the portable rungs
+and the available permission or sandbox controls.
 
 **Can enforce.** A rule about the agent's own actions: which path it just wrote, which
 command it ran. Rungs 1 to 5 see the result of a change; this one sees the act, so it is
@@ -227,15 +229,17 @@ another tool's, and any session where the hook is not registered. It runs code o
 matching action, so it is reviewed like code: read-only where possible, no network, a
 bounded runtime, and nothing in its output that echoes a secret.
 
-**What to rely on.** Hooks are configured in a settings file as a `hooks` block naming an
+**What to rely on.** Check coverage, event names, exit-code behaviour and how results
+reach the agent against the current [Claude Code hooks documentation](https://code.claude.com/docs/en/hooks)
+or [Codex hooks documentation](https://learn.chatgpt.com/docs/hooks#tool-coverage)
+before proposing a hook. Availability does not establish that one is enabled locally.
+
+In Claude Code, hooks are configured in a settings file as a `hooks` block naming an
 event, a matcher and a command, and the path in `command` is the only thing that matters:
 nothing scans a `hooks` directory, so a script dropped into one never runs. A `PostToolUse`
 hook fires after the tool has run, so it reports on the write rather than preventing it.
-Confirm event names, exit-code behaviour and how a hook's result reaches the agent against
-the current Claude Code hooks documentation before designing around any of them, because
-this skill does not restate them.
 
-**Worked example.** Design the hook, then hand the registration to a human. The design is
+**Worked example (Claude Code).** Design the hook, then hand the registration to a human. The design is
 a short specification: the event and matcher, the single script path, what the script
 reads, the exact condition it flags, the message it returns, and its privileges. The
 registration is the settings fragment. A settings fragment registering a `PostToolUse` hook
@@ -250,7 +254,7 @@ on `Write|Edit` looks like this:
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/scripts/hooks/guard_hook.py",
+            "command": "\"$CLAUDE_PROJECT_DIR/scripts/hooks/guard_hook.py\"",
             "timeout": 10
           }
         ]
@@ -309,7 +313,7 @@ Ask what the rule is about, then take the lowest rung that can see it.
 | What the code does when it runs | Test |
 | The whole repository or the whole change, on every contributor | CI check |
 | What is about to be committed, with fast feedback | Git hook, with a CI twin |
-| What the agent just did, such as the path it wrote or the command it ran | Agent tool hook (Claude Code only), or permission |
+| What the agent just did, such as the path it wrote or the command it ran | Agent tool hook where the host/version supports it, or permission |
 | What the agent is able to do at all | Permission or sandbox setting |
 | Judgement, taste or reasoning | Instruction text, plus review |
 

@@ -1,22 +1,19 @@
 {
-  "name": "greenblacked-ai",
+  "name": "ai",
   "compatibility_date": "2026-10-01",
   "workers_dev": true,
+  "preview_urls": true,
+  "routes": [
+    {
+      "pattern": "ai.szolotov.com",
+      "custom_domain": true,
+      "previews_enabled": true
+    }
+  ],
+  "previews": {},
   "assets": {
     "directory": "../dist/site",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page"
-  },
-  "env": {
-    "staging": {
-      "name": "greenblacked-ai-staging",
-      "compatibility_date": "2026-10-01",
-      "workers_dev": true,
-      "assets": {
-        "directory": "../dist/site",
-        "html_handling": "auto-trailing-slash",
-        "not_found_handling": "404-page"
-      }
-    }
   }
 }

@@ -1,0 +1,20 @@
+diff --git a/scripts/export_portable.py b/scripts/export_portable.py
+--- a/scripts/export_portable.py
++++ b/scripts/export_portable.py
+@@ -679,7 +679,7 @@
+     def bare(text: str, current: str) -> str:
+         def one(match: re.Match[str]) -> str:
+             candidate = _pointer(match)
+-            title = prepared_titles.get(candidate)
++            title = titles.get(candidate)
+             if (
+                 not title
+                 and current == "SKILL.md"
+@@ -696,6 +696,6 @@
+             path, separator, fragment = match.group(0).partition("#")
+             if separator:
+                 target = resolve(path + "#" + fragment, current)
+-                title = prepared_titles.get(path.removeprefix("./"))
++                title = titles.get(path.removeprefix("./"))
+                 return f'the "{title}" section below' if target and title else match.group(0)
+             return one(match)

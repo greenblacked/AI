@@ -1,0 +1,11 @@
+{
+  "kind": "defect",
+  "intent": "Skip validating inline image destinations encountered inside outer link labels.",
+  "lesson": "Traversing link labels skips nested image destinations",
+  "must_mention": [
+    "image|badge",
+    "local|missing|destination|source",
+    "nested|label|outer",
+    "validation|preflight|export|write"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Avoid scanning nested image uses when scoping reference link labels.",
+  "lesson": "Namespacing definitions skips image uses inside link labels",
+  "must_mention": [
+    "image|badge",
+    "reference|definition|binding",
+    "nested|label|outer"
+  ]
+}

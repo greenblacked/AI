@@ -115,6 +115,10 @@ jobs:
   cloudflare:
     name: cloudflare
     needs: release
+    # All tags deploy and potentially roll back the same production Worker.
+    concurrency:
+      group: production-cloudflare
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -184,9 +188,7 @@ jobs:
             echo "::error::on the production environment (docs/ci.md)"
             exit 1
           fi
-          # --env="": wrangler.json also defines env.staging. An empty value is the
-          # top-level Worker. Omitting it warns, and a later default could pick staging.
-          ./node_modules/.bin/wrangler deploy --config wrangler.json --env="" \
+          ./node_modules/.bin/wrangler deploy --config wrangler.json \
             --no-autoconfig --no-install-skills \
             --message "release ${TAG}" --tag "$GIT_SHA"
           echo "deployed=true" >> "$GITHUB_OUTPUT"
@@ -199,16 +201,16 @@ jobs:
           CONFIGURED_URL: ${{ vars.DEPLOY_URL }}
         run: |
           set -Eeuo pipefail
-          urls=()
-          if [ -n "$BUILT_URL" ]; then
+          # The custom domain is fixed: wrangler.json routes it, so it must answer
+          # this version whether or not a DEPLOY_URL variable exists.
+          production_url=https://ai.szolotov.com
+          urls=("$production_url")
+          if [ -n "$BUILT_URL" ] && [ "$BUILT_URL" != "$production_url" ]; then
             urls+=("$BUILT_URL")
           fi
-          if [ -n "$CONFIGURED_URL" ] && [ "$CONFIGURED_URL" != "$BUILT_URL" ]; then
+          if [ -n "$CONFIGURED_URL" ] && [ "$CONFIGURED_URL" != "$BUILT_URL" ] && \
+            [ "$CONFIGURED_URL" != "$production_url" ]; then
             urls+=("$CONFIGURED_URL")
-          fi
-          if [ "${#urls[@]}" -eq 0 ]; then
-            echo "::error::no URL to smoke-test"
-            exit 1
           fi
           for target in "${urls[@]}"; do
             scripts/smoke_site.sh "$target" "$TAG" greenblacked-ai
@@ -222,7 +224,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           echo "::warning::the production deploy did not pass its smoke test; rolling back"
-          if ! ./node_modules/.bin/wrangler rollback --config wrangler.json --env="" --yes \
+          if ! ./node_modules/.bin/wrangler rollback --config wrangler.json --yes \
             --message "Automatic rollback: failed smoke test in run ${GITHUB_RUN_ID}"; then
             echo "::error::rollback failed. The failed version may still be serving"
             echo "::error::roll it back from the Cloudflare dashboard"

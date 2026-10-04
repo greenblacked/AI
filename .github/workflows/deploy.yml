@@ -6,12 +6,13 @@
 # including one from a fork, cannot read the token by editing a step that already
 # holds it, because no step here holds it.
 #
-# A push to the stage branch, or Run workflow from that branch, deploys the
-# Worker greenblacked-ai-staging. Production is not this file. release.yml deploys
-# greenblacked-ai after a vX.Y.Z tag has published its GitHub Release. The token
-# for each lives on that GitHub environment, not in the repository. docs/ci.md
-# records the permissions the token needs and the environment rules that keep a
-# pull request from receiving it.
+# A push to the stage branch, or Run workflow from that branch, uploads a Preview
+# named stage of the Worker ai, served at https://stage.ai.szolotov.com. A Preview
+# is a separate version of the Worker, so production is untouched. Production is
+# not this file: release.yml deploys the Worker ai after a vX.Y.Z tag has
+# published its GitHub Release. The token for each lives on that GitHub
+# environment, not in the repository. docs/ci.md records the permissions the
+# token needs and the environment rules that keep a pull request from receiving it.
 name: Deploy
 
 on:
@@ -84,7 +85,7 @@ jobs:
         # off, and naming it keeps a later default from doing that in CI.
         run: |
           set -Eeuo pipefail
-          ./node_modules/.bin/wrangler deploy --dry-run --config wrangler.json --env="" \
+          ./node_modules/.bin/wrangler deploy --dry-run --config wrangler.json \
             --no-autoconfig --no-install-skills
 
   preview:
@@ -98,14 +99,14 @@ jobs:
       name: staging
       url: ${{ vars.DEPLOY_URL }}
     steps:
-      - name: Staging deploys from the stage branch only
+      - name: The stage Preview uploads from the stage branch only
         env:
           REF_TYPE: ${{ github.ref_type }}
           REF_NAME: ${{ github.ref_name }}
         run: |
           set -Eeuo pipefail
           if [ "$REF_TYPE" != branch ] || [ "$REF_NAME" != stage ]; then
-            echo "::error::the staging Worker deploys from the stage branch only, not ${REF_TYPE} ${REF_NAME}"
+            echo "::error::the stage Preview uploads from the stage branch only, not ${REF_TYPE} ${REF_NAME}"
             exit 1
           fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -143,7 +144,7 @@ jobs:
             echo "::error::installed wrangler is ${installed}, pin is ${WRANGLER_VERSION}"
             exit 1
           fi
-      - name: Deploy the staging Worker
+      - name: Upload the stage Preview
         id: deploy
         working-directory: deploy
         env:
@@ -157,43 +158,56 @@ jobs:
             echo "::error::set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID on the staging environment (docs/ci.md)"
             exit 1
           fi
-          ./node_modules/.bin/wrangler deploy --config wrangler.json --env staging \
-            --no-autoconfig --no-install-skills \
+          # wrangler preview takes no --no-autoconfig; --no-install-skills is a
+          # global flag and keeps a later default from installing into the checkout.
+          # The Preview is a version of the Worker ai, so it cannot roll production
+          # back and there is nothing to roll back here.
+          ./node_modules/.bin/wrangler preview --config wrangler.json --name stage \
+            --no-install-skills \
             --message "stage ${GIT_SHA:0:7}" --tag "$GIT_SHA"
-          echo "deployed=true" >> "$GITHUB_OUTPUT"
-          python "$GITHUB_WORKSPACE/scripts/read_wrangler_deploy.py" \
+          python "$GITHUB_WORKSPACE/scripts/read_wrangler_deploy.py" --preview \
             "$WRANGLER_OUTPUT_FILE_PATH" >> "$GITHUB_OUTPUT"
-      - name: Smoke-test the staging Worker
+      - name: Smoke-test the stage Preview
         id: smoke
         env:
-          BUILT_URL: ${{ steps.deploy.outputs.url }}
+          WORKERS_DEV_URL: ${{ steps.deploy.outputs.url }}
+          CUSTOM_URL: ${{ steps.deploy.outputs.custom_url }}
           CONFIGURED_URL: ${{ vars.DEPLOY_URL }}
           VERSION: ${{ steps.build.outputs.version }}
         run: |
           set -Eeuo pipefail
-          urls=()
-          if [ -n "$BUILT_URL" ]; then
-            urls+=("$BUILT_URL")
+          stage_url=https://stage.ai.szolotov.com
+          if [ "$CUSTOM_URL" != "$stage_url" ]; then
+            # Preview traffic on a custom domain is a setting on the domain, which
+            # wrangler preview does not change. Smoke the fixed host anyway so the
+            # log shows what it answers.
+            echo "::error::Wrangler did not report ${stage_url} for this Preview"
+            echo "::error::reported: custom '${CUSTOM_URL}', workers.dev '${WORKERS_DEV_URL}'"
+            echo "::error::the owner must enable ai.szolotov.com for Preview traffic (docs/ci.md)"
+            missing=1
+          else
+            missing=0
           fi
-          if [ -n "$CONFIGURED_URL" ] && [ "$CONFIGURED_URL" != "$BUILT_URL" ]; then
-            urls+=("$CONFIGURED_URL")
+          urls=("$stage_url")
+          if [ -n "$WORKERS_DEV_URL" ] && [ "$WORKERS_DEV_URL" != "$stage_url" ]; then
+            urls+=("$WORKERS_DEV_URL")
           fi
-          if [ "${#urls[@]}" -eq 0 ]; then
-            echo "::error::no URL to smoke-test"
-            exit 1
+          if [ -n "$CONFIGURED_URL" ]; then
+            seen=0
+            for known in "${urls[@]}"; do
+              if [ "$known" = "$CONFIGURED_URL" ]; then
+                seen=1
+              fi
+            done
+            if [ "$seen" -eq 0 ]; then
+              urls+=("$CONFIGURED_URL")
+            fi
           fi
+          status=0
           for target in "${urls[@]}"; do
-            scripts/smoke_site.sh "$target" "$VERSION" greenblacked-ai
+            scripts/smoke_site.sh "$target" "$VERSION" greenblacked-ai || status=1
           done
-      - name: Roll back the staging Worker
-        if: failure() && steps.deploy.outputs.deployed == 'true'
-        working-directory: deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          set -Eeuo pipefail
-          echo "::warning::the staging deploy did not pass; rolling it back"
-          echo "::warning::production is a different Worker and is not touched"
-          ./node_modules/.bin/wrangler rollback --config wrangler.json --env staging --yes \
-            --message "Automatic rollback: failed smoke test in run ${GITHUB_RUN_ID}"
+          if [ "$missing" -eq 1 ]; then
+            status=1
+          fi
+          exit "$status"
