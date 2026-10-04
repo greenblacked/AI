@@ -324,14 +324,19 @@ def test_start_builds_without_the_usage_guide_and_renders_it_when_present(mini_r
     (mini_repo / "docs").mkdir()
     (mini_repo / "docs" / "using.md").write_text(
         "# Using the skills\n\nSee [the README](../README.md#top) and [x](javascript:alert(1)).\n"
-        "\n## Install\n\n<script>alert(1)</script>\n",
+        "\n## Install\n\n<script>alert(1)</script>\n"
+        "\nJump to [the Claude Code part](#claude-code).\n\n## Claude Code\n\nThe guide's own.\n",
         encoding="utf-8",
     )
     page = (_build(mini_repo, tmp_path) / "start" / "index.html").read_text(encoding="utf-8")
     assert "<h2" in page and "Using the skills" in page
     assert "https://github.com/greenblacked/AI/blob/main/README.md#top" in page
     assert "javascript:" not in page and "<script>alert" not in page
-    assert page.count('id="claude-code"') <= 1
+    # The generated install section must not take the guide's own anchors.
+    assert page.count('id="claude-code"') == 1
+    assert re.search(r'id="claude-code">Claude Code</h\d>', page)
+    assert page.index('id="claude-code"') > page.index("Using the skills")
+    assert 'href="#claude-code"' in page
     # An empty or unreadable guide is left out rather than failing the build.
     (mini_repo / "docs" / "using.md").write_text("  \n", encoding="utf-8")
     page = (_build(mini_repo, tmp_path) / "start" / "index.html").read_text(encoding="utf-8")
@@ -523,6 +528,16 @@ def test_the_real_repository_builds_every_page_and_renders_every_markdown_source
         ids = re.findall(r' id="([^"]+)"', text)
         assert len(ids) == len(set(ids)), (page, sorted({i for i in ids if ids.count(i) > 1}))
     assert (output / "plugins" / "coding" / "code-review" / "index.html").is_file()
+    # Every link within a page lands on a heading that page has.
+    for page in pages:
+        text = page.read_text(encoding="utf-8")
+        ids = set(re.findall(r' id="([^"]+)"', text))
+        for fragment in re.findall(r'href="#([^"]+)"', text):
+            assert fragment in ids, (page, fragment)
+    start = (output / "start" / "index.html").read_text(encoding="utf-8")
+    assert re.search(r'id="claude-code">Claude Code</h\d>', start)
+    guide_title = (REPO / "docs" / "using.md").read_text(encoding="utf-8").split("\n", 1)[0]
+    assert start.index('id="claude-code"') > start.index(html.escape(guide_title.lstrip("# ")))
     # Every link to somewhere on the site leads to a page or file that was built.
     for page in pages:
         for target in re.findall(r'href="(/[^"#?]*)', page.read_text(encoding="utf-8")):
@@ -1101,3 +1116,9 @@ def test_the_index_filter_and_theme_script_cover_what_the_design_does(mini_repo,
     assert '"reactor"' in index and "#070807" in index
     # The filter matches a plugin's name, its blurb or any of its skill names.
     assert 'getAttribute("data-blurb")' in index and 'getAttribute("data-skills")' in index
+
+
+def test_links_in_rendered_prose_are_underlined():
+    """Prose links share the text colour, so the underline is what marks them."""
+    rule = re.search(r"\.prose-lab a \{([^}]*)\}", site.site_style.CSS)
+    assert rule and "text-decoration: underline" in rule.group(1)
