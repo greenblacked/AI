@@ -18,7 +18,7 @@ plugins you install separately.
 [![Skills](https://img.shields.io/badge/skills-105-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-[Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
+[Website](https://ai.szolotov.com) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
 
 </div>
 
@@ -32,6 +32,8 @@ ordering, checks and evidence to collect. This is a procedure library, not an ap
 - **Claude Code:** install a plugin from the [marketplace](#claude-code), then reload it
 - **Codex or another terminal agent:** follow the [first-run walkthrough](docs/using.md#first-run-with-codex) or check the [supported tools](#chatgpt-grok-codex-and-everything-else)
 - **ChatGPT or another chat assistant:** use the [portable files](docs/using.md#chatgpt)
+- **Browse the website:** [ai.szolotov.com](https://ai.szolotov.com) has a page for every
+  plugin and skill, with the install line, examples and quality evidence
 - **Browse before installing:** the [plugin overview](#what-is-included) links to the full [skills catalogue](#skills), with [subagents](#subagents) and [commands](#commands) below
 
 **Prerequisites:** an installed assistant for its route. Local installation needs Git,
