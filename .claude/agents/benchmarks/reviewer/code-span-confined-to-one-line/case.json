@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Seed only the single-line limit on code span closing in portable export.",
+  "lesson": "A line-by-line scanner misses constructs that span lines",
+  "must_mention": [
+    "span|multiline|line break",
+    "code",
+    "reference|link|rewrit"
+  ]
+}

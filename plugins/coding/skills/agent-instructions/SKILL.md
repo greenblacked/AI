@@ -82,7 +82,14 @@ A failed answer means the file is wrong, never the question. Fix the file and re
 
 ### 5. Two tools, one set of rules
 
-When Claude Code and another agent both work in the repo, keep the shared rules in `AGENTS.md` and make `CLAUDE.md` an import plus whatever is true of Claude Code alone. The reason is how the two tools choose a file: Claude Code reads `AGENTS.md` only when there is no `CLAUDE.md`, and once a `CLAUDE.md` exists it reads that instead. A `CLAUDE.md` that does not pull the rules in leaves Claude Code working from a different file than every other tool. The import is one line:
+When using `CLAUDE.md` alongside another agent, keep shared rules in `AGENTS.md` and
+import them from `CLAUDE.md`, with only Claude-specific additions. Direct `AGENTS.md`
+loading depends on the installed version and Project instructions configuration. Under
+the current default, applicable `CLAUDE.md`, `.claude/CLAUDE.md` and `CLAUDE.local.md`
+files in the current or ancestor directories take precedence. Check the
+[Claude Code memory documentation](https://code.claude.com/docs/en/memory#when-claude-code-reads-agentsmd)
+for the version and configuration in use, and verify which files loaded in the
+fresh-session test. The shared-file import pattern is:
 
 ```markdown
 @AGENTS.md

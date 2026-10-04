@@ -1,0 +1,13 @@
+diff --git a/scripts/export_portable.py b/scripts/export_portable.py
+--- a/scripts/export_portable.py
++++ b/scripts/export_portable.py
+@@ -565,9 +565,6 @@
+                 # Images can bind inside a link label; destinations and titles cannot.
+                 inline = destination_spans(line[begin:])
+                 index = begin + inline[0][3] if inline and inline[0][2] == 0 else end
+-                if image_marker(line, begin) and inline and inline[0][2] == 0:
+-                    start, finish, _, _ = inline[0]
+-                    resolve(line[begin + start : begin + finish], current, image=True)
+                 if scoped_label != label:
+                     pieces.append(line[last:begin] + "[" + scoped_label + line[end - 1 : index])
+                     last = index

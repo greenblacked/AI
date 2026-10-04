@@ -9,8 +9,8 @@ evals — monthly over everything, and on every pull request over what that pull
 touched. `dependabot-auto-merge.yml` merges a Dependabot pull request once the two
 gates have, `ci-triage.yml` explains a failed CI or Security run in one comment,
 `release.yml` publishes a tagged release and then deploys that catalogue to Cloudflare,
-and `deploy.yml` dry-runs that upload on a pull request and deploys a staging Worker
-on a push to `stage`. None of `dependabot-auto-merge.yml`, `ci-triage.yml`, `release.yml` or
+and `deploy.yml` dry-runs that upload on a pull request and uploads a `stage` Preview of
+the same Worker on a push to `stage`. None of `dependabot-auto-merge.yml`, `ci-triage.yml`, `release.yml` or
 `deploy.yml` is a required check.
 
 ## Execution flow
@@ -321,11 +321,10 @@ to publish a release — zizmor's cache-poisoning audit flags exactly this on a
 tag-triggered workflow.
 
 The `cloudflare` job builds the same catalogue again and uploads it to the Worker
-`greenblacked-ai`. The deploy passes `--env=""` because `deploy/wrangler.json` also
-defines `env.staging`; an empty value is the top-level Worker, and omitting the flag
-makes Wrangler warn that it might not stay that way. It does not run when `release`
-failed, and a re-run of the workflow
-is safe: the release job replaces assets that are already there, and Wrangler replaces
+`ai`, which `deploy/wrangler.json` serves at `https://ai.szolotov.com` and on its
+`workers.dev` host. The smoke test checks the custom domain every time, whether or not
+`DEPLOY_URL` is set, then the `workers.dev` host Wrangler reports. It does not run when
+`release` failed, and a re-run of the workflow is safe: the release job replaces assets that are already there, and Wrangler replaces
 the Worker version. The first deploy to an empty Worker has nothing to roll back to, so
 a smoke failure on that first run leaves the job red and says so.
 
@@ -337,7 +336,7 @@ Neither job grants itself more than `contents: read`. Not a required check.
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `dry-run` | `dry-run deploy` | The site did not build, the Wrangler pin disagreed with [`deploy/package-lock.json`](../deploy/package-lock.json), or `wrangler deploy --dry-run` rejected the Worker. No credential is read. The job does not run on `workflow_dispatch`. |
-| `preview` | `preview` | The run was not from `stage`, the `staging` environment has no Cloudflare credential, the staging Worker did not deploy, or its smoke test failed. A failed smoke test rolls that Worker back. Production is a different Worker and is not touched. The job does not run on a pull request. |
+| `preview` | `preview` | The run was not from `stage`, the `staging` environment has no Cloudflare credential, `wrangler preview` failed, Wrangler did not report `https://stage.ai.szolotov.com` for the Preview, or a smoke test failed. A Preview has no rollback and production is not touched, so the job stays red until the next push. The job does not run on a pull request. |
 
 `dry-run` is the pull request. It builds `dist/site` with [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py)
 and asks Wrangler to compile the Worker without uploading it. `--no-autoconfig` and
@@ -348,12 +347,38 @@ has required `WRANGLER_VERSION` to be the version both `deploy/package.json` and
 lockfile name. There is no package cache: a restored store is not what the lockfile
 hashed.
 
-`preview` runs on a push to `stage`, and on Run workflow from that branch only. It deploys `greenblacked-ai-staging`
-with `robots.txt` set to `Disallow: /`. The Worker is public on `workers.dev` the same
-way production is; the separate name is what keeps it off production traffic, not a
-login. `DEPLOY_URL`, when the environment has one, is smoked as well as the
-`workers.dev` host Wrangler reports. Leave it unset until that hostname answers, or a
-new deploy rolls back.
+`preview` runs on a push to `stage`, and on Run workflow from that branch only. It
+runs `wrangler preview --name stage`, which uploads this commit as a Preview of the one
+Worker `ai`, with `robots.txt` set to `Disallow: /`. A Preview is a separate version
+that Cloudflare serves at its own URL: `https://stage.ai.szolotov.com` once the custom
+domain `ai.szolotov.com` has Preview traffic enabled, and a `workers.dev` Preview URL
+besides. Production traffic keeps running the version the last tag deployed; uploading
+a Preview does not change it, and a Preview has no rollback because there is nothing to
+roll back to. `wrangler preview` does not attach custom domains. Routes, including
+`previews_enabled`, come from `wrangler deploy` (the first release applies
+`deploy/wrangler.json`) or from the dashboard, which is why the first push to `stage`
+before that is done fails with an error naming this section. If the Worker `ai` does
+not exist yet, `wrangler preview` creates it first, with `workers.dev` on and no custom
+domain or production deployment, so a Worker appearing after a push to `stage` is that
+and not a stray production deploy.
+
+[`scripts/read_wrangler_deploy.py --preview`](../scripts/read_wrangler_deploy.py) reads
+the `preview` line Wrangler writes to `WRANGLER_OUTPUT_FILE_PATH` and keeps a URL only
+when it is `https`, with no user, port, path or query, on a `workers.dev` host or at or
+below `ai.szolotov.com`. The smoke step always checks `https://stage.ai.szolotov.com`,
+then the `workers.dev` Preview URL when Wrangler reported one. `DEPLOY_URL`, when the
+environment has one, is an additional target (duplicates are skipped), not a switch for
+either required check. If Wrangler did not report the stage host, the step logs an
+error that the owner must enable `ai.szolotov.com` for Preview traffic, still tries the
+fixed host, and fails.
+
+[`scripts/smoke_site.sh`](../scripts/smoke_site.sh) retries `version.txt` until its
+first line is the expected version, because a host can answer with the previous
+version while the new one propagates. The wait is bounded by elapsed time, 90 seconds,
+and no single request may outlast what remains of it, so a host that stalls cannot
+push the release job past its `timeout-minutes`: a job that times out is cancelled, not
+failed, and a cancelled release job would skip its rollback. On timeout it reports the
+last version it saw.
 
 ### What you set in GitHub and Cloudflare
 
@@ -363,13 +388,17 @@ the release job is safe to repeat.
 
 1. In the Cloudflare dashboard, open **My Profile → API Tokens → Create Token** (or
    **Manage Account → Account API Tokens**). Start from the **Edit Cloudflare Workers**
-   template. Scope **Account resources** to the one account, and set **Zone resources**
-   to no zones: this Worker has no route and no custom domain until you add one. The
-   template's Workers KV and R2 permissions are unused here and can be removed if the
-   form allows. Keep **Account / Workers Scripts / Edit**, **Account / Workers Tail /
-   Read**, **Account / Account Settings / Read**, and the user membership read the
-   template includes. Those are what `wrangler deploy` and `wrangler rollback` call.
-   Do not use the account's Global API Key. Set an expiry you will actually rotate.
+   template. Scope **Account resources** to the one account and **Zone resources** to
+   the active `szolotov.com` zone in the same account. The token needs **Account /
+   Workers Scripts / Edit**, and on the zone **Zone / Zone / Read**, **Zone / DNS /
+   Edit** and **Zone / Workers Routes / Edit**: `wrangler deploy` creates the custom
+   domain `ai.szolotov.com` with its DNS record and certificate. Keep **Account /
+   Workers Tail / Read**, **Account / Account Settings / Read** and the user
+   membership read the template includes; `wrangler deploy` and `wrangler rollback`
+   call them. The template's Workers KV and R2 permissions are unused here and can be
+   removed if the form allows. Validate the grants with a real deploy rather than
+   narrowing them from documentation alone. Do not use the account's Global API Key.
+   Set an expiry you will actually rotate.
 2. Copy the **Account ID** from the Workers overview, or from the URL when the account
    is open. It is not a secret. It still should not be committed.
 3. In this repository, **Settings → Environments**, create `production` and `staging`
@@ -381,14 +410,29 @@ the release job is safe to repeat.
    the workflow, and an environment whose tags are only `v*` will not hand that token
    to a branch.
 5. On `staging`, set the deployment branch policy to **Selected branches** and allow
-   `stage` only. Add the same secret and the same account-id variable. A second token
-   is optional; one token scoped to the account can deploy both Worker names.
-6. Optional, on either environment: variable `DEPLOY_URL`, an `https` origin with no
+   `stage` only. Add the same secret and the same account-id variable.
+6. In the Cloudflare dashboard, open **Workers & Pages → `ai` → Settings → Domains &
+   Routes** and enable `ai.szolotov.com` for **Production and Preview**, or let the
+   first release apply `deploy/wrangler.json`, whose route sets `previews_enabled`.
+   Until one of the two is done `stage.ai.szolotov.com` does not answer and the
+   `preview` job fails with an error that says so. Delete any `stage.ai` DNS record
+   created by hand: Cloudflare serves a Preview named `stage` from the domain's
+   Preview wildcard, and a record of the same name would shadow it.
+7. Protect the `stage` branch. Under **Settings → Rules → Rulesets**, add a branch
+   ruleset targeting `stage` that requires a pull request, requires the `ci` and
+   `security` status checks, and blocks force pushes and deletion. Keep the `staging`
+   environment restricted to `stage` (step 5). Anyone who can push to `stage` gets a
+   job that holds the Cloudflare token, and with one Worker that token can also deploy
+   production: it is the same Worker, and the token's scope is the account and zone,
+   not an environment. The earlier two-Worker layout kept a staging token away from
+   production; this one does not, and the ruleset is the control that replaces that
+   separation. A second token on `staging` needs the same Workers permissions to upload a
+   Preview, so it does not narrow the risk. This is an accepted trade-off.
+8. Optional, on either environment: variable `DEPLOY_URL`, an `https` origin with no
    path, smoked after every deploy of that environment. Set it only once that host
-   answers. A custom domain also needs **Zone / Zone / Read**, **Zone / DNS / Edit**
-   and **Zone / Workers Routes / Edit** on that zone only, and a route you add
-   yourself. Nothing in the repository names a domain.
-7. Optional: required reviewers on `production` if you want a person to approve the
+   answers. Production smokes `https://ai.szolotov.com`, and `staging` smokes
+   `https://stage.ai.szolotov.com`, even when this variable is unset.
+9. Optional: required reviewers on `production` if you want a person to approve the
    tag deploy. With one maintainer that approval is a click on every release, so it
    is off unless you turn it on.
 
@@ -607,7 +651,7 @@ covers the install-time side of that.
    command to publish, which is what triggers `release.yml` above. That run creates the
    GitHub Release and, when the `production` environment has the Cloudflare credential
    from [the deploy section](#what-you-set-in-github-and-cloudflare), uploads the same
-   catalogue to the `greenblacked-ai` Worker. The release is created first. A missing
+   catalogue to the `ai` Worker. The release is created first. A missing
    credential fails the deploy job and leaves the GitHub Release in place; fix the
    environment and re-run the workflow.
 
@@ -879,7 +923,7 @@ stops working without it.
 | --- | --- | --- |
 | The branch ruleset above | Whether `ci` and `security` are required, and whether `main` takes direct pushes | Every gate in this repository is advisory and a red build can merge |
 | Private vulnerability reporting | Whether the advisory form `SECURITY.md` tells people to use exists | A reporter follows that instruction, finds nothing, and falls back to a public issue — which for a leaked credential is the outcome the document exists to prevent |
-| Dependabot alerts, and security updates | Whether a published advisory against something pinned here is surfaced at all | Nothing says a pinned action or tool has a known vulnerability. `.github/dependabot.yml` does **not** cover this: it configures version updates, which is a different feature |
+| Dependabot alerts, and security updates | Whether a published advisory against a dependency GitHub can read is surfaced, and a fix proposed. That excludes nearly everything this repository depends on today: GitHub raises an alert for an action only when it is referenced by a semantic version, not a commit SHA, and every action here is pinned by SHA; the tools CI installs are pinned in workflow variables, and GitHub parses only a workflow's `uses:` references as dependencies; `pyproject.toml` declares no runtime dependencies, and its one third-party package, the unpinned `hatchling` build backend, is fetched only when the validator is built or installed as a package, which CI never does, with no version update covering it | Nothing would flag a manifest dependency added later. For actions the outcome is the same either way: no alert reaches a SHA pin, so `.github/dependabot.yml`'s version updates — a different feature, which does follow a SHA pin through its version comment — are what keep a vulnerable action from staying in place |
 | Required SHA pinning for actions | Whether the platform refuses a workflow referencing an action by tag | Only the `grep` in `permissions-audit` stands between a floating tag and a build, and it runs after the fact rather than instead of |
 | Secret scanning, and push protection | Whether a credential is caught as it is pushed | gitleaks still catches it in CI, one step later and after it has left the machine |
 | Default workflow token permissions | The floor every job's `permissions:` block narrows from | An absent block inherits write access rather than read |
@@ -889,28 +933,44 @@ stops working without it.
 ### Recorded state
 
 Everything above is what a setting decides, not whether it is on. Secret scanning, push
-protection, Dependabot alerts and Dependabot security updates are owner-confirmed on
-2026-09-26: the repository owner checked them by hand, on the Settings page under
-Security → **Advanced Security**, not through any command in this repository. Nothing
-here re-checks them, because the API responses those four settings live behind are
-hidden from a non-admin call.
+protection, Dependabot alerts and Dependabot security updates are owner-confirmed, first
+on 2026-09-26 and again on 2026-10-03: the repository owner checked them by hand, on the
+Settings page under Security → **Advanced Security**, not through any command in this
+repository. Nothing here re-checks them, because the API responses those four settings
+live behind are hidden from a non-admin call.
 
-Delete branch on merge is also on, but unlike the four above it does not rest on the
-owner's word: the public repository API returns it directly
-(`gh api /repos/greenblacked/AI --jq '.delete_branch_on_merge'`), so it is confirmed
-rather than merely reported.
+Two settings do not rest on the owner's word, because the public API returns them to any
+caller, so they are confirmed rather than merely reported. Delete branch on merge is on
+(`gh api /repos/greenblacked/AI --jq '.delete_branch_on_merge'`). Private vulnerability
+reporting is on, read back on 2026-10-03
+(`gh api /repos/greenblacked/AI/private-vulnerability-reporting --jq .enabled` returns
+`true`), so the advisory form `SECURITY.md` and `CODE_OF_CONDUCT.md` send reporters to
+exists.
 
-For the branch ruleset, private vulnerability reporting, required SHA pinning, default
-workflow token permissions and code scanning setup, this section records no state — read
-each back with the commands below rather than assume this page still matches what GitHub
-reports.
+Code scanning is the one setting with a required value rather than an on or off. On
+2026-10-03 the owner turned on GitHub's default setup alongside the `codeql` job, and then
+chose to keep the job: it runs the `security-extended` suite this repository configures,
+and GitHub documents that it does not process a workflow's CodeQL analysis while default
+setup is also enabled, so with both on the job's upload is rejected and the required
+`security` check can go red. Default setup
+therefore has to stay off. Read it back with the `code-scanning/default-setup` command
+below; `not-configured` is the required answer, and anything else is the conflict this
+paragraph describes, not a stricter configuration.
 
-None of the four settings confirmed above replace a check already documented in this
-file; each sits alongside it. Push protection stops a credential at push time, and
+For the branch ruleset, required SHA pinning and default workflow token permissions, this
+section records no state — read each back with the commands below rather than assume this
+page still matches what GitHub reports.
+
+None of the settings confirmed above replace a check already documented in this file;
+each sits alongside it. Push protection stops a credential at push time, and
 gitleaks still scans the tree and history in CI exactly as before, one step later.
-Dependabot alerts surface a published advisory against something pinned here;
-`.github/dependabot.yml`'s version updates, covered in the row above, remain the
-separate feature they always were.
+Dependabot alerts and security updates watch for a dependency GitHub can read, which
+today is close to none: they skip an action pinned by SHA, as every action here is, and
+the tools CI installs by pinned version in workflow variables. `pyproject.toml` declares
+no runtime dependencies; its build backend, `hatchling`, is unpinned and outside every
+update, but nothing here builds the package. `.github/dependabot.yml`'s version updates,
+covered in the row above, remain the separate feature they always were, and for actions
+the only one of the two that does anything.
 
 Read the current state of all of them:
 

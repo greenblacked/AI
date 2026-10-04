@@ -45,6 +45,10 @@ A single fail means the file is not done, however well the other four went. A pa
 
 ## Running it
 
+Every execution below follows main workflow step 1: list commands verbatim, obtain user
+confirmation, and run only confirmed commands in its scratch checkout with a stripped
+environment and timeout. This applies to the session under test and to your own runs.
+
 The one rule is that the session sees the repository and the file and nothing else. Do not paste your own description of the project, do not name the answers, and do not let it read this conversation.
 
 **Claude Code.** Start a new session in the repository root, or delegate to a fresh subagent and give it the repository path and the five questions only. Before trusting a subagent result, ask it to quote the first line of the instruction file it read; if it cannot, it did not load the file and the run proves nothing. If the repository has both `CLAUDE.md` and `AGENTS.md`, this run tests the file Claude Code actually reads, which is the point.
