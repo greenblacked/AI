@@ -70,13 +70,14 @@ below says what to set instead.
 ## Website
 
 [ai.szolotov.com](https://ai.szolotov.com) is this catalogue as a website, rebuilt from
-the repository for every release, so it always shows what the latest version ships.
+the repository for every release. It shows the latest release that deployed successfully:
+if a deploy fails its check and rolls back, the previous one keeps serving.
 
 | Page | What it shows |
 | --- | --- |
 | [Home](https://ai.szolotov.com) | The eight plugins with their skill counts, and a search across plugins and skill names |
 | `/plugins/<plugin>/` | One page per plugin: what it covers, its install line and its skills |
-| `/plugins/<plugin>/<skill>/` | One page per skill: its description, install line and allowed tools, the full procedure, its reference files, and the requests it fires on and hands elsewhere |
+| `/plugins/<plugin>/<skill>/` | One page per skill: its description, install line and allowed tools when it declares them, the full procedure, its reference files, and the requests it fires on and hands elsewhere |
 | [Start](https://ai.szolotov.com/start/) | Installing in Claude Code and in other tools, followed by [Using the skills](docs/using.md) |
 | [Workflows](https://ai.szolotov.com/workflows/) | The subagents and slash commands each plugin ships, and how they fit with the skills |
 | [Examples](https://ai.szolotov.com/examples/) | A week of real use, and sample requests for every skill |
