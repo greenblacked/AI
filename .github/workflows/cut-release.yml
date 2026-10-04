@@ -6,8 +6,8 @@
 # and a run on `main` could not deploy.
 #
 # The dispatch is not a convenience. A tag created with GITHUB_TOKEN does not start
-# release.yml's tag-push trigger, and `workflow_dispatch` is the one event a
-# GITHUB_TOKEN call does start. release.yml then runs with a tag ref, so every check
+# release.yml's tag-push trigger, and `workflow_dispatch` is one of the two events
+# (with `repository_dispatch`) a GITHUB_TOKEN call does start. release.yml then runs with a tag ref, so every check
 # there (ancestor of main, validation, packaging, the environment rule) is unchanged.
 #
 # `make release` and a hand-pushed tag still work and reach the same workflow.
@@ -65,10 +65,10 @@ jobs:
 
       - name: Check the version is ready to release
         # Strict X.Y.Z first, so nothing later builds a ref name or a JSON body from
-        # free text. Then the same validation `make release` applies, minus the checks
-        # that only make sense in a local clone: a non-empty CHANGELOG section, no
-        # such tag on origin, a version greater than every existing tag, and HEAD
-        # equal to origin/main.
+        # free text. Then the validation `make release` applies, without its local-clone
+        # checks (current branch, clean tree). What remains: a non-empty CHANGELOG
+        # section, no such tag on origin, a version greater than every existing tag,
+        # and HEAD equal to origin/main.
         run: |
           set -Eeuo pipefail
           if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then

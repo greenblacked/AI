@@ -275,10 +275,12 @@ response instead.
 Triggers on a tag push matching `vX.Y.Z`, and on `workflow_dispatch`, which takes no
 inputs and is what [`cut-release.yml`](#githubworkflowscut-releaseyml--cut-release) sends
 after creating the tag through the API: a tag made with `GITHUB_TOKEN` does not start the
-tag-push trigger, and a dispatch is the one event a `GITHUB_TOKEN` call does start. A
+tag-push trigger, and a dispatch is one of the two events (with `repository_dispatch`) a
+`GITHUB_TOKEN` call does start. A
 dispatch starts the workflow at whatever ref it is pointed at, so the first step of both
 jobs fails unless `GITHUB_REF_TYPE` is `tag` and `GITHUB_REF_NAME` is `vX.Y.Z`; a dispatch
-on a branch publishes nothing. Top-level `permissions: {}`. The
+on a branch publishes nothing. A dispatch on an older tag redeploys that version, which
+makes it a deliberate rollback by redeploy. Top-level `permissions: {}`. The
 `release` job grants itself `contents: write` — the second exception to "nothing here
 pushes from CI", alongside `dependabot-auto-merge.yml`'s job. It is bounded three ways:
 it only runs on a version-tag ref, it refuses a tagged commit that is not an ancestor
@@ -296,8 +298,8 @@ secret that job needs before the first tag.
 | `release` | `release` | The ref is not a `vX.Y.Z` tag, the tagged commit is not on `main`, the strict validator failed, [`scripts/release.py notes`](../scripts/release.py) found no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md) for the tag, [`scripts/package_skills.py`](../scripts/package_skills.py) or [`scripts/verify_archives.py`](../scripts/verify_archives.py) failed, [`scripts/export_portable.py`](../scripts/export_portable.py) failed, or `gh release create` or `gh release upload` could not create the release or upload an asset. |
 | `cloudflare` | `cloudflare` | The ref is not a `vX.Y.Z` tag, the tagged commit is not on `main`, [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py) or [`scripts/check_wrangler_pin.py`](../scripts/check_wrangler_pin.py) failed, `npm ci` failed, the `production` environment has no `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID`, `wrangler deployments status` could not read the version production is serving or found traffic split between versions, `wrangler deploy` failed, the smoke test did not see this version answer, or the automatic rollback failed. |
 
-Not a required check — nothing merges against it, and it only ever runs after a tag has
-already been pushed. `git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main`
+Not a required check — nothing merges against it, and it only ever runs after a `vX.Y.Z` tag
+already exists. `git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main`
 is what keeps a tag pushed at a branch commit from publishing anything: `GITHUB_SHA` is
 the tagged commit on a tag-push event, and the check fails before anything is built if
 that commit never reached `main`. The strict validator then repeats what the tagged
@@ -750,8 +752,7 @@ checker also verifies the required aggregate's identity and result-check wiring;
 renamed or disconnected gate must not pass the repository's own checks.
 
 Every workflow besides `ci.yml` and `security.yml` has no aggregator, because nothing
-requires them — currently `dependabot-auto-merge.yml`, `scheduled.yml`, `evals.yml` and
-`release.yml`. An aggregator exists to give branch protection a stable name to point at;
+requires them. An aggregator exists to give branch protection a stable name to point at;
 a workflow that gates nothing, or that runs once per tag rather than on every commit, has
 no use for one. `scripts/check_workflows.py` is what actually enforces this: it looks for
 a job carrying both `if: always()` and `needs:` in each workflow and treats one it finds
