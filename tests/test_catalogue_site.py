@@ -537,3 +537,70 @@ def test_the_loopback_hook_is_off_by_default():
     )
     assert elsewhere.returncode == 1
     assert "must be https" in elsewhere.stderr
+
+
+ACTIVE_VERSION = "0f1e2d3c-4b5a-6978-8a9b-acbdcedf0011"
+
+
+def _deployment(*versions):
+    return json.dumps(
+        {
+            "id": "deployment",
+            "source": "wrangler",
+            "strategy": "percentage",
+            "versions": [{"version_id": vid, "percentage": pct} for vid, pct in versions],
+        }
+    )
+
+
+def test_the_active_reader_prints_the_version_serving_all_traffic(tmp_path, capsys):
+    reader = load_script("read_wrangler_deploy.py")
+    status = tmp_path / "status.json"
+    status.write_text(_deployment((ACTIVE_VERSION, 100)), encoding="utf-8")
+    assert reader.main(["--active", str(status)]) == 0
+    assert capsys.readouterr().out == f"version_id={ACTIVE_VERSION}\n"
+    status.write_text(_deployment((ACTIVE_VERSION, 100.0)), encoding="utf-8")
+    assert reader.main(["--active", str(status)]) == 0
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        _deployment((ACTIVE_VERSION, 60), ("11111111-2222-3333-4444-555555555555", 40)),
+        _deployment((ACTIVE_VERSION, 100), ("11111111-2222-3333-4444-555555555555", 0)),
+        _deployment((ACTIVE_VERSION, True)),
+        _deployment((ACTIVE_VERSION, "100")),
+        _deployment(("not-a-version\nurl=https://evil.example", 100)),
+        _deployment(),
+        json.dumps({"versions": "all"}),
+        json.dumps([]),
+        "The Worker ai has no deployments.",
+    ],
+)
+def test_the_active_reader_refuses_anything_but_one_full_version(tmp_path, text):
+    reader = load_script("read_wrangler_deploy.py")
+    status = tmp_path / "status.json"
+    status.write_text(text, encoding="utf-8")
+    with pytest.raises(SystemExit) as refused:
+        reader.main(["--active", str(status)])
+    # The reader's own refusal carries a message; argparse rejecting the flag exits 2.
+    assert isinstance(refused.value.code, str)
+
+
+def test_production_rolls_back_to_the_version_it_replaced():
+    workflow = (REPO / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    cloudflare = workflow.split("  cloudflare:\n", 1)[1]
+    record = cloudflare.split("      - name: Record the version production is serving\n", 1)[1]
+    record = record.split("      - name: Deploy the production Worker\n", 1)[0]
+    assert "wrangler deployments status --config wrangler.json --json" in record
+    assert 'read_wrangler_deploy.py" --active "$status"' in record
+    # A failure to read the serving version stops the job before it deploys.
+    assert "not deploying without a version to roll back to" in record
+    # Recording happens before the deploy, not after it.
+    assert cloudflare.index("Record the version production is serving") < cloudflare.index(
+        "Deploy the production Worker"
+    )
+    rollback = cloudflare.split("      - name: Roll back the production Worker\n", 1)[1]
+    assert "PREVIOUS_VERSION_ID: ${{ steps.active.outputs.version_id }}" in rollback
+    assert 'wrangler rollback "$PREVIOUS_VERSION_ID"' in rollback
+    assert 'if [ -z "$PREVIOUS_VERSION_ID" ]' in rollback

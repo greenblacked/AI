@@ -19,6 +19,14 @@ when Wrangler reported one. A Preview URL is accepted under the same https rules
 a ``workers.dev`` host or on ``ai.szolotov.com`` or one of its subdomains. Wrangler
 only reports the custom host once that domain is enabled for Preview traffic, so a
 missing ``custom_url`` is for the caller to turn into an error, not for this script.
+
+``--active`` reads the JSON ``wrangler deployments status --json`` prints instead: the
+Worker's current production deployment. It prints ``version_id=`` for the version
+serving all of its traffic, which is what a release rolls back to if its smoke test
+fails. Without that ID ``wrangler rollback`` picks the version uploaded before the
+newest one, which after an earlier failed release is that failed release, not what was
+serving. A deployment that splits traffic between versions, a gradual rollout, has no
+single version to return to and is an error: finish or revert the rollout first.
 """
 
 from __future__ import annotations
@@ -90,6 +98,34 @@ def parse_preview(text: str) -> tuple[str, str]:
     return workers_dev, chosen
 
 
+def parse_active(text: str) -> str:
+    """The version ID serving 100% of a deployment, from ``deployments status --json``."""
+    try:
+        deployment = json.loads(text)
+    except json.JSONDecodeError:
+        raise SystemExit("wrangler deployments status did not print JSON") from None
+    versions = deployment.get("versions") if isinstance(deployment, dict) else None
+    if not isinstance(versions, list):
+        raise SystemExit("the active deployment lists no versions")
+    serving = [
+        item.get("version_id")
+        for item in versions
+        if isinstance(item, dict)
+        and isinstance(item.get("percentage"), (int, float))
+        and not isinstance(item.get("percentage"), bool)
+        and item["percentage"] == 100
+    ]
+    if len(versions) != 1 or len(serving) != 1:
+        raise SystemExit(
+            "the active deployment splits traffic between versions; finish or revert the "
+            "gradual rollout before releasing"
+        )
+    version_id = serving[0]
+    if not isinstance(version_id, str) or VERSION_ID_RE.fullmatch(version_id) is None:
+        raise SystemExit("the active deployment's version ID is not a version ID")
+    return version_id
+
+
 def parse(text: str) -> tuple[str, str]:
     """``(url, version_id)``. ``version_id`` is empty when the line has none we can trust."""
     chosen: str | None = None
@@ -128,14 +164,23 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="read_wrangler_deploy", description=__doc__.split("\n", 1)[0]
     )
-    parser.add_argument(
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
         "--preview", action="store_true", help="read a wrangler preview log, not a deploy log"
+    )
+    mode.add_argument(
+        "--active",
+        action="store_true",
+        help="read `wrangler deployments status --json` and print the serving version ID",
     )
     parser.add_argument("path", type=Path, help="the WRANGLER_OUTPUT_FILE_PATH file")
     args = parser.parse_args(argv)
     if not args.path.is_file():
         print(f"no wrangler output at {args.path}", file=sys.stderr)
         return 1
+    if args.active:
+        sys.stdout.write(f"version_id={parse_active(args.path.read_text(encoding='utf-8'))}\n")
+        return 0
     if args.preview:
         url, custom_url = parse_preview(args.path.read_text(encoding="utf-8"))
         if url:
