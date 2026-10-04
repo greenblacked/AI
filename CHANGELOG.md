@@ -12,6 +12,13 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Cut a release from the Actions tab. After the prepare pull request merges, running Cut
+  release on `main` with a version checks it with the new `scripts/release.py check`
+  (a non-empty changelog section, no such tag on `origin`, a version greater than every
+  existing tag, `HEAD` equal to `origin/main`), creates the annotated tag through the API
+  and dispatches `release.yml` on it. `release.yml` now also accepts `workflow_dispatch`,
+  but only on a `vX.Y.Z` tag ref; its first step in each job refuses anything else.
+  `make release` and a hand-pushed tag still work.
 - Grow the catalogue site from one page into a full site, in a new design. The front
   page now lists the eight plugins, each linking to its own page at `/plugins/<plugin>/`
   with its skills, and each skill to a page at `/plugins/<plugin>/<skill>/` carrying its
