@@ -918,14 +918,15 @@ def test_cut_release_is_a_main_only_dispatch_with_two_narrow_grants():
     assert "  group: cut-release\n  cancel-in-progress: false\n" in workflow
     job = workflow.split("jobs:\n", 1)[1]
     header = job.split("    steps:\n", 1)[0]
-    assert "    if: github.ref == 'refs/heads/main'\n" in header
+    # No job-level `if`: a skipped job reports success, so the refusal must be a step.
+    assert "    if:" not in header
     assert "    timeout-minutes: 10\n" in header
     permissions = header.split("    permissions:\n", 1)[1].split("    env:\n", 1)[0]
     grants = [line.split("#")[0].strip() for line in permissions.splitlines()]
     grants = [grant for grant in grants if grant]
     assert sorted(grants) == ["actions: write", "contents: write"]
     assert "      VERSION: ${{ inputs.version }}\n" in header
-    # A dispatch elsewhere is refused by a visible failing step as well as the job `if`.
+    # A dispatch elsewhere is refused by a visible failing step, the first one.
     guard = job.split("    steps:\n", 1)[1].split("      - uses:", 1)[0]
     assert '[ "$GITHUB_REF" != "refs/heads/main" ]' in guard
     assert "exit 1" in guard
@@ -1225,3 +1226,10 @@ def test_every_id_the_page_chrome_writes_is_reserved_from_headings():
     for source in sources:
         written |= set(re.findall(r'id="([a-z][a-z-]*)"', source.read_text(encoding="utf-8")))
     assert written <= site.site_markdown.RESERVED_IDS, written - site.site_markdown.RESERVED_IDS
+
+
+def test_a_failed_dispatch_prints_a_command_that_dispatches_on_the_tag():
+    workflow = (REPO / ".github" / "workflows" / "cut-release.yml").read_text(encoding="utf-8")
+    dispatch = workflow.split("- name: Dispatch the release workflow on the tag", 1)[1]
+    assert "gh workflow run release.yml --repo $GH_REPO --ref v$VERSION" in dispatch
+    assert "Actions tab" not in dispatch
