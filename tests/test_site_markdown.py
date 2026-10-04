@@ -180,7 +180,7 @@ def test_links_images_and_autolinks():
 
 def test_links_inside_link_text_are_not_nested():
     out = md.render("[outer [inner](https://a.example)](https://b.example)")
-    assert out.count("<a ") == 1 and "https://b.example" in out
+    assert re.findall(r'href="([^"]*)"', out) == ["https://b.example"]
 
 
 @pytest.mark.parametrize(
