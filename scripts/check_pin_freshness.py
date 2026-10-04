@@ -6,7 +6,7 @@ tool that changes its rules between runs turns a green build into a statement ab
 tool rather than about the repository. The cost of that is a set of numbers that nothing
 moves. Dependabot does not help here — its `github-actions` ecosystem updates the `uses:`
 references and reusable workflows, and it never looks inside an `env:` block — so the
-eleven `*_VERSION` pins, the two `*_SHA256` digests beside them and `MARKDOWNLINT_PIN` in
+`*_VERSION` pins, the `*_SHA256` digests beside them and `MARKDOWNLINT_PIN` in
 the `Makefile` would sit where they are until somebody happened to wonder.
 
 This is the nag that stops that. It reads each pin out of the workflows, asks the
@@ -82,6 +82,7 @@ SOURCES = {
     "CLAUDE_CODE_VERSION": ("npm", "@anthropic-ai/claude-code"),
     "CODEX_VERSION": ("npm", "@openai/codex"),
     "GEMINI_CLI_VERSION": ("npm", "@google/gemini-cli"),
+    "WRANGLER_VERSION": ("npm", "wrangler"),
 }
 
 
