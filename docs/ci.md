@@ -3,12 +3,15 @@
 CI is the source of truth for whether this repository is correct. Everything a reviewer
 would otherwise check by eye — that a skill validates, that its reference files exist,
 that it is listed in the marketplace, that no secret is in history — is a job that either
-passes or does not. Seven workflows run it. `ci.yml` and `security.yml` gate every change.
-`scheduled.yml` runs the checks that need the network or a wordlist, weekly. `evals.yml`
-scores trigger evals — monthly over everything, and on every pull request over what that
-pull request touched. The remaining three gate nothing: `dependabot-auto-merge.yml`
-merges a Dependabot pull request once the two gates have, `ci-triage.yml` explains a
-failed CI or Security run in one comment, and `release.yml` publishes a tagged release.
+passes or does not. `ci.yml` and `security.yml` gate every change. `scheduled.yml` runs
+the checks that need the network or a wordlist, weekly. `evals.yml` scores trigger
+evals — monthly over everything, and on every pull request over what that pull request
+touched. `dependabot-auto-merge.yml` merges a Dependabot pull request once the two
+gates have, `ci-triage.yml` explains a failed CI or Security run in one comment,
+`release.yml` publishes a tagged release and then deploys that catalogue to Cloudflare,
+and `deploy.yml` dry-runs that upload on a pull request and previews it from `main` on
+request. None of `dependabot-auto-merge.yml`, `ci-triage.yml`, `release.yml` or
+`deploy.yml` is a required check.
 
 ## Execution flow
 
@@ -177,7 +180,8 @@ Triggers on `pull_request` (`opened`, `synchronize`, `reopened`), never
 `pull_request_target` — the base-branch checkout and secret exposure that trigger allows
 is exactly what zizmor's dangerous-triggers audit exists to catch, and nothing here needs
 it. Top-level `permissions: {}`; the one job grants itself `contents: write` and
-`pull-requests: write` (`release.yml`'s job also holds `contents: write`, and `codeql`
+`pull-requests: write` (`release.yml`'s `release` job also holds `contents: write`, and
+`codeql`
 in `security.yml` also writes, but only `security-events`, to publish its scan
 results, not to change anything a person reads as the repository's content).
 `ci-triage.yml`'s job also holds `pull-requests: write`, but spends it only on the one
@@ -267,18 +271,23 @@ response instead.
 
 ## `.github/workflows/release.yml` — Release
 
-Triggers only on a tag push matching `vX.Y.Z`. Top-level `permissions: {}`; the one job
-grants itself `contents: write` — the second exception to "nothing here pushes from CI",
-alongside `dependabot-auto-merge.yml`'s job. It is bounded three ways: it only runs on a
-version-tag push, it refuses a tagged commit that is not an ancestor of `main`, and the
-write access is spent on creating a release and uploading assets through the preinstalled
-`gh` CLI, never on pushing a commit — its checkout still sets `persist-credentials: false`.
-See [releasing a version](#releasing-a-version) for the two-step procedure that gets a tag
-onto `main` in the first place.
+Triggers only on a tag push matching `vX.Y.Z`. Top-level `permissions: {}`. The
+`release` job grants itself `contents: write` — the second exception to "nothing here
+pushes from CI", alongside `dependabot-auto-merge.yml`'s job. It is bounded three ways:
+it only runs on a version-tag push, it refuses a tagged commit that is not an ancestor
+of `main`, and the write access is spent on creating a release and uploading assets
+through the preinstalled `gh` CLI, never on pushing a commit — its checkout still sets
+`persist-credentials: false`. The `cloudflare` job grants itself `contents: read` only.
+It runs after `release` has succeeded, so a tag that fails validation never reaches
+Cloudflare, and its token comes from the `production` environment rather than the
+repository. See [releasing a version](#releasing-a-version) for the two-step procedure
+that gets a tag onto `main` in the first place, and the deploy section below for the
+secret that job needs before the first tag.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `release` | `release` | The tagged commit is not on `main`, the strict validator failed, [`scripts/release.py notes`](../scripts/release.py) found no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md) for the tag, [`scripts/package_skills.py`](../scripts/package_skills.py) or [`scripts/verify_archives.py`](../scripts/verify_archives.py) failed, [`scripts/export_portable.py`](../scripts/export_portable.py) failed, or `gh release create` or `gh release upload` could not create the release or upload an asset. |
+| `cloudflare` | `cloudflare` | The tagged commit is not on `main`, [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py) or [`scripts/check_wrangler_pin.py`](../scripts/check_wrangler_pin.py) failed, `npm ci` failed, the `production` environment has no `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID`, `wrangler deploy` failed, the smoke test did not see this version answer, or the automatic rollback failed. |
 
 Not a required check — nothing merges against it, and it only ever runs after a tag has
 already been pushed. `git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main`
@@ -311,6 +320,80 @@ less trusted run wrote, on the one workflow with write access to the repository 
 to publish a release — zizmor's cache-poisoning audit flags exactly this on a
 tag-triggered workflow.
 
+The `cloudflare` job builds the same catalogue again and uploads it to the Worker
+`greenblacked-ai`. The deploy passes `--env=""` because `deploy/wrangler.json` also
+defines `env.staging`; an empty value is the top-level Worker, and omitting the flag
+makes Wrangler warn that it might not stay that way. It does not run when `release`
+failed, and a re-run of the workflow
+is safe: the release job replaces assets that are already there, and Wrangler replaces
+the Worker version. The first deploy to an empty Worker has nothing to roll back to, so
+a smoke failure on that first run leaves the job red and says so.
+
+## `.github/workflows/deploy.yml` — Cloudflare
+
+Runs on every pull request, and on `workflow_dispatch`. Top-level `permissions: {}`.
+Neither job grants itself more than `contents: read`. Not a required check.
+
+| Job | Check name | Failing means |
+| --- | --- | --- |
+| `dry-run` | `dry-run deploy` | The site did not build, the Wrangler pin disagreed with [`deploy/package-lock.json`](../deploy/package-lock.json), or `wrangler deploy --dry-run` rejected the Worker. No credential is read. The job does not run on `workflow_dispatch`. |
+| `preview` | `preview` | The run was not from `main`, the `staging` environment has no Cloudflare credential, the staging Worker did not deploy, or its smoke test failed. A failed smoke test rolls that Worker back. Production is a different Worker and is not touched. The job does not run on a pull request. |
+
+`dry-run` is the pull request. It builds `dist/site` with [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py)
+and asks Wrangler to compile the Worker without uploading it. `--no-autoconfig` and
+`--no-install-skills` are named because Wrangler 4's defaults would otherwise detect a
+framework and can install agent skills into the checkout. The install is
+`npm ci --ignore-scripts` from the lockfile, after [`scripts/check_wrangler_pin.py`](../scripts/check_wrangler_pin.py)
+has required `WRANGLER_VERSION` to be the version both `deploy/package.json` and the
+lockfile name. There is no package cache: a restored store is not what the lockfile
+hashed.
+
+`preview` is Run workflow, and only from `main`. It deploys `greenblacked-ai-staging`
+with `robots.txt` set to `Disallow: /`. The Worker is public on `workers.dev` the same
+way production is; the separate name is what keeps it off production traffic, not a
+login. `DEPLOY_URL`, when the environment has one, is smoked as well as the
+`workers.dev` host Wrangler reports. Leave it unset until that hostname answers, or a
+new deploy rolls back.
+
+### What you set in GitHub and Cloudflare
+
+Do this once, before the first tag, or the `cloudflare` job fails after the GitHub
+Release has already been created. Re-running the Release workflow retries the upload;
+the release job is safe to repeat.
+
+1. In the Cloudflare dashboard, open **My Profile → API Tokens → Create Token** (or
+   **Manage Account → Account API Tokens**). Start from the **Edit Cloudflare Workers**
+   template. Scope **Account resources** to the one account, and set **Zone resources**
+   to no zones: this Worker has no route and no custom domain until you add one. The
+   template's Workers KV and R2 permissions are unused here and can be removed if the
+   form allows. Keep **Account / Workers Scripts / Edit**, **Account / Workers Tail /
+   Read**, **Account / Account Settings / Read**, and the user membership read the
+   template includes. Those are what `wrangler deploy` and `wrangler rollback` call.
+   Do not use the account's Global API Key. Set an expiry you will actually rotate.
+2. Copy the **Account ID** from the Workers overview, or from the URL when the account
+   is open. It is not a secret. It still should not be committed.
+3. In this repository, **Settings → Environments**, create `production` and `staging`
+   if they do not exist.
+4. On `production`, set the deployment branch policy to **Selected tags** and add
+   `v*`. Add the secret `CLOUDFLARE_API_TOKEN` and the variable
+   `CLOUDFLARE_ACCOUNT_ID`. Do not also store the token as a repository Actions
+   secret: a pull request from this repository can read a repository secret by editing
+   the workflow, and an environment whose tags are only `v*` will not hand that token
+   to a branch.
+5. On `staging`, set the deployment branch policy to **Selected branches** and allow
+   `main` only. Add the same secret and the same account-id variable. A second token
+   is optional; one token scoped to the account can deploy both Worker names.
+6. Optional, on either environment: variable `DEPLOY_URL`, an `https` origin with no
+   path, smoked after every deploy of that environment. Set it only once that host
+   answers. A custom domain also needs **Zone / Zone / Read**, **Zone / DNS / Edit**
+   and **Zone / Workers Routes / Edit** on that zone only, and a route you add
+   yourself. Nothing in the repository names a domain.
+7. Optional: required reviewers on `production` if you want a person to approve the
+   tag deploy. With one maintainer that approval is a click on every release, so it
+   is off unless you turn it on.
+
+`make site` builds `dist/site` locally. `VERSION` defaults to `dev`.
+
 ## `.github/workflows/scheduled.yml` — Scheduled checks
 
 Runs weekly (`cron: '0 6 * * 1'`) and on `workflow_dispatch`. Neither job gates
@@ -331,7 +414,7 @@ they learn that, the gates that matter stop working too.
 downloads is pinned so that a green build is a statement about this repository rather
 than about the day's release of a scanner — and Dependabot cannot move any of those
 numbers, because its `github-actions` ecosystem updates `uses:` references and reusable
-workflows and never reads an `env:` block. Without a weekly look, eleven versions and the
+workflows and never reads an `env:` block. Without a weekly look, the version pins and the
 markdownlint line in the `Makefile` sit where they are until somebody happens to wonder.
 It asks PyPI, the npm registry and the GitHub releases API what the latest version is,
 prints a table into the job summary, and stops there.
@@ -521,7 +604,12 @@ covers the install-time side of that.
    `--cleanup=verbatim`, so a `### Added`-style subheading in the section survives rather
    than being stripped as a comment line — whose message is that section's notes, and
    does not push: it prints `git push origin vx.y.z` as the last thing it does. Run that
-   command to publish, which is what triggers `release.yml` above.
+   command to publish, which is what triggers `release.yml` above. That run creates the
+   GitHub Release and, when the `production` environment has the Cloudflare credential
+   from [the deploy section](#what-you-set-in-github-and-cloudflare), uploads the same
+   catalogue to the `greenblacked-ai` Worker. The release is created first. A missing
+   credential fails the deploy job and leaves the GitHub Release in place; fix the
+   environment and re-run the workflow.
 
 `scripts/release.py notes x.y.z` prints one version's section body and nothing else; it is
 what `release.yml` writes into a file for `gh release create --notes-file`, and what a
