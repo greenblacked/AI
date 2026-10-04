@@ -8,10 +8,9 @@ name: CI
 on:
   push:
     branches: [main]
-  # The naming and attribution jobs below read the title and body straight out of the
-  # event payload, so an edit to either has to produce a fresh run, or a stale result
-  # stands in either direction: a false red once a bad title or footer is fixed, and a
-  # false green once one is introduced.
+  # The naming and attribution jobs below check the title and body, so an edit to either
+  # has to produce a fresh run, or a stale result stands in either direction: a false red
+  # once a bad title or footer is fixed, and a false green once one is introduced.
   pull_request:
     types: [opened, synchronize, reopened, edited]
   merge_group:
@@ -29,7 +28,14 @@ concurrency:
   group: >-
     ${{ github.workflow }}-${{ github.event_name == 'pull_request'
     && github.ref || github.run_id }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  # A push, open or reopen supersedes the run in flight, because that run is on an older
+  # commit the pull request no longer shows. An edit does not: it queues in the group's one
+  # pending slot behind the run in flight and then runs, so a later human edit is still
+  # re-checked. Cancelling on an edit is what turned `ci` red on the head commit when a
+  # description was edited seconds after opening, since the aggregate counts a cancelled
+  # dependency as a failure, deliberately, and the edit's own run had not finished yet.
+  cancel-in-progress: >-
+    ${{ github.event_name == 'pull_request' && github.event.action != 'edited' }}
 
 # Every tool this workflow installs or downloads, pinned, for the reason security.yml
 # gives: a tool that changes its rules underneath you turns a green build into a
@@ -403,6 +409,8 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
+      # Spent only on reading this pull request's title and body through the API.
+      pull-requests: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -419,19 +427,38 @@ jobs:
         # this check on the pull request that produced them, so the job succeeds
         # without re-deriving a range rather than skipping — a job this aggregate
         # depends on has to report success, not skipped, on every event `ci` runs for.
-        # PR_TITLE and PR_BODY carry pull-request-controlled text, so they go through
-        # `env:` rather than into the script inline, the same as every other job here
-        # that touches something a contributor wrote.
+        # The title and body are read from the API when the job runs, not from the event
+        # payload. The payload is frozen at the moment the run is triggered, so a
+        # description edited seconds after opening, which is how a footer the server
+        # appends on create gets stripped, would otherwise fail the run for `opened`
+        # on text that is already gone. A failed read fails the job under `set -e`; it
+        # is never taken for an empty body. The text is pull-request-controlled, so it
+        # travels only through a file and variables, never through `${{ }}` and never
+        # through `eval`, and the number, repository and token arrive through `env:`
+        # for the same reason as every other job here that touches something a
+        # contributor wrote.
         env:
           EVENT_NAME: ${{ github.event_name }}
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
           set -Eeuo pipefail
           if [ "${EVENT_NAME}" != "pull_request" ]; then
             echo "::notice title=attribution::not a pull request; nothing to scan"
             exit 0
           fi
+          pr_json="${RUNNER_TEMP}/pull-request.json"
+          gh api "repos/$GH_REPO/pulls/$PR_NUMBER" > "${pr_json}"
+          # Assigned apart from `export`, which would hide a failed read behind its own
+          # exit status. A null body becomes an empty string here, deliberately.
+          pr_field() {
+            python3 -c 'import json,sys;sys.stdout.write(json.load(open(sys.argv[1]))[sys.argv[2]] or "")' \
+              "${pr_json}" "$1"
+          }
+          PR_TITLE=$(pr_field title)
+          PR_BODY=$(pr_field body)
+          export PR_TITLE PR_BODY
           PYTHONPATH=src python scripts/check_attribution.py . \
             --range "origin/${GITHUB_BASE_REF}..HEAD"
 
@@ -441,6 +468,8 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
+      # Spent only on reading this pull request's title and body through the API.
+      pull-requests: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -456,15 +485,34 @@ jobs:
         # commit subjects and pull request title need a base ref and pull-request text to
         # mean anything, so only a pull request passes `--range`; a push to main or a
         # merge-group run checks file names alone, the same reduced scope `attribution`
-        # gives those events and for the same reason. PR_TITLE carries pull-request-
-        # controlled text, so it goes through `env:` rather than into the script inline,
-        # the same as every other job here that touches something a contributor wrote.
+        # gives those events and for the same reason. The title is read from the API when
+        # the job runs, not from the event payload, which is frozen at the moment the run
+        # is triggered: a title fixed seconds after opening would otherwise still fail
+        # the run for `opened`. A failed read fails the job under `set -e`. The title is
+        # pull-request-controlled, so it travels only through a file and a variable, never
+        # through `${{ }}` and never through `eval`, and the number, repository and token
+        # arrive through `env:`, the same as every other job here that touches something
+        # a contributor wrote.
         env:
           EVENT_NAME: ${{ github.event_name }}
-          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
           set -Eeuo pipefail
+          pr_json="${RUNNER_TEMP}/pull-request.json"
+          # Reads one field of the pull request JSON. A command substitution around it,
+          # assigned apart from `export`, fails the job when the read does: `export` would
+          # hide the failure behind its own exit status. A null field becomes an empty
+          # string here, deliberately.
+          pr_field() {
+            python3 -c 'import json,sys;sys.stdout.write(json.load(open(sys.argv[1]))[sys.argv[2]] or "")' \
+              "${pr_json}" "$1"
+          }
           if [ "${EVENT_NAME}" = "pull_request" ]; then
+            gh api "repos/$GH_REPO/pulls/$PR_NUMBER" > "${pr_json}"
+            PR_TITLE=$(pr_field title)
+            export PR_TITLE
             PYTHONPATH=src python scripts/check_naming.py . \
               --range "origin/${GITHUB_BASE_REF}..HEAD"
           else
