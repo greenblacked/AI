@@ -34,6 +34,9 @@ def test_a_mini_repository_builds_a_site(mini_repo, tmp_path):
     assert "alpha" in page and "beta" in page
     assert "v1.2.3" in page
     assert "https://github.com/greenblacked/AI" in page
+    assert "Made by Serhii Zolotov" in page
+    assert ">Black<" in page
+    assert "Release <code>" not in page
     assert html.escape("A <b>catalogue</b>") in page
     assert "<b>" not in page
     manifest = json.loads((output / "marketplace.json").read_text(encoding="utf-8"))
