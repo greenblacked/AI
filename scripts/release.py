@@ -25,6 +25,10 @@ non-empty section for the version, and that the tag does not already exist local
 on the remote — then creates an annotated tag whose message is that section's body. It
 does not push; it prints the command that does.
 
+``check`` is ``tag``'s validation without the local-branch and working-tree checks,
+plus a requirement that the version be greater than every existing tag. It creates
+nothing; `cut-release.yml` runs it before creating the tag through the API.
+
 ``notes`` prints one version's section body with nothing else, which is what
 `release.yml` writes into a file for `gh release create --notes-file`.
 
@@ -341,11 +345,50 @@ def tag_exists_on_remote(root: Path, tag_name: str) -> bool:
     return False
 
 
-def tag(root: Path, version: str) -> int:
+def valid_version(version: str) -> str | None:
+    """The version with any leading "v" stripped, or None (after reporting) if it is not
+    x.y.z. Shared by `tag` and `check` so a bad version reads the same from both."""
     version = normalize_version(version)
     if not VERSION_RE.match(version):
         print(f"::error::{version!r} is not a valid x.y.z version", file=sys.stderr)
+        return None
+    return version
+
+
+def changelog_section_body(root: Path, version: str) -> str | None:
+    """The version's non-empty changelog section body, or None after reporting why not."""
+    path = root / CHANGELOG
+    if not path.is_file():
+        print(f"::error::{CHANGELOG} does not exist", file=sys.stderr)
+        return None
+    lines = path.read_text(encoding="utf-8").splitlines()
+    headings = heading_indices(lines)
+    body = section_body(lines, headings, version)
+    if body is None:
+        print(f"::error::{CHANGELOG} has no [{version}] section", file=sys.stderr)
+        return None
+    if not body.strip():
+        print(f"::error::the [{version}] section in {CHANGELOG} is empty", file=sys.stderr)
+        return None
+    return body
+
+
+def head_is_origin_main(root: Path) -> bool:
+    """Fetch `origin/main` and say whether HEAD is exactly it, reporting when not."""
+    run_git(root, "fetch", "origin", "main:refs/remotes/origin/main", "--tags")
+    head = rev_parse(root, "HEAD")
+    origin_main = rev_parse(root, "refs/remotes/origin/main")
+    if head is None or origin_main is None or head != origin_main:
+        print("::error::HEAD is not up to date with origin/main; pull first", file=sys.stderr)
+        return False
+    return True
+
+
+def tag(root: Path, version: str) -> int:
+    checked = valid_version(version)
+    if checked is None:
         return 1
+    version = checked
 
     branch = current_branch(root)
     if branch != "main":
@@ -358,18 +401,8 @@ def tag(root: Path, version: str) -> int:
         )
         return 1
 
-    path = root / CHANGELOG
-    if not path.is_file():
-        print(f"::error::{CHANGELOG} does not exist", file=sys.stderr)
-        return 1
-    lines = path.read_text(encoding="utf-8").splitlines()
-    headings = heading_indices(lines)
-    body = section_body(lines, headings, version)
+    body = changelog_section_body(root, version)
     if body is None:
-        print(f"::error::{CHANGELOG} has no [{version}] section", file=sys.stderr)
-        return 1
-    if not body.strip():
-        print(f"::error::the [{version}] section in {CHANGELOG} is empty", file=sys.stderr)
         return 1
 
     # Checked before the fetch below: fetching `--tags` would otherwise pull an
@@ -384,11 +417,7 @@ def tag(root: Path, version: str) -> int:
         print(f"::error::tag {tag_name} already exists on origin", file=sys.stderr)
         return 1
 
-    run_git(root, "fetch", "origin", "main:refs/remotes/origin/main", "--tags")
-    head = rev_parse(root, "HEAD")
-    origin_main = rev_parse(root, "refs/remotes/origin/main")
-    if head is None or origin_main is None or head != origin_main:
-        print("::error::HEAD is not up to date with origin/main; pull first", file=sys.stderr)
+    if not head_is_origin_main(root):
         return 1
 
     git = git_binary()
@@ -412,6 +441,49 @@ def tag(root: Path, version: str) -> int:
     print(f"created annotated tag {tag_name}")
     print("next step:")
     print(f"  git push origin {tag_name}")
+    return 0
+
+
+# --- check ----------------------------------------------------------------------------
+
+
+def check(root: Path, version: str) -> int:
+    """`tag`'s validation without its local-branch and working-tree checks.
+
+    `cut-release.yml` runs this on a detached checkout of `main` in CI, where there is
+    no branch name to compare and no working tree worth inspecting, but where the
+    changelog, the tag namespace and the position of HEAD are exactly as much a gate as
+    they are for `make release`. It also requires the version to be greater than every
+    existing tag, which `prepare` enforces on the branch but a dispatch could skip.
+    """
+    checked = valid_version(version)
+    if checked is None:
+        return 1
+    version = checked
+
+    if changelog_section_body(root, version) is None:
+        return 1
+
+    tag_name = f"v{version}"
+    if tag_exists_on_remote(root, tag_name):
+        print(f"::error::tag {tag_name} already exists on origin", file=sys.stderr)
+        return 1
+
+    known = set(existing_tag_versions(root)) | set(existing_remote_tag_versions(root))
+    if known:
+        newest = max(known, key=version_key)
+        if version_key(version) <= version_key(newest):
+            print(
+                f"::error::version {version} is not greater than the newest existing "
+                f"version {newest}",
+                file=sys.stderr,
+            )
+            return 1
+
+    if not head_is_origin_main(root):
+        return 1
+
+    print(f"{tag_name} is ready to cut from {rev_parse(root, 'HEAD')}")
     return 0
 
 
@@ -452,6 +524,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     tag_parser.add_argument("version", help="the version to release, e.g. 1.2.3")
 
+    check_parser = subparsers.add_parser(
+        "check", help="validate a release the way tag does, minus the local-branch checks"
+    )
+    check_parser.add_argument("version", help="the version to release, e.g. 1.2.3")
+
     notes_parser = subparsers.add_parser(
         "notes", help="print one version's changelog section body and nothing else"
     )
@@ -463,6 +540,8 @@ def main(argv: list[str] | None = None) -> int:
         return prepare(root, args.version)
     if args.command == "tag":
         return tag(root, args.version)
+    if args.command == "check":
+        return check(root, args.version)
     return notes(root, args.version)
 
 
