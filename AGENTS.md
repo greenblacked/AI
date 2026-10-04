@@ -79,7 +79,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `docs/review-lessons.md` | Defect classes review on this repository has actually caught, each with how it shows up, the check that catches it and the PR that found it first; `implementer` and `reviewer` read it before writing or judging anything |
 | `template/SKILL.md` | Starting point for a new skill |
 | `.claude-plugin/marketplace.json` | Lists the eight plugins; each discovers its own skills |
-| `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `release.yml`, `ci-triage.yml` |
+| `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `release.yml`, `deploy.yml`, `ci-triage.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
 | `providers.json` | Which AI tools read `AGENTS.md` and load skills, with sources and a checked date; `scripts/providers_table.py` renders it into the README |
 | `scripts/` | Packaging (`package_skills.py`, `verify_archives.py`), install, the eval harness, the portable export, cutting a release (`release.py`), and the eight catalogue checks |
@@ -255,12 +255,17 @@ blocking finding or a failing `ci` or `security` gate.
   enable auto-merge on a Dependabot pull request that is a patch or minor update and whose
   head branch is in this repository, which stays bounded because GitHub only completes
   that merge once the `ci` and `security` checks the branch ruleset requires have both
-  reported `success`. `release.yml`'s single job is the second: it holds `contents:
+  reported `success`. `release.yml`'s `release` job is the second: it holds `contents:
   write` and nothing else, runs only on a `vX.Y.Z` tag push, and refuses to proceed when
   the tagged commit is not an ancestor of `main`. It spends that permission creating a
   GitHub Release and uploading assets to it through the preinstalled `gh` CLI, never on
   pushing a commit — its checkout still sets `persist-credentials: false`, the same as
-  every other job here. `ci-triage.yml`'s single job is the third: it runs only on
+  every other job here. The `cloudflare` job in that file holds `contents: read` only.
+  It runs after `release` succeeds and spends a Cloudflare API token that lives on the
+  `production` GitHub environment, never in the repository and never in the step that
+  installs Wrangler. `deploy.yml` dry-runs that upload on a pull request and does not
+  name the token; its `preview` job is the `staging` environment, and only a push to
+  `stage` or a manual run from that branch. `ci-triage.yml`'s single job is the third: it runs only on
   `workflow_run` for `CI` or `Security` completing on a pull request, and grants itself
   `actions: read`, `contents: read`, `issues: write` and `pull-requests: write` — never
   `contents: write`, and it pushes nothing. A live run's first write, the comment POST,

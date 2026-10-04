@@ -40,6 +40,9 @@ attribution:
 
 naming:
 \t@$(PYTHON) scripts/check_naming.py . --range origin/main..HEAD
+
+site:
+\tPYTHONPATH=src $(PYTHON) scripts/build_catalogue_site.py --version dev
 """
 
 WORKFLOW = """\
@@ -84,6 +87,19 @@ jobs:
       - run: PYTHONPATH=src python scripts/check_naming.py . --range "origin/main..HEAD"
 """
 
+DEPLOY = """\
+name: Deploy
+on: [pull_request]
+permissions: {}
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: PYTHONPATH=src python scripts/build_catalogue_site.py --version dev
+"""
+
 CI_DOC = """# CI
 
 It is the one checks that keep the repository's claims about itself true.
@@ -110,6 +126,7 @@ def write_mini(
     workflows = root / ".github" / "workflows"
     workflows.mkdir(parents=True, exist_ok=True)
     (workflows / "ci.yml").write_text(workflow, encoding="utf-8")
+    (workflows / "deploy.yml").write_text(DEPLOY, encoding="utf-8")
     (workflows / "w.yml").write_text("RUFF_VERSION: '0.16.9'\n", encoding="utf-8")
     docs = root / "docs"
     docs.mkdir(parents=True, exist_ok=True)

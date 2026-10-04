@@ -36,6 +36,26 @@ ever checks whether it still does.
 
 ## The entries
 
+### A tag-keyed deployment lock leaves a shared production Worker unprotected
+
+**Class.** Workflow concurrency keyed by a release tag does not serialize jobs from
+different tags that mutate the same production resource.
+
+**How it shows up.** Two tags can deploy and smoke the production Cloudflare Worker at
+the same time. If one smoke test fails, its unqualified rollback can undo the other
+tag's successful deploy. The workflow-level `release-${{ github.ref }}` group only
+serializes runs of the same tag.
+
+**The check that catches it.** The `cloudflare` job has a static
+`production-cloudflare` concurrency group with cancellation disabled, spanning deploy,
+smoke and rollback. `tests/test_catalogue_site.py` checks that this lock is job-scoped,
+tag-independent and leaves the release-level group in place. The reviewer benchmark
+removes the production lock; the fixture check proves patch applicability, not that a
+reviewer detects the race.
+
+**First caught:** the independent review stage of the staging-site integration (PR
+number not yet assigned).
+
 ### A CLI upgrade changes an implicit permission mode
 
 **Class.** A pinned CLI upgrade changes a procedure's execution policy when the caller
