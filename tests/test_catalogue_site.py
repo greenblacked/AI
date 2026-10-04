@@ -16,6 +16,7 @@ import subprocess
 import threading
 import time
 import zipfile
+from html.parser import HTMLParser
 from pathlib import Path
 
 import pytest
@@ -117,11 +118,52 @@ def _build(root, tmp_path):
     return output
 
 
+class _TagParser(HTMLParser):
+    """Collects start tags the way a browser tokenises them, case and all."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=False)
+        self.tags = set()
+        self.blocks = []
+        self._open = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag in ("script", "style"):
+            self._open = (tag, attrs, [])
+        else:
+            self.tags.add(tag)
+
+    def handle_data(self, data):
+        if self._open:
+            self._open[2].append(data)
+
+    def handle_endtag(self, tag):
+        if self._open and tag == self._open[0]:
+            self.blocks.append((tag, self._open[1], "".join(self._open[2]).strip()))
+            self._open = None
+
+
 def _live_tags(page):
-    """Opening tags in a page that are not part of the template the build writes."""
-    body = re.sub(r"<script>.*?</script>", "", page, flags=re.S)
-    body = re.sub(r"<style>.*?</style>", "", body, flags=re.S)
-    return set(re.findall(r"<([a-zA-Z][a-zA-Z0-9]*)", body))
+    """Opening tags in a page that are not part of the template the build writes.
+
+    A script or style block passes only when it is one of the template's own,
+    attribute-free and byte-for-byte; any other one is reported as a live tag.
+    """
+    template = {
+        ("style", site.site_style.CSS.strip()),
+        ("script", site.site_style.HEAD_SCRIPT.strip()),
+        ("script", site.site_style.PAGE_SCRIPT.strip()),
+    }
+    parser = _TagParser()
+    parser.feed(page)
+    parser.close()
+    tags = set(parser.tags)
+    for tag, attrs, body in parser.blocks:
+        if attrs or (tag, body) not in template:
+            tags.add(tag)
+    if parser._open:
+        tags.add(parser._open[0])
+    return tags
 
 
 SAFE_TAGS = {
@@ -188,7 +230,9 @@ def test_navigation_is_root_relative_and_marks_the_current_page(mini_repo, tmp_p
     assert ">Black<" not in start and 'id="theme"' not in start
     assert 'role="switch"' in start and 'aria-label="Dark theme"' in start
     assert 'aria-label="Console theme"' in start
-    assert "localStorage.getItem" in start and "fonts.googleapis.com" in start
+    assert "localStorage.getItem" in start
+    assert site.site_style.FONTS_URL.startswith("https://fonts.googleapis.com/css2?")
+    assert f'<link rel="stylesheet" href="{html.escape(site.site_style.FONTS_URL)}">' in start
     # Links off the site say so; links on it do not open a new tab.
     assert 'href="https://github.com/greenblacked/AI/releases" target="_blank"' in start
     assert 'rel="noopener noreferrer"' in start
