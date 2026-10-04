@@ -1,0 +1,8 @@
+{
+  "name": "greenblacked-ai-deploy",
+  "private": true,
+  "description": "Pinned Wrangler for the catalogue deploy. Not a published package.",
+  "dependencies": {
+    "wrangler": "4.147.0"
+  }
+}

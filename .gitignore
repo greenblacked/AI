@@ -4,6 +4,7 @@ __pycache__/
 .ruff_cache/
 dist/
 node_modules/
+.wrangler/
 .DS_Store
 .coverage
 htmlcov/

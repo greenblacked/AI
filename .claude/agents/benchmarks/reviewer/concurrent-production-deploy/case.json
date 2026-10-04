@@ -1,0 +1,11 @@
+{
+  "kind": "defect",
+  "intent": "Keep the release workflow's tag-level concurrency while simplifying the production deploy job.",
+  "lesson": "A tag-keyed deployment lock leaves a shared production Worker unprotected",
+  "must_mention": [
+    "cloudflare|production",
+    "concurren|serial|parallel",
+    "rollback|deploy",
+    "tag|ref"
+  ]
+}

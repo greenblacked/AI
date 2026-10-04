@@ -38,10 +38,16 @@ Standard library only, like the validator it imports.
 from __future__ import annotations
 
 import argparse
+import bisect
+import hashlib
+import html
+import posixpath
 import re
 import shutil
 import sys
+import unicodedata
 from pathlib import Path
+from urllib.parse import unquote
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
@@ -76,6 +82,78 @@ ASSET_LANGUAGES = {
 # example closes early and everything after it is read as prose.
 FENCE_RE = re.compile(r"^(`{3,}|~{3,})")
 ATX_RE = re.compile(r"^(#{1,6})(\s+)")
+# The underline of a setext heading: a run of `=` or `-` and nothing else.
+# The shape of every anchor this export generates, and of its stem: a section root or a numbered
+# heading. The bare stem counts too, since GitHub numbers repeated headings and the Nth copy of
+# `portable-<hex>-heading` would take the id `portable-<hex>-heading-N`.
+GENERATED_ANCHOR_RE = re.compile(r"portable-(?:[0-9a-f]+-)+(?:root|heading)(?:-\d+)?")
+SETEXT_UNDERLINE_RE = re.compile(r"^ {0,3}(?:=+|-+) *$")
+# A thematic break: three or more of one of `-`, `*` or `_`, with spaces allowed between.
+THEMATIC_BREAK_RE = re.compile(r"^ {0,3}([-*_])(?: *\1){2,} *$")
+# Blockquote markers alone, so the indentation left over is the line's own, and a list item
+# marker with the width of its content: group 3 is the spaces after the marker.
+QUOTE_PREFIX_RE = re.compile(r"^(?: {0,3}> ?)*")
+QUOTE_START_RE = re.compile(r" {0,3}>")
+ITEM_RE = re.compile(r"^( *)([-*+]|\d+[.)])(?:( +)(?=\S)|\s*$)")
+# What may sit between the start of a line and a code fence: blockquote markers and list
+# markers, however deeply nested and in either order. A fenced example quoted with `>` or
+# nested under a bullet is still a fence. Group `item` is set when any list marker is there.
+CONTAINER_PREFIX_RE = re.compile(r"^(?:\s{0,3}>|\s*(?P<item>(?:[-*+]|\d+[.)])\s+))*\s*")
+# The start of an HTML block of types 1-6 (not a comment, which is handled on its own), tested
+# on the text after any container prefix. Group 1 names a type-1 tag, group 2 is a type-6 tag.
+HTML_BLOCK_START_RE = re.compile(
+    r"^ {0,3}(?:<(script|pre|style|textarea)(?:\s|>|$)|<(\?|![A-Za-z]|!\[CDATA\[)"
+    r"|</?(?:address|article|aside|blockquote|center|details|dialog|dir|div|dl|dt|dd|fieldset"
+    r"|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend"
+    r"|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|section|source"
+    r"|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul)(?:\s|/?>|$))",
+    re.I,
+)
+# What ends an HTML comment. HTML also accepts `--!>`; every scan here ends a comment at either.
+COMMENT_END_RE = re.compile(r"--!?>")
+# A line that starts a block which can interrupt a paragraph, tested on the text after any
+# container prefix: a thematic break or setext underline, or an HTML block of types 1-6
+# (a comment, a processing instruction, a declaration, or a block-level tag).
+BLOCK_START_RE = re.compile(
+    r"^ {0,3}(?:(?:[-*_])(?: *[-*_]){2,} *$|=+ *$|-+ *$|<(?:!--|\?|![A-Za-z]|!\[CDATA\[)"
+    r"|<(?:script|pre|style|textarea)(?:\s|>|$)"
+    r"|</?(?:address|article|aside|blockquote|center|details|dialog|dir|div|dl|dt|dd|fieldset"
+    r"|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend"
+    r"|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|section|source"
+    r"|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul)(?:\s|/?>|$))",
+    re.I,
+)
+# A raw HTML element tag (open, close or self-closing, with attributes) or a comment, the
+# only inline HTML that vanishes from a rendered heading. A tag name must start with a
+# letter and be followed by whitespace, `/` or `>`, which keeps `<https://x>` and
+# `<me@x.com>` (autolinks, whose text is shown) from reading as tags. Quoted values may hold
+# angle brackets. An attribute may follow a closing quote with no space, which a renderer
+# reads as text: refusing an `id` there errs toward failing the export.
+_TAG_ATTRIBUTE = r"""\s+[A-Za-z_:][A-Za-z0-9_.:-]*(?:\s*=\s*(?:[^\s"'=<>`]+|'[^']*'|"[^"]*"))?"""
+# CommonMark's inline raw HTML: tags with whitespace before every attribute, comments,
+# processing instructions, declarations and CDATA. Anything this matches is raw HTML to a
+# renderer, so its text is inert and, in a heading, contributes nothing to the id.
+HTML_TAG_RE = re.compile(
+    rf"<[A-Za-z][A-Za-z0-9-]*(?:{_TAG_ATTRIBUTE})*\s*/?>|</[A-Za-z][A-Za-z0-9-]*\s*>"
+    r"|<!--.*?--!?>|<\?.*?\?>|<![A-Za-z][^>]*>|<!\[CDATA\[.*?\]\]>",
+    re.S,
+)
+# The same with an attribute allowed straight after a closing quote, which a renderer reads as
+# text. Only the custom-anchor audit uses it: refusing an `id` there errs toward failing.
+HTML_TAG_AUDIT_RE = re.compile(
+    HTML_TAG_RE.pattern.replace(
+        _TAG_ATTRIBUTE, _TAG_ATTRIBUTE.replace(r"\s+", r"""(?:\s+|(?<=["']))""", 1)
+    ),
+    re.S,
+)
+# A complete tag alone on its line: an HTML block of type 7, which cannot interrupt a paragraph.
+HTML_BLOCK_GENERIC_RE = re.compile(
+    rf"^ {{0,3}}(?:<[A-Za-z][A-Za-z0-9-]*(?:{_TAG_ATTRIBUTE})*\s*/?>"
+    rf"|</[A-Za-z][A-Za-z0-9-]*\s*>)\s*$"
+)
+# A GitHub footnote definition: `[^label]:` with a label free of whitespace and brackets.
+# Group 1 is the label.
+FOOTNOTE_DEFINITION_RE = re.compile(r"^ {0,3}\[\^([^\s\[\]]+)\]:")
 # A split point between two sentences, not a match on a sentence itself: matching the
 # boundary and splitting on it is linear in the length of the description, where the old
 # `.*?` lazy match tried every starting position in turn and rescanned to the end of the
@@ -147,18 +225,8 @@ def demote(text: str, levels: int) -> str:
     rewriting it would corrupt a command the reader is meant to run.
     """
     out: list[str] = []
-    opening: str | None = None
-    for line in text.split("\n"):
-        fence = FENCE_RE.match(line.lstrip())
-        if fence is not None:
-            marker = fence.group(1)
-            if opening is None:
-                opening = marker
-            elif marker[0] == opening[0] and len(marker) >= len(opening):
-                opening = None
-            out.append(line)
-            continue
-        match = None if opening is not None else ATX_RE.match(line)
+    for line, fenced in zip(text.split("\n"), fence_spans(text), strict=True):
+        match = None if fenced else ATX_RE.match(line)
         if match is None:
             out.append(line)
             continue
@@ -169,8 +237,8 @@ def demote(text: str, levels: int) -> str:
 
 def title_of(text: str, fallback: str) -> str:
     """A bundled file's own H1, or a title made from its filename."""
-    for line in text.split("\n"):
-        if line.startswith("# "):
+    for line, fenced in zip(text.split("\n"), fence_spans(text), strict=True):
+        if not fenced and line.startswith("# "):
             return line[2:].strip()
     return fallback.replace("-", " ").capitalize()
 
@@ -185,27 +253,214 @@ def strip_frontmatter(text: str) -> str:
     return text.strip()
 
 
+def html_block_start(content: str, in_paragraph: bool) -> tuple[re.Pattern[str] | None, int] | None:
+    """How the HTML block starting on this line ends, or None when none starts here.
+
+    The result is ``(terminator, from)``: a block of types 1-5 ends on the line where
+    ``terminator`` matches at or after offset ``from``; ``None`` as the terminator means a
+    block of type 6 or 7, which ends at a blank line. A generic tag alone on a line
+    (type 7) cannot interrupt a paragraph; the others can.
+    """
+    if content.startswith("<!--"):
+        # `--!>` also closes a comment in HTML; ending a block at either errs toward reading
+        # the text after it as Markdown, which can only fail an export loudly.
+        return COMMENT_END_RE, 2
+    opener = HTML_BLOCK_START_RE.match(content)
+    if opener is not None:
+        kind = opener.group(1) or opener.group(2)
+        if kind is None:
+            return None, 0
+        kind = kind.lower()
+        if kind in {"script", "pre", "style", "textarea"}:
+            return re.compile(rf"</{kind}>", re.I), opener.end()
+        return re.compile(
+            r"\?>" if kind == "?" else r"\]\]>" if kind.startswith("![") else ">"
+        ), opener.end()
+    if not in_paragraph and HTML_BLOCK_GENERIC_RE.match(content):
+        return None, 0
+    return None
+
+
+def leading_spaces(line: str) -> int:
+    """Columns of indentation after any blockquote markers, with tabs expanded to four."""
+    rest = line[QUOTE_PREFIX_RE.match(line).end() :].expandtabs(4)
+    return len(rest) - len(rest.lstrip(" "))
+
+
+def unbalanced_parentheses(destination: str) -> bool:
+    """True when a bare destination closes a parenthesis it never opened or leaves one open."""
+    depth = 0
+    escaped = False
+    for char in destination:
+        if escaped:
+            escaped = False
+        elif char == "\\":
+            escaped = True
+        else:
+            depth += (char == "(") - (char == ")")
+            if depth < 0:
+                return True
+    return depth != 0
+
+
+def complete_definition(content: str) -> bool:
+    """True for a reference definition that is whole on this line.
+
+    Its destination may be followed by nothing or by a title in quotes or parentheses; any
+    other trailing text makes the line paragraph text, not a definition.
+    """
+    if definition_label(content) is None:
+        return False
+    spans = destination_spans(content)
+    if not spans:
+        return False
+    start, end = spans[0][:2]
+    after = content[end:]
+    if content[start - 1 : start] == "<":
+        # An angle destination without its closing bracket is paragraph text.
+        if not after.startswith(">"):
+            return False
+        after = after[1:]
+    elif unbalanced_parentheses(content[start:end]):
+        return False
+    return (
+        not after.strip()
+        or re.fullmatch(
+            r"""\s+(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\((?:[^()\\]|\\.)*\))\s*""", after
+        )
+        is not None
+    )
+
+
 def fence_spans(text: str) -> list[bool]:
-    """One flag per line: True when the line is inside a fenced code block.
+    """One flag per line: True when the line is inside a fenced or indented code block.
 
     A path inside a fence is part of a command or a worked example. Rewriting it to
     "the … section below" turns a runnable line into prose — `git bisect run` needs a
-    path, and the inlined section is what tells the reader which file to create.
+    path, and the inlined section is what tells the reader which file to create. An
+    indented code block is the same thing without the markers: four spaces past the
+    enclosing list item's content, not continuing a paragraph. Wherever list nesting makes
+    that unclear the line is taken as prose, which can only fail an export loudly.
     """
     flags: list[bool] = []
     opening: str | None = None
+    depth = 0
+    indent = 0
+    in_paragraph = False
+    list_indent = 0
+    after_blank = True
+    spaces = 0
+    in_html = False
+    html_end: re.Pattern[str] | None = None
+    html_from = 0
+    html_depth = 0
     for line in text.split("\n"):
-        fence = FENCE_RE.match(line.lstrip())
-        if fence is not None:
-            marker = fence.group(1)
-            if opening is None:
-                opening = marker
+        prefix = CONTAINER_PREFIX_RE.match(line)
+        content = line[prefix.end() :]
+        quotes = prefix.group().count(">")
+        if in_html and quotes < html_depth:
+            # An HTML block takes no lazy continuation, so it ends with its blockquote.
+            in_html = False
+            html_end = None
+        if opening is not None and (
+            # A fence inside a blockquote ends with the quote, and one inside a list item
+            # with the item, closing marker or not.
+            quotes < depth or (indent and line.strip() and leading_spaces(line) < indent)
+        ):
+            opening = None
+        if opening is None:
+            rest = line[QUOTE_PREFIX_RE.match(line).end() :].expandtabs(4)
+            spaces = len(rest) - len(rest.lstrip(" "))
+            if not rest.strip():
+                in_paragraph = False
+                after_blank = True
+                if html_end is None:
+                    in_html = False
+                flags.append(False)
+                continue
+            # A thematic break wins over a list item: `- - -` is a rule, not nested bullets.
+            is_rule = THEMATIC_BREAK_RE.match(rest) is not None
+            marker = ITEM_RE.match(rest) if spaces < list_indent + 4 and not is_rule else None
+            if spaces >= list_indent + 4 and not in_paragraph and marker is None:
                 flags.append(True)
                 continue
-            if marker[0] == opening[0] and len(marker) >= len(opening):
+            if marker is not None:
+                gap = len(marker.group(3) or " ")
+                list_indent = marker.end(2) + (gap if gap <= 4 else 1)
+            elif after_blank and spaces == 0:
+                list_indent = 0
+            after_blank = False
+        if opening is None and in_html:
+            # Inside a raw HTML block a fence marker is raw HTML, not a fence.
+            if html_end is not None and html_end.search(content):
+                in_html = False
+            html_from = 0
+            in_paragraph = False
+            flags.append(False)
+            continue
+        if opening is None and spaces < list_indent + 4:
+            started = html_block_start(content, in_paragraph)
+            if started is not None:
+                html_end, html_from = started
+                html_depth = quotes
+                in_html = True
+                if html_end is not None and html_end.search(content, html_from):
+                    in_html = False
+                html_from = 0
+                in_paragraph = False
+                flags.append(False)
+                continue
+        fence = FENCE_RE.match(content)
+        # Four spaces past the container make text, not a fence; this is only reachable as
+        # the continuation of a paragraph, since otherwise the line was code above.
+        if fence is not None and opening is None and spaces >= list_indent + 4:
+            fence = None
+        # A backtick fence's info string may not contain a backtick: that line is code.
+        if (
+            fence is not None
+            and opening is None
+            and fence.group(1)[0] == "`"
+            and "`" in content[fence.end() :]
+        ):
+            fence = None
+        if fence is not None:
+            marker_text = fence.group(1)
+            if opening is None:
+                opening = marker_text
+                depth = quotes
+                if prefix.group("item"):
+                    # The item's width past any quote markers, which is where its content
+                    # has to start for a following line to stay inside it.
+                    indent = len(prefix.group()) - QUOTE_PREFIX_RE.match(line).end()
+                elif list_indent and spaces >= list_indent:
+                    indent = list_indent  # a continuation line of the item above
+                else:
+                    indent = 0
+                in_paragraph = False
+                flags.append(True)
+                continue
+            # Inside a fence every line is content, so a quoted or bulleted fence marker
+            # belongs to the example; only a line in the opener's own container closes it.
+            if (
+                marker_text[0] == opening[0]
+                and len(marker_text) >= len(opening)
+                and not content[fence.end() :].strip()
+                and quotes == depth
+                and prefix.group("item") is None
+            ):
                 opening = None
             flags.append(True)
             continue
+        if opening is None:
+            # A heading, a thematic break, or the underline that closes a setext heading leaves no
+            # paragraph running for a following indented line to continue.
+            in_paragraph = ATX_RE.match(content) is None and not (
+                THEMATIC_BREAK_RE.match(rest)
+                or (in_paragraph and SETEXT_UNDERLINE_RE.match(rest))
+                # A reference definition cannot interrupt a paragraph, but one that starts a
+                # block is complete on its own line and leaves no paragraph running.
+                or (not in_paragraph and complete_definition(content))
+            )
         flags.append(opening is not None)
     return flags
 
@@ -255,134 +510,1187 @@ NOTICE = (
 )
 
 
-def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
-    """Return (name, description, the self-contained document, unresolved pointers).
+def drop_emphasis_underscores(text: str) -> str:
+    """``text`` without the underscores that GitHub reads as emphasis when it builds an id.
 
-    Everything the skill ships is inlined — references as prose with their headings
-    demoted to nest, assets and scripts fenced, because a template or a script is a
-    thing to copy rather than to read. Pointers are then rewritten to name the section
-    instead of the path, in the reference text as well as in the body: a reference file
-    that sends you to a sibling reference is as much a dangling pointer, for a reader
-    with no filesystem, as one in the body.
-
-    "Unresolved" counts only paths the skill's own body names and this export could not
-    inline. Reference files quote paths from the reader's own project —
-    `assets/LICENSES.md` in a game they are building — and those are worked examples.
-    Failing on them would be a gate that cries wolf, so they are left exactly as written.
+    A run opens emphasis when no letter or digit precedes it and a non-space follows, and
+    closes it when a non-space precedes it and no letter or digit follows; an opener and the
+    next closer are paired and dropped. Inside a word (`foo_bar`) and unpaired, an
+    underscore is literal and stays.
     """
+    # An odd run of backslashes makes the underscore after it literal, so that one starts no
+    # run; an even run is a literal backslash and leaves the underscore live.
+    runs = [(m.start(2), m.end(2)) for m in re.finditer(r"(?<!\\)((?:\\\\)*)(_+)", text)]
+    drop: set[int] = set()
+    openers: list[tuple[int, int]] = []
+    for begin, end in runs:
+        before = text[begin - 1] if begin else " "
+        after = text[end] if end < len(text) else " "
+        can_open = not before.isalnum() and not after.isspace()
+        can_close = not before.isspace() and not after.isalnum()
+        if can_close and openers:
+            opened = openers.pop()
+            drop.update(range(opened[0], opened[1]))
+            drop.update(range(begin, end))
+        elif can_open:
+            openers.append((begin, end))
+    return "".join(c for index, c in enumerate(text) if index not in drop)
+
+
+def source_slug(heading: str) -> str:
+    """GitHub source aliases: formatting/punctuation removed, spaces become hyphens.
+
+    See GitHub basic-writing-and-formatting-syntax, section-links. Duplicate aliases
+    are allocated across each source, including naturally suffixed headings.
+    """
+
+    # Only raw HTML tags vanish from a rendered heading. An autolink such as
+    # `<https://example.com>` shows its address and a code span shows its angle brackets,
+    # so a blanket `<...>` removal dropped text GitHub keeps and moved the alias. Entities
+    # are decoded the same way: `&copy;` is a character in prose and literal text in code.
+    def visible(text: str) -> str:
+        return drop_emphasis_underscores(html.unescape(HTML_TAG_RE.sub("", text)))
+
+    pieces, last = [], 0
+    for begin, end in closed_code_spans(heading):
+        pieces.append(visible(heading[last:begin]) + heading[begin:end])
+        last = end
+    heading = ("".join(pieces) + visible(heading[last:])).lower().strip()
+    return "".join(
+        "-" if c.isspace() else c
+        for c in heading
+        if c.isspace() or c in "-_" or unicodedata.category(c)[0] in "LN"
+    )
+
+
+# The `unmatched-code-delimiter` reviewer benchmark patch carries three lines of context
+# after this function, so nothing may be inserted directly below it.
+def code_span_end(line: str, begin: int) -> int:
+    """Skip closed code only; a closing delimiter must have the same run length."""
+    run = len(line[begin:]) - len(line[begin:].lstrip("`"))
+    for match in re.finditer(r"`+", line[begin + run :]):
+        if len(match.group()) == run:
+            return begin + run + match.end()
+    return begin + run
+
+
+def heading_display(heading: str, bindings: dict[str, str]) -> str:
+    """Keep display labels from inline links and bound source references."""
+    inline = {begin: finish for _, _, begin, finish in destination_spans(heading)}
+    pieces, last, index = [], 0, 0
+    while index < len(heading):
+        if heading[index] == "\\":
+            index += 2
+            continue
+        if heading[index] == "`":
+            index = code_span_end(heading, index)
+            continue
+        if heading[index] != "[":
+            index += 1
+            continue
+        end = bracket_end(heading, index)
+        if end is None:
+            break
+        label = heading[index + 1 : end - 1]
+        finish = end
+        key = reference_key(label)
+        if heading[end : end + 1] == "[":
+            finish = bracket_end(heading, end)
+            if finish is None:
+                break
+            key = reference_key(heading[end + 1 : finish - 1] or label)
+        elif heading[end : end + 1] == "(":
+            finish = inline.get(index)
+            if finish is None:
+                index = end
+                continue
+        if heading[end : end + 1] == "(" or key in bindings:
+            start = index - 1 if image_marker(heading, index) else index
+            pieces.append(heading[last:start] + heading_display(label, bindings))
+            last = finish
+        index = finish
+    return "".join(pieces) + heading[last:]
+
+
+def closed_code_spans(line: str) -> list[tuple[int, int]]:
+    """Start and end of each closed inline code span, found the way the scanners above do.
+
+    An escaped backtick opens nothing, and a span closes only on a run of its own length,
+    so a shorter run inside it is content. An unclosed run is stepped over, not a span.
+    """
+    spans, index = [], 0
+    while index < len(line):
+        if line[index] == "\\":
+            index += 2
+        elif line[index] == "`":
+            run = len(line[index:]) - len(line[index:].lstrip("`"))
+            end = code_span_end(line, index)
+            if end > index + run:
+                spans.append((index, end))
+            index = end
+        else:
+            index += 1
+    return spans
+
+
+def without_code_spans(line: str) -> str:
+    """``line`` with each closed inline code span blanked; an unclosed backtick stays.
+
+    A tag shown as an example inside code is inert text, so scanning raw HTML must not see
+    it. Blanking to a space rather than deleting keeps text on either side from joining.
+    """
+    pieces, last, index = [], 0, 0
+    while index < len(line):
+        if line[index] == "\\":
+            index += 2
+        elif line[index] == "`":
+            run = len(line[index:]) - len(line[index:].lstrip("`"))
+            end = code_span_end(line, index)
+            if end > index + run:  # closed; an unclosed run is stepped over, not consumed
+                pieces.append(line[last:index] + " ")
+                last = end
+            index = end
+        else:
+            index += 1
+    return "".join(pieces) + line[last:]
+
+
+def has_custom_anchor(text: str) -> bool:
+    """True when ``text`` carries a raw HTML tag with an `id` or `name` attribute.
+
+    The text may span lines, since a tag can: scan it whole rather than line by line.
+    Quoted values are blanked first so `title="name=x"` is not an attribute, and the
+    attribute name has to follow whitespace, so `data-name` is not `name`. Closing tags
+    and comments carry no attributes. The caller blanks code, which is inert.
+    """
+    for tag in HTML_TAG_AUDIT_RE.finditer(text):
+        text = tag.group()
+        if text.startswith(("</", "<!", "<?")):
+            continue
+        if re.search(
+            r"(?<![\w:.-])(?:id|name)\s*=", re.sub(r"\"[^\"]*\"|'[^']*'", '""', text), re.I
+        ):
+            return True
+    return False
+
+
+def block_layout(block: list[str], starts: list[int]) -> tuple[list[int], list[int], list[str]]:
+    """Per line: where its paragraph ends, where its container ends, and its text.
+
+    Both ends are offsets. A code span or an inline comment may not cross the paragraph's,
+    and an HTML comment block runs no further than the container (blockquote or list
+    item) it opened in. A paragraph ends at a blank line, a change of blockquote depth, a
+    heading, a list item, a thematic break or setext underline, or the start of an HTML
+    block of types 1-6, which is what CommonMark lets interrupt one. The text is the line
+    without its container prefix.
+    """
+    prefixes = [CONTAINER_PREFIX_RE.match(line) for line in block]
+    bodies = [line[prefix.end() :] for line, prefix in zip(block, prefixes, strict=True)]
+    depths = [prefix.group().count(">") for prefix in prefixes]
+    paragraph = [0] * len(block)
+    for index in range(len(block) - 1, -1, -1):
+        following = index + 1
+        continues = (
+            following < len(block)
+            and bodies[index].strip()
+            and ATX_RE.match(bodies[index]) is None
+            and bodies[following].strip()
+            and depths[following] == depths[index]
+            and ATX_RE.match(bodies[following]) is None
+            and prefixes[following].group("item") is None
+            and BLOCK_START_RE.match(bodies[following]) is None
+        )
+        paragraph[index] = paragraph[following] if continues else starts[index] + len(block[index])
+    container = []
+    for index, prefix in enumerate(prefixes):
+        rest = block[index][QUOTE_PREFIX_RE.match(block[index]).end() :].expandtabs(4)
+        # An item line ends with its item; any other indented line is taken to sit in one.
+        indent = (
+            len(prefix.group())
+            if prefix.group("item") and not depths[index]
+            else len(rest) - len(rest.lstrip(" "))
+        )
+        last = index
+        while (
+            last + 1 < len(block)
+            and depths[last + 1] >= depths[index]
+            and (
+                not indent
+                or not block[last + 1].strip()
+                or len(block[last + 1]) - len(block[last + 1].lstrip()) >= indent
+            )
+        ):
+            last += 1
+        container.append(starts[last] + len(block[last]))
+    return paragraph, container, bodies
+
+
+def html_block_end(
+    block: list[str],
+    bodies: list[str],
+    starts: list[int],
+    container: list[int],
+    index: int,
+    kind: str | None,
+) -> int:
+    """Offset where the HTML block of types 1-7 that begins on line ``index`` ends.
+
+    ``kind`` names the tag or declaration of types 1-5, which run to the line holding their
+    terminator. Types 6 and 7 (``None``) run to the next blank line. Any of them stops at
+    the end of its container if that comes first.
+    """
+    last = index
+    if kind is not None:
+        kind = kind.lower()
+        if kind in {"script", "pre", "style", "textarea"}:
+            ends = re.compile(rf"</{kind}>", re.I)
+        else:
+            ends = re.compile(r"\?>" if kind == "?" else r"\]\]>" if kind.startswith("![") else ">")
+        for following in range(index, len(block)):
+            if starts[following] > container[index]:
+                break
+            last = following
+            if ends.search(bodies[following]):
+                break
+    else:
+        while (
+            last + 1 < len(block)
+            and bodies[last + 1].strip()
+            and starts[last + 1] <= container[index]
+        ):
+            last += 1
+    return starts[last] + len(block[last])
+
+
+TABLE_DELIMITER_RE = re.compile(r"^\s*\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)*\|?\s*$")
+# A pipe is escaped only by an odd run of backslashes: `\\|` is a backslash and a delimiter.
+CELL_PIPE_RE = re.compile(r"(?<!\\)(?:\\\\)*(\|)")
+
+
+def split_cells(row: str) -> list[str]:
+    """``row`` cut at its unescaped pipes, which are the only ones that end a cell."""
+    cells, begin = [], 0
+    for match in CELL_PIPE_RE.finditer(row):
+        cells.append(row[begin : match.start(1)])
+        begin = match.end(1)
+    cells.append(row[begin:])
+    return cells
+
+
+def ends_table(body: str) -> bool:
+    """True when ``body`` starts a block that interrupts a table, which then ends before it.
+
+    Only constructs that can interrupt a paragraph count: a heading, a fence, a thematic
+    break, a quote, a list item or an HTML block of types 1-6. Anything else is a row, since
+    reading a row as text could hide a link in a code span while the reverse fails loudly.
+    """
+    return bool(
+        ATX_RE.match(body)
+        or FENCE_RE.match(body)
+        or THEMATIC_BREAK_RE.match(body)
+        or QUOTE_START_RE.match(body)
+        or ITEM_RE.match(body)
+        or html_block_start(body, True) is not None
+    )
+
+
+def table_rows(lines: list[str], fenced: list[bool]) -> set[int]:
+    """Indexes of the lines that are rows of a GFM table: header, delimiter row and body.
+
+    A table is a header line followed by a delimiter row such as `| --- | --- |`; its body
+    runs to the next blank line. GitHub splits each row at unescaped pipes before reading
+    inline syntax, so a code span or a link never reaches across one.
+    """
+    rows: set[int] = set()
+    # A table nested in a blockquote or list item keeps its rows after the container marker,
+    # so each row is read from there.
+    prefixes = [CONTAINER_PREFIX_RE.match(line) for line in lines]
+    bodies = [line[prefix.end() :] for line, prefix in zip(lines, prefixes, strict=True)]
+    for index in range(1, len(lines)):
+        if (
+            not fenced[index]
+            and not fenced[index - 1]
+            and "|" in bodies[index]
+            and TABLE_DELIMITER_RE.match(bodies[index])
+            and bodies[index - 1].strip()
+            and "|" in bodies[index - 1]
+        ):
+            rows.update((index - 1, index))
+            following = index + 1
+            while (
+                following < len(lines)
+                and bodies[following].strip()
+                and not fenced[following]
+                and not ends_table(bodies[following])
+                # A deeper quote or a new list item is a block of its own, and the marker is
+                # gone from the body by now.
+                and prefixes[following].group().count(">") <= prefixes[index].group().count(">")
+                and (prefixes[following].group("item") is None or prefixes[index].group("item"))
+            ):
+                rows.add(following)
+                following += 1
+    return rows
+
+
+def inert_ranges(
+    text: str, fenced: list[bool], *, markup: bool = True
+) -> list[list[tuple[int, int]]]:
+    """Per line, the character ranges that are raw text, not Markdown to rewrite.
+
+    Two kinds sit outside a fence and inside a line scanner's blind spot: an HTML comment,
+    whose contents render as nothing, and the part of a code span that continues past a
+    line break. Neither is visible one line at a time, so each is found over a whole run
+    of unfenced lines, in a single left-to-right scan. Whichever construct starts first
+    wins, as in CommonMark: a backtick inside a comment is comment text, and `<!--` inside
+    a code span is code. A code span or inline comment closes only within its paragraph; a
+    comment that begins its line is an HTML block and runs to its `-->` (or `--!>`) or the
+    end of its container. Not handled: an indented fence marker, which `fence_spans` reads as
+    a fence where the indentation makes it text in some list shapes; a list item inside a
+    blockquote, whose fence outlives the item; a comment opening inside an HTML block
+    already open, or after a blank line at four spaces of indent, which is code. A GFM
+    table row, nested in a container or not, is cut at its unescaped pipes, which are marked
+    inert so each cell is read on its own.
+    """
+    lines = text.split("\n")
+    ranges: list[list[tuple[int, int]]] = [[] for _ in lines]
+    tables = table_rows(lines, fenced)
+    number = 0
+    while number < len(lines):
+        if fenced[number]:
+            number += 1
+            continue
+        first = number
+        while number < len(lines) and not fenced[number]:
+            number += 1
+        block = lines[first:number]
+        starts, offset = [], 0
+        for line in block:
+            starts.append(offset)
+            offset += len(line) + 1
+        paragraph, container, bodies = block_layout(block, starts)
+        joined = "\n".join(block)
+        found: list[tuple[int, int]] = []
+        position = raw_until = 0
+        while position < len(joined):
+            char = joined[position]
+            line_index = bisect.bisect_right(starts, position) - 1
+
+            if char == "\\":
+                position += 2
+            elif joined.startswith("<!--", position):
+                column = position - starts[line_index] - len(block[line_index])
+                column += len(bodies[line_index])
+                block_start = column <= 3 and not bodies[line_index][:column].strip()
+                if position < raw_until:
+                    # Still inside the HTML block that the previous comment closed on this
+                    # line: a comment here is raw HTML and cannot run onto later lines.
+                    ending = COMMENT_END_RE.search(joined, position + 4, raw_until)
+                    if ending is None:
+                        position += 4
+                        continue
+                    found.append((position, ending.end()))
+                    position = ending.end()
+                    continue
+                limit = container[line_index] if block_start else paragraph[line_index]
+                # Only a comment that begins its line is an HTML block, whose `-->` may
+                # overlap its own `<!--` and which hides the rest of its container when
+                # never closed; elsewhere it is inline and an unclosed one is literal.
+                ending = COMMENT_END_RE.search(joined, position + (2 if block_start else 4), limit)
+                if ending is None and not block_start:
+                    position += 4
+                    continue
+                close = -1 if ending is None else ending.start()
+                end = limit if ending is None else ending.end()
+                found.append((position, end))
+                if block_start and close >= 0:
+                    # The rest of the line holding `-->` belongs to the HTML block. Markdown
+                    # in it is not rewritten, but a tag in it is still real HTML, so the
+                    # anchor audit (`markup=False`) keeps it visible and only stops code
+                    # spans from starting there.
+                    closing = bisect.bisect_right(starts, close) - 1
+                    line_end = min(limit, starts[closing] + len(block[closing]))
+                    if markup:
+                        end = line_end
+                        found[-1] = (position, end)
+                    else:
+                        raw_until = line_end
+                position = end
+            elif char == "<" and markup:
+                column = position - starts[line_index] - len(block[line_index])
+                column += len(bodies[line_index])
+                at_start = column <= 3 and not bodies[line_index][:column].strip()
+                opener = (
+                    HTML_BLOCK_START_RE.match(bodies[line_index][column:]) if at_start else None
+                )
+                kind = (opener.group(1) or opener.group(2)) if opener is not None else None
+                # A complete tag alone on its line opens a block only where no paragraph
+                # is running to be interrupted.
+                fresh = line_index == 0 or paragraph[line_index - 1] == (
+                    starts[line_index - 1] + len(block[line_index - 1])
+                )
+                generic = at_start and fresh and HTML_BLOCK_GENERIC_RE.match(bodies[line_index])
+                if opener is not None or generic:
+                    end = html_block_end(block, bodies, starts, container, line_index, kind)
+                    found.append((position, end))
+                    position = end
+                    continue
+                tag = HTML_TAG_RE.match(joined, position, paragraph[line_index])
+                if tag is not None:
+                    found.append((position, tag.end()))
+                    position = tag.end()
+                else:
+                    position += 1
+            elif char == "`" and position >= raw_until:
+                run = len(joined[position:]) - len(joined[position:].lstrip("`"))
+                end = position + run
+                stop = paragraph[line_index]
+                if first + line_index in tables:
+                    # A span in a table cell ends at the cell, whatever follows the pipe.
+                    cell_end = CELL_PIPE_RE.search(joined, position + run, stop)
+                    stop = cell_end.start(1) if cell_end else stop
+                for match in re.finditer(r"`+", joined[position + run : stop]):
+                    if len(match.group()) == run:
+                        end = position + run + match.end()
+                        if "\n" in joined[position:end]:
+                            found.append((position, end))
+                        break
+                position = end
+            else:
+                position += 1
+        for begin, end in found:
+            for index, line in enumerate(block):
+                low, high = starts[index], starts[index] + len(line)
+                if begin < high and end > low:
+                    ranges[first + index].append((max(begin, low) - low, min(end, high) - low))
+    if markup:
+        for index in tables:
+            ranges[index].extend(
+                (m.start(1), m.end(1)) for m in CELL_PIPE_RE.finditer(lines[index])
+            )
+    return [sorted(set(found)) for found in ranges]
+
+
+def blank_ranges(line: str, ranges: list[tuple[int, int]]) -> str:
+    """``line`` with each range replaced by spaces, so offsets into it stay valid."""
+    for begin, end in ranges:
+        line = line[:begin] + " " * (end - begin) + line[end:]
+    return line
+
+
+def destination_spans(line: str) -> list[tuple[int, int, int, int]]:
+    """Destination and protected syntax spans for inline links and definitions.
+
+    Supports nested/escaped labels and parentheses, angle destinations, optional
+    titles, and one-line reference definitions. Inline code is protected separately.
+    This intentionally does not claim to be a complete CommonMark parser.
+    """
+    spans = []
+    i = 0
+    while i < len(line):
+        if line[i] == "\\":
+            i += 2
+            continue
+        if line[i] == "`":
+            i = code_span_end(line, i)
+            continue
+        if line[i] != "[":
+            i += 1
+            continue
+        begin = i
+        depth = 1
+        i += 1
+        while i < len(line) and depth:
+            if line[i] == "\\":
+                i += 2
+                continue
+            depth += (line[i] == "[") - (line[i] == "]")
+            i += 1
+        if depth or i >= len(line):
+            continue
+        definition = line[i] == ":" and not line[:begin].strip()
+        if line[i] != "(" and not definition:
+            if line[i] == "[":
+                closing = line.find("]", i + 1)
+                if closing >= 0:
+                    spans.append((i, i, begin, closing + 1))
+                    i = closing + 1
+            continue
+        i += 1
+        while i < len(line) and line[i].isspace():
+            i += 1
+        angle = i < len(line) and line[i] == "<"
+        i += angle
+        dest_start = i
+        depth = 0
+        while i < len(line):
+            c = line[i]
+            if c == "\\":
+                i += 2
+                continue
+            if angle:
+                if c == ">":
+                    break
+            else:
+                if c.isspace() or (c == ")" and depth == 0):
+                    break
+                depth += (c == "(") - (c == ")")
+            i += 1
+        dest_end = i
+        if angle:
+            i += 1
+        if definition:
+            spans.append((dest_start, dest_end, begin, len(line)))
+            break
+        # The optional title may itself contain a parenthesis.
+        quote = None
+        while i < len(line):
+            c = line[i]
+            if c == "\\":
+                i += 2
+                continue
+            if quote:
+                if c == quote:
+                    quote = None
+            elif c in "\"'":
+                quote = c
+            elif c == ")":
+                spans.append((dest_start, dest_end, begin, i + 1))
+                i += 1
+                break
+            i += 1
+    return spans
+
+
+def image_marker(line: str, begin: int) -> bool:
+    """An image opener has an exclamation mark with an even escape prefix."""
+    if line[begin - 1 : begin] != "!":
+        return False
+    prefix = line[: begin - 1]
+    return (len(prefix) - len(prefix.rstrip("\\"))) % 2 == 0
+
+
+def bracket_end(line: str, begin: int) -> int | None:
+    """End of an escape-aware bracket label, including nested display brackets."""
+    depth, index = 1, begin + 1
+    while index < len(line):
+        if line[index] == "\\":
+            index += 2
+            continue
+        depth += (line[index] == "[") - (line[index] == "]")
+        index += 1
+        if depth == 0:
+            return index
+    return None
+
+
+def reference_key(label: str) -> str:
+    """CommonMark reference matching uses casefold and collapsed label whitespace.
+
+    Backslash spelling is retained, independently of rendered display text. See
+    spec.commonmark.org/0.31.2/#reference-links (including first-definition wins).
+    """
+    return " ".join(label.split()).casefold()
+
+
+def definition_label(line: str) -> tuple[int, int] | None:
+    # A footnote definition shares the `[label]:` shape but is not a link reference
+    # definition: renaming it into one turns the footnote into a plain link.
+    if FOOTNOTE_DEFINITION_RE.match(line):
+        return None
+    match = re.match(r"^ {0,3}\[", line)
+    if not match:
+        return None
+    begin = match.end() - 1
+    end = bracket_end(line, begin)
+    label = line[begin + 1 : end - 1] if end else ""
+    # A label holds no unescaped bracket, though link text may, and at most 999 characters:
+    # `[a[b]]: url` and a longer one are prose.
+    if re.search(r"(?<!\\)[\[\]]", label) or len(label) > 999:
+        return None
+    if end is not None and line[end : end + 1] == ":":
+        return begin, end
+    return None
+
+
+def container_split(line: str) -> tuple[str, str]:
+    """Split a blockquote or list-item prefix off a line that is a definition, else keep it whole.
+
+    A reference or footnote definition may sit inside a container, where it is scoped to the
+    file like any other. Only a definition is split, so ordinary text keeps its prefix.
+    """
+    lead = CONTAINER_PREFIX_RE.match(line).end()
+    rest = line[lead:]
+    if lead and (definition_label(rest) or FOOTNOTE_DEFINITION_RE.match(rest)):
+        return line[:lead], rest
+    return "", line
+
+
+def render_skill(directory: Path) -> tuple[str, str, str, list[str]]:
+    """Flatten a safe inventory, preserving original source-relative link identity.
+
+    One-line inline links and reference definitions/uses are supported. Multiline
+    reference bindings fail visibly instead of leaking source-local identifiers.
+    ATX headings outside fences receive explicit anchors; custom HTML anchors are
+    rejected visibly (rather than silently leaking duplicate IDs into a bundle).
+    Bare root-prefixed prose pointers retain their historical section descriptions.
+    """
+    root = directory.resolve()
+    if not (directory / "SKILL.md").resolve().is_relative_to(root):
+        raise OSError("SKILL.md: symlink escapes skill root")
     source = (directory / "SKILL.md").read_text(encoding="utf-8")
     values = parse(source).values
     name = values.get("name", directory.name)
     description = " ".join((values.get("description") or "").split())
-    body = strip_frontmatter(source)
-
-    # The skill's own H1 becomes the document title, so it is not repeated inside. Two
-    # H1s in one file make the bundle read as two documents and break any tool that
-    # splits on heading level.
-    heading = title_of(body, name)
-    if body.startswith("# "):
-        body = body.split("\n", 1)[1].lstrip("\n") if "\n" in body else ""
-
-    # Inline in the order the skill first names them, so a reader meets each section
-    # where the prose sent them rather than in alphabetical order.
-    order: list[str] = []
-    named: list[str] = []
-    for line, fenced in zip(body.split("\n"), fence_spans(body), strict=True):
-        if fenced:
-            continue
-        for match in BUNDLED_RE.finditer(line):
-            candidate = _pointer(match)
-            tail = candidate.rsplit("/", 1)[-1]
-            if "." not in tail:
-                continue  # a directory mentioned generically, not a pointer to a file
-            if candidate not in order:
-                order.append(candidate)
-                named.append(candidate)
-    # Walked recursively and at any extension, matching what the validator itself
-    # accepts as a pointer: a nested references/deep/topic.md or a non-Markdown
-    # assets/checklist.txt is bundled the same as a flat references/x.md, rather than
-    # silently passing through neither inlined nor reported.
+    sources = {"SKILL.md": strip_frontmatter(source)}
+    unresolved: list[str] = []
+    order = []
     for sub in ("references", "assets", "scripts"):
-        base = directory / sub
-        if not base.is_dir():
+        for path in sorted((directory / sub).rglob("*")):
+            if not path.is_file():
+                continue
+            relative = path.relative_to(directory).as_posix()
+            if not path.resolve().is_relative_to(root):
+                unresolved.append(f"{relative}: symlink escapes skill root")
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+                # Reference metadata is not content: left in, it is emitted as YAML and the
+                # H1 behind it is not seen as the first line, so the title is repeated.
+                sources[relative] = (
+                    strip_frontmatter(text) if relative.startswith("references/") else text
+                )
+                order.append(relative)
+            except UnicodeDecodeError:
+                continue
+    # Preserve first-mention section ordering without reading destination-selected files.
+    named = []
+    for line, fenced in zip(
+        sources["SKILL.md"].split("\n"), fence_spans(sources["SKILL.md"]), strict=True
+    ):
+        if not fenced:
+            for match in BUNDLED_RE.finditer(line):
+                candidate = _pointer(match)
+                if "." in candidate.rsplit("/", 1)[-1] and candidate not in named:
+                    named.append(candidate)
+    order.sort(
+        key=lambda relative: (named.index(relative) if relative in named else len(named), relative)
+    )
+    titles = {
+        relative: title_of(text, Path(relative).stem)
+        if relative.startswith("references/")
+        else relative
+        for relative, text in sources.items()
+        if relative != "SKILL.md"
+    }
+    # Hex encodings and separators are injective, independent of output heading levels.
+    prefix = "portable-" + directory.parent.parent.name.encode().hex() + "-" + name.encode().hex()
+    roots = {relative: prefix + "-" + relative.encode().hex() + "-root" for relative in sources}
+    # Definitions are source-local in Markdown. Flattening also changes this scope,
+    # so destination anchors alone cannot preserve reference-style link binding.
+    reference_ids: dict[str, dict[str, str]] = {}
+    reference_destinations: dict[str, dict[str, str]] = {}
+    identifier_owners: dict[str, tuple[str, str]] = {}
+    # Footnote labels are document-global, so two inlined files that each define
+    # `[^note]` would collide in the flattened document: GitHub keeps the first
+    # definition and drops the second, changing what a reader sees. Namespacing them per
+    # source file keeps both, and a use whose own file defines no such footnote is never
+    # rewritten, so it cannot be captured by another file's definition.
+    footnote_ids: dict[str, dict[str, str]] = {}
+    for relative, text in sources.items():
+        reference_ids[relative] = {}
+        reference_destinations[relative] = {}
+        footnote_ids[relative] = {}
+        if relative != "SKILL.md" and not relative.startswith("references/"):
             continue
-        for path in sorted(base.rglob("*")):
-            if path.is_file():
-                relative = path.relative_to(directory).as_posix()
-                if relative not in order:
-                    order.append(relative)
+        fenced_lines = fence_spans(text)
+        inert = inert_ranges(text, fenced_lines)
+        source_lines = text.split("\n")
+        for number, (line, fenced) in enumerate(zip(source_lines, fenced_lines, strict=True)):
+            # A definition inside a comment or a multiline code span defines nothing, so
+            # collecting it would scope a use that the copied definition then fails to match.
+            if fenced or inert[number] and not blank_ranges(line, inert[number]).strip():
+                continue
+            line = blank_ranges(line, inert[number])
+            line = container_split(line)[1]
+            footnote = FOOTNOTE_DEFINITION_RE.match(line)
+            if footnote is not None:
+                key = reference_key(footnote.group(1))
+                identity = roots[relative] + "-footnote-" + key.encode().hex()
+                scoped = "portable-footnote-" + hashlib.sha256(identity.encode()).hexdigest()
+                owner = identifier_owners.setdefault(scoped, (relative, "^" + key))
+                if owner != (relative, "^" + key):
+                    raise OSError("footnote identifier namespace collision")
+                footnote_ids[relative].setdefault(key, scoped)
+                continue
+            definition = definition_label(line)
+            if definition is None:
+                continue
+            begin, end = definition
+            key = reference_key(line[begin + 1 : end - 1])
+            if not key or not line[end + 1 :].strip():
+                unresolved.append(f"{relative}: unsupported empty/multiline reference definition")
+                continue
+            if not complete_definition(line):
+                # Trailing text that is not a title makes this paragraph text, not a definition.
+                continue
+            # Keep emitted labels below CommonMark's 999-character limit even when
+            # the original source path and label are long; assert digest ownership.
+            identity = roots[relative] + "-" + key.encode().hex()
+            scoped = "portable-reference-" + hashlib.sha256(identity.encode()).hexdigest()
+            owner = identifier_owners.setdefault(scoped, (relative, key))
+            if owner != (relative, key):
+                raise OSError("reference identifier namespace collision")
+            reference_ids[relative].setdefault(key, scoped)
+            # A title may follow the destination on the next line, indented. That form is not
+            # read here, and rewriting its text as prose would corrupt it, so it is refused.
+            following = source_lines[number + 1] if number + 1 < len(source_lines) else ""
+            if re.match(r"""\s+["'(]""", following) and not re.search(r"""["')]\s*$""", line):
+                unresolved.append(f"{relative}: unsupported multiline reference definition title")
+            spans = destination_spans(line)
+            if spans:
+                start, finish, _, _ = spans[0]
+                reference_destinations[relative].setdefault(key, line[start:finish])
 
-    sources: dict[str, str] = {}
-    titles: dict[str, str] = {}
-    for relative in order:
-        path = directory / relative
-        if not path.is_file():
-            continue  # the validator owns dangling pointers; do not report them twice
-        try:
-            sources[relative] = path.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            continue  # a binary asset cannot be inlined as text; leave the pointer be
-        if relative.startswith("references/"):
-            titles[relative] = title_of(sources[relative], Path(relative).stem)
-        else:
-            # A script's or asset's title is the path to create, not its content — the
-            # first "# " line of a shell script is a comment, not a heading, and using
-            # it as the title silently mistitled the section with unrelated prose.
-            titles[relative] = relative
+    aliases: dict[str, dict[str, str]] = {}
+    heading_ids: dict[str, dict[int, str]] = {}
+    for relative, text in sources.items():
+        aliases[relative] = {}
+        heading_ids[relative] = {}
+        if relative != "SKILL.md" and not relative.startswith("references/"):
+            continue
+        used: set[str] = set()
+        fenced_lines = fence_spans(text)
+        inert = inert_ranges(text, fenced_lines, markup=False)
+        markup_ranges = inert_ranges(text, fenced_lines)
+        table_lines = table_rows(text.split("\n"), fenced_lines)
+        scrubbed = []
+        source_lines = text.split("\n")
+        # The paragraph being read, as (first line, blockquote depth, content column), so that
+        # an underline only counts in the container the text is in.
+        paragraph_start: tuple[int, int, int] | None = None
+        list_column = 0  # where the content of the latest list item starts
+        after_blank = True
+        for index, (line, fenced) in enumerate(zip(source_lines, fenced_lines, strict=True)):
+            if fenced:
+                scrubbed.append("")
+                paragraph_start = None
+                continue
+            # A comment or the tail of a multiline code span is not a heading or an anchor.
+            visible = blank_ranges(line, inert[index])
+            if index in table_lines:
+                # Code never spans a cell, so scrub each cell on its own.
+                scrubbed.append("|".join(without_code_spans(cell) for cell in split_cells(visible)))
+            else:
+                scrubbed.append(without_code_spans(visible))
+            # Inside a raw HTML block or a comment's closing line nothing is Markdown, so a
+            # line that looks like a heading there is not one; the anchor audit above still
+            # reads the tags.
+            container_end = CONTAINER_PREFIX_RE.match(line).end()
+            if any(
+                begin <= container_end and end >= len(line) > 0
+                for begin, end in markup_ranges[index]
+            ):
+                paragraph_start = None
+                continue
+            # A heading may sit in a blockquote or a list item, or be indented up to three
+            # spaces; four spaces make it text.
+            container = CONTAINER_PREFIX_RE.match(visible)
+            lead = container.end()
+            quoted = ">" in visible[:lead]
+            depth = container.group().count(">")
+            column = len(visible[:lead].expandtabs(4))
+            if not visible.strip():
+                after_blank = True
+            else:
+                if container.group("item") and not quoted:
+                    list_column = column
+                elif after_blank and not visible[:1].isspace() and not quoted:
+                    list_column = 0
+                after_blank = False
+            match = ATX_RE.match(visible[lead:])
+            heading: str | None = None
+            if match and (column - list_column < 4 or quoted):
+                heading = re.sub(r"\s+#+\s*$", "", line[lead + match.end() :])
+                at = index
+                paragraph_start = None
+            elif not visible[lead:].strip():
+                paragraph_start = None
+                continue
+            elif (
+                SETEXT_UNDERLINE_RE.match(visible[lead:])
+                and paragraph_start is not None
+                and depth == paragraph_start[1]
+                and lead >= paragraph_start[2]
+            ):
+                # A setext heading is the paragraph above its underline, in the same
+                # container. An underline outside the item or quote the text is in is a
+                # thematic break.
+                first = paragraph_start[0]
+                heading = " ".join(
+                    source_lines[number][
+                        CONTAINER_PREFIX_RE.match(source_lines[number]).end() :
+                    ].strip()
+                    for number in range(first, index)
+                )
+                at = first
+                paragraph_start = None
+            elif visible.expandtabs(4).startswith("    ") and not quoted:
+                paragraph_start = None
+                continue
+            elif paragraph_start is None and (
+                FOOTNOTE_DEFINITION_RE.match(visible[lead:]) or complete_definition(visible[lead:])
+            ):
+                # A definition is no heading text, so an underline after it is a thematic break.
+                continue
+            else:
+                # An item marker starts a new paragraph; so does a change of quote depth.
+                if (
+                    paragraph_start is None
+                    or container.group("item")
+                    or depth != paragraph_start[1]
+                ):
+                    paragraph_start = (index, depth, lead if container.group("item") else 0)
+                continue
+            slug = source_slug(heading_display(heading, reference_destinations[relative]))
+            # A heading whose own id equals a generated anchor would take links meant for it.
+            # Underscores are dropped first: `_emphasis_` markers survive in the slug but are
+            # markup to GitHub, which renders the same id as the generated one.
+            if GENERATED_ANCHOR_RE.fullmatch(slug.replace("_", "")):
+                unresolved.append(f"{relative}: heading collides with a generated anchor")
+            alias, suffix = slug, 0
+            while alias in used:
+                suffix += 1
+                alias = f"{slug}-{suffix}"
+            used.add(alias)
+            anchor = roots[relative].removesuffix("root") + f"heading-{at}"
+            aliases[relative][alias] = anchor
+            heading_ids[relative][at] = anchor
+        if has_custom_anchor("\n".join(scrubbed)):
+            unresolved.append(f"{relative}: unsupported custom HTML anchor")
 
-    def rewrite(text: str) -> str:
+    for relative, ids in reference_ids.items():
+        if relative != "SKILL.md" and not relative.startswith("references/"):
+            continue
+        # Multi-line labels are legal Markdown, but are outside this line scanner's
+        # supported syntax. Detect actual known bindings rather than arbitrary prose.
+        fenced_lines = fence_spans(sources[relative])
+        inert = inert_ranges(sources[relative], fenced_lines)
+        visible = "\n".join(
+            "" if fenced else re.sub(r"(`+)[^`]*?\1", "", blank_ranges(line, inert[number]))
+            for number, (line, fenced) in enumerate(
+                zip(sources[relative].split("\n"), fenced_lines, strict=True)
+            )
+        )
+        for match in re.finditer(r"\[([^\[\]]+)\](?:\[([^\[\]]*)\])?", visible):
+            display, explicit = match.groups()
+            key = reference_key(explicit or display)
+            definition = visible[match.end() : match.end() + 1] == ":"
+            if "\n" in match.group(0) and (definition or key in ids):
+                unresolved.append(f"{relative}: unsupported multiline reference binding")
+
+    def scope_references(line: str, current: str, *, images_only: bool = False) -> str:
+        ids = reference_ids[current]
+        definition = definition_label(line) if complete_definition(line) else None
+        if definition and not images_only:
+            begin, end = definition
+            key = reference_key(line[begin + 1 : end - 1])
+            if key in ids:
+                return line[: begin + 1] + ids[key] + line[end - 1 :]
+            return line
+        pieces, last, index = [], 0, 0
+        while index < len(line):
+            if line[index] == "\\":
+                index += 2
+                continue
+            if line[index] == "`":
+                index = code_span_end(line, index)
+                continue
+            if line[index : index + 2] == "[^":
+                # Checked before the images-only filter: a footnote use can sit inside a
+                # link label, which is scanned in that mode, and must be scoped there too.
+                close = bracket_end(line, index)
+                # A destination after the bracket makes this a link or image whose visible
+                # text starts with `^`, so the link path below handles it instead.
+                if close is not None and line[close : close + 1] != "(":
+                    scoped = footnote_ids[current].get(reference_key(line[index + 2 : close - 1]))
+                    if scoped is not None:
+                        pieces.append(line[last:index] + "[^" + scoped + "]")
+                        last = index = close
+                        continue
+            if line[index] != "[" or (images_only and not image_marker(line, index)):
+                index += 1
+                continue
+            begin = index
+            end = bracket_end(line, begin)
+            if end is None:
+                break
+            label = line[begin + 1 : end - 1]
+            scoped_label = scope_references(label, current, images_only=True)
+            if line[end : end + 1] == "(":
+                # Images can bind inside a link label; destinations and titles cannot.
+                inline = destination_spans(line[begin:])
+                index = begin + inline[0][3] if inline and inline[0][2] == 0 else end
+                if image_marker(line, begin) and inline and inline[0][2] == 0:
+                    start, finish, _, _ = inline[0]
+                    resolve(line[begin + start : begin + finish], current, image=True)
+                if scoped_label != label:
+                    pieces.append(line[last:begin] + "[" + scoped_label + line[end - 1 : index])
+                    last = index
+                continue
+            finish = end
+            if line[end : end + 1] == "[":
+                reference_end = bracket_end(line, end)
+                if reference_end is None:
+                    if reference_key(label) in ids:
+                        unresolved.append(f"{current}: unsupported incomplete reference use")
+                    break
+                explicit = line[end + 1 : reference_end - 1]
+                key = reference_key(explicit or label)
+                # An explicit label that names no reference is not consumed: `[word][^x]`
+                # is a bracket pair followed by a footnote use, which is scanned on its own.
+                finish = reference_end if key in ids else end
+            else:
+                key = reference_key(label)
+            if key in ids:
+                if image_marker(line, begin):
+                    destination = reference_destinations[current].get(key)
+                    if destination is not None:
+                        resolve(destination, current, image=True)
+                pieces.append(line[last:begin])
+                pieces.append("[" + scoped_label + "][" + ids[key] + "]")
+                last = finish
+            elif scoped_label != label:
+                pieces.append(line[last:begin] + "[" + scoped_label + line[end - 1 : finish])
+                last = finish
+            index = finish
+        pieces.append(line[last:])
+        return "".join(pieces)
+
+    def resolve(destination: str, current: str, *, image: bool = False) -> str | None:
+        # Backslash escapes and character references are decoded together, so `\\&amp;` stays
+        # literal while `&amp;` becomes `&`; percent-decoding is a separate, later step.
+        unescaped = re.sub(
+            r"\\([!\"#$%&'()*+,./:;<=>?@\[\]\^_`{|}~-])|&(?:#[0-9]{1,7}|#[xX][0-9a-fA-F]{1,6}|[A-Za-z][A-Za-z0-9]{1,31});",
+            lambda m: m.group(1) or html.unescape(m.group()),
+            destination,
+        )
+        # Split on the literal `#` first, then percent-decode each part on its own: an encoded
+        # `%23` is part of a filename, not a fragment delimiter.
+        raw_path, separator, raw_fragment = unescaped.partition("#")
+        # A literal `?` starts a query, which names no part of a bundled file; an encoded
+        # `%3F` stays in the filename.
+        path, fragment = unquote(raw_path.partition("?")[0]), unquote(raw_fragment)
+        if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", path) or path.startswith("//"):
+            return None
+        if image:
+            # Flattened section anchors cannot render source-relative image assets.
+            unresolved.append(f"{current}: unsupported local image source: {destination}")
+            return None
+        candidate = (
+            posixpath.normpath(posixpath.join(posixpath.dirname(current), path))
+            if path
+            else current
+        )
+        # Historical root-prefixed references in reference prose are allowed only when
+        # the actual relative target is absent and the exact inventory key exists.
+        if (
+            candidate not in sources
+            and path.removeprefix("./") in sources
+            and path.removeprefix("./").startswith(("references/", "assets/", "scripts/"))
+        ):
+            candidate = path.removeprefix("./")
+        anchor = roots.get(candidate)
+        if separator and fragment:
+            anchor = aliases.get(candidate, {}).get(fragment)
+        if candidate.startswith("../") or candidate.startswith("/") or anchor is None:
+            unresolved.append(f"{current}: {destination}")
+            return None
+        return "#" + anchor
+
+    def bare(text: str, current: str) -> str:
         def one(match: re.Match[str]) -> str:
             candidate = _pointer(match)
-            title = titles.get(candidate)
+            title = prepared_titles.get(candidate)
+            if (
+                not title
+                and current == "SKILL.md"
+                and "." in candidate.rsplit("/", 1)[-1]
+                and candidate not in unresolved
+            ):
+                unresolved.append(candidate)
             return f'the "{title}" section below' if title else match.group(0)
 
+        # Consume fragments along with bare pointers, and verify their original alias.
+        pattern = re.compile(BUNDLED_RE.pattern + r"(?:#[\w%.-]+)?")
+
+        def with_fragment(match: re.Match[str]) -> str:
+            path, separator, fragment = match.group(0).partition("#")
+            if separator:
+                target = resolve(path + "#" + fragment, current)
+                title = prepared_titles.get(path.removeprefix("./"))
+                return f'the "{title}" section below' if target and title else match.group(0)
+            return one(match)
+
+        text = pattern.sub(with_fragment, text)
+        return re.sub(r'`the "([^"]+)" section below`', r'the "\1" section below', text)
+
+    def prose_pointers(text: str, current: str) -> str:
+        # Delimiter-aware, like every other scanner here: a regex pairing any two backtick
+        # runs took the inner single run of a double-backtick span for a whole span and
+        # rewrote the path inside the example it was meant to leave alone.
+        pieces, last = [], 0
+        for begin, end in closed_code_spans(text):
+            pieces.append(bare(text[last:begin], current))
+            span = text[begin:end]
+            pieces.append(span if "[" in span else bare(span, current))
+            last = end
+        pieces.append(bare(text[last:], current))
+        return "".join(pieces)
+
+    def rewrite_prose(line: str, current: str, expand_bare: bool, *, at_start: bool = True) -> str:
+        # A footnote definition's label is scoped and its text is prose like any other,
+        # so links and pointers inside it still resolve; the label itself must not
+        # reach `destination_spans`, which would read the text as a link destination.
+        label = ""
+        footnote = FOOTNOTE_DEFINITION_RE.match(line) if at_start else None
+        # A title such as `[^t]: Title` looks like a definition but was never collected
+        # as one, so it has no scoped label; it is then left as ordinary text.
+        scoped = footnote_ids[current].get(reference_key(footnote.group(1))) if footnote else None
+        if footnote is not None and scoped is not None:
+            label = line[: footnote.start(1)] + scoped + "]:"
+            line = line[footnote.end() :]
+        line = scope_references(line, current)
+        spans = destination_spans(line)
+        pieces, last = [], 0
+        for start, end, begin, finish in spans:
+            pieces.append(
+                prose_pointers(line[last:begin], current) if expand_bare else line[last:begin]
+            )
+            replacement = (
+                resolve(line[start:end], current, image=image_marker(line, begin))
+                if end > start
+                else None
+            )
+            pieces.append(line[begin:start] + (replacement or line[start:end]) + line[end:finish])
+            last = finish
+        # Protect Markdown examples in inline code while retaining legacy bare paths.
+        tail = line[last:]
+        pieces.append(prose_pointers(tail, current) if expand_bare else tail)
+        return label + "".join(pieces)
+
+    def rewrite_segment(segment: str, current: str, expand_bare: bool, first: bool) -> str:
+        # A definition inside a blockquote or list item is split from its prefix first.
+        prefix, rest = container_split(segment) if first else ("", segment)
+        return prefix + rewrite_prose(rest, current, expand_bare, at_start=first)
+
+    def rewrite(text: str, current: str, *, expand_bare: bool = True) -> str:
+        def flush(segment: str, at: int, saved: list[str], opener: str, closer: str) -> str:
+            rewritten = rewrite_segment(segment, current, expand_bare, at == 0)
+            if not opener:
+                return rewritten
+            return re.sub(f"{opener}(\\d+){closer}", lambda m: saved[int(m.group(1))], rewritten)
+
         out = []
-        for line, fenced in zip(text.split("\n"), fence_spans(text), strict=True):
+        fenced_lines = fence_spans(text)
+        inert = inert_ranges(text, fenced_lines)
+        for number, (line, fenced) in enumerate(zip(text.split("\n"), fenced_lines, strict=True)):
             if fenced:
                 out.append(line)
                 continue
-            line = BUNDLED_RE.sub(one, line)
-            # A pointer inside backticks reads as a path even after rewriting.
-            out.append(re.sub(r'`the "([^"]+)" section below`', r'the "\1" section below', line))
+            # Comments, tags and the part of a code span past a line break are copied
+            # verbatim. Each is swapped for an opaque token while the line is rewritten, so a
+            # link whose label holds one is still read as a single link; a table's cell
+            # pipes are hard boundaries instead, since a link never crosses a cell.
+            free = [char for char in map(chr, range(0xE000, 0xE010)) if char not in line]
+            opener, closer = free[:2] if len(free) >= 2 else ("", "")
+            saved: list[str] = []
+            pieces, working, start = [], "", 0
+
+            last = 0
+            for begin, end in inert[number]:
+                if line[begin:end] == "|" or not opener:
+                    if begin > last or working:
+                        pieces.append(
+                            flush(working + line[last:begin], start, saved, opener, closer)
+                        )
+                    pieces.append(line[begin:end])
+                    working, start = "", end
+                else:
+                    working += line[last:begin] + f"{opener}{len(saved)}{closer}"
+                    saved.append(line[begin:end])
+                last = end
+            if last < len(line) or working or not pieces:
+                pieces.append(flush(working + line[last:], start, saved, opener, closer))
+            out.append("".join(pieces))
         return "\n".join(out)
 
-    sections: list[str] = []
-    for relative in order:
-        if relative not in sources:
-            continue
-        title, text = titles[relative], sources[relative]
-        if relative.startswith("references/"):
-            # Rewritten before the heading is attached: a reference's own body can name
-            # a sibling pointer, but the heading must not be run through the same
-            # rewrite — a script or asset title is now the path itself, and reusing this
-            # branch for those would have that path rewritten into a self-referential
-            # "the ... section below" the moment it fed back through `BUNDLED_RE`.
-            content = rewrite(demote(drop_title(text), 3).strip())
-            sections.append(f"### {title}\n\n{content}")
-        else:
-            # Fenced verbatim, so there is no prose inside to rewrite, and the heading
-            # — the file's own path — must stay exactly as written for the same reason.
-            language = (
-                asset_language_of(relative)
-                if relative.startswith("assets/")
-                else (language_of(relative))
-            )
-            sections.append(f"### {title}\n\n```{language}\n{text.rstrip()}\n```")
+    def prose(relative: str, levels: int) -> tuple[str, str]:
+        text = sources[relative]
+        lines = text.split("\n")
+        title_anchors = f'<a name="{roots[relative]}"></a>'
+        if lines and lines[0].startswith("# "):
+            if 0 in heading_ids[relative]:
+                title_anchors += f'\n<a name="{heading_ids[relative][0]}"></a>'
+            lines[0] = ""
+        for index, anchor in heading_ids[relative].items():
+            if index != 0 or not text.startswith("# "):
+                # Inline, after any quote or list marker and the heading's `#`s: a separate
+                # line at column zero would end the list or quote the heading sits in.
+                line = lines[index]
+                lead = CONTAINER_PREFIX_RE.match(line).end()
+                atx = ATX_RE.match(line[lead:])
+                at = lead + (atx.end() if atx else 0)
+                lines[index] = f'{line[:at]}<a name="{anchor}"></a>{line[at:]}'
+        return title_anchors, demote(rewrite("\n".join(lines), relative), levels).strip()
 
-    body = rewrite(body)
-    unresolved = [relative for relative in named if relative not in titles]
-
+    # Prepare titles in their owning source without recursively expanding filenames.
+    prepared_titles = {
+        relative: rewrite(title, relative, expand_bare=False)
+        if relative.startswith("references/")
+        else title
+        for relative, title in titles.items()
+    }
+    skill_title = rewrite(title_of(sources["SKILL.md"], name), "SKILL.md", expand_bare=False)
+    # A title derived from a filename or a file's H1 becomes a heading too, and the heading
+    # loop never sees it, so check each one the way a source heading is checked.
+    for relative, title in [("SKILL.md", skill_title), *prepared_titles.items()]:
+        # The slug of what renders: a link's destination is not part of the heading text.
+        rendered = heading_display(title, reference_destinations.get(relative, {}))
+        if GENERATED_ANCHOR_RE.fullmatch(source_slug(rendered).replace("_", "")):
+            unresolved.append(f"{relative}: title collides with a generated anchor")
+        if has_custom_anchor(title):
+            unresolved.append(f"{relative}: unsupported custom HTML anchor in a generated title")
+    root_anchors, body = prose("SKILL.md", 0)
     parts = [
-        f"# {heading}",
+        root_anchors,
+        "# " + skill_title,
         "",
         f"**Skill:** `{name}`",
         "",
         f"**Use this when:** {description}",
         "",
-        body.strip(),
+        body,
     ]
+    sections = []
+    for relative in order:
+        text = sources[relative]
+        if relative.startswith("references/"):
+            anchors, content = prose(relative, 3)
+            sections.append(f"{anchors}\n### {prepared_titles[relative]}\n\n{content}")
+        else:
+            language = (
+                asset_language_of(relative)
+                if relative.startswith("assets/")
+                else language_of(relative)
+            )
+            longest = max((len(m.group(0)) for m in re.finditer(r"`{3,}", text)), default=2)
+            fence = "`" * (longest + 1)
+            sections.append(
+                f'<a name="{roots[relative]}"></a>\n### {titles[relative]}\n\n'
+                f"{fence}{language}\n{text.rstrip()}\n{fence}"
+            )
     if sections:
-        parts += ["", "## Reference material", "", *(s + "\n" for s in sections)]
+        parts += ["", "## Reference material", "", *(section + "\n" for section in sections)]
     parts += ["", NOTICE]
     return name, description, "\n".join(parts).rstrip() + "\n", unresolved
 
