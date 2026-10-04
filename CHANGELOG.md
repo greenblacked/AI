@@ -10,6 +10,19 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Publish a released catalogue to Cloudflare Workers. A `vX.Y.Z` tag still cuts the
+  GitHub Release, and the same workflow then uploads that version's skill archives,
+  portable bundle and marketplace manifest as static assets on the Worker `ai`, served
+  at `https://ai.szolotov.com` and on its `workers.dev` host. Pull requests dry-run the
+  upload with no credential. A push to `stage` uploads a Preview named `stage` of the
+  same Worker, served at `https://stage.ai.szolotov.com`; production keeps running the
+  last tagged version. With one Worker the staging token can also deploy production,
+  so `docs/ci.md` has the owner protect `stage` with a ruleset. The Cloudflare token is
+  an environment secret, not a repository secret; what to create is in `docs/ci.md`.
+- `scripts/smoke_site.sh` retries `version.txt` until it reports the expected version,
+  so a host still serving the previous version while a deploy propagates no longer
+  fails a healthy deploy.
+
 - Add three skills to `coding` for building the environment an agent works in:
   `agent-instructions` writes or repairs a repository's `AGENTS.md` and the `CLAUDE.md`
   that imports it, and passes only when a session with no history answers five fixed

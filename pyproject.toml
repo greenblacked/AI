@@ -56,7 +56,10 @@ known-first-party = ["skillcheck", "tests"]
 "tests/*" = ["S101"]
 
 [tool.codespell]
-skip = "./.git,./node_modules,./dist,*.lock"
+# `*.lock` does not match package-lock.json. That file is a generated integrity
+# record, and a hash in it is not a word, so it is named here rather than taught
+# to the dictionary.
+skip = "./.git,./node_modules,./dist,*.lock,./deploy/package-lock.json"
 quiet-level = 3
 # Each of these is a false positive, and the gate is only worth having if it stays at
 # zero. "trough" is the shape of a demand curve, not a typo for "through"; "applyable"

@@ -1,0 +1,13 @@
+--- a/.github/workflows/release.yml
++++ b/.github/workflows/release.yml
+@@ -115,10 +115,6 @@
+   cloudflare:
+     name: cloudflare
+     needs: release
+-    # All tags deploy and potentially roll back the same production Worker.
+-    concurrency:
+-      group: production-cloudflare
+-      cancel-in-progress: false
+     runs-on: ubuntu-latest
+     timeout-minutes: 20
+     permissions:

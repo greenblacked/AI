@@ -12,5 +12,5 @@
 +CODESPELL_PIN := $(shell sed -En "s/^ *CODESPELL_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml)
 +ACTIONLINT_PIN := $(shell sed -En "s/^ *ACTIONLINT_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml)
  
- .PHONY: help validate catalogue providers test coverage lint lint-strict _lint package attribution naming portable install clean release-prepare release
+ .PHONY: help validate catalogue providers test coverage lint lint-strict _lint package attribution naming portable install clean release-prepare release site
  

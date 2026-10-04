@@ -44,6 +44,7 @@ PARITY: dict[str, tuple[str, str]] = {
     "coverage": ("ci.yml", "test"),
     "package": ("ci.yml", "package"),
     "portable": ("ci.yml", "package"),
+    "site": ("deploy.yml", "dry-run"),
     "attribution": ("ci.yml", "attribution"),
     "naming": ("ci.yml", "naming"),
 }

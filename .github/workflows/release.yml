@@ -1,7 +1,10 @@
 ---
 # Cuts a GitHub Release from a `vX.Y.Z` tag: notes from CHANGELOG.md, the .skill
-# archives and the portable bundle attached. Cutting the tag itself is a maintainer
-# step (`make release`, see scripts/release.py); this workflow only publishes what a
+# archives and the portable bundle attached. The cloudflare job then uploads that
+# same catalogue to the production Worker. It runs only after the release job has
+# succeeded, holds contents: read, and takes its Cloudflare token from the
+# production environment. Cutting the tag itself is a maintainer step
+# (`make release`, see scripts/release.py); this workflow only publishes what a
 # tag that already exists on main describes.
 name: Release
 
@@ -107,4 +110,123 @@ jobs:
             gh release create "$TAG" --verify-tag --title "$TAG" \
               --notes-file "$NOTES_FILE" \
               dist/*.skill "dist/portable-skills-$TAG.zip"
+          fi
+
+  cloudflare:
+    name: cloudflare
+    needs: release
+    # All tags deploy and potentially roll back the same production Worker.
+    concurrency:
+      group: production-cloudflare
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    environment:
+      name: production
+      url: ${{ vars.DEPLOY_URL }}
+    env:
+      WRANGLER_VERSION: '4.147.0'
+      WRANGLER_SEND_METRICS: 'false'
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify the tagged commit is on main
+        # Repeated from the release job. needs: means that job succeeded, and this
+        # is the same check again so a later edit cannot drop it there and still
+        # upload whatever the tag points at.
+        run: |
+          set -Eeuo pipefail
+          git fetch origin main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main; then
+            echo "::error::$TAG points at $GITHUB_SHA, which is not on main" >&2
+            exit 1
+          fi
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.13'
+          # No cache. The release job's comment is the reason: a tag-triggered
+          # workflow must not restore a dependency cache another run wrote.
+      - name: Build the catalogue site
+        run: |
+          set -Eeuo pipefail
+          PYTHONPATH=src python scripts/build_catalogue_site.py --version "$TAG"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: '22.23.3'
+          package-manager-cache: false
+      - name: Check the Wrangler pin against the lockfile
+        run: |
+          set -Eeuo pipefail
+          python scripts/check_wrangler_pin.py
+      - name: Install Wrangler
+        working-directory: deploy
+        run: |
+          set -Eeuo pipefail
+          npm ci --ignore-scripts
+          installed=$(./node_modules/.bin/wrangler --version)
+          if [ "$installed" != "$WRANGLER_VERSION" ]; then
+            echo "::error::installed wrangler is ${installed}, pin is ${WRANGLER_VERSION}"
+            exit 1
+          fi
+      - name: Deploy the production Worker
+        id: deploy
+        working-directory: deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+          GIT_SHA: ${{ github.sha }}
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.jsonl
+        run: |
+          set -Eeuo pipefail
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID"
+            echo "::error::on the production environment (docs/ci.md)"
+            exit 1
+          fi
+          ./node_modules/.bin/wrangler deploy --config wrangler.json \
+            --no-autoconfig --no-install-skills \
+            --message "release ${TAG}" --tag "$GIT_SHA"
+          echo "deployed=true" >> "$GITHUB_OUTPUT"
+          python "$GITHUB_WORKSPACE/scripts/read_wrangler_deploy.py" \
+            "$WRANGLER_OUTPUT_FILE_PATH" >> "$GITHUB_OUTPUT"
+      - name: Smoke-test the production Worker
+        id: smoke
+        env:
+          BUILT_URL: ${{ steps.deploy.outputs.url }}
+          CONFIGURED_URL: ${{ vars.DEPLOY_URL }}
+        run: |
+          set -Eeuo pipefail
+          # The custom domain is fixed: wrangler.json routes it, so it must answer
+          # this version whether or not a DEPLOY_URL variable exists.
+          production_url=https://ai.szolotov.com
+          urls=("$production_url")
+          if [ -n "$BUILT_URL" ] && [ "$BUILT_URL" != "$production_url" ]; then
+            urls+=("$BUILT_URL")
+          fi
+          if [ -n "$CONFIGURED_URL" ] && [ "$CONFIGURED_URL" != "$BUILT_URL" ] && \
+            [ "$CONFIGURED_URL" != "$production_url" ]; then
+            urls+=("$CONFIGURED_URL")
+          fi
+          for target in "${urls[@]}"; do
+            scripts/smoke_site.sh "$target" "$TAG" greenblacked-ai
+          done
+      - name: Roll back the production Worker
+        if: failure() && steps.deploy.outputs.deployed == 'true'
+        working-directory: deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -Eeuo pipefail
+          echo "::warning::the production deploy did not pass its smoke test; rolling back"
+          if ! ./node_modules/.bin/wrangler rollback --config wrangler.json --yes \
+            --message "Automatic rollback: failed smoke test in run ${GITHUB_RUN_ID}"; then
+            echo "::error::rollback failed. The failed version may still be serving"
+            echo "::error::roll it back from the Cloudflare dashboard"
+            exit 1
           fi
