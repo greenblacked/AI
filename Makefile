@@ -17,7 +17,7 @@ MARKDOWNLINT_PIN := 0.23.2
 CODESPELL_PIN := $(strip $(shell sed -En "s/^ *CODESPELL_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml))
 ACTIONLINT_PIN := $(strip $(shell sed -En "s/^ *ACTIONLINT_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml))
 
-.PHONY: help validate catalogue providers test coverage lint lint-strict _lint package attribution naming portable install clean release-prepare release
+.PHONY: help validate catalogue providers test coverage lint lint-strict _lint package attribution naming portable install clean release-prepare release site
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-17s\033[0m %s\n", $$1, $$2}'
@@ -112,6 +112,9 @@ naming: ## Check tracked file names, the branch name and commit subjects for nam
 
 portable: ## Flatten every skill into dist/portable for ChatGPT, Grok and other assistants
 	@PYTHONPATH=src $(PYTHON) scripts/export_portable.py .
+
+site: ## Build the Cloudflare catalogue into dist/site (VERSION defaults to dev)
+	PYTHONPATH=src $(PYTHON) scripts/build_catalogue_site.py --version "$(or $(VERSION),dev)"
 
 install: ## Symlink every skill into ~/.claude/skills
 	@scripts/install.sh
