@@ -273,8 +273,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   blocking check is now `scripts/smoke_site.sh` against the Worker's `workers.dev`
   address plus a read of `wrangler deployments status` (`read_wrangler_deploy.py
   --active-is`) showing the deployed version at 100%, and the deploy must list
-  `ai.szolotov.com` as a target. The custom-domain request is logged for information
-  and cannot fail the job.
+  `ai.szolotov.com (custom domain)` as a target. The custom-domain request is logged
+  for information and cannot fail the job.
 
 - Stop a pull request description edit from leaving a red `ci` on the head commit. An
   `edited` event no longer cancels the run in flight, which the `ci` gate counted as a

@@ -5,9 +5,11 @@ Wrangler appends one JSON object per line when ``WRANGLER_OUTPUT_FILE_PATH`` is 
 The line with ``"type": "deploy"`` carries ``targets``, the URLs that version is
 served at. This prints ``url=`` and, when Wrangler sent one, ``version_id=`` in the
 form ``GITHUB_OUTPUT`` expects, and nothing else on stdout. It also prints
-``custom_url=`` when a target is exactly ``https://ai.szolotov.com``: the release
-checks that line to know this deploy attached the custom domain, because it cannot
-fetch that domain from a GitHub runner (Bot Fight Mode answers it with a 403).
+``custom_url=https://ai.szolotov.com`` when a target is that custom domain as Wrangler
+renders it, ``ai.szolotov.com (custom domain)`` with its optional zone and flag
+suffixes and no scheme: the release checks that line to know this deploy attached the
+custom domain, because it cannot fetch that domain from a GitHub runner (Bot Fight Mode
+answers it with a 403).
 
 A target is accepted only as ``https`` on a ``workers.dev`` host, with no user, port,
 path or query. Anything else is dropped. When several targets qualify, the one with
@@ -135,11 +137,23 @@ def parse_active(text: str) -> str:
     return version_id
 
 
-def _acceptable_custom(url: object) -> str | None:
-    # Exactly the production host: a subdomain is a Preview, not this deploy's address.
-    if not isinstance(url, str) or HOST_RE.fullmatch(url) is None:
-        return None
-    return url if url == PRODUCTION_URL else None
+def _is_production_custom_domain(target: object) -> bool:
+    """Whether a deploy target is Wrangler's rendering of the production custom domain.
+
+    Wrangler adds ``https://`` to a ``workers.dev`` target only. A custom-domain route is
+    the bare pattern followed by ``(custom domain)``, ``(custom domain - zone id: ...)``
+    or ``(custom domain - zone name: ...)`` and then flags such as ``[previews: enabled]``
+    (``renderRoute`` in Wrangler's deploy helpers). Without the marker the target is a
+    plain route, which does not attach the domain. The host is compared whole and
+    case-sensitively, so ``ai.szolotov.com.evil.com`` and ``evil.ai.szolotov.com`` fail.
+    """
+    if not isinstance(target, str):
+        return False
+    host, separator, rest = target.partition(" ")
+    if host != CUSTOM_DOMAIN or not separator:
+        return False
+    marker = "(custom domain"
+    return rest.startswith(marker) and rest[len(marker) : len(marker) + 1] in (")", " ")
 
 
 def parse_deploy(text: str) -> tuple[str, str, str]:
@@ -167,7 +181,7 @@ def parse_deploy(text: str) -> tuple[str, str, str]:
                 url = _acceptable(target)
                 if url is not None:
                     found.append(url)
-                if _acceptable_custom(target) is not None:
+                if _is_production_custom_domain(target):
                     custom_found = PRODUCTION_URL
         if not found:
             continue

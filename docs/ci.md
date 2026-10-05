@@ -346,8 +346,12 @@ sits outside the zone, so the checks go there, in this order:
 
 1. [`scripts/read_wrangler_deploy.py`](../scripts/read_wrangler_deploy.py) reads the
    deploy log. The job fails if there is no `workers.dev` address, or if the log does not
-   list `https://ai.szolotov.com` as a target, because then this deploy did not attach the
-   custom domain.
+   list `ai.szolotov.com (custom domain)` as a target, because then this deploy did not
+   attach the custom domain. Wrangler writes a custom-domain target as the bare host
+   followed by that marker and its flags, for example `ai.szolotov.com (custom domain)
+   [previews: enabled]`, and puts `https://` on `workers.dev` targets only, so the script
+   matches that form and prints `custom_url=https://ai.szolotov.com`; a plain route or a
+   look-alike host does not count.
 2. [`scripts/smoke_site.sh`](../scripts/smoke_site.sh) checks the `workers.dev` address:
    `version.txt` equals the tag, then the manifest, `/` and the archive.
 3. `wrangler deployments status --json`, read through

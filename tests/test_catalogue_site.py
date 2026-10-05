@@ -831,6 +831,10 @@ def _deployment(*versions):
 
 WORKERS_DEV = "https://greenblacked-ai.account.workers.dev"
 PRODUCTION = "https://ai.szolotov.com"
+# Wrangler's `renderRoute` writes a custom domain as the bare pattern, never with a scheme;
+# only workers.dev targets get `https://`. The first string is what the live v0.1.0 deploy
+# logged for deploy/wrangler.json's route.
+CUSTOM_TARGET = "ai.szolotov.com (custom domain) [previews: enabled]"
 DEPLOYED = "12345678-1234-1234-1234-123456789abc"
 
 
@@ -838,10 +842,19 @@ def _deploy_line(targets, **extra):
     return json.dumps({"type": "deploy", "targets": targets, **extra}) + "\n"
 
 
+def test_the_custom_target_is_what_wrangler_renders_for_the_configured_route():
+    config = json.loads((REPO / "deploy" / "wrangler.json").read_text(encoding="utf-8"))
+    (route,) = config["routes"]
+    assert route["custom_domain"] is True and route["previews_enabled"] is True
+    assert f"{route['pattern']} (custom domain) [previews: enabled]" == CUSTOM_TARGET
+
+
 def test_the_deploy_log_reports_the_production_custom_domain(tmp_path, capsys):
     reader = load_script("read_wrangler_deploy.py")
     log = tmp_path / "wrangler.jsonl"
-    log.write_text(_deploy_line([WORKERS_DEV, PRODUCTION], version_id=DEPLOYED), encoding="utf-8")
+    log.write_text(
+        _deploy_line([WORKERS_DEV, CUSTOM_TARGET], version_id=DEPLOYED), encoding="utf-8"
+    )
     assert reader.main([str(log)]) == 0
     assert capsys.readouterr().out.splitlines() == [
         f"url={WORKERS_DEV}",
@@ -855,6 +868,22 @@ def test_the_deploy_log_reports_the_production_custom_domain(tmp_path, capsys):
     )
 
 
+@pytest.mark.parametrize(
+    "target",
+    [
+        "ai.szolotov.com (custom domain)",
+        "ai.szolotov.com (custom domain) [previews: enabled]",
+        "ai.szolotov.com (custom domain) [production: enabled, previews: disabled]",
+        "ai.szolotov.com (custom domain - zone name: szolotov.com)",
+        "ai.szolotov.com (custom domain - zone name: szolotov.com) [previews: enabled]",
+        "ai.szolotov.com (custom domain - zone id: 0123456789abcdef0123456789abcdef)",
+    ],
+)
+def test_every_rendering_of_the_production_custom_domain_is_accepted(target):
+    reader = load_script("read_wrangler_deploy.py")
+    assert reader.parse_deploy(_deploy_line([target, WORKERS_DEV]))[2] == PRODUCTION
+
+
 def test_a_deploy_without_the_custom_domain_prints_no_custom_url(tmp_path, capsys):
     reader = load_script("read_wrangler_deploy.py")
     log = tmp_path / "wrangler.jsonl"
@@ -863,29 +892,42 @@ def test_a_deploy_without_the_custom_domain_prints_no_custom_url(tmp_path, capsy
     assert capsys.readouterr().out == f"url={WORKERS_DEV}\n"
     # Only the last deploy line counts: an earlier custom domain does not cover a later
     # deploy that dropped it.
-    text = _deploy_line([WORKERS_DEV, PRODUCTION]) + _deploy_line([WORKERS_DEV])
+    text = _deploy_line([WORKERS_DEV, CUSTOM_TARGET]) + _deploy_line([WORKERS_DEV])
     assert reader.parse_deploy(text)[2] == ""
 
 
 @pytest.mark.parametrize(
-    "url",
+    "target",
     [
-        "http://ai.szolotov.com",
-        "https://user@ai.szolotov.com",
-        "https://ai.szolotov.com:8443",
-        "https://ai.szolotov.com/path",
-        "https://ai.szolotov.com/?q=1",
-        "https://ai.szolotov.com#frag",
-        "https://ai.szolotov.com.evil.com",
-        "https://stage.ai.szolotov.com",
-        "https://AI.szolotov.com",
-        "https://szolotov.com",
-        "https://ai.szolotov.com\ncustom_url=https://evil.example",
+        "ai.szolotov.com.evil.com (custom domain)",
+        "evil.ai.szolotov.com (custom domain)",
+        "stage.ai.szolotov.com (custom domain)",
+        "AI.szolotov.com (custom domain)",
+        "szolotov.com (custom domain)",
+        # A route, not a custom domain: it does not attach the domain.
+        "ai.szolotov.com",
+        "ai.szolotov.com (zone name: szolotov.com)",
+        "ai.szolotov.com/* (zone name: szolotov.com)",
+        "ai.szolotov.com [previews: enabled]",
+        # Wrangler never writes a custom domain with a scheme, a port or a path.
+        "https://ai.szolotov.com",
+        "https://ai.szolotov.com (custom domain)",
+        "ai.szolotov.com:8443 (custom domain)",
+        "ai.szolotov.com/path (custom domain)",
+        "ai.szolotov.com  (custom domain)",
+        "ai.szolotov.com (custom domains)",
+        "ai.szolotov.com (custom domainX)",
+        "ai.szolotov.com (CUSTOM DOMAIN)",
+        "x ai.szolotov.com (custom domain)",
+        "ai.szolotov.com\n(custom domain)",
+        "",
+        7,
+        None,
     ],
 )
-def test_only_the_exact_production_host_counts_as_the_custom_domain(url):
+def test_only_the_exact_production_host_with_the_marker_counts_as_the_custom_domain(target):
     reader = load_script("read_wrangler_deploy.py")
-    assert reader.parse_deploy(_deploy_line([WORKERS_DEV, url]))[2] == ""
+    assert reader.parse_deploy(_deploy_line([WORKERS_DEV, target]))[2] == ""
 
 
 def test_one_worker_serves_production_and_previews_on_the_custom_domain():
@@ -1067,6 +1109,37 @@ def test_production_smoke_passes_on_workers_dev_without_fetching_the_custom_doma
     result, calls = _run_step(tmp_path, "release.yml", SMOKE, PRODUCTION_ENV)
     assert result.returncode == 0, result.stderr
     assert calls == [f"smoke {WORKERS_DEV} v0.1.1 greenblacked-ai"]
+
+
+def _deploy_outputs(tmp_path, targets):
+    """What the deploy step writes to GITHUB_OUTPUT for a wrangler log with these targets."""
+    log = tmp_path / "wrangler-output.jsonl"
+    log.write_text(_deploy_line(targets, version_id=DEPLOYED), encoding="utf-8")
+    result = subprocess.run(  # noqa: S603
+        [sys.executable, str(REPO / "scripts" / "read_wrangler_deploy.py"), str(log)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return dict(line.split("=", 1) for line in result.stdout.splitlines())
+
+
+def test_production_smoke_accepts_the_targets_wrangler_really_logs(tmp_path):
+    outputs = _deploy_outputs(tmp_path, [WORKERS_DEV, CUSTOM_TARGET])
+    env = {"WORKERS_DEV_URL": outputs["url"], "CUSTOM_URL": outputs["custom_url"], "TAG": "v0.1.1"}
+    result, calls = _run_step(tmp_path, "release.yml", SMOKE, env)
+    assert result.returncode == 0, result.stdout
+    assert calls == [f"smoke {WORKERS_DEV} v0.1.1 greenblacked-ai"]
+
+
+@pytest.mark.parametrize("target", ["ai.szolotov.com", "https://ai.szolotov.com"])
+def test_production_smoke_rejects_a_deploy_that_logged_no_custom_domain(tmp_path, target):
+    outputs = _deploy_outputs(tmp_path, [WORKERS_DEV, target])
+    assert "custom_url" not in outputs
+    env = {"WORKERS_DEV_URL": outputs["url"], "CUSTOM_URL": "", "TAG": "v0.1.1"}
+    result, calls = _run_step(tmp_path, "release.yml", SMOKE, env)
+    assert result.returncode != 0
+    assert calls == []
 
 
 def test_production_smoke_fails_when_workers_dev_fails(tmp_path):
