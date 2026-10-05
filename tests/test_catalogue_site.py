@@ -946,32 +946,24 @@ def test_one_worker_serves_production_and_previews_on_the_custom_domain():
     assert "env" not in config
 
 
-def test_the_stage_branch_uploads_a_preview_and_smokes_it_through_workers_dev():
+def test_the_stage_branch_uploads_a_preview_and_fetches_nothing_behind_access():
     workflow = (REPO / ".github" / "workflows" / "deploy.yml").read_text(encoding="utf-8")
     assert "--env" not in workflow
     assert "wrangler rollback" not in workflow
     assert "wrangler deploy --config" not in workflow
     deploy = workflow.split("      - name: Upload the stage Preview\n", 1)[1].split(
-        "      - name: Smoke-test the stage Preview\n", 1
+        "      - name: Check the stage Preview's address\n", 1
     )[0]
     assert "wrangler preview --config wrangler.json --name stage" in deploy
     assert "WRANGLER_OUTPUT_FILE_PATH" in deploy
     assert 'read_wrangler_deploy.py" --preview' in deploy
-    smoke = workflow.split("      - name: Smoke-test the stage Preview\n", 1)[1]
-    assert "stage_url=https://stage.ai.szolotov.com" in smoke
-    assert "::error::Wrangler did not report ${stage_url} for this Preview" in smoke
-    assert "enable ai.szolotov.com for Preview traffic (docs/ci.md)" in smoke
-    # The blocking target is the workers.dev Preview URL, and nothing else is smoked.
-    assert 'if [ -z "$WORKERS_DEV_URL" ]' in smoke
-    assert "::error::Wrangler reported no workers.dev Preview URL" in smoke
-    assert smoke.count("scripts/smoke_site.sh") == 1
-    assert 'scripts/smoke_site.sh "$WORKERS_DEV_URL" "$VERSION" greenblacked-ai' in smoke
-    # The configured URL names the custom domain, so fetching it would bring the 403 back.
-    assert "CONFIGURED_URL" not in smoke
-    assert "urls=(" not in smoke
-    # The stage custom-domain fetch is information only.
-    assert '"${stage_url}/version.txt" || true)' in smoke
-    assert "::notice::Bot Fight Mode blocks GitHub runners on stage.ai.szolotov.com" in smoke
+    check = workflow.split("      - name: Check the stage Preview's address\n", 1)[1]
+    assert "stage_url=https://stage.ai.szolotov.com" in check
+    assert "::error::Wrangler did not report ${stage_url} for this Preview" in check
+    assert "enable ai.szolotov.com for Preview traffic (docs/ci.md)" in check
+    # Stage is behind Cloudflare Access, so the job fetches nothing from it.
+    assert "smoke_site.sh" not in workflow
+    assert "curl" not in check
 
 
 def _production_steps():
@@ -1223,43 +1215,32 @@ def test_the_custom_domain_probe_never_fails_on_any_answer(tmp_path, env):
     assert "::notice::" not in result.stdout
 
 
-STAGE = "Smoke-test the stage Preview"
+STAGE = "Check the stage Preview's address"
 STAGE_URL = "https://stage.ai.szolotov.com"
 STAGE_ENV = {
     "WORKERS_DEV_URL": "https://stage-ai.account.workers.dev",
     "CUSTOM_URL": STAGE_URL,
-    "VERSION": "stage-abc1234",
 }
 
 
-def test_the_preview_smoke_passes_when_only_the_custom_domain_answers_403(tmp_path):
-    result, calls = _run_step(tmp_path, "deploy.yml", STAGE, {**STAGE_ENV, "STUB_CURL_CODE": "403"})
+def test_the_preview_check_passes_on_the_stage_host_without_fetching_anything(tmp_path):
+    result, calls = _run_step(tmp_path, "deploy.yml", STAGE, STAGE_ENV)
     assert result.returncode == 0, result.stderr
-    assert calls[0] == "smoke https://stage-ai.account.workers.dev stage-abc1234 greenblacked-ai"
-    assert len(calls) == 2 and calls[1].endswith(f"{STAGE_URL}/version.txt")
-    assert (
-        "::notice::Bot Fight Mode blocks GitHub runners on stage.ai.szolotov.com" in result.stdout
-    )
-
-
-def test_the_preview_smoke_fails_when_workers_dev_fails_whatever_the_domain_says(tmp_path):
-    env = {**STAGE_ENV, "STUB_SMOKE_RC": "1", "STUB_CURL_CODE": "200"}
-    result, _calls = _run_step(tmp_path, "deploy.yml", STAGE, env)
-    assert result.returncode != 0
-
-
-def test_the_preview_smoke_fails_on_an_empty_workers_dev_url(tmp_path):
-    result, calls = _run_step(tmp_path, "deploy.yml", STAGE, {**STAGE_ENV, "WORKERS_DEV_URL": ""})
-    assert result.returncode != 0
-    assert "::error::Wrangler reported no workers.dev Preview URL" in result.stdout
+    assert f"Wrangler reported {STAGE_URL} for this Preview" in result.stdout
     assert calls == []
 
 
-def test_the_preview_smoke_fails_without_the_stage_host_even_when_workers_dev_passes(tmp_path):
-    result, calls = _run_step(tmp_path, "deploy.yml", STAGE, {**STAGE_ENV, "CUSTOM_URL": ""})
+@pytest.mark.parametrize(
+    "custom_url",
+    ["", "https://ai.szolotov.com", "https://other.ai.szolotov.com", f"{STAGE_URL}/"],
+    ids=["missing", "production", "other-preview", "trailing-slash"],
+)
+def test_the_preview_check_fails_without_the_stage_host(tmp_path, custom_url):
+    env = {**STAGE_ENV, "CUSTOM_URL": custom_url}
+    result, calls = _run_step(tmp_path, "deploy.yml", STAGE, env)
     assert result.returncode != 0
     assert "::error::Wrangler did not report https://stage.ai.szolotov.com" in result.stdout
-    assert calls[0].startswith("smoke https://stage-ai.account.workers.dev")
+    assert calls == []
 
 
 def test_production_deploys_are_serialized_across_release_tags():
