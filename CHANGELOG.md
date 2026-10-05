@@ -10,6 +10,13 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Cut a release from the Actions tab. After the prepare pull request merges, running Cut
+  release on `main` with a version checks it with the new `scripts/release.py check`
+  (a non-empty changelog section, no such tag on `origin`, a version greater than every
+  existing tag, `HEAD` equal to `origin/main`), creates the annotated tag through the API
+  and dispatches `release.yml` on it. `release.yml` now also accepts `workflow_dispatch`,
+  but only on a `vX.Y.Z` tag ref; its first step in each job refuses anything else.
+  `make release` and a hand-pushed tag still work.
 - Grow the catalogue site from one page into a full site, in a new design. The front
   page now lists the eight plugins, each linking to its own page at `/plugins/<plugin>/`
   with its skills, and each skill to a page at `/plugins/<plugin>/<skill>/` carrying its
@@ -260,6 +267,20 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Smoke-test releases and the stage Preview through `workers.dev` instead of the custom
+  domain. Bot Fight Mode on the zone answers GitHub runners with a 403, which rolled
+  production back on `v0.1.0` twice, and it cannot be skipped by a WAF rule. The
+  blocking check is now `scripts/smoke_site.sh` against the Worker's `workers.dev`
+  address plus a read of `wrangler deployments status` (`read_wrangler_deploy.py
+  --active-is`) showing the deployed version at 100%, and the deploy must list
+  `ai.szolotov.com (custom domain)` as a target. The custom-domain request is logged
+  for information and cannot fail the job.
+
+- Stop a pull request description edit from leaving a red `ci` on the head commit. An
+  `edited` event no longer cancels the run in flight, which the `ci` gate counted as a
+  failure, and the `attribution` and `naming` jobs read the title and body from the API
+  when they run, with `pull-requests: read`, instead of from the event payload frozen at
+  the moment the run was triggered.
 - Roll a failed production release back to the version that was serving before it. The
   `cloudflare` job now records that version with `wrangler deployments status --json`
   before deploying and passes its ID to `wrangler rollback`; without one, Wrangler picks

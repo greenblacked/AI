@@ -403,6 +403,99 @@ def test_prepare_then_land_then_tag_end_to_end(repo):
     assert "Added a new thing." in show.stdout
 
 
+# --- check ----------------------------------------------------------------------------
+
+
+def test_check_passes_for_a_prepared_release_at_origin_main(repo, capsys):
+    prepare_and_land(repo, "1.1.0")
+    assert release.check(repo, "1.1.0") == 0
+    assert "v1.1.0 is ready to cut" in capsys.readouterr().out
+    # check creates nothing, locally or on the remote.
+    assert git(repo, "tag", "--list").stdout.strip() == ""
+    assert "refs/tags/v1.1.0" not in git(repo, "ls-remote", "--tags", "origin").stdout
+
+
+def test_check_accepts_a_leading_v(repo):
+    prepare_and_land(repo, "1.1.0")
+    assert release.check(repo, "v1.1.0") == 0
+
+
+def test_check_does_not_need_a_branch_or_a_clean_tree(repo):
+    # CI checks out a detached HEAD, and `tag` would refuse both of these.
+    prepare_and_land(repo, "1.1.0")
+    git(repo, "checkout", "-q", "--detach")
+    (repo / "untracked.txt").write_text("x", encoding="utf-8")
+    assert release.check(repo, "1.1.0") == 0
+
+
+def test_check_refuses_a_malformed_version(repo, capsys):
+    assert release.check(repo, "1.1") == 1
+    assert "not a valid" in capsys.readouterr().err
+
+
+def test_check_refuses_a_missing_section(repo, capsys):
+    assert release.check(repo, "9.9.9") == 1
+    assert "has no [9.9.9] section" in capsys.readouterr().err
+
+
+def test_check_refuses_an_empty_section(repo, capsys):
+    write_changelog(
+        repo,
+        CHANGELOG_WITH_UNRELEASED_BODY.replace(
+            "## [1.0.0] - 2026-01-01\n\n- Initial release.",
+            "## [1.0.0] - 2026-01-01\n",
+        ),
+    )
+    commit_all(repo, "empty the 1.0.0 section")
+    git(repo, "push", "-q", "origin", "main")
+    assert release.check(repo, "1.0.0") == 1
+    assert "is empty" in capsys.readouterr().err
+
+
+def test_check_refuses_when_the_changelog_is_missing(tmp_path, capsys):
+    assert release.check(tmp_path, "1.0.0") == 1
+    assert "does not exist" in capsys.readouterr().err
+
+
+def test_check_refuses_when_the_tag_exists_on_the_remote(repo, capsys):
+    git(repo, "tag", "v1.0.0")
+    git(repo, "push", "-q", "origin", "v1.0.0")
+    git(repo, "tag", "-d", "v1.0.0")
+    assert release.check(repo, "1.0.0") == 1
+    assert "already exists on origin" in capsys.readouterr().err
+
+
+def test_check_refuses_a_version_not_greater_than_a_local_tag(repo, capsys):
+    prepare_and_land(repo, "1.1.0")
+    git(repo, "tag", "v2.0.0")
+    assert release.check(repo, "1.1.0") == 1
+    assert "not greater than the newest existing version 2.0.0" in capsys.readouterr().err
+
+
+def test_check_refuses_a_version_not_greater_than_a_remote_only_tag(repo, capsys):
+    prepare_and_land(repo, "1.1.0")
+    git(repo, "tag", "v2.0.0")
+    git(repo, "push", "-q", "origin", "v2.0.0")
+    git(repo, "tag", "-d", "v2.0.0")
+    assert release.check(repo, "1.1.0") == 1
+    assert "not greater than the newest existing version 2.0.0" in capsys.readouterr().err
+
+
+def test_check_refuses_when_head_is_not_origin_main(repo, capsys):
+    prepare_and_land(repo, "1.1.0")
+    git(repo, "commit", "-q", "--allow-empty", "-m", "a local commit not yet pushed")
+    assert release.check(repo, "1.1.0") == 1
+    assert "not up to date with origin/main" in capsys.readouterr().err
+
+
+def test_check_refuses_when_head_is_behind_origin_main(repo, capsys):
+    prepare_and_land(repo, "1.1.0")
+    git(repo, "reset", "-q", "--hard", "HEAD~1")
+    # The 1.1.0 section is gone from the older commit, so check the one still there.
+    assert release.check(repo, "1.0.0") == 1
+    assert "not up to date with origin/main" in capsys.readouterr().err
+
+
 # --- notes ----------------------------------------------------------------------------
 
 
@@ -589,6 +682,11 @@ def test_main_prepare_via_argv(repo):
 
 def test_main_tag_via_argv(repo):
     assert release.main(["--root", str(repo), "tag", "1.0.0"]) == 0
+
+
+def test_main_check_via_argv(repo):
+    prepare_and_land(repo, "1.1.0")
+    assert release.main(["--root", str(repo), "check", "1.1.0"]) == 0
 
 
 def test_main_notes_via_argv(repo, capsys):

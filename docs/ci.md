@@ -9,8 +9,9 @@ evals — monthly over everything, and on every pull request over what that pull
 touched. `dependabot-auto-merge.yml` merges a Dependabot pull request once the two
 gates have, `ci-triage.yml` explains a failed CI or Security run in one comment,
 `release.yml` publishes a tagged release and then deploys that catalogue to Cloudflare,
+`cut-release.yml` creates that tag from the Actions tab and hands it to `release.yml`,
 and `deploy.yml` dry-runs that upload on a pull request and uploads a `stage` Preview of
-the same Worker on a push to `stage`. None of `dependabot-auto-merge.yml`, `ci-triage.yml`, `release.yml` or
+the same Worker on a push to `stage`. None of `dependabot-auto-merge.yml`, `ci-triage.yml`, `cut-release.yml`, `release.yml` or
 `deploy.yml` is a required check.
 
 ## Execution flow
@@ -38,7 +39,7 @@ prove the separate security workflow passed. Merge still requires both gates.
 | Event | Required workflows | Cancellation |
 | --- | --- | --- |
 | Pull request opened, reopened or updated | CI and Security | A newer run for the same PR supersedes the older run |
-| Pull request title, body or base branch edited | CI only | Supersedes an in-progress CI run for that PR. Security's existing result on the head commit stands, since `security.yml` does not list `edited`. |
+| Pull request title, body or base branch edited | CI only | Does not cancel an in-progress CI run for that PR: the edit queues behind it in the group's one pending slot and then runs, so a description edited seconds after opening cannot turn the `opened` run's `ci` red by cancelling it. Security's existing result on the head commit stands, since `security.yml` does not list `edited`. |
 | Push to `main` | CI and Security | Each run has its own concurrency group |
 | Merge queue `checks_requested` | CI and Security | Each candidate run has its own concurrency group |
 | Manual dispatch | CI and Security when dispatched individually | Each run has its own concurrency group |
@@ -53,8 +54,10 @@ and [concurrency behavior](https://docs.github.com/en/actions/writing-workflows/
 ## `.github/workflows/ci.yml` — CI
 
 Triggers on push to `main`; on a pull request opened, synchronized, reopened or edited
-— `edited` is included because the naming and attribution jobs below read the title and
-body from the event payload, so changing either has to produce a fresh run; on
+— `edited` is included because the naming and attribution jobs below check the title and
+body, so changing either has to produce a fresh run; those two jobs read both from the
+API when they run rather than from the event payload, which is frozen when the run is
+triggered, and an edit does not cancel the run in flight (see the table above); on
 merge-group `checks_requested`; and on `workflow_dispatch`. Top-level
 `permissions: {}`; each job grants itself the minimum. Every tool the workflow installs
 or downloads is pinned in the workflow-level `env` block — `CLAUDE_CODE_VERSION`,
@@ -74,8 +77,8 @@ gives, and at workflow level so a cache key can name one.
 | `lint-yaml` | `lint yaml` | yamllint in `--strict` mode found a problem. Config in `.yamllint.yaml`, version in `YAMLLINT_VERSION`: a release that adds a rule would otherwise redden the build on YAML nobody touched. |
 | `lint-actions` | `lint workflows` | actionlint rejected a workflow. It also runs shellcheck over every inline `run:` block, which is where all of this repository's shell lives. The binary is downloaded at a pinned version and checked against a recorded digest before it runs. |
 | `links` | `check links` | lychee found a broken link. It runs `--offline`, so only local paths are resolved — a relative link between documents, or from a document into the source tree, that does not exist. |
-| `attribution` | `attribution` | [`scripts/check_attribution.py`](../scripts/check_attribution.py) found a Co-authored-by trailer, a footer or trailer naming a coding assistant, an assistant session link, a branch name prefixed for a tool rather than the change it makes, or a commit author or committer naming a coding assistant, in the pull request's own commits, branch name, title or body. It needs a base ref and pull request text to mean anything, so it only scans on a pull request; a push to `main` or a merge-group run reports success without one, because those commits already passed this check on the pull request that produced them. It is not part of `make catalogue` for the same reason — there is no base ref to diff against outside a pull request — but `make attribution` reproduces the commit and branch checks against `origin/main` locally; the pull request title and body are checked only in CI, once the pull request exists. Whether the rest of a branch name matches `<type>/<short-kebab-description>` is `naming`'s row below, not this one — a tool-named branch still fails here first, since naming who wrote a change is attribution's job and the rest of the shape is a naming-convention question. |
-| `naming` | `naming` | [`scripts/check_naming.py`](../scripts/check_naming.py) found a naming-convention violation: a skill directory, agent or command file, `references/*.md`, `evals/*.json`, Python module, workflow or doc whose name does not match its category's convention (checked against every file `git ls-files` tracks, not only what the pull request touched); a branch name that does not match the `<type>/<short-kebab-description>` shape; or, on a pull request, a commit subject or the pull request title that fails the rules [`CONTRIBUTING.md`](../CONTRIBUTING.md#commits) sets out, including the new 72-character cap. A merge commit and anything from Dependabot — by author or by a `dependabot/` branch — are exempt from the commit and title checks. File names are checked on every event; the branch, commit and title checks need a base ref and pull request text, so only a pull request supplies `--range`, the same reduced scope `attribution` gives a push or merge-group run. `make naming` reproduces the file-name, branch and commit checks against `origin/main` locally; the pull request title is checked only in CI, once the pull request exists. Code identifiers are a separate, existing gate: ruff's `pep8-naming` (`N`) rules run in `python security lint` in `security.yml`, because that check only ever sees Python and this one would just reimplement it. |
+| `attribution` | `attribution` | [`scripts/check_attribution.py`](../scripts/check_attribution.py) found a Co-authored-by trailer, a footer or trailer naming a coding assistant, an assistant session link, a branch name prefixed for a tool rather than the change it makes, or a commit author or committer naming a coding assistant, in the pull request's own commits, branch name, title or body. It needs a base ref and pull request text to mean anything, so it only scans on a pull request, and there it reads the title and body from the API when the job runs, not from the event payload, which is frozen when the run is triggered — the job holds `pull-requests: read` beside `contents: read` for that read alone, and a failed read fails the job rather than passing as an empty body; a push to `main` or a merge-group run reports success without one, because those commits already passed this check on the pull request that produced them. It is not part of `make catalogue` for the same reason — there is no base ref to diff against outside a pull request — but `make attribution` reproduces the commit and branch checks against `origin/main` locally; the pull request title and body are checked only in CI, once the pull request exists. Whether the rest of a branch name matches `<type>/<short-kebab-description>` is `naming`'s row below, not this one — a tool-named branch still fails here first, since naming who wrote a change is attribution's job and the rest of the shape is a naming-convention question. |
+| `naming` | `naming` | [`scripts/check_naming.py`](../scripts/check_naming.py) found a naming-convention violation: a skill directory, agent or command file, `references/*.md`, `evals/*.json`, Python module, workflow or doc whose name does not match its category's convention (checked against every file `git ls-files` tracks, not only what the pull request touched); a branch name that does not match the `<type>/<short-kebab-description>` shape; or, on a pull request, a commit subject or the pull request title that fails the rules [`CONTRIBUTING.md`](../CONTRIBUTING.md#commits) sets out, including the new 72-character cap. A merge commit and anything from Dependabot — by author or by a `dependabot/` branch — are exempt from the commit and title checks. File names are checked on every event; the branch, commit and title checks need a base ref and pull request text, so only a pull request supplies `--range`, the same reduced scope `attribution` gives a push or merge-group run. On a pull request the title is read from the API when the job runs rather than from the event payload, under the same `pull-requests: read` grant `attribution` holds. `make naming` reproduces the file-name, branch and commit checks against `origin/main` locally; the pull request title is checked only in CI, once the pull request exists. Code identifiers are a separate, existing gate: ruff's `pep8-naming` (`N`) rules run in `python security lint` in `security.yml`, because that check only ever sees Python and this one would just reimplement it. |
 | `package` | `package` | `scripts/package_skills.py` could not build a `.skill` archive for every skill, or an archive it built is not loadable. It refuses to package a skill that does not validate, so this failing after `validate-skills` passed means a packaging problem, not a content one. Each archive is then opened and checked for a `SKILL.md` at its root whose `name` matches the archive, because building without error only proves a zip was written — a broken layout would ship green and fail at install, for someone else. The archives upload as the `skills` artifact. |
 | `ci` | `ci` | Any dependency listed in its own `needs:` did not report exactly `success`, or the result payload did not match the expected jobs. A skipped package after a failed prerequisite also fails this gate. |
 
@@ -180,7 +183,7 @@ Triggers on `pull_request` (`opened`, `synchronize`, `reopened`), never
 `pull_request_target` — the base-branch checkout and secret exposure that trigger allows
 is exactly what zizmor's dangerous-triggers audit exists to catch, and nothing here needs
 it. Top-level `permissions: {}`; the one job grants itself `contents: write` and
-`pull-requests: write` (`release.yml`'s `release` job also holds `contents: write`, and
+`pull-requests: write` (`release.yml`'s `release` job and `cut-release.yml`'s job also hold `contents: write`, and
 `codeql`
 in `security.yml` also writes, but only `security-events`, to publish its scan
 results, not to change anything a person reads as the repository's content).
@@ -271,10 +274,18 @@ response instead.
 
 ## `.github/workflows/release.yml` — Release
 
-Triggers only on a tag push matching `vX.Y.Z`. Top-level `permissions: {}`. The
+Triggers on a tag push matching `vX.Y.Z`, and on `workflow_dispatch`, which takes no
+inputs and is what [`cut-release.yml`](#githubworkflowscut-releaseyml--cut-release) sends
+after creating the tag through the API: a tag made with `GITHUB_TOKEN` does not start the
+tag-push trigger, and a dispatch is one of the two events (with `repository_dispatch`) a
+`GITHUB_TOKEN` call does start. A
+dispatch starts the workflow at whatever ref it is pointed at, so the first step of both
+jobs fails unless `GITHUB_REF_TYPE` is `tag` and `GITHUB_REF_NAME` is `vX.Y.Z`; a dispatch
+on a branch publishes nothing. A dispatch on an older tag redeploys that version, which
+makes it a deliberate rollback by redeploy. Top-level `permissions: {}`. The
 `release` job grants itself `contents: write` — the second exception to "nothing here
 pushes from CI", alongside `dependabot-auto-merge.yml`'s job. It is bounded three ways:
-it only runs on a version-tag push, it refuses a tagged commit that is not an ancestor
+it only runs on a version-tag ref, it refuses a tagged commit that is not an ancestor
 of `main`, and the write access is spent on creating a release and uploading assets
 through the preinstalled `gh` CLI, never on pushing a commit — its checkout still sets
 `persist-credentials: false`. The `cloudflare` job grants itself `contents: read` only.
@@ -286,11 +297,11 @@ secret that job needs before the first tag.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
-| `release` | `release` | The tagged commit is not on `main`, the strict validator failed, [`scripts/release.py notes`](../scripts/release.py) found no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md) for the tag, [`scripts/package_skills.py`](../scripts/package_skills.py) or [`scripts/verify_archives.py`](../scripts/verify_archives.py) failed, [`scripts/export_portable.py`](../scripts/export_portable.py) failed, or `gh release create` or `gh release upload` could not create the release or upload an asset. |
-| `cloudflare` | `cloudflare` | The tagged commit is not on `main`, [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py) or [`scripts/check_wrangler_pin.py`](../scripts/check_wrangler_pin.py) failed, `npm ci` failed, the `production` environment has no `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID`, `wrangler deployments status` could not read the version production is serving or found traffic split between versions, `wrangler deploy` failed, the smoke test did not see this version answer, or the automatic rollback failed. |
+| `release` | `release` | The ref is not a `vX.Y.Z` tag, the tagged commit is not on `main`, the strict validator failed, [`scripts/release.py notes`](../scripts/release.py) found no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md) for the tag, [`scripts/package_skills.py`](../scripts/package_skills.py) or [`scripts/verify_archives.py`](../scripts/verify_archives.py) failed, [`scripts/export_portable.py`](../scripts/export_portable.py) failed, or `gh release create` or `gh release upload` could not create the release or upload an asset. |
+| `cloudflare` | `cloudflare` | The ref is not a `vX.Y.Z` tag, the tagged commit is not on `main`, [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py) or [`scripts/check_wrangler_pin.py`](../scripts/check_wrangler_pin.py) failed, `npm ci` failed, the `production` environment has no `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID`, `wrangler deployments status` could not read the version production is serving or found traffic split between versions, `wrangler deploy` failed, Wrangler reported no `workers.dev` address or did not report `https://ai.szolotov.com` for the deploy, the smoke test did not see this version answer on `workers.dev`, `wrangler deployments status` does not show this version serving all traffic, or the automatic rollback failed. A 403 from `ai.szolotov.com` is logged as a notice and never fails the job. |
 
-Not a required check — nothing merges against it, and it only ever runs after a tag has
-already been pushed. `git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main`
+Not a required check — nothing merges against it, and it only ever runs after a `vX.Y.Z` tag
+already exists. `git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main`
 is what keeps a tag pushed at a branch commit from publishing anything: `GITHUB_SHA` is
 the tagged commit on a tag-push event, and the check fails before anything is built if
 that commit never reached `main`. The strict validator then repeats what the tagged
@@ -322,19 +333,82 @@ tag-triggered workflow.
 
 The `cloudflare` job builds the same catalogue again and uploads it to the Worker
 `ai`, which `deploy/wrangler.json` serves at `https://ai.szolotov.com` and on its
-`workers.dev` host. The smoke test checks the custom domain every time, whether or not
-`DEPLOY_URL` is set, then the `workers.dev` host Wrangler reports. It does not run when
+`workers.dev` host. It does not run when
 `release` failed, and a re-run of the workflow is safe: the release job replaces assets that are already there, and Wrangler replaces
-the Worker version. Before deploying, the job reads the version production is serving
+the Worker version.
+
+The release is not smoke-tested by fetching `ai.szolotov.com`. Bot Fight Mode is on for
+the zone `szolotov.com` and answers a GitHub runner's `curl` with HTTP 403. Cloudflare
+documents that no WAF rule can skip it, and the only exception, an IP Access rule that
+matches first, would mean allow-listing GitHub's address ranges, which are shared with
+anyone who runs code there. It stays on. A Worker is zoneless and its `workers.dev` host
+sits outside the zone, so the checks go there, in this order:
+
+1. [`scripts/read_wrangler_deploy.py`](../scripts/read_wrangler_deploy.py) reads the
+   deploy log. The job fails if there is no `workers.dev` address, or if the log does not
+   list `ai.szolotov.com (custom domain)` as a target, because then this deploy did not
+   attach the custom domain. Wrangler writes a custom-domain target as the bare host
+   followed by that marker and its flags, for example `ai.szolotov.com (custom domain)
+   [previews: enabled]`, and puts `https://` on `workers.dev` targets only, so the script
+   matches that form and prints `custom_url=https://ai.szolotov.com`; a plain route or a
+   look-alike host does not count.
+2. [`scripts/smoke_site.sh`](../scripts/smoke_site.sh) checks the `workers.dev` address:
+   `version.txt` equals the tag, then the manifest, `/` and the archive.
+3. `wrangler deployments status --json`, read through
+   `read_wrangler_deploy.py --active-is`, must show the version this deploy created
+   serving 100% of traffic. One deployment is the active one on every address of a
+   Worker, so the version that passed on `workers.dev` is the version the custom domain
+   serves. This is a read of the API, not a fetch through the zone.
+4. One request for `https://ai.szolotov.com/version.txt` is made for the log only. It
+   prints the status, with a notice naming Bot Fight Mode on a 403, and can never fail
+   the job.
+
+That makes `workers_dev` and `preview_urls` in `deploy/wrangler.json` load-bearing: both
+must stay `true`, because turning off `workers_dev` removes the address the release is
+verified on. A `DEPLOY_URL` variable is no longer smoked, since it names a host in the
+zone; it only sets the environment's link.
+
+Before deploying, the job reads the version production is serving
 with `wrangler deployments status --json`, and
 [`scripts/read_wrangler_deploy.py --active`](../scripts/read_wrangler_deploy.py) keeps its
-ID. A failed smoke test rolls back to exactly that version: `wrangler rollback` with no
+ID. A failure of any check above, including the active-version check, rolls back to exactly that version: `wrangler rollback` with no
 ID picks the version uploaded before the newest one, which after an earlier failed
 release is that failed release. A deployment that splits traffic between versions has no
 single version to return to, so the job stops before deploying until the rollout is
 finished or reverted, and it also stops if it cannot read the serving version at all.
 The first deploy to an empty Worker has nothing to roll back to, so a smoke failure on
 that first run leaves the job red and says so.
+
+## `.github/workflows/cut-release.yml` — Cut release
+
+Triggers only on `workflow_dispatch`, with one required input, `version` (`X.Y.Z`).
+Top-level `permissions: {}`. The one job, `cut`, grants itself `contents: write` and
+`actions: write` — the fourth exception to "nothing here pushes from CI". The first is
+spent on creating one annotated tag object and the `refs/tags/vX.Y.Z` ref that points at
+it, through `gh api`; it never pushes a commit, and the checkout sets
+`persist-credentials: false` and keeps no credential. The second is spent on dispatching
+`release.yml` on that tag, and on nothing else. It is bounded by when it runs: its first
+step fails on any ref but `main`, before checkout and before either grant is used, so a
+dispatch from another branch is visibly refused. It is a failing step rather than a
+job-level `if` because a skipped job reports success. The `version` input reaches the job
+only through `env:`, is matched against `^[0-9]+\.[0-9]+\.[0-9]+$` before anything uses
+it, and is never interpolated into a `run:` block. Runs are serialised by the
+`cut-release` concurrency group without cancelling one in flight.
+
+It does not publish. The `production` environment admits only `v*` tags (step 4 of
+[what you set in GitHub and Cloudflare](#what-you-set-in-github-and-cloudflare)), so a run
+on `main` could not deploy; `release.yml` has to run on the tag, and it does because this
+job dispatches it there. Everything `release.yml` checks, including that the tagged
+commit is an ancestor of `main`, therefore applies to a tag cut here exactly as it does to
+one pushed by hand.
+
+| Job | Check name | Failing means |
+| --- | --- | --- |
+| `cut` | `cut` | The run is not on `main`, the version is malformed, [`scripts/release.py check`](../scripts/release.py) refused it (no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md), the tag already on `origin`, a version not greater than an existing tag, or `HEAD` not equal to `origin/main`), the API refused to create the tag object or the ref, or `release.yml` could not be dispatched. In the last case the tag exists: dispatch Release on it with `gh workflow run release.yml --repo greenblacked/AI --ref vX.Y.Z`, the command the failed step prints, rather than cutting again. |
+
+Not a required check — nothing merges against it. The tag message is the changelog
+section, sent to the API as a JSON string built by Python so it arrives verbatim, with
+its `###` subheadings intact; the tagger is the user who dispatched the run.
 
 ## `.github/workflows/deploy.yml` — Cloudflare
 
@@ -344,7 +418,7 @@ Neither job grants itself more than `contents: read`. Not a required check.
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `dry-run` | `dry-run deploy` | The site did not build, the Wrangler pin disagreed with [`deploy/package-lock.json`](../deploy/package-lock.json), or `wrangler deploy --dry-run` rejected the Worker. No credential is read. The job does not run on `workflow_dispatch`. |
-| `preview` | `preview` | The run was not from `stage`, the `staging` environment has no Cloudflare credential, `wrangler preview` failed, Wrangler did not report `https://stage.ai.szolotov.com` for the Preview, or a smoke test failed. A Preview has no rollback and production is not touched, so the job stays red until the next push. The job does not run on a pull request. |
+| `preview` | `preview` | The run was not from `stage`, the `staging` environment has no Cloudflare credential, `wrangler preview` failed, Wrangler did not report `https://stage.ai.szolotov.com` for the Preview, or the smoke test of the `workers.dev` Preview URL failed. A Preview has no rollback and production is not touched, so the job stays red until the next push. The job does not run on a pull request. |
 
 `dry-run` is the pull request. It builds `dist/site` with [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py)
 and asks Wrangler to compile the Worker without uploading it. `--no-autoconfig` and
@@ -373,12 +447,15 @@ and not a stray production deploy.
 [`scripts/read_wrangler_deploy.py --preview`](../scripts/read_wrangler_deploy.py) reads
 the `preview` line Wrangler writes to `WRANGLER_OUTPUT_FILE_PATH` and keeps a URL only
 when it is `https`, with no user, port, path or query, on a `workers.dev` host or at or
-below `ai.szolotov.com`. The smoke step always checks `https://stage.ai.szolotov.com`,
-then the `workers.dev` Preview URL when Wrangler reported one. `DEPLOY_URL`, when the
-environment has one, is an additional target (duplicates are skipped), not a switch for
-either required check. If Wrangler did not report the stage host, the step logs an
-error that the owner must enable `ai.szolotov.com` for Preview traffic, still tries the
-fixed host, and fails.
+below `ai.szolotov.com`. The blocking smoke target is the `workers.dev` Preview URL,
+because Bot Fight Mode answers a GitHub runner's request for
+`https://stage.ai.szolotov.com` with a 403 and cannot be skipped (see the `cloudflare`
+job above); the step fails if Wrangler reported no such URL, so `preview_urls` must stay
+`true` in `deploy/wrangler.json`. Wrangler must still report the stage host for the
+Preview. If it did not, the step logs an error that the owner must enable
+`ai.szolotov.com` for Preview traffic, still smokes the `workers.dev` URL, and fails.
+One request for `https://stage.ai.szolotov.com/version.txt` is made for the log only and
+never fails the step. `DEPLOY_URL` is not smoked.
 
 [`scripts/smoke_site.sh`](../scripts/smoke_site.sh) retries `version.txt` until its
 first line is the expected version, because a host can answer with the previous
@@ -437,9 +514,12 @@ the release job is safe to repeat.
    separation. A second token on `staging` needs the same Workers permissions to upload a
    Preview, so it does not narrow the risk. This is an accepted trade-off.
 8. Optional, on either environment: variable `DEPLOY_URL`, an `https` origin with no
-   path, smoked after every deploy of that environment. Set it only once that host
-   answers. Production smokes `https://ai.szolotov.com`, and `staging` smokes
-   `https://stage.ai.szolotov.com`, even when this variable is unset.
+   path, shown as the environment's link. It is not smoked: a host in the zone answers a
+   GitHub runner with Bot Fight Mode's 403. Both environments are verified on
+   `workers.dev` whether or not it is set.
+   Leave Bot Fight Mode on, and keep `workers_dev` and `preview_urls` set to `true` in
+   `deploy/wrangler.json`. The release check goes through `workers.dev` and fails when
+   Wrangler reports no such address.
 9. Optional: required reviewers on `production` if you want a person to approve the
    tag deploy. With one maintainer that approval is a click on every release, so it
    is off unless you turn it on.
@@ -645,7 +725,8 @@ tracking the latest commit on `main`; [using the skills](using.md#updating-and-r
 covers the install-time side of that.
 
 `main` requires a pull request, so cutting a release is two steps, both wrapped by
-[`scripts/release.py`](../scripts/release.py):
+[`scripts/release.py`](../scripts/release.py). The first is the same either way; the
+second has two routes, and the Actions one is the usual path.
 
 1. **On a branch:** `make release-prepare VERSION=x.y.z`. Moves `## [Unreleased]`'s body
    into a new `## [x.y.z] - YYYY-MM-DD` section dated today in UTC, leaves an empty
@@ -656,7 +737,16 @@ covers the install-time side of that.
    since a branch may not have fetched a tag another release just pushed; with no
    `origin` configured it says so and skips that one check rather than failing. Commit
    the result, open a pull request, and merge it.
-2. **On `main`, after that pull request merges:** `make release VERSION=x.y.z`, which
+2. **On `main`, after that pull request merges:** open Actions, choose Cut release and
+   Run workflow on `main` with the version. It runs `scripts/release.py check`, which
+   applies `tag`'s validation without the local-branch and working-tree checks — a
+   non-empty changelog section, the tag not on `origin`, a version greater than every
+   existing tag and `HEAD` equal to `origin/main` — creates the annotated tag through
+   the API and dispatches `release.yml` on it; see
+   [`cut-release.yml`](#githubworkflowscut-releaseyml--cut-release). The release and the
+   deploy then run exactly as they do for a hand-pushed tag.
+
+   The local route still works: `make release VERSION=x.y.z`, which
    checks things in this order: the branch is `main`; the working tree is clean,
    including untracked files; `CHANGELOG.md` has a non-empty `[x.y.z]` section; the tag
    does not already exist locally or on `origin`; and only then does it fetch and confirm
@@ -703,8 +793,7 @@ checker also verifies the required aggregate's identity and result-check wiring;
 renamed or disconnected gate must not pass the repository's own checks.
 
 Every workflow besides `ci.yml` and `security.yml` has no aggregator, because nothing
-requires them — currently `dependabot-auto-merge.yml`, `scheduled.yml`, `evals.yml` and
-`release.yml`. An aggregator exists to give branch protection a stable name to point at;
+requires them. An aggregator exists to give branch protection a stable name to point at;
 a workflow that gates nothing, or that runs once per tag rather than on every commit, has
 no use for one. `scripts/check_workflows.py` is what actually enforces this: it looks for
 a job carrying both `if: always()` and `needs:` in each workflow and treats one it finds
@@ -780,7 +869,7 @@ build script pulls in — can read it and push with it. None of these jobs push,
 them need the credential to survive the checkout step.
 
 Every job sets `timeout-minutes` — five for most, ten for `validate-plugin`, `test`,
-`package` and the two `scheduled.yml` jobs, fifteen for the release job, twenty for
+`package`, `cut-release.yml`'s job and the two `scheduled.yml` jobs, fifteen for the release job, twenty for
 CodeQL, two hours for the monthly eval job, and forty-five for the pull request eval
 job. The default is six hours, which is long enough that a hung step looks like a slow
 one for most of a working day, and it holds a runner the whole time. A timeout turns
