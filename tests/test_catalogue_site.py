@@ -177,6 +177,46 @@ SAFE_TAGS = {
 }  # fmt: skip
 
 
+BACK = '<a class="back" href="{}" data-back><span aria-hidden="true">←</span> Back</a>'
+
+
+@pytest.mark.parametrize(
+    ("path", "parent"),
+    [
+        ("plugins/engineering/index.html", "/"),
+        ("plugins/engineering/alpha/index.html", "/plugins/engineering/"),
+        ("start/index.html", "/"),
+        ("workflows/index.html", "/"),
+        ("examples/index.html", "/"),
+        ("quality/index.html", "/"),
+    ],
+)
+def test_every_page_below_the_index_has_one_back_link_to_its_parent(
+    mini_repo, tmp_path, path, parent
+):
+    page = (_build(mini_repo, tmp_path) / path).read_text(encoding="utf-8")
+    # Without the script the link is a plain one to the page above, so it still works.
+    assert page.count(BACK.format(parent)) == 1
+    assert page.count("data-back>") == 1
+
+
+def test_the_index_has_no_back_link(mini_repo, tmp_path):
+    page = (_build(mini_repo, tmp_path) / "index.html").read_text(encoding="utf-8")
+    assert "data-back>" not in page
+
+
+def test_back_returns_through_history_only_from_this_site():
+    script = site.site_style.PAGE_SCRIPT
+    block = script.split("function back(event) {", 1)[1].split("\n  }\n", 1)[0]
+    # A referrer from another origin, none at all, or a one-entry history (a new tab)
+    # leaves the link to go to the parent page instead of leaving the site.
+    assert "new URL(document.referrer).origin" in block
+    assert "from !== window.location.origin || window.history.length < 2) return;" in block
+    assert block.index("return;") < block.index("event.preventDefault();")
+    assert block.rstrip().endswith("window.history.back();")
+    assert 'document.querySelectorAll("[data-back]")' in script
+
+
 def test_every_page_is_written_beside_the_archives(mini_repo, tmp_path):
     output = _build(mini_repo, tmp_path)
     for path in (
