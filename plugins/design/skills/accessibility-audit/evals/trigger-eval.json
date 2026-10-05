@@ -1,0 +1,22 @@
+[
+  {"query": "is our checkout accessible? we need to know before the enterprise customer's review", "should_trigger": true},
+  {"query": "axe says the page is clean, are we done with accessibility", "should_trigger": true},
+  {"query": "audit this component library against WCAG 2.2 AA", "should_trigger": true},
+  {"query": "can a keyboard-only user get through our signup flow", "should_trigger": true},
+  {"query": "screen reader users can't get past the nav on our docs site, find out what's broken", "should_trigger": true},
+  {"query": "we got an accessibility complaint about the booking form, where do i even start", "should_trigger": true},
+  {"query": "do a manual accessibility pass on this dialog, zoom, focus, screen reader and all", "should_trigger": true},
+  {"query": "will this pass a VPAT or accessibility review, it's a react app with a sticky header and a cookie banner", "should_trigger": true},
+  {"query": "our sticky header covers the focused element when you tab, is that a wcag failure", "should_trigger": true},
+  {"query": "check the contrast and the target sizes on this mobile page against 2.2", "should_trigger": true},
+  {"query": "our playwright tests should find buttons by role and accessible name, how do i structure the locators", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "is this screen easy to use for a first-time visitor, review the flow", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "we want dark mode and a token set that keeps contrast right across themes", "should_trigger": false, "expected": "design-system"},
+  {"query": "write me a react date picker that works with a keyboard", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "how do i run a usability test with people who use screen readers, what do i ask them to do", "should_trigger": false, "expected": "usability-test-plan"},
+  {"query": "audit the whole site, performance and security and seo and accessibility, and fix the worst", "should_trigger": false, "expected": "website-builder"},
+  {"query": "review my PR that adds aria labels to the nav", "should_trigger": false, "expected": "code-review"},
+  {"query": "write the user guide for the accessibility settings page", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "what is the legal deadline for accessibility compliance in the EU", "should_trigger": false},
+  {"query": "find out why the lighthouse performance score is 34", "should_trigger": false, "expected": "website-builder"}
+]

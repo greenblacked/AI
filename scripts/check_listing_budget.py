@@ -7,7 +7,7 @@ descriptions of the least-used skills: they stay invocable by name and stop bein
 on their own. Nothing raises an error, nothing appears in a log, and the skill simply
 never fires again.
 
-That is what the eight-plugin split was for, and nothing stopped it regressing. The
+That is what the per-plugin split was for, and nothing stopped it regressing. The
 validator prints the per-plugin total and `--listing-budget` warns against one number,
 but six plugins are already over the runtime default, so a single threshold can only be
 set where it catches nothing. This is a ratchet instead, in the same shape as the
@@ -55,7 +55,7 @@ RUNTIME_DEFAULT = 8000
 # Characters per token, measured over every description in this repository with the
 # 65,000-entry BPE vocabulary this runtime family publishes — the older published one,
 # since the current model's is not released. It sat between 4.54 and 4.70 across the eight
-# plugins, so it is a property of this library as a whole rather than of any one
+# plugins it was measured on, so it is a property of this library as a whole rather than of any one
 # description; per skill the spread is wider and the report only ever applies it to plugin
 # totals. It is recorded rather than computed on the fly: tokenizing needs a dependency and
 # a megabyte of vocabulary, and this repository's validator is standard library only.

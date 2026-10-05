@@ -1,0 +1,22 @@
+[
+  {"query": "set up design tokens for our react app, colours are pasted everywhere", "should_trigger": true},
+  {"query": "add dark mode without it looking like inverted light mode", "should_trigger": true},
+  {"query": "our buttons are all slightly different, one radius here, another there. how do we fix that", "should_trigger": true},
+  {"query": "clean up our css variables, half of them are named after colours like --blue-500", "should_trigger": true},
+  {"query": "how should i define hover, pressed and focus states so every control behaves the same", "should_trigger": true},
+  {"query": "how do i make a frosted glass navigation bar that still has readable text", "should_trigger": true},
+  {"query": "we need a theming system, a light theme, a dark theme and a brand variant for a customer", "should_trigger": true},
+  {"query": "what elevation and spacing scale should the design system have, and how many steps", "should_trigger": true},
+  {"query": "how do i check contrast for every colour pair in both themes before we ship", "should_trigger": true},
+  {"query": "when is it right to use liquid glass or blur effects, and when is it a mistake", "should_trigger": true},
+  {"query": "go through the checkout screen and tell me what is wrong with the usability", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "audit this page for wcag 2.2 AA and report the failures", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "plan a usability test for the new navigation with five users", "should_trigger": false, "expected": "usability-test-plan"},
+  {"query": "build me a portfolio site, i'm a photographer", "should_trigger": false, "expected": "website-builder"},
+  {"query": "scaffold a python cli that validates a json file of tokens and exits nonzero on error", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "write the readme and api docs for our component package", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "review this PR that renames the css variables", "should_trigger": false, "expected": "code-review"},
+  {"query": "my godot game's ui theme resource keeps resetting fonts when i reload the project", "should_trigger": false},
+  {"query": "which colour palette suits a bakery brand, give me ideas", "should_trigger": false},
+  {"query": "design the economy and progression for my mobile game", "should_trigger": false, "expected": "game-design-doc"}
+]

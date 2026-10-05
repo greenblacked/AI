@@ -10,6 +10,15 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `design` plugin, the ninth, with four skills: `ui-ux-review` reviews one screen
+  or flow against usability heuristics with ranked, evidenced findings; `accessibility-audit`
+  audits against WCAG 2.2 Level AA, automated pass first and the manual pass automation
+  cannot do second; `design-system` sets up role-named tokens, themes and component states,
+  including where glass materials belong; `usability-test-plan` plans a small test with
+  real people and turns the sessions into severity-rated fixes. The plugin is listed in the
+  marketplace under `development` and fits the default listing budget on its own. The install
+  advice's `skillListingBudgetFraction` rises from 0.101 to 0.105, which the whole
+  marketplace's descriptions now need.
 - Add a bar with Back on the left and To top on the right of every catalogue page. It
   appears once the page has scrolled past its own Back button and hides again near the
   top, so Back is never out of reach on a long skill page. It spans the header's width,
@@ -37,7 +46,7 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   but only on a `vX.Y.Z` tag ref; its first step in each job refuses anything else.
   `make release` and a hand-pushed tag still work.
 - Grow the catalogue site from one page into a full site, in a new design. The front
-  page now lists the eight plugins, each linking to its own page at `/plugins/<plugin>/`
+  page now lists the plugins, each linking to its own page at `/plugins/<plugin>/`
   with its skills, and each skill to a page at `/plugins/<plugin>/<skill>/` carrying its
   description, install line, allowed tools, rendered `SKILL.md`, references and the queries
   it fires on and goes elsewhere for. `/start/`, `/workflows/`, `/examples/` and

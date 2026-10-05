@@ -1,0 +1,22 @@
+[
+  {"query": "here's a screenshot of our signup flow, what's wrong with it", "should_trigger": true},
+  {"query": "can you look at this settings page and tell me why people keep missing the save button", "should_trigger": true},
+  {"query": "does this checkout flow make sense? three steps, but support keeps getting asked where the promo code goes", "should_trigger": true},
+  {"query": "i need honest ux feedback on this figma frame before it goes to dev", "should_trigger": true},
+  {"query": "our onboarding has a 60% drop-off at step two, i don't know why. review the screen", "should_trigger": true},
+  {"query": "is this form confusing? it's the one on app.example.com/apply", "should_trigger": true},
+  {"query": "review my dashboard UI, it feels cluttered but i can't say what to cut", "should_trigger": true},
+  {"query": "go through our mobile booking screen and rank what to fix first", "should_trigger": true},
+  {"query": "the empty state, the error state, the loading state - can you check we handled them all on this page", "should_trigger": true},
+  {"query": "critique this pricing page layout, i think the primary button gets lost", "should_trigger": true},
+  {"query": "run a proper wcag 2.2 AA audit on our login page, with axe and a keyboard pass", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "is the focus order on this modal going to pass an accessibility review", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "set up design tokens and a dark theme so all our buttons stop being slightly different", "should_trigger": false, "expected": "design-system"},
+  {"query": "how many people should i recruit to watch them use the prototype, and what tasks do i give them", "should_trigger": false, "expected": "usability-test-plan"},
+  {"query": "build me a landing page for the beta launch", "should_trigger": false, "expected": "website-builder"},
+  {"query": "audit our marketing site for performance, seo and security as well as ux", "should_trigger": false, "expected": "website-builder"},
+  {"query": "review PR 318, it changes the form validation logic", "should_trigger": false, "expected": "code-review"},
+  {"query": "what cadence should i run for my design team, crits, one-to-ones and planning", "should_trigger": false, "expected": "design-team-cadence"},
+  {"query": "write the design doc for the inventory screen of my roguelike", "should_trigger": false, "expected": "game-design-doc"},
+  {"query": "which font pairs well with a serif logo, just give me a few options", "should_trigger": false}
+]

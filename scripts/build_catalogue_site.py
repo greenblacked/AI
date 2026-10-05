@@ -136,6 +136,11 @@ ABOUT = {
         "The work around the job. Searching, negotiating an offer, writing a technical "
         "article, preparing a talk and keeping learning notes you can find again."
     ),
+    "design": (
+        "Look at an interface the way its users will. Review a screen against usability "
+        "heuristics, audit a page against WCAG 2.2, set up tokens, themes and component states, "
+        "and plan a small test with real people."
+    ),
 }
 
 NUMBER_WORDS = [
