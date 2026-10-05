@@ -37,6 +37,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -245,22 +246,34 @@ def load_cases(root: Path, name: str | None) -> list[Path]:
     return sorted(p.parent for p in base.glob("*/case.json"))
 
 
+# `--jobs` runs cases on threads that share one repository, and `git worktree add` and
+# `remove` both write its administrative files. Two at once can collide on a lock git
+# holds there, and CI saw `worktree add` exit 128 under `--jobs 2`. Each takes
+# milliseconds, so running them one at a time costs nothing; the review itself, which
+# is the slow part, stays parallel.
+_WORKTREE_LOCK = threading.Lock()
+
+
 def make_worktree(repo_root: Path) -> Path:
     holding = Path(tempfile.mkdtemp(prefix="reviewer-bench-"))
-    target = holding / "wt"
+    # Named after `holding`, which is unique, rather than a fixed `wt`: git names the
+    # worktree's administrative directory after the last path component.
+    target = holding / holding.name
     try:
-        subprocess.run(  # noqa: S603
-            [_git(), "worktree", "add", "--detach", str(target), "HEAD"],
-            cwd=repo_root,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-    except subprocess.CalledProcessError:
+        with _WORKTREE_LOCK:
+            subprocess.run(  # noqa: S603
+                [_git(), "worktree", "add", "--detach", str(target), "HEAD"],
+                cwd=repo_root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+    except subprocess.CalledProcessError as exc:
         # `mkdtemp` above already created `holding` before `git worktree add` had a
         # chance to fail; nothing removes it unless this does.
         shutil.rmtree(holding, ignore_errors=True)
-        raise
+        # The default message drops git's own explanation, which is the useful part.
+        raise RuntimeError(f"git worktree add failed: {(exc.stderr or '').strip()}") from exc
     return target
 
 
@@ -278,13 +291,14 @@ def head_sha(worktree: Path) -> str:
 
 
 def remove_worktree(repo_root: Path, worktree: Path) -> None:
-    subprocess.run(  # noqa: S603
-        [_git(), "worktree", "remove", "--force", str(worktree)],
-        cwd=repo_root,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    with _WORKTREE_LOCK:
+        subprocess.run(  # noqa: S603
+            [_git(), "worktree", "remove", "--force", str(worktree)],
+            cwd=repo_root,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
     shutil.rmtree(worktree.parent, ignore_errors=True)
 
 
