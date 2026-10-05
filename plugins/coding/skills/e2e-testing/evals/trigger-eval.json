@@ -15,7 +15,7 @@
   {"query": "should this case be a unit test or an integration test", "should_trigger": false, "expected": "test-design"},
   {"query": "CI is red on main again, third time today, what is going on", "should_trigger": false, "expected": "ci-triage"},
   {"query": "my PR is blocked by a failing check and I cannot tell if it is a real failure or a flake", "should_trigger": false, "expected": "ci-triage"},
-  {"query": "the runner died halfway through the build with no error in the log", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "can you check this page against WCAG 2.2 AA, i mean an actual accessibility audit and not a test", "should_trigger": false, "expected": "accessibility-audit"},
   {"query": "the checkout total comes out wrong for orders with two discounts and I cannot work out why", "should_trigger": false, "expected": "debugging"},
   {"query": "this crashes sometimes in production and I have been staring at it for three hours", "should_trigger": false, "expected": "debugging"},
   {"query": "build me a landing page for my consultancy with a contact form", "should_trigger": false, "expected": "website-builder"},
