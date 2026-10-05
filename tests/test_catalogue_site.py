@@ -189,6 +189,7 @@ BACK = '<a class="back" href="{}" data-back>' + site.BACK_ICON + "<span>Back</sp
         ("workflows/index.html", "/"),
         ("examples/index.html", "/"),
         ("quality/index.html", "/"),
+        ("404.html", "/"),
     ],
 )
 def test_every_page_below_the_index_has_one_back_link_to_its_parent(
@@ -212,6 +213,59 @@ def test_the_back_link_is_a_tonal_button_above_the_skill_crumbs(mini_repo, tmp_p
     assert "text-decoration: none;" in rule
     assert ".back:hover { background: color-mix(in srgb, var(--ink) 8%, var(--card)); }" in css
     assert ".back:active { background: color-mix(in srgb, var(--ink) 12%, var(--card)); }" in css
+
+
+FAB_BACK = (
+    '<a class="fab" href="{}" data-back aria-label="Back" title="Back">' + site.BACK_ICON + "</a>"
+)
+TO_TOP = (
+    '<button type="button" class="fab" id="to-top" aria-label="Back to top" '
+    'title="Back to top">' + site.TOP_ICON + "</button>"
+)
+
+
+@pytest.mark.parametrize(
+    ("path", "parent"),
+    [
+        ("index.html", None),
+        ("plugins/engineering/index.html", "/"),
+        ("plugins/engineering/alpha/index.html", "/plugins/engineering/"),
+        ("start/index.html", "/"),
+        ("quality/index.html", "/"),
+        ("404.html", "/"),
+    ],
+)
+def test_every_page_has_floating_buttons_and_back_only_below_the_index(
+    mini_repo, tmp_path, path, parent
+):
+    page = (_build(mini_repo, tmp_path) / path).read_text(encoding="utf-8")
+    dock = page.split('<div class="dock" id="dock">\n', 1)[1].split("</div>", 1)[0]
+    assert page.count('id="dock"') == 1 and TO_TOP in dock
+    if parent is None:
+        assert 'class="fab" href' not in dock
+    else:
+        # Back first, then To top, the order the dock stacks them in.
+        assert dock == FAB_BACK.format(parent) + "\n" + TO_TOP + "\n"
+
+
+def test_the_floating_buttons_stay_hidden_until_the_page_scrolls_past_back():
+    css = site.site_style.CSS
+    dock = css.split("\n.dock {\n", 1)[1].split("\n}", 1)[0]
+    # visibility, not only opacity, so a hidden button is out of the tab order.
+    assert "position: fixed;" in dock and "visibility: hidden;" in dock
+    assert "pointer-events: none;" in dock
+    assert ".dock.on { visibility: visible; opacity: 1;" in css
+    script = site.site_style.PAGE_SCRIPT
+    assert 'var inline = document.querySelector("main .back");' in script
+    assert 'dock.classList.toggle("on", window.scrollY > limit);' in script
+    assert 'window.addEventListener("resize", function () { limit = edge(); reveal(); });' in script
+    to_top = script.split('upward.addEventListener("click", function () {', 1)[1].split(
+        "\n  });", 1
+    )[0]
+    assert 'behavior: still.matches ? "auto" : "smooth"' in to_top
+    assert "(prefers-reduced-motion: reduce)" in script
+    # The header is inert while hidden, so it is shown before focus moves into it.
+    assert to_top.index("away(false);") < to_top.index("home.focus({ preventScroll: true });")
 
 
 def test_the_index_has_no_back_link(mini_repo, tmp_path):

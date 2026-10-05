@@ -417,6 +417,42 @@ html[data-theme="night"] .sun { display: none; }
 .back:hover { background: color-mix(in srgb, var(--ink) 8%, var(--card)); }
 .back:active { background: color-mix(in srgb, var(--ink) 12%, var(--card)); }
 .back + .crumbs { margin-top: 1rem; }
+/* Floating buttons, after Material Design 3's FAB: a rounded square on the container
+   colour at elevation level 3, the same state layers as Back. Hidden, and out of the
+   tab order, until the script finds the page scrolled past its own Back link. */
+.dock {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(0.5rem);
+  pointer-events: none;
+}
+.dock.on { visibility: visible; opacity: 1; transform: none; pointer-events: auto; }
+@media (prefers-reduced-motion: no-preference) {
+  .dock { transition: opacity 150ms ease, transform 150ms ease, visibility 0s linear 150ms; }
+  .dock.on { transition: opacity 150ms ease, transform 150ms ease; }
+}
+.fab {
+  display: inline-flex;
+  width: 3.5rem;
+  height: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line), 0 1px 3px rgba(0, 0, 0, 0.3),
+    0 4px 8px 3px rgba(0, 0, 0, 0.15);
+}
+.fab svg { width: 1.5rem; height: 1.5rem; }
+.fab:hover { background: color-mix(in srgb, var(--ink) 8%, var(--card)); }
+.fab:active { background: color-mix(in srgb, var(--ink) 12%, var(--card)); }
 .crumbs {
   display: flex;
   flex-wrap: wrap;
@@ -447,7 +483,6 @@ html[data-theme="night"] .sun { display: none; }
 }
 .page .lede { max-width: 42rem; margin-top: 1.5rem; }
 .page-body { margin-top: 2.5rem; }
-.back-link { margin-top: 2rem; }
 .back + .title { margin-top: 1.5rem; }
 .title + .lede { margin-top: 1rem; }
 .page .small.count { margin-top: 1rem; }
@@ -670,6 +705,27 @@ PAGE_SCRIPT = """
     window.history.back();
   }
   for (var b = 0; b < backs.length; b++) backs[b].addEventListener("click", back);
+
+  var dock = document.getElementById("dock");
+  var upward = document.getElementById("to-top");
+  var still = window.matchMedia("(prefers-reduced-motion: reduce)");
+  function edge() {
+    var inline = document.querySelector("main .back");
+    if (!inline) return 320;
+    return inline.getBoundingClientRect().bottom + window.scrollY;
+  }
+  var limit = edge();
+  function reveal() { dock.classList.toggle("on", window.scrollY > limit); }
+  window.addEventListener("scroll", reveal, { passive: true });
+  window.addEventListener("resize", function () { limit = edge(); reveal(); });
+  reveal();
+  upward.addEventListener("click", function () {
+    window.scrollTo({ top: 0, behavior: still.matches ? "auto" : "smooth" });
+    // The button hides once the page is at the top, so focus moves to the home link,
+    // in the header, which is inert while it is hidden.
+    away(false);
+    home.focus({ preventScroll: true });
+  });
 
   var input = document.getElementById("find");
   var tally = document.getElementById("count");
