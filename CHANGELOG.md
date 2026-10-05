@@ -273,6 +273,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Stop `scripts/run_review_benchmark.py --jobs` from failing at random when two cases
+  create their worktrees at once. `git worktree add` and `remove` now run one at a
+  time under a lock, each worktree gets a unique name, and a failed `add` reports git's
+  own message instead of only its exit status.
 - Smoke-test releases and the stage Preview through `workers.dev` instead of the custom
   domain. Bot Fight Mode on the zone answers GitHub runners with a 403, which rolled
   production back on `v0.1.0` twice, and it cannot be skipped by a WAF rule. The
