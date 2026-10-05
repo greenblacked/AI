@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-05
+
 ### Added
 
 - Add a Back button to every catalogue page below the front page, a tonal pill with a
@@ -16,6 +18,13 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   and otherwise goes to the page above: the plugin for a skill, the front page for the
   rest, the not-found page included. Without JavaScript it is a plain link to that
   page.
+
+### Fixed
+
+- Stop `scripts/run_review_benchmark.py --jobs` from failing at random when two cases
+  create their worktrees at once. `git worktree add` and `remove` now run one at a
+  time under a lock, each worktree gets a unique name, and a failed `add` reports git's
+  own message instead of only its exit status.
 
 ## [0.1.1] - 2026-10-05
 
@@ -356,7 +365,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/greenblacked/AI/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/greenblacked/AI/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/greenblacked/AI/compare/9365d19bd40e79f52463b046927b17cfd448bb79...v0.1.0
 [Initial catalogue]: https://github.com/greenblacked/AI/tree/9365d19bd40e79f52463b046927b17cfd448bb79
