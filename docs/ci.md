@@ -364,8 +364,9 @@ sits outside the zone, so the checks go there, in this order:
    the job.
 
 That makes `workers_dev` in `deploy/wrangler.json` load-bearing: it must stay `true`,
-because turning it off removes the address the release is verified on. A `DEPLOY_URL` variable is no longer smoked, since it names a host in the
-zone; it only sets the environment's link.
+because turning it off removes the address the release is verified on. A `DEPLOY_URL`
+variable is no longer smoked, since it names a host in the zone; it only sets the
+environment's link.
 
 Before deploying, the job reads the version production is serving
 with `wrangler deployments status --json`, and
@@ -446,8 +447,8 @@ and not a stray production deploy.
 [`scripts/read_wrangler_deploy.py --preview`](../scripts/read_wrangler_deploy.py) reads
 the `preview` line Wrangler writes to `WRANGLER_OUTPUT_FILE_PATH` and keeps a URL only
 when it is `https`, with no user, port, path or query, on a `workers.dev` host or at or
-below `ai.szolotov.com`. Stage is behind Cloudflare Access, which answers both the
-`workers.dev` Preview URL and `https://stage.ai.szolotov.com` with its login page, so
+below `ai.szolotov.com`. Stage is behind Cloudflare Access, which serves its login page
+on the `workers.dev` Preview URL and redirects `https://stage.ai.szolotov.com` to it, so
 the job fetches nothing from stage. It checks through Wrangler and the API only: the
 step fails if `wrangler preview` failed, if Wrangler reported no acceptable URL, or if
 it did not report `https://stage.ai.szolotov.com` for the Preview. In the last case it

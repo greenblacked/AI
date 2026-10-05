@@ -168,9 +168,9 @@ jobs:
           python "$GITHUB_WORKSPACE/scripts/read_wrangler_deploy.py" --preview \
             "$WRANGLER_OUTPUT_FILE_PATH" >> "$GITHUB_OUTPUT"
       - name: Check the stage Preview's address
-        # Stage is behind Cloudflare Access, which answers both the workers.dev Preview
-        # URL and stage.ai.szolotov.com with its login page, so nothing on stage is
-        # fetched. The upload step already failed if wrangler preview did or if it
+        # Stage is behind Cloudflare Access, which serves its login page on the
+        # workers.dev Preview URL and redirects stage.ai.szolotov.com to it, so nothing
+        # on stage is fetched. The upload step already failed if wrangler preview did or if it
         # reported no acceptable URL; this checks Wrangler reported the stage host,
         # which proves the domain is enabled for Preview traffic.
         env:
