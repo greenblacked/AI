@@ -13,7 +13,7 @@ Read this during step 2 (the file), step 5 (states) and step 6 (glass) of `SKILL
 
 ## The token file format
 
-The Design Tokens Community Group's Format Module 2025.10, dated 28 October 2025, is the first version marked Stable. It is a Community Group report, not a W3C Standard. Tools implement different revisions, so before relying on any detail below, check which revision your build tool reads. In particular the accepted shape of colour, dimension and duration values has changed between drafts (newer drafts write a duration as an object with a numeric `value` and a `unit` of `"ms"` or `"s"`), which is why the example uses plain strings: match what your tool expects.
+The Design Tokens Community Group's Format Module 2025.10, dated 28 October 2025, is the first version marked Stable. It is a Community Group report, not a W3C Standard. Tools implement different revisions, so before relying on any detail below, check which revision your build tool reads. The example below follows 2025.10, where colour, dimension and duration values are objects rather than strings: a colour is `colorSpace` and `components` (sRGB components run from 0 to 1) with optional `alpha` and `hex`, a dimension is a numeric `value` with a `unit` of `"px"` or `"rem"`, and a duration is a numeric `value` with a `unit` of `"ms"` or `"s"`. Tools written against earlier drafts expect plain strings such as `"#141413"` or `"4px"`; if yours does, it is reading an older revision, and the shapes are the part to convert.
 
 The shape this skill relies on:
 
@@ -27,13 +27,14 @@ An example, with illustrative values that you must replace and measure for your 
 
 ```json
 {
+  "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
   "color": {
     "$type": "color",
     "palette": {
-      "stone-950": { "$value": "#141413" },
-      "stone-50": { "$value": "#f7f6f3" },
-      "indigo-600": { "$value": "#3b3fd1" },
-      "indigo-300": { "$value": "#a5a8f5" }
+      "stone-950": { "$value": { "colorSpace": "srgb", "components": [0.0784, 0.0784, 0.0745], "hex": "#141413" } },
+      "stone-50": { "$value": { "colorSpace": "srgb", "components": [0.9686, 0.9647, 0.9529], "hex": "#f7f6f3" } },
+      "indigo-600": { "$value": { "colorSpace": "srgb", "components": [0.2314, 0.2471, 0.8196], "hex": "#3b3fd1" } },
+      "indigo-300": { "$value": { "colorSpace": "srgb", "components": [0.6471, 0.6588, 0.9608], "hex": "#a5a8f5" } }
     },
     "light": {
       "ink": { "$value": "{color.palette.stone-950}", "$description": "Body text" },
@@ -50,9 +51,9 @@ An example, with illustrative values that you must replace and measure for your 
   },
   "space": {
     "$type": "dimension",
-    "1": { "$value": "4px" },
-    "2": { "$value": "8px" },
-    "3": { "$value": "16px" }
+    "1": { "$value": { "value": 4, "unit": "px" } },
+    "2": { "$value": { "value": 8, "unit": "px" } },
+    "3": { "$value": { "value": 16, "unit": "px" } }
   },
   "font": {
     "body": {
@@ -62,8 +63,8 @@ An example, with illustrative values that you must replace and measure for your 
   },
   "motion": {
     "$type": "duration",
-    "fast": { "$value": "120ms" },
-    "base": { "$value": "200ms" }
+    "fast": { "$value": { "value": 120, "unit": "ms" } },
+    "base": { "$value": { "value": 200, "unit": "ms" } }
   }
 }
 ```
