@@ -208,6 +208,12 @@ def test_the_index_has_no_back_link(mini_repo, tmp_path):
 def test_back_returns_through_history_only_from_this_site():
     script = site.site_style.PAGE_SCRIPT
     block = script.split("function back(event) {", 1)[1].split("\n  }\n", 1)[0]
+    # A modified or non-primary click keeps the browser's own behaviour, such as opening
+    # the parent page in a new tab, rather than moving this tab back.
+    assert "if (event.defaultPrevented || event.button !== 0) return;" in block
+    assert "if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;" in block
+    assert block.index("event.button") < block.index("event.preventDefault();")
+    assert block.index("event.altKey) return;") < block.index("event.preventDefault();")
     # A referrer from another origin, none at all, or a one-entry history (a new tab)
     # leaves the link to go to the parent page instead of leaving the site.
     assert "new URL(document.referrer).origin" in block
