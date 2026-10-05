@@ -10,6 +10,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add floating Back and To top buttons on the right of every catalogue page, after
+  Material Design 3's floating action button. They appear once the page has scrolled
+  past its own Back button and hide again near the top, so Back is never out of reach
+  on a long skill page. The front page has only To top. To top respects reduced motion
+  and moves focus to the home link.
 - Add a Back button to every catalogue page below the front page, a tonal pill with a
   leading arrow in the style of Material Design 3, the same shape as the Download and
   View source buttons. It returns to the previous page when that page is on this site,
