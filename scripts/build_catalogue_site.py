@@ -1080,10 +1080,7 @@ def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> N
         (target / "index.html").write_text(content, encoding="utf-8")
     missing = _page(
         "Not found · AI",
-        _narrow(
-            _title("Not found", "There is nothing at this address.")
-            + '\n<p class="back-link"><a class="back" href="/">Catalogue</a></p>'
-        ),
+        _narrow(_back("/") + "\n" + _title("Not found", "There is nothing at this address.")),
         version,
     )
     (output / "404.html").write_text(missing, encoding="utf-8")

@@ -14,7 +14,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   leading arrow in the style of Material Design 3, the same shape as the Download and
   View source buttons. It returns to the previous page when that page is on this site,
   and otherwise goes to the page above: the plugin for a skill, the front page for the
-  rest. Without JavaScript it is a plain link to that page.
+  rest, the not-found page included. Without JavaScript it is a plain link to that
+  page.
 - Cut a release from the Actions tab. After the prepare pull request merges, running Cut
   release on `main` with a version checks it with the new `scripts/release.py check`
   (a non-empty changelog section, no such tag on `origin`, a version greater than every
