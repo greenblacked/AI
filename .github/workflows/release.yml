@@ -251,10 +251,13 @@ jobs:
             echo "::error::on the production environment (docs/ci.md)"
             exit 1
           fi
+          # Recorded before the deploy, not after: Wrangler makes the new version active
+          # before it attaches the custom domain, so a failure after that point would
+          # otherwise leave the new version live with no rollback.
+          echo "deployed=true" >> "$GITHUB_OUTPUT"
           ./node_modules/.bin/wrangler deploy --config wrangler.json \
             --no-autoconfig --no-install-skills \
             --message "release ${TAG}" --tag "$GIT_SHA"
-          echo "deployed=true" >> "$GITHUB_OUTPUT"
           python "$GITHUB_WORKSPACE/scripts/read_wrangler_deploy.py" \
             "$WRANGLER_OUTPUT_FILE_PATH" >> "$GITHUB_OUTPUT"
       - name: Smoke-test the production Worker
@@ -341,7 +344,7 @@ jobs:
           PREVIOUS_VERSION_ID: ${{ steps.active.outputs.version_id }}
         run: |
           set -Eeuo pipefail
-          echo "::warning::the production deploy did not pass its smoke test; rolling back"
+          echo "::warning::the production deploy did not pass its checks; rolling back"
           if [ -z "$PREVIOUS_VERSION_ID" ]; then
             echo "::error::no version was serving before this release, so there is none to"
             echo "::error::roll back to. Fix forward, or roll back from the Cloudflare dashboard"
@@ -349,7 +352,7 @@ jobs:
           fi
           if ! ./node_modules/.bin/wrangler rollback "$PREVIOUS_VERSION_ID" \
             --config wrangler.json --yes \
-            --message "Automatic rollback: failed smoke test in run ${GITHUB_RUN_ID}"; then
+            --message "Automatic rollback: failed release check in run ${GITHUB_RUN_ID}"; then
             echo "::error::rollback failed. The failed version may still be serving"
             echo "::error::roll it back from the Cloudflare dashboard"
             exit 1

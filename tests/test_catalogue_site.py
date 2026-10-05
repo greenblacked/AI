@@ -901,6 +901,9 @@ def test_a_deploy_without_the_custom_domain_prints_no_custom_url(tmp_path, capsy
     [
         "ai.szolotov.com.evil.com (custom domain)",
         "evil.ai.szolotov.com (custom domain)",
+        # Attached but serving no production traffic.
+        "ai.szolotov.com (custom domain) [production: disabled, previews: enabled]",
+        "ai.szolotov.com (custom domain - zone name: szolotov.com) [production: disabled]",
         "stage.ai.szolotov.com (custom domain)",
         "AI.szolotov.com (custom domain)",
         "szolotov.com (custom domain)",

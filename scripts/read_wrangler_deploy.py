@@ -153,7 +153,11 @@ def _is_production_custom_domain(target: object) -> bool:
     if host != CUSTOM_DOMAIN or not separator:
         return False
     marker = "(custom domain"
-    return rest.startswith(marker) and rest[len(marker) : len(marker) + 1] in (")", " ")
+    if not (rest.startswith(marker) and rest[len(marker) : len(marker) + 1] in (")", " ")):
+        return False
+    # A domain attached with `enabled: false` renders `[production: disabled, ...]`: it is
+    # on the Worker but serves no production traffic, so it does not count as attached.
+    return "production: disabled" not in rest
 
 
 def parse_deploy(text: str) -> tuple[str, str, str]:
