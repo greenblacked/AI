@@ -19,6 +19,13 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   rest, the not-found page included. Without JavaScript it is a plain link to that
   page.
 
+### Fixed
+
+- Stop `scripts/run_review_benchmark.py --jobs` from failing at random when two cases
+  create their worktrees at once. `git worktree add` and `remove` now run one at a
+  time under a lock, each worktree gets a unique name, and a failed `add` reports git's
+  own message instead of only its exit status.
+
 ## [0.1.1] - 2026-10-05
 
 ### Fixed
