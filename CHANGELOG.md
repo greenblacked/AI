@@ -10,11 +10,17 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add floating Back and To top buttons on the right of every catalogue page, after
+  Material Design 3's floating action button. They appear once the page has scrolled
+  past its own Back button and hide again near the top, so Back is never out of reach
+  on a long skill page. The front page has only To top. To top respects reduced motion
+  and moves focus to the home link.
 - Add a Back button to every catalogue page below the front page, a tonal pill with a
   leading arrow in the style of Material Design 3, the same shape as the Download and
   View source buttons. It returns to the previous page when that page is on this site,
   and otherwise goes to the page above: the plugin for a skill, the front page for the
-  rest. Without JavaScript it is a plain link to that page.
+  rest, the not-found page included. Without JavaScript it is a plain link to that
+  page.
 - Cut a release from the Actions tab. After the prepare pull request merges, running Cut
   release on `main` with a version checks it with the new `scripts/release.py check`
   (a non-empty changelog section, no such tag on `origin`, a version greater than every
@@ -272,6 +278,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Stop `scripts/run_review_benchmark.py --jobs` from failing at random when two cases
+  create their worktrees at once. `git worktree add` and `remove` now run one at a
+  time under a lock, each worktree gets a unique name, and a failed `add` reports git's
+  own message instead of only its exit status.
 - Smoke-test releases and the stage Preview through `workers.dev` instead of the custom
   domain. Bot Fight Mode on the zone answers GitHub runners with a 403, which rolled
   production back on `v0.1.0` twice, and it cannot be skipped by a WAF rule. The

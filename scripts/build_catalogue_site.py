@@ -214,10 +214,41 @@ SUN_ICON = (
 )
 
 
-def _page(title: str, main: str, version: str, *, current: str = "") -> str:
+TOP_ICON = (
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" '
+    'stroke-width="2" d="M12 20V5M5.5 11.5 12 5l6.5 6.5"/></svg>'
+)
+
+
+def _dock(parent: str | None) -> str:
+    """The floating buttons on the right: Back, when the page has one, and To top.
+
+    They stay hidden until the page has scrolled past its own Back link, so they never
+    sit beside it. The script shows them; without it they stay hidden, and the Back
+    link at the top of the page still works.
+    """
+    back = (
+        f'<a class="fab" href="{_esc(parent)}" data-back aria-label="Back" title="Back">'
+        f"{BACK_ICON}</a>\n"
+        if parent is not None
+        else ""
+    )
+    return (
+        '<div class="dock" id="dock">\n'
+        f"{back}"
+        '<button type="button" class="fab" id="to-top" aria-label="Back to top" '
+        f'title="Back to top">{TOP_ICON}</button>\n'
+        "</div>\n"
+    )
+
+
+def _page(
+    title: str, main: str, version: str, *, current: str = "", parent: str | None = None
+) -> str:
     """One document. ``main`` is already escaped HTML for the page body.
 
     ``current`` is the root-relative path of the page, which marks its footer link.
+    ``parent`` is where Back goes without history, and None on the front page.
     """
     source = _esc(SOURCE_URL)
     return (
@@ -250,6 +281,7 @@ def _page(title: str, main: str, version: str, *, current: str = "") -> str:
         "</button>\n"
         "</div>\n</div>\n</header>\n"
         f'<main id="content">\n{main}\n</main>\n'
+        f"{_dock(parent)}"
         '<footer class="site-footer">\n<div class="foot">\n'
         '<div>\n<p class="mark">AI</p>\n'
         '<p class="tag">Agent skills, subagents and slash commands. '
@@ -570,7 +602,7 @@ def render_plugin(plugin: str, catalogue: Catalogue, version: str) -> str:
         f'<ul class="skills" id="list">\n{items}\n</ul>\n'
         "</div>"
     )
-    return _page(f"{plugin} · AI", main, version)
+    return _page(f"{plugin} · AI", main, version, parent="/")
 
 
 # -------------------------------------------------------------------- a skill's page
@@ -646,7 +678,7 @@ def render_skill(skill: Skill, catalogue: Catalogue, version: str) -> str:
         + "\n</article>"
     )
     main = _narrow(inner)
-    return _page(f"{skill.name} · AI", main, version)
+    return _page(f"{skill.name} · AI", main, version, parent=_plugin_href(skill.plugin))
 
 
 # ------------------------------------------------------------------------ /start/
@@ -697,7 +729,7 @@ def render_start(catalogue: Catalogue, version: str) -> str:
         + "\n"
         + _prose("\n".join(parts))
     )
-    return _page("Getting started · AI", main, version, current="/start/")
+    return _page("Getting started · AI", main, version, current="/start/", parent="/")
 
 
 # --------------------------------------------------------------------- /workflows/
@@ -754,7 +786,7 @@ def render_workflows(catalogue: Catalogue, version: str) -> str:
         + "\n"
         + _prose("\n".join(parts))
     )
-    return _page("Workflows · AI", main, version, current="/workflows/")
+    return _page("Workflows · AI", main, version, current="/workflows/", parent="/")
 
 
 # ---------------------------------------------------------------------- /examples/
@@ -819,7 +851,7 @@ def render_examples(catalogue: Catalogue, version: str) -> str:
         + "\n"
         + _prose("\n".join(parts))
     )
-    return _page("Examples · AI", main, version, current="/examples/")
+    return _page("Examples · AI", main, version, current="/examples/", parent="/")
 
 
 # ----------------------------------------------------------------------- /quality/
@@ -998,7 +1030,7 @@ def render_quality(catalogue: Catalogue, version: str) -> str:
         + "\n"
         + _prose("\n".join(parts))
     )
-    return _page("Quality evidence · AI", main, version, current="/quality/")
+    return _page("Quality evidence · AI", main, version, current="/quality/", parent="/")
 
 
 def _robots(noindex: bool) -> str:
@@ -1080,11 +1112,9 @@ def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> N
         (target / "index.html").write_text(content, encoding="utf-8")
     missing = _page(
         "Not found · AI",
-        _narrow(
-            _title("Not found", "There is nothing at this address.")
-            + '\n<p class="back-link"><a class="back" href="/">Catalogue</a></p>'
-        ),
+        _narrow(_back("/") + "\n" + _title("Not found", "There is nothing at this address.")),
         version,
+        parent="/",
     )
     (output / "404.html").write_text(missing, encoding="utf-8")
     print(f"built {output} for {version}")

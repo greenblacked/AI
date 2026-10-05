@@ -16,7 +16,9 @@ import re
 import shutil
 import subprocess
 import sys
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
@@ -438,6 +440,57 @@ def test_head_sha_reads_the_worktrees_own_commit(tmp_path):
         assert benchmark.head_sha(worktree) == expected
     finally:
         benchmark.remove_worktree(root, worktree)
+
+
+def test_worktrees_get_distinct_names_and_their_git_calls_never_overlap(tmp_path, monkeypatch):
+    root = make_repo(tmp_path)
+    real_run = subprocess.run
+    state = {"inside": 0, "most": 0}
+    guard = threading.Lock()
+
+    def tracking_run(cmd, *args, **kwargs):
+        if cmd[1:2] == ["worktree"]:
+            with guard:
+                state["inside"] += 1
+                state["most"] = max(state["most"], state["inside"])
+            time.sleep(0.05)  # widen the window two unserialised calls would share
+            try:
+                return real_run(cmd, *args, **kwargs)
+            finally:
+                with guard:
+                    state["inside"] -= 1
+        return real_run(cmd, *args, **kwargs)
+
+    monkeypatch.setattr(benchmark.subprocess, "run", tracking_run)
+
+    def cycle(_):
+        worktree = benchmark.make_worktree(root)
+        benchmark.remove_worktree(root, worktree)
+        return worktree.name
+
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        names = list(pool.map(cycle, range(8)))
+    assert state["most"] == 1
+    # git names the administrative directory after the last path component.
+    assert len(set(names)) == len(names)
+    assert all(name.startswith("reviewer-bench-") for name in names)
+
+
+def test_a_failed_worktree_add_reports_gits_message_and_cleans_up(tmp_path, monkeypatch):
+    root = tmp_path / "not-a-repo"
+    root.mkdir()
+    made = []
+    real_mkdtemp = benchmark.tempfile.mkdtemp
+
+    def recording_mkdtemp(*args, **kwargs):
+        made.append(Path(real_mkdtemp(*args, **kwargs)))
+        return str(made[-1])
+
+    monkeypatch.setattr(benchmark.tempfile, "mkdtemp", recording_mkdtemp)
+    monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(tmp_path))
+    with pytest.raises(RuntimeError, match=r"git worktree add failed: .*not a git repository"):
+        benchmark.make_worktree(root)
+    assert made and not made[0].exists()
 
 
 def test_parse_json_result_tolerates_a_preamble_line():
