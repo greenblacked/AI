@@ -221,24 +221,23 @@ TOP_ICON = (
 
 
 def _dock(parent: str | None) -> str:
-    """The floating buttons on the right: Back, when the page has one, and To top.
+    """The bar Back and To top move into once the page scrolls past its own Back.
 
-    They stay hidden until the page has scrolled past its own Back link, so they never
-    sit beside it. The script shows them; without it they stay hidden, and the Back
-    link at the top of the page still works.
+    Back is the same button as the one at the top of the page, on the left; To top
+    matches it on the right. The bar spans the header's width, so on a wide screen the
+    two sit under the header's outer edges rather than crowding the text column. It is
+    a navigation landmark placed straight after the header, so the keyboard reaches it
+    before the page body. Hidden until the script finds the page scrolled past that
+    Back; without the script it stays hidden, and the Back at the top still works.
     """
-    back = (
-        f'<a class="fab" href="{_esc(parent)}" data-back aria-label="Back" title="Back">'
-        f"{BACK_ICON}</a>\n"
-        if parent is not None
-        else ""
-    )
+    back = f"{_back(parent)}\n" if parent is not None else ""
     return (
-        '<div class="dock" id="dock">\n'
+        '<nav class="dock" id="dock" aria-label="Page">\n'
+        '<div class="dock-in">\n'
         f"{back}"
-        '<button type="button" class="fab" id="to-top" aria-label="Back to top" '
-        f'title="Back to top">{TOP_ICON}</button>\n'
-        "</div>\n"
+        '<button type="button" class="back" id="to-top">'
+        f"{TOP_ICON}<span>To top</span></button>\n"
+        "</div>\n</nav>\n"
     )
 
 
@@ -251,6 +250,7 @@ def _page(
     ``parent`` is where Back goes without history, and None on the front page.
     """
     source = _esc(SOURCE_URL)
+    dock = _dock(parent)
     return (
         "<!DOCTYPE html>\n"
         '<html lang="en">\n'
@@ -280,8 +280,8 @@ def _page(
         f'<span class="track"><span class="knob">{MOON_ICON}{SUN_ICON}</span></span>'
         "</button>\n"
         "</div>\n</div>\n</header>\n"
+        f"{dock}"
         f'<main id="content">\n{main}\n</main>\n'
-        f"{_dock(parent)}"
         '<footer class="site-footer">\n<div class="foot">\n'
         '<div>\n<p class="mark">AI</p>\n'
         '<p class="tag">Agent skills, subagents and slash commands. '
