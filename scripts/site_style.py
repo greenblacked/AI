@@ -351,7 +351,6 @@ html[data-theme="night"] .sun { display: none; }
   flex-direction: column;
   gap: 1rem;
   margin-top: 3.5rem;
-  scroll-margin-top: 6rem;
 }
 .finder label { display: block; width: 100%; max-width: 28rem; }
 .finder input {
@@ -485,9 +484,12 @@ html[data-theme="night"] .sun { display: none; }
     max(1.25rem, env(safe-area-inset-left));
 }
 #to-top { margin-left: auto; }
-/* A jump to a heading (an in-page link, a shared deep link) lands below the bar
-   rather than under it. Zero specificity, so a rule that sets its own margin wins. */
-:where([id]) { scroll-margin-top: 5rem; }
+/* A jump to a heading (an in-page link, a shared deep link, the finder) lands below
+   both bars rather than under them. A jump upwards brings the header back with the
+   bar stacked beneath it: 4rem and a border, then 0.5rem, a 2.75rem button, 0.5rem and
+   a border, 7.875rem in all, so 8.5rem leaves a gap. Zero specificity, so a rule that
+   sets its own margin wins. */
+:where([id]) { scroll-margin-top: 8.5rem; }
 .crumbs {
   display: flex;
   flex-wrap: wrap;
