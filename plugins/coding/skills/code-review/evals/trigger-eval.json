@@ -50,9 +50,9 @@
     "expected": "debugging"
   },
   {
-    "query": "pods are stuck in CrashLoopBackOff since the last deploy, what do i do first",
+    "query": "review this screen design before it goes to dev, i mean the user experience and not the code",
     "should_trigger": false,
-    "expected": "k8s-triage"
+    "expected": "ui-ux-review"
   },
   {
     "query": "write me a script that rotates the log files nightly and exits nonzero on failure",

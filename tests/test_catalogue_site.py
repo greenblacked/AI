@@ -196,12 +196,13 @@ def test_every_page_below_the_index_has_one_back_link_to_its_parent(
     mini_repo, tmp_path, path, parent
 ):
     page = (_build(mini_repo, tmp_path) / path).read_text(encoding="utf-8")
+    main = page.split('<main id="content">', 1)[1].split("</main>", 1)[0]
     # Without the script the link is a plain one to the page above, so it still works.
-    assert page.count(BACK.format(parent)) == 1
-    assert page.count("data-back>") == 1
+    assert main.count(BACK.format(parent)) == 1
+    assert main.count("data-back>") == 1
 
 
-def test_the_back_link_is_a_tonal_button_above_the_skill_crumbs(mini_repo, tmp_path):
+def test_the_back_link_is_a_glass_button_above_the_skill_crumbs(mini_repo, tmp_path):
     page = (_build(mini_repo, tmp_path) / "plugins/engineering/alpha/index.html").read_text(
         encoding="utf-8"
     )
@@ -209,18 +210,28 @@ def test_the_back_link_is_a_tonal_button_above_the_skill_crumbs(mini_repo, tmp_p
     assert BACK.format("/plugins/engineering/") + '\n<nav class="crumbs"' in page
     css = site.site_style.CSS
     rule = css.split("\n.back {\n", 1)[1].split("\n}", 1)[0]
-    assert "border-radius: 999px;" in rule and "background: var(--card);" in rule
-    assert "text-decoration: none;" in rule
-    assert ".back:hover { background: color-mix(in srgb, var(--ink) 8%, var(--card)); }" in css
-    assert ".back:active { background: color-mix(in srgb, var(--ink) 12%, var(--card)); }" in css
+    # Material: a full pill, a 44px target, a medium label, no underline.
+    assert "border-radius: 999px;" in rule and "min-height: 2.75rem;" in rule
+    assert "font-weight: 500;" in rule and "text-decoration: none;" in rule
+    # Liquid Glass: a translucent tint that blurs what is behind, a specular top edge
+    # and a sheen, all from theme tokens so night and console get their own.
+    assert "background-color: var(--glass-tint);" in rule
+    assert "backdrop-filter: blur(16px) saturate(180%);" in rule
+    assert "inset 0 1px 0 0 var(--glass-edge)" in rule
+    assert "linear-gradient(180deg, var(--glass-sheen), transparent 65%)" in rule
+    for state, share in ((":hover", "8%"), (":active", "12%")):
+        block = css.split(f"\n.back{state} {{\n", 1)[1].split("\n}", 1)[0]
+        assert f"color-mix(in srgb, var(--ink) {share}, transparent)" in block
+    for theme in (":root {", 'html[data-theme="night"] {', 'html[data-theme="reactor"] {'):
+        tokens = css.split(theme, 1)[1].split("}", 1)[0]
+        for token in ("--glass-tint", "--glass-edge", "--glass-sheen", "--glass-shadow"):
+            assert f"{token}:" in tokens, (theme, token)
 
 
-FAB_BACK = (
-    '<a class="fab" href="{}" data-back aria-label="Back" title="Back">' + site.BACK_ICON + "</a>"
-)
 TO_TOP = (
-    '<button type="button" class="fab" id="to-top" aria-label="Back to top" '
-    'title="Back to top">' + site.TOP_ICON + "</button>"
+    '<button type="button" class="back" id="to-top">'
+    + site.TOP_ICON
+    + "<span>To top</span></button>"
 )
 
 
@@ -235,26 +246,59 @@ TO_TOP = (
         ("404.html", "/"),
     ],
 )
-def test_every_page_has_floating_buttons_and_back_only_below_the_index(
-    mini_repo, tmp_path, path, parent
-):
+def test_every_page_has_the_bar_with_back_only_below_the_index(mini_repo, tmp_path, path, parent):
     page = (_build(mini_repo, tmp_path) / path).read_text(encoding="utf-8")
-    dock = page.split('<div class="dock" id="dock">\n', 1)[1].split("</div>", 1)[0]
-    assert page.count('id="dock"') == 1 and TO_TOP in dock
-    if parent is None:
-        assert 'class="fab" href' not in dock
-    else:
-        # Back first, then To top, the order the dock stacks them in.
-        assert dock == FAB_BACK.format(parent) + "\n" + TO_TOP + "\n"
+    assert page.count('id="dock"') == 1
+    # A labelled landmark straight after the header, so the keyboard reaches it before
+    # the page body.
+    opening = '</header>\n<nav class="dock" id="dock" aria-label="Page">\n'
+    assert opening in page
+    dock = page.split(opening, 1)[1].split("\n</div>\n</nav>", 1)[0]
+    # The same Back as the top of the page on the left, To top on the right.
+    back = "" if parent is None else BACK.format(parent) + "\n"
+    assert dock == '<div class="dock-in">\n' + back + TO_TOP
 
 
-def test_the_floating_buttons_stay_hidden_until_the_page_scrolls_past_back():
+def test_the_bar_stays_hidden_until_the_page_scrolls_past_back():
     css = site.site_style.CSS
     dock = css.split("\n.dock {\n", 1)[1].split("\n}", 1)[0]
-    # visibility, not only opacity, so a hidden button is out of the tab order.
+    # visibility, not only opacity, so a hidden button is out of the tab order; a solid
+    # background, so text scrolls under the bar and never shows behind a button.
     assert "position: fixed;" in dock and "visibility: hidden;" in dock
-    assert "pointer-events: none;" in dock
+    assert "pointer-events: none;" in dock and "background: var(--bg);" in dock
     assert ".dock.on { visibility: visible; opacity: 1;" in css
+    # Below the header while it shows, at the top once it has slid away.
+    assert ".site-header:not(.away) ~ .dock { top: calc(4rem + 1px); }" in css
+    # As wide as the header's bar, so on a wide screen Back and To top sit under its
+    # outer edges instead of crowding the text column.
+    inner = css.split("\n.dock-in {\n", 1)[1].split("\n}", 1)[0]
+    header = css.split("\n.bar {\n", 1)[1].split("\n}", 1)[0]
+    assert "max-width: 72rem;" in inner and "max-width: 72rem;" in header
+    assert ".dock-in.narrow" not in css
+    # A jump to a heading lands below both bars, not under them. A jump upwards brings
+    # the header back with the bar stacked beneath it, so the offset has to clear the
+    # header, the bar's padding and its button, and each border, read from the rules
+    # themselves so a taller header or button fails here rather than on the page.
+    margin = re.search(r":where\(\[id\]\) \{ scroll-margin-top: ([\d.]+)rem; \}", css)
+    assert margin, "no zero-specificity scroll margin"
+    button = css.split("\n.back {\n", 1)[1].split("\n}", 1)[0]
+    rem = {
+        "header": re.search(r"height: ([\d.]+)rem;", header),
+        "padding": re.search(r"padding: ([\d.]+)rem ", inner),
+        "button": re.search(r"min-height: ([\d.]+)rem;", button),
+    }
+    assert all(rem.values()), rem
+    borders = 2 / 16
+    stacked = (
+        float(rem["header"].group(1))
+        + 2 * float(rem["padding"].group(1))
+        + float(rem["button"].group(1))
+        + borders
+    )
+    assert float(margin.group(1)) >= stacked + 0.25, (margin.group(1), stacked)
+    # The finder has an id, so it takes the same margin rather than a smaller one of
+    # its own that would win over the zero-specificity rule.
+    assert "scroll-margin" not in css.split("\n.finder {\n", 1)[1].split("\n}", 1)[0]
     script = site.site_style.PAGE_SCRIPT
     assert 'var inline = document.querySelector("main .back");' in script
     assert 'dock.classList.toggle("on", window.scrollY > limit);' in script
