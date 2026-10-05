@@ -392,7 +392,7 @@ html[data-theme="night"] .sun { display: none; }
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.back { font-size: 0.875rem; line-height: 1.4286; }
+.back { gap: 0.375rem; font-size: 0.875rem; line-height: 1.4286; }
 .crumbs {
   display: flex;
   flex-wrap: wrap;
@@ -424,6 +424,7 @@ html[data-theme="night"] .sun { display: none; }
 .page .lede { max-width: 42rem; margin-top: 1.5rem; }
 .page-body { margin-top: 2.5rem; }
 .back-link { margin-top: 2rem; }
+.back + .title { margin-top: 1.5rem; }
 .title + .lede { margin-top: 1rem; }
 .page .small.count { margin-top: 1rem; }
 .install { max-width: 42rem; margin-top: 2rem; }
@@ -633,6 +634,16 @@ PAGE_SCRIPT = """
     else if (delta < -8) away(false);
     last = y;
   }, { passive: true });
+
+  var backs = document.querySelectorAll("[data-back]");
+  function back(event) {
+    var from = "";
+    try { from = new URL(document.referrer).origin; } catch (e) {}
+    if (from !== window.location.origin || window.history.length < 2) return;
+    event.preventDefault();
+    window.history.back();
+  }
+  for (var b = 0; b < backs.length; b++) backs[b].addEventListener("click", back);
 
   var input = document.getElementById("find");
   var tally = document.getElementById("count");
