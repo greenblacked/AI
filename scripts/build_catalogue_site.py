@@ -265,6 +265,12 @@ def _page(title: str, main: str, version: str, *, current: str = "") -> str:
     )
 
 
+BACK_ICON = (
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" '
+    'stroke-width="2" d="M20 12H5M11.5 5.5 5 12l6.5 6.5"/></svg>'
+)
+
+
 def _back(parent: str) -> str:
     """A Back link: the previous page on this site, else ``parent``.
 
@@ -272,10 +278,7 @@ def _back(parent: str) -> str:
     origin, so a visitor who arrived from a search engine or a new tab goes to
     ``parent`` instead of leaving the site. Without the script it is a plain link.
     """
-    return (
-        f'<a class="back" href="{_esc(parent)}" data-back>'
-        '<span aria-hidden="true">←</span> Back</a>'
-    )
+    return f'<a class="back" href="{_esc(parent)}" data-back>{BACK_ICON}<span>Back</span></a>'
 
 
 def _narrow(inner: str) -> str:
@@ -590,8 +593,8 @@ def render_skill(skill: Skill, catalogue: Catalogue, version: str) -> str:
     slugs = site_markdown.Slugs()
     archive = f"/skills/{quote(skill.name, safe='')}.skill"
     crumbs = (
+        f"{_back(_plugin_href(skill.plugin))}\n"
         '<nav class="crumbs" aria-label="Skill">'
-        f"{_back(_plugin_href(skill.plugin))}"
         '<a href="/">Catalogue</a>'
         f'<a href="{_esc(_plugin_href(skill.plugin))}">{_esc(skill.plugin)}</a>'
         f'<a class="quiet" href="{_esc(_blob(skill.directory + "/SKILL.md"))}" target="_blank" '
