@@ -385,14 +385,38 @@ html[data-theme="night"] .sun { display: none; }
 @media (min-width: 40rem) {
   .page { padding-top: 4rem; padding-bottom: 4rem; }
 }
-.back, .crumbs a {
+.crumbs a {
   display: inline-flex;
   min-height: 2.75rem;
   align-items: center;
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.back { gap: 0.375rem; font-size: 0.875rem; line-height: 1.4286; }
+/* A tonal button with a leading icon, after Material Design 3: a full pill on the
+   container colour, a 1.125rem icon, and a state layer of the label colour at 8% on
+   hover and 12% when pressed. */
+.back {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 1.25rem 0 1rem;
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.4286;
+  font-weight: 500;
+  letter-spacing: 0.00625rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 150ms ease;
+}
+.back svg { width: 1.125rem; height: 1.125rem; flex: none; }
+.back:hover { background: color-mix(in srgb, var(--ink) 8%, var(--card)); }
+.back:active { background: color-mix(in srgb, var(--ink) 12%, var(--card)); }
+.back + .crumbs { margin-top: 1rem; }
 .crumbs {
   display: flex;
   flex-wrap: wrap;
