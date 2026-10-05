@@ -637,6 +637,8 @@ PAGE_SCRIPT = """
 
   var backs = document.querySelectorAll("[data-back]");
   function back(event) {
+    if (event.defaultPrevented || event.button !== 0) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     var from = "";
     try { from = new URL(document.referrer).origin; } catch (e) {}
     if (from !== window.location.origin || window.history.length < 2) return;
