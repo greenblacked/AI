@@ -265,6 +265,19 @@ def _page(title: str, main: str, version: str, *, current: str = "") -> str:
     )
 
 
+def _back(parent: str) -> str:
+    """A Back link: the previous page on this site, else ``parent``.
+
+    The script returns through the browser history only when the referrer is this
+    origin, so a visitor who arrived from a search engine or a new tab goes to
+    ``parent`` instead of leaving the site. Without the script it is a plain link.
+    """
+    return (
+        f'<a class="back" href="{_esc(parent)}" data-back>'
+        '<span aria-hidden="true">←</span> Back</a>'
+    )
+
+
 def _narrow(inner: str) -> str:
     """The column every page but the index and the plugin page sits in."""
     return f'<div class="page narrow">\n{inner}\n</div>'
@@ -544,7 +557,7 @@ def render_plugin(plugin: str, catalogue: Catalogue, version: str) -> str:
     install = _code_block(_install_line(plugin, catalogue.marketplace))
     main = (
         '<div class="page">\n'
-        '<a class="back" href="/">Catalogue</a>\n'
+        f"{_back('/')}\n"
         f'<h1 class="title-xl">{_esc(plugin)}</h1>\n'
         f"{about}"
         f'<p class="small count">{_esc(_plural(len(skills), "skill"))}</p>\n'
@@ -578,6 +591,7 @@ def render_skill(skill: Skill, catalogue: Catalogue, version: str) -> str:
     archive = f"/skills/{quote(skill.name, safe='')}.skill"
     crumbs = (
         '<nav class="crumbs" aria-label="Skill">'
+        f"{_back(_plugin_href(skill.plugin))}"
         '<a href="/">Catalogue</a>'
         f'<a href="{_esc(_plugin_href(skill.plugin))}">{_esc(skill.plugin)}</a>'
         f'<a class="quiet" href="{_esc(_blob(skill.directory + "/SKILL.md"))}" target="_blank" '
@@ -671,7 +685,9 @@ def render_start(catalogue: Catalogue, version: str) -> str:
         if text.strip():
             parts.append(site_markdown.render(text, source_dir="docs", offset=1, slugs=slugs))
     main = _narrow(
-        _title(
+        _back("/")
+        + "\n"
+        + _title(
             "Getting started",
             "Install one plugin, or the lot. The skills load themselves when a request matches.",
         )
@@ -727,7 +743,9 @@ def render_workflows(catalogue: Catalogue, version: str) -> str:
     if not catalogue.agents and not catalogue.commands:
         parts.append("<p>No subagents or slash commands ship in this build.</p>")
     main = _narrow(
-        _title(
+        _back("/")
+        + "\n"
+        + _title(
             "Workflows", "The subagents and slash commands that ship beside the skills, by plugin."
         )
         + "\n"
@@ -792,7 +810,9 @@ def render_examples(catalogue: Catalogue, version: str) -> str:
     if not parts:
         parts.append("<p>No examples are available in this build.</p>")
     main = _narrow(
-        _title("Examples", "What you type, and the skill it reaches. Nobody types a skill name.")
+        _back("/")
+        + "\n"
+        + _title("Examples", "What you type, and the skill it reaches. Nobody types a skill name.")
         + "\n"
         + _prose("\n".join(parts))
     )
@@ -967,7 +987,9 @@ def render_quality(catalogue: Catalogue, version: str) -> str:
     )
     parts += [heading("Read more"), "<ul>\n" + "\n".join(links) + "\n</ul>"]
     main = _narrow(
-        _title(
+        _back("/")
+        + "\n"
+        + _title(
             "Quality evidence", "Figures worked out from the repository when this site was built."
         )
         + "\n"
