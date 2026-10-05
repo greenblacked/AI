@@ -8,6 +8,30 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-05
+
+### Fixed
+
+- Smoke-test releases and the stage Preview through `workers.dev` instead of the custom
+  domain. Bot Fight Mode on the zone answers GitHub runners with a 403, which rolled
+  production back on `v0.1.0` twice, and it cannot be skipped by a WAF rule. The
+  blocking check is now `scripts/smoke_site.sh` against the Worker's `workers.dev`
+  address plus a read of `wrangler deployments status` (`read_wrangler_deploy.py
+  --active-is`) showing the deployed version at 100%, and the deploy must list
+  `ai.szolotov.com (custom domain)` as a target. The custom-domain request is logged
+  for information and cannot fail the job.
+- Stop the stage Preview from fetching stage pages. Stage is behind Cloudflare Access,
+  which serves a GitHub runner its login page or a redirect to it, so the `workers.dev`
+  smoke failed every stage deploy. The `preview` job now checks only that `wrangler
+  preview` uploaded and reported `https://stage.ai.szolotov.com`.
+- Stop a pull request description edit from leaving a red `ci` on the head commit. An
+  `edited` event no longer cancels the run in flight, which the `ci` gate counted as a
+  failure, and the `attribution` and `naming` jobs read the title and body from the API
+  when they run, with `pull-requests: read`, instead of from the event payload frozen at
+  the moment the run was triggered.
+
+## [0.1.0] - 2026-10-04
+
 ### Added
 
 - Add a Back button to every catalogue page below the front page, a tonal pill with a
@@ -272,25 +296,6 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
-- Smoke-test releases and the stage Preview through `workers.dev` instead of the custom
-  domain. Bot Fight Mode on the zone answers GitHub runners with a 403, which rolled
-  production back on `v0.1.0` twice, and it cannot be skipped by a WAF rule. The
-  blocking check is now `scripts/smoke_site.sh` against the Worker's `workers.dev`
-  address plus a read of `wrangler deployments status` (`read_wrangler_deploy.py
-  --active-is`) showing the deployed version at 100%, and the deploy must list
-  `ai.szolotov.com (custom domain)` as a target. The custom-domain request is logged
-  for information and cannot fail the job.
-
-- Stop the stage Preview from fetching stage pages. Stage is behind Cloudflare Access,
-  which serves a GitHub runner its login page or a redirect to it, so the `workers.dev`
-  smoke failed every stage deploy. The `preview` job now checks only that `wrangler
-  preview` uploaded and reported `https://stage.ai.szolotov.com`.
-
-- Stop a pull request description edit from leaving a red `ci` on the head commit. An
-  `edited` event no longer cancels the run in flight, which the `ci` gate counted as a
-  failure, and the `attribution` and `naming` jobs read the title and body from the API
-  when they run, with `pull-requests: read`, instead of from the event payload frozen at
-  the moment the run was triggered.
 - Roll a failed production release back to the version that was serving before it. The
   `cloudflare` job now records that version with `wrangler deployments status --json`
   before deploying and passes its ID to `wrangler rollback`; without one, Wrangler picks
@@ -347,5 +352,7 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/9365d19bd40e79f52463b046927b17cfd448bb79...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/greenblacked/AI/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/greenblacked/AI/compare/9365d19bd40e79f52463b046927b17cfd448bb79...v0.1.0
 [Initial catalogue]: https://github.com/greenblacked/AI/tree/9365d19bd40e79f52463b046927b17cfd448bb79
