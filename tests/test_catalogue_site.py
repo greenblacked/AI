@@ -177,7 +177,7 @@ SAFE_TAGS = {
 }  # fmt: skip
 
 
-BACK = '<a class="back" href="{}" data-back><span aria-hidden="true">←</span> Back</a>'
+BACK = '<a class="back" href="{}" data-back>' + site.BACK_ICON + "<span>Back</span></a>"
 
 
 @pytest.mark.parametrize(
@@ -198,6 +198,20 @@ def test_every_page_below_the_index_has_one_back_link_to_its_parent(
     # Without the script the link is a plain one to the page above, so it still works.
     assert page.count(BACK.format(parent)) == 1
     assert page.count("data-back>") == 1
+
+
+def test_the_back_link_is_a_tonal_button_above_the_skill_crumbs(mini_repo, tmp_path):
+    page = (_build(mini_repo, tmp_path) / "plugins/engineering/alpha/index.html").read_text(
+        encoding="utf-8"
+    )
+    # Its own row above the crumbs, not one of the underlined crumb links.
+    assert BACK.format("/plugins/engineering/") + '\n<nav class="crumbs"' in page
+    css = site.site_style.CSS
+    rule = css.split("\n.back {\n", 1)[1].split("\n}", 1)[0]
+    assert "border-radius: 999px;" in rule and "background: var(--card);" in rule
+    assert "text-decoration: none;" in rule
+    assert ".back:hover { background: color-mix(in srgb, var(--ink) 8%, var(--card)); }" in css
+    assert ".back:active { background: color-mix(in srgb, var(--ink) 12%, var(--card)); }" in css
 
 
 def test_the_index_has_no_back_link(mini_repo, tmp_path):
