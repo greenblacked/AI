@@ -276,6 +276,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   `ai.szolotov.com (custom domain)` as a target. The custom-domain request is logged
   for information and cannot fail the job.
 
+- Stop the stage Preview from fetching stage pages. Stage is behind Cloudflare Access,
+  which answers every request from a GitHub runner with its login page, so the
+  `workers.dev` smoke failed every stage deploy. The `preview` job now checks only that
+  `wrangler preview` uploaded and reported `https://stage.ai.szolotov.com`.
 - Stop a pull request description edit from leaving a red `ci` on the head commit. An
   `edited` event no longer cancels the run in flight, which the `ci` gate counted as a
   failure, and the `attribution` and `naming` jobs read the title and body from the API

@@ -363,9 +363,8 @@ sits outside the zone, so the checks go there, in this order:
    prints the status, with a notice naming Bot Fight Mode on a 403, and can never fail
    the job.
 
-That makes `workers_dev` and `preview_urls` in `deploy/wrangler.json` load-bearing: both
-must stay `true`, because turning off `workers_dev` removes the address the release is
-verified on. A `DEPLOY_URL` variable is no longer smoked, since it names a host in the
+That makes `workers_dev` in `deploy/wrangler.json` load-bearing: it must stay `true`,
+because turning it off removes the address the release is verified on. A `DEPLOY_URL` variable is no longer smoked, since it names a host in the
 zone; it only sets the environment's link.
 
 Before deploying, the job reads the version production is serving
@@ -418,7 +417,7 @@ Neither job grants itself more than `contents: read`. Not a required check.
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `dry-run` | `dry-run deploy` | The site did not build, the Wrangler pin disagreed with [`deploy/package-lock.json`](../deploy/package-lock.json), or `wrangler deploy --dry-run` rejected the Worker. No credential is read. The job does not run on `workflow_dispatch`. |
-| `preview` | `preview` | The run was not from `stage`, the `staging` environment has no Cloudflare credential, `wrangler preview` failed, Wrangler did not report `https://stage.ai.szolotov.com` for the Preview, or the smoke test of the `workers.dev` Preview URL failed. A Preview has no rollback and production is not touched, so the job stays red until the next push. The job does not run on a pull request. |
+| `preview` | `preview` | The run was not from `stage`, the `staging` environment has no Cloudflare credential, `wrangler preview` failed or reported no acceptable URL, or Wrangler did not report `https://stage.ai.szolotov.com` for the Preview. Stage is behind Cloudflare Access, so nothing on it is fetched. A Preview has no rollback and production is not touched, so the job stays red until the next push. The job does not run on a pull request. |
 
 `dry-run` is the pull request. It builds `dist/site` with [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py)
 and asks Wrangler to compile the Worker without uploading it. `--no-autoconfig` and
@@ -447,15 +446,13 @@ and not a stray production deploy.
 [`scripts/read_wrangler_deploy.py --preview`](../scripts/read_wrangler_deploy.py) reads
 the `preview` line Wrangler writes to `WRANGLER_OUTPUT_FILE_PATH` and keeps a URL only
 when it is `https`, with no user, port, path or query, on a `workers.dev` host or at or
-below `ai.szolotov.com`. The blocking smoke target is the `workers.dev` Preview URL,
-because Bot Fight Mode answers a GitHub runner's request for
-`https://stage.ai.szolotov.com` with a 403 and cannot be skipped (see the `cloudflare`
-job above); the step fails if Wrangler reported no such URL, so `preview_urls` must stay
-`true` in `deploy/wrangler.json`. Wrangler must still report the stage host for the
-Preview. If it did not, the step logs an error that the owner must enable
-`ai.szolotov.com` for Preview traffic, still smokes the `workers.dev` URL, and fails.
-One request for `https://stage.ai.szolotov.com/version.txt` is made for the log only and
-never fails the step. `DEPLOY_URL` is not smoked.
+below `ai.szolotov.com`. Stage is behind Cloudflare Access, which answers both the
+`workers.dev` Preview URL and `https://stage.ai.szolotov.com` with its login page, so
+the job fetches nothing from stage. It checks through Wrangler and the API only: the
+step fails if `wrangler preview` failed, if Wrangler reported no acceptable URL, or if
+it did not report `https://stage.ai.szolotov.com` for the Preview. In the last case it
+logs an error that the owner must enable `ai.szolotov.com` for Preview traffic.
+`DEPLOY_URL` is not fetched.
 
 [`scripts/smoke_site.sh`](../scripts/smoke_site.sh) retries `version.txt` until its
 first line is the expected version, because a host can answer with the previous
@@ -515,9 +512,9 @@ the release job is safe to repeat.
    Preview, so it does not narrow the risk. This is an accepted trade-off.
 8. Optional, on either environment: variable `DEPLOY_URL`, an `https` origin with no
    path, shown as the environment's link. It is not smoked: a host in the zone answers a
-   GitHub runner with Bot Fight Mode's 403. Both environments are verified on
-   `workers.dev` whether or not it is set.
-   Leave Bot Fight Mode on, and keep `workers_dev` and `preview_urls` set to `true` in
+   GitHub runner with Bot Fight Mode's 403. Production is verified on `workers.dev`
+   whether or not it is set.
+   Leave Bot Fight Mode on, and keep `workers_dev` set to `true` in
    `deploy/wrangler.json`. The release check goes through `workers.dev` and fails when
    Wrangler reports no such address.
 9. Optional: required reviewers on `production` if you want a person to approve the

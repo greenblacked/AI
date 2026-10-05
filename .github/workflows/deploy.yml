@@ -167,47 +167,24 @@ jobs:
             --message "stage ${GIT_SHA:0:7}" --tag "$GIT_SHA"
           python "$GITHUB_WORKSPACE/scripts/read_wrangler_deploy.py" --preview \
             "$WRANGLER_OUTPUT_FILE_PATH" >> "$GITHUB_OUTPUT"
-      - name: Smoke-test the stage Preview
-        id: smoke
-        # Bot Fight Mode on the zone answers a GitHub runner's request for
-        # stage.ai.szolotov.com with a 403, and no WAF rule can skip it, so the
-        # blocking check goes to the Preview's workers.dev address, outside the zone.
-        # Wrangler must still report the stage host, which proves the domain is
-        # enabled for Preview traffic. vars.DEPLOY_URL is not smoked: it names the
-        # custom domain, so fetching it would put the 403 back.
+      - name: Check the stage Preview's address
+        # Stage is behind Cloudflare Access, which answers both the workers.dev Preview
+        # URL and stage.ai.szolotov.com with its login page, so nothing on stage is
+        # fetched. The upload step already failed if wrangler preview did or if it
+        # reported no acceptable URL; this checks Wrangler reported the stage host,
+        # which proves the domain is enabled for Preview traffic.
         env:
-          WORKERS_DEV_URL: ${{ steps.deploy.outputs.url }}
           CUSTOM_URL: ${{ steps.deploy.outputs.custom_url }}
-          VERSION: ${{ steps.build.outputs.version }}
+          WORKERS_DEV_URL: ${{ steps.deploy.outputs.url }}
         run: |
           set -Eeuo pipefail
           stage_url=https://stage.ai.szolotov.com
-          missing=0
           if [ "$CUSTOM_URL" != "$stage_url" ]; then
             # Preview traffic on a custom domain is a setting on the domain, which
             # wrangler preview does not change.
             echo "::error::Wrangler did not report ${stage_url} for this Preview"
             echo "::error::reported: custom '${CUSTOM_URL}', workers.dev '${WORKERS_DEV_URL}'"
             echo "::error::the owner must enable ai.szolotov.com for Preview traffic (docs/ci.md)"
-            missing=1
-          fi
-          if [ -z "$WORKERS_DEV_URL" ]; then
-            echo "::error::Wrangler reported no workers.dev Preview URL"
-            echo "::error::preview_urls must stay true in deploy/wrangler.json (docs/ci.md)"
             exit 1
           fi
-          status=0
-          scripts/smoke_site.sh "$WORKERS_DEV_URL" "$VERSION" greenblacked-ai || status=1
-          if [ "$missing" -eq 1 ]; then
-            status=1
-          fi
-          # Information only, and never a failure: the 403 is Bot Fight Mode, which
-          # stays on.
-          code=$(curl --silent --output /dev/null --max-time 20 \
-            --write-out '%{http_code}' "${stage_url}/version.txt" || true)
-          echo "GET ${stage_url}/version.txt answered HTTP ${code:-none}"
-          if [ "$code" = 403 ]; then
-            echo "::notice::Bot Fight Mode blocks GitHub runners on stage.ai.szolotov.com," \
-              "so this Preview was verified through workers.dev"
-          fi
-          exit "$status"
+          echo "Wrangler reported ${stage_url} for this Preview"
