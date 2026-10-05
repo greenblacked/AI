@@ -8,6 +8,15 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- Add a Back button to every catalogue page below the front page, a tonal pill with a
+  leading arrow in the style of Material Design 3, the same shape as the Download and
+  View source buttons. It returns to the previous page when that page is on this site,
+  and otherwise goes to the page above: the plugin for a skill, the front page for the
+  rest, the not-found page included. Without JavaScript it is a plain link to that
+  page.
+
 ## [0.1.1] - 2026-10-05
 
 ### Fixed
