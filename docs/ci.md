@@ -298,7 +298,7 @@ secret that job needs before the first tag.
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `release` | `release` | The ref is not a `vX.Y.Z` tag, the tagged commit is not on `main`, the strict validator failed, [`scripts/release.py notes`](../scripts/release.py) found no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md) for the tag, [`scripts/package_skills.py`](../scripts/package_skills.py) or [`scripts/verify_archives.py`](../scripts/verify_archives.py) failed, [`scripts/export_portable.py`](../scripts/export_portable.py) failed, or `gh release create` or `gh release upload` could not create the release or upload an asset. |
-| `cloudflare` | `cloudflare` | The ref is not a `vX.Y.Z` tag, the tagged commit is not on `main`, [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py) or [`scripts/check_wrangler_pin.py`](../scripts/check_wrangler_pin.py) failed, `npm ci` failed, the `production` environment has no `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID`, `wrangler deployments status` could not read the version production is serving or found traffic split between versions, `wrangler deploy` failed, the smoke test did not see this version answer, or the automatic rollback failed. |
+| `cloudflare` | `cloudflare` | The ref is not a `vX.Y.Z` tag, the tagged commit is not on `main`, [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py) or [`scripts/check_wrangler_pin.py`](../scripts/check_wrangler_pin.py) failed, `npm ci` failed, the `production` environment has no `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID`, `wrangler deployments status` could not read the version production is serving or found traffic split between versions, `wrangler deploy` failed, Wrangler reported no `workers.dev` address or did not report `https://ai.szolotov.com` for the deploy, the smoke test did not see this version answer on `workers.dev`, `wrangler deployments status` does not show this version serving all traffic, or the automatic rollback failed. A 403 from `ai.szolotov.com` is logged as a notice and never fails the job. |
 
 Not a required check — nothing merges against it, and it only ever runs after a `vX.Y.Z` tag
 already exists. `git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main`
@@ -333,13 +333,41 @@ tag-triggered workflow.
 
 The `cloudflare` job builds the same catalogue again and uploads it to the Worker
 `ai`, which `deploy/wrangler.json` serves at `https://ai.szolotov.com` and on its
-`workers.dev` host. The smoke test checks the custom domain every time, whether or not
-`DEPLOY_URL` is set, then the `workers.dev` host Wrangler reports. It does not run when
+`workers.dev` host. It does not run when
 `release` failed, and a re-run of the workflow is safe: the release job replaces assets that are already there, and Wrangler replaces
-the Worker version. Before deploying, the job reads the version production is serving
+the Worker version.
+
+The release is not smoke-tested by fetching `ai.szolotov.com`. Bot Fight Mode is on for
+the zone `szolotov.com` and answers a GitHub runner's `curl` with HTTP 403. Cloudflare
+documents that no WAF rule can skip it, and the only exception, an IP Access rule that
+matches first, would mean allow-listing GitHub's address ranges, which are shared with
+anyone who runs code there. It stays on. A Worker is zoneless and its `workers.dev` host
+sits outside the zone, so the checks go there, in this order:
+
+1. [`scripts/read_wrangler_deploy.py`](../scripts/read_wrangler_deploy.py) reads the
+   deploy log. The job fails if there is no `workers.dev` address, or if the log does not
+   list `https://ai.szolotov.com` as a target, because then this deploy did not attach the
+   custom domain.
+2. [`scripts/smoke_site.sh`](../scripts/smoke_site.sh) checks the `workers.dev` address:
+   `version.txt` equals the tag, then the manifest, `/` and the archive.
+3. `wrangler deployments status --json`, read through
+   `read_wrangler_deploy.py --active-is`, must show the version this deploy created
+   serving 100% of traffic. One deployment is the active one on every address of a
+   Worker, so the version that passed on `workers.dev` is the version the custom domain
+   serves. This is a read of the API, not a fetch through the zone.
+4. One request for `https://ai.szolotov.com/version.txt` is made for the log only. It
+   prints the status, with a notice naming Bot Fight Mode on a 403, and can never fail
+   the job.
+
+That makes `workers_dev` and `preview_urls` in `deploy/wrangler.json` load-bearing: both
+must stay `true`, because turning off `workers_dev` removes the address the release is
+verified on. A `DEPLOY_URL` variable is no longer smoked, since it names a host in the
+zone; it only sets the environment's link.
+
+Before deploying, the job reads the version production is serving
 with `wrangler deployments status --json`, and
 [`scripts/read_wrangler_deploy.py --active`](../scripts/read_wrangler_deploy.py) keeps its
-ID. A failed smoke test rolls back to exactly that version: `wrangler rollback` with no
+ID. A failure of any check above, including the active-version check, rolls back to exactly that version: `wrangler rollback` with no
 ID picks the version uploaded before the newest one, which after an earlier failed
 release is that failed release. A deployment that splits traffic between versions has no
 single version to return to, so the job stops before deploying until the rollout is
@@ -386,7 +414,7 @@ Neither job grants itself more than `contents: read`. Not a required check.
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `dry-run` | `dry-run deploy` | The site did not build, the Wrangler pin disagreed with [`deploy/package-lock.json`](../deploy/package-lock.json), or `wrangler deploy --dry-run` rejected the Worker. No credential is read. The job does not run on `workflow_dispatch`. |
-| `preview` | `preview` | The run was not from `stage`, the `staging` environment has no Cloudflare credential, `wrangler preview` failed, Wrangler did not report `https://stage.ai.szolotov.com` for the Preview, or a smoke test failed. A Preview has no rollback and production is not touched, so the job stays red until the next push. The job does not run on a pull request. |
+| `preview` | `preview` | The run was not from `stage`, the `staging` environment has no Cloudflare credential, `wrangler preview` failed, Wrangler did not report `https://stage.ai.szolotov.com` for the Preview, or the smoke test of the `workers.dev` Preview URL failed. A Preview has no rollback and production is not touched, so the job stays red until the next push. The job does not run on a pull request. |
 
 `dry-run` is the pull request. It builds `dist/site` with [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py)
 and asks Wrangler to compile the Worker without uploading it. `--no-autoconfig` and
@@ -415,12 +443,15 @@ and not a stray production deploy.
 [`scripts/read_wrangler_deploy.py --preview`](../scripts/read_wrangler_deploy.py) reads
 the `preview` line Wrangler writes to `WRANGLER_OUTPUT_FILE_PATH` and keeps a URL only
 when it is `https`, with no user, port, path or query, on a `workers.dev` host or at or
-below `ai.szolotov.com`. The smoke step always checks `https://stage.ai.szolotov.com`,
-then the `workers.dev` Preview URL when Wrangler reported one. `DEPLOY_URL`, when the
-environment has one, is an additional target (duplicates are skipped), not a switch for
-either required check. If Wrangler did not report the stage host, the step logs an
-error that the owner must enable `ai.szolotov.com` for Preview traffic, still tries the
-fixed host, and fails.
+below `ai.szolotov.com`. The blocking smoke target is the `workers.dev` Preview URL,
+because Bot Fight Mode answers a GitHub runner's request for
+`https://stage.ai.szolotov.com` with a 403 and cannot be skipped (see the `cloudflare`
+job above); the step fails if Wrangler reported no such URL, so `preview_urls` must stay
+`true` in `deploy/wrangler.json`. Wrangler must still report the stage host for the
+Preview. If it did not, the step logs an error that the owner must enable
+`ai.szolotov.com` for Preview traffic, still smokes the `workers.dev` URL, and fails.
+One request for `https://stage.ai.szolotov.com/version.txt` is made for the log only and
+never fails the step. `DEPLOY_URL` is not smoked.
 
 [`scripts/smoke_site.sh`](../scripts/smoke_site.sh) retries `version.txt` until its
 first line is the expected version, because a host can answer with the previous
@@ -479,9 +510,12 @@ the release job is safe to repeat.
    separation. A second token on `staging` needs the same Workers permissions to upload a
    Preview, so it does not narrow the risk. This is an accepted trade-off.
 8. Optional, on either environment: variable `DEPLOY_URL`, an `https` origin with no
-   path, smoked after every deploy of that environment. Set it only once that host
-   answers. Production smokes `https://ai.szolotov.com`, and `staging` smokes
-   `https://stage.ai.szolotov.com`, even when this variable is unset.
+   path, shown as the environment's link. It is not smoked: a host in the zone answers a
+   GitHub runner with Bot Fight Mode's 403. Both environments are verified on
+   `workers.dev` whether or not it is set.
+   Leave Bot Fight Mode on, and keep `workers_dev` and `preview_urls` set to `true` in
+   `deploy/wrangler.json`. The release check goes through `workers.dev` and fails when
+   Wrangler reports no such address.
 9. Optional: required reviewers on `production` if you want a person to approve the
    tag deploy. With one maintainer that approval is a click on every release, so it
    is off unless you turn it on.
