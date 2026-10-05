@@ -10,6 +10,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add a Back link to every catalogue page below the front page. It returns to the
+  previous page when that page is on this site, and otherwise goes to the page above:
+  the plugin for a skill, the front page for the rest. Without JavaScript it is a plain
+  link to that page.
 - Cut a release from the Actions tab. After the prepare pull request merges, running Cut
   release on `main` with a version checks it with the new `scripts/release.py check`
   (a non-empty changelog section, no such tag on `origin`, a version greater than every
@@ -275,6 +279,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   --active-is`) showing the deployed version at 100%, and the deploy must list
   `ai.szolotov.com (custom domain)` as a target. The custom-domain request is logged
   for information and cannot fail the job.
+
+- Stop the stage Preview from fetching stage pages. Stage is behind Cloudflare Access,
+  which serves a GitHub runner its login page or a redirect to it, so the `workers.dev`
+  smoke failed every stage deploy. The `preview` job now checks only that `wrangler
+  preview` uploaded and reported `https://stage.ai.szolotov.com`.
 
 - Stop a pull request description edit from leaving a red `ci` on the head commit. An
   `edited` event no longer cancels the run in flight, which the `ci` gate counted as a

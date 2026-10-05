@@ -177,6 +177,52 @@ SAFE_TAGS = {
 }  # fmt: skip
 
 
+BACK = '<a class="back" href="{}" data-back><span aria-hidden="true">←</span> Back</a>'
+
+
+@pytest.mark.parametrize(
+    ("path", "parent"),
+    [
+        ("plugins/engineering/index.html", "/"),
+        ("plugins/engineering/alpha/index.html", "/plugins/engineering/"),
+        ("start/index.html", "/"),
+        ("workflows/index.html", "/"),
+        ("examples/index.html", "/"),
+        ("quality/index.html", "/"),
+    ],
+)
+def test_every_page_below_the_index_has_one_back_link_to_its_parent(
+    mini_repo, tmp_path, path, parent
+):
+    page = (_build(mini_repo, tmp_path) / path).read_text(encoding="utf-8")
+    # Without the script the link is a plain one to the page above, so it still works.
+    assert page.count(BACK.format(parent)) == 1
+    assert page.count("data-back>") == 1
+
+
+def test_the_index_has_no_back_link(mini_repo, tmp_path):
+    page = (_build(mini_repo, tmp_path) / "index.html").read_text(encoding="utf-8")
+    assert "data-back>" not in page
+
+
+def test_back_returns_through_history_only_from_this_site():
+    script = site.site_style.PAGE_SCRIPT
+    block = script.split("function back(event) {", 1)[1].split("\n  }\n", 1)[0]
+    # A modified or non-primary click keeps the browser's own behaviour, such as opening
+    # the parent page in a new tab, rather than moving this tab back.
+    assert "if (event.defaultPrevented || event.button !== 0) return;" in block
+    assert "if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;" in block
+    assert block.index("event.button") < block.index("event.preventDefault();")
+    assert block.index("event.altKey) return;") < block.index("event.preventDefault();")
+    # A referrer from another origin, none at all, or a one-entry history (a new tab)
+    # leaves the link to go to the parent page instead of leaving the site.
+    assert "new URL(document.referrer).origin" in block
+    assert "from !== window.location.origin || window.history.length < 2) return;" in block
+    assert block.index("return;") < block.index("event.preventDefault();")
+    assert block.rstrip().endswith("window.history.back();")
+    assert 'document.querySelectorAll("[data-back]")' in script
+
+
 def test_every_page_is_written_beside_the_archives(mini_repo, tmp_path):
     output = _build(mini_repo, tmp_path)
     for path in (
@@ -946,32 +992,24 @@ def test_one_worker_serves_production_and_previews_on_the_custom_domain():
     assert "env" not in config
 
 
-def test_the_stage_branch_uploads_a_preview_and_smokes_it_through_workers_dev():
+def test_the_stage_branch_uploads_a_preview_and_fetches_nothing_behind_access():
     workflow = (REPO / ".github" / "workflows" / "deploy.yml").read_text(encoding="utf-8")
     assert "--env" not in workflow
     assert "wrangler rollback" not in workflow
     assert "wrangler deploy --config" not in workflow
     deploy = workflow.split("      - name: Upload the stage Preview\n", 1)[1].split(
-        "      - name: Smoke-test the stage Preview\n", 1
+        "      - name: Check the stage Preview's address\n", 1
     )[0]
     assert "wrangler preview --config wrangler.json --name stage" in deploy
     assert "WRANGLER_OUTPUT_FILE_PATH" in deploy
     assert 'read_wrangler_deploy.py" --preview' in deploy
-    smoke = workflow.split("      - name: Smoke-test the stage Preview\n", 1)[1]
-    assert "stage_url=https://stage.ai.szolotov.com" in smoke
-    assert "::error::Wrangler did not report ${stage_url} for this Preview" in smoke
-    assert "enable ai.szolotov.com for Preview traffic (docs/ci.md)" in smoke
-    # The blocking target is the workers.dev Preview URL, and nothing else is smoked.
-    assert 'if [ -z "$WORKERS_DEV_URL" ]' in smoke
-    assert "::error::Wrangler reported no workers.dev Preview URL" in smoke
-    assert smoke.count("scripts/smoke_site.sh") == 1
-    assert 'scripts/smoke_site.sh "$WORKERS_DEV_URL" "$VERSION" greenblacked-ai' in smoke
-    # The configured URL names the custom domain, so fetching it would bring the 403 back.
-    assert "CONFIGURED_URL" not in smoke
-    assert "urls=(" not in smoke
-    # The stage custom-domain fetch is information only.
-    assert '"${stage_url}/version.txt" || true)' in smoke
-    assert "::notice::Bot Fight Mode blocks GitHub runners on stage.ai.szolotov.com" in smoke
+    check = workflow.split("      - name: Check the stage Preview's address\n", 1)[1]
+    assert "stage_url=https://stage.ai.szolotov.com" in check
+    assert "::error::Wrangler did not report ${stage_url} for this Preview" in check
+    assert "enable ai.szolotov.com for Preview traffic (docs/ci.md)" in check
+    # Stage is behind Cloudflare Access, so the job fetches nothing from it.
+    assert "smoke_site.sh" not in workflow
+    assert "curl" not in check
 
 
 def _production_steps():
@@ -1223,43 +1261,32 @@ def test_the_custom_domain_probe_never_fails_on_any_answer(tmp_path, env):
     assert "::notice::" not in result.stdout
 
 
-STAGE = "Smoke-test the stage Preview"
+STAGE = "Check the stage Preview's address"
 STAGE_URL = "https://stage.ai.szolotov.com"
 STAGE_ENV = {
     "WORKERS_DEV_URL": "https://stage-ai.account.workers.dev",
     "CUSTOM_URL": STAGE_URL,
-    "VERSION": "stage-abc1234",
 }
 
 
-def test_the_preview_smoke_passes_when_only_the_custom_domain_answers_403(tmp_path):
-    result, calls = _run_step(tmp_path, "deploy.yml", STAGE, {**STAGE_ENV, "STUB_CURL_CODE": "403"})
+def test_the_preview_check_passes_on_the_stage_host_without_fetching_anything(tmp_path):
+    result, calls = _run_step(tmp_path, "deploy.yml", STAGE, STAGE_ENV)
     assert result.returncode == 0, result.stderr
-    assert calls[0] == "smoke https://stage-ai.account.workers.dev stage-abc1234 greenblacked-ai"
-    assert len(calls) == 2 and calls[1].endswith(f"{STAGE_URL}/version.txt")
-    assert (
-        "::notice::Bot Fight Mode blocks GitHub runners on stage.ai.szolotov.com" in result.stdout
-    )
-
-
-def test_the_preview_smoke_fails_when_workers_dev_fails_whatever_the_domain_says(tmp_path):
-    env = {**STAGE_ENV, "STUB_SMOKE_RC": "1", "STUB_CURL_CODE": "200"}
-    result, _calls = _run_step(tmp_path, "deploy.yml", STAGE, env)
-    assert result.returncode != 0
-
-
-def test_the_preview_smoke_fails_on_an_empty_workers_dev_url(tmp_path):
-    result, calls = _run_step(tmp_path, "deploy.yml", STAGE, {**STAGE_ENV, "WORKERS_DEV_URL": ""})
-    assert result.returncode != 0
-    assert "::error::Wrangler reported no workers.dev Preview URL" in result.stdout
+    assert f"Wrangler reported {STAGE_URL} for this Preview" in result.stdout
     assert calls == []
 
 
-def test_the_preview_smoke_fails_without_the_stage_host_even_when_workers_dev_passes(tmp_path):
-    result, calls = _run_step(tmp_path, "deploy.yml", STAGE, {**STAGE_ENV, "CUSTOM_URL": ""})
+@pytest.mark.parametrize(
+    "custom_url",
+    ["", "https://ai.szolotov.com", "https://other.ai.szolotov.com", f"{STAGE_URL}/"],
+    ids=["missing", "production", "other-preview", "trailing-slash"],
+)
+def test_the_preview_check_fails_without_the_stage_host(tmp_path, custom_url):
+    env = {**STAGE_ENV, "CUSTOM_URL": custom_url}
+    result, calls = _run_step(tmp_path, "deploy.yml", STAGE, env)
     assert result.returncode != 0
     assert "::error::Wrangler did not report https://stage.ai.szolotov.com" in result.stdout
-    assert calls[0].startswith("smoke https://stage-ai.account.workers.dev")
+    assert calls == []
 
 
 def test_production_deploys_are_serialized_across_release_tags():
