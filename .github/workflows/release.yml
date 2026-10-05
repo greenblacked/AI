@@ -251,33 +251,90 @@ jobs:
             echo "::error::on the production environment (docs/ci.md)"
             exit 1
           fi
+          # Recorded before the deploy, not after: Wrangler makes the new version active
+          # before it attaches the custom domain, so a failure after that point would
+          # otherwise leave the new version live with no rollback.
+          echo "deployed=true" >> "$GITHUB_OUTPUT"
           ./node_modules/.bin/wrangler deploy --config wrangler.json \
             --no-autoconfig --no-install-skills \
             --message "release ${TAG}" --tag "$GIT_SHA"
-          echo "deployed=true" >> "$GITHUB_OUTPUT"
           python "$GITHUB_WORKSPACE/scripts/read_wrangler_deploy.py" \
             "$WRANGLER_OUTPUT_FILE_PATH" >> "$GITHUB_OUTPUT"
       - name: Smoke-test the production Worker
         id: smoke
+        # Bot Fight Mode on the zone answers a GitHub runner's request for
+        # ai.szolotov.com with a 403, and no WAF rule can skip it, so the blocking
+        # check goes to the Worker's workers.dev address, which sits outside the zone.
+        # The same deployment serves both addresses; the next step proves it.
+        # vars.DEPLOY_URL is not smoked: it names the custom domain, so fetching it
+        # would put the 403 back.
         env:
-          BUILT_URL: ${{ steps.deploy.outputs.url }}
-          CONFIGURED_URL: ${{ vars.DEPLOY_URL }}
+          WORKERS_DEV_URL: ${{ steps.deploy.outputs.url }}
+          CUSTOM_URL: ${{ steps.deploy.outputs.custom_url }}
         run: |
           set -Eeuo pipefail
-          # The custom domain is fixed: wrangler.json routes it, so it must answer
-          # this version whether or not a DEPLOY_URL variable exists.
           production_url=https://ai.szolotov.com
-          urls=("$production_url")
-          if [ -n "$BUILT_URL" ] && [ "$BUILT_URL" != "$production_url" ]; then
-            urls+=("$BUILT_URL")
+          if [ -z "$WORKERS_DEV_URL" ]; then
+            echo "::error::Wrangler reported no workers.dev address for this deploy"
+            echo "::error::workers_dev must stay true in deploy/wrangler.json (docs/ci.md)"
+            exit 1
           fi
-          if [ -n "$CONFIGURED_URL" ] && [ "$CONFIGURED_URL" != "$BUILT_URL" ] && \
-            [ "$CONFIGURED_URL" != "$production_url" ]; then
-            urls+=("$CONFIGURED_URL")
+          if [ "$CUSTOM_URL" != "$production_url" ]; then
+            echo "::error::Wrangler did not report ${production_url} for this deploy"
+            echo "::error::reported custom domain: '${CUSTOM_URL}'; it was not attached"
+            exit 1
           fi
-          for target in "${urls[@]}"; do
-            scripts/smoke_site.sh "$target" "$TAG" greenblacked-ai
-          done
+          scripts/smoke_site.sh "$WORKERS_DEV_URL" "$TAG" greenblacked-ai
+      - name: Confirm production serves the deployed version
+        working-directory: deploy
+        # Every address of a Worker serves its active deployment, so the version
+        # that passed the smoke test on workers.dev is what the custom domain serves
+        # exactly when the active deployment is that version at 100%. This is a read
+        # of the API, not a fetch through the zone. It runs before the rollback step,
+        # and a failure here rolls back like a failed smoke test.
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DEPLOYED_VERSION_ID: ${{ steps.deploy.outputs.version_id }}
+        run: |
+          set -Eeuo pipefail
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID"
+            echo "::error::on the production environment (docs/ci.md)"
+            exit 1
+          fi
+          if [ -z "$DEPLOYED_VERSION_ID" ]; then
+            echo "::error::Wrangler reported no version ID for this deploy"
+            echo "::error::cannot confirm what production is serving"
+            exit 1
+          fi
+          status="$RUNNER_TEMP/serving-status.json"
+          errors="$RUNNER_TEMP/serving-status.err"
+          if ! ./node_modules/.bin/wrangler deployments status --config wrangler.json --json \
+            >"$status" 2>"$errors"; then
+            cat "$errors" >&2
+            echo "::error::could not read the version production is serving"
+            exit 1
+          fi
+          if ! python "$GITHUB_WORKSPACE/scripts/read_wrangler_deploy.py" \
+            --active-is "$DEPLOYED_VERSION_ID" "$status" >/dev/null; then
+            echo "::error::production is not serving ${DEPLOYED_VERSION_ID} at 100%"
+            exit 1
+          fi
+          echo "Production serves ${DEPLOYED_VERSION_ID} at 100%"
+      - name: Probe the custom domain (information only)
+        # Never fails the job: the 403 is Bot Fight Mode, which stays on, and a
+        # failure here after a good deploy would roll production back for nothing.
+        run: |
+          set -Eeuo pipefail
+          production_url=https://ai.szolotov.com
+          code=$(curl --silent --output /dev/null --max-time 20 \
+            --write-out '%{http_code}' "${production_url}/version.txt" || true)
+          echo "GET ${production_url}/version.txt answered HTTP ${code:-none}"
+          if [ "$code" = 403 ]; then
+            echo "::notice::Bot Fight Mode blocks GitHub runners on ai.szolotov.com," \
+              "so this release was verified through workers.dev and the active deployment"
+          fi
       - name: Roll back the production Worker
         if: failure() && steps.deploy.outputs.deployed == 'true'
         working-directory: deploy
@@ -287,7 +344,7 @@ jobs:
           PREVIOUS_VERSION_ID: ${{ steps.active.outputs.version_id }}
         run: |
           set -Eeuo pipefail
-          echo "::warning::the production deploy did not pass its smoke test; rolling back"
+          echo "::warning::the production deploy did not pass its checks; rolling back"
           if [ -z "$PREVIOUS_VERSION_ID" ]; then
             echo "::error::no version was serving before this release, so there is none to"
             echo "::error::roll back to. Fix forward, or roll back from the Cloudflare dashboard"
@@ -295,7 +352,7 @@ jobs:
           fi
           if ! ./node_modules/.bin/wrangler rollback "$PREVIOUS_VERSION_ID" \
             --config wrangler.json --yes \
-            --message "Automatic rollback: failed smoke test in run ${GITHUB_RUN_ID}"; then
+            --message "Automatic rollback: failed release check in run ${GITHUB_RUN_ID}"; then
             echo "::error::rollback failed. The failed version may still be serving"
             echo "::error::roll it back from the Cloudflare dashboard"
             exit 1

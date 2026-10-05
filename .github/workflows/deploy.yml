@@ -167,47 +167,24 @@ jobs:
             --message "stage ${GIT_SHA:0:7}" --tag "$GIT_SHA"
           python "$GITHUB_WORKSPACE/scripts/read_wrangler_deploy.py" --preview \
             "$WRANGLER_OUTPUT_FILE_PATH" >> "$GITHUB_OUTPUT"
-      - name: Smoke-test the stage Preview
-        id: smoke
+      - name: Check the stage Preview's address
+        # Stage is behind Cloudflare Access, which serves its login page on the
+        # workers.dev Preview URL and redirects stage.ai.szolotov.com to it, so nothing
+        # on stage is fetched. The upload step already failed if wrangler preview did or if it
+        # reported no acceptable URL; this checks Wrangler reported the stage host,
+        # which proves the domain is enabled for Preview traffic.
         env:
-          WORKERS_DEV_URL: ${{ steps.deploy.outputs.url }}
           CUSTOM_URL: ${{ steps.deploy.outputs.custom_url }}
-          CONFIGURED_URL: ${{ vars.DEPLOY_URL }}
-          VERSION: ${{ steps.build.outputs.version }}
+          WORKERS_DEV_URL: ${{ steps.deploy.outputs.url }}
         run: |
           set -Eeuo pipefail
           stage_url=https://stage.ai.szolotov.com
           if [ "$CUSTOM_URL" != "$stage_url" ]; then
             # Preview traffic on a custom domain is a setting on the domain, which
-            # wrangler preview does not change. Smoke the fixed host anyway so the
-            # log shows what it answers.
+            # wrangler preview does not change.
             echo "::error::Wrangler did not report ${stage_url} for this Preview"
             echo "::error::reported: custom '${CUSTOM_URL}', workers.dev '${WORKERS_DEV_URL}'"
             echo "::error::the owner must enable ai.szolotov.com for Preview traffic (docs/ci.md)"
-            missing=1
-          else
-            missing=0
+            exit 1
           fi
-          urls=("$stage_url")
-          if [ -n "$WORKERS_DEV_URL" ] && [ "$WORKERS_DEV_URL" != "$stage_url" ]; then
-            urls+=("$WORKERS_DEV_URL")
-          fi
-          if [ -n "$CONFIGURED_URL" ]; then
-            seen=0
-            for known in "${urls[@]}"; do
-              if [ "$known" = "$CONFIGURED_URL" ]; then
-                seen=1
-              fi
-            done
-            if [ "$seen" -eq 0 ]; then
-              urls+=("$CONFIGURED_URL")
-            fi
-          fi
-          status=0
-          for target in "${urls[@]}"; do
-            scripts/smoke_site.sh "$target" "$VERSION" greenblacked-ai || status=1
-          done
-          if [ "$missing" -eq 1 ]; then
-            status=1
-          fi
-          exit "$status"
+          echo "Wrangler reported ${stage_url} for this Preview"
