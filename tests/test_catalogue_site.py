@@ -13,6 +13,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import threading
 import time
 import zipfile
@@ -22,6 +23,7 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import REPO, eval_set, load_script, write_skill
+from tests.test_evals_workflow import _extract_run_block
 
 site = load_script("build_catalogue_site.py")
 
@@ -813,6 +815,124 @@ def test_the_deploy_log_keeps_only_a_workers_dev_url(tmp_path, capsys):
     assert f"version_id={version}" in capsys.readouterr().out
 
 
+ACTIVE_VERSION = "0f1e2d3c-4b5a-6978-8a9b-acbdcedf0011"
+
+
+def _deployment(*versions):
+    return json.dumps(
+        {
+            "id": "deployment",
+            "source": "wrangler",
+            "strategy": "percentage",
+            "versions": [{"version_id": vid, "percentage": pct} for vid, pct in versions],
+        }
+    )
+
+
+WORKERS_DEV = "https://greenblacked-ai.account.workers.dev"
+PRODUCTION = "https://ai.szolotov.com"
+# Wrangler's `renderRoute` writes a custom domain as the bare pattern, never with a scheme;
+# only workers.dev targets get `https://`. The first string is what the live v0.1.0 deploy
+# logged for deploy/wrangler.json's route.
+CUSTOM_TARGET = "ai.szolotov.com (custom domain) [previews: enabled]"
+DEPLOYED = "12345678-1234-1234-1234-123456789abc"
+
+
+def _deploy_line(targets, **extra):
+    return json.dumps({"type": "deploy", "targets": targets, **extra}) + "\n"
+
+
+def test_the_custom_target_is_what_wrangler_renders_for_the_configured_route():
+    config = json.loads((REPO / "deploy" / "wrangler.json").read_text(encoding="utf-8"))
+    (route,) = config["routes"]
+    assert route["custom_domain"] is True and route["previews_enabled"] is True
+    assert f"{route['pattern']} (custom domain) [previews: enabled]" == CUSTOM_TARGET
+
+
+def test_the_deploy_log_reports_the_production_custom_domain(tmp_path, capsys):
+    reader = load_script("read_wrangler_deploy.py")
+    log = tmp_path / "wrangler.jsonl"
+    log.write_text(
+        _deploy_line([WORKERS_DEV, CUSTOM_TARGET], version_id=DEPLOYED), encoding="utf-8"
+    )
+    assert reader.main([str(log)]) == 0
+    assert capsys.readouterr().out.splitlines() == [
+        f"url={WORKERS_DEV}",
+        f"custom_url={PRODUCTION}",
+        f"version_id={DEPLOYED}",
+    ]
+    assert reader.parse_deploy(log.read_text(encoding="utf-8")) == (
+        WORKERS_DEV,
+        DEPLOYED,
+        PRODUCTION,
+    )
+
+
+@pytest.mark.parametrize(
+    "target",
+    [
+        "ai.szolotov.com (custom domain)",
+        "ai.szolotov.com (custom domain) [previews: enabled]",
+        "ai.szolotov.com (custom domain) [production: enabled, previews: disabled]",
+        "ai.szolotov.com (custom domain - zone name: szolotov.com)",
+        "ai.szolotov.com (custom domain - zone name: szolotov.com) [previews: enabled]",
+        "ai.szolotov.com (custom domain - zone id: 0123456789abcdef0123456789abcdef)",
+    ],
+)
+def test_every_rendering_of_the_production_custom_domain_is_accepted(target):
+    reader = load_script("read_wrangler_deploy.py")
+    assert reader.parse_deploy(_deploy_line([target, WORKERS_DEV]))[2] == PRODUCTION
+
+
+def test_a_deploy_without_the_custom_domain_prints_no_custom_url(tmp_path, capsys):
+    reader = load_script("read_wrangler_deploy.py")
+    log = tmp_path / "wrangler.jsonl"
+    log.write_text(_deploy_line([WORKERS_DEV]), encoding="utf-8")
+    assert reader.main([str(log)]) == 0
+    assert capsys.readouterr().out == f"url={WORKERS_DEV}\n"
+    # Only the last deploy line counts: an earlier custom domain does not cover a later
+    # deploy that dropped it.
+    text = _deploy_line([WORKERS_DEV, CUSTOM_TARGET]) + _deploy_line([WORKERS_DEV])
+    assert reader.parse_deploy(text)[2] == ""
+
+
+@pytest.mark.parametrize(
+    "target",
+    [
+        "ai.szolotov.com.evil.com (custom domain)",
+        "evil.ai.szolotov.com (custom domain)",
+        # Attached but serving no production traffic.
+        "ai.szolotov.com (custom domain) [production: disabled, previews: enabled]",
+        "ai.szolotov.com (custom domain - zone name: szolotov.com) [production: disabled]",
+        "stage.ai.szolotov.com (custom domain)",
+        "AI.szolotov.com (custom domain)",
+        "szolotov.com (custom domain)",
+        # A route, not a custom domain: it does not attach the domain.
+        "ai.szolotov.com",
+        "ai.szolotov.com (zone name: szolotov.com)",
+        "ai.szolotov.com/* (zone name: szolotov.com)",
+        "ai.szolotov.com [previews: enabled]",
+        # Wrangler never writes a custom domain with a scheme, a port or a path.
+        "https://ai.szolotov.com",
+        "https://ai.szolotov.com (custom domain)",
+        "ai.szolotov.com:8443 (custom domain)",
+        "ai.szolotov.com/path (custom domain)",
+        "ai.szolotov.com  (custom domain)",
+        "ai.szolotov.com (custom domains)",
+        "ai.szolotov.com (custom domainX)",
+        "ai.szolotov.com (CUSTOM DOMAIN)",
+        "x ai.szolotov.com (custom domain)",
+        "ai.szolotov.com\n(custom domain)",
+        "",
+        7,
+        None,
+    ],
+)
+def test_only_the_exact_production_host_with_the_marker_counts_as_the_custom_domain(target):
+    reader = load_script("read_wrangler_deploy.py")
+    assert reader.parse_deploy(_deploy_line([WORKERS_DEV, target]))[2] == ""
+
+
 def test_one_worker_serves_production_and_previews_on_the_custom_domain():
     config = json.loads((REPO / "deploy" / "wrangler.json").read_text(encoding="utf-8"))
     assert config["name"] == "ai"
@@ -826,7 +946,7 @@ def test_one_worker_serves_production_and_previews_on_the_custom_domain():
     assert "env" not in config
 
 
-def test_the_stage_branch_uploads_a_preview_and_smokes_the_fixed_host():
+def test_the_stage_branch_uploads_a_preview_and_smokes_it_through_workers_dev():
     workflow = (REPO / ".github" / "workflows" / "deploy.yml").read_text(encoding="utf-8")
     assert "--env" not in workflow
     assert "wrangler rollback" not in workflow
@@ -839,22 +959,307 @@ def test_the_stage_branch_uploads_a_preview_and_smokes_the_fixed_host():
     assert 'read_wrangler_deploy.py" --preview' in deploy
     smoke = workflow.split("      - name: Smoke-test the stage Preview\n", 1)[1]
     assert "stage_url=https://stage.ai.szolotov.com" in smoke
-    assert 'urls=("$stage_url")' in smoke
     assert "::error::Wrangler did not report ${stage_url} for this Preview" in smoke
     assert "enable ai.szolotov.com for Preview traffic (docs/ci.md)" in smoke
-    assert 'if [ -n "$CONFIGURED_URL" ]' in smoke
-    assert 'scripts/smoke_site.sh "$target" "$VERSION" greenblacked-ai' in smoke
+    # The blocking target is the workers.dev Preview URL, and nothing else is smoked.
+    assert 'if [ -z "$WORKERS_DEV_URL" ]' in smoke
+    assert "::error::Wrangler reported no workers.dev Preview URL" in smoke
+    assert smoke.count("scripts/smoke_site.sh") == 1
+    assert 'scripts/smoke_site.sh "$WORKERS_DEV_URL" "$VERSION" greenblacked-ai' in smoke
+    # The configured URL names the custom domain, so fetching it would bring the 403 back.
+    assert "CONFIGURED_URL" not in smoke
+    assert "urls=(" not in smoke
+    # The stage custom-domain fetch is information only.
+    assert '"${stage_url}/version.txt" || true)' in smoke
+    assert "::notice::Bot Fight Mode blocks GitHub runners on stage.ai.szolotov.com" in smoke
 
 
-def test_production_smokes_the_custom_domain_without_a_deploy_url():
+def _production_steps():
+    workflow = (REPO / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    cloudflare = workflow.split("  cloudflare:\n", 1)[1]
+    names = [
+        "Smoke-test the production Worker",
+        "Confirm production serves the deployed version",
+        "Probe the custom domain (information only)",
+        "Roll back the production Worker",
+    ]
+    marks = [f"      - name: {name}\n" for name in names]
+    for earlier, later in zip(marks, marks[1:], strict=False):
+        assert cloudflare.index(earlier) < cloudflare.index(later)
+    steps = {}
+    for mark, following in zip(marks, [*marks[1:], None], strict=True):
+        body = cloudflare.split(mark, 1)[1]
+        steps[mark.split("name: ", 1)[1].strip()] = (
+            body if following is None else body.split(following, 1)[0]
+        )
+    return cloudflare, steps
+
+
+def test_production_is_smoked_through_workers_dev_not_the_custom_domain():
     workflow = (REPO / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
     assert "--env" not in workflow
-    smoke = workflow.split("      - name: Smoke-test the production Worker\n", 1)[1].split(
-        "      - name: Roll back the production Worker\n", 1
-    )[0]
+    _cloudflare, steps = _production_steps()
+    smoke = steps["Smoke-test the production Worker"]
+    assert "WORKERS_DEV_URL: ${{ steps.deploy.outputs.url }}" in smoke
+    assert "CUSTOM_URL: ${{ steps.deploy.outputs.custom_url }}" in smoke
+    assert 'if [ -z "$WORKERS_DEV_URL" ]' in smoke
+    assert "::error::Wrangler reported no workers.dev address for this deploy" in smoke
+    assert 'if [ "$CUSTOM_URL" != "$production_url" ]' in smoke
     assert "production_url=https://ai.szolotov.com" in smoke
-    assert 'urls=("$production_url")' in smoke
-    assert 'scripts/smoke_site.sh "$target" "$TAG" greenblacked-ai' in smoke
+    assert smoke.count("scripts/smoke_site.sh") == 1
+    assert 'scripts/smoke_site.sh "$WORKERS_DEV_URL" "$TAG" greenblacked-ai' in smoke
+    # No fetch of the custom domain, and none of the configured URL, in a blocking step.
+    assert "curl" not in smoke and "urls=(" not in smoke
+    assert "CONFIGURED_URL" not in smoke
+
+
+def test_production_confirms_the_active_version_before_it_can_roll_back():
+    cloudflare, steps = _production_steps()
+    confirm = steps["Confirm production serves the deployed version"]
+    assert "DEPLOYED_VERSION_ID: ${{ steps.deploy.outputs.version_id }}" in confirm
+    assert 'if [ -z "$DEPLOYED_VERSION_ID" ]' in confirm
+    assert "wrangler deployments status --config wrangler.json --json" in confirm
+    assert '--active-is "$DEPLOYED_VERSION_ID" "$status"' in confirm
+    assert "CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}" in confirm
+    # It runs after the deploy and before the rollback, whose condition still covers it.
+    assert cloudflare.index("Deploy the production Worker") < cloudflare.index(
+        "Confirm production serves the deployed version"
+    )
+    rollback = steps["Roll back the production Worker"]
+    assert "if: failure() && steps.deploy.outputs.deployed == 'true'" in cloudflare
+    assert "wrangler rollback" in rollback
+
+
+def test_the_custom_domain_probe_is_information_only_and_holds_no_token():
+    _cloudflare, steps = _production_steps()
+    probe = steps["Probe the custom domain (information only)"]
+    assert '"${production_url}/version.txt" || true)' in probe
+    assert "--max-time" in probe
+    assert "::notice::Bot Fight Mode blocks GitHub runners on ai.szolotov.com" in probe
+    assert "exit" not in probe
+    # The token reaches only the steps that run wrangler.
+    for name in ("Smoke-test the production Worker", "Probe the custom domain (information only)"):
+        assert "CLOUDFLARE" not in steps[name]
+        assert "secrets." not in steps[name]
+
+
+def _write_stub(path, body):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("#!/usr/bin/env bash\nset -Eeuo pipefail\n" + body, encoding="utf-8")
+    path.chmod(0o755)
+
+
+def _run_step(tmp_path, workflow, step, env, *, subdir=""):
+    """Run one workflow step's `run:` block against stub curl, smoke_site.sh and wrangler.
+
+    The stubs record their arguments in ``calls.log`` and answer from ``STUB_*`` variables,
+    so a case chooses what the custom domain, workers.dev and the API say.
+    """
+    work = tmp_path / "work"
+    log = tmp_path / "calls.log"
+    log.touch()
+    _write_stub(
+        work / "scripts" / "smoke_site.sh",
+        'echo "smoke $*" >> "$STUB_LOG"\nexit "${STUB_SMOKE_RC:-0}"\n',
+    )
+    _write_stub(
+        tmp_path / "bin" / "curl",
+        'echo "curl $*" >> "$STUB_LOG"\n'
+        'printf "%s" "${STUB_CURL_CODE:-000}"\nexit "${STUB_CURL_RC:-0}"\n',
+    )
+    _write_stub(
+        work / "deploy" / "node_modules" / ".bin" / "wrangler",
+        'echo "wrangler $*" >> "$STUB_LOG"\n'
+        '[ "${STUB_WRANGLER_RC:-0}" -eq 0 ] || { echo "wrangler failed" >&2; exit 1; }\n'
+        'printf "%s" "$STUB_STATUS_JSON"\n',
+    )
+    script = _extract_run_block(
+        (REPO / ".github" / "workflows" / workflow).read_text(encoding="utf-8"), step
+    )
+    path = os.pathsep.join(
+        [str(tmp_path / "bin"), str(Path(sys.executable).parent), "/usr/bin:/bin"]
+    )
+    result = subprocess.run(  # noqa: S603
+        ["bash", "-c", script],  # noqa: S607 - execute the workflow's own shell block
+        cwd=work / subdir,
+        capture_output=True,
+        text=True,
+        env={
+            "PATH": path,
+            "STUB_LOG": str(log),
+            "RUNNER_TEMP": str(tmp_path),
+            "GITHUB_WORKSPACE": str(REPO),
+            **env,
+        },
+        check=False,
+    )
+    return result, log.read_text(encoding="utf-8").splitlines()
+
+
+SMOKE = "Smoke-test the production Worker"
+CONFIRM = "Confirm production serves the deployed version"
+PROBE = "Probe the custom domain (information only)"
+PRODUCTION_ENV = {"WORKERS_DEV_URL": WORKERS_DEV, "CUSTOM_URL": PRODUCTION, "TAG": "v0.1.1"}
+CONFIRM_ENV = {
+    "CLOUDFLARE_API_TOKEN": "token",
+    "CLOUDFLARE_ACCOUNT_ID": "account",
+    "DEPLOYED_VERSION_ID": DEPLOYED,
+    "STUB_STATUS_JSON": _deployment((DEPLOYED, 100)),
+}
+
+
+def test_production_smoke_passes_on_workers_dev_without_fetching_the_custom_domain(tmp_path):
+    result, calls = _run_step(tmp_path, "release.yml", SMOKE, PRODUCTION_ENV)
+    assert result.returncode == 0, result.stderr
+    assert calls == [f"smoke {WORKERS_DEV} v0.1.1 greenblacked-ai"]
+
+
+def _deploy_outputs(tmp_path, targets):
+    """What the deploy step writes to GITHUB_OUTPUT for a wrangler log with these targets."""
+    log = tmp_path / "wrangler-output.jsonl"
+    log.write_text(_deploy_line(targets, version_id=DEPLOYED), encoding="utf-8")
+    result = subprocess.run(  # noqa: S603
+        [sys.executable, str(REPO / "scripts" / "read_wrangler_deploy.py"), str(log)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return dict(line.split("=", 1) for line in result.stdout.splitlines())
+
+
+def test_production_smoke_accepts_the_targets_wrangler_really_logs(tmp_path):
+    outputs = _deploy_outputs(tmp_path, [WORKERS_DEV, CUSTOM_TARGET])
+    env = {"WORKERS_DEV_URL": outputs["url"], "CUSTOM_URL": outputs["custom_url"], "TAG": "v0.1.1"}
+    result, calls = _run_step(tmp_path, "release.yml", SMOKE, env)
+    assert result.returncode == 0, result.stdout
+    assert calls == [f"smoke {WORKERS_DEV} v0.1.1 greenblacked-ai"]
+
+
+@pytest.mark.parametrize("target", ["ai.szolotov.com", "https://ai.szolotov.com"])
+def test_production_smoke_rejects_a_deploy_that_logged_no_custom_domain(tmp_path, target):
+    outputs = _deploy_outputs(tmp_path, [WORKERS_DEV, target])
+    assert "custom_url" not in outputs
+    env = {"WORKERS_DEV_URL": outputs["url"], "CUSTOM_URL": "", "TAG": "v0.1.1"}
+    result, calls = _run_step(tmp_path, "release.yml", SMOKE, env)
+    assert result.returncode != 0
+    assert calls == []
+
+
+def test_production_smoke_fails_when_workers_dev_fails(tmp_path):
+    result, calls = _run_step(
+        tmp_path, "release.yml", SMOKE, {**PRODUCTION_ENV, "STUB_SMOKE_RC": "1"}
+    )
+    assert result.returncode != 0
+    assert calls == [f"smoke {WORKERS_DEV} v0.1.1 greenblacked-ai"]
+
+
+def test_production_smoke_fails_on_an_empty_workers_dev_url(tmp_path):
+    result, calls = _run_step(
+        tmp_path, "release.yml", SMOKE, {**PRODUCTION_ENV, "WORKERS_DEV_URL": ""}
+    )
+    assert result.returncode != 0
+    assert "::error::Wrangler reported no workers.dev address" in result.stdout
+    assert calls == []
+
+
+@pytest.mark.parametrize("custom", ["", "https://stage.ai.szolotov.com", "https://other.example"])
+def test_production_smoke_fails_when_the_custom_domain_was_not_attached(tmp_path, custom):
+    result, calls = _run_step(
+        tmp_path, "release.yml", SMOKE, {**PRODUCTION_ENV, "CUSTOM_URL": custom}
+    )
+    assert result.returncode != 0
+    assert "::error::Wrangler did not report https://ai.szolotov.com" in result.stdout
+    assert calls == []
+
+
+def test_the_active_version_check_passes_for_the_deployed_version(tmp_path):
+    result, calls = _run_step(tmp_path, "release.yml", CONFIRM, CONFIRM_ENV, subdir="deploy")
+    assert result.returncode == 0, result.stderr
+    assert calls == ["wrangler deployments status --config wrangler.json --json"]
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"STUB_STATUS_JSON": _deployment((ACTIVE_VERSION, 100))},
+        {"STUB_STATUS_JSON": _deployment((DEPLOYED, 50), (ACTIVE_VERSION, 50))},
+        {"STUB_STATUS_JSON": "not json"},
+        {"STUB_WRANGLER_RC": "1"},
+        {"DEPLOYED_VERSION_ID": ""},
+        {"CLOUDFLARE_API_TOKEN": ""},
+    ],
+    ids=["mismatch", "split", "unreadable", "wrangler-fails", "no-version", "no-token"],
+)
+def test_the_active_version_check_fails_unless_the_deployed_version_serves_everything(
+    tmp_path, overrides
+):
+    result, _calls = _run_step(
+        tmp_path, "release.yml", CONFIRM, {**CONFIRM_ENV, **overrides}, subdir="deploy"
+    )
+    assert result.returncode != 0
+
+
+def test_the_custom_domain_probe_never_fails_on_a_403(tmp_path):
+    result, calls = _run_step(tmp_path, "release.yml", PROBE, {"STUB_CURL_CODE": "403"})
+    assert result.returncode == 0, result.stderr
+    assert "answered HTTP 403" in result.stdout
+    assert "::notice::Bot Fight Mode blocks GitHub runners on ai.szolotov.com" in result.stdout
+    assert len(calls) == 1 and calls[0].endswith("https://ai.szolotov.com/version.txt")
+    assert "--max-time" in calls[0]
+
+
+@pytest.mark.parametrize(
+    "env",
+    [
+        {"STUB_CURL_CODE": "200"},
+        {"STUB_CURL_CODE": "502"},
+        {"STUB_CURL_CODE": "000", "STUB_CURL_RC": "28"},
+    ],
+    ids=["200", "502", "timeout"],
+)
+def test_the_custom_domain_probe_never_fails_on_any_answer(tmp_path, env):
+    result, _calls = _run_step(tmp_path, "release.yml", PROBE, env)
+    assert result.returncode == 0, result.stderr
+    assert "::notice::" not in result.stdout
+
+
+STAGE = "Smoke-test the stage Preview"
+STAGE_URL = "https://stage.ai.szolotov.com"
+STAGE_ENV = {
+    "WORKERS_DEV_URL": "https://stage-ai.account.workers.dev",
+    "CUSTOM_URL": STAGE_URL,
+    "VERSION": "stage-abc1234",
+}
+
+
+def test_the_preview_smoke_passes_when_only_the_custom_domain_answers_403(tmp_path):
+    result, calls = _run_step(tmp_path, "deploy.yml", STAGE, {**STAGE_ENV, "STUB_CURL_CODE": "403"})
+    assert result.returncode == 0, result.stderr
+    assert calls[0] == "smoke https://stage-ai.account.workers.dev stage-abc1234 greenblacked-ai"
+    assert len(calls) == 2 and calls[1].endswith(f"{STAGE_URL}/version.txt")
+    assert (
+        "::notice::Bot Fight Mode blocks GitHub runners on stage.ai.szolotov.com" in result.stdout
+    )
+
+
+def test_the_preview_smoke_fails_when_workers_dev_fails_whatever_the_domain_says(tmp_path):
+    env = {**STAGE_ENV, "STUB_SMOKE_RC": "1", "STUB_CURL_CODE": "200"}
+    result, _calls = _run_step(tmp_path, "deploy.yml", STAGE, env)
+    assert result.returncode != 0
+
+
+def test_the_preview_smoke_fails_on_an_empty_workers_dev_url(tmp_path):
+    result, calls = _run_step(tmp_path, "deploy.yml", STAGE, {**STAGE_ENV, "WORKERS_DEV_URL": ""})
+    assert result.returncode != 0
+    assert "::error::Wrangler reported no workers.dev Preview URL" in result.stdout
+    assert calls == []
+
+
+def test_the_preview_smoke_fails_without_the_stage_host_even_when_workers_dev_passes(tmp_path):
+    result, calls = _run_step(tmp_path, "deploy.yml", STAGE, {**STAGE_ENV, "CUSTOM_URL": ""})
+    assert result.returncode != 0
+    assert "::error::Wrangler did not report https://stage.ai.szolotov.com" in result.stdout
+    assert calls[0].startswith("smoke https://stage-ai.account.workers.dev")
 
 
 def test_production_deploys_are_serialized_across_release_tags():
@@ -867,6 +1272,99 @@ def test_production_deploys_are_serialized_across_release_tags():
         "    concurrency:\n      group: production-cloudflare\n      cancel-in-progress: false\n"
     ) in job_header
     assert job_header.count("      group:") == 1
+
+
+def _run_blocks(workflow: str) -> list[str]:
+    """The text of every `run:` step, found by indentation rather than a YAML parser."""
+    blocks = []
+    lines = workflow.splitlines()
+    for index, line in enumerate(lines):
+        stripped = line.lstrip()
+        if not stripped.startswith("run:"):
+            continue
+        indent = len(line) - len(stripped)
+        body = [stripped[len("run:") :]]
+        for follow in lines[index + 1 :]:
+            if follow.strip() and len(follow) - len(follow.lstrip()) <= indent:
+                break
+            body.append(follow)
+        blocks.append("\n".join(body))
+    return blocks
+
+
+def test_release_accepts_a_dispatch_only_on_a_version_tag_ref():
+    workflow = (REPO / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    triggers = workflow.split("\non:\n", 1)[1].split("\npermissions:", 1)[0]
+    assert "  push:\n    tags: ['v[0-9]+.[0-9]+.[0-9]+']\n" in triggers
+    assert "  workflow_dispatch:\n" in triggers
+    assert "inputs:" not in triggers
+    release_job = workflow.split("  release:\n", 1)[1].split("  cloudflare:\n", 1)[0]
+    cloudflare = workflow.split("  cloudflare:\n", 1)[1]
+    for job in (release_job, cloudflare):
+        steps = job.split("    steps:\n", 1)[1]
+        first = steps.split("\n      - ", 2)[0] if steps.startswith("      - name:") else ""
+        assert first.startswith("      - name: Refuse anything but a vX.Y.Z tag"), (
+            "the ref guard must be the first step, ahead of checkout"
+        )
+        assert '[ "$GITHUB_REF_TYPE" != "tag" ]' in first
+        assert '[[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\\.[0-9]+\\.[0-9]+$ ]]' in first
+        assert "set -Eeuo pipefail" in first
+        assert "${{" not in first
+        assert "persist-credentials: false" in job
+
+
+def test_cut_release_is_a_main_only_dispatch_with_two_narrow_grants():
+    workflow = (REPO / ".github" / "workflows" / "cut-release.yml").read_text(encoding="utf-8")
+    assert "\npermissions: {}\n" in workflow
+    triggers = workflow.split("\non:\n", 1)[1].split("\npermissions:", 1)[0]
+    assert triggers.startswith("  workflow_dispatch:\n    inputs:\n      version:\n")
+    assert "        required: true\n        type: string\n" in triggers
+    assert triggers.count("  push:") == 0 and "pull_request" not in triggers
+    assert "  group: cut-release\n  cancel-in-progress: false\n" in workflow
+    job = workflow.split("jobs:\n", 1)[1]
+    header = job.split("    steps:\n", 1)[0]
+    # No job-level `if`: a skipped job reports success, so the refusal must be a step.
+    assert "    if:" not in header
+    assert "    timeout-minutes: 10\n" in header
+    permissions = header.split("    permissions:\n", 1)[1].split("    env:\n", 1)[0]
+    grants = [line.split("#")[0].strip() for line in permissions.splitlines()]
+    grants = [grant for grant in grants if grant]
+    assert sorted(grants) == ["actions: write", "contents: write"]
+    assert "      VERSION: ${{ inputs.version }}\n" in header
+    # A dispatch elsewhere is refused by a visible failing step, the first one.
+    guard = job.split("    steps:\n", 1)[1].split("      - uses:", 1)[0]
+    assert '[ "$GITHUB_REF" != "refs/heads/main" ]' in guard
+    assert "exit 1" in guard
+    assert "persist-credentials: false" in workflow
+    assert "fetch-depth: 0" in workflow
+    assert "cache:" not in workflow.replace("No `cache:`", "")
+    assert 'python scripts/release.py check "$VERSION"' in workflow
+    assert 'gh workflow run release.yml --ref "v$VERSION"' in workflow
+    assert "git push" not in workflow
+
+
+def test_cut_release_never_interpolates_an_input_into_a_shell_block():
+    for name in ("cut-release.yml", "release.yml"):
+        workflow = (REPO / ".github" / "workflows" / name).read_text(encoding="utf-8")
+        blocks = _run_blocks(workflow)
+        assert blocks, name
+        for block in blocks:
+            assert "${{" not in block, f"{name}: an expression inside run: {block!r}"
+            assert "set -Eeuo pipefail" in block, f"{name}: a run: block without strict mode"
+        assert "github.event.inputs" not in workflow
+        assert workflow.count("${{ inputs.") == (1 if name == "cut-release.yml" else 0)
+
+
+def test_cut_release_token_is_scoped_to_the_steps_that_call_the_api():
+    workflow = (REPO / ".github" / "workflows" / "cut-release.yml").read_text(encoding="utf-8")
+    steps = workflow.split("    steps:\n", 1)[1].split("\n      - ")
+    with_token = [step for step in steps if "GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}" in step]
+    without = [step for step in steps if "GH_TOKEN" not in step]
+    assert len(with_token) == 3
+    for step in with_token:
+        assert "gh " in step
+    for step in without:
+        assert "gh api" not in step and "gh workflow" not in step
 
 
 def test_the_smoke_script_rejects_a_url_that_is_not_https():
@@ -1028,20 +1526,6 @@ def test_the_loopback_hook_is_off_by_default():
     assert "must be https" in elsewhere.stderr
 
 
-ACTIVE_VERSION = "0f1e2d3c-4b5a-6978-8a9b-acbdcedf0011"
-
-
-def _deployment(*versions):
-    return json.dumps(
-        {
-            "id": "deployment",
-            "source": "wrangler",
-            "strategy": "percentage",
-            "versions": [{"version_id": vid, "percentage": pct} for vid, pct in versions],
-        }
-    )
-
-
 def test_the_active_reader_prints_the_version_serving_all_traffic(tmp_path, capsys):
     reader = load_script("read_wrangler_deploy.py")
     status = tmp_path / "status.json"
@@ -1074,6 +1558,50 @@ def test_the_active_reader_refuses_anything_but_one_full_version(tmp_path, text)
         reader.main(["--active", str(status)])
     # The reader's own refusal carries a message; argparse rejecting the flag exits 2.
     assert isinstance(refused.value.code, str)
+
+
+def test_the_active_is_mode_succeeds_only_for_the_version_serving_everything(tmp_path, capsys):
+    reader = load_script("read_wrangler_deploy.py")
+    status = tmp_path / "status.json"
+    status.write_text(_deployment((ACTIVE_VERSION, 100)), encoding="utf-8")
+    assert reader.main(["--active-is", ACTIVE_VERSION, str(status)]) == 0
+    assert capsys.readouterr().out == f"version_id={ACTIVE_VERSION}\n"
+    with pytest.raises(SystemExit) as other:
+        reader.main(["--active-is", DEPLOYED, str(status)])
+    assert isinstance(other.value.code, str)
+    assert ACTIVE_VERSION in other.value.code and DEPLOYED in other.value.code
+    assert capsys.readouterr().out == ""
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        _deployment((ACTIVE_VERSION, 60), (DEPLOYED, 40)),
+        _deployment((DEPLOYED, 100), (ACTIVE_VERSION, 0)),
+        _deployment(),
+        "The Worker ai has no deployments.",
+    ],
+)
+def test_the_active_is_mode_refuses_a_split_or_unreadable_status(tmp_path, text):
+    reader = load_script("read_wrangler_deploy.py")
+    status = tmp_path / "status.json"
+    status.write_text(text, encoding="utf-8")
+    # Even the version holding 60% or 40% is not "serving", so the release rolls back.
+    for wanted in (ACTIVE_VERSION, DEPLOYED):
+        with pytest.raises(SystemExit) as refused:
+            reader.main(["--active-is", wanted, str(status)])
+        assert isinstance(refused.value.code, str)
+
+
+@pytest.mark.parametrize("wanted", ["", "not-a-version", f"{ACTIVE_VERSION}\nx=y"])
+def test_the_active_is_mode_refuses_a_version_that_is_not_a_version_id(tmp_path, wanted):
+    reader = load_script("read_wrangler_deploy.py")
+    status = tmp_path / "status.json"
+    status.write_text(_deployment((ACTIVE_VERSION, 100)), encoding="utf-8")
+    with pytest.raises(SystemExit) as refused:
+        reader.main(["--active-is", wanted, str(status)])
+    assert isinstance(refused.value.code, str)
+    assert reader.main(["--active-is", ACTIVE_VERSION, str(tmp_path / "missing")]) == 1
 
 
 def test_production_rolls_back_to_the_version_it_replaced():
@@ -1122,3 +1650,21 @@ def test_links_in_rendered_prose_are_underlined():
     """Prose links share the text colour, so the underline is what marks them."""
     rule = re.search(r"\.prose-lab a \{([^}]*)\}", site.site_style.CSS)
     assert rule and "text-decoration: underline" in rule.group(1)
+
+
+def test_every_id_the_page_chrome_writes_is_reserved_from_headings():
+    sources = [
+        Path(site.__file__),
+        Path(site.site_style.__file__),
+    ]
+    written = set()
+    for source in sources:
+        written |= set(re.findall(r'id="([a-z][a-z-]*)"', source.read_text(encoding="utf-8")))
+    assert written <= site.site_markdown.RESERVED_IDS, written - site.site_markdown.RESERVED_IDS
+
+
+def test_a_failed_dispatch_prints_a_command_that_dispatches_on_the_tag():
+    workflow = (REPO / ".github" / "workflows" / "cut-release.yml").read_text(encoding="utf-8")
+    dispatch = workflow.split("- name: Dispatch the release workflow on the tag", 1)[1]
+    assert "gh workflow run release.yml --repo $GH_REPO --ref v$VERSION" in dispatch
+    assert "Actions tab" not in dispatch

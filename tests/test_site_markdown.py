@@ -6,6 +6,7 @@ a live one is not, and no `href` may carry anything but an allowed scheme or a f
 
 from __future__ import annotations
 
+import itertools
 import re
 import time
 
@@ -279,3 +280,30 @@ def test_tabs_and_carriage_returns_are_normalised():
 
 def test_plain_text_strips_tags_and_unescapes():
     assert md.plain_text("a <code>&lt;b&gt;</code> c") == "a <b> c"
+
+
+def test_headings_never_take_the_ids_of_the_page_controls():
+    out = md.render("## Console theme\n\n## Dark switch\n\n## Finder\n\n## Home\n")
+    for taken in ("console-theme", "dark-switch", "finder", "home"):
+        assert f'id="{taken}"' not in out
+        assert f'id="{taken}-1"' in out
+
+
+def test_unmatched_brackets_render_in_linear_time():
+    # Each failed label scan used to rescan the rest of the block, so this took minutes.
+    for text in ("[" * 50_000, "x [" * 16_000, "[a" * 25_000):
+        started = time.monotonic()
+        out = md.render(text)
+        assert time.monotonic() - started < 5, len(text)
+        assert "<a " not in out
+
+
+def test_one_pass_label_matching_agrees_with_the_bracket_scan():
+    # Every string up to five characters long over the characters the scan cares about.
+    alphabet = "[]`\\a("
+    for length in range(1, 6):
+        for chars in itertools.product(alphabet, repeat=length):
+            text = "".join(chars)
+            opens, ends = md._label_ends(text)
+            for begin in opens:
+                assert ends.get(begin) == md._skip_label(text, begin), (text, begin)
