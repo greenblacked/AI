@@ -189,6 +189,7 @@ BACK = '<a class="back" href="{}" data-back>' + site.BACK_ICON + "<span>Back</sp
         ("workflows/index.html", "/"),
         ("examples/index.html", "/"),
         ("quality/index.html", "/"),
+        ("404.html", "/"),
     ],
 )
 def test_every_page_below_the_index_has_one_back_link_to_its_parent(

@@ -447,7 +447,6 @@ html[data-theme="night"] .sun { display: none; }
 }
 .page .lede { max-width: 42rem; margin-top: 1.5rem; }
 .page-body { margin-top: 2.5rem; }
-.back-link { margin-top: 2rem; }
 .back + .title { margin-top: 1.5rem; }
 .title + .lede { margin-top: 1rem; }
 .page .small.count { margin-top: 1rem; }
