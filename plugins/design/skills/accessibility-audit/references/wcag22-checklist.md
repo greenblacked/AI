@@ -1,6 +1,6 @@
 # WCAG 2.2 manual-pass checklist
 
-Read this during an audit, at steps 3 and 4 of `SKILL.md`. The standard is WCAG 2.2, at https://www.w3.org/TR/WCAG22/. WCAG 2.2 was first published on 5 October 2023 and republished on 12 December 2024 with errata; it is still 2.2.
+Read this during an audit, at steps 3 and 4 of `SKILL.md`. The standard is WCAG 2.2, at <https://www.w3.org/TR/WCAG22/>. WCAG 2.2 was first published on 5 October 2023 and republished on 12 December 2024 with errata; it is still 2.2.
 
 ## Contents
 
@@ -61,7 +61,7 @@ Run the items in this order. Record for each one the page or state, what you did
 
 ## Where a number is not given here
 
-This checklist names the criteria new in 2.2 and the ones whose thresholds are quoted above. For anything else, including keyboard operability, keyboard traps, focus order, name, role and value, status messages, labels, headings, language and alternative text, open https://www.w3.org/TR/WCAG22/, find the criterion and copy its number, title and level into the finding. Do not report from memory: a wrong number sends the fixer to the wrong rule.
+This checklist names the criteria new in 2.2 and the ones whose thresholds are quoted above. For anything else, including keyboard operability, keyboard traps, focus order, name, role and value, status messages, labels, headings, language and alternative text, open <https://www.w3.org/TR/WCAG22/>, find the criterion and copy its number, title and level into the finding. Do not report from memory: a wrong number sends the fixer to the wrong rule.
 
 ## Reporting a finding
 

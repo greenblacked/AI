@@ -49,7 +49,7 @@ Work through `references/wcag22-checklist.md`, which gives the procedure and the
 
 ### 4. Map each finding to a criterion
 
-Name the success criterion number, its title and its level. Look the number up in https://www.w3.org/TR/WCAG22/ rather than citing from memory. A finding at Level AAA is reported as advisory, since the target is AA. Do not cite 4.1.1 Parsing: it is obsolete and was removed in 2.2, so an old tool that still reports it is out of date.
+Name the success criterion number, its title and its level. Look the number up in <https://www.w3.org/TR/WCAG22/> rather than citing from memory. A finding at Level AAA is reported as advisory, since the target is AA. Do not cite 4.1.1 Parsing: it is obsolete and was removed in 2.2, so an old tool that still reports it is out of date.
 
 ### 5. Rate severity and place the fix
 

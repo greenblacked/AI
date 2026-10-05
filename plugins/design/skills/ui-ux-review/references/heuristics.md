@@ -28,7 +28,7 @@ Walk each control on the primary task path through every row. Mocks show the res
 
 ## Nielsen's ten heuristics, and what each looks like on a screen
 
-The ten are Jakob Nielsen's usability heuristics, published by Nielsen Norman Group at https://www.nngroup.com/articles/ten-usability-heuristics/. They are broad rules of thumb for finding problems, not a specification, and the third column is this repository's opinion on where each shows up.
+The ten are Jakob Nielsen's usability heuristics, published by Nielsen Norman Group at <https://www.nngroup.com/articles/ten-usability-heuristics/>. They are broad rules of thumb for finding problems, not a specification, and the third column is this repository's opinion on where each shows up.
 
 | No. | Heuristic | Where to look |
 | --- | --- | --- |
@@ -47,7 +47,7 @@ Cite the number with the finding, for example "heuristic 9". If a problem fits n
 
 ## The severity scale
 
-The scale is Nielsen Norman Group's, from https://www.nngroup.com/articles/how-to-rate-the-severity-of-usability-problems/.
+The scale is Nielsen Norman Group's, from <https://www.nngroup.com/articles/how-to-rate-the-severity-of-usability-problems/>.
 
 | Rating | Meaning | What you do with it |
 | --- | --- | --- |

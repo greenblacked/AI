@@ -41,11 +41,11 @@ A task is a goal with a scenario, in the user's words, that does not name interf
 | Observed problems | Where and why it broke | The main output of a qualitative round. |
 | System Usability Scale (SUS) | An overall perceived-usability score from 0 to 100 | Give it right after the tasks and before the discussion. |
 
-SUS has ten items on a five-point scale. Odd-numbered items contribute their score minus 1, even-numbered items contribute 5 minus their score, and the sum multiplied by 2.5 gives a score from 0 to 100. The average is 68, and a score below 51 is roughly the bottom 15 percent (source: https://measuringu.com/sus/). The form and a worked score are in `references/test-kit.md`. With five participants, read SUS as a sanity check and not as a benchmark you can compare.
+SUS has ten items on a five-point scale. Odd-numbered items contribute their score minus 1, even-numbered items contribute 5 minus their score, and the sum multiplied by 2.5 gives a score from 0 to 100. The average is 68, and a score below 51 is roughly the bottom 15 percent (source: <https://measuringu.com/sus/>). The form and a worked score are in `references/test-kit.md`. With five participants, read SUS as a sanity check and not as a benchmark you can compare.
 
 ### 5. Think aloud, and keep quiet
 
-Use the think-aloud method: representative users, representative tasks, and let the users do the talking (Nielsen, "Thinking Aloud: The #1 Usability Tool", https://www.nngroup.com/articles/thinking-aloud-the-1-usability-tool/). The moderator's job is to shut up and let the user talk. Do not explain the interface, answer "is this right", hint, or fill a silence. When the participant goes quiet, say "keep talking" or "what are you thinking now". When they ask a question, turn it back: "what would you expect?". Practise think-aloud on a trivial task first. The script is in `references/test-kit.md`.
+Use the think-aloud method: representative users, representative tasks, and let the users do the talking (Nielsen, "Thinking Aloud: The #1 Usability Tool", <https://www.nngroup.com/articles/thinking-aloud-the-1-usability-tool/>). The moderator's job is to shut up and let the user talk. Do not explain the interface, answer "is this right", hint, or fill a silence. When the participant goes quiet, say "keep talking" or "what are you thinking now". When they ask a question, turn it back: "what would you expect?". Practise think-aloud on a trivial task first. The script is in `references/test-kit.md`.
 
 ### 6. Pilot, then run
 
@@ -53,7 +53,7 @@ Run one pilot session, with a colleague or the first participant treated as a tr
 
 ### 7. Rate, fix and test again
 
-After the round, list each distinct problem once, with the participants who met it, a short quote or timestamp, and the cause. Rate each from 0 to 4: 0 not a usability problem, 1 cosmetic only, 2 minor (low priority), 3 major (high priority), 4 catastrophe, imperative to fix before release. Severity combines frequency, impact and persistence (https://www.nngroup.com/articles/how-to-rate-the-severity-of-usability-problems/). Write the smallest fix next to each one. Fix the 3s and 4s, then run the next small round with new participants to see whether the fixes worked and what they exposed. One big test hides the problems it never gets to; several small ones find more.
+After the round, list each distinct problem once, with the participants who met it, a short quote or timestamp, and the cause. Rate each from 0 to 4: 0 not a usability problem, 1 cosmetic only, 2 minor (low priority), 3 major (high priority), 4 catastrophe, imperative to fix before release. Severity combines frequency, impact and persistence (<https://www.nngroup.com/articles/how-to-rate-the-severity-of-usability-problems/>). Write the smallest fix next to each one. Fix the 3s and 4s, then run the next small round with new participants to see whether the fixes worked and what they exposed. One big test hides the problems it never gets to; several small ones find more.
 
 ### 8. Report the decision, not the diary
 

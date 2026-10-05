@@ -173,7 +173,7 @@ Use this only on the floating layer, as the step 6 rules say. These values are s
 
 Because the fill reads `--surface`, each theme gives the glass its own tint with no extra work. Before shipping, scroll the lightest and darkest real content behind the bar and measure the text and icons on it. If a worst-case backdrop fails contrast, raise the fill's opacity or use the solid surface there. Honour the user's reduced-transparency setting where the platform exposes one, by switching to the solid fallback.
 
-Apple's Liquid Glass guidance is the model for the intent. It is "a dynamic material that unifies the design language across Apple platforms", a distinct functional layer for controls and navigation floating above the content layer, to be used sparingly and not in the content layer. The CSS above is an approximation of the layering idea on the web, not an implementation of Apple's material. Source: https://developer.apple.com/design/human-interface-guidelines/materials
+Apple's Liquid Glass guidance is the model for the intent. It is "a dynamic material that unifies the design language across Apple platforms", a distinct functional layer for controls and navigation floating above the content layer, to be used sparingly and not in the content layer. The CSS above is an approximation of the layering idea on the web, not an implementation of Apple's material. Source: <https://developer.apple.com/design/human-interface-guidelines/materials>
 
 ## The contrast table
 

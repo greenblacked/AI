@@ -104,7 +104,7 @@ Scoring, per participant:
 
 Worked example. A participant answers items 1 to 10 as 5, 2, 4, 1, 4, 2, 5, 1, 4, 2. The odd items (5, 4, 4, 5, 4) contribute 4, 3, 3, 4, 3, which is 17. The even items (2, 1, 2, 1, 2) contribute 3, 4, 3, 4, 3, which is 17. The sum is 34 and 34 times 2.5 is 85.
 
-Average the participants' scores for the round. The average SUS score is 68, and a score under 51 is roughly in the bottom 15 percent (source: https://measuringu.com/sus/). SUS is a 0 to 100 score and not a percentage. With five participants, use it to see whether a fix round moved the number in the right direction, not to claim a ranking.
+Average the participants' scores for the round. The average SUS score is 68, and a score under 51 is roughly in the bottom 15 percent (source: <https://measuringu.com/sus/>). SUS is a 0 to 100 score and not a percentage. With five participants, use it to see whether a fix round moved the number in the right direction, not to claim a ranking.
 
 ## Findings log
 
