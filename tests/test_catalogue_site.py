@@ -275,10 +275,30 @@ def test_the_bar_stays_hidden_until_the_page_scrolls_past_back():
     header = css.split("\n.bar {\n", 1)[1].split("\n}", 1)[0]
     assert "max-width: 72rem;" in inner and "max-width: 72rem;" in header
     assert ".dock-in.narrow" not in css
-    # A jump to a heading lands below the bar, not under it; zero specificity, so the
-    # finder's own larger margin still wins.
-    assert ":where([id]) { scroll-margin-top: 5rem; }" in css
-    assert "scroll-margin-top: 6rem;" in css.split("\n.finder {\n", 1)[1].split("\n}", 1)[0]
+    # A jump to a heading lands below both bars, not under them. A jump upwards brings
+    # the header back with the bar stacked beneath it, so the offset has to clear the
+    # header, the bar's padding and its button, and each border, read from the rules
+    # themselves so a taller header or button fails here rather than on the page.
+    margin = re.search(r":where\(\[id\]\) \{ scroll-margin-top: ([\d.]+)rem; \}", css)
+    assert margin, "no zero-specificity scroll margin"
+    button = css.split("\n.back {\n", 1)[1].split("\n}", 1)[0]
+    rem = {
+        "header": re.search(r"height: ([\d.]+)rem;", header),
+        "padding": re.search(r"padding: ([\d.]+)rem ", inner),
+        "button": re.search(r"min-height: ([\d.]+)rem;", button),
+    }
+    assert all(rem.values()), rem
+    borders = 2 / 16
+    stacked = (
+        float(rem["header"].group(1))
+        + 2 * float(rem["padding"].group(1))
+        + float(rem["button"].group(1))
+        + borders
+    )
+    assert float(margin.group(1)) >= stacked + 0.25, (margin.group(1), stacked)
+    # The finder has an id, so it takes the same margin rather than a smaller one of
+    # its own that would win over the zero-specificity rule.
+    assert "scroll-margin" not in css.split("\n.finder {\n", 1)[1].split("\n}", 1)[0]
     script = site.site_style.PAGE_SCRIPT
     assert 'var inline = document.querySelector("main .back");' in script
     assert 'dock.classList.toggle("on", window.scrollY > limit);' in script
