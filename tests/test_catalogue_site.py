@@ -307,10 +307,18 @@ def test_the_bar_stays_hidden_until_the_page_scrolls_past_back():
     script = site.site_style.PAGE_SCRIPT
     assert 'var inline = document.querySelector("main .back");' in script
     reveal = script.split("function reveal() {", 1)[1].split("\n  }", 1)[0]
-    assert "var past = window.scrollY > limit;" in reveal
+    assert "var past = y > limit;" in reveal
     # The front page has no bar, so the script must not assume one.
     assert 'if (dock) dock.classList.toggle("on", past);' in reveal
-    assert 'upward.classList.toggle("on", past);' in reveal
+    # To top follows the header: away while reading down, back on the way up and at
+    # the end of the page, never past the top, and never hidden while it has focus.
+    assert "if (!past) shown = false;" in reveal
+    assert "else if (end || document.activeElement === upward) shown = true;" in reveal
+    assert "else if (y < mark - 8) shown = true;" in reveal
+    assert "else if (y > mark + 8) shown = false;" in reveal
+    assert reveal.index("if (!past)") < reveal.index("else if (end ||")
+    assert reveal.index("else if (end ||") < reveal.index("else if (y > mark + 8)")
+    assert 'upward.classList.toggle("on", shown);' in reveal
     assert 'window.addEventListener("resize", function () { limit = edge(); reveal(); });' in script
     to_top = script.split('upward.addEventListener("click", function () {', 1)[1].split(
         "\n  });", 1
@@ -325,6 +333,8 @@ def test_to_top_floats_at_the_bottom_right_once_the_page_scrolls():
     css = site.site_style.CSS
     fab = css.split("\n.fab {\n", 1)[1].split("\n}", 1)[0]
     assert "position: fixed;" in fab
+    # Over running text, so a denser tint than Back's, mixed from the theme's own.
+    assert "background-color: color-mix(in srgb, var(--glass-tint) 55%, var(--bg));" in fab
     assert "right: max(1rem, env(safe-area-inset-right));" in fab
     assert "bottom: max(1rem, env(safe-area-inset-bottom));" in fab
     # Hidden by visibility, not only opacity, so it is out of the tab order until shown.

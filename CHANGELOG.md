@@ -26,11 +26,13 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   page colour below the header, so text scrolls under it and never shows behind the
   button. It is a labelled landmark straight after the header, so the keyboard reaches
   it before the page body, and a jump to a heading lands below it.
-- Add To top to every catalogue page, floating at the bottom right once the page has
-  scrolled. On a narrow screen it is a round 48px button with only the arrow; from
-  1440px wide, where the margin beside the text column can hold it, it carries its
-  label. The footer leaves room to scroll clear of it. It respects reduced motion and
-  moves focus to the home link.
+- Add To top to every catalogue page, floating at the bottom right. Like the header, it
+  goes away while the reader scrolls down and comes back on the way up and at the end
+  of the page, so it does not sit over the text being read. On a narrow screen it is a
+  round 48px button with only the arrow, on a denser glass tint than Back's so text
+  behind it does not compete with the arrow; from 1440px wide, where the margin beside
+  the text column can hold it, it carries its label. The footer leaves room to scroll
+  clear of it. It respects reduced motion and moves focus to the home link.
 - Restyle Back and To top as Material Design 3 buttons made of Liquid Glass: a full
   pill with a leading icon and Material's 8% and 12% state layers, on a translucent,
   blurred tint with a specular top edge, a sheen and a floating shadow, with tokens per

@@ -490,14 +490,17 @@ html[data-theme="night"] .sun { display: none; }
 /* To top floats at the bottom right: Material's place for a page's one floating
    action, and the one place Liquid Glass is meant for, a control over the content.
    Round with only the arrow on a narrow screen, where the column is all text, and
-   labelled once the margin beside the 72rem column can hold the label. Hidden, and
-   out of the tab order, until the page has scrolled. */
+   labelled once the margin beside the 72rem column can hold the label. Its tint is
+   denser than Back's, because it sits over running text rather than the solid bar,
+   and glyphs showing through compete with the arrow. Hidden, and out of the tab
+   order, until the script shows it. */
 .fab {
   position: fixed;
   right: max(1rem, env(safe-area-inset-right));
   bottom: max(1rem, env(safe-area-inset-bottom));
   z-index: 9;
   justify-content: center;
+  background-color: color-mix(in srgb, var(--glass-tint) 55%, var(--bg));
   width: 3rem;
   min-height: 3rem;
   padding: 0;
@@ -794,10 +797,22 @@ PAGE_SCRIPT = """
     return inline.getBoundingClientRect().bottom + window.scrollY;
   }
   var limit = edge();
+  // To top follows the header's rule: away while reading down, back on the way up,
+  // when a reader wants it, and at the end of the page. A focused button stays, so
+  // keyboard focus never lands on something hidden.
+  var mark = window.scrollY;
+  var shown = false;
   function reveal() {
-    var past = window.scrollY > limit;
+    var y = window.scrollY;
+    var past = y > limit;
     if (dock) dock.classList.toggle("on", past);
-    upward.classList.toggle("on", past);
+    var end = y + window.innerHeight >= document.documentElement.scrollHeight - 2;
+    if (!past) shown = false;
+    else if (end || document.activeElement === upward) shown = true;
+    else if (y < mark - 8) shown = true;
+    else if (y > mark + 8) shown = false;
+    if (Math.abs(y - mark) > 8) mark = y;
+    upward.classList.toggle("on", shown);
   }
   window.addEventListener("scroll", reveal, { passive: true });
   window.addEventListener("resize", function () { limit = edge(); reveal(); });
