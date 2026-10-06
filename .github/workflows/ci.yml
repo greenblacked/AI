@@ -51,6 +51,11 @@ env:
   YAMLLINT_VERSION: '1.38.0'
   PYTEST_VERSION: '9.1.1'
   COVERAGE_VERSION: '7.16.2'
+  # The suite runs on the runner's four cores through pytest-xdist, and pytest-cov
+  # measures the worker processes that `coverage run` alone would never see. Both are
+  # test-only; the validator still imports nothing outside the standard library.
+  PYTEST_XDIST_VERSION: '3.8.0'
+  PYTEST_COV_VERSION: '7.1.0'
   ACTIONLINT_VERSION: '1.7.12'
   ACTIONLINT_SHA256: '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8'
 
@@ -178,17 +183,19 @@ jobs:
       - name: Install the test runner
         run: |
           set -Eeuo pipefail
-          python -m pip install "pytest==${PYTEST_VERSION}"
+          python -m pip install "pytest==${PYTEST_VERSION}" \
+            "pytest-xdist==${PYTEST_XDIST_VERSION}"
       - name: Install coverage on the coverage interpreter
         if: matrix.python-version == '3.13'
         run: |
           set -Eeuo pipefail
-          python -m pip install "coverage==${COVERAGE_VERSION}"
+          python -m pip install "coverage==${COVERAGE_VERSION}" \
+            "pytest-cov==${PYTEST_COV_VERSION}"
       - name: Run tests
         if: matrix.python-version != '3.13'
         run: |
           set -Eeuo pipefail
-          PYTHONPATH=src python -m pytest
+          PYTHONPATH=src python -m pytest -n auto
       # The floor is a ratchet, not a target: it sits below the measured figure so a
       # change that quietly drops a script back to untested fails here rather than
       # being noticed months later. Raise it in pyproject.toml when coverage rises.
@@ -197,7 +204,9 @@ jobs:
         run: |
           set -Eeuo pipefail
           set +e
-          PYTHONPATH=src python -m coverage run -m pytest
+          # pytest-cov starts coverage in every xdist worker and combines their data
+          # into one .coverage file, which the two reports below read.
+          PYTHONPATH=src python -m pytest -n auto --cov --cov-report=
           test_status=$?
           set -e
           # The summary is written before the floor is enforced, so a failing run
