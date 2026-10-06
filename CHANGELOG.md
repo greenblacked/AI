@@ -37,12 +37,72 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   pill with a leading icon and Material's 8% and 12% state layers, on a translucent,
   blurred tint with a specular top edge, a sheen and a floating shadow, with tokens per
   theme.
+
+### Changed
+
+- Keep the weekly scheduled run green when a pinned tool publishes a release. A pin
+  behind upstream, a registry that could not be asked, or a markdownlint pin that no
+  longer matches its action is now a warning annotation on the run, with the table still
+  in the job summary; the run fails only for a pin with no upstream registered. Claude
+  Code and Codex publish nearly every week, so the old rule left the run red nearly every
+  week. A registry answer that is not shaped like a version is refused without being
+  repeated, since the step log reads a line starting with `::` as a command, and the
+  legacy `##[name]` marker is broken wherever outside text is printed, since the runner
+  honours it anywhere in a line. Bump
+  `CLAUDE_CODE_VERSION` from 2.1.287 to 2.1.291 and `CODEX_VERSION` from 0.160.0 to
+  0.160.1.
+
+### Fixed
+
+- Make `design-system`'s inventory count distinct colours: the command counted matching
+  lines, so a colour used twice counted twice and two colours on one line counted once.
+  Its contrast table now has one row per pair and state and one column per theme, so a
+  hover colour that fails only in dark mode has a cell to fail in.
+
+## [0.1.2] - 2026-10-05
+
+### Added
+
 - Add a Back button to every catalogue page below the front page, a tonal pill with a
   leading arrow in the style of Material Design 3, the same shape as the Download and
   View source buttons. It returns to the previous page when that page is on this site,
   and otherwise goes to the page above: the plugin for a skill, the front page for the
   rest, the not-found page included. Without JavaScript it is a plain link to that
   page.
+
+### Fixed
+
+- Stop `scripts/run_review_benchmark.py --jobs` from failing at random when two cases
+  create their worktrees at once. `git worktree add` and `remove` now run one at a
+  time under a lock, each worktree gets a unique name, and a failed `add` reports git's
+  own message instead of only its exit status.
+
+## [0.1.1] - 2026-10-05
+
+### Fixed
+
+- Smoke-test releases and the stage Preview through `workers.dev` instead of the custom
+  domain. Bot Fight Mode on the zone answers GitHub runners with a 403, which rolled
+  production back on `v0.1.0` twice, and it cannot be skipped by a WAF rule. The
+  blocking check is now `scripts/smoke_site.sh` against the Worker's `workers.dev`
+  address plus a read of `wrangler deployments status` (`read_wrangler_deploy.py
+  --active-is`) showing the deployed version at 100%, and the deploy must list
+  `ai.szolotov.com (custom domain)` as a target. The custom-domain request is logged
+  for information and cannot fail the job.
+- Stop the stage Preview from fetching stage pages. Stage is behind Cloudflare Access,
+  which serves a GitHub runner its login page or a redirect to it, so the `workers.dev`
+  smoke failed every stage deploy. The `preview` job now checks only that `wrangler
+  preview` uploaded and reported `https://stage.ai.szolotov.com`.
+- Stop a pull request description edit from leaving a red `ci` on the head commit. An
+  `edited` event no longer cancels the run in flight, which the `ci` gate counted as a
+  failure, and the `attribution` and `naming` jobs read the title and body from the API
+  when they run, with `pull-requests: read`, instead of from the event payload frozen at
+  the moment the run was triggered.
+
+## [0.1.0] - 2026-10-04
+
+### Added
+
 - Cut a release from the Actions tab. After the prepare pull request merges, running Cut
   release on `main` with a version checks it with the new `scripts/release.py check`
   (a non-empty changelog section, no such tag on `origin`, a version greater than every
@@ -51,7 +111,7 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   but only on a `vX.Y.Z` tag ref; its first step in each job refuses anything else.
   `make release` and a hand-pushed tag still work.
 - Grow the catalogue site from one page into a full site, in a new design. The front
-  page now lists the plugins, each linking to its own page at `/plugins/<plugin>/`
+  page now lists the eight plugins, each linking to its own page at `/plugins/<plugin>/`
   with its skills, and each skill to a page at `/plugins/<plugin>/<skill>/` carrying its
   description, install line, allowed tools, rendered `SKILL.md`, references and the queries
   it fires on and goes elsewhere for. `/start/`, `/workflows/`, `/examples/` and
@@ -213,17 +273,6 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
-- Keep the weekly scheduled run green when a pinned tool publishes a release. A pin
-  behind upstream, a registry that could not be asked, or a markdownlint pin that no
-  longer matches its action is now a warning annotation on the run, with the table still
-  in the job summary; the run fails only for a pin with no upstream registered. Claude
-  Code and Codex publish nearly every week, so the old rule left the run red nearly every
-  week. A registry answer that is not shaped like a version is refused without being
-  repeated, since the step log reads a line starting with `::` as a command, and the
-  legacy `##[name]` marker is broken wherever outside text is printed, since the runner
-  honours it anywhere in a line. Bump
-  `CLAUDE_CODE_VERSION` from 2.1.287 to 2.1.291 and `CODEX_VERSION` from 0.160.0 to
-  0.160.1.
 - Verify Terraform backend/provider identity and the live Kubernetes target before
   state operations or incident mutations. Bind review evidence to remote revision
   identities or a recorded local tree, and recheck freshness before the verdict.
@@ -311,29 +360,6 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
-- Stop `scripts/run_review_benchmark.py --jobs` from failing at random when two cases
-  create their worktrees at once. `git worktree add` and `remove` now run one at a
-  time under a lock, each worktree gets a unique name, and a failed `add` reports git's
-  own message instead of only its exit status.
-- Smoke-test releases and the stage Preview through `workers.dev` instead of the custom
-  domain. Bot Fight Mode on the zone answers GitHub runners with a 403, which rolled
-  production back on `v0.1.0` twice, and it cannot be skipped by a WAF rule. The
-  blocking check is now `scripts/smoke_site.sh` against the Worker's `workers.dev`
-  address plus a read of `wrangler deployments status` (`read_wrangler_deploy.py
-  --active-is`) showing the deployed version at 100%, and the deploy must list
-  `ai.szolotov.com (custom domain)` as a target. The custom-domain request is logged
-  for information and cannot fail the job.
-
-- Stop the stage Preview from fetching stage pages. Stage is behind Cloudflare Access,
-  which serves a GitHub runner its login page or a redirect to it, so the `workers.dev`
-  smoke failed every stage deploy. The `preview` job now checks only that `wrangler
-  preview` uploaded and reported `https://stage.ai.szolotov.com`.
-
-- Stop a pull request description edit from leaving a red `ci` on the head commit. An
-  `edited` event no longer cancels the run in flight, which the `ci` gate counted as a
-  failure, and the `attribution` and `naming` jobs read the title and body from the API
-  when they run, with `pull-requests: read`, instead of from the event payload frozen at
-  the moment the run was triggered.
 - Roll a failed production release back to the version that was serving before it. The
   `cloudflare` job now records that version with `wrangler deployments status --json`
   before deploying and passes its ID to `wrangler rollback`; without one, Wrangler picks
@@ -390,5 +416,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/9365d19bd40e79f52463b046927b17cfd448bb79...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/greenblacked/AI/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/greenblacked/AI/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/greenblacked/AI/compare/9365d19bd40e79f52463b046927b17cfd448bb79...v0.1.0
 [Initial catalogue]: https://github.com/greenblacked/AI/tree/9365d19bd40e79f52463b046927b17cfd448bb79
