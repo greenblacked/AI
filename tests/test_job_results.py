@@ -15,8 +15,11 @@ job_results = load_script("check_job_results.py")
 SCRIPT = REPO / "scripts" / "check_job_results.py"
 
 
-def run_gate(expected, needs, *, summary=None):
+def run_gate(expected, needs, *, summary=None, skippable=None):
     env = os.environ.copy()
+    env.pop("SKIPPABLE", None)
+    if skippable is not None:
+        env["SKIPPABLE"] = skippable
     if needs is None:
         env.pop("NEEDS_JSON", None)
     else:
@@ -106,3 +109,28 @@ def test_main_uses_the_supplied_arguments(monkeypatch, capsys):
     monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
     assert job_results.main(["build"]) == 0
     assert "all 1 required job(s) succeeded" in capsys.readouterr().out
+
+
+def test_a_skipped_job_passes_only_when_the_scope_listed_it():
+    needs = {
+        "scope": {"result": "success"},
+        "test": {"result": "skipped"},
+        "lint": {"result": "success"},
+    }
+    assert run_gate(["scope", "test", "lint"], needs, skippable="test").returncode == 0
+    # Not listed: a skipped job is still a failure, the way it was before scopes existed.
+    assert run_gate(["scope", "test", "lint"], needs, skippable="lint").returncode == 1
+    assert run_gate(["scope", "test", "lint"], needs).returncode == 1
+
+
+@pytest.mark.parametrize("result", ["failure", "cancelled"])
+def test_a_listed_job_that_failed_or_was_cancelled_still_fails(result):
+    needs = {"test": {"result": result}}
+    assert run_gate(["test"], needs, skippable="test").returncode == 1
+
+
+@pytest.mark.parametrize("skippable", ["unknown-job", "test ../x", "test;rm"])
+def test_a_skip_list_naming_anything_the_aggregate_does_not_expect_fails(skippable):
+    needs = {"test": {"result": "skipped"}}
+    result = run_gate(["test"], needs, skippable=skippable)
+    assert result.returncode == 1 and "did not satisfy" in result.stderr

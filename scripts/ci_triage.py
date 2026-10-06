@@ -140,6 +140,7 @@ CAUSES: dict[str, tuple[str, str]] = {
     "test site in a browser": ("make test-browser", "ci.yml"),
     "attribution": ("make attribution", "ci.yml"),
     "naming": ("make naming", "ci.yml"),
+    "scope": ("python3 scripts/ci_scope.py (needs the event in its environment)", "ci.yml"),
     "package": ("make package", "ci.yml"),
     "ci": (
         "no single command - this is the aggregate; open the run to see which "
