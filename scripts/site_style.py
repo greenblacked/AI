@@ -24,6 +24,10 @@ CSS = """
   --muted: #5e5a54;
   --line: #e3ddd3;
   --card: #ebe6dc;
+  --glass-tint: rgba(235, 230, 220, 0.62);
+  --glass-edge: rgba(255, 255, 255, 0.85);
+  --glass-sheen: rgba(255, 255, 255, 0.45);
+  --glass-shadow: rgba(20, 20, 19, 0.12);
   --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Newsreader", "Iowan Old Style", Palatino, Georgia, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
@@ -35,6 +39,10 @@ html[data-theme="night"] {
   --muted: #a39e94;
   --line: #2a2724;
   --card: #141413;
+  --glass-tint: rgba(36, 34, 31, 0.58);
+  --glass-edge: rgba(255, 255, 255, 0.22);
+  --glass-sheen: rgba(255, 255, 255, 0.08);
+  --glass-shadow: rgba(0, 0, 0, 0.6);
   color-scheme: dark;
 }
 html[data-theme="reactor"] {
@@ -43,6 +51,10 @@ html[data-theme="reactor"] {
   --muted: #8aa36a;
   --line: #24321c;
   --card: #10170e;
+  --glass-tint: rgba(22, 34, 18, 0.6);
+  --glass-edge: rgba(210, 240, 122, 0.28);
+  --glass-sheen: rgba(210, 240, 122, 0.07);
+  --glass-shadow: rgba(0, 0, 0, 0.6);
   color-scheme: dark;
 }
 
@@ -251,7 +263,11 @@ html[data-theme="night"] .sun { display: none; }
 }
 
 /* Footer. */
-.site-footer { border-top: 1px solid var(--line); }
+.site-footer {
+  border-top: 1px solid var(--line);
+  /* Room below the last line, so the footer can scroll clear of To top. */
+  padding-bottom: 4rem;
+}
 .foot {
   display: flex;
   flex-direction: column;
@@ -339,7 +355,6 @@ html[data-theme="night"] .sun { display: none; }
   flex-direction: column;
   gap: 1rem;
   margin-top: 3.5rem;
-  scroll-margin-top: 6rem;
 }
 .finder label { display: block; width: 100%; max-width: 28rem; }
 .finder input {
@@ -392,17 +407,26 @@ html[data-theme="night"] .sun { display: none; }
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-/* A tonal button with a leading icon, after Material Design 3: a full pill on the
-   container colour, a 1.125rem icon, and a state layer of the label colour at 8% on
-   hover and 12% when pressed. */
+/* Back and To top: Material Design 3's button with a leading icon (full pill, 1.125rem
+   icon, 14px medium label, 44px target, state layers of the label colour at 8% on
+   hover and 12% pressed), made of Liquid Glass: a translucent tint that blurs and
+   saturates what is behind it, a bright specular edge along the top, a soft sheen, a
+   hairline rim and a floating shadow. Pressed, it gives a little. */
 .back {
+  position: relative;
   display: inline-flex;
   min-height: 2.75rem;
   align-items: center;
   gap: 0.5rem;
   padding: 0 1.25rem 0 1rem;
   border-radius: 999px;
-  background: var(--card);
+  background-color: var(--glass-tint);
+  background-image: linear-gradient(180deg, var(--glass-sheen), transparent 65%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  box-shadow: inset 0 1px 0 0 var(--glass-edge),
+    inset 0 0 0 1px color-mix(in srgb, var(--ink) 10%, transparent),
+    0 1px 2px var(--glass-shadow), 0 6px 16px -4px var(--glass-shadow);
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: 0.875rem;
@@ -411,12 +435,106 @@ html[data-theme="night"] .sun { display: none; }
   letter-spacing: 0.00625rem;
   text-decoration: none;
   white-space: nowrap;
-  transition: background-color 150ms ease;
 }
 .back svg { width: 1.125rem; height: 1.125rem; flex: none; }
-.back:hover { background: color-mix(in srgb, var(--ink) 8%, var(--card)); }
-.back:active { background: color-mix(in srgb, var(--ink) 12%, var(--card)); }
+.back:hover {
+  background-image: linear-gradient(180deg, var(--glass-sheen), transparent 65%),
+    linear-gradient(color-mix(in srgb, var(--ink) 8%, transparent),
+      color-mix(in srgb, var(--ink) 8%, transparent));
+}
+.back:active {
+  background-image: linear-gradient(180deg, var(--glass-sheen), transparent 65%),
+    linear-gradient(color-mix(in srgb, var(--ink) 12%, transparent),
+      color-mix(in srgb, var(--ink) 12%, transparent));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .back { transition: transform 120ms ease, box-shadow 120ms ease; }
+  .back:active { transform: scale(0.97); }
+}
 .back + .crumbs { margin-top: 1rem; }
+/* The bar Back moves into once the page has scrolled past its own Back: a
+   top app bar on the solid page colour, so text scrolls under it and never shows
+   behind a button. It sits below the header while the header shows, and at the top when the
+   header has slid away. Hidden, and out of the tab order, until then. */
+.dock {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-0.5rem);
+  pointer-events: none;
+}
+.site-header:not(.away) ~ .dock { top: calc(4rem + 1px); }
+.dock.on { visibility: visible; opacity: 1; transform: none; pointer-events: auto; }
+@media (prefers-reduced-motion: no-preference) {
+  .dock {
+    transition: opacity 150ms ease, transform 150ms ease, top 200ms ease,
+      visibility 0s linear 150ms;
+  }
+  .dock.on { transition: opacity 150ms ease, transform 150ms ease, top 200ms ease; }
+}
+.dock-in {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0.5rem max(1.25rem, env(safe-area-inset-right)) 0.5rem
+    max(1.25rem, env(safe-area-inset-left));
+}
+/* To top floats at the bottom right: Material's place for a page's one floating
+   action, and the one place Liquid Glass is meant for, a control over the content.
+   Round with only the arrow on a narrow screen, where the column is all text, and
+   labelled once the margin beside the 72rem column can hold the label. Its tint is
+   denser than Back's, because it sits over running text rather than the solid bar,
+   and glyphs showing through compete with the arrow. Hidden, and out of the tab
+   order, until the script shows it. */
+.fab {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 9;
+  justify-content: center;
+  background-color: color-mix(in srgb, var(--glass-tint) 55%, var(--bg));
+  width: 3rem;
+  min-height: 3rem;
+  padding: 0;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(0.5rem);
+  pointer-events: none;
+}
+.fab span { display: none; }
+.fab.on { visibility: visible; opacity: 1; transform: none; pointer-events: auto; }
+@media (prefers-reduced-motion: no-preference) {
+  .fab {
+    transition: opacity 150ms ease, transform 150ms ease, box-shadow 120ms ease,
+      visibility 0s linear 150ms;
+  }
+  .fab.on { transition: opacity 150ms ease, transform 150ms ease, box-shadow 120ms ease; }
+  .fab.on:active { transform: scale(0.97); }
+}
+@media (min-width: 40rem) {
+  .fab {
+    right: max(1.5rem, env(safe-area-inset-right));
+    bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+}
+@media (min-width: 90rem) {
+  .fab { width: auto; padding: 0 1.25rem 0 1rem; }
+  .fab span { display: inline; }
+}
+/* A jump to a heading (an in-page link, a shared deep link, the finder) lands below
+   both bars rather than under them. A jump upwards brings the header back with the
+   bar stacked beneath it: 4rem and a border, then 0.5rem, a 2.75rem button, 0.5rem and
+   a border, 7.875rem in all, so 8.5rem leaves a gap. Zero specificity, so a rule that
+   sets its own margin wins. */
+:where([id]) { scroll-margin-top: 8.5rem; }
 .crumbs {
   display: flex;
   flex-wrap: wrap;
@@ -669,6 +787,43 @@ PAGE_SCRIPT = """
     window.history.back();
   }
   for (var b = 0; b < backs.length; b++) backs[b].addEventListener("click", back);
+
+  var dock = document.getElementById("dock");
+  var upward = document.getElementById("to-top");
+  var still = window.matchMedia("(prefers-reduced-motion: reduce)");
+  function edge() {
+    var inline = document.querySelector("main .back");
+    if (!inline) return 320;
+    return inline.getBoundingClientRect().bottom + window.scrollY;
+  }
+  var limit = edge();
+  // To top follows the header's rule: away while reading down, back on the way up,
+  // when a reader wants it, and at the end of the page. A focused button stays, so
+  // keyboard focus never lands on something hidden.
+  var mark = window.scrollY;
+  var shown = false;
+  function reveal() {
+    var y = window.scrollY;
+    var past = y > limit;
+    if (dock) dock.classList.toggle("on", past);
+    var end = y + window.innerHeight >= document.documentElement.scrollHeight - 2;
+    if (!past) shown = false;
+    else if (end || document.activeElement === upward) shown = true;
+    else if (y < mark - 8) shown = true;
+    else if (y > mark + 8) shown = false;
+    if (Math.abs(y - mark) > 8) mark = y;
+    upward.classList.toggle("on", shown);
+  }
+  window.addEventListener("scroll", reveal, { passive: true });
+  window.addEventListener("resize", function () { limit = edge(); reveal(); });
+  reveal();
+  upward.addEventListener("click", function () {
+    window.scrollTo({ top: 0, behavior: still.matches ? "auto" : "smooth" });
+    // The button hides once the page is at the top, so focus moves to the home link,
+    // in the header, which is inert while it is hidden.
+    away(false);
+    home.focus({ preventScroll: true });
+  });
 
   var input = document.getElementById("find");
   var tally = document.getElementById("count");

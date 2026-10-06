@@ -196,12 +196,13 @@ def test_every_page_below_the_index_has_one_back_link_to_its_parent(
     mini_repo, tmp_path, path, parent
 ):
     page = (_build(mini_repo, tmp_path) / path).read_text(encoding="utf-8")
+    main = page.split('<main id="content">', 1)[1].split("</main>", 1)[0]
     # Without the script the link is a plain one to the page above, so it still works.
-    assert page.count(BACK.format(parent)) == 1
-    assert page.count("data-back>") == 1
+    assert main.count(BACK.format(parent)) == 1
+    assert main.count("data-back>") == 1
 
 
-def test_the_back_link_is_a_tonal_button_above_the_skill_crumbs(mini_repo, tmp_path):
+def test_the_back_link_is_a_glass_button_above_the_skill_crumbs(mini_repo, tmp_path):
     page = (_build(mini_repo, tmp_path) / "plugins/engineering/alpha/index.html").read_text(
         encoding="utf-8"
     )
@@ -209,10 +210,148 @@ def test_the_back_link_is_a_tonal_button_above_the_skill_crumbs(mini_repo, tmp_p
     assert BACK.format("/plugins/engineering/") + '\n<nav class="crumbs"' in page
     css = site.site_style.CSS
     rule = css.split("\n.back {\n", 1)[1].split("\n}", 1)[0]
-    assert "border-radius: 999px;" in rule and "background: var(--card);" in rule
-    assert "text-decoration: none;" in rule
-    assert ".back:hover { background: color-mix(in srgb, var(--ink) 8%, var(--card)); }" in css
-    assert ".back:active { background: color-mix(in srgb, var(--ink) 12%, var(--card)); }" in css
+    # Material: a full pill, a 44px target, a medium label, no underline.
+    assert "border-radius: 999px;" in rule and "min-height: 2.75rem;" in rule
+    assert "font-weight: 500;" in rule and "text-decoration: none;" in rule
+    # Liquid Glass: a translucent tint that blurs what is behind, a specular top edge
+    # and a sheen, all from theme tokens so night and console get their own.
+    assert "background-color: var(--glass-tint);" in rule
+    assert "backdrop-filter: blur(16px) saturate(180%);" in rule
+    assert "inset 0 1px 0 0 var(--glass-edge)" in rule
+    assert "linear-gradient(180deg, var(--glass-sheen), transparent 65%)" in rule
+    for state, share in ((":hover", "8%"), (":active", "12%")):
+        block = css.split(f"\n.back{state} {{\n", 1)[1].split("\n}", 1)[0]
+        assert f"color-mix(in srgb, var(--ink) {share}, transparent)" in block
+    for theme in (":root {", 'html[data-theme="night"] {', 'html[data-theme="reactor"] {'):
+        tokens = css.split(theme, 1)[1].split("}", 1)[0]
+        for token in ("--glass-tint", "--glass-edge", "--glass-sheen", "--glass-shadow"):
+            assert f"{token}:" in tokens, (theme, token)
+
+
+TO_TOP = (
+    '<button type="button" class="back fab" id="to-top" aria-label="To top">'
+    + site.TOP_ICON
+    + "<span>To top</span></button>"
+)
+
+
+@pytest.mark.parametrize(
+    ("path", "parent"),
+    [
+        ("index.html", None),
+        ("plugins/engineering/index.html", "/"),
+        ("plugins/engineering/alpha/index.html", "/plugins/engineering/"),
+        ("start/index.html", "/"),
+        ("quality/index.html", "/"),
+        ("404.html", "/"),
+    ],
+)
+def test_every_page_has_the_bar_with_back_only_below_the_index(mini_repo, tmp_path, path, parent):
+    page = (_build(mini_repo, tmp_path) / path).read_text(encoding="utf-8")
+    if parent is None:
+        # The front page has no Back, so it has no bar either.
+        assert 'id="dock"' not in page
+    else:
+        assert page.count('id="dock"') == 1
+        # A labelled landmark straight after the header, so the keyboard reaches it
+        # before the page body, holding the same Back as the top of the page.
+        opening = '</header>\n<nav class="dock" id="dock" aria-label="Page">\n'
+        assert opening in page
+        dock = page.split(opening, 1)[1].split("\n</div>\n</nav>", 1)[0]
+        assert dock == '<div class="dock-in">\n' + BACK.format(parent)
+    # To top is on every page, outside the bar, last after the footer.
+    assert page.count('id="to-top"') == 1
+    assert "</footer>\n" + TO_TOP + "\n<script>" in page
+
+
+def test_the_bar_stays_hidden_until_the_page_scrolls_past_back():
+    css = site.site_style.CSS
+    dock = css.split("\n.dock {\n", 1)[1].split("\n}", 1)[0]
+    # visibility, not only opacity, so a hidden button is out of the tab order; a solid
+    # background, so text scrolls under the bar and never shows behind a button.
+    assert "position: fixed;" in dock and "visibility: hidden;" in dock
+    assert "pointer-events: none;" in dock and "background: var(--bg);" in dock
+    assert ".dock.on { visibility: visible; opacity: 1;" in css
+    # Below the header while it shows, at the top once it has slid away.
+    assert ".site-header:not(.away) ~ .dock { top: calc(4rem + 1px); }" in css
+    # As wide as the header's bar, so on a wide screen Back sits under its
+    # left edge instead of crowding the text column.
+    inner = css.split("\n.dock-in {\n", 1)[1].split("\n}", 1)[0]
+    header = css.split("\n.bar {\n", 1)[1].split("\n}", 1)[0]
+    assert "max-width: 72rem;" in inner and "max-width: 72rem;" in header
+    assert ".dock-in.narrow" not in css
+    # A jump to a heading lands below both bars, not under them. A jump upwards brings
+    # the header back with the bar stacked beneath it, so the offset has to clear the
+    # header, the bar's padding and its button, and each border, read from the rules
+    # themselves so a taller header or button fails here rather than on the page.
+    margin = re.search(r":where\(\[id\]\) \{ scroll-margin-top: ([\d.]+)rem; \}", css)
+    assert margin, "no zero-specificity scroll margin"
+    button = css.split("\n.back {\n", 1)[1].split("\n}", 1)[0]
+    rem = {
+        "header": re.search(r"height: ([\d.]+)rem;", header),
+        "padding": re.search(r"padding: ([\d.]+)rem ", inner),
+        "button": re.search(r"min-height: ([\d.]+)rem;", button),
+    }
+    assert all(rem.values()), rem
+    borders = 2 / 16
+    stacked = (
+        float(rem["header"].group(1))
+        + 2 * float(rem["padding"].group(1))
+        + float(rem["button"].group(1))
+        + borders
+    )
+    assert float(margin.group(1)) >= stacked + 0.25, (margin.group(1), stacked)
+    # The finder has an id, so it takes the same margin rather than a smaller one of
+    # its own that would win over the zero-specificity rule.
+    assert "scroll-margin" not in css.split("\n.finder {\n", 1)[1].split("\n}", 1)[0]
+    script = site.site_style.PAGE_SCRIPT
+    assert 'var inline = document.querySelector("main .back");' in script
+    reveal = script.split("function reveal() {", 1)[1].split("\n  }", 1)[0]
+    assert "var past = y > limit;" in reveal
+    # The front page has no bar, so the script must not assume one.
+    assert 'if (dock) dock.classList.toggle("on", past);' in reveal
+    # To top follows the header: away while reading down, back on the way up and at
+    # the end of the page, never past the top, and never hidden while it has focus.
+    assert "if (!past) shown = false;" in reveal
+    assert "else if (end || document.activeElement === upward) shown = true;" in reveal
+    assert "else if (y < mark - 8) shown = true;" in reveal
+    assert "else if (y > mark + 8) shown = false;" in reveal
+    assert reveal.index("if (!past)") < reveal.index("else if (end ||")
+    assert reveal.index("else if (end ||") < reveal.index("else if (y > mark + 8)")
+    assert 'upward.classList.toggle("on", shown);' in reveal
+    assert 'window.addEventListener("resize", function () { limit = edge(); reveal(); });' in script
+    to_top = script.split('upward.addEventListener("click", function () {', 1)[1].split(
+        "\n  });", 1
+    )[0]
+    assert 'behavior: still.matches ? "auto" : "smooth"' in to_top
+    assert "(prefers-reduced-motion: reduce)" in script
+    # The header is inert while hidden, so it is shown before focus moves into it.
+    assert to_top.index("away(false);") < to_top.index("home.focus({ preventScroll: true });")
+
+
+def test_to_top_floats_at_the_bottom_right_once_the_page_scrolls():
+    css = site.site_style.CSS
+    fab = css.split("\n.fab {\n", 1)[1].split("\n}", 1)[0]
+    assert "position: fixed;" in fab
+    # Over running text, so a denser tint than Back's, mixed from the theme's own.
+    assert "background-color: color-mix(in srgb, var(--glass-tint) 55%, var(--bg));" in fab
+    assert "right: max(1rem, env(safe-area-inset-right));" in fab
+    assert "bottom: max(1rem, env(safe-area-inset-bottom));" in fab
+    # Hidden by visibility, not only opacity, so it is out of the tab order until shown.
+    assert "visibility: hidden;" in fab and "pointer-events: none;" in fab
+    assert ".fab.on { visibility: visible; opacity: 1;" in css
+    # A 48px round target with only the arrow on a narrow screen, above the 44px floor.
+    assert "width: 3rem;" in fab and "min-height: 3rem;" in fab
+    assert ".fab span { display: none; }" in css
+    # Labelled only where the margin beside the 72rem column can hold it.
+    wide = css.split("@media (min-width: 90rem) {\n", 1)[1].split("\n}", 1)[0]
+    assert ".fab { width: auto;" in wide and ".fab span { display: inline; }" in wide
+    # A press scales the shown button, which its own transform would otherwise undo.
+    assert ".fab.on:active { transform: scale(0.97); }" in css
+    # The footer leaves room below its last line to scroll clear of the button.
+    footer = css.split("\n.site-footer {\n", 1)[1].split("\n}", 1)[0]
+    assert "padding-bottom: 4rem;" in footer
+    assert "#to-top { margin-left: auto; }" not in css
 
 
 def test_the_index_has_no_back_link(mini_repo, tmp_path):

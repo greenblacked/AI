@@ -136,6 +136,11 @@ ABOUT = {
         "The work around the job. Searching, negotiating an offer, writing a technical "
         "article, preparing a talk and keeping learning notes you can find again."
     ),
+    "design": (
+        "Look at an interface the way its users will. Review a screen against usability "
+        "heuristics, audit a page against WCAG 2.2, set up tokens, themes and component states, "
+        "and plan a small test with real people."
+    ),
 }
 
 NUMBER_WORDS = [
@@ -214,12 +219,56 @@ SUN_ICON = (
 )
 
 
-def _page(title: str, main: str, version: str, *, current: str = "") -> str:
+TOP_ICON = (
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" '
+    'stroke-width="2" d="M12 20V5M5.5 11.5 12 5l6.5 6.5"/></svg>'
+)
+
+
+def _dock(parent: str | None) -> str:
+    """The bar Back moves into once the page scrolls past its own Back.
+
+    The same button as the one at the top of the page, on the left of a bar that spans
+    the header's width, so on a wide screen it sits under the header's outer edge
+    rather than crowding the text column. A navigation landmark straight after the
+    header, so the keyboard reaches it before the page body. Hidden until the script
+    finds the page scrolled past that Back; without the script it stays hidden, and the
+    Back at the top still works. The front page has no Back, so it has no bar.
+    """
+    if parent is None:
+        return ""
+    return (
+        '<nav class="dock" id="dock" aria-label="Page">\n'
+        '<div class="dock-in">\n'
+        f"{_back(parent)}\n"
+        "</div>\n</nav>\n"
+    )
+
+
+def _to_top() -> str:
+    """To top, floating at the bottom right once the page has scrolled.
+
+    The same glass button as Back, round with only the arrow on a narrow screen and
+    labelled where the margin beside the text column can hold it. Its accessible name
+    is the label either way. Last in the document, after the footer, so the keyboard
+    reaches it once the page has been read rather than before it.
+    """
+    return (
+        '<button type="button" class="back fab" id="to-top" aria-label="To top">'
+        f"{TOP_ICON}<span>To top</span></button>\n"
+    )
+
+
+def _page(
+    title: str, main: str, version: str, *, current: str = "", parent: str | None = None
+) -> str:
     """One document. ``main`` is already escaped HTML for the page body.
 
     ``current`` is the root-relative path of the page, which marks its footer link.
+    ``parent`` is where Back goes without history, and None on the front page.
     """
     source = _esc(SOURCE_URL)
+    dock = _dock(parent)
     return (
         "<!DOCTYPE html>\n"
         '<html lang="en">\n'
@@ -249,6 +298,7 @@ def _page(title: str, main: str, version: str, *, current: str = "") -> str:
         f'<span class="track"><span class="knob">{MOON_ICON}{SUN_ICON}</span></span>'
         "</button>\n"
         "</div>\n</div>\n</header>\n"
+        f"{dock}"
         f'<main id="content">\n{main}\n</main>\n'
         '<footer class="site-footer">\n<div class="foot">\n'
         '<div>\n<p class="mark">AI</p>\n'
@@ -259,6 +309,7 @@ def _page(title: str, main: str, version: str, *, current: str = "") -> str:
         "</div>\n"
         f"{_nav('Footer', PAGES + ELSEWHERE, current)}\n"
         "</div>\n</footer>\n"
+        f"{_to_top()}"
         f"<script>\n{site_style.PAGE_SCRIPT}</script>\n"
         "</body>\n"
         "</html>\n"
@@ -570,7 +621,7 @@ def render_plugin(plugin: str, catalogue: Catalogue, version: str) -> str:
         f'<ul class="skills" id="list">\n{items}\n</ul>\n'
         "</div>"
     )
-    return _page(f"{plugin} · AI", main, version)
+    return _page(f"{plugin} · AI", main, version, parent="/")
 
 
 # -------------------------------------------------------------------- a skill's page
@@ -646,7 +697,7 @@ def render_skill(skill: Skill, catalogue: Catalogue, version: str) -> str:
         + "\n</article>"
     )
     main = _narrow(inner)
-    return _page(f"{skill.name} · AI", main, version)
+    return _page(f"{skill.name} · AI", main, version, parent=_plugin_href(skill.plugin))
 
 
 # ------------------------------------------------------------------------ /start/
@@ -697,7 +748,7 @@ def render_start(catalogue: Catalogue, version: str) -> str:
         + "\n"
         + _prose("\n".join(parts))
     )
-    return _page("Getting started · AI", main, version, current="/start/")
+    return _page("Getting started · AI", main, version, current="/start/", parent="/")
 
 
 # --------------------------------------------------------------------- /workflows/
@@ -754,7 +805,7 @@ def render_workflows(catalogue: Catalogue, version: str) -> str:
         + "\n"
         + _prose("\n".join(parts))
     )
-    return _page("Workflows · AI", main, version, current="/workflows/")
+    return _page("Workflows · AI", main, version, current="/workflows/", parent="/")
 
 
 # ---------------------------------------------------------------------- /examples/
@@ -819,7 +870,7 @@ def render_examples(catalogue: Catalogue, version: str) -> str:
         + "\n"
         + _prose("\n".join(parts))
     )
-    return _page("Examples · AI", main, version, current="/examples/")
+    return _page("Examples · AI", main, version, current="/examples/", parent="/")
 
 
 # ----------------------------------------------------------------------- /quality/
@@ -998,7 +1049,7 @@ def render_quality(catalogue: Catalogue, version: str) -> str:
         + "\n"
         + _prose("\n".join(parts))
     )
-    return _page("Quality evidence · AI", main, version, current="/quality/")
+    return _page("Quality evidence · AI", main, version, current="/quality/", parent="/")
 
 
 def _robots(noindex: bool) -> str:
@@ -1082,6 +1133,7 @@ def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> N
         "Not found · AI",
         _narrow(_back("/") + "\n" + _title("Not found", "There is nothing at this address.")),
         version,
+        parent="/",
     )
     (output / "404.html").write_text(missing, encoding="utf-8")
     print(f"built {output} for {version}")

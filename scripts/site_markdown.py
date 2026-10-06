@@ -36,7 +36,7 @@ BLOB_URL = "https://github.com/greenblacked/AI/blob/main"
 RESERVED_IDS = frozenset(
     {
         "content", "banner", "home", "theme", "console-theme", "dark-switch",
-        "find", "finder", "list", "count", "none",
+        "find", "finder", "list", "count", "none", "dock", "to-top",
     }
 )  # fmt: skip
 

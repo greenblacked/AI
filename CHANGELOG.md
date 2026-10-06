@@ -8,6 +8,57 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- Add the `design` plugin, the ninth, with four skills: `ui-ux-review` reviews one screen
+  or flow against usability heuristics with ranked, evidenced findings; `accessibility-audit`
+  audits against WCAG 2.2 Level AA, automated pass first and the manual pass automation
+  cannot do second; `design-system` sets up role-named tokens, themes and component states,
+  including where glass materials belong; `usability-test-plan` plans a small test with
+  real people and turns the sessions into severity-rated fixes. The plugin is listed in the
+  marketplace under `development` and fits the default listing budget on its own. The install
+  advice's `skillListingBudgetFraction` rises from 0.101 to 0.105, which the whole
+  marketplace's descriptions now need.
+- Add a bar with Back on every catalogue page below the front page. It appears once the
+  page has scrolled past its own Back button and hides again near the top, so Back is
+  never out of reach on a long skill page. It spans the header's width, so on a wide
+  screen Back sits under the header's left edge, clear of the text; it sits on the solid
+  page colour below the header, so text scrolls under it and never shows behind the
+  button. It is a labelled landmark straight after the header, so the keyboard reaches
+  it before the page body, and a jump to a heading lands below it.
+- Add To top to every catalogue page, floating at the bottom right. Like the header, it
+  goes away while the reader scrolls down and comes back on the way up and at the end
+  of the page, so it does not sit over the text being read. On a narrow screen it is a
+  round 48px button with only the arrow, on a denser glass tint than Back's so text
+  behind it does not compete with the arrow; from 1440px wide, where the margin beside
+  the text column can hold it, it carries its label. The footer leaves room to scroll
+  clear of it. It respects reduced motion and moves focus to the home link.
+- Restyle Back and To top as Material Design 3 buttons made of Liquid Glass: a full
+  pill with a leading icon and Material's 8% and 12% state layers, on a translucent,
+  blurred tint with a specular top edge, a sheen and a floating shadow, with tokens per
+  theme.
+
+### Changed
+
+- Keep the weekly scheduled run green when a pinned tool publishes a release. A pin
+  behind upstream, a registry that could not be asked, or a markdownlint pin that no
+  longer matches its action is now a warning annotation on the run, with the table still
+  in the job summary; the run fails only for a pin with no upstream registered. Claude
+  Code and Codex publish nearly every week, so the old rule left the run red nearly every
+  week. A registry answer that is not shaped like a version is refused without being
+  repeated, since the step log reads a line starting with `::` as a command, and the
+  legacy `##[name]` marker is broken wherever outside text is printed, since the runner
+  honours it anywhere in a line. Bump
+  `CLAUDE_CODE_VERSION` from 2.1.287 to 2.1.291 and `CODEX_VERSION` from 0.160.0 to
+  0.160.1.
+
+### Fixed
+
+- Make `design-system`'s inventory count distinct colours: the command counted matching
+  lines, so a colour used twice counted twice and two colours on one line counted once.
+  Its contrast table now has one row per pair and state and one column per theme, so a
+  hover colour that fails only in dark mode has a cell to fail in.
+
 ## [0.1.2] - 2026-10-05
 
 ### Added
