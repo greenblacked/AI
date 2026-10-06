@@ -8,6 +8,7 @@ in for the network: nothing here reaches GitHub.
 from __future__ import annotations
 
 import re
+import subprocess
 
 import pytest
 
@@ -21,8 +22,7 @@ BASE = "b" * 40
 STAGE = "c" * 40
 STAGE_HEAD = "d" * 40
 TREE = "e" * 40
-MERGE = "f" * 40
-PR_HEAD = "1" * 40
+PATCH = ".claude/agents/benchmarks/reviewer/unpublished-release-links/change.patch"
 
 
 def table_get(table):
@@ -41,7 +41,10 @@ def table_git(table):
     def git(*args):
         if args not in table:
             raise KeyError(args)
-        return table[args]
+        value = table[args]
+        if isinstance(value, Exception):
+            raise value
+        return value
 
     return git
 
@@ -153,11 +156,18 @@ def test_an_edit_reaches_past_earlier_text_runs_to_the_run_that_checked_the_code
         ([{"id": 7, "status": "completed", "pull_requests": []}], {}, "no earlier run"),
         ([], {}, "no earlier run"),
         ([run(7)], {7: []}, "did not pass"),
+        (
+            [run(8), run(7)],
+            {8: CODE_GREEN, 7: [{"name": "test (3.11)", "conclusion": "failure"}]},
+            "run 7",
+        ),
+        ([run("7?x=1")], {}, "ValueError"),
     ],
 )
 def test_an_edit_runs_everything_unless_the_code_already_passed_against_this_base(runs, jobs, why):
     # A failed or cancelled code check, a run still going, a base that has moved since,
-    # a fork's run (which carries no pull request), and no run at all are each a full run.
+    # a fork's run (which carries no pull request), no run at all, an older red run
+    # behind a newer green one, and a run id that is not a number are each a full run.
     table = {runs_path(HEAD): {"workflow_runs": runs}}
     table.update({jobs_path(run_id): {"jobs": listed} for run_id, listed in jobs.items()})
     mode, reason = scope.decide(edited(), table_get(table), table_git({}))
@@ -172,12 +182,15 @@ def test_an_edit_with_a_malformed_sha_runs_everything():
 # --- promotion from stage ----------------------------------------------------------------
 
 
-def stage_world(diff="CHANGELOG.md\n", head_tree=TREE, run_jobs=CODE_GREEN, pulls=None):
+def stage_world(
+    diff="CHANGELOG.md\n", head_tree=TREE, run_jobs=CODE_GREEN, pulls=None, runs=None, applies=""
+):
     git = table_git(
         {
             ("rev-parse", "origin/stage"): STAGE + "\n",
-            ("diff", "--name-only", STAGE, "HEAD"): diff,
+            ("diff", "--no-renames", "--name-only", STAGE, "HEAD"): diff,
             ("rev-parse", f"{STAGE}^{{tree}}"): TREE + "\n",
+            ("apply", "--check", PATCH): applies,
         }
     )
     if pulls is None:
@@ -190,15 +203,14 @@ def stage_world(diff="CHANGELOG.md\n", head_tree=TREE, run_jobs=CODE_GREEN, pull
                 "head": {"sha": STAGE_HEAD},
             }
         ]
-    get = table_get(
-        {
-            f"/repos/{REPO_NAME}/commits/{STAGE}/pulls": pulls,
-            f"/repos/{REPO_NAME}/commits/{STAGE_HEAD}": {"commit": {"tree": {"sha": head_tree}}},
-            runs_path(STAGE_HEAD): {"workflow_runs": [run(5)]},
-            jobs_path(5): {"jobs": run_jobs},
-        }
-    )
-    return get, git
+    table = {
+        f"/repos/{REPO_NAME}/commits/{STAGE}/pulls": pulls,
+        f"/repos/{REPO_NAME}/commits/{STAGE_HEAD}": {"commit": {"tree": {"sha": head_tree}}},
+        runs_path(STAGE_HEAD): {"workflow_runs": [run(5)] if runs is None else runs},
+        jobs_path(5): {"jobs": run_jobs},
+        jobs_path(4): {"jobs": [{"name": "site-browser", "conclusion": "failure"}]},
+    }
+    return table_get(table), git
 
 
 def into_main():
@@ -210,7 +222,7 @@ def into_main():
     [
         "",
         "CHANGELOG.md\n",
-        "CHANGELOG.md\n.claude/agents/benchmarks/reviewer/unpublished-release-links/change.patch\n",
+        f"CHANGELOG.md\n{PATCH}\n",
     ],
 )
 def test_a_promotion_of_the_tree_stage_passed_skips_the_test_matrix(diff):
@@ -227,6 +239,14 @@ def test_a_promotion_of_the_tree_stage_passed_skips_the_test_matrix(diff):
         ({"head_tree": "0" * 40}, "not the tree stage holds"),
         ({"run_jobs": [{"name": "test (3.13)", "conclusion": "failure"}]}, "did not pass"),
         ({"pulls": []}, "is not the merge of a pull request into stage"),
+        ({"runs": [run(5), run(4)]}, "run 4"),
+        (
+            {
+                "diff": f"{PATCH}\n",
+                "applies": subprocess.CalledProcessError(1, ["git", "apply"]),
+            },
+            "CalledProcessError",
+        ),
         (
             {
                 "pulls": [
@@ -245,7 +265,8 @@ def test_a_promotion_of_the_tree_stage_passed_skips_the_test_matrix(diff):
 )
 def test_a_promotion_runs_everything_unless_stage_proves_the_tree(world, why):
     # Any change outside the release files, a stage pull request whose head is not the
-    # tree stage holds, a red stage run, or a stage tip no pull request produced.
+    # tree stage holds, a red stage run (even behind a green one), a stage tip no pull
+    # request produced, or a repointed benchmark patch that no longer applies.
     get, git = stage_world(**world)
     mode, reason = scope.decide(into_main(), get, git)
     assert mode == "full" and why in reason, reason
@@ -258,51 +279,53 @@ def test_an_api_failure_during_a_proof_runs_everything():
     assert mode == "full" and reason == "not proven: OSError"
 
 
-# --- promotion from the push to main -----------------------------------------------------
-
-
-def push_world(pushed_tree=TREE, run_jobs=CODE_GREEN):
-    git = table_git({("rev-parse", "HEAD^{tree}"): pushed_tree + "\n"})
-    get = table_get(
-        {
-            f"/repos/{REPO_NAME}/commits/{MERGE}/pulls": [
-                {
-                    "number": 155,
-                    "merge_commit_sha": MERGE,
-                    "merged_at": "2026-10-06T11:34:00Z",
-                    "base": {"ref": "main"},
-                    "head": {"sha": PR_HEAD},
-                }
-            ],
-            f"/repos/{REPO_NAME}/commits/{PR_HEAD}": {"commit": {"tree": {"sha": TREE}}},
-            runs_path(PR_HEAD): {"workflow_runs": [run(6)]},
-            jobs_path(6): {"jobs": run_jobs},
-        }
-    )
-    return get, git
+# --- promotion from the push to main, and edits to a promotion -------------------------
 
 
 def on_main():
-    return env(EVENT_NAME="push", REF="refs/heads/main", SHA=MERGE)
+    return env(EVENT_NAME="push", REF="refs/heads/main", SHA="f" * 40)
 
 
-def test_the_push_after_a_proven_merge_is_a_promotion():
-    get, git = push_world()
+def test_the_push_to_main_is_proven_by_stage_like_the_pull_request_was():
+    # The merged pull request ran as a promotion, with the matrix skipped, so it cannot
+    # vouch for the push; stage's pull request ran everything.
+    get, git = stage_world()
     mode, reason = scope.decide(on_main(), get, git)
-    assert mode == "promotion" and "#155" in reason
+    assert mode == "promotion" and "#152" in reason, reason
 
 
-@pytest.mark.parametrize(
-    ("world", "why"),
-    [
-        ({"pushed_tree": "0" * 40}, "changed the tree"),
-        ({"run_jobs": [{"name": "test (3.10)", "conclusion": "failure"}]}, "did not pass"),
-    ],
-)
-def test_the_push_runs_everything_when_the_merge_is_not_what_passed(world, why):
-    get, git = push_world(**world)
+def test_the_push_to_main_runs_everything_when_main_is_not_stage():
+    get, git = stage_world(diff="CHANGELOG.md\nscripts/site_style.py\n")
     mode, reason = scope.decide(on_main(), get, git)
-    assert mode == "full" and why in reason, reason
+    assert mode == "full" and "differs from stage" in reason, reason
+
+
+PROMOTION_RUN = [
+    {"name": "test (3.13)", "conclusion": "skipped"},
+    {"name": "validate skills", "conclusion": "success"},
+]
+
+
+def test_an_edit_to_a_promotion_is_proven_by_stage_rather_than_by_its_own_run():
+    get, git = stage_world()
+    table = {runs_path(HEAD): {"workflow_runs": [run(11)]}, jobs_path(11): {"jobs": PROMOTION_RUN}}
+
+    def both(path):
+        return table[path] if path in table else get(path)
+
+    mode, reason = scope.decide(edited(BASE_REF="main"), both, git)
+    assert mode == "promotion" and "#152" in reason, reason
+
+
+def test_an_edit_into_dev_with_no_green_run_is_not_rescued_by_the_stage_proof():
+    get, git = stage_world()
+    table = {runs_path(HEAD): {"workflow_runs": [run(11)]}, jobs_path(11): {"jobs": PROMOTION_RUN}}
+
+    def both(path):
+        return table[path] if path in table else get(path)
+
+    mode, reason = scope.decide(edited(BASE_REF="dev"), both, git)
+    assert mode == "full" and "run 11" in reason, reason
 
 
 # --- plumbing ----------------------------------------------------------------------------
@@ -343,3 +366,15 @@ def test_every_listed_job_exists_in_ci_and_every_code_job_is_listed():
     assert listed <= jobs, listed - jobs
     assert jobs - set(scope.TEXT_SKIPS) == set(scope.TEXT_JOBS) | set(scope.ALWAYS)
     assert set(scope.PROMOTION_SKIPS) <= set(scope.TEXT_SKIPS)
+
+
+def test_the_names_a_text_run_ignores_are_the_display_names_of_those_jobs():
+    # The runs API reports a job by its `name:`, not its id, so a renamed description
+    # check would silently stop being ignored, and one renamed onto a code check's name
+    # would let that check fail unseen.
+    text = (REPO / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    names = {
+        job: re.search(rf"^  {job}:\n(?:    #.*\n)*    name: (.+)$", text, re.M).group(1)
+        for job in (*scope.TEXT_JOBS, *scope.ALWAYS)
+    }
+    assert set(names.values()) == set(scope.TEXT_CHECK_NAMES), names

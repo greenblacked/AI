@@ -77,7 +77,7 @@ jobs:
     permissions:
       contents: read
       # Read only: earlier CI runs and their jobs, and which pull request produced the
-      # commit stage or main is at.
+      # commit stage is at.
       actions: read
       pull-requests: read
     outputs:
@@ -100,7 +100,6 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           REF: ${{ github.ref }}
-          SHA: ${{ github.sha }}
           RUN_ID: ${{ github.run_id }}
         run: |
           set -Eeuo pipefail

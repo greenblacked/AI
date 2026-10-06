@@ -229,8 +229,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   whose tree is the one stage's pull request passed in full, apart from the changelog
   and the release benchmark patch, and the push to `main` after it, skip the test
   matrix, the browser tests and the linters of unchanged files, and keep validate,
-  catalogue, spelling, markdown, links, attribution, naming, package, the dry-run deploy
-  and every security check. An edit to a pull request's description re-runs only
+  catalogue, spelling, markdown, links, attribution, naming, package, every security
+  check and, on the pull request, the dry-run deploy. An edit to a pull request's description re-runs only
   attribution and naming once the code has passed against the same base. Anything the
   job cannot prove is a full run, and the aggregate accepts a skipped job only when the
   scope named it.

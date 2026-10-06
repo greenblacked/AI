@@ -13,8 +13,8 @@ The `scope` job runs this first and every other job in `ci.yml` reads its `mode`
 - ``full`` runs everything. It is the answer for every pull request into `dev` or `stage`,
   for `workflow_dispatch` and `merge_group`, and for anything below that cannot be proven.
 - ``promotion`` is a pull request into `main`, or the push to `main` after one merges,
-  whose tree has already passed a full run, apart from the changelog and the release
-  benchmark patch a release prepares. The cheap checks and the deployment checks still
+  whose tree is stage's, which passed a full run, apart from the changelog and the
+  benchmark patch that has to be repointed at it by hand for a release. The cheap checks and the deployment checks still
   run; the test matrix, the browser tests and the linters of files that did not change do
   not.
 - ``text`` is an `edited` event on a pull request whose commit, against the same base, has
@@ -105,9 +105,10 @@ def heads_passed(get: Get, repo: str, head_sha: str, base_sha: str | None, skip_
     """The id of the newest CI run on `head_sha` that ran the code checks, all green.
 
     Runs are read newest first. A run whose code checks were all skipped was itself a
-    `text` run and is passed over; the first run that actually ran them decides, and any
-    code check in it that did not succeed, or any newer run still in progress, is not a
-    pass. With `base_sha`, only runs against that base count, because a pull request's
+    `text` run and is passed over. Every other completed run must have passed every code
+    check: one green run does not outweigh a red one on the same commit, because the red
+    one may be the flake that tells the truth. A run still in progress is not a pass
+    either. With `base_sha`, only runs against that base count, because a pull request's
     run tests its merge with the base as it was then.
     """
     runs = get(
@@ -116,6 +117,7 @@ def heads_passed(get: Get, repo: str, head_sha: str, base_sha: str | None, skip_
     )
     if not isinstance(runs, dict) or not isinstance(runs.get("workflow_runs"), list):
         raise NotProvenError("the runs listing was not the expected shape")
+    passed = ""
     for run in runs["workflow_runs"]:
         if not isinstance(run, dict) or str(run.get("id")) == skip_run:
             continue
@@ -129,7 +131,9 @@ def heads_passed(get: Get, repo: str, head_sha: str, base_sha: str | None, skip_
                 continue
         if run.get("status") != "completed":
             raise NotProvenError("an earlier run on this commit has not finished")
-        jobs = get(f"/repos/{repo}/actions/runs/{run.get('id')}/jobs?per_page=100")
+        # A number, so nothing else an API answer carries reaches a URL or the summary.
+        run_id = str(int(run.get("id")))
+        jobs = get(f"/repos/{repo}/actions/runs/{run_id}/jobs?per_page=100")
         code = [
             job
             for job in (jobs or {}).get("jobs") or []
@@ -138,10 +142,11 @@ def heads_passed(get: Get, repo: str, head_sha: str, base_sha: str | None, skip_
         if code and all(job.get("conclusion") == "skipped" for job in code):
             continue
         if not code or any(job.get("conclusion") != "success" for job in code):
-            raise NotProvenError("the newest run that checked the code did not pass it")
-        # A number, so nothing else an API answer carries reaches the job summary.
-        return str(int(run.get("id")))
-    raise NotProvenError("no earlier run checked this commit's code")
+            raise NotProvenError(f"run {run_id} on this commit did not pass every code check")
+        passed = passed or run_id
+    if not passed:
+        raise NotProvenError("no earlier run checked this commit's code")
+    return passed
 
 
 def merged_pull(get: Get, repo: str, commit: str, base: str) -> dict[str, Any]:
@@ -164,11 +169,26 @@ def tree_of(get: Get, repo: str, commit: str) -> str:
 
 
 def promotion_from_stage(get: Get, git: Git, repo: str) -> str:
-    """Prove this tree is stage's, which passed a full run, apart from the release files."""
+    """Prove this tree is stage's, which passed a full run, apart from the release files.
+
+    The same proof serves the pull request into `main` and the push after it merges. The
+    pull request's own run was a `promotion` run with the test matrix skipped, so it
+    cannot vouch for the push; stage's pull request ran everything, and still does.
+    """
     stage = _sha(git("rev-parse", "origin/stage").strip(), "origin/stage")
-    differ = {line for line in git("diff", "--name-only", stage, "HEAD").splitlines() if line}
+    differ = {
+        line
+        for line in git("diff", "--no-renames", "--name-only", stage, "HEAD").splitlines()
+        if line
+    }
     if differ - MAY_DIFFER:
         raise NotProvenError(f"differs from stage in {len(differ - MAY_DIFFER)} file(s)")
+    # A repointed benchmark patch is checked only by the test matrix this mode skips, so
+    # it is checked here instead: one that no longer applies makes the run full, and the
+    # matrix reports it.
+    for path in sorted(differ):
+        if path.endswith(".patch"):
+            git("apply", "--check", path)
     pull = merged_pull(get, repo, stage, "stage")
     head = _sha((pull.get("head") or {}).get("sha"), "the stage pull request's head")
     if tree_of(get, repo, head) != git("rev-parse", f"{stage}^{{tree}}").strip():
@@ -176,16 +196,6 @@ def promotion_from_stage(get: Get, git: Git, repo: str) -> str:
     run = heads_passed(get, repo, head, None, "")
     number = int(pull.get("number"))
     return f"same tree as stage {stage[:7]}, whose pull request #{number} passed run {run}"
-
-
-def promotion_from_merge(get: Get, git: Git, repo: str, sha: str) -> str:
-    """Prove the pushed commit is the tree of a pull request into main that passed."""
-    pull = merged_pull(get, repo, sha, "main")
-    head = _sha((pull.get("head") or {}).get("sha"), "the merged pull request's head")
-    if tree_of(get, repo, head) != git("rev-parse", "HEAD^{tree}").strip():
-        raise NotProvenError("the merge changed the tree its pull request was checked on")
-    run = heads_passed(get, repo, head, None, "")
-    return f"the tree pull request #{int(pull.get('number'))} passed in run {run}"
 
 
 def decide(env: dict[str, str], get: Get, git: Git) -> tuple[str, str]:
@@ -197,14 +207,19 @@ def decide(env: dict[str, str], get: Get, git: Git) -> tuple[str, str]:
             if env.get("EVENT_ACTION") == "edited":
                 head = _sha(env.get("HEAD_SHA"), "the head")
                 base = _sha(env.get("BASE_SHA"), "the base")
-                run = heads_passed(get, repo, head, base, env.get("RUN_ID", ""))
-                return "text", f"only the description changed; run {run} passed the code"
+                try:
+                    run = heads_passed(get, repo, head, base, env.get("RUN_ID", ""))
+                    return "text", f"only the description changed; run {run} passed the code"
+                except NotProvenError:
+                    # A pull request into main ran as a promotion, with the matrix
+                    # skipped, so its edit is proven the way the promotion was.
+                    if env.get("BASE_REF") != "main":
+                        raise
             if env.get("BASE_REF") == "main":
                 return "promotion", promotion_from_stage(get, git, repo)
             return "full", f"a pull request into {env.get('BASE_REF') or 'an unknown base'}"
         if event == "push" and env.get("REF") == "refs/heads/main":
-            sha = _sha(env.get("SHA"), "the pushed commit")
-            return "promotion", promotion_from_merge(get, git, repo, sha)
+            return "promotion", promotion_from_stage(get, git, repo)
     except NotProvenError as reason:
         return "full", f"not proven: {reason}"
     except Exception as error:  # noqa: BLE001 - any failure to prove is a full run, never a skip
