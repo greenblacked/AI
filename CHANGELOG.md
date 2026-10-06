@@ -224,6 +224,16 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Run the full suite before stage and only what a promotion can still break on the way
+  into `main`. A new `scope` job reads the GitHub API and git: a pull request into `main`
+  whose tree is the one stage's pull request passed in full, apart from the changelog
+  and the release benchmark patch, and the push to `main` after it, skip the test
+  matrix, the browser tests and the linters of unchanged files, and keep validate,
+  catalogue, spelling, markdown, links, attribution, naming, package, the dry-run deploy
+  and every security check. An edit to a pull request's description re-runs only
+  attribution and naming once the code has passed against the same base. Anything the
+  job cannot prove is a full run, and the aggregate accepts a skipped job only when the
+  scope named it.
 - Run the test suite on every core. `make test` and the CI `test` job run pytest through
   pytest-xdist, and the 3.13 leg measures coverage in each worker through pytest-cov, so
   the floor still covers every test. Locally the suite drops from about 100 s to about

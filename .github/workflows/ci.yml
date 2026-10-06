@@ -34,6 +34,8 @@ concurrency:
   # re-checked. Cancelling on an edit is what turned `ci` red on the head commit when a
   # description was edited seconds after opening, since the aggregate counts a cancelled
   # dependency as a failure, deliberately, and the edit's own run had not finished yet.
+  # An edit's run is cheap since the `scope` job: when the code already passed against the
+  # same base, it re-runs only the two jobs that read the title and description.
   cancel-in-progress: >-
     ${{ github.event_name == 'pull_request' && github.event.action != 'edited' }}
 
@@ -63,8 +65,51 @@ env:
   ACTIONLINT_SHA256: '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8'
 
 jobs:
+  scope:
+    # Decides how much of the rest this run needs. Everything, on a pull request into dev
+    # or stage; the cheap and deployment checks, on a promotion into main whose tree
+    # stage already passed in full; the two description checks, on an edit to a pull
+    # request whose code already passed. Anything it cannot prove is a full run. See
+    # scripts/ci_scope.py, and "What runs where" in docs/ci.md.
+    name: scope
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      # Read only: earlier CI runs and their jobs, and which pull request produced the
+      # commit stage or main is at.
+      actions: read
+      pull-requests: read
+    outputs:
+      mode: ${{ steps.scope.outputs.mode }}
+      skippable: ${{ steps.scope.outputs.skippable }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          # A promotion is compared with origin/stage, which a shallow checkout lacks.
+          fetch-depth: 0
+      - name: Decide what this run needs
+        id: scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          BASE_REF: ${{ github.base_ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          REF: ${{ github.ref }}
+          SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -Eeuo pipefail
+          python3 scripts/ci_scope.py
+
   validate-skills:
     name: validate skills
+    needs: scope
+    if: needs.scope.outputs.mode != 'text'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -86,6 +131,8 @@ jobs:
 
   validate-plugin:
     name: validate plugin manifest
+    needs: scope
+    if: needs.scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -152,6 +199,8 @@ jobs:
 
   test:
     name: test
+    needs: scope
+    if: needs.scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -223,6 +272,8 @@ jobs:
 
   catalogue:
     name: check catalogue
+    needs: scope
+    if: needs.scope.outputs.mode != 'text'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -302,6 +353,8 @@ jobs:
 
   spelling:
     name: lint spelling
+    needs: scope
+    if: needs.scope.outputs.mode != 'text'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -331,6 +384,8 @@ jobs:
 
   lint-markdown:
     name: lint markdown
+    needs: scope
+    if: needs.scope.outputs.mode != 'text'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -345,6 +400,8 @@ jobs:
 
   lint-yaml:
     name: lint yaml
+    needs: scope
+    if: needs.scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -369,6 +426,8 @@ jobs:
 
   lint-actions:
     name: lint workflows
+    needs: scope
+    if: needs.scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -397,6 +456,8 @@ jobs:
 
   links:
     name: check links
+    needs: scope
+    if: needs.scope.outputs.mode != 'text'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -420,6 +481,8 @@ jobs:
 
   site-browser:
     name: test site in a browser
+    needs: scope
+    if: needs.scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -576,7 +639,11 @@ jobs:
 
   package:
     name: package
+    # The deployment check, so it runs on a promotion too. Its own needs may be skipped
+    # there, which on its own would skip it; this runs it unless one of them failed.
+    if: ${{ !cancelled() && !failure() && needs.scope.outputs.mode != 'text' }}
     needs:
+      - scope
       - validate-skills
       - validate-plugin
       - test
@@ -633,6 +700,7 @@ jobs:
     name: ci
     if: always()
     needs:
+      - scope
       - validate-skills
       - validate-plugin
       - test
@@ -657,9 +725,12 @@ jobs:
       - name: Verify every required CI job passed
         env:
           NEEDS_JSON: ${{ toJSON(needs) }}
+          # The jobs `scope` decided this run may skip; a skipped job passes only if it
+          # is named here, and a failed or cancelled one never does.
+          SKIPPABLE: ${{ needs.scope.outputs.skippable }}
         run: |
           set -Eeuo pipefail
           python3 scripts/check_job_results.py \
-            validate-skills validate-plugin test catalogue spelling \
+            scope validate-skills validate-plugin test catalogue spelling \
             lint-markdown lint-yaml lint-actions links site-browser attribution naming \
             package
