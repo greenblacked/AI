@@ -177,12 +177,17 @@ Apple's Liquid Glass guidance is the model for the intent. It is "a dynamic mate
 
 ## The contrast table
 
-Fill every cell before shipping. Rows are pairs, columns are themes and states. Thresholds: 4.5:1 for text, 3:1 for large text, 3:1 for user interface components and graphical objects.
+Fill every cell before shipping. One row per pair and state, one column per theme, so a hover colour that passes in light and fails in dark has a cell of its own to fail in. Add a column for every further theme and a row for every further state your components define. Thresholds: 4.5:1 for text, 3:1 for large text, 3:1 for user interface components and graphical objects.
 
-| Pair | Needs | Light | Dark | Hover | Pressed | Focus | Disabled-looking |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `ink` on `surface` | 4.5:1 | | | | | | |
-| `on-accent` on `accent` | 4.5:1 | | | | | | |
-| `line` on `surface` | 3:1 | | | | | | |
-| focus indicator on `surface` | 3:1 | | | | | | |
-| `ink` on glass over the worst backdrop | 4.5:1 | | | | | | |
+| Pair | State | Needs | Light | Dark |
+| --- | --- | --- | --- | --- |
+| `ink` on `surface` | rest | 4.5:1 | | |
+| `on-accent` on `accent` | rest | 4.5:1 | | |
+| `on-accent` on `accent` | hover | 4.5:1 | | |
+| `on-accent` on `accent` | pressed | 4.5:1 | | |
+| `line` on `surface` | rest | 3:1 | | |
+| focus indicator on `surface` | focus | 3:1 | | |
+| focus indicator on `accent` | focus | 3:1 | | |
+| `ink` on glass over the worst backdrop | rest | 4.5:1 | | |
+
+A disabled control is exempt from both minimums in WCAG 2.2 (1.4.3 and 1.4.11 exclude inactive components), so it has no row; check instead that it still reads as disabled in every theme.
