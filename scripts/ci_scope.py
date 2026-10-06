@@ -14,9 +14,9 @@ The `scope` job runs this first and every other job in `ci.yml` reads its `mode`
   for `workflow_dispatch` and `merge_group`, and for anything below that cannot be proven.
 - ``promotion`` is a pull request into `main`, or the push to `main` after one merges,
   whose tree is stage's, which passed a full run, apart from the changelog and the
-  benchmark patch that has to be repointed at it by hand for a release. The cheap checks and the deployment checks still
-  run; the test matrix, the browser tests and the linters of files that did not change do
-  not.
+  benchmark patch that has to be repointed at it by hand for a release. The cheap checks
+  and the deployment checks still run; the test matrix, the browser tests and the linters
+  of files that did not change do not.
 - ``text`` is an `edited` event on a pull request whose commit, against the same base, has
   already passed every check that reads the code. Only the two checks that read the title
   and description run again.
