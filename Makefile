@@ -38,15 +38,15 @@ catalogue: ## Check listing ceilings, README and CI drift, workflows, Makefile, 
 providers: ## Regenerate the README's AI tools table from providers.json
 	@$(PYTHON) scripts/providers_table.py --write .
 
-test: ## Run the validator's own test suite
-	PYTHONPATH=src pytest
+test: ## Run the validator's own test suite, one worker per core
+	PYTHONPATH=src $(PYTHON) -m pytest -n auto -m "not browser"
 
 test-browser: ## Drive the built site in Chromium (playwright; BROWSER_EXECUTABLE=...)
 	PYTHONPATH=src BROWSER_EXECUTABLE="$(BROWSER_EXECUTABLE)" BROWSER_CHANNEL="$(BROWSER_CHANNEL)" \
 		$(PYTHON) -m pytest -m browser tests/test_site_browser.py
 
 coverage: ## Run the tests under coverage and fail below the floor in pyproject.toml
-	PYTHONPATH=src $(PYTHON) -m coverage run -m pytest
+	PYTHONPATH=src $(PYTHON) -m pytest -n auto -m "not browser" --cov --cov-report= --cov-fail-under=0
 	$(PYTHON) -m coverage report
 
 lint: ## Lint python, markdown, YAML and workflows (skips a tool when it is not installed)

@@ -86,6 +86,8 @@ SOURCES = {
     "YAMLLINT_VERSION": ("pypi", "yamllint"),
     "PYTEST_VERSION": ("pypi", "pytest"),
     "COVERAGE_VERSION": ("pypi", "coverage"),
+    "PYTEST_XDIST_VERSION": ("pypi", "pytest-xdist"),
+    "PYTEST_COV_VERSION": ("pypi", "pytest-cov"),
     "PLAYWRIGHT_VERSION": ("pypi", "playwright"),
     "GITLEAKS_VERSION": ("github", "gitleaks/gitleaks"),
     "ACTIONLINT_VERSION": ("github", "rhysd/actionlint"),
