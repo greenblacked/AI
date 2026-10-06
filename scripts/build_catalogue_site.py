@@ -226,23 +226,36 @@ TOP_ICON = (
 
 
 def _dock(parent: str | None) -> str:
-    """The bar Back and To top move into once the page scrolls past its own Back.
+    """The bar Back moves into once the page scrolls past its own Back.
 
-    Back is the same button as the one at the top of the page, on the left; To top
-    matches it on the right. The bar spans the header's width, so on a wide screen the
-    two sit under the header's outer edges rather than crowding the text column. It is
-    a navigation landmark placed straight after the header, so the keyboard reaches it
-    before the page body. Hidden until the script finds the page scrolled past that
-    Back; without the script it stays hidden, and the Back at the top still works.
+    The same button as the one at the top of the page, on the left of a bar that spans
+    the header's width, so on a wide screen it sits under the header's outer edge
+    rather than crowding the text column. A navigation landmark straight after the
+    header, so the keyboard reaches it before the page body. Hidden until the script
+    finds the page scrolled past that Back; without the script it stays hidden, and the
+    Back at the top still works. The front page has no Back, so it has no bar.
     """
-    back = f"{_back(parent)}\n" if parent is not None else ""
+    if parent is None:
+        return ""
     return (
         '<nav class="dock" id="dock" aria-label="Page">\n'
         '<div class="dock-in">\n'
-        f"{back}"
-        '<button type="button" class="back" id="to-top">'
-        f"{TOP_ICON}<span>To top</span></button>\n"
+        f"{_back(parent)}\n"
         "</div>\n</nav>\n"
+    )
+
+
+def _to_top() -> str:
+    """To top, floating at the bottom right once the page has scrolled.
+
+    The same glass button as Back, round with only the arrow on a narrow screen and
+    labelled where the margin beside the text column can hold it. Its accessible name
+    is the label either way. Last in the document, after the footer, so the keyboard
+    reaches it once the page has been read rather than before it.
+    """
+    return (
+        '<button type="button" class="back fab" id="to-top" aria-label="To top">'
+        f"{TOP_ICON}<span>To top</span></button>\n"
     )
 
 
@@ -296,6 +309,7 @@ def _page(
         "</div>\n"
         f"{_nav('Footer', PAGES + ELSEWHERE, current)}\n"
         "</div>\n</footer>\n"
+        f"{_to_top()}"
         f"<script>\n{site_style.PAGE_SCRIPT}</script>\n"
         "</body>\n"
         "</html>\n"

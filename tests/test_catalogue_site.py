@@ -229,7 +229,7 @@ def test_the_back_link_is_a_glass_button_above_the_skill_crumbs(mini_repo, tmp_p
 
 
 TO_TOP = (
-    '<button type="button" class="back" id="to-top">'
+    '<button type="button" class="back fab" id="to-top" aria-label="To top">'
     + site.TOP_ICON
     + "<span>To top</span></button>"
 )
@@ -248,15 +248,20 @@ TO_TOP = (
 )
 def test_every_page_has_the_bar_with_back_only_below_the_index(mini_repo, tmp_path, path, parent):
     page = (_build(mini_repo, tmp_path) / path).read_text(encoding="utf-8")
-    assert page.count('id="dock"') == 1
-    # A labelled landmark straight after the header, so the keyboard reaches it before
-    # the page body.
-    opening = '</header>\n<nav class="dock" id="dock" aria-label="Page">\n'
-    assert opening in page
-    dock = page.split(opening, 1)[1].split("\n</div>\n</nav>", 1)[0]
-    # The same Back as the top of the page on the left, To top on the right.
-    back = "" if parent is None else BACK.format(parent) + "\n"
-    assert dock == '<div class="dock-in">\n' + back + TO_TOP
+    if parent is None:
+        # The front page has no Back, so it has no bar either.
+        assert 'id="dock"' not in page
+    else:
+        assert page.count('id="dock"') == 1
+        # A labelled landmark straight after the header, so the keyboard reaches it
+        # before the page body, holding the same Back as the top of the page.
+        opening = '</header>\n<nav class="dock" id="dock" aria-label="Page">\n'
+        assert opening in page
+        dock = page.split(opening, 1)[1].split("\n</div>\n</nav>", 1)[0]
+        assert dock == '<div class="dock-in">\n' + BACK.format(parent)
+    # To top is on every page, outside the bar, last after the footer.
+    assert page.count('id="to-top"') == 1
+    assert "</footer>\n" + TO_TOP + "\n<script>" in page
 
 
 def test_the_bar_stays_hidden_until_the_page_scrolls_past_back():
@@ -269,8 +274,8 @@ def test_the_bar_stays_hidden_until_the_page_scrolls_past_back():
     assert ".dock.on { visibility: visible; opacity: 1;" in css
     # Below the header while it shows, at the top once it has slid away.
     assert ".site-header:not(.away) ~ .dock { top: calc(4rem + 1px); }" in css
-    # As wide as the header's bar, so on a wide screen Back and To top sit under its
-    # outer edges instead of crowding the text column.
+    # As wide as the header's bar, so on a wide screen Back sits under its
+    # left edge instead of crowding the text column.
     inner = css.split("\n.dock-in {\n", 1)[1].split("\n}", 1)[0]
     header = css.split("\n.bar {\n", 1)[1].split("\n}", 1)[0]
     assert "max-width: 72rem;" in inner and "max-width: 72rem;" in header
@@ -301,7 +306,11 @@ def test_the_bar_stays_hidden_until_the_page_scrolls_past_back():
     assert "scroll-margin" not in css.split("\n.finder {\n", 1)[1].split("\n}", 1)[0]
     script = site.site_style.PAGE_SCRIPT
     assert 'var inline = document.querySelector("main .back");' in script
-    assert 'dock.classList.toggle("on", window.scrollY > limit);' in script
+    reveal = script.split("function reveal() {", 1)[1].split("\n  }", 1)[0]
+    assert "var past = window.scrollY > limit;" in reveal
+    # The front page has no bar, so the script must not assume one.
+    assert 'if (dock) dock.classList.toggle("on", past);' in reveal
+    assert 'upward.classList.toggle("on", past);' in reveal
     assert 'window.addEventListener("resize", function () { limit = edge(); reveal(); });' in script
     to_top = script.split('upward.addEventListener("click", function () {', 1)[1].split(
         "\n  });", 1
@@ -310,6 +319,29 @@ def test_the_bar_stays_hidden_until_the_page_scrolls_past_back():
     assert "(prefers-reduced-motion: reduce)" in script
     # The header is inert while hidden, so it is shown before focus moves into it.
     assert to_top.index("away(false);") < to_top.index("home.focus({ preventScroll: true });")
+
+
+def test_to_top_floats_at_the_bottom_right_once_the_page_scrolls():
+    css = site.site_style.CSS
+    fab = css.split("\n.fab {\n", 1)[1].split("\n}", 1)[0]
+    assert "position: fixed;" in fab
+    assert "right: max(1rem, env(safe-area-inset-right));" in fab
+    assert "bottom: max(1rem, env(safe-area-inset-bottom));" in fab
+    # Hidden by visibility, not only opacity, so it is out of the tab order until shown.
+    assert "visibility: hidden;" in fab and "pointer-events: none;" in fab
+    assert ".fab.on { visibility: visible; opacity: 1;" in css
+    # A 48px round target with only the arrow on a narrow screen, above the 44px floor.
+    assert "width: 3rem;" in fab and "min-height: 3rem;" in fab
+    assert ".fab span { display: none; }" in css
+    # Labelled only where the margin beside the 72rem column can hold it.
+    wide = css.split("@media (min-width: 90rem) {\n", 1)[1].split("\n}", 1)[0]
+    assert ".fab { width: auto;" in wide and ".fab span { display: inline; }" in wide
+    # A press scales the shown button, which its own transform would otherwise undo.
+    assert ".fab.on:active { transform: scale(0.97); }" in css
+    # The footer leaves room below its last line to scroll clear of the button.
+    footer = css.split("\n.site-footer {\n", 1)[1].split("\n}", 1)[0]
+    assert "padding-bottom: 4rem;" in footer
+    assert "#to-top { margin-left: auto; }" not in css
 
 
 def test_the_index_has_no_back_link(mini_repo, tmp_path):
