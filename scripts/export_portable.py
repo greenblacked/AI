@@ -177,7 +177,7 @@ USE_WHEN_RE = re.compile(
 
 # A router line has room for one sentence, not the full description a plugin's own
 # listing carries. This is a sane cap rather than a measured one: at 100 characters the
-# combined router for this repository's own eight plugins already sits well into
+# combined router for this repository's own nine plugins already sits well into
 # ROUTER_BUDGET_BYTES below, and the budget is meant to bite as the catalogue grows
 # rather than to sit unused. If growth reaches the budget, first remove duplicated
 # router markup or reconsider its structure while preserving descriptions and triggers.

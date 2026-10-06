@@ -1,0 +1,22 @@
+[
+  {"query": "how do i test this prototype with real users, we have a week and no budget", "should_trigger": true},
+  {"query": "how many users do i need for a usability test", "should_trigger": true},
+  {"query": "write me five tasks for a usability test of our booking flow", "should_trigger": true},
+  {"query": "we want to watch five people try the new onboarding, what do i say to them", "should_trigger": true},
+  {"query": "how do i score the SUS questionnaire, i have ten responses to average", "should_trigger": true},
+  {"query": "i have notes from six user sessions and no idea how to turn them into fixes", "should_trigger": true},
+  {"query": "our two user groups, admins and staff, behave very differently, how many of each do we test", "should_trigger": true},
+  {"query": "what does think-aloud mean and how do i keep from leading the participant", "should_trigger": true},
+  {"query": "do we need 40 participants or is five enough, we are comparing two designs on task time", "should_trigger": true},
+  {"query": "plan a round of guerrilla testing for the mobile app, with a pilot first", "should_trigger": true},
+  {"query": "just look at this screen and tell me what's wrong, no users involved", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "check our site against WCAG 2.2 AA with a screen reader and axe", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "set up design tokens and themes for the app", "should_trigger": false, "expected": "design-system"},
+  {"query": "redesign our website, we have the research already", "should_trigger": false, "expected": "website-builder"},
+  {"query": "design a structured interview loop for hiring a senior backend engineer", "should_trigger": false, "expected": "hiring-loop"},
+  {"query": "i have an interview on friday for a product designer role, help me prepare", "should_trigger": false, "expected": "job-search"},
+  {"query": "run a playtest of my game with friends and tune the difficulty", "should_trigger": false, "expected": "game-balance"},
+  {"query": "write the survey questions for our customer satisfaction poll", "should_trigger": false},
+  {"query": "write the end to end test for the signup flow in playwright", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "what is the average conversion rate for a saas landing page", "should_trigger": false}
+]

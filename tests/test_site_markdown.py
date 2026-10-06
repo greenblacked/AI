@@ -39,6 +39,9 @@ def test_duplicate_slugs_are_numbered_and_reserved_ids_are_never_taken():
     assert 'id="same"' in out and 'id="same-1"' in out and 'id="same-2"' in out
     assert 'id="home"' not in out and 'id="home-1"' in out
     assert 'id="find"' not in out
+    # The floating buttons' ids are taken by the page template too.
+    docked = md.render("## Dock\n\n## To top")
+    assert 'id="dock"' not in docked and 'id="to-top"' not in docked
     # One Slugs shared across calls keeps ids unique across a whole page.
     slugs = md.Slugs()
     first = md.render("## Part", slugs=slugs)

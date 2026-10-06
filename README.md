@@ -2,12 +2,12 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
-  <img alt="The eight plugins: coding, operations, delivery, security, gamedev, manager, personal and career" src="docs/assets/banner-light.svg" width="100%">
+  <img alt="The nine plugins: coding, operations, delivery, security, gamedev, manager, personal, career and design" src="docs/assets/banner-light.svg" width="100%">
 </picture>
 
 # Agent skills
 
-105 agent skills, 21 read-only subagents and eight slash commands, in eight
+109 agent skills, 21 read-only subagents and eight slash commands, in nine
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-105-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-109-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -23,7 +23,8 @@ plugins you install separately.
 </div>
 
 A library of practical Markdown procedures for changing code, operating systems,
-shipping safely, making games, leading teams, and handling career and personal work.
+shipping safely, reviewing design and usability, making games, leading teams, and
+handling career and personal work.
 An agent loads a skill when its description matches your task; the skill supplies the
 ordering, checks and evidence to collect. This is a procedure library, not an application.
 
@@ -57,14 +58,15 @@ and what the runtime does or does not enforce.
 | [`manager`](#manager) | Engineering leadership | 16 skills, 2 subagents, 2 commands |
 | [`personal`](#personal) | Money, travel, admin, habits and health | 7 skills, 2 subagents |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 5 skills |
+| [`design`](#design) | Usability, accessibility and design systems | 4 skills |
 
-Install one plugin or all eight. Each is a self-contained directory under `plugins/` with
+Install one plugin or all nine. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
 
 Install what you will use, though, rather than everything by reflex. Every description you
 install stays resident in context, and Claude Code's default listing budget is about 8,000
 characters against this library's total — `make validate` prints the current figure — so
-installing all eight at the default drops most of them, silently. The Install section
+installing all nine at the default drops most of them, silently. The Install section
 below says what to set instead.
 
 ## Website
@@ -75,7 +77,7 @@ if a deploy fails its check and rolls back, the previous one keeps serving.
 
 | Page | What it shows |
 | --- | --- |
-| [Home](https://ai.szolotov.com) | The eight plugins with their skill counts, and a search across plugins and skill names |
+| [Home](https://ai.szolotov.com) | The nine plugins with their skill counts, and a search across plugins and skill names |
 | `/plugins/<plugin>/` | One page per plugin: what it covers, its install line and its skills |
 | `/plugins/<plugin>/<skill>/` | One page per skill: its description, install line and allowed tools when it declares them, the full procedure, its reference files, and the requests it fires on and hands elsewhere |
 | [Start](https://ai.szolotov.com/start/) | Installing in Claude Code and in other tools, followed by [Using the skills](docs/using.md) |
@@ -125,7 +127,7 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`career` and `personal` fit the default budget on their own. The other six are over it —
+`career`, `design` and `personal` fit the default budget on their own. The other six are over it —
 each by enough that installed alone at least one of its descriptions is dropped — and the
 split exists to keep that number as small as it can be.
 
@@ -136,7 +138,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.101 }
+{ "skillListingBudgetFraction": 0.105 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -442,6 +444,17 @@ Applications, negotiation, speaking and writing.
 | [`learning-notes`](plugins/career/skills/learning-notes/SKILL.md) | Turn something read into a note that is still useful in a year, on the principle that a summary is not a note. |
 | [`offer-negotiation`](plugins/career/skills/offer-negotiation/SKILL.md) | Evaluate and negotiate an offer: total compensation decomposed, levelling as the negotiation that compounds, and nothing real until it is in writing. |
 | [`write-technical-article`](plugins/career/skills/write-technical-article/SKILL.md) | Turn real engineering experience and verifiable sources into a publishable technical article with a defensible thesis and no invented authority. |
+
+### Design
+
+Usability, accessibility and design systems.
+
+| Skill | What it does |
+| --- | --- |
+| [`accessibility-audit`](plugins/design/skills/accessibility-audit/SKILL.md) | Audit a page, flow or component against WCAG 2.2 Level AA: the automated tools first because they are cheap, then the manual pass they cannot do, with every finding tied to a success criterion, a severity and a fix. |
+| [`design-system`](plugins/design/skills/design-system/SKILL.md) | Set up design tokens named by role, themes that redefine the same roles, and component states derived from them, with a contrast check of every role pair in every theme and a rule for where glass materials belong. |
+| [`ui-ux-review`](plugins/design/skills/ui-ux-review/SKILL.md) | Review one screen or flow against usability heuristics: evidence first, the primary task before polish, every interaction state walked, and each finding written as a problem, a consequence, the smallest fix and a severity from 0 to 4. |
+| [`usability-test-plan`](plugins/design/skills/usability-test-plan/SKILL.md) | Plan and run a small test with real people: a question tied to a decision, about five participants a round, neutral tasks, think-aloud, task success and SUS, and severity-rated fixes before the next round. |
 
 ## Subagents
 
