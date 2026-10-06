@@ -218,8 +218,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   longer matches its action is now a warning annotation on the run, with the table still
   in the job summary; the run fails only for a pin with no upstream registered. Claude
   Code and Codex publish nearly every week, so the old rule left the run red nearly every
-  week. Bump `CLAUDE_CODE_VERSION` from 2.1.287 to 2.1.291 and `CODEX_VERSION` from
-  0.160.0 to 0.160.1.
+  week. A registry answer that is not shaped like a version is refused rather than
+  printed, since the step log reads a line starting with `::` as a command. Bump
+  `CLAUDE_CODE_VERSION` from 2.1.287 to 2.1.291 and `CODEX_VERSION` from 0.160.0 to
+  0.160.1.
 - Verify Terraform backend/provider identity and the live Kubernetes target before
   state operations or incident mutations. Bind review evidence to remote revision
   identities or a recorded local tree, and recheck freshness before the verdict.

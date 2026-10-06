@@ -70,6 +70,9 @@ PIN_RE = re.compile(
     r"""^\s*([A-Z][A-Z0-9_]*_VERSION):\s*"""
     r"""(?:'([^']*)'|"([^"]*)"|([^\s#'">|&*!{\[][^\s#]*))\s*(?:#.*)?$"""
 )
+# What a registry's answer must look like before it is printed: 1.2.3, 2.0.0rc1,
+# 0.16.10+local. Bounded so a long answer cannot fill the table either.
+VERSION_RE = re.compile(r"[0-9A-Za-z][0-9A-Za-z.+-]{0,63}")
 MARKDOWNLINT_PIN_RE = re.compile(r"^MARKDOWNLINT_PIN\s*:?=\s*(\S+)", re.M)
 # `- uses: DavidAnson/markdownlint-cli2-action@<sha>  # v24.2.0`
 MARKDOWNLINT_ACTION_RE = re.compile(r"markdownlint-cli2-action@[0-9a-f]{40}\s+#\s*(v\S+)")
@@ -131,15 +134,24 @@ def fetch(url: str) -> str:
 
 
 def latest(registry: str, package: str, get) -> str:
-    """The newest published version of one package, however its registry spells that."""
+    """The newest published version of one package, however its registry spells that.
+
+    The answer is someone else's string and goes into the step log, where the runner
+    reads any line starting with `::` as a command, so anything that is not shaped like
+    a version is refused here and becomes a failed lookup, which is reported with repr.
+    """
     if registry == "pypi":
-        return json.loads(get(f"https://pypi.org/pypi/{package}/json"))["info"]["version"]
-    if registry == "npm":
-        return json.loads(get(f"https://registry.npmjs.org/{package}/latest"))["version"]
-    if registry == "github":
+        version = json.loads(get(f"https://pypi.org/pypi/{package}/json"))["info"]["version"]
+    elif registry == "npm":
+        version = json.loads(get(f"https://registry.npmjs.org/{package}/latest"))["version"]
+    elif registry == "github":
         tag = json.loads(get(f"https://api.github.com/repos/{package}/releases/latest"))["tag_name"]
-        return tag.lstrip("v")
-    raise ValueError(f"no such registry: {registry}")
+        version = tag.lstrip("v") if isinstance(tag, str) else tag
+    else:
+        raise ValueError(f"no such registry: {registry}")
+    if not isinstance(version, str) or not VERSION_RE.fullmatch(version):
+        raise ValueError(f"not a version: {version!r}")
+    return version
 
 
 def pinned(root: Path) -> dict[str, list[str]]:
@@ -175,6 +187,9 @@ def markdownlint(root: Path, get) -> tuple[str, str] | None:
         f"{tag.group(1)}/package.json"
     )
     shipped = json.loads(get(url)).get("dependencies", {}).get("markdownlint-cli2", "")
+    # Printed into the step log like a registry's answer, so held to the same shape.
+    if not isinstance(shipped, str) or (shipped and not VERSION_RE.fullmatch(shipped)):
+        raise ValueError(f"not a version: {shipped!r}")
     return pin.group(1), shipped
 
 

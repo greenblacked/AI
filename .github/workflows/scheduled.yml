@@ -48,7 +48,7 @@ jobs:
           python-version: '3.13'
       - name: Compare every pinned tool version against upstream
         # Dependabot updates `uses:` references and reusable workflows and never looks
-        # inside an `env:` block, so nothing moves the eleven version pins or the
+        # inside an `env:` block, so nothing moves the version pins or the
         # markdownlint version the Makefile records. Without this they sit where they
         # are until somebody happens to wonder.
         #

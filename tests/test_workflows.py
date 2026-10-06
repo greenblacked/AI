@@ -520,7 +520,8 @@ def test_a_registry_that_cannot_be_reached_is_reported_not_raised(tmp_path, caps
 
 def test_a_registry_error_cannot_break_out_of_its_annotation(tmp_path, capsys):
     # The error text comes from someone else's server. A percent sign in it is escaped
-    # so it cannot forge an escape, and it stays on one annotation line.
+    # so it cannot forge an escape. It stays on one line because the error is reported
+    # with repr; the raw line-break path is the next test's.
     failure = OSError("50% down\n::error::forged")
     get = answers(**{"https://pypi.org/pypi/ruff/json": failure})
     write_pinned(tmp_path)
@@ -529,6 +530,39 @@ def test_a_registry_error_cannot_break_out_of_its_annotation(tmp_path, capsys):
     assert len(lines) == 1
     assert lines[0].startswith("::warning title=Pin not checked::")
     assert "50%25 down" in lines[0]
+
+
+@pytest.mark.parametrize(
+    "answer",
+    [
+        '{"info": {"version": "1.0\\n::add-mask::secret"}}',
+        '{"info": {"version": "::stop-commands::x"}}',
+        '{"info": {"version": 17}}',
+        '{"info": {"version": "' + "9" * 80 + '"}}',
+    ],
+)
+def test_a_registry_answer_not_shaped_like_a_version_is_never_printed(tmp_path, capsys, answer):
+    # The answer goes into the step log, where the runner reads a line starting with
+    # `::` as a command. Anything not shaped like a version is a failed lookup, and a
+    # failed lookup is printed with repr, so it can never start a line of its own.
+    write_pinned(tmp_path)
+    assert freshness.check(tmp_path, answers(**{"https://pypi.org/pypi/ruff/json": answer})) == 0
+    captured = capsys.readouterr()
+    assert "| `RUFF_VERSION` | 0.16.1 | ? | could not ask pypi: ValueError(" in captured.out
+    for line in (captured.out + captured.err).splitlines():
+        assert not line.startswith(("::add-mask", "::stop-commands"))
+
+
+def test_a_markdownlint_answer_not_shaped_like_a_version_is_refused(tmp_path, capsys):
+    url = (
+        "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2-action/v24.2.0/package.json"
+    )
+    body = '{"dependencies": {"markdownlint-cli2": "0.23.2\\n::add-mask::x"}}'
+    write_pinned(tmp_path)
+    assert freshness.check(tmp_path, answers(**{url: body})) == 0
+    captured = capsys.readouterr()
+    assert "could not ask the action: ValueError(" in captured.out
+    assert not any(line.startswith("::add-mask") for line in captured.out.splitlines())
 
 
 def test_an_annotation_escapes_line_breaks_and_percent(capsys):
