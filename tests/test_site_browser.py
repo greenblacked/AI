@@ -86,7 +86,7 @@ def browser():
         launched.close()
 
 
-def new_context(browser, width: int = 1280):
+def new_context(browser, base_url: str, width: int = 1280):
     """A fresh profile: no history, no storage, nothing fetched from outside.
 
     Reduced motion turns the page's own transitions and smooth scrolling off, so what a
@@ -95,13 +95,15 @@ def new_context(browser, width: int = 1280):
     or changes with it; the fallback font is what is measured.
     """
     made = browser.new_context(viewport={"width": width, "height": 800}, reduced_motion="reduce")
-    made.route(re.compile(r"^(?!http://127\.0\.0\.1[:/])"), lambda route: route.abort())
+    # Anchored on the server's own origin and a slash, so neither another local port
+    # nor a userinfo trick such as http://127.0.0.1:1@elsewhere/ gets through.
+    made.route(re.compile("^(?!" + re.escape(base_url) + "/)"), lambda route: route.abort())
     return made
 
 
 @pytest.fixture
-def context(browser):
-    made = new_context(browser)
+def context(browser, base_url):
+    made = new_context(browser, base_url)
     yield made
     made.close()
 
@@ -197,6 +199,20 @@ def test_back_never_leaves_for_the_site_you_arrived_from(page, base_url):
     page.wait_for_url(base_url + PLUGIN_PATH)
 
 
+def test_back_in_a_tab_opened_from_this_site_goes_to_the_page_above(context, page, base_url):
+    # A skill opened in a new tab has a referrer on this site but no history to go back
+    # through; Back has to follow its link rather than call history.back() on nothing.
+    page.goto(base_url + PLUGIN_PATH)
+    with context.expect_page() as opened:
+        page.click(f'main a[href="{SKILL_PATH}"]', modifiers=["ControlOrMeta"])
+    tab = opened.value
+    tab.wait_for_load_state()
+    assert tab.url == base_url + SKILL_PATH
+    assert tab.evaluate("() => history.length") == 1
+    tab.click("main .back")
+    tab.wait_for_url(base_url + PLUGIN_PATH)
+
+
 def test_a_modified_click_on_back_opens_the_page_above_in_a_new_tab(context, page, base_url):
     page.goto(base_url + PLUGIN_PATH)
     page.click(f'main a[href="{SKILL_PATH}"]')
@@ -220,6 +236,26 @@ def test_the_bar_takes_over_back_once_the_page_scrolls_past_it(page, base_url):
     assert page.get_attribute("#dock .back", "href") == PLUGIN_PATH
     scroll_to(page, 0)
     assert not shown(page, "#dock")
+
+
+def test_the_bar_follows_back_when_the_window_changes_width(page, base_url):
+    # The inline Back sits higher on a phone than on a wider screen, so the point past
+    # which the bar takes over moves with the width. Between the two, a narrower window
+    # has to bring the bar out without waiting for the next scroll.
+    page.goto(base_url + SKILL_PATH)
+    wide = past_inline_back(page) - 40
+    page.set_viewport_size({"width": 360, "height": 800})
+    settle(page)
+    narrow = past_inline_back(page) - 40
+    assert narrow < wide, "Back no longer moves with the width; pick another breakpoint"
+    page.set_viewport_size({"width": 1280, "height": 800})
+    scroll_to(page, (narrow + wide) // 2)
+    assert not shown(page, "#dock")
+    page.set_viewport_size({"width": 360, "height": 800})
+    page.wait_for_function(
+        "() => getComputedStyle(document.getElementById('dock')).visibility === 'visible'",
+        timeout=2000,
+    )
 
 
 def test_the_front_page_has_no_bar(page, base_url):
@@ -367,7 +403,7 @@ def test_the_finder_says_so_when_nothing_matches_and_restores_everything(page, b
 
 @pytest.mark.parametrize("width", [360, 1440])
 def test_nothing_scrolls_sideways_and_every_control_is_big_enough(browser, base_url, width):
-    context = new_context(browser, width)
+    context = new_context(browser, base_url, width)
     try:
         page = context.new_page()
         page.goto(base_url + SKILL_PATH)
@@ -408,20 +444,20 @@ def test_no_page_scrolls_sideways_on_a_phone(browser, built, base_url):
     # Every page, because the one that overflows is the one with the long path in its
     # prose: seven skill pages did, through a single unbreakable identifier each.
     paths = sorted(
-        "/" + str(index.parent.relative_to(built)).replace("\\", "/").strip(".") + "/"
+        "/" + "".join(f"{part}/" for part in index.parent.relative_to(built).parts)
         for index in built.rglob("index.html")
     )
-    context = new_context(browser, 360)
+    context = new_context(browser, base_url, 360)
     try:
         page = context.new_page()
         wide = {}
         for path in paths:
-            path = path.replace("//", "/")
             page.goto(base_url + path, wait_until="domcontentloaded")
             width = page.evaluate("() => document.documentElement.scrollWidth")
             if width > 360:
                 wide[path] = width
         assert not wide, wide
-        assert len(paths) > 100
+        # The walk found the real pages, not an empty or partial build.
+        assert {"/", PLUGIN_PATH, SKILL_PATH} <= set(paths)
     finally:
         context.close()
