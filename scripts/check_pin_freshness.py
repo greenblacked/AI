@@ -15,9 +15,14 @@ registry the tool actually publishes to what the latest release is, and prints a
 It is not a gate and must not become one. It needs the network and three third-party
 registries to be up, and `scheduled.yml` exists precisely for checks with that shape: a
 gate that fails because someone else's server was briefly down is a gate people learn to
-override, and once they learn that, the gates that matter stop working too. Nothing
-requires the workflow this runs in, so a non-zero exit is a red mark on a weekly run
-rather than a blocked merge.
+override, and once they learn that, the gates that matter stop working too.
+
+For the same reason a pin behind upstream is a warning, not a failure. Claude Code and
+Codex publish nearly every week, so a weekly run that went red for each release was red
+nearly every week, and a run that is always red is one nobody reads. Each pin that needs
+a look becomes a `::warning` annotation on the run, written to stderr so the job summary
+keeps only the table, and the run stays green. The exit is non-zero only for a defect in
+this repository: a `*_VERSION` pin with no upstream registered below.
 
 What it does not do is bump anything. Reading a version is cheap and safe; deciding to
 adopt it is the judgement the pinning exists to preserve — a digest has to move with its
@@ -52,6 +57,7 @@ import argparse
 import json
 import os
 import re
+import sys
 import urllib.request
 from pathlib import Path
 
@@ -64,6 +70,9 @@ PIN_RE = re.compile(
     r"""^\s*([A-Z][A-Z0-9_]*_VERSION):\s*"""
     r"""(?:'([^']*)'|"([^"]*)"|([^\s#'">|&*!{\[][^\s#]*))\s*(?:#.*)?$"""
 )
+# What a registry's answer must look like before it is printed: 1.2.3, 2.0.0rc1,
+# 0.16.10+local. Bounded so a long answer cannot fill the table either.
+VERSION_RE = re.compile(r"[0-9A-Za-z][0-9A-Za-z.+-]{0,63}")
 MARKDOWNLINT_PIN_RE = re.compile(r"^MARKDOWNLINT_PIN\s*:?=\s*(\S+)", re.M)
 # `- uses: DavidAnson/markdownlint-cli2-action@<sha>  # v24.2.0`
 MARKDOWNLINT_ACTION_RE = re.compile(r"markdownlint-cli2-action@[0-9a-f]{40}\s+#\s*(v\S+)")
@@ -125,15 +134,25 @@ def fetch(url: str) -> str:
 
 
 def latest(registry: str, package: str, get) -> str:
-    """The newest published version of one package, however its registry spells that."""
+    """The newest published version of one package, however its registry spells that.
+
+    The answer is someone else's string and goes into the step log, where the runner
+    reads any line starting with `::` as a command, so anything that is not shaped like
+    a version is refused here and becomes a failed lookup, which is reported with repr.
+    """
     if registry == "pypi":
-        return json.loads(get(f"https://pypi.org/pypi/{package}/json"))["info"]["version"]
-    if registry == "npm":
-        return json.loads(get(f"https://registry.npmjs.org/{package}/latest"))["version"]
-    if registry == "github":
+        version = json.loads(get(f"https://pypi.org/pypi/{package}/json"))["info"]["version"]
+    elif registry == "npm":
+        version = json.loads(get(f"https://registry.npmjs.org/{package}/latest"))["version"]
+    elif registry == "github":
         tag = json.loads(get(f"https://api.github.com/repos/{package}/releases/latest"))["tag_name"]
-        return tag.lstrip("v")
-    raise ValueError(f"no such registry: {registry}")
+        version = tag.lstrip("v") if isinstance(tag, str) else tag
+    else:
+        raise ValueError(f"no such registry: {registry}")
+    if not isinstance(version, str) or not VERSION_RE.fullmatch(version):
+        # The rejected text is not repeated: it is exactly what must not reach the log.
+        raise ValueError("not a version")
+    return version
 
 
 def pinned(root: Path) -> dict[str, list[str]]:
@@ -169,7 +188,34 @@ def markdownlint(root: Path, get) -> tuple[str, str] | None:
         f"{tag.group(1)}/package.json"
     )
     shipped = json.loads(get(url)).get("dependencies", {}).get("markdownlint-cli2", "")
+    # Printed into the step log like a registry's answer, so held to the same shape.
+    if not isinstance(shipped, str) or (shipped and not VERSION_RE.fullmatch(shipped)):
+        raise ValueError("not a version")
     return pin.group(1), shipped
+
+
+def inert(text: str) -> str:
+    """Text from outside this repository, made safe to print into the step log.
+
+    Besides `::` at the start of a line, the runner still honours the legacy `##[name]`
+    form anywhere in a line (`ActionCommand.TryParse` in actions/runner searches for it
+    with `IndexOf`). An exception's repr can carry a server's own words, such as an HTTP
+    reason phrase, so every cell and every annotation goes through here and the marker
+    is broken with a space.
+    """
+    return text.replace("##[", "## [")
+
+
+def annotate(title: str, message: str) -> None:
+    """Raise one GitHub warning annotation, on stderr so the job summary stays a table.
+
+    The runner reads workflow commands from stderr as well as stdout. The message is
+    escaped as workflow commands require, so a registry's error text, which this
+    repository does not control, stays on its one line and cannot start a command of its
+    own.
+    """
+    escaped = inert(message).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    print(f"::warning title={title}::{escaped}", file=sys.stderr)
 
 
 def check(root: Path, get=None) -> int:
@@ -183,54 +229,67 @@ def check(root: Path, get=None) -> int:
     """
     get = fetch if get is None else get
     rows: list[tuple[str, str, str, str]] = []
-    problems = 0
+    defects = 0
+    warnings = 0
 
     for name, values in sorted(pinned(root).items()):
         current = values[0]
         if name not in SOURCES:
             rows.append((name, current, "—", "no upstream registered"))
-            problems += 1
+            defects += 1
             continue
         registry, package = SOURCES[name]
         try:
             newest = latest(registry, package, get)
         except Exception as err:  # noqa: BLE001 - a nag must report, never raise
             rows.append((name, current, "?", f"could not ask {registry}: {err!r}"))
-            problems += 1
+            annotate("Pin not checked", f"{name}: could not ask {registry}: {err!r}")
+            warnings += 1
             continue
         if newest == current:
             rows.append((name, current, newest, "current"))
         else:
             rows.append((name, current, newest, "**behind**"))
-            problems += 1
+            annotate("Pin behind", f"{name} is {current}, upstream is {newest}")
+            warnings += 1
 
     try:
         pair = markdownlint(root, get)
     except Exception as err:  # noqa: BLE001 - as above
         pair = None
         rows.append(("MARKDOWNLINT_PIN", "?", "?", f"could not ask the action: {err!r}"))
-        problems += 1
+        annotate("Pin not checked", f"MARKDOWNLINT_PIN: could not ask the action: {err!r}")
+        warnings += 1
     if pair is not None:
         recorded, shipped = pair
         state = "current" if recorded == shipped else "**does not match the action**"
         rows.append(("MARKDOWNLINT_PIN", recorded, shipped, state))
         if recorded != shipped:
-            problems += 1
+            annotate(
+                "Pin does not match",
+                f"MARKDOWNLINT_PIN is {recorded}, the pinned action ships {shipped}",
+            )
+            warnings += 1
 
     print("| Pin | Pinned | Upstream | State |")
     print("| --- | --- | --- | --- |")
     for name, current, newest, state in rows:
-        print(f"| `{name}` | {current} | {newest} | {state} |")
+        print(f"| `{name}` | {inert(current)} | {inert(newest)} | {inert(state)} |")
     print()
-    if problems:
+    if defects:
         print(
-            f"{problems} of {len(rows)} pin(s) need a look. Bumping one is a decision, "
+            f"{defects} pin(s) have no upstream registered in scripts/check_pin_freshness.py. "
+            f"Add each to SOURCES so the table keeps up with the workflows."
+        )
+    if warnings:
+        print(
+            f"{warnings} of {len(rows)} pin(s) need a look. Bumping one is a decision, "
             f"not a formality: a digest has to move with its version, and a tool that "
             f"changes its rules is why these are pinned at all."
         )
-        return 1
-    print(f"all {len(rows)} pin(s) are current")
-    return 0
+    if not defects and not warnings:
+        print(f"all {len(rows)} pin(s) are current")
+    return 1 if defects else 0
 
 
 def main(argv: list[str] | None = None) -> int:
