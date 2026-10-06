@@ -317,6 +317,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Make `design-system`'s inventory count distinct colours: the command counted matching
+  lines, so a colour used twice counted twice and two colours on one line counted once.
+  Its contrast table now has one row per pair and state and one column per theme, so a
+  hover colour that fails only in dark mode has a cell to fail in.
 - Stop `scripts/run_review_benchmark.py --jobs` from failing at random when two cases
   create their worktrees at once. `git worktree add` and `remove` now run one at a
   time under a lock, each worktree gets a unique name, and a failed `add` reports git's
