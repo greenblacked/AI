@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-06
+
 ### Added
 
 - Add the `design` plugin, the ninth, with four skills: `ui-ux-review` reviews one screen
@@ -416,7 +418,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/greenblacked/AI/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/greenblacked/AI/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/greenblacked/AI/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/greenblacked/AI/compare/9365d19bd40e79f52463b046927b17cfd448bb79...v0.1.0

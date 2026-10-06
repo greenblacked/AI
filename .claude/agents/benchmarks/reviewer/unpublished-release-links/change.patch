@@ -1,6 +1,6 @@
 --- a/CHANGELOG.md
 +++ b/CHANGELOG.md
-@@ -329,9 +329,9 @@
+@@ -389,9 +389,9 @@
    request needs it — the label does not exist until then — needs that grant
    separately from labelling with it once it exists.
 
@@ -12,7 +12,7 @@
 
  - **89 agent skills** across eight plugins you install separately: `coding` (18 skills,
    3 subagents), `gamedev` (11 skills, 1 subagent, 1 command), `operations` (15 skills, 5
-@@ -362,4 +362,4 @@
+@@ -423,4 +423,4 @@
  [0.1.2]: https://github.com/greenblacked/AI/compare/v0.1.1...v0.1.2
  [0.1.1]: https://github.com/greenblacked/AI/compare/v0.1.0...v0.1.1
  [0.1.0]: https://github.com/greenblacked/AI/compare/9365d19bd40e79f52463b046927b17cfd448bb79...v0.1.0
