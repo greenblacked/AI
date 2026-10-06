@@ -38,11 +38,11 @@ catalogue: ## Check listing ceilings, README and CI drift, workflows, Makefile, 
 providers: ## Regenerate the README's AI tools table from providers.json
 	@$(PYTHON) scripts/providers_table.py --write .
 
-test: ## Run the validator's own test suite
-	PYTHONPATH=src pytest
+test: ## Run the validator's own test suite, one worker per core
+	PYTHONPATH=src $(PYTHON) -m pytest -n auto
 
 coverage: ## Run the tests under coverage and fail below the floor in pyproject.toml
-	PYTHONPATH=src $(PYTHON) -m coverage run -m pytest
+	PYTHONPATH=src $(PYTHON) -m pytest -n auto --cov --cov-report= --cov-fail-under=0
 	$(PYTHON) -m coverage report
 
 lint: ## Lint python, markdown, YAML and workflows (skips a tool when it is not installed)
