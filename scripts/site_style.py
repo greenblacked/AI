@@ -636,6 +636,10 @@ html[data-theme="night"] .sun { display: none; }
   padding: 0.08em 0.35em;
   border-radius: 0.3rem;
 }
+/* A path, a flag or an identifier in running text has no break opportunity of its own,
+   so on a phone one long one pushed the whole page wider than the screen. It may break
+   anywhere; a code block keeps its lines and scrolls inside its own box instead. */
+.prose-lab :not(pre) > code { overflow-wrap: anywhere; }
 .prose-lab pre {
   margin: 0 0 1.25rem;
   padding: 1rem 1.15rem;

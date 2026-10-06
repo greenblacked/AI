@@ -137,6 +137,7 @@ CAUSES: dict[str, tuple[str, str]] = {
     "lint yaml": ("yamllint --strict . (part of `make lint`)", "ci.yml"),
     "lint workflows": ("actionlint (part of `make lint`)", "ci.yml"),
     "check links": ("lychee --offline './**/*.md'", "ci.yml"),
+    "test site in a browser": ("make test-browser", "ci.yml"),
     "attribution": ("make attribution", "ci.yml"),
     "naming": ("make naming", "ci.yml"),
     "package": ("make package", "ci.yml"),

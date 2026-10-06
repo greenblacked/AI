@@ -754,3 +754,26 @@ def test_blinding_only_the_pin_value_pattern_still_fails(tmp_path, capsys, monke
     write_workflows(tmp_path, demo=GATING)
     assert workflows.check(tmp_path) == 1
     assert "could not read the value of" in capsys.readouterr().out
+
+
+SITE_BROWSER_LOCK = REPO / ".github" / "requirements" / "site-browser.txt"
+
+
+def test_the_browser_lock_hashes_every_package_and_matches_the_ci_pins():
+    # The browser job installs with --require-hashes, so every requirement needs an exact
+    # version and at least one digest, or pip refuses the whole file; and the versions it
+    # locks have to be the ones the workflow and the weekly pin check name.
+    text = SITE_BROWSER_LOCK.read_text(encoding="utf-8")
+    entries = re.findall(
+        r"^([A-Za-z0-9_.-]+)==([^\s\\]+) \\\n((?:    --hash=sha256:[0-9a-f]{64}(?: \\\n|\n))+)",
+        text,
+        re.MULTILINE,
+    )
+    names = {name.lower(): version for name, version, _ in entries}
+    assert len(entries) == len(re.findall(r"^[A-Za-z0-9_.-]+==", text, re.MULTILINE))
+    assert all(hashes.count("--hash=sha256:") >= 1 for _, _, hashes in entries)
+    ci = (REPO / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    for package, pin in (("playwright", "PLAYWRIGHT_VERSION"), ("pytest", "PYTEST_VERSION")):
+        expected = re.search(rf"^  {pin}: '([^']+)'$", ci, re.MULTILINE).group(1)
+        assert names[package] == expected, (package, names[package], expected)
+    assert "--require-hashes -r .github/requirements/site-browser.txt" in ci

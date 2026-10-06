@@ -10,6 +10,17 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Test the catalogue site in a real browser. A new `test site in a browser` job builds
+  the real catalogue, serves it locally and drives it in the Chrome the runner already
+  ships: Back returns to the page you came from and never to another site, the bar and
+  To top appear and hide when they should, a jump to a heading lands below both bars,
+  the theme follows the clock and remembers a choice, the finder filters and counts, no
+  page scrolls sideways on a phone, and the controls are at least 44 px. Breaking each of
+  those behaviours on purpose turned its test red. Playwright and everything the job
+  installs comes from a lock file with every package hashed, installed with
+  `pip --require-hashes`. The tests that only checked that a
+  CSS or script line existed are replaced, and `make test-browser` runs the same tests
+  locally.
 - Add the `design` plugin, the ninth, with four skills: `ui-ux-review` reviews one screen
   or flow against usability heuristics with ranked, evidenced findings; `accessibility-audit`
   audits against WCAG 2.2 Level AA, automated pass first and the manual pass automation
@@ -321,6 +332,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   lines, so a colour used twice counted twice and two colours on one line counted once.
   Its contrast table now has one row per pair and state and one column per theme, so a
   hover colour that fails only in dark mode has a cell to fail in.
+- Stop seven skill pages scrolling sideways on a phone. A long path or identifier in
+  running text had no place to break, so one wide `code` span pushed the page past the
+  screen; inline code in prose may now break anywhere, and code blocks still scroll
+  inside their own box. The new browser tests found it.
 - Stop `scripts/run_review_benchmark.py --jobs` from failing at random when two cases
   create their worktrees at once. `git worktree add` and `remove` now run one at a
   time under a lock, each worktree gets a unique name, and a failed `add` reports git's
