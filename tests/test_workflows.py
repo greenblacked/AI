@@ -539,18 +539,22 @@ def test_a_registry_error_cannot_break_out_of_its_annotation(tmp_path, capsys):
         '{"info": {"version": "::stop-commands::x"}}',
         '{"info": {"version": 17}}',
         '{"info": {"version": "' + "9" * 80 + '"}}',
+        '{"info": {"version": "x##[error]forged"}}',
     ],
 )
 def test_a_registry_answer_not_shaped_like_a_version_is_never_printed(tmp_path, capsys, answer):
     # The answer goes into the step log, where the runner reads a line starting with
-    # `::` as a command. Anything not shaped like a version is a failed lookup, and a
-    # failed lookup is printed with repr, so it can never start a line of its own.
+    # `::` as a command, and the legacy `##[name]` form anywhere in a line. Anything
+    # not shaped like a version is a failed lookup whose message never repeats it.
     write_pinned(tmp_path)
     assert freshness.check(tmp_path, answers(**{"https://pypi.org/pypi/ruff/json": answer})) == 0
     captured = capsys.readouterr()
-    assert "| `RUFF_VERSION` | 0.16.1 | ? | could not ask pypi: ValueError(" in captured.out
-    for line in (captured.out + captured.err).splitlines():
-        assert not line.startswith(("::add-mask", "::stop-commands"))
+    log = captured.out + captured.err
+    assert "| `RUFF_VERSION` | 0.16.1 | ? | could not ask pypi: ValueError('not a version') |" in (
+        captured.out
+    )
+    for rejected in ("add-mask", "stop-commands", "forged", "9" * 80):
+        assert rejected not in log
 
 
 def test_a_markdownlint_answer_not_shaped_like_a_version_is_refused(tmp_path, capsys):
@@ -561,8 +565,26 @@ def test_a_markdownlint_answer_not_shaped_like_a_version_is_refused(tmp_path, ca
     write_pinned(tmp_path)
     assert freshness.check(tmp_path, answers(**{url: body})) == 0
     captured = capsys.readouterr()
-    assert "could not ask the action: ValueError(" in captured.out
-    assert not any(line.startswith("::add-mask") for line in captured.out.splitlines())
+    assert "could not ask the action: ValueError('not a version')" in captured.out
+    assert "add-mask" not in captured.out + captured.err
+
+
+def test_a_legacy_command_marker_in_an_error_is_broken_everywhere(tmp_path, capsys):
+    # An exception's repr can carry a server's own words, such as an HTTP reason
+    # phrase. The runner honours `##[name]` anywhere in a line, so the marker is broken
+    # in the table and in the annotation alike.
+    failure = OSError("bad gateway ##[error]forged")
+    write_pinned(tmp_path)
+    assert freshness.check(tmp_path, answers(**{"https://pypi.org/pypi/ruff/json": failure})) == 0
+    captured = capsys.readouterr()
+    assert "##[" not in captured.out + captured.err
+    assert "## [error]forged" in captured.out
+    assert "## [error]forged" in captured.err
+
+
+def test_inert_breaks_only_the_legacy_marker():
+    assert freshness.inert("a ##[warning]b ## c #[d") == "a ## [warning]b ## c #[d"
+    assert freshness.inert("2.1.291") == "2.1.291"
 
 
 def test_an_annotation_escapes_line_breaks_and_percent(capsys):
