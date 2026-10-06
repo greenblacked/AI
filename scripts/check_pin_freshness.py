@@ -150,7 +150,8 @@ def latest(registry: str, package: str, get) -> str:
     else:
         raise ValueError(f"no such registry: {registry}")
     if not isinstance(version, str) or not VERSION_RE.fullmatch(version):
-        raise ValueError(f"not a version: {version!r}")
+        # The rejected text is not repeated: it is exactly what must not reach the log.
+        raise ValueError("not a version")
     return version
 
 
@@ -189,8 +190,20 @@ def markdownlint(root: Path, get) -> tuple[str, str] | None:
     shipped = json.loads(get(url)).get("dependencies", {}).get("markdownlint-cli2", "")
     # Printed into the step log like a registry's answer, so held to the same shape.
     if not isinstance(shipped, str) or (shipped and not VERSION_RE.fullmatch(shipped)):
-        raise ValueError(f"not a version: {shipped!r}")
+        raise ValueError("not a version")
     return pin.group(1), shipped
+
+
+def inert(text: str) -> str:
+    """Text from outside this repository, made safe to print into the step log.
+
+    Besides `::` at the start of a line, the runner still honours the legacy `##[name]`
+    form anywhere in a line (`ActionCommand.TryParse` in actions/runner searches for it
+    with `IndexOf`). An exception's repr can carry a server's own words, such as an HTTP
+    reason phrase, so every cell and every annotation goes through here and the marker
+    is broken with a space.
+    """
+    return text.replace("##[", "## [")
 
 
 def annotate(title: str, message: str) -> None:
@@ -201,7 +214,7 @@ def annotate(title: str, message: str) -> None:
     repository does not control, stays on its one line and cannot start a command of its
     own.
     """
-    escaped = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    escaped = inert(message).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
     print(f"::warning title={title}::{escaped}", file=sys.stderr)
 
 
@@ -261,7 +274,7 @@ def check(root: Path, get=None) -> int:
     print("| Pin | Pinned | Upstream | State |")
     print("| --- | --- | --- | --- |")
     for name, current, newest, state in rows:
-        print(f"| `{name}` | {current} | {newest} | {state} |")
+        print(f"| `{name}` | {inert(current)} | {inert(newest)} | {inert(state)} |")
     print()
     if defects:
         print(
