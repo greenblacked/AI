@@ -39,7 +39,7 @@ ordering, checks and evidence to collect. This is a procedure library, not an ap
 
 **Prerequisites:** an installed assistant for its route. Local installation needs Git,
 Bash and standard Unix tools; local validation and packaging need Python 3.10 or newer,
-and the `make` examples need Make. Only the test suite needs pytest. Downloading the
+and the `make` examples need Make. Only the test suite needs pytest, with pytest-xdist and pytest-cov. Downloading the
 portable CI artifact needs no local toolchain.
 
 Claude Code installs plugins with automatic triggering. Other tools can load native

@@ -93,7 +93,7 @@ only, and CI runs it on Python 3.10 through 3.13 to keep that true. Only the tes
 needs anything installed.
 
 ```bash
-python -m pip install pytest coverage   # only for `make test` and `make coverage`
+python -m pip install pytest pytest-xdist pytest-cov  # only for `make test` and `make coverage`
 make validate                  # every skill, subagent and the marketplace manifest
 make catalogue                 # listing ceilings, the README, shell blocks, the hook, providers
 make test                      # the validator's own test suite

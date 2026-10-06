@@ -213,6 +213,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Run the test suite on every core. `make test` and the CI `test` job run pytest through
+  pytest-xdist, and the 3.13 leg measures coverage in each worker through pytest-cov, so
+  the floor still covers every test. Locally the suite drops from about 100 s to about
+  55 s, with the same coverage. The install tests link a five-skill tree built per test
+  instead of every shipped skill eight times, and one test still links the whole tree.
+  Both new test-only packages are pinned and registered with the weekly pin check.
 - Keep the weekly scheduled run green when a pinned tool publishes a release. A pin
   behind upstream, a registry that could not be asked, or a markdownlint pin that no
   longer matches its action is now a warning annotation on the run, with the table still
