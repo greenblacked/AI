@@ -23,10 +23,11 @@ Do not use for: reviewing one screen for usability, which is `ui-ux-review`; aud
 Before designing anything, count the raw values in use. Search the styles and components for hex and rgb colours, pixel sizes, font stacks, shadow and duration values, and tally the distinct ones. Use `git grep` on the style and component files so generated and vendored files stay out.
 
 ```bash
-git grep -nIE '#[0-9a-fA-F]{3,8}\b' -- '*.css' '*.scss' '*.tsx' ':!node_modules' | wc -l
+git grep -hoIE '#[0-9a-fA-F]{3,8}\b' -- '*.css' '*.scss' '*.tsx' ':!node_modules' \
+  | tr 'A-F' 'a-f' | sort -u | wc -l
 ```
 
-Record the number of distinct colours, font sizes, radii and shadows. That is the baseline the finished work is measured against, and a system that ends with the same count has not reduced anything.
+`-o` prints each match rather than each matching line and `-h` drops the file name, so a colour used on many lines counts once and two colours on one line count twice; lowercasing makes `#FFF` and `#fff` one value. Record the number of distinct colours, font sizes, radii and shadows. That is the baseline the finished work is measured against, and a system that ends with the same count has not reduced anything.
 
 ### 2. Choose one source of truth
 
