@@ -16,7 +16,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   To top appear and hide when they should, a jump to a heading lands below both bars,
   the theme follows the clock and remembers a choice, the finder filters and counts, no
   page scrolls sideways on a phone, and the controls are at least 44 px. Breaking each of
-  those behaviours on purpose turned its test red. The tests that only checked that a
+  those behaviours on purpose turned its test red. Playwright and everything the job
+  installs comes from a lock file with every package hashed, installed with
+  `pip --require-hashes`. The tests that only checked that a
   CSS or script line existed are replaced, and `make test-browser` runs the same tests
   locally.
 - Add the `design` plugin, the ninth, with four skills: `ui-ux-review` reviews one screen
