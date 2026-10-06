@@ -253,7 +253,7 @@ def test_selected_plugin_preserves_conflicts_and_unselected_entries(repo, tmp_pa
     (target / name).mkdir()
     marker = target / name / "keep.txt"
     marker.write_text("mine", encoding="utf-8")
-    unselected = target / "codebase-orientation"
+    unselected = target / "code-review"
     unselected.write_text("unselected", encoding="utf-8")
     for flags in ((), ("--force",)):
         result = run(repo, target, "--plugin", "personal", *flags)

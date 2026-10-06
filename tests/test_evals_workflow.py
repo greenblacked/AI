@@ -171,7 +171,12 @@ def test_reviewer_dependencies_match_ci_and_follow_scoring_gates():
 
     text = WORKFLOW.read_text(encoding="utf-8")
     ci = (REPO / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
-    for name in ("PYTEST_VERSION", "COVERAGE_VERSION"):
+    for name in (
+        "PYTEST_VERSION",
+        "COVERAGE_VERSION",
+        "PYTEST_XDIST_VERSION",
+        "PYTEST_COV_VERSION",
+    ):
         pattern = rf"^  {name}: '([^']+)'$"
         assert re.search(pattern, text, re.MULTILINE).group(1) == re.search(
             pattern, ci, re.MULTILINE
@@ -184,10 +189,11 @@ def test_reviewer_dependencies_match_ci_and_follow_scoring_gates():
         "if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'" in step
     )
     script = _extract_run_block(text, "Install the reviewer repository test dependencies")
-    assert (
-        'python -m pip install "pytest==${PYTEST_VERSION}" "coverage==${COVERAGE_VERSION}"'
-        in script
-    )
+    # Everything `make test` and `make coverage` load, or the reviewer's gates fail to
+    # start in the worktree and its verdict is about the environment, not the change.
+    for package in ("pytest", "coverage", "pytest-xdist", "pytest-cov"):
+        version = package.upper().replace("-", "_") + "_VERSION"
+        assert f'"{package}==${{{version}}}"' in script, package
 
 
 @pytest.mark.parametrize("event", ["pull_request", "schedule", "workflow_dispatch"])

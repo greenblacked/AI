@@ -42,7 +42,7 @@ test: ## Run the validator's own test suite, one worker per core
 	PYTHONPATH=src $(PYTHON) -m pytest -n auto
 
 coverage: ## Run the tests under coverage and fail below the floor in pyproject.toml
-	PYTHONPATH=src $(PYTHON) -m pytest -n auto --cov --cov-report=
+	PYTHONPATH=src $(PYTHON) -m pytest -n auto --cov --cov-report= --cov-fail-under=0
 	$(PYTHON) -m coverage report
 
 lint: ## Lint python, markdown, YAML and workflows (skips a tool when it is not installed)

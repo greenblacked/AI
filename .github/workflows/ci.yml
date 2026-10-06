@@ -206,7 +206,9 @@ jobs:
           set +e
           # pytest-cov starts coverage in every xdist worker and combines their data
           # into one .coverage file, which the two reports below read.
-          PYTHONPATH=src python -m pytest -n auto --cov --cov-report=
+          # pytest-cov would enforce the floor itself and stop before the reports;
+          # the floor is enforced once, by the second `coverage report` below.
+          PYTHONPATH=src python -m pytest -n auto --cov --cov-report= --cov-fail-under=0
           test_status=$?
           set -e
           # The summary is written before the floor is enforced, so a failing run

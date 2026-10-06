@@ -62,7 +62,8 @@ merge-group `checks_requested`; and on `workflow_dispatch`. Top-level
 `permissions: {}`; each job grants itself the minimum. Every tool the workflow installs
 or downloads is pinned in the workflow-level `env` block — `CLAUDE_CODE_VERSION`,
 `CODESPELL_VERSION`, `YAMLLINT_VERSION`, `PYTEST_VERSION`, `COVERAGE_VERSION`,
-`ACTIONLINT_VERSION` and `ACTIONLINT_SHA256` — for the reason the security section
+`PYTEST_XDIST_VERSION`, `PYTEST_COV_VERSION`, `ACTIONLINT_VERSION` and
+`ACTIONLINT_SHA256` — for the reason the security section
 gives, and at workflow level so a cache key can name one.
 
 | Job | Check name | Failing means |
@@ -1152,7 +1153,9 @@ make naming     # file names, branch and commits against naming conventions — 
 `make validate` passes `--strict`, exactly as the job does, so a warning fails locally
 before it fails in CI.
 
-`make coverage` needs `coverage` installed alongside `pytest`. The suite reaches the
+`make test` needs `pytest-xdist` installed alongside `pytest`, and `make coverage` also
+needs `pytest-cov` and `coverage`; the floor is enforced by the `coverage report` that
+follows the run, which also names the file that fell. The suite reaches the
 scripts as well as the validator: the eval harness runs against a fake `claude` on
 `PATH` that answers from a table, `install.sh` runs against a temporary target
 directory, and the packager and the `PostToolUse` hook run against a small repository
