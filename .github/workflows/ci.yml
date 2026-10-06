@@ -56,6 +56,9 @@ env:
   # test-only; the validator still imports nothing outside the standard library.
   PYTEST_XDIST_VERSION: '3.8.0'
   PYTEST_COV_VERSION: '7.1.0'
+  # The browser tests drive the built site through Playwright's Python package and the
+  # Chrome the runner image already ships, so no browser is downloaded.
+  PLAYWRIGHT_VERSION: '1.63.0'
   ACTIONLINT_VERSION: '1.7.12'
   ACTIONLINT_SHA256: '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8'
 
@@ -195,7 +198,7 @@ jobs:
         if: matrix.python-version != '3.13'
         run: |
           set -Eeuo pipefail
-          PYTHONPATH=src python -m pytest -n auto
+          PYTHONPATH=src python -m pytest -n auto -m "not browser"
       # The floor is a ratchet, not a target: it sits below the measured figure so a
       # change that quietly drops a script back to untested fails here rather than
       # being noticed months later. Raise it in pyproject.toml when coverage rises.
@@ -208,7 +211,8 @@ jobs:
           # into one .coverage file, which the two reports below read.
           # pytest-cov would enforce the floor itself and stop before the reports;
           # the floor is enforced once, by the second `coverage report` below.
-          PYTHONPATH=src python -m pytest -n auto --cov --cov-report= --cov-fail-under=0
+          PYTHONPATH=src python -m pytest -n auto -m "not browser" --cov --cov-report= \
+            --cov-fail-under=0
           test_status=$?
           set -e
           # The summary is written before the floor is enforced, so a failing run
@@ -414,6 +418,46 @@ jobs:
           # zero broken, and exits 0, and the check passes having read no file.
           failIfEmpty: true
 
+  site-browser:
+    name: test site in a browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.13'
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: ~/.cache/pip
+          key: >-
+            pip-site-browser-${{ runner.os }}-${{
+            hashFiles('.github/requirements/site-browser.txt') }}
+      # Playwright ships a driver that launches a browser, so it is installed from a lock
+      # file with every package and transitive dependency hashed: a wheel that does not
+      # match the digest PyPI published is refused before any of its code runs.
+      # tests/test_workflows.py keeps its playwright and pytest pins equal to the env above.
+      - name: Install the test runner and the browser driver
+        run: |
+          set -Eeuo pipefail
+          python -m pip install --require-hashes -r .github/requirements/site-browser.txt
+      # The page script is a string inside a Python module, so coverage and the text
+      # tests cannot say it works. These load the real catalogue in Chrome and act on
+      # it: Back, the bar, To top, anchors, theme, the finder and the layout on a
+      # phone. REQUIRE_BROWSER turns a missing package into a failure, so the job can
+      # never pass by skipping the tests it exists to run.
+      - name: Drive the built catalogue in the runner's Chrome
+        env:
+          REQUIRE_BROWSER: '1'
+          BROWSER_CHANNEL: chrome
+        run: |
+          set -Eeuo pipefail
+          PYTHONPATH=src python -m pytest -m browser tests/test_site_browser.py
+
   attribution:
     name: attribution
     runs-on: ubuntu-latest
@@ -598,6 +642,7 @@ jobs:
       - lint-yaml
       - lint-actions
       - links
+      - site-browser
       - attribution
       - naming
       - package
@@ -616,4 +661,5 @@ jobs:
           set -Eeuo pipefail
           python3 scripts/check_job_results.py \
             validate-skills validate-plugin test catalogue spelling \
-            lint-markdown lint-yaml lint-actions links attribution naming package
+            lint-markdown lint-yaml lint-actions links site-browser attribution naming \
+            package
