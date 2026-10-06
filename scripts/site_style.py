@@ -263,7 +263,11 @@ html[data-theme="night"] .sun { display: none; }
 }
 
 /* Footer. */
-.site-footer { border-top: 1px solid var(--line); }
+.site-footer {
+  border-top: 1px solid var(--line);
+  /* Room below the last line, so the footer can scroll clear of To top. */
+  padding-bottom: 4rem;
+}
 .foot {
   display: flex;
   flex-direction: column;
@@ -448,7 +452,7 @@ html[data-theme="night"] .sun { display: none; }
   .back:active { transform: scale(0.97); }
 }
 .back + .crumbs { margin-top: 1rem; }
-/* The bar Back and To top move into once the page has scrolled past its own Back: a
+/* The bar Back moves into once the page has scrolled past its own Back: a
    top app bar on the solid page colour, so text scrolls under it and never shows
    behind a button. It sits below the header while the header shows, and at the top when the
    header has slid away. Hidden, and out of the tab order, until then. */
@@ -483,7 +487,48 @@ html[data-theme="night"] .sun { display: none; }
   padding: 0.5rem max(1.25rem, env(safe-area-inset-right)) 0.5rem
     max(1.25rem, env(safe-area-inset-left));
 }
-#to-top { margin-left: auto; }
+/* To top floats at the bottom right: Material's place for a page's one floating
+   action, and the one place Liquid Glass is meant for, a control over the content.
+   Round with only the arrow on a narrow screen, where the column is all text, and
+   labelled once the margin beside the 72rem column can hold the label. Its tint is
+   denser than Back's, because it sits over running text rather than the solid bar,
+   and glyphs showing through compete with the arrow. Hidden, and out of the tab
+   order, until the script shows it. */
+.fab {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 9;
+  justify-content: center;
+  background-color: color-mix(in srgb, var(--glass-tint) 55%, var(--bg));
+  width: 3rem;
+  min-height: 3rem;
+  padding: 0;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(0.5rem);
+  pointer-events: none;
+}
+.fab span { display: none; }
+.fab.on { visibility: visible; opacity: 1; transform: none; pointer-events: auto; }
+@media (prefers-reduced-motion: no-preference) {
+  .fab {
+    transition: opacity 150ms ease, transform 150ms ease, box-shadow 120ms ease,
+      visibility 0s linear 150ms;
+  }
+  .fab.on { transition: opacity 150ms ease, transform 150ms ease, box-shadow 120ms ease; }
+  .fab.on:active { transform: scale(0.97); }
+}
+@media (min-width: 40rem) {
+  .fab {
+    right: max(1.5rem, env(safe-area-inset-right));
+    bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+}
+@media (min-width: 90rem) {
+  .fab { width: auto; padding: 0 1.25rem 0 1rem; }
+  .fab span { display: inline; }
+}
 /* A jump to a heading (an in-page link, a shared deep link, the finder) lands below
    both bars rather than under them. A jump upwards brings the header back with the
    bar stacked beneath it: 4rem and a border, then 0.5rem, a 2.75rem button, 0.5rem and
@@ -752,7 +797,23 @@ PAGE_SCRIPT = """
     return inline.getBoundingClientRect().bottom + window.scrollY;
   }
   var limit = edge();
-  function reveal() { dock.classList.toggle("on", window.scrollY > limit); }
+  // To top follows the header's rule: away while reading down, back on the way up,
+  // when a reader wants it, and at the end of the page. A focused button stays, so
+  // keyboard focus never lands on something hidden.
+  var mark = window.scrollY;
+  var shown = false;
+  function reveal() {
+    var y = window.scrollY;
+    var past = y > limit;
+    if (dock) dock.classList.toggle("on", past);
+    var end = y + window.innerHeight >= document.documentElement.scrollHeight - 2;
+    if (!past) shown = false;
+    else if (end || document.activeElement === upward) shown = true;
+    else if (y < mark - 8) shown = true;
+    else if (y > mark + 8) shown = false;
+    if (Math.abs(y - mark) > 8) mark = y;
+    upward.classList.toggle("on", shown);
+  }
   window.addEventListener("scroll", reveal, { passive: true });
   window.addEventListener("resize", function () { limit = edge(); reveal(); });
   reveal();
