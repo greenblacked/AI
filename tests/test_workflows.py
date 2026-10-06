@@ -455,15 +455,25 @@ def write_pinned(root, workflow=PINNED, makefile=MAKEFILE):
 def test_every_pin_current_passes(tmp_path, capsys):
     write_pinned(tmp_path)
     assert freshness.check(tmp_path, answers()) == 0
-    assert "all 4 pin(s) are current" in capsys.readouterr().out
+    captured = capsys.readouterr()
+    assert "all 4 pin(s) are current" in captured.out
+    assert captured.err == ""
 
 
-def test_a_pin_behind_upstream_is_reported(tmp_path, capsys):
+def test_a_pin_behind_upstream_is_a_warning_not_a_failure(tmp_path, capsys):
+    # A tool that publishes weekly would turn every weekly run red, and a run that is
+    # always red is one nobody reads. Behind is a warning annotation and a green run.
     get = answers(**{"https://pypi.org/pypi/ruff/json": '{"info": {"version": "0.17.0"}}'})
     write_pinned(tmp_path)
-    assert freshness.check(tmp_path, get) == 1
-    out = capsys.readouterr().out
-    assert "| `RUFF_VERSION` | 0.16.1 | 0.17.0 | **behind** |" in out
+    assert freshness.check(tmp_path, get) == 0
+    captured = capsys.readouterr()
+    assert "| `RUFF_VERSION` | 0.16.1 | 0.17.0 | **behind** |" in captured.out
+    assert "1 of 4 pin(s) need a look." in captured.out
+    # On stderr, so the job summary the workflow tees stdout into stays a table.
+    assert captured.err == (
+        "::warning title=Pin behind::RUFF_VERSION is 0.16.1, upstream is 0.17.0\n"
+    )
+    assert "::warning" not in captured.out
 
 
 def test_a_github_tag_is_compared_without_its_v(tmp_path, capsys):
@@ -480,7 +490,21 @@ def test_a_pin_with_no_registry_registered_is_reported(tmp_path, capsys):
     extra = PINNED.replace("  RUFF_VERSION:", "  NOVEL_VERSION: '1.0.0'\n  RUFF_VERSION:")
     write_pinned(tmp_path, workflow=extra)
     assert freshness.check(tmp_path, answers()) == 1
-    assert "no upstream registered" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "| `NOVEL_VERSION` | 1.0.0 | — | no upstream registered |" in out
+    assert "1 pin(s) have no upstream registered" in out
+
+
+def test_a_defect_still_fails_when_a_pin_is_also_behind(tmp_path, capsys):
+    # Warnings never mask a defect: the exit follows the defect.
+    extra = PINNED.replace("  RUFF_VERSION:", "  NOVEL_VERSION: '1.0.0'\n  RUFF_VERSION:")
+    get = answers(**{"https://pypi.org/pypi/ruff/json": '{"info": {"version": "0.17.0"}}'})
+    write_pinned(tmp_path, workflow=extra)
+    assert freshness.check(tmp_path, get) == 1
+    captured = capsys.readouterr()
+    assert "1 pin(s) have no upstream registered" in captured.out
+    assert "1 of 5 pin(s) need a look." in captured.out
+    assert "::warning title=Pin behind::RUFF_VERSION" in captured.err
 
 
 def test_a_registry_that_cannot_be_reached_is_reported_not_raised(tmp_path, capsys):
@@ -488,16 +512,43 @@ def test_a_registry_that_cannot_be_reached_is_reported_not_raised(tmp_path, caps
     # a line in the table, not a traceback and not a blocked merge.
     get = answers(**{"https://pypi.org/pypi/ruff/json": OSError("connection reset")})
     write_pinned(tmp_path)
-    assert freshness.check(tmp_path, get) == 1
-    assert "could not ask pypi" in capsys.readouterr().out
+    assert freshness.check(tmp_path, get) == 0
+    captured = capsys.readouterr()
+    assert "could not ask pypi" in captured.out
+    assert captured.err.startswith("::warning title=Pin not checked::RUFF_VERSION: could not")
+
+
+def test_a_registry_error_cannot_break_out_of_its_annotation(tmp_path, capsys):
+    # The error text comes from someone else's server. A percent sign in it is escaped
+    # so it cannot forge an escape, and it stays on one annotation line.
+    failure = OSError("50% down\n::error::forged")
+    get = answers(**{"https://pypi.org/pypi/ruff/json": failure})
+    write_pinned(tmp_path)
+    assert freshness.check(tmp_path, get) == 0
+    lines = capsys.readouterr().err.splitlines()
+    assert len(lines) == 1
+    assert lines[0].startswith("::warning title=Pin not checked::")
+    assert "50%25 down" in lines[0]
+
+
+def test_an_annotation_escapes_line_breaks_and_percent(capsys):
+    # A raw line break would end the command and let the rest of the text start one of
+    # its own; workflow commands spell CR, LF and percent as %0D, %0A and %25.
+    freshness.annotate("Pin behind", "a%b\r\n::error::forged")
+    assert capsys.readouterr().err == ("::warning title=Pin behind::a%25b%0D%0A::error::forged\n")
 
 
 def test_a_markdownlint_pin_that_does_not_match_the_action_is_reported(tmp_path, capsys):
     # The Makefile's copy is a claim about somebody else's package.json, and it goes
     # stale silently the first time Dependabot bumps the action.
     write_pinned(tmp_path, makefile="MARKDOWNLINT_PIN := 0.20.0\n")
-    assert freshness.check(tmp_path, answers()) == 1
-    assert "does not match the action" in capsys.readouterr().out
+    assert freshness.check(tmp_path, answers()) == 0
+    captured = capsys.readouterr()
+    assert "does not match the action" in captured.out
+    assert captured.err == (
+        "::warning title=Pin does not match::"
+        "MARKDOWNLINT_PIN is 0.20.0, the pinned action ships 0.23.2\n"
+    )
 
 
 def test_a_markdownlint_lookup_that_fails_is_reported(tmp_path, capsys):
@@ -505,8 +556,10 @@ def test_a_markdownlint_lookup_that_fails_is_reported(tmp_path, capsys):
         "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2-action/v24.2.0/package.json"
     )
     write_pinned(tmp_path)
-    assert freshness.check(tmp_path, answers(**{url: OSError("no route")})) == 1
-    assert "could not ask the action" in capsys.readouterr().out
+    assert freshness.check(tmp_path, answers(**{url: OSError("no route")})) == 0
+    captured = capsys.readouterr()
+    assert "could not ask the action" in captured.out
+    assert "::warning title=Pin not checked::MARKDOWNLINT_PIN" in captured.err
 
 
 def test_no_markdownlint_pin_at_all_is_not_a_finding(tmp_path, capsys):
@@ -613,10 +666,11 @@ def test_a_body_of_the_wrong_json_shape_is_a_row_not_a_traceback(tmp_path, capsy
     # and a job whose only output is a report produced a stack trace.
     get = answers(**{"https://pypi.org/pypi/ruff/json": "[]"})
     write_pinned(tmp_path)
-    assert freshness.check(tmp_path, get) == 1
-    out = capsys.readouterr().out
-    assert "could not ask pypi" in out
-    assert "| Pin | Pinned | Upstream | State |" in out
+    assert freshness.check(tmp_path, get) == 0
+    captured = capsys.readouterr()
+    assert "could not ask pypi" in captured.out
+    assert "| Pin | Pinned | Upstream | State |" in captured.out
+    assert "::warning title=Pin not checked::RUFF_VERSION" in captured.err
 
 
 def test_the_token_goes_to_github_and_nowhere_else(monkeypatch):
