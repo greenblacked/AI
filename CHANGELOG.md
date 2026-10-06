@@ -19,15 +19,20 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   marketplace under `development` and fits the default listing budget on its own. The install
   advice's `skillListingBudgetFraction` rises from 0.101 to 0.105, which the whole
   marketplace's descriptions now need.
-- Add a bar with Back on the left and To top on the right of every catalogue page. It
-  appears once the page has scrolled past its own Back button and hides again near the
-  top, so Back is never out of reach on a long skill page. It spans the header's width,
-  so on a wide screen the two sit under the header's outer edges, clear of the text;
-  it sits on the solid page colour below the header, so text scrolls under it and never
-  shows behind a button. It is a labelled landmark straight after the header, so the
-  keyboard reaches it before the page body, and a jump to a heading lands below it. The
-  front page has only To top. To top respects reduced motion and moves focus to the
-  home link.
+- Add a bar with Back on every catalogue page below the front page. It appears once the
+  page has scrolled past its own Back button and hides again near the top, so Back is
+  never out of reach on a long skill page. It spans the header's width, so on a wide
+  screen Back sits under the header's left edge, clear of the text; it sits on the solid
+  page colour below the header, so text scrolls under it and never shows behind the
+  button. It is a labelled landmark straight after the header, so the keyboard reaches
+  it before the page body, and a jump to a heading lands below it.
+- Add To top to every catalogue page, floating at the bottom right. Like the header, it
+  goes away while the reader scrolls down and comes back on the way up and at the end
+  of the page, so it does not sit over the text being read. On a narrow screen it is a
+  round 48px button with only the arrow, on a denser glass tint than Back's so text
+  behind it does not compete with the arrow; from 1440px wide, where the margin beside
+  the text column can hold it, it carries its label. The footer leaves room to scroll
+  clear of it. It respects reduced motion and moves focus to the home link.
 - Restyle Back and To top as Material Design 3 buttons made of Liquid Glass: a full
   pill with a leading icon and Material's 8% and 12% state layers, on a translucent,
   blurred tint with a specular top edge, a sheen and a floating shadow, with tokens per
