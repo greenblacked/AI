@@ -48,13 +48,18 @@ jobs:
           python-version: '3.13'
       - name: Compare every pinned tool version against upstream
         # Dependabot updates `uses:` references and reusable workflows and never looks
-        # inside an `env:` block, so nothing moves the eleven version pins or the
+        # inside an `env:` block, so nothing moves the version pins or the
         # markdownlint version the Makefile records. Without this they sit where they
         # are until somebody happens to wonder.
         #
         # It reports and does not bump. Adopting a version is the judgement the pinning
         # exists to preserve: a digest has to move with its version, and ruff 0.16
         # reformatting Markdown is why ruff is pinned at all.
+        #
+        # A pin behind upstream is a warning annotation and a green run, not a red one:
+        # Claude Code and Codex publish nearly every week, and a run that is red nearly
+        # every week is one nobody reads. It fails only for a pin the checker has no
+        # upstream registered for, which is a defect here rather than news from upstream.
         run: |
           set -Eeuo pipefail
           python scripts/check_pin_freshness.py . | tee -a "$GITHUB_STEP_SUMMARY"

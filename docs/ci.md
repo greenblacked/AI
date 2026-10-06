@@ -546,7 +546,7 @@ requires either of them.
 | Job | Check name | Failing means |
 | --- | --- | --- |
 | `external-links` | `external links` | lychee could not reach an external URL. Hosts in `.lycheeignore` (example.com and friends, which appear inside skill instructions) are excluded. |
-| `pin-freshness` | `pin freshness` | A pinned tool version has fallen behind upstream, a `*_VERSION` in a workflow has no registry registered for it in [`scripts/check_pin_freshness.py`](../scripts/check_pin_freshness.py), or `MARKDOWNLINT_PIN` in the [`Makefile`](../Makefile) no longer matches the markdownlint-cli2 the pinned action bundles. It reports and never bumps: adopting a version is the judgement the pinning exists to preserve. |
+| `pin-freshness` | `pin freshness` | A `*_VERSION` in a workflow has no registry registered for it in [`scripts/check_pin_freshness.py`](../scripts/check_pin_freshness.py). A pinned tool version behind upstream, a registry that could not be asked, or `MARKDOWNLINT_PIN` in the [`Makefile`](../Makefile) no longer matching the markdownlint-cli2 the pinned action bundles is a warning annotation on a green run, not a failure. It reports and never bumps: adopting a version is the judgement the pinning exists to preserve. |
 
 These are here because they depend on the network or a wordlist. A gate that fails
 because someone else's site was briefly down is a gate people learn to override, and once
@@ -559,7 +559,10 @@ numbers, because its `github-actions` ecosystem updates `uses:` references and r
 workflows and never reads an `env:` block. Without a weekly look, the version pins and the
 markdownlint line in the `Makefile` sit where they are until somebody happens to wonder.
 It asks PyPI, the npm registry and the GitHub releases API what the latest version is,
-prints a table into the job summary, and stops there.
+prints a table into the job summary, and stops there. Each pin that needs a look is also
+a `::warning` annotation on the run, but the run stays green: Claude Code and Codex
+publish nearly every week, and a weekly run that went red for each release was red
+nearly every week, which teaches people to stop reading it.
 
 ## `.github/workflows/evals.yml` — Trigger evals
 
