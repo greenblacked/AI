@@ -86,6 +86,7 @@ SOURCES = {
     "YAMLLINT_VERSION": ("pypi", "yamllint"),
     "PYTEST_VERSION": ("pypi", "pytest"),
     "COVERAGE_VERSION": ("pypi", "coverage"),
+    "PLAYWRIGHT_VERSION": ("pypi", "playwright"),
     "GITLEAKS_VERSION": ("github", "gitleaks/gitleaks"),
     "ACTIONLINT_VERSION": ("github", "rhysd/actionlint"),
     "CLAUDE_CODE_VERSION": ("npm", "@anthropic-ai/claude-code"),

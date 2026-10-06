@@ -551,6 +551,7 @@ make validate     # frontmatter contract, dangling references, marketplace cross
 make catalogue    # listing ceilings, the README and CI docs, workflows, shell, the hook, providers
 make test         # the validator's own test suite
 make coverage     # the same, with the coverage floor CI enforces
+make test-browser # drive the built site in Chromium (needs playwright)
 make package      # a .skill archive per skill
 make attribution  # commits and branch name against the attribution rules
 make naming       # branch, commit and file-naming conventions

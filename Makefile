@@ -17,7 +17,7 @@ MARKDOWNLINT_PIN := 0.23.2
 CODESPELL_PIN := $(strip $(shell sed -En "s/^ *CODESPELL_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml))
 ACTIONLINT_PIN := $(strip $(shell sed -En "s/^ *ACTIONLINT_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml))
 
-.PHONY: help validate catalogue providers test coverage lint lint-strict _lint package attribution naming portable install clean release-prepare release site
+.PHONY: help validate catalogue providers test test-browser coverage lint lint-strict _lint package attribution naming portable install clean release-prepare release site
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-17s\033[0m %s\n", $$1, $$2}'
@@ -40,6 +40,10 @@ providers: ## Regenerate the README's AI tools table from providers.json
 
 test: ## Run the validator's own test suite
 	PYTHONPATH=src pytest
+
+test-browser: ## Drive the built site in Chromium (playwright; BROWSER_EXECUTABLE=...)
+	PYTHONPATH=src BROWSER_EXECUTABLE="$(BROWSER_EXECUTABLE)" BROWSER_CHANNEL="$(BROWSER_CHANNEL)" \
+		$(PYTHON) -m pytest -m browser tests/test_site_browser.py
 
 coverage: ## Run the tests under coverage and fail below the floor in pyproject.toml
 	PYTHONPATH=src $(PYTHON) -m coverage run -m pytest
