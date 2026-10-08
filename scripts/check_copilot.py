@@ -11,9 +11,17 @@ the file it was written from, so a source edit that nobody carried across fails 
 Each source maps to one wrapper by name:
 
 - `.claude/rules/<name>.md` to `.github/instructions/<name>.instructions.md`
+- a nested `.claude/rules/<dir>/<name>.md` to `.github/instructions/<dir>-<name>.instructions.md`
 - `REVIEW.md` to `.github/instructions/review.instructions.md`
 - `.claude/agents/<name>.md` to `.github/agents/<name>.agent.md`
-- `.claude/commands/<name>.md` to `.github/prompts/<name>.prompt.md`
+- `.claude/commands/<name>.md` to `.github/prompts/<name>.prompt.md`, nested the same way
+  (`.claude/commands/<dir>/<name>.md` to `.github/prompts/<dir>-<name>.prompt.md`)
+
+Rules and commands are found recursively, because Claude Code discovers both in
+subdirectories; a nested file skipped here would be a source with no wrapper and no error.
+Two sources that map to the same wrapper name (`a/b-c.md` and `a-b/c.md`) fail rather than
+share a wrapper. `.claude/agents/` is not recursive: its subfolders hold benchmark cases and
+eval sets, not agents.
 
 and the first line of a wrapper's body, right after its front matter, is a comment naming
 the source and the SHA-256 of the source's bytes:
@@ -55,11 +63,11 @@ import re
 import sys
 from pathlib import Path
 
-# (source folder or file, source suffix, wrapper folder, wrapper suffix)
+# (source folder, source suffix, wrapper folder, wrapper suffix, discovered recursively)
 RULES = (
-    (Path(".claude/rules"), ".md", Path(".github/instructions"), ".instructions.md"),
-    (Path(".claude/agents"), ".md", Path(".github/agents"), ".agent.md"),
-    (Path(".claude/commands"), ".md", Path(".github/prompts"), ".prompt.md"),
+    (Path(".claude/rules"), ".md", Path(".github/instructions"), ".instructions.md", True),
+    (Path(".claude/agents"), ".md", Path(".github/agents"), ".agent.md", False),
+    (Path(".claude/commands"), ".md", Path(".github/prompts"), ".prompt.md", True),
 )
 # One source that is a single file rather than a folder of them.
 REVIEW_SOURCE = Path("REVIEW.md")
@@ -73,15 +81,33 @@ def sha256_of(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def expected_pairs(root: Path) -> dict[Path, Path]:
-    """Every source that must have a wrapper, mapped to the wrapper it must have."""
+def expected_pairs(root: Path, collisions: list[str] | None = None) -> dict[Path, Path]:
+    """Every source that must have a wrapper, mapped to the wrapper it must have.
+
+    A nested source joins its relative path parts with "-" for the wrapper name. Sources
+    that land on one wrapper are reported in `collisions` (when given) and only the first
+    is kept, so the report names the clash instead of one wrapper silently serving two.
+    """
     pairs: dict[Path, Path] = {}
-    for source_dir, suffix, wrapper_dir, wrapper_suffix in RULES:
+    claimed: dict[Path, Path] = {}
+    for source_dir, suffix, wrapper_dir, wrapper_suffix, recursive in RULES:
         folder = root / source_dir
         if not folder.is_dir():
             continue
-        for source in sorted(folder.glob(f"*{suffix}")):
-            pairs[source_dir / source.name] = wrapper_dir / (source.stem + wrapper_suffix)
+        found = folder.rglob(f"*{suffix}") if recursive else folder.glob(f"*{suffix}")
+        for source in sorted(path for path in found if path.is_file()):
+            relative = source.relative_to(folder).with_suffix("")
+            wrapper = wrapper_dir / ("-".join(relative.parts) + wrapper_suffix)
+            if wrapper in claimed:
+                if collisions is not None:
+                    collisions.append(
+                        f"{(source_dir / source.relative_to(folder)).as_posix()} and "
+                        f"{claimed[wrapper].as_posix()} both map to {wrapper.as_posix()}; "
+                        "rename one so each source has its own wrapper"
+                    )
+                continue
+            claimed[wrapper] = source_dir / source.relative_to(folder)
+            pairs[claimed[wrapper]] = wrapper
     if (root / REVIEW_SOURCE).is_file():
         pairs[REVIEW_SOURCE] = REVIEW_WRAPPER
     return pairs
@@ -114,7 +140,7 @@ def read_marker(path: Path) -> tuple[str, str] | None:
 
 def wrapper_files(root: Path) -> list[Path]:
     found: list[Path] = []
-    for _, _, wrapper_dir, wrapper_suffix in RULES:
+    for _, _, wrapper_dir, wrapper_suffix, _ in RULES:
         folder = root / wrapper_dir
         if folder.is_dir():
             found.extend(
@@ -136,7 +162,10 @@ def check(root: Path) -> int:
         problems.append(message)
         print(f"::error file={path.as_posix()}::{message}")
 
-    pairs = expected_pairs(root)
+    collisions: list[str] = []
+    pairs = expected_pairs(root, collisions)
+    for message in collisions:
+        fail(Path(".claude"), message)
     by_wrapper = {wrapper: source for source, wrapper in pairs.items()}
 
     for source, wrapper in sorted(pairs.items()):

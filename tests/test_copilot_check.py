@@ -200,6 +200,54 @@ def test_benchmark_cases_under_agents_are_not_sources(tmp_path):
     assert copilot.check(tmp_path) == 0
 
 
+def test_a_nested_rule_with_no_wrapper_fails(tmp_path, capsys):
+    path = tmp_path / ".claude/rules/nested/security.md"
+    path.parent.mkdir(parents=True)
+    path.write_text("Rule.\n", encoding="utf-8")
+    assert copilot.check(tmp_path) == 1
+    out = capsys.readouterr().out
+    assert ".claude/rules/nested/security.md has no Copilot wrapper" in out
+    assert ".github/instructions/nested-security.instructions.md" in out
+
+
+def test_a_nested_command_with_no_wrapper_fails(tmp_path, capsys):
+    path = tmp_path / ".claude/commands/team/deploy.md"
+    path.parent.mkdir(parents=True)
+    path.write_text("Command.\n", encoding="utf-8")
+    assert copilot.check(tmp_path) == 1
+    out = capsys.readouterr().out
+    assert ".claude/commands/team/deploy.md has no Copilot wrapper" in out
+    assert ".github/prompts/team-deploy.prompt.md" in out
+
+
+def test_nested_sources_with_correct_wrappers_pass(tmp_path, capsys):
+    write_pair(
+        tmp_path,
+        ".claude/rules/nested/security.md",
+        ".github/instructions/nested-security.instructions.md",
+    )
+    write_pair(tmp_path, ".claude/commands/team/deploy.md", ".github/prompts/team-deploy.prompt.md")
+    assert copilot.check(tmp_path) == 0
+    assert "2 source(s) covered" in capsys.readouterr().out
+
+
+def test_two_sources_mapping_to_one_wrapper_fail(tmp_path, capsys):
+    write_pair(tmp_path, ".claude/rules/a/b-c.md", ".github/instructions/a-b-c.instructions.md")
+    other = tmp_path / ".claude/rules/a-b/c.md"
+    other.parent.mkdir(parents=True)
+    other.write_text("Other.\n", encoding="utf-8")
+    assert copilot.check(tmp_path) == 1
+    out = capsys.readouterr().out
+    assert "both map to .github/instructions/a-b-c.instructions.md" in out
+
+
+def test_nested_agent_folders_are_still_not_sources(tmp_path):
+    path = tmp_path / ".claude/agents/evals/notes.md"
+    path.parent.mkdir(parents=True)
+    path.write_text("Notes.\n", encoding="utf-8")
+    assert copilot.check(tmp_path) == 0
+
+
 def test_the_main_entry_point_takes_a_root(tmp_path, capsys):
     write_pair(tmp_path, "REVIEW.md", ".github/instructions/review.instructions.md")
     assert copilot.main([str(tmp_path)]) == 0
