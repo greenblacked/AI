@@ -128,7 +128,8 @@ closest definition winning a name collision. Claude picks one by matching the
 `@agent-plugin:name` for one a plugin ships. [Writing a subagent](writing-agents.md)
 covers when delegating beats doing the work inline.
 
-**`.claude/commands/*.md`.** One slash command per file, discovered automatically.
+**`.claude/commands/**/*.md`.** One slash command per file, discovered automatically, subfolders included; a nested
+command's Copilot wrapper joins its path parts with `-`.
 `$ARGUMENTS` captures everything the caller typed, and `$0`, `$1` pick individual
 arguments out of it, zero-indexed. Every command in this repository declares
 `disable-model-invocation: true`, so it runs only when someone invokes it explicitly,

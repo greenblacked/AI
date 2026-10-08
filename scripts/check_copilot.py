@@ -19,11 +19,11 @@ Each source maps to one wrapper by name:
 
 Rules and commands are found recursively, because Claude Code discovers both in
 subdirectories; a nested file skipped here would be a source with no wrapper and no error.
-Two sources that map to the same wrapper name (`a/b-c.md` and `a-b/c.md`) fail rather than
-share a wrapper. `.claude/agents/` is not recursive: its subfolders hold benchmark cases and
-eval sets, not agents.
+Two sources that map to the same wrapper name (`a/b-c.md` and `a-b/c.md`, or a rule named
+`review.md` beside `REVIEW.md`) fail rather than share a wrapper. `.claude/agents/` is not
+recursive: its subfolders hold benchmark cases and eval sets, not agents.
 
-and the first line of a wrapper's body, right after its front matter, is a comment naming
+The first line of a wrapper's body, right after its front matter, is a comment naming
 the source and the SHA-256 of the source's bytes:
 
     <!-- source: .claude/rules/skills.md sha256: <64 hex characters> -->
@@ -81,15 +81,33 @@ def sha256_of(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def expected_pairs(root: Path, collisions: list[str] | None = None) -> dict[Path, Path]:
+def expected_pairs(
+    root: Path, collisions: list[tuple[Path, str]] | None = None
+) -> dict[Path, Path]:
     """Every source that must have a wrapper, mapped to the wrapper it must have.
 
     A nested source joins its relative path parts with "-" for the wrapper name. Sources
-    that land on one wrapper are reported in `collisions` (when given) and only the first
-    is kept, so the report names the clash instead of one wrapper silently serving two.
+    that land on one wrapper are reported in `collisions` as (skipped source, message) when
+    given, and only the first is kept, so the report names the clash instead of one
+    wrapper silently serving two.
     """
     pairs: dict[Path, Path] = {}
     claimed: dict[Path, Path] = {}
+
+    def claim(source: Path, wrapper: Path) -> None:
+        if wrapper in claimed:
+            if collisions is not None:
+                collisions.append(
+                    (
+                        source,
+                        f"{source.as_posix()} and {claimed[wrapper].as_posix()} both map to "
+                        f"{wrapper.as_posix()}; rename one so each source has its own wrapper",
+                    )
+                )
+            return
+        claimed[wrapper] = source
+        pairs[source] = wrapper
+
     for source_dir, suffix, wrapper_dir, wrapper_suffix, recursive in RULES:
         folder = root / source_dir
         if not folder.is_dir():
@@ -97,19 +115,12 @@ def expected_pairs(root: Path, collisions: list[str] | None = None) -> dict[Path
         found = folder.rglob(f"*{suffix}") if recursive else folder.glob(f"*{suffix}")
         for source in sorted(path for path in found if path.is_file()):
             relative = source.relative_to(folder).with_suffix("")
-            wrapper = wrapper_dir / ("-".join(relative.parts) + wrapper_suffix)
-            if wrapper in claimed:
-                if collisions is not None:
-                    collisions.append(
-                        f"{(source_dir / source.relative_to(folder)).as_posix()} and "
-                        f"{claimed[wrapper].as_posix()} both map to {wrapper.as_posix()}; "
-                        "rename one so each source has its own wrapper"
-                    )
-                continue
-            claimed[wrapper] = source_dir / source.relative_to(folder)
-            pairs[claimed[wrapper]] = wrapper
+            claim(
+                source_dir / source.relative_to(folder),
+                wrapper_dir / ("-".join(relative.parts) + wrapper_suffix),
+            )
     if (root / REVIEW_SOURCE).is_file():
-        pairs[REVIEW_SOURCE] = REVIEW_WRAPPER
+        claim(REVIEW_SOURCE, REVIEW_WRAPPER)
     return pairs
 
 
@@ -162,10 +173,10 @@ def check(root: Path) -> int:
         problems.append(message)
         print(f"::error file={path.as_posix()}::{message}")
 
-    collisions: list[str] = []
+    collisions: list[tuple[Path, str]] = []
     pairs = expected_pairs(root, collisions)
-    for message in collisions:
-        fail(Path(".claude"), message)
+    for skipped, message in collisions:
+        fail(skipped, message)
     by_wrapper = {wrapper: source for source, wrapper in pairs.items()}
 
     for source, wrapper in sorted(pairs.items()):

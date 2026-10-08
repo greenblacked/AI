@@ -241,6 +241,15 @@ def test_two_sources_mapping_to_one_wrapper_fail(tmp_path, capsys):
     assert "both map to .github/instructions/a-b-c.instructions.md" in out
 
 
+def test_review_md_colliding_with_a_review_rule_fails(tmp_path, capsys):
+    write_pair(tmp_path, ".claude/rules/review.md", ".github/instructions/review.instructions.md")
+    (tmp_path / "REVIEW.md").write_text("Review.\n", encoding="utf-8")
+    assert copilot.check(tmp_path) == 1
+    out = capsys.readouterr().out
+    assert "REVIEW.md and .claude/rules/review.md both map to" in out
+    assert "::error file=REVIEW.md::" in out
+
+
 def test_nested_agent_folders_are_still_not_sources(tmp_path):
     path = tmp_path / ".claude/agents/evals/notes.md"
     path.parent.mkdir(parents=True)
