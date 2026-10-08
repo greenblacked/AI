@@ -17,7 +17,7 @@ A development effort is finished when each stage's gate was passed or consciousl
 | **Frame** | What problem, for whom, what "done" means, and the smallest valuable slice | A one-page frame: problem, users, success criteria, slice, out of scope | `framer` |
 | **Architect** | The approach, the boundaries, the interfaces, and the recorded decision | A short design note and the ADR | `architect` |
 | **Make** | The order the slice is built in, and the proof each step carries | An ordered, file-level change plan | `maker` |
-| **Inspect** | Whether the change is correct, safe and accessible | Findings by severity, with evidence | `inspector` |
+| **Inspect** | Whether the change meets its frame, and is safe and accessible | What holds and what fails, with evidence | `inspector`, and `code-review` for the diff |
 | **Launch** | Whether the change is ready to reach users, and how it comes back | A launch plan: migration, monitoring, rollback | `launcher` |
 | **Yield** | What the outcome teaches the next slice | A short retro feeding Frame | `yielder` |
 

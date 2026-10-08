@@ -529,7 +529,7 @@ that can apply is not a reviewer.
 | `framer` | `family` | A vague request and any known constraints | A frame: problem, users, success criterion, smallest slice, out of scope |
 | `architect` | `family` | A frame and the surrounding architecture | The approach, boundaries, interfaces, failure modes and the hard-to-reverse decision |
 | `maker` | `family` | A frame, an architecture note and the files a change touches | An ordered, file-level change plan with a proof per step, or the divergence from it |
-| `inspector` | `family` | A change, its frame and the commands to run | Findings by severity with evidence, and what was not assessed |
+| `inspector` | `family` | A change, its frame and the commands to run | What holds and what fails against the frame, with evidence, and what was not assessed |
 | `launcher` | `family` | An inspected change and its deployment target | A launch plan — path, migration, signal, rollback — or the gaps blocking it |
 | `yielder` | `family` | A slice's outcome and its success criterion | A retro: what was measured, what to keep, what to change, and the next slice |
 

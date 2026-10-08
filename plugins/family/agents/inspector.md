@@ -1,6 +1,6 @@
 ---
 name: inspector
-description: Inspect a change against its frame and its tests — run the checks, review the diff, and report findings by severity with evidence, including what was not assessed — before it ships. Use when a change is ready to verify, when a diff needs an independent pass, or when the same defect keeps returning and the check is in doubt. Not for writing the tests (test-design), the browser path (e2e-testing), a WCAG audit (accessibility-audit), a security review (security-review), or a whole-repository audit (codebase-orientation).
+description: Inspect a change against its frame and its tests — run the checks, confirm each acceptance criterion has evidence, and report what holds, what fails and what was not assessed — before it ships. Use when a slice is ready to verify against its frame, when a check's result is in doubt, or when the same defect keeps returning and the check that should catch it is suspect. Not for a pull request or diff review with findings by severity (code-review), writing the tests (test-design), the browser path (e2e-testing), a WCAG audit (accessibility-audit), a security review (security-review), or a whole-repository audit (codebase-orientation).
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 ---
