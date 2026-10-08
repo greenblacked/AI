@@ -55,6 +55,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | --- | --- |
 | `AGENTS.md` | This file: the rules, in the form Codex and Gemini CLI read too |
 | `CLAUDE.md` | The `@AGENTS.md` import plus the five notes that are only true of Claude Code |
+| `.github/copilot-instructions.md`, `.github/instructions/`, `.github/agents/`, `.github/prompts/` | GitHub Copilot's version of this setup. The first is a short repo-wide file that points to this file and `CONTRIBUTING.md` first, then lists the gates and the owner's standing rules that Copilot's reviewer may not reach by following links. The rest are thin wrappers, each opening with `<!-- source: <path> sha256: <hash> -->`: `instructions/` mirrors `.claude/rules/*.md` and `REVIEW.md`, `agents/` mirrors `.claude/agents/*.md`, `prompts/` mirrors `.claude/commands/*.md`. `scripts/check_copilot.py` fails on a source with no wrapper, a wrapper pointing nowhere, or a hash that no longer matches its source; after editing a source, carry the change into its wrapper, take the new hash with `sha256sum <source>` and put it in the comment. The plugins' skills are not duplicated for Copilot; install the plugins |
 | `REVIEW.md` | Review-only instructions for Claude Code's managed GitHub code review: this repository's severity redefinition, skip rules and nit cap; points back to `AGENTS.md`'s Review guidelines for triggers and comment format rather than repeating them |
 | `.claude/rules/` | Path-scoped rules loaded when a file matching the glob is read; `docs/project-structure.md` explains when each fires |
 | `.claude/settings.json` | The `PostToolUse` hook registration, checked by `scripts/check_settings.py`; nothing else yet |
@@ -83,7 +84,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `cut-release.yml`, `release.yml`, `deploy.yml`, `ci-triage.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
 | `providers.json` | Which AI tools read `AGENTS.md` and load skills, with sources and a checked date; `scripts/providers_table.py` renders it into the README |
-| `scripts/` | Packaging (`package_skills.py`, `verify_archives.py`), install, the eval harness, the portable export, cutting a release (`release.py`), and the eight catalogue checks |
+| `scripts/` | Packaging (`package_skills.py`, `verify_archives.py`), install, the eval harness, the portable export, cutting a release (`release.py`), and the nine catalogue checks |
 | `scripts/hooks/` | The `PostToolUse` hook `.claude/settings.json` registers, which validates a skill, subagent, command or rule as it is written |
 
 ## Setup commands
@@ -95,7 +96,7 @@ needs anything installed.
 ```bash
 python -m pip install pytest pytest-xdist pytest-cov  # only for `make test` and `make coverage`
 make validate                  # every skill, subagent and the marketplace manifest
-make catalogue                 # listing ceilings, the README, shell blocks, the hook, providers
+make catalogue                 # listing ceilings, the README, shell blocks, the hook, Copilot wrappers, providers
 make test                      # the validator's own test suite
 make coverage                  # the same, failing below the floor in pyproject.toml
 make package                   # build a .skill archive per skill into dist/
@@ -110,13 +111,14 @@ make release VERSION=x.y.z          # on main, after that PR merges: tag the rel
 three before finishing; a change to `rules.py` that does not also change `tests/` is
 almost always missing a case.
 
-`make catalogue` is the eight checks on what the repository claims about itself: the
+`make catalogue` is the nine checks on what the repository claims about itself: the
 listing ceilings, the README against the tree, `docs/ci.md` against the jobs the
 workflows actually define, that each workflow's aggregate names every job in it and each
 pinned version means one thing, that the Makefile still wraps the same commands CI runs,
 that every shell block and shipped script parses, that the hook `.claude/settings.json`
-registers points at a script that exists and can run, and that the README's table of AI
-tools is what `providers.json` renders to. Edit that file rather than the table and run
+registers points at a script that exists and can run, that each Copilot wrapper under
+`.github/` still matches the `.claude/` file or `REVIEW.md` it mirrors, and that the README's
+table of AI tools is what `providers.json` renders to. Edit that file rather than the table and run
 `make providers`; a row not re-checked within `stale_after_days` warns without failing.
 Adding a skill pushes its plugin's listing past the ceiling in `listing-budget.json`,
 on purpose: past the runtime's budget the descriptions of a plugin's least-used skills

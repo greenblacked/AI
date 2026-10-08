@@ -341,6 +341,14 @@ jobs:
         run: |
           set -Eeuo pipefail
           python scripts/check_settings.py .
+      - name: The Copilot wrappers still match the files they mirror
+        # `.github/instructions/`, `.github/agents/` and `.github/prompts/` restate the
+        # rules in `.claude/` and `REVIEW.md` inline, because Copilot's reviewer may not
+        # follow a link. A copy goes stale without any error, so each records the hash of
+        # the file it was written from and this fails when that file moves on.
+        run: |
+          set -Eeuo pipefail
+          python scripts/check_copilot.py .
       - name: The README's AI tools table matches providers.json
         # Every row is a claim about a third-party tool, kept as data with its sources
         # and the date it was checked, and the README carries only a rendering of it. A

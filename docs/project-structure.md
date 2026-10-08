@@ -109,6 +109,9 @@ This repository has four, each scoped to a path class whose gate fails expensive
 | `.claude/rules/skills.md` | `plugins/**/SKILL.md`, `plugins/**/evals/*.json` | The frontmatter contract and the eval floor, at the moment a skill is open |
 | `.claude/rules/agents.md` | `plugins/**/agents/*.md`, `.claude/agents/*.md` | The pairing rule and the key set, at the moment a subagent is open |
 
+Each rule, and `REVIEW.md`, is mirrored for Copilot under `.github/instructions/` and pinned by hash, so
+editing one fails `make catalogue` until its wrapper and hash are updated (`python3 scripts/check_copilot.py --help`).
+
 Each says `AGENTS.md` is the authority and restates only the part that applies to the
 file just opened. A rule that grows into a second copy of the contract is how the two
 start to disagree.

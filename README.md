@@ -548,7 +548,7 @@ dependency, including skipped jobs. See the [execution flow](docs/ci.md#executio
 
 ```bash
 make validate     # frontmatter contract, dangling references, marketplace cross-check
-make catalogue    # listing ceilings, the README and CI docs, workflows, shell, the hook, providers
+make catalogue    # listing ceilings, the README and CI docs, workflows, shell, the hook, Copilot wrappers, providers
 make test         # the validator's own test suite
 make coverage     # the same, with the coverage floor CI enforces
 make test-browser # drive the built site in Chromium (needs playwright)
@@ -613,6 +613,7 @@ skill that fires on everything.
 - [Writing a slash command](docs/writing-commands.md) — when a command beats a skill, and why most do not
 - [Review lessons](docs/review-lessons.md) — defect classes review on this repository has actually caught, read after `AGENTS.md` by the build and verify loops
 - [Review instructions](REVIEW.md) — severity redefined for Claude Code's managed GitHub code review, and what it skips; points back to `AGENTS.md`'s Review guidelines for the triggers and comment format
+- [Copilot instructions](.github/copilot-instructions.md) — short rules for GitHub Copilot, with path-scoped instructions, custom agents and prompts beside it that mirror `.claude/` and `REVIEW.md`; points to `AGENTS.md` first
 - [AGENTS.md](docs/agents-md.md) — the standard, and how it relates to `CLAUDE.md`
 - [CI](docs/ci.md) — what each check means and how to make it required
 - [Best practices](docs/best-practices.md) — CI, security, and branching and merging: the practice, why it matters, how this repository applies it, and what is not yet adopted

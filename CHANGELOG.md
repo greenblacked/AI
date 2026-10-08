@@ -10,6 +10,16 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add GitHub Copilot instructions, agents and prompts. `.github/copilot-instructions.md` is a
+  short file for Copilot chat, code review and the coding agent: it points to `AGENTS.md` and
+  `CONTRIBUTING.md` as the rules, lists the gates inline, and states the owner's standing rules
+  on attribution, branches, commits and merging. Beside it, `.github/instructions/` mirrors
+  `.claude/rules/` and `REVIEW.md` as path-scoped instructions, `.github/agents/` mirrors the
+  four `.claude/agents/` subagents, and `.github/prompts/` mirrors the six `.claude/commands/`.
+  Each wrapper records the hash of its source, and a new `scripts/check_copilot.py`, a new
+  check in `make catalogue` and the `check catalogue` job, fails when a source has no wrapper,
+  a wrapper points to nothing, or a source changed after its wrapper was written. The plugins'
+  skills are not duplicated for Copilot; install the plugins.
 - Test the catalogue site in a real browser. A new `test site in a browser` job builds
   the real catalogue, serves it locally and drives it in the Chrome the runner already
   ships: Back returns to the page you came from and never to another site, the bar and

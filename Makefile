@@ -25,7 +25,7 @@ help: ## Show this help
 validate: ## Validate every skill, subagent and the marketplace manifest
 	PYTHONPATH=src $(PYTHON) -m skillcheck . --strict
 
-catalogue: ## Check listing ceilings, README and CI drift, workflows, Makefile, shell, the hook, providers table
+catalogue: ## Check listing ceilings, README and CI drift, workflows, Makefile, shell, the hook, Copilot wrappers, providers table
 	@$(PYTHON) scripts/check_listing_budget.py .
 	@$(PYTHON) scripts/check_readme.py .
 	@$(PYTHON) scripts/check_ci_docs.py .
@@ -33,6 +33,7 @@ catalogue: ## Check listing ceilings, README and CI drift, workflows, Makefile, 
 	@$(PYTHON) scripts/check_makefile.py .
 	@$(PYTHON) scripts/check_shell.py .
 	@$(PYTHON) scripts/check_settings.py .
+	@$(PYTHON) scripts/check_copilot.py .
 	@$(PYTHON) scripts/providers_table.py .
 
 providers: ## Regenerate the README's AI tools table from providers.json
