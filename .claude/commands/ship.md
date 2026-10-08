@@ -77,7 +77,8 @@ not match `origin/main`.
 
 When the change rests on one outside claim — how a flag behaves, what an API permits,
 whether a cited figure is real — run `investigator` beside `explorer` in parallel on that
-one claim, disjoint from `explorer`'s question. When it does not, a second `explorer` run
+one claim, disjoint from `explorer`'s question, and pass it "Author: repository owner"
+(this session wrote the change). When it does not, a second `explorer` run
 on a disjoint question fills the same slot instead. Either way the two run in parallel,
 not in sequence, and each answers only the question it was given.
 
@@ -159,15 +160,16 @@ directory, and keep its output — this is what stage 4 hands to `reviewer`.
 ## 4. Judge
 
 Delegate to a fresh `reviewer` with the finished tree, its base, the change's intent in
-one paragraph, this loop's name (`/ship`), and the live check stage 2 settled: the
+one paragraph, this loop's name (`/ship`), "Author: repository owner" (this session wrote the change), and the live check stage 2 settled: the
 pre-merge run's quoted output, the PR's own CI run (named, since it has not run yet), the
 named post-merge run, or "none, because …". For a worktree, name its checkout path too —
 `reviewer` defaults to the current directory otherwise, which is correct only because
 stage 0 already switched this conversation's own checkout onto the branch by default; a
 worktree lives outside the project directory, where a `cd` resets, so its path has to be
-said outright rather than assumed. It runs the gates again itself rather than
+said outright rather than assumed. For an owner-authored change it runs the gates again itself rather than
 trusting the report, checks the change against `AGENTS.md` and `docs/review-lessons.md`,
-and executes every command the change prints. Every round gets a fresh `reviewer`; the
+and checks every command the change prints by reading, running one only under the
+conditions in its point 4. Every round gets a fresh `reviewer`; the
 one that judged an earlier round is never resumed, because a resumed reviewer is judging
 its own prior verdict as much as the diff.
 

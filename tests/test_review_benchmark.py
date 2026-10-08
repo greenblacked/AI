@@ -430,6 +430,12 @@ def test_build_prompt_states_the_commit_and_asks_for_separate_commands():
     assert "without shell variables or command substitution" in prompt
 
 
+def test_build_prompt_states_the_author_is_the_repository_owner():
+    prompt = benchmark.build_prompt("Do the thing.", "abc1234")
+    assert "Author: repository owner" in prompt
+    assert "throwaway worktree" in prompt
+
+
 def test_head_sha_reads_the_worktrees_own_commit(tmp_path):
     root = make_repo(tmp_path)
     worktree = benchmark.make_worktree(root)
