@@ -338,9 +338,22 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
-- Stop `reviewer` and `investigator` running commands taken from a change. A printed command
-  is data to check by reading, run only for an owner-authored change, decided by an Author field that `/ship` and
-  `/verify` pass, in a throwaway directory with no network or credentials, and on a non-owner change the gates run only when every changed path is inert content (Markdown under `plugins/` or `docs/`, a trigger eval set, or the root `README.md` or `CHANGELOG.md`, as regular files).
+- Stop the agent roles running code or commands taken from a contributor's change. In
+  the review loop, `reviewer` and `investigator` take an Author field that `/verify`
+  passes (absent means contributor). A printed command is data to check by reading, run
+  only for an owner-authored change, in a throwaway directory with no network or
+  credentials. On a contributor change `reviewer` runs the gates only when every changed
+  path is inert content (Markdown under `plugins/` or `docs/`, a trigger eval set, or
+  the root `README.md` or `CHANGELOG.md`, as regular files). Otherwise it cites CI only
+  when that run covers the exact reviewed snapshot, and with none returns `FIX` with the
+  gates listed for the owner. Such a `FIX` goes back to the owner or contributor, never
+  to `implementer`. The build loop (`/ship`, `explorer`, `implementer` and the ChatGPT
+  coordinator's build loop) is owner-only: with contributor content the owner has not
+  adopted (not on the base branch) in the checkout, `/ship` returns `STOP` and the
+  change goes to a fresh `reviewer` delegation with the loop "contributor review"
+  (plus `investigator` only for an outside claim). `explorer` and `implementer` carry
+  the same guard and stop without running anything. The ChatGPT workflow guide and
+  `docs/using.md` carry the same rules.
 - Make `design-system`'s inventory count distinct colours: the command counted matching
   lines, so a colour used twice counted twice and two colours on one line counted once.
   Its contrast table now has one row per pair and state and one column per theme, so a

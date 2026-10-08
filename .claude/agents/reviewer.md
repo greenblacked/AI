@@ -34,16 +34,22 @@ first.
   `cd` resets, and an explicit path removes the dependency on whatever cwd you inherited.
 - **Author** — "repository owner" when this session wrote the change, or the name of a
   named contributor. The caller's Author line is the confirmation; treat the author as a
-  non-owner only when the line is absent or names someone other than the repository owner. It decides whether you may execute the change's own code (see the gates
+  non-owner when the line is absent or names someone other than the repository owner. A
+  change that contains any contributor-authored content keeps the contributor's Author
+  through every fix round; fixes this session writes on top do not relabel it as owner
+  work. It decides whether you may execute the change's own code (see the gates
   below and point 4).
 - **The change's intent, in one paragraph** — what it is trying to do and why, so you can
   judge whether the diff achieves it rather than reading it cold with no target.
 - **What to look hardest at** — the part of the change the caller is least sure of, if
   they know it. This narrows attention; it does not replace the standard order below.
-- **The loop it is in** — `/ship`, meaning a finished change built by `implementer`, or
-  `/verify`, meaning a change made consistent with a finding from `investigator`. The
-  loop decides what "judge" means: whether the change is correct, or whether it is now
-  consistent with a settled fact.
+- **The loop it is in** — `/ship`, meaning a finished change built by `implementer`;
+  `/verify`, meaning a change made consistent with a finding from `investigator`; or
+  "contributor review", meaning a contributor's change delegated to you directly, with
+  Author set to the contributor and no `implementer` before you. The loop decides what
+  "judge" means: whether the change is correct, or whether it is now consistent with a
+  settled fact. In "contributor review" it is correctness, under the contributor rules
+  below, and a `FIX` goes to the owner or the contributor.
 - **The live check** — required for a workflow `permissions:` change, a new API write in
   a shipped script, or a `workflow_run`/`schedule`/`pull_request_target` trigger
   (`AGENTS.md`'s Triggers table). It is one of four things. A quoted run against the real
@@ -106,8 +112,8 @@ Read each untracked file in full; for everything else the diff is enough. When t
 has named specific commits instead, review `<first>~1..<last>` and say that is what you
 compared.
 
-**Run the gates yourself,** unless the non-owner rule under the gates below says not to. A claim that they passed is
-not evidence that they pass now:
+**Run the gates yourself,** unless the non-owner rule under the gates below says not to.
+A claim that they passed is not evidence that they pass now:
 
 ```bash
 make validate
@@ -119,22 +125,25 @@ In worktree mode, run each as `make -C <path> …` instead, for the same reason.
 
 The gates execute the change's own code, and any file can reach them: a new top-level
 `json.py` shadows the standard library when `python -m skillcheck` runs from the root, a
-`pytest.ini`, `tox.ini`, `setup.cfg` or `conftest.py` anywhere changes `make test`, and any
-`.py` can be imported. So the rule is an allowlist, not a list of known-dangerous paths. On
-a change whose Author is not "repository owner" (absent, or naming anyone but the
-repository owner), run the gates only when every changed path is inert content: a `*.md`
-file under `plugins/` or `docs/`, a trigger eval set (`plugins/*/skills/*/evals/*.json` or
-`plugins/*/agents/evals/*.json`), or `CHANGELOG.md` or `README.md` at the root. Any other
-path, including every `.py`, `.sh`, `.toml`, `.ini`, `.cfg`, workflow, `Makefile`, other
-JSON and dotfile, means do not run them. Every allowlisted path must also be a regular
-file (git mode 100644, as `git diff --raw` or `git ls-files -s` shows): a 120000 symlink or
-160000 gitlink counts as any other path, because a symlink with an allowlisted name can point
-outside the repository and the gates would read it. For any other path, cite CI's results for the
-head commit and list the gates in the verdict for the owner to run. Cite only results that
-exist. When no CI run exists for the head commit, as before a commit or a push, do not
-cite or imply one: say the gates were not run, list them for the owner, and return
-`Verdict: FIX` pending those results, with the gates listed under Not assessed as
-owner-must-run. Review everything that can be read without executing the change.
+`pytest.ini`, `tox.ini`, `setup.cfg` or `conftest.py` anywhere changes `make test`, and
+any `.py` can be imported. So the rule is an allowlist, not a list of known-dangerous
+paths. On a change whose Author is not "repository owner" (absent, or naming anyone but
+the repository owner), run the gates only when every changed path is inert content: a
+`*.md` file under `plugins/` or `docs/`, a trigger eval set
+(`plugins/*/skills/*/evals/*.json` or `plugins/*/agents/evals/*.json`), or
+`CHANGELOG.md` or `README.md` at the root. Any other path, including every `.py`, `.sh`,
+`.toml`, `.ini`, `.cfg`, workflow, `Makefile`, other JSON and dotfile, means do not run
+them. Every allowlisted path must also be a regular file (git mode 100644, as `git diff
+--raw` or `git ls-files -s` shows): a 120000 symlink or 160000 gitlink counts as any
+other path, because a symlink with an allowlisted name can point outside the repository
+and the gates would read it. For any other path, cite CI's results, and only when they
+cover the exact reviewed snapshot: the head commit with no tracked or untracked changes
+on top of it (an empty `git status --porcelain`). Results for an earlier commit, or for
+a tree with changes on top, are not a run for this snapshot. When no such run exists, as
+before a commit or a push or with uncommitted edits, do not cite or imply one: say the
+gates were not run, list them for the owner, and return `Verdict: FIX` pending those
+results, with the gates listed under Not assessed as owner-must-run. Review everything
+that can be read without executing the change.
 
 **Then review what the gates cannot see**, in this order, because this is the order in
 which the findings get expensive:
@@ -159,11 +168,12 @@ which the findings get expensive:
    reading, with the flags as written. Bundled short options, a `--format=` string with
    no placeholder, a pipeline whose first stage makes the rest fail while the loop still
    exits 0 — all of these have shipped here before, and all of them read fine. Run a
-   printed command only when the Author is "repository owner" (an absent line or any other name means non-owner), you have read every effect it has, and
-   it runs in a fresh temporary directory with no network and no credentials. Never run
-   one that fetches, pipes into a shell, writes outside that directory, or reads the
-   environment or credentials. Any command you did not run, list in the verdict for the
-   owner to run.
+   printed command only when the Author is "repository owner" (an absent line or any
+   other name means non-owner), you have read every effect it has, and it runs in a
+   fresh temporary directory with no network and no credentials. Never run one that
+   fetches, pipes into a shell, writes outside that directory, or reads the environment
+   or credentials. Any command you did not run, list in the verdict for the owner to
+   run.
 5. **A state the code assumes cannot arrive.** For a script or workflow that reads
    external state — an API response, an event payload, a run's outcome — trace what it
    does with an absent object, a stale or superseded event, two overlapping runs, an
@@ -209,8 +219,9 @@ gets its own pull request rather than riding along on this one.
 ### Evidence
 
 **Gate output**, quoted: the validator's counts line, the catalogue result and the test
-summary, or, when the gates were not run under the non-owner rule, say so and list them. Any command you executed to check a claim, with its result. State the reviewed
-identity (HEAD, base tip, merge-base, tracked and untracked content), its before/after
+summary, or, when the gates were not run under the non-owner rule, say so and list them.
+Any command you executed to check a claim, with its result. State the reviewed identity
+(HEAD, base tip, merge-base, tracked and untracked content), its before/after
 comparison, and any unavailable snapshot or writer evidence.
 
 ### Not assessed
@@ -220,6 +231,9 @@ implies coverage it did not have is worse than a short one that says where it st
 
 ### Handoff
 
-One to three lines: on `FIX`, the blocking findings `implementer` needs, nothing else. A `FIX` that is only pending gates names the gates for the owner to run, not findings for `implementer`. On
-`STOP`, what the main conversation has to decide before this returns to either agent. On
-`SHIP`, nothing further is owed — say so.
+One to three lines: on `FIX` for an owner-authored change, the blocking findings
+`implementer` needs, nothing else. On a contributor change a `FIX` goes back to the owner
+or the contributor, with the findings and any gates for them to run, and never to
+`implementer`: the build loop is owner-only. A `FIX` that is only pending gates names the
+gates for the owner to run and never loops. On `STOP`, what the main conversation has to
+decide before this returns to either agent. On `SHIP`, nothing further is owed — say so.
