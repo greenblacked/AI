@@ -185,6 +185,7 @@ BACK = '<a class="back" href="{}" data-back>' + site.BACK_ICON + "<span>Back</sp
     [
         ("plugins/engineering/index.html", "/"),
         ("plugins/engineering/alpha/index.html", "/plugins/engineering/"),
+        ("family/index.html", "/"),
         ("start/index.html", "/"),
         ("workflows/index.html", "/"),
         ("examples/index.html", "/"),
@@ -230,6 +231,7 @@ TO_TOP = (
         ("index.html", None),
         ("plugins/engineering/index.html", "/"),
         ("plugins/engineering/alpha/index.html", "/plugins/engineering/"),
+        ("family/index.html", "/"),
         ("start/index.html", "/"),
         ("quality/index.html", "/"),
         ("404.html", "/"),
@@ -263,6 +265,7 @@ def test_every_page_is_written_beside_the_archives(mini_repo, tmp_path):
     for path in (
         "index.html",
         "404.html",
+        "family/index.html",
         "start/index.html",
         "workflows/index.html",
         "examples/index.html",
@@ -295,7 +298,14 @@ def test_navigation_is_root_relative_and_marks_the_current_page(mini_repo, tmp_p
     output = _build(mini_repo, tmp_path)
     start = (output / "start" / "index.html").read_text(encoding="utf-8")
     footer = start.split('<footer class="site-footer">', 1)[1]
-    for href in ("/start/", "/workflows/", "/examples/", "/quality/", "/portable-skills.zip"):
+    for href in (
+        "/family/",
+        "/start/",
+        "/workflows/",
+        "/examples/",
+        "/quality/",
+        "/portable-skills.zip",
+    ):
         assert f'href="{href}"' in footer
     assert 'href="/marketplace.json"' in footer
     assert 'href="portable-skills.zip"' not in start and 'href="marketplace.json"' not in start
@@ -325,6 +335,20 @@ def test_navigation_is_root_relative_and_marks_the_current_page(mini_repo, tmp_p
     # The 404 is served from any path, so its links cannot be relative either.
     missing = (output / "404.html").read_text(encoding="utf-8")
     assert 'href="/start/"' in missing and 'href="portable-skills.zip"' not in missing
+
+
+def test_the_family_page_is_hand_drawn_with_the_stages_and_profiles(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    page = (output / "family" / "index.html").read_text(encoding="utf-8")
+    # The one page not generated from a plugin's own files: a stage timeline and cards.
+    assert 'class="family-stages"' in page and 'class="family-profiles"' in page
+    for letter, name, _ in site.FAMILY_STAGES:
+        assert f">{letter}</span>" in page and f"<h3>{name}</h3>" in page
+    for name, _ in site.FAMILY_PROFILES:
+        assert f"<h3>{name}</h3>" in page
+    assert "/plugin install family@mini" in page
+    assert 'href="/family/" aria-current="page"' in page
+    assert BACK.format("/") in page
 
 
 def test_a_skill_page_shows_the_skill_and_neutralises_hostile_content(mini_repo, tmp_path):
@@ -601,8 +625,9 @@ def test_the_real_repository_builds_every_page_and_renders_every_markdown_source
     pages = sorted(output.rglob("index.html"))
     skills = list((REPO / "plugins").glob("*/skills/*/SKILL.md"))
     plugins = list((REPO / "plugins").glob("*/skills"))
-    # The index, start, workflows, examples and quality; then a page per plugin and skill.
-    assert len(pages) == len(skills) + len(plugins) + 5
+    # The index, family, start, workflows, examples and quality; then a page per plugin
+    # and skill.
+    assert len(pages) == len(skills) + len(plugins) + 6
     for page in pages:
         text = page.read_text(encoding="utf-8")
         assert _live_tags(text) <= SAFE_TAGS, page

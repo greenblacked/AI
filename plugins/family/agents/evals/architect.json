@@ -1,0 +1,22 @@
+[
+  {"query": "what architecture should we use for this service", "should_trigger": true},
+  {"query": "propose the approach for this slice before we build", "should_trigger": true},
+  {"query": "what are the boundaries of this change", "should_trigger": true},
+  {"query": "which interfaces does this need and where do they go", "should_trigger": true},
+  {"query": "what's the hardest decision to reverse here", "should_trigger": true},
+  {"query": "compare two approaches for this feature and recommend one", "should_trigger": true},
+  {"query": "what failure modes should we design for", "should_trigger": true},
+  {"query": "document the trade-offs of this design choice", "should_trigger": true},
+  {"query": "how should this integrate with the existing system", "should_trigger": true},
+  {"query": "what will this change own versus not own", "should_trigger": true},
+  {"query": "write the ADR for the database choice", "should_trigger": false, "expected": "decision-record"},
+  {"query": "design the REST API for the service", "should_trigger": false, "expected": "api-design"},
+  {"query": "design the database schema", "should_trigger": false, "expected": "schema-design"},
+  {"query": "do a threat model for this service", "should_trigger": false, "expected": "threat-model"},
+  {"query": "review the terraform plan", "should_trigger": false, "expected": "iac-review"},
+  {"query": "frame this problem before we design", "should_trigger": false, "expected": "framer"},
+  {"query": "order the build steps for this slice", "should_trigger": false, "expected": "maker"},
+  {"query": "inspect this change before it ships", "should_trigger": false, "expected": "inspector"},
+  {"query": "plan the release for this change", "should_trigger": false, "expected": "launcher"},
+  {"query": "write the retro for the last slice", "should_trigger": false, "expected": "yielder"}
+]
