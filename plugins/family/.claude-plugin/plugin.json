@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "family",
+  "description": "One development workflow, from a vague request to a measured outcome: Frame, Architect, Make, Inspect, Launch and Yield, at the depth a solo developer, a developer, a QA engineer or a whole team needs, with a subagent for each stage.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "workflow",
+    "lifecycle",
+    "team",
+    "qa",
+    "process",
+    "delivery"
+  ]
+}
