@@ -1,6 +1,6 @@
 ---
 name: content-design
-description: "Write and review the words in an interface — button and link labels, error and empty-state messages, confirmation and loading copy, and the tone that holds across a flow. Covers plain language, the action named in the label, error messages that say what happened and what to do, and a voice that stays consistent while the tone shifts by moment. Use this skill whenever someone is writing or reviewing UI copy. Triggers include writing microcopy, fixing a confusing label or an unhelpful error, naming a button, rewriting an empty state, setting a tone of voice, or a UX writing pass over a flow — including phrasings like \"the button just says Submit\", \"our error messages are useless\", or \"how should we word this\". Do not use it for product documentation and guides (technical-docs), a whole-screen usability review (ui-ux-review), a WCAG audit (accessibility-audit), or marketing and brand copy."
+description: "Write and review the words in an interface — button and link labels, error and empty-state messages, confirmation and loading copy, and the tone that holds across a flow. Covers plain language, the action named in the label, error messages that say what happened and what to do, and one voice whose tone shifts by moment. Use this skill whenever someone is writing or reviewing UI copy. Triggers include writing microcopy, fixing a vague label or unhelpful error, naming a button, rewriting an empty state, setting a tone of voice, or a UX writing pass over a flow — or phrasings like \"the button just says Submit\", \"our error messages are useless\", or \"how should we word this\". Do not use it for product documentation and guides (technical-docs), a whole-screen usability review (ui-ux-review), a WCAG audit (accessibility-audit), a PR or diff review (code-review), or marketing and brand copy."
 allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
@@ -39,9 +39,11 @@ An error has three jobs: say what went wrong, in plain terms; say why, if the us
 
 ```text
 What happened:  Your card was declined.
-Why (if useful): Your bank declined the charge — this often means the billing address did not match.
-What to do:     Check the address and try again, or use a different card.
+Why (if known): Your bank didn't approve the payment.
+What to do:     Try a different card, or contact your bank to approve it.
 ```
+
+Give a cause only when the system knows it. A generic decline has no known reason, so naming one, such as a billing address mismatch, sends people round a retry that cannot work; mention the address only when the processor reports that check failed.
 
 Field-level validation says the rule and the fix: "Enter a date in the past" beats "Invalid date". If the message could appear on any field, it is too generic to help.
 

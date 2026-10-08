@@ -18,6 +18,6 @@
   {"query": "build a settings page with a form that saves preferences", "should_trigger": false, "expected": "code-scaffold"},
   {"query": "plan a usability test with five users on the new onboarding", "should_trigger": false, "expected": "usability-test-plan"},
   {"query": "review my PR that changes the button labels across the app", "should_trigger": false, "expected": "code-review"},
-  {"query": "write release notes for version 3 of our product", "should_trigger": false},
+  {"query": "write release notes for version 3 of our product", "should_trigger": false, "expected": "release-notes"},
   {"query": "is our error text colour contrast enough for WCAG AA", "should_trigger": false, "expected": "accessibility-audit"}
 ]
