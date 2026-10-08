@@ -7,7 +7,7 @@
 
 # Agent skills
 
-109 agent skills, 21 read-only subagents and eight slash commands, in nine
+112 agent skills, 21 read-only subagents and eight slash commands, in nine
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-109-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-112-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -58,7 +58,7 @@ and what the runtime does or does not enforce.
 | [`manager`](#manager) | Engineering leadership | 16 skills, 2 subagents, 2 commands |
 | [`personal`](#personal) | Money, travel, admin, habits and health | 7 skills, 2 subagents |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 5 skills |
-| [`design`](#design) | Usability, accessibility and design systems | 4 skills |
+| [`design`](#design) | Usability, accessibility and design systems | 7 skills |
 
 Install one plugin or all nine. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
@@ -138,7 +138,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.105 }
+{ "skillListingBudgetFraction": 0.108 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -447,12 +447,15 @@ Applications, negotiation, speaking and writing.
 
 ### Design
 
-Usability, accessibility and design systems.
+Usability, accessibility and design systems, and the words, structure and handoff around them.
 
 | Skill | What it does |
 | --- | --- |
 | [`accessibility-audit`](plugins/design/skills/accessibility-audit/SKILL.md) | Audit a page, flow or component against WCAG 2.2 Level AA: the automated tools first because they are cheap, then the manual pass they cannot do, with every finding tied to a success criterion, a severity and a fix. |
+| [`content-design`](plugins/design/skills/content-design/SKILL.md) | Write and review the words in an interface: every label naming the user's action, every error saying what happened and what to do, empty and loading states designed rather than left blank, and a voice that holds while the tone shifts by moment. |
+| [`design-handoff`](plugins/design/skills/design-handoff/SKILL.md) | Turn an approved design into a buildable spec: every state and edge case, content extremes, responsive behaviour, token and component mapping, accessibility annotations and acceptance criteria an engineer can check against. |
 | [`design-system`](plugins/design/skills/design-system/SKILL.md) | Set up design tokens named by role, themes that redefine the same roles, and component states derived from them, with a contrast check of every role pair in every theme and a rule for where glass materials belong. |
+| [`information-architecture`](plugins/design/skills/information-architecture/SKILL.md) | Structure a site or app so people can find things: sitemap, navigation, taxonomy and labels, and browse versus search, grouped by the user's mental model and tested with a card sort or tree test before build. |
 | [`ui-ux-review`](plugins/design/skills/ui-ux-review/SKILL.md) | Review one screen or flow against usability heuristics: evidence first, the primary task before polish, every interaction state walked, and each finding written as a problem, a consequence, the smallest fix and a severity from 0 to 4. |
 | [`usability-test-plan`](plugins/design/skills/usability-test-plan/SKILL.md) | Plan and run a small test with real people: a question tied to a decision, about five participants a round, neutral tasks, think-aloud, task success and SUS, and severity-rated fixes before the next round. |
 
