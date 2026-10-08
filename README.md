@@ -2,12 +2,12 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
-  <img alt="The nine plugins: coding, operations, delivery, security, gamedev, manager, personal, career and design" src="docs/assets/banner-light.svg" width="100%">
+  <img alt="The ten plugins: coding, operations, delivery, security, gamedev, manager, personal, career, design and family" src="docs/assets/banner-light.svg" width="100%">
 </picture>
 
 # Agent skills
 
-112 agent skills, 21 read-only subagents and eight slash commands, in nine
+113 agent skills, 27 read-only subagents and eight slash commands, in ten
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-112-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-113-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -59,15 +59,43 @@ and what the runtime does or does not enforce.
 | [`personal`](#personal) | Money, travel, admin, habits and health | 7 skills, 2 subagents |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 5 skills |
 | [`design`](#design) | Usability, accessibility and design systems | 7 skills |
+| [`family`](#family) | One development workflow, from a vague request to a measured outcome | 1 skill, 6 subagents |
 
-Install one plugin or all nine. Each is a self-contained directory under `plugins/` with
+Install one plugin or all ten. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
 
 Install what you will use, though, rather than everything by reflex. Every description you
 install stays resident in context, and Claude Code's default listing budget is about 8,000
 characters against this library's total — `make validate` prints the current figure — so
-installing all nine at the default drops most of them, silently. The Install section
+installing all ten at the default drops most of them, silently. The Install section
 below says what to set instead.
+
+## The FAMILY workflow
+
+FAMILY is a development workflow that keeps its shape whether one person or a whole team
+is running it: Frame, Architect, Make, Inspect, Launch, Yield. It takes one slice of work
+from a vague request to a measured outcome, and each stage has one gate, one artifact and
+one handoff to the next.
+
+| Letter | Stage | The decision it owns | Artifact |
+| --- | --- | --- | --- |
+| F | Frame | What problem, for whom, what done means, and the smallest valuable slice | A one-page frame |
+| A | Architect | The approach, the boundaries, the interfaces, and the hardest decision to reverse | A design note and the ADR |
+| M | Make | The order the slice is built in, and the proof each step carries | An ordered, file-level change plan |
+| I | Inspect | Whether the change is correct, safe and accessible | Findings by severity, with evidence |
+| L | Launch | Whether it is ready to reach users, and how it comes back | A launch plan: migration, signal, rollback |
+| Y | Yield | What the outcome teaches the next slice | A short retro that feeds Frame |
+
+The stages never change; their depth does. Four profiles set that depth — **solo**,
+**developer**, **QA** and **team** — and you name the one you are running, so a shortcut
+is a decision rather than an accident. A solo developer runs all six in an afternoon; a
+team of ten gives each stage a named owner and a handoff contract.
+
+The [`family`](#family) plugin ships the `family-workflow` skill and a read-only subagent
+per stage — `framer`, `architect`, `maker`, `inspector`, `launcher` and `yielder` — so the
+main conversation keeps the conclusion of each stage and not the material it read. It is
+also the one page on the [website](https://ai.szolotov.com/family/) drawn by hand rather
+than generated from a plugin's files.
 
 ## Website
 
@@ -77,9 +105,10 @@ if a deploy fails its check and rolls back, the previous one keeps serving.
 
 | Page | What it shows |
 | --- | --- |
-| [Home](https://ai.szolotov.com) | The nine plugins with their skill counts, and a search across plugins and skill names |
+| [Home](https://ai.szolotov.com) | The ten plugins with their skill counts, and a search across plugins and skill names |
 | `/plugins/<plugin>/` | One page per plugin: what it covers, its install line and its skills |
 | `/plugins/<plugin>/<skill>/` | One page per skill: its description, install line and allowed tools when it declares them, the full procedure, its reference files, and the requests it fires on and hands elsewhere |
+| [FAMILY](https://ai.szolotov.com/family/) | The one page that is not generated from a plugin's own files: the Frame–Architect–Make–Inspect–Launch–Yield workflow, drawn as a stage-by-stage guide with the four profiles |
 | [Start](https://ai.szolotov.com/start/) | Installing in Claude Code and in other tools, followed by [Using the skills](docs/using.md) |
 | [Workflows](https://ai.szolotov.com/workflows/) | The subagents and slash commands each plugin ships, and how they fit with the skills |
 | [Examples](https://ai.szolotov.com/examples/) | A week of real use, and sample requests for every skill |
@@ -127,7 +156,7 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`career`, `design` and `personal` fit the default budget on their own. The other six are over it —
+`career`, `design`, `family` and `personal` fit the default budget on their own. The other six are over it —
 each by enough that installed alone at least one of its descriptions is dropped — and the
 split exists to keep that number as small as it can be.
 
@@ -459,9 +488,17 @@ Usability, accessibility and design systems, and the words, structure and handof
 | [`ui-ux-review`](plugins/design/skills/ui-ux-review/SKILL.md) | Review one screen or flow against usability heuristics: evidence first, the primary task before polish, every interaction state walked, and each finding written as a problem, a consequence, the smallest fix and a severity from 0 to 4. |
 | [`usability-test-plan`](plugins/design/skills/usability-test-plan/SKILL.md) | Plan and run a small test with real people: a question tied to a decision, about five participants a round, neutral tasks, think-aloud, task success and SUS, and severity-rated fixes before the next round. |
 
+### Family
+
+One development workflow, from a vague request to a measured outcome, run at the depth a solo developer, a developer, a QA engineer or a whole team needs.
+
+| Skill | What it does |
+| --- | --- |
+| [`family-workflow`](plugins/family/skills/family-workflow/SKILL.md) | Run one slice through Frame, Architect, Make, Inspect, Launch and Yield, each with a gate, an artifact and a handoff, at the depth one of four profiles — solo, developer, QA or team — sets, routing the detail to the skill that owns it. |
+
 ## Subagents
 
-21 subagents ship across seven plugins. Each exists to keep bulk out of the main context
+27 subagents ship across eight plugins. Each exists to keep bulk out of the main context
 — the input is a log, a plan, a billing export, a contract, a pile of feedback, a release
 range, and the answer is short — and to be denied the tools it should not have. A reviewer
 that can apply is not a reviewer.
@@ -489,6 +526,12 @@ that can apply is not a reviewer.
 | `changelog-reader` | `delivery` | A release range of commits and PRs | Audience-sorted inventory, breaking changes flagged, noise collapsed |
 | `statement-reader` | `personal` | Bank, credit-card and digital-wallet transaction exports | Spending by category bucket, recurring charges, fees, transfers and anomalies |
 | `terms-reader` | `personal` | An insurance policy, tenancy, loan or subscription's terms | The renewal date, notice period, exit charges and exclusions, each quoted and located |
+| `framer` | `family` | A vague request and any known constraints | A frame: problem, users, success criterion, smallest slice, out of scope |
+| `architect` | `family` | A frame and the surrounding architecture | The approach, boundaries, interfaces, failure modes and the hard-to-reverse decision |
+| `maker` | `family` | A frame, an architecture note and the files a change touches | An ordered, file-level change plan with a proof per step, or the divergence from it |
+| `inspector` | `family` | A change, its frame and the commands to run | Findings by severity with evidence, and what was not assessed |
+| `launcher` | `family` | An inspected change and its deployment target | A launch plan — path, migration, signal, rollback — or the gaps blocking it |
+| `yielder` | `family` | A slice's outcome and its success criterion | A retro: what was measured, what to keep, what to change, and the next slice |
 
 Four more sit in [`.claude/agents/`](.claude/agents) and ship to nobody. They are for
 working on this repository, in two loops that share a judge.

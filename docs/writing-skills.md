@@ -18,7 +18,7 @@ plugins/<plugin>/skills/<name>/
 ```
 
 `<plugin>` is one of `coding`, `operations`, `delivery`, `security`, `gamedev`, `manager`,
-`personal`, `career` or `design` — the nine plugins in
+`personal`, `career` or `design` — the ten plugins in
 [the marketplace manifest](../.claude-plugin/marketplace.json). `<name>` is the skill
 name, and it must equal the `name` in the frontmatter.
 
@@ -218,8 +218,8 @@ decision gets made on both numbers rather than on the alarming one.
 
 This repository's descriptions add up to far more than the default budget — `make
 validate` prints the current per-plugin figures and the total they build up to — which is
-why they are split across nine plugins rather than three. Only `career`, `design` and
-`personal` fit the default budget on their own. `make validate`'s per-plugin line names
+why they are split across ten plugins rather than three. Only `career`, `design`, `family`
+and `personal` fit the default budget on their own. `make validate`'s per-plugin line names
 the rest and how far over each sits; the ones most likely to be installed together are the
 ones whose descriptions are most at risk of being dropped in a real session. Read that
 alongside the token

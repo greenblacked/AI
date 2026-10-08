@@ -97,7 +97,7 @@ Install the plugins you will actually use. Every description a plugin ships sits
 context for the whole session, and the runtime caps that listing at about 1% of the
 context window. Past the cap it drops the descriptions of the skills you invoke least,
 which leaves them invocable by name and stops them being chosen on their own — silently.
-Only `career`, `design` and `personal` fit the default budget by themselves. If you
+Only `career`, `design`, `family` and `personal` fit the default budget by themselves. If you
 install any of the other six, or more than one plugin, raise it in
 `~/.claude/settings.json`:
 
@@ -121,7 +121,7 @@ move when you know exactly what you want.
 
 ### Subagents
 
-21 ship across seven plugins, and they work differently: the main agent delegates to one
+27 ship across eight plugins, and they work differently: the main agent delegates to one
 when the work would otherwise flood your context with material you do not need afterwards.
 A megabyte of CI logs, a Terraform plan, a billing export, a release range. You get the
 conclusion; the raw material never enters your session.
