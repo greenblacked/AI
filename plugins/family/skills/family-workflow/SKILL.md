@@ -25,12 +25,12 @@ Read `references/stages.md` for each stage's gate, the questions it must answer,
 
 ## Choosing the depth: the four profiles
 
-The stages do not change; their depth does. Read `references/profiles.md` and pick the profile that matches who is doing the work.
+The stages do not change; their depth does. Read `references/profiles.md` to choose, then read the profile's own skill for how to run it.
 
-- **Solo** — one person, all six stages, lightweight. The agents act as independent checkers so a single head does not review its own work.
-- **Developer** — Frame, Architect, Make and Yield in depth; Inspect and Launch handed to a reviewer and a release owner.
-- **QA** — Inspect in depth, with acceptance criteria and testability pushed back into Frame and Architect.
-- **Team** — all six with named owners, a handoff contract between each, and a cadence that runs Yield on a schedule rather than when someone remembers.
+- **Solo** — one person, all six stages, lightweight. The agents act as independent checkers so a single head does not review its own work. Read `solo-development`.
+- **Developer** — Frame, Architect, Make and Yield in depth; Inspect and Launch handed to a reviewer and a release owner. Read `developer-workflow`.
+- **QA** — Inspect in depth, with acceptance criteria and testability pushed back into Frame and Architect. Read `qa-workflow`.
+- **Team** — all six with named owners, a handoff contract between each, and a cadence that runs Yield on a schedule rather than when someone remembers. Read `team-workflow`.
 
 ## Workflow
 
@@ -73,4 +73,5 @@ Yield is not optional. Every run ends by feeding its outcome back into Frame: wh
 ## References
 
 - `references/stages.md`: read at step 2 for each stage's gate, the questions it answers, the artifact, the agent, and the skills it hands detail to.
-- `references/profiles.md`: read at step 1 for the four profiles — solo, developer, QA and team — what each deepens, and the handoff each expects.
+- `references/profiles.md`: read at step 1 to choose among the four profiles — solo, developer, QA and team — and the skill each one routes to.
+- `solo-development`, `developer-workflow`, `qa-workflow`, `team-workflow`: read the one the profile names for its full procedure, gates and handoffs.

@@ -7,7 +7,7 @@
 
 # Agent skills
 
-113 agent skills, 27 read-only subagents and eight slash commands, in ten
+117 agent skills, 27 read-only subagents and eight slash commands, in ten
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-113-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-117-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -59,7 +59,7 @@ and what the runtime does or does not enforce.
 | [`personal`](#personal) | Money, travel, admin, habits and health | 7 skills, 2 subagents |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 5 skills |
 | [`design`](#design) | Usability, accessibility and design systems | 7 skills |
-| [`family`](#family) | One development workflow, from a vague request to a measured outcome | 1 skill, 6 subagents |
+| [`family`](#family) | One development workflow, from a vague request to a measured outcome | 5 skills, 6 subagents |
 
 Install one plugin or all ten. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
@@ -91,11 +91,13 @@ The stages never change; their depth does. Four profiles set that depth — **so
 is a decision rather than an accident. A solo developer runs all six in an afternoon; a
 team of ten gives each stage a named owner and a handoff contract.
 
-The [`family`](#family) plugin ships the `family-workflow` skill and a read-only subagent
-per stage — `framer`, `architect`, `maker`, `inspector`, `launcher` and `yielder` — so the
-main conversation keeps the conclusion of each stage and not the material it read. It is
-also the one page on the [website](https://ai.szolotov.com/family/) drawn by hand rather
-than generated from a plugin's files.
+The [`family`](#family) plugin ships the `family-workflow` skill, a skill for each of the
+four profiles — `solo-development`, `developer-workflow`, `qa-workflow` and `team-workflow`
+— and a read-only subagent per stage, `framer`, `architect`, `maker`, `inspector`,
+`launcher` and `yielder`, so the main conversation keeps the conclusion of each stage and
+not the material it read. It is also the one page on the
+[website](https://ai.szolotov.com/family/) drawn by hand rather than generated from a
+plugin's files.
 
 ## Website
 
@@ -167,7 +169,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.108 }
+{ "skillListingBudgetFraction": 0.112 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -495,6 +497,10 @@ One development workflow, from a vague request to a measured outcome, run at the
 | Skill | What it does |
 | --- | --- |
 | [`family-workflow`](plugins/family/skills/family-workflow/SKILL.md) | Run one slice through Frame, Architect, Make, Inspect, Launch and Yield, each with a gate, an artifact and a handoff, at the depth one of four profiles — solo, developer, QA or team — sets, routing the detail to the skill that owns it. |
+| [`solo-development`](plugins/family/skills/solo-development/SKILL.md) | Run all six stages as one person, with the stage agents as the independent checkers a solo developer otherwise lacks, and waive a gate only in writing. |
+| [`developer-workflow`](plugins/family/skills/developer-workflow/SKILL.md) | Own Frame, Architect, Make and Yield in depth, and hand Inspect and Launch to someone independent with the frame, the plan and the uncertainty. |
+| [`qa-workflow`](plugins/family/skills/qa-workflow/SKILL.md) | Own Inspect in depth, push testable acceptance criteria back into Frame and Architect, own the go/no-go before Launch, and turn a repeated defect into a Frame check. |
+| [`team-workflow`](plugins/family/skills/team-workflow/SKILL.md) | Run all six stages with a named owner and a handoff contract between each, make a stall visible as a missing artifact, and run Yield on a cadence. |
 
 ## Subagents
 
