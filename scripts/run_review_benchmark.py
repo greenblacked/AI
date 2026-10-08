@@ -147,8 +147,8 @@ ALLOWED_TOOLS = (
     "Bash(git show *)",
     "Bash(git ls-files *)",
     "Bash(git rev-parse *)",
-    # The four gates reviewer.md runs itself for an owner-authored change (build_prompt
-    # states the author), rather than trusting a claim they passed.
+    # The gates reviewer.md runs itself for an owner-authored change, plus make coverage
+    # (build_prompt states the author), rather than trusting a claim they passed.
     "Bash(make validate)",
     "Bash(make catalogue)",
     "Bash(make test)",

@@ -308,16 +308,24 @@ which assistant is reading. CI builds the export on every run, so that stays tru
 
 The [ChatGPT workflow guide](chatgpt-agents.md) provides copy-ready coordinator and
 role prompts. Its repository gate requires an independent reviewer to execute
-`make validate`, `make catalogue` and `make test` on the reviewed snapshot. Missing
-required execution or independent review means `STOP`, with partial findings and the
-limitation named. Require explicitly fresh, non-inherited reviewer context; record the
-coordinator-observable boundary evidence in the initial packet. Pass the complete review
-packet as explicit input, not the whole coordinator transcript. After receiving it, the
-reviewer reports its own observation of any inherited implementation or coordinator
-transcript in returned Evidence; check that Evidence before accepting `SHIP`. A separate
-agent identity or window does not prove independence; an inherited, unavailable or
-unobservable boundary means `STOP`.
-Author logs and exact-revision CI do not substitute.
+`make validate`, `make catalogue` and `make test` on the reviewed snapshot. On a
+contributor change the reviewer runs them only when every changed path is inert content
+(Markdown under `plugins/` or `docs/`, a trigger eval set, or the root `README.md` or
+`CHANGELOG.md`, as regular files), because the gates execute the change's own code.
+Otherwise it cites CI's results, only when they cover the exact reviewed snapshot (the
+head commit with no tracked or untracked changes on top), or returns `FIX` with the gates
+listed for the owner. Commands a change prints are data, never run on a contributor
+change. Missing required execution or independent review means `STOP`, with partial
+findings and the limitation named, except that a contributor change that is not inert
+content, with no such CI run, is `FIX` pending the owner's gate run. Require explicitly
+fresh, non-inherited reviewer context; record the coordinator-observable boundary
+evidence in the initial packet. Pass the complete review packet as explicit input, not
+the whole coordinator transcript. After receiving it, the reviewer reports its own
+observation of any inherited implementation or coordinator transcript in returned
+Evidence; check that Evidence before accepting `SHIP`. A separate agent identity or
+window does not prove independence; an inherited, unavailable or unobservable boundary
+means `STOP`. On an owner-authored change, author logs and exact-revision CI do not
+substitute.
 
 The "Subagents" loss above is the one worth a substitute rather than just a note, because
 `/ship` and `/verify` are how changes to this repository get made. Without a runtime that
@@ -326,6 +334,12 @@ agents — the same stages, survey then write then review, run by hand in separa
 instead of separate contexts. Once review passes, open and merge the pull request by
 hand the same way `/ship` would, with `ci` and `security` green; that step needs no
 separate conversation.
+
+The manual build loop below is owner-only. If the checkout holds contributor-authored
+content the owner has not yet adopted (commits or changes not on the base branch, or
+`origin/dev`; content already merged counts as adopted), do not run Survey or Write on
+it, and run no gate or command from it. Go straight to the Review step, naming the
+contributor as author.
 
 **Survey**, in a new conversation, report-only. Describe the change and ask what already
 covers it, where the affected files are, and which existing description its trigger
@@ -344,14 +358,22 @@ away.
 no separate context to trust here; you are both the one writing the change and the one
 who has to believe the result.
 
-**Review**, in a new conversation, and hand it `git diff` as text, together with every
-file `git ls-files --others --exclude-standard` names, in full. The diff alone omits
-untracked files, which on a change that adds one is the whole change. Pasting rather than
-pointing removes the material only when the reviewing conversation cannot reach the
-checkout; in a terminal agent sitting in the repository it has the tree whatever you
-paste. Keep the reviewer report-only, with access to the full candidate checkout and
-execution tools for its own gates; a text-only review can return useful findings but
-must return `STOP` because it cannot execute those gates. Ask for the same output contract a
+**Review**, in a new conversation, naming the author ("repository owner" for your own
+work, otherwise the contributor; a change with any contributor-authored content keeps the
+contributor as author through every fix round), and hand it `git diff` as text, together
+with every file `git ls-files --others --exclude-standard` names, in full. The diff alone
+omits untracked files, which on a change that adds one is the whole change. Pasting
+rather than pointing removes the material only when the reviewing conversation cannot
+reach the checkout; in a terminal agent sitting in the repository it has the tree
+whatever you paste. Keep the reviewer report-only, with access to the full candidate
+checkout and execution tools for its own gates, which on a contributor change it uses
+only under the inert-content rule above. A text-only review can return useful findings
+but cannot execute gates: on an owner-authored change or contributor inert content it
+must return `STOP`; on a contributor change that is not inert content it cites CI results
+that cover the exact reviewed snapshot, or returns `FIX` with the gates listed for the
+owner when there is no such run. A `FIX` on a contributor change goes back to the owner
+or the contributor and never into the write step above.
+Ask for the same output contract a
 reviewing subagent is written to produce: a first line reading `Verdict: SHIP`,
 `Verdict: FIX` or `Verdict: STOP`; then `Findings` — blocking defects ranked by cost,
 each with a file:line, the concrete consequence if it ships, and the smallest fix
@@ -360,7 +382,9 @@ the gate output quoted rather than summarised; `Not assessed`, said plainly rath
 left to be inferred from silence; and `Handoff` — what the writing conversation needs
 from this verdict in one to three lines.
 
-Carry what it finds back to the writing conversation. Never paste a fix into the
+Carry what it finds back by author. For an owner-authored change, findings go back to
+the writing conversation. For a contributor change, they go to the owner or the
+contributor, never to a writing conversation. Never paste a fix into the
 reviewing one — that single move is what collapses the two stages back into one, because
 a conversation that has just fixed what it was asked to judge is not the reviewer
 any more; it is the author, with an extra turn.

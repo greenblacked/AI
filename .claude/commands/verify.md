@@ -1,7 +1,7 @@
 ---
 description: Run a claim a change rests on through the verification loop — investigator settles it against primary sources and labels what it could not verify, reviewer judges whether the finding supports the change.
 argument-hint: '[the claim to check, for example "kubectl drain --force skips the grace period"]'
-allowed-tools: Agent(investigator), Agent(reviewer), Read, Grep, Glob, Bash(make:*), Bash(git status:*), Bash(git diff:*)
+allowed-tools: Agent(investigator), Agent(reviewer), Read, Grep, Glob, Bash(git status:*), Bash(git diff:*)
 disable-model-invocation: true
 ---
 
@@ -19,13 +19,19 @@ the same way `implementer` does in [`/ship`](ship.md) — settle both in this co
 before delegating, because that judgement travels badly through a cold prompt.
 
 From `investigator`: `DOES NOT HOLD`, `NARROWER` or `UNVERIFIED` means the change needs
-editing — take the finding to the files or to `implementer` rather than investigating
-again, then go to stage 2 with the edit; `HOLDS` goes to stage 2 directly. `UNVERIFIED` is
-a real result: report it as such, do not retry it. From `reviewer`: `FIX` returns the
-named findings to the files or to `implementer`; `STOP` comes to the user for a decision;
-`SHIP` ends the loop. There is no round limit, but the same finding recurring means the
-edit fixed a symptom rather than the premise — stop and address that before trying a
-third time. A report with no `Verdict:` line is a question, and comes back to this
+editing. For a change this session wrote, take the finding to the files or to
+`implementer` rather than investigating again, then go to stage 2 with the edit. For a
+contributor change, send the finding to the owner or the contributor and never to
+`implementer`, because the build loop is owner-only; stage 2 waits for their edit.
+`HOLDS` goes to stage 2 directly. `UNVERIFIED` is
+a real result: report it as such, do not retry it. From `reviewer`: `FIX` on a change
+this session wrote returns the named findings to the files or to `implementer`. `FIX` on
+a contributor change goes back to the owner or the contributor, with the findings and any
+gates for them to run, and never to `implementer`, because the build loop is owner-only.
+A `FIX` that only waits on gates names the gates for the owner and never loops. `STOP`
+comes to the user for a decision; `SHIP` ends the loop. There is no round limit, but the
+same finding recurring means the edit fixed a symptom rather than the premise — stop and
+address that before trying a third time. A report with no `Verdict:` line is a question, and comes back to this
 conversation.
 
 ## 1. Decide, then investigate
@@ -36,17 +42,19 @@ which lives in this conversation and travels badly through a cold prompt. This i
 same split [`/ship`](ship.md) makes when it keeps the shape of a change out of
 `implementer`.
 
-Then delegate to `investigator` with one claim and what rests on it, and "Author: repository owner" for a change this session wrote. It finds the source
-and reads it, prefers refuting to confirming, labels each finding primary, consensus or
-inference, and reports what it could not verify.
+Then delegate to `investigator` with one claim and what rests on it, and with the
+Author: "repository owner" for a change this session wrote, otherwise the contributor's
+name (contributor-authored content keeps the contributor's name through every fix
+round). It finds the source and reads it, prefers refuting to confirming, labels each
+finding primary, consensus or inference, and reports what it could not verify.
 
 Send one claim. Three gets you a finding about none of them.
 
 ## 2. Judge
 
-Delegate to `reviewer` on the change with the finding attached, and "Author: repository owner" for a change this session wrote. The question here is no
-longer whether the claim is true, because `investigator` settled that. It is whether the
-change is now consistent with what was found: whether the sentence that cited the claim
+Delegate to `reviewer` on the change with the finding attached and the same Author line.
+The question here is no longer whether the claim is true, because `investigator` settled
+that. It is whether the change is now consistent with what was found: whether the sentence that cited the claim
 says something the evidence actually supports, whether the paragraph built on it still
 stands once the premise narrowed, whether a figure softened to "roughly a third" is still
 doing the work the precise number was doing.
