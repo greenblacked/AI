@@ -339,7 +339,12 @@ The manual build loop below is owner-only. If the checkout holds contributor-aut
 content the owner has not yet adopted (commits or changes not on the base branch, or
 `origin/dev`; content already merged counts as adopted), do not run Survey or Write on
 it, and run no gate or command from it. Go straight to the Review step, naming the
-contributor as author.
+contributor as author. Run that review from a trusted checkout of the base branch, never
+the contributor's, because the tool reads `AGENTS.md`, agent files, settings and hooks
+from the checkout it opens. Fetch the contributor's head as a ref only (`git fetch
+origin +pull/<n>/head:refs/review/<n>`) and give the reviewer a base and that candidate
+ref to read with `git diff <base>...refs/review/<n>`, not a checked-out tree. If the
+session was opened inside a contributor checkout, stop and restart from a trusted one.
 
 **Survey**, in a new conversation, report-only. Describe the change and ask what already
 covers it, where the affected files are, and which existing description its trigger
@@ -359,28 +364,37 @@ no separate context to trust here; you are both the one writing the change and t
 who has to believe the result.
 
 **Review**, in a new conversation, naming the author ("repository owner" for your own
-work, otherwise the contributor; a change with any contributor-authored content keeps the
-contributor as author through every fix round), and hand it `git diff` as text, together
-with every file `git ls-files --others --exclude-standard` names, in full. The diff alone
-omits untracked files, which on a change that adds one is the whole change. Pasting
-rather than pointing removes the material only when the reviewing conversation cannot
-reach the checkout; in a terminal agent sitting in the repository it has the tree
-whatever you paste. Keep the reviewer report-only, with access to the full candidate
-checkout and execution tools for its own gates, which on a contributor change it uses
-only under the inert-content rule above. A text-only review can return useful findings
-but cannot execute gates: on an owner-authored change or contributor inert content it
-must return `STOP`; on a contributor change that is not inert content it cites CI results
-that cover the exact reviewed snapshot, or returns `FIX` with the gates listed for the
-owner when there is no such run. A `FIX` on a contributor change goes back to the owner
-or the contributor and never into the write step above.
-Ask for the same output contract a
-reviewing subagent is written to produce: a first line reading `Verdict: SHIP`,
-`Verdict: FIX` or `Verdict: STOP`; then `Findings` — blocking defects ranked by cost,
-each with a file:line, the concrete consequence if it ships, and the smallest fix
-described rather than written, with non-blocking improvements kept separate; `Evidence` —
-the gate output quoted rather than summarised; `Not assessed`, said plainly rather than
-left to be inferred from silence; and `Handoff` — what the writing conversation needs
-from this verdict in one to three lines.
+work, otherwise the contributor; a change with any contributor-authored content keeps
+the contributor as author through every fix round). For owner work, hand it `git diff`
+as text, together with every file `git ls-files --others --exclude-standard` names, in
+full. The diff alone omits untracked files, which on a change that adds one is the whole
+change. Pasting rather than pointing removes the material only when the reviewing
+conversation cannot reach the checkout; in a terminal agent sitting in the repository it
+has the tree whatever you paste. For a contributor change, hand it the trusted base
+checkout plus `git diff <base>...refs/review/<n>`; the candidate is checked out only in
+the throwaway gate worktree below. Keep the reviewer report-only, with execution tools
+for its own gates, which on a contributor change it uses only under the inert-content
+rule above, in this order: it decides inert-only from `git diff --raw
+<base>...refs/review/<n>`, then itself creates a detached worktree in a fresh directory
+outside the project and runs the gates there and removes it, all in one Bash call because the tool keeps no
+shell variables between calls: `tmp=$(mktemp -d) && git worktree add --detach "$tmp/wt"
+refs/review/<n> && make -C "$tmp/wt" validate catalogue test; rc=$?; git worktree remove
+--force "$tmp/wt"; rmdir "$tmp"; exit $rc`. It never reads files inside that worktree, because a
+contributor-added `docs/CLAUDE.md` there would load as instructions; contents come from
+`git show refs/review/<n>:<path>`. A
+text-only review can return useful findings but cannot execute gates: on an
+owner-authored change or contributor inert content it must return `STOP`; on a
+contributor change that is not inert content it cites CI results that cover the exact
+reviewed snapshot, or returns `FIX` with the gates listed for the owner when there is no
+such run. A `FIX` on a contributor change goes back to the owner or the contributor and
+never into the write step above. Ask for the same output contract a reviewing subagent
+is written to produce: a first line reading `Verdict: SHIP`, `Verdict: FIX` or `Verdict:
+STOP`; then `Findings` — blocking defects ranked by cost, each with a file:line, the
+concrete consequence if it ships, and the smallest fix described rather than written,
+with non-blocking improvements kept separate; `Evidence` — the gate output quoted rather
+than summarised; `Not assessed`, said plainly rather than left to be inferred from
+silence; and `Handoff` — what the writing conversation needs from this verdict in one to
+three lines.
 
 Carry what it finds back by author. For an owner-authored change, findings go back to
 the writing conversation. For a contributor change, they go to the owner or the

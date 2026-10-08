@@ -34,6 +34,17 @@ same finding recurring means the edit fixed a symptom rather than the premise â€
 address that before trying a third time. A report with no `Verdict:` line is a question, and comes back to this
 conversation.
 
+A contributor change is judged from a trusted checkout of the base branch, never the
+contributor's: Claude Code loads agents, settings, hooks and `CLAUDE.md` from the
+session's working directory, so a modified `reviewer.md` or hook would run before any
+Author guard. This command has no `git fetch`, so the owner fetches the contributor's
+head as a ref only (`git fetch origin +pull/<n>/head:refs/review/<n>`), and both agents
+get a base ref and that candidate ref to read with `git diff <base>...refs/review/<n>`,
+not a checked-out tree. The reviewer decides inert-only from `git diff --raw`, then
+creates and removes its own gate worktree outside the project, reading files only with
+`git show`. If this session was opened inside a contributor checkout, return `STOP` and
+tell the owner to restart from a trusted one.
+
 ## 1. Decide, then investigate
 
 Pick the claim that matters yourself. A change usually rests on several checkable things
@@ -52,12 +63,13 @@ Send one claim. Three gets you a finding about none of them.
 
 ## 2. Judge
 
-Delegate to `reviewer` on the change with the finding attached and the same Author line.
-The question here is no longer whether the claim is true, because `investigator` settled
-that. It is whether the change is now consistent with what was found: whether the sentence that cited the claim
-says something the evidence actually supports, whether the paragraph built on it still
-stands once the premise narrowed, whether a figure softened to "roughly a third" is still
-doing the work the precise number was doing.
+Delegate to `reviewer` on the change with the finding attached and the same Author line
+(for a contributor change the loop stays `/verify`, with the base and candidate refs
+passed in). The question here is no longer whether the claim is true, because `investigator`
+settled that. It is whether the change is now consistent with what was found: whether
+the sentence that cited the claim says something the evidence actually supports, whether
+the paragraph built on it still stands once the premise narrowed, whether a figure
+softened to "roughly a third" is still doing the work the precise number was doing.
 
 That cannot be folded back into stage two. An agent that has just spent its context
 establishing a fact is the worst-placed reader of the prose around it, because it knows
