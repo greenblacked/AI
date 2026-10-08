@@ -176,12 +176,15 @@ USE_WHEN_RE = re.compile(
 )
 
 # A router line has room for one sentence, not the full description a plugin's own
-# listing carries. This is a sane cap rather than a measured one: at 100 characters the
-# combined router for this repository's own nine plugins already sits well into
-# ROUTER_BUDGET_BYTES below, and the budget is meant to bite as the catalogue grows
-# rather than to sit unused. If growth reaches the budget, first remove duplicated
-# router markup or reconsider its structure while preserving descriptions and triggers.
-ROUTER_USE_WHEN_CAP = 100
+# listing carries. This is a sane cap rather than a measured one: at 85 characters the
+# combined router for this repository's own nine plugins sits inside ROUTER_BUDGET_BYTES
+# with room for a new plugin's skills, and the budget is meant to bite as the catalogue
+# grows rather than to sit unused. It was 100 until the combined router came within a few
+# bytes of the budget; lowering the cap shortens the trigger sentence inside the router
+# line only, leaving every description and the flattened files unchanged. If growth
+# reaches the budget again, reduce router markup or reconsider its structure while
+# preserving descriptions and triggers.
+ROUTER_USE_WHEN_CAP = 85
 
 # Codex's default project-doc budget is 32 KiB (openai/codex, codex-rs/config/src/
 # config_toml.rs: DEFAULT_PROJECT_DOC_MAX_BYTES = 32 * 1024), and codex-rs/core/src/

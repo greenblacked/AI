@@ -1,0 +1,23 @@
+[
+  {"query": "our sitemap has a Solutions section nobody uses, help us restructure it", "should_trigger": true},
+  {"query": "nobody can find the pricing page, where should it live in the nav", "should_trigger": true},
+  {"query": "design the global navigation and breadcrumbs for the new docs site", "should_trigger": true},
+  {"query": "run a card sort to figure out how users group our product features", "should_trigger": true},
+  {"query": "we're adding 40 more products, should we use categories or facets", "should_trigger": true},
+  {"query": "tree test our proposed navigation before we build it", "should_trigger": true},
+  {"query": "our menu is a mess, group these pages sensibly and name the sections", "should_trigger": true},
+  {"query": "decide what belongs in search versus browsing for our knowledge base", "should_trigger": true},
+  {"query": "plan the URL scheme and redirects for the site restructure", "should_trigger": true},
+  {"query": "audit why people can't find anything on our intranet", "should_trigger": true},
+  {"query": "the button label is confusing on the settings page, what should it say", "should_trigger": false, "expected": "content-design"},
+  {"query": "review this landing screen for usability problems", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "write the user guide and getting-started docs for the new feature", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "build the marketing site with a CMS and a blog", "should_trigger": false, "expected": "website-builder"},
+  {"query": "set up design tokens for spacing and colour", "should_trigger": false, "expected": "design-system"},
+  {"query": "write a playwright test that clicks through the navigation", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "run a usability test with five users on the checkout", "should_trigger": false, "expected": "usability-test-plan"},
+  {"query": "audit the site for WCAG issues in the navigation", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "review my PR that adds a dropdown menu component", "should_trigger": false, "expected": "code-review"},
+  {"query": "write release notes for the site redesign", "should_trigger": false, "expected": "release-notes"},
+  {"query": "which React menu component library should we use", "should_trigger": false, "expected": "code-scaffold"}
+]
