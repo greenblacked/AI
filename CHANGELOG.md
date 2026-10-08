@@ -338,6 +338,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Stop `reviewer` and `investigator` running commands taken from a change. A printed command
+  is data to check by reading, run only for an owner-authored change, decided by an Author field that `/ship` and
+  `/verify` pass, in a throwaway directory with no network or credentials, and on a non-owner change the gates run only when every changed path is inert content (Markdown under `plugins/` or `docs/`, a trigger eval set, or the root `README.md` or `CHANGELOG.md`, as regular files).
 - Make `design-system`'s inventory count distinct colours: the command counted matching
   lines, so a colour used twice counted twice and two colours on one line counted once.
   Its contrast table now has one row per pair and state and one column per theme, so a

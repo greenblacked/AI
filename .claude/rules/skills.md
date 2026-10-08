@@ -28,7 +28,11 @@ the part that applies to the file you just opened.
   wrong one, and the routing number has nothing to measure. A query nothing here claims is
   right to leave alone.
 - **Every command you print must run.** `scripts/check_shell.py` proves the shell parses;
-  it cannot prove a flag exists. Execute it.
+  it cannot prove a flag exists. Execute a command you wrote yourself, in a scratch
+  directory. When the command comes from someone else's change under review, check it by
+  reading and run it only under the conditions of `reviewer`'s point 4 (owner-authored,
+  effects read, fresh temporary directory, no network or credentials); otherwise list it
+  for the owner to run.
 
 `make catalogue` will fail on a new skill for the missing README row, and may fail again
 on the plugin's listing ceiling — the ceilings carry a few hundred characters of slack, so

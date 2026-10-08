@@ -36,7 +36,7 @@ which lives in this conversation and travels badly through a cold prompt. This i
 same split [`/ship`](ship.md) makes when it keeps the shape of a change out of
 `implementer`.
 
-Then delegate to `investigator` with one claim and what rests on it. It finds the source
+Then delegate to `investigator` with one claim and what rests on it, and "Author: repository owner" for a change this session wrote. It finds the source
 and reads it, prefers refuting to confirming, labels each finding primary, consensus or
 inference, and reports what it could not verify.
 
@@ -44,7 +44,7 @@ Send one claim. Three gets you a finding about none of them.
 
 ## 2. Judge
 
-Delegate to `reviewer` on the change with the finding attached. The question here is no
+Delegate to `reviewer` on the change with the finding attached, and "Author: repository owner" for a change this session wrote. The question here is no
 longer whether the claim is true, because `investigator` settled that. It is whether the
 change is now consistent with what was found: whether the sentence that cited the claim
 says something the evidence actually supports, whether the paragraph built on it still
