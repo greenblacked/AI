@@ -1,6 +1,7 @@
 ---
 name: implementer
 description: Write a change in this repository and leave it green, such as a new or edited skill, reference file, subagent, slash command, validator rule, test or workflow, then run make validate, make catalogue and make test before returning. Use when the shape of the change is already settled and what remains is to write it to the contract in AGENTS.md and prove the gates pass. Give it the paths and the decision; it writes files, so do not use it to explore options or to get an opinion on whether the change is right.
+tools: [read, edit, search, execute]
 ---
 <!-- source: .claude/agents/implementer.md sha256: fcb92533f05983229e51931b4258da571939bd9455223320678c61570ef2bfeb -->
 

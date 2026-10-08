@@ -19,7 +19,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   Each wrapper records the hash of its source, and a new `scripts/check_copilot.py`, a new
   check in `make catalogue` and the `check catalogue` job, fails when a source has no wrapper,
   a wrapper points to nothing, or a source changed after its wrapper was written. The plugins'
-  skills are not duplicated for Copilot; install the plugins.
+  skills are not duplicated for Copilot; install the plugins. Each agent lists the tools its source
+  grants, in Copilot's aliases, so none defaults to all tools and the read-only agents get no edit tool.
 - Test the catalogue site in a real browser. A new `test site in a browser` job builds
   the real catalogue, serves it locally and drives it in the Chrome the runner already
   ships: Back returns to the page you came from and never to another site, the bar and
