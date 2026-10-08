@@ -350,10 +350,15 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   to `implementer`. The build loop (`/ship`, `explorer`, `implementer` and the ChatGPT
   coordinator's build loop) is owner-only: with contributor content the owner has not
   adopted (not on the base branch) in the checkout, `/ship` returns `STOP` and the
-  change goes to a fresh `reviewer` delegation with the loop "contributor review"
-  (plus `investigator` only for an outside claim). `explorer` and `implementer` carry
-  the same guard and stop without running anything. The ChatGPT workflow guide and
-  `docs/using.md` carry the same rules.
+  change goes to a fresh `reviewer` delegation with the loop "contributor review" (plus
+  `investigator` only for an outside claim). `explorer` and `implementer` carry the same
+  guard and stop without running anything. The ChatGPT workflow guide and
+  `docs/using.md` carry the same rules. A contributor review runs only from a trusted
+  base-branch checkout, never the contributor's, because Claude Code loads agents,
+  settings, hooks and instructions from the checkout it opens, and Codex and ChatGPT
+  read AGENTS.md and repository instructions from it: the contributor's head is fetched
+  as a ref and read with git, and a session opened inside a contributor checkout returns
+  `STOP`.
 - Make `design-system`'s inventory count distinct colours: the command counted matching
   lines, so a colour used twice counted twice and two colours on one line counted once.
   Its contrast table now has one row per pair and state and one column per theme, so a
