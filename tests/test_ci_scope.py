@@ -22,6 +22,7 @@ BASE = "b" * 40
 STAGE = "c" * 40
 STAGE_HEAD = "d" * 40
 TREE = "e" * 40
+STAGE_REF = "feat/promote-to-stage"
 PATCH = ".claude/agents/benchmarks/reviewer/unpublished-release-links/change.patch"
 
 
@@ -60,8 +61,14 @@ def jobs_path(run_id):
     return f"/repos/{REPO_NAME}/actions/runs/{run_id}/jobs?per_page=100"
 
 
-def run(run_id, base=BASE, status="completed"):
-    return {"id": run_id, "status": status, "pull_requests": [{"base": {"sha": base}}]}
+def run(run_id, base=BASE, status="completed", branch=STAGE_REF, repo=REPO_NAME):
+    return {
+        "id": run_id,
+        "status": status,
+        "pull_requests": [{"base": {"sha": base}}],
+        "head_branch": branch,
+        "head_repository": {"full_name": repo},
+    }
 
 
 CODE_GREEN = [
@@ -200,7 +207,7 @@ def stage_world(
                 "merge_commit_sha": STAGE,
                 "merged_at": "2026-10-06T09:04:45Z",
                 "base": {"ref": "stage"},
-                "head": {"sha": STAGE_HEAD},
+                "head": {"sha": STAGE_HEAD, "ref": STAGE_REF},
             }
         ]
     table = {
@@ -240,6 +247,22 @@ def test_a_promotion_of_the_tree_stage_passed_skips_the_test_matrix(diff):
         ({"run_jobs": [{"name": "test (3.13)", "conclusion": "failure"}]}, "did not pass"),
         ({"pulls": []}, "is not the merge of a pull request into stage"),
         ({"runs": [run(5), run(4)]}, "run 4"),
+        ({"runs": [run(5, branch="feat/another-pull-request")]}, "no earlier run"),
+        ({"runs": [run(5, repo="someone/fork")]}, "no earlier run"),
+        (
+            {
+                "pulls": [
+                    {
+                        "number": 152,
+                        "merge_commit_sha": STAGE,
+                        "merged_at": "2026-10-06T09:04:45Z",
+                        "base": {"ref": "stage"},
+                        "head": {"sha": STAGE_HEAD},
+                    }
+                ]
+            },
+            "names no head branch",
+        ),
         (
             {
                 "diff": f"{PATCH}\n",
@@ -255,7 +278,7 @@ def test_a_promotion_of_the_tree_stage_passed_skips_the_test_matrix(diff):
                         "merge_commit_sha": STAGE,
                         "merged_at": "2026-10-06T09:04:45Z",
                         "base": {"ref": "dev"},
-                        "head": {"sha": STAGE_HEAD},
+                        "head": {"sha": STAGE_HEAD, "ref": STAGE_REF},
                     }
                 ]
             },
@@ -266,7 +289,8 @@ def test_a_promotion_of_the_tree_stage_passed_skips_the_test_matrix(diff):
 def test_a_promotion_runs_everything_unless_stage_proves_the_tree(world, why):
     # Any change outside the release files, a stage pull request whose head is not the
     # tree stage holds, a red stage run (even behind a green one), a stage tip no pull
-    # request produced, or a repointed benchmark patch that no longer applies.
+    # request produced, a repointed benchmark patch that no longer applies, or a green
+    # run that belongs to another pull request or a fork with the same head commit.
     get, git = stage_world(**world)
     mode, reason = scope.decide(into_main(), get, git)
     assert mode == "full" and why in reason, reason

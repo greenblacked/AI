@@ -101,7 +101,14 @@ def _sha(value: Any, what: str) -> str:
     return value
 
 
-def heads_passed(get: Get, repo: str, head_sha: str, base_sha: str | None, skip_run: str) -> str:
+def heads_passed(
+    get: Get,
+    repo: str,
+    head_sha: str,
+    base_sha: str | None,
+    skip_run: str,
+    head_ref: str | None = None,
+) -> str:
     """The id of the newest CI run on `head_sha` that ran the code checks, all green.
 
     Runs are read newest first. A run whose code checks were all skipped was itself a
@@ -120,6 +127,14 @@ def heads_passed(get: Get, repo: str, head_sha: str, base_sha: str | None, skip_
     passed = ""
     for run in runs["workflow_runs"]:
         if not isinstance(run, dict) or str(run.get("id")) == skip_run:
+            continue
+        # The same commit can be the head of more than one pull request, a fork's
+        # included, and each run tests that pull request's own merge. With
+        # `head_ref`, only runs of this repository's branch of that name count.
+        if head_ref is not None and (
+            run.get("head_branch") != head_ref
+            or ((run.get("head_repository") or {}).get("full_name")) != repo
+        ):
             continue
         if base_sha is not None:
             bases = {
@@ -193,7 +208,10 @@ def promotion_from_stage(get: Get, git: Git, repo: str) -> str:
     head = _sha((pull.get("head") or {}).get("sha"), "the stage pull request's head")
     if tree_of(get, repo, head) != git("rev-parse", f"{stage}^{{tree}}").strip():
         raise NotProvenError("the stage pull request's head is not the tree stage holds")
-    run = heads_passed(get, repo, head, None, "")
+    ref = (pull.get("head") or {}).get("ref")
+    if not isinstance(ref, str) or not ref:
+        raise NotProvenError("the stage pull request names no head branch")
+    run = heads_passed(get, repo, head, None, "", ref)
     number = int(pull.get("number"))
     return f"same tree as stage {stage[:7]}, whose pull request #{number} passed run {run}"
 
