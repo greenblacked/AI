@@ -41,6 +41,7 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable
 from typing import Any
+from urllib.parse import quote
 
 API = "https://api.github.com"
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -211,8 +212,18 @@ def promotion_from_stage(get: Get, git: Git, repo: str) -> str:
     ref = (pull.get("head") or {}).get("ref")
     if not isinstance(ref, str) or not ref:
         raise NotProvenError("the stage pull request names no head branch")
-    run = heads_passed(get, repo, head, None, "", ref)
+    # A run of a merged pull request no longer lists it, so the run cannot name its
+    # pull request. The branch can: if it never headed another pull request, every
+    # run on it is this one's.
+    owner = repo.split("/", 1)[0]
     number = int(pull.get("number"))
+    sharing = get(f"/repos/{repo}/pulls?head={owner}:{quote(ref, safe='')}&state=all&per_page=100")
+    if not isinstance(sharing, list):
+        raise NotProvenError("the pull requests on the stage branch could not be listed")
+    others = sorted(int(p.get("number")) for p in sharing if int(p.get("number")) != number)
+    if others:
+        raise NotProvenError(f"the stage branch also heads pull request #{others[0]}")
+    run = heads_passed(get, repo, head, None, "", ref)
     return f"same tree as stage {stage[:7]}, whose pull request #{number} passed run {run}"
 
 
