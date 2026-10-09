@@ -79,7 +79,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `docs/` | How to write skills, subagents, commands, `AGENTS.md`, what the project layout loads, and what CI checks |
 | `docs/review-lessons.md` | Defect classes review on this repository has actually caught, each with how it shows up, the check that catches it and the PR that found it first; `implementer` and `reviewer` read it before writing or judging anything |
 | `template/SKILL.md` | Starting point for a new skill |
-| `.claude-plugin/marketplace.json` | Lists the nine plugins; each discovers its own skills |
+| `.claude-plugin/marketplace.json` | Lists the ten plugins; each discovers its own skills |
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `cut-release.yml`, `release.yml`, `deploy.yml`, `ci-triage.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
 | `providers.json` | Which AI tools read `AGENTS.md` and load skills, with sources and a checked date; `scripts/providers_table.py` renders it into the README |
@@ -93,7 +93,7 @@ only, and CI runs it on Python 3.10 through 3.13 to keep that true. Only the tes
 needs anything installed.
 
 ```bash
-python -m pip install pytest coverage   # only for `make test` and `make coverage`
+python -m pip install pytest pytest-xdist pytest-cov  # only for `make test` and `make coverage`
 make validate                  # every skill, subagent and the marketplace manifest
 make catalogue                 # listing ceilings, the README, shell blocks, the hook, providers
 make test                      # the validator's own test suite

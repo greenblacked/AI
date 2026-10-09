@@ -62,20 +62,23 @@ merge-group `checks_requested`; and on `workflow_dispatch`. Top-level
 `permissions: {}`; each job grants itself the minimum. Every tool the workflow installs
 or downloads is pinned in the workflow-level `env` block — `CLAUDE_CODE_VERSION`,
 `CODESPELL_VERSION`, `YAMLLINT_VERSION`, `PYTEST_VERSION`, `COVERAGE_VERSION`,
-`ACTIONLINT_VERSION` and `ACTIONLINT_SHA256` — for the reason the security section
+`PYTEST_XDIST_VERSION`, `PYTEST_COV_VERSION`, `ACTIONLINT_VERSION` and
+`ACTIONLINT_SHA256` — for the reason the security section
 gives, and at workflow level so a cache key can name one.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
+| `scope` | `scope` | [`scripts/ci_scope.py`](../scripts/ci_scope.py) could not run or write its outputs. It decides how much of the rest the run needs (see What runs where below) and never fails because a proof fails: anything it cannot prove is a full run. When it fails, every job that reads its output is skipped and `ci` fails, so a broken scope cannot pass anything. It holds `actions: read` and `pull-requests: read`, and reads earlier runs and their jobs and which pull request produced the commit `stage` is at. |
 | `validate-skills` | `validate skills` | A skill, a subagent, a command or the manifest is invalid: bad frontmatter, a name that does not match its directory or filename, a dangling `references/` pointer, a malformed eval set for a skill or a subagent, a `.claude/rules/` glob that matches nothing, or something on disk that no plugin lists. Runs with `--strict`, so a warning fails it too. Run `make validate` locally to see the same output; it also prints the per-plugin description total, which is the listing cost every installer pays. |
 | `validate-plugin` | `validate plugin manifest` | `claude plugin validate .` rejected `.claude-plugin/marketplace.json`. The schema's source of truth is the definition inside the CLI itself, so this checks against the real thing rather than a copy that would fall behind. The CLI version is pinned in the workflow's `env` for the same reason the scanners are. |
-| `test` | `test (3.10)` … `test (3.13)` | The full test suite failed on that interpreter. Python 3.10–3.12 run plain pytest; 3.13 additionally measures line and branch coverage and enforces the unchanged floor in [`pyproject.toml`](../pyproject.toml). Compatibility remains checked on all four versions, with coverage instrumentation paid for once. pytest and coverage retain their existing version pins. The coverage table lands in the 3.13 job summary. |
+| `test` | `test (3.10)` … `test (3.13)` | The full test suite failed on that interpreter. Every leg runs the suite on the runner's four cores through pytest-xdist; 3.13 additionally measures line and branch coverage in each worker through pytest-cov and enforces the unchanged floor in [`pyproject.toml`](../pyproject.toml). Compatibility remains checked on all four versions, with coverage instrumentation paid for once. pytest, pytest-xdist, pytest-cov and coverage are each pinned. The coverage table lands in the 3.13 job summary. |
 | `catalogue` | `check catalogue` | A plugin's skill listing grew past its ceiling in [`listing-budget.json`](../listing-budget.json), the README stopped matching the tree, this file stopped listing the jobs CI runs, a workflow's aggregate stopped naming every job in it or a pinned version came to mean two things, the Makefile stopped wrapping the same commands the jobs run (or stopped parsing on an older `make`), a shell block or shipped script no longer parses, the hook registration in `.claude/settings.json` names a script that is missing or not executable, or the README's table of AI tools no longer matches [`providers.json`](../providers.json) or that file is malformed — regenerate the table with `make providers` rather than editing it; a row past `stale_after_days` only warns. The first is the one with no symptom: past the runtime's listing budget, the descriptions of a plugin's least-used skills are dropped, so they stay invocable by name and stop being chosen on their own. Ceilings carry a few hundred characters of slack, so rewording is free and adding a skill is a decision — raise one with `scripts/check_listing_budget.py --update` and say why in the commit. The same file also records each skill's own description length: a new skill must arrive at or under 900 characters, and one already above that is pinned where it measures rather than trimmed to fit a gate. |
 | `package` (portable step) | `package` | `make portable` could not flatten every skill into a file that stands alone, or a router grew past `ROUTER_BUDGET_BYTES`. References are inlined and their pointers rewritten, so the export works without a filesystem; the router is checked against its byte budget before anything is written, so an oversized one fails the export rather than shipping quietly past what a terminal agent's own document budget allows. Portable outputs upload as `portable-skills` only after the preceding CI checks pass. |
 | `spelling` | `lint spelling` | codespell found a likely typo. It ran weekly and warn-only until it was made a gate; the false positives are listed in [`pyproject.toml`](../pyproject.toml) with the reason each is one, which is what lets the check sit at zero and mean something. |
 | `lint-markdown` | `lint markdown` | markdownlint-cli2 found a violation in a `*.md` file. Config in `.markdownlint-cli2.yaml`. |
 | `lint-yaml` | `lint yaml` | yamllint in `--strict` mode found a problem. Config in `.yamllint.yaml`, version in `YAMLLINT_VERSION`: a release that adds a rule would otherwise redden the build on YAML nobody touched. |
 | `lint-actions` | `lint workflows` | actionlint rejected a workflow. It also runs shellcheck over every inline `run:` block, which is where all of this repository's shell lives. The binary is downloaded at a pinned version and checked against a recorded digest before it runs. |
+| `site-browser` | `test site in a browser` | A browser test in [`tests/test_site_browser.py`](../tests/test_site_browser.py) failed: the real catalogue, built once and served locally, was driven in the runner's own Chrome and did not behave — Back went somewhere other than the page you came from or the page above, the bar or To top showed or hid at the wrong moment, a jump to a heading landed under the header or the bar, the theme was not remembered, the finder did not filter, a page scrolled sideways at 360 px, or a control was smaller than 44 × 44 px. Requests that leave the local server, the web fonts, are refused, so nothing here waits on the network. Playwright, pytest and their dependencies install from [`.github/requirements/site-browser.txt`](../.github/requirements/site-browser.txt) with `pip --require-hashes`, so a wheel whose digest does not match what PyPI published is refused before it runs; a test keeps that file's versions equal to `PLAYWRIGHT_VERSION` and `PYTEST_VERSION`. `REQUIRE_BROWSER=1` makes a missing `playwright` package a failure rather than a skip. `make test-browser BROWSER_EXECUTABLE=…` runs the same tests locally against any Chromium. |
 | `links` | `check links` | lychee found a broken link. It runs `--offline`, so only local paths are resolved — a relative link between documents, or from a document into the source tree, that does not exist. |
 | `attribution` | `attribution` | [`scripts/check_attribution.py`](../scripts/check_attribution.py) found a Co-authored-by trailer, a footer or trailer naming a coding assistant, an assistant session link, a branch name prefixed for a tool rather than the change it makes, or a commit author or committer naming a coding assistant, in the pull request's own commits, branch name, title or body. It needs a base ref and pull request text to mean anything, so it only scans on a pull request, and there it reads the title and body from the API when the job runs, not from the event payload, which is frozen when the run is triggered — the job holds `pull-requests: read` beside `contents: read` for that read alone, and a failed read fails the job rather than passing as an empty body; a push to `main` or a merge-group run reports success without one, because those commits already passed this check on the pull request that produced them. It is not part of `make catalogue` for the same reason — there is no base ref to diff against outside a pull request — but `make attribution` reproduces the commit and branch checks against `origin/main` locally; the pull request title and body are checked only in CI, once the pull request exists. Whether the rest of a branch name matches `<type>/<short-kebab-description>` is `naming`'s row below, not this one — a tool-named branch still fails here first, since naming who wrote a change is attribution's job and the rest of the shape is a naming-convention question. |
 | `naming` | `naming` | [`scripts/check_naming.py`](../scripts/check_naming.py) found a naming-convention violation: a skill directory, agent or command file, `references/*.md`, `evals/*.json`, Python module, workflow or doc whose name does not match its category's convention (checked against every file `git ls-files` tracks, not only what the pull request touched); a branch name that does not match the `<type>/<short-kebab-description>` shape; or, on a pull request, a commit subject or the pull request title that fails the rules [`CONTRIBUTING.md`](../CONTRIBUTING.md#commits) sets out, including the new 72-character cap. A merge commit and anything from Dependabot — by author or by a `dependabot/` branch — are exempt from the commit and title checks. File names are checked on every event; the branch, commit and title checks need a base ref and pull request text, so only a pull request supplies `--range`, the same reduced scope `attribution` gives a push or merge-group run. On a pull request the title is read from the API when the job runs rather than from the event payload, under the same `pull-requests: read` grant `attribution` holds. `make naming` reproduces the file-name, branch and commit checks against `origin/main` locally; the pull request title is checked only in CI, once the pull request exists. Code identifiers are a separate, existing gate: ruff's `pep8-naming` (`N`) rules run in `python security lint` in `security.yml`, because that check only ever sees Python and this one would just reimplement it. |
@@ -97,6 +100,25 @@ are the correct state and `--strict` would force a version field that exists onl
 silence them. Releases are cut as git tags instead, described below in [releasing a
 version](#releasing-a-version); the manifests still carry no `version` field, and pinning
 to a release means pinning to the tag, not to anything in a manifest.
+
+### What runs where
+
+The full suite runs before a change reaches stage; the way into `main` re-checks only
+what a promotion can still break. The `scope` job decides which, and every other job
+reads its `mode`:
+
+| Mode | When | What runs |
+| --- | --- | --- |
+| `full` | A pull request into `dev` or `stage`, `workflow_dispatch`, `merge_group`, and anything the two rows below cannot prove | Everything |
+| `promotion` | A pull request into `main`, an edit to one, or the push to `main` after one merges, whose tree is `stage`'s apart from `CHANGELOG.md` and the release benchmark patch, where `stage` is the merge of a pull request whose head is that tree, whose branch headed no other pull request, and every CI run of which that checked the code passed it. A benchmark patch that differs must still apply to the tree, since only the skipped test matrix would otherwise read it | validate skills, check catalogue, lint spelling, lint markdown, check links, attribution, naming and package here, plus all of `security.yml`, and on the pull request the dry-run deploy. The test matrix, the browser tests, validate plugin manifest, lint yaml and lint workflows are skipped: their result depends only on files the promoted tree shares, byte for byte, with the one that passed |
+| `text` | An `edited` pull request whose commit, against the same base, had every code check pass in every earlier run that ran them (a failure of attribution or naming alone does not count against it) | attribution and naming, the two that read the title and description |
+
+The aggregate accepts a skipped job only when `scope` named it, and the lists of what
+each mode may skip are fixed in the script rather than built from anything the API
+returns; a failed or cancelled job fails `ci` whatever the mode. A proof that cannot be
+completed, through an API error, a run still in progress, a fork's run that carries no
+pull request, or a tree that differs, makes the run `full`, so the worst a wrong
+answer costs is time.
 
 ## `.github/workflows/security.yml` — Security
 
@@ -1140,8 +1162,9 @@ An empty result means the eval jobs are standing down on every run.
 make validate   # skills, subagents, commands, rules and the manifest — the validate-skills job
 make catalogue  # listing ceilings, README and CI drift, workflows, the Makefile, shell, providers — the catalogue job
 make portable   # flatten every skill for ChatGPT, Grok and other assistants
-make test       # pytest — the test job
-make coverage   # the same run under coverage, failing below the floor
+make test       # pytest -n auto — the test job
+make coverage   # the same run under pytest-cov, failing below the floor
+make test-browser  # the built site in Chromium — the site-browser job
 make lint       # ruff, markdownlint, yamllint, actionlint, codespell — the lint jobs
 make lint-strict  # the same, but a missing or mis-versioned tool fails instead of skipping
 make package    # .skill archives into dist/ — the package job
@@ -1152,7 +1175,9 @@ make naming     # file names, branch and commits against naming conventions — 
 `make validate` passes `--strict`, exactly as the job does, so a warning fails locally
 before it fails in CI.
 
-`make coverage` needs `coverage` installed alongside `pytest`. The suite reaches the
+`make test` needs `pytest-xdist` installed alongside `pytest`, and `make coverage` also
+needs `pytest-cov` and `coverage`; the floor is enforced by the `coverage report` that
+follows the run, which also names the file that fell. The suite reaches the
 scripts as well as the validator: the eval harness runs against a fake `claude` on
 `PATH` that answers from a table, `install.sh` runs against a temporary target
 directory, and the packager and the `PostToolUse` hook run against a small repository
