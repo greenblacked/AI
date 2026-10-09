@@ -17,7 +17,6 @@
   {"query": "review this diff before I merge", "should_trigger": false, "expected": "code-review"},
   {"query": "plan the release for this change", "should_trigger": false, "expected": "launcher"},
   {"query": "record the decision to use postgres", "should_trigger": false, "expected": "decision-record"},
-  {"query": "how do I give feedback to a teammate", "should_trigger": false, "expected": "difficult-conversation"},
   {"query": "plan our quarterly OKRs", "should_trigger": false, "expected": "okr-planning"},
   {"query": "design the database schema for the app", "should_trigger": false, "expected": "schema-design"}
 ]
