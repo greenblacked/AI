@@ -351,7 +351,7 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   confirms `.github/workflows/`, `Makefile`, `pyproject.toml` and the scripts CI calls
   are unchanged against the merge-base (treating CI as untrusted if not); the gates run
   only in a disposable sandbox with no credentials and no network, never in the owner's
-  normal environment or clone; `SHIP` is never returned by the reviewer itself on such a change, though a `FIX` whose only open items are the owner-must-run ones (no blocking finding, and the candidate based on the current base) is cleared by the owner's completed checklist recorded on the PR, live check included, for that head commit on that base tip only (a new push voids it, as does a base advance; a post-merge live check is recorded as named but not yet run; a blocking finding or the rebase `FIX` still needs a fix and a fresh review).
+  normal environment or clone; `SHIP` is never returned by the reviewer itself on such a change, though a `FIX` whose only open items are the owner-must-run ones (no blocking finding, and the candidate based on the current base) is cleared by the owner's completed checklist recorded on the PR, live check included, for that head commit on that base tip only (a new push voids it, as does a base advance, detected by re-fetching and comparing both refs against the pinned base and reviewed SHA before accepting and again before merge; a post-merge live check is recorded as named but not yet run; a blocking finding or the rebase `FIX` still needs a fix and a fresh review).
   A changed path must also have a whole NUL-delimited name matching
   `^[A-Za-z0-9][A-Za-z0-9._/-]*$` to count as inert: a name such
   as `docs/$(cmd).md` makes the change non-inert, is never put in a command and is a
