@@ -28,7 +28,7 @@ a real result: report it as such, do not retry it. From `reviewer`: `FIX` on a c
 this session wrote returns the named findings to the files or to `implementer`. `FIX` on
 a contributor change goes back to the owner or the contributor, with the findings and any
 gates for them to run, only in a disposable sandbox with no credentials and no network, as the reviewer's Not assessed list states, and never to `implementer`, because the build loop is owner-only.
-A `FIX` that only waits on gates names the gates for the owner and never loops. `STOP`
+A `FIX` that only waits on gates names the gates for the owner and never loops; a `FIX` whose only open items are the owner-must-run ones (no blocking finding, and the candidate based on the current base) is cleared once the owner has completed every owner-must-run item, including the live check where the change needs one, and recorded the results on the PR, which counts as the passing review `AGENTS.md` requires for that head on that base tip only (a new push voids it, as does a base advance unless the branch ruleset requires branches to be up to date; a post-merge live check is recorded as named but not yet run; a blocking finding or the rebase `FIX` still needs a fix and a fresh review), and the reviewer never returns `SHIP` there itself. `STOP`
 comes to the user for a decision; `SHIP` ends the loop. There is no round limit, but the
 same finding recurring means the edit fixed a symptom rather than the premise — stop and
 address that before trying a third time. A report with no `Verdict:` line is a question, and comes back to this
@@ -42,7 +42,7 @@ head as a ref only (`git fetch origin +refs/heads/<base-branch>:refs/remotes/ori
 get a base ref and that candidate ref to read with `git diff <base>...refs/review/<n>`,
 where `<base>` is `origin/<base-branch>`, the remote-tracking ref that fetch updated, never a
 local branch, which may be stale,
-not a checked-out tree. The reviewer decides inert-only from `git diff -z --raw`, then
+not a checked-out tree. The reviewer first requires the candidate to be based on the current base (`FIX` asking for a rebase otherwise), decides inert-only from `git diff -z --raw`, then
 creates and removes its own gate worktree (the base plus the candidate merged) outside the project, reading files only with
 `git show` on a canonical, single-quoted path. If this session was opened inside a
 contributor checkout, return `STOP` and tell the owner to restart from a trusted one.
