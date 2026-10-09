@@ -344,9 +344,18 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   only for an owner-authored change, in a throwaway directory with no network or
   credentials. On a contributor change `reviewer` runs the gates only when every changed
   path is inert content (Markdown under `plugins/` or `docs/`, a trigger eval set, or
-  the root `README.md` or `CHANGELOG.md`, as regular files). Otherwise it cites CI only
-  when that run covers the exact reviewed snapshot, and with none returns `FIX` with the
-  gates listed for the owner. Such a `FIX` goes back to the owner or contributor, never
+  the root `README.md` or `CHANGELOG.md`, as regular files). Otherwise it runs no gates
+  and cites no CI, because a contributor's pull request runs the contributor's own
+  workflow files and `Makefile`, and returns `FIX` pending the owner, who runs the gates,
+  confirms the required `ci` and `security` checks passed on the current head, and
+  confirms `.github/workflows/`, `Makefile`, `pyproject.toml` and the scripts CI calls
+  are unchanged against the merge-base (treating CI as untrusted and running the gates
+  in isolation if not); `SHIP` is not possible from the reviewer alone on such a change.
+  A changed path must also have a whole NUL-delimited name matching
+  `^[A-Za-z0-9][A-Za-z0-9._/-]*$` to count as inert: a name such
+  as `docs/$(cmd).md` makes the change non-inert, is never put in a command and is a
+  blocking finding asking for a rename, and paths are listed NUL-delimited and read in
+  single quotes. Such a `FIX` goes back to the owner or contributor, never
   to `implementer`. The build loop (`/ship`, `explorer`, `implementer` and the ChatGPT
   coordinator's build loop) is owner-only: with contributor content the owner has not
   adopted (not on the base branch) in the checkout, `/ship` returns `STOP` and the
