@@ -349,8 +349,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   workflow files and `Makefile`, and returns `FIX` pending the owner, who runs the gates,
   confirms the required `ci` and `security` checks passed on the current head, and
   confirms `.github/workflows/`, `Makefile`, `pyproject.toml` and the scripts CI calls
-  are unchanged against the merge-base (treating CI as untrusted and running the gates
-  in isolation if not); `SHIP` is not possible from the reviewer alone on such a change.
+  are unchanged against the merge-base (treating CI as untrusted if not); the gates run
+  only in a disposable sandbox with no credentials and no network, never in the owner's
+  normal environment or clone; `SHIP` is not possible from the reviewer alone on such a change.
   A changed path must also have a whole NUL-delimited name matching
   `^[A-Za-z0-9][A-Za-z0-9._/-]*$` to count as inert: a name such
   as `docs/$(cmd).md` makes the change non-inert, is never put in a command and is a
@@ -367,7 +368,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   settings, hooks and instructions from the checkout it opens, and Codex and ChatGPT
   read AGENTS.md and repository instructions from it: the contributor's head is fetched
   as a ref and read with git, and a session opened inside a contributor checkout returns
-  `STOP`.
+  `STOP`. The reviewer runs inert-only gates on `origin/<base-branch>` with `refs/review/<n>`
+  merged in (`--no-ff`); a merge conflict is `FIX` asking for a rebase; and `<base>` is the
+  remote-tracking ref the fetch just updated.
 - Make `design-system`'s inventory count distinct colours: the command counted matching
   lines, so a colour used twice counted twice and two colours on one line counted once.
   Its contrast table now has one row per pair and state and one column per theme, so a
