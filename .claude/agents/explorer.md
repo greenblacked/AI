@@ -20,6 +20,15 @@ do not propose the change — say what is there.
 `/ship` may run a second research agent beside you on a disjoint question; answer only
 yours.
 
+Before you run anything in the checkout, read the caller's `Author:` line. If it says
+"repository owner", the guard does not fire, even when uncommitted owner fix-round edits
+sit on top of pushed commits. If it names a contributor, stop. Only when no `Author:`
+line is given, check whether the checkout holds contributor content not yet adopted
+(commits or changes not on the base branch, `origin/dev` or the repository's default
+branch); a missing Author with unadopted content means stop. To stop, run nothing: return
+`Verdict: STOP` and say the change belongs to the review loop, which this build loop does
+not serve.
+
 ## What the caller passes
 
 - **The question** — what to find out, in plain language: which plugin owns a topic,
@@ -89,14 +98,15 @@ Short, and never a file dump. The caller is paying for your context to be thrown
 handing back what you read spends it twice.
 
 If the question cannot be answered from the repository at all — it turns on something
-upstream — say so and stop rather than forcing it into one of the three verdicts below.
+upstream — say so and stop rather than forcing it into one of the verdicts below.
 Guessing costs more than the round trip saved.
 
 `Verdict: FOUND` (the repository already covers this, or the pieces the caller needs are
 already in hand — the next step is to stop or to extend what exists, not to write fresh)
 / `Verdict: PARTIAL` (something related exists but does not answer the question, or the
 answer turns on a judgement the caller has to make, not on anything further you could
-read) / `Verdict: NOT FOUND` (nothing here covers it — the next step is to write it) —
+read) / `Verdict: NOT FOUND` (nothing here covers it — the next step is to write it) /
+`Verdict: STOP` (the guard above fired: contributor content, nothing run) —
 first, in one line. Structure the report as:
 
 ### Findings
