@@ -352,12 +352,12 @@ The manual build loop below is owner-only. If the checkout holds contributor-aut
 content the owner has not yet adopted (commits or changes not on the base branch, or
 `origin/dev`; content already merged counts as adopted), do not run Survey or Write on
 it, and run no gate or command from it. Go straight to the Review step, naming the
-contributor as author. Run that review from a trusted checkout of the base branch, never
+contributor as author. Run that review from a clean worktree at the pinned base SHA (`git worktree add --detach '<dir>' '<base>'`, or your clone of the base branch checked out exactly there), never
 the contributor's, because the tool reads `AGENTS.md`, agent files, settings and hooks
 from the checkout it opens. Check first that `<base-branch>` is `dev`, `stage` or `main` and that `<n>` is all digits, then fetch the current base and the contributor's head as a ref only (`git fetch
 origin '+refs/heads/<base-branch>:refs/remotes/origin/<base-branch>' '+pull/<n>/head:refs/review/<n>'`) and give the reviewer `<base-branch>`, the pinned `<base>` and that candidate
 ref to read with `git diff -z '<base>'...refs/review/<n>` (`<base-branch>` must be `dev`, `stage` or `main`, matching `^[A-Za-z0-9][A-Za-z0-9._/-]*$` as a whole name, else `STOP` and retarget the PR; `<base>` is the SHA from `base_sha=$(git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}')` right after the fetch), not a checked-out tree. If the
-session was opened inside a contributor checkout, stop and restart from a trusted one.
+session was opened inside a contributor checkout, or `git rev-parse --verify 'HEAD^{commit}'` is not `<base>`, stop and restart from a clean worktree at the pinned SHA.
 
 **Survey**, in a new conversation, report-only. Describe the change and ask what already
 covers it, where the affected files are, and which existing description its trigger
@@ -383,8 +383,8 @@ as text, together with every file `git ls-files --others --exclude-standard` nam
 full. The diff alone omits untracked files, which on a change that adds one is the whole
 change. Pasting rather than pointing removes the material only when the reviewing
 conversation cannot reach the checkout; in a terminal agent sitting in the repository it
-has the tree whatever you paste. For a contributor change, hand it the trusted base
-checkout plus `git diff '<base>'...refs/review/<n>`; the candidate is checked out only in
+has the tree whatever you paste. For a contributor change, hand it a clean worktree at the pinned base SHA
+plus `git diff '<base>'...refs/review/<n>`; the candidate is checked out only in
 the throwaway gate worktree below. Keep the reviewer report-only, with execution tools
 for its own gates, which on a contributor change it uses only under the inert-content
 rule above, in this order: it first requires the candidate to be based on the current base, then decides inert-only from `git diff -z --raw

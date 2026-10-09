@@ -34,7 +34,8 @@ same finding recurring means the edit fixed a symptom rather than the premise â€
 address that before trying a third time. A report with no `Verdict:` line is a question, and comes back to this
 conversation.
 
-A contributor change is judged from a trusted checkout of the base branch, never the
+A contributor change is judged from a clean worktree at the pinned base SHA
+(`git worktree add --detach '<dir>' '<base>'`, or the owner's clone of the base branch checked out exactly there), never the
 contributor's: Claude Code loads agents, settings, hooks and `CLAUDE.md` from the
 session's working directory, so a modified `reviewer.md` or hook would run before any
 Author guard. This command has no `git fetch`, so the owner, after checking that `<base-branch>` is `dev`, `stage` or `main` and that `<n>` is all digits, fetches the current base and the contributor's
@@ -44,7 +45,7 @@ where `<base-branch>` must be `dev`, `stage` or `main` and match `^[A-Za-z0-9][A
 not a checked-out tree. The reviewer first validates `<base-branch>`, `<base>` and `<n>` before running any command (`STOP` on any mismatch), then requires the candidate to be based on the current base (`FIX` asking for a rebase otherwise), decides inert-only from `git diff -z --raw`, then
 creates and removes its own gate worktree (the base plus the candidate merged) outside the project, reading files only with
 `git show` on a canonical, single-quoted path. If this session was opened inside a
-contributor checkout, return `STOP` and tell the owner to restart from a trusted one.
+contributor checkout, or `git rev-parse --verify 'HEAD^{commit}'` is not `<base>`, return `STOP` and tell the owner to restart from a clean worktree at the pinned SHA.
 
 ## 1. Decide, then investigate
 

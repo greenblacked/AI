@@ -363,11 +363,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   change goes to a fresh `reviewer` delegation with the loop "contributor review" (plus
   `investigator` only for an outside claim). `explorer` and `implementer` carry the same
   guard and stop without running anything. The ChatGPT workflow guide and
-  `docs/using.md` carry the same rules. A contributor review runs only from a trusted
-  base-branch checkout, never the contributor's, because Claude Code loads agents,
+  `docs/using.md` carry the same rules. A contributor review runs only from a clean worktree at the pinned base SHA (`HEAD` must equal it exactly, so an older ancestor checkout is `STOP`), never the contributor's, because Claude Code loads agents,
   settings, hooks and instructions from the checkout it opens, and Codex and ChatGPT
   read AGENTS.md and repository instructions from it: the contributor's head is fetched
-  as a ref and read with git, and a session opened inside a contributor checkout returns
+  as a ref and read with git, and a session opened inside a contributor or stale checkout returns
   `STOP`. The base must be `dev`, `stage` or `main` (any other is `STOP`) and is pinned to its SHA after the fetch; the reviewer is given both, and before any command requires `<base>` to be a full hex SHA equal to the base tip and `<n>` to be all digits (else `STOP`). The reviewer runs inert-only gates on that SHA with `refs/review/<n>`
   merged in (`--no-ff`); a candidate not based on the current base (`git merge-base` differs from the base tip) is `FIX` asking for a rebase before any gate runs, as is a merge conflict; and `<base>` is the
   pinned SHA.
