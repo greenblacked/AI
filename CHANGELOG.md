@@ -368,9 +368,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   settings, hooks and instructions from the checkout it opens, and Codex and ChatGPT
   read AGENTS.md and repository instructions from it: the contributor's head is fetched
   as a ref and read with git, and a session opened inside a contributor checkout returns
-  `STOP`. The reviewer runs inert-only gates on `origin/<base-branch>` with `refs/review/<n>`
+  `STOP`. The base must be `dev`, `stage` or `main` (any other is `STOP`) and is pinned to its SHA after the fetch; the reviewer is given both, and before any command requires `<base>` to be a full hex SHA equal to the base tip and `<n>` to be all digits (else `STOP`). The reviewer runs inert-only gates on that SHA with `refs/review/<n>`
   merged in (`--no-ff`); a candidate not based on the current base (`git merge-base` differs from the base tip) is `FIX` asking for a rebase before any gate runs, as is a merge conflict; and `<base>` is the
-  remote-tracking ref the fetch just updated.
+  pinned SHA.
 - Make `design-system`'s inventory count distinct colours: the command counted matching
   lines, so a colour used twice counted twice and two colours on one line counted once.
   Its contrast table now has one row per pair and state and one column per theme, so a

@@ -32,6 +32,9 @@ change rests on.
   contributor-authored content keeps the contributor's Author through every fix round;
   fixes this session writes on top do not relabel it as owner work. It decides whether
   you may run the change's commands.
+- **Base branch, pinned base SHA and candidate ref** — for a contributor change:
+  `<base-branch>` (`dev`, `stage` or `main`), the `<base>` SHA pinned right after the fetch,
+  and `refs/review/<n>`.
 - **What the change rests on** — the sentence or paragraph built on the claim, so you can
   say afterwards whether it still stands.
 
@@ -44,10 +47,10 @@ than choosing one by guesswork — the whole loop is wasted on the wrong claim.
 ## Trust on a contributor change
 
 On a change whose Author is a contributor, you run only from a trusted base-branch
-checkout and read the candidate through git refs (`git diff <base>...refs/review/<n>`,
+checkout and read the candidate through git refs (`git diff '<base>'...refs/review/<n>`,
 `git show 'refs/review/<n>:<canonical-path>'`, single-quoted; a path whose whole
 NUL-delimited name does not match `^[A-Za-z0-9][A-Za-z0-9._/-]*$` is never put in a
-command), never from a checked-out tree. Agents, settings,
+command), never from a checked-out tree. Before running any command, require that `<base-branch>` is `dev`, `stage` or `main`, that `<base>` is 40- or 64-character lowercase hex, that `<n>` is all digits, and that `<base>` equals `git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}'`, else stop and run nothing. Agents, settings,
 hooks and `CLAUDE.md` load from the directory you were started in, so if that directory
 holds contributor content (a dirty tree, or `HEAD` not an ancestor of the base), stop,
 say the owner has to restart from a trusted checkout, and run nothing.

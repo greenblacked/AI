@@ -354,10 +354,9 @@ content the owner has not yet adopted (commits or changes not on the base branch
 it, and run no gate or command from it. Go straight to the Review step, naming the
 contributor as author. Run that review from a trusted checkout of the base branch, never
 the contributor's, because the tool reads `AGENTS.md`, agent files, settings and hooks
-from the checkout it opens. Fetch the current base and the contributor's head as a ref only (`git fetch
-origin +refs/heads/<base-branch>:refs/remotes/origin/<base-branch> +pull/<n>/head:refs/review/<n>`) and give the reviewer a base and that candidate
-ref to read with `git diff -z <base>...refs/review/<n>` (`<base>` is `origin/<base-branch>`, the
-remote-tracking ref that fetch updated, never a local branch, which may be stale), not a checked-out tree. If the
+from the checkout it opens. Check first that `<base-branch>` is `dev`, `stage` or `main` and that `<n>` is all digits, then fetch the current base and the contributor's head as a ref only (`git fetch
+origin '+refs/heads/<base-branch>:refs/remotes/origin/<base-branch>' '+pull/<n>/head:refs/review/<n>'`) and give the reviewer `<base-branch>`, the pinned `<base>` and that candidate
+ref to read with `git diff -z '<base>'...refs/review/<n>` (`<base-branch>` must be `dev`, `stage` or `main`, matching `^[A-Za-z0-9][A-Za-z0-9._/-]*$` as a whole name, else `STOP` and retarget the PR; `<base>` is the SHA from `base_sha=$(git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}')` right after the fetch), not a checked-out tree. If the
 session was opened inside a contributor checkout, stop and restart from a trusted one.
 
 **Survey**, in a new conversation, report-only. Describe the change and ask what already
@@ -385,19 +384,19 @@ full. The diff alone omits untracked files, which on a change that adds one is t
 change. Pasting rather than pointing removes the material only when the reviewing
 conversation cannot reach the checkout; in a terminal agent sitting in the repository it
 has the tree whatever you paste. For a contributor change, hand it the trusted base
-checkout plus `git diff <base>...refs/review/<n>`; the candidate is checked out only in
+checkout plus `git diff '<base>'...refs/review/<n>`; the candidate is checked out only in
 the throwaway gate worktree below. Keep the reviewer report-only, with execution tools
 for its own gates, which on a contributor change it uses only under the inert-content
 rule above, in this order: it first requires the candidate to be based on the current base, then decides inert-only from `git diff -z --raw
-<base>...refs/review/<n>`, then itself creates a detached worktree in a fresh directory
+'<base>'...refs/review/<n>`, then itself creates a detached worktree in a fresh directory
 outside the project, as the current base plus the candidate merged, runs the gates there and removes it, all in one Bash call because the
 tool keeps no shell variables between calls:
 
 ```bash
-tmp=$(mktemp -d) && git worktree add --detach "$tmp/wt" "origin/<base-branch>" && git -C "$tmp/wt" -c user.name=review -c commit.gpgSign=false -c user.email=review@invalid merge --no-ff --no-edit "refs/review/<n>" && make -C "$tmp/wt" validate catalogue test; rc=$?; git worktree remove --force "$tmp/wt"; rmdir "$tmp"; exit $rc
+tmp=$(mktemp -d) && git worktree add --detach "$tmp/wt" '<base>' && git -C "$tmp/wt" -c user.name=review -c commit.gpgSign=false -c user.email=review@invalid merge --no-ff --no-edit "refs/review/<n>" && make -C "$tmp/wt" validate catalogue test; rc=$?; git worktree remove --force "$tmp/wt"; rmdir "$tmp"; exit $rc
 ```
 
-A candidate whose `git merge-base origin/<base-branch> refs/review/<n>` differs from `git rev-parse origin/<base-branch>` is `FIX` asking the contributor to rebase onto
+A candidate whose `git merge-base '<base>' refs/review/<n>` differs from `<base>` is `FIX` asking the contributor to rebase onto
 the current base before any gate runs, inert-only or not, so the merge above is fast-forward equivalent; a merge conflict or non-zero merge is the same `FIX`. The merge runs only the trusted clone's own hooks and config; a
 `.gitattributes` change is non-inert, and a merge driver must also be defined in the
 trusted config, so none runs. It never reads files inside that worktree, because a

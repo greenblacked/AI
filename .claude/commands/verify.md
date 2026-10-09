@@ -37,12 +37,11 @@ conversation.
 A contributor change is judged from a trusted checkout of the base branch, never the
 contributor's: Claude Code loads agents, settings, hooks and `CLAUDE.md` from the
 session's working directory, so a modified `reviewer.md` or hook would run before any
-Author guard. This command has no `git fetch`, so the owner fetches the current base and the contributor's
-head as a ref only (`git fetch origin +refs/heads/<base-branch>:refs/remotes/origin/<base-branch> +pull/<n>/head:refs/review/<n>`), and both agents
-get a base ref and that candidate ref to read with `git diff <base>...refs/review/<n>`,
-where `<base>` is `origin/<base-branch>`, the remote-tracking ref that fetch updated, never a
-local branch, which may be stale,
-not a checked-out tree. The reviewer first requires the candidate to be based on the current base (`FIX` asking for a rebase otherwise), decides inert-only from `git diff -z --raw`, then
+Author guard. This command has no `git fetch`, so the owner, after checking that `<base-branch>` is `dev`, `stage` or `main` and that `<n>` is all digits, fetches the current base and the contributor's
+head as a ref only (`git fetch origin '+refs/heads/<base-branch>:refs/remotes/origin/<base-branch>' '+pull/<n>/head:refs/review/<n>'`), and both agents
+get `<base-branch>`, the pinned `<base>` and that candidate ref to read with `git diff '<base>'...refs/review/<n>`,
+where `<base-branch>` must be `dev`, `stage` or `main` and match `^[A-Za-z0-9][A-Za-z0-9._/-]*$` as a whole name (any other base is `STOP`: retarget the PR), and `<base>` is the SHA from `base_sha=$(git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}')` run right after the fetch,
+not a checked-out tree. The reviewer first validates `<base-branch>`, `<base>` and `<n>` before running any command (`STOP` on any mismatch), then requires the candidate to be based on the current base (`FIX` asking for a rebase otherwise), decides inert-only from `git diff -z --raw`, then
 creates and removes its own gate worktree (the base plus the candidate merged) outside the project, reading files only with
 `git show` on a canonical, single-quoted path. If this session was opened inside a
 contributor checkout, return `STOP` and tell the owner to restart from a trusted one.
@@ -66,8 +65,8 @@ Send one claim. Three gets you a finding about none of them.
 ## 2. Judge
 
 Delegate to `reviewer` on the change with the finding attached and the same Author line
-(for a contributor change the loop stays `/verify`, with the base and candidate refs
-passed in). The question here is no longer whether the claim is true, because `investigator`
+(for a contributor change the loop stays `/verify`, with `<base-branch>`, the pinned
+`<base>` and the candidate ref passed in). The question here is no longer whether the claim is true, because `investigator`
 settled that. It is whether the change is now consistent with what was found: whether
 the sentence that cited the claim says something the evidence actually supports, whether
 the paragraph built on it still stands once the premise narrowed, whether a figure
