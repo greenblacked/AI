@@ -22,6 +22,7 @@ BASE = "b" * 40
 STAGE = "c" * 40
 STAGE_HEAD = "d" * 40
 TREE = "e" * 40
+STAGE_REF = "feat/promote-to-stage"
 PATCH = ".claude/agents/benchmarks/reviewer/unpublished-release-links/change.patch"
 
 
@@ -49,6 +50,11 @@ def table_git(table):
     return git
 
 
+def branch_pulls_path():
+    owner = REPO_NAME.split("/")[0]
+    return f"/repos/{REPO_NAME}/pulls?head={owner}:feat%2Fpromote-to-stage&state=all&per_page=100"
+
+
 def runs_path(head):
     return (
         f"/repos/{REPO_NAME}/actions/workflows/ci.yml/runs"
@@ -60,8 +66,14 @@ def jobs_path(run_id):
     return f"/repos/{REPO_NAME}/actions/runs/{run_id}/jobs?per_page=100"
 
 
-def run(run_id, base=BASE, status="completed"):
-    return {"id": run_id, "status": status, "pull_requests": [{"base": {"sha": base}}]}
+def run(run_id, base=BASE, status="completed", branch=STAGE_REF, repo=REPO_NAME):
+    return {
+        "id": run_id,
+        "status": status,
+        "pull_requests": [{"base": {"sha": base}}],
+        "head_branch": branch,
+        "head_repository": {"full_name": repo},
+    }
 
 
 CODE_GREEN = [
@@ -183,7 +195,13 @@ def test_an_edit_with_a_malformed_sha_runs_everything():
 
 
 def stage_world(
-    diff="CHANGELOG.md\n", head_tree=TREE, run_jobs=CODE_GREEN, pulls=None, runs=None, applies=""
+    diff="CHANGELOG.md\n",
+    head_tree=TREE,
+    run_jobs=CODE_GREEN,
+    pulls=None,
+    runs=None,
+    applies="",
+    branch_pulls=None,
 ):
     git = table_git(
         {
@@ -200,7 +218,7 @@ def stage_world(
                 "merge_commit_sha": STAGE,
                 "merged_at": "2026-10-06T09:04:45Z",
                 "base": {"ref": "stage"},
-                "head": {"sha": STAGE_HEAD},
+                "head": {"sha": STAGE_HEAD, "ref": STAGE_REF},
             }
         ]
     table = {
@@ -208,6 +226,7 @@ def stage_world(
         f"/repos/{REPO_NAME}/commits/{STAGE_HEAD}": {"commit": {"tree": {"sha": head_tree}}},
         runs_path(STAGE_HEAD): {"workflow_runs": [run(5)] if runs is None else runs},
         jobs_path(5): {"jobs": run_jobs},
+        branch_pulls_path(): [{"number": 152}] if branch_pulls is None else branch_pulls,
         jobs_path(4): {"jobs": [{"name": "site-browser", "conclusion": "failure"}]},
     }
     return table_get(table), git
@@ -240,6 +259,23 @@ def test_a_promotion_of_the_tree_stage_passed_skips_the_test_matrix(diff):
         ({"run_jobs": [{"name": "test (3.13)", "conclusion": "failure"}]}, "did not pass"),
         ({"pulls": []}, "is not the merge of a pull request into stage"),
         ({"runs": [run(5), run(4)]}, "run 4"),
+        ({"runs": [run(5, branch="feat/another-pull-request")]}, "no earlier run"),
+        ({"runs": [run(5, repo="someone/fork")]}, "no earlier run"),
+        ({"branch_pulls": [{"number": 152}, {"number": 160}]}, "also heads pull request #160"),
+        (
+            {
+                "pulls": [
+                    {
+                        "number": 152,
+                        "merge_commit_sha": STAGE,
+                        "merged_at": "2026-10-06T09:04:45Z",
+                        "base": {"ref": "stage"},
+                        "head": {"sha": STAGE_HEAD},
+                    }
+                ]
+            },
+            "names no head branch",
+        ),
         (
             {
                 "diff": f"{PATCH}\n",
@@ -255,7 +291,7 @@ def test_a_promotion_of_the_tree_stage_passed_skips_the_test_matrix(diff):
                         "merge_commit_sha": STAGE,
                         "merged_at": "2026-10-06T09:04:45Z",
                         "base": {"ref": "dev"},
-                        "head": {"sha": STAGE_HEAD},
+                        "head": {"sha": STAGE_HEAD, "ref": STAGE_REF},
                     }
                 ]
             },
@@ -266,7 +302,9 @@ def test_a_promotion_of_the_tree_stage_passed_skips_the_test_matrix(diff):
 def test_a_promotion_runs_everything_unless_stage_proves_the_tree(world, why):
     # Any change outside the release files, a stage pull request whose head is not the
     # tree stage holds, a red stage run (even behind a green one), a stage tip no pull
-    # request produced, or a repointed benchmark patch that no longer applies.
+    # request produced, a repointed benchmark patch that no longer applies, or a green
+    # run that belongs to another pull request or a fork with the same head commit, or a
+    # stage branch that also headed another pull request, whose runs share its branch.
     get, git = stage_world(**world)
     mode, reason = scope.decide(into_main(), get, git)
     assert mode == "full" and why in reason, reason
