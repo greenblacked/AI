@@ -116,14 +116,16 @@ A file name is attacker-controlled input too: a contributor can add `docs/$(cmd)
 which passes the allowlist below and runs the substitution if the name is spliced into
 a double-quoted command. So list changed paths only NUL-delimited (`-z`), and treat a
 path as canonical only if the whole NUL-delimited name matches
-`^[A-Za-z0-9][A-Za-z0-9._/-]*$`. The change fails the canonical check if
+`^\.?[A-Za-z0-9_][A-Za-z0-9._-]*(/\.?[A-Za-z0-9_][A-Za-z0-9._-]*)*$`, where each segment may start with one dot, then a letter, digit or underscore. The change fails the canonical check if
 `git diff -z --name-only '<base>'...refs/review/<n> | grep -zvxE '<pattern>'` selects any
 record (exit 0 means at least one unsafe name, so it is a blocking finding and nothing is
 read by name); in Python, apply `re.fullmatch` to every decoded record and require all to
 match. Never convert NULs to newlines first (no space, quote,
 `$`, backtick, `;`, `|`, `&`, glob character or newline, and no leading dash). A changed
 path outside that pattern makes the change non-inert, is never placed in a command or
-read by name, and is a blocking finding asking the contributor to rename it. Put a
+read by name, and is a blocking finding asking the contributor to rename it. Dot-prefixed
+paths such as `.github/` and `.claude/` are canonical but non-inert, since they are outside
+the inert allowlist, so they go to the owner-must-run flow, not a rename finding. Put a
 canonical path in single quotes in `git show`, because double quotes still expand `$(...)`
 and backticks.
 

@@ -842,7 +842,7 @@ contributor's checkout.
 File names are an injection vector too: a contributor can add `docs/$(cmd).md`, which
 passes an allowlist by extension and runs the substitution when the name is spliced into
 a double-quoted command, so only NUL-delimited listings and canonical names
-(whole name matching `^[A-Za-z0-9][A-Za-z0-9._/-]*$`, read in single quotes) may reach a
+(whole name matching `^\.?[A-Za-z0-9_][A-Za-z0-9._-]*(/\.?[A-Za-z0-9_][A-Za-z0-9._-]*)*$`, read in single quotes) may reach a
 command.
 
 **First caught:** #165, the automated PR reviewer.
