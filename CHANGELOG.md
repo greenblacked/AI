@@ -353,9 +353,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   only in a disposable sandbox with no credentials and no network, never in the owner's
   normal environment or clone; `SHIP` is never returned by the reviewer itself on such a change, though a `FIX` whose only open items are the owner-must-run ones (no blocking finding, and the candidate based on the current base) is cleared by the owner's completed checklist recorded on the PR, live check included, for that head commit on that base tip only (a new push voids it, as does a base advance, detected by re-fetching and comparing both refs against the pinned base and reviewed SHA before accepting and again before merge; a post-merge live check is recorded as named but not yet run; a blocking finding or the rebase `FIX` still needs a fix and a fresh review).
   A changed path must also have a whole NUL-delimited name matching
-  `^[A-Za-z0-9][A-Za-z0-9._/-]*$` to count as inert: a name such
+  `^\.?[A-Za-z0-9_][A-Za-z0-9._-]*(/\.?[A-Za-z0-9_][A-Za-z0-9._-]*)*$` (each segment may start with one dot, then a letter, digit or underscore) to be canonical: a name such
   as `docs/$(cmd).md` makes the change non-inert, is never put in a command and is a
-  blocking finding asking for a rename, and paths are listed NUL-delimited and read in
+  blocking finding asking for a rename (dot-prefixed paths such as `.github/` and `.claude/` are canonical but non-inert, since they are outside the inert allowlist, so they go to the owner-must-run flow, not a rename), and paths are listed NUL-delimited and read in
   single quotes. Such a `FIX` goes back to the owner or contributor, never
   to `implementer`. The build loop (`/ship`, `explorer`, `implementer` and the ChatGPT
   coordinator's build loop) is owner-only: with contributor content the owner has not
