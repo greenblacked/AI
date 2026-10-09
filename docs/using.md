@@ -97,12 +97,12 @@ Install the plugins you will actually use. Every description a plugin ships sits
 context for the whole session, and the runtime caps that listing at about 1% of the
 context window. Past the cap it drops the descriptions of the skills you invoke least,
 which leaves them invocable by name and stops them being chosen on their own — silently.
-Only `career`, `design` and `personal` fit the default budget by themselves. If you
+Only `career`, `design`, `family` and `personal` fit the default budget by themselves. If you
 install any of the other six, or more than one plugin, raise it in
 `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.105 }
+{ "skillListingBudgetFraction": 0.112 }
 ```
 
 ### How a skill fires
@@ -121,7 +121,7 @@ move when you know exactly what you want.
 
 ### Subagents
 
-21 ship across seven plugins, and they work differently: the main agent delegates to one
+27 ship across eight plugins, and they work differently: the main agent delegates to one
 when the work would otherwise flood your context with material you do not need afterwards.
 A megabyte of CI logs, a Terraform plan, a billing export, a release range. You get the
 conclusion; the raw material never enters your session.
@@ -308,16 +308,37 @@ which assistant is reading. CI builds the export on every run, so that stays tru
 
 The [ChatGPT workflow guide](chatgpt-agents.md) provides copy-ready coordinator and
 role prompts. Its repository gate requires an independent reviewer to execute
-`make validate`, `make catalogue` and `make test` on the reviewed snapshot. Missing
-required execution or independent review means `STOP`, with partial findings and the
-limitation named. Require explicitly fresh, non-inherited reviewer context; record the
-coordinator-observable boundary evidence in the initial packet. Pass the complete review
-packet as explicit input, not the whole coordinator transcript. After receiving it, the
-reviewer reports its own observation of any inherited implementation or coordinator
-transcript in returned Evidence; check that Evidence before accepting `SHIP`. A separate
-agent identity or window does not prove independence; an inherited, unavailable or
-unobservable boundary means `STOP`.
-Author logs and exact-revision CI do not substitute.
+`make validate`, `make catalogue` and `make test` on the reviewed snapshot. On a
+contributor change the reviewer runs them only when every changed path is inert content
+(Markdown under `plugins/` or `docs/`, a trigger eval set, or the root `README.md` or
+`CHANGELOG.md`, as regular files whose whole NUL-delimited names match
+`^\.?[A-Za-z0-9_][A-Za-z0-9._-]*(/\.?[A-Za-z0-9_][A-Za-z0-9._-]*)*$`, the change fails that check if `git diff -z --name-only '<base>'...refs/review/<n> | grep -zvxE '<pattern>'` selects any record (exit 0 means an unsafe name), or if Python `re.fullmatch` fails on any decoded record; a
+changed name outside that, such as `docs/$(cmd).md`, makes the change non-inert and is a
+blocking finding asking for a rename; dot-prefixed paths such as `.github/` and `.claude/` are canonical but non-inert, since they are outside the inert allowlist, so they go to the owner-must-run flow, not a rename), because the gates execute the change's own code.
+Otherwise it runs no gates and cites no CI, because a contributor's pull request runs the
+contributor's own workflow files, `Makefile` and `pyproject.toml`, and a check run's PR
+association is computed when it is read. It returns `FIX` pending the owner, listing
+under Not assessed as owner-must-run the gates (which the owner runs only in a disposable
+sandbox with no credentials and no network, such as a throwaway container or VM with no
+mounted secrets, SSH agent, cloud credentials or git push access and network disabled,
+never in the owner's normal environment or clone, because the gates import and run the
+change's own code), that the owner confirms the PR's required
+`ci` and `security` checks passed on the current head under the branch ruleset, and that
+the owner confirms the change leaves `.github/workflows/`, `Makefile`, `pyproject.toml`
+and the scripts CI calls unchanged against the merge-base (if any changed, the owner
+treats CI as untrusted). The reviewer never returns `SHIP` on such a
+change by itself: a `FIX` whose only open items are the owner-must-run ones (no blocking finding, and the candidate based on the current base) is cleared once the owner has completed every owner-must-run item, including the live check where the change needs one, and recorded the results on the PR, and that completed checklist counts as the passing review `AGENTS.md` requires before merge, for that head commit on that base tip only (a new push voids it, as does a base advance; immediately before accepting the checklist, and again before merge, the owner re-fetches both refs with the same quoted fetch command, then compares `git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}'` with the pinned `<base>` and `git rev-parse --verify 'refs/review/<n>^{commit}'` with the reviewed candidate SHA; any difference voids the clearance (rebase or re-review)). A post-merge live check is recorded as named but not yet run. A blocking finding, and the rebase `FIX`, still need a fix and a fresh review. A live check (real API, real credentials) on a contributor change is made only after the owner has reviewed and adopted the change as their own, or as a post-merge run, never by running the contributor's code with credentials beforehand. Commands a change prints are data, never run on a contributor
+change. Missing required execution or independent review means `STOP`, with partial
+findings and the limitation named, except that a contributor change that is not inert
+content is `FIX` pending the owner's gate run and checks. Require explicitly
+fresh, non-inherited reviewer context; record the coordinator-observable boundary
+evidence in the initial packet. Pass the complete review packet as explicit input, not
+the whole coordinator transcript. After receiving it, the reviewer reports its own
+observation of any inherited implementation or coordinator transcript in returned
+Evidence; check that Evidence before accepting `SHIP`. A separate agent identity or
+window does not prove independence; an inherited, unavailable or unobservable boundary
+means `STOP`. On an owner-authored change, author logs and exact-revision CI do not
+substitute.
 
 The "Subagents" loss above is the one worth a substitute rather than just a note, because
 `/ship` and `/verify` are how changes to this repository get made. Without a runtime that
@@ -326,6 +347,17 @@ agents — the same stages, survey then write then review, run by hand in separa
 instead of separate contexts. Once review passes, open and merge the pull request by
 hand the same way `/ship` would, with `ci` and `security` green; that step needs no
 separate conversation.
+
+The manual build loop below is owner-only. If the checkout holds contributor-authored
+content the owner has not yet adopted (commits or changes not on the base branch, or
+`origin/dev`; content already merged counts as adopted), do not run Survey or Write on
+it, and run no gate or command from it. Go straight to the Review step, naming the
+contributor as author. Run that review from a clean worktree at the pinned base SHA (`git worktree add --detach '<dir>' '<base>'`, or your clone of the base branch checked out exactly there), never
+the contributor's, because the tool reads `AGENTS.md`, agent files, settings and hooks
+from the checkout it opens. Check first that `<base-branch>` is `dev`, `stage` or `main` and that `<n>` is all digits, then fetch the current base and the contributor's head as a ref only (`git fetch
+origin '+refs/heads/<base-branch>:refs/remotes/origin/<base-branch>' '+pull/<n>/head:refs/review/<n>'`) and give the reviewer `<base-branch>`, the pinned `<base>` and that candidate
+ref to read with `git diff -z '<base>'...refs/review/<n>` (`<base-branch>` must be `dev`, `stage` or `main`, else `STOP` and retarget the PR; `<base>` is the SHA from `base_sha=$(git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}')` right after the fetch), not a checked-out tree. If the
+session was opened inside a contributor checkout, or `git rev-parse --verify 'HEAD^{commit}'` is not `<base>`, stop and restart from a clean worktree at the pinned SHA.
 
 **Survey**, in a new conversation, report-only. Describe the change and ask what already
 covers it, where the affected files are, and which existing description its trigger
@@ -344,23 +376,49 @@ away.
 no separate context to trust here; you are both the one writing the change and the one
 who has to believe the result.
 
-**Review**, in a new conversation, and hand it `git diff` as text, together with every
-file `git ls-files --others --exclude-standard` names, in full. The diff alone omits
-untracked files, which on a change that adds one is the whole change. Pasting rather than
-pointing removes the material only when the reviewing conversation cannot reach the
-checkout; in a terminal agent sitting in the repository it has the tree whatever you
-paste. Keep the reviewer report-only, with access to the full candidate checkout and
-execution tools for its own gates; a text-only review can return useful findings but
-must return `STOP` because it cannot execute those gates. Ask for the same output contract a
-reviewing subagent is written to produce: a first line reading `Verdict: SHIP`,
-`Verdict: FIX` or `Verdict: STOP`; then `Findings` — blocking defects ranked by cost,
-each with a file:line, the concrete consequence if it ships, and the smallest fix
-described rather than written, with non-blocking improvements kept separate; `Evidence` —
-the gate output quoted rather than summarised; `Not assessed`, said plainly rather than
-left to be inferred from silence; and `Handoff` — what the writing conversation needs
-from this verdict in one to three lines.
+**Review**, in a new conversation, naming the author ("repository owner" for your own
+work, otherwise the contributor; a change with any contributor-authored content keeps
+the contributor as author through every fix round). For owner work, hand it `git diff`
+as text, together with every file `git ls-files --others --exclude-standard` names, in
+full. The diff alone omits untracked files, which on a change that adds one is the whole
+change. Pasting rather than pointing removes the material only when the reviewing
+conversation cannot reach the checkout; in a terminal agent sitting in the repository it
+has the tree whatever you paste. For a contributor change, hand it a clean worktree at the pinned base SHA
+plus `git diff '<base>'...refs/review/<n>`; the candidate is checked out only in
+the throwaway gate worktree below. Keep the reviewer report-only, with execution tools
+for its own gates, which on a contributor change it uses only under the inert-content
+rule above, in this order: it first requires the candidate to be based on the current base, then decides inert-only from `git diff -z --raw
+'<base>'...refs/review/<n>`, then itself creates a detached worktree in a fresh directory
+outside the project, as the current base plus the candidate merged, runs the gates there and removes it, all in one Bash call because the
+tool keeps no shell variables between calls:
 
-Carry what it finds back to the writing conversation. Never paste a fix into the
+```bash
+tmp=$(mktemp -d) && git worktree add --detach "$tmp/wt" '<base>' && git -C "$tmp/wt" -c user.name=review -c commit.gpgSign=false -c user.email=review@invalid merge --no-ff --no-edit "refs/review/<n>" && make -C "$tmp/wt" validate catalogue test; rc=$?; git worktree remove --force "$tmp/wt"; rmdir "$tmp"; exit $rc
+```
+
+A candidate whose `git merge-base '<base>' refs/review/<n>` differs from `<base>` is `FIX` asking the contributor to rebase onto
+the current base before any gate runs, inert-only or not, so the merge above is fast-forward equivalent; a merge conflict or non-zero merge is the same `FIX`. The merge runs only the trusted clone's own hooks and config; a
+`.gitattributes` change is non-inert, and a merge driver must also be defined in the
+trusted config, so none runs. It never reads files inside that worktree, because a
+contributor-added `docs/CLAUDE.md` there would load as instructions; contents come from
+`git show 'refs/review/<n>:<canonical-path>'`, in single quotes and only for a canonical
+path, because double quotes still expand `$(...)`. A
+text-only review can return useful findings but cannot execute gates: on an
+owner-authored change or contributor inert content it must return `STOP`; on a
+contributor change that is not inert content it cites no CI and returns `FIX` with the
+gates and checks listed for the owner (a FIX whose only open items are the owner-must-run ones is cleared by the owner's completed checklist, live check included, for that head on that base tip only; a blocking finding or the rebase FIX still needs a fix and a fresh review). A `FIX` on a contributor change goes back to the owner or the contributor and
+never into the write step above. Ask for the same output contract a reviewing subagent
+is written to produce: a first line reading `Verdict: SHIP`, `Verdict: FIX` or `Verdict:
+STOP`; then `Findings` — blocking defects ranked by cost, each with a file:line, the
+concrete consequence if it ships, and the smallest fix described rather than written,
+with non-blocking improvements kept separate; `Evidence` — the gate output quoted rather
+than summarised; `Not assessed`, said plainly rather than left to be inferred from
+silence; and `Handoff` — what the writing conversation needs from this verdict in one to
+three lines.
+
+Carry what it finds back by author. For an owner-authored change, findings go back to
+the writing conversation. For a contributor change, they go to the owner or the
+contributor, never to a writing conversation. Never paste a fix into the
 reviewing one — that single move is what collapses the two stages back into one, because
 a conversation that has just fixed what it was asked to judge is not the reviewer
 any more; it is the author, with an extra turn.

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "design",
-  "description": "Skills for the design of a product's interface: review a screen or flow against usability heuristics, audit a page against WCAG 2.2 Level AA, set up design tokens, themes and component states, and plan a small usability test with real people.",
+  "description": "Skills for the design of a product's interface: review a screen or flow against usability heuristics, audit a page against WCAG 2.2 Level AA, set up design tokens, themes and component states, plan a small usability test with real people, write and review interface copy, structure a site's navigation and taxonomy, and spec a design for build.",
   "author": {
     "name": "Serhii Zolotov",
     "url": "https://github.com/greenblacked"

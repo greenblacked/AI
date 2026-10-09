@@ -1,0 +1,22 @@
+[
+  {"query": "write the retro for this slice", "should_trigger": true},
+  {"query": "what did we learn from this feature", "should_trigger": true},
+  {"query": "did we meet the success criteria, what next", "should_trigger": true},
+  {"query": "capture what to keep and what to change", "should_trigger": true},
+  {"query": "what's the next slice after this", "should_trigger": true},
+  {"query": "measure the outcome of this release", "should_trigger": true},
+  {"query": "run a retrospective on this project", "should_trigger": true},
+  {"query": "what should we do differently next time", "should_trigger": true},
+  {"query": "did this process work", "should_trigger": true},
+  {"query": "close the loop on this initiative", "should_trigger": true},
+  {"query": "write the incident postmortem", "should_trigger": false, "expected": "postmortem"},
+  {"query": "do a delivery review of our cadence", "should_trigger": false, "expected": "delivery-review"},
+  {"query": "write the weekly status update", "should_trigger": false, "expected": "status-update"},
+  {"query": "set up the team cadence", "should_trigger": false, "expected": "design-team-cadence"},
+  {"query": "plan our quarterly OKRs", "should_trigger": false, "expected": "okr-planning"},
+  {"query": "frame the problem before we build", "should_trigger": false, "expected": "framer"},
+  {"query": "propose the architecture for this slice", "should_trigger": false, "expected": "architect"},
+  {"query": "order the build steps for this slice", "should_trigger": false, "expected": "maker"},
+  {"query": "inspect this change before it ships", "should_trigger": false, "expected": "inspector"},
+  {"query": "plan the release for this change", "should_trigger": false, "expected": "launcher"}
+]

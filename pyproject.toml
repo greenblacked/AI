@@ -20,6 +20,9 @@ packages = ["src/skillcheck"]
 [tool.pytest.ini_options]
 minversion = "8.0"
 addopts = "-ra -q --strict-markers --import-mode=importlib"
+markers = [
+    "browser: drives the built catalogue site in Chromium; needs playwright (tests/test_site_browser.py)",
+]
 testpaths = ["tests"]
 pythonpath = ["src"]
 

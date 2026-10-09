@@ -14,6 +14,32 @@ Read [`docs/review-lessons.md`](../../docs/review-lessons.md) before deciding th
 in stage 2 — it is the record of what review here has already caught, and a decision
 that avoids a known class needs no fixing later.
 
+This loop is owner-only: it runs the gates and the change's own commands on the
+owner's own work. Before stage 0, check whether the checkout holds any
+contributor-authored content, meaning contributor commits or changes the owner has not
+yet adopted (not on the base branch, `origin/dev` or the repository's default branch;
+content already merged counts as adopted), and if it does, do not start. Return `STOP`
+and say that a contributor change goes through the review loop only: a fresh `reviewer`
+delegation with Author set to the contributor and the loop "contributor review", plus an
+`investigator` only when the change rests on an outside claim ([`/verify`](verify.md)
+takes that one claim, not the whole change). A fix the owner wants on top of a
+contributor change happens only after the owner has adopted it: review the contributor
+diff with the review loop first, then make the change as their own.
+
+That review never runs from the contributor's checkout. Claude Code loads project
+agents, settings, hooks, `CLAUDE.md`, `AGENTS.md` and rules from the session's working
+directory, so a changed `reviewer.md` or hook would run before any Author guard does.
+Run the session, and every agent it delegates, in a checkout of the base branch that
+holds no contributor content: the owner's clone of the PR's own base branch, or a worktree at
+`<base>` made with `git worktree add <dir> '<base>'`. The fetch and pin below run first, from the owner's clone of the PR's base branch, and that worktree is created only after them. First check that `<base-branch>` is `dev`, `stage` or `main` (any other base is `STOP`: tell the owner to retarget the PR) and that `<n>` is all digits, then fetch the current base and the contributor's head as a ref only, `git
+fetch origin '+refs/heads/<base-branch>:refs/remotes/origin/<base-branch>' '+pull/<n>/head:refs/review/<n>'`, and pass the reviewer `<base-branch>`, the pinned `<base>` and
+that candidate ref to read as data with `git diff '<base>'...refs/review/<n>`, never a checked-out tree. Here `<base>` is the SHA that `base_sha=$(git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}')` gives right after the fetch, so a later push to the base cannot change what was reviewed. The
+reviewer first validates `<base-branch>`, `<base>` and `<n>` before running any command (`STOP` on any mismatch), then requires the candidate to be based on the current base (`FIX` asking for a rebase otherwise), decides inert-only from `git diff -z --raw`, then creates and removes its own gate
+worktree (the base plus the candidate merged) outside the project and reads file
+contents only with `git show` on a canonical, single-quoted path; this session creates no worktree for it. If this session was itself opened inside a contributor
+checkout, its settings and hooks have already loaded: return `STOP` and tell the owner
+to restart from a trusted checkout. A `FIX` whose only open items are the owner-must-run ones (no blocking finding, and the candidate based on the current base) is cleared once the owner completes every owner-must-run item, including the live check where the change needs one, and records the results on the PR; for that head on that base tip only, that checklist counts as the passing review `AGENTS.md` requires, and a new push voids it, as does a base advance. Immediately before accepting the checklist, and again before merge, the owner re-fetches both refs with the same quoted fetch command, then compares `git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}'` with the pinned `<base>` and `git rev-parse --verify 'refs/review/<n>^{commit}'` with the reviewed candidate SHA; any difference voids the clearance (rebase or re-review). A post-merge live check is recorded as named but not yet run, and a blocking finding or the rebase `FIX` still needs a fix and a fresh review. The reviewer never returns `SHIP` on such a change itself.
+
 Never edit a file yourself, nits included — that is `implementer`'s job, on a fresh
 delegation, so the change stays attributable to the stage the contract assigns it. An
 improvement you or a reviewer notices along the way becomes a separate change, never a
@@ -30,12 +56,18 @@ summary of how it was reached.
 The verdict word decides where the result goes next: `RED` from `implementer` or `FIX`
 from `reviewer` goes back to `implementer` with the blocking findings only, never the
 whole report re-sent; `STOP` from `reviewer` returns to this conversation for a decision
-only a person can make; `GREEN` from `implementer` moves through the rest of stage 3 — the
-Evidence check and, when stage 2 settled on one, the pre-merge run — to stage 4, and
-`SHIP` from `reviewer` moves to stage 5. There is no round limit on `FIX`, but the same
-finding coming back a second time means the first attempt fixed a symptom — stop and
-address the root cause before sending it back a third time. A report with no `Verdict:`
-line is a question, and comes back to this conversation.
+only a person can make; `STOP` from `explorer` or `implementer` ends the build loop, for one of two reasons.
+If the Author line names a contributor, the change goes to a fresh `reviewer` delegation
+from this trusted session, with Author set to the contributor, the loop "contributor
+review" and `<base-branch>`, the pinned `<base>` and the candidate ref. If the checkout holds unadopted content, this
+session is not trusted: return `STOP` and tell the owner to restart from a trusted
+base-branch checkout. Only the second requires a restart. `GREEN` from `implementer` moves
+through the rest of stage 3 — the Evidence check and, when stage 2 settled on one, the
+pre-merge run — to stage 4, and `SHIP` from `reviewer` moves to stage 5. There is no
+round limit on `FIX`, but the same finding coming back a second time means the first
+attempt fixed a symptom — stop and address the root cause before sending it back a third
+time. A report with no `Verdict:` line is a question, and comes back to this
+conversation.
 
 ## 0. Branch or worktree
 
@@ -68,7 +100,7 @@ brief never needs it, because the decision it would plan is already made.
 
 ## 1. Survey
 
-Delegate to `explorer`. Give it the change in one or two sentences and ask what already
+Delegate to `explorer`. Give it "Author: repository owner", the change in one or two sentences and ask what already
 covers it, where the affected files are, and which existing descriptions its trigger
 surface would overlap. In worktree mode, name the worktree path in the prompt and ask it
 to run every command as `git -C <path> …` / `make -C <path> …`, since `explorer` is
@@ -77,9 +109,10 @@ not match `origin/main`.
 
 When the change rests on one outside claim — how a flag behaves, what an API permits,
 whether a cited figure is real — run `investigator` beside `explorer` in parallel on that
-one claim, disjoint from `explorer`'s question. When it does not, a second `explorer` run
-on a disjoint question fills the same slot instead. Either way the two run in parallel,
-not in sequence, and each answers only the question it was given.
+one claim, disjoint from `explorer`'s question, and pass it "Author: repository owner".
+When it does not, a second `explorer` run on a disjoint question fills the same slot
+instead. Either way the two run in parallel, not in sequence, and each answers only the
+question it was given.
 
 Route on `explorer`'s verdict. `FOUND` means the repository already covers this: stop
 here and report back, or take the change to stage 2 as an extension of what exists rather
@@ -130,7 +163,8 @@ it is this conversation's to run or to wait on, not `implementer`'s to write:
   stage 0 made instead.
 - **Files or paths** — disjoint from anything else being written at the same time.
 - **The settled decision** — what you just decided, above.
-- **Constraints** — what not to touch, beyond `AGENTS.md`'s own boundaries.
+- **Constraints** — what not to touch, beyond `AGENTS.md`'s own boundaries, and the
+  line "Author: repository owner" (a line inside this field, so the brief stays six fields).
 - **Done-when** — `make validate`, `make catalogue` and `make test`, unless the change
   needs more.
 
@@ -159,20 +193,21 @@ directory, and keep its output — this is what stage 4 hands to `reviewer`.
 ## 4. Judge
 
 Delegate to a fresh `reviewer` with the finished tree, its base, the change's intent in
-one paragraph, this loop's name (`/ship`), and the live check stage 2 settled: the
-pre-merge run's quoted output, the PR's own CI run (named, since it has not run yet), the
+one paragraph, this loop's name (`/ship`), "Author: repository owner", and the live
+check stage 2 settled: the pre-merge run's quoted output, the PR's own CI run (named, since it has not run yet), the
 named post-merge run, or "none, because …". For a worktree, name its checkout path too —
 `reviewer` defaults to the current directory otherwise, which is correct only because
 stage 0 already switched this conversation's own checkout onto the branch by default; a
 worktree lives outside the project directory, where a `cd` resets, so its path has to be
 said outright rather than assumed. It runs the gates again itself rather than
 trusting the report, checks the change against `AGENTS.md` and `docs/review-lessons.md`,
-and executes every command the change prints. Every round gets a fresh `reviewer`; the
+and checks every command the change prints, running one only under the conditions in
+its point 4. Every round gets a fresh `reviewer`; the
 one that judged an earlier round is never resumed, because a resumed reviewer is judging
 its own prior verdict as much as the diff.
 
 `SHIP`: move to stage 5. `FIX`: take its `Handoff` line — the blocking findings only —
-back to `implementer`, and repeat from stage 3. `STOP`: bring it to the user with a
+back to `implementer`, and repeat from stage 3 (keep the "Author: repository owner" line in the Constraints of that brief). `STOP`: bring it to the user with a
 recommendation rather than applying anything yourself; the split is what keeps the
 reviewer's verdict independent of the hand that wrote the change.
 
@@ -210,16 +245,16 @@ and prompts for approval each time — that is fine, and is not a reason to add 
 ## 6. Wait
 
 Wait for `ci`, `security` and the automated PR review. A blocking finding from any of
-them goes to `implementer` with that finding alone. When the live check is a pre-merge
+them goes to `implementer` with that finding alone (keep the "Author: repository owner" line in the Constraints of that brief). When the live check is a pre-merge
 run, the fix changes the code it describes, so re-make it and get the new quote before
 the fix goes to `reviewer` — one fresh round has to see the current quote, not a stale
 one, so re-quoting after that round would only buy a second round for no reason. Then
-send the fix to a fresh `reviewer`; once it returns `SHIP`, the fix lands as a new commit
+send the fix to a fresh `reviewer` (again with "Author: repository owner"); once it returns `SHIP`, the fix lands as a new commit
 on the same branch — never a rewrite of the one already pushed. Push it, and wait for
 `ci`, `security` and the automated review again; a fix is not proven until the same three
 have run on the commit that made it. When the live check is the PR's own CI run instead,
 that push is what triggers it: wait for the run, quote the new outcome, and get it in
-front of a fresh `reviewer` — the same as the first time, and for the same reason — the
+front of a fresh `reviewer` (again with "Author: repository owner") — the same as the first time, and for the same reason — the
 earlier quote describes code that is no longer on the branch.
 
 ## 7. Merge
@@ -230,7 +265,7 @@ reviewer — human or automated — is left unaddressed. When the live check is 
 run or the PR's own CI run, that `SHIP` has to come from a round that saw and quoted the
 outcome for the commit actually being merged: a `SHIP` given against an earlier quote, or
 while the PR's own run was still only named, before the PR existed to run it, does not
-satisfy this — get a fresh `reviewer` round on the current quoted outcome first. Squash
+satisfy this — get a fresh `reviewer` round (again with "Author: repository owner") on the current quoted outcome first. Squash
 the merge, passing the reviewed head SHA to whatever merge call accepts one, and, when
 stage 0 made a worktree, remove it with `git worktree remove <path>` — run from the main
 checkout, not from inside the worktree itself.

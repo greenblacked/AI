@@ -1,0 +1,22 @@
+[
+  {"query": "our error messages just say Error 422, rewrite them so users know what happened", "should_trigger": true},
+  {"query": "what should the button say on the final checkout step", "should_trigger": true},
+  {"query": "write the empty state for the dashboard before a user has any projects", "should_trigger": true},
+  {"query": "set a tone of voice for our app and give the team a voice guide to follow", "should_trigger": true},
+  {"query": "our copy sounds robotic, do a UX writing pass over onboarding", "should_trigger": true},
+  {"query": "how do we word this delete confirmation so people know exactly what gets removed", "should_trigger": true},
+  {"query": "the link text says click here all over the page, fix the links", "should_trigger": true},
+  {"query": "review the microcopy on this signup form, labels and help text included", "should_trigger": true},
+  {"query": "we keep calling the same thing workspace and project, sort out our product terminology in the UI", "should_trigger": true},
+  {"query": "write the loading and success messages for the file upload flow", "should_trigger": true},
+  {"query": "write the API reference and getting-started guide for our SDK", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "review this checkout screen for usability problems, people abandon at the last step", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "audit our forms against WCAG, especially the label and error associations", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "define the colour and spacing tokens for our design system", "should_trigger": false, "expected": "design-system"},
+  {"query": "write the marketing tagline and homepage hero headline", "should_trigger": false},
+  {"query": "write a playwright test that asserts the exact error message text", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "build a settings page with a form that saves preferences", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "plan a usability test with five users on the new onboarding", "should_trigger": false, "expected": "usability-test-plan"},
+  {"query": "review my PR that changes the button labels across the app", "should_trigger": false, "expected": "code-review"},
+  {"query": "write release notes for version 3 of our product", "should_trigger": false, "expected": "release-notes"}
+]

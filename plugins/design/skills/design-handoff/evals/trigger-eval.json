@@ -1,0 +1,22 @@
+[
+  {"query": "spec out this settings screen for the engineers to build", "should_trigger": true},
+  {"query": "write acceptance criteria from this Figma design", "should_trigger": true},
+  {"query": "annotate the states and edge cases on this checkout flow", "should_trigger": true},
+  {"query": "the dev built the empty state wrong, give me a spec to fix the handoff", "should_trigger": true},
+  {"query": "redline this component for build with tokens and spacing", "should_trigger": true},
+  {"query": "what do I need to give the engineers to build this screen", "should_trigger": true},
+  {"query": "prepare a handoff pack for the new dashboard", "should_trigger": true},
+  {"query": "document the responsive behaviour of this page for build", "should_trigger": true},
+  {"query": "add accessibility annotations to the design before handoff", "should_trigger": true},
+  {"query": "review the build against the design, state by state", "should_trigger": true},
+  {"query": "define the spacing and colour tokens for the design system", "should_trigger": false, "expected": "design-system"},
+  {"query": "write the React component for this card", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "the error copy is unclear, rewrite it", "should_trigger": false, "expected": "content-design"},
+  {"query": "review this screen for usability problems", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "audit this screen against WCAG", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "run a usability test on the prototype with five users", "should_trigger": false, "expected": "usability-test-plan"},
+  {"query": "review my PR that implements the new component", "should_trigger": false, "expected": "code-review"},
+  {"query": "write the user guide for the settings screen", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "restructure the navigation and sitemap for the app", "should_trigger": false, "expected": "information-architecture"},
+  {"query": "add end-to-end tests for the checkout flow", "should_trigger": false, "expected": "e2e-testing"}
+]

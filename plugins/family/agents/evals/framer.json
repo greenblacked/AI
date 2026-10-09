@@ -1,0 +1,22 @@
+[
+  {"query": "turn this feature request into a problem statement", "should_trigger": true},
+  {"query": "what problem are we actually solving here", "should_trigger": true},
+  {"query": "define success criteria for this initiative", "should_trigger": true},
+  {"query": "what's the smallest slice we can ship for this idea", "should_trigger": true},
+  {"query": "our project has no clear goal, help us frame it", "should_trigger": true},
+  {"query": "write the scope and out-of-scope for this work", "should_trigger": true},
+  {"query": "who is this feature for and what does done mean", "should_trigger": true},
+  {"query": "we keep building things nobody uses, help us frame the problem", "should_trigger": true},
+  {"query": "reframe this vague complaint as a problem to solve", "should_trigger": true},
+  {"query": "what should the acceptance criteria be for this slice", "should_trigger": true},
+  {"query": "write our quarterly OKRs", "should_trigger": false, "expected": "okr-planning"},
+  {"query": "record the decision to use postgres", "should_trigger": false, "expected": "decision-record"},
+  {"query": "review this PR", "should_trigger": false, "expected": "code-review"},
+  {"query": "design the API for the new service", "should_trigger": false, "expected": "api-design"},
+  {"query": "propose the architecture for this slice", "should_trigger": false, "expected": "architect"},
+  {"query": "order the build steps for this slice", "should_trigger": false, "expected": "maker"},
+  {"query": "inspect this change before it ships", "should_trigger": false, "expected": "inspector"},
+  {"query": "plan the release for this change", "should_trigger": false, "expected": "launcher"},
+  {"query": "write the retro for the last slice", "should_trigger": false, "expected": "yielder"},
+  {"query": "write the test strategy for this module", "should_trigger": false, "expected": "test-design"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "how should I work as a developer on this team", "should_trigger": true},
+  {"query": "my workflow for a feature from ticket to review", "should_trigger": true},
+  {"query": "what do I do before I ask for review", "should_trigger": true},
+  {"query": "developer process for a bugfix", "should_trigger": true},
+  {"query": "how do I hand a change to a reviewer", "should_trigger": true},
+  {"query": "what should a developer own in the workflow", "should_trigger": true},
+  {"query": "prepare my change for code review", "should_trigger": true},
+  {"query": "how should I structure my work day to day", "should_trigger": true},
+  {"query": "developer loop for a new feature", "should_trigger": true},
+  {"query": "what do I hand the release owner", "should_trigger": true},
+  {"query": "what are the six FAMILY stages", "should_trigger": false, "expected": "family-workflow"},
+  {"query": "I'm building this alone, what process should I follow", "should_trigger": false, "expected": "solo-development"},
+  {"query": "set up the QA process for our team", "should_trigger": false, "expected": "qa-workflow"},
+  {"query": "set up a team process with owners and handoffs", "should_trigger": false, "expected": "team-workflow"},
+  {"query": "review this diff before I merge", "should_trigger": false, "expected": "code-review"},
+  {"query": "write the tests for this module", "should_trigger": false, "expected": "test-design"},
+  {"query": "design the API for the new service", "should_trigger": false, "expected": "api-design"},
+  {"query": "plan the release for this change", "should_trigger": false, "expected": "launcher"},
+  {"query": "write the ADR for the database choice", "should_trigger": false, "expected": "decision-record"},
+  {"query": "debug why this test fails", "should_trigger": false, "expected": "debugging"}
+]

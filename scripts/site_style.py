@@ -636,6 +636,10 @@ html[data-theme="night"] .sun { display: none; }
   padding: 0.08em 0.35em;
   border-radius: 0.3rem;
 }
+/* A path, a flag or an identifier in running text has no break opportunity of its own,
+   so on a phone one long one pushed the whole page wider than the screen. It may break
+   anywhere; a code block keeps its lines and scrolls inside its own box instead. */
+.prose-lab :not(pre) > code { overflow-wrap: anywhere; }
 .prose-lab pre {
   margin: 0 0 1.25rem;
   padding: 1rem 1.15rem;
@@ -696,6 +700,62 @@ html[data-theme="night"] .sun { display: none; }
 .prose-lab .al-c { text-align: center; }
 .prose-lab td.num, .prose-lab th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .prose-lab .say { color: var(--muted); }
+/* The FAMILY page is the one hand-drawn page: a stage timeline and profile cards rather
+   than the generated prose-and-table layout every other page uses. Scoped to .family. */
+.family-stages { list-style: none; margin: 0 0 2rem; padding: 0; }
+.family-stages > li {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  gap: 0 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--line);
+}
+.family-stages > li:last-child { border-bottom: 1px solid var(--line); }
+.family-stages .letter {
+  font-family: var(--font-mono);
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+.family-stages h3 {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+.family-stages p {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.family-profiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+  margin: 0 0 2rem;
+  padding: 0;
+  list-style: none;
+}
+.family-profiles > li {
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+.family-profiles h3 {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+}
+.family-profiles p {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
 """
 
 # The theme is set before the page paints, so a visitor at night never sees a flash of

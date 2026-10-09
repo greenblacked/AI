@@ -817,3 +817,32 @@ reference file's H1 or its filename, because no source heading line exists for t
 see. The benchmark removes the check.
 
 **First caught:** #112, the automated security review.
+
+### A guard written inside configuration the attacker controls
+
+**Class.** A safety check that lives in files the change under review can edit, and is
+loaded from the same checkout as the change, so the author decides whether it runs.
+
+**How it shows up.** In #165 the contributor-review loop asked a `reviewer` to refuse
+unsafe commands, but delegated it from the contributor's checkout. Claude Code loads
+project agents, settings and hooks, and Codex and ChatGPT read `AGENTS.md`, from the
+working directory, so a contributor who edited `reviewer.md`, a hook in
+`.claude/settings.json`, `CLAUDE.md`, `AGENTS.md` or a rule could run code before any
+Author guard was read.
+
+**The check that catches it.** The contributor-review rules in `reviewer.md`, `/ship`,
+`/verify`, `docs/chatgpt-agents.md` and `docs/using.md` run the session in a trusted
+base-branch checkout, fetch the head as `refs/review/<n>` and read it with `git diff`,
+`git show` and `git ls-tree`; a session opened inside a contributor checkout returns
+`STOP`. Only prose enforces this, so nothing offline fails if a command reverts it;
+review has to read for it, and the `untrusted-review-checkout` benchmark case checks
+that `reviewer` still catches the rule being replaced by a delegation from the
+contributor's checkout.
+
+File names are an injection vector too: a contributor can add `docs/$(cmd).md`, which
+passes an allowlist by extension and runs the substitution when the name is spliced into
+a double-quoted command, so only NUL-delimited listings and canonical names
+(whole name matching `^\.?[A-Za-z0-9_][A-Za-z0-9._-]*(/\.?[A-Za-z0-9_][A-Za-z0-9._-]*)*$`, read in single quotes) may reach a
+command.
+
+**First caught:** #165, the automated PR reviewer.
