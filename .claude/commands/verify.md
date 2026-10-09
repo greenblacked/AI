@@ -27,7 +27,7 @@ contributor change, send the finding to the owner or the contributor and never t
 a real result: report it as such, do not retry it. From `reviewer`: `FIX` on a change
 this session wrote returns the named findings to the files or to `implementer`. `FIX` on
 a contributor change goes back to the owner or the contributor, with the findings and any
-gates for them to run, and never to `implementer`, because the build loop is owner-only.
+gates for them to run, only in a disposable sandbox with no credentials and no network, as the reviewer's Not assessed list states, and never to `implementer`, because the build loop is owner-only.
 A `FIX` that only waits on gates names the gates for the owner and never loops. `STOP`
 comes to the user for a decision; `SHIP` ends the loop. There is no round limit, but the
 same finding recurring means the edit fixed a symptom rather than the premise — stop and
@@ -37,11 +37,13 @@ conversation.
 A contributor change is judged from a trusted checkout of the base branch, never the
 contributor's: Claude Code loads agents, settings, hooks and `CLAUDE.md` from the
 session's working directory, so a modified `reviewer.md` or hook would run before any
-Author guard. This command has no `git fetch`, so the owner fetches the contributor's
-head as a ref only (`git fetch origin +pull/<n>/head:refs/review/<n>`), and both agents
+Author guard. This command has no `git fetch`, so the owner fetches the current base and the contributor's
+head as a ref only (`git fetch origin +refs/heads/<base-branch>:refs/remotes/origin/<base-branch> +pull/<n>/head:refs/review/<n>`), and both agents
 get a base ref and that candidate ref to read with `git diff <base>...refs/review/<n>`,
+where `<base>` is `origin/<base-branch>`, the remote-tracking ref that fetch updated, never a
+local branch, which may be stale,
 not a checked-out tree. The reviewer decides inert-only from `git diff -z --raw`, then
-creates and removes its own gate worktree outside the project, reading files only with
+creates and removes its own gate worktree (the base plus the candidate merged) outside the project, reading files only with
 `git show` on a canonical, single-quoted path. If this session was opened inside a
 contributor checkout, return `STOP` and tell the owner to restart from a trusted one.
 
