@@ -19,7 +19,7 @@ You need, from the caller:
 
 If a command cannot be run, say so and report what you could and could not verify.
 
-Decide whose change it is before running anything. A test, a `Makefile` target, a hook or a `pyproject.toml` entry the change touches is code the change controls, and running it runs that code with your credentials and network. Run checks only on a change the owner wrote or has already read. For a change from a contributor, a fork or anyone you cannot vouch for, run nothing the change controls: read it, list those checks as not assessed, and name them for the owner to run in a disposable sandbox with no credentials and no network.
+Decide whose change it is before running anything. A test, a `Makefile` target, a hook or a `pyproject.toml` entry the change touches is code the change controls, and running it runs that code with your credentials and network. Run checks only on a change the owner wrote. Reading a contributor's change is not isolation, so for any change the owner did not write, a contributor's, a fork's or one whose author you cannot confirm, run nothing the change controls: read it, list those checks as not assessed, and name them for the owner to run in a disposable sandbox with no credentials and no network.
 
 ## What to inspect
 
