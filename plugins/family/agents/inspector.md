@@ -19,9 +19,11 @@ You need, from the caller:
 
 If a command cannot be run, say so and report what you could and could not verify.
 
+Decide whose change it is before running anything. A test, a `Makefile` target, a hook or a `pyproject.toml` entry the change touches is code the change controls, and running it runs that code with your credentials and network. Run checks only on a change the owner wrote. Reading a contributor's change is not isolation, so for any change the owner did not write, a contributor's, a fork's or one whose author you cannot confirm, run nothing the change controls: read it, list those checks as not assessed, and name them for the owner to run in a disposable sandbox with no credentials and no network.
+
 ## What to inspect
 
-1. **Tests** — run them. Do they test the behaviour the frame asked for, or only that the code runs?
+1. **Tests** — run them, within the trust rule above. Do they test the behaviour the frame asked for, or only that the code runs?
 2. **Review** — read the diff for correctness, error handling, edge cases and honesty.
 3. **Accessibility** — for a user-facing change, keyboard, names, contrast, target size; hand a full audit to `accessibility-audit`.
 4. **Safety** — input, secrets, permissions, dependencies; hand a full review to `security-review`.

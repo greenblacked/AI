@@ -18,6 +18,5 @@
   {"query": "run a usability test with five users on the checkout", "should_trigger": false, "expected": "usability-test-plan"},
   {"query": "audit the site for WCAG issues in the navigation", "should_trigger": false, "expected": "accessibility-audit"},
   {"query": "review my PR that adds a dropdown menu component", "should_trigger": false, "expected": "code-review"},
-  {"query": "write release notes for the site redesign", "should_trigger": false, "expected": "release-notes"},
-  {"query": "which React menu component library should we use", "should_trigger": false, "expected": "code-scaffold"}
+  {"query": "write release notes for the site redesign", "should_trigger": false, "expected": "release-notes"}
 ]

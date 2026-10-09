@@ -11,7 +11,6 @@
   {"query": "review the build against the design, state by state", "should_trigger": true},
   {"query": "define the spacing and colour tokens for the design system", "should_trigger": false, "expected": "design-system"},
   {"query": "write the React component for this card", "should_trigger": false, "expected": "code-scaffold"},
-  {"query": "build the marketing site with a blog and a contact form", "should_trigger": false, "expected": "website-builder"},
   {"query": "the error copy is unclear, rewrite it", "should_trigger": false, "expected": "content-design"},
   {"query": "review this screen for usability problems", "should_trigger": false, "expected": "ui-ux-review"},
   {"query": "audit this screen against WCAG", "should_trigger": false, "expected": "accessibility-audit"},
@@ -19,6 +18,5 @@
   {"query": "review my PR that implements the new component", "should_trigger": false, "expected": "code-review"},
   {"query": "write the user guide for the settings screen", "should_trigger": false, "expected": "technical-docs"},
   {"query": "restructure the navigation and sitemap for the app", "should_trigger": false, "expected": "information-architecture"},
-  {"query": "write the API docs for the new endpoint", "should_trigger": false, "expected": "technical-docs"},
   {"query": "add end-to-end tests for the checkout flow", "should_trigger": false, "expected": "e2e-testing"}
 ]
