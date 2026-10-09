@@ -8,7 +8,7 @@
   {"query": "what are the six FAMILY stages and what gate does each have", "should_trigger": true},
   {"query": "is FAMILY overkill for a small project, which profile should we use", "should_trigger": true},
   {"query": "walk me through FAMILY from frame to yield for one feature", "should_trigger": true},
-  {"query": "we have no process at all, where do we start", "should_trigger": true},
+  {"query": "our dev team ships software with no process at all, where do we start", "should_trigger": true},
   {"query": "what process should our team follow for building features", "should_trigger": false, "expected": "team-workflow"},
   {"query": "who owns what in our development lifecycle", "should_trigger": false, "expected": "team-workflow"},
   {"query": "I'm a developer on the team, how do I run my feature through FAMILY", "should_trigger": false, "expected": "developer-workflow"},
