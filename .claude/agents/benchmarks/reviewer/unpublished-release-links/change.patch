@@ -1,6 +1,6 @@
 --- a/CHANGELOG.md
 +++ b/CHANGELOG.md
-@@ -231,9 +231,9 @@
+@@ -426,9 +426,9 @@
    request needs it — the label does not exist until then — needs that grant
    separately from labelling with it once it exists.
 
@@ -13,7 +13,7 @@
 
  - **89 agent skills** across eight plugins you install separately: `coding` (18 skills,
    3 subagents), `gamedev` (11 skills, 1 subagent, 1 command), `operations` (15 skills, 5
-@@ -260,5 +260,5 @@
+@@ -455,5 +455,5 @@
    skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
    greenblacked).
 

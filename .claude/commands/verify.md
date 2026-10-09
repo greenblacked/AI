@@ -40,10 +40,10 @@ session's working directory, so a modified `reviewer.md` or hook would run befor
 Author guard. This command has no `git fetch`, so the owner fetches the contributor's
 head as a ref only (`git fetch origin +pull/<n>/head:refs/review/<n>`), and both agents
 get a base ref and that candidate ref to read with `git diff <base>...refs/review/<n>`,
-not a checked-out tree. The reviewer decides inert-only from `git diff --raw`, then
+not a checked-out tree. The reviewer decides inert-only from `git diff -z --raw`, then
 creates and removes its own gate worktree outside the project, reading files only with
-`git show`. If this session was opened inside a contributor checkout, return `STOP` and
-tell the owner to restart from a trusted one.
+`git show` on a canonical, single-quoted path. If this session was opened inside a
+contributor checkout, return `STOP` and tell the owner to restart from a trusted one.
 
 ## 1. Decide, then investigate
 

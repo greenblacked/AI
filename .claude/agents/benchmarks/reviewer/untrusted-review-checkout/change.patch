@@ -13,9 +13,9 @@ diff --git a/.claude/commands/ship.md b/.claude/commands/ship.md
 -origin/dev`. Fetch the contributor's head as a ref only, `git fetch origin
 -+pull/<n>/head:refs/review/<n>`, and pass the reviewer a base ref and that candidate ref
 -to read as data with `git diff <base>...refs/review/<n>`, never a checked-out tree. The
--reviewer decides inert-only from `git diff --raw`, then creates and removes its own gate
--worktree outside the project and reads file contents only with `git show`; this session
--creates no worktree for it. If this session was itself opened inside a contributor
+-reviewer decides inert-only from `git diff -z --raw`, then creates and removes its own gate
+-worktree outside the project and reads file contents only with `git show` on a
+-canonical, single-quoted path; this session creates no worktree for it. If this session was itself opened inside a contributor
 -checkout, its settings and hooks have already loaded: return `STOP` and tell the owner
 -to restart from a trusted checkout.
 +Delegate the reviewer from the contributor's checkout, where the change is already
