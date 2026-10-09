@@ -53,7 +53,7 @@ Field:    Enter a date in the past.
 Format:   Enter a phone number like 555 0100.
 Server:   We could not save your changes. Check your connection and try again.
 Permission: You need an admin role to invite people. Ask an admin or your workspace owner.
-Payment:  Your card was declined. Check the billing address and try again.
+Payment:  Your card was declined. Try a different card, or contact your bank.
 ```
 
 - Put the message next to the field, associated with it for assistive tech.
