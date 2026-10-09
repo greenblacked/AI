@@ -205,8 +205,7 @@ results on the PR (the sandboxed gates, the required `ci` and `security` checks,
 workflows, `Makefile`, `pyproject.toml` and CI-scripts check, and the live check where
 the change needs one); that completed checklist counts as the passing review `AGENTS.md`
 requires before merge, for that head commit on that base tip only. A new push to the PR
-head voids it, and so does a base advance, unless the branch ruleset requires branches to
-be up to date before merging. A live check that is a post-merge run is recorded as named
+head voids it, and so does a base advance. A live check that is a post-merge run is recorded as named
 but not yet run. A blocking finding, and the rebase FIX, still need a fix and a fresh
 review.
 Review everything that can be read without executing the change.
