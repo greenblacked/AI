@@ -137,8 +137,10 @@ CAUSES: dict[str, tuple[str, str]] = {
     "lint yaml": ("yamllint --strict . (part of `make lint`)", "ci.yml"),
     "lint workflows": ("actionlint (part of `make lint`)", "ci.yml"),
     "check links": ("lychee --offline './**/*.md'", "ci.yml"),
+    "test site in a browser": ("make test-browser", "ci.yml"),
     "attribution": ("make attribution", "ci.yml"),
     "naming": ("make naming", "ci.yml"),
+    "scope": ("python3 scripts/ci_scope.py (needs the event in its environment)", "ci.yml"),
     "package": ("make package", "ci.yml"),
     "ci": (
         "no single command - this is the aggregate; open the run to see which "

@@ -185,6 +185,7 @@ BACK = '<a class="back" href="{}" data-back>' + site.BACK_ICON + "<span>Back</sp
     [
         ("plugins/engineering/index.html", "/"),
         ("plugins/engineering/alpha/index.html", "/plugins/engineering/"),
+        ("family/index.html", "/"),
         ("start/index.html", "/"),
         ("workflows/index.html", "/"),
         ("examples/index.html", "/"),
@@ -202,26 +203,15 @@ def test_every_page_below_the_index_has_one_back_link_to_its_parent(
     assert main.count("data-back>") == 1
 
 
-def test_the_back_link_is_a_glass_button_above_the_skill_crumbs(mini_repo, tmp_path):
+def test_the_back_link_sits_above_the_crumbs_and_every_theme_has_its_glass(mini_repo, tmp_path):
+    # How Back looks and behaves is tested in a browser (tests/test_site_browser.py);
+    # this is the markup order and the tokens each theme has to define for it.
     page = (_build(mini_repo, tmp_path) / "plugins/engineering/alpha/index.html").read_text(
         encoding="utf-8"
     )
     # Its own row above the crumbs, not one of the underlined crumb links.
     assert BACK.format("/plugins/engineering/") + '\n<nav class="crumbs"' in page
     css = site.site_style.CSS
-    rule = css.split("\n.back {\n", 1)[1].split("\n}", 1)[0]
-    # Material: a full pill, a 44px target, a medium label, no underline.
-    assert "border-radius: 999px;" in rule and "min-height: 2.75rem;" in rule
-    assert "font-weight: 500;" in rule and "text-decoration: none;" in rule
-    # Liquid Glass: a translucent tint that blurs what is behind, a specular top edge
-    # and a sheen, all from theme tokens so night and console get their own.
-    assert "background-color: var(--glass-tint);" in rule
-    assert "backdrop-filter: blur(16px) saturate(180%);" in rule
-    assert "inset 0 1px 0 0 var(--glass-edge)" in rule
-    assert "linear-gradient(180deg, var(--glass-sheen), transparent 65%)" in rule
-    for state, share in ((":hover", "8%"), (":active", "12%")):
-        block = css.split(f"\n.back{state} {{\n", 1)[1].split("\n}", 1)[0]
-        assert f"color-mix(in srgb, var(--ink) {share}, transparent)" in block
     for theme in (":root {", 'html[data-theme="night"] {', 'html[data-theme="reactor"] {'):
         tokens = css.split(theme, 1)[1].split("}", 1)[0]
         for token in ("--glass-tint", "--glass-edge", "--glass-sheen", "--glass-shadow"):
@@ -241,6 +231,7 @@ TO_TOP = (
         ("index.html", None),
         ("plugins/engineering/index.html", "/"),
         ("plugins/engineering/alpha/index.html", "/plugins/engineering/"),
+        ("family/index.html", "/"),
         ("start/index.html", "/"),
         ("quality/index.html", "/"),
         ("404.html", "/"),
@@ -264,117 +255,9 @@ def test_every_page_has_the_bar_with_back_only_below_the_index(mini_repo, tmp_pa
     assert "</footer>\n" + TO_TOP + "\n<script>" in page
 
 
-def test_the_bar_stays_hidden_until_the_page_scrolls_past_back():
-    css = site.site_style.CSS
-    dock = css.split("\n.dock {\n", 1)[1].split("\n}", 1)[0]
-    # visibility, not only opacity, so a hidden button is out of the tab order; a solid
-    # background, so text scrolls under the bar and never shows behind a button.
-    assert "position: fixed;" in dock and "visibility: hidden;" in dock
-    assert "pointer-events: none;" in dock and "background: var(--bg);" in dock
-    assert ".dock.on { visibility: visible; opacity: 1;" in css
-    # Below the header while it shows, at the top once it has slid away.
-    assert ".site-header:not(.away) ~ .dock { top: calc(4rem + 1px); }" in css
-    # As wide as the header's bar, so on a wide screen Back sits under its
-    # left edge instead of crowding the text column.
-    inner = css.split("\n.dock-in {\n", 1)[1].split("\n}", 1)[0]
-    header = css.split("\n.bar {\n", 1)[1].split("\n}", 1)[0]
-    assert "max-width: 72rem;" in inner and "max-width: 72rem;" in header
-    assert ".dock-in.narrow" not in css
-    # A jump to a heading lands below both bars, not under them. A jump upwards brings
-    # the header back with the bar stacked beneath it, so the offset has to clear the
-    # header, the bar's padding and its button, and each border, read from the rules
-    # themselves so a taller header or button fails here rather than on the page.
-    margin = re.search(r":where\(\[id\]\) \{ scroll-margin-top: ([\d.]+)rem; \}", css)
-    assert margin, "no zero-specificity scroll margin"
-    button = css.split("\n.back {\n", 1)[1].split("\n}", 1)[0]
-    rem = {
-        "header": re.search(r"height: ([\d.]+)rem;", header),
-        "padding": re.search(r"padding: ([\d.]+)rem ", inner),
-        "button": re.search(r"min-height: ([\d.]+)rem;", button),
-    }
-    assert all(rem.values()), rem
-    borders = 2 / 16
-    stacked = (
-        float(rem["header"].group(1))
-        + 2 * float(rem["padding"].group(1))
-        + float(rem["button"].group(1))
-        + borders
-    )
-    assert float(margin.group(1)) >= stacked + 0.25, (margin.group(1), stacked)
-    # The finder has an id, so it takes the same margin rather than a smaller one of
-    # its own that would win over the zero-specificity rule.
-    assert "scroll-margin" not in css.split("\n.finder {\n", 1)[1].split("\n}", 1)[0]
-    script = site.site_style.PAGE_SCRIPT
-    assert 'var inline = document.querySelector("main .back");' in script
-    reveal = script.split("function reveal() {", 1)[1].split("\n  }", 1)[0]
-    assert "var past = y > limit;" in reveal
-    # The front page has no bar, so the script must not assume one.
-    assert 'if (dock) dock.classList.toggle("on", past);' in reveal
-    # To top follows the header: away while reading down, back on the way up and at
-    # the end of the page, never past the top, and never hidden while it has focus.
-    assert "if (!past) shown = false;" in reveal
-    assert "else if (end || document.activeElement === upward) shown = true;" in reveal
-    assert "else if (y < mark - 8) shown = true;" in reveal
-    assert "else if (y > mark + 8) shown = false;" in reveal
-    assert reveal.index("if (!past)") < reveal.index("else if (end ||")
-    assert reveal.index("else if (end ||") < reveal.index("else if (y > mark + 8)")
-    assert 'upward.classList.toggle("on", shown);' in reveal
-    assert 'window.addEventListener("resize", function () { limit = edge(); reveal(); });' in script
-    to_top = script.split('upward.addEventListener("click", function () {', 1)[1].split(
-        "\n  });", 1
-    )[0]
-    assert 'behavior: still.matches ? "auto" : "smooth"' in to_top
-    assert "(prefers-reduced-motion: reduce)" in script
-    # The header is inert while hidden, so it is shown before focus moves into it.
-    assert to_top.index("away(false);") < to_top.index("home.focus({ preventScroll: true });")
-
-
-def test_to_top_floats_at_the_bottom_right_once_the_page_scrolls():
-    css = site.site_style.CSS
-    fab = css.split("\n.fab {\n", 1)[1].split("\n}", 1)[0]
-    assert "position: fixed;" in fab
-    # Over running text, so a denser tint than Back's, mixed from the theme's own.
-    assert "background-color: color-mix(in srgb, var(--glass-tint) 55%, var(--bg));" in fab
-    assert "right: max(1rem, env(safe-area-inset-right));" in fab
-    assert "bottom: max(1rem, env(safe-area-inset-bottom));" in fab
-    # Hidden by visibility, not only opacity, so it is out of the tab order until shown.
-    assert "visibility: hidden;" in fab and "pointer-events: none;" in fab
-    assert ".fab.on { visibility: visible; opacity: 1;" in css
-    # A 48px round target with only the arrow on a narrow screen, above the 44px floor.
-    assert "width: 3rem;" in fab and "min-height: 3rem;" in fab
-    assert ".fab span { display: none; }" in css
-    # Labelled only where the margin beside the 72rem column can hold it.
-    wide = css.split("@media (min-width: 90rem) {\n", 1)[1].split("\n}", 1)[0]
-    assert ".fab { width: auto;" in wide and ".fab span { display: inline; }" in wide
-    # A press scales the shown button, which its own transform would otherwise undo.
-    assert ".fab.on:active { transform: scale(0.97); }" in css
-    # The footer leaves room below its last line to scroll clear of the button.
-    footer = css.split("\n.site-footer {\n", 1)[1].split("\n}", 1)[0]
-    assert "padding-bottom: 4rem;" in footer
-    assert "#to-top { margin-left: auto; }" not in css
-
-
 def test_the_index_has_no_back_link(mini_repo, tmp_path):
     page = (_build(mini_repo, tmp_path) / "index.html").read_text(encoding="utf-8")
     assert "data-back>" not in page
-
-
-def test_back_returns_through_history_only_from_this_site():
-    script = site.site_style.PAGE_SCRIPT
-    block = script.split("function back(event) {", 1)[1].split("\n  }\n", 1)[0]
-    # A modified or non-primary click keeps the browser's own behaviour, such as opening
-    # the parent page in a new tab, rather than moving this tab back.
-    assert "if (event.defaultPrevented || event.button !== 0) return;" in block
-    assert "if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;" in block
-    assert block.index("event.button") < block.index("event.preventDefault();")
-    assert block.index("event.altKey) return;") < block.index("event.preventDefault();")
-    # A referrer from another origin, none at all, or a one-entry history (a new tab)
-    # leaves the link to go to the parent page instead of leaving the site.
-    assert "new URL(document.referrer).origin" in block
-    assert "from !== window.location.origin || window.history.length < 2) return;" in block
-    assert block.index("return;") < block.index("event.preventDefault();")
-    assert block.rstrip().endswith("window.history.back();")
-    assert 'document.querySelectorAll("[data-back]")' in script
 
 
 def test_every_page_is_written_beside_the_archives(mini_repo, tmp_path):
@@ -382,6 +265,7 @@ def test_every_page_is_written_beside_the_archives(mini_repo, tmp_path):
     for path in (
         "index.html",
         "404.html",
+        "family/index.html",
         "start/index.html",
         "workflows/index.html",
         "examples/index.html",
@@ -414,7 +298,14 @@ def test_navigation_is_root_relative_and_marks_the_current_page(mini_repo, tmp_p
     output = _build(mini_repo, tmp_path)
     start = (output / "start" / "index.html").read_text(encoding="utf-8")
     footer = start.split('<footer class="site-footer">', 1)[1]
-    for href in ("/start/", "/workflows/", "/examples/", "/quality/", "/portable-skills.zip"):
+    for href in (
+        "/family/",
+        "/start/",
+        "/workflows/",
+        "/examples/",
+        "/quality/",
+        "/portable-skills.zip",
+    ):
         assert f'href="{href}"' in footer
     assert 'href="/marketplace.json"' in footer
     assert 'href="portable-skills.zip"' not in start and 'href="marketplace.json"' not in start
@@ -444,6 +335,20 @@ def test_navigation_is_root_relative_and_marks_the_current_page(mini_repo, tmp_p
     # The 404 is served from any path, so its links cannot be relative either.
     missing = (output / "404.html").read_text(encoding="utf-8")
     assert 'href="/start/"' in missing and 'href="portable-skills.zip"' not in missing
+
+
+def test_the_family_page_is_hand_drawn_with_the_stages_and_profiles(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    page = (output / "family" / "index.html").read_text(encoding="utf-8")
+    # The one page not generated from a plugin's own files: a stage timeline and cards.
+    assert 'class="family-stages"' in page and 'class="family-profiles"' in page
+    for letter, name, _ in site.FAMILY_STAGES:
+        assert f">{letter}</span>" in page and f"<h3>{name}</h3>" in page
+    for name, _ in site.FAMILY_PROFILES:
+        assert f"<h3>{name}</h3>" in page
+    assert "/plugin install family@mini" in page
+    assert 'href="/family/" aria-current="page"' in page
+    assert BACK.format("/") in page
 
 
 def test_a_skill_page_shows_the_skill_and_neutralises_hostile_content(mini_repo, tmp_path):
@@ -720,8 +625,9 @@ def test_the_real_repository_builds_every_page_and_renders_every_markdown_source
     pages = sorted(output.rglob("index.html"))
     skills = list((REPO / "plugins").glob("*/skills/*/SKILL.md"))
     plugins = list((REPO / "plugins").glob("*/skills"))
-    # The index, start, workflows, examples and quality; then a page per plugin and skill.
-    assert len(pages) == len(skills) + len(plugins) + 5
+    # The index, family, start, workflows, examples and quality; then a page per plugin
+    # and skill.
+    assert len(pages) == len(skills) + len(plugins) + 6
     for page in pages:
         text = page.read_text(encoding="utf-8")
         assert _live_tags(text) <= SAFE_TAGS, page
@@ -1816,15 +1722,6 @@ def test_an_unsafe_plugin_directory_is_refused(mini_repo, tmp_path):
     (odd / "SKILL.md").write_text("---\nname: gamma\n---\n", encoding="utf-8")
     with pytest.raises(SystemExit, match="path component"):
         site.build(mini_repo, tmp_path / "site", "v1")
-
-
-def test_the_index_filter_and_theme_script_cover_what_the_design_does(mini_repo, tmp_path):
-    index = (_build(mini_repo, tmp_path) / "index.html").read_text(encoding="utf-8")
-    # Night by the clock from 20:00 to 06:00, a stored choice wins, and a console theme exists.
-    assert "h>=20||h<6" in index and 'localStorage.getItem("theme")' in index
-    assert '"reactor"' in index and "#070807" in index
-    # The filter matches a plugin's name, its blurb or any of its skill names.
-    assert 'getAttribute("data-blurb")' in index and 'getAttribute("data-skills")' in index
 
 
 def test_links_in_rendered_prose_are_underlined():

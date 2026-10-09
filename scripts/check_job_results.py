@@ -23,12 +23,24 @@ def reject_duplicate_keys(pairs):
     return value
 
 
-def evaluate(expected: list[str], raw: str | None) -> tuple[bool, list[tuple[str, str]]]:
-    """Return the verdict and safe summary rows without reflecting JSON values."""
+def evaluate(
+    expected: list[str], raw: str | None, skippable: list[str] | None = None
+) -> tuple[bool, list[tuple[str, str]]]:
+    """Return the verdict and safe summary rows without reflecting JSON values.
+
+    `skippable` names the jobs this run's `scope` job decided it may skip. A `skipped`
+    result passes for those and nothing else; every other job still has to succeed, and
+    a cancelled or failed job fails whether or not it is listed. A list naming a job the
+    aggregate does not expect, or anything that is not a job id, fails the gate rather
+    than being trimmed, because a wrong list means the scope and the workflow disagree.
+    """
+    skippable = list(skippable or [])
     if not expected or len(expected) != len(set(expected)):
         return False, []
     if any(not JOB_ID_RE.fullmatch(job) for job in expected):
         return False, []
+    if any(job not in expected for job in skippable):
+        return False, [(job, "invalid") for job in expected]
     rows = [(job, "invalid") for job in expected]
     if raw is None:
         return False, rows
@@ -46,7 +58,7 @@ def evaluate(expected: list[str], raw: str | None) -> tuple[bool, list[tuple[str
         result = entry.get("result") if isinstance(entry, dict) else None
         safe_result = result if isinstance(result, str) and result in KNOWN_RESULTS else "invalid"
         rows.append((job, safe_result))
-        if result != "success":
+        if result != "success" and not (result == "skipped" and job in skippable):
             passed = False
     return passed, rows
 
@@ -67,7 +79,8 @@ def append_summary(path: str | None, rows: list[tuple[str, str]]) -> bool:
 
 def main(argv: list[str] | None = None) -> int:
     expected = list(sys.argv[1:] if argv is None else argv)
-    passed, rows = evaluate(expected, os.environ.get("NEEDS_JSON"))
+    skippable = os.environ.get("SKIPPABLE", "").split()
+    passed, rows = evaluate(expected, os.environ.get("NEEDS_JSON"), skippable)
     summary_written = append_summary(os.environ.get("GITHUB_STEP_SUMMARY"), rows)
     if passed and summary_written:
         print(f"all {len(rows)} required job(s) succeeded")
