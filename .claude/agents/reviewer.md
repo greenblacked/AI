@@ -116,8 +116,11 @@ A file name is attacker-controlled input too: a contributor can add `docs/$(cmd)
 which passes the allowlist below and runs the substitution if the name is spliced into
 a double-quoted command. So list changed paths only NUL-delimited (`-z`), and treat a
 path as canonical only if the whole NUL-delimited name matches
-`^[A-Za-z0-9][A-Za-z0-9._/-]*$` (for example `grep -zxE '<pattern>'` or Python
-`re.fullmatch`, never after converting NULs to newlines; no space, quote,
+`^[A-Za-z0-9][A-Za-z0-9._/-]*$`. The change fails the canonical check if
+`git diff -z --name-only '<base>'...refs/review/<n> | grep -zvxE '<pattern>'` selects any
+record (exit 0 means at least one unsafe name, so it is a blocking finding and nothing is
+read by name); in Python, apply `re.fullmatch` to every decoded record and require all to
+match. Never convert NULs to newlines first (no space, quote,
 `$`, backtick, `;`, `|`, `&`, glob character or newline, and no leading dash). A changed
 path outside that pattern makes the change non-inert, is never placed in a command or
 read by name, and is a blocking finding asking the contributor to rename it. Put a
@@ -206,7 +209,7 @@ results on the PR (the sandboxed gates, the required `ci` and `security` checks,
 workflows, `Makefile`, `pyproject.toml` and CI-scripts check, and the live check where
 the change needs one); that completed checklist counts as the passing review `AGENTS.md`
 requires before merge, for that head commit on that base tip only. A new push to the PR
-head voids it, and so does a base advance. A live check that is a post-merge run is recorded as named
+head voids it, and so does a base advance. Immediately before accepting the checklist, and again before merge, the owner re-fetches both refs with the same quoted fetch command, then compares `git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}'` with the pinned `<base>` and `git rev-parse --verify 'refs/review/<n>^{commit}'` with the reviewed candidate SHA; any difference voids the clearance (rebase or re-review). A live check that is a post-merge run is recorded as named
 but not yet run. A blocking finding, and the rebase FIX, still need a fix and a fresh
 review.
 Review everything that can be read without executing the change.
