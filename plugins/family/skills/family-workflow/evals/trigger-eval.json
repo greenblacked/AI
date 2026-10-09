@@ -2,10 +2,10 @@
   {"query": "how should we structure this project from idea to release", "should_trigger": true},
   {"query": "what process should our team follow for building features", "should_trigger": true},
   {"query": "who owns what in our development lifecycle", "should_trigger": true},
-  {"query": "set up a solo developer process for this repo", "should_trigger": true},
+  {"query": "which development workflow should we pick for this project", "should_trigger": true},
   {"query": "we keep dropping handoffs between design and dev, give us a workflow", "should_trigger": true},
   {"query": "define the stages from problem to retro for our team", "should_trigger": true},
-  {"query": "how do we run QA end to end here", "should_trigger": true},
+  {"query": "explain the FAMILY stages and which profile fits us", "should_trigger": true},
   {"query": "plan this feature from problem to measured outcome", "should_trigger": true},
   {"query": "we want one workflow that works for a developer or a whole team", "should_trigger": true},
   {"query": "our releases keep breaking, what process should we follow", "should_trigger": true},
@@ -17,6 +17,6 @@
   {"query": "write the release notes for v2", "should_trigger": false, "expected": "release-notes"},
   {"query": "run a postmortem for yesterday's outage", "should_trigger": false, "expected": "postmortem"},
   {"query": "do a WCAG audit of the app", "should_trigger": false, "expected": "accessibility-audit"},
-  {"query": "plan our quarterly OKRs", "should_trigger": false, "expected": "okr-planning"},
-  {"query": "onboard a new engineer onto the team", "should_trigger": false, "expected": "onboarding-plan"}
+  {"query": "set up a solo developer process for this repo", "should_trigger": false, "expected": "solo-development"},
+  {"query": "how do we run QA end to end here", "should_trigger": false, "expected": "qa-workflow"}
 ]
