@@ -1,0 +1,22 @@
+[
+  {"query": "break this slice into ordered build steps", "should_trigger": true},
+  {"query": "what's the smallest first step we can demonstrate", "should_trigger": true},
+  {"query": "plan the file changes for this feature", "should_trigger": true},
+  {"query": "what order should we build these changes in", "should_trigger": true},
+  {"query": "check this diff against the plan we made", "should_trigger": true},
+  {"query": "give each step a test to prove it works", "should_trigger": true},
+  {"query": "what's the acceptance check for this slice", "should_trigger": true},
+  {"query": "split this work into reviewable commits", "should_trigger": true},
+  {"query": "where can we make this change reversible", "should_trigger": true},
+  {"query": "did this implementation follow the plan", "should_trigger": true},
+  {"query": "scaffold a new React component", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "write the tests for this module", "should_trigger": false, "expected": "test-design"},
+  {"query": "debug why this test fails", "should_trigger": false, "expected": "debugging"},
+  {"query": "refactor this function", "should_trigger": false, "expected": "refactoring"},
+  {"query": "review this diff for quality", "should_trigger": false, "expected": "code-review"},
+  {"query": "frame the problem before we plan", "should_trigger": false, "expected": "framer"},
+  {"query": "propose the architecture for this slice", "should_trigger": false, "expected": "architect"},
+  {"query": "inspect this change before it ships", "should_trigger": false, "expected": "inspector"},
+  {"query": "plan the release for this change", "should_trigger": false, "expected": "launcher"},
+  {"query": "write the retro for the last slice", "should_trigger": false, "expected": "yielder"}
+]

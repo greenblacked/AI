@@ -98,6 +98,10 @@ env:
   GEMINI_CLI_VERSION: '0.62.0'
   PYTEST_VERSION: '9.1.1'
   COVERAGE_VERSION: '7.16.2'
+  # The benchmarked reviewer runs `make test` and `make coverage` in a worktree, and
+  # those now run pytest through pytest-xdist and pytest-cov; the same pins as ci.yml.
+  PYTEST_XDIST_VERSION: '3.8.0'
+  PYTEST_COV_VERSION: '7.1.0'
 
 jobs:
   evaluate:
@@ -678,7 +682,8 @@ jobs:
         if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'
         run: |
           set -Eeuo pipefail
-          python -m pip install "pytest==${PYTEST_VERSION}" "coverage==${COVERAGE_VERSION}"
+          python -m pip install "pytest==${PYTEST_VERSION}" "coverage==${COVERAGE_VERSION}" \
+            "pytest-xdist==${PYTEST_XDIST_VERSION}" "pytest-cov==${PYTEST_COV_VERSION}"
       - name: Benchmark the reviewer
         id: benchmark
         if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'

@@ -1,0 +1,22 @@
+[
+  {"query": "I'm building this alone, what process should I follow", "should_trigger": true},
+  {"query": "solo developer workflow for a side project", "should_trigger": true},
+  {"query": "just me on this codebase, how do I structure the work", "should_trigger": true},
+  {"query": "freelance project process from idea to delivery", "should_trigger": true},
+  {"query": "indie game dev process for one person", "should_trigger": true},
+  {"query": "I have no team, how should I work", "should_trigger": true},
+  {"query": "one-person project, how do I review my own work", "should_trigger": true},
+  {"query": "how do I run this as a solo maintainer", "should_trigger": true},
+  {"query": "lightweight process for a one-person startup", "should_trigger": true},
+  {"query": "I'm the only developer, what can I skip", "should_trigger": true},
+  {"query": "what are the six FAMILY stages", "should_trigger": false, "expected": "family-workflow"},
+  {"query": "how should a developer on a team work through a feature", "should_trigger": false, "expected": "developer-workflow"},
+  {"query": "set up the QA process for our team", "should_trigger": false, "expected": "qa-workflow"},
+  {"query": "set up a team process with owners and handoffs", "should_trigger": false, "expected": "team-workflow"},
+  {"query": "write the test strategy for this module", "should_trigger": false, "expected": "test-design"},
+  {"query": "review this diff before I merge", "should_trigger": false, "expected": "code-review"},
+  {"query": "plan the release for this change", "should_trigger": false, "expected": "launcher"},
+  {"query": "record the decision to use postgres", "should_trigger": false, "expected": "decision-record"},
+  {"query": "plan our quarterly OKRs", "should_trigger": false, "expected": "okr-planning"},
+  {"query": "design the database schema for the app", "should_trigger": false, "expected": "schema-design"}
+]

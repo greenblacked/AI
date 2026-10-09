@@ -175,6 +175,7 @@ def _esc(text: str) -> str:
 
 # Root-relative, so a link works from a nested page as well as from the index.
 PAGES = (
+    ("FAMILY", "/family/"),
     ("Start", "/start/"),
     ("Workflows", "/workflows/"),
     ("Examples", "/examples/"),
@@ -1052,6 +1053,69 @@ def render_quality(catalogue: Catalogue, version: str) -> str:
     return _page("Quality evidence · AI", main, version, current="/quality/", parent="/")
 
 
+# ------------------------------------------------------------------------ /family/
+
+# The one page this file draws by hand rather than from a plugin's own files. The
+# workflow is the product here, so it gets a stage timeline and profile cards rather
+# than the generated prose and tables every other page falls back to.
+FAMILY_STAGES = (
+    ("F", "Frame", "What problem, for whom, what done means, and the smallest valuable slice."),
+    (
+        "A",
+        "Architect",
+        "The approach, the boundaries, the interfaces, and the hardest decision to reverse.",
+    ),
+    ("M", "Make", "The order the slice is built in, and the proof each step carries."),
+    ("I", "Inspect", "Whether the change is correct, safe and accessible, with evidence."),
+    ("L", "Launch", "Whether it is ready to reach users, and how it comes back."),
+    ("Y", "Yield", "What the outcome teaches the next slice, fed back into Frame."),
+)
+
+FAMILY_PROFILES = (
+    ("Solo", "One person runs all six stages, lightly, with the agents as independent checkers."),
+    ("Developer", "Frame, Architect, Make and Yield in depth; Inspect and Launch handed off."),
+    ("QA", "Inspect in depth, with acceptance criteria pushed back into Frame and Architect."),
+    ("Team", "All six with a named owner and a handoff contract between each stage."),
+)
+
+
+def render_family(catalogue: Catalogue, version: str) -> str:
+    plugin = "family"
+    stages = "\n".join(
+        f'<li><span class="letter" aria-hidden="true">{letter}</span>'
+        f"<div><h3>{_esc(name)}</h3><p>{_esc(text)}</p></div></li>"
+        for letter, name, text in FAMILY_STAGES
+    )
+    profiles = "\n".join(
+        f"<li><h3>{_esc(name)}</h3><p>{_esc(text)}</p></li>" for name, text in FAMILY_PROFILES
+    )
+    main = (
+        '<div class="page narrow">\n'
+        f"{_back('/')}\n"
+        '<h1 class="title">The FAMILY workflow</h1>\n'
+        '<p class="lede">Frame · Architect · Make · Inspect · Launch · Yield — one '
+        "workflow from a vague request to a measured outcome.</p>\n"
+        '<div class="prose-lab page-body">\n'
+        "<p>FAMILY keeps its shape whether one person or a whole team is running it. It "
+        "takes one slice of work from a vague request to a measured outcome, and each "
+        "stage has one gate, one artifact and one handoff to the next.</p>\n"
+        f'<ol class="family-stages">\n{stages}\n</ol>\n'
+        "<h2>The four profiles</h2>\n"
+        "<p>The stages never change; their depth does. Name the profile you are running, "
+        "so a shortcut is a decision rather than an accident.</p>\n"
+        f'<ul class="family-profiles">\n{profiles}\n</ul>\n'
+        "<h2>Run it</h2>\n"
+        f'<p>The <a href="{_esc(_plugin_href(plugin))}">family</a> plugin ships the '
+        f'<a href="{_esc(_skill_href(plugin, "family-workflow"))}">family-workflow</a> '
+        "skill and a read-only subagent per stage, so the main conversation keeps the "
+        "conclusion of each stage and not the material it read.</p>\n"
+        f"{_code_block(_install_line(plugin, catalogue.marketplace))}\n"
+        "</div>\n"
+        "</div>"
+    )
+    return _page("FAMILY · AI", main, version, current="/family/", parent="/")
+
+
 def _robots(noindex: bool) -> str:
     if noindex:
         return "User-agent: *\nDisallow: /\n"
@@ -1116,6 +1180,7 @@ def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> N
     catalogue = collect(root, manifest, groups, skills)
     pages = {
         "": render_index(catalogue, version),
+        "family": render_family(catalogue, version),
         "start": render_start(catalogue, version),
         "workflows": render_workflows(catalogue, version),
         "examples": render_examples(catalogue, version),
