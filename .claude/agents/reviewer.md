@@ -198,17 +198,30 @@ the owner confirms the PR's required `ci` and `security` checks passed on the cu
 head under the branch ruleset; (c) that the owner confirms the change leaves
 `.github/workflows/`, `Makefile`, `pyproject.toml` and the scripts CI calls unchanged
 against the merge-base, and that if any of them changed, the owner treats CI as untrusted.
-SHIP is never possible from the reviewer alone on such a change.
+The reviewer never returns SHIP on such a change by itself. A FIX whose only open items
+are the owner-must-run ones (no blocking finding, and the candidate based on the current
+base) is cleared once the owner has completed every owner-must-run item and recorded the
+results on the PR (the sandboxed gates, the required `ci` and `security` checks, the
+workflows, `Makefile`, `pyproject.toml` and CI-scripts check, and the live check where
+the change needs one); that completed checklist counts as the passing review `AGENTS.md`
+requires before merge, for that head commit on that base tip only. A new push to the PR
+head voids it, and so does a base advance, unless the branch ruleset requires branches to
+be up to date before merging. A live check that is a post-merge run is recorded as named
+but not yet run. A blocking finding, and the rebase FIX, still need a fix and a fresh
+review.
 Review everything that can be read without executing the change.
 
 When Author is not the repository owner and a candidate ref is given, the order is
-fixed. First decide inert-only from `git diff -z
+fixed. First require the candidate to be based on the current base, for inert-only and
+non-inert changes alike: unless `git merge-base origin/<base-branch> refs/review/<n>`
+equals `git rev-parse origin/<base-branch>`, return `Verdict: FIX` asking the contributor
+to rebase onto the current base, and run no gate. The reviewed candidate blobs are then
+exactly what merges at review time. Then decide inert-only from `git diff -z
 --raw "<base>...refs/review/<n>"`, before any checkout exists. Only if every path
 passes, create the gate worktree yourself, in a fresh directory outside the project,
 as the current base plus the candidate merged, run the gates there and remove it. The
-head alone is not what would merge: if the base advanced, a change can pass on its own
-and fail once combined (conflicting eval queries added on both sides, say), so the gates
-run on the merge snapshot.
+candidate is based on the current base, so the merge below is fast-forward equivalent and
+stays harmless.
 
 Run the whole sequence as one Bash call, because the tool keeps no shell variables
 between calls, and clean up in the same call whether or not a gate fails:
