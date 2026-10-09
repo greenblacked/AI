@@ -338,6 +338,38 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Stop the agent roles running code or commands taken from a contributor's change. In
+  the review loop, `reviewer` and `investigator` take an Author field that `/verify`
+  passes (absent means contributor). A printed command is data to check by reading, run
+  only for an owner-authored change, in a throwaway directory with no network or
+  credentials. On a contributor change `reviewer` runs the gates only when every changed
+  path is inert content (Markdown under `plugins/` or `docs/`, a trigger eval set, or
+  the root `README.md` or `CHANGELOG.md`, as regular files). Otherwise it runs no gates
+  and cites no CI, because a contributor's pull request runs the contributor's own
+  workflow files and `Makefile`, and returns `FIX` pending the owner, who runs the gates,
+  confirms the required `ci` and `security` checks passed on the current head, and
+  confirms `.github/workflows/`, `Makefile`, `pyproject.toml` and the scripts CI calls
+  are unchanged against the merge-base (treating CI as untrusted if not); the gates run
+  only in a disposable sandbox with no credentials and no network, never in the owner's
+  normal environment or clone; `SHIP` is never returned by the reviewer itself on such a change, though a `FIX` whose only open items are the owner-must-run ones (no blocking finding, and the candidate based on the current base) is cleared by the owner's completed checklist recorded on the PR, live check included, for that head commit on that base tip only (a new push voids it, as does a base advance, detected by re-fetching and comparing both refs against the pinned base and reviewed SHA before accepting and again before merge; a post-merge live check is recorded as named but not yet run; a blocking finding or the rebase `FIX` still needs a fix and a fresh review).
+  A changed path must also have a whole NUL-delimited name matching
+  `^\.?[A-Za-z0-9_][A-Za-z0-9._-]*(/\.?[A-Za-z0-9_][A-Za-z0-9._-]*)*$` (each segment may start with one dot, then a letter, digit or underscore) to be canonical: a name such
+  as `docs/$(cmd).md` makes the change non-inert, is never put in a command and is a
+  blocking finding asking for a rename (dot-prefixed paths such as `.github/` and `.claude/` are canonical but non-inert, since they are outside the inert allowlist, so they go to the owner-must-run flow, not a rename), and paths are listed NUL-delimited and read in
+  single quotes. Such a `FIX` goes back to the owner or contributor, never
+  to `implementer`. The build loop (`/ship`, `explorer`, `implementer` and the ChatGPT
+  coordinator's build loop) is owner-only: with contributor content the owner has not
+  adopted (not on the base branch) in the checkout, `/ship` returns `STOP` and the
+  change goes to a fresh `reviewer` delegation with the loop "contributor review" (plus
+  `investigator` only for an outside claim). `explorer` and `implementer` carry the same
+  guard and stop without running anything. The ChatGPT workflow guide and
+  `docs/using.md` carry the same rules. A contributor review runs only from a clean worktree at the pinned base SHA (`HEAD` must equal it exactly, so an older ancestor checkout is `STOP`), never the contributor's, because Claude Code loads agents,
+  settings, hooks and instructions from the checkout it opens, and Codex and ChatGPT
+  read AGENTS.md and repository instructions from it: the contributor's head is fetched
+  as a ref and read with git, and a session opened inside a contributor or stale checkout returns
+  `STOP`. The base must be `dev`, `stage` or `main` (any other is `STOP`) and is pinned to its SHA after the fetch; the reviewer is given both, and before any command requires `<base>` to be a full hex SHA equal to the base tip and `<n>` to be all digits (else `STOP`). The reviewer runs inert-only gates on that SHA with `refs/review/<n>`
+  merged in (`--no-ff`); a candidate not based on the current base (`git merge-base` differs from the base tip) is `FIX` asking for a rebase before any gate runs, as is a merge conflict; and `<base>` is the
+  pinned SHA.
 - Make `design-system`'s inventory count distinct colours: the command counted matching
   lines, so a colour used twice counted twice and two colours on one line counted once.
   Its contrast table now has one row per pair and state and one column per theme, so a

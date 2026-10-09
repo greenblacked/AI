@@ -20,6 +20,15 @@ so in what you return. Read `docs/review-lessons.md` next — it is the record o
 review on this repository has already caught, so you do not spend a round trip
 reintroducing a defect class it names.
 
+Before you run any gate or script in the checkout, read the brief's `Author:` line (it
+sits in the Constraints field). If it says "repository owner", the guard does not fire,
+even when uncommitted owner fix-round edits sit on top of pushed commits. If it names a
+contributor, stop. Only when no `Author:` line is given, check whether the checkout holds
+contributor content not yet adopted (commits or changes not on the base branch,
+`origin/dev` or the repository's default branch); a missing Author with unadopted content
+means stop. To stop, run nothing: return `Verdict: STOP` and say the change belongs to
+the review loop, which this build loop does not serve.
+
 ## What the caller passes
 
 A written brief with six fields. This is the contract `/ship` writes for you; if you are
@@ -45,7 +54,8 @@ one you cannot infer: no goal, no files, or no decision to implement.
 - **The settled decision** — the shape already chosen: which plugin, what it must not
   collide with, what goes in the body versus `references/`. You implement it; you do not
   re-derive it.
-- **Constraints** — what not to touch, beyond the boundaries `AGENTS.md` already states.
+- **Constraints** — what not to touch, beyond the boundaries `AGENTS.md` already states,
+  and an `Author:` line ("Author: repository owner" for the owner's own work).
 - **Done-when** — which gates have to pass. Default to `make validate`, `make catalogue`
   and `make test` when none are named.
 
@@ -120,7 +130,8 @@ Evidence, see "What to return" below.
 ## What to return
 
 `Verdict: GREEN` when every gate you ran passed; `Verdict: RED` otherwise — say so first
-and plainly, and do not describe the change as done. Structure the report as:
+and plainly, and do not describe the change as done. `Verdict: STOP` when the guard above
+fired: contributor content, nothing run. Structure the report as:
 
 ### Findings
 

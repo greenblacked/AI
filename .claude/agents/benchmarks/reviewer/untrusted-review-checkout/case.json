@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Simplify contributor review by delegating the reviewer from the contributor's checkout instead of fetching a ref.",
+  "lesson": "A guard written inside configuration the attacker controls",
+  "must_mention": [
+    "checkout",
+    "trusted|base",
+    "contributor"
+  ]
+}
