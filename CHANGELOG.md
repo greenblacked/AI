@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-10-10
+
 ### Added
 
 - Open the `family` plugin's page on the same typed F.A.M.I.L.Y. heading as the FAMILY
@@ -586,7 +588,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.7...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/greenblacked/AI/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/greenblacked/AI/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/greenblacked/AI/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/greenblacked/AI/compare/v0.1.4...v0.1.5
