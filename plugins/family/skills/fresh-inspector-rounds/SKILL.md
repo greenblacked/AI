@@ -1,7 +1,7 @@
 ---
 name: fresh-inspector-rounds
 description: "Run Inspect as rounds with an independence contract: each round a new inspector context, never resumed; only the blocking findings travel back to the builder, never the whole report; and the same finding returning a second time halts the loop and reopens Architect with that finding as a constraint, because a symptom was fixed. Includes the author guard, which lists checks for the owner to run rather than executing them on a change the owner did not write. Use when an inspect-fix-inspect cycle is running, when an inspector keeps being resumed, or for phrasings like \"the same bug keeps coming back after each fix\" or \"how many review rounds before we stop\". Not for reviewing one diff (code-review), the stage definitions (family-workflow) or QA's go/no-go (qa-workflow)."
-allowed-tools: Agent(inspector), Read, Grep, Glob, Bash(git:*)
+allowed-tools: Agent(inspector), Read, Write, Edit, Grep, Glob, Bash(git:*)
 ---
 
 # Fresh inspector rounds
@@ -32,7 +32,7 @@ The inspector reports each success criterion as `HOLDS`, `FAILS` or `NOT ASSESSE
 
 ### 4. Send back the failures only
 
-Each `FAILS` line is a blocking finding. It goes to the builder as problem, evidence locator and the fix the inspector gave for it. A `NOT ASSESSED` criterion is a gap for the Inspect owner to close, not a task for the builder, and observations stay in the report and travel to Yield. The builder never receives the report itself.
+Each `FAILS` line is a blocking finding. It goes to the builder as problem, evidence locator and the fix the inspector gave for it. The builder is the writing agent that built the slice; when none is running, the main conversation is the builder and applies the fix itself, which is why this skill can edit the tree. Neither is ever the inspector's context. A `NOT ASSESSED` criterion is a gap for the Inspect owner to close, not a task for the builder, and observations stay in the report and travel to Yield. The builder never receives the report itself.
 
 ### 5. Re-inspect with a fresh inspector
 
