@@ -461,3 +461,46 @@ def test_no_page_scrolls_sideways_on_a_phone(browser, built, base_url):
         assert {"/", PLUGIN_PATH, SKILL_PATH} <= set(paths)
     finally:
         context.close()
+
+
+FAMILY_KEYS = (
+    "() => [...document.querySelectorAll('.family-word .fk, .family-word .fd')]"
+    ".map(e => ({text: e.textContent, opacity: getComputedStyle(e).opacity,"
+    " width: e.getBoundingClientRect().width, color: getComputedStyle(e).color}))"
+)
+
+
+def test_the_family_heading_is_whole_and_named_when_motion_is_reduced(page, base_url):
+    page.goto(base_url + "/family/")
+    # Screen readers hear the workflow's name, not twelve letters and dots.
+    assert page.get_by_role("heading", level=1, name="The FAMILY workflow").count() == 1
+    keys = page.evaluate(FAMILY_KEYS)
+    assert "".join(k["text"] for k in keys) == "F.A.M.I.L.Y."
+    # Nothing waits on an animation the visitor asked not to see.
+    assert all(k["opacity"] == "1" and k["width"] > 0 for k in keys)
+    assert page.evaluate("() => document.getAnimations().length") == 0
+    # Each stage letter has its own colour; the dots share the text colour.
+    letters = keys[0::2]
+    assert len({k["color"] for k in letters}) == 6
+    assert len({k["color"] for k in keys[1::2]}) == 1
+
+
+def test_the_family_heading_types_itself_in_when_motion_is_allowed(browser, base_url):
+    made = browser.new_context(viewport={"width": 1280, "height": 800})
+    made.route(re.compile("^(?!" + re.escape(base_url) + "/)"), lambda route: route.abort())
+    try:
+        page = made.new_page()
+        page.emulate_media(reduced_motion="no-preference")
+        page.goto(base_url + "/family/")
+        names = page.evaluate(
+            "() => document.getAnimations().filter(a => a.effect.target.closest('.family-word'))"
+            ".map(a => a.animationName)"
+        )
+        assert names.count("family-key") == 12 and "family-caret" in names
+        page.wait_for_function(
+            "() => document.getAnimations().every(a => a.playState === 'finished')",
+            timeout=10_000,
+        )
+        assert all(k["opacity"] == "1" and k["width"] > 0 for k in page.evaluate(FAMILY_KEYS))
+    finally:
+        made.close()
