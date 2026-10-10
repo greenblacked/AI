@@ -447,7 +447,7 @@ each skill's trigger and link.
 same 16 KiB gate, which shortened triggers rather than markup; #164 and #162 carried the
 same change. Restored to 100 by writing each router line as `- skills/<name>.md:` rather
 than a Markdown link that repeated the name, and `tests/test_catalogue.py` now pins the
-cap as a literal and checks the real router fits with whole triggers.
+cap as a literal and checks the real router fits its budget at that cap.
 
 ### A count in prose goes stale
 
