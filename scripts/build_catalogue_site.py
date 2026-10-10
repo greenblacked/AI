@@ -618,11 +618,22 @@ def render_plugin(plugin: str, catalogue: Catalogue, version: str) -> str:
         for skill in skills
     )
     install = _code_block(_install_line(plugin, catalogue.marketplace))
+    # The family plugin is the FAMILY workflow, so its page opens on the same typed word
+    # and points at the stage-by-stage guide; every other plugin keeps its plain name.
+    heading = f'<h1 class="title-xl">{_esc(plugin)}</h1>'
+    workflow = ""
+    if plugin == "family":
+        heading = _family_word("family")
+        workflow = (
+            '<p class="family-link"><a href="/family/">The FAMILY workflow, stage by stage'
+            "</a> →</p>\n"
+        )
     main = (
         '<div class="page">\n'
         f"{_back('/')}\n"
-        f'<h1 class="title-xl">{_esc(plugin)}</h1>\n'
+        f"{heading}\n"
         f"{about}"
+        f"{workflow}"
         f'<p class="small count">{_esc(_plural(len(skills), "skill"))}</p>\n'
         f'<div class="install">{install}</div>\n'
         f"{_finder('Find a skill', _plural(len(skills), 'skill'))}"
@@ -1087,6 +1098,23 @@ FAMILY_PROFILES = (
 )
 
 
+def _family_word(name: str) -> str:
+    """The F.A.M.I.L.Y. heading, typed in one stage letter and its dot at a time.
+
+    CSS alone animates it, so a visitor with motion reduced or scripts off still reads
+    the whole word; ``name`` is what a screen reader hears instead of twelve characters.
+    """
+    typed = "".join(
+        f'<span class="fl stage-{letter.lower()}">'
+        f'<span class="fk">{letter}</span><span class="fd">.</span></span>'
+        for letter, _, _ in FAMILY_STAGES
+    )
+    return (
+        f'<h1 class="title family-word"><span class="sr-only">{_esc(name)}</span>'
+        f'<span class="typed" aria-hidden="true">{typed}<span class="caret"></span></span></h1>'
+    )
+
+
 def render_family(catalogue: Catalogue, version: str) -> str:
     plugin = "family"
     stages = "\n".join(
@@ -1095,21 +1123,13 @@ def render_family(catalogue: Catalogue, version: str) -> str:
         f"<div><h3>{_esc(name)}</h3><p>{_esc(text)}</p></div></li>"
         for letter, name, text in FAMILY_STAGES
     )
-    # The word types itself in on arrival, one stage letter and its dot at a time, in
-    # CSS alone so a visitor with motion reduced or scripts off still reads it whole.
-    typed = "".join(
-        f'<span class="fl stage-{letter.lower()}">'
-        f'<span class="fk">{letter}</span><span class="fd">.</span></span>'
-        for letter, _, _ in FAMILY_STAGES
-    )
     profiles = "\n".join(
         f"<li><h3>{_esc(name)}</h3><p>{_esc(text)}</p></li>" for name, text in FAMILY_PROFILES
     )
     main = (
         '<div class="page narrow">\n'
         f"{_back('/')}\n"
-        '<h1 class="title family-word"><span class="sr-only">The FAMILY workflow</span>'
-        f'<span class="typed" aria-hidden="true">{typed}<span class="caret"></span></span></h1>\n'
+        f"{_family_word('The FAMILY workflow')}\n"
         '<p class="lede">Frame · Architect · Make · Inspect · Launch · Yield — one '
         "workflow from a vague request to a measured outcome.</p>\n"
         '<div class="prose-lab page-body">\n'
