@@ -37,7 +37,7 @@ Name the class generally, describe how it showed up in this slice, and name the 
 
 ### 3. Seed the case, and watch it miss first
 
-Build the smallest diff that reproduces the defect and run the inspector on it without the new entry. If it already returns `FIX` for the right reason, the lesson is clutter and is not added. If it misses, add the entry and run again until it catches.
+Build the smallest diff that reproduces the defect and run the inspector on it without the new entry, a fixed number of times (three is enough) on one model and effort. If it already returns `FIX` for the right reason in most of those runs, the lesson is clutter and is not added. Otherwise add the entry and run the same number of times on the same model and effort. Accept the entry only if it catches in most runs and in at least two more runs than the baseline did. Retrying until a run catches measures luck, not the lesson, because the inspector's answers vary.
 
 ### 4. Reject at the Yield gate
 

@@ -124,7 +124,7 @@
 
 **Artifact:** a launch plan — migration, monitoring, rollback, comms, owner.
 
-**Agent:** `launcher`. It takes the go/no-go and its residual defects as input and returns the plan, or the missing path, signal or rollback.
+**Agent:** `launcher`. It takes the go/no-go and its residual defects as input and returns the plan, or the missing go/no-go, path, signal or rollback.
 
 **Waivable:** yes, only when there are no users to reach and the way back is the previous version. Write the waiver with the reason and the risk.
 
