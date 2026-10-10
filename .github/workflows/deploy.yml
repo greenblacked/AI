@@ -29,7 +29,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  WRANGLER_VERSION: '4.147.0'
+  WRANGLER_VERSION: '4.149.0'
   # wrangler 4 refuses to run below Node 22. Not a *_VERSION name: the weekly
   # freshness check compares those to the newest release, and the newest Node
   # is a different major from the one wrangler supports.
