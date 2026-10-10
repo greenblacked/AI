@@ -1,7 +1,7 @@
 ---
 name: plan-drift-gate
 description: "Hold a build to its plan before inspection. The builder's brief is derived step by step from maker's plan (files, change, proof per step), one commit per step. After the build, maker runs in check mode first: DIVERGED without a recorded return to architect blocks, and inspector is not called until the diff is ON PLAN, so inspection judges correctness and not shape. Use when a maker plan is about to be built, a finished diff needs checking against its plan, or a builder has wandered from the steps it was given. Not for writing the plan (maker), reviewing a diff for defects (code-review), or briefing one agent on a task (agent-delegation)."
-allowed-tools: Read, Grep, Glob, Bash(git:*)
+allowed-tools: Agent(maker), Agent(inspector), Read, Grep, Glob, Bash(git:*)
 ---
 
 # Plan-drift gate

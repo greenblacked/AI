@@ -23,9 +23,10 @@
 | maker, check | `ON PLAN` | inspector | Shape is settled, so inspection can judge correctness |
 | maker, check | `DIVERGED` | architect | Maker would amend the plan to fit the code |
 | inspector | `PASS` | launcher, after the go or no-go question | A pass is evidence, not a decision to ship |
-| inspector | `FIX` | build, blocking findings only | The finding is a defect in the change |
+| inspector | `FIX`, with `FAILS` lines | build, the `FAILS` lines only | Each is a defect in the change |
+| inspector | `FIX`, `NOT ASSESSED` only | the Inspect owner, to run the listed checks | There is nothing for the builder to fix; sending it to build loops forever |
 | inspector | `STOP` | a person | It found something only a person can weigh |
-| launcher | `READY` | yielder | The change reached users |
+| launcher | `READY` | the release owner, then yielder with the measured signal | Launcher plans the release and does not run it; yielder needs an outcome to measure |
 | launcher | `N-A` | yielder | Nothing was released, so there is still an outcome to learn from |
 | launcher | `NOT READY` | the owner of the missing piece | See below |
 | yielder | `YIELDED` | framer, next slice as the request | The loop closes into Frame |

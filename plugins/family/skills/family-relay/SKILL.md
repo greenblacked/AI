@@ -1,7 +1,7 @@
 ---
 name: family-relay
 description: "Run the six FAMILY stage agents as a relay in which the verdict word decides the next hop: FRAMED goes to architect, PROPOSED to maker, PLAN READY to the build, DIVERGED back to architect, PASS to launcher, STOP to a person. Covers the routing table, passing each hop the artifact plus only the previous Handoff section, treating a report with no verdict as a question, and the two-strike rule that steps back a stage when the same verdict returns. Use when framer, architect, maker, inspector, launcher or yielder reports are coming back and someone asks what happens next, what to do with a FIX, DIVERGED or NOT READY, or how to chain the stage agents. Not for choosing the workflow (family-workflow), dependency-graph orchestration (agent-orchestration), or briefing one agent (agent-delegation)."
-allowed-tools: Read, Grep, Glob
+allowed-tools: Agent(framer), Agent(architect), Agent(maker), Agent(inspector), Agent(launcher), Agent(yielder), Read, Grep, Glob
 ---
 
 # The FAMILY relay
@@ -29,9 +29,10 @@ Do not use for: choosing the workflow or profile (`family-workflow`), scheduling
 | maker, check | `ON PLAN` | inspector |
 | maker, check | `DIVERGED` | architect, never maker again |
 | inspector | `PASS` | launcher |
-| inspector | `FIX` | build |
+| inspector | `FIX` | build for each `FAILS` line; the Inspect owner for each `NOT ASSESSED` one |
 | inspector | `STOP` | a person |
-| launcher | `READY` or `N-A` | yielder |
+| launcher | `READY` | the release owner, who ships and measures the signal, then yielder |
+| launcher | `N-A` | yielder |
 | launcher | `NOT READY` | the stage that owns the missing piece |
 | yielder | `YIELDED` | framer, with the next slice |
 

@@ -1,7 +1,7 @@
 ---
 name: stage-tiering
 description: "Set a model tier and effort level per FAMILY stage by the cost of being wrong there: framer, maker, launcher and yielder survey and plan, so run them on a mid tier at medium effort; architect and inspector decide and judge, so run them on the top tier. Fan out at most two agents in parallel on disjoint questions, then synthesise in the main conversation as a named step. Covers where each is set, which setting beats an environment override, and how to opt out. Written in tiers, not product models. Use when choosing which model runs which agent, when survey agents are burning cost, or when a cheap model made the decision. Not for estimating API spend or prompt caching (llm-cost), coordinating live coding agents (agent-orchestration) or briefing one agent (agent-delegation)."
-allowed-tools: Read, Grep, Glob
+allowed-tools: Read, Edit, Grep, Glob
 ---
 
 # Stage tiering

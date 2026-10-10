@@ -13,7 +13,7 @@
 Three things, kept together in one directory per case:
 
 - **A seeded diff.** The smallest real change that reproduces the defect against the tree as it is today. Not a toy: it should look like something an author would write.
-- **The expected verdict.** The word the inspector must return for it, `FIX` for a defect it can evidence, `STOP` for one only a person can weigh, `PASS` for a clean change.
+- **The expected verdict.** The word the inspector must return for it, `FIX` for a defect it can evidence against a criterion, `PASS` for a clean change. Every case supplies a success criterion, so `STOP`, which means none was supplied, is never an expected verdict; a defect only a person can weigh is not a case for this inspector.
 - **What the findings must say.** One or two phrases, or small patterns, that a correct finding contains, so a `FIX` for the wrong reason does not count.
 
 The case also names the lesson it exercises, by the entry's heading, so a lesson with no case is visible as a heading nothing points at. The shape for a case file:
@@ -42,7 +42,7 @@ Add clean cases beside the defect cases: ordinary changes with an expected `PASS
 Run every case on a fresh inspector delegation and compute:
 
 - **Catch rate** = defect cases where the verdict matched and the findings contain the required phrases, divided by defect cases.
-- **False alarms** = clean cases that returned `FIX` or `STOP`, counted as a number and as a share of clean cases.
+- **False alarms** = clean cases that returned `FIX`, counted as a number and as a share of clean cases.
 
 Report both on every run, with the model and effort the inspector ran at. A model that is deliberately cheaper or stronger changes both numbers, and the comparison is only fair at a fixed tier. A drop in catch rate after an instruction change is the signal that the change cost something; a rise in false alarms is the signal that the lessons file has become noise.
 

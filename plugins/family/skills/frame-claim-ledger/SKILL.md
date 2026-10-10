@@ -1,7 +1,7 @@
 ---
 name: frame-claim-ledger
 description: "List every factual claim a frame or an architecture rests on — how a flag or API behaves, a cited figure, a user need — and settle the heaviest before the hard-to-reverse decision is recorded: one claim per read-only research agent, run in parallel beside architect, each finding labelled primary, consensus or inference. An unverified or refuted claim cannot be the basis of that decision, so architect returns NEEDS FRAME. Use when a frame is about to go to Architect, when an ADR rests on something nobody has read the source for, or for phrasings like \"what are we assuming here\" or \"has anyone checked that this limit is real\". Not for checking one claim on its own after the fact, writing the ADR (decision-record), or reviewing a diff (code-review)."
-allowed-tools: Read, Grep, Glob
+allowed-tools: Agent, Read, Grep, Glob
 ---
 
 # Frame claim ledger

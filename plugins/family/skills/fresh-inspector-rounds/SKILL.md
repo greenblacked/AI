@@ -1,7 +1,7 @@
 ---
 name: fresh-inspector-rounds
 description: "Run Inspect as rounds with an independence contract: each round a new inspector context, never resumed; only the blocking findings travel back to the builder, never the whole report; and the same finding returning a second time halts the loop and reopens Architect with that finding as a constraint, because a symptom was fixed. Includes the author guard, which lists checks for the owner to run rather than executing them on a change the owner did not write. Use when an inspect-fix-inspect cycle is running, when an inspector keeps being resumed, or for phrasings like \"the same bug keeps coming back after each fix\" or \"how many review rounds before we stop\". Not for reviewing one diff (code-review), the stage definitions (family-workflow) or QA's go/no-go (qa-workflow)."
-allowed-tools: Read, Grep, Glob, Bash(git:*)
+allowed-tools: Agent(inspector), Read, Grep, Glob, Bash(git:*)
 ---
 
 # Fresh inspector rounds
