@@ -756,6 +756,117 @@ html[data-theme="night"] .sun { display: none; }
   line-height: 1.5;
   color: var(--muted);
 }
+/* Each FAMILY stage owns a colour, so the typed word, the timeline and the stage letters
+   read as one sequence. Day values hold 4.5:1 against --bg; night lifts them for black;
+   the console theme stays one colour, which is its whole point. */
+:root {
+  --stage-f: #b42318;
+  --stage-a: #a14a06;
+  --stage-m: #25713a;
+  --stage-i: #0b6680;
+  --stage-l: #3348c2;
+  --stage-y: #7a35b5;
+}
+html[data-theme="night"] {
+  --stage-f: #ff8a7a;
+  --stage-a: #ffae5c;
+  --stage-m: #6fd38a;
+  --stage-i: #5ccbe6;
+  --stage-l: #93a8ff;
+  --stage-y: #c79cff;
+}
+html[data-theme="reactor"] {
+  --stage-f: var(--ink);
+  --stage-a: var(--ink);
+  --stage-m: var(--ink);
+  --stage-i: var(--ink);
+  --stage-l: var(--ink);
+  --stage-y: var(--ink);
+}
+.stage-f { --stage: var(--stage-f); }
+.stage-a { --stage: var(--stage-a); }
+.stage-m { --stage: var(--stage-m); }
+.stage-i { --stage: var(--stage-i); }
+.stage-l { --stage: var(--stage-l); }
+.stage-y { --stage: var(--stage-y); }
+.family-word {
+  font-size: clamp(3rem, 13vw, 6rem);
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.family-word .fl { display: inline-block; color: var(--stage); }
+.family-word .fl .fk { display: inline-block; font-weight: inherit; }
+.family-word .fl .fd { display: inline-block; font-style: normal; color: var(--ink); }
+.family-word .caret {
+  display: inline-block;
+  width: 0.08em;
+  height: 0.8em;
+  margin-left: 0.06em;
+  vertical-align: -0.02em;
+  background: var(--ink);
+  opacity: 0;
+}
+.family-stages .letter { color: var(--stage); }
+.family-stages > li { position: relative; }
+.family-stages > li::before {
+  content: "";
+  position: absolute;
+  left: -0.75rem;
+  top: 1rem;
+  bottom: 1rem;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--stage);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .family-word .fl .fk, .family-word .fl .fd {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    vertical-align: bottom;
+    animation: family-key 0.34s cubic-bezier(0.2, 0.9, 0.25, 1.25) forwards;
+  }
+  .family-word .fl:nth-child(1) .fk { animation-delay: 0.2s; }
+  .family-word .fl:nth-child(1) .fd { animation-delay: 0.38s; }
+  .family-word .fl:nth-child(2) .fk { animation-delay: 0.56s; }
+  .family-word .fl:nth-child(2) .fd { animation-delay: 0.74s; }
+  .family-word .fl:nth-child(3) .fk { animation-delay: 0.92s; }
+  .family-word .fl:nth-child(3) .fd { animation-delay: 1.1s; }
+  .family-word .fl:nth-child(4) .fk { animation-delay: 1.28s; }
+  .family-word .fl:nth-child(4) .fd { animation-delay: 1.46s; }
+  .family-word .fl:nth-child(5) .fk { animation-delay: 1.64s; }
+  .family-word .fl:nth-child(5) .fd { animation-delay: 1.82s; }
+  .family-word .fl:nth-child(6) .fk { animation-delay: 2s; }
+  .family-word .fl:nth-child(6) .fd { animation-delay: 2.18s; }
+  .family-word .caret { animation: family-caret 0.9s steps(1) 0s 4; }
+  .family-word + .lede, .family-stages > li {
+    opacity: 0;
+    animation: family-rise 0.6s ease-out forwards;
+  }
+  .family-word + .lede { animation-delay: 2.4s; }
+  .family-stages > li:nth-child(1) { animation-delay: 2.55s; }
+  .family-stages > li:nth-child(2) { animation-delay: 2.65s; }
+  .family-stages > li:nth-child(3) { animation-delay: 2.75s; }
+  .family-stages > li:nth-child(4) { animation-delay: 2.85s; }
+  .family-stages > li:nth-child(5) { animation-delay: 2.95s; }
+  .family-stages > li:nth-child(6) { animation-delay: 3.05s; }
+}
+@keyframes family-key {
+  0% { max-width: 0; opacity: 0; transform: translateY(0.18em) scale(1.6); }
+  1% { max-width: 1em; }
+  100% { max-width: 1em; opacity: 1; transform: none; }
+}
+@keyframes family-caret {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+}
+@keyframes family-rise {
+  from { opacity: 0; transform: translateY(0.5rem); }
+  to { opacity: 1; transform: none; }
+}
 """
 
 # The theme is set before the page paints, so a visitor at night never sees a flash of

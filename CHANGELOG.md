@@ -10,6 +10,20 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add six skills to the `family` plugin that run its stage agents together:
+  `family-relay` routes each stage agent's verdict to the next hop and steps back a stage
+  when a verdict repeats; `plan-drift-gate` checks a build against maker's plan before
+  inspection; `fresh-inspector-rounds` starts each review round on a new inspector and
+  reopens Architect when a finding recurs; `frame-claim-ledger` settles the claims a
+  hard-to-reverse decision rests on first; `yield-to-lesson` accepts a retro item only as
+  a check the next inspection can fail on; `stage-tiering` sets a model tier per stage.
+  The family listing ceiling rises to fit them, and the recommended
+  `skillListingBudgetFraction` rises to 0.119.
+- Type the FAMILY page's heading in on arrival: F.A.M.I.L.Y., one stage letter and its
+  dot at a time, then the stages rise in. Each stage has its own colour, used again on
+  its letter and a rule beside it, at least 5.3:1 against the day background and 9:1 at
+  night; the console theme stays one colour. CSS only, so reduced motion or no scripts
+  shows the whole word at once, and screen readers hear "The FAMILY workflow".
 - Show an "AI" icon in the browser tab. The site now ships `favicon.svg`, the header's
   mark drawn as strokes on a dark tile so it reads on light and dark tabs, and every
   page links to it.
@@ -227,6 +241,25 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Close three gaps in the FAMILY workflow skills. `launcher` returns `READY` only with a
+  go from the Inspect owner, so a missing or no-go decision is a `NOT READY` that
+  `family-relay` routes back to the Inspect owner rather than to release. `stage-tiering`
+  says that `CLAUDE_CODE_EFFORT_LEVEL` overrides every agent's `effort`, unlike the model
+  setting. `yield-to-lesson` accepts a lesson on a fixed number of runs before and after,
+  not by retrying until one catches.
+- Replace the stroked "AI" tab icon with the crystal "AI" artwork, shipped as a 64 px
+  `favicon.png` and a 180 px `apple-touch-icon.png` for phone home screens. Both are
+  cut square from the artwork and stored under `scripts/site_assets/`.
+- Give each FAMILY stage one owner and a first question. The Inspect owner (QA where
+  present) owns the go/no-go that closes Inspect, and `launcher` takes it as input and
+  returns `NOT READY` only for a missing path, signal or rollback. `inspector` reports each
+  success criterion as holding, failing or not assessed and leaves severity-ranked findings
+  to `code-review`. The solo, developer and QA skills name the agent for each step. Only
+  Architect and Launch may be waived, in writing. A profile is the role and depth is light
+  or full per slice, recorded in the frame. The family trigger evals route the
+  success-criterion, acceptance and cadence queries to one owner each, the agent evals name
+  real neighbouring skills as negatives, and the `launcher`, `architect`, `maker` and
+  `inspector` verdicts that were undefined now have a line.
 - Run the full suite before stage and only what a promotion can still break on the way
   into `main`. A new `scope` job reads the GitHub API and git: a pull request into `main`
   whose tree is the one stage's pull request passed in full, apart from the changelog
