@@ -1084,9 +1084,9 @@ FAMILY_STAGES = (
 )
 
 FAMILY_PROFILES = (
-    ("Solo", "One person runs all six stages, lightly, with the agents as independent checkers."),
-    ("Developer", "Frame, Architect, Make and Yield in depth; Inspect and Launch handed off."),
-    ("QA", "Inspect in depth, with acceptance criteria pushed back into Frame and Architect."),
+    ("Solo", "One person runs all six stages, with the agents as independent checkers."),
+    ("Developer", "Frame, Architect, Make and Yield owned; Inspect and Launch handed off."),
+    ("QA", "Inspect owned, with acceptance criteria pushed back into Frame and Architect."),
     ("Team", "All six with a named owner and a handoff contract between each stage."),
 )
 
@@ -1122,8 +1122,9 @@ def render_family(catalogue: Catalogue, version: str) -> str:
         "stage has one gate, one artifact and one handoff to the next.</p>\n"
         f'<ol class="family-stages">\n{stages}\n</ol>\n'
         "<h2>The four profiles</h2>\n"
-        "<p>The stages never change; their depth does. Name the profile you are running, "
-        "so a shortcut is a decision rather than an accident.</p>\n"
+        "<p>The stages never change; a profile says who runs them, and each slice records "
+        "whether it runs light or full, so a shortcut is a decision rather than an "
+        "accident.</p>\n"
         f'<ul class="family-profiles">\n{profiles}\n</ul>\n'
         "<h2>Run it</h2>\n"
         f'<p>The <a href="{_esc(_plugin_href(plugin))}">family</a> plugin ships the '

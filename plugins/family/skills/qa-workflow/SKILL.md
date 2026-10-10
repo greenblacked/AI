@@ -1,12 +1,12 @@
 ---
 name: qa-workflow
-description: "Run FAMILY from QA: own Inspect in depth, push acceptance criteria and testability back into Frame and Architect, and own the go/no-go before Launch. Covers what QA reads at each stage, the test strategy tied to the success criteria, exploratory testing, and turning a repeated defect into a Frame check. Use this skill whenever QA is setting up how it works with a team. Triggers include a QA process, a test strategy tied to acceptance criteria, deciding what QA owns, or \"how do we run QA\" — including phrasings like \"what should our QA do\" or \"how do we stop shipping the same bug\". Do not use it for the stage definitions themselves (family-workflow), writing the tests (test-design), a WCAG audit (accessibility-audit), a solo developer (solo-development), or a developer's own loop (developer-workflow)."
+description: "Run FAMILY from QA: own Inspect, push acceptance criteria and testability back into Frame and Architect, and own the go/no-go before Launch. Covers what QA reads at each stage, the test strategy tied to the success criteria, exploratory testing, and turning a repeated defect into a Frame check. Use this skill whenever QA is setting up how it works with a team. Triggers include a QA process, a test strategy tied to acceptance criteria, deciding what QA owns, or \"how do we run QA\" — including phrasings like \"what should our QA do\" or \"how do we stop shipping the same bug\". Do not use it for the stage definitions themselves (family-workflow), writing the tests (test-design), a WCAG audit (accessibility-audit), a solo developer (solo-development), or a developer's own loop (developer-workflow)."
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash(git:*)
 ---
 
 # QA workflow
 
-QA's run of FAMILY is finished when the success criteria were testable before the build, Inspect was run in depth against them, the go/no-go before Launch was QA's call with evidence, and any defect class that repeated became a check in Frame rather than a comment on the next change.
+QA's run of FAMILY is finished when the success criteria were testable before the build, Inspect was run against every one of them, the go/no-go before Launch was QA's call with evidence, and any defect class that repeated became a check in Frame rather than a comment on the next change.
 
 The failure is that QA is brought in at Inspect, after the frame and the architecture are fixed, to test against criteria nobody wrote down. QA then either rubber-stamps a change that meets no stated intent, or finds the real problem too late to change it cheaply. The second failure is treating QA as a test-running service: bugs are found and fixed one at a time, the same class returns next quarter, and nothing about the process changes. This skill puts QA at Frame and Architect — where testability is decided — and makes a repeated defect a change to the frame rather than to the product alone.
 
@@ -43,7 +43,7 @@ Before the build, read `architect`'s design note and ask of each interface and f
 
 Check that each step of `maker`'s plan carries a proof QA would accept. Decide what is automated and what is exploratory, and at which level. Hand the automated detail to `test-design` for the module and `e2e-testing` for the browser path. The strategy is QA's; the test code is the specialists'.
 
-### 4. Run Inspect in depth
+### 4. Run Inspect against every criterion
 
 - `inspector` for the automated suite against the criteria: it returns each criterion as holding, failing or not assessed, with the evidence and the check run.
 - `code-review` for the diff: the severity-ranked findings.

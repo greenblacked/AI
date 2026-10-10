@@ -8,7 +8,7 @@ Each profile has its own skill with the full procedure. Read this file to choose
 | --- | --- | --- | --- |
 | Solo | one person | all six | `solo-development` |
 | Developer | one developer inside a team | Frame, Architect, Make, Yield; hands Inspect and Launch | `developer-workflow` |
-| QA | the QA role | Inspect in depth, including the go/no-go; pushes acceptance back into Frame and Architect | `qa-workflow` |
+| QA | the QA role | Inspect, including the go/no-go; pushes acceptance back into Frame and Architect | `qa-workflow` |
 | Team | the whole team | all six, each with a named owner and a handoff contract between each | `team-workflow` |
 
 - **Solo** — the missing second opinion is the problem; the stage agents replace it. Read `solo-development`.

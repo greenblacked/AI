@@ -28,8 +28,8 @@ Read `references/stages.md` for each stage's gate, the questions it must answer,
 The stages do not change. A profile is the role running them; the depth is light or full, chosen per slice and written in the frame. Read `references/profiles.md` to choose, then read the profile's own skill for how to run it.
 
 - **Solo** — one person, all six stages, usually light. The agents act as independent checkers so a single head does not review its own work. Read `solo-development`.
-- **Developer** — Frame, Architect, Make and Yield in depth; Inspect and Launch handed to a reviewer and a release owner. Read `developer-workflow`.
-- **QA** — Inspect in depth, with acceptance criteria and testability pushed back into Frame and Architect. Read `qa-workflow`.
+- **Developer** — Frame, Architect, Make and Yield owned; Inspect and Launch handed to a reviewer and a release owner. Read `developer-workflow`.
+- **QA** — Inspect owned, with acceptance criteria and testability pushed back into Frame and Architect. Read `qa-workflow`.
 - **Team** — all six with named owners, a handoff contract between each, and a cadence that runs Yield on a schedule rather than when someone remembers. Read `team-workflow`.
 
 ## Workflow

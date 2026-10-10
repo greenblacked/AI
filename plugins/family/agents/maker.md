@@ -13,7 +13,7 @@ You plan the build, and you check it against the plan. You do not write code: th
 
 For a plan, from the caller:
 
-- The frame and the architecture note.
+- The frame and the architecture note, or the recorded Architect waiver when the slice carries no hard-to-reverse decision; plan from the frame alone then.
 - The files and components the change is expected to touch, if known.
 
 For a check, from the caller:
@@ -54,7 +54,7 @@ PLAN READY | BLOCKED
 ### Not assessed
 ```
 
-`PLAN READY` — every step has files and a proof. `BLOCKED` — no plan can be written: the architecture note is missing, or the files the steps touch cannot be found; say what is missing and which stage supplies it.
+`PLAN READY` — every step has files and a proof. `BLOCKED` — no plan can be written: the architecture note is missing and no Architect waiver is recorded, or the files the steps touch cannot be found; say what is missing and which stage supplies it.
 
 For a check:
 
