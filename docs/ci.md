@@ -547,7 +547,7 @@ the release job is safe to repeat.
 `make site` builds `dist/site` locally. `VERSION` defaults to `dev`.
 
 What the build writes, besides the `.skill` archives, `portable-skills.zip`, the manifest,
-`version.txt`, `robots.txt` and the tab icon `favicon.svg`: an `index.html` for the catalogue, one page per plugin under
+`version.txt`, `robots.txt` and the tab and home-screen icons `favicon.png` and `apple-touch-icon.png`: an `index.html` for the catalogue, one page per plugin under
 `plugins/<plugin>/`, one per skill under `plugins/<plugin>/<skill>/`, and `start/`,
 `workflows/`, `examples/` and `quality/`.
 Every page is generated from the checkout with the standard library, Markdown included
