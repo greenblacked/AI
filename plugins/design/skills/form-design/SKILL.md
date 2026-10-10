@@ -1,6 +1,6 @@
 ---
 name: form-design
-description: "Design a form people can complete: label every field, order the questions the way the user thinks, validate inline and only after input, put errors next to the field and say how to fix them, and make the primary action obvious and the whole thing keyboard-operable. Use for any \"design this form\" or \"the form is confusing\" question. Casual asks include \"why do people abandon this form\", \"how should I validate\", \"where do error messages go\", \"design a signup form\", \"the checkout form is painful\" or \"should this be one page or many\". Not for WCAG conformance (accessibility-audit), visual hierarchy and type (visual-design), a usability review (ui-ux-review), a responsive layout (responsive-design), or building the page (website-builder)."
+description: "Design or redesign a form people can complete: label every field, order the questions the way the user thinks, validate inline and only after input, put errors next to the field and say how to fix them, and make the primary action obvious and the whole thing keyboard-operable. Use when designing or changing a form. Casual asks include \"design a signup form\", \"how should I validate\", \"where do error messages go\", \"the form asks for too many fields\" or \"should this be one page or many\". Not for diagnosing why an existing screen or form loses people (ui-ux-review), WCAG conformance (accessibility-audit), visual hierarchy (visual-design), a responsive layout (responsive-design), or building the page (website-builder)."
 allowed-tools: Read, Grep, Glob
 ---
 
@@ -39,7 +39,7 @@ If most fields are required, mark the optional ones. A form of asterisks trains 
 - On submit for the whole form.
 - On blur for a single field, after the user has left it.
 - Never on every keystroke, which flags a half-typed email as wrong.
-- Re-validate on submit and focus the first error, scrolling it into view.
+- Re-validate on submit and move focus once: to the error summary if there is one, otherwise to the first field with an error, scrolled into view.
 
 ### 6. Put the error next to the field, and say how to fix it
 

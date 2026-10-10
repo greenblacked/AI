@@ -176,9 +176,10 @@ USE_WHEN_RE = re.compile(
 )
 
 # A router line has room for one sentence, not the full description a plugin's own
-# listing carries. 100 characters keeps the trigger sentence whole for every skill here
-# but the longest few. It was lowered to 85 once, to fit ROUTER_BUDGET_BYTES, which cut
-# the end off long triggers in every router; the fix was to drop markup instead, and
+# listing carries. Most trigger sentences here are longer than 100 characters and end
+# in an ellipsis, so the cap decides how much routing text an agent sees. It was lowered
+# to 85 once, to fit ROUTER_BUDGET_BYTES, which took 15 more characters off every long
+# trigger in every router; the fix was to drop markup instead, and
 # when the budget bites again the answer is the same: less markup or a split router,
 # never a shorter trigger. tests/test_catalogue.py pins the value.
 ROUTER_USE_WHEN_CAP = 100
