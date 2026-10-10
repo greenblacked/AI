@@ -55,7 +55,7 @@ Say what was not assessed. The criterion-by-criterion evidence and the ranked fi
 
 ### 5. Own the go/no-go that closes Inspect
 
-QA states whether the acceptance criteria are met and whether the residual defects allow a release. This is a decision with evidence, not a vote, and QA is its only owner. Name the risk of anything shipping anyway, then give the go/no-go to `launcher` as its input; `launcher` does not remake it and may return not ready only for a missing release path, signal or rollback.
+QA states whether the acceptance criteria are met and whether the residual defects allow a release. This is a decision with evidence, not a vote, and QA is its only owner. Name the risk of anything shipping anyway, then give the go/no-go to `launcher` as its input; `launcher` does not remake it and returns not ready when it is missing or is a no-go, and otherwise only for a missing release path, signal or rollback.
 
 ### 6. Turn a repeated defect into a Frame check
 

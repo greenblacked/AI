@@ -17,7 +17,7 @@ You need, from the caller:
 - The go/no-go from the Inspect owner, with the residual defects it accepts, each named with its risk and its owner.
 - The deployment target: service, mobile store, database, or a mix.
 
-The go/no-go is the Inspect owner's decision and arrives as input; you do not remake it or weigh the defects again. If none was supplied, list it under `Not assessed` and plan anyway, and say the launch waits on it.
+The go/no-go is the Inspect owner's decision and arrives as input; you do not remake it or weigh the defects again. If none was supplied, or it says no-go, plan anyway but return `NOT READY` naming the go/no-go as the gap: nothing ships before the Inspect gate has closed.
 
 ## What to assess
 
@@ -33,7 +33,7 @@ The go/no-go is the Inspect owner's decision and arrives as input; you do not re
 - All three or it is not ready: a release path, a signal, and a rollback.
 - A rollback that has never been tested is a plan, not a rollback; say which it is.
 - Name the owner of the release. An unowned launch stalls at the worst moment.
-- Return `NOT READY` only by naming a missing release path, signal or rollback. A defect, a thin inspection or a doubt about the go/no-go is not a reason; say it under `Not assessed`.
+- Return `NOT READY` only by naming a missing go/no-go, release path, signal or rollback. A defect, a thin inspection or a doubt about a go/no-go that was given is not a reason; say it under `Not assessed`.
 
 ## Return
 
@@ -50,6 +50,6 @@ READY | NOT READY | N-A
 ### Not assessed
 ```
 
-- `READY` — a release path, a signal and a rollback exist; it does not remake the go/no-go.
-- `NOT READY` — one of the three is missing; `Gaps blocking launch` names which.
+- `READY` — a go from the Inspect owner, a release path, a signal and a rollback all exist; it does not remake the go/no-go.
+- `NOT READY` — one of the four is missing; `Gaps blocking launch` names which.
 - `N-A` — nothing reaches users in this change (no release, deploy or publish), so there is nothing to plan; say what the change is.

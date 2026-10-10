@@ -241,6 +241,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Close three gaps in the FAMILY workflow skills. `launcher` returns `READY` only with a
+  go from the Inspect owner, so a missing or no-go decision is a `NOT READY` that
+  `family-relay` routes back to the Inspect owner rather than to release. `stage-tiering`
+  says that `CLAUDE_CODE_EFFORT_LEVEL` overrides every agent's `effort`, unlike the model
+  setting. `yield-to-lesson` accepts a lesson on a fixed number of runs before and after,
+  not by retrying until one catches.
 - Replace the stroked "AI" tab icon with the crystal "AI" artwork, shipped as a 64 px
   `favicon.png` and a 180 px `apple-touch-icon.png` for phone home screens. Both are
   cut square from the artwork and stored under `scripts/site_assets/`.
