@@ -17,6 +17,6 @@
   {"query": "frame this problem before we design", "should_trigger": false, "expected": "framer"},
   {"query": "order the build steps for this slice", "should_trigger": false, "expected": "maker"},
   {"query": "inspect this change before it ships", "should_trigger": false, "expected": "inspector"},
-  {"query": "plan the release for this change", "should_trigger": false, "expected": "launcher"},
-  {"query": "write the retro for the last slice", "should_trigger": false, "expected": "yielder"}
+  {"query": "plan the migration of our platform to a new cloud provider", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "design login, sessions and token handling for the app", "should_trigger": false, "expected": "auth-design"}
 ]
