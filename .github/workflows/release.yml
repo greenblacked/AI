@@ -144,7 +144,7 @@ jobs:
       name: production
       url: ${{ vars.DEPLOY_URL }}
     env:
-      WRANGLER_VERSION: '4.147.0'
+      WRANGLER_VERSION: '4.149.0'
       WRANGLER_SEND_METRICS: 'false'
       TAG: ${{ github.ref_name }}
     steps:
