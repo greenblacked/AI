@@ -1,0 +1,22 @@
+[
+  {"query": "which model should the architect agent run on", "should_trigger": true},
+  {"query": "set model and effort per stage for the FAMILY agents", "should_trigger": true},
+  {"query": "my survey agents are burning tokens, can a cheaper tier do them", "should_trigger": true},
+  {"query": "the agent frontmatter names one model but an environment variable overrides it, which wins", "should_trigger": true},
+  {"query": "how do I opt out of the stage tiering and run every subagent on one model", "should_trigger": true},
+  {"query": "should the inspector run on the strongest model or a mid one", "should_trigger": true},
+  {"query": "how many research agents should I run in parallel and what happens after", "should_trigger": true},
+  {"query": "a cheap model made the architecture call and it was wrong, how do I stop that", "should_trigger": true},
+  {"query": "give me a tier rule for each stage of our workflow without naming vendor models", "should_trigger": true},
+  {"query": "name the synthesis step after the two parallel survey agents come back", "should_trigger": true},
+  {"query": "our OpenAI bill tripled this month, how do I bring it down", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "should this product feature call a cheaper model, measured against a quality bar", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "split this task across several coding agents with exclusive file ownership", "should_trigger": false, "expected": "agent-orchestration"},
+  {"query": "write a brief for one agent to implement this ticket", "should_trigger": false, "expected": "agent-delegation"},
+  {"query": "what are the stages of FAMILY and what is each gate", "should_trigger": false, "expected": "family-workflow"},
+  {"query": "run inspect in rounds with a fresh inspector each time", "should_trigger": false, "expected": "fresh-inspector-rounds"},
+  {"query": "list the claims our architecture rests on before we record the decision", "should_trigger": false, "expected": "frame-claim-ledger"},
+  {"query": "set the owner of each stage and the handoffs between them", "should_trigger": false, "expected": "team-workflow"},
+  {"query": "review this diff before it merges", "should_trigger": false, "expected": "code-review"},
+  {"query": "choose between model providers for the whole company, compare vendors", "should_trigger": false, "expected": "vendor-evaluation"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "run inspect as rounds with a fresh inspector each time", "should_trigger": true},
+  {"query": "the same finding came back after the fix, what do we do now", "should_trigger": true},
+  {"query": "how many review rounds before we stop and rethink the design", "should_trigger": true},
+  {"query": "should I resume the inspector agent to re-check my fix", "should_trigger": true},
+  {"query": "send only the blocking findings back to the builder, not the whole report", "should_trigger": true},
+  {"query": "set up an inspect, fix, inspect loop that doesn't go soft on the second pass", "should_trigger": true},
+  {"query": "the inspector flagged the same null check twice, I think I fixed a symptom", "should_trigger": true},
+  {"query": "write an independence contract for the inspect stage", "should_trigger": true},
+  {"query": "this contributor's change has a test suite, can the inspector run it", "should_trigger": true},
+  {"query": "the loop between builder and inspector keeps going, when do I halt it", "should_trigger": true},
+  {"query": "review my pull request for correctness and test coverage", "should_trigger": false, "expected": "code-review"},
+  {"query": "write the unit tests for this module", "should_trigger": false, "expected": "test-design"},
+  {"query": "what are the six FAMILY stages and what does each gate ask", "should_trigger": false, "expected": "family-workflow"},
+  {"query": "set up how QA owns the go/no-go before launch", "should_trigger": false, "expected": "qa-workflow"},
+  {"query": "audit this page against WCAG", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "run a security review of this authentication change", "should_trigger": false, "expected": "security-review"},
+  {"query": "is this change ready to release, plan the rollback and the signal", "should_trigger": false, "expected": "launcher"},
+  {"query": "check this finished diff against the plan we built it from", "should_trigger": false, "expected": "maker"},
+  {"query": "this test fails on the runner and I can't work out why", "should_trigger": false, "expected": "debugging"},
+  {"query": "run the fixes in parallel across three coding agents with exclusive file ownership", "should_trigger": false, "expected": "agent-orchestration"}
+]

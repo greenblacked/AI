@@ -1,0 +1,22 @@
+[
+  {"query": "before we write the ADR, list everything the architecture is assuming", "should_trigger": true},
+  {"query": "the whole design rests on that rate limit being per key, has anyone checked", "should_trigger": true},
+  {"query": "what claims does this frame rest on and which of them are verified", "should_trigger": true},
+  {"query": "we're about to commit to this queue service, what are we taking on trust", "should_trigger": true},
+  {"query": "make a claim ledger for the architecture before architect picks the approach", "should_trigger": true},
+  {"query": "the frame cites a 40 percent drop-off figure and nobody knows where it came from, settle it before we decide", "should_trigger": true},
+  {"query": "which assumptions need checking before we lock in the schema choice", "should_trigger": true},
+  {"query": "run the load-bearing claims through research agents in parallel while architect drafts", "should_trigger": true},
+  {"query": "architect keeps proposing on a flag behaviour we never read the docs for", "should_trigger": true},
+  {"query": "list the facts our decision depends on and mark which ones are unverified", "should_trigger": true},
+  {"query": "is it true that kubectl drain --force ignores PodDisruptionBudgets", "should_trigger": false, "expected": "investigator"},
+  {"query": "where did this statistic about flaky tests actually come from, check the original report", "should_trigger": false, "expected": "investigator"},
+  {"query": "write the ADR for choosing Postgres over DynamoDB", "should_trigger": false, "expected": "decision-record"},
+  {"query": "review this pull request before I merge it", "should_trigger": false, "expected": "code-review"},
+  {"query": "turn this feature request into a frame with the problem, users and smallest slice", "should_trigger": false, "expected": "framer"},
+  {"query": "propose the approach for this slice and name the hardest decision to reverse", "should_trigger": false, "expected": "architect"},
+  {"query": "what are the six FAMILY stages and what is each gate", "should_trigger": false, "expected": "family-workflow"},
+  {"query": "split this refactor across three coding agents with disjoint files", "should_trigger": false, "expected": "agent-orchestration"},
+  {"query": "brief one agent to implement this ticket with a runnable done check", "should_trigger": false, "expected": "agent-delegation"},
+  {"query": "should we build or buy the search service, compare vendors", "should_trigger": false, "expected": "vendor-evaluation"}
+]
