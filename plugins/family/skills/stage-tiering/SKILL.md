@@ -37,7 +37,7 @@ Open each agent's file and check its `model` and `effort` keys. A file with neit
 
 ### 2. Set the tier where the agent is defined
 
-Write `model` and `effort` in the agent's frontmatter. A value there wins over an environment-level override, so the tiering holds for anyone who set one for other reasons. Read `references/tier-table.md` for the order of precedence and how to opt out.
+Write `model` and `effort` in the agent's frontmatter. The two resolve differently: a `model` there wins over the `CLAUDE_CODE_SUBAGENT_MODEL` variable, but `CLAUDE_CODE_EFFORT_LEVEL` wins over every agent's `effort`, so unset it when the per-stage effort has to hold. Read `references/tier-table.md` for both orders of precedence and how to opt out.
 
 ### 3. Cap the fan-out at two
 

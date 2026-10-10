@@ -43,7 +43,9 @@ Check the file before assuming a setting applies: an agent with no `model` line 
 
 ## Which setting wins
 
-In Claude Code from v2.1.251, a subagent's model resolves in this order, first match winning: the per-invocation argument, the agent file's `model`, the `CLAUDE_CODE_SUBAGENT_MODEL` environment variable, then the main conversation's model. The frontmatter beating the environment variable is what lets the tiering survive a user who set that variable for another reason. Before that version the variable won. Other tools differ; read yours before relying on the order.
+In Claude Code from v2.1.251, a subagent's model resolves in this order, first match winning: the per-invocation argument, the agent file's `model`, the `CLAUDE_CODE_SUBAGENT_MODEL` environment variable, then the main conversation's model. The frontmatter beating the environment variable is what lets the tiering survive a user who set that variable for another reason. Before that version the variable won.
+
+Effort resolves the other way round. `CLAUDE_CODE_EFFORT_LEVEL` wins over both the per-invocation effort and the agent file's `effort`, which in turn wins over the session's effort. A global effort setting therefore flattens every stage to one level without an error; unset it, or accept that only the model is tiered. Other tools differ; read yours before relying on either order.
 
 ## Opting out
 
