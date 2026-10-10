@@ -8,6 +8,27 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- Add three skills to the `design` plugin: `visual-design` for hierarchy, type scale,
+  colour roles and spacing, `responsive-design` for layouts from 320 px up with
+  content-first breakpoints, and `form-design` for designing or changing a form, with
+  `ui-ux-review` keeping the diagnosis of an existing one. The design listing now runs
+  past the runtime's default budget, so the install advice raises
+  `skillListingBudgetFraction` to 0.115.
+
+### Changed
+
+- Update the deploy's pinned Wrangler to 4.149.0, with sharp 0.35.5 in the same lock
+  file, and move the `WRANGLER_VERSION` pins in `deploy.yml` and `release.yml` with it.
+
+### Fixed
+
+- Give each portable router line its full 100 characters of trigger again. 0.1.4 cut
+  them to 85 to fit the router's 16 KiB budget, which took 15 more characters off every
+  long trigger; each line now names its file as `- skills/<name>.md:` instead of a
+  Markdown link that repeated the name, and that is what keeps the router in budget.
+
 ## [0.1.5] - 2026-10-10
 
 ### Added

@@ -443,6 +443,12 @@ text and ratchets; reduce duplicated router markup while keeping the byte gate a
 the original class; `tests/test_catalogue.py` now checks the compact router retains
 each skill's trigger and link.
 
+**Second recurrence:** #161 lowered `ROUTER_USE_WHEN_CAP` from 100 to 85 to clear the
+same 16 KiB gate, which shortened triggers rather than markup; #164 and #162 carried the
+same change. Restored to 100 by writing each router line as `- skills/<name>.md:` rather
+than a Markdown link that repeated the name, and `tests/test_catalogue.py` now pins the
+cap as a literal and checks the real router fits its budget at that cap.
+
 ### A count in prose goes stale
 
 **Class.** A specific number written into documentation prose drifts the moment the thing

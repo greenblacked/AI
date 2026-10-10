@@ -886,11 +886,11 @@ def test_export_writes_a_router_and_one_per_plugin(mini_repo, tmp_path):
     assert (out / "router-engineering.md").is_file()
     router = (out / "router.md").read_text(encoding="utf-8")
     assert "## engineering" in router
-    assert "- [alpha](skills/alpha.md):" in router
-    assert "- [beta](skills/beta.md):" in router
+    assert "- skills/alpha.md:" in router
+    assert "- skills/beta.md:" in router
     per_plugin = (out / "router-engineering.md").read_text(encoding="utf-8")
-    assert "- [alpha](skills/alpha.md):" in per_plugin
-    assert "- [beta](skills/beta.md):" in per_plugin
+    assert "- skills/alpha.md:" in per_plugin
+    assert "- skills/beta.md:" in per_plugin
 
 
 def test_every_path_a_router_names_exists_in_the_export(mini_repo, tmp_path):
@@ -898,7 +898,7 @@ def test_every_path_a_router_names_exists_in_the_export(mini_repo, tmp_path):
     assert portable.export(mini_repo, out) == 0
     for router_path in [out / "router.md", out / "router-engineering.md"]:
         text = router_path.read_text(encoding="utf-8")
-        paths = re.findall(r"\]\((skills/[\w.-]+\.md)\)", text)
+        paths = re.findall(r"^- (skills/[\w.-]+\.md): ", text, re.M)
         assert paths, router_path.name  # the pattern itself must find something to check
         for relative in paths:
             assert (out / relative).is_file(), f"{router_path.name} names {relative}"
@@ -912,10 +912,25 @@ def test_router_keeps_each_skill_trigger_and_single_link(mini_repo, tmp_path):
             mini_repo / "plugins" / "engineering" / "skills" / skill
         )[1]
         trigger = portable.first_sentence(description, portable.ROUTER_USE_WHEN_CAP)
-        line = f"- [{skill}](skills/{skill}.md): {trigger}"
+        line = f"- skills/{skill}.md: {trigger}"
         for router in ("router.md", "router-engineering.md"):
             text = (out / router).read_text(encoding="utf-8")
             assert text.count(line) == 1
+
+
+def test_the_router_trigger_cap_stays_at_one_hundred_characters():
+    # A literal, not the constant: lowering the cap is how the router was once squeezed
+    # under its byte budget, and it cut the end off long triggers in every router. The
+    # budget is met by less markup or a split router instead.
+    assert portable.ROUTER_USE_WHEN_CAP == 100
+
+
+def test_the_real_router_fits_its_budget_at_the_full_trigger_cap(tmp_path):
+    out = tmp_path / "portable"
+    assert portable.export(REPO, out) == 0
+    text = (out / "router.md").read_text(encoding="utf-8")
+    assert len(text.encode("utf-8")) <= portable.ROUTER_BUDGET_BYTES
+    assert "](skills/" not in text
 
 
 def test_router_over_budget_fails_without_touching_a_previous_export(
