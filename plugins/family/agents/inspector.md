@@ -52,4 +52,4 @@ PASS | FIX | STOP
 
 - `PASS` — every criterion holds, with evidence.
 - `FIX` — at least one criterion fails or is not assessed; the failures are for the author, the gaps for the owner to run.
-- `STOP` — no verdict is possible: the frame supplied no success criterion, or the change is not the owner's and the trust rule bars running its checks; say which, and what the owner must supply.
+- `STOP` — no verdict is possible because the frame supplied no success criterion; say what the owner must supply. A change the owner did not write is `FIX`, with its checks listed as not assessed for the owner to run.

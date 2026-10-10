@@ -50,6 +50,6 @@ READY | NOT READY | N-A
 ### Not assessed
 ```
 
-- `READY` — a release path, a signal and a rollback exist; it does not restate the go/no-go.
+- `READY` — a release path, a signal and a rollback exist; it does not remake the go/no-go.
 - `NOT READY` — one of the three is missing; `Gaps blocking launch` names which.
 - `N-A` — nothing reaches users in this change (no release, deploy or publish), so there is nothing to plan; say what the change is.

@@ -64,7 +64,7 @@ Exploratory testing is aimed, not random. Take the frame's riskiest assumptions 
 
 ## The go/no-go
 
-The decision that closes Inspect, with evidence. It is the first question of the Inspect to Launch handoff, which `family-workflow` defines once; QA answers it, and `launcher` takes it as input rather than answering it again.
+The decision that closes Inspect, with evidence. The Inspect to Launch handoff opens with it, as `family-workflow` defines once; QA answers it, and `launcher` takes it as input rather than answering it again.
 
 ```text
 Go / No-go: <decision>

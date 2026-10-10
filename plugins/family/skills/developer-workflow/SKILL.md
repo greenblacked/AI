@@ -33,7 +33,7 @@ Read `references/dev-loop.md` for the loop, what a good handoff to review contai
 
 ### 1. Turn the ticket into a frame
 
-A ticket is a request, not a frame. Hand it to `framer` and add the problem, the user and the observable success criterion, and name the smallest slice. If the ticket already says all four, say so and move on; if it does not, ask before building. Record the depth for this slice, light or full, in the frame.
+A ticket is a request, not a frame. Hand it to `framer` and add the problem, the user and the observable success criterion, and name the smallest slice. If the ticket already says all four, say so in one line and still hand it to `framer` as the second reader; if it does not, ask before building. Record the depth for this slice, light or full, in the frame.
 
 ### 2. Decide the approach before the first commit
 

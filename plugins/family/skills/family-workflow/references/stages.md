@@ -98,7 +98,7 @@
 
 **Artifact:** criterion-by-criterion evidence from `inspector` — each success criterion holds, fails or was not assessed, with the evidence locator and the check run — and severity-ranked findings from `code-review`. The Inspect owner closes it with the go/no-go below.
 
-**Go/no-go:** the first question of the Inspect to Launch handoff, answered once, by the Inspect owner — QA where the QA profile is present, otherwise the reviewer or other person named as Inspect owner (the developer, acting on `inspector`'s verdict and `code-review`'s findings, when working solo). It states whether the success criteria hold and whether the residual defects allow a release, with each residual defect named with its risk and its owner. `launcher` takes it as input and does not remake it, and no other stage or profile owns it.
+**Go/no-go:** what the Inspect to Launch handoff opens with, part of the Inspect artifact rather than Launch's first question, answered once, by the Inspect owner — QA where the QA profile is present, otherwise the reviewer or other person named as Inspect owner (the developer, acting on `inspector`'s verdict and `code-review`'s findings, when working solo). It states whether the success criteria hold and whether the residual defects allow a release, with each residual defect named with its risk and its owner. `launcher` takes it as input and does not remake it, and no other stage or profile owns it.
 
 **Agent:** `inspector` for the criteria and `code-review` for the diff. `inspector` is read-only and does not rank by severity.
 
