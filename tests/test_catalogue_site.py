@@ -726,7 +726,7 @@ def test_a_failed_portable_export_is_refused(mini_repo, tmp_path, monkeypatch):
 
 def test_the_real_pin_matches_the_lockfile():
     pin = load_script("check_wrangler_pin.py")
-    assert pin.problems(REPO, "4.147.0") == []
+    assert pin.problems(REPO, "4.149.0") == []
     assert any("not" in item for item in pin.problems(REPO, "0.0.1"))
 
 
@@ -774,7 +774,7 @@ def test_mains_report_the_pin_and_the_deploy_url(mini_repo, tmp_path, capsys):
     assert "dev" in capsys.readouterr().out
     pin = load_script("check_wrangler_pin.py")
     assert pin.main(["--version", "", str(REPO)]) == 1
-    assert pin.main(["--version", "4.147.0", str(REPO)]) == 0
+    assert pin.main(["--version", "4.149.0", str(REPO)]) == 0
     reader = load_script("read_wrangler_deploy.py")
     log = tmp_path / "wrangler.jsonl"
     log.write_text(
