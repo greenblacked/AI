@@ -64,7 +64,7 @@ Exploratory testing is aimed, not random. Take the frame's riskiest assumptions 
 
 ## The go/no-go
 
-A decision, with evidence:
+The decision that closes Inspect, with evidence. It is the first question of the Inspect to Launch handoff, which `family-workflow` defines once; QA answers it, and `launcher` takes it as input rather than answering it again.
 
 ```text
 Go / No-go: <decision>
@@ -74,7 +74,7 @@ Not assessed: <what was not tested, and why>
 Owner: <who makes the call>
 ```
 
-- The decision is against the acceptance criteria, not a consensus.
+- The decision is against the acceptance criteria, not a consensus. Take the evidence for "Criteria met" from `inspector` and the diff findings from `code-review`.
 - A residual defect shipping is acceptable only when named with its risk and its owner.
 - "Not assessed" is part of the answer. A go that implies full coverage is worse than a narrow one that states its limits.
 

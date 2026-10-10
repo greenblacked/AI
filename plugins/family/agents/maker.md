@@ -54,6 +54,8 @@ PLAN READY | BLOCKED
 ### Not assessed
 ```
 
+`PLAN READY` — every step has files and a proof. `BLOCKED` — no plan can be written: the architecture note is missing, or the files the steps touch cannot be found; say what is missing and which stage supplies it.
+
 For a check:
 
 ```text

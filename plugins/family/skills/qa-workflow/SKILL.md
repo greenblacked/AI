@@ -18,14 +18,14 @@ Do not use for: the stage definitions themselves, which are `family-workflow`; w
 
 ## What QA owns across the stages
 
-| Stage | QA's part |
-| --- | --- |
-| Frame | Help write the success criteria and the out-of-scope list, so "done" is testable |
-| Architect | Read the design for testability: can each interface be exercised, each failure mode reached? |
-| Make | Consume the change plan; each step's proof should be a test QA would accept |
-| Inspect | Own it: strategy, `test-design`, `e2e-testing`, exploratory testing against the criteria |
-| Launch | Own the go/no-go against the acceptance criteria |
-| Yield | Feed the defect classes back into the frame's checklist |
+| Stage | QA's part | Agent and what it gets |
+| --- | --- | --- |
+| Frame | Help write the success criteria and the out-of-scope list, so "done" is testable | `framer`'s frame is what QA reads and rewrites |
+| Architect | Read the design for testability: can each interface be exercised, each failure mode reached? | `architect`'s design note is what QA reads |
+| Make | Consume the change plan; each step's proof should be a test QA would accept | `maker`'s plan is what QA reads |
+| Inspect | Own it: strategy, `test-design`, `e2e-testing`, exploratory testing against the criteria, and the go/no-go that closes it | `inspector` gets the criteria and the diff; `code-review` gets the diff |
+| Launch | Hand the go/no-go to `launcher` as its input; the launch plan is the release owner's | `launcher` gets the go/no-go with its residual defects |
+| Yield | Feed the defect classes back into the frame's checklist | `yielder` gets the criterion, the measurement and the defect classes |
 
 Read `references/qa-loop.md` for the acceptance-criteria patterns, the test-strategy shape, the exploratory pass, and the defect-class-to-check loop.
 
@@ -33,32 +33,33 @@ Read `references/qa-loop.md` for the acceptance-criteria patterns, the test-stra
 
 ### 1. Write the success criteria with Frame
 
-A criterion QA cannot mark pass or fail is not a criterion. Rewrite it until it names a state, an input and an observable result. This is the stage QA adds the most value to, and the one it is usually absent from.
+A criterion QA cannot mark pass or fail is not a criterion. Take the frame from `framer` and rewrite each criterion until it names a state, an input and an observable result. This is the stage QA adds the most value to, and the one it is usually absent from.
 
 ### 2. Read the design for testability
 
-Before the build, ask of each interface and failure mode: can this be exercised, and can this be reached? A failure mode with no way to trigger it is untestable, and untestable means unverified. Raise it at Architect, not at Inspect.
+Before the build, read `architect`'s design note and ask of each interface and failure mode: can this be exercised, and can this be reached? A failure mode with no way to trigger it is untestable, and untestable means unverified. Raise it at Architect, not at Inspect.
 
 ### 3. Build the test strategy around the criteria
 
-Decide what is automated and what is exploratory, and at which level. Hand the automated detail to `test-design` for the module and `e2e-testing` for the browser path. The strategy is QA's; the test code is the specialists'.
+Check that each step of `maker`'s plan carries a proof QA would accept. Decide what is automated and what is exploratory, and at which level. Hand the automated detail to `test-design` for the module and `e2e-testing` for the browser path. The strategy is QA's; the test code is the specialists'.
 
 ### 4. Run Inspect in depth
 
-- The automated suite against the criteria.
+- `inspector` for the automated suite against the criteria: it returns each criterion as holding, failing or not assessed, with the evidence and the check run.
+- `code-review` for the diff: the severity-ranked findings.
 - Exploratory testing aimed at the frame's riskiest assumptions.
 - `accessibility-audit` for anything user-facing.
 - The edge cases the plan named, and the ones it did not.
 
-Report findings by severity, each with evidence and the smallest fix, and say what was not assessed.
+Say what was not assessed. The criterion-by-criterion evidence and the ranked findings together are the artifact the go/no-go rests on.
 
-### 5. Own the go/no-go
+### 5. Own the go/no-go that closes Inspect
 
-Before Launch, QA states whether the acceptance criteria are met and whether the residual defects allow a release. This is a decision with evidence, not a vote. Name the risk of anything shipping anyway.
+QA states whether the acceptance criteria are met and whether the residual defects allow a release. This is a decision with evidence, not a vote, and QA is its only owner. Name the risk of anything shipping anyway, then give the go/no-go to `launcher` as its input; `launcher` does not remake it and may return not ready only for a missing release path, signal or rollback.
 
 ### 6. Turn a repeated defect into a Frame check
 
-When the same class of defect appears twice, the fix is not the second bug. Add a criterion to the frame or a check to the strategy, so the class is caught before it is built. This is QA's contribution to Yield.
+When the same class of defect appears twice, the fix is not the second bug. Add a criterion to the frame or a check to the strategy, so the class is caught before it is built. This is QA's contribution to Yield: give `yielder` the class along with the criterion and the measurement.
 
 ## Anti-patterns
 

@@ -52,3 +52,7 @@ PROPOSED | NEEDS FRAME | BLOCKED
 ### Security surface (hand to threat-model when changed)
 ### Not assessed
 ```
+
+- `PROPOSED` — an approach is chosen and the hard-to-reverse decision is named.
+- `NEEDS FRAME` — the frame is missing or too thin to choose against.
+- `BLOCKED` — a frame exists but no approach can be chosen: two constraints conflict, or the decision belongs to someone not yet named; say which constraint or decision, and who can resolve it.
