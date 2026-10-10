@@ -232,6 +232,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Replace the stroked "AI" tab icon with the crystal "AI" artwork, shipped as a 64 px
+  `favicon.png` and a 180 px `apple-touch-icon.png` for phone home screens. Both are
+  cut square from the artwork and stored under `scripts/site_assets/`.
+
 - Give each FAMILY stage one owner and a first question. The Inspect owner (QA where
   present) owns the go/no-go that closes Inspect, and `launcher` takes it as input and
   returns `NOT READY` only for a missing path, signal or rollback. `inspector` reports each
