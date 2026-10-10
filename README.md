@@ -7,7 +7,7 @@
 
 # Agent skills
 
-117 agent skills, 27 read-only subagents and eight slash commands, in ten
+120 agent skills, 27 read-only subagents and eight slash commands, in ten
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-117-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-120-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -58,7 +58,7 @@ and what the runtime does or does not enforce.
 | [`manager`](#manager) | Engineering leadership | 16 skills, 2 subagents, 2 commands |
 | [`personal`](#personal) | Money, travel, admin, habits and health | 7 skills, 2 subagents |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 5 skills |
-| [`design`](#design) | Usability, accessibility and design systems | 7 skills |
+| [`design`](#design) | Usability, accessibility and design systems | 10 skills |
 | [`family`](#family) | One development workflow, from a vague request to a measured outcome | 5 skills, 6 subagents |
 
 Install one plugin or all ten. Each is a self-contained directory under `plugins/` with
@@ -158,7 +158,7 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`career`, `design`, `family` and `personal` fit the default budget on their own. The other six are over it —
+`career`, `family` and `personal` fit the default budget on their own. The other seven are over it —
 each by enough that installed alone at least one of its descriptions is dropped — and the
 split exists to keep that number as small as it can be.
 
@@ -169,7 +169,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.112 }
+{ "skillListingBudgetFraction": 0.115 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -489,6 +489,9 @@ Usability, accessibility and design systems, and the words, structure and handof
 | [`information-architecture`](plugins/design/skills/information-architecture/SKILL.md) | Structure a site or app so people can find things: sitemap, navigation, taxonomy and labels, and browse versus search, grouped by the user's mental model and tested with a card sort or tree test before build. |
 | [`ui-ux-review`](plugins/design/skills/ui-ux-review/SKILL.md) | Review one screen or flow against usability heuristics: evidence first, the primary task before polish, every interaction state walked, and each finding written as a problem, a consequence, the smallest fix and a severity from 0 to 4. |
 | [`usability-test-plan`](plugins/design/skills/usability-test-plan/SKILL.md) | Plan and run a small test with real people: a question tied to a decision, about five participants a round, neutral tasks, think-aloud, task success and SUS, and severity-rated fixes before the next round. |
+| [`visual-design`](plugins/design/skills/visual-design/SKILL.md) | Review or set a screen's visual design: the hierarchy that tells the eye where to go, a type scale, colour roles and a spacing scale, alignment, and the one action that is unambiguously primary. |
+| [`responsive-design`](plugins/design/skills/responsive-design/SKILL.md) | Make a layout work from 320 px up: breakpoints chosen from where the content breaks, reflow that changes arrangement and never availability, thumb-sized targets, and the widths to verify. |
+| [`form-design`](plugins/design/skills/form-design/SKILL.md) | Design a form people finish: cut the fields, label every one, validate after input rather than on every keystroke, put errors with the field and say how to fix them, and keep the form keyboard-operable. |
 
 ### Family
 
