@@ -925,7 +925,7 @@ def test_the_router_trigger_cap_stays_at_one_hundred_characters():
     assert portable.ROUTER_USE_WHEN_CAP == 100
 
 
-def test_the_real_router_fits_its_budget_with_whole_triggers(tmp_path):
+def test_the_real_router_fits_its_budget_at_the_full_trigger_cap(tmp_path):
     out = tmp_path / "portable"
     assert portable.export(REPO, out) == 0
     text = (out / "router.md").read_text(encoding="utf-8")
