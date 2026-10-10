@@ -8,6 +8,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- Open the `family` plugin's page on the same typed F.A.M.I.L.Y. heading as the FAMILY
+  page, with a link to the stage-by-stage guide; every other plugin keeps its plain name.
+
 ## [0.1.7] - 2026-10-10
 
 ### Added

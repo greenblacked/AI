@@ -504,3 +504,13 @@ def test_the_family_heading_types_itself_in_when_motion_is_allowed(browser, base
         assert all(k["opacity"] == "1" and k["width"] > 0 for k in page.evaluate(FAMILY_KEYS))
     finally:
         made.close()
+
+
+def test_the_family_plugin_page_shares_the_typed_heading(page, base_url):
+    page.goto(base_url + "/plugins/family/")
+    assert page.get_by_role("heading", level=1, name="family").count() == 1
+    keys = page.evaluate(FAMILY_KEYS)
+    assert "".join(k["text"] for k in keys) == "F.A.M.I.L.Y."
+    assert all(k["opacity"] == "1" and k["width"] > 0 for k in keys)
+    page.get_by_role("link", name="The FAMILY workflow, stage by stage").click()
+    page.wait_for_url(base_url + "/family/")
