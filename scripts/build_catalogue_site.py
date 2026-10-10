@@ -43,6 +43,17 @@ SENTINEL_TEXT = (
     "This directory was produced by scripts/build_catalogue_site.py. "
     "The deploy deletes a previous build only when this file is present.\n"
 )
+# The browser tab's icon: the header's "AI" mark drawn as strokes, because a font a
+# favicon names is not loaded and the letters would fall back to whatever the browser
+# has. Ink on the paper colour of the light theme, so it reads on light and dark tabs.
+FAVICON = "favicon.svg"
+FAVICON_SVG = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+    '<rect width="32" height="32" rx="7" fill="#141413"/>'
+    '<path d="M6.5 25 13 7l6.5 18M8.7 19h8.6M25.5 7v18" fill="none" stroke="#f4f1ea" '
+    'stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>'
+    "</svg>\n"
+)
 # A skill name becomes a directory in the site, so it has to be one path component.
 SAFE_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 # A version is a label written into the page and into version.txt. It is never a path.
@@ -279,6 +290,7 @@ def _page(
         f'<meta name="catalogue-version" content="{_esc(version)}">\n'
         '<meta name="theme-color" content="#f4f1ea">\n'
         f"<title>{html.escape(title)}</title>\n"
+        f'<link rel="icon" href="/{FAVICON}" type="image/svg+xml">\n'
         '<link rel="preconnect" href="https://fonts.googleapis.com">\n'
         '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
         f'<link rel="stylesheet" href="{_esc(site_style.FONTS_URL)}">\n'
@@ -1176,6 +1188,7 @@ def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> N
     )
     (output / "version.txt").write_text(version + "\n", encoding="utf-8")
     (output / "robots.txt").write_text(_robots(noindex), encoding="utf-8")
+    (output / FAVICON).write_text(FAVICON_SVG, encoding="utf-8")
     groups = _ordered_groups(manifest, grouped)
     catalogue = collect(root, manifest, groups, skills)
     pages = {

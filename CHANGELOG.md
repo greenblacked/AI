@@ -10,6 +10,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Show an "AI" icon in the browser tab. The site now ships `favicon.svg`, the header's
+  mark drawn as strokes on a dark tile so it reads on light and dark tabs, and every
+  page links to it.
 - Test the catalogue site in a real browser. A new `test site in a browser` job builds
   the real catalogue, serves it locally and drives it in the Chrome the runner already
   ships: Back returns to the page you came from and never to another site, the bar and
