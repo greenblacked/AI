@@ -1,0 +1,22 @@
+[
+  {"query": "design a signup form", "should_trigger": true},
+  {"query": "why do people abandon this form", "should_trigger": true},
+  {"query": "how should I validate this form", "should_trigger": true},
+  {"query": "where should error messages go on a form", "should_trigger": true},
+  {"query": "the checkout form is painful to complete", "should_trigger": true},
+  {"query": "should this form be one page or several steps", "should_trigger": true},
+  {"query": "the form asks for too many fields", "should_trigger": true},
+  {"query": "write good labels and hints for these fields", "should_trigger": true},
+  {"query": "users keep failing the address form", "should_trigger": true},
+  {"query": "make this form keyboard friendly", "should_trigger": true},
+  {"query": "audit this form against WCAG", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "review the form's visual hierarchy", "should_trigger": false, "expected": "visual-design"},
+  {"query": "review the usability of the signup flow", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "make this form responsive on mobile", "should_trigger": false, "expected": "responsive-design"},
+  {"query": "set up form component tokens and states", "should_trigger": false, "expected": "design-system"},
+  {"query": "build the signup page", "should_trigger": false, "expected": "website-builder"},
+  {"query": "write the form validation code", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "plan a usability test for the form", "should_trigger": false, "expected": "usability-test-plan"},
+  {"query": "design the database schema for the form data", "should_trigger": false, "expected": "schema-design"},
+  {"query": "write e2e tests for the signup form", "should_trigger": false, "expected": "e2e-testing"}
+]
