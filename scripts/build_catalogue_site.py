@@ -1094,9 +1094,17 @@ FAMILY_PROFILES = (
 def render_family(catalogue: Catalogue, version: str) -> str:
     plugin = "family"
     stages = "\n".join(
-        f'<li><span class="letter" aria-hidden="true">{letter}</span>'
+        f'<li class="stage-{letter.lower()}">'
+        f'<span class="letter" aria-hidden="true">{letter}</span>'
         f"<div><h3>{_esc(name)}</h3><p>{_esc(text)}</p></div></li>"
         for letter, name, text in FAMILY_STAGES
+    )
+    # The word types itself in on arrival, one stage letter and its dot at a time, in
+    # CSS alone so a visitor with motion reduced or scripts off still reads it whole.
+    typed = "".join(
+        f'<span class="fl stage-{letter.lower()}">'
+        f'<span class="fk">{letter}</span><span class="fd">.</span></span>'
+        for letter, _, _ in FAMILY_STAGES
     )
     profiles = "\n".join(
         f"<li><h3>{_esc(name)}</h3><p>{_esc(text)}</p></li>" for name, text in FAMILY_PROFILES
@@ -1104,7 +1112,8 @@ def render_family(catalogue: Catalogue, version: str) -> str:
     main = (
         '<div class="page narrow">\n'
         f"{_back('/')}\n"
-        '<h1 class="title">The FAMILY workflow</h1>\n'
+        '<h1 class="title family-word"><span class="sr-only">The FAMILY workflow</span>'
+        f'<span class="typed" aria-hidden="true">{typed}<span class="caret"></span></span></h1>\n'
         '<p class="lede">Frame · Architect · Make · Inspect · Launch · Yield — one '
         "workflow from a vague request to a measured outcome.</p>\n"
         '<div class="prose-lab page-body">\n'
