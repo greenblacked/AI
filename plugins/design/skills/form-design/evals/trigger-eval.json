@@ -1,6 +1,6 @@
 [
   {"query": "design a signup form", "should_trigger": true},
-  {"query": "why do people abandon this form", "should_trigger": true},
+  {"query": "redesign the checkout form so it only asks for what we need", "should_trigger": true},
   {"query": "how should I validate this form", "should_trigger": true},
   {"query": "where should error messages go on a form", "should_trigger": true},
   {"query": "the checkout form is painful to complete", "should_trigger": true},
@@ -17,6 +17,6 @@
   {"query": "build the signup page", "should_trigger": false, "expected": "website-builder"},
   {"query": "write the form validation code", "should_trigger": false, "expected": "code-scaffold"},
   {"query": "plan a usability test for the form", "should_trigger": false, "expected": "usability-test-plan"},
-  {"query": "design the database schema for the form data", "should_trigger": false, "expected": "schema-design"},
+  {"query": "why do people abandon this form", "should_trigger": false, "expected": "ui-ux-review"},
   {"query": "write e2e tests for the signup form", "should_trigger": false, "expected": "e2e-testing"}
 ]

@@ -18,5 +18,5 @@
   {"query": "review PR 318, it changes the form validation logic", "should_trigger": false, "expected": "code-review"},
   {"query": "what cadence should i run for my design team, crits, one-to-ones and planning", "should_trigger": false, "expected": "design-team-cadence"},
   {"query": "write the design doc for the inventory screen of my roguelike", "should_trigger": false, "expected": "game-design-doc"},
-  {"query": "which font pairs well with a serif logo, just give me a few options", "should_trigger": false}
+  {"query": "design the signup form: which fields, labels and validation", "should_trigger": false, "expected": "form-design"}
 ]
