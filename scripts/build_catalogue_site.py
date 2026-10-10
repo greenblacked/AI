@@ -1178,6 +1178,12 @@ def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> N
     names = [skill.name for skill in skills]
     if len(names) != len(set(names)):
         raise SystemExit("two skills share a name; their pages and archives would collide")
+    icons = {}
+    for icon in (FAVICON, TOUCH_ICON):
+        try:
+            icons[icon] = (SITE_ASSETS / icon).read_bytes()
+        except OSError as error:
+            raise SystemExit(f"cannot read the site icon {icon}: {error}") from error
     if output.exists():
         shutil.rmtree(output)
     output.mkdir(parents=True)
@@ -1194,8 +1200,8 @@ def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> N
     )
     (output / "version.txt").write_text(version + "\n", encoding="utf-8")
     (output / "robots.txt").write_text(_robots(noindex), encoding="utf-8")
-    for icon in (FAVICON, TOUCH_ICON):
-        shutil.copyfile(SITE_ASSETS / icon, output / icon)
+    for icon, data in icons.items():
+        (output / icon).write_bytes(data)
     groups = _ordered_groups(manifest, grouped)
     catalogue = collect(root, manifest, groups, skills)
     pages = {

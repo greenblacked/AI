@@ -646,6 +646,18 @@ def test_two_skills_with_one_name_are_refused_before_anything_is_written(mini_re
     assert not (tmp_path / "site").exists()
 
 
+def test_a_missing_icon_is_refused_before_the_previous_build_is_touched(
+    mini_repo, tmp_path, monkeypatch
+):
+    output = _build(mini_repo, tmp_path)
+    before = sorted(p.relative_to(output) for p in output.rglob("*"))
+    monkeypatch.setattr(site, "SITE_ASSETS", tmp_path / "no-assets")
+    with pytest.raises(SystemExit, match="cannot read the site icon favicon.png"):
+        site.build(mini_repo, output, "v2")
+    assert sorted(p.relative_to(output) for p in output.rglob("*")) == before
+    assert (output / "version.txt").read_text(encoding="utf-8") != "v2\n"
+
+
 def test_plugin_blurbs_fall_back_to_the_plugin_manifest(mini_repo, tmp_path):
     page = (_build(mini_repo, tmp_path) / "start" / "index.html").read_text(encoding="utf-8")
     assert "<code>engineering</code></a> — 2 skills. test" in page
