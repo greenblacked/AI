@@ -260,6 +260,22 @@ def test_the_index_has_no_back_link(mini_repo, tmp_path):
     assert "data-back>" not in page
 
 
+def test_every_page_names_the_tab_icon_and_the_icon_draws_its_letters(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    icon = (output / "favicon.svg").read_text(encoding="utf-8")
+    assert icon.startswith('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">')
+    assert icon.rstrip().endswith("</svg>")
+    # Paths, never text: a favicon cannot load the site's fonts, so letters set in
+    # one would render in whatever the browser falls back to.
+    assert "<path " in icon and "<text" not in icon
+    pages = sorted(output.rglob("*.html"))
+    assert len(pages) > 5
+    link = '<link rel="icon" href="/favicon.svg" type="image/svg+xml">'
+    for page in pages:
+        head = page.read_text(encoding="utf-8").split("</head>", 1)[0]
+        assert head.count(link) == 1, page
+
+
 def test_every_page_is_written_beside_the_archives(mini_repo, tmp_path):
     output = _build(mini_repo, tmp_path)
     for path in (

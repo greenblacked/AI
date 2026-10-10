@@ -8,6 +8,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- Show an "AI" icon in the browser tab. The site now ships `favicon.svg`, the header's
+  mark drawn as strokes on a dark tile so it reads on light and dark tabs, and every
+  page links to it.
+
 ## [0.1.4] - 2026-10-09
 
 ### Added
