@@ -7,7 +7,7 @@
 
 # Agent skills
 
-120 agent skills, 27 read-only subagents and eight slash commands, in ten
+126 agent skills, 27 read-only subagents and eight slash commands, in ten
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-120-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-126-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -59,7 +59,7 @@ and what the runtime does or does not enforce.
 | [`personal`](#personal) | Money, travel, admin, habits and health | 7 skills, 2 subagents |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 5 skills |
 | [`design`](#design) | Usability, accessibility and design systems | 10 skills |
-| [`family`](#family) | One development workflow, from a vague request to a measured outcome | 5 skills, 6 subagents |
+| [`family`](#family) | One development workflow, from a vague request to a measured outcome | 11 skills, 6 subagents |
 
 Install one plugin or all ten. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
@@ -95,7 +95,11 @@ The [`family`](#family) plugin ships the `family-workflow` skill, a skill for ea
 four profiles — `solo-development`, `developer-workflow`, `qa-workflow` and `team-workflow`
 — and a read-only subagent per stage, `framer`, `architect`, `maker`, `inspector`,
 `launcher` and `yielder`, so the main conversation keeps the conclusion of each stage and
-not the material it read. It is also the one page on the
+not the material it read. Six more skills run those agents together: `family-relay`
+routes each verdict to the next stage, `plan-drift-gate` holds a build to its plan before
+inspection, `fresh-inspector-rounds` keeps every review round independent,
+`frame-claim-ledger` settles the claims a decision rests on, `yield-to-lesson` turns a
+retro into a check that can fail, and `stage-tiering` sets the model tier per stage. It is also the one page on the
 [website](https://ai.szolotov.com/family/) drawn by hand rather than generated from a
 plugin's files.
 
@@ -158,7 +162,7 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`career`, `family` and `personal` fit the default budget on their own. The other seven are over it —
+`career` and `personal` fit the default budget on their own. The other eight are over it —
 each by enough that installed alone at least one of its descriptions is dropped — and the
 split exists to keep that number as small as it can be.
 
@@ -169,7 +173,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.115 }
+{ "skillListingBudgetFraction": 0.119 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -504,6 +508,12 @@ One development workflow, from a vague request to a measured outcome, run by a s
 | [`developer-workflow`](plugins/family/skills/developer-workflow/SKILL.md) | Own Frame, Architect, Make and Yield, and hand Inspect and Launch to someone independent with the frame, the plan and the uncertainty. |
 | [`qa-workflow`](plugins/family/skills/qa-workflow/SKILL.md) | Own Inspect, push testable acceptance criteria back into Frame and Architect, own the go/no-go before Launch, and turn a repeated defect into a Frame check. |
 | [`team-workflow`](plugins/family/skills/team-workflow/SKILL.md) | Run all six stages with a named owner and a handoff contract between each, make a stall visible as a missing artifact, and run Yield on a cadence. |
+| [`family-relay`](plugins/family/skills/family-relay/SKILL.md) | Chain the six stage agents so each verdict word picks the next hop, pass only the artifact and the previous handoff, and step back a stage when the same verdict returns twice. |
+| [`frame-claim-ledger`](plugins/family/skills/frame-claim-ledger/SKILL.md) | List the claims a frame or design rests on, settle the two heaviest in parallel before the hard-to-reverse decision, and send an unverified one back to Frame. |
+| [`plan-drift-gate`](plugins/family/skills/plan-drift-gate/SKILL.md) | Build from maker's plan one step and commit at a time, and check the diff against the plan before inspection so the inspector judges correctness rather than shape. |
+| [`fresh-inspector-rounds`](plugins/family/skills/fresh-inspector-rounds/SKILL.md) | Inspect in rounds with a new inspector each time, send back only blocking findings, and reopen Architect when the same finding returns. |
+| [`yield-to-lesson`](plugins/family/skills/yield-to-lesson/SKILL.md) | Accept a retro's change item only as a lesson plus a seeded case the next inspection can fail on, and promote a lesson caught twice to a mechanical check. |
+| [`stage-tiering`](plugins/family/skills/stage-tiering/SKILL.md) | Run each stage agent on the model tier its cost of being wrong deserves, at most two in parallel on disjoint questions, then combine their results in a named step. |
 
 ## Subagents
 
