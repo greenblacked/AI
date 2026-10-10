@@ -232,6 +232,16 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Give each FAMILY stage one owner and a first question. The Inspect owner (QA where
+  present) owns the go/no-go that closes Inspect, and `launcher` takes it as input and
+  returns `NOT READY` only for a missing path, signal or rollback. `inspector` reports each
+  success criterion as holding, failing or not assessed and leaves severity-ranked findings
+  to `code-review`. The solo, developer and QA skills name the agent for each step. Only
+  Architect and Launch may be waived, in writing. A profile is the role and depth is light
+  or full per slice, recorded in the frame. The family trigger evals route the
+  success-criterion, acceptance and cadence queries to one owner each, the agent evals name
+  real neighbouring skills as negatives, and the `launcher`, `architect`, `maker` and
+  `inspector` verdicts that were undefined now have a line.
 - Run the full suite before stage and only what a promotion can still break on the way
   into `main`. A new `scope` job reads the GitHub API and git: a pull request into `main`
   whose tree is the one stage's pull request passed in full, apart from the changelog

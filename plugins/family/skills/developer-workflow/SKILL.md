@@ -1,6 +1,6 @@
 ---
 name: developer-workflow
-description: "Run FAMILY as a developer: own Frame, Architect, Make and Yield in depth, and hand Inspect and Launch to someone independent rather than marking your own work. Covers the developer's loop through the stages, what to hand a reviewer, and what to expect back. Use this skill whenever a developer is choosing how to work through a feature. Triggers include a developer's day-to-day process, a feature from ticket to review, preparing a change for review, or \"how should I work as a developer\" — including phrasings like \"my workflow for a feature\" or \"what do I do before I ask for review\". Do not use it for the stage definitions themselves (family-workflow), a solo developer (solo-development), a QA role (qa-workflow), or a whole team's process (team-workflow)."
+description: "Run FAMILY as a developer: own Frame, Architect, Make and Yield, and hand Inspect and Launch to someone independent rather than marking your own work. Covers the developer's loop through the stages, what to hand a reviewer, and what to expect back. Use this skill whenever a developer is choosing how to work through a feature. Triggers include a developer's day-to-day process, a feature from ticket to review, preparing a change for review, or \"how should I work as a developer\" — including phrasings like \"my workflow for a feature\" or \"what do I do before I ask for review\". Do not use it for the stage definitions themselves (family-workflow), a solo developer (solo-development), a QA role (qa-workflow), or a whole team's process (team-workflow)."
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash(git:*)
 ---
 
@@ -18,14 +18,14 @@ Do not use for: the stage definitions themselves, which are `family-workflow`; a
 
 ## What the developer owns
 
-| Stage | Owned or handed | What it means here |
-| --- | --- | --- |
-| Frame | Owned | Read the ticket, fill the gaps in the problem and the success criterion |
-| Architect | Owned | Decide the approach and record the hard-to-reverse choice |
-| Make | Owned | Plan the steps with `maker`, then build them in small commits |
-| Inspect | Handed | Give `inspector` and `code-review` the frame and the diff, not a summary |
-| Launch | Handed | Give the release owner the launch plan, not the diff |
-| Yield | Owned | Write the retro; the reviewer's findings are part of the input |
+| Stage | Owned or handed | What it means here | Agent and what it gets |
+| --- | --- | --- | --- |
+| Frame | Owned | Read the ticket, fill the gaps in the problem and the success criterion | `framer`: the ticket and what you know of the users |
+| Architect | Owned | Decide the approach and record the hard-to-reverse choice | `architect`: the frame |
+| Make | Owned | Plan the steps with `maker`, then build them in small commits | `maker`: the frame and the design note |
+| Inspect | Handed | Give `inspector` and `code-review` the frame and the diff, not a summary; the Inspect owner returns the go/no-go | `inspector`: the success criterion and the diff; `code-review`: the diff |
+| Launch | Handed | Get the launch plan from `launcher`, then give the release owner the plan, not the diff | `launcher`: the go/no-go, the change and the deploy target |
+| Yield | Owned | Write the retro; the reviewer's findings are part of the input | `yielder`: the success criterion and the measurement |
 
 Read `references/dev-loop.md` for the loop, what a good handoff to review contains, and what to do with what comes back.
 
@@ -33,27 +33,27 @@ Read `references/dev-loop.md` for the loop, what a good handoff to review contai
 
 ### 1. Turn the ticket into a frame
 
-A ticket is a request, not a frame. Add the problem, the user and the observable success criterion, and name the smallest slice. If the ticket already says all four, say so and move on; if it does not, ask before building.
+A ticket is a request, not a frame. Hand it to `framer` and add the problem, the user and the observable success criterion, and name the smallest slice. If the ticket already says all four, say so in one line and still hand it to `framer` as the second reader; if it does not, ask before building. Record the depth for this slice, light or full, in the frame.
 
 ### 2. Decide the approach before the first commit
 
-Name the approach, the boundary and the one hard-to-reverse decision. For most slices this is a paragraph; for a schema or a public interface it is an ADR. Hand the interface detail to `api-design` or `schema-design` rather than inventing it in the build.
+Give `architect` the frame, and name the approach, the boundary and the one hard-to-reverse decision. For most slices this is a paragraph; for a schema or a public interface it is an ADR. Hand the interface detail to `api-design` or `schema-design` rather than inventing it in the build.
 
 ### 3. Plan the change, then build it
 
-Use `maker` to turn the slice into ordered steps, each with its proof. Then build in those steps, one purpose per commit, keeping the tree working. A step that turns out not to work is a signal to return to Architect, not to improvise.
+Give `maker` the frame and the design note and take back ordered steps, each with its proof. Then build in those steps, one purpose per commit, keeping the tree working. A step that turns out not to work is a signal to return to Architect, not to improvise. Before review, have `maker` check the diff against the plan.
 
 ### 4. Hand the change to review properly
 
-The handoff is the frame's success criterion, the plan, and the diff — not "please review". Name what you are unsure about. A reviewer who knows the intent reviews the change; a reviewer given only a diff reviews the diff.
+The handoff is the frame's success criterion, the plan, and the diff — not "please review". Give `inspector` the criterion and the diff for evidence on each criterion, and `code-review` the diff for severity-ranked findings. Name what you are unsure about. A reviewer who knows the intent reviews the change; a reviewer given only a diff reviews the diff. Ask the Inspect owner — QA where QA is present, otherwise your reviewer — for the go/no-go that closes Inspect; it is not yours to give.
 
 ### 5. Fix findings, then hand the launch
 
-Address the reviewer's findings, then give the release owner the launch plan: the path, the signal, the rollback. The developer usually does not own the release, but owns telling the owner what to watch.
+Address the reviewer's findings, then get the launch plan from `launcher` before asking the release owner: give it the go/no-go with its residual defects, the change and the deploy target. Pass the plan to the release owner: the path, the signal, the rollback. The developer usually does not own the release, but owns telling the owner what to watch.
 
 ### 6. Yield
 
-Write the short retro. What did the frame get right, what did the approach miss, and what is the next slice. A developer who never yields keeps making the same architectural mistake.
+Give `yielder` the success criterion and the measurement, then write the short retro. What did the frame get right, what did the approach miss, and what is the next slice. A developer who never yields keeps making the same architectural mistake.
 
 ## Anti-patterns
 

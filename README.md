@@ -86,9 +86,9 @@ one handoff to the next.
 | L | Launch | Whether it is ready to reach users, and how it comes back | A launch plan: migration, signal, rollback |
 | Y | Yield | What the outcome teaches the next slice | A short retro that feeds Frame |
 
-The stages never change; their depth does. Four profiles set that depth — **solo**,
-**developer**, **QA** and **team** — and you name the one you are running, so a shortcut
-is a decision rather than an accident. A solo developer runs all six in an afternoon; a
+The stages never change. Four profiles say who runs them — **solo**, **developer**,
+**QA** and **team** — and each slice records whether it runs light or full, so a
+shortcut is a decision rather than an accident. A solo developer runs all six in an afternoon; a
 team of ten gives each stage a named owner and a handoff contract.
 
 The [`family`](#family) plugin ships the `family-workflow` skill, a skill for each of the
@@ -495,14 +495,14 @@ Usability, accessibility and design systems, and the words, structure and handof
 
 ### Family
 
-One development workflow, from a vague request to a measured outcome, run at the depth a solo developer, a developer, a QA engineer or a whole team needs.
+One development workflow, from a vague request to a measured outcome, run by a solo developer, a developer, a QA engineer or a whole team, light or full per slice.
 
 | Skill | What it does |
 | --- | --- |
-| [`family-workflow`](plugins/family/skills/family-workflow/SKILL.md) | Run one slice through Frame, Architect, Make, Inspect, Launch and Yield, each with a gate, an artifact and a handoff, at the depth one of four profiles — solo, developer, QA or team — sets, routing the detail to the skill that owns it. |
+| [`family-workflow`](plugins/family/skills/family-workflow/SKILL.md) | Run one slice through Frame, Architect, Make, Inspect, Launch and Yield, each with a gate, an artifact and a handoff, run by one of four profiles — solo, developer, QA or team — at a light or full depth chosen per slice, routing the detail to the skill that owns it. |
 | [`solo-development`](plugins/family/skills/solo-development/SKILL.md) | Run all six stages as one person, with the stage agents as the independent checkers a solo developer otherwise lacks, and waive a gate only in writing. |
-| [`developer-workflow`](plugins/family/skills/developer-workflow/SKILL.md) | Own Frame, Architect, Make and Yield in depth, and hand Inspect and Launch to someone independent with the frame, the plan and the uncertainty. |
-| [`qa-workflow`](plugins/family/skills/qa-workflow/SKILL.md) | Own Inspect in depth, push testable acceptance criteria back into Frame and Architect, own the go/no-go before Launch, and turn a repeated defect into a Frame check. |
+| [`developer-workflow`](plugins/family/skills/developer-workflow/SKILL.md) | Own Frame, Architect, Make and Yield, and hand Inspect and Launch to someone independent with the frame, the plan and the uncertainty. |
+| [`qa-workflow`](plugins/family/skills/qa-workflow/SKILL.md) | Own Inspect, push testable acceptance criteria back into Frame and Architect, own the go/no-go before Launch, and turn a repeated defect into a Frame check. |
 | [`team-workflow`](plugins/family/skills/team-workflow/SKILL.md) | Run all six stages with a named owner and a handoff contract between each, make a stall visible as a missing artifact, and run Yield on a cadence. |
 
 ## Subagents

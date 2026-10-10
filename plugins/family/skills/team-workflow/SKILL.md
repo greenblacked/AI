@@ -23,11 +23,11 @@ Do not use for: the stage definitions themselves, which are `family-workflow`; a
 | Frame | product or lead | Architect | The frame: problem, users, success criterion, slice |
 | Architect | tech lead or senior engineer | Make | The design note and the ADR |
 | Make | the developer | Inspect | The ordered change plan and the diff |
-| Inspect | reviewer and QA | Launch | Findings by severity, and the go/no-go |
+| Inspect | QA where present, otherwise the reviewer | Launch | Criterion-by-criterion evidence, ranked findings, and the go/no-go |
 | Launch | release or ops owner | Yield | The launch plan: path, signal, rollback |
 | Yield | the whole team, on a cadence | Frame | The retro |
 
-"The team" owns nothing. A person owns each gate, and the name is written down. Read `references/team-cadence.md` for the handoff contract, the cadence, and how to run the process without it becoming meetings.
+"The team" owns nothing. A person owns each gate, and the name is written down. The Inspect owner alone owns the go/no-go that closes Inspect; the Launch owner takes it as input and owns the launch plan. Read `references/team-cadence.md` for the handoff contract, the cadence, and how to run the process without it becoming meetings.
 
 ## Workflow
 
@@ -47,9 +47,9 @@ The frame, the design note, the change plan, the findings, the launch plan and t
 
 Schedule the retro; do not wait for something to hurt. `delivery-review` and `postmortem` feed it, and `status-update` shares its outcome. A team that yields only after an incident learns only from failure.
 
-### 5. Keep the profile visible
+### 5. Keep the profile and the depth visible
 
-Say which depth the team is running — solo, developer, QA or team — for the slice. A team running solo depth on a large slice is a decision; making it visible is what lets someone challenge it.
+Record light or full for each slice in the frame. A team running light on a large slice is a decision; making it visible is what lets someone challenge it.
 
 ### 6. Fix the stage, not the person
 
@@ -65,7 +65,7 @@ When a handoff drops, the question is which stage's gate was unclear, not who mi
 
 **Yield only after incidents.** A retro called only when something breaks, so the team learns from failure and not from success.
 
-**Invisible profile.** Running a light process on a heavy slice without saying so, so nobody can tell whether the shortcut was deliberate.
+**Invisible depth.** Running a light process on a heavy slice without saying so in the frame, so nobody can tell whether the shortcut was deliberate.
 
 **Blaming the person.** A dropped handoff treated as a personal failure, so the stage's unclear gate is never fixed and the stall recurs.
 

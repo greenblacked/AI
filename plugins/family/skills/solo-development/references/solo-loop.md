@@ -11,22 +11,24 @@
 
 ## A day in the loop
 
-1. Pick one slice from the frame. If the frame has no slice small enough, split it.
-2. Spend five minutes on the one hard-to-reverse decision, if this slice has one.
-3. Build in small commits, each with a test or a check.
-4. When the slice is demonstrable, hand the diff to `inspector` and the change to `code-review`.
-5. Fix what they find, then plan the launch signal and rollback in one line.
-6. Ship, watch the signal, and write the five-minute retro before the next slice.
+1. Pick one slice from the frame and hand the paragraph to `framer`; its FRAMED verdict is the second reader the Frame gate requires. If the frame has no slice small enough, split it.
+2. Spend five minutes on the one hard-to-reverse decision, if this slice has one; `architect` takes the frame and names it.
+3. Ask `maker` for the steps and the proof each carries, then build in small commits, each with a test or a check.
+4. When the slice is demonstrable, hand the success criterion and the diff to `inspector`, and the change to `code-review`.
+5. Fix what they find, then make the go/no-go yourself in one line and give it to `launcher` with the signal and rollback.
+6. Ship, watch the signal, and give `yielder` the criterion and the measurement before writing the five-minute retro.
 
 The loop is a week for a small slice and an afternoon for a tiny one. The stages do not shrink to nothing; they shrink to one line each.
 
 ## Which gates are safe to waive
 
+Only Architect and Launch may be waived, as the `Waivable` lines in `family-workflow`'s stage reference say.
+
 - **Frame** — never. It is a paragraph, and skipping it is how solo work builds the wrong thing.
 - **Architect** — safe when the slice has no hard-to-reverse decision. Say so.
-- **Make** — never waived, but the plan can be in your head for a one-file change.
+- **Make** — never waived. The plan can be one line for a one-file change, but it is written, not held in your head.
 - **Inspect** — never waived; it is the whole point of the profile. Delegate it.
-- **Launch** — safe when there are no users and the rollback is the previous commit. Say so.
+- **Launch** — safe only when there are no users and the rollback is the previous commit. Say so.
 - **Yield** — never waived, but it can be three sentences.
 
 ## Recording a waiver
@@ -44,13 +46,13 @@ A waiver recorded is a decision a future you can review. A waiver unrecorded is 
 
 A solo developer cannot give themselves an independent review, so the review is delegated:
 
-- **`inspector`** — runs the tests and reads the diff against the frame. The first pass.
-- **`code-review`** — the review a teammate would have written, for the change as a change.
+- **`inspector`** — runs the checks and reports each success criterion as holding, failing or not assessed, with the evidence. The first pass.
+- **`code-review`** — the review a teammate would have written, with severity-ranked findings, for the change as a change.
 - **`security-review`** — when the slice touches input, secrets, permissions or dependencies.
 - **`accessibility-audit`** — when the slice is user-facing.
 - **`decision-record`** — when the hard-to-reverse decision needs a second reader.
 
-Treat their findings as the review, not as suggestions to skim. The value of the profile is that the second opinion happens at all.
+Treat their findings as the review, not as suggestions to skim. The value of the profile is that the second opinion happens at all. The go/no-go that closes Inspect stays with you: write it from their results, not from your own reading of the diff.
 
 ## Signals and rollback for a solo launch
 
