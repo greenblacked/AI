@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-10-10
+
 ### Added
 
 - Open the `family` plugin's page on the same typed F.A.M.I.L.Y. heading as the FAMILY
@@ -26,9 +28,81 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   its letter and a rule beside it, at least 5.3:1 against the day background and 9:1 at
   night; the console theme stays one colour. CSS only, so reduced motion or no scripts
   shows the whole word at once, and screen readers hear "The FAMILY workflow".
+
+### Changed
+
+- Return the fix packet in `fresh-inspector-rounds` to the contributor when the change
+  is not the owner's, so the main conversation applies fixes only to a slice the owner
+  wrote and never patches a contributor's change on the trusted checkout. With an unknown
+  author the loop stops and the packet goes to whoever asked for the review.
+- Let `family-relay`, `plan-drift-gate` and `fresh-inspector-rounds` edit the tree, since
+  each runs the build or the fix itself when no writing agent is used, and route a
+  launcher `N-A` through a written Launch waiver before Yield.
+- Close three gaps in the FAMILY workflow skills. `launcher` returns `READY` only with a
+  go from the Inspect owner, so a missing or no-go decision is a `NOT READY` that
+  `family-relay` routes back to the Inspect owner rather than to release. `stage-tiering`
+  says that `CLAUDE_CODE_EFFORT_LEVEL` overrides every agent's `effort`, unlike the model
+  setting. `yield-to-lesson` accepts a lesson on a fixed number of runs before and after,
+  not by retrying until one catches.
+- Replace the stroked "AI" tab icon with the crystal "AI" artwork, shipped as a 64 px
+  `favicon.png` and a 180 px `apple-touch-icon.png` for phone home screens. Both are
+  cut square from the artwork and stored under `scripts/site_assets/`.
+- Give each FAMILY stage one owner and a first question. The Inspect owner (QA where
+  present) owns the go/no-go that closes Inspect, and `launcher` takes it as input and
+  returns `NOT READY` only for a missing path, signal or rollback. `inspector` reports each
+  success criterion as holding, failing or not assessed and leaves severity-ranked findings
+  to `code-review`. The solo, developer and QA skills name the agent for each step. Only
+  Architect and Launch may be waived, in writing. A profile is the role and depth is light
+  or full per slice, recorded in the frame. The family trigger evals route the
+  success-criterion, acceptance and cadence queries to one owner each, the agent evals name
+  real neighbouring skills as negatives, and the `launcher`, `architect`, `maker` and
+  `inspector` verdicts that were undefined now have a line.
+
+## [0.1.6] - 2026-10-10
+
+### Added
+
+- Add three skills to the `design` plugin: `visual-design` for hierarchy, type scale,
+  colour roles and spacing, `responsive-design` for layouts from 320 px up with
+  content-first breakpoints, and `form-design` for designing or changing a form, with
+  `ui-ux-review` keeping the diagnosis of an existing one. The design listing now runs
+  past the runtime's default budget, so the install advice raises
+  `skillListingBudgetFraction` to 0.115.
+
+### Changed
+
+- Update the deploy's pinned Wrangler to 4.149.0, with sharp 0.35.5 in the same lock
+  file, and move the `WRANGLER_VERSION` pins in `deploy.yml` and `release.yml` with it.
+
+### Fixed
+
+- Give each portable router line its full 100 characters of trigger again. 0.1.4 cut
+  them to 85 to fit the router's 16 KiB budget, which took 15 more characters off every
+  long trigger; each line now names its file as `- skills/<name>.md:` instead of a
+  Markdown link that repeated the name, and that is what keeps the router in budget.
+
+## [0.1.5] - 2026-10-10
+
+### Added
+
 - Show an "AI" icon in the browser tab. The site now ships `favicon.svg`, the header's
   mark drawn as strokes on a dark tile so it reads on light and dark tabs, and every
   page links to it.
+
+## [0.1.4] - 2026-10-09
+
+### Added
+
+- Add a tenth plugin, `family`, built around one development workflow, FAMILY: Frame,
+  Architect, Make, Inspect, Launch and Yield. It ships the `family-workflow` skill, one
+  skill per profile (`solo-development`, `developer-workflow`, `qa-workflow` and
+  `team-workflow`) that sets how deep each stage goes, six read-only stage subagents
+  (`framer`, `architect`, `maker`, `inspector`, `launcher` and `yielder`), and a
+  hand-drawn `/family/` page on the catalogue site. `inspector` runs a change's checks
+  only when the owner wrote it, and hands pull request and diff review to `code-review`.
+- Add three skills to the `design` plugin: `content-design` for the words in an
+  interface, `information-architecture` for navigation, taxonomy and findability, and
+  `design-handoff` for the build spec a developer works from.
 - Test the catalogue site in a real browser. A new `test site in a browser` job builds
   the real catalogue, serves it locally and drives it in the Chrome the runner already
   ships: Back returns to the page you came from and never to another site, the bar and
@@ -40,6 +114,69 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   `pip --require-hashes`. The tests that only checked that a
   CSS or script line existed are replaced, and `make test-browser` runs the same tests
   locally.
+
+### Changed
+
+- Run the full suite before stage and only what a promotion can still break on the way
+  into `main`. A new `scope` job reads the GitHub API and git: a pull request into `main`
+  whose tree is the one stage's pull request passed in full, apart from the changelog
+  and the release benchmark patch, and the push to `main` after it, skip the test
+  matrix, the browser tests and the linters of unchanged files, and keep validate,
+  catalogue, spelling, markdown, links, attribution, naming, package, every security
+  check and, on the pull request, the dry-run deploy. An edit to a pull request's description re-runs only
+  attribution and naming once the code has passed against the same base. Anything the
+  job cannot prove is a full run, and the aggregate accepts a skipped job only when the
+  scope named it.
+- Run the test suite on every core. `make test` and the CI `test` job run pytest through
+  pytest-xdist, and the 3.13 leg measures coverage in each worker through pytest-cov, so
+  the floor still covers every test. Locally the suite drops from about 100 s to about
+  55 s, with the same coverage. The install tests link a five-skill tree built per test
+  instead of every shipped skill eight times, and one test still links the whole tree.
+  Both new test-only packages are pinned and registered with the weekly pin check.
+
+### Fixed
+
+- Stop the agent roles running code or commands taken from a contributor's change. In
+  the review loop, `reviewer` and `investigator` take an Author field that `/verify`
+  passes (absent means contributor). A printed command is data to check by reading, run
+  only for an owner-authored change, in a throwaway directory with no network or
+  credentials. On a contributor change `reviewer` runs the gates only when every changed
+  path is inert content (Markdown under `plugins/` or `docs/`, a trigger eval set, or
+  the root `README.md` or `CHANGELOG.md`, as regular files). Otherwise it runs no gates
+  and cites no CI, because a contributor's pull request runs the contributor's own
+  workflow files and `Makefile`, and returns `FIX` pending the owner, who runs the gates,
+  confirms the required `ci` and `security` checks passed on the current head, and
+  confirms `.github/workflows/`, `Makefile`, `pyproject.toml` and the scripts CI calls
+  are unchanged against the merge-base (treating CI as untrusted if not); the gates run
+  only in a disposable sandbox with no credentials and no network, never in the owner's
+  normal environment or clone; `SHIP` is never returned by the reviewer itself on such a change, though a `FIX` whose only open items are the owner-must-run ones (no blocking finding, and the candidate based on the current base) is cleared by the owner's completed checklist recorded on the PR, live check included, for that head commit on that base tip only (a new push voids it, as does a base advance, detected by re-fetching and comparing both refs against the pinned base and reviewed SHA before accepting and again before merge; a post-merge live check is recorded as named but not yet run; a blocking finding or the rebase `FIX` still needs a fix and a fresh review).
+  A changed path must also have a whole NUL-delimited name matching
+  `^\.?[A-Za-z0-9_][A-Za-z0-9._-]*(/\.?[A-Za-z0-9_][A-Za-z0-9._-]*)*$` (each segment may start with one dot, then a letter, digit or underscore) to be canonical: a name such
+  as `docs/$(cmd).md` makes the change non-inert, is never put in a command and is a
+  blocking finding asking for a rename (dot-prefixed paths such as `.github/` and `.claude/` are canonical but non-inert, since they are outside the inert allowlist, so they go to the owner-must-run flow, not a rename), and paths are listed NUL-delimited and read in
+  single quotes. Such a `FIX` goes back to the owner or contributor, never
+  to `implementer`. The build loop (`/ship`, `explorer`, `implementer` and the ChatGPT
+  coordinator's build loop) is owner-only: with contributor content the owner has not
+  adopted (not on the base branch) in the checkout, `/ship` returns `STOP` and the
+  change goes to a fresh `reviewer` delegation with the loop "contributor review" (plus
+  `investigator` only for an outside claim). `explorer` and `implementer` carry the same
+  guard and stop without running anything. The ChatGPT workflow guide and
+  `docs/using.md` carry the same rules. A contributor review runs only from a clean worktree at the pinned base SHA (`HEAD` must equal it exactly, so an older ancestor checkout is `STOP`), never the contributor's, because Claude Code loads agents,
+  settings, hooks and instructions from the checkout it opens, and Codex and ChatGPT
+  read AGENTS.md and repository instructions from it: the contributor's head is fetched
+  as a ref and read with git, and a session opened inside a contributor or stale checkout returns
+  `STOP`. The base must be `dev`, `stage` or `main` (any other is `STOP`) and is pinned to its SHA after the fetch; the reviewer is given both, and before any command requires `<base>` to be a full hex SHA equal to the base tip and `<n>` to be all digits (else `STOP`). The reviewer runs inert-only gates on that SHA with `refs/review/<n>`
+  merged in (`--no-ff`); a candidate not based on the current base (`git merge-base` differs from the base tip) is `FIX` asking for a rebase before any gate runs, as is a merge conflict; and `<base>` is the
+  pinned SHA.
+- Stop seven skill pages scrolling sideways on a phone. A long path or identifier in
+  running text had no place to break, so one wide `code` span pushed the page past the
+  screen; inline code in prose may now break anywhere, and code blocks still scroll
+  inside their own box. The new browser tests found it.
+
+## [0.1.3] - 2026-10-06
+
+### Added
+
 - Add the `design` plugin, the ninth, with four skills: `ui-ux-review` reviews one screen
   or flow against usability heuristics with ranked, evidenced findings; `accessibility-audit`
   audits against WCAG 2.2 Level AA, automated pass first and the manual pass automation
@@ -67,12 +204,72 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   pill with a leading icon and Material's 8% and 12% state layers, on a translucent,
   blurred tint with a specular top edge, a sheen and a floating shadow, with tokens per
   theme.
+
+### Changed
+
+- Keep the weekly scheduled run green when a pinned tool publishes a release. A pin
+  behind upstream, a registry that could not be asked, or a markdownlint pin that no
+  longer matches its action is now a warning annotation on the run, with the table still
+  in the job summary; the run fails only for a pin with no upstream registered. Claude
+  Code and Codex publish nearly every week, so the old rule left the run red nearly every
+  week. A registry answer that is not shaped like a version is refused without being
+  repeated, since the step log reads a line starting with `::` as a command, and the
+  legacy `##[name]` marker is broken wherever outside text is printed, since the runner
+  honours it anywhere in a line. Bump
+  `CLAUDE_CODE_VERSION` from 2.1.287 to 2.1.291 and `CODEX_VERSION` from 0.160.0 to
+  0.160.1.
+
+### Fixed
+
+- Make `design-system`'s inventory count distinct colours: the command counted matching
+  lines, so a colour used twice counted twice and two colours on one line counted once.
+  Its contrast table now has one row per pair and state and one column per theme, so a
+  hover colour that fails only in dark mode has a cell to fail in.
+
+## [0.1.2] - 2026-10-05
+
+### Added
+
 - Add a Back button to every catalogue page below the front page, a tonal pill with a
   leading arrow in the style of Material Design 3, the same shape as the Download and
   View source buttons. It returns to the previous page when that page is on this site,
   and otherwise goes to the page above: the plugin for a skill, the front page for the
   rest, the not-found page included. Without JavaScript it is a plain link to that
   page.
+
+### Fixed
+
+- Stop `scripts/run_review_benchmark.py --jobs` from failing at random when two cases
+  create their worktrees at once. `git worktree add` and `remove` now run one at a
+  time under a lock, each worktree gets a unique name, and a failed `add` reports git's
+  own message instead of only its exit status.
+
+## [0.1.1] - 2026-10-05
+
+### Fixed
+
+- Smoke-test releases and the stage Preview through `workers.dev` instead of the custom
+  domain. Bot Fight Mode on the zone answers GitHub runners with a 403, which rolled
+  production back on `v0.1.0` twice, and it cannot be skipped by a WAF rule. The
+  blocking check is now `scripts/smoke_site.sh` against the Worker's `workers.dev`
+  address plus a read of `wrangler deployments status` (`read_wrangler_deploy.py
+  --active-is`) showing the deployed version at 100%, and the deploy must list
+  `ai.szolotov.com (custom domain)` as a target. The custom-domain request is logged
+  for information and cannot fail the job.
+- Stop the stage Preview from fetching stage pages. Stage is behind Cloudflare Access,
+  which serves a GitHub runner its login page or a redirect to it, so the `workers.dev`
+  smoke failed every stage deploy. The `preview` job now checks only that `wrangler
+  preview` uploaded and reported `https://stage.ai.szolotov.com`.
+- Stop a pull request description edit from leaving a red `ci` on the head commit. An
+  `edited` event no longer cancels the run in flight, which the `ci` gate counted as a
+  failure, and the `attribution` and `naming` jobs read the title and body from the API
+  when they run, with `pull-requests: read`, instead of from the event payload frozen at
+  the moment the run was triggered.
+
+## [0.1.0] - 2026-10-04
+
+### Added
+
 - Cut a release from the Actions tab. After the prepare pull request merges, running Cut
   release on `main` with a version checks it with the new `scripts/release.py check`
   (a non-empty changelog section, no such tag on `origin`, a version greater than every
@@ -81,7 +278,7 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   but only on a `vX.Y.Z` tag ref; its first step in each job refuses anything else.
   `make release` and a hand-pushed tag still work.
 - Grow the catalogue site from one page into a full site, in a new design. The front
-  page now lists the plugins, each linking to its own page at `/plugins/<plugin>/`
+  page now lists the eight plugins, each linking to its own page at `/plugins/<plugin>/`
   with its skills, and each skill to a page at `/plugins/<plugin>/<skill>/` carrying its
   description, install line, allowed tools, rendered `SKILL.md`, references and the queries
   it fires on and goes elsewhere for. `/start/`, `/workflows/`, `/examples/` and
@@ -243,59 +440,6 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
-- Return the fix packet in `fresh-inspector-rounds` to the contributor when the change
-  is not the owner's, so the main conversation applies fixes only to a slice the owner
-  wrote and never patches a contributor's change on the trusted checkout. With an unknown
-  author the loop stops and the packet goes to whoever asked for the review.
-- Let `family-relay`, `plan-drift-gate` and `fresh-inspector-rounds` edit the tree, since
-  each runs the build or the fix itself when no writing agent is used, and route a
-  launcher `N-A` through a written Launch waiver before Yield.
-- Close three gaps in the FAMILY workflow skills. `launcher` returns `READY` only with a
-  go from the Inspect owner, so a missing or no-go decision is a `NOT READY` that
-  `family-relay` routes back to the Inspect owner rather than to release. `stage-tiering`
-  says that `CLAUDE_CODE_EFFORT_LEVEL` overrides every agent's `effort`, unlike the model
-  setting. `yield-to-lesson` accepts a lesson on a fixed number of runs before and after,
-  not by retrying until one catches.
-- Replace the stroked "AI" tab icon with the crystal "AI" artwork, shipped as a 64 px
-  `favicon.png` and a 180 px `apple-touch-icon.png` for phone home screens. Both are
-  cut square from the artwork and stored under `scripts/site_assets/`.
-- Give each FAMILY stage one owner and a first question. The Inspect owner (QA where
-  present) owns the go/no-go that closes Inspect, and `launcher` takes it as input and
-  returns `NOT READY` only for a missing path, signal or rollback. `inspector` reports each
-  success criterion as holding, failing or not assessed and leaves severity-ranked findings
-  to `code-review`. The solo, developer and QA skills name the agent for each step. Only
-  Architect and Launch may be waived, in writing. A profile is the role and depth is light
-  or full per slice, recorded in the frame. The family trigger evals route the
-  success-criterion, acceptance and cadence queries to one owner each, the agent evals name
-  real neighbouring skills as negatives, and the `launcher`, `architect`, `maker` and
-  `inspector` verdicts that were undefined now have a line.
-- Run the full suite before stage and only what a promotion can still break on the way
-  into `main`. A new `scope` job reads the GitHub API and git: a pull request into `main`
-  whose tree is the one stage's pull request passed in full, apart from the changelog
-  and the release benchmark patch, and the push to `main` after it, skip the test
-  matrix, the browser tests and the linters of unchanged files, and keep validate,
-  catalogue, spelling, markdown, links, attribution, naming, package, every security
-  check and, on the pull request, the dry-run deploy. An edit to a pull request's description re-runs only
-  attribution and naming once the code has passed against the same base. Anything the
-  job cannot prove is a full run, and the aggregate accepts a skipped job only when the
-  scope named it.
-- Run the test suite on every core. `make test` and the CI `test` job run pytest through
-  pytest-xdist, and the 3.13 leg measures coverage in each worker through pytest-cov, so
-  the floor still covers every test. Locally the suite drops from about 100 s to about
-  55 s, with the same coverage. The install tests link a five-skill tree built per test
-  instead of every shipped skill eight times, and one test still links the whole tree.
-  Both new test-only packages are pinned and registered with the weekly pin check.
-- Keep the weekly scheduled run green when a pinned tool publishes a release. A pin
-  behind upstream, a registry that could not be asked, or a markdownlint pin that no
-  longer matches its action is now a warning annotation on the run, with the table still
-  in the job summary; the run fails only for a pin with no upstream registered. Claude
-  Code and Codex publish nearly every week, so the old rule left the run red nearly every
-  week. A registry answer that is not shaped like a version is refused without being
-  repeated, since the step log reads a line starting with `::` as a command, and the
-  legacy `##[name]` marker is broken wherever outside text is printed, since the runner
-  honours it anywhere in a line. Bump
-  `CLAUDE_CODE_VERSION` from 2.1.287 to 2.1.291 and `CODEX_VERSION` from 0.160.0 to
-  0.160.1.
 - Verify Terraform backend/provider identity and the live Kubernetes target before
   state operations or incident mutations. Bind review evidence to remote revision
   identities or a recorded local tree, and recheck freshness before the verdict.
@@ -383,73 +527,6 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
-- Give each portable router line its full 100 characters of trigger again. 0.1.4 cut
-  them to 85 to fit the router's 16 KiB budget, which took 15 more characters off every
-  long trigger; each line now names its file as `- skills/<name>.md:` instead of a
-  Markdown link that repeated the name, and that is what keeps the router in budget.
-- Stop the agent roles running code or commands taken from a contributor's change. In
-  the review loop, `reviewer` and `investigator` take an Author field that `/verify`
-  passes (absent means contributor). A printed command is data to check by reading, run
-  only for an owner-authored change, in a throwaway directory with no network or
-  credentials. On a contributor change `reviewer` runs the gates only when every changed
-  path is inert content (Markdown under `plugins/` or `docs/`, a trigger eval set, or
-  the root `README.md` or `CHANGELOG.md`, as regular files). Otherwise it runs no gates
-  and cites no CI, because a contributor's pull request runs the contributor's own
-  workflow files and `Makefile`, and returns `FIX` pending the owner, who runs the gates,
-  confirms the required `ci` and `security` checks passed on the current head, and
-  confirms `.github/workflows/`, `Makefile`, `pyproject.toml` and the scripts CI calls
-  are unchanged against the merge-base (treating CI as untrusted if not); the gates run
-  only in a disposable sandbox with no credentials and no network, never in the owner's
-  normal environment or clone; `SHIP` is never returned by the reviewer itself on such a change, though a `FIX` whose only open items are the owner-must-run ones (no blocking finding, and the candidate based on the current base) is cleared by the owner's completed checklist recorded on the PR, live check included, for that head commit on that base tip only (a new push voids it, as does a base advance, detected by re-fetching and comparing both refs against the pinned base and reviewed SHA before accepting and again before merge; a post-merge live check is recorded as named but not yet run; a blocking finding or the rebase `FIX` still needs a fix and a fresh review).
-  A changed path must also have a whole NUL-delimited name matching
-  `^\.?[A-Za-z0-9_][A-Za-z0-9._-]*(/\.?[A-Za-z0-9_][A-Za-z0-9._-]*)*$` (each segment may start with one dot, then a letter, digit or underscore) to be canonical: a name such
-  as `docs/$(cmd).md` makes the change non-inert, is never put in a command and is a
-  blocking finding asking for a rename (dot-prefixed paths such as `.github/` and `.claude/` are canonical but non-inert, since they are outside the inert allowlist, so they go to the owner-must-run flow, not a rename), and paths are listed NUL-delimited and read in
-  single quotes. Such a `FIX` goes back to the owner or contributor, never
-  to `implementer`. The build loop (`/ship`, `explorer`, `implementer` and the ChatGPT
-  coordinator's build loop) is owner-only: with contributor content the owner has not
-  adopted (not on the base branch) in the checkout, `/ship` returns `STOP` and the
-  change goes to a fresh `reviewer` delegation with the loop "contributor review" (plus
-  `investigator` only for an outside claim). `explorer` and `implementer` carry the same
-  guard and stop without running anything. The ChatGPT workflow guide and
-  `docs/using.md` carry the same rules. A contributor review runs only from a clean worktree at the pinned base SHA (`HEAD` must equal it exactly, so an older ancestor checkout is `STOP`), never the contributor's, because Claude Code loads agents,
-  settings, hooks and instructions from the checkout it opens, and Codex and ChatGPT
-  read AGENTS.md and repository instructions from it: the contributor's head is fetched
-  as a ref and read with git, and a session opened inside a contributor or stale checkout returns
-  `STOP`. The base must be `dev`, `stage` or `main` (any other is `STOP`) and is pinned to its SHA after the fetch; the reviewer is given both, and before any command requires `<base>` to be a full hex SHA equal to the base tip and `<n>` to be all digits (else `STOP`). The reviewer runs inert-only gates on that SHA with `refs/review/<n>`
-  merged in (`--no-ff`); a candidate not based on the current base (`git merge-base` differs from the base tip) is `FIX` asking for a rebase before any gate runs, as is a merge conflict; and `<base>` is the
-  pinned SHA.
-- Make `design-system`'s inventory count distinct colours: the command counted matching
-  lines, so a colour used twice counted twice and two colours on one line counted once.
-  Its contrast table now has one row per pair and state and one column per theme, so a
-  hover colour that fails only in dark mode has a cell to fail in.
-- Stop seven skill pages scrolling sideways on a phone. A long path or identifier in
-  running text had no place to break, so one wide `code` span pushed the page past the
-  screen; inline code in prose may now break anywhere, and code blocks still scroll
-  inside their own box. The new browser tests found it.
-- Stop `scripts/run_review_benchmark.py --jobs` from failing at random when two cases
-  create their worktrees at once. `git worktree add` and `remove` now run one at a
-  time under a lock, each worktree gets a unique name, and a failed `add` reports git's
-  own message instead of only its exit status.
-- Smoke-test releases and the stage Preview through `workers.dev` instead of the custom
-  domain. Bot Fight Mode on the zone answers GitHub runners with a 403, which rolled
-  production back on `v0.1.0` twice, and it cannot be skipped by a WAF rule. The
-  blocking check is now `scripts/smoke_site.sh` against the Worker's `workers.dev`
-  address plus a read of `wrangler deployments status` (`read_wrangler_deploy.py
-  --active-is`) showing the deployed version at 100%, and the deploy must list
-  `ai.szolotov.com (custom domain)` as a target. The custom-domain request is logged
-  for information and cannot fail the job.
-
-- Stop the stage Preview from fetching stage pages. Stage is behind Cloudflare Access,
-  which serves a GitHub runner its login page or a redirect to it, so the `workers.dev`
-  smoke failed every stage deploy. The `preview` job now checks only that `wrangler
-  preview` uploaded and reported `https://stage.ai.szolotov.com`.
-
-- Stop a pull request description edit from leaving a red `ci` on the head commit. An
-  `edited` event no longer cancels the run in flight, which the `ci` gate counted as a
-  failure, and the `attribution` and `naming` jobs read the title and body from the API
-  when they run, with `pull-requests: read`, instead of from the event payload frozen at
-  the moment the run was triggered.
 - Roll a failed production release back to the version that was serving before it. The
   `cloudflare` job now records that version with `wrangler deployments status --json`
   before deploying and passes its ID to `wrangler rollback`; without one, Wrangler picks
@@ -506,5 +583,13 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/9365d19bd40e79f52463b046927b17cfd448bb79...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/greenblacked/AI/compare/v0.1.6...v0.1.7
+[0.1.6]: https://github.com/greenblacked/AI/compare/v0.1.5...v0.1.6
+[0.1.5]: https://github.com/greenblacked/AI/compare/v0.1.4...v0.1.5
+[0.1.4]: https://github.com/greenblacked/AI/compare/v0.1.3...v0.1.4
+[0.1.3]: https://github.com/greenblacked/AI/compare/v0.1.2...v0.1.3
+[0.1.2]: https://github.com/greenblacked/AI/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/greenblacked/AI/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/greenblacked/AI/compare/9365d19bd40e79f52463b046927b17cfd448bb79...v0.1.0
 [Initial catalogue]: https://github.com/greenblacked/AI/tree/9365d19bd40e79f52463b046927b17cfd448bb79
