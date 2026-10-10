@@ -176,15 +176,12 @@ USE_WHEN_RE = re.compile(
 )
 
 # A router line has room for one sentence, not the full description a plugin's own
-# listing carries. This is a sane cap rather than a measured one: at 85 characters the
-# combined router for this repository's own nine plugins sits inside ROUTER_BUDGET_BYTES
-# with room for a new plugin's skills, and the budget is meant to bite as the catalogue
-# grows rather than to sit unused. It was 100 until the combined router came within a few
-# bytes of the budget; lowering the cap shortens the trigger sentence inside the router
-# line only, leaving every description and the flattened files unchanged. If growth
-# reaches the budget again, reduce router markup or reconsider its structure while
-# preserving descriptions and triggers.
-ROUTER_USE_WHEN_CAP = 85
+# listing carries. 100 characters keeps the trigger sentence whole for every skill here
+# but the longest few. It was lowered to 85 once, to fit ROUTER_BUDGET_BYTES, which cut
+# the end off long triggers in every router; the fix was to drop markup instead, and
+# when the budget bites again the answer is the same: less markup or a split router,
+# never a shorter trigger. tests/test_catalogue.py pins the value.
+ROUTER_USE_WHEN_CAP = 100
 
 # Codex's default project-doc budget is 32 KiB (openai/codex, codex-rs/config/src/
 # config_toml.rs: DEFAULT_PROJECT_DOC_MAX_BYTES = 32 * 1024), and codex-rs/core/src/
@@ -1753,7 +1750,9 @@ def render_router(title: str, groups: list[tuple[str, list[tuple[str, str]]]]) -
     for plugin, skills in groups:
         lines += [f"## {plugin}", ""]
         for name, use_when in skills:
-            lines.append(f"- [{name}](skills/{name}.md): {use_when}")
+            # The path, not a Markdown link: the link repeated the name as its label,
+            # which cost every line its own length again for nothing an agent uses.
+            lines.append(f"- skills/{name}.md: {use_when}")
         lines.append("")
     return "\n".join(lines).rstrip() + "\n"
 
