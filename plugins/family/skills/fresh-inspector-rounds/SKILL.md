@@ -32,7 +32,7 @@ The inspector reports each success criterion as `HOLDS`, `FAILS` or `NOT ASSESSE
 
 ### 4. Send back the failures only
 
-Each `FAILS` line is a blocking finding. It goes to the builder as problem, evidence locator and the fix the inspector gave for it. The builder is the writing agent that built the slice; when none is running, the main conversation is the builder and applies the fix itself, which is why this skill can edit the tree. Neither is ever the inspector's context. A `NOT ASSESSED` criterion is a gap for the Inspect owner to close, not a task for the builder, and observations stay in the report and travel to Yield. The builder never receives the report itself.
+Each `FAILS` line is a blocking finding. It goes to the builder as problem, evidence locator and the fix the inspector gave for it. For a slice the owner wrote, the builder is the writing agent that built it; when none is running, the main conversation is the builder and applies the fix itself, which is why this skill can edit the tree. For a contributor's change, or one whose author is unknown, the fix packet goes back to that author to apply on their own branch, and the next round inspects what they push; the main conversation does not apply it to the trusted checkout. The builder is never the inspector's context. A `NOT ASSESSED` criterion is a gap for the Inspect owner to close, not a task for the builder, and observations stay in the report and travel to Yield. The builder never receives the report itself.
 
 ### 5. Re-inspect with a fresh inspector
 
