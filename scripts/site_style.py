@@ -810,6 +810,12 @@ html[data-theme="reactor"] {
   opacity: 0;
 }
 .family-stages .letter { color: var(--stage); }
+.family-link { margin-top: 1rem; font-size: 1rem; }
+.family-link a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
 .family-stages > li { position: relative; }
 .family-stages > li::before {
   content: "";
