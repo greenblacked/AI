@@ -10,6 +10,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Open the `family` plugin's page on the same typed F.A.M.I.L.Y. heading as the FAMILY
+  page, with a link to the stage-by-stage guide; every other plugin keeps its plain name.
 - Add six skills to the `family` plugin that run its stage agents together:
   `family-relay` routes each stage agent's verdict to the next hop and steps back a stage
   when a verdict repeats; `plan-drift-gate` checks a build against maker's plan before
