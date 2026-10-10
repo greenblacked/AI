@@ -14,15 +14,15 @@ For each edge in the owner table, write four things:
 
 ```text
 From: Make (developer)
-To: Inspect (reviewer, QA)
+To: Inspect (QA, or the reviewer where there is no QA)
 Artifact: the ordered change plan and the diff
-First question: does the change meet the frame's success criterion?
-Owner next: the named reviewer
+First question: <the Inspect stage's First question line, verbatim>
+Owner next: the named Inspect owner
 ```
 
 - **From / To** — the two stages and the people.
 - **Artifact** — the one document that moves; if it is not written, the handoff did not happen.
-- **First question** — what the next stage must answer before anything else. This is what makes the handoff a gate rather than a notification.
+- **First question** — what the next stage must answer before anything else. This is what makes the handoff a gate rather than a notification. Copy it from the `First question` line of that stage in `family-workflow`'s stage reference rather than rewording it; the Inspect to Launch handoff opens with the go/no-go, which the Inspect owner answers once.
 - **Owner next** — the person accountable for the next gate.
 
 A handoff with no owner is where the work stalls.
@@ -34,7 +34,7 @@ A handoff with no owner is where the work stalls.
 | Frame | A testable success criterion and a named slice |
 | Architect | A design the next stage can build, and the hard-to-reverse choice |
 | Make | A plan the reviewer can follow, and a working tree |
-| Inspect | Findings by severity, and a go/no-go with evidence |
+| Inspect | Criterion-by-criterion evidence, ranked findings, and the go/no-go with evidence, owned by the Inspect owner |
 | Launch | A path, a signal, a rollback and an owner |
 | Yield | A change to the frame's checklist, not only a lesson |
 
@@ -56,7 +56,7 @@ A stage stalls when its artifact does not exist. Track the artifacts, not the me
 | The frame | Frame is waiting on product for the problem or the criterion |
 | The design note | Architect is blocked on a decision nobody will make |
 | The change plan | Make is building without a shape, or the plan was never written |
-| The findings | Inspect has not started, or is not reporting |
+| The inspection evidence | Inspect has not started, or is not reporting |
 | The launch plan | Launch is unrehearsed; the rollback is unplanned |
 | The retro | Yield is not happening, so the process is not learning |
 
@@ -67,4 +67,4 @@ A missing artifact names the stage to unblock. A missed meeting names nothing.
 - Keep each artifact to what the next stage needs; a long frame is read by nobody.
 - Write the handoff where the work lives — the issue, the PR, the design doc — not in a separate tracker.
 - Use the stage agents (`framer`, `architect`, `maker`, `inspector`, `launcher`, `yielder`) for the depth a person would otherwise not have time for.
-- When the team runs a lighter profile for a slice, say so in the frame; the shortcut is then a decision.
+- Record light or full depth for each slice in the frame; a light run on a heavy slice is then a decision.

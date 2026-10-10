@@ -12,6 +12,7 @@ import http.server
 import json
 import os
 import re
+import struct
 import subprocess
 import sys
 import threading
@@ -260,20 +261,23 @@ def test_the_index_has_no_back_link(mini_repo, tmp_path):
     assert "data-back>" not in page
 
 
-def test_every_page_names_the_tab_icon_and_the_icon_draws_its_letters(mini_repo, tmp_path):
+def test_every_page_names_the_tab_and_home_screen_icons_and_both_ship(mini_repo, tmp_path):
     output = _build(mini_repo, tmp_path)
-    icon = (output / "favicon.svg").read_text(encoding="utf-8")
-    assert icon.startswith('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">')
-    assert icon.rstrip().endswith("</svg>")
-    # Paths, never text: a favicon cannot load the site's fonts, so letters set in
-    # one would render in whatever the browser falls back to.
-    assert "<path " in icon and "<text" not in icon
+    # Each icon is a real PNG of the size its link declares; IHDR holds width and height.
+    for name, size in (("favicon.png", 64), ("apple-touch-icon.png", 180)):
+        data = (output / name).read_bytes()
+        assert data[:8] == b"\x89PNG\r\n\x1a\n", name
+        assert struct.unpack(">II", data[16:24]) == (size, size), name
     pages = sorted(output.rglob("*.html"))
     assert len(pages) > 5
-    link = '<link rel="icon" href="/favicon.svg" type="image/svg+xml">'
+    links = (
+        '<link rel="icon" href="/favicon.png" type="image/png" sizes="64x64">',
+        '<link rel="apple-touch-icon" href="/apple-touch-icon.png">',
+    )
     for page in pages:
         head = page.read_text(encoding="utf-8").split("</head>", 1)[0]
-        assert head.count(link) == 1, page
+        for link in links:
+            assert head.count(link) == 1, (page, link)
 
 
 def test_every_page_is_written_beside_the_archives(mini_repo, tmp_path):
@@ -363,6 +367,19 @@ def test_the_family_page_is_hand_drawn_with_the_stages_and_profiles(mini_repo, t
     for name, _ in site.FAMILY_PROFILES:
         assert f"<h3>{name}</h3>" in page
     assert "/plugin install family@mini" in page
+    # The typed heading: one accessible name, the visible letters hidden from it, and a
+    # stage class on each letter so the colour follows the stage rather than the order.
+    heading = re.search(r'<h1 class="title family-word">(.*?)</h1>', page).group(1)
+    assert heading.startswith('<span class="sr-only">The FAMILY workflow</span>')
+    assert '<span class="typed" aria-hidden="true">' in heading
+    typed = re.findall(
+        r'<span class="fl stage-(\w)"><span class="fk">(\w)</span>'
+        r'<span class="fd">\.</span></span>',
+        heading,
+    )
+    assert typed == [(letter.lower(), letter) for letter, _, _ in site.FAMILY_STAGES]
+    for letter, _, _ in site.FAMILY_STAGES:
+        assert f'<li class="stage-{letter.lower()}">' in page
     assert 'href="/family/" aria-current="page"' in page
     assert BACK.format("/") in page
 
@@ -627,6 +644,18 @@ def test_two_skills_with_one_name_are_refused_before_anything_is_written(mini_re
     with pytest.raises(SystemExit, match="share a name"):
         site.build(mini_repo, tmp_path / "site", "v1")
     assert not (tmp_path / "site").exists()
+
+
+def test_a_missing_icon_is_refused_before_the_previous_build_is_touched(
+    mini_repo, tmp_path, monkeypatch
+):
+    output = _build(mini_repo, tmp_path)
+    before = sorted(p.relative_to(output) for p in output.rglob("*"))
+    monkeypatch.setattr(site, "SITE_ASSETS", tmp_path / "no-assets")
+    with pytest.raises(SystemExit, match="cannot read the site icon favicon.png"):
+        site.build(mini_repo, output, "v2")
+    assert sorted(p.relative_to(output) for p in output.rglob("*")) == before
+    assert (output / "version.txt").read_text(encoding="utf-8") != "v2\n"
 
 
 def test_plugin_blurbs_fall_back_to_the_plugin_manifest(mini_repo, tmp_path):

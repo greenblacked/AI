@@ -3,7 +3,7 @@
   {"query": "plan the release for this feature", "should_trigger": true},
   {"query": "what's the rollback plan for this deploy", "should_trigger": true},
   {"query": "how will we know this release worked", "should_trigger": true},
-  {"query": "plan the migration and cutover for this change", "should_trigger": true},
+  {"query": "what data migration does this change need and can it be reversed", "should_trigger": true},
   {"query": "what monitoring do we need before launch", "should_trigger": true},
   {"query": "who owns this release and what's the path", "should_trigger": true},
   {"query": "write the launch checklist for this change", "should_trigger": true},
@@ -14,9 +14,9 @@
   {"query": "plan the cutover to the new system", "should_trigger": false, "expected": "cutover"},
   {"query": "write the runbook for this service", "should_trigger": false, "expected": "runbook"},
   {"query": "design the CI pipeline", "should_trigger": false, "expected": "ci-pipeline-design"},
-  {"query": "frame the problem before we build", "should_trigger": false, "expected": "framer"},
-  {"query": "propose the architecture for this slice", "should_trigger": false, "expected": "architect"},
-  {"query": "order the build steps for this slice", "should_trigger": false, "expected": "maker"},
+  {"query": "write the release notes for v2", "should_trigger": false, "expected": "release-notes"},
+  {"query": "add tracing and custom metrics to this service", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "what do I hand the release owner", "should_trigger": false, "expected": "developer-workflow"},
   {"query": "inspect this change before it ships", "should_trigger": false, "expected": "inspector"},
   {"query": "write the retro for the last slice", "should_trigger": false, "expected": "yielder"}
 ]

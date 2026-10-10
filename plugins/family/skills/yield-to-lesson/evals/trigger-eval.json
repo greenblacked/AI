@@ -1,0 +1,22 @@
+[
+  {"query": "the retro says be more careful with migrations, how do I make that stick", "should_trigger": true},
+  {"query": "turn these retro action items into checks the inspector can actually fail on", "should_trigger": true},
+  {"query": "the same class of bug has come back in three different slices, how do we stop the inspector missing it next time", "should_trigger": true},
+  {"query": "should this lesson go in the lessons file or get thrown out", "should_trigger": true},
+  {"query": "how do I write a benchmark case for a lesson, a seeded diff and the verdict the inspector must return", "should_trigger": true},
+  {"query": "reject any lesson that has no test case behind it", "should_trigger": true},
+  {"query": "what is our inspector's catch rate and how many false alarms does it raise", "should_trigger": true},
+  {"query": "make the inspector read the lessons file before it starts", "should_trigger": true},
+  {"query": "we caught the same defect class in two slices, what should happen to that lesson", "should_trigger": true},
+  {"query": "yielder gave me a Change list, how do I make those items stick", "should_trigger": true},
+  {"query": "write the retro for the slice we shipped", "should_trigger": false, "expected": "yielder"},
+  {"query": "run a postmortem for last night's outage", "should_trigger": false, "expected": "postmortem"},
+  {"query": "the agent keeps editing the lockfile, turn that into a hook", "should_trigger": false, "expected": "agent-guardrails"},
+  {"query": "build an evaluation dataset with a sealed holdout for my support agent", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "inspector returned FIX, which stage gets it next", "should_trigger": false, "expected": "family-relay"},
+  {"query": "review this pull request for bugs and rank them by severity", "should_trigger": false, "expected": "code-review"},
+  {"query": "the inspector flagged the same null check twice in this one fix loop, when do we halt it", "should_trigger": false, "expected": "fresh-inspector-rounds"},
+  {"query": "which development workflow should our team use", "should_trigger": false, "expected": "family-workflow"},
+  {"query": "set up how QA works with our team", "should_trigger": false, "expected": "qa-workflow"},
+  {"query": "check this finished diff against the maker plan before inspection", "should_trigger": false, "expected": "plan-drift-gate"}
+]
