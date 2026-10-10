@@ -39,7 +39,7 @@ If most fields are required, mark the optional ones. A form of asterisks trains 
 - On submit for the whole form.
 - On blur for a single field, after the user has left it.
 - Never on every keystroke, which flags a half-typed email as wrong.
-- Re-validate on submit and focus the first error, scrolling it into view.
+- Re-validate on submit and move focus once: to the error summary if there is one, otherwise to the first field with an error, scrolled into view.
 
 ### 6. Put the error next to the field, and say how to fix it
 

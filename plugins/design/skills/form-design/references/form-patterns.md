@@ -37,14 +37,14 @@ A field that survives none of these is cut. A field that can be collected later 
 | On every keystroke | Nothing | A half-typed value reads as wrong |
 | On paste | Nothing special; let blur handle it | — |
 
-On a failed submit, focus the first field with an error and scroll it into view. Re-run the whole validation each submit.
+On a failed submit, move focus once: to the error summary when the form shows one, otherwise to the first field with an error, scrolled into view. Re-run the whole validation each submit.
 
 ## Error messages
 
 - Next to the field, in text, associated with it — not colour alone, not only at the top.
 - Name the fix: "Enter a date in DD/MM/YYYY", "This email is already registered — sign in instead".
 - Keep what the user typed so they can correct it.
-- For a whole-form failure, add a summary at the top with links to each field, and put focus on the summary.
+- For a whole-form failure, add a summary at the top with links to each field. Focus goes to the summary, and each link moves focus to its field.
 - Do not shout: one message per field, and no exclamation marks.
 
 ## One page or several steps
