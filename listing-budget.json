@@ -7,7 +7,7 @@
     "coding": 20500,
     "delivery": 9500,
     "design": 8500,
-    "family": 4500,
+    "family": 9000,
     "gamedev": 10500,
     "manager": 15000,
     "operations": 17000,
@@ -61,8 +61,11 @@
     "docker-compose": 889,
     "e2e-testing": 873,
     "event-driven-reliability": 839,
+    "family-relay": 799,
     "family-workflow": 889,
     "form-design": 723,
+    "frame-claim-ledger": 756,
+    "fresh-inspector-rounds": 776,
     "game-assets": 925,
     "game-balance": 877,
     "game-builder": 971,
@@ -103,6 +106,7 @@
     "performance-improvement-plan": 879,
     "personal-finance": 898,
     "pipeline-hardening": 868,
+    "plan-drift-gate": 645,
     "plan-platform-migration": 917,
     "postmortem": 883,
     "profiling": 921,
@@ -121,6 +125,7 @@
     "slo-design": 806,
     "solo-development": 774,
     "sql-performance": 957,
+    "stage-tiering": 782,
     "status-update": 915,
     "team-workflow": 774,
     "technical-docs": 899,
@@ -134,6 +139,7 @@
     "visual-design": 690,
     "website-builder": 944,
     "weekly-review": 959,
-    "write-technical-article": 880
+    "write-technical-article": 880,
+    "yield-to-lesson": 796
   }
 }

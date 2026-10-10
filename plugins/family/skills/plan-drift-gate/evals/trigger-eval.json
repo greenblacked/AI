@@ -5,7 +5,7 @@
   {"query": "the agent wandered off the plan and touched files that weren't listed", "should_trigger": true},
   {"query": "should I run the inspector first or check against the plan first", "should_trigger": true},
   {"query": "one commit per plan step so I can see which step drifted", "should_trigger": true},
-  {"query": "which model tier should the builder, maker and inspector each run on", "should_trigger": true},
+  {"query": "does each commit map to exactly one step of the plan maker wrote", "should_trigger": true},
   {"query": "gate the build on ON PLAN before inspection", "should_trigger": true},
   {"query": "the build touched a file the plan didn't mention, is that blocking", "should_trigger": true},
   {"query": "how do I record that a divergence went back to the architect", "should_trigger": true},
@@ -15,7 +15,7 @@
   {"query": "architect returned PROPOSED, who runs next", "should_trigger": false, "expected": "family-relay"},
   {"query": "split this migration across several parallel agents with file ownership", "should_trigger": false, "expected": "agent-orchestration"},
   {"query": "the agent keeps modifying the CI config, how do I stop it", "should_trigger": false, "expected": "agent-guardrails"},
-  {"query": "design the test cases for this module", "should_trigger": false, "expected": "test-design"},
+  {"query": "which model tier should the builder, maker and inspector each run on", "should_trigger": false, "expected": "stage-tiering"},
   {"query": "record the architectural decision to use event sourcing", "should_trigger": false, "expected": "decision-record"},
   {"query": "what are the six stages of FAMILY and their gates", "should_trigger": false, "expected": "family-workflow"},
   {"query": "turn this retro's change items into checks the inspector can fail on", "should_trigger": false, "expected": "yield-to-lesson"}

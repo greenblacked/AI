@@ -40,7 +40,7 @@ Each finding returns a verdict (`HOLDS`, `DOES NOT HOLD`, `NARROWER` or `UNVERIF
 - `NARROWER`: rewrite the premise to the narrower claim and check the decision still follows.
 - `DOES NOT HOLD`, `UNVERIFIED`, or held only by consensus: it may not be the basis. If the decision needs it, architect returns `NEEDS FRAME` naming the claim, and the frame is fixed first.
 
-Two ways out that are not a quiet pass: choose the reversible alternative, so the claim no longer carries the decision, or waive the Architect gate in writing with the claim, the risk and an owner. Architect and Launch are the only waivable gates.
+The way out that is not a quiet pass is to choose the reversible alternative, so the claim no longer carries the decision. A claim under a hard-to-reverse decision does not get the Architect gate waived: that waiver is allowed only when the slice carries no such decision.
 
 ### 6. Carry the ledger into the record
 

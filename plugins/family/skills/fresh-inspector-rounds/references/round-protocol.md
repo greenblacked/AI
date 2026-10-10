@@ -21,30 +21,31 @@ It does not get a previous round's report, findings or verdict. Independence is 
 
 ## What the report must contain
 
+This is the `inspector` agent's own return block; the brief does not ask for a different shape.
+
 ```text
 PASS | FIX | STOP
 
-### Success criteria
-- <criterion> — holds | fails | not assessed — evidence: <locator or command output>
-### Blocking findings
-- <problem> — evidence: <locator> — fix: <smallest>
-### Observations        not blocking; travel to Yield
+### Criteria
+- <success criterion> — HOLDS | FAILS | NOT ASSESSED — evidence: <locator> — check run: <command, or "read only">
+  (for FAILS also: consequence: <...> — fix: <smallest>)
 ### Checks run
+### Observations (hand to code-review)
 ### Not assessed
 ```
 
-`PASS` needs every criterion to hold with evidence. A criterion the inspector could not check, including a check it was not allowed to run on a change the owner did not write, is not assessed and is named in the report. A report that implies full coverage when it did not have it is worse than a short one.
+`PASS` needs every criterion to hold with evidence. A criterion the inspector could not check, including a check it was not allowed to run on a change the owner did not write, is `NOT ASSESSED` and is named in the report. A report that implies full coverage when it did not have it is worse than a short one.
 
-Severity-ranked review of the diff, with nits named as nits, is `code-review`. Use it for the Inspect pass on the diff, and let this report carry only what bears on the criteria.
+`FIX` means at least one criterion fails or is not assessed: the failures are for the builder, the gaps for the owner to run. Observations are unranked defects outside the criteria. Severity-ranked review of the diff, with nits named as nits, is `code-review`; use it for the Inspect pass on the diff.
 
 ## The fix packet
 
-The builder receives, for each blocking finding, three lines and nothing else:
+Build it from the `FAILS` lines, one packet entry per line, taking the fix from the line itself. The builder receives three lines for each and nothing else:
 
 ```text
-Problem:   <one sentence>
-Evidence:  <locator the builder can open>
-Fix:       <smallest change that would make the criterion hold>
+Problem:   <the failure and its consequence, one sentence>
+Evidence:  <the line's evidence locator, which the builder can open>
+Fix:       <the line's fix: smallest change that would make the criterion hold>
 ```
 
 The fixer runs on a mid tier. It applies the fix and reports what it changed. It does not receive the criteria list, the observations or the rest of the report, so it has no room to widen the change.
@@ -57,11 +58,11 @@ The coordinator, not the inspector, keeps this across rounds:
 | Round | Criterion | Locator | Finding (short) | Outcome of the fix |
 ```
 
-One row per blocking finding per round. It is how a repeat is seen, since no inspector remembers the one before.
+One row per `FAILS` line per round. It is how a repeat is seen, since no inspector remembers the one before.
 
 ## Ending a round
 
 - `PASS`: stop and hand the report to the Inspect owner for the go/no-go.
-- `FIX` with new findings only: send the fix packet, then start a new inspector.
-- `FIX` with a finding already in the ledger: halt; see the recurrence reference.
+- `FIX` with new `FAILS` lines only: send the fix packet, then start a new inspector. Criteria that were `NOT ASSESSED` go to the owner to run.
+- `FIX` with a `FAILS` line already in the ledger: halt; see the recurrence reference.
 - `STOP`: the inspector could not do its job (no checkout it may read, no criteria). Bring it to the person who owns the slice; do not start another round on the same inputs.

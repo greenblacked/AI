@@ -14,6 +14,7 @@
 | --- | --- | --- | --- |
 | framer | `FRAMED` | main conversation accepts the slice, then architect | The slice is a decision, not an output |
 | framer | `NEEDS INPUT` | main conversation, then framer again | Only a person knows the missing fact |
+| framer | `NOT FRAMED` | main conversation | No frame could be made from the request; a person decides whether to restate it, split it or drop it |
 | architect | `PROPOSED` | main conversation accepts the approach, then maker | The approach is a decision, not an output |
 | architect | `NEEDS FRAME` | framer, with what architect said was missing | An approach without a problem is a preference |
 | architect | `BLOCKED` | main conversation | The blocker is a constraint or a choice only a person owns |
@@ -42,11 +43,11 @@ A `NOT READY` that names none of the three, for example "not enough testing", is
 
 ## The two-strike rule, stage by stage
 
-The same verdict from the same stage twice means the stage before it is wrong. The first strike takes the table's hop. The second goes one stage further back.
+The same verdict from the same stage twice means the stage before it is wrong. The first strike takes the table's hop. The second goes one stage further back; for a repeated `FIX` that is architect, past maker, because a plan cannot repair an approach.
 
 | Repeated verdict | First strike | Second strike | What it usually means |
 | --- | --- | --- | --- |
-| inspector `FIX` on the same finding | build | maker | The plan has no step that would prevent it |
+| inspector `FIX` on the same finding | build | architect | The approach is wrong, not the plan: a symptom was fixed twice. `fresh-inspector-rounds` reopens Architect with the finding as a constraint |
 | maker check `DIVERGED` | architect | framer | The approach keeps meeting a slice it cannot hold |
 | architect `NEEDS FRAME` | framer | main conversation | The request, not the frame, is under-specified |
 | framer `NEEDS INPUT` | main conversation | the person who owns the request | The question was asked but not answered |
@@ -64,4 +65,3 @@ Architect and Launch can be waived, in writing, with the reason and the risk. Th
 - **No verdict line.** A question. It returns to the conversation, which asks the stage to restate its report with a verdict.
 - **A verdict word from another stage.** Treat it as no verdict.
 - **Two verdicts.** The stage has hedged. Ask which one it means.
-- **A framer `NOT FRAMED`.** An older verdict that reads as `NEEDS INPUT`.

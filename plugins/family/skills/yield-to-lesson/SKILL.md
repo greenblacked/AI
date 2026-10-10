@@ -1,6 +1,6 @@
 ---
 name: yield-to-lesson
-description: "Turn the Change items of a retro into checks the next inspection can fail on, instead of resolutions. A change item is accepted only as a lessons-file entry (how it shows up, the check that catches it, where it was first found) plus a benchmark case: a seeded diff and the verdict the inspector must return. Covers rejecting a lesson with no case, the inspector reading the lessons file first, promoting a lesson caught twice to a mechanical check, and reporting catch rate and false alarms per run. Use when a yielder retro lists things to change, a defect keeps coming back, or an inspector needs a tested memory. Not for writing the retro (yielder), an incident postmortem (postmortem), enforcing a rule mechanically (agent-guardrails), or general agent benchmarks (agent-evaluation)."
+description: "Turn the Change items of a retro into checks the next inspection can fail on, instead of resolutions. A change item is accepted only as a lessons-file entry (how it shows up, the check that catches it, where it was first found) plus a benchmark case: a seeded diff and the verdict the inspector must return. Covers rejecting a lesson with no case, the inspector reading the lessons file first, promoting a lesson caught twice to a mechanical check, and reporting catch rate and false alarms per run. Use when a yielder retro lists things to change, a defect class recurs across slices, or an inspector needs a tested memory. Not for writing the retro (yielder), an incident postmortem (postmortem), enforcing a rule mechanically (agent-guardrails), or general agent benchmarks (agent-evaluation)."
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash(git:*)
 ---
 
@@ -14,7 +14,7 @@ A retro that ends in "be more careful about X" changes nothing, because nothing 
 
 Use for: converting `yielder`'s Change list into lessons, deciding whether a lesson is accepted, wiring the lessons file into inspection, and measuring whether inspection still catches what it was taught.
 
-Do not use for: the retro itself (`yielder`), an incident timeline (`postmortem`), turning one rule into a lint, hook or test (`agent-guardrails`), or evaluating an agent's task performance in general (`agent-evaluation`).
+Do not use for: the retro itself (`yielder`), an incident timeline (`postmortem`), turning one rule into a lint, hook or test (`agent-guardrails`), a finding that recurs inside one change's inspect and fix loop (`fresh-inspector-rounds`), or evaluating an agent's task performance in general (`agent-evaluation`).
 
 ## What an accepted lesson is
 

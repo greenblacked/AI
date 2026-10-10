@@ -22,6 +22,7 @@ Do not use for: choosing the workflow or profile (`family-workflow`), scheduling
 | --- | --- | --- |
 | framer | `FRAMED` | architect |
 | framer | `NEEDS INPUT` | main conversation, then framer again |
+| framer | `NOT FRAMED` | main conversation |
 | architect | `PROPOSED` | maker |
 | architect | `NEEDS FRAME` | framer |
 | maker, plan | `PLAN READY` | build |
@@ -60,7 +61,7 @@ The build is not a stage agent. The main agent does it, or one writing agent on 
 
 ### 6. Apply the two-strike rule
 
-The same verdict from the same stage twice means the stage before it is wrong. Step back one further than the table says: a second `FIX` goes to maker rather than the build, a second `DIVERGED` to framer rather than architect. `references/routing.md` lists each.
+The same verdict from the same stage twice means the stage before it is wrong. Step back one further than the table says: a second `FIX` on the same finding goes to architect rather than the build, because a repeat means the approach is wrong and not the plan (`fresh-inspector-rounds` reopens Architect with the finding as a constraint); a second `DIVERGED` goes to framer rather than architect. `references/routing.md` lists each.
 
 ### 7. Waive in writing, and only two stages
 

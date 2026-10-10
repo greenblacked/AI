@@ -33,7 +33,7 @@ The tiers are relative: mid is the capable, economical model your tool offers, a
 
 ### 1. Read the agent file
 
-Open each agent's file and check its `model` and `effort` keys. A file with neither inherits the main conversation's model, which is usually the top tier, so the survey stages overspend until you set them.
+Open each agent's file and check its `model` and `effort` keys. A file with neither takes `CLAUDE_CODE_SUBAGENT_MODEL` when that variable is set and otherwise inherits the main conversation's model, which is usually the top tier, so the survey stages overspend until you set them.
 
 ### 2. Set the tier where the agent is defined
 
@@ -41,7 +41,7 @@ Write `model` and `effort` in the agent's frontmatter. A value there wins over a
 
 ### 3. Cap the fan-out at two
 
-Run at most two agents in parallel, on questions that do not overlap. Two overlapping returns leave the main conversation to reconcile them, which costs more than the reading saved. Read `references/fan-out.md` for how to split a question and what disjoint means.
+Run at most two survey agents in parallel, on questions that do not overlap. The stage being served, for example architect drafting beside two claim agents, is not one of the two. Two overlapping returns leave the main conversation to reconcile them, which costs more than the reading saved. Read `references/fan-out.md` for how to split a question and what disjoint means.
 
 ### 4. Name the synthesis step
 

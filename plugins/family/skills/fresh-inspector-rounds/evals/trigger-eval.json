@@ -13,10 +13,10 @@
   {"query": "write the unit tests for this module", "should_trigger": false, "expected": "test-design"},
   {"query": "what are the six FAMILY stages and what does each gate ask", "should_trigger": false, "expected": "family-workflow"},
   {"query": "set up how QA owns the go/no-go before launch", "should_trigger": false, "expected": "qa-workflow"},
-  {"query": "audit this page against WCAG", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "the same kind of bug keeps coming back slice after slice, how do we make the inspector catch it", "should_trigger": false, "expected": "yield-to-lesson"},
   {"query": "run a security review of this authentication change", "should_trigger": false, "expected": "security-review"},
   {"query": "is this change ready to release, plan the rollback and the signal", "should_trigger": false, "expected": "launcher"},
-  {"query": "check this finished diff against the plan we built it from", "should_trigger": false, "expected": "maker"},
+  {"query": "check this finished diff against the plan we built it from", "should_trigger": false, "expected": "plan-drift-gate"},
   {"query": "this test fails on the runner and I can't work out why", "should_trigger": false, "expected": "debugging"},
   {"query": "run the fixes in parallel across three coding agents with exclusive file ownership", "should_trigger": false, "expected": "agent-orchestration"}
 ]

@@ -1,7 +1,7 @@
 [
   {"query": "which model should the architect agent run on", "should_trigger": true},
   {"query": "set model and effort per stage for the FAMILY agents", "should_trigger": true},
-  {"query": "my survey agents are burning tokens, can a cheaper tier do them", "should_trigger": true},
+  {"query": "framer and yielder only survey and write up, which tier should they run on", "should_trigger": true},
   {"query": "the agent frontmatter names one model but an environment variable overrides it, which wins", "should_trigger": true},
   {"query": "how do I opt out of the stage tiering and run every subagent on one model", "should_trigger": true},
   {"query": "should the inspector run on the strongest model or a mid one", "should_trigger": true},

@@ -1,6 +1,6 @@
 ---
 name: fresh-inspector-rounds
-description: "Run Inspect as rounds with an independence contract: each round a new inspector context, never resumed; only the blocking findings travel back to the builder, never the whole report; and the same finding returning a second time halts the loop and reopens Architect with that finding as a constraint, because a symptom was fixed. Includes the author guard, which lists checks for the owner to run rather than executing them on a change the owner did not write. Use when an inspect-fix-inspect cycle is running, when an inspector keeps being resumed, or for phrasings like \"the same bug keeps coming back\" or \"how many review rounds before we stop\". Not for reviewing one diff (code-review), the stage definitions (family-workflow) or QA's go/no-go (qa-workflow)."
+description: "Run Inspect as rounds with an independence contract: each round a new inspector context, never resumed; only the blocking findings travel back to the builder, never the whole report; and the same finding returning a second time halts the loop and reopens Architect with that finding as a constraint, because a symptom was fixed. Includes the author guard, which lists checks for the owner to run rather than executing them on a change the owner did not write. Use when an inspect-fix-inspect cycle is running, when an inspector keeps being resumed, or for phrasings like \"the same bug keeps coming back after each fix\" or \"how many review rounds before we stop\". Not for reviewing one diff (code-review), the stage definitions (family-workflow) or QA's go/no-go (qa-workflow)."
 allowed-tools: Read, Grep, Glob, Bash(git:*)
 ---
 
@@ -14,7 +14,7 @@ The failure of a review loop is that it stops being independent. A resumed inspe
 
 Use for: an inspect, fix, inspect cycle on a slice; deciding what goes back to the builder; deciding when to stop and reopen the design; a change the owner did not write that the inspector must not execute.
 
-Do not use for: reviewing one diff with findings by severity, which is `code-review`; the stage definitions, which are `family-workflow`; QA's strategy and its go/no-go, which is `qa-workflow`; or writing the tests, which is `test-design`.
+Do not use for: reviewing one diff with findings by severity, which is `code-review`; the stage definitions, which are `family-workflow`; QA's strategy and its go/no-go, which is `qa-workflow`; a defect class that keeps recurring across separate slices, which is `yield-to-lesson`; or writing the tests, which is `test-design`.
 
 ## Workflow
 
@@ -28,11 +28,11 @@ Brief it with the frame's success criteria, the diff or changed paths, the comma
 
 ### 3. Read the report per criterion
 
-The inspector reports each success criterion as holds, fails or not assessed, with evidence, and returns `PASS`, `FIX` or `STOP`. A criterion without evidence is not assessed, not held. Severity-ranked findings on the diff itself are `code-review`'s work; pull that in rather than rebuilding it here.
+The inspector reports each success criterion as `HOLDS`, `FAILS` or `NOT ASSESSED`, with its evidence locator and the check it ran, and returns `PASS`, `FIX` or `STOP`. A criterion without evidence is not assessed, not held. A `FAILS` line also carries the consequence and the smallest fix. Severity-ranked findings on the diff itself are `code-review`'s work; the inspector lists those as observations, unranked, and they are not rebuilt here.
 
-### 4. Send back the blocking findings only
+### 4. Send back the failures only
 
-A blocking finding is one that makes a criterion fail. Each goes to the builder as problem, evidence locator and smallest fix. Everything else stays in the report and travels to Yield; the builder never receives the report itself.
+Each `FAILS` line is a blocking finding. It goes to the builder as problem, evidence locator and the fix the inspector gave for it. A `NOT ASSESSED` criterion is a gap for the Inspect owner to close, not a task for the builder, and observations stay in the report and travel to Yield. The builder never receives the report itself.
 
 ### 5. Re-inspect with a fresh inspector
 

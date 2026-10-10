@@ -39,7 +39,7 @@ effort: medium
 ---
 ```
 
-Check the file before assuming a setting applies: an agent with no `model` line inherits the main conversation's model and runs on whatever that is.
+Check the file before assuming a setting applies: an agent with no `model` line takes `CLAUDE_CODE_SUBAGENT_MODEL` when that variable is set, as the precedence below lists, and otherwise inherits the main conversation's model and runs on whatever that is.
 
 ## Which setting wins
 

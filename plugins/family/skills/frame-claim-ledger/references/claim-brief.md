@@ -9,7 +9,7 @@
 
 ## What to pass
 
-One brief per claim, to a read-only research agent that has no editing tools. An `investigator`-style agent fits: it goes looking for what would make the claim false, labels what it finds, and says what it could not reach. Pass:
+One brief per claim, to a read-only research agent that has no editing tools. Any read-only research agent fits if it goes looking for what would make the claim false, labels what it finds and says what it could not reach. Pass:
 
 - **The one claim**, restated so it could fail (see the ledger format reference). Never two.
 - **What rests on it**, one sentence, so the agent can say afterwards whether that sentence still stands.
@@ -42,7 +42,7 @@ A report with no labels is not accepted; send it back for them.
 | `HOLDS`, consensus or inference only | no | Treat as unverified |
 | `NARROWER` | the narrower claim only | Rewrite the premise; re-check the decision follows |
 | `DOES NOT HOLD` | no | Architect returns `NEEDS FRAME` if the decision needs it |
-| `UNVERIFIED` | no | As above, or take the reversible option, or waive in writing |
+| `UNVERIFIED` | no | As above, or take the reversible option |
 
 An unverified number is worse than no number: it carries an authority its origin does not. If a figure cannot be traced, the record says it is unsourced.
 
