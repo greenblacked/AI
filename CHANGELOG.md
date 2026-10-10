@@ -10,6 +10,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Type the FAMILY page's heading in on arrival: F.A.M.I.L.Y., one stage letter and its
+  dot at a time, then the stages rise in. Each stage has its own colour, used again on
+  its letter and a rule beside it, at least 5.3:1 against the day background and 9:1 at
+  night; the console theme stays one colour. CSS only, so reduced motion or no scripts
+  shows the whole word at once, and screen readers hear "The FAMILY workflow".
 - Show an "AI" icon in the browser tab. The site now ships `favicon.svg`, the header's
   mark drawn as strokes on a dark tile so it reads on light and dark tabs, and every
   page links to it.
