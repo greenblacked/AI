@@ -280,6 +280,30 @@ def test_every_page_names_the_tab_and_home_screen_icons_and_both_ship(mini_repo,
             assert head.count(link) == 1, (page, link)
 
 
+def test_the_family_plugin_page_opens_on_the_typed_word_and_links_the_guide(mini_repo, tmp_path):
+    family = mini_repo / "plugins" / "family"
+    (family / ".claude-plugin").mkdir(parents=True)
+    (family / ".claude-plugin" / "plugin.json").write_text("{}", encoding="utf-8")
+    write_skill(mini_repo, "family", "relay", evals=eval_set("relay"))
+    manifest = mini_repo / ".claude-plugin" / "marketplace.json"
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    data["plugins"].append({"name": "family", "source": "./plugins/family"})
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    output = _build(mini_repo, tmp_path)
+    page = (output / "plugins" / "family" / "index.html").read_text(encoding="utf-8")
+    heading = re.search(r'<h1 class="title family-word">(.*?)</h1>', page).group(1)
+    assert heading.startswith('<span class="sr-only">family</span>')
+    letters = re.findall(r'<span class="fk">(\w)</span>', heading)
+    assert letters == [letter for letter, _, _ in site.FAMILY_STAGES]
+    assert '<a href="/family/">The FAMILY workflow, stage by stage</a>' in page
+    # Every other plugin keeps its plain name as the heading.
+    for other in (output / "plugins").iterdir():
+        if other.name != "family" and (other / "index.html").exists():
+            text = (other / "index.html").read_text(encoding="utf-8")
+            assert '<h1 class="title family-word">' not in text
+            assert f'<h1 class="title-xl">{other.name}</h1>' in text
+
+
 def test_every_page_is_written_beside_the_archives(mini_repo, tmp_path):
     output = _build(mini_repo, tmp_path)
     for path in (
