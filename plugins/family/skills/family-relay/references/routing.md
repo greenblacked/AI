@@ -27,7 +27,7 @@
 | inspector | `FIX`, `NOT ASSESSED` only | the Inspect owner, to run the listed checks | There is nothing for the builder to fix; sending it to build loops forever |
 | inspector | `STOP` | a person | It found something only a person can weigh |
 | launcher | `READY` | the release owner, then yielder with the measured signal | Launcher plans the release and does not run it; yielder needs an outcome to measure |
-| launcher | `N-A` | yielder | Nothing was released, so there is still an outcome to learn from |
+| launcher | `N-A` | the main conversation, then yielder once the Launch waiver is written | Skipping Launch is a waiver: it holds only with no users and the previous version as the way back, and the reason and risk are written down before Yield |
 | launcher | `NOT READY` | the owner of the missing piece | See below |
 | yielder | `YIELDED` | framer, next slice as the request | The loop closes into Frame |
 | yielder | `INSUFFICIENT EVIDENCE` | main conversation | Someone has to measure the outcome |

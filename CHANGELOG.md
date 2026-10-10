@@ -241,6 +241,13 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Return the fix packet in `fresh-inspector-rounds` to the contributor when the change
+  is not the owner's, so the main conversation applies fixes only to a slice the owner
+  wrote and never patches a contributor's change on the trusted checkout. With an unknown
+  author the loop stops and the packet goes to whoever asked for the review.
+- Let `family-relay`, `plan-drift-gate` and `fresh-inspector-rounds` edit the tree, since
+  each runs the build or the fix itself when no writing agent is used, and route a
+  launcher `N-A` through a written Launch waiver before Yield.
 - Close three gaps in the FAMILY workflow skills. `launcher` returns `READY` only with a
   go from the Inspect owner, so a missing or no-go decision is a `NOT READY` that
   `family-relay` routes back to the Inspect owner rather than to release. `stage-tiering`
