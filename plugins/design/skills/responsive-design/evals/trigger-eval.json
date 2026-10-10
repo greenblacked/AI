@@ -1,0 +1,22 @@
+[
+  {"query": "it breaks on mobile, how do I fix it", "should_trigger": true},
+  {"query": "what breakpoints should we use", "should_trigger": true},
+  {"query": "the table overflows on a phone", "should_trigger": true},
+  {"query": "make this page responsive", "should_trigger": true},
+  {"query": "does this layout work at 320px", "should_trigger": true},
+  {"query": "the nav does not fit small screens", "should_trigger": true},
+  {"query": "how should this dashboard reflow on a tablet", "should_trigger": true},
+  {"query": "our touch targets are too small", "should_trigger": true},
+  {"query": "the sidebar crushes the content on narrow windows", "should_trigger": true},
+  {"query": "design this screen to work across screen sizes", "should_trigger": true},
+  {"query": "audit the page for WCAG reflow and zoom", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "review the visual hierarchy of this page", "should_trigger": false, "expected": "visual-design"},
+  {"query": "review the usability of this flow", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "set up responsive breakpoint tokens", "should_trigger": false, "expected": "design-system"},
+  {"query": "design the checkout form", "should_trigger": false, "expected": "form-design"},
+  {"query": "build a responsive marketing site", "should_trigger": false, "expected": "website-builder"},
+  {"query": "write the media queries for this component", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "plan a usability test with users", "should_trigger": false, "expected": "usability-test-plan"},
+  {"query": "profile the page load on a phone", "should_trigger": false, "expected": "profiling"},
+  {"query": "test the site on a real device in the browser", "should_trigger": false, "expected": "e2e-testing"}
+]
