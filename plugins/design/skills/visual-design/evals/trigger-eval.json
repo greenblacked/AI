@@ -1,0 +1,22 @@
+[
+  {"query": "the page feels flat, how do I fix it", "should_trigger": true},
+  {"query": "what should be the primary button on this screen", "should_trigger": true},
+  {"query": "the spacing is off on this page", "should_trigger": true},
+  {"query": "this screen looks cluttered", "should_trigger": true},
+  {"query": "set up a type scale for our app", "should_trigger": true},
+  {"query": "review the visual hierarchy of this landing page", "should_trigger": true},
+  {"query": "everything is bold and nothing stands out", "should_trigger": true},
+  {"query": "help me pick colours for the UI", "should_trigger": true},
+  {"query": "the design looks amateur, what is wrong", "should_trigger": true},
+  {"query": "make this dashboard look better visually", "should_trigger": true},
+  {"query": "set up design tokens and themes", "should_trigger": false, "expected": "design-system"},
+  {"query": "review this screen's usability", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "audit this page against WCAG", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "make this layout work on mobile", "should_trigger": false, "expected": "responsive-design"},
+  {"query": "design a signup form", "should_trigger": false, "expected": "form-design"},
+  {"query": "build a landing page from scratch", "should_trigger": false, "expected": "website-builder"},
+  {"query": "write the CSS for this component", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "plan a usability test with users", "should_trigger": false, "expected": "usability-test-plan"},
+  {"query": "make the error states consistent across the app", "should_trigger": false, "expected": "design-system"},
+  {"query": "test the site in a real browser", "should_trigger": false, "expected": "e2e-testing"}
+]
