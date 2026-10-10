@@ -10,6 +10,15 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add six skills to the `family` plugin that run its stage agents together:
+  `family-relay` routes each stage agent's verdict to the next hop and steps back a stage
+  when a verdict repeats; `plan-drift-gate` checks a build against maker's plan before
+  inspection; `fresh-inspector-rounds` starts each review round on a new inspector and
+  reopens Architect when a finding recurs; `frame-claim-ledger` settles the claims a
+  hard-to-reverse decision rests on first; `yield-to-lesson` accepts a retro item only as
+  a check the next inspection can fail on; `stage-tiering` sets a model tier per stage.
+  The family listing ceiling rises to fit them, and the recommended
+  `skillListingBudgetFraction` rises to 0.119.
 - Type the FAMILY page's heading in on arrival: F.A.M.I.L.Y., one stage letter and its
   dot at a time, then the stages rise in. Each stage has its own colour, used again on
   its letter and a rule beside it, at least 5.3:1 against the day background and 9:1 at
