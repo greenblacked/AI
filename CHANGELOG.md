@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-10-10
+
 ### Added
 
 - Add six skills to the `family` plugin that run its stage agents together:
@@ -579,7 +581,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/greenblacked/AI/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/greenblacked/AI/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/greenblacked/AI/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/greenblacked/AI/compare/v0.1.3...v0.1.4
