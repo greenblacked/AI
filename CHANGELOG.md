@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-10-10
+
 ### Added
 
 - Show an "AI" icon in the browser tab. The site now ships `favicon.svg`, the header's
@@ -508,7 +510,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/greenblacked/AI/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/greenblacked/AI/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/greenblacked/AI/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/greenblacked/AI/compare/v0.1.1...v0.1.2
