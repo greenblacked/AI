@@ -363,6 +363,19 @@ def test_the_family_page_is_hand_drawn_with_the_stages_and_profiles(mini_repo, t
     for name, _ in site.FAMILY_PROFILES:
         assert f"<h3>{name}</h3>" in page
     assert "/plugin install family@mini" in page
+    # The typed heading: one accessible name, the visible letters hidden from it, and a
+    # stage class on each letter so the colour follows the stage rather than the order.
+    heading = re.search(r'<h1 class="title family-word">(.*?)</h1>', page).group(1)
+    assert heading.startswith('<span class="sr-only">The FAMILY workflow</span>')
+    assert '<span class="typed" aria-hidden="true">' in heading
+    typed = re.findall(
+        r'<span class="fl stage-(\w)"><span class="fk">(\w)</span>'
+        r'<span class="fd">\.</span></span>',
+        heading,
+    )
+    assert typed == [(letter.lower(), letter) for letter, _, _ in site.FAMILY_STAGES]
+    for letter, _, _ in site.FAMILY_STAGES:
+        assert f'<li class="stage-{letter.lower()}">' in page
     assert 'href="/family/" aria-current="page"' in page
     assert BACK.format("/") in page
 
