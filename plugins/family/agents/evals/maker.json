@@ -17,6 +17,6 @@
   {"query": "frame the problem before we plan", "should_trigger": false, "expected": "framer"},
   {"query": "propose the architecture for this slice", "should_trigger": false, "expected": "architect"},
   {"query": "inspect this change before it ships", "should_trigger": false, "expected": "inspector"},
-  {"query": "plan the release for this change", "should_trigger": false, "expected": "launcher"},
-  {"query": "write the retro for the last slice", "should_trigger": false, "expected": "yielder"}
+  {"query": "explain how this unfamiliar codebase is laid out", "should_trigger": false, "expected": "codebase-orientation"},
+  {"query": "upgrade this dependency to the next major version and tell me what breaks", "should_trigger": false, "expected": "dependency-upgrade"}
 ]
