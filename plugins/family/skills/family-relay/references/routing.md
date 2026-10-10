@@ -34,13 +34,15 @@
 
 ## Who owns a NOT READY
 
-Launcher returns `NOT READY` only by naming a missing release path, signal or rollback. Route by what it names:
+Launcher returns `NOT READY` only by naming a missing go/no-go, release path, signal or rollback. Route by what it names:
+
+- **No go/no-go, or a no-go:** the Inspect owner. `READY` is never routed to release without a go, so this is the gap that keeps Inspect from being skipped.
 
 - **No rollback, or one that cannot work with this approach** (an irreversible migration, a one-way data change): architect, because the approach has to change.
 - **No signal, or no way to tell it worked:** the build, when the change needs code or configuration to emit one; architect when the approach leaves nothing to measure.
 - **No release path** (nobody owns the release, no route to users): the main conversation, which names an owner or waives Launch in writing.
 
-A `NOT READY` that names none of the three, for example "not enough testing", is a question. It returns to the conversation, which decides whether it is an inspection gap and sends it to inspector.
+A `NOT READY` that names none of the four, for example "not enough testing", is a question. It returns to the conversation, which decides whether it is an inspection gap and sends it to inspector.
 
 ## The two-strike rule, stage by stage
 

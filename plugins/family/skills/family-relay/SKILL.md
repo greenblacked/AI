@@ -58,7 +58,7 @@ The build is not a stage agent. The main agent does it, or one writing agent on 
 
 ### 5. Ask for go or no-go at the Inspect to Launch handoff
 
-`PASS` from `inspector` is a statement about the change. Whether it ships is the first question of that handoff, answered by the owner of Inspect. `launcher` returns `NOT READY` only by naming a missing release path, signal or rollback; a `NOT READY` naming none of them is a question.
+`PASS` from `inspector` is a statement about the change. Whether it ships is the go/no-go that handoff opens with, answered by the owner of Inspect. `launcher` returns `NOT READY` only by naming a missing go/no-go, release path, signal or rollback; a `NOT READY` naming none of them is a question.
 
 ### 6. Apply the two-strike rule
 
