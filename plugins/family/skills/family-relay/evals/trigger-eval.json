@@ -1,0 +1,22 @@
+[
+  {"query": "framer came back FRAMED, which agent do I run next", "should_trigger": true},
+  {"query": "the maker check returned DIVERGED, who gets it now", "should_trigger": true},
+  {"query": "how do I chain the family agents so each verdict picks the next one", "should_trigger": true},
+  {"query": "inspector said FIX twice on the same finding, do I just send it back to the builder again", "should_trigger": true},
+  {"query": "launcher returned NOT READY, which stage fixes that", "should_trigger": true},
+  {"query": "what do I pass to the next agent in the pipeline, the whole report or just the handoff", "should_trigger": true},
+  {"query": "this stage agent's report has no verdict line, what do I do with it", "should_trigger": true},
+  {"query": "architect says NEEDS FRAME, where does the slice go", "should_trigger": true},
+  {"query": "inspector returned STOP, who decides what happens next", "should_trigger": true},
+  {"query": "run one slice through framer, architect, maker, inspector, launcher and yielder in order", "should_trigger": true},
+  {"query": "which development workflow fits a four-person team", "should_trigger": false, "expected": "family-workflow"},
+  {"query": "split this refactor across three parallel agents with a dependency graph and file ownership", "should_trigger": false, "expected": "agent-orchestration"},
+  {"query": "write a brief for the agent to implement this ticket with a done-check", "should_trigger": false, "expected": "agent-delegation"},
+  {"query": "I ran out of context mid-task, write a continuation packet for the next session", "should_trigger": false, "expected": "agent-handoff"},
+  {"query": "the agent keeps skipping the lint step, how do I make that rule enforced", "should_trigger": false, "expected": "agent-guardrails"},
+  {"query": "review this diff and rank the findings by severity", "should_trigger": false, "expected": "code-review"},
+  {"query": "record the decision to adopt Kafka over SQS", "should_trigger": false, "expected": "decision-record"},
+  {"query": "how should I work alone on a side project", "should_trigger": false, "expected": "solo-development"},
+  {"query": "write the ordered file-level build plan for this approach", "should_trigger": false, "expected": "maker"},
+  {"query": "write the retro for the slice we shipped last week", "should_trigger": false, "expected": "yielder"}
+]
