@@ -341,10 +341,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
-- Keep each skill's whole trigger sentence in the portable router again. 0.1.4 cut
-  router triggers to 85 characters to fit the router's 16 KiB budget; they are back to
-  100, and each line names its file as `- skills/<name>.md:` instead of a Markdown link
-  that repeated the name, which is what now keeps the router inside the budget.
+- Give each portable router line its full 100 characters of trigger again. 0.1.4 cut
+  them to 85 to fit the router's 16 KiB budget, which took 15 more characters off every
+  long trigger; each line now names its file as `- skills/<name>.md:` instead of a
+  Markdown link that repeated the name, and that is what keeps the router in budget.
 - Stop the agent roles running code or commands taken from a contributor's change. In
   the review loop, `reviewer` and `investigator` take an Author field that `/verify`
   passes (absent means contributor). A printed command is data to check by reading, run
