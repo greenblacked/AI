@@ -1,0 +1,22 @@
+[
+  {"query":"Repair five million stale customer records without stopping live writes; how should I checkpoint the job?", "should_trigger":true},
+  {"query":"Our one-time data fix died halfway through. How can we resume without repeating harmful updates?", "should_trigger":true},
+  {"query":"What happens if the process crashes after a batch commits but before its cursor is saved?", "should_trigger":true},
+  {"query":"The repair scans rows already marked done; should its checkpoint use changed row count?", "should_trigger":true},
+  {"query":"Plan a bounded reprocessing pass over immutable record ids while users are editing them.", "should_trigger":true},
+  {"query":"How can I prove a bulk data correction finished when the updated count matches the estimate?", "should_trigger":true},
+  {"query":"We need a pause and resume runbook for an online data repair that causes replica lag.", "should_trigger":true},
+  {"query":"Design concurrency-safe conditional writes for a production cleanup of bad values.", "should_trigger":true},
+  {"query":"A standalone customer data reprocessing pass needs restart tests and an upper bound.", "should_trigger":true},
+  {"query":"How do we reconcile skipped, mismatched and newly eligible rows after a one-off repair?", "should_trigger":true},
+  {"query":"Backfill a new column as part of an expand and contract migration.", "should_trigger":false, "expected":"db-migration"},
+  {"query":"Renaming a live table column; how do I avoid locks and populate the replacement?", "should_trigger":false, "expected":"db-migration"},
+  {"query":"Build a continuously running event consumer with retry and dead letter behavior.", "should_trigger":false, "expected":"event-driven-reliability"},
+  {"query":"Move traffic to a new provider with a rehearsed cutover.", "should_trigger":false, "expected":"cutover"},
+  {"query":"Plan phased migration of our entire data platform.", "should_trigger":false, "expected":"plan-platform-migration"},
+  {"query":"How can we test restoration from backup and measure RPO?", "should_trigger":false, "expected":"disaster-recovery-exercise"},
+  {"query":"My SQL query is slow; should I add an index?", "should_trigger":false, "expected":"sql-performance"},
+  {"query":"Design tables and keys for a new product feature.", "should_trigger":false, "expected":"schema-design"},
+  {"query":"Choose tests for the error paths of this new API.", "should_trigger":false, "expected":"test-design"},
+  {"query":"Can we safely promote from 5% to 25% this afternoon?", "should_trigger":false, "expected":"release-strategy"}
+]
