@@ -102,7 +102,7 @@ install any of the other eight, or more than one plugin, raise it in
 `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.119 }
+{ "skillListingBudgetFraction": 0.123 }
 ```
 
 ### How a skill fires
