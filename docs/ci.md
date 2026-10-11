@@ -111,7 +111,7 @@ reads its `mode`:
 | --- | --- | --- |
 | `full` | A pull request into `dev` or `stage`, `workflow_dispatch`, `merge_group`, and anything the two rows below cannot prove | Everything |
 | `promotion` | A pull request into `main`, an edit to one, or the push to `main` after one merges, whose tree is `stage`'s apart from `CHANGELOG.md` and the release benchmark patch, where `stage` is the merge of a pull request whose head is that tree, whose branch headed no other pull request, and every CI run of which that checked the code passed it. A benchmark patch that differs must still apply to the tree, since only the skipped test matrix would otherwise read it | validate skills, check catalogue, lint spelling, lint markdown, check links, attribution, naming and package here, plus all of `security.yml`, and on the pull request the dry-run deploy. The test matrix, the browser tests, validate plugin manifest, lint yaml and lint workflows are skipped: their result depends only on files the promoted tree shares, byte for byte, with the one that passed |
-| `text` | An `edited` pull request whose commit, against the same base, had every code check pass in every earlier run that ran them (a failure of attribution or naming alone does not count against it) | attribution and naming, the two that read the title and description |
+| `text` | An `edited` pull request whose event changed only the title or body (a retargeted base is `edited` too, and is `full`, or `promotion` into `main`), and whose commit, against the same base, had every code check pass in every earlier run that listed this pull request (a failure of attribution or naming alone does not count against it) | attribution and naming, the two that read the title and description |
 
 The aggregate accepts a skipped job only when `scope` named it, and the lists of what
 each mode may skip are fixed in the script rather than built from anything the API
@@ -751,16 +751,19 @@ covers the install-time side of that.
 [`scripts/release.py`](../scripts/release.py). The first is the same either way; the
 second has two routes, and the Actions one is the usual path.
 
-1. **On a branch:** `make release-prepare VERSION=x.y.z`. Moves `## [Unreleased]`'s body
+1. **On the promotion branch into `main`:** `make release-prepare VERSION=x.y.z`. Moves `## [Unreleased]`'s body
    into a new `## [x.y.z] - YYYY-MM-DD` section dated today in UTC, leaves an empty
    `Unreleased` above it, and updates the compare-link footer at the bottom of the file if
    it carries one. It refuses an empty `Unreleased` section, a malformed version, and a
    version that is not greater than every version already in the changelog, already
    tagged locally, or — when an `origin` remote is configured — already tagged there,
    since a branch may not have fetched a tag another release just pushed; with no
-   `origin` configured it says so and skips that one check rather than failing. Commit
-   the result, open a pull request, and merge it.
-2. **On `main`, after that pull request merges:** open Actions, choose Cut release and
+   `origin` configured it says so and skips that one check rather than failing. Run it
+   on the branch that promotes `stage` into `main`, after the changelog there is rebuilt,
+   and commit the result on that branch: the dated section then reaches `main` in the
+   promotion's own merge, and a release needs no pull request of its own. A release
+   with nothing to promote, such as a re-cut, can still do this on a branch of its own.
+2. **On `main`, after the promotion merges:** open Actions, choose Cut release and
    Run workflow on `main` with the version. It runs `scripts/release.py check`, which
    applies `tag`'s validation without the local-branch and working-tree checks — a
    non-empty changelog section, the tag not on `origin`, a version greater than every

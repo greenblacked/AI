@@ -25,7 +25,7 @@
 | inspector | `PASS` | launcher, after the go or no-go question | A pass is evidence, not a decision to ship |
 | inspector | `FIX`, with `FAILS` lines | build, the `FAILS` lines only | Each is a defect in the change |
 | inspector | `FIX`, `NOT ASSESSED` only | the Inspect owner, to run the listed checks | There is nothing for the builder to fix; sending it to build loops forever |
-| inspector | `STOP` | a person | It found something only a person can weigh |
+| inspector | `STOP` | a person, who supplies the success criterion | The frame gave it no success criterion, so no verdict is possible |
 | launcher | `READY` | the release owner, then yielder with the measured signal | Launcher plans the release and does not run it; yielder needs an outcome to measure |
 | launcher | `N-A` | the main conversation, then yielder once the Launch waiver is written | Skipping Launch is a waiver: it holds only with no users and the previous version as the way back, and the reason and risk are written down before Yield |
 | launcher | `NOT READY` | the owner of the missing piece | See below |
@@ -55,7 +55,7 @@ The same verdict from the same stage twice means the stage before it is wrong. T
 | architect `NEEDS FRAME` | framer | main conversation | The request, not the frame, is under-specified |
 | framer `NEEDS INPUT` | main conversation | the person who owns the request | The question was asked but not answered |
 | launcher `NOT READY`, same gap | owner of the gap | the stage before that owner | The gap is structural |
-| inspector `STOP` | a person | a person, with the history | Do not loop a stop |
+| inspector `STOP` | a person, for the success criterion | a person, with the history | The frame keeps reaching Inspect without a criterion; do not loop a stop |
 
 "Same" means the same finding or the same named gap, not the same word with a different cause. Count per slice and reset when the slice changes.
 

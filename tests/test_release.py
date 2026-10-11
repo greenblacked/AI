@@ -136,6 +136,8 @@ def test_prepare_moves_unreleased_into_a_new_dated_section(repo, capsys):
     out = capsys.readouterr().out
     assert "moved Unreleased into [1.1.0]" in out
     assert "make release VERSION=1.1.0" in out
+    # A release is prepared on the stage-to-main promotion, never straight from dev.
+    assert "promotion branch from stage into main" in out and "dev" not in out
 
 
 def test_prepare_first_release_from_an_initial_commit_snapshot(repo):

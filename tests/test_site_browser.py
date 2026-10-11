@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import functools
 import http.server
+import io
 import os
 import re
 import threading
@@ -51,8 +52,50 @@ TARGET = 44
 
 
 class _Quiet(http.server.SimpleHTTPRequestHandler):
+    """Serves the build the way the Worker does under `auto-trailing-slash` html_handling.
+
+    A flat page is served at its extensionless path, and asking for `name.html` redirects
+    there, so a test that loaded `/errors/503.html` would be testing a URL production
+    never answers with the page.
+    """
+
     def log_message(self, *args):  # the suite's output is the assertions, not a log
         pass
+
+    def _flat_page(self) -> Path | None:
+        path = self.path.split("?", 1)[0].split("#", 1)[0]
+        if path.endswith("/") or "." in path.rsplit("/", 1)[-1]:
+            return None
+        candidate = Path(self.translate_path(path) + ".html")
+        return candidate if candidate.is_file() else None
+
+    def _redirects(self) -> dict[str, str]:
+        """Each flat page's `.html` address mapped to its extensionless one.
+
+        Built from the files on disk, so the Location sent back is always a value this
+        table holds and never text taken from the request.
+        """
+        root = Path(self.directory)
+        table = {}
+        for page in root.rglob("*.html"):
+            if page.name in ("index.html", "404.html"):
+                continue
+            served = "/" + page.relative_to(root).as_posix()
+            table[served] = served[: -len(".html")]
+        return table
+
+    def send_head(self):
+        target = self._redirects().get(self.path.split("?", 1)[0])
+        if target is not None:
+            self.send_response(307)
+            self.send_header("Location", target)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return None
+        flat = self._flat_page()
+        if flat is not None:
+            self.path = self.path.split("?", 1)[0] + ".html"
+        return super().send_head()
 
 
 @pytest.fixture(scope="session")
@@ -68,6 +111,34 @@ def base_url(built):
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
+    yield f"http://127.0.0.1:{server.server_address[1]}"
+    server.shutdown()
+    server.server_close()
+
+
+class _NotFound(_Quiet):
+    """What the production host does for a path with no asset: the root 404.html, with 404."""
+
+    def send_head(self):
+        try:
+            found = Path(self.translate_path(self.path)).exists() or self._flat_page() is not None
+        except OSError:  # a name too long for the file system is just a path with no page
+            found = False
+        if found:
+            return super().send_head()
+        body = (Path(self.directory) / "404.html").read_bytes()
+        self.send_response(404)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        return io.BytesIO(body)
+
+
+@pytest.fixture(scope="session")
+def missing_url(built):
+    handler = functools.partial(_NotFound, directory=str(built))
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
     yield f"http://127.0.0.1:{server.server_address[1]}"
     server.shutdown()
     server.server_close()
@@ -522,6 +593,32 @@ def test_a_stage_focused_during_the_entrance_is_visible(browser, base_url):
         made.close()
 
 
+def test_opening_and_leaving_a_stage_does_not_replay_its_entrance(browser, base_url):
+    # Toggling the row's animation on focus restarted it on blur: the row went back to
+    # invisible and rose again, a one-second flicker every time a stage was opened.
+    made = browser.new_context(viewport={"width": 390, "height": 800})
+    made.route(re.compile("^(?!" + re.escape(base_url) + "/)"), lambda route: route.abort())
+    try:
+        page = made.new_page()
+        page.emulate_media(reduced_motion="no-preference")
+        page.goto(base_url + "/family/")
+        page.wait_for_function(
+            "() => document.getAnimations().every(a => a.playState === 'finished')",
+            timeout=10_000,
+        )
+        row = page.locator(".family-stages > li.stage-a")
+        row.locator("summary").click()
+        page.locator("h1").click()
+        page.locator(".family-stages > li.stage-f summary").click()
+        for _ in range(5):
+            assert row.evaluate("el => getComputedStyle(el).opacity") == "1"
+            states = row.evaluate("el => el.getAnimations().map(a => a.playState)")
+            assert "running" not in states
+            page.wait_for_timeout(100)
+    finally:
+        made.close()
+
+
 def test_the_family_page_is_the_plugin_page_with_its_install_line_and_skills(page, built, base_url):
     page.goto(base_url + "/family/")
     assert page.get_by_role("heading", level=1, name="The FAMILY workflow").count() == 1
@@ -689,3 +786,295 @@ def test_the_family_pages_do_not_scroll_sideways_on_a_phone(browser, base_url, p
         assert page.evaluate("() => document.documentElement.scrollWidth") <= 390
     finally:
         context.close()
+
+
+# --- The 404 and the pages under /errors/ -----------------------------------------------
+
+ERROR_PAGES = {"403": False, "500": True, "502": True, "503": True}
+LIGHT_BG, NIGHT_BG = "rgb(244, 241, 234)", "rgb(0, 0, 0)"
+
+
+def lost(browser, base_url: str, *, width: int = 1280, reduced: str = "reduce", **options):
+    """A context for pages served by the 404 handler, which is a different server."""
+    made = browser.new_context(
+        viewport={"width": width, "height": 800}, reduced_motion=reduced, **options
+    )
+    made.route(re.compile("^(?!" + re.escape(base_url) + "/)"), lambda route: route.abort())
+    return made
+
+
+def suggested(page) -> list[str]:
+    return page.evaluate(
+        "() => [...document.querySelectorAll('#lost-list a')].map(a => a.getAttribute('href'))"
+    )
+
+
+def test_a_near_miss_is_answered_with_a_404_and_the_page_it_was_close_to(browser, missing_url):
+    made = lost(browser, missing_url)
+    try:
+        page = made.new_page()
+        response = page.goto(missing_url + "/family-workflw/")
+        assert response.status == 404
+        assert page.get_by_role("heading", level=1, name="Error 404: page not found").count() == 1
+        # The request is shown back, and the closest real page is offered first.
+        assert page.locator("#lost-path").text_content() == "/family-workflw/"
+        assert page.is_visible("#lost-suggest")
+        links = suggested(page)
+        assert links[0] == "/plugins/family/family-workflow/" and len(links) <= 3
+        page.get_by_role("link", name="family-workflow").click()
+        page.wait_for_url(missing_url + "/plugins/family/family-workflow/")
+    finally:
+        made.close()
+
+
+@pytest.mark.parametrize(
+    ("path", "expected"),
+    [
+        ("/statr/", "/start/"),  # two letters swapped
+        ("/plugins/coding/code-reveiw/", "/plugins/coding/code-review/"),
+        ("/old/skills/code-rev", "/plugins/coding/code-review/"),  # the start of a name
+        ("/Family_Workflow.html", "/plugins/family/family-workflow/"),
+    ],
+)
+def test_the_suggestion_forgives_swaps_prefixes_case_and_an_extension(
+    browser, missing_url, path, expected
+):
+    made = lost(browser, missing_url)
+    try:
+        page = made.new_page()
+        page.goto(missing_url + path)
+        assert expected in suggested(page)
+    finally:
+        made.close()
+
+
+def test_a_path_that_matches_nothing_shows_itself_and_no_suggestions(browser, missing_url):
+    made = lost(browser, missing_url)
+    try:
+        page = made.new_page()
+        page.goto(missing_url + "/qqqqzzzz/")
+        assert page.locator("#lost-path").text_content() == "/qqqqzzzz/"
+        assert not page.is_visible("#lost-suggest") and suggested(page) == []
+        # The four ways onward are always there.
+        for name in ("Home", "Start", "Search the catalogue", "FAMILY"):
+            assert page.get_by_role("link", name=name, exact=True).first.is_visible(), name
+    finally:
+        made.close()
+
+
+def test_the_requested_path_is_text_and_never_markup(browser, missing_url):
+    made = lost(browser, missing_url)
+    try:
+        page = made.new_page()
+        dialogs = []
+        page.on("dialog", lambda dialog: dialogs.append(dialog.message))
+        hostile = "/<img src=x onerror=alert(1)>/<script>alert(2)</script>"
+        page.goto(missing_url + hostile)
+        assert page.locator("#lost-path").text_content() == hostile
+        assert page.locator("#lost-path img, #lost-path script").count() == 0
+        assert page.locator("main img").count() == 0 and dialogs == []
+    finally:
+        made.close()
+
+
+def test_the_404_reads_whole_without_script(browser, missing_url):
+    made = lost(browser, missing_url, java_script_enabled=False)
+    try:
+        page = made.new_page()
+        page.goto(missing_url + "/family-workflw/")
+        assert page.get_by_role("heading", level=1, name="Error 404: page not found").count() == 1
+        assert page.get_by_text("There is nothing at this address.").is_visible()
+        assert not page.is_visible("#lost-path") and not page.is_visible("#lost-suggest")
+        assert page.get_by_role("link", name="Search the catalogue").is_visible()
+        page.get_by_role("link", name="Search the catalogue").click()
+        page.wait_for_url(missing_url + "/#finder")
+    finally:
+        made.close()
+
+
+def test_the_404_digits_are_whole_and_still_when_motion_is_reduced(browser, missing_url):
+    made = lost(browser, missing_url)
+    try:
+        page = made.new_page()
+        page.goto(missing_url + "/nothing-here/")
+        digits = page.evaluate(
+            "() => [...document.querySelectorAll('.lost-word .ld')].map(e => ({text: e.textContent,"
+            " opacity: getComputedStyle(e).opacity, width: e.getBoundingClientRect().width}))"
+        )
+        assert "".join(d["text"] for d in digits) == "404"
+        assert all(d["opacity"] == "1" and d["width"] > 0 for d in digits)
+        assert page.evaluate("() => document.getAnimations().length") == 0
+    finally:
+        made.close()
+
+
+def test_the_404_types_and_scans_when_motion_is_allowed(browser, missing_url):
+    made = lost(browser, missing_url, reduced="no-preference")
+    try:
+        page = made.new_page()
+        page.goto(missing_url + "/nothing-here/")
+        names = page.evaluate("() => document.getAnimations().map(a => a.animationName)")
+        assert names.count("lost-key") == 3 and "lost-scan" in names and "lost-caret" in names
+        page.wait_for_function(
+            "() => [...document.querySelectorAll('.lost-word .ld')]"
+            ".every(e => getComputedStyle(e).opacity === '1')",
+            timeout=10_000,
+        )
+    finally:
+        made.close()
+
+
+@pytest.mark.parametrize("path", ["/qqqqzzzz/", "/" + "a" * 300 + "/", "/family-workflw/"])
+def test_the_404_does_not_scroll_sideways_on_a_phone(browser, missing_url, path):
+    made = lost(browser, missing_url, width=390)
+    try:
+        page = made.new_page()
+        page.goto(missing_url + path)
+        assert page.evaluate("() => document.documentElement.scrollWidth") <= 390
+    finally:
+        made.close()
+
+
+def test_an_error_page_is_answered_at_its_extensionless_address(browser, base_url):
+    # The .html address redirects, as the Worker's html_handling does, so a consumer
+    # pointed at it would get a redirect rather than the page.
+    made = browser.new_context()
+    try:
+        page = made.new_page()
+        response = page.goto(f"{base_url}/errors/503.html")
+        assert page.url == f"{base_url}/errors/503"
+        assert response.request.redirected_from is not None
+        assert page.get_by_role("heading", level=1).count() == 1
+    finally:
+        made.close()
+
+
+@pytest.mark.parametrize("code", ERROR_PAGES)
+@pytest.mark.parametrize("width", [320, 390, 1280])
+def test_each_error_page_fits_the_screen_and_makes_no_requests(browser, base_url, code, width):
+    made = browser.new_context(viewport={"width": width, "height": 800}, reduced_motion="reduce")
+    requested = []
+    made.route("**/*", lambda route: (requested.append(route.request.url), route.continue_()))
+    try:
+        page = made.new_page()
+        page.goto(f"{base_url}/errors/{code}")
+        assert page.evaluate("() => document.documentElement.scrollWidth") <= width
+        assert page.get_by_role("heading", level=1).count() == 1
+        assert page.get_by_role("link", name="Home", exact=True).last.is_visible()
+        # The page is the whole of what was fetched, bar the tab icon's own data URI.
+        assert [url for url in requested if not url.startswith("data:")] == [
+            f"{base_url}/errors/{code}"
+        ]
+    finally:
+        made.close()
+
+
+@pytest.mark.parametrize("code", ERROR_PAGES)
+def test_error_pages_stop_all_motion_when_it_is_reduced_and_move_when_it_is_not(
+    browser, base_url, code
+):
+    still = browser.new_context(reduced_motion="reduce")
+    moving = browser.new_context(reduced_motion="no-preference")
+    try:
+        quiet = still.new_page()
+        quiet.goto(f"{base_url}/errors/{code}")
+        assert quiet.evaluate("() => document.getAnimations().length") == 0
+        digits = quiet.evaluate(
+            "() => [...document.querySelectorAll('.digits .dg')].map(e =>"
+            " [e.textContent, getComputedStyle(e).opacity])"
+        )
+        assert digits == [[c, "1"] for c in code]
+        busy = moving.new_page()
+        busy.goto(f"{base_url}/errors/{code}")
+        names = busy.evaluate("() => document.getAnimations().map(a => a.animationName)")
+        assert names.count("err-key") == 3 and "err-caret" in names
+        # And each page has the effect that belongs to its code.
+        effect = {"403": "err-lock", "500": "err-shake", "502": "err-dash", "503": "err-sweep"}
+        assert effect[code] in names, names
+    finally:
+        still.close()
+        moving.close()
+
+
+@pytest.mark.parametrize("scheme", ["light", "dark"])
+def test_error_pages_follow_the_colour_scheme_and_a_choice_made_on_the_site(
+    browser, base_url, scheme
+):
+    made = browser.new_context(color_scheme=scheme, reduced_motion="reduce")
+    try:
+        page = made.new_page()
+        page.goto(f"{base_url}/errors/503")
+        background = lambda: page.evaluate(  # noqa: E731
+            "() => getComputedStyle(document.documentElement).backgroundColor"
+        )
+        assert background() == (NIGHT_BG if scheme == "dark" else LIGHT_BG)
+        # The theme stored by the site's own switch wins over the system's.
+        page.evaluate(
+            "t => localStorage.setItem('theme', t)", "day" if scheme == "dark" else "night"
+        )
+        page.reload()
+        assert background() == (LIGHT_BG if scheme == "dark" else NIGHT_BG)
+    finally:
+        made.close()
+
+
+@pytest.mark.parametrize("code", ERROR_PAGES)
+def test_error_page_text_has_enough_contrast_in_both_schemes(browser, base_url, code):
+    for scheme in ("light", "dark"):
+        made = browser.new_context(color_scheme=scheme, reduced_motion="reduce")
+        try:
+            page = made.new_page()
+            page.goto(f"{base_url}/errors/{code}")
+            ratios = page.evaluate(
+                """() => {
+                  const lin = x => { x /= 255;
+                    return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; };
+                  const lum = c => { const v = c.match(/[\\d.]+/g).slice(0, 3).map(Number).map(lin);
+                    return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+                  const bg = lum(getComputedStyle(document.documentElement).backgroundColor);
+                  return ['.digits', '.err-title', '.err-msg', '.foot'].map(s => {
+                    const l = lum(getComputedStyle(document.querySelector(s)).color);
+                    return [s, (Math.max(l, bg) + 0.05) / (Math.min(l, bg) + 0.05)]; });
+                }"""
+            )
+            for selector, ratio in ratios:
+                assert ratio >= 4.5, (code, scheme, selector, ratio)
+        finally:
+            made.close()
+
+
+def test_retry_reloads_the_page_and_shows_only_with_script(browser, base_url):
+    made = browser.new_context(reduced_motion="reduce")
+    try:
+        page = made.new_page()
+        page.goto(f"{base_url}/errors/503")
+        page.evaluate("() => { window.stale = true; }")
+        page.get_by_role("button", name="Retry").click()
+        page.wait_for_function("() => window.stale === undefined")
+        assert page.get_by_role("button", name="Retry").is_visible()
+    finally:
+        made.close()
+    bare = browser.new_context(java_script_enabled=False)
+    try:
+        page = bare.new_page()
+        page.goto(f"{base_url}/errors/503")
+        assert page.get_by_role("heading", level=1, name="Error 503: Back shortly").count() == 1
+        assert page.get_by_role("link", name="Retry").is_visible()
+        assert (
+            page.get_by_role("button", name="Retry").count() == 0
+            or not page.get_by_role("button", name="Retry").is_visible()
+        )
+    finally:
+        bare.close()
+
+
+def test_403_offers_no_retry_and_a_way_home(browser, base_url):
+    made = browser.new_context(reduced_motion="reduce")
+    try:
+        page = made.new_page()
+        page.goto(f"{base_url}/errors/403")
+        assert page.get_by_role("button", name="Retry").count() == 0
+        page.get_by_role("link", name="Home", exact=True).last.click()
+        page.wait_for_url(base_url + "/")
+    finally:
+        made.close()

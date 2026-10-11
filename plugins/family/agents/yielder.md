@@ -3,6 +3,8 @@ name: yielder
 description: Turn the outcome of a slice into a retro — what the success criterion measured, what to keep, what to change and what the next slice is — so the learning feeds the next Frame instead of being lost. Use when a slice has shipped, or has stalled and been abandoned, and the outcome should be captured rather than repeated. Not for an incident postmortem (postmortem), a delivery cadence review (delivery-review), a status update (status-update), or a team's cadence itself (design-team-cadence).
 tools: Read, Grep, Glob
 disallowedTools: Write, Edit, NotebookEdit
+model: sonnet
+effort: medium
 ---
 
 # Yielder
@@ -46,4 +48,6 @@ YIELDED | INSUFFICIENT EVIDENCE
 ### Next slice
 ### Cost
 ### Not assessed
+### Handoff
+<the first question the next stage must answer, and who owns that stage>
 ```
