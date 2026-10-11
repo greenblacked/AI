@@ -69,14 +69,26 @@ class _Quiet(http.server.SimpleHTTPRequestHandler):
         candidate = Path(self.translate_path(path) + ".html")
         return candidate if candidate.is_file() else None
 
+    def _redirects(self) -> dict[str, str]:
+        """Each flat page's `.html` address mapped to its extensionless one.
+
+        Built from the files on disk, so the Location sent back is always a value this
+        table holds and never text taken from the request.
+        """
+        root = Path(self.directory)
+        table = {}
+        for page in root.rglob("*.html"):
+            if page.name in ("index.html", "404.html"):
+                continue
+            served = "/" + page.relative_to(root).as_posix()
+            table[served] = served[: -len(".html")]
+        return table
+
     def send_head(self):
-        path = self.path.split("?", 1)[0]
-        # Only a plain site path is echoed back into Location, so nothing a request
-        # carries can reach the response headers.
-        safe = re.fullmatch(r"/[A-Za-z0-9/_.-]*", path) is not None
-        if safe and path.endswith(".html") and not path.endswith("/index.html"):
+        target = self._redirects().get(self.path.split("?", 1)[0])
+        if target is not None:
             self.send_response(307)
-            self.send_header("Location", path[: -len(".html")])
+            self.send_header("Location", target)
             self.send_header("Content-Length", "0")
             self.end_headers()
             return None
