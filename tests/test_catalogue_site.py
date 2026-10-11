@@ -271,8 +271,14 @@ def test_every_page_names_the_tab_and_home_screen_icons_and_both_ship(mini_repo,
         data = (output / name).read_bytes()
         assert data[:8] == b"\x89PNG\r\n\x1a\n", name
         assert struct.unpack(">II", data[16:24]) == (size, size), name
-    pages = sorted(output.rglob("*.html"))
+    # The pages under errors/ are shown on their own, in place of a failing page, so they
+    # carry no link to a file on the site: their icon is a data URI, checked below.
+    pages = sorted(p for p in output.rglob("*.html") if p.parent.name != "errors")
     assert len(pages) > 5
+    for page in (output / "errors").glob("*.html"):
+        head = page.read_text(encoding="utf-8").split("</head>", 1)[0]
+        assert head.count('<link rel="icon" href="data:image/svg+xml,') == 1, page
+        assert "/favicon.png" not in head and "apple-touch-icon" not in head, page
     links = (
         '<link rel="icon" href="/favicon.png" type="image/png" sizes="64x64">',
         '<link rel="apple-touch-icon" href="/apple-touch-icon.png">',
@@ -426,6 +432,10 @@ def test_every_page_is_written_beside_the_archives(mini_repo, tmp_path):
     for path in (
         "index.html",
         "404.html",
+        "errors/403.html",
+        "errors/500.html",
+        "errors/502.html",
+        "errors/503.html",
         "family/index.html",
         "family/example/index.html",
         "start/index.html",
@@ -1935,3 +1945,135 @@ def test_a_failed_dispatch_prints_a_command_that_dispatches_on_the_tag():
     dispatch = workflow.split("- name: Dispatch the release workflow on the tag", 1)[1]
     assert "gh workflow run release.yml --repo $GH_REPO --ref v$VERSION" in dispatch
     assert "Actions tab" not in dispatch
+
+
+# --- the 404 and the /errors/ pages -----------------------------------------------------
+
+ERROR_CODES = ("403", "500", "502", "503")
+
+
+def _suggestion_data(page):
+    block = re.search(r'<script type="application/json" id="lost-pages">(.*?)</script>', page, re.S)
+    assert block, "the 404 embeds no page list"
+    return block.group(1), json.loads(block.group(1))
+
+
+def test_the_404_embeds_every_real_page_for_its_suggestions(mini_repo, tmp_path):
+    page = (_build(mini_repo, tmp_path) / "404.html").read_text(encoding="utf-8")
+    _, pages = _suggestion_data(page)
+    built = {entry[0] for entry in pages}
+    assert len(built) == len(pages), "a page is offered twice"
+    assert {
+        "/family/",
+        "/family/example/",
+        "/start/",
+        "/workflows/",
+        "/examples/",
+        "/quality/",
+        "/plugins/engineering/",
+        "/plugins/engineering/alpha/",
+        "/plugins/engineering/beta/",
+    } == built
+    assert ["/plugins/engineering/alpha/", "alpha", "Skill in engineering"] in pages
+    # The 404 is served from any depth, so nothing on it may be relative.
+    for href in re.findall(r'href="([^"]*)"', page):
+        assert href.startswith(("/", "#", "https://")), href
+    for label, href in (("Home", "/"), ("Start", "/start/"), ("FAMILY", "/family/")):
+        assert f'href="{href}">{label}</a>' in page
+    assert 'href="/#finder">Search the catalogue</a>' in page
+    # What the visitor asked for and what is suggested start hidden, and only script shows
+    # them, so without script the page is the heading, the sentence and the links.
+    assert '<p class="lost-asked" hidden>' in page and 'id="lost-suggest"' in page
+    assert "hidden>\n<h2" in page
+
+
+def test_the_embedded_page_list_cannot_close_its_script_element():
+    hostile = [["/x/", "</script><script>alert(1)</script>", "<!-- & \u2028 \u2029 -->"]]
+    escaped = site.site_errors.json_for_script(hostile)
+    assert not set("<>&") & set(escaped) and "\u2028" not in escaped and "\u2029" not in escaped
+    assert json.loads(escaped) == hostile
+    page = site.render_missing(hostile, "v9")
+    assert page.count("<script") == page.count("</script>")
+    block, pages = _suggestion_data(page)
+    assert pages == hostile and "<" not in block
+    # The path the visitor asked for is shown through textContent and nothing else.
+    script = site.site_errors.LOST_SCRIPT
+    assert "textContent" in script
+    assert not re.search(r"innerHTML|outerHTML|insertAdjacentHTML|document\.write", script)
+
+
+def test_the_404_keeps_the_site_header_and_footer_and_its_own_motion_rules(mini_repo, tmp_path):
+    page = (_build(mini_repo, tmp_path) / "404.html").read_text(encoding="utf-8")
+    assert '<header class="site-header" id="banner">' in page
+    assert '<footer class="site-footer">' in page and "Made by Serhii Zolotov" in page
+    assert '<span class="sr-only">Error 404: page not found</span>' in page
+    assert "Did you mean" in page
+    css = site.site_errors.LOST_CSS
+    assert _outside_motion_query(css).count("animation") == 0
+    assert "prefers-reduced-motion: no-preference" in css
+
+
+def _outside_motion_query(css):
+    """The stylesheet with every ``prefers-reduced-motion: no-preference`` block removed."""
+    kept, rest = [], css
+    marker = "@media (prefers-reduced-motion: no-preference) {"
+    while marker in rest:
+        before, _, after = rest.partition(marker)
+        kept.append(before)
+        depth = 1
+        for index, char in enumerate(after):
+            depth += (char == "{") - (char == "}")
+            if depth == 0:
+                rest = after[index + 1 :]
+                break
+        else:  # pragma: no cover - an unbalanced stylesheet fails the assertions anyway
+            rest = ""
+    return "".join(kept) + rest
+
+
+@pytest.mark.parametrize("code", ERROR_CODES)
+def test_each_error_page_is_one_self_contained_noindex_file(mini_repo, tmp_path, code):
+    path = _build(mini_repo, tmp_path) / "errors" / f"{code}.html"
+    raw = path.read_bytes()
+    page = raw.decode("utf-8")
+    # A custom error page is fetched once and shown on its own, so size is a contract.
+    assert len(raw) < 100_000
+    assert '<meta name="robots" content="noindex">' in page
+    # Nothing is loaded: no script, stylesheet, image, font or frame, and every link a
+    # visitor can follow stays on the host serving the page.
+    assert not re.search(r"<(?:img|iframe|object|embed|audio|video|source)\b", page)
+    assert not re.search(r"<script[^>]*\bsrc=", page)
+    assert not re.search(r'<link[^>]*rel="(?:stylesheet|preload|preconnect|prefetch)', page)
+    assert "@import" not in page and "@font-face" not in page
+    assert not re.search(r"url\(\s*[\"']?(?!data:|#)", page)
+    for value in re.findall(r'(?:href|src|action)="([^"]*)"', page):
+        assert value in ("/", "") or value.startswith("data:image/"), value
+    # The one address in the file is the SVG namespace inside the tab icon's data URI.
+    assert "https://" not in page
+    assert page.replace("http://www.w3.org/2000/svg", "").count("http://") == 0
+    # Motion exists only where the visitor has not asked for less; the page is whole
+    # without it, and without script.
+    assert "prefers-reduced-motion: no-preference" in page
+    css = re.search(r"<style>(.*?)</style>", page, re.S).group(1)
+    assert "animation" in css and "animation" not in _outside_motion_query(css)
+    assert "prefers-color-scheme: dark" in css and 'data-theme="night"' in css
+    assert ":focus-visible" in css and "<h1" in page and "Error " + code in page
+    assert page.count('href="/"') == 2  # the mark and the Home button
+    # No vendor, model or host is named.
+    assert not re.search(r"claude|anthropic|openai|gpt|gemini|codex|cloudflare|copilot", page, re.I)
+    retry = 'id="retry"' in page
+    assert retry == (code != "403")
+    if retry:
+        assert "location.reload()" in page or "window.location.reload()" in page
+        assert "<noscript>" in page
+
+
+def test_error_pages_have_distinct_headings_and_stay_small(mini_repo, tmp_path):
+    errors = _build(mini_repo, tmp_path) / "errors"
+    assert sorted(p.name for p in errors.iterdir()) == [f"{code}.html" for code in ERROR_CODES]
+    titles = [
+        re.search(r"<title>(.*?)</title>", (errors / f"{code}.html").read_text("utf-8")).group(1)
+        for code in ERROR_CODES
+    ]
+    assert len(set(titles)) == 4 and all(title.endswith(" · AI") for title in titles)
+    assert max(p.stat().st_size for p in errors.iterdir()) < 20_000
