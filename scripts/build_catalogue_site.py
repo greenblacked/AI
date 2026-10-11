@@ -32,6 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 import export_portable  # noqa: E402
 import package_skills  # noqa: E402
+import site_errors  # noqa: E402
 import site_markdown  # noqa: E402
 import site_style  # noqa: E402
 
@@ -267,15 +268,26 @@ def _to_top() -> str:
 
 
 def _page(
-    title: str, main: str, version: str, *, current: str = "", parent: str | None = None
+    title: str,
+    main: str,
+    version: str,
+    *,
+    current: str = "",
+    parent: str | None = None,
+    style: str = "",
+    script: str = "",
 ) -> str:
     """One document. ``main`` is already escaped HTML for the page body.
 
     ``current`` is the root-relative path of the page, which marks its footer link.
-    ``parent`` is where Back goes without history, and None on the front page.
+    ``parent`` is where Back goes without history, and None on the front page. ``style``
+    and ``script`` are a page's own CSS and script, written after the shared ones; only
+    the 404 has any, so every other page is byte for byte what it was.
     """
     source = _esc(SOURCE_URL)
     dock = _dock(parent)
+    extra_style = f"<style>\n{style}</style>\n" if style else ""
+    extra_script = f"<script>\n{script}</script>\n" if script else ""
     return (
         "<!DOCTYPE html>\n"
         '<html lang="en">\n'
@@ -291,6 +303,7 @@ def _page(
         '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
         f'<link rel="stylesheet" href="{_esc(site_style.FONTS_URL)}">\n'
         f"<style>\n{site_style.CSS}</style>\n"
+        f"{extra_style}"
         f"<script>\n{site_style.HEAD_SCRIPT}\n</script>\n"
         "</head>\n"
         "<body>\n"
@@ -320,6 +333,7 @@ def _page(
         "</div>\n</footer>\n"
         f"{_to_top()}"
         f"<script>\n{site_style.PAGE_SCRIPT}</script>\n"
+        f"{extra_script}"
         "</body>\n"
         "</html>\n"
     )
@@ -768,7 +782,8 @@ def render_start(catalogue: Catalogue, version: str) -> str:
 
 
 def _part_item(part: Part, *, command: bool) -> str:
-    label = ("/" if command else "") + part.name
+    # An installed plugin's command runs as /plugin:name, so that is the name to show.
+    label = f"/{part.plugin}:{part.name}" if command else part.name
     href = _esc(_blob(part.path))
     link = f'<a href="{href}" rel="noopener noreferrer"><code>{_esc(label)}</code></a>'
     hint = f" <code>{_esc(part.hint)}</code>" if part.hint else ""
@@ -1492,6 +1507,47 @@ def _redirects() -> str:
     return f"/plugins/{FAMILY_PLUGIN}/ /family/ 301\n/plugins/{FAMILY_PLUGIN} /family/ 301\n"
 
 
+SUGGESTED_PAGES = (
+    ("family", "The FAMILY workflow"),
+    ("family/example", "One FAMILY slice, end to end"),
+    ("start", "Start"),
+    ("workflows", "Workflows"),
+    ("examples", "Examples"),
+    ("quality", "Quality"),
+)
+
+
+def _suggestions(catalogue: Catalogue, pages: dict[str, str]) -> list[list[str]]:
+    """Every page the 404 can offer: ``[path, name, what it is]``, from what was built.
+
+    Taken from the pages that were actually written, so a page that exists is
+    suggestible and a name that is not a page is not.
+    """
+    found = [[f"/{key}/", label, "Page"] for key, label in SUGGESTED_PAGES if key in pages]
+    for plugin, _ in catalogue.groups:
+        # The family plugin's page is /family/, already offered above under its own name.
+        if plugin != FAMILY_PLUGIN:
+            found.append([_plugin_href(plugin), plugin, "Plugin"])
+    for skill in catalogue.skills:
+        found.append(
+            [_skill_href(skill.plugin, skill.name), skill.name, f"Skill in {skill.plugin}"]
+        )
+    return found
+
+
+def render_missing(suggestions: list[list[str]], version: str) -> str:
+    """The 404 Cloudflare serves for every address with no page, whatever its depth."""
+    main = site_errors.missing_main(_back("/"), suggestions)
+    return _page(
+        "Not found · AI",
+        main,
+        version,
+        parent="/",
+        style=site_errors.LOST_CSS,
+        script=site_errors.LOST_SCRIPT,
+    )
+
+
 def _robots(noindex: bool) -> str:
     if noindex:
         return "User-agent: *\nDisallow: /\n"
@@ -1582,13 +1638,15 @@ def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> N
         target = output / directory
         target.mkdir(parents=True, exist_ok=True)
         (target / "index.html").write_text(content, encoding="utf-8")
-    missing = _page(
-        "Not found · AI",
-        _narrow(_back("/") + "\n" + _title("Not found", "There is nothing at this address.")),
-        version,
-        parent="/",
+    (output / "404.html").write_text(
+        render_missing(_suggestions(catalogue, pages), version), encoding="utf-8"
     )
-    (output / "404.html").write_text(missing, encoding="utf-8")
+    errors = output / "errors"
+    errors.mkdir()
+    for error in site_errors.ERROR_PAGES:
+        (errors / f"{error.code}.html").write_text(
+            site_errors.render_error(error), encoding="utf-8"
+        )
     print(f"built {output} for {version}")
 
 

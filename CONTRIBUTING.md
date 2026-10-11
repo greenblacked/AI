@@ -84,14 +84,16 @@ argue that it is wrong and change it deliberately.
 
 Releases are git tags, cut by the maintainer in two steps documented in
 [docs/ci.md#releasing-a-version](docs/ci.md#releasing-a-version):
-`make release-prepare VERSION=x.y.z` on a branch, then `make release VERSION=x.y.z` on
-`main` once that pull request has merged. A new pull request should add its entry under
+`make release-prepare VERSION=x.y.z` on the branch that promotes `stage` into `main`,
+then Cut release (or `make release VERSION=x.y.z`) on `main` once that promotion has
+merged. A new pull request should add its entry under
 `## [Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md) rather than to a version section,
 since the version and its date are only decided at release time.
 
 ## Naming a branch
 
-Branch from `main` as `<type>/<short-kebab-description>`: lowercase, hyphen-separated
+Branch from `dev`, and open the pull request into `dev`: `stage` and `main` take only
+promotions. Name the branch `<type>/<short-kebab-description>`: lowercase, hyphen-separated
 words after the slash, no further slashes, and a description of the change rather than
 of who or what made it. `scripts/check_naming.py` enforces the shape below on every pull
 request, so a branch that does not match fails the `naming` job with a message pointing

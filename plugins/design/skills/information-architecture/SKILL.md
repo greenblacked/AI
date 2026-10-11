@@ -56,7 +56,7 @@ Make URLs read like the hierarchy so they can be guessed and shared. Plan redire
 - **Tree test** — give users the proposed structure and a task, and see where they go; use it when the structure is drafted and you need to know if it works.
 - **First-click or search-log analysis** — use existing behaviour when you have it.
 
-Five to fifteen participants per round is enough for structure. Record where people went, not just whether they were right.
+Five to fifteen participants per round is enough for structure when you read the result qualitatively, as groupings, names and wrong turns. A tree test's success rate is a quantitative measure: a percentage from fifteen people is too wide to report or to compare two trees on, so size that study for the margin you need. Record where people went, not just whether they were right.
 
 ### 9. Document and hand over
 
