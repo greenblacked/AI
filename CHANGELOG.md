@@ -411,6 +411,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Describe the `family` stage agents as having no editing tools rather than as
+  read-only in `family-workflow`: `inspector` holds `Bash` and can run commands, which
+  it does only on a change the owner wrote.
 - Ship each `family` stage agent with the tier `stage-tiering` states: `framer`,
   `maker`, `launcher` and `yielder` on `sonnet` at medium effort, `architect` and
   `inspector` on `opus` at the tool's default effort. Without a `model` line every stage

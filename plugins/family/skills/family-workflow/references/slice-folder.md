@@ -32,7 +32,7 @@ The rule is strict because the name becomes a path. Anything with a slash, a dot
 
 ## How the files are used
 
-- The main agent writes the files. The stage agents are read-only: they return a report and the main agent puts the artifact in the file, so the file holds what the owner accepted and not what an agent proposed.
+- The main agent writes the files. The stage agents have no editing tools: they return a report and the main agent puts the artifact in the file, so the file holds what the owner accepted and not what an agent proposed.
 - The first line of every file is the stage's `First question` from `stages.md`, copied and not reworded. It is what the stage answers before anything else once the handoff reaches it.
 - A stage that is waived keeps its file. Write the waiver in it, with the reason and the risk; only Architect and Launch may be waived. A missing file reads as a skipped stage, a waiver reads as a decision.
 - `inspect.md` ends with the go/no-go line, answered once by the Inspect owner. `launch.md` takes it as input and does not remake it.
