@@ -17,6 +17,6 @@
   {"query":"How can we test restoration from backup and measure RPO?", "should_trigger":false, "expected":"disaster-recovery-exercise"},
   {"query":"My SQL query is slow; should I add an index?", "should_trigger":false, "expected":"sql-performance"},
   {"query":"Design tables and keys for a new product feature.", "should_trigger":false, "expected":"schema-design"},
-  {"query":"Choose tests for the error paths of this new API.", "should_trigger":false, "expected":"test-design"},
+  {"query":"backfilling a new uuid column across about 300m rows, what batch size and what should i throttle on", "should_trigger":false, "expected":"db-migration"},
   {"query":"Can we safely promote from 5% to 25% this afternoon?", "should_trigger":false, "expected":"release-strategy"}
 ]

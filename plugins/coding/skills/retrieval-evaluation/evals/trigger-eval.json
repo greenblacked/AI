@@ -16,7 +16,7 @@
   {"query":"Find the root cause of a production search service outage.", "should_trigger":false, "expected":"incident-response"},
   {"query":"Tune a slow SQL query using an execution plan.", "should_trigger":false, "expected":"sql-performance"},
   {"query":"Decide when to promote our canary to all users.", "should_trigger":false, "expected":"release-strategy"},
-  {"query":"Write a test plan for our browser checkout flow.", "should_trigger":false, "expected":"e2e-testing"},
+  {"query":"new search ranker is ready, i want to run it against the old one on live traffic before users see it", "should_trigger":false, "expected":"release-strategy"},
   {"query":"Build a search navigation and taxonomy that users can browse.", "should_trigger":false, "expected":"information-architecture"},
   {"query":"Measure the cost per LLM answer and route cheaper prompts.", "should_trigger":false, "expected":"llm-cost"}
 ]

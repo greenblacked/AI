@@ -10,6 +10,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add four skills: `retrieval-evaluation` to `coding` for judging a retriever or ranking
+  change against a reproducible benchmark; `feature-flag-lifecycle` and
+  `safe-backfill` to `delivery` for wiring and retiring a flag once the rollout is
+  chosen and for a checkpointed one-off data repair; and `problem-validation` to `design` for testing
+  whether a problem is real before anything is built.
 - Merge the `family` plugin page into `/family/`: one page with the typed heading, the
   install command, a profile picker that highlights the stages a role owns, each stage as a
   disclosure naming its agent, verdicts and next hop, a slice checklist kept in the
@@ -252,6 +257,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Write each portable router row as a plain `skills/<name>.md` path and its trigger,
+  without the list marker and colon, so `router.md` stays inside its size budget with
+  four more skills.
 - Return the fix packet in `fresh-inspector-rounds` to the contributor when the change
   is not the owner's, so the main conversation applies fixes only to a slice the owner
   wrote and never patches a contributor's change on the trusted checkout. With an unknown

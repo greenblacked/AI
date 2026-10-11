@@ -947,7 +947,7 @@ def test_router_keeps_each_skill_trigger_and_single_link(mini_repo, tmp_path):
             assert text.count(line) == 1
 
 
-def test_router_rows_preserve_order_triggers_and_three_bytes_per_skill(mini_repo, tmp_path):
+def test_router_rows_keep_order_and_triggers_without_list_markup(mini_repo, tmp_path):
     first = "Use when café needs routing."
     second = "Use when " + "x" * 90 + "."  # Exactly 100 characters, without truncation.
     write_skill(
@@ -992,15 +992,14 @@ def test_router_rows_preserve_order_triggers_and_three_bytes_per_skill(mini_repo
     ):
         text = (out / filename).read_text(encoding="utf-8")
         rows = re.findall(r"^(skills/[\w.-]+\.md) (.+)$", text, re.M)
-        expected = [(f"skills/{name}.md", triggers[name]) for _, names in selected for name in names]
+        expected = [
+            (f"skills/{name}.md", triggers[name]) for _, names in selected for name in names
+        ]
         assert rows == expected
         for path, _ in rows:
             assert (out / path).is_file()
-        old_rows = [f"- {path}: {trigger}" for path, trigger in rows]
-        new_rows = [f"{path} {trigger}" for path, trigger in rows]
-        assert len("\n".join(old_rows).encode()) - len("\n".join(new_rows).encode()) == 3 * len(
-            rows
-        )
+        # The list marker and colon are what the format drops to fit the size cap.
+        assert "- skills/" not in text and ".md: " not in text
 
 
 def test_the_router_trigger_cap_stays_at_one_hundred_characters():

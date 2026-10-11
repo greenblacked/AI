@@ -15,8 +15,8 @@
   {"query":"Rename a database column and backfill it before dropping the old one.", "should_trigger":false, "expected":"db-migration"},
   {"query":"Plan a one-way DNS switchover with a rollback deadline.", "should_trigger":false, "expected":"cutover"},
   {"query":"Compare feature flag vendors on price and contractual risk.", "should_trigger":false, "expected":"vendor-evaluation"},
-  {"query":"An incident is happening now; coordinate mitigation and communications.", "should_trigger":false, "expected":"incident-response"},
+  {"query":"we want a kill switch on the checkout service before the holiday sale. what does a good one look like", "should_trigger":false, "expected":"release-strategy"},
   {"query":"Design who can access a premium capability across our API.", "should_trigger":false, "expected":"authorization-design"},
   {"query":"Release a mobile binary through staged app store distribution.", "should_trigger":false, "expected":"mobile-release"},
-  {"query":"Evaluate the accuracy of an AI coding agent's responses.", "should_trigger":false, "expected":"agent-evaluation"}
+  {"query":"we have around 200 feature flags and nobody knows which are dead. where do we start", "should_trigger":false, "expected":"release-strategy"}
 ]
