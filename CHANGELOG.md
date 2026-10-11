@@ -252,6 +252,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Prepare a release on the promotion branch from `stage` into `main` instead of a separate
+  pull request: `make release-prepare` dates the changelog there, so after that one merge
+  Cut release runs straight from `main`.
 - Return the fix packet in `fresh-inspector-rounds` to the contributor when the change
   is not the owner's, so the main conversation applies fixes only to a slice the owner
   wrote and never patches a contributor's change on the trusted checkout. With an unknown
@@ -392,6 +395,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Show each plugin command on the site's Workflows page by the name an installed plugin
+  runs it under, `/plugin:command`, rather than the bare command name.
 - Give each portable router line its full 100 characters of trigger again. 0.1.4 cut
   them to 85 to fit the router's 16 KiB budget, which took 15 more characters off every
   long trigger; each line now names its file as `- skills/<name>.md:` instead of a

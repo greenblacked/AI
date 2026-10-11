@@ -638,7 +638,8 @@ def test_workflows_lists_commands_and_subagents_by_plugin(mini_repo, tmp_path):
     extra.mkdir(parents=True)
     (extra / "lone.md").write_text("---\nname: lone\ndescription: Alone.\n---\n", encoding="utf-8")
     page = (_build(mini_repo, tmp_path) / "workflows" / "index.html").read_text(encoding="utf-8")
-    assert "<code>/ship-it</code>" in page and "<code>[branch]</code>" in page
+    assert "<code>/engineering:ship-it</code>" in page and "<code>[branch]</code>" in page
+    assert "<code>/ship-it</code>" not in page
     assert "Ship &lt;b&gt;it&lt;/b&gt;" in page and "<b>it</b>" not in page
     assert (
         "https://github.com/greenblacked/AI/blob/main/plugins/engineering/commands/ship-it.md"
