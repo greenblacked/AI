@@ -71,7 +71,10 @@ class _Quiet(http.server.SimpleHTTPRequestHandler):
 
     def send_head(self):
         path = self.path.split("?", 1)[0]
-        if path.endswith(".html") and not path.endswith("/index.html"):
+        # Only a plain site path is echoed back into Location, so nothing a request
+        # carries can reach the response headers.
+        safe = re.fullmatch(r"/[A-Za-z0-9/_.-]*", path) is not None
+        if safe and path.endswith(".html") and not path.endswith("/index.html"):
             self.send_response(307)
             self.send_header("Location", path[: -len(".html")])
             self.send_header("Content-Length", "0")
