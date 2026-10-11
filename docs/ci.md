@@ -759,7 +759,7 @@ second has two routes, and the Actions one is the usual path.
    tagged locally, or — when an `origin` remote is configured — already tagged there,
    since a branch may not have fetched a tag another release just pushed; with no
    `origin` configured it says so and skips that one check rather than failing. Run it
-   on the branch that promotes `dev` into `main`, after the changelog there is rebuilt,
+   on the branch that promotes `stage` into `main`, after the changelog there is rebuilt,
    and commit the result on that branch: the dated section then reaches `main` in the
    promotion's own merge, and a release needs no pull request of its own. A release
    with nothing to promote, such as a re-cut, can still do this on a branch of its own.

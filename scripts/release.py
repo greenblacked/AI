@@ -17,7 +17,7 @@ there. It refuses an empty ``Unreleased`` section, a malformed version, and a ve
 that is not greater than every existing changelog section and git tag — local tags and,
 when an ``origin`` remote is configured, tags already pushed there too, since a branch
 may not have fetched a tag another release just pushed. Run it on the promotion branch
-from `dev` into `main` and commit the result there, so the section lands on `main` in
+from `stage` into `main` and commit the result there, so the section lands on `main` in
 the same merge as the code it describes rather than in a pull request of its own.
 
 ``tag`` runs on `main` after that promotion has merged. It verifies the branch,
@@ -304,7 +304,7 @@ def prepare(root: Path, version: str) -> int:
     print("next steps:")
     print(f"  git add {CHANGELOG}")
     print(f'  git commit -m "Prepare the {version} release"')
-    print("  open the promotion pull request into main and merge it")
+    print("  on the promotion branch from stage into main; merge that pull request")
     print(f"  then run Cut release on main with {version}, or: make release VERSION={version}")
     return 0
 
