@@ -99,6 +99,10 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          # What an `edited` event changed, as JSON: only title and body may be `text`,
+          # since GitHub sends `edited` for a retargeted base too. Read from env only.
+          CHANGES: ${{ toJSON(github.event.changes) }}
           REF: ${{ github.ref }}
           RUN_ID: ${{ github.run_id }}
         run: |

@@ -5,7 +5,9 @@ Without this, the validator is a tool that has never been pointed at anything re
 
 from __future__ import annotations
 
+import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -108,3 +110,16 @@ def test_this_repository_s_budget_comment_is_what_the_writer_emits():
     budget.write(scratch, {"any": 0})
     emitted = json.loads(scratch.read_text(encoding="utf-8"))["_comment"]
     assert committed == emitted
+
+
+def test_every_marketplace_plugin_is_named_where_the_docs_list_them():
+    # docs/writing-skills.md and AGENTS.md's layout table each enumerate the plugins; a
+    # plugin added to the manifest and to neither is one a contributor never hears of.
+    manifest = json.loads((ROOT / ".claude-plugin" / "marketplace.json").read_text("utf-8"))
+    names = [plugin["name"] for plugin in manifest["plugins"]]
+    writing = (ROOT / "docs" / "writing-skills.md").read_text("utf-8")
+    listing = re.sub(r"\s+", " ", writing.split("`<plugin>` is one of", 1)[1].split("—", 1)[0])
+    agents = (ROOT / "AGENTS.md").read_text("utf-8")
+    for name in names:
+        assert f"`{name}`" in listing, name
+        assert f"| `plugins/{name}/skills/` |" in agents, name

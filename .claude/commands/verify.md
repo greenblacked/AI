@@ -42,7 +42,7 @@ Author guard. This command has no `git fetch`, so the owner, after checking that
 head as a ref only (`git fetch origin '+refs/heads/<base-branch>:refs/remotes/origin/<base-branch>' '+pull/<n>/head:refs/review/<n>'`), and both agents
 get `<base-branch>`, the pinned `<base>` and that candidate ref to read with `git diff '<base>'...refs/review/<n>`,
 where `<base-branch>` must be `dev`, `stage` or `main` (any other base is `STOP`: retarget the PR), and `<base>` is the SHA from `base_sha=$(git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}')` run right after the fetch,
-not a checked-out tree. The reviewer first validates `<base-branch>`, `<base>` and `<n>` before running any command (`STOP` on any mismatch), then requires the candidate to be based on the current base (`FIX` asking for a rebase otherwise), decides inert-only from `git diff -z --raw`, then
+not a checked-out tree. The reviewer first validates `<base-branch>`, `<base>` and `<n>` before running any command (`STOP` on any mismatch), then requires the candidate to be based on the current base (`FIX` asking for a rebase otherwise), decides inert-only from `git diff --no-renames -z --raw`, then
 creates and removes its own gate worktree (the base plus the candidate merged) outside the project, reading files only with
 `git show` on a canonical, single-quoted path. If this session was opened inside a
 contributor checkout, or `git rev-parse --verify 'HEAD^{commit}'` is not `<base>`, return `STOP` and tell the owner to restart from a clean worktree at the pinned SHA.

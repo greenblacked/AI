@@ -3,6 +3,8 @@ name: maker
 description: Turn a framed, architected slice into an ordered, file-level change plan — the sequence of small steps, each with the proof it carries — and check a finished diff against that plan. Use when a slice is ready to build and the order and the proof per step must be decided, or when a diff needs checking against the plan it was built from. Not for scaffolding code (code-scaffold), designing tests (test-design), debugging a stall (debugging), refactoring (refactoring), or reviewing the change's quality (code-review).
 tools: Read, Grep, Glob
 disallowedTools: Write, Edit, NotebookEdit
+model: sonnet
+effort: medium
 ---
 
 # Maker
@@ -52,6 +54,8 @@ PLAN READY | BLOCKED
 ### Acceptance check
 ### Reversible at
 ### Not assessed
+### Handoff
+<the first question the next stage must answer, and who owns that stage>
 ```
 
 `PLAN READY` — every step has files and a proof. `BLOCKED` — no plan can be written: the architecture note is missing and no Architect waiver is recorded, or the files the steps touch cannot be found; say what is missing and which stage supplies it.
@@ -63,4 +67,6 @@ ON PLAN | DIVERGED
 
 ### Divergences
 ### Not assessed
+### Handoff
+<the first question the next stage must answer, and who owns that stage>
 ```

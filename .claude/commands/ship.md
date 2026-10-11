@@ -30,11 +30,12 @@ That review never runs from the contributor's checkout. Claude Code loads projec
 agents, settings, hooks, `CLAUDE.md`, `AGENTS.md` and rules from the session's working
 directory, so a changed `reviewer.md` or hook would run before any Author guard does.
 Run the session, and every agent it delegates, in a checkout of the base branch that
-holds no contributor content: the owner's clone of the PR's own base branch, or a worktree at
-`<base>` made with `git worktree add <dir> '<base>'`. The fetch and pin below run first, from the owner's clone of the PR's base branch, and that worktree is created only after them. First check that `<base-branch>` is `dev`, `stage` or `main` (any other base is `STOP`: tell the owner to retarget the PR) and that `<n>` is all digits, then fetch the current base and the contributor's head as a ref only, `git
+holds no contributor content: the owner's clone of the PR's own base branch checked out
+exactly at `<base>`, or a detached worktree at `<base>` made with `git worktree add --detach
+<dir> '<base>'`; the reviewer returns `STOP` when `HEAD` is anything but the pinned base. The fetch and pin below run first, from the owner's clone of the PR's base branch, and that worktree is created only after them. First check that `<base-branch>` is `dev`, `stage` or `main` (any other base is `STOP`: tell the owner to retarget the PR) and that `<n>` is all digits, then fetch the current base and the contributor's head as a ref only, `git
 fetch origin '+refs/heads/<base-branch>:refs/remotes/origin/<base-branch>' '+pull/<n>/head:refs/review/<n>'`, and pass the reviewer `<base-branch>`, the pinned `<base>` and
 that candidate ref to read as data with `git diff '<base>'...refs/review/<n>`, never a checked-out tree. Here `<base>` is the SHA that `base_sha=$(git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}')` gives right after the fetch, so a later push to the base cannot change what was reviewed. The
-reviewer first validates `<base-branch>`, `<base>` and `<n>` before running any command (`STOP` on any mismatch), then requires the candidate to be based on the current base (`FIX` asking for a rebase otherwise), decides inert-only from `git diff -z --raw`, then creates and removes its own gate
+reviewer first validates `<base-branch>`, `<base>` and `<n>` before running any command (`STOP` on any mismatch), then requires the candidate to be based on the current base (`FIX` asking for a rebase otherwise), decides inert-only from `git diff --no-renames -z --raw`, then creates and removes its own gate
 worktree (the base plus the candidate merged) outside the project and reads file
 contents only with `git show` on a canonical, single-quoted path; this session creates no worktree for it. If this session was itself opened inside a contributor
 checkout, its settings and hooks have already loaded: return `STOP` and tell the owner
@@ -71,23 +72,26 @@ conversation.
 
 ## 0. Branch or worktree
 
-Fetch `origin/main` first: `git fetch origin main`. Then check `git status --porcelain`:
+Feature work lands on `dev`. `stage` and `main` take only promotions (`dev` into
+`stage`, `stage` into `main`; see "What runs where" in `docs/ci.md`), so this loop
+branches from `dev`, opens its pull request into `dev`, and is measured against
+`origin/dev`. Fetch it first: `git fetch origin dev`. Then check `git status --porcelain`:
 it has to be empty before switching this checkout onto a new branch, because a plain
 branch reuses the session's own working tree, and an uncommitted change already sitting
 in it would ride along onto the new branch rather than staying where it was. A non-empty
 result means stop and ask, or use worktree mode instead, which leaves this checkout
 untouched. Once it is empty, switch the session's own checkout onto the new branch:
-`git switch --no-track -c <type>/<kebab> origin/main` — `--no-track` so the branch does
-not inherit `origin/main` as its upstream.
+`git switch --no-track -c <type>/<kebab> origin/dev` — `--no-track` so the branch does
+not inherit `origin/dev` as its upstream.
 With that upstream set, a plain `git push` either fails on the name mismatch under
-`push.default=simple`, or pushes to `main` itself under `push.default=upstream`. Stage
+`push.default=simple`, or pushes to `dev` itself under `push.default=upstream`. Stage
 5's `git push -u origin <type>/<kebab>` is what sets the correct upstream.
 Every agent and every command below already runs in the right tree once this is done,
 with no path to track or name.
 
 Make a worktree instead only when parallel work needs it — two `/ship` runs at once, or
-keeping the session's own checkout on `main` for something else meanwhile: `git worktree
-add <path> -b <type>/<kebab> origin/main --no-track`. Once you do, name that path
+keeping the session's own checkout on its current branch for something else meanwhile:
+`git worktree add <path> -b <type>/<kebab> origin/dev --no-track`. Once you do, name that path
 explicitly on every command from here on — `git -C <path> …`, `make -C <path> …` — never
 a bare `cd`: a worktree lives outside the project directory, and a Bash `cd` there resets
 back to the project directory on the next call; naming the path explicitly removes the
@@ -105,7 +109,7 @@ covers it, where the affected files are, and which existing descriptions its tri
 surface would overlap. In worktree mode, name the worktree path in the prompt and ask it
 to run every command as `git -C <path> …` / `make -C <path> …`, since `explorer` is
 otherwise given no checkout path and would survey the session's own checkout, which may
-not match `origin/main`.
+not match `origin/dev`.
 
 When the change rests on one outside claim — how a flag behaves, what an API permits,
 whether a cited figure is real — run `investigator` beside `explorer` in parallel on that
@@ -227,8 +231,8 @@ and prompts for approval each time — that is fine, and is not a reason to add 
 - push the branch, setting the upstream since stage 0 checked it out with
   `--no-track`: `git push -u origin <type>/<kebab>`, or `git -C <path> push -u origin
   <type>/<kebab>` for a worktree;
-- open the pull request from `.github/pull_request_template.md`, using whatever GitHub
-  access this session has, with the PR body stating the live check settled in stage 2 —
+- open the pull request into `dev` from `.github/pull_request_template.md`, using whatever
+  GitHub access this session has, with the PR body stating the live check settled in stage 2 —
   the pre-merge run's output, a note that this PR's own CI run is the live check (with
   which permission or write path it covers), the named post-merge run still to come, or
   "none, because …";
@@ -266,7 +270,7 @@ run or the PR's own CI run, that `SHIP` has to come from a round that saw and qu
 outcome for the commit actually being merged: a `SHIP` given against an earlier quote, or
 while the PR's own run was still only named, before the PR existed to run it, does not
 satisfy this — get a fresh `reviewer` round (again with "Author: repository owner") on the current quoted outcome first. Squash
-the merge, passing the reviewed head SHA to whatever merge call accepts one, and, when
+the merge into `dev`, the method every pull request into `dev` lands by, passing the reviewed head SHA to whatever merge call accepts one, and, when
 stage 0 made a worktree, remove it with `git worktree remove <path>` — run from the main
 checkout, not from inside the worktree itself.
 
