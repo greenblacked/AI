@@ -16,10 +16,11 @@ above it, and updates the compare-link footer at the bottom of the file if one i
 there. It refuses an empty ``Unreleased`` section, a malformed version, and a version
 that is not greater than every existing changelog section and git tag — local tags and,
 when an ``origin`` remote is configured, tags already pushed there too, since a branch
-may not have fetched a tag another release just pushed. Commit the result, open a pull
-request, and merge it.
+may not have fetched a tag another release just pushed. Run it on the promotion branch
+from `dev` into `main` and commit the result there, so the section lands on `main` in
+the same merge as the code it describes rather than in a pull request of its own.
 
-``tag`` runs on `main` after that pull request has merged. It verifies the branch,
+``tag`` runs on `main` after that promotion has merged. It verifies the branch,
 a clean working tree, that `HEAD` matches `origin/main`, that the changelog carries a
 non-empty section for the version, and that the tag does not already exist locally or
 on the remote — then creates an annotated tag whose message is that section's body. It
@@ -303,8 +304,8 @@ def prepare(root: Path, version: str) -> int:
     print("next steps:")
     print(f"  git add {CHANGELOG}")
     print(f'  git commit -m "Prepare the {version} release"')
-    print("  open a pull request and merge it")
-    print(f"  then, on main: make release VERSION={version}")
+    print("  open the promotion pull request into main and merge it")
+    print(f"  then run Cut release on main with {version}, or: make release VERSION={version}")
     return 0
 
 

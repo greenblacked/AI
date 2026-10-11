@@ -751,16 +751,19 @@ covers the install-time side of that.
 [`scripts/release.py`](../scripts/release.py). The first is the same either way; the
 second has two routes, and the Actions one is the usual path.
 
-1. **On a branch:** `make release-prepare VERSION=x.y.z`. Moves `## [Unreleased]`'s body
+1. **On the promotion branch into `main`:** `make release-prepare VERSION=x.y.z`. Moves `## [Unreleased]`'s body
    into a new `## [x.y.z] - YYYY-MM-DD` section dated today in UTC, leaves an empty
    `Unreleased` above it, and updates the compare-link footer at the bottom of the file if
    it carries one. It refuses an empty `Unreleased` section, a malformed version, and a
    version that is not greater than every version already in the changelog, already
    tagged locally, or — when an `origin` remote is configured — already tagged there,
    since a branch may not have fetched a tag another release just pushed; with no
-   `origin` configured it says so and skips that one check rather than failing. Commit
-   the result, open a pull request, and merge it.
-2. **On `main`, after that pull request merges:** open Actions, choose Cut release and
+   `origin` configured it says so and skips that one check rather than failing. Run it
+   on the branch that promotes `dev` into `main`, after the changelog there is rebuilt,
+   and commit the result on that branch: the dated section then reaches `main` in the
+   promotion's own merge, and a release needs no pull request of its own. A release
+   with nothing to promote, such as a re-cut, can still do this on a branch of its own.
+2. **On `main`, after the promotion merges:** open Actions, choose Cut release and
    Run workflow on `main` with the version. It runs `scripts/release.py check`, which
    applies `tag`'s validation without the local-branch and working-tree checks — a
    non-empty changelog section, the tag not on `origin`, a version greater than every

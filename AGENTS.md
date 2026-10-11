@@ -100,7 +100,7 @@ make test                      # the validator's own test suite
 make coverage                  # the same, failing below the floor in pyproject.toml
 make package                   # build a .skill archive per skill into dist/
 make install                   # symlink every skill into ~/.claude/skills
-make release-prepare VERSION=x.y.z  # on a branch: move Unreleased into a dated section
+make release-prepare VERSION=x.y.z  # on the promotion branch into main: date Unreleased
 make release VERSION=x.y.z          # on main, after that PR merges: tag the release
 ```
 
