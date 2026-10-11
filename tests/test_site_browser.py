@@ -506,6 +506,22 @@ def test_the_family_heading_types_itself_in_when_motion_is_allowed(browser, base
         made.close()
 
 
+def test_a_stage_focused_during_the_entrance_is_visible(browser, base_url):
+    # The rows rise in seconds after load, but their summaries can take focus at once.
+    made = browser.new_context(viewport={"width": 1280, "height": 800})
+    made.route(re.compile("^(?!" + re.escape(base_url) + "/)"), lambda route: route.abort())
+    try:
+        page = made.new_page()
+        page.emulate_media(reduced_motion="no-preference")
+        page.goto(base_url + "/family/")
+        summary = page.locator(".family-stages > li:nth-child(6) summary")
+        summary.focus()
+        row = "el => getComputedStyle(el.closest('li')).opacity"
+        assert summary.evaluate(row) == "1"
+    finally:
+        made.close()
+
+
 def test_the_family_page_is_the_plugin_page_with_its_install_line_and_skills(page, built, base_url):
     page.goto(base_url + "/family/")
     assert page.get_by_role("heading", level=1, name="The FAMILY workflow").count() == 1
