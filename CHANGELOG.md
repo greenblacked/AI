@@ -420,6 +420,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Stop a FAMILY stage row from vanishing for a second when it is opened and then left:
+  its entrance animation no longer replays when focus moves away.
 - Split field labels and error messages between `form-design` and `content-design`.
   `form-design` owns which fields a form asks for, their order, when it validates, where
   an error appears and the keyboard flow; `content-design` owns the words. Each now names

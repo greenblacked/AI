@@ -1008,8 +1008,10 @@ html[data-theme="reactor"] {
   .family-stages > li:nth-child(4) { animation-delay: 2.85s; }
   .family-stages > li:nth-child(5) { animation-delay: 2.95s; }
   .family-stages > li:nth-child(6) { animation-delay: 3.05s; }
-  /* A row is focusable before its rise begins; focus must never land on an invisible control. */
-  .family-stages > li:focus-within { opacity: 1; animation: none; }
+  /* A row is focusable before its rise begins; focus must never land on an invisible control.
+     An important opacity outranks the animation without touching it: changing `animation`
+     on focus and back on blur would restart the rise, and the row would vanish for a second. */
+  .family-stages > li:focus-within { opacity: 1 !important; }
 }
 @keyframes family-key {
   0% { max-width: 0; opacity: 0; transform: translateY(0.18em) scale(1.6); }
