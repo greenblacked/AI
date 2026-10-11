@@ -22,7 +22,8 @@ first.
 ## What the caller passes
 
 - **The diff or worktree, and its base** — usually the working tree against
-  `git merge-base HEAD origin/main` (`git -C <path> merge-base …` in worktree mode);
+  `git merge-base HEAD origin/dev` (`git -C <path> merge-base …` in worktree mode), since
+  feature work branches from and merges into `dev`;
   sometimes a named commit range instead.
 - **Base branch, pinned base SHA and candidate ref** — for a contributor change, in place
   of a tree: the caller passes `<base-branch>` (`dev`, `stage` or `main`), the `<base>` SHA
@@ -80,8 +81,8 @@ When the intent is not stated, infer it from the diff and say at the top of your
 that this is what you did — a reviewer with no target still has to read the change, and
 stating the inferred intent is what lets the caller correct it in one sentence rather than
 distrust the whole report. When the base is not stated, use `git merge-base HEAD
-origin/main` (`git -C <path> merge-base …` in worktree mode) and name it in Evidence; ask
-only when the branch is not measured from `origin/main`.
+origin/dev` (`git -C <path> merge-base …` in worktree mode) and name it in Evidence; ask
+only when the branch is not measured from `origin/dev`.
 
 ## Procedure
 
@@ -152,7 +153,7 @@ cannot capture content identity or quiescence, name the limitation instead of cl
 a stable-tree verdict. The merge-base is not the base-branch tip.
 
 ```bash
-base="$(git merge-base HEAD origin/main)"
+base="$(git merge-base HEAD origin/dev)"
 git status --short
 git diff --stat "$base"
 git diff "$base"

@@ -72,3 +72,23 @@ def test_the_inert_allowlist_excludes_instruction_files(path, anchor):
 def test_a_contributor_instruction_file_is_a_blocking_finding():
     text = flat(".claude/agents/reviewer.md")
     assert re.search(r"adds or edits an instruction file .{0,120}is a blocking finding", text)
+
+
+@pytest.mark.parametrize(
+    "path", [".claude/commands/ship.md", ".claude/agents/reviewer.md", "CONTRIBUTING.md"]
+)
+def test_the_build_loop_branches_from_and_measures_against_dev(path):
+    # Feature work lands on dev; main's first-parent history is promotions and release
+    # preparation, so a branch cut from main misses everything dev has not promoted yet.
+    text = flat(path)
+    # CONTRIBUTING still names origin/main for `make naming` and `make attribution`,
+    # which diff against it; only the build loop's own base is checked there.
+    if path != "CONTRIBUTING.md":
+        assert "origin/main" not in text, path
+    assert re.search(r"(?:origin/dev|[Bb]ranch from `dev`)", text), path
+
+
+def test_ship_opens_and_merges_its_pull_request_into_dev():
+    text = flat(".claude/commands/ship.md")
+    assert "open the pull request into `dev`" in text
+    assert "the merge into `dev`" in text
