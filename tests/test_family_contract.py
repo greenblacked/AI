@@ -82,3 +82,13 @@ def test_no_skill_calls_an_agent_with_bash_read_only():
     for path in [workflow / "SKILL.md", *sorted((workflow / "references").glob("*.md"))]:
         text = path.read_text(encoding="utf-8")
         assert not re.search(r"(?:agents are|inspector`? is|, and) read-only", text), path
+
+
+def test_an_unscoped_agent_grant_says_why_in_the_body():
+    # Every other family skill names the agents it may start; one that does not has to
+    # say why, or the grant reads as an oversight.
+    for skill in sorted((FAMILY / "skills").glob("*/SKILL.md")):
+        text = skill.read_text(encoding="utf-8")
+        tools = re.search(r"^allowed-tools: (.+)$", text, re.M).group(1)
+        if "Agent" in [tool.strip() for tool in tools.split(",")]:
+            assert "unscoped on purpose" in text, skill
