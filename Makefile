@@ -123,7 +123,7 @@ site: ## Build the Cloudflare catalogue into dist/site (VERSION defaults to dev)
 install: ## Symlink every skill into ~/.claude/skills
 	@scripts/install.sh
 
-release-prepare: ## Move CHANGELOG's Unreleased section into VERSION=x.y.z, on a branch
+release-prepare: ## Move CHANGELOG's Unreleased section into VERSION=x.y.z, on the promotion branch
 	@if [ -z "$(VERSION)" ]; then echo "VERSION is required, e.g. make release-prepare VERSION=1.2.3" >&2; exit 1; fi
 	$(PYTHON) scripts/release.py prepare "$(VERSION)"
 
