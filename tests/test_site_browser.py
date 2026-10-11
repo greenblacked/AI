@@ -52,8 +52,35 @@ TARGET = 44
 
 
 class _Quiet(http.server.SimpleHTTPRequestHandler):
+    """Serves the build the way the Worker does under `auto-trailing-slash` html_handling.
+
+    A flat page is served at its extensionless path, and asking for `name.html` redirects
+    there, so a test that loaded `/errors/503.html` would be testing a URL production
+    never answers with the page.
+    """
+
     def log_message(self, *args):  # the suite's output is the assertions, not a log
         pass
+
+    def _flat_page(self) -> Path | None:
+        path = self.path.split("?", 1)[0].split("#", 1)[0]
+        if path.endswith("/") or "." in path.rsplit("/", 1)[-1]:
+            return None
+        candidate = Path(self.translate_path(path) + ".html")
+        return candidate if candidate.is_file() else None
+
+    def send_head(self):
+        path = self.path.split("?", 1)[0]
+        if path.endswith(".html") and not path.endswith("/index.html"):
+            self.send_response(307)
+            self.send_header("Location", path[: -len(".html")])
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return None
+        flat = self._flat_page()
+        if flat is not None:
+            self.path = self.path.split("?", 1)[0] + ".html"
+        return super().send_head()
 
 
 @pytest.fixture(scope="session")
@@ -79,7 +106,7 @@ class _NotFound(_Quiet):
 
     def send_head(self):
         try:
-            found = Path(self.translate_path(self.path)).exists()
+            found = Path(self.translate_path(self.path)).exists() or self._flat_page() is not None
         except OSError:  # a name too long for the file system is just a path with no page
             found = False
         if found:
@@ -867,6 +894,20 @@ def test_the_404_does_not_scroll_sideways_on_a_phone(browser, missing_url, path)
         made.close()
 
 
+def test_an_error_page_is_answered_at_its_extensionless_address(browser, base_url):
+    # The .html address redirects, as the Worker's html_handling does, so a consumer
+    # pointed at it would get a redirect rather than the page.
+    made = browser.new_context()
+    try:
+        page = made.new_page()
+        response = page.goto(f"{base_url}/errors/503.html")
+        assert page.url == f"{base_url}/errors/503"
+        assert response.request.redirected_from is not None
+        assert page.get_by_role("heading", level=1).count() == 1
+    finally:
+        made.close()
+
+
 @pytest.mark.parametrize("code", ERROR_PAGES)
 @pytest.mark.parametrize("width", [320, 390, 1280])
 def test_each_error_page_fits_the_screen_and_makes_no_requests(browser, base_url, code, width):
@@ -875,13 +916,13 @@ def test_each_error_page_fits_the_screen_and_makes_no_requests(browser, base_url
     made.route("**/*", lambda route: (requested.append(route.request.url), route.continue_()))
     try:
         page = made.new_page()
-        page.goto(f"{base_url}/errors/{code}.html")
+        page.goto(f"{base_url}/errors/{code}")
         assert page.evaluate("() => document.documentElement.scrollWidth") <= width
         assert page.get_by_role("heading", level=1).count() == 1
         assert page.get_by_role("link", name="Home", exact=True).last.is_visible()
         # The page is the whole of what was fetched, bar the tab icon's own data URI.
         assert [url for url in requested if not url.startswith("data:")] == [
-            f"{base_url}/errors/{code}.html"
+            f"{base_url}/errors/{code}"
         ]
     finally:
         made.close()
@@ -895,7 +936,7 @@ def test_error_pages_stop_all_motion_when_it_is_reduced_and_move_when_it_is_not(
     moving = browser.new_context(reduced_motion="no-preference")
     try:
         quiet = still.new_page()
-        quiet.goto(f"{base_url}/errors/{code}.html")
+        quiet.goto(f"{base_url}/errors/{code}")
         assert quiet.evaluate("() => document.getAnimations().length") == 0
         digits = quiet.evaluate(
             "() => [...document.querySelectorAll('.digits .dg')].map(e =>"
@@ -903,7 +944,7 @@ def test_error_pages_stop_all_motion_when_it_is_reduced_and_move_when_it_is_not(
         )
         assert digits == [[c, "1"] for c in code]
         busy = moving.new_page()
-        busy.goto(f"{base_url}/errors/{code}.html")
+        busy.goto(f"{base_url}/errors/{code}")
         names = busy.evaluate("() => document.getAnimations().map(a => a.animationName)")
         assert names.count("err-key") == 3 and "err-caret" in names
         # And each page has the effect that belongs to its code.
@@ -921,7 +962,7 @@ def test_error_pages_follow_the_colour_scheme_and_a_choice_made_on_the_site(
     made = browser.new_context(color_scheme=scheme, reduced_motion="reduce")
     try:
         page = made.new_page()
-        page.goto(f"{base_url}/errors/503.html")
+        page.goto(f"{base_url}/errors/503")
         background = lambda: page.evaluate(  # noqa: E731
             "() => getComputedStyle(document.documentElement).backgroundColor"
         )
@@ -942,7 +983,7 @@ def test_error_page_text_has_enough_contrast_in_both_schemes(browser, base_url, 
         made = browser.new_context(color_scheme=scheme, reduced_motion="reduce")
         try:
             page = made.new_page()
-            page.goto(f"{base_url}/errors/{code}.html")
+            page.goto(f"{base_url}/errors/{code}")
             ratios = page.evaluate(
                 """() => {
                   const lin = x => { x /= 255;
@@ -965,7 +1006,7 @@ def test_retry_reloads_the_page_and_shows_only_with_script(browser, base_url):
     made = browser.new_context(reduced_motion="reduce")
     try:
         page = made.new_page()
-        page.goto(f"{base_url}/errors/503.html")
+        page.goto(f"{base_url}/errors/503")
         page.evaluate("() => { window.stale = true; }")
         page.get_by_role("button", name="Retry").click()
         page.wait_for_function("() => window.stale === undefined")
@@ -975,7 +1016,7 @@ def test_retry_reloads_the_page_and_shows_only_with_script(browser, base_url):
     bare = browser.new_context(java_script_enabled=False)
     try:
         page = bare.new_page()
-        page.goto(f"{base_url}/errors/503.html")
+        page.goto(f"{base_url}/errors/503")
         assert page.get_by_role("heading", level=1, name="Error 503: Back shortly").count() == 1
         assert page.get_by_role("link", name="Retry").is_visible()
         assert (
@@ -990,7 +1031,7 @@ def test_403_offers_no_retry_and_a_way_home(browser, base_url):
     made = browser.new_context(reduced_motion="reduce")
     try:
         page = made.new_page()
-        page.goto(f"{base_url}/errors/403.html")
+        page.goto(f"{base_url}/errors/403")
         assert page.get_by_role("button", name="Retry").count() == 0
         page.get_by_role("link", name="Home", exact=True).last.click()
         page.wait_for_url(base_url + "/")

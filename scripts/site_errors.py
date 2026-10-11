@@ -15,6 +15,10 @@ one file with its CSS and its few lines of script inline, no font, image, styles
 script from anywhere, and each is far below the size those services allow. They use the
 site's colours and the FAMILY stage colours, so they read as the same place.
 
+Point a consumer at ``/errors/<code>``, never ``/errors/<code>.html``: the Worker's
+``auto-trailing-slash`` html_handling answers the ``.html`` address with a redirect to
+the extensionless one, which a fetch that expects the page body would store instead.
+
 Every animation sits inside ``prefers-reduced-motion: no-preference``, so a visitor who
 asked for none gets the finished page and nothing that moves, and the page reads whole
 without script.
