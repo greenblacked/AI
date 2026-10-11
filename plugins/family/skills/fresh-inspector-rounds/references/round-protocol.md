@@ -32,6 +32,8 @@ PASS | FIX | STOP
 ### Checks run
 ### Observations (hand to code-review)
 ### Not assessed
+### Handoff
+<the first question the next stage must answer, and who owns that stage>
 ```
 
 `PASS` needs every criterion to hold with evidence. A criterion the inspector could not check, including a check it was not allowed to run on a change the owner did not write, is `NOT ASSESSED` and is named in the report. A report that implies full coverage when it did not have it is worse than a short one.

@@ -439,7 +439,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   a person supplies one. A change the owner did not write is a `FIX`, not a `STOP`.
 - End each `family` stage agent's return block with a `### Handoff` section naming the
   first question for the next stage and its owner. `family-relay` passes the next hop
-  only that section, and no agent returned one.
+  only that section, and no agent returned one. `fresh-inspector-rounds`' copy of the
+  inspector's return block carries it too.
 - Say in `/ship` that the trusted checkout for a contributor review sits exactly at the
   pinned base, as a clone checked out there or a detached worktree, since `reviewer`
   stops when `HEAD` is anything else.

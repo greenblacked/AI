@@ -95,3 +95,20 @@ def test_an_unscoped_agent_grant_says_why_in_the_body():
             # A Bash-holding research agent can write through the shell, so the
             # missing editing tools alone do not make it read-only.
             assert "`Bash`" in text.split("unscoped on purpose", 1)[1][:600], skill
+
+
+VERDICT_LINE = re.compile(r"^[A-Z][A-Z -]*(?: \| [A-Z][A-Z -]*)+$")
+
+
+def test_every_copied_return_block_matches_its_agent():
+    # A skill reference that reproduces an agent's return block drifts when the agent
+    # file changes; round-protocol.md kept the inspector's block without its Handoff.
+    blocks = {block.splitlines()[0]: block for name in AGENTS for block in return_blocks(name)}
+    copies = 0
+    for path in sorted((FAMILY / "skills").rglob("*.md")):
+        for block in re.findall(r"```text\n(.*?)```", path.read_text(encoding="utf-8"), re.S):
+            first = block.splitlines()[0]
+            if VERDICT_LINE.match(first) and first in blocks:
+                copies += 1
+                assert block == blocks[first], path
+    assert copies, "no reference copies an agent's return block"
