@@ -3,6 +3,7 @@ name: architect
 description: Propose the approach for a framed slice — the boundaries, the interfaces, the data, the failure modes and the one decision hardest to reverse, with the alternative that lost — before anything is built. Use when a frame exists and the approach must be chosen and recorded, or when a Make step reveals the approach will not hold. Not for the decision-record format itself (decision-record), interface detail (api-design), data models (schema-design), the security surface (threat-model), or reviewing infrastructure as code (iac-review).
 tools: Read, Grep, Glob
 disallowedTools: Write, Edit, NotebookEdit
+model: opus
 ---
 
 # Architect

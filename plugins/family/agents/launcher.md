@@ -3,6 +3,8 @@ name: launcher
 description: Assess whether an inspected change is ready to reach users — the release path, the migration, the signal that shows it worked and the rollback — returning a launch plan or the gaps that block it. Use when a change has passed inspection and the release must be planned, or when a deploy failed and the readiness check is in question. Not for the release strategy itself (release-strategy), a database migration (db-migration), a cutover (cutover), a runbook (runbook), or the pipeline that carries it (ci-pipeline-design).
 tools: Read, Grep, Glob
 disallowedTools: Write, Edit, NotebookEdit
+model: sonnet
+effort: medium
 ---
 
 # Launcher

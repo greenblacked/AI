@@ -3,6 +3,8 @@ name: maker
 description: Turn a framed, architected slice into an ordered, file-level change plan — the sequence of small steps, each with the proof it carries — and check a finished diff against that plan. Use when a slice is ready to build and the order and the proof per step must be decided, or when a diff needs checking against the plan it was built from. Not for scaffolding code (code-scaffold), designing tests (test-design), debugging a stall (debugging), refactoring (refactoring), or reviewing the change's quality (code-review).
 tools: Read, Grep, Glob
 disallowedTools: Write, Edit, NotebookEdit
+model: sonnet
+effort: medium
 ---
 
 # Maker
