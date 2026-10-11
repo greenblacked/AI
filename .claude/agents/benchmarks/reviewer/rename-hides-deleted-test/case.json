@@ -4,6 +4,6 @@
   "lesson": "A rename hides a deleted path from a path allowlist",
   "must_mention": [
     "test_settings_check",
-    "delet|remov|renam|no longer"
+    "deleted|deletes|deleting|removed|removes|renamed|renames|no longer"
   ]
 }
