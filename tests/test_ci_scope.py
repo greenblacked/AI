@@ -467,3 +467,14 @@ def test_the_names_a_text_run_ignores_are_the_display_names_of_those_jobs():
         for job in (*scope.TEXT_JOBS, *scope.ALWAYS)
     }
     assert set(names.values()) == set(scope.TEXT_CHECK_NAMES), names
+
+
+def test_the_scope_step_passes_the_edit_and_the_pull_request_number():
+    # Without either, every `edited` run is full with no failure anywhere; the values
+    # reach the script through env only, never interpolated into `run:`.
+    text = (REPO / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    step = text.split("      - name: Decide what this run needs\n", 1)[1].split(
+        "        run: |", 1
+    )[0]
+    assert "CHANGES: ${{ toJSON(github.event.changes) }}" in step
+    assert "PR_NUMBER: ${{ github.event.pull_request.number }}" in step
