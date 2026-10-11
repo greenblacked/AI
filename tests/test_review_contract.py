@@ -92,3 +92,13 @@ def test_ship_opens_and_merges_its_pull_request_into_dev():
     text = flat(".claude/commands/ship.md")
     assert "open the pull request into `dev`" in text
     assert "the merge into `dev`" in text
+
+
+def test_the_reviewer_reads_the_candidate_by_one_resolved_sha():
+    # A forced re-fetch of refs/review/<n> mid-review would move a ref-named read; the
+    # pinned SHA cannot move.
+    text = flat(".claude/agents/reviewer.md")
+    assert "git rev-parse --verify 'refs/review/<n>^{commit}'" in text
+    for verb in ("diff", "show", "ls-tree", "merge-base", "merge"):
+        for command in re.findall(rf"git (?:-C \S+ )?(?:-c \S+ )*{verb}\b[^`\n]*", text):
+            assert "refs/review/<n>" not in command or "rev-parse" in command, command

@@ -411,6 +411,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Have `reviewer` resolve `refs/review/<n>` to one validated commit SHA before reading a
+  contributor's change, and use that SHA in every later diff, show and merge, so a forced
+  re-fetch of the ref mid-review cannot change what is read, gated or merged.
 - Stop counting a contributor's `CLAUDE.md`, `CLAUDE.local.md`, `AGENTS.md` or anything
   under a `.claude/` segment as inert Markdown in the review allowlist. Those files load
   as instructions wherever a session opens, so `reviewer` now treats adding or editing
