@@ -263,6 +263,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Separate qualitative from quantitative reads in `information-architecture`'s guidance
+  on card sorts and tree tests: five to fifteen participants finds groupings and wrong
+  turns, but a tree test's success rate, or a comparison between two trees, needs a
+  study sized for the margin it reports.
 - Say in `frame-claim-ledger` why its `Agent` grant stays unscoped: the plugin ships no
   research agent, so the claim agent is whichever read-only one the session has, and
   naming one would refuse the rest.
