@@ -8,6 +8,7 @@ why their argument hint never appears.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -195,3 +196,17 @@ def test_repository_commands_require_explicit_manual_invocation():
         # the source too, so a quoted string cannot masquerade as the boolean flag.
         line = text.splitlines()[frontmatter.line_of("disable-model-invocation") - 1]
         assert line == "disable-model-invocation: true", path.relative_to(root)
+
+
+def test_the_family_command_carries_the_slice_templates_unchanged():
+    # The command cannot read a reference file at run time, so it embeds the six slice
+    # templates; this keeps that copy from drifting away from slice-folder.md.
+    root = Path(__file__).resolve().parent.parent / "plugins" / "family"
+    command = (root / "commands" / "family.md").read_text(encoding="utf-8")
+    reference = (root / "skills" / "family-workflow" / "references" / "slice-folder.md").read_text(
+        encoding="utf-8"
+    )
+    pattern = re.compile(r"```markdown\n(.*?)```", re.S)
+    templates = pattern.findall(reference)
+    assert len(templates) == 6
+    assert pattern.findall(command) == templates
