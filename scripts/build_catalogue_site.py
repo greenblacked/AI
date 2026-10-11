@@ -768,7 +768,8 @@ def render_start(catalogue: Catalogue, version: str) -> str:
 
 
 def _part_item(part: Part, *, command: bool) -> str:
-    label = ("/" if command else "") + part.name
+    # An installed plugin's command runs as /plugin:name, so that is the name to show.
+    label = f"/{part.plugin}:{part.name}" if command else part.name
     href = _esc(_blob(part.path))
     link = f'<a href="{href}" rel="noopener noreferrer"><code>{_esc(label)}</code></a>'
     hint = f" <code>{_esc(part.hint)}</code>" if part.hint else ""
