@@ -263,6 +263,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Build on `dev` in `/ship`: it branches from `origin/dev`, opens its pull request into
+  `dev` and squash-merges there, `reviewer` measures an owner change against
+  `merge-base HEAD origin/dev` by default, and `CONTRIBUTING.md` says to branch from
+  `dev`. `stage` and `main` take only promotions, so a branch cut from `main` missed
+  everything `dev` had not promoted yet.
 - Prepare a release on the promotion branch from `stage` into `main` instead of a separate
   pull request: `make release-prepare` dates the changelog there, so after that one merge
   Cut release runs straight from `main`.
