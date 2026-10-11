@@ -252,6 +252,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Prepare a release on the promotion branch from `stage` into `main` instead of a separate
+  pull request: `make release-prepare` dates the changelog there, so after that one merge
+  Cut release runs straight from `main`.
 - Return the fix packet in `fresh-inspector-rounds` to the contributor when the change
   is not the owner's, so the main conversation applies fixes only to a slice the owner
   wrote and never patches a contributor's change on the trusted checkout. With an unknown
