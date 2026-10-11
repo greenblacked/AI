@@ -67,6 +67,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `plugins/personal/skills/` | Money, travel, admin, habits and health |
 | `plugins/career/skills/` | Applications, negotiation, speaking and writing |
 | `plugins/design/skills/` | Usability, accessibility and design systems |
+| `plugins/family/skills/` | One development workflow, from a vague request to a measured outcome, and its six stage agents under `plugins/family/agents/` |
 | `plugins/*/agents/` | Subagent definitions, validated on the same run as the skills |
 | `plugins/*/commands/` | Slash commands the plugin ships, validated on the same run |
 | `.claude/commands/` | Slash commands for working on this repository, not shipped to installers |

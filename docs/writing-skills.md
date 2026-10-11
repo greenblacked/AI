@@ -18,7 +18,7 @@ plugins/<plugin>/skills/<name>/
 ```
 
 `<plugin>` is one of `coding`, `operations`, `delivery`, `security`, `gamedev`, `manager`,
-`personal`, `career` or `design` — the ten plugins in
+`personal`, `career`, `design` or `family` — the ten plugins in
 [the marketplace manifest](../.claude-plugin/marketplace.json). `<name>` is the skill
 name, and it must equal the `name` in the frontmatter.
 
