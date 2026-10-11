@@ -46,4 +46,6 @@ YIELDED | INSUFFICIENT EVIDENCE
 ### Next slice
 ### Cost
 ### Not assessed
+### Handoff
+<the first question the next stage must answer, and who owns that stage>
 ```

@@ -52,6 +52,8 @@ PLAN READY | BLOCKED
 ### Acceptance check
 ### Reversible at
 ### Not assessed
+### Handoff
+<the first question the next stage must answer, and who owns that stage>
 ```
 
 `PLAN READY` — every step has files and a proof. `BLOCKED` — no plan can be written: the architecture note is missing and no Architect waiver is recorded, or the files the steps touch cannot be found; say what is missing and which stage supplies it.
@@ -63,4 +65,6 @@ ON PLAN | DIVERGED
 
 ### Divergences
 ### Not assessed
+### Handoff
+<the first question the next stage must answer, and who owns that stage>
 ```

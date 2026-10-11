@@ -48,6 +48,8 @@ PASS | FIX | STOP
 ### Checks run
 ### Observations (hand to code-review)
 ### Not assessed
+### Handoff
+<the first question the next stage must answer, and who owns that stage>
 ```
 
 - `PASS` — every criterion holds, with evidence.

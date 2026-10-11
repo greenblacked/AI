@@ -51,6 +51,8 @@ PROPOSED | NEEDS FRAME | BLOCKED
 ### Hard-to-reverse decision (hand to decision-record)
 ### Security surface (hand to threat-model when changed)
 ### Not assessed
+### Handoff
+<the first question the next stage must answer, and who owns that stage>
 ```
 
 - `PROPOSED` — an approach is chosen and the hard-to-reverse decision is named.
