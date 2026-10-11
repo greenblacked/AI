@@ -65,4 +65,4 @@ One row per `FAILS` line per round. It is how a repeat is seen, since no inspect
 - `PASS`: stop and hand the report to the Inspect owner for the go/no-go.
 - `FIX` with new `FAILS` lines only: send the fix packet, then start a new inspector. Criteria that were `NOT ASSESSED` go to the owner to run.
 - `FIX` with a `FAILS` line already in the ledger: halt; see the recurrence reference.
-- `STOP`: the inspector could not do its job (no checkout it may read, no criteria). Bring it to the person who owns the slice; do not start another round on the same inputs.
+- `STOP`: the frame supplied no success criterion, so no verdict is possible. Bring it to the person who owns the slice to supply one; do not start another round on the same inputs. A change the owner did not write is not a `STOP` but a `FIX`, with its checks not assessed for the owner to run.

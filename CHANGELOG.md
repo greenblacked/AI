@@ -411,6 +411,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Use the inspector's own meaning of `STOP` in `family-relay`'s routing reference and
+  `fresh-inspector-rounds`' round protocol: the frame supplied no success criterion, and
+  a person supplies one. A change the owner did not write is a `FIX`, not a `STOP`.
 - End each `family` stage agent's return block with a `### Handoff` section naming the
   first question for the next stage and its owner. `family-relay` passes the next hop
   only that section, and no agent returned one.
