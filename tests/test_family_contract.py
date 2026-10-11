@@ -112,3 +112,16 @@ def test_every_copied_return_block_matches_its_agent():
                 copies += 1
                 assert block == blocks[first], path
     assert copies, "no reference copies an agent's return block"
+
+
+def test_the_claim_brief_forbids_writing_as_the_skill_says_it_does():
+    # frame-claim-ledger says the brief forbids writes to a Bash-holding agent; the
+    # brief itself has to carry that rule, or the claim is only in the skill.
+    root = FAMILY / "skills" / "frame-claim-ledger"
+    brief = (root / "references" / "claim-brief.md").read_text(encoding="utf-8")
+    skill = (root / "SKILL.md").read_text(encoding="utf-8")
+    rule = re.search(r"^- \*\*The rule on writing\*\*: (.+)$", brief, re.M)
+    assert rule, "claim-brief.md has no rule on writing"
+    for phrase in ("writes no file", "changes the checkout", "read-only commands only"):
+        assert phrase in rule.group(1), phrase
+    assert "the brief says it writes no file and runs nothing that changes the checkout" in skill
