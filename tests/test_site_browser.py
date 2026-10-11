@@ -593,6 +593,32 @@ def test_a_stage_focused_during_the_entrance_is_visible(browser, base_url):
         made.close()
 
 
+def test_opening_and_leaving_a_stage_does_not_replay_its_entrance(browser, base_url):
+    # Toggling the row's animation on focus restarted it on blur: the row went back to
+    # invisible and rose again, a one-second flicker every time a stage was opened.
+    made = browser.new_context(viewport={"width": 390, "height": 800})
+    made.route(re.compile("^(?!" + re.escape(base_url) + "/)"), lambda route: route.abort())
+    try:
+        page = made.new_page()
+        page.emulate_media(reduced_motion="no-preference")
+        page.goto(base_url + "/family/")
+        page.wait_for_function(
+            "() => document.getAnimations().every(a => a.playState === 'finished')",
+            timeout=10_000,
+        )
+        row = page.locator(".family-stages > li.stage-a")
+        row.locator("summary").click()
+        page.locator("h1").click()
+        page.locator(".family-stages > li.stage-f summary").click()
+        for _ in range(5):
+            assert row.evaluate("el => getComputedStyle(el).opacity") == "1"
+            states = row.evaluate("el => el.getAnimations().map(a => a.playState)")
+            assert "running" not in states
+            page.wait_for_timeout(100)
+    finally:
+        made.close()
+
+
 def test_the_family_page_is_the_plugin_page_with_its_install_line_and_skills(page, built, base_url):
     page.goto(base_url + "/family/")
     assert page.get_by_role("heading", level=1, name="The FAMILY workflow").count() == 1

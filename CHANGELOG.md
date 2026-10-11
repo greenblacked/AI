@@ -10,6 +10,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add four skills: `retrieval-evaluation` to `coding` for judging a retriever or ranking
+  change against a reproducible benchmark; `feature-flag-lifecycle` and
+  `safe-backfill` to `delivery` for wiring and retiring a flag once the rollout is
+  chosen and for a checkpointed one-off data repair; and `problem-validation` to `design` for testing
+  whether a problem is real before anything is built.
 - Merge the `family` plugin page into `/family/`: one page with the typed heading, the
   install command, a profile picker that highlights the stages a role owns, each stage as a
   disclosure naming its agent, verdicts and next hop, a slice checklist kept in the
@@ -263,6 +268,23 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Write each portable router row as a plain `skills/<name>.md` path and its trigger,
+  without the list marker and colon, so `router.md` stays inside its size budget with
+  four more skills.
+- Separate qualitative from quantitative reads in `information-architecture`'s guidance
+  on card sorts and tree tests: five to fifteen participants finds groupings and wrong
+  turns, but a tree test's success rate, or a comparison between two trees, needs a
+  study sized for the margin it reports.
+- Say in `frame-claim-ledger` why its `Agent` grant stays unscoped: the plugin ships no
+  research agent, so the claim agent is whichever read-only one the session has, and
+  naming one would refuse the rest. The claim brief now tells every agent to write no
+  file and run nothing that changes the checkout, since one that holds `Bash` can write
+  without an editing tool.
+- Build on `dev` in `/ship`: it branches from `origin/dev`, opens its pull request into
+  `dev` and squash-merges there, `reviewer` measures an owner change against
+  `merge-base HEAD origin/dev` by default, and `CONTRIBUTING.md` says to branch from
+  `dev`. `stage` and `main` take only promotions, so a branch cut from `main` missed
+  everything `dev` had not promoted yet.
 - Prepare a release on the promotion branch from `stage` into `main` instead of a separate
   pull request: `make release-prepare` dates the changelog there, so after that one merge
   Cut release runs straight from `main`.
@@ -406,6 +428,54 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Stop a FAMILY stage row from vanishing for a second when it is opened and then left:
+  its entrance animation no longer replays when focus moves away.
+- Split field labels and error messages between `form-design` and `content-design`.
+  `form-design` owns which fields a form asks for, their order, when it validates, where
+  an error appears and the keyboard flow; `content-design` owns the words. Each now names
+  the other in its description and scope, and each eval set routes a near miss to the
+  other.
+- Name `family` in `docs/writing-skills.md`'s list of the ten plugins and give it a row
+  in `AGENTS.md`'s layout table; a test now checks both against the marketplace manifest.
+- Describe the `family` stage agents as having no editing tools rather than as
+  read-only in `family-workflow`: `inspector` holds `Bash` and can run commands, which
+  it does only on a change the owner wrote.
+- Ship each `family` stage agent with the tier `stage-tiering` states: `framer`,
+  `maker`, `launcher` and `yielder` on `sonnet` at medium effort, `architect` and
+  `inspector` on `opus` at the tool's default effort. Without a `model` line every stage
+  ran on the main conversation's model. `stage-tiering` no longer tells you to edit the
+  installed plugin, which an update replaces, and drops its `Edit` grant.
+- Use the inspector's own meaning of `STOP` in `family-relay`'s routing reference and
+  `fresh-inspector-rounds`' round protocol: the frame supplied no success criterion, and
+  a person supplies one. A change the owner did not write is a `FIX`, not a `STOP`.
+- End each `family` stage agent's return block with a `### Handoff` section naming the
+  first question for the next stage and its owner. `family-relay` passes the next hop
+  only that section, and no agent returned one. `fresh-inspector-rounds`' copy of the
+  inspector's return block carries it too.
+- Say in `/ship` that the trusted checkout for a contributor review sits exactly at the
+  pinned base, as a clone checked out there or a detached worktree, since `reviewer`
+  stops when `HEAD` is anything else.
+- Have `reviewer` resolve `refs/review/<n>` to one validated commit SHA before reading a
+  contributor's change, and use that SHA in every later diff, show and merge, so a forced
+  re-fetch of the ref mid-review cannot change what is read, gated or merged.
+- Stop counting a contributor's `CLAUDE.md`, `CLAUDE.local.md`, `AGENTS.md` or anything
+  under a `.claude/` segment as inert Markdown in the review allowlist. Those files load
+  as instructions wherever a session opens, so `reviewer` now treats adding or editing
+  one as a blocking finding, and the ChatGPT and usage guides say the same.
+- Return `FIX` pending the owner, not `STOP`, when `reviewer` judges a contributor's
+  permissions, API-write or `workflow_run` change with no live check: the live check is
+  an owner-must-run item, as the contributor rules and the ChatGPT guide already said,
+  and the verdict section now agrees with them.
+- List a contributor change's paths with `--no-renames` in `reviewer`, `investigator`,
+  `/ship`, `/verify` and the ChatGPT and usage guides. With rename detection on, moving
+  a test into `docs/` listed only the new Markdown path, which passed the safe-name check
+  and the inert-content allowlist while the test was gone. A reviewer benchmark case and
+  a review lesson cover it.
+- Run CI in full when a pull request's base is retargeted. `edited` covers a new base as
+  well as a new title or body, and the earlier run's pull request list reports the base
+  as it is now, so a retarget was answered with the two description checks from a run
+  against the old base. `scope` now reads the event's `changes`, treats only a title or
+  body edit as text, and counts only earlier runs that list this pull request.
 - Show each plugin command on the site's Workflows page by the name an installed plugin
   runs it under, `/plugin:command`, rather than the bare command name.
 - Give each portable router line its full 100 characters of trigger again. 0.1.4 cut

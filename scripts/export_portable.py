@@ -1751,9 +1751,9 @@ def render_router(title: str, groups: list[tuple[str, list[tuple[str, str]]]]) -
     for plugin, skills in groups:
         lines += [f"## {plugin}", ""]
         for name, use_when in skills:
-            # The path, not a Markdown link: the link repeated the name as its label,
-            # which cost every line its own length again for nothing an agent uses.
-            lines.append(f"- skills/{name}.md: {use_when}")
+            # Plain path and space save three bytes per row over list/colon markup;
+            # a Markdown link would repeat the name without improving routing.
+            lines.append(f"skills/{name}.md {use_when}")
         lines.append("")
     return "\n".join(lines).rstrip() + "\n"
 
