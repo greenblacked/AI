@@ -269,7 +269,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   study sized for the margin it reports.
 - Say in `frame-claim-ledger` why its `Agent` grant stays unscoped: the plugin ships no
   research agent, so the claim agent is whichever read-only one the session has, and
-  naming one would refuse the rest.
+  naming one would refuse the rest. One that holds `Bash` is briefed to write nothing,
+  since a shell writes without an editing tool.
 - Build on `dev` in `/ship`: it branches from `origin/dev`, opens its pull request into
   `dev` and squash-merges there, `reviewer` measures an owner change against
   `merge-base HEAD origin/dev` by default, and `CONTRIBUTING.md` says to branch from

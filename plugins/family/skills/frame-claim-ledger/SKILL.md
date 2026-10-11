@@ -30,7 +30,7 @@ Rank by how much of the hard-to-reverse decision falls if the claim is false. Se
 
 Brief one read-only research agent per claim, on a mid tier at medium effort, and run both while architect drafts the approach on the top tier. Read `references/claim-brief.md` for the brief and what must come back. One claim per agent, because a finding averaged over three claims is a finding about none of them. Where `stage-tiering` sets a two-agent limit, these two are the two survey agents; architect is the stage being served, not a survey agent.
 
-The `Agent` grant is unscoped on purpose. The plugin ships no research agent of its own, so the claim agent is whichever read-only one the session has, the built-in `Explore` or a project's own, and naming one here would refuse every other. The brief holds it to no editing tools: pick one whose tool list has no `Write` or `Edit`. The same grant starts `architect` beside them.
+The `Agent` grant is unscoped on purpose. The plugin ships no research agent of its own, so the claim agent is whichever read-only one the session has, the built-in `Explore` or a project's own, and naming one here would refuse every other. Absent `Write` and `Edit` are not enough on their own: a shell writes without an editing tool, so when the agent also holds `Bash`, as `Explore` does, the brief says it writes no file and runs nothing that changes the checkout, or you pick one without `Bash`. The same grant starts `architect` beside them.
 
 ### 4. Read the labels, not the verdict alone
 
