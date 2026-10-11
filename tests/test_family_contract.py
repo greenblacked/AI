@@ -72,3 +72,13 @@ def test_stage_tiering_does_not_edit_the_installed_plugin():
     skill = (FAMILY / "skills" / "stage-tiering" / "SKILL.md").read_text(encoding="utf-8")
     tools = re.search(r"^allowed-tools: (.+)$", skill, re.M).group(1)
     assert "Edit" not in [tool.strip() for tool in tools.split(",")], tools
+
+
+def test_no_skill_calls_an_agent_with_bash_read_only():
+    # inspector holds unrestricted Bash, which can write; "no editing tools" is the
+    # accurate claim for the stage agents as a set.
+    assert "Bash" in frontmatter("inspector")["tools"]
+    workflow = FAMILY / "skills" / "family-workflow"
+    for path in [workflow / "SKILL.md", *sorted((workflow / "references").glob("*.md"))]:
+        text = path.read_text(encoding="utf-8")
+        assert not re.search(r"(?:agents are|inspector`? is|, and) read-only", text), path
