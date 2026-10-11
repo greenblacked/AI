@@ -10,6 +10,26 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Merge the `family` plugin page into `/family/`: one page with the typed heading, the
+  install command, a profile picker that highlights the stages a role owns, each stage as a
+  disclosure naming its agent, verdicts and next hop, a slice checklist kept in the
+  browser, the skills with search and the subagents. `/plugins/family/` redirects there,
+  and `/family/example/` walks one real slice through all six stages.
+- Add the `/family:family` command to the `family` plugin: it frames a request into
+  `docs/slices/<name>/frame.md` with the stage templates beside it, prints the next hop and
+  stops. `family-workflow` gains the slice-folder convention and a pull request template
+  with one label per stage.
+- Replace the site's plain "Not found" page with a 404 that types its own number in, in
+  three of the FAMILY stage colours, shows the address that was asked for, and suggests up
+  to three real pages when it is a near miss, so `/statr/` or `/family-workflw/` offers
+  the page that was meant. Home, Start, a search of the catalogue and FAMILY are always
+  there, and with scripts off the page is the heading, a sentence and those links.
+- Add error pages for 403, 500, 502 and 503 at `/errors/403` and so on, each one file with its styles
+  and script inline and nothing loaded from anywhere, so a host can show one in place of
+  a failing page. Each has its own effect: a lock that closes, digits that shake, a link
+  that drops signal, and a slow progress pulse for maintenance; the 5xx pages have a
+  Retry button. They follow the system's light or dark scheme or the choice made on the
+  site, stop all motion when it is reduced, and are marked `noindex`.
 - Open the `family` plugin's page on the same typed F.A.M.I.L.Y. heading as the FAMILY
   page, with a link to the stage-by-stage guide; every other plugin keeps its plain name.
 - Add six skills to the `family` plugin that run its stage agents together:
@@ -243,6 +263,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Prepare a release on the promotion branch from `stage` into `main` instead of a separate
+  pull request: `make release-prepare` dates the changelog there, so after that one merge
+  Cut release runs straight from `main`.
 - Return the fix packet in `fresh-inspector-rounds` to the contributor when the change
   is not the owner's, so the main conversation applies fixes only to a slice the owner
   wrote and never patches a contributor's change on the trusted checkout. With an unknown
@@ -383,6 +406,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Show each plugin command on the site's Workflows page by the name an installed plugin
+  runs it under, `/plugin:command`, rather than the bare command name.
 - Give each portable router line its full 100 characters of trigger again. 0.1.4 cut
   them to 85 to fit the router's 16 KiB budget, which took 15 more characters off every
   long trigger; each line now names its file as `- skills/<name>.md:` instead of a

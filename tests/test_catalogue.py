@@ -284,6 +284,35 @@ def test_a_repo_local_command_with_no_readme_row_is_caught(mini_repo, capsys):
     assert "/verify is in .claude/ and has no row" in capsys.readouterr().out
 
 
+def _plugin_command(root):
+    commands = root / "plugins" / "engineering" / "commands"
+    commands.mkdir(parents=True, exist_ok=True)
+    (commands / "sweep.md").write_text(
+        "---\ndescription: " + "f" * 60 + "\ndisable-model-invocation: true\n---\n\nBody.\n",
+        encoding="utf-8",
+    )
+
+
+def test_a_plugin_command_row_may_use_the_namespaced_name(mini_repo, capsys):
+    # An installed plugin's command runs as /plugin:name, so a README that tells people
+    # what to type writes it that way, and the row still has to count.
+    _plugin_command(mini_repo)
+    write_readme(
+        mini_repo, README + "\n| Command | Plugin |\n| --- | --- |\n| `/engineering:sweep` | x |\n"
+    )
+    readme.check(mini_repo)
+    assert "sweep ships with engineering and has no row" not in capsys.readouterr().out
+
+
+def test_a_plugin_command_namespaced_under_another_plugin_fails(mini_repo, capsys):
+    _plugin_command(mini_repo)
+    write_readme(
+        mini_repo, README + "\n| Command | Plugin |\n| --- | --- |\n| `/other:sweep` | x |\n"
+    )
+    assert readme.check(mini_repo) == 1
+    assert "command sweep ships with engineering and has no row" in capsys.readouterr().out
+
+
 def test_a_repo_local_agent_named_in_the_readme_passes(mini_repo, capsys):
     agents = mini_repo / ".claude" / "agents"
     agents.mkdir(parents=True, exist_ok=True)

@@ -61,14 +61,15 @@ from skillcheck.rules import find_agents, find_commands, find_plugins, find_skil
 
 # `[`name`](plugins/<plugin>/skills/<name>/SKILL.md)` — the shape every skill row uses.
 SKILL_ROW_RE = re.compile(r"\[`([a-z0-9-]+)`\]\((plugins/[^)]*?/skills/[^)]*?/SKILL\.md)\)")
-# A table row's first cell: `name` for a subagent, `/name` for a command. Anchored to
+# A table row's first cell: `name` for a subagent, `/name` for a command, or
+# `/plugin:name` for a plugin command written as the installed plugin runs it. Anchored to
 # the start of the line — unlike `SKILL_ROW_RE` above, whose distinctive
 # `[`name`](path)` link shape only ever occurs in a table row in practice, a bare
 # backticked name has no such shape of its own and needs the anchor to tell a row apart
 # from a mention in prose, e.g. "the `weekly` command reads pull requests". Before this
 # was anchored, that prose mention alone made the check pass with no table row anywhere
 # for the name it was actually about.
-AGENT_OR_COMMAND_ROW_RE = re.compile(r"^\|\s*`(/?[a-z0-9-]+)`", re.M)
+AGENT_OR_COMMAND_ROW_RE = re.compile(r"^\|\s*`(/?(?:[a-z0-9-]+:)?[a-z0-9-]+)`", re.M)
 BADGE_RE = re.compile(r"img\.shields\.io/badge/skills-(\d+)-")
 # The version list is URL-encoded in the badge ("3.10%20%7C%203.11") and is decoded
 # before comparison. The trailing colour is what bounds the capture.
@@ -242,7 +243,10 @@ def check(root: Path) -> int:
     for kind, key, mark in (("subagent", "subagents", ""), ("command", "commands", "/")):
         for plugin in sorted(contents):
             for name in sorted(contents[plugin][key]):
-                if f"{mark}{name}" not in row_names:
+                # Claude Code namespaces a plugin's commands, so `/plugin:name` is how an
+                # installer actually types one; either spelling counts as the row.
+                spellings = {f"{mark}{name}"} | ({f"/{plugin}:{name}"} if mark else set())
+                if not spellings & row_names:
                     fail(f"{kind} {name} ships with {plugin} and has no row in the README")
 
     # --- the repository's own agents and commands -------------------------------------
