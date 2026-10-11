@@ -1,6 +1,6 @@
 ---
 name: form-design
-description: "Design or redesign a form people can complete: label every field, order the questions the way the user thinks, validate inline and only after input, put errors next to the field and say how to fix them, and make the primary action obvious and the whole thing keyboard-operable. Use when designing or changing a form. Casual asks include \"design a signup form\", \"how should I validate\", \"where do error messages go\", \"the form asks for too many fields\" or \"should this be one page or many\". Not for diagnosing why an existing screen or form loses people (ui-ux-review), WCAG conformance (accessibility-audit), visual hierarchy (visual-design), a responsive layout (responsive-design), or building the page (website-builder)."
+description: "Design or redesign a form people can complete: label every field, order the questions the way the user thinks, validate inline and only after input, put errors next to the field and say how to fix them, and make the primary action obvious and the whole thing keyboard-operable. Use when designing or changing a form. Casual asks include \"design a signup form\", \"how should I validate\", \"where do error messages go\", \"the form asks for too many fields\" or \"should this be one page or many\". Not for diagnosing why an existing screen or form loses people (ui-ux-review), WCAG conformance (accessibility-audit), visual hierarchy (visual-design), a responsive layout (responsive-design), building the page (website-builder), or the wording of labels, hints and errors (content-design)."
 allowed-tools: Read, Grep, Glob
 ---
 
@@ -12,9 +12,9 @@ Forms lose people for reasons that are almost never the fields themselves. A lab
 
 ## Scope
 
-Use for: designing a new form; fixing a form with a high abandonment rate; deciding validation timing and where errors go; choosing between one page and several steps; writing labels, hints and error messages; checking that a form is keyboard-operable.
+Use for: designing a new form; fixing a form with a high abandonment rate; deciding validation timing and where errors go; choosing between one page and several steps; deciding which fields need a hint and where each error appears; checking that a form is keyboard-operable.
 
-Do not use for: a WCAG conformance audit, which is `accessibility-audit`; the visual hierarchy, type and spacing, which is `visual-design`; a usability review of the surrounding flow, which is `ui-ux-review`; making the form responsive, which is `responsive-design`; building the page, which is `website-builder`.
+Do not use for: a WCAG conformance audit, which is `accessibility-audit`; the visual hierarchy, type and spacing, which is `visual-design`; a usability review of the surrounding flow, which is `ui-ux-review`; making the form responsive, which is `responsive-design`; building the page, which is `website-builder`; the wording of labels, hints and error messages, which is `content-design`.
 
 ## Workflow
 

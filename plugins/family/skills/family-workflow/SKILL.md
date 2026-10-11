@@ -48,7 +48,7 @@ Every stage ends with a handoff: the artifact, who owns the next stage, and the 
 
 ### 4. Delegate the reading to the stage's agent
 
-Where a stage needs reading the main conversation does not want back — a frame from a long thread, an architecture from a codebase, a plan from a design, findings from a diff, a launch check from config, a retro from outcomes — delegate to that stage's subagent and keep the conclusion, not the material. The agents are read-only by design: they decide and report, and the main agent writes.
+Where a stage needs reading the main conversation does not want back — a frame from a long thread, an architecture from a codebase, a plan from a design, findings from a diff, a launch check from config, a retro from outcomes — delegate to that stage's subagent and keep the conclusion, not the material. The agents have no editing tools by design: they decide and report, and the main agent writes. `inspector` can also run commands, so it runs checks only on a change the owner wrote.
 
 ### 5. Close the loop
 
@@ -62,7 +62,7 @@ Yield is not optional. Every run ends by feeding its outcome back into Frame: wh
 
 **Make without a plan.** Coding before the slice is broken into steps with a proof each. The change becomes one large commit that cannot be reviewed or rolled back.
 
-**Inspect by the author alone.** Self-review finds what you already believe. The inspector is independent, and read-only, so it reports rather than fixes.
+**Inspect by the author alone.** Self-review finds what you already believe. The inspector is independent and has no editing tools, so it reports rather than fixes.
 
 **Launch as "git push".** No migration, no monitoring, no rollback. A release with no way back is a bet, not a launch.
 
