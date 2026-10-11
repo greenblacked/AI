@@ -56,9 +56,9 @@ the folder where a retry would be refused, so print the report and go to step 5.
 
 On `FRAMED`, write `frame.md` from the template below. Put the verdict on the `Verdict:`
 line and the framer's sections verbatim under the headings of the same name, as `##`
-headings. Leave `Owner:` and the `Profile and depth` lines blank: they are the person's
-choices, and the stage reference says the depth is written in the frame so it can be
-challenged.
+headings. Leave `Owner:` empty and keep the `Profile:` and `Depth:` lines exactly as the
+template gives them, options listed: they are the person's choices, and the stage
+reference says the depth is written in the frame so it can be challenged.
 
 Then write the other five files as the empty templates below, replacing `<name>` in each
 title with the slice name. The first line of each is the stage's first question from the
