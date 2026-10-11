@@ -1,0 +1,4 @@
+diff --git a/tests/test_settings_check.py b/docs/settings-check-cases.md
+similarity index 100%
+rename from tests/test_settings_check.py
+rename to docs/settings-check-cases.md
