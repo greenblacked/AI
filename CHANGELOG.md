@@ -411,6 +411,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Say in `/ship` that the trusted checkout for a contributor review sits exactly at the
+  pinned base, as a clone checked out there or a detached worktree, since `reviewer`
+  stops when `HEAD` is anything else.
 - Have `reviewer` resolve `refs/review/<n>` to one validated commit SHA before reading a
   contributor's change, and use that SHA in every later diff, show and merge, so a forced
   re-fetch of the ref mid-review cannot change what is read, gated or merged.
