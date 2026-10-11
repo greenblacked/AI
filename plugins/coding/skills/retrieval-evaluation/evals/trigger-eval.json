@@ -1,0 +1,22 @@
+[
+  {"query":"Does the new hybrid retriever beat vector-only search on held-out queries?", "should_trigger":true},
+  {"query":"Our reranker improved demo answers; how do we measure actual document recall?", "should_trigger":true},
+  {"query":"Compare two chunking approaches without counting duplicate chunks as separate hits.", "should_trigger":true},
+  {"query":"What do we do with search queries that have no relevant document in our ranking benchmark?", "should_trigger":true},
+  {"query":"Evaluate retrieval quality when most returned documents lack relevance labels.", "should_trigger":true},
+  {"query":"Our new search index raises nDCG but leaks other tenants' snippets. Can we ship?", "should_trigger":true},
+  {"query":"Freeze ACL context and corpus for paired retriever evaluation.", "should_trigger":true},
+  {"query":"How should we separate grounding and abstention results from recall@k?", "should_trigger":true},
+  {"query":"A team keeps tuning search on its test queries. Design a sealed holdout.", "should_trigger":true},
+  {"query":"Benchmark document ranking changes for rare queries and fresh content.", "should_trigger":true},
+  {"query":"Grade an autonomous coding agent's tool use across reproducible tasks.", "should_trigger":false, "expected":"agent-evaluation"},
+  {"query":"Why does our agent repeatedly fail the same handoff task?", "should_trigger":false, "expected":"agent-failure-diagnosis"},
+  {"query":"Write guardrails to prevent our code agent from deleting protected paths.", "should_trigger":false, "expected":"agent-guardrails"},
+  {"query":"Design application authorization for tenant-scoped document reads.", "should_trigger":false, "expected":"authorization-design"},
+  {"query":"Find the root cause of a production search service outage.", "should_trigger":false, "expected":"incident-response"},
+  {"query":"Tune a slow SQL query using an execution plan.", "should_trigger":false, "expected":"sql-performance"},
+  {"query":"Decide when to promote our canary to all users.", "should_trigger":false, "expected":"release-strategy"},
+  {"query":"Write a test plan for our browser checkout flow.", "should_trigger":false, "expected":"e2e-testing"},
+  {"query":"Build a search navigation and taxonomy that users can browse.", "should_trigger":false, "expected":"information-architecture"},
+  {"query":"Measure the cost per LLM answer and route cheaper prompts.", "should_trigger":false, "expected":"llm-cost"}
+]

@@ -915,11 +915,11 @@ def test_export_writes_a_router_and_one_per_plugin(mini_repo, tmp_path):
     assert (out / "router-engineering.md").is_file()
     router = (out / "router.md").read_text(encoding="utf-8")
     assert "## engineering" in router
-    assert "- skills/alpha.md:" in router
-    assert "- skills/beta.md:" in router
+    assert "skills/alpha.md " in router
+    assert "skills/beta.md " in router
     per_plugin = (out / "router-engineering.md").read_text(encoding="utf-8")
-    assert "- skills/alpha.md:" in per_plugin
-    assert "- skills/beta.md:" in per_plugin
+    assert "skills/alpha.md " in per_plugin
+    assert "skills/beta.md " in per_plugin
 
 
 def test_every_path_a_router_names_exists_in_the_export(mini_repo, tmp_path):
@@ -927,7 +927,7 @@ def test_every_path_a_router_names_exists_in_the_export(mini_repo, tmp_path):
     assert portable.export(mini_repo, out) == 0
     for router_path in [out / "router.md", out / "router-engineering.md"]:
         text = router_path.read_text(encoding="utf-8")
-        paths = re.findall(r"^- (skills/[\w.-]+\.md): ", text, re.M)
+        paths = re.findall(r"^(skills/[\w.-]+\.md) ", text, re.M)
         assert paths, router_path.name  # the pattern itself must find something to check
         for relative in paths:
             assert (out / relative).is_file(), f"{router_path.name} names {relative}"
@@ -941,10 +941,66 @@ def test_router_keeps_each_skill_trigger_and_single_link(mini_repo, tmp_path):
             mini_repo / "plugins" / "engineering" / "skills" / skill
         )[1]
         trigger = portable.first_sentence(description, portable.ROUTER_USE_WHEN_CAP)
-        line = f"- skills/{skill}.md: {trigger}"
+        line = f"skills/{skill}.md {trigger}"
         for router in ("router.md", "router-engineering.md"):
             text = (out / router).read_text(encoding="utf-8")
             assert text.count(line) == 1
+
+
+def test_router_rows_preserve_order_triggers_and_three_bytes_per_skill(mini_repo, tmp_path):
+    first = "Use when café needs routing."
+    second = "Use when " + "x" * 90 + "."  # Exactly 100 characters, without truncation.
+    write_skill(
+        mini_repo,
+        "design",
+        "gamma",
+        description=f"Summarise the procedure. {second} More detail follows.",
+    )
+    plugin = mini_repo / "plugins" / "design" / ".claude-plugin"
+    plugin.mkdir(parents=True)
+    (plugin / "plugin.json").write_text(
+        json.dumps({"name": "design", "description": "test"}), encoding="utf-8"
+    )
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha" / "SKILL.md"
+    skill.write_text(
+        skill.read_text(encoding="utf-8").replace(
+            "Use this skill whenever the user asks for alpha",
+            first + " Use whenever the user asks for alpha",
+        ),
+        encoding="utf-8",
+    )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    triggers = {
+        name: portable.first_sentence(
+            portable.render_skill(mini_repo / "plugins" / plugin / "skills" / name)[1],
+            portable.ROUTER_USE_WHEN_CAP,
+        )
+        for plugin, name in (
+            ("design", "gamma"),
+            ("engineering", "alpha"),
+            ("engineering", "beta"),
+        )
+    }
+    assert triggers["alpha"] == first
+    assert triggers["gamma"] == second
+    groups = (("design", ("gamma",)), ("engineering", ("alpha", "beta")))
+    for filename, selected in (
+        ("router.md", groups),
+        ("router-design.md", groups[:1]),
+        ("router-engineering.md", groups[1:]),
+    ):
+        text = (out / filename).read_text(encoding="utf-8")
+        rows = re.findall(r"^(skills/[\w.-]+\.md) (.+)$", text, re.M)
+        expected = [(f"skills/{name}.md", triggers[name]) for _, names in selected for name in names]
+        assert rows == expected
+        for path, _ in rows:
+            assert (out / path).is_file()
+        old_rows = [f"- {path}: {trigger}" for path, trigger in rows]
+        new_rows = [f"{path} {trigger}" for path, trigger in rows]
+        assert len("\n".join(old_rows).encode()) - len("\n".join(new_rows).encode()) == 3 * len(
+            rows
+        )
 
 
 def test_the_router_trigger_cap_stays_at_one_hundred_characters():
