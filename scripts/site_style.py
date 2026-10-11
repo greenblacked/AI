@@ -700,36 +700,182 @@ html[data-theme="night"] .sun { display: none; }
 .prose-lab .al-c { text-align: center; }
 .prose-lab td.num, .prose-lab th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .prose-lab .say { color: var(--muted); }
-/* The FAMILY page is the one hand-drawn page: a stage timeline and profile cards rather
-   than the generated prose-and-table layout every other page uses. Scoped to .family. */
-.family-stages { list-style: none; margin: 0 0 2rem; padding: 0; }
-.family-stages > li {
-  display: grid;
-  grid-template-columns: 2.5rem 1fr;
-  gap: 0 1rem;
-  padding: 1rem 0;
-  border-top: 1px solid var(--line);
+/* The FAMILY pages are hand-drawn: a stage timeline whose stages open, a profile picker,
+   a checklist and profile cards, rather than the generated prose-and-table layout every
+   other page uses. Scoped to .family-*. */
+.family-section { margin-top: 3rem; }
+.family-section h2 {
+  font-family: var(--font-sans);
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.75rem;
 }
+.family-section > p { max-width: 42rem; margin: 0 0 1rem; color: var(--muted); }
+.family-section a, .family-example a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.family-section code, .family-example code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--card);
+  padding: 0.08em 0.35em;
+  border-radius: 0.3rem;
+}
+.family-section .install { margin-top: 1rem; }
+.family-section .finder { margin-top: 1.5rem; }
+.family-section #list { margin-top: 1rem; }
+.family-agents { list-style: none; display: grid; gap: 0; }
+.family-agents li { padding: 0.75rem 0; border-bottom: 1px solid var(--line); }
+.picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+  margin: 1.5rem 0 0.5rem;
+}
+.picker fieldset { min-width: 0; }
+.picker legend { padding: 0; margin-bottom: 0.5rem; font-size: 0.95rem; color: var(--muted); }
+.picker .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.chip input { width: 1.1rem; height: 1.1rem; accent-color: var(--ink); }
+.chip:has(input:checked) { border-color: var(--ink); background: var(--card); }
+.chip:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 3px; }
+.chip input:focus-visible { outline: none; }
+.family-reset {
+  min-height: 2.75rem;
+  padding: 0 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.family-reset:hover { border-color: var(--ink); }
+.family-flow .start { display: none; max-width: 42rem; margin: 0.75rem 0 0; color: var(--muted); }
+.family-flow .start strong { color: var(--ink); font-weight: 600; }
+.family-stages { list-style: none; margin: 1.5rem 0 0; padding: 0; }
+.family-stages > li { border-top: 1px solid var(--line); }
 .family-stages > li:last-child { border-bottom: 1px solid var(--line); }
+.family-stages > li {
+  --bar: var(--stage);
+  --barw: 3px;
+  --letter: var(--stage);
+  --name: var(--ink);
+  --tint: transparent;
+}
+.family-stages details { background: var(--tint); border-radius: 0.5rem; }
+.family-stages summary {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) 1.5rem;
+  grid-template-rows: auto auto;
+  gap: 0 1rem;
+  align-items: start;
+  min-height: 2.75rem;
+  padding: 1rem 0;
+  cursor: pointer;
+  list-style: none;
+}
+.family-stages summary::-webkit-details-marker { display: none; }
+.family-stages summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .family-stages .letter {
+  grid-row: 1 / span 2;
   font-family: var(--font-mono);
   font-size: 1.375rem;
   font-weight: 600;
   line-height: 1.15;
+  color: var(--letter);
 }
 .family-stages h3 {
   margin: 0 0 0.25rem;
   font-family: var(--font-sans);
   font-size: 1.0625rem;
   font-weight: 600;
+  color: var(--name);
 }
-.family-stages p {
-  margin: 0;
+.family-stages .line {
+  grid-column: 2;
   font-family: var(--font-sans);
   font-size: 0.95rem;
   line-height: 1.5;
   color: var(--muted);
 }
+.family-stages .chev {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-top: 0.4rem;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+}
+.family-stages details[open] .chev { transform: rotate(-135deg); margin-top: 0.7rem; }
+.family-stages .more {
+  padding: 0 0 1rem 3.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.family-stages .facts > div, .family-stages .routes > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.75rem;
+  padding: 0.25rem 0;
+}
+.family-stages dt { min-width: 7.5rem; color: var(--muted); }
+.family-stages .routes dt { min-width: 9.5rem; }
+.family-stages dd { flex: 1 1 12rem; min-width: 0; }
+.family-stages .routes-head { margin: 0.75rem 0 0.25rem; color: var(--muted); }
+.family-stages .note {
+  display: none;
+  padding: 0 0 0.75rem 3.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.family-checks { list-style: none; margin: 0.5rem 0 1rem; padding: 0; }
+.family-checks li { border-bottom: 1px solid var(--line); }
+.family-checks .check {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.35rem 0;
+  cursor: pointer;
+}
+.family-checks input { flex: none; width: 1.25rem; height: 1.25rem; accent-color: var(--stage); }
+.family-checks .k { font-weight: 600; color: var(--stage); }
+.family-example .example-stage {
+  margin-top: 2.5rem;
+  padding-left: 1rem;
+  border-left: 3px solid var(--stage);
+}
+.family-example h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin: 0 0 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+.family-example h2 .letter { font-family: var(--font-mono); font-weight: 600; color: var(--stage); }
+.family-example p { margin: 0 0 0.75rem; }
+.family-example .ran { color: var(--muted); }
 .family-profiles {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
@@ -809,7 +955,6 @@ html[data-theme="reactor"] {
   background: var(--ink);
   opacity: 0;
 }
-.family-stages .letter { color: var(--stage); }
 .family-link { margin-top: 1rem; font-size: 1rem; }
 .family-link a {
   color: var(--ink);
@@ -823,10 +968,14 @@ html[data-theme="reactor"] {
   left: -0.75rem;
   top: 1rem;
   bottom: 1rem;
-  width: 3px;
+  width: var(--barw);
   border-radius: 3px;
-  background: var(--stage);
+  background: var(--bar);
 }
+/* Picking a profile highlights the stages it owns and mutes the rest. Muting changes
+   colour and not opacity, so the text left over still holds its contrast. A stage a
+   profile only pushes into keeps its normal look and gains a line of its own. */
+@@PROFILE_RULES@@
 @media (prefers-reduced-motion: no-preference) {
   .family-word .fl .fk, .family-word .fl .fd {
     max-width: 0;
@@ -859,6 +1008,8 @@ html[data-theme="reactor"] {
   .family-stages > li:nth-child(4) { animation-delay: 2.85s; }
   .family-stages > li:nth-child(5) { animation-delay: 2.95s; }
   .family-stages > li:nth-child(6) { animation-delay: 3.05s; }
+  /* A row is focusable before its rise begins; focus must never land on an invisible control. */
+  .family-stages > li:focus-within { opacity: 1; animation: none; }
 }
 @keyframes family-key {
   0% { max-width: 0; opacity: 0; transform: translateY(0.18em) scale(1.6); }
@@ -874,6 +1025,38 @@ html[data-theme="reactor"] {
   to { opacity: 1; transform: none; }
 }
 """
+
+PROFILES = ("solo", "developer", "qa", "team")
+
+
+def _profile_rules() -> str:
+    """The CSS for the profile picker, one block per profile.
+
+    ``:has()`` reads the checked radio, so no script is involved. An attribute selector
+    cannot compare a radio's value with a list on another element, so the four blocks
+    are written out rather than looped over in the stylesheet.
+    """
+    rules = []
+    for profile in PROFILES:
+        on = f'.family-flow:has(input[value="{profile}"]:checked)'
+        rules.append(
+            f'{on} .start[data-for="{profile}"] {{ display: block; }}\n'
+            f'{on} .family-stages > li[data-own~="{profile}"] {{\n'
+            "  --barw: 6px;\n"
+            "  --tint: color-mix(in srgb, var(--stage) 8%, transparent);\n"
+            "}\n"
+            f'{on} .family-stages > li:not([data-own~="{profile}"])'
+            f':not([data-feeds~="{profile}"]) {{\n'
+            "  --bar: var(--line);\n"
+            "  --letter: var(--muted);\n"
+            "  --name: var(--muted);\n"
+            "}\n"
+            f'{on} .family-stages .note[data-for="{profile}"] {{ display: block; }}'
+        )
+    return "\n".join(rules)
+
+
+CSS = CSS.replace("@@PROFILE_RULES@@", _profile_rules())
 
 # The theme is set before the page paints, so a visitor at night never sees a flash of
 # paper. This is the clock rule and the stored choice, nothing else.
@@ -1045,5 +1228,48 @@ PAGE_SCRIPT = """
     if (none) none.hidden = shown !== 0;
   }
   input.addEventListener("input", refine);
+})();
+"""
+
+# The Run a slice checklist on /family/. Ticks are kept in one localStorage entry, a JSON
+# list of the stage letters ticked, so the page remembers them without an account. Every
+# storage call sits in a try, because a private window or a blocked store throws; the
+# boxes still work then, they are just not remembered. It also stops Enter in the picker
+# from submitting the form the Clear button needs.
+FAMILY_SCRIPT = """
+(function () {
+  var KEY = "family-slice";
+  var boxes = document.querySelectorAll("[data-gate]");
+  var reset = document.querySelector("[data-slice-reset]");
+  var picker = document.querySelector(".picker");
+  if (picker) picker.addEventListener("submit", function (event) { event.preventDefault(); });
+  if (!boxes.length) return;
+  function load() {
+    var list = [];
+    try {
+      var parsed = JSON.parse(localStorage.getItem(KEY) || "[]");
+      if (Array.isArray(parsed)) list = parsed;
+    } catch (e) {}
+    return list;
+  }
+  function save() {
+    var ticked = [];
+    boxes.forEach(function (box) {
+      if (box.checked) ticked.push(box.getAttribute("data-gate"));
+    });
+    try {
+      if (ticked.length) localStorage.setItem(KEY, JSON.stringify(ticked));
+      else localStorage.removeItem(KEY);
+    } catch (e) {}
+  }
+  var saved = load();
+  boxes.forEach(function (box) {
+    box.checked = saved.indexOf(box.getAttribute("data-gate")) !== -1;
+    box.addEventListener("change", save);
+  });
+  if (reset) reset.addEventListener("click", function () {
+    boxes.forEach(function (box) { box.checked = false; });
+    save();
+  });
 })();
 """

@@ -74,4 +74,6 @@ Yield is not optional. Every run ends by feeding its outcome back into Frame: wh
 
 - `references/stages.md`: read at step 2 for each stage's gate, first question, waiver rule, the questions it answers, the artifact, the agent, and the skills it hands detail to.
 - `references/profiles.md`: read at step 1 to choose among the four profiles — solo, developer, QA and team — and between light and full depth, and the skill each one routes to.
+- `references/slice-folder.md`: read at step 3 for the `docs/slices/<name>/` folder, one file per stage artifact, each opening with its stage's first question; the `/family` command creates it.
+- `references/pull-request-template.md`: read at step 3 when a repository adopts FAMILY, for a pull request template that carries the six artifacts and the stage labels.
 - `solo-development`, `developer-workflow`, `qa-workflow`, `team-workflow`: read the one the profile names for its full procedure, gates and handoffs.
