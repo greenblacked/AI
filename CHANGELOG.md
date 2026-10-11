@@ -19,6 +19,17 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   `docs/slices/<name>/frame.md` with the stage templates beside it, prints the next hop and
   stops. `family-workflow` gains the slice-folder convention and a pull request template
   with one label per stage.
+- Replace the site's plain "Not found" page with a 404 that types its own number in, in
+  three of the FAMILY stage colours, shows the address that was asked for, and suggests up
+  to three real pages when it is a near miss, so `/statr/` or `/family-workflw/` offers
+  the page that was meant. Home, Start, a search of the catalogue and FAMILY are always
+  there, and with scripts off the page is the heading, a sentence and those links.
+- Add error pages for 403, 500, 502 and 503 at `/errors/403` and so on, each one file with its styles
+  and script inline and nothing loaded from anywhere, so a host can show one in place of
+  a failing page. Each has its own effect: a lock that closes, digits that shake, a link
+  that drops signal, and a slow progress pulse for maintenance; the 5xx pages have a
+  Retry button. They follow the system's light or dark scheme or the choice made on the
+  site, stop all motion when it is reduced, and are marked `noindex`.
 - Open the `family` plugin's page on the same typed F.A.M.I.L.Y. heading as the FAMILY
   page, with a link to the stage-by-stage guide; every other plugin keeps its plain name.
 - Add six skills to the `family` plugin that run its stage agents together:
