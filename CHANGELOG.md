@@ -414,6 +414,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Name `family` in `docs/writing-skills.md`'s list of the ten plugins and give it a row
+  in `AGENTS.md`'s layout table; a test now checks both against the marketplace manifest.
 - Describe the `family` stage agents as having no editing tools rather than as
   read-only in `family-workflow`: `inspector` holds `Bash` and can run commands, which
   it does only on a change the owner wrote.
