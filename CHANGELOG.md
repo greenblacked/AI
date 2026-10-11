@@ -414,6 +414,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Split field labels and error messages between `form-design` and `content-design`.
+  `form-design` owns which fields a form asks for, their order, when it validates, where
+  an error appears and the keyboard flow; `content-design` owns the words. Each now names
+  the other in its description and scope, and each eval set routes a near miss to the
+  other.
 - Name `family` in `docs/writing-skills.md`'s list of the ten plugins and give it a row
   in `AGENTS.md`'s layout table; a test now checks both against the marketplace manifest.
 - Describe the `family` stage agents as having no editing tools rather than as

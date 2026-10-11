@@ -1,6 +1,6 @@
 ---
 name: content-design
-description: "Write and review the words in an interface — button and link labels, error and empty-state messages, confirmation and loading copy, and the tone that holds across a flow. Covers plain language, the action named in the label, error messages that say what happened and what to do, and one voice whose tone shifts by moment. Use this skill whenever someone is writing or reviewing UI copy. Triggers include writing microcopy, fixing a vague label or unhelpful error, naming a button, rewriting an empty state, setting a tone of voice, or a UX writing pass over a flow — or phrasings like \"the button just says Submit\", \"our error messages are useless\", or \"how should we word this\". Do not use it for product documentation and guides (technical-docs), a whole-screen usability review (ui-ux-review), a WCAG audit (accessibility-audit), a PR or diff review (code-review), or marketing and brand copy."
+description: "Write and review the words in an interface — button and link labels, error and empty-state messages, confirmation and loading copy, and the tone that holds across a flow. Covers plain language, the action named in the label, errors that say what happened and what to do, and one voice whose tone shifts by moment. Use whenever someone writes or reviews UI copy: microcopy, a vague label or unhelpful error, naming a button, an empty state, a tone of voice, or a UX writing pass — or phrasings like \"the button just says Submit\", \"our error messages are useless\", or \"how should we word this\". Not for product docs and guides (technical-docs), a whole-screen usability review (ui-ux-review), a WCAG audit (accessibility-audit), a PR review (code-review), marketing copy, or a form's field order, validation timing and error placement (form-design)."
 allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
@@ -14,7 +14,7 @@ The job is hard because the words are written last, by whoever has the screen op
 
 Use for: writing or rewriting any string a user reads in the product — buttons, links, field labels and help text, error and validation messages, empty, loading and success states, confirmations, notifications, and onboarding steps; setting a voice and a tone that scale across a flow; a UX writing pass over a screen or journey; reviewing copy a designer or engineer wrote.
 
-Do not use for: product documentation, help centres and guides, which is `technical-docs`; a whole-screen usability review where the layout or interaction is the problem, which is `ui-ux-review`; a conformance audit of names, labels and error associations, which is `accessibility-audit`; or marketing, brand and campaign copy, which is out of scope here.
+Do not use for: product documentation, help centres and guides, which is `technical-docs`; a whole-screen usability review where the layout or interaction is the problem, which is `ui-ux-review`; a conformance audit of names, labels and error associations, which is `accessibility-audit`; which fields a form asks for, their order, when it validates and where an error appears, which is `form-design`; or marketing, brand and campaign copy, which is out of scope here.
 
 ## Workflow
 
