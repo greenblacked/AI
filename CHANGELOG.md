@@ -406,6 +406,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Return `FIX` pending the owner, not `STOP`, when `reviewer` judges a contributor's
+  permissions, API-write or `workflow_run` change with no live check: the live check is
+  an owner-must-run item, as the contributor rules and the ChatGPT guide already said,
+  and the verdict section now agrees with them.
 - List a contributor change's paths with `--no-renames` in `reviewer`, `investigator`,
   `/ship`, `/verify` and the ChatGPT and usage guides. With rename detection on, moving
   a test into `docs/` listed only the new Markdown path, which passed the safe-name check

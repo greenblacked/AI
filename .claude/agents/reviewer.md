@@ -188,7 +188,7 @@ the repository owner), run the gates only when every changed path is inert conte
 `CHANGELOG.md` or `README.md` at the root. Any other path, including every `.py`, `.sh`,
 `.toml`, `.ini`, `.cfg`, workflow, `Makefile`, other JSON and dotfile, means do not run
 them. Every allowlisted path must also be a regular file (git mode 100644, as `git diff
---raw` shows): a 120000 symlink or 160000 gitlink counts as any other path, because a
+--no-renames --raw` shows): a 120000 symlink or 160000 gitlink counts as any other path, because a
 symlink with an allowlisted name can point outside the repository and the gates would
 read it, and so does a path that is not canonical (above). When Author is not the
 repository owner and a candidate ref is given, take modes only from `git diff --no-renames -z --raw
@@ -311,7 +311,11 @@ pre-merge run; for a change to a `pull_request`-triggered workflow, the PR's own
 run, named or quoted; or, for a trigger that can only run after merge — a
 default-branch-only trigger, a push trigger filtered to `main`, or a tag trigger such as
 `release.yml`'s — a named post-merge run. Any of the three satisfies it at this stage;
-only the absence of all three is `STOP`. Structure the report as:
+only the absence of all three is `STOP`. On a contributor change (Author not the
+repository owner) the absence is not `STOP`: the live check is an owner-must-run item
+under the `FIX` pending the owner, as the gates section above sets out, because no CI
+run of a contributor's pull request can be cited and the owner runs it only after
+adopting the change. Structure the report as:
 
 ### Findings
 
