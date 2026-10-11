@@ -10,6 +10,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Merge the `family` plugin page into `/family/`: one page with the typed heading, the
+  install command, a profile picker that highlights the stages a role owns, each stage as a
+  disclosure naming its agent, verdicts and next hop, a slice checklist kept in the
+  browser, the skills with search and the subagents. `/plugins/family/` redirects there,
+  and `/family/example/` walks one real slice through all six stages.
 - Open the `family` plugin's page on the same typed F.A.M.I.L.Y. heading as the FAMILY
   page, with a link to the stage-by-stage guide; every other plugin keeps its plain name.
 - Add six skills to the `family` plugin that run its stage agents together:
