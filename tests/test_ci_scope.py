@@ -23,6 +23,7 @@ STAGE = "c" * 40
 STAGE_HEAD = "d" * 40
 TREE = "e" * 40
 STAGE_REF = "feat/promote-to-stage"
+NUMBER = 42
 PATCH = ".claude/agents/benchmarks/reviewer/unpublished-release-links/change.patch"
 
 
@@ -66,11 +67,11 @@ def jobs_path(run_id):
     return f"/repos/{REPO_NAME}/actions/runs/{run_id}/jobs?per_page=100"
 
 
-def run(run_id, base=BASE, status="completed", branch=STAGE_REF, repo=REPO_NAME):
+def run(run_id, base=BASE, status="completed", branch=STAGE_REF, repo=REPO_NAME, number=NUMBER):
     return {
         "id": run_id,
         "status": status,
-        "pull_requests": [{"base": {"sha": base}}],
+        "pull_requests": [{"number": number, "base": {"sha": base}}],
         "head_branch": branch,
         "head_repository": {"full_name": repo},
     }
@@ -98,6 +99,8 @@ def edited(**values):
             "EVENT_ACTION": "edited",
             "HEAD_SHA": HEAD,
             "BASE_SHA": BASE,
+            "PR_NUMBER": str(NUMBER),
+            "CHANGES": '{"body": {"from": "old"}}',
             **values,
         }
     )
@@ -184,6 +187,54 @@ def test_an_edit_runs_everything_unless_the_code_already_passed_against_this_bas
     table.update({jobs_path(run_id): {"jobs": listed} for run_id, listed in jobs.items()})
     mode, reason = scope.decide(edited(), table_get(table), table_git({}))
     assert mode == "full" and why in reason, reason
+
+
+RETARGET = '{"base": {"ref": {"from": "dev"}, "sha": {"from": "' + "0" * 40 + '"}}}'
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [RETARGET, '{"title": {"from": "a"}, "base": {"ref": {"from": "dev"}}}', "{}", "null", "", "["],
+)
+def test_an_edit_that_is_not_only_title_or_body_runs_everything(changes):
+    # A retargeted base is an `edited` event too, and an earlier green run's
+    # `pull_requests` already reports the new base, so only the event can tell.
+    get = table_get(
+        {runs_path(HEAD): {"workflow_runs": [run(7)]}, jobs_path(7): {"jobs": CODE_GREEN}}
+    )
+    mode, reason = scope.decide(edited(CHANGES=changes, BASE_REF="dev"), get, table_git({}))
+    assert mode == "full" and "into dev" in reason, reason
+
+
+def test_a_pull_request_retargeted_to_main_gets_the_promotion_proof_not_text():
+    get, git = stage_world(diff="CHANGELOG.md\nscripts/site_style.py\n")
+    table = {runs_path(HEAD): {"workflow_runs": [run(7)]}, jobs_path(7): {"jobs": CODE_GREEN}}
+
+    def both(path):
+        return table[path] if path in table else get(path)
+
+    mode, reason = scope.decide(edited(CHANGES=RETARGET, BASE_REF="main"), both, git)
+    assert mode == "full" and "differs from stage" in reason, reason
+
+
+@pytest.mark.parametrize("number", [7, None])
+def test_an_edit_counts_only_runs_that_list_this_pull_request(number):
+    # One branch heading pull requests into dev and stage gives each run both; a run
+    # whose entry for another pull request carries this base proves nothing here.
+    other = run(7, number=number)
+    get = table_get(
+        {runs_path(HEAD): {"workflow_runs": [other]}, jobs_path(7): {"jobs": CODE_GREEN}}
+    )
+    mode, reason = scope.decide(edited(), get, table_git({}))
+    assert mode == "full" and "no earlier run" in reason, reason
+
+
+def test_an_edit_with_no_pull_request_number_runs_everything():
+    get = table_get(
+        {runs_path(HEAD): {"workflow_runs": [run(7)]}, jobs_path(7): {"jobs": CODE_GREEN}}
+    )
+    mode, reason = scope.decide(edited(PR_NUMBER=""), get, table_git({}))
+    assert mode == "full" and "not proven" in reason, reason
 
 
 def test_an_edit_with_a_malformed_sha_runs_everything():

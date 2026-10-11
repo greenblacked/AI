@@ -17,9 +17,10 @@ The `scope` job runs this first and every other job in `ci.yml` reads its `mode`
   benchmark patch that has to be repointed at it by hand for a release. The cheap checks
   and the deployment checks still run; the test matrix, the browser tests and the linters
   of files that did not change do not.
-- ``text`` is an `edited` event on a pull request whose commit, against the same base, has
-  already passed every check that reads the code. Only the two checks that read the title
-  and description run again.
+- ``text`` is an `edited` event that changed only the title or the body, on a pull request
+  whose commit, against the same base, has already passed every check that reads the
+  code. Only the two checks that read the title and description run again. GitHub sends
+  `edited` for a retargeted base too, and that edit is never `text`.
 
 Every proof is read from the GitHub API and git, and any doubt, an API error, a missing
 pull request, a run still in progress, a tree that differs, is `full`. A wrong answer here
@@ -68,6 +69,9 @@ TEXT_SKIPS = (
     "site-browser",
     "package",
 )
+# The keys of an `edited` event's `changes` that leave the code as it was. Anything else,
+# `base` above all, means the merge under test is a different one.
+TEXT_CHANGES = frozenset({"title", "body"})
 # Check names (as the runs API reports jobs) that read only the description, or are the
 # machinery; every other job in an earlier run must have succeeded for `text`.
 TEXT_CHECK_NAMES = frozenset({"attribution", "naming", "ci", "scope"})
@@ -109,6 +113,7 @@ def heads_passed(
     base_sha: str | None,
     skip_run: str,
     head_ref: str | None = None,
+    number: int | None = None,
 ) -> str:
     """The id of the newest CI run on `head_sha` that ran the code checks, all green.
 
@@ -116,8 +121,10 @@ def heads_passed(
     `text` run and is passed over. Every other completed run must have passed every code
     check: one green run does not outweigh a red one on the same commit, because the red
     one may be the flake that tells the truth. A run still in progress is not a pass
-    either. With `base_sha`, only runs against that base count, because a pull request's
-    run tests its merge with the base as it was then.
+    either. With `base_sha`, only runs that list this pull request (`number`) against that
+    base count, because a pull request's run tests its merge with the base as it was
+    then. `pull_requests` is computed when it is read, so it cannot show a base the run
+    no longer has; the caller rules out a retargeted base from the event first.
     """
     runs = get(
         f"/repos/{repo}/actions/workflows/{CI_WORKFLOW}/runs"
@@ -138,10 +145,12 @@ def heads_passed(
         ):
             continue
         if base_sha is not None:
+            # One branch can head two open pull requests, into dev and into stage, and
+            # each run lists both; only the entry for this pull request says what it is.
             bases = {
                 (pr.get("base") or {}).get("sha")
                 for pr in run.get("pull_requests") or []
-                if isinstance(pr, dict)
+                if isinstance(pr, dict) and pr.get("number") == number
             }
             if base_sha not in bases:
                 continue
@@ -227,17 +236,27 @@ def promotion_from_stage(get: Get, git: Git, repo: str) -> str:
     return f"same tree as stage {stage[:7]}, whose pull request #{number} passed run {run}"
 
 
+def only_text_changed(changes: str | None) -> bool:
+    """Whether an `edited` event's `changes` (as JSON) touched nothing but title and body."""
+    try:
+        parsed = json.loads(changes or "")
+    except ValueError:
+        return False
+    return isinstance(parsed, dict) and bool(parsed) and set(parsed) <= TEXT_CHANGES
+
+
 def decide(env: dict[str, str], get: Get, git: Git) -> tuple[str, str]:
     """`(mode, reason)` for this run; anything not proven is `full`."""
     event = env.get("EVENT_NAME", "")
     repo = env.get("REPOSITORY", "")
     try:
         if event == "pull_request":
-            if env.get("EVENT_ACTION") == "edited":
+            if env.get("EVENT_ACTION") == "edited" and only_text_changed(env.get("CHANGES")):
                 head = _sha(env.get("HEAD_SHA"), "the head")
                 base = _sha(env.get("BASE_SHA"), "the base")
+                number = int(env.get("PR_NUMBER", ""))
                 try:
-                    run = heads_passed(get, repo, head, base, env.get("RUN_ID", ""))
+                    run = heads_passed(get, repo, head, base, env.get("RUN_ID", ""), number=number)
                     return "text", f"only the description changed; run {run} passed the code"
                 except NotProvenError:
                     # A pull request into main ran as a promotion, with the matrix

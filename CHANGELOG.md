@@ -406,6 +406,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Run CI in full when a pull request's base is retargeted. `edited` covers a new base as
+  well as a new title or body, and the earlier run's pull request list reports the base
+  as it is now, so a retarget was answered with the two description checks from a run
+  against the old base. `scope` now reads the event's `changes`, treats only a title or
+  body edit as text, and counts only earlier runs that list this pull request.
 - Show each plugin command on the site's Workflows page by the name an installed plugin
   runs it under, `/plugin:command`, rather than the bare command name.
 - Give each portable router line its full 100 characters of trigger again. 0.1.4 cut
