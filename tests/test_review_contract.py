@@ -48,3 +48,27 @@ def test_a_contributor_change_missing_its_live_check_is_fix_not_stop():
     text = flat(".claude/agents/reviewer.md")
     rule = text.split("only the absence of all three is `STOP`.", 1)[1][:600]
     assert "contributor" in rule and "owner-must-run" in rule and "`FIX`" in rule, rule
+
+
+@pytest.mark.parametrize(
+    ("path", "anchor"),
+    [
+        (".claude/agents/reviewer.md", "file under `plugins/` or `docs/`"),
+        ("docs/chatgpt-agents.md", "The inert paths are: a *.md file under plugins/ or docs/"),
+        ("docs/chatgpt-agents.md", "and no gate runs): a *.md file under plugins/ or docs/"),
+        ("docs/using.md", "(Markdown under `plugins/` or `docs/`"),
+    ],
+)
+def test_the_inert_allowlist_excludes_instruction_files(path, anchor):
+    # A contributor's nested `docs/CLAUDE.md` is Markdown under `docs/`, and loads as
+    # instructions in any session opened there.
+    text = flat(path)
+    assert anchor in text, (path, anchor)
+    clause = text.split(anchor, 1)[1][:260]
+    for name in ("CLAUDE.md", "CLAUDE.local.md", "AGENTS.md", ".claude/"):
+        assert name in clause, (path, name, clause)
+
+
+def test_a_contributor_instruction_file_is_a_blocking_finding():
+    text = flat(".claude/agents/reviewer.md")
+    assert re.search(r"adds or edits an instruction file .{0,120}is a blocking finding", text)

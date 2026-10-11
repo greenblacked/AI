@@ -406,6 +406,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Stop counting a contributor's `CLAUDE.md`, `CLAUDE.local.md`, `AGENTS.md` or anything
+  under a `.claude/` segment as inert Markdown in the review allowlist. Those files load
+  as instructions wherever a session opens, so `reviewer` now treats adding or editing
+  one as a blocking finding, and the ChatGPT and usage guides say the same.
 - Return `FIX` pending the owner, not `STOP`, when `reviewer` judges a contributor's
   permissions, API-write or `workflow_run` change with no live check: the live check is
   an owner-must-run item, as the contributor rules and the ChatGPT guide already said,
