@@ -114,7 +114,9 @@ the current base. The merge runs only the trusted clone's own hooks and config; 
 .gitattributes change is non-inert, and a merge driver must also be defined in the
 trusted config, so none runs. The reviewer never reads files inside the worktree; file contents come
 only from git show '<candidate ref>:<canonical-path>' (single quotes, since double quotes
-still expand $(...) and backticks). The inert paths are: a *.md file under plugins/ or docs/, a trigger
+still expand $(...) and backticks). The inert paths are: a *.md file under plugins/ or docs/ other than an
+instruction file (CLAUDE.md, CLAUDE.local.md or AGENTS.md) or a path with a .claude/
+segment, which loads as instructions and is a blocking finding on a contributor change, a trigger
 eval set (plugins/*/skills/*/evals/*.json or plugins/*/agents/evals/*.json), or
 README.md or CHANGELOG.md at the root, each a regular file (git mode 100644; a symlink
 or gitlink counts as any other path) whose whole NUL-delimited
@@ -295,7 +297,8 @@ decided from git diff --no-renames -z --raw
 '<base>'...refs/review/<n>, after requiring that git merge-base '<base>'
 refs/review/<n> equals <base> (otherwise FIX asking the
 contributor to rebase onto the current base, for inert-only and non-inert changes alike,
-and no gate runs): a *.md file under plugins/ or docs/, a trigger eval set
+and no gate runs): a *.md file under plugins/ or docs/ other than an instruction file
+(CLAUDE.md, CLAUDE.local.md or AGENTS.md) or a path with a .claude/ segment, a trigger eval set
 (plugins/*/skills/*/evals/*.json or plugins/*/agents/evals/*.json), or README.md or
 CHANGELOG.md at the root, each a regular file (git mode 100644; a symlink or gitlink
 counts as any other path) whose whole NUL-delimited name matches
