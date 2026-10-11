@@ -506,11 +506,170 @@ def test_the_family_heading_types_itself_in_when_motion_is_allowed(browser, base
         made.close()
 
 
-def test_the_family_plugin_page_shares_the_typed_heading(page, base_url):
-    page.goto(base_url + "/plugins/family/")
-    assert page.get_by_role("heading", level=1, name="family").count() == 1
-    keys = page.evaluate(FAMILY_KEYS)
-    assert "".join(k["text"] for k in keys) == "F.A.M.I.L.Y."
-    assert all(k["opacity"] == "1" and k["width"] > 0 for k in keys)
-    page.get_by_role("link", name="The FAMILY workflow, stage by stage").click()
+def test_the_family_page_is_the_plugin_page_with_its_install_line_and_skills(page, built, base_url):
+    page.goto(base_url + "/family/")
+    assert page.get_by_role("heading", level=1, name="The FAMILY workflow").count() == 1
+    assert page.get_by_text("/plugin install family@", exact=False).first.is_visible()
+    skills = page.evaluate("() => [...document.querySelectorAll('#list [data-name]')].length")
+    assert skills == len(list(REPO.glob("plugins/family/skills/*/SKILL.md")))
+    assert page.locator(".family-agents li").count() == 6
+    # The retired plugin page is not built; its address redirects in production.
+    assert not (built / "plugins" / "family" / "index.html").exists()
+    assert (
+        (built / "_redirects")
+        .read_text(encoding="utf-8")
+        .startswith("/plugins/family/ /family/ 301")
+    )
+    page.get_by_role("link", name="See one slice end to end").click()
+    page.wait_for_url(base_url + "/family/example/")
+    page.get_by_role("link", name="Back").first.click()
     page.wait_for_url(base_url + "/family/")
+
+
+def _stage_look(page, letter: str) -> dict:
+    return page.evaluate(
+        "l => { const li = document.querySelector('.stage-' + l + '.family-stages > li,"
+        " .family-stages > li.stage-' + l);"
+        " return {letter: getComputedStyle(li.querySelector('.letter')).color,"
+        " name: getComputedStyle(li.querySelector('h3')).color,"
+        " tint: getComputedStyle(li.querySelector('details')).backgroundColor,"
+        " bar: getComputedStyle(li, '::before').backgroundColor,"
+        " width: getComputedStyle(li, '::before').width}; }",
+        letter,
+    )
+
+
+def test_picking_a_profile_highlights_its_stages_and_mutes_the_rest(page, base_url):
+    page.goto(base_url + "/family/")
+    plain = {letter: _stage_look(page, letter) for letter in "fami"}
+    # No profile is picked, so every stage looks the same way: tinted by none.
+    assert {look["tint"] for look in plain.values()} == {"rgba(0, 0, 0, 0)"}
+    assert not page.locator(".start").evaluate_all("els => els.some(e => e.offsetParent)")
+    page.get_by_label("Developer").check()
+    owned, handed_off = _stage_look(page, "m"), _stage_look(page, "i")
+    # Owned: the stage's own colour kept and a tint added. Handed off: muted.
+    assert owned["letter"] == plain["m"]["letter"] and owned["tint"] != plain["m"]["tint"]
+    assert handed_off["letter"] != plain["i"]["letter"]
+    assert handed_off["name"] != plain["i"]["name"] and handed_off["bar"] != plain["i"]["bar"]
+    assert owned["width"] != handed_off["width"] or owned["bar"] != handed_off["bar"]
+    assert page.locator('.start[data-for="developer"]').is_visible()
+    assert not page.locator('.start[data-for="qa"]').is_visible()
+    assert page.locator('.stage-i .note[data-for="developer"]').is_visible()
+    # QA owns Inspect and only pushes into Frame: Frame is neither tinted nor muted.
+    page.get_by_label("QA").check()
+    assert _stage_look(page, "i")["tint"] != "rgba(0, 0, 0, 0)"
+    assert _stage_look(page, "f")["tint"] == "rgba(0, 0, 0, 0)"
+    assert _stage_look(page, "f")["letter"] == plain["f"]["letter"]
+    assert _stage_look(page, "m")["letter"] != plain["m"]["letter"]
+    # Solo and Team own all six.
+    for label in ("Solo", "Team"):
+        page.get_by_label(label).check()
+        assert all(_stage_look(page, x)["tint"] != "rgba(0, 0, 0, 0)" for x in "fami")
+    # Clear returns to the neutral page.
+    page.get_by_role("button", name="Clear").click()
+    assert {_stage_look(page, x)["tint"] for x in "fami"} == {"rgba(0, 0, 0, 0)"}
+
+
+def test_the_profile_picker_works_from_the_keyboard_with_a_visible_focus(page, base_url):
+    page.goto(base_url + "/family/")
+    page.focus(".install pre")
+    page.keyboard.press("Tab")
+    assert page.evaluate("() => document.activeElement.value") == "solo"
+    outline = page.evaluate(
+        "() => getComputedStyle(document.activeElement.closest('.chip')).outlineStyle"
+    )
+    assert outline != "none"
+    page.keyboard.press("ArrowRight")
+    assert page.evaluate("() => document.activeElement.value") == "developer"
+    assert page.get_by_label("Developer").is_checked()
+    assert page.locator('.start[data-for="developer"]').is_visible()
+    # Pressing Enter in the group does not submit the form and reload the page.
+    page.keyboard.press("Enter")
+    assert page.url == base_url + "/family/" and page.get_by_label("Developer").is_checked()
+
+
+def test_a_stage_opens_on_click_and_shows_its_agent_and_verdicts(page, base_url):
+    page.goto(base_url + "/family/")
+    stage = page.locator(".family-stages > li.stage-i")
+    assert not stage.get_by_text("inspector", exact=True).is_visible()
+    stage.locator("summary").click()
+    assert stage.locator("details").evaluate("el => el.open")
+    assert stage.get_by_text("inspector", exact=True).is_visible()
+    assert stage.get_by_text("PASS", exact=True).is_visible()
+    assert stage.get_by_text("→ launcher").is_visible()
+    # Keyboard: a focused summary opens with Enter, and the others stay closed.
+    page.locator(".family-stages > li.stage-l summary").focus()
+    page.keyboard.press("Enter")
+    assert page.locator(".family-stages > li.stage-l details").evaluate("el => el.open")
+    assert not page.locator(".family-stages > li.stage-f details").evaluate("el => el.open")
+
+
+def ticked(page) -> list[str]:
+    return page.evaluate(
+        "() => [...document.querySelectorAll('[data-gate]')].filter(b => b.checked)"
+        ".map(b => b.dataset.gate)"
+    )
+
+
+def test_the_slice_checklist_remembers_its_ticks_until_reset(page, base_url):
+    page.goto(base_url + "/family/")
+    assert page.locator("[data-gate]").count() == 6 and ticked(page) == []
+    page.locator('[data-gate="f"]').check()
+    page.locator('[data-gate="i"]').check()
+    page.reload()
+    assert ticked(page) == ["f", "i"]
+    assert page.evaluate("() => JSON.parse(localStorage.getItem('family-slice'))") == ["f", "i"]
+    page.get_by_role("button", name="Reset").click()
+    assert ticked(page) == []
+    assert page.evaluate("() => localStorage.getItem('family-slice')") is None
+    page.reload()
+    assert ticked(page) == []
+
+
+def test_the_slice_checklist_still_works_when_storage_is_blocked(browser, base_url):
+    made = new_context(browser, base_url)
+    made.add_init_script(
+        "Object.defineProperty(window, 'localStorage',"
+        " {get() { throw new Error('blocked'); }, configurable: true});"
+    )
+    try:
+        page = made.new_page()
+        page.goto(base_url + "/family/")
+        page.locator('[data-gate="a"]').check()
+        assert ticked(page) == ["a"]
+        page.get_by_role("button", name="Reset").click()
+        assert ticked(page) == []
+    finally:
+        made.close()
+
+
+def test_the_finder_filters_the_family_skills(page, base_url):
+    page.goto(base_url + "/family/")
+    names = page.evaluate("() => [...document.querySelectorAll('#list [data-name]')]"
+                          ".map(e => e.dataset.name)")  # fmt: skip
+    assert "qa-workflow" in names and len(names) > 3
+    page.fill("#find", "qa-work")
+    shown = page.evaluate(
+        "() => [...document.querySelectorAll('#list [data-name]')]"
+        ".filter(e => !e.hidden).map(e => e.dataset.name)"
+    )
+    assert shown == ["qa-workflow"]
+    assert page.inner_text("#count") == f"1 of {len(names)}"
+    page.fill("#find", "zz-none-zz")
+    assert page.is_visible("#none")
+
+
+@pytest.mark.parametrize("path", ["/family/", "/family/example/"])
+def test_the_family_pages_do_not_scroll_sideways_on_a_phone(browser, base_url, path):
+    context = new_context(browser, base_url, 390)
+    try:
+        page = context.new_page()
+        page.goto(base_url + path)
+        if path == "/family/":
+            page.get_by_label("QA").check()
+            page.locator(".family-stages > li").evaluate_all(
+                "els => els.forEach(e => e.querySelector('details').open = true)"
+            )
+        assert page.evaluate("() => document.documentElement.scrollWidth") <= 390
+    finally:
+        context.close()

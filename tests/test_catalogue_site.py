@@ -156,6 +156,7 @@ def _live_tags(page):
         ("style", site.site_style.CSS.strip()),
         ("script", site.site_style.HEAD_SCRIPT.strip()),
         ("script", site.site_style.PAGE_SCRIPT.strip()),
+        ("script", site.site_style.FAMILY_SCRIPT.strip()),
     }
     parser = _TagParser()
     parser.feed(page)
@@ -174,7 +175,7 @@ SAFE_TAGS = {
     "footer", "div", "p", "section", "h1", "h2", "h3", "h4", "h5", "h6", "span", "ul",
     "ol", "li", "pre", "code", "strong", "em", "br", "hr", "table", "thead", "tbody",
     "tr", "th", "td", "blockquote", "label", "input", "link", "svg", "path", "circle", "g",
-    "article",
+    "article", "details", "summary", "dl", "dt", "dd", "fieldset", "legend", "form",
 }  # fmt: skip
 
 
@@ -187,6 +188,7 @@ BACK = '<a class="back" href="{}" data-back>' + site.BACK_ICON + "<span>Back</sp
         ("plugins/engineering/index.html", "/"),
         ("plugins/engineering/alpha/index.html", "/plugins/engineering/"),
         ("family/index.html", "/"),
+        ("family/example/index.html", "/family/"),
         ("start/index.html", "/"),
         ("workflows/index.html", "/"),
         ("examples/index.html", "/"),
@@ -233,6 +235,7 @@ TO_TOP = (
         ("plugins/engineering/index.html", "/"),
         ("plugins/engineering/alpha/index.html", "/plugins/engineering/"),
         ("family/index.html", "/"),
+        ("family/example/index.html", "/family/"),
         ("start/index.html", "/"),
         ("quality/index.html", "/"),
         ("404.html", "/"),
@@ -280,28 +283,142 @@ def test_every_page_names_the_tab_and_home_screen_icons_and_both_ship(mini_repo,
             assert head.count(link) == 1, (page, link)
 
 
-def test_the_family_plugin_page_opens_on_the_typed_word_and_links_the_guide(mini_repo, tmp_path):
+def _with_family(mini_repo):
+    """The mini repository plus a family plugin: two skills and two stage agents."""
     family = mini_repo / "plugins" / "family"
     (family / ".claude-plugin").mkdir(parents=True)
     (family / ".claude-plugin" / "plugin.json").write_text("{}", encoding="utf-8")
-    write_skill(mini_repo, "family", "relay", evals=eval_set("relay"))
+    write_skill(mini_repo, "family", "family-workflow", evals=eval_set("family-workflow"))
+    write_skill(mini_repo, "family", "qa-workflow", evals=eval_set("qa-workflow"))
+    (family / "agents").mkdir()
+    for name, text in (
+        ("inspector", "Inspect a change against its frame — run the checks. Use when ready."),
+        ("framer", "Turn a vague request into a frame. Use when a request arrives."),
+    ):
+        (family / "agents" / f"{name}.md").write_text(
+            f"---\nname: {name}\ndescription: {text}\n---\n\nBody.\n", encoding="utf-8"
+        )
     manifest = mini_repo / ".claude-plugin" / "marketplace.json"
     data = json.loads(manifest.read_text(encoding="utf-8"))
     data["plugins"].append({"name": "family", "source": "./plugins/family"})
     manifest.write_text(json.dumps(data), encoding="utf-8")
+
+
+def test_the_family_plugin_has_no_page_of_its_own_and_its_address_redirects(mini_repo, tmp_path):
+    _with_family(mini_repo)
     output = _build(mini_repo, tmp_path)
-    page = (output / "plugins" / "family" / "index.html").read_text(encoding="utf-8")
-    heading = re.search(r'<h1 class="title family-word">(.*?)</h1>', page).group(1)
-    assert heading.startswith('<span class="sr-only">family</span>')
-    letters = re.findall(r'<span class="fk">(\w)</span>', heading)
-    assert letters == [letter for letter, _, _ in site.FAMILY_STAGES]
-    assert '<a href="/family/">The FAMILY workflow, stage by stage</a>' in page
-    # Every other plugin keeps its plain name as the heading.
-    for other in (output / "plugins").iterdir():
-        if other.name != "family" and (other / "index.html").exists():
-            text = (other / "index.html").read_text(encoding="utf-8")
-            assert '<h1 class="title family-word">' not in text
-            assert f'<h1 class="title-xl">{other.name}</h1>' in text
+    assert not (output / "plugins" / "family" / "index.html").exists()
+    assert (output / "plugins" / "family" / "qa-workflow" / "index.html").is_file()
+    # Both spellings, because a rule matches the path as written; permanent.
+    assert (output / "_redirects").read_text(encoding="utf-8") == (
+        "/plugins/family/ /family/ 301\n/plugins/family /family/ 301\n"
+    )
+    # One rule sends every link there: the card, the plugin list, a skill's Back and crumbs.
+    assert site._plugin_href("family") == "/family/"
+    assert site._plugin_href("engineering") == "/plugins/engineering/"
+    for page in (output / "index.html", output / "start" / "index.html"):
+        text = page.read_text(encoding="utf-8")
+        assert 'href="/family/"' in text and 'href="/plugins/family/"' not in text
+    skill = (output / "plugins" / "family" / "qa-workflow" / "index.html").read_text(
+        encoding="utf-8"
+    )
+    assert BACK.format("/family/") in skill
+    assert '<a href="/family/">family</a>' in skill and '/plugins/family/"' not in skill
+    for path in output.rglob("index.html"):
+        assert 'href="/plugins/family/"' not in path.read_text(encoding="utf-8"), path
+    # Every other plugin keeps its own page and its plain heading.
+    text = (output / "plugins" / "engineering" / "index.html").read_text(encoding="utf-8")
+    assert '<h1 class="title-xl">engineering</h1>' in text
+    assert '<h1 class="title family-word">' not in text
+
+
+def test_the_family_page_is_the_plugin_page_too(mini_repo, tmp_path):
+    _with_family(mini_repo)
+    page = (_build(mini_repo, tmp_path) / "family" / "index.html").read_text(encoding="utf-8")
+    assert "/plugin install family@mini" in page
+    # The same finder the plugin page uses, over the family skills.
+    assert 'id="finder"' in page and 'id="find"' in page and 'id="list"' in page
+    assert '<li data-name="qa-workflow"><a href="/plugins/family/qa-workflow/">' in page
+    assert "2 skills" in page
+    # The subagents, in stage order, each with the first clause of its description.
+    agents = page.split('<ul class="family-agents">', 1)[1].split("</ul>", 1)[0]
+    assert agents.index("framer") < agents.index("inspector")
+    assert "— Turn a vague request into a frame</li>" in agents
+    assert "— Inspect a change against its frame</li>" in agents
+    assert 'href="/family/example/">See one slice end to end</a>' in page
+
+
+def test_the_family_stages_open_to_the_agent_and_where_each_verdict_goes(mini_repo, tmp_path):
+    page = (_build(mini_repo, tmp_path) / "family" / "index.html").read_text(encoding="utf-8")
+    stages = page.split('<ol class="family-stages">', 1)[1].split("</ol>", 1)[0]
+    assert stages.count("<details>") == 6 and stages.count("<summary>") == 6
+    for letter, name, _ in site.FAMILY_STAGES:
+        detail = site.FAMILY_DETAILS[letter]
+        item = stages.split(f'<li class="stage-{letter.lower()}"', 1)[1].split("</li>", 1)[0]
+        assert f"<h3>{name}</h3>" in item
+        assert f"<dd><code>{detail['agent']}</code></dd>" in item
+        assert detail["question"] in item and "Waivable" in item
+        for word, target in detail["verdicts"]:
+            assert f"<dt><code>{word}</code></dt><dd>→ {target}</dd>" in item
+    # The routing table is the source: a diverged build goes back to architect.
+    assert "<dt><code>DIVERGED</code></dt><dd>→ architect, never maker again</dd>" in stages
+    assert "Yes, when the slice carries no hard-to-reverse decision" in stages
+
+
+def test_the_profile_picker_is_four_radios_in_a_labelled_group_with_no_default(mini_repo, tmp_path):
+    _with_family(mini_repo)
+    page = (_build(mini_repo, tmp_path) / "family" / "index.html").read_text(encoding="utf-8")
+    group = page.split("<fieldset>", 1)[1].split("</fieldset>", 1)[0]
+    assert "<legend>Who is running it?</legend>" in group
+    radios = re.findall(r'<label class="chip"><input type="radio" name="profile" value="(\w+)">'
+                        r" <span>(\w+)</span></label>", group)  # fmt: skip
+    assert radios == [("solo", "Solo"), ("developer", "Developer"), ("qa", "QA"), ("team", "Team")]
+    assert "checked" not in group
+    # Each profile names the skill it starts from, linked when the plugin ships it.
+    assert 'starts from <a href="/plugins/family/qa-workflow/">qa-workflow</a>' in page
+    assert "starts from <code>solo-development</code>" in page
+    # What each profile owns, per the profile skills.
+    owns = {
+        letter: re.search(rf'<li class="stage-{letter.lower()}" data-own="([^"]*)"', page).group(1)
+        for letter, _, _ in site.FAMILY_STAGES
+    }
+    assert owns["F"] == "solo developer team" and owns["I"] == "solo qa team"
+    assert owns["L"] == "solo team" and owns["Y"] == "solo developer team"
+    assert 'data-feeds="qa"' in page
+    css = site.site_style.CSS
+    assert '.family-flow:has(input[value="developer"]:checked)' in css and "@@" not in css
+
+
+def test_the_slice_checklist_has_one_box_per_gate_and_a_script_that_survives_no_storage(
+    mini_repo, tmp_path
+):
+    page = (_build(mini_repo, tmp_path) / "family" / "index.html").read_text(encoding="utf-8")
+    assert re.findall(r'<input type="checkbox" data-gate="(\w)"', page) == list("family")
+    for _, detail in site.FAMILY_DETAILS.items():
+        assert detail["question"] in page.split("Run a slice", 1)[1]
+    assert "data-slice-reset" in page
+    script = site.site_style.FAMILY_SCRIPT
+    assert script.strip() in page and script.count('"family-slice"') == 1
+    # Every storage call is guarded, so a blocked store leaves working boxes.
+    for call in re.findall(r"localStorage\.\w+", script):
+        before = script.split(call, 1)[0]
+        assert before.rfind("try {") > before.rfind("} catch"), call
+
+
+def test_the_family_example_walks_one_slice_through_all_six_stages(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    page = (output / "family" / "example" / "index.html").read_text(encoding="utf-8")
+    assert BACK.format("/family/") in page
+    assert '<h1 class="title">One slice, end to end</h1>' in page
+    sections = re.findall(r'<section class="example-stage stage-(\w)">', page)
+    assert sections == list("family")
+    assert page.count("Verdict:") == 6
+    assert "FIX, then PASS" in page and "placeholder text" in page
+    assert 'href="/family/">FAMILY page</a>' in page
+    # No vendor or AI product is named.
+    for word in ("Claude", "Anthropic", "OpenAI", "Cloudflare", "GitHub", "Playwright"):
+        main = page.split('<main id="content">', 1)[1].split("</main>", 1)[0]
+        assert word.lower() not in main.lower(), word
 
 
 def test_every_page_is_written_beside_the_archives(mini_repo, tmp_path):
@@ -310,6 +427,7 @@ def test_every_page_is_written_beside_the_archives(mini_repo, tmp_path):
         "index.html",
         "404.html",
         "family/index.html",
+        "family/example/index.html",
         "start/index.html",
         "workflows/index.html",
         "examples/index.html",
@@ -694,9 +812,11 @@ def test_the_real_repository_builds_every_page_and_renders_every_markdown_source
     pages = sorted(output.rglob("index.html"))
     skills = list((REPO / "plugins").glob("*/skills/*/SKILL.md"))
     plugins = list((REPO / "plugins").glob("*/skills"))
-    # The index, family, start, workflows, examples and quality; then a page per plugin
-    # and skill.
-    assert len(pages) == len(skills) + len(plugins) + 6
+    # The index, family, its example, start, workflows, examples and quality; then a page
+    # per skill and per plugin, except family, whose page is /family/ and not its own.
+    assert len(pages) == len(skills) + len(plugins) - 1 + 7
+    assert not (output / "plugins" / "family" / "index.html").exists()
+    assert (output / "plugins" / "family" / "family-workflow" / "index.html").is_file()
     for page in pages:
         text = page.read_text(encoding="utf-8")
         assert _live_tags(text) <= SAFE_TAGS, page
