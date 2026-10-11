@@ -48,6 +48,8 @@ READY | NOT READY | N-A
 ### Residual defects shipping (from the go/no-go)
 ### Gaps blocking launch
 ### Not assessed
+### Handoff
+<the first question the next stage must answer, and who owns that stage>
 ```
 
 - `READY` — a go from the Inspect owner, a release path, a signal and a rollback all exist; it does not remake the go/no-go.

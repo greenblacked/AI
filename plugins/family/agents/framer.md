@@ -51,4 +51,6 @@ FRAMED | NEEDS INPUT | NOT FRAMED
 ### Constraints
 ### Open questions
 ### Not established
+### Handoff
+<the first question the next stage must answer, and who owns that stage>
 ```
