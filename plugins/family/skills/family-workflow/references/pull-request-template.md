@@ -63,7 +63,7 @@ Next slice:
 
 ## Stage labels
 
-One label per stage, in the colours the FAMILY page uses, so a pull request's label says which stage is open on it.
+One label per stage, in the FAMILY page's day-theme colours, so a pull request's label says which stage is open on it.
 
 | Label | Colour | Meaning |
 | --- | --- | --- |

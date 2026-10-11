@@ -10,6 +10,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `/family` command to the `family` plugin: it frames a request into
+  `docs/slices/<name>/frame.md` with the stage templates beside it, prints the next hop and
+  stops. `family-workflow` gains the slice-folder convention and a pull request template
+  with one label per stage.
 - Open the `family` plugin's page on the same typed F.A.M.I.L.Y. heading as the FAMILY
   page, with a link to the stage-by-stage guide; every other plugin keeps its plain name.
 - Add six skills to the `family` plugin that run its stage agents together:

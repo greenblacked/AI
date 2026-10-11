@@ -1,6 +1,6 @@
 ---
 description: Start a FAMILY slice - validate the slice name, have framer frame the request, write its frame.md and the five other stage files as empty templates under docs/slices, then print the verdict and the next hop.
-argument-hint: '<slice-name> [request]'
+argument-hint: '[slice-name] [request]'
 allowed-tools: Agent(framer), Write, Glob, Bash(git rev-parse:*)
 disable-model-invocation: true
 ---
