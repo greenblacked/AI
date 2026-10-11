@@ -102,3 +102,9 @@ def test_the_reviewer_reads_the_candidate_by_one_resolved_sha():
     for verb in ("diff", "show", "ls-tree", "merge-base", "merge"):
         for command in re.findall(rf"git (?:-C \S+ )?(?:-c \S+ )*{verb}\b[^`\n]*", text):
             assert "refs/review/<n>" not in command or "rev-parse" in command, command
+
+
+def test_ship_names_a_trusted_checkout_pinned_at_the_base():
+    text = flat(".claude/commands/ship.md")
+    assert "checked out exactly at `<base>`" in text
+    assert "git worktree add --detach <dir> '<base>'" in text
