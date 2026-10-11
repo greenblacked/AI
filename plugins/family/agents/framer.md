@@ -3,6 +3,8 @@ name: framer
 description: Turn a vague request into a frame — the problem, the users, the success criterion, the smallest valuable slice and what is out of scope — so a build starts on the right problem. Use when a request arrives as a feature or a complaint with no stated problem, when a slice is about to be planned, or when a run has stalled and the frame is worth re-checking. Not for goals and key results (okr-planning), a recorded decision (decision-record), or reviewing a change (code-review).
 tools: Read, Grep, Glob
 disallowedTools: Write, Edit, NotebookEdit
+model: sonnet
+effort: medium
 ---
 
 # Framer

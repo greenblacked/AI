@@ -47,3 +47,28 @@ def test_stop_means_what_the_inspector_says_it_means():
     assert stop_rows and all("success criterion" in row for row in stop_rows), stop_rows
     stop_line = next(line for line in rounds.splitlines() if line.startswith("- `STOP`"))
     assert "no success criterion" in stop_line and "checkout" not in stop_line, stop_line
+
+
+def frontmatter(name: str) -> dict[str, str]:
+    block = agent(name).split("---\n", 2)[1]
+    return dict(line.split(": ", 1) for line in block.splitlines() if ": " in line)
+
+
+def test_every_agent_ships_the_tier_stage_tiering_states():
+    # stage-tiering says each agent's tier is written in its own file; with no `model`
+    # line the survey stages silently run on the main conversation's top-tier model.
+    skill = (FAMILY / "skills" / "stage-tiering" / "SKILL.md").read_text(encoding="utf-8")
+    rows = re.findall(r"^\| \w+ \| `(\w+)` \| (mid|top) \| ([\w ]+?) \|", skill, re.M)
+    assert {row[0] for row in rows} == set(AGENTS), rows
+    alias = {"mid": "sonnet", "top": "opus"}
+    for name, tier, effort in rows:
+        fields = frontmatter(name)
+        assert fields.get("model") == alias[tier], (name, fields)
+        expected = None if effort == "tool default" else effort
+        assert fields.get("effort") == expected, (name, fields)
+
+
+def test_stage_tiering_does_not_edit_the_installed_plugin():
+    skill = (FAMILY / "skills" / "stage-tiering" / "SKILL.md").read_text(encoding="utf-8")
+    tools = re.search(r"^allowed-tools: (.+)$", skill, re.M).group(1)
+    assert "Edit" not in [tool.strip() for tool in tools.split(",")], tools

@@ -411,6 +411,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Ship each `family` stage agent with the tier `stage-tiering` states: `framer`,
+  `maker`, `launcher` and `yielder` on `sonnet` at medium effort, `architect` and
+  `inspector` on `opus` at the tool's default effort. Without a `model` line every stage
+  ran on the main conversation's model. `stage-tiering` no longer tells you to edit the
+  installed plugin, which an update replaces, and drops its `Edit` grant.
 - Use the inspector's own meaning of `STOP` in `family-relay`'s routing reference and
   `fresh-inspector-rounds`' round protocol: the frame supplied no success criterion, and
   a person supplies one. A change the owner did not write is a `FIX`, not a `STOP`.
