@@ -1,7 +1,7 @@
 ---
 description: Start a FAMILY slice - validate the slice name, have framer frame the request, write its frame.md and the five other stage files as empty templates under docs/slices, then print the verdict and the next hop.
 argument-hint: '[slice-name] [request]'
-allowed-tools: Agent(framer), Write, Glob, Bash(git rev-parse:*)
+allowed-tools: Agent(family:framer), Write, Glob, Bash(git rev-parse:*)
 disable-model-invocation: true
 ---
 
@@ -37,7 +37,7 @@ aside and run the command again. Do not read it into the framer's brief.
 If the request is empty, skip to step 4 and create every file except `frame.md`. Say that
 no frame was made.
 
-Otherwise delegate to `framer` with the request exactly as typed, in the person's words,
+Otherwise delegate to `framer`, which the installed plugin names `family:framer`, with the request exactly as typed, in the person's words,
 plus any constraint or user the person already named in it. Add nothing of your own: a
 paraphrase carries your reading of the request into the frame as a premise. The agent
 reads and reports; it does not write, so the file is yours to write.
@@ -60,8 +60,8 @@ headings. Leave `Owner:` empty and keep the `Profile:` and `Depth:` lines exactl
 template gives them, options listed: they are the person's choices, and the stage
 reference says the depth is written in the frame so it can be challenged.
 
-Then write the other five files as the empty templates below, replacing `<name>` in each
-title with the slice name. The first line of each is the stage's first question from the
+Then write the other five files as the empty templates below. In all six files, including
+`frame.md`, replace `<name>` in the title with the slice name. The first line of each is the stage's first question from the
 stage reference; keep it as written.
 
 `frame.md`:

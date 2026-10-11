@@ -225,4 +225,4 @@ Verdict:
 
 ## Keeping the command and this file in step
 
-The `/family` command writes these files from the same templates, carried in its own body because a command cannot name a path inside another component and rely on it resolving after install. A change to a template here is a change to the command, and the other way round; edit both in one commit. The pull request that carries a slice is described in `references/pull-request-template.md`, which links to `docs/slices/<name>/frame.md`.
+The `/family:family` command writes these files from the same templates, carried in its own body because a command cannot name a path inside another component and rely on it resolving after install. A change to a template here is a change to the command, and the other way round; edit both in one commit. The pull request that carries a slice is described in `references/pull-request-template.md`, which links to `docs/slices/<name>/frame.md`.
