@@ -10,6 +10,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Merge the `family` plugin page into `/family/`: one page with the typed heading, the
+  install command, a profile picker that highlights the stages a role owns, each stage as a
+  disclosure naming its agent, verdicts and next hop, a slice checklist kept in the
+  browser, the skills with search and the subagents. `/plugins/family/` redirects there,
+  and `/family/example/` walks one real slice through all six stages.
 - Add the `/family:family` command to the `family` plugin: it frames a request into
   `docs/slices/<name>/frame.md` with the stage templates beside it, prints the next hop and
   stops. `family-workflow` gains the slice-folder convention and a pull request template
