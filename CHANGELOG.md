@@ -392,6 +392,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Show each plugin command on the site's Workflows page by the name an installed plugin
+  runs it under, `/plugin:command`, rather than the bare command name.
 - Give each portable router line its full 100 characters of trigger again. 0.1.4 cut
   them to 85 to fit the router's 16 KiB budget, which took 15 more characters off every
   long trigger; each line now names its file as `- skills/<name>.md:` instead of a
