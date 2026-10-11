@@ -92,3 +92,6 @@ def test_an_unscoped_agent_grant_says_why_in_the_body():
         tools = re.search(r"^allowed-tools: (.+)$", text, re.M).group(1)
         if "Agent" in [tool.strip() for tool in tools.split(",")]:
             assert "unscoped on purpose" in text, skill
+            # A Bash-holding research agent can write through the shell, so the
+            # missing editing tools alone do not make it read-only.
+            assert "`Bash`" in text.split("unscoped on purpose", 1)[1][:600], skill
