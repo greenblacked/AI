@@ -21,7 +21,7 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   with one label per stage.
 - Replace the site's plain "Not found" page with a 404 that types its own number in, in
   three of the FAMILY stage colours, shows the address that was asked for, and suggests up
-  to three real pages when it is a near miss, so `/strat/` or `/family-workflw/` offers
+  to three real pages when it is a near miss, so `/statr/` or `/family-workflw/` offers
   the page that was meant. Home, Start, a search of the catalogue and FAMILY are always
   there, and with scripts off the page is the heading, a sentence and those links.
 - Add error pages for 403, 500, 502 and 503 at `/errors/`, each one file with its styles

@@ -762,7 +762,7 @@ def test_a_near_miss_is_answered_with_a_404_and_the_page_it_was_close_to(browser
 @pytest.mark.parametrize(
     ("path", "expected"),
     [
-        ("/strat/", "/start/"),  # two letters swapped
+        ("/statr/", "/start/"),  # two letters swapped
         ("/plugins/coding/code-reveiw/", "/plugins/coding/code-review/"),
         ("/old/skills/code-rev", "/plugins/coding/code-review/"),  # the start of a name
         ("/Family_Workflow.html", "/plugins/family/family-workflow/"),

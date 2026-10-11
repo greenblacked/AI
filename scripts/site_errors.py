@@ -180,7 +180,7 @@ LOST_CSS = """
 }
 """
 
-# Edit distance with transpositions, so "strat" finds "start" at distance one. The
+# Edit distance with transpositions, so "statr" finds "start" at distance one. The
 # requested path is the visitor's own and may be anything, so it is cut to 64 characters
 # before it is compared, which bounds the work, and it only ever reaches the page
 # through textContent.
