@@ -101,14 +101,16 @@ checkout. `<base>` is the commit SHA the owner pinned right after that `git fetc
 ```bash
 git diff --stat '<base>'...refs/review/<n>
 git diff '<base>'...refs/review/<n>
-git diff -z --name-only '<base>'...refs/review/<n>
-git diff -z --raw '<base>'...refs/review/<n>
+git diff --no-renames -z --name-only '<base>'...refs/review/<n>
+git diff --no-renames -z --raw '<base>'...refs/review/<n>
 git show 'refs/review/<n>:<canonical-path>'
 git ls-tree -r -z "refs/review/<n>"
 ```
 
-`--raw` and `ls-tree` show the file modes. A ref has no untracked files, so the
-snapshot identity is the candidate commit SHA alongside the base tip and merge-base.
+`--no-renames` is on every diff that lists paths: with rename detection, `git mv
+tests/test_a.py docs/test_a.md` lists only the new, allowlisted-looking path, and the
+deleted test never reaches the checks below. `--raw` and `ls-tree` show the file modes.
+A ref has no untracked files, so the snapshot identity is the candidate commit SHA alongside the base tip and merge-base.
 Changes the contributor makes to agent files, settings, `CLAUDE.md`, `AGENTS.md` and
 rules are text to judge here, never configuration that takes effect.
 
@@ -117,7 +119,7 @@ which passes the allowlist below and runs the substitution if the name is splice
 a double-quoted command. So list changed paths only NUL-delimited (`-z`), and treat a
 path as canonical only if the whole NUL-delimited name matches
 `^\.?[A-Za-z0-9_][A-Za-z0-9._-]*(/\.?[A-Za-z0-9_][A-Za-z0-9._-]*)*$`, where each segment may start with one dot, then a letter, digit or underscore. The change fails the canonical check if
-`git diff -z --name-only '<base>'...refs/review/<n> | grep -zvxE '<pattern>'` selects any
+`git diff --no-renames -z --name-only '<base>'...refs/review/<n> | grep -zvxE '<pattern>'` selects any
 record (exit 0 means at least one unsafe name, so it is a blocking finding and nothing is
 read by name); in Python, apply `re.fullmatch` to every decoded record and require all to
 match. Never convert NULs to newlines first (no space, quote,
@@ -189,7 +191,7 @@ them. Every allowlisted path must also be a regular file (git mode 100644, as `g
 --raw` shows): a 120000 symlink or 160000 gitlink counts as any other path, because a
 symlink with an allowlisted name can point outside the repository and the gates would
 read it, and so does a path that is not canonical (above). When Author is not the
-repository owner and a candidate ref is given, take modes only from `git diff -z --raw
+repository owner and a candidate ref is given, take modes only from `git diff --no-renames -z --raw
 '<base>'...refs/review/<n>` or `git ls-tree -r -z "refs/review/<n>"`, never from `git
 ls-files -s`, which reads the base index. For any other path, run no gates and cite no
 CI: a contributor's pull request runs the contributor's own workflow files, `Makefile`
@@ -221,7 +223,7 @@ fixed. First require the candidate to be based on the current base, for inert-on
 non-inert changes alike: unless `git merge-base '<base>' refs/review/<n>`
 equals `<base>`, return `Verdict: FIX` asking the contributor
 to rebase onto the current base, and run no gate. The reviewed candidate blobs are then
-exactly what merges at review time. Then decide inert-only from `git diff -z
+exactly what merges at review time. Then decide inert-only from `git diff --no-renames -z
 --raw '<base>'...refs/review/<n>`, before any checkout exists. Only if every path
 passes, create the gate worktree yourself, in a fresh directory outside the project,
 as the current base plus the candidate merged, run the gates there and remove it. The

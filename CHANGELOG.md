@@ -406,6 +406,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- List a contributor change's paths with `--no-renames` in `reviewer`, `investigator`,
+  `/ship`, `/verify` and the ChatGPT and usage guides. With rename detection on, moving
+  a test into `docs/` listed only the new Markdown path, which passed the safe-name check
+  and the inert-content allowlist while the test was gone. A reviewer benchmark case and
+  a review lesson cover it.
 - Run CI in full when a pull request's base is retargeted. `edited` covers a new base as
   well as a new title or body, and the earlier run's pull request list reports the base
   as it is now, so a retarget was answered with the two description checks from a run

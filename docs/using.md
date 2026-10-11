@@ -312,7 +312,7 @@ role prompts. Its repository gate requires an independent reviewer to execute
 contributor change the reviewer runs them only when every changed path is inert content
 (Markdown under `plugins/` or `docs/`, a trigger eval set, or the root `README.md` or
 `CHANGELOG.md`, as regular files whose whole NUL-delimited names match
-`^\.?[A-Za-z0-9_][A-Za-z0-9._-]*(/\.?[A-Za-z0-9_][A-Za-z0-9._-]*)*$`, the change fails that check if `git diff -z --name-only '<base>'...refs/review/<n> | grep -zvxE '<pattern>'` selects any record (exit 0 means an unsafe name), or if Python `re.fullmatch` fails on any decoded record; a
+`^\.?[A-Za-z0-9_][A-Za-z0-9._-]*(/\.?[A-Za-z0-9_][A-Za-z0-9._-]*)*$`, the change fails that check if `git diff --no-renames -z --name-only '<base>'...refs/review/<n> | grep -zvxE '<pattern>'` selects any record (exit 0 means an unsafe name), or if Python `re.fullmatch` fails on any decoded record; a
 changed name outside that, such as `docs/$(cmd).md`, makes the change non-inert and is a
 blocking finding asking for a rename; dot-prefixed paths such as `.github/` and `.claude/` are canonical but non-inert, since they are outside the inert allowlist, so they go to the owner-must-run flow, not a rename), because the gates execute the change's own code.
 Otherwise it runs no gates and cites no CI, because a contributor's pull request runs the
@@ -356,7 +356,7 @@ contributor as author. Run that review from a clean worktree at the pinned base 
 the contributor's, because the tool reads `AGENTS.md`, agent files, settings and hooks
 from the checkout it opens. Check first that `<base-branch>` is `dev`, `stage` or `main` and that `<n>` is all digits, then fetch the current base and the contributor's head as a ref only (`git fetch
 origin '+refs/heads/<base-branch>:refs/remotes/origin/<base-branch>' '+pull/<n>/head:refs/review/<n>'`) and give the reviewer `<base-branch>`, the pinned `<base>` and that candidate
-ref to read with `git diff -z '<base>'...refs/review/<n>` (`<base-branch>` must be `dev`, `stage` or `main`, else `STOP` and retarget the PR; `<base>` is the SHA from `base_sha=$(git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}')` right after the fetch), not a checked-out tree. If the
+ref to read with `git diff --no-renames -z '<base>'...refs/review/<n>` (`<base-branch>` must be `dev`, `stage` or `main`, else `STOP` and retarget the PR; `<base>` is the SHA from `base_sha=$(git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}')` right after the fetch), not a checked-out tree. If the
 session was opened inside a contributor checkout, or `git rev-parse --verify 'HEAD^{commit}'` is not `<base>`, stop and restart from a clean worktree at the pinned SHA.
 
 **Survey**, in a new conversation, report-only. Describe the change and ask what already
@@ -387,7 +387,7 @@ has the tree whatever you paste. For a contributor change, hand it a clean workt
 plus `git diff '<base>'...refs/review/<n>`; the candidate is checked out only in
 the throwaway gate worktree below. Keep the reviewer report-only, with execution tools
 for its own gates, which on a contributor change it uses only under the inert-content
-rule above, in this order: it first requires the candidate to be based on the current base, then decides inert-only from `git diff -z --raw
+rule above, in this order: it first requires the candidate to be based on the current base, then decides inert-only from `git diff --no-renames -z --raw
 '<base>'...refs/review/<n>`, then itself creates a detached worktree in a fresh directory
 outside the project, as the current base plus the candidate merged, runs the gates there and removes it, all in one Bash call because the
 tool keeps no shell variables between calls:
