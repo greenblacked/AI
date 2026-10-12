@@ -12,12 +12,72 @@ the visitor's own time.
 
 from __future__ import annotations
 
-FONTS_URL = (
-    "https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500"
-    "&family=Newsreader:wght@400;500&display=swap"
+import hashlib
+from pathlib import Path
+
+# The two typefaces are served from the site itself, so a visitor makes no request to a font
+# host. Each file is the `latin` subset Google Fonts serves for its family, one variable
+# font covering every weight the page uses, stored under scripts/site_assets/fonts/ and
+# copied to /fonts/ by the build. Its name carries a short hash of its bytes, which is what
+# makes the year-long immutable cache in `_headers` safe: a changed font is a new URL.
+FONT_DIR = Path(__file__).resolve().parent / "site_assets" / "fonts"
+FONT_URL_PREFIX = "/fonts/"
+# unicode-range as Google Fonts publishes it for the latin subset, so a character outside
+# it falls back exactly as it did when the fonts came from Google.
+_LATIN_RANGE = (
+    "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, "
+    "U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, "
+    "U+FEFF, U+FFFD"
 )
 
-CSS = """
+
+def _hashed(source: str) -> str:
+    """The built name of a file in ``FONT_DIR``: its stem, a content hash, its suffix."""
+    path = FONT_DIR / source
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()[:10]
+    return f"{path.stem}.{digest}{path.suffix}"
+
+
+SANS_FILE = _hashed("instrument-sans-latin.woff2")
+SERIF_FILE = _hashed("newsreader-latin.woff2")
+SANS_LICENCE = _hashed("OFL-instrument-sans.txt")
+SERIF_LICENCE = _hashed("OFL-newsreader.txt")
+# Every file under /fonts/ in the built site, as built name -> source name. The licences
+# are here because the OFL requires the text to travel with the fonts.
+FONT_ASSETS = {
+    SANS_FILE: "instrument-sans-latin.woff2",
+    SERIF_FILE: "newsreader-latin.woff2",
+    SANS_LICENCE: "OFL-instrument-sans.txt",
+    SERIF_LICENCE: "OFL-newsreader.txt",
+}
+# Absolute paths, because the 404 page is served from whatever address was asked for.
+SANS_URL = FONT_URL_PREFIX + SANS_FILE
+SERIF_URL = FONT_URL_PREFIX + SERIF_FILE
+
+FONT_FACES = f"""
+/* Instrument Sans, Copyright 2022 The Instrument Sans Project Authors. SIL Open Font
+   License 1.1: {FONT_URL_PREFIX}{SANS_LICENCE} */
+@font-face {{
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url({SANS_URL}) format("woff2");
+  unicode-range: {_LATIN_RANGE};
+}}
+/* Newsreader, Copyright 2020 The Newsreader Project Authors. SIL Open Font License 1.1:
+   {FONT_URL_PREFIX}{SERIF_LICENCE} */
+@font-face {{
+  font-family: "Newsreader";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url({SERIF_URL}) format("woff2");
+  unicode-range: {_LATIN_RANGE};
+}}
+"""
+
+CSS = """@@FONT_FACES@@
 :root {
   --bg: #f4f1ea;
   --ink: #141413;
@@ -628,6 +688,9 @@ html[data-theme="night"] .sun { display: none; }
   color: var(--ink);
   text-decoration: underline;
   text-underline-offset: 0.15em;
+  /* A bare address is one unbreakable word; in the real serif it ran 22 px past a 360 px
+     screen, which the fallback font hid. */
+  overflow-wrap: anywhere;
 }
 .prose-lab code {
   font-family: var(--font-sans);
@@ -1058,7 +1121,9 @@ def _profile_rules() -> str:
     return "\n".join(rules)
 
 
-CSS = CSS.replace("@@PROFILE_RULES@@", _profile_rules())
+CSS = CSS.replace("@@PROFILE_RULES@@", _profile_rules()).replace(
+    "@@FONT_FACES@@", FONT_FACES.strip()
+)
 
 # The theme is set before the page paints, so a visitor at night never sees a flash of
 # paper. This is the clock rule and the stored choice, nothing else.
