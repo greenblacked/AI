@@ -22,6 +22,19 @@
       ]
     },
     {
+      "name": "family",
+      "source": "./plugins/family",
+      "category": "development",
+      "tags": [
+        "workflow",
+        "lifecycle",
+        "team",
+        "qa",
+        "process",
+        "delivery"
+      ]
+    },
+    {
       "name": "gamedev",
       "source": "./plugins/gamedev",
       "category": "development",
@@ -131,19 +144,6 @@
         "design-system",
         "design-tokens",
         "theming"
-      ]
-    },
-    {
-      "name": "family",
-      "source": "./plugins/family",
-      "category": "development",
-      "tags": [
-        "workflow",
-        "lifecycle",
-        "team",
-        "qa",
-        "process",
-        "delivery"
       ]
     }
   ]
