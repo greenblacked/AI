@@ -53,3 +53,14 @@ liability arising from, out of or in connection with it or its use.
 
 CODE_OF_CONDUCT.md is adapted from the Contributor Covenant, version 2.1, used under
 CC BY 4.0. That file is not covered by the MIT licence above.
+
+The catalogue website serves two typefaces from its own domain, both under the SIL Open
+Font License, Version 1.1. They are the latin subsets, in WOFF2, that Google Fonts
+serves, copied byte for byte, and are not covered by the MIT licence above:
+
+- Instrument Sans: Copyright 2022 The Instrument Sans Project Authors (https://github.com/Instrument/instrument-sans)
+- Newsreader: Copyright 2020 The Newsreader Project Authors (http://github.com/productiontype/Newsreader)
+
+The licence text for each is in scripts/site_assets/fonts/ (OFL-instrument-sans.txt and
+OFL-newsreader.txt), copied beside the fonts under /fonts/ in the built site, and its
+text is also at https://scripts.sil.org/OFL.

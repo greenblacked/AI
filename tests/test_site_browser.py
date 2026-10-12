@@ -162,8 +162,8 @@ def new_context(browser, base_url: str, width: int = 1280):
 
     Reduced motion turns the page's own transitions and smooth scrolling off, so what a
     test reads is the settled state rather than a frame of an animation. Requests that
-    leave the local server, the web fonts, are refused, so no test waits on the network
-    or changes with it; the fallback font is what is measured.
+    leave the local server are refused, so no test waits on the network or changes with it.
+    The two typefaces are the site's own files, so they load here and are what is measured.
     """
     made = browser.new_context(viewport={"width": width, "height": 800}, reduced_motion="reduce")
     # Anchored on the server's own origin and a slash, so neither another local port
@@ -231,6 +231,88 @@ def past_inline_back(page) -> int:
         )
         + 40
     )
+
+
+# --- Fonts ------------------------------------------------------------------------------
+
+
+def _loaded_faces(page) -> set[str]:
+    page.evaluate("() => document.fonts.ready")
+    return set(
+        page.evaluate(
+            "() => Array.from(document.fonts)"
+            ".filter(f => f.status === 'loaded').map(f => f.family.replace(/\"/g, ''))"
+        )
+    )
+
+
+def test_both_typefaces_load_from_the_site_with_every_outside_request_refused(
+    browser, built, base_url
+):
+    context = new_context(browser, base_url)
+    page = context.new_page()
+    served, refused = [], []
+    page.on("response", lambda r: served.append(r.url) if "/fonts/" in r.url else None)
+    page.on("requestfailed", lambda r: refused.append(r.url))
+    page.goto(base_url + "/")
+    assert _loaded_faces(page) == {"Instrument Sans", "Newsreader"}
+    # Served by this host, from the hashed names, and nothing went out for one: a refused
+    # request here would be a request to a font host, which the build no longer makes.
+    assert sorted(served) == sorted(
+        {base_url + site.site_style.SANS_URL, base_url + site.site_style.SERIF_URL}
+    )
+    assert refused == []
+    # The weights the page asks for come out of the one variable file each.
+    for weight, family in ((400, "Instrument Sans"), (500, "Instrument Sans"), (400, "Newsreader")):
+        assert page.evaluate(
+            '([w, f]) => document.fonts.check(`${w} 16px "${f}"`)', [weight, family]
+        )
+    used = page.evaluate(
+        "() => getComputedStyle(document.querySelector('.card p')).fontFamily.split(',')[0]"
+    )
+    assert used.strip('"') == "Newsreader"
+    context.close()
+
+
+def test_the_text_is_drawn_in_the_real_faces_and_not_the_fallback(page, base_url):
+    page.goto(base_url + "/family/")
+    # A face loads when text first needs it; ask for each so the measure below is not early.
+    page.evaluate(
+        "() => Promise.all(['400 40px \"Instrument Sans\"', '400 40px \"Newsreader\"']"
+        ".map(f => document.fonts.load(f, 'Hamburgefontsiv')))"
+    )
+    widths = page.evaluate(
+        """() => {
+            const measure = (family, weight) => {
+                const span = document.createElement('span');
+                span.textContent = 'Hamburgefontsiv quick brown fox 0123456789';
+                span.style.cssText = `position:absolute;visibility:hidden;white-space:nowrap;`
+                    + `font-size:40px;font-weight:${weight};font-family:${family}`;
+                document.body.append(span);
+                const width = span.getBoundingClientRect().width;
+                span.remove();
+                return width;
+            };
+            return {
+                sans: measure('"Instrument Sans", monospace', 400),
+                sansBare: measure('monospace', 400),
+                serif: measure('"Newsreader", monospace', 400),
+                serifBare: measure('monospace', 400),
+            };
+        }"""
+    )
+    # A face that did not apply would measure as the monospace it falls back to.
+    assert abs(widths["sans"] - widths["sansBare"]) > 20
+    assert abs(widths["serif"] - widths["serifBare"]) > 20
+    assert widths["sans"] != widths["serif"]
+
+
+def test_the_404_page_loads_the_fonts_from_any_depth(browser, missing_url):
+    context = new_context(browser, missing_url)
+    page = context.new_page()
+    page.goto(missing_url + "/a/b/c/d/missing/")
+    assert _loaded_faces(page) >= {"Instrument Sans"}
+    context.close()
 
 
 # --- Back -------------------------------------------------------------------------------
