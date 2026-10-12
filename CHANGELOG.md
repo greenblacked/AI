@@ -113,7 +113,7 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   `/quality/` add the install steps and usage guide, the shipped subagents and commands,
   example requests, and figures computed from the repository at build time; they are
   reached from the footer. The header drops the text "Black" button for a day/night
-  switch and a console theme, in Instrument Sans and Newsreader loaded from Google Fonts.
+  switch and a console theme, in Instrument Sans and Newsreader.
   The Markdown is rendered by `scripts/site_markdown.py`, standard library only, which
   escapes all source text, shows raw HTML as text and keeps only `http`, `https`,
   `mailto`, fragment and in-repository links.
@@ -268,6 +268,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Serve the website's two typefaces, Instrument Sans and Newsreader, from its own domain
+  instead of Google Fonts: no request leaves for a font host, and the files are cached for
+  a year under names that carry a hash of their bytes. Both are under the SIL Open Font
+  License 1.1, whose text ships beside them and is named in `NOTICE`. Wrapping a bare web
+  address in rendered prose, which ran past a 360 px screen once the real serif was
+  measured, is fixed with it.
 - Redraw the site's tab and home-screen icons as bold cyan "AI" letters on a navy tile,
   so the letters stay sharp at a browser tab's 16 pixels instead of shrinking the crystal
   picture into a blur.
