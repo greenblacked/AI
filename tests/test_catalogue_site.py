@@ -7,6 +7,7 @@ hold in the happy path.
 
 from __future__ import annotations
 
+import hashlib
 import html
 import http.server
 import json
@@ -289,6 +290,139 @@ def test_every_page_names_the_tab_and_home_screen_icons_and_both_ship(mini_repo,
             assert head.count(link) == 1, (page, link)
 
 
+def _font_urls(page: str) -> set[str]:
+    """Every font address a page names: its preloads and the url() of each @font-face."""
+    urls = set(re.findall(r'<link rel="preload" href="([^"]+)" as="font"', page))
+    for face in re.findall(r"@font-face\s*\{[^}]*\}", page):
+        urls.update(re.findall(r"url\(([^)]+)\)", face))
+    return urls
+
+
+def test_no_built_page_asks_a_font_host_for_anything(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    texts = [p for p in output.rglob("*") if p.suffix in (".html", ".txt", ".json", ".css")]
+    assert len(texts) > 5
+    for path in texts:
+        text = path.read_text(encoding="utf-8")
+        assert "fonts.googleapis.com" not in text, path
+        assert "fonts.gstatic.com" not in text, path
+    # The pages the visitor reads each name the sans and open no connection ahead of time.
+    pages = [p for p in output.rglob("*.html") if p.parent.name != "errors"]
+    assert len(pages) > 5
+    for path in pages:
+        text = path.read_text(encoding="utf-8")
+        assert "preconnect" not in text and '<link rel="stylesheet"' not in text, path
+        assert f'href="{site.site_style.SANS_URL}"' in text, path
+
+
+def test_every_font_a_page_names_exists_in_the_build_and_is_a_real_woff2(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    pages = [p for p in output.rglob("*.html") if p.parent.name != "errors"]
+    seen = set()
+    for path in pages:
+        urls = _font_urls(path.read_text(encoding="utf-8"))
+        # The stylesheet declares both faces, so every page names at least the pair.
+        assert {site.site_style.SANS_URL, site.site_style.SERIF_URL} <= urls, path
+        for url in urls:
+            # Absolute, because the 404 page is served from whatever depth was asked for.
+            assert url.startswith("/fonts/"), (path, url)
+            assert (output / url.lstrip("/")).is_file(), (path, url)
+            seen.add(url)
+    for url in seen:
+        assert (output / url.lstrip("/")).read_bytes()[:4] == b"wOF2", url
+
+
+def test_the_card_and_prose_pages_preload_the_serif_and_others_do_not(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    sans, serif = site.site_style.SANS_URL, site.site_style.SERIF_URL
+    for path in (output / "index.html", output / "plugins" / "engineering" / "index.html"):
+        preloaded = re.findall(r'<link rel="preload" href="([^"]+)"', path.read_text("utf-8"))
+        assert preloaded[0] == sans
+    index = re.findall(
+        r'<link rel="preload" href="([^"]+)"', (output / "index.html").read_text("utf-8")
+    )
+    assert index == [sans, serif]
+    skill = (output / "plugins" / "engineering" / "alpha" / "index.html").read_text("utf-8")
+    assert re.findall(r'<link rel="preload" href="([^"]+)"', skill) == [sans, serif]
+    assert site._font_preloads("<p>plain</p>").count("<link") == 1
+    for tag in re.findall(r"<link rel=\"preload\"[^>]*>", site._font_preloads('class="card"')):
+        # crossorigin is not optional: a font preload without it is fetched a second time.
+        assert 'as="font"' in tag and 'type="font/woff2"' in tag and tag.endswith("crossorigin>")
+
+
+def test_font_file_names_carry_a_hash_of_their_bytes(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    fonts = output / "fonts"
+    names = sorted(p.name for p in fonts.iterdir())
+    assert len(names) == 4
+    for built in fonts.iterdir():
+        stem, digest, suffix = built.name.rsplit(".", 2)
+        assert re.fullmatch(r"[0-9a-f]{10}", digest), built.name
+        assert hashlib.sha256(built.read_bytes()).hexdigest().startswith(digest), built.name
+    # The names in the stylesheet are those hashed names, not the source ones.
+    assert site.site_style.SANS_FILE in names and site.site_style.SERIF_FILE in names
+    assert "instrument-sans-latin.woff2" not in names
+
+
+def test_the_headers_file_caches_the_fonts_for_a_year_and_nothing_else(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    assert (output / "_headers").read_text(encoding="utf-8") == (
+        "/fonts/*\n  Cache-Control: public, max-age=31536000, immutable\n"
+    )
+    # Cloudflare reads _headers and _redirects at upload and does not serve them.
+    assert (output / "_redirects").is_file()
+
+
+def test_each_font_ships_with_its_licence_and_the_upstream_copyright_line(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    licences = {
+        site.site_style.SANS_LICENCE: (
+            "Copyright 2022 The Instrument Sans Project Authors "
+            "(https://github.com/Instrument/instrument-sans)"
+        ),
+        site.site_style.SERIF_LICENCE: (
+            "Copyright 2020 The Newsreader Project Authors "
+            "(http://github.com/productiontype/Newsreader)"
+        ),
+    }
+    for name, copyright_line in licences.items():
+        text = (output / "fonts" / name).read_text(encoding="utf-8")
+        assert text.startswith(copyright_line + "\n"), name
+        assert "SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007" in text, name
+        assert "PERMISSION & CONDITIONS" in text, name
+    # The stylesheet points at them, so the licence is findable from the page that uses it.
+    page = (output / "index.html").read_text(encoding="utf-8")
+    for name in licences:
+        assert f"/fonts/{name}" in page
+    notice = (REPO / "NOTICE").read_text(encoding="utf-8")
+    for copyright_line in licences.values():
+        assert copyright_line in notice
+
+
+def test_the_committed_font_files_are_the_ones_the_licences_describe():
+    # Each woff2 is Google's latin subset of a variable font, so its name table holds the
+    # same copyright line as the licence beside it.
+    for font, licence in (
+        ("instrument-sans-latin.woff2", "OFL-instrument-sans.txt"),
+        ("newsreader-latin.woff2", "OFL-newsreader.txt"),
+    ):
+        assert (site.site_style.FONT_DIR / font).read_bytes()[:4] == b"wOF2"
+        first = (site.site_style.FONT_DIR / licence).read_text(encoding="utf-8").splitlines()[0]
+        assert first.startswith("Copyright ") and "Project Authors" in first
+
+
+def test_a_missing_font_is_refused_before_the_previous_build_is_touched(
+    mini_repo, tmp_path, monkeypatch
+):
+    output = _build(mini_repo, tmp_path)
+    before = sorted(p.relative_to(output) for p in output.rglob("*"))
+    monkeypatch.setattr(site.site_style, "FONT_DIR", tmp_path / "no-fonts")
+    with pytest.raises(SystemExit, match="cannot read the site font file"):
+        site.build(mini_repo, output, "v2")
+    assert sorted(p.relative_to(output) for p in output.rglob("*")) == before
+    assert (output / "version.txt").read_text(encoding="utf-8") != "v2\n"
+
+
 def _with_family(mini_repo):
     """The mini repository plus a family plugin: two skills and two stage agents."""
     family = mini_repo / "plugins" / "family"
@@ -496,8 +630,14 @@ def test_navigation_is_root_relative_and_marks_the_current_page(mini_repo, tmp_p
     assert 'role="switch"' in start and 'aria-label="Dark theme"' in start
     assert 'aria-label="Console theme"' in start
     assert "localStorage.getItem" in start
-    assert site.site_style.FONTS_URL.startswith("https://fonts.googleapis.com/css2?")
-    assert f'<link rel="stylesheet" href="{html.escape(site.site_style.FONTS_URL)}">' in start
+    # The typefaces come from the site itself: a preload for the body sans, no request to a
+    # font host and no stylesheet link at all.
+    assert (
+        f'<link rel="preload" href="{site.site_style.SANS_URL}" as="font" type="font/woff2" '
+        "crossorigin>"
+    ) in start
+    assert "fonts.googleapis.com" not in start and "preconnect" not in start
+    assert '<link rel="stylesheet"' not in start
     # Links off the site say so; links on it do not open a new tab.
     assert 'href="https://github.com/greenblacked/AI/releases" target="_blank"' in start
     assert 'rel="noopener noreferrer"' in start
@@ -2078,3 +2218,12 @@ def test_error_pages_have_distinct_headings_and_stay_small(mini_repo, tmp_path):
     ]
     assert len(set(titles)) == 4 and all(title.endswith(" · AI") for title in titles)
     assert max(p.stat().st_size for p in errors.iterdir()) < 20_000
+
+
+def test_a_missing_font_is_refused_by_name_rather_than_with_a_traceback():
+    # The hashed names are computed when site_style is imported, before build() runs its
+    # own check, so this path has to refuse cleanly on its own.
+    import site_style
+
+    with pytest.raises(SystemExit, match="cannot read the site font file no-such-font.woff2"):
+        site_style._hashed("no-such-font.woff2")
