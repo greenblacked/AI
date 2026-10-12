@@ -267,6 +267,24 @@ def _to_top() -> str:
     )
 
 
+def _font_preloads(main: str) -> str:
+    """Preload links for the faces a page paints first.
+
+    The body sans is on every page. The serif sets the card text and the rendered Markdown,
+    so it is preloaded only where one of those is in the page: a preload for a font the
+    page never draws is bytes spent for nothing, and Chrome warns about it. ``crossorigin``
+    is required even for a same-origin font, because fonts are fetched in anonymous CORS
+    mode and a preload without it is fetched twice.
+    """
+    urls = [site_style.SANS_URL]
+    if 'class="prose-lab' in main or 'class="card"' in main:
+        urls.append(site_style.SERIF_URL)
+    return "".join(
+        f'<link rel="preload" href="{url}" as="font" type="font/woff2" crossorigin>\n'
+        for url in urls
+    )
+
+
 def _page(
     title: str,
     main: str,
@@ -299,9 +317,7 @@ def _page(
         f"<title>{html.escape(title)}</title>\n"
         f'<link rel="icon" href="/{FAVICON}" type="image/png" sizes="64x64">\n'
         f'<link rel="apple-touch-icon" href="/{TOUCH_ICON}">\n'
-        '<link rel="preconnect" href="https://fonts.googleapis.com">\n'
-        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
-        f'<link rel="stylesheet" href="{_esc(site_style.FONTS_URL)}">\n'
+        f"{_font_preloads(main)}"
         f"<style>\n{site_style.CSS}</style>\n"
         f"{extra_style}"
         f"<script>\n{site_style.HEAD_SCRIPT}\n</script>\n"
@@ -1507,6 +1523,15 @@ def _redirects() -> str:
     return f"/plugins/{FAMILY_PLUGIN}/ /family/ 301\n/plugins/{FAMILY_PLUGIN} /family/ 301\n"
 
 
+def _headers() -> str:
+    """Long-cache rule for the fonts, read by Cloudflare's static assets at upload.
+
+    Every name under ``/fonts/`` carries a hash of its bytes, so a changed file is a new
+    address and a year-long ``immutable`` response can never go stale.
+    """
+    return f"{site_style.FONT_URL_PREFIX}*\n  Cache-Control: public, max-age=31536000, immutable\n"
+
+
 SUGGESTED_PAGES = (
     ("family", "The FAMILY workflow"),
     ("family/example", "One FAMILY slice, end to end"),
@@ -1598,6 +1623,12 @@ def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> N
             icons[icon] = (SITE_ASSETS / icon).read_bytes()
         except OSError as error:
             raise SystemExit(f"cannot read the site icon {icon}: {error}") from error
+    fonts = {}
+    for built, source in site_style.FONT_ASSETS.items():
+        try:
+            fonts[built] = (site_style.FONT_DIR / source).read_bytes()
+        except OSError as error:
+            raise SystemExit(f"cannot read the site font file {source}: {error}") from error
     if output.exists():
         shutil.rmtree(output)
     output.mkdir(parents=True)
@@ -1615,6 +1646,11 @@ def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> N
     (output / "version.txt").write_text(version + "\n", encoding="utf-8")
     (output / "robots.txt").write_text(_robots(noindex), encoding="utf-8")
     (output / "_redirects").write_text(_redirects(), encoding="utf-8")
+    (output / "_headers").write_text(_headers(), encoding="utf-8")
+    fonts_dir = output / site_style.FONT_URL_PREFIX.strip("/")
+    fonts_dir.mkdir()
+    for name, data in fonts.items():
+        (fonts_dir / name).write_bytes(data)
     for icon, data in icons.items():
         (output / icon).write_bytes(data)
     groups = _ordered_groups(manifest, grouped)
