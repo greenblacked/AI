@@ -34,7 +34,13 @@ _LATIN_RANGE = (
 def _hashed(source: str) -> str:
     """The built name of a file in ``FONT_DIR``: its stem, a content hash, its suffix."""
     path = FONT_DIR / source
-    digest = hashlib.sha256(path.read_bytes()).hexdigest()[:10]
+    # This runs at import, before build() can check anything, so a missing font has to be
+    # refused here in the same words build() uses rather than surface as a traceback.
+    try:
+        data = path.read_bytes()
+    except OSError as error:
+        raise SystemExit(f"cannot read the site font file {source}: {error}") from error
+    digest = hashlib.sha256(data).hexdigest()[:10]
     return f"{path.stem}.{digest}{path.suffix}"
 
 

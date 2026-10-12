@@ -2218,3 +2218,12 @@ def test_error_pages_have_distinct_headings_and_stay_small(mini_repo, tmp_path):
     ]
     assert len(set(titles)) == 4 and all(title.endswith(" · AI") for title in titles)
     assert max(p.stat().st_size for p in errors.iterdir()) < 20_000
+
+
+def test_a_missing_font_is_refused_by_name_rather_than_with_a_traceback():
+    # The hashed names are computed when site_style is imported, before build() runs its
+    # own check, so this path has to refuse cleanly on its own.
+    import site_style
+
+    with pytest.raises(SystemExit, match="cannot read the site font file no-such-font.woff2"):
+        site_style._hashed("no-such-font.woff2")
