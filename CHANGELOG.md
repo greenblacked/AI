@@ -268,6 +268,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- List the `family` plugin second, right after `coding`, in the marketplace manifest, the
+  README and the website, instead of last.
 - Write each portable router row as a plain `skills/<name>.md` path and its trigger,
   without the list marker and colon, so `router.md` stays inside its size budget with
   four more skills.
