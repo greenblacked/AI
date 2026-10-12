@@ -274,6 +274,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   License 1.1, whose text ships beside them and is named in `NOTICE`. Wrapping a bare web
   address in rendered prose, which ran past a 360 px screen once the real serif was
   measured, is fixed with it.
+- Redraw the site's tab and home-screen icons as bold cyan "AI" letters on a navy tile,
+  so the letters stay sharp at a browser tab's 16 pixels instead of shrinking the crystal
+  picture into a blur.
 - List the `family` plugin second, right after `coding`, in the marketplace manifest, the
   README and the website, instead of last.
 - Write each portable router row as a plain `skills/<name>.md` path and its trigger,
