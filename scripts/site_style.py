@@ -1175,8 +1175,113 @@ def _profile_rules() -> str:
     return "\n".join(rules)
 
 
-CSS = CSS.replace("@@PROFILE_RULES@@", _profile_rules()).replace(
-    "@@FONT_FACES@@", FONT_FACES.strip()
+# One motion language for the whole site, kept in one place so every control moves the
+# same way: short ease-out curves for things that appear, a slight overshoot only for a
+# press or a tick, and nothing that loops. What a visitor needs to see (an underline on
+# hover, the arrow on a row) is styled for everyone; only the movement between states
+# sits behind prefers-reduced-motion, so a visitor who asked for less still gets every
+# cue, just without the travel.
+MOTION_CSS = """
+:root {
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-press: cubic-bezier(0.2, 0.9, 0.25, 1.35);
+}
+/* Links in the header and the footer draw their underline from the left. */
+.bar nav a, .foot nav a {
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 calc(50% + 0.8em) / 0 1px;
+}
+.bar nav a:hover, .foot nav a:hover, .bar nav a:focus-visible, .foot nav a:focus-visible {
+  background-size: 100% 1px;
+}
+.bar nav a[aria-current="page"], .foot nav a[aria-current="page"] { background-size: 0 1px; }
+/* A row in a skill list points where it goes. */
+.skills a::after {
+  content: "\\2192";
+  margin-left: auto;
+  padding-left: 1rem;
+  color: var(--muted);
+  opacity: 0;
+}
+.skills a:hover::after, .skills a:focus-visible::after { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  /* Moving between pages: the header holds still while the page under it rises in. */
+  @view-transition { navigation: auto; }
+  .site-header { view-transition-name: banner; }
+  ::view-transition-old(banner) { display: none; }
+  ::view-transition-new(banner) { animation: none; }
+  ::view-transition-old(root) { animation: page-out 160ms var(--ease) both; }
+  ::view-transition-new(root) { animation: page-in 320ms var(--ease) both; }
+  a, button {
+    transition: color 160ms ease, background-color 160ms ease, opacity 160ms ease,
+      background-size 280ms var(--ease), text-decoration-color 200ms ease,
+      transform 200ms var(--ease), box-shadow 200ms var(--ease), outline-offset 160ms ease;
+  }
+  :focus-visible { outline-offset: 3px; }
+  .skills a { transition: color 160ms ease, padding-left 240ms var(--ease); }
+  .skills a::after {
+    transform: translateX(-0.5rem);
+    transition: opacity 200ms ease, transform 240ms var(--ease);
+  }
+  .skills a:hover::after, .skills a:focus-visible::after { transform: none; }
+  #home { transition: letter-spacing 320ms var(--ease); }
+  @media (hover: hover) {
+    .skills a:hover { padding-left: 0.4rem; }
+    #home:hover { letter-spacing: 0.3em; }
+    .pill:hover, .family-reset:hover, .chip:hover, .tool:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0.5rem 1.25rem -0.75rem color-mix(in srgb, var(--ink) 55%, transparent);
+    }
+  }
+  .pill:active, .family-reset:active, .chip:active, .tool:active {
+    transform: scale(0.96);
+    box-shadow: none;
+    transition-duration: 80ms;
+  }
+  /* A choice the visitor has just made ticks in; one restored on load does not. */
+  .chip input:checked:focus, .family-checks input:checked:focus {
+    animation: tick 320ms var(--ease-press);
+  }
+  .family-checks .check { transition: color 200ms ease; }
+  /* Rows the finder brings back fade in rather than appearing at once. */
+  .filtered [data-name], .filtered [data-plugin], .filtered .hits {
+    transition: opacity 240ms var(--ease), translate 240ms var(--ease);
+  }
+  @starting-style {
+    .filtered [data-name], .filtered [data-plugin], .filtered .hits {
+      opacity: 0;
+      translate: 0 0.4rem;
+    }
+  }
+  /* On the front page the card and each plugin rise in as they scroll into view. */
+  @supports (animation-timeline: view()) {
+    .listing .card, .listing .plugin {
+      animation: rise-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+  }
+  /* Switching theme spreads the new one out from the switch that was pressed. */
+  html.theming .site-header { view-transition-name: none; }
+  html.theming::view-transition-old(root) { animation: none; }
+  html.theming::view-transition-new(root) { animation: theme-in 560ms var(--ease) both; }
+}
+@keyframes page-out { to { opacity: 0; } }
+@keyframes page-in { from { opacity: 0; transform: translateY(0.75rem); } }
+@keyframes rise-in { from { opacity: 0; transform: translateY(1.5rem); } }
+@keyframes tick {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+@keyframes theme-in {
+  from { clip-path: circle(0 at var(--reveal-x, 100%) var(--reveal-y, 0)); }
+  to { clip-path: circle(150vmax at var(--reveal-x, 100%) var(--reveal-y, 0)); }
+}
+"""
+
+CSS = (
+    CSS.replace("@@PROFILE_RULES@@", _profile_rules()).replace("@@FONT_FACES@@", FONT_FACES.strip())
+    + MOTION_CSS
 )
 
 # The theme is set before the page paints, so a visitor at night never sees a flash of
@@ -1215,19 +1320,32 @@ PAGE_SCRIPT = """
       else localStorage.removeItem(KEY);
     } catch (e) {}
   }
+  // A theme chosen by hand spreads out from the control that chose it. The clock's own
+  // changes, and any visitor who asked for less motion, switch at once.
+  function spreadTheme(from, change) {
+    var still = !window.matchMedia ||
+      !window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
+    if (still || !document.startViewTransition) { change(); return; }
+    var box = from.getBoundingClientRect();
+    root.style.setProperty("--reveal-x", Math.round(box.left + box.width / 2) + "px");
+    root.style.setProperty("--reveal-y", Math.round(box.top + box.height / 2) + "px");
+    root.classList.add("theming");
+    function done() { root.classList.remove("theming"); }
+    document.startViewTransition(change).finished.then(done, done);
+  }
   dark.addEventListener("click", function () {
     var next = root.getAttribute("data-theme") === "night" ? "day" : "night";
     store(next);
-    apply(next);
+    spreadTheme(dark, function () { apply(next); });
   });
   consoleTheme.addEventListener("click", function () {
     if (root.getAttribute("data-theme") === "reactor") {
       store(null);
-      apply(clock());
+      spreadTheme(consoleTheme, function () { apply(clock()); });
       return;
     }
     store("reactor");
-    apply("reactor");
+    spreadTheme(consoleTheme, function () { apply("reactor"); });
   });
   apply(preferred());
   window.setInterval(function () { apply(preferred()); }, 60000);
@@ -1348,7 +1466,11 @@ PAGE_SCRIPT = """
     tally.textContent = needle ? shown + " of " + total : total + " " + unit;
     if (none) none.hidden = shown !== 0;
   }
-  input.addEventListener("input", refine);
+  input.addEventListener("input", function () {
+    // Only rows the finder brings back fade in, never the list as the page first draws it.
+    list.classList.add("filtered");
+    refine();
+  });
 })();
 """
 

@@ -2177,6 +2177,29 @@ def test_opening_a_family_stage_moves_only_where_motion_is_allowed():
     assert opening and not any(line.strip().startswith(".family-stages > li {") for line in opening)
 
 
+def test_the_site_moves_one_way_and_only_where_motion_is_allowed():
+    motion = site.site_style.MOTION_CSS
+    still = _outside_motion_query(motion).split("@keyframes", 1)[0]
+    # Every transition and animation sits behind the motion query.
+    assert "transition" not in still and "animation" not in still
+    assert "view-transition" not in still
+    # The cues a visitor needs are drawn for everyone: the underline and the row's arrow.
+    assert ".bar nav a:hover" in still and "background-size: 100% 1px" in still
+    assert ".skills a::after" in still and "\\2192" in still
+    assert site.site_style.CSS.endswith(motion)
+    # A choice ticks in only when made, not when restored from storage on load.
+    assert "input:checked:focus" in motion
+
+
+def test_no_page_script_declares_one_function_twice():
+    # A second declaration of the same name in one scope silently replaces the first;
+    # that once left the theme switch calling the scroll handler instead of its own.
+    for name in ("PAGE_SCRIPT", "FAMILY_SCRIPT"):
+        script = getattr(site.site_style, name)
+        names = re.findall(r"\bfunction\s+([A-Za-z_$][\w$]*)\s*\(", script)
+        assert len(names) == len(set(names)), (name, sorted(n for n in names if names.count(n) > 1))
+
+
 def _outside_motion_query(css):
     """The stylesheet with every ``prefers-reduced-motion: no-preference`` block removed."""
     kept, rest = [], css
