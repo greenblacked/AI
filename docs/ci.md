@@ -551,7 +551,7 @@ What the build writes, besides the `.skill` archives, `portable-skills.zip`, the
 `plugins/<plugin>/`, one per skill under `plugins/<plugin>/<skill>/`, and `start/`,
 `workflows/`, `examples/` and `quality/`, plus `offline/`, the page the worker shows when a
 visitor is offline and has not opened the address asked for. It is a directory index because the Worker redirects
-`/offline.html`, and a redirected response cannot be served for a navigation.
+`/offline.html`, and a redirected response cannot be served for a navigation. Deleting `sw.js` does not retire the worker, because a browser keeps the one it has when an update check gets a 404; `scripts/site_offline.py` says what to ship instead.
 Every page is generated from the checkout with the standard library, Markdown included
 ([`scripts/site_markdown.py`](../scripts/site_markdown.py)) and the stylesheet
 ([`scripts/site_style.py`](../scripts/site_style.py)), so the dry-run and the deploy

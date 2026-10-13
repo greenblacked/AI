@@ -10,10 +10,10 @@ written by ``build_catalogue_site.build``:
 * ``/sw.js`` is served from the root, so its scope is the whole site.
 
 The page is ``offline/index.html`` and not ``offline.html`` because of the Worker's
-``auto-trailing-slash`` html_handling: it answers ``/offline.html`` with a redirect to
-``/offline``, which in turn redirects to ``/offline/``. Only ``/offline/`` answers 200
-directly, and a redirected response stored in a cache cannot be served for a navigation
-(the browser rejects it), so the worker precaches the one address that does not redirect.
+``auto-trailing-slash`` html_handling: it answers ``/offline.html`` with a redirect, and a
+redirected response stored in a cache cannot be served for a navigation (the browser
+rejects it). A directory index is served 200 at ``/offline/`` with no redirect, which is
+the address the worker precaches and the address every other page of the site uses.
 
 What the worker keeps, and why that is safe on this site:
 
@@ -26,6 +26,19 @@ What the worker keeps, and why that is safe on this site:
   new name, deletes the caches of older ones, and so drops pages whose inline CSS names
   fonts that deploy no longer ships. That is deliberate: a page kept across a deploy would
   paint with a missing font, so the page and the fonts it names live and die together.
+* The page a visitor first lands on loads before any worker exists, so the worker fetches
+  the pages open in its windows once, when it takes control, and keeps them by the same
+  rule. Without that the first page of a first visit would never be saved.
+
+Retiring the worker. Deleting ``/sw.js`` does not remove it: a browser that gets a 404
+for an update check keeps the worker it has, with its caches, and keeps running it.
+Network first means it never serves a stale page while the site answers, but to take it
+away for good, ship a ``/sw.js`` whose ``install`` calls ``self.skipWaiting()`` and whose
+``activate`` deletes every cache named ``ai-site-*``, calls
+``self.registration.unregister()`` and then navigates each window client to its own URL.
+Keep that file deployed, with the same ``no-cache`` header, until returning visitors have
+had time to fetch it, and remove the registration snippet from the pages in the same
+deploy.
 """
 
 from __future__ import annotations
@@ -116,9 +129,27 @@ self.addEventListener("activate", function (event) {
         // Prefix match only: a cache this worker did not make is not its to delete.
         return name.indexOf(PREFIX) === 0 && name !== STATIC && name !== PAGES;
       }).map(function (name) { return caches.delete(name); }));
-    }).then(function () { return self.clients.claim(); })
+    }).then(function () {
+      return self.clients.claim();
+    }).then(keepOpenPages)
   );
 });
+
+// The page a visitor lands on first was loaded before this worker existed, so no fetch
+// event saw it. Fetch the pages open in this worker's windows once, and keep them by the
+// same rule a navigation uses. Best effort: a failure here must not stop activation.
+function keepOpenPages() {
+  return self.clients.matchAll({ type: "window" }).then(function (windows) {
+    return Promise.all(windows.map(function (client) {
+      var url = new URL(client.url);
+      if (url.origin !== self.location.origin || url.pathname === OFFLINE) return null;
+      return fetch(url.origin + url.pathname + url.search).then(function (response) {
+        if (plain(response) && isHtml(response)) return remember(pageKey(url), response);
+        return null;
+      }).catch(function () { return null; });
+    }));
+  }).catch(function () { return null; });
+}
 
 // Keep the newest MAX_PAGES. cache.keys() is in insertion order and a page is deleted
 // before it is put again, so the front of the list is the page opened longest ago.

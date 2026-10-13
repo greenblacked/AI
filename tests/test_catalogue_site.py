@@ -2331,6 +2331,12 @@ def test_the_worker_caps_the_page_cache_and_cleans_up_only_its_own_caches(mini_r
     activate = text.split('self.addEventListener("activate"', 1)[1].split("\n});", 1)[0]
     assert "name.indexOf(PREFIX) === 0 && name !== STATIC && name !== PAGES" in activate
     assert activate.index("caches.delete(") < activate.index("self.clients.claim()")
+    # The page a first visit lands on is saved once the worker takes control of it.
+    assert activate.index("self.clients.claim()") < activate.index("keepOpenPages")
+    keep = text.split("function keepOpenPages()", 1)[1].split("\n}\n", 1)[0]
+    assert 'matchAll({ type: "window" })' in keep
+    assert "url.origin !== self.location.origin" in keep
+    assert "plain(response) && isHtml(response)" in keep
 
 
 def test_the_worker_is_plain_es2017(mini_repo, tmp_path):

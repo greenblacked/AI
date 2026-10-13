@@ -1291,6 +1291,18 @@ def test_every_normal_page_registers_the_worker_and_it_controls_the_site(worker_
     }
 
 
+def test_the_first_page_of_a_first_visit_is_kept_without_a_reload(worker_context, base_url):
+    page = worker_context.new_page()
+    # No reload: this page loaded before the worker existed, so no fetch event saw it.
+    page.goto(base_url + "/start/")
+    page.wait_for_function("() => navigator.serviceWorker.controller !== null")
+    wait_until(page, KEPT, "/start/")
+    worker_context.set_offline(True)
+    response = page.goto(base_url + "/start/")
+    assert response is not None and response.status == 200
+    assert page.title().startswith("Getting started")
+
+
 def test_the_standalone_error_pages_do_not_register_a_worker(worker_context, base_url):
     page = worker_context.new_page()
     page.goto(base_url + "/errors/503")
@@ -1463,5 +1475,8 @@ def test_a_new_version_deletes_only_the_caches_an_older_worker_made(
         "ai-site-v1-pages",
     }
     # The pages kept under the old version went with it, so none is served with a font
-    # name the new deploy no longer has.
-    assert "/start/" not in cached_paths(page)
+    # name the new deploy no longer has. The open tab's page may be kept again, but only
+    # as the new worker fetched it from the new build, under the new version's name.
+    listing = page.evaluate(PAGE_CACHE_LISTING)
+    assert all(name.startswith("ai-site-v1-") for name, _ in listing if name.startswith("ai-"))
+    assert {path for name, path in listing if name == "ai-site-v1-pages"} <= {"/start/"}
