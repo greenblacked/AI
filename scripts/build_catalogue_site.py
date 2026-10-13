@@ -34,6 +34,7 @@ import export_portable  # noqa: E402
 import package_skills  # noqa: E402
 import site_errors  # noqa: E402
 import site_markdown  # noqa: E402
+import site_offline  # noqa: E402
 import site_style  # noqa: E402
 
 from skillcheck.frontmatter import FrontmatterError, parse  # noqa: E402
@@ -294,18 +295,22 @@ def _page(
     parent: str | None = None,
     style: str = "",
     script: str = "",
+    noindex: bool = False,
 ) -> str:
     """One document. ``main`` is already escaped HTML for the page body.
 
     ``current`` is the root-relative path of the page, which marks its footer link.
     ``parent`` is where Back goes without history, and None on the front page. ``style``
     and ``script`` are a page's own CSS and script, written after the shared ones; only
-    the 404 has any, so every other page is byte for byte what it was.
+    the 404 and the offline page have any. ``noindex`` keeps a page out of search results.
+    Every page registers the service worker, which the standalone ``/errors/`` pages
+    deliberately do not.
     """
     source = _esc(SOURCE_URL)
     dock = _dock(parent)
     extra_style = f"<style>\n{style}</style>\n" if style else ""
     extra_script = f"<script>\n{script}</script>\n" if script else ""
+    robots = '<meta name="robots" content="noindex">\n' if noindex else ""
     return (
         "<!DOCTYPE html>\n"
         '<html lang="en">\n'
@@ -313,6 +318,7 @@ def _page(
         '<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
         f'<meta name="catalogue-version" content="{_esc(version)}">\n'
+        f"{robots}"
         '<meta name="theme-color" content="#f4f1ea">\n'
         f"<title>{html.escape(title)}</title>\n"
         f'<link rel="icon" href="/{FAVICON}" type="image/png" sizes="64x64">\n'
@@ -349,6 +355,7 @@ def _page(
         "</div>\n</footer>\n"
         f"{_to_top()}"
         f"<script>\n{site_style.PAGE_SCRIPT}</script>\n"
+        f"<script>{site_offline.REGISTER_SCRIPT}</script>\n"
         f"{extra_script}"
         "</body>\n"
         "</html>\n"
@@ -1524,12 +1531,17 @@ def _redirects() -> str:
 
 
 def _headers() -> str:
-    """Long-cache rule for the fonts, read by Cloudflare's static assets at upload.
+    """Cache rules, read by Cloudflare's static assets at upload.
 
     Every name under ``/fonts/`` carries a hash of its bytes, so a changed file is a new
-    address and a year-long ``immutable`` response can never go stale.
+    address and a year-long ``immutable`` response can never go stale. The service worker
+    is the opposite: its address never changes, so ``no-cache`` makes the browser ask
+    whether it did on every load, and a deploy's new worker is picked up promptly.
     """
-    return f"{site_style.FONT_URL_PREFIX}*\n  Cache-Control: public, max-age=31536000, immutable\n"
+    return (
+        f"{site_style.FONT_URL_PREFIX}*\n  Cache-Control: public, max-age=31536000, immutable\n"
+        f"{site_offline.SW_PATH}\n  Cache-Control: no-cache\n"
+    )
 
 
 SUGGESTED_PAGES = (
@@ -1570,6 +1582,19 @@ def render_missing(suggestions: list[list[str]], version: str) -> str:
         parent="/",
         style=site_errors.LOST_CSS,
         script=site_errors.LOST_SCRIPT,
+    )
+
+
+def render_offline(version: str) -> str:
+    """The page the service worker serves for an address it cannot answer from its cache."""
+    return _page(
+        "Offline · AI",
+        site_offline.offline_main(_back("/")),
+        version,
+        parent="/",
+        style=site_offline.OFFLINE_CSS,
+        script=site_offline.render_offline_script(),
+        noindex=True,
     )
 
 
@@ -1676,6 +1701,14 @@ def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> N
         (target / "index.html").write_text(content, encoding="utf-8")
     (output / "404.html").write_text(
         render_missing(_suggestions(catalogue, pages), version), encoding="utf-8"
+    )
+    # offline/index.html, not offline.html: the Worker answers the latter with a redirect, and
+    # a redirected response cannot be served for a navigation. See site_offline.
+    offline = output / site_offline.OFFLINE_PATH.strip("/")
+    offline.mkdir()
+    (offline / "index.html").write_text(render_offline(version), encoding="utf-8")
+    (output / site_offline.SW_PATH.lstrip("/")).write_text(
+        site_offline.render_worker(version), encoding="utf-8"
     )
     errors = output / "errors"
     errors.mkdir()

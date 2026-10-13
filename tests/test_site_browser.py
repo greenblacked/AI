@@ -23,6 +23,7 @@ import io
 import os
 import re
 import threading
+import time
 from pathlib import Path
 
 import pytest
@@ -1160,3 +1161,322 @@ def test_403_offers_no_retry_and_a_way_home(browser, base_url):
         page.wait_for_url(base_url + "/")
     finally:
         made.close()
+
+
+# --- Offline: the service worker and the page it falls back to --------------------------
+#
+# A worker needs a secure context, and http://127.0.0.1 is one. Playwright's offline mode
+# cuts the page and the worker off from the server alike, so what loads next is only what
+# the worker kept. The pages a test must not be able to read are made to misbehave on a
+# server of its own, because the shared one only ever answers well.
+
+# True once a page cache holds the path it is given.
+KEPT = (
+    "async p => { for (const n of await caches.keys()) { if (!n.endsWith('-pages')) continue;"
+    " const c = await caches.open(n);"
+    " if ((await c.keys()).some(r => new URL(r.url).pathname === p)) return true; }"
+    " return false; }"
+)
+PAGE_CACHE_LISTING = (
+    "async () => { const out = []; for (const name of await caches.keys()) {"
+    " const cache = await caches.open(name); for (const r of await cache.keys())"
+    " out.push([name, new URL(r.url).pathname]); } return out; }"
+)
+
+
+class _Misbehaving(_Quiet):
+    """The shared server, with chosen paths made to answer badly.
+
+    ``overrides`` maps a path to ``"404"``, ``"redirect:<path>"`` or ``"html"``. The first
+    is what the Worker does for a path with no page, the second what Cloudflare Access
+    does with a visitor who is not signed in, and the third is a bare page, so a test can
+    ask for far more pages than the site has.
+    """
+
+    overrides: dict[str, str] = {}
+    directory_for: dict[str, str] = {}
+
+    def __init__(self, *args, **kwargs):
+        kwargs["directory"] = self.directory_for["root"]
+        super().__init__(*args, **kwargs)
+
+    def _send(self, status: int, body: bytes, headers: dict[str, str]):
+        self.send_response(status)
+        for name, value in headers.items():
+            self.send_header(name, value)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        return io.BytesIO(body)
+
+    def send_head(self):
+        path = self.path.split("?", 1)[0]
+        mode = self.overrides.get(path) or ("html" if path.startswith("/bulk/") else None)
+        html = {"Content-Type": "text/html; charset=utf-8"}
+        if mode == "404":
+            return self._send(404, (Path(self.directory) / "404.html").read_bytes(), html)
+        if mode == "html":
+            return self._send(200, f"<!DOCTYPE html><title>{path}</title>".encode(), html)
+        if mode and mode.startswith("redirect:"):
+            return self._send(302, b"", {"Location": mode[len("redirect:") :]})
+        return super().send_head()
+
+
+@pytest.fixture
+def misbehaving(built):
+    """A server over ``built`` whose answers a test changes: ``(url, overrides, switch)``."""
+    handler = type(
+        "Handler", (_Misbehaving,), {"overrides": {}, "directory_for": {"root": str(built)}}
+    )
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{server.server_address[1]}", handler.overrides, handler.directory_for
+    server.shutdown()
+    server.server_close()
+
+
+@pytest.fixture
+def worker_context(browser):
+    made = browser.new_context(viewport={"width": 1280, "height": 800}, reduced_motion="reduce")
+    yield made
+    made.close()
+
+
+def wait_until(page, expression: str, arg=None, timeout: float = 10.0) -> None:
+    """Poll an async page expression until it is true.
+
+    ``wait_for_function`` does not await a promise: it treats the promise as truthy and
+    returns at once, which would let every wait below pass before the cache had changed.
+    ``evaluate`` does await, so the loop asks it and sleeps between answers.
+    """
+    deadline = time.monotonic() + timeout
+    while not page.evaluate(expression, arg):
+        assert time.monotonic() < deadline, f"never became true: {expression}"
+        page.wait_for_timeout(50)
+
+
+def control(page, url: str) -> None:
+    """Load ``url``, wait for the worker to be active, and reload so it controls the page."""
+    page.goto(url)
+    page.evaluate("() => navigator.serviceWorker.ready.then(() => true)")
+    page.reload()
+    page.wait_for_function("() => navigator.serviceWorker.controller !== null")
+
+
+def cached_paths(page) -> set[str]:
+    return {path for _, path in page.evaluate(PAGE_CACHE_LISTING)}
+
+
+def visit(page, url: str, path: str) -> None:
+    """Open ``path`` through the worker and wait until the worker has kept it."""
+    response = page.goto(url + path)
+    assert response is not None and response.status == 200
+    wait_until(page, KEPT, path)
+
+
+def test_every_normal_page_registers_the_worker_and_it_controls_the_site(worker_context, base_url):
+    page = worker_context.new_page()
+    control(page, base_url + "/")
+    scope = page.evaluate("() => navigator.serviceWorker.getRegistration().then(r => r.scope)")
+    assert scope == base_url + "/"
+    names = page.evaluate("() => caches.keys()")
+    assert sorted(names) == ["ai-site-v0-pages", "ai-site-v0-static"] or sorted(names) == [
+        "ai-site-v0-static"
+    ]
+    precached = {path for name, path in page.evaluate(PAGE_CACHE_LISTING) if "static" in name}
+    assert precached == {
+        "/offline/",
+        "/favicon.png",
+        site.site_style.SANS_URL,
+        site.site_style.SERIF_URL,
+    }
+
+
+def test_the_first_page_of_a_first_visit_is_kept_without_a_reload(worker_context, base_url):
+    page = worker_context.new_page()
+    # No reload: this page loaded before the worker existed, so no fetch event saw it.
+    page.goto(base_url + "/start/")
+    page.wait_for_function("() => navigator.serviceWorker.controller !== null")
+    wait_until(page, KEPT, "/start/")
+    worker_context.set_offline(True)
+    response = page.goto(base_url + "/start/")
+    assert response is not None and response.status == 200
+    assert page.title().startswith("Getting started")
+
+
+def test_the_standalone_error_pages_do_not_register_a_worker(worker_context, base_url):
+    page = worker_context.new_page()
+    page.goto(base_url + "/errors/503")
+    page.wait_for_load_state("load")
+    assert page.evaluate("() => navigator.serviceWorker.getRegistration().then(r => !r)")
+
+
+def test_a_visited_page_still_loads_offline_with_its_fonts(worker_context, base_url):
+    page = worker_context.new_page()
+    control(page, base_url + "/")
+    visit(page, base_url, "/start/")
+    worker_context.set_offline(True)
+    response = page.goto(base_url + "/start/")
+    assert response is not None and response.status == 200
+    assert page.title().startswith("Getting started")
+    assert page.get_by_role("heading", level=1).count() == 1
+    # The home page names both faces; both come out of the cache with no network.
+    page.goto(base_url + "/")
+    assert _loaded_faces(page) == {"Instrument Sans", "Newsreader"}
+    # And the same page without its trailing slash, which the Worker would redirect.
+    assert page.goto(base_url + "/start") is not None
+    assert page.title().startswith("Getting started")
+
+
+def test_an_unvisited_page_shows_the_offline_page_at_its_own_address(worker_context, base_url):
+    page = worker_context.new_page()
+    control(page, base_url + "/")
+    worker_context.set_offline(True)
+    page.goto(base_url + "/workflows/")
+    assert page.url == base_url + "/workflows/"
+    assert page.title() == "Offline · AI"
+    assert page.locator("main .lede").inner_text().startswith("You're offline")
+    assert page.locator('meta[name="robots"]').get_attribute("content") == "noindex"
+    # Designed, not a browser error: the site's own font and header are on screen.
+    assert _loaded_faces(page) >= {"Instrument Sans"}
+    assert page.locator("#banner").is_visible()
+    assert page.get_by_role("button", name="Try again").is_visible()
+
+
+def test_the_offline_page_lists_the_pages_that_were_visited(worker_context, base_url):
+    page = worker_context.new_page()
+    control(page, base_url + "/")
+    visit(page, base_url, "/start/")
+    worker_context.set_offline(True)
+    page.goto(base_url + "/workflows/")
+    link = page.locator('#offline-list a[href="/start/"]')
+    link.wait_for()
+    assert page.locator("#offline-saved").is_visible()
+    assert page.locator("#offline-none").is_hidden()
+    assert link.locator(".lost-name").inner_text() == "Getting started"
+    assert link.locator(".lost-kind").inner_text() == "/start/"
+    assert page.locator('#offline-list a[href="/"] .lost-name').inner_text() == "Home"
+    hrefs = page.eval_on_selector_all(
+        "#offline-list a", "els => els.map(e => e.getAttribute('href'))"
+    )
+    # Only rooted paths on this site, each once, and never the offline page itself.
+    assert hrefs and all(h.startswith("/") and not h.startswith("//") for h in hrefs)
+    assert len(hrefs) == len(set(hrefs)) and "/offline/" not in hrefs
+    assert "/workflows/" not in hrefs
+    # A listed page opens from the cache.
+    link.click()
+    page.wait_for_url(base_url + "/start/")
+    assert page.title().startswith("Getting started")
+
+
+def test_the_offline_page_says_so_when_nothing_is_saved_and_retry_reloads(
+    worker_context, misbehaving
+):
+    url, overrides, _ = misbehaving
+    page = worker_context.new_page()
+    # A worker with nothing kept but the precache: the list is empty, and says so.
+    page.goto(url + "/errors/503")
+    page.goto(url + "/offline/")
+    page.evaluate("() => navigator.serviceWorker.ready.then(() => true)")
+    page.reload()
+    page.locator("#offline-none").wait_for(state="visible")
+    assert page.locator("#offline-saved").is_hidden()
+    assert "/offline/" not in cached_paths(page) - {"/offline/"} | set()
+    # Retry reloads the page; offline it comes back as the offline page, online as the page.
+    page.evaluate("() => { window.stale = true; }")
+    page.get_by_role("button", name="Try again").click()
+    page.wait_for_function("() => window.stale === undefined")
+    assert page.get_by_role("button", name="Try again").is_visible()
+
+
+def test_the_offline_page_has_a_retry_link_without_script(browser, base_url):
+    made = browser.new_context(java_script_enabled=False)
+    try:
+        page = made.new_page()
+        page.goto(base_url + "/offline/")
+        assert page.get_by_role("link", name="Try again").is_visible()
+        assert page.get_by_role("button", name="Try again").is_hidden()
+        assert page.locator("#offline-saved").is_hidden()
+        assert page.locator("#offline-none").is_hidden()
+    finally:
+        made.close()
+
+
+def test_a_404_is_never_served_from_the_cache_and_never_listed(worker_context, misbehaving):
+    url, overrides, _ = misbehaving
+    page = worker_context.new_page()
+    control(page, url + "/")
+    overrides["/workflows/"] = "404"
+    response = page.goto(url + "/workflows/")
+    assert response is not None and response.status == 404
+    # Give a mistaken write the time to land; then nothing under that path may exist.
+    page.wait_for_timeout(300)
+    assert "/workflows/" not in cached_paths(page)
+    worker_context.set_offline(True)
+    page.goto(url + "/workflows/")
+    assert page.title() == "Offline · AI"
+    assert page.locator("#offline-list a[href='/workflows/']").count() == 0
+
+
+def test_a_redirect_is_never_cached_or_served_as_the_page(worker_context, misbehaving):
+    url, overrides, _ = misbehaving
+    page = worker_context.new_page()
+    control(page, url + "/")
+    # What Cloudflare Access does to a visitor with no session: send them elsewhere.
+    overrides["/examples/"] = "redirect:/quality/"
+    page.goto(url + "/examples/")
+    page.wait_for_url(url + "/quality/")
+    wait_until(page, KEPT, "/quality/")
+    stored = cached_paths(page)
+    # The page it landed on was a plain 200 and is kept under its own address; the address
+    # that redirected is not kept at all.
+    assert "/quality/" in stored and "/examples/" not in stored
+    worker_context.set_offline(True)
+    page.goto(url + "/examples/")
+    assert page.url == url + "/examples/"
+    assert page.title() == "Offline · AI"
+
+
+def test_the_page_cache_keeps_only_the_sixty_newest(worker_context, misbehaving):
+    url, _, _ = misbehaving
+    page = worker_context.new_page()
+    control(page, url + "/")
+    for number in range(65):
+        visit(page, url, f"/bulk/{number}/")
+    pages = {p for n, p in page.evaluate(PAGE_CACHE_LISTING) if n.endswith("-pages")}
+    assert len(pages) == 60
+    assert "/bulk/64/" in pages and "/bulk/0/" not in pages and "/bulk/5/" in pages
+
+
+def test_a_new_version_deletes_only_the_caches_an_older_worker_made(
+    worker_context, misbehaving, tmp_path_factory
+):
+    url, _, switch = misbehaving
+    page = worker_context.new_page()
+    control(page, url + "/")
+    visit(page, url, "/start/")
+    page.evaluate(
+        "() => Promise.all(['ai-site-v0-static-old', 'ai-site-ancient-pages', 'someone-else']"
+        ".map(n => caches.open(n)))"
+    )
+    # The same address now serves a build of the next version, so the worker file differs.
+    second = tmp_path_factory.mktemp("browser2") / "site"
+    site.build(REPO, second, "v1")
+    switch["root"] = str(second)
+    page.evaluate("() => navigator.serviceWorker.getRegistration().then(r => r.update())")
+    wait_until(
+        page,
+        "async () => { const n = await caches.keys();"
+        " return n.includes('ai-site-v1-static') && !n.includes('ai-site-v0-static'); }",
+    )
+    names = set(page.evaluate("() => caches.keys()"))
+    assert "someone-else" in names
+    assert not {n for n in names if n.startswith("ai-site-")} - {
+        "ai-site-v1-static",
+        "ai-site-v1-pages",
+    }
+    # The pages kept under the old version went with it, so none is served with a font
+    # name the new deploy no longer has. The open tab's page may be kept again, but only
+    # as the new worker fetched it from the new build, under the new version's name.
+    listing = page.evaluate(PAGE_CACHE_LISTING)
+    assert all(name.startswith("ai-site-v1-") for name, _ in listing if name.startswith("ai-"))
+    assert {path for name, path in listing if name == "ai-site-v1-pages"} <= {"/start/"}
