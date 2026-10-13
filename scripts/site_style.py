@@ -893,6 +893,13 @@ html[data-theme="night"] .sun { display: none; }
   transform: rotate(45deg);
 }
 .family-stages details[open] .chev { transform: rotate(-135deg); margin-top: 0.7rem; }
+/* An open stage is marked in its own colour: a thicker bar and a faint tint, so the one
+   being read stands out from the five that are not. A picked profile's rules come later
+   and are more specific, so they still win for the stages that profile owns. */
+.family-stages > li:has(> details[open]) {
+  --barw: 5px;
+  --tint: color-mix(in srgb, var(--stage) 6%, transparent);
+}
 .family-stages .more {
   padding: 0 0 1rem 3.5rem;
   font-family: var(--font-sans);
@@ -1081,6 +1088,47 @@ html[data-theme="reactor"] {
      An important opacity outranks the animation without touching it: changing `animation`
      on focus and back on blur would restart the rise, and the row would vanish for a second. */
   .family-stages > li:focus-within { opacity: 1 !important; }
+  /* Opening a stage. Only what is inside the row moves, never the row itself, so the
+     entrance above cannot replay. The panel grows to its height where the browser can
+     animate to auto (::details-content and interpolate-size); elsewhere those rules are
+     ignored and it opens at once, with the rows below still fading in. */
+  .family-stages { interpolate-size: allow-keywords; }
+  .family-stages details::details-content {
+    height: 0;
+    overflow: clip;
+    transition: height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), content-visibility 0.4s allow-discrete;
+  }
+  .family-stages details[open]::details-content { height: auto; }
+  .family-stages details { transition: background-color 0.35s ease; }
+  .family-stages > li::before { transition: width 0.3s ease, background-color 0.3s ease; }
+  .family-stages .chev {
+    transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.25, 1.2), margin-top 0.35s ease;
+  }
+  .family-stages details[open] .letter {
+    transform-origin: 30% 60%;
+    animation: family-pop 0.45s cubic-bezier(0.2, 0.9, 0.25, 1.4);
+  }
+  .family-stages details[open] .facts > div,
+  .family-stages details[open] .routes-head,
+  .family-stages details[open] .routes > div {
+    animation: family-open 0.4s ease-out both;
+  }
+  .family-stages details[open] .facts > div:nth-child(2) { animation-delay: 0.05s; }
+  .family-stages details[open] .facts > div:nth-child(3) { animation-delay: 0.1s; }
+  .family-stages details[open] .routes-head { animation-delay: 0.15s; }
+  .family-stages details[open] .routes > div:nth-child(1) { animation-delay: 0.2s; }
+  .family-stages details[open] .routes > div:nth-child(2) { animation-delay: 0.25s; }
+  .family-stages details[open] .routes > div:nth-child(3) { animation-delay: 0.3s; }
+  .family-stages details[open] .routes > div:nth-child(n + 4) { animation-delay: 0.35s; }
+}
+@keyframes family-open {
+  from { opacity: 0; transform: translateY(-0.4rem); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes family-pop {
+  0% { transform: none; }
+  40% { transform: scale(1.35); }
+  100% { transform: none; }
 }
 @keyframes family-key {
   0% { max-width: 0; opacity: 0; transform: translateY(0.18em) scale(1.6); }

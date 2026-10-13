@@ -2159,6 +2159,24 @@ def test_the_404_keeps_the_site_header_and_footer_and_its_own_motion_rules(mini_
     assert "prefers-reduced-motion: no-preference" in css
 
 
+def test_opening_a_family_stage_moves_only_where_motion_is_allowed():
+    css = site.site_style.CSS
+    still = _outside_motion_query(css)
+    # The open stage is marked in its own colour whatever the motion setting.
+    assert ".family-stages > li:has(> details[open])" in still
+    # Every effect of opening one sits behind the motion query, and none of it targets
+    # the row itself, whose entrance would otherwise replay on every click.
+    for effect in ("::details-content", "family-pop", "family-open", "interpolate-size"):
+        assert effect not in still.split("@keyframes", 1)[0], effect
+        assert effect in css, effect
+    opening = [
+        line
+        for line in css.splitlines()
+        if "details[open]" in line and line.rstrip().endswith(("{", ","))
+    ]
+    assert opening and not any(line.strip().startswith(".family-stages > li {") for line in opening)
+
+
 def _outside_motion_query(css):
     """The stylesheet with every ``prefers-reduced-motion: no-preference`` block removed."""
     kept, rest = [], css

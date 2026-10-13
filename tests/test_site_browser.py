@@ -702,6 +702,62 @@ def test_opening_and_leaving_a_stage_does_not_replay_its_entrance(browser, base_
         made.close()
 
 
+OPEN_STAGE_ANIMATIONS = (
+    "() => document.querySelector('.stage-f details').getAnimations({ subtree: true })"
+    ".map(a => a.animationName).filter(Boolean)"
+)
+
+
+def test_opening_a_stage_animates_its_contents_when_motion_is_allowed(browser, base_url):
+    made = browser.new_context(viewport={"width": 390, "height": 800})
+    made.route(re.compile("^(?!" + re.escape(base_url) + "/)"), lambda route: route.abort())
+    try:
+        page = made.new_page()
+        page.emulate_media(reduced_motion="no-preference")
+        page.goto(base_url + "/family/")
+        page.wait_for_function(
+            "() => document.getAnimations().every(a => a.playState === 'finished')",
+            timeout=10_000,
+        )
+        row = page.locator(".family-stages > li.stage-f")
+        tint = "el => getComputedStyle(el.querySelector('details')).backgroundColor"
+        closed = row.evaluate(tint)
+        row.locator("summary").click()
+        # The panel's contents are rendered from the next frame, so their fade starts then.
+        page.wait_for_function(
+            f"() => ({OPEN_STAGE_ANIMATIONS})().filter(n => n === 'family-open').length >= 4"
+        )
+        assert "family-pop" in page.evaluate(OPEN_STAGE_ANIMATIONS)
+        page.wait_for_function(
+            "() => document.getAnimations().every(a => a.playState === 'finished')",
+            timeout=5_000,
+        )
+        # Settled, every line is fully shown and the stage wears its own tint.
+        assert row.evaluate(tint) != closed
+        opacities = row.evaluate(
+            "el => [...el.querySelectorAll('.facts > div, .routes-head, .routes > div')]"
+            ".map(n => getComputedStyle(n).opacity)"
+        )
+        assert opacities and set(opacities) == {"1"}
+        assert row.locator(".facts code").is_visible()
+        # It closes again, and the row's own entrance never replays.
+        row.locator("summary").click()
+        assert row.locator("details").evaluate("el => el.open") is False
+        assert "running" not in row.evaluate("el => el.getAnimations().map(a => a.playState)")
+        assert row.evaluate("el => getComputedStyle(el).opacity") == "1"
+    finally:
+        made.close()
+
+
+def test_opening_a_stage_is_still_and_whole_when_motion_is_reduced(page, base_url):
+    page.goto(base_url + "/family/")
+    row = page.locator(".family-stages > li.stage-f")
+    row.locator("summary").click()
+    assert page.evaluate(OPEN_STAGE_ANIMATIONS) == []
+    assert row.locator(".facts code").is_visible()
+    assert row.locator(".routes > div").first.evaluate("el => getComputedStyle(el).opacity") == "1"
+
+
 def test_the_family_page_is_the_plugin_page_with_its_install_line_and_skills(page, built, base_url):
     page.goto(base_url + "/family/")
     assert page.get_by_role("heading", level=1, name="The FAMILY workflow").count() == 1

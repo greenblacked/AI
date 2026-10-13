@@ -10,6 +10,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Animate opening a stage on the FAMILY page: the panel grows to its height, its lines
+  fade in one after another, the stage letter pops and the arrow turns. An open stage is
+  marked by a thicker bar and a tint in its own colour. All motion stays behind
+  `prefers-reduced-motion`; with motion reduced a stage opens at once, still marked.
 - Add an offline page and a service worker to the catalogue site. `/sw.js` keeps the
   pages a visitor opens (a plain 200 HTML response only, never a redirect, so Cloudflare
   Access's sign-in is never stored), serves them again when the connection is lost, and
