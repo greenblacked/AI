@@ -127,7 +127,11 @@ from.
 
 The site is light by day, dark from 20:00 to 06:00 by the visitor's clock, and has a
 switch for either plus a terminal-style console theme. It is static HTML with no analytics
-and no cookies, built with nothing but Python; its two fonts are served from the site itself. [`scripts/build_catalogue_site.py`](scripts/build_catalogue_site.py)
+and no cookies, built with nothing but Python; its two fonts are served from the site itself.
+It does store pages on the visitor's own device: a small service worker keeps each page you
+open in your browser's cache, so a visitor who loses the connection can read those pages again
+and sees an offline page for any other. That cache never leaves the browser, holds at most
+sixty pages, and is emptied by clearing the site's data or dropped when a new release deploys. [`scripts/build_catalogue_site.py`](scripts/build_catalogue_site.py)
 writes every page, and [`scripts/site_markdown.py`](scripts/site_markdown.py) renders the
 Markdown with all source text escaped, raw HTML shown as text, and only `http`, `https`,
 `mailto`, fragment and in-repository links kept. To build and view it locally:
