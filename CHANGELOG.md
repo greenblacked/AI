@@ -10,6 +10,15 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Give the catalogue site one motion language. Pages rise in under a steady header as
+  you move between them; a theme chosen by hand spreads out from its switch; header and
+  footer links draw their underline from the left; a skill row slides and shows an arrow
+  on hover; buttons, chips and pills lift and press; a choice in the profile picker or
+  the checklist ticks in; rows the finder brings back fade in; the front page's plugins
+  rise as they scroll into view; and opening a FAMILY stage grows the panel, fades its
+  lines in turn, pops the letter and tints the stage in its own colour. Every movement
+  sits behind `prefers-reduced-motion`; the cues themselves (the underline, the arrow,
+  the open stage's tint) show either way.
 - Add an offline page and a service worker to the catalogue site. `/sw.js` keeps the
   pages a visitor opens (a plain 200 HTML response only, never a redirect, so Cloudflare
   Access's sign-in is never stored), serves them again when the connection is lost, and
