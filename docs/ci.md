@@ -547,9 +547,11 @@ the release job is safe to repeat.
 `make site` builds `dist/site` locally. `VERSION` defaults to `dev`.
 
 What the build writes, besides the `.skill` archives, `portable-skills.zip`, the manifest,
-`version.txt`, `robots.txt`, `_redirects`, `_headers` (a year-long `immutable` cache for `/fonts/*`), the tab and home-screen icons `favicon.png` and `apple-touch-icon.png`, and `fonts/` (the two typefaces under hashed names, each beside its SIL Open Font License text): an `index.html` for the catalogue, one page per plugin under
+`version.txt`, `robots.txt`, `_redirects`, `_headers` (a year-long `immutable` cache for `/fonts/*`, and `no-cache` for `/sw.js` so a deploy's new worker is picked up promptly), `sw.js` (the service worker, named for the version so each deploy gets fresh caches and offline reading of pages already opened), the tab and home-screen icons `favicon.png` and `apple-touch-icon.png`, and `fonts/` (the two typefaces under hashed names, each beside its SIL Open Font License text): an `index.html` for the catalogue, one page per plugin under
 `plugins/<plugin>/`, one per skill under `plugins/<plugin>/<skill>/`, and `start/`,
-`workflows/`, `examples/` and `quality/`.
+`workflows/`, `examples/` and `quality/`, plus `offline/`, the page the worker shows when a
+visitor is offline and has not opened the address asked for. It is a directory index because the Worker redirects
+`/offline.html`, and a redirected response cannot be served for a navigation.
 Every page is generated from the checkout with the standard library, Markdown included
 ([`scripts/site_markdown.py`](../scripts/site_markdown.py)) and the stylesheet
 ([`scripts/site_style.py`](../scripts/site_style.py)), so the dry-run and the deploy

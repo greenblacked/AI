@@ -158,6 +158,10 @@ def _live_tags(page):
         ("script", site.site_style.HEAD_SCRIPT.strip()),
         ("script", site.site_style.PAGE_SCRIPT.strip()),
         ("script", site.site_style.FAMILY_SCRIPT.strip()),
+        ("script", site.site_offline.REGISTER_SCRIPT.strip()),
+        # The offline page's own style and script, which no other page carries.
+        ("style", site.site_offline.OFFLINE_CSS.strip()),
+        ("script", site.site_offline.render_offline_script().strip()),
     }
     parser = _TagParser()
     parser.feed(page)
@@ -176,7 +180,7 @@ SAFE_TAGS = {
     "footer", "div", "p", "section", "h1", "h2", "h3", "h4", "h5", "h6", "span", "ul",
     "ol", "li", "pre", "code", "strong", "em", "br", "hr", "table", "thead", "tbody",
     "tr", "th", "td", "blockquote", "label", "input", "link", "svg", "path", "circle", "g",
-    "article", "details", "summary", "dl", "dt", "dd", "fieldset", "legend", "form",
+    "article", "details", "summary", "dl", "dt", "dd", "fieldset", "legend", "form", "noscript",
 }  # fmt: skip
 
 
@@ -364,10 +368,11 @@ def test_font_file_names_carry_a_hash_of_their_bytes(mini_repo, tmp_path):
     assert "instrument-sans-latin.woff2" not in names
 
 
-def test_the_headers_file_caches_the_fonts_for_a_year_and_nothing_else(mini_repo, tmp_path):
+def test_the_headers_file_caches_the_fonts_for_a_year_and_never_the_worker(mini_repo, tmp_path):
     output = _build(mini_repo, tmp_path)
     assert (output / "_headers").read_text(encoding="utf-8") == (
         "/fonts/*\n  Cache-Control: public, max-age=31536000, immutable\n"
+        "/sw.js\n  Cache-Control: no-cache\n"
     )
     # Cloudflare reads _headers and _redirects at upload and does not serve them.
     assert (output / "_redirects").is_file()
@@ -963,9 +968,9 @@ def test_the_real_repository_builds_every_page_and_renders_every_markdown_source
     pages = sorted(output.rglob("index.html"))
     skills = list((REPO / "plugins").glob("*/skills/*/SKILL.md"))
     plugins = list((REPO / "plugins").glob("*/skills"))
-    # The index, family, its example, start, workflows, examples and quality; then a page
-    # per skill and per plugin, except family, whose page is /family/ and not its own.
-    assert len(pages) == len(skills) + len(plugins) - 1 + 7
+    # The index, family, its example, start, workflows, examples, quality and offline; then
+    # a page per skill and per plugin, except family, whose page is /family/ and not its own.
+    assert len(pages) == len(skills) + len(plugins) - 1 + 8
     assert not (output / "plugins" / "family" / "index.html").exists()
     assert (output / "plugins" / "family" / "family-workflow" / "index.html").is_file()
     for page in pages:
@@ -2227,3 +2232,163 @@ def test_a_missing_font_is_refused_by_name_rather_than_with_a_traceback():
 
     with pytest.raises(SystemExit, match="cannot read the site font file no-such-font.woff2"):
         site_style._hashed("no-such-font.woff2")
+
+
+# --- the offline page and the service worker -------------------------------------------
+
+
+def _worker(output):
+    return (output / "sw.js").read_text(encoding="utf-8")
+
+
+def _worker_list(text, name):
+    """The JSON array a ``var NAME = [...];`` line of the worker holds."""
+    return json.loads(re.search(rf"^var {name} = (\[.*\]);$", text, re.M).group(1))
+
+
+def test_the_worker_is_written_at_the_root_and_names_the_version_in_both_caches(
+    mini_repo, tmp_path
+):
+    output = _build(mini_repo, tmp_path)
+    text = _worker(output)
+    # Each deploy gets a fresh pair of caches, and the old pairs are found by their prefix.
+    assert 'var PREFIX = "ai-site-";' in text
+    assert 'var STATIC = PREFIX + "v9" + "-static";' in text
+    assert 'var PAGES = PREFIX + "v9" + "-pages";' in text
+    other = tmp_path / "other"
+    site.build(mini_repo, other, "v10")
+    assert 'PREFIX + "v10" + "-static"' in _worker(other)
+    assert _worker(other) != text
+    # Not a page, not under a directory: the scope of a worker is the folder it is served from.
+    assert not (output / "sw.js" / "index.html").exists()
+
+
+def test_the_worker_precaches_the_offline_page_the_icon_and_the_two_fonts_and_nothing_else(
+    mini_repo, tmp_path
+):
+    output = _build(mini_repo, tmp_path)
+    precache = _worker_list(_worker(output), "PRECACHE")
+    assert precache == [
+        "/offline/",
+        "/favicon.png",
+        site.site_style.SANS_URL,
+        site.site_style.SERIF_URL,
+    ]
+    # Each is a file the build wrote, at the address the worker will fetch. The offline page
+    # is the directory index: the Worker answers /offline.html with a redirect, and a
+    # redirected response cannot be served for a navigation.
+    assert (output / "offline" / "index.html").is_file()
+    assert not (output / "offline.html").exists()
+    for url in precache:
+        path = output / url.lstrip("/")
+        assert (path / "index.html" if url.endswith("/") else path).is_file(), url
+    assert site.site_offline.precache_urls() == precache
+
+
+def test_the_worker_names_no_other_origin(mini_repo, tmp_path):
+    text = _worker(_build(mini_repo, tmp_path))
+    assert not re.search(r"https?:|(^|[^:*/])//[A-Za-z0-9.-]+\.[a-z]{2,}", text)
+    # Every address it holds is rooted at this origin.
+    for name in ("PRECACHE", "IMMUTABLE_ICONS"):
+        for url in _worker_list(text, name):
+            assert url.startswith("/") and not url.startswith("//"), url
+    assert "importScripts" not in text and "XMLHttpRequest" not in text
+
+
+def test_the_worker_stores_only_a_plain_200_and_never_a_redirect_or_opaque_response(
+    mini_repo, tmp_path
+):
+    text = _worker(_build(mini_repo, tmp_path))
+    # The one gate everything stored passes through: Cloudflare Access's sign-in is a
+    # redirect, and a copy of it served later as a page would lock a visitor out.
+    assert (
+        'return response.status === 200 && response.type === "basic" && !response.redirected;'
+        in text
+    )
+    assert "plain(response) && isHtml(response)" in text
+    assert text.count("cache.put(") == 3  # precache, a page, an immutable file
+    puts = re.findall(r"^.*cache\.put\(.*$", text, re.M)
+    assert all("response" in line or "copy" in line for line in puts), puts
+
+
+def test_the_worker_leaves_everything_but_pages_fonts_and_icons_to_the_browser(mini_repo, tmp_path):
+    text = _worker(_build(mini_repo, tmp_path))
+    handler = text.split('self.addEventListener("fetch"', 1)[1]
+    assert text.count("event.respondWith(") == 2
+    assert 'if (request.method !== "GET") return;' in handler
+    assert "if (url.origin !== self.location.origin) return;" in handler
+    assert handler.index('request.method !== "GET"') < handler.index("event.respondWith(")
+    assert handler.index("url.origin !==") < handler.index("event.respondWith(")
+    assert 'request.mode === "navigate"' in handler
+    assert _worker_list(text, "IMMUTABLE_ICONS") == ["/favicon.png", "/apple-touch-icon.png"]
+    assert 'var FONTS = "/fonts/";' in text
+
+
+def test_the_worker_caps_the_page_cache_and_cleans_up_only_its_own_caches(mini_repo, tmp_path):
+    text = _worker(_build(mini_repo, tmp_path))
+    assert "var MAX_PAGES = 60;" in text
+    assert "keys.slice(0, Math.max(0, keys.length - MAX_PAGES))" in text
+    activate = text.split('self.addEventListener("activate"', 1)[1].split("\n});", 1)[0]
+    assert "name.indexOf(PREFIX) === 0 && name !== STATIC && name !== PAGES" in activate
+    assert activate.index("caches.delete(") < activate.index("self.clients.claim()")
+
+
+def test_the_worker_is_plain_es2017(mini_repo, tmp_path):
+    text = _worker(_build(mini_repo, tmp_path))
+    # Syntax newer than ES2017 would stop the worker parsing on an older browser, and a
+    # worker that does not parse is a silent absence of offline support.
+    for newer in ("?.", "??", "catch {", "...", "import ", "#"):
+        assert newer not in re.sub(r"/\*.*?\*/|//[^\n]*", "", text, flags=re.S), newer
+
+
+def test_the_version_reaches_the_worker_only_as_a_json_string():
+    text = site.site_offline.render_worker('v"; evil(); "')
+    assert 'PREFIX + "v\\"; evil(); \\"" + "-static"' in text
+    assert "@@" not in text
+
+
+def test_the_offline_page_is_the_sites_own_and_is_not_indexed(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    page = (output / "offline" / "index.html").read_text(encoding="utf-8")
+    assert '<meta name="robots" content="noindex">' in page
+    assert "<title>Offline · AI</title>" in page
+    # The site's header, footer and Back, and the 404's heading and list.
+    assert '<header class="site-header"' in page and '<footer class="site-footer"' in page
+    assert BACK.format("/") in page
+    assert 'class="title lost-word"' in page and 'class="lost-suggest"' in page
+    assert "You're offline" in page and "You are offline" in page
+    # The script fills the list from the Cache API; without it the page is whole.
+    assert 'id="offline-retry" hidden>Try again</button>' in page
+    assert '<noscript><a class="pill" href="">Try again</a></noscript>' in page
+    assert "window.location.reload()" in page and "caches.keys()" in page
+    # Nothing is loaded from anywhere but the site's own precached files.
+    assert not re.search(r'(src|href)="https?://(?!github\.com/greenblacked)', page)
+    assert "preconnect" not in page and '<link rel="stylesheet"' not in page
+    # Other pages are indexable: only this one carries the tag.
+    assert "noindex" not in (output / "index.html").read_text(encoding="utf-8")
+
+
+def test_the_offline_page_links_only_to_a_rooted_path_of_the_same_origin(mini_repo, tmp_path):
+    script = site.site_offline.render_offline_script()
+    assert "url.origin !== window.location.origin" in script
+    assert 'path.charAt(1) === "/"' in script
+    assert "textContent" in script and "innerHTML" not in script
+    assert "path === OFFLINE" in script
+
+
+def test_every_page_registers_the_worker_after_load_and_the_error_pages_do_not(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    registration = (
+        '<script>(function(){if(!("serviceWorker" in navigator)||!window.isSecureContext)return;'
+        'window.addEventListener("load",function(){'
+        'navigator.serviceWorker.register("/sw.js").catch(function(){});});})();</script>'
+    )
+    pages = [p for p in output.rglob("*.html") if p.parent.name != "errors"]
+    assert len(pages) > 5
+    for path in pages:
+        assert path.read_text(encoding="utf-8").count(registration) == 1, path
+    errors = sorted((output / "errors").glob("*.html"))
+    assert errors
+    for path in errors:
+        text = path.read_text(encoding="utf-8")
+        assert "serviceWorker" not in text and "sw.js" not in text, path

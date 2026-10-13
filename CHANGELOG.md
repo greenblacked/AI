@@ -10,6 +10,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add an offline page and a service worker to the catalogue site. `/sw.js` keeps the
+  pages a visitor opens (a plain 200 HTML response only, never a redirect, so Cloudflare
+  Access's sign-in is never stored), serves them again when the connection is lost, and
+  shows `/offline/` for anything else, which also lists the pages saved on the device.
+  The caches are named for the build and the last sixty pages are kept; `_headers` serves
+  the worker with `no-cache`.
 - Add four skills: `retrieval-evaluation` to `coding` for judging a retriever or ranking
   change against a reproducible benchmark; `feature-flag-lifecycle` and
   `safe-backfill` to `delivery` for wiring and retiring a flag once the rollout is
