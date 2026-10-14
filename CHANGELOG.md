@@ -10,6 +10,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Smooth the day and night switch: the new theme now spreads from the switch with a soft,
+  feathered edge on a gentler curve, the knob glides across while the sun turns into the
+  moon, and a browser without view transitions cross-fades the colours instead of
+  jumping. A second press while the first reveal is still finishing keeps its own soft
+  edge. With motion reduced the theme still changes at once.
 - Give the catalogue site one motion language. Pages rise in under a steady header as
   you move between them; a theme chosen by hand spreads out from its switch; header and
   footer links draw their underline from the left; a skill row slides and shows an arrow
