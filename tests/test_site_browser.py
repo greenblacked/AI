@@ -790,6 +790,33 @@ def test_the_theme_switch_spreads_the_new_theme_and_lands_on_it(browser, base_ur
         made.close()
 
 
+def test_without_view_transitions_the_theme_fades_and_the_knob_still_glides(browser, base_url):
+    made, page = _moving(browser, base_url)
+    try:
+        # A browser with no view transitions takes the cross-fade path instead.
+        page.add_init_script("delete Document.prototype.startViewTransition")
+        page.goto(base_url + "/plugins/design/")
+        before = page.evaluate("() => document.documentElement.dataset.theme")
+        page.click("#dark-switch")
+        fading = page.evaluate(
+            "() => { const k = document.querySelector('.knob');"
+            " const i = document.querySelector('.knob svg');"
+            " return [document.documentElement.classList.contains('theme-fade'),"
+            " getComputedStyle(k).transitionProperty, getComputedStyle(i).transitionProperty,"
+            " getComputedStyle(document.body).transitionProperty]; }"
+        )
+        assert fading[0] is True
+        assert "transform" in fading[1] and "transform" in fading[2] and "opacity" in fading[2]
+        assert "background-color" in fading[3]
+        page.wait_for_function(
+            "b => document.documentElement.dataset.theme !== b"
+            " && !document.documentElement.classList.contains('theme-fade')",
+            arg=before,
+        )
+    finally:
+        made.close()
+
+
 def test_a_skill_row_points_where_it_goes(page, base_url):
     page.goto(base_url + "/plugins/coding/")
     row = page.locator(".skills a").first

@@ -1294,6 +1294,14 @@ MOTION_CSS = """
     transition: background-color 500ms ease, color 500ms ease, border-color 500ms ease,
       fill 500ms ease, stroke 500ms ease !important;
   }
+  /* More specific, so the knob keeps its glide and the icons their turn during the fade. */
+  html.theme-fade .knob {
+    transition: transform 600ms var(--ease-theme), background-color 600ms ease,
+      color 600ms ease !important;
+  }
+  html.theme-fade .knob svg {
+    transition: opacity 400ms ease, transform 600ms var(--ease-theme) !important;
+  }
 }
 @keyframes page-out { to { opacity: 0; } }
 @keyframes page-in { from { opacity: 0; transform: translateY(0.75rem); } }
