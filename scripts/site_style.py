@@ -304,6 +304,7 @@ a[aria-current="page"] { text-decoration: underline; text-underline-offset: 4px;
 html[data-theme="night"] .track { background: var(--ink); }
 html[data-theme="reactor"] .track { background: #1c2816; }
 .knob {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -319,13 +320,19 @@ html[data-theme="night"] .knob {
   background: var(--bg);
   color: var(--ink);
 }
-.knob svg { width: 0.875rem; height: 0.875rem; }
-.moon { display: none; }
-html[data-theme="night"] .moon { display: block; }
-html[data-theme="night"] .sun { display: none; }
+/* Sun and moon share the knob's centre; one is shown, the other turned away and faded,
+   so the switch can turn one into the other rather than swap them. */
+.knob svg { position: absolute; width: 0.875rem; height: 0.875rem; }
+.moon { opacity: 0; transform: rotate(-90deg) scale(0.4); }
+html[data-theme="night"] .moon { opacity: 1; transform: none; }
+html[data-theme="night"] .sun { opacity: 0; transform: rotate(90deg) scale(0.4); }
 @media (prefers-reduced-motion: no-preference) {
-  .track { transition: background-color 300ms cubic-bezier(0.2, 0, 0, 1); }
-  .knob { transition: transform 300ms cubic-bezier(0.2, 0, 0, 1); }
+  .track { transition: background-color 600ms cubic-bezier(0.45, 0, 0.2, 1); }
+  .knob {
+    transition: transform 600ms cubic-bezier(0.45, 0, 0.2, 1),
+      background-color 600ms ease, color 600ms ease;
+  }
+  .knob svg { transition: opacity 400ms ease, transform 600ms cubic-bezier(0.45, 0, 0.2, 1); }
 }
 
 /* Footer. */
@@ -1185,6 +1192,14 @@ MOTION_CSS = """
 :root {
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-press: cubic-bezier(0.2, 0.9, 0.25, 1.35);
+  --ease-theme: cubic-bezier(0.3, 0, 0.15, 1);
+}
+/* The radius of the theme reveal, registered so it can be animated: the soft edge of the
+   new theme is a gradient mask that grows with it. */
+@property --reveal-r {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
 }
 /* Links in the header and the footer draw their underline from the left. */
 .bar nav a, .foot nav a {
@@ -1263,7 +1278,30 @@ MOTION_CSS = """
   /* Switching theme spreads the new one out from the switch that was pressed. */
   html.theming .site-header { view-transition-name: none; }
   html.theming::view-transition-old(root) { animation: none; }
-  html.theming::view-transition-new(root) { animation: theme-in 560ms var(--ease) both; }
+  html.theming::view-transition-new(root) {
+    -webkit-mask-image: radial-gradient(
+      circle at var(--reveal-x, 100%) var(--reveal-y, 0),
+      #000 calc(var(--reveal-r) - 16vmax), transparent var(--reveal-r)
+    );
+    mask-image: radial-gradient(
+      circle at var(--reveal-x, 100%) var(--reveal-y, 0),
+      #000 calc(var(--reveal-r) - 16vmax), transparent var(--reveal-r)
+    );
+    animation: theme-in 900ms var(--ease-theme) both;
+  }
+  /* Where a browser has no view transitions, the colours cross-fade instead of jumping. */
+  html.theme-fade, html.theme-fade * {
+    transition: background-color 500ms ease, color 500ms ease, border-color 500ms ease,
+      fill 500ms ease, stroke 500ms ease !important;
+  }
+  /* More specific, so the knob keeps its glide and the icons their turn during the fade. */
+  html.theme-fade .knob {
+    transition: transform 600ms var(--ease-theme), background-color 600ms ease,
+      color 600ms ease !important;
+  }
+  html.theme-fade .knob svg {
+    transition: opacity 400ms ease, transform 600ms var(--ease-theme) !important;
+  }
 }
 @keyframes page-out { to { opacity: 0; } }
 @keyframes page-in { from { opacity: 0; transform: translateY(0.75rem); } }
@@ -1274,8 +1312,8 @@ MOTION_CSS = """
   100% { transform: scale(1); }
 }
 @keyframes theme-in {
-  from { clip-path: circle(0 at var(--reveal-x, 100%) var(--reveal-y, 0)); }
-  to { clip-path: circle(150vmax at var(--reveal-x, 100%) var(--reveal-y, 0)); }
+  from { --reveal-r: 0px; }
+  to { --reveal-r: 180vmax; }
 }
 """
 
@@ -1322,10 +1360,20 @@ PAGE_SCRIPT = """
   }
   // A theme chosen by hand spreads out from the control that chose it. The clock's own
   // changes, and any visitor who asked for less motion, switch at once.
+  var fadeTimer = 0;
   function spreadTheme(from, change) {
     var still = !window.matchMedia ||
       !window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
-    if (still || !document.startViewTransition) { change(); return; }
+    if (still) { change(); return; }
+    if (!document.startViewTransition) {
+      // A second change while the first still fades restarts the clock, so the class is
+      // never removed in the middle of the newer fade.
+      root.classList.add("theme-fade");
+      change();
+      window.clearTimeout(fadeTimer);
+      fadeTimer = window.setTimeout(function () { root.classList.remove("theme-fade"); }, 600);
+      return;
+    }
     var box = from.getBoundingClientRect();
     root.style.setProperty("--reveal-x", Math.round(box.left + box.width / 2) + "px");
     root.style.setProperty("--reveal-y", Math.round(box.top + box.height / 2) + "px");
