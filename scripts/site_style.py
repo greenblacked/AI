@@ -1360,14 +1360,18 @@ PAGE_SCRIPT = """
   }
   // A theme chosen by hand spreads out from the control that chose it. The clock's own
   // changes, and any visitor who asked for less motion, switch at once.
+  var fadeTimer = 0;
   function spreadTheme(from, change) {
     var still = !window.matchMedia ||
       !window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
     if (still) { change(); return; }
     if (!document.startViewTransition) {
+      // A second change while the first still fades restarts the clock, so the class is
+      // never removed in the middle of the newer fade.
       root.classList.add("theme-fade");
       change();
-      window.setTimeout(function () { root.classList.remove("theme-fade"); }, 600);
+      window.clearTimeout(fadeTimer);
+      fadeTimer = window.setTimeout(function () { root.classList.remove("theme-fade"); }, 600);
       return;
     }
     var box = from.getBoundingClientRect();

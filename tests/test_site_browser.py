@@ -813,6 +813,35 @@ def test_without_view_transitions_the_theme_fades_and_the_knob_still_glides(brow
             " && !document.documentElement.classList.contains('theme-fade')",
             arg=before,
         )
+        # Two changes in quick succession: the second fade keeps its class to the end.
+        page.click("#dark-switch")
+        page.wait_for_timeout(250)
+        page.click("#dark-switch")
+        page.wait_for_timeout(450)
+        assert page.evaluate("() => document.documentElement.classList.contains('theme-fade')")
+        page.wait_for_function("() => !document.documentElement.classList.contains('theme-fade')")
+        assert page.evaluate("() => document.documentElement.dataset.theme") != before
+    finally:
+        made.close()
+
+
+def test_the_switch_is_painted_moving_while_the_theme_spreads(browser, base_url):
+    # The new state under the reveal is live, so the knob's glide and the icon's turn are
+    # on screen, not only their end points.
+    made, page = _moving(browser, base_url)
+    try:
+        page.goto(base_url + "/plugins/design/")
+        page.mouse.move(600, 700)
+        box = page.locator("#dark-switch").bounding_box()
+        page.evaluate("() => document.getElementById('dark-switch').click()")
+        frames = []
+        for _ in range(8):
+            page.wait_for_timeout(40)
+            frames.append(page.screenshot(clip=box))
+        page.wait_for_function("() => !document.documentElement.classList.contains('theming')")
+        settled = page.screenshot(clip=box)
+        assert len(set(frames)) >= 3
+        assert frames[0] != settled
     finally:
         made.close()
 
