@@ -825,6 +825,27 @@ def test_without_view_transitions_the_theme_fades_and_the_knob_still_glides(brow
         made.close()
 
 
+def test_a_second_switch_mid_reveal_keeps_its_own_soft_reveal(browser, base_url):
+    # The second view transition skips the first, whose cleanup then runs while the
+    # second is still revealing; it must leave the second's class in place.
+    made, page = _moving(browser, base_url)
+    try:
+        page.goto(base_url + "/plugins/design/")
+        before = page.evaluate("() => document.documentElement.dataset.theme")
+        # The keyboard reaches the focused switch while a reveal is running; a pointer
+        # would land on the transition overlay instead.
+        page.focus("#dark-switch")
+        page.keyboard.press("Enter")
+        page.wait_for_timeout(650)
+        page.keyboard.press("Enter")
+        page.wait_for_timeout(150)
+        assert page.evaluate("() => document.documentElement.classList.contains('theming')")
+        page.wait_for_function("() => !document.documentElement.classList.contains('theming')")
+        assert page.evaluate("() => document.documentElement.dataset.theme") == before
+    finally:
+        made.close()
+
+
 def test_the_switch_is_painted_moving_while_the_theme_spreads(browser, base_url):
     # The new state under the reveal is live, so the knob's glide and the icon's turn are
     # on screen, not only their end points.
