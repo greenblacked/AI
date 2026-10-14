@@ -790,6 +790,83 @@ def test_the_theme_switch_spreads_the_new_theme_and_lands_on_it(browser, base_ur
         made.close()
 
 
+def test_without_view_transitions_the_theme_fades_and_the_knob_still_glides(browser, base_url):
+    made, page = _moving(browser, base_url)
+    try:
+        # A browser with no view transitions takes the cross-fade path instead.
+        page.add_init_script("delete Document.prototype.startViewTransition")
+        page.goto(base_url + "/plugins/design/")
+        before = page.evaluate("() => document.documentElement.dataset.theme")
+        page.click("#dark-switch")
+        fading = page.evaluate(
+            "() => { const k = document.querySelector('.knob');"
+            " const i = document.querySelector('.knob svg');"
+            " return [document.documentElement.classList.contains('theme-fade'),"
+            " getComputedStyle(k).transitionProperty, getComputedStyle(i).transitionProperty,"
+            " getComputedStyle(document.body).transitionProperty]; }"
+        )
+        assert fading[0] is True
+        assert "transform" in fading[1] and "transform" in fading[2] and "opacity" in fading[2]
+        assert "background-color" in fading[3]
+        page.wait_for_function(
+            "b => document.documentElement.dataset.theme !== b"
+            " && !document.documentElement.classList.contains('theme-fade')",
+            arg=before,
+        )
+        # Two changes in quick succession: the second fade keeps its class to the end.
+        page.click("#dark-switch")
+        page.wait_for_timeout(250)
+        page.click("#dark-switch")
+        page.wait_for_timeout(450)
+        assert page.evaluate("() => document.documentElement.classList.contains('theme-fade')")
+        page.wait_for_function("() => !document.documentElement.classList.contains('theme-fade')")
+        assert page.evaluate("() => document.documentElement.dataset.theme") != before
+    finally:
+        made.close()
+
+
+def test_a_second_switch_mid_reveal_keeps_its_own_soft_reveal(browser, base_url):
+    # The second view transition skips the first, whose cleanup then runs while the
+    # second is still revealing; it must leave the second's class in place.
+    made, page = _moving(browser, base_url)
+    try:
+        page.goto(base_url + "/plugins/design/")
+        before = page.evaluate("() => document.documentElement.dataset.theme")
+        # The keyboard reaches the focused switch while a reveal is running; a pointer
+        # would land on the transition overlay instead.
+        page.focus("#dark-switch")
+        page.keyboard.press("Enter")
+        page.wait_for_timeout(650)
+        page.keyboard.press("Enter")
+        page.wait_for_timeout(150)
+        assert page.evaluate("() => document.documentElement.classList.contains('theming')")
+        page.wait_for_function("() => !document.documentElement.classList.contains('theming')")
+        assert page.evaluate("() => document.documentElement.dataset.theme") == before
+    finally:
+        made.close()
+
+
+def test_the_switch_is_painted_moving_while_the_theme_spreads(browser, base_url):
+    # The new state under the reveal is live, so the knob's glide and the icon's turn are
+    # on screen, not only their end points.
+    made, page = _moving(browser, base_url)
+    try:
+        page.goto(base_url + "/plugins/design/")
+        page.mouse.move(600, 700)
+        box = page.locator("#dark-switch").bounding_box()
+        page.evaluate("() => document.getElementById('dark-switch').click()")
+        frames = []
+        for _ in range(8):
+            page.wait_for_timeout(40)
+            frames.append(page.screenshot(clip=box))
+        page.wait_for_function("() => !document.documentElement.classList.contains('theming')")
+        settled = page.screenshot(clip=box)
+        assert len(set(frames)) >= 3
+        assert frames[0] != settled
+    finally:
+        made.close()
+
+
 def test_a_skill_row_points_where_it_goes(page, base_url):
     page.goto(base_url + "/plugins/coding/")
     row = page.locator(".skills a").first

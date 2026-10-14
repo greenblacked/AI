@@ -2189,6 +2189,13 @@ def test_the_site_moves_one_way_and_only_where_motion_is_allowed():
     assert site.site_style.CSS.endswith(motion)
     # A choice ticks in only when made, not when restored from storage on load.
     assert "input:checked:focus" in motion
+    # The theme spreads out with a soft edge: a registered radius drives a gradient mask,
+    # and a browser without view transitions cross-fades the colours instead.
+    assert "@property --reveal-r" in motion and "mask-image: radial-gradient(" in motion
+    assert "html.theme-fade" in motion
+    assert 'root.classList.add("theme-fade")' in site.site_style.PAGE_SCRIPT
+    # Sun and moon turn into each other rather than one being removed from the layout.
+    assert ".moon { display: none; }" not in site.site_style.CSS
 
 
 def test_no_page_script_declares_one_function_twice():
