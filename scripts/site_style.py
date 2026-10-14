@@ -1361,6 +1361,7 @@ PAGE_SCRIPT = """
   // A theme chosen by hand spreads out from the control that chose it. The clock's own
   // changes, and any visitor who asked for less motion, switch at once.
   var fadeTimer = 0;
+  var spreading = null;
   function spreadTheme(from, change) {
     var still = !window.matchMedia ||
       !window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
@@ -1378,8 +1379,16 @@ PAGE_SCRIPT = """
     root.style.setProperty("--reveal-x", Math.round(box.left + box.width / 2) + "px");
     root.style.setProperty("--reveal-y", Math.round(box.top + box.height / 2) + "px");
     root.classList.add("theming");
-    function done() { root.classList.remove("theming"); }
-    document.startViewTransition(change).finished.then(done, done);
+    // A new transition skips the one still running, whose cleanup then fires early; only
+    // the latest one may remove the class, or the newer reveal loses its mask mid-way.
+    var transition = document.startViewTransition(change);
+    spreading = transition;
+    function done() {
+      if (spreading !== transition) return;
+      spreading = null;
+      root.classList.remove("theming");
+    }
+    transition.finished.then(done, done);
   }
   dark.addEventListener("click", function () {
     var next = root.getAttribute("data-theme") === "night" ? "day" : "night";
