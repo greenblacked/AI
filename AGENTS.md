@@ -67,6 +67,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `plugins/personal/skills/` | Money, travel, admin, habits and health |
 | `plugins/career/skills/` | Applications, negotiation, speaking and writing |
 | `plugins/design/skills/` | Usability, accessibility and design systems |
+| `plugins/family/skills/` | One development workflow, from a vague request to a measured outcome, and its six stage agents under `plugins/family/agents/` |
 | `plugins/*/agents/` | Subagent definitions, validated on the same run as the skills |
 | `plugins/*/commands/` | Slash commands the plugin ships, validated on the same run |
 | `.claude/commands/` | Slash commands for working on this repository, not shipped to installers |
@@ -100,7 +101,7 @@ make test                      # the validator's own test suite
 make coverage                  # the same, failing below the floor in pyproject.toml
 make package                   # build a .skill archive per skill into dist/
 make install                   # symlink every skill into ~/.claude/skills
-make release-prepare VERSION=x.y.z  # on a branch: move Unreleased into a dated section
+make release-prepare VERSION=x.y.z  # on the promotion branch into main: date Unreleased
 make release VERSION=x.y.z          # on main, after that PR merges: tag the release
 ```
 

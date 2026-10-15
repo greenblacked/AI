@@ -1,0 +1,22 @@
+[
+  {"query":"Before building our idea, how do we know customers actually have this problem?", "should_trigger":true},
+  {"query":"Help interview potential users about past workarounds without pitching our proposed app.", "should_trigger":true},
+  {"query":"Everyone says they like our idea. What behavioral evidence would justify building it?", "should_trigger":true},
+  {"query":"Write disconfirming questions for a discovery study on an unmet need.", "should_trigger":true},
+  {"query":"How should we recruit counterexamples before concluding this pain is widespread?", "should_trigger":true},
+  {"query":"Our customer interviews were enthusiastic but nobody has tried to solve the problem. What now?", "should_trigger":true},
+  {"query":"Design a consent-safe, deidentified interview summary for pre-solution research.", "should_trigger":true},
+  {"query":"Set go, revise or stop criteria before interviewing prospective customers.", "should_trigger":true},
+  {"query":"Can five convenient interviews validate demand for this unbuilt product?", "should_trigger":true},
+  {"query":"We need a decision memo about whether the pain merits solution exploration.", "should_trigger":true},
+  {"query":"Test whether users can complete checkout on our clickable prototype.", "should_trigger":false, "expected":"usability-test-plan"},
+  {"query":"Plan five think-aloud sessions to evaluate the redesigned navigation.", "should_trigger":false, "expected":"usability-test-plan"},
+  {"query":"Review this screen against usability heuristics and rate its issues.", "should_trigger":false, "expected":"ui-ux-review"},
+  {"query":"Map the approved design's empty and error states for engineering.", "should_trigger":false, "expected":"design-handoff"},
+  {"query":"Coordinate the FAMILY agents and consolidate their outputs.", "should_trigger":false, "expected":"family-workflow"},
+  {"query":"Run a small research task with fresh inspector rounds in FAMILY.", "should_trigger":false, "expected":"fresh-inspector-rounds"},
+  {"query":"Choose between competing product ideas using an engineering decision record.", "should_trigger":false, "expected":"decision-record"},
+  {"query":"Write form labels and recovery text for invalid inputs.", "should_trigger":false, "expected":"content-design"},
+  {"query":"Build a sitemap and test navigation labels with a tree test.", "should_trigger":false, "expected":"information-architecture"},
+  {"query":"Pick responsive breakpoints for our existing layout.", "should_trigger":false, "expected":"responsive-design"}
+]

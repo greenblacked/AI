@@ -12,12 +12,78 @@ the visitor's own time.
 
 from __future__ import annotations
 
-FONTS_URL = (
-    "https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500"
-    "&family=Newsreader:wght@400;500&display=swap"
+import hashlib
+from pathlib import Path
+
+# The two typefaces are served from the site itself, so a visitor makes no request to a font
+# host. Each file is the `latin` subset Google Fonts serves for its family, one variable
+# font covering every weight the page uses, stored under scripts/site_assets/fonts/ and
+# copied to /fonts/ by the build. Its name carries a short hash of its bytes, which is what
+# makes the year-long immutable cache in `_headers` safe: a changed font is a new URL.
+FONT_DIR = Path(__file__).resolve().parent / "site_assets" / "fonts"
+FONT_URL_PREFIX = "/fonts/"
+# unicode-range as Google Fonts publishes it for the latin subset, so a character outside
+# it falls back exactly as it did when the fonts came from Google.
+_LATIN_RANGE = (
+    "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, "
+    "U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, "
+    "U+FEFF, U+FFFD"
 )
 
-CSS = """
+
+def _hashed(source: str) -> str:
+    """The built name of a file in ``FONT_DIR``: its stem, a content hash, its suffix."""
+    path = FONT_DIR / source
+    # This runs at import, before build() can check anything, so a missing font has to be
+    # refused here in the same words build() uses rather than surface as a traceback.
+    try:
+        data = path.read_bytes()
+    except OSError as error:
+        raise SystemExit(f"cannot read the site font file {source}: {error}") from error
+    digest = hashlib.sha256(data).hexdigest()[:10]
+    return f"{path.stem}.{digest}{path.suffix}"
+
+
+SANS_FILE = _hashed("instrument-sans-latin.woff2")
+SERIF_FILE = _hashed("newsreader-latin.woff2")
+SANS_LICENCE = _hashed("OFL-instrument-sans.txt")
+SERIF_LICENCE = _hashed("OFL-newsreader.txt")
+# Every file under /fonts/ in the built site, as built name -> source name. The licences
+# are here because the OFL requires the text to travel with the fonts.
+FONT_ASSETS = {
+    SANS_FILE: "instrument-sans-latin.woff2",
+    SERIF_FILE: "newsreader-latin.woff2",
+    SANS_LICENCE: "OFL-instrument-sans.txt",
+    SERIF_LICENCE: "OFL-newsreader.txt",
+}
+# Absolute paths, because the 404 page is served from whatever address was asked for.
+SANS_URL = FONT_URL_PREFIX + SANS_FILE
+SERIF_URL = FONT_URL_PREFIX + SERIF_FILE
+
+FONT_FACES = f"""
+/* Instrument Sans, Copyright 2022 The Instrument Sans Project Authors. SIL Open Font
+   License 1.1: {FONT_URL_PREFIX}{SANS_LICENCE} */
+@font-face {{
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url({SANS_URL}) format("woff2");
+  unicode-range: {_LATIN_RANGE};
+}}
+/* Newsreader, Copyright 2020 The Newsreader Project Authors. SIL Open Font License 1.1:
+   {FONT_URL_PREFIX}{SERIF_LICENCE} */
+@font-face {{
+  font-family: "Newsreader";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url({SERIF_URL}) format("woff2");
+  unicode-range: {_LATIN_RANGE};
+}}
+"""
+
+CSS = """@@FONT_FACES@@
 :root {
   --bg: #f4f1ea;
   --ink: #141413;
@@ -238,6 +304,7 @@ a[aria-current="page"] { text-decoration: underline; text-underline-offset: 4px;
 html[data-theme="night"] .track { background: var(--ink); }
 html[data-theme="reactor"] .track { background: #1c2816; }
 .knob {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -253,13 +320,19 @@ html[data-theme="night"] .knob {
   background: var(--bg);
   color: var(--ink);
 }
-.knob svg { width: 0.875rem; height: 0.875rem; }
-.moon { display: none; }
-html[data-theme="night"] .moon { display: block; }
-html[data-theme="night"] .sun { display: none; }
+/* Sun and moon share the knob's centre; one is shown, the other turned away and faded,
+   so the switch can turn one into the other rather than swap them. */
+.knob svg { position: absolute; width: 0.875rem; height: 0.875rem; }
+.moon { opacity: 0; transform: rotate(-90deg) scale(0.4); }
+html[data-theme="night"] .moon { opacity: 1; transform: none; }
+html[data-theme="night"] .sun { opacity: 0; transform: rotate(90deg) scale(0.4); }
 @media (prefers-reduced-motion: no-preference) {
-  .track { transition: background-color 300ms cubic-bezier(0.2, 0, 0, 1); }
-  .knob { transition: transform 300ms cubic-bezier(0.2, 0, 0, 1); }
+  .track { transition: background-color 600ms cubic-bezier(0.45, 0, 0.2, 1); }
+  .knob {
+    transition: transform 600ms cubic-bezier(0.45, 0, 0.2, 1),
+      background-color 600ms ease, color 600ms ease;
+  }
+  .knob svg { transition: opacity 400ms ease, transform 600ms cubic-bezier(0.45, 0, 0.2, 1); }
 }
 
 /* Footer. */
@@ -628,6 +701,9 @@ html[data-theme="night"] .sun { display: none; }
   color: var(--ink);
   text-decoration: underline;
   text-underline-offset: 0.15em;
+  /* A bare address is one unbreakable word; in the real serif it ran 22 px past a 360 px
+     screen, which the fallback font hid. */
+  overflow-wrap: anywhere;
 }
 .prose-lab code {
   font-family: var(--font-sans);
@@ -700,36 +776,189 @@ html[data-theme="night"] .sun { display: none; }
 .prose-lab .al-c { text-align: center; }
 .prose-lab td.num, .prose-lab th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .prose-lab .say { color: var(--muted); }
-/* The FAMILY page is the one hand-drawn page: a stage timeline and profile cards rather
-   than the generated prose-and-table layout every other page uses. Scoped to .family. */
-.family-stages { list-style: none; margin: 0 0 2rem; padding: 0; }
-.family-stages > li {
-  display: grid;
-  grid-template-columns: 2.5rem 1fr;
-  gap: 0 1rem;
-  padding: 1rem 0;
-  border-top: 1px solid var(--line);
+/* The FAMILY pages are hand-drawn: a stage timeline whose stages open, a profile picker,
+   a checklist and profile cards, rather than the generated prose-and-table layout every
+   other page uses. Scoped to .family-*. */
+.family-section { margin-top: 3rem; }
+.family-section h2 {
+  font-family: var(--font-sans);
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.75rem;
 }
+.family-section > p { max-width: 42rem; margin: 0 0 1rem; color: var(--muted); }
+.family-section a, .family-example a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.family-section code, .family-example code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--card);
+  padding: 0.08em 0.35em;
+  border-radius: 0.3rem;
+}
+.family-section .install { margin-top: 1rem; }
+.family-section .finder { margin-top: 1.5rem; }
+.family-section #list { margin-top: 1rem; }
+.family-agents { list-style: none; display: grid; gap: 0; }
+.family-agents li { padding: 0.75rem 0; border-bottom: 1px solid var(--line); }
+.picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+  margin: 1.5rem 0 0.5rem;
+}
+.picker fieldset { min-width: 0; }
+.picker legend { padding: 0; margin-bottom: 0.5rem; font-size: 0.95rem; color: var(--muted); }
+.picker .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.chip input { width: 1.1rem; height: 1.1rem; accent-color: var(--ink); }
+.chip:has(input:checked) { border-color: var(--ink); background: var(--card); }
+.chip:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 3px; }
+.chip input:focus-visible { outline: none; }
+.family-reset {
+  min-height: 2.75rem;
+  padding: 0 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.family-reset:hover { border-color: var(--ink); }
+.family-flow .start { display: none; max-width: 42rem; margin: 0.75rem 0 0; color: var(--muted); }
+.family-flow .start strong { color: var(--ink); font-weight: 600; }
+.family-stages { list-style: none; margin: 1.5rem 0 0; padding: 0; }
+.family-stages > li { border-top: 1px solid var(--line); }
 .family-stages > li:last-child { border-bottom: 1px solid var(--line); }
+.family-stages > li {
+  --bar: var(--stage);
+  --barw: 3px;
+  --letter: var(--stage);
+  --name: var(--ink);
+  --tint: transparent;
+}
+.family-stages details { background: var(--tint); border-radius: 0.5rem; }
+.family-stages summary {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) 1.5rem;
+  grid-template-rows: auto auto;
+  gap: 0 1rem;
+  align-items: start;
+  min-height: 2.75rem;
+  padding: 1rem 0;
+  cursor: pointer;
+  list-style: none;
+}
+.family-stages summary::-webkit-details-marker { display: none; }
+.family-stages summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .family-stages .letter {
+  grid-row: 1 / span 2;
   font-family: var(--font-mono);
   font-size: 1.375rem;
   font-weight: 600;
   line-height: 1.15;
+  color: var(--letter);
 }
 .family-stages h3 {
   margin: 0 0 0.25rem;
   font-family: var(--font-sans);
   font-size: 1.0625rem;
   font-weight: 600;
+  color: var(--name);
 }
-.family-stages p {
-  margin: 0;
+.family-stages .line {
+  grid-column: 2;
   font-family: var(--font-sans);
   font-size: 0.95rem;
   line-height: 1.5;
   color: var(--muted);
 }
+.family-stages .chev {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-top: 0.4rem;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+}
+.family-stages details[open] .chev { transform: rotate(-135deg); margin-top: 0.7rem; }
+/* An open stage is marked in its own colour: a thicker bar and a faint tint, so the one
+   being read stands out from the five that are not. A picked profile's rules come later
+   and are more specific, so they still win for the stages that profile owns. */
+.family-stages > li:has(> details[open]) {
+  --barw: 5px;
+  --tint: color-mix(in srgb, var(--stage) 6%, transparent);
+}
+.family-stages .more {
+  padding: 0 0 1rem 3.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.family-stages .facts > div, .family-stages .routes > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.75rem;
+  padding: 0.25rem 0;
+}
+.family-stages dt { min-width: 7.5rem; color: var(--muted); }
+.family-stages .routes dt { min-width: 9.5rem; }
+.family-stages dd { flex: 1 1 12rem; min-width: 0; }
+.family-stages .routes-head { margin: 0.75rem 0 0.25rem; color: var(--muted); }
+.family-stages .note {
+  display: none;
+  padding: 0 0 0.75rem 3.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.family-checks { list-style: none; margin: 0.5rem 0 1rem; padding: 0; }
+.family-checks li { border-bottom: 1px solid var(--line); }
+.family-checks .check {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.35rem 0;
+  cursor: pointer;
+}
+.family-checks input { flex: none; width: 1.25rem; height: 1.25rem; accent-color: var(--stage); }
+.family-checks .k { font-weight: 600; color: var(--stage); }
+.family-example .example-stage {
+  margin-top: 2.5rem;
+  padding-left: 1rem;
+  border-left: 3px solid var(--stage);
+}
+.family-example h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin: 0 0 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+.family-example h2 .letter { font-family: var(--font-mono); font-weight: 600; color: var(--stage); }
+.family-example p { margin: 0 0 0.75rem; }
+.family-example .ran { color: var(--muted); }
 .family-profiles {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
@@ -809,7 +1038,6 @@ html[data-theme="reactor"] {
   background: var(--ink);
   opacity: 0;
 }
-.family-stages .letter { color: var(--stage); }
 .family-link { margin-top: 1rem; font-size: 1rem; }
 .family-link a {
   color: var(--ink);
@@ -823,10 +1051,14 @@ html[data-theme="reactor"] {
   left: -0.75rem;
   top: 1rem;
   bottom: 1rem;
-  width: 3px;
+  width: var(--barw);
   border-radius: 3px;
-  background: var(--stage);
+  background: var(--bar);
 }
+/* Picking a profile highlights the stages it owns and mutes the rest. Muting changes
+   colour and not opacity, so the text left over still holds its contrast. A stage a
+   profile only pushes into keeps its normal look and gains a line of its own. */
+@@PROFILE_RULES@@
 @media (prefers-reduced-motion: no-preference) {
   .family-word .fl .fk, .family-word .fl .fd {
     max-width: 0;
@@ -859,6 +1091,51 @@ html[data-theme="reactor"] {
   .family-stages > li:nth-child(4) { animation-delay: 2.85s; }
   .family-stages > li:nth-child(5) { animation-delay: 2.95s; }
   .family-stages > li:nth-child(6) { animation-delay: 3.05s; }
+  /* A row is focusable before its rise begins; focus must never land on an invisible control.
+     An important opacity outranks the animation without touching it: changing `animation`
+     on focus and back on blur would restart the rise, and the row would vanish for a second. */
+  .family-stages > li:focus-within { opacity: 1 !important; }
+  /* Opening a stage. Only what is inside the row moves, never the row itself, so the
+     entrance above cannot replay. The panel grows to its height where the browser can
+     animate to auto (::details-content and interpolate-size); elsewhere those rules are
+     ignored and it opens at once, with the rows below still fading in. */
+  .family-stages { interpolate-size: allow-keywords; }
+  .family-stages details::details-content {
+    height: 0;
+    overflow: clip;
+    transition: height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), content-visibility 0.4s allow-discrete;
+  }
+  .family-stages details[open]::details-content { height: auto; }
+  .family-stages details { transition: background-color 0.35s ease; }
+  .family-stages > li::before { transition: width 0.3s ease, background-color 0.3s ease; }
+  .family-stages .chev {
+    transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.25, 1.2), margin-top 0.35s ease;
+  }
+  .family-stages details[open] .letter {
+    transform-origin: 30% 60%;
+    animation: family-pop 0.45s cubic-bezier(0.2, 0.9, 0.25, 1.4);
+  }
+  .family-stages details[open] .facts > div,
+  .family-stages details[open] .routes-head,
+  .family-stages details[open] .routes > div {
+    animation: family-open 0.4s ease-out both;
+  }
+  .family-stages details[open] .facts > div:nth-child(2) { animation-delay: 0.05s; }
+  .family-stages details[open] .facts > div:nth-child(3) { animation-delay: 0.1s; }
+  .family-stages details[open] .routes-head { animation-delay: 0.15s; }
+  .family-stages details[open] .routes > div:nth-child(1) { animation-delay: 0.2s; }
+  .family-stages details[open] .routes > div:nth-child(2) { animation-delay: 0.25s; }
+  .family-stages details[open] .routes > div:nth-child(3) { animation-delay: 0.3s; }
+  .family-stages details[open] .routes > div:nth-child(n + 4) { animation-delay: 0.35s; }
+}
+@keyframes family-open {
+  from { opacity: 0; transform: translateY(-0.4rem); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes family-pop {
+  0% { transform: none; }
+  40% { transform: scale(1.35); }
+  100% { transform: none; }
 }
 @keyframes family-key {
   0% { max-width: 0; opacity: 0; transform: translateY(0.18em) scale(1.6); }
@@ -874,6 +1151,176 @@ html[data-theme="reactor"] {
   to { opacity: 1; transform: none; }
 }
 """
+
+PROFILES = ("solo", "developer", "qa", "team")
+
+
+def _profile_rules() -> str:
+    """The CSS for the profile picker, one block per profile.
+
+    ``:has()`` reads the checked radio, so no script is involved. An attribute selector
+    cannot compare a radio's value with a list on another element, so the four blocks
+    are written out rather than looped over in the stylesheet.
+    """
+    rules = []
+    for profile in PROFILES:
+        on = f'.family-flow:has(input[value="{profile}"]:checked)'
+        rules.append(
+            f'{on} .start[data-for="{profile}"] {{ display: block; }}\n'
+            f'{on} .family-stages > li[data-own~="{profile}"] {{\n'
+            "  --barw: 6px;\n"
+            "  --tint: color-mix(in srgb, var(--stage) 8%, transparent);\n"
+            "}\n"
+            f'{on} .family-stages > li:not([data-own~="{profile}"])'
+            f':not([data-feeds~="{profile}"]) {{\n'
+            "  --bar: var(--line);\n"
+            "  --letter: var(--muted);\n"
+            "  --name: var(--muted);\n"
+            "}\n"
+            f'{on} .family-stages .note[data-for="{profile}"] {{ display: block; }}'
+        )
+    return "\n".join(rules)
+
+
+# One motion language for the whole site, kept in one place so every control moves the
+# same way: short ease-out curves for things that appear, a slight overshoot only for a
+# press or a tick, and nothing that loops. What a visitor needs to see (an underline on
+# hover, the arrow on a row) is styled for everyone; only the movement between states
+# sits behind prefers-reduced-motion, so a visitor who asked for less still gets every
+# cue, just without the travel.
+MOTION_CSS = """
+:root {
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-press: cubic-bezier(0.2, 0.9, 0.25, 1.35);
+  --ease-theme: cubic-bezier(0.3, 0, 0.15, 1);
+}
+/* The radius of the theme reveal, registered so it can be animated: the soft edge of the
+   new theme is a gradient mask that grows with it. */
+@property --reveal-r {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+/* Links in the header and the footer draw their underline from the left. */
+.bar nav a, .foot nav a {
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 calc(50% + 0.8em) / 0 1px;
+}
+.bar nav a:hover, .foot nav a:hover, .bar nav a:focus-visible, .foot nav a:focus-visible {
+  background-size: 100% 1px;
+}
+.bar nav a[aria-current="page"], .foot nav a[aria-current="page"] { background-size: 0 1px; }
+/* A row in a skill list points where it goes. */
+.skills a::after {
+  content: "\\2192";
+  margin-left: auto;
+  padding-left: 1rem;
+  color: var(--muted);
+  opacity: 0;
+}
+.skills a:hover::after, .skills a:focus-visible::after { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  /* Moving between pages: the header holds still while the page under it rises in. */
+  @view-transition { navigation: auto; }
+  .site-header { view-transition-name: banner; }
+  ::view-transition-old(banner) { display: none; }
+  ::view-transition-new(banner) { animation: none; }
+  ::view-transition-old(root) { animation: page-out 160ms var(--ease) both; }
+  ::view-transition-new(root) { animation: page-in 320ms var(--ease) both; }
+  a, button {
+    transition: color 160ms ease, background-color 160ms ease, opacity 160ms ease,
+      background-size 280ms var(--ease), text-decoration-color 200ms ease,
+      transform 200ms var(--ease), box-shadow 200ms var(--ease), outline-offset 160ms ease;
+  }
+  :focus-visible { outline-offset: 3px; }
+  .skills a { transition: color 160ms ease, padding-left 240ms var(--ease); }
+  .skills a::after {
+    transform: translateX(-0.5rem);
+    transition: opacity 200ms ease, transform 240ms var(--ease);
+  }
+  .skills a:hover::after, .skills a:focus-visible::after { transform: none; }
+  #home { transition: letter-spacing 320ms var(--ease); }
+  @media (hover: hover) {
+    .skills a:hover { padding-left: 0.4rem; }
+    #home:hover { letter-spacing: 0.3em; }
+    .pill:hover, .family-reset:hover, .chip:hover, .tool:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0.5rem 1.25rem -0.75rem color-mix(in srgb, var(--ink) 55%, transparent);
+    }
+  }
+  .pill:active, .family-reset:active, .chip:active, .tool:active {
+    transform: scale(0.96);
+    box-shadow: none;
+    transition-duration: 80ms;
+  }
+  /* A choice the visitor has just made ticks in; one restored on load does not. */
+  .chip input:checked:focus, .family-checks input:checked:focus {
+    animation: tick 320ms var(--ease-press);
+  }
+  .family-checks .check { transition: color 200ms ease; }
+  /* Rows the finder brings back fade in rather than appearing at once. */
+  .filtered [data-name], .filtered [data-plugin], .filtered .hits {
+    transition: opacity 240ms var(--ease), translate 240ms var(--ease);
+  }
+  @starting-style {
+    .filtered [data-name], .filtered [data-plugin], .filtered .hits {
+      opacity: 0;
+      translate: 0 0.4rem;
+    }
+  }
+  /* On the front page the card and each plugin rise in as they scroll into view. */
+  @supports (animation-timeline: view()) {
+    .listing .card, .listing .plugin {
+      animation: rise-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+  }
+  /* Switching theme spreads the new one out from the switch that was pressed. */
+  html.theming .site-header { view-transition-name: none; }
+  html.theming::view-transition-old(root) { animation: none; }
+  html.theming::view-transition-new(root) {
+    -webkit-mask-image: radial-gradient(
+      circle at var(--reveal-x, 100%) var(--reveal-y, 0),
+      #000 calc(var(--reveal-r) - 16vmax), transparent var(--reveal-r)
+    );
+    mask-image: radial-gradient(
+      circle at var(--reveal-x, 100%) var(--reveal-y, 0),
+      #000 calc(var(--reveal-r) - 16vmax), transparent var(--reveal-r)
+    );
+    animation: theme-in 900ms var(--ease-theme) both;
+  }
+  /* Where a browser has no view transitions, the colours cross-fade instead of jumping. */
+  html.theme-fade, html.theme-fade * {
+    transition: background-color 500ms ease, color 500ms ease, border-color 500ms ease,
+      fill 500ms ease, stroke 500ms ease !important;
+  }
+  /* More specific, so the knob keeps its glide and the icons their turn during the fade. */
+  html.theme-fade .knob {
+    transition: transform 600ms var(--ease-theme), background-color 600ms ease,
+      color 600ms ease !important;
+  }
+  html.theme-fade .knob svg {
+    transition: opacity 400ms ease, transform 600ms var(--ease-theme) !important;
+  }
+}
+@keyframes page-out { to { opacity: 0; } }
+@keyframes page-in { from { opacity: 0; transform: translateY(0.75rem); } }
+@keyframes rise-in { from { opacity: 0; transform: translateY(1.5rem); } }
+@keyframes tick {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+@keyframes theme-in {
+  from { --reveal-r: 0px; }
+  to { --reveal-r: 180vmax; }
+}
+"""
+
+CSS = (
+    CSS.replace("@@PROFILE_RULES@@", _profile_rules()).replace("@@FONT_FACES@@", FONT_FACES.strip())
+    + MOTION_CSS
+)
 
 # The theme is set before the page paints, so a visitor at night never sees a flash of
 # paper. This is the clock rule and the stored choice, nothing else.
@@ -911,19 +1358,51 @@ PAGE_SCRIPT = """
       else localStorage.removeItem(KEY);
     } catch (e) {}
   }
+  // A theme chosen by hand spreads out from the control that chose it. The clock's own
+  // changes, and any visitor who asked for less motion, switch at once.
+  var fadeTimer = 0;
+  var spreading = null;
+  function spreadTheme(from, change) {
+    var still = !window.matchMedia ||
+      !window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
+    if (still) { change(); return; }
+    if (!document.startViewTransition) {
+      // A second change while the first still fades restarts the clock, so the class is
+      // never removed in the middle of the newer fade.
+      root.classList.add("theme-fade");
+      change();
+      window.clearTimeout(fadeTimer);
+      fadeTimer = window.setTimeout(function () { root.classList.remove("theme-fade"); }, 600);
+      return;
+    }
+    var box = from.getBoundingClientRect();
+    root.style.setProperty("--reveal-x", Math.round(box.left + box.width / 2) + "px");
+    root.style.setProperty("--reveal-y", Math.round(box.top + box.height / 2) + "px");
+    root.classList.add("theming");
+    // A new transition skips the one still running, whose cleanup then fires early; only
+    // the latest one may remove the class, or the newer reveal loses its mask mid-way.
+    var transition = document.startViewTransition(change);
+    spreading = transition;
+    function done() {
+      if (spreading !== transition) return;
+      spreading = null;
+      root.classList.remove("theming");
+    }
+    transition.finished.then(done, done);
+  }
   dark.addEventListener("click", function () {
     var next = root.getAttribute("data-theme") === "night" ? "day" : "night";
     store(next);
-    apply(next);
+    spreadTheme(dark, function () { apply(next); });
   });
   consoleTheme.addEventListener("click", function () {
     if (root.getAttribute("data-theme") === "reactor") {
       store(null);
-      apply(clock());
+      spreadTheme(consoleTheme, function () { apply(clock()); });
       return;
     }
     store("reactor");
-    apply("reactor");
+    spreadTheme(consoleTheme, function () { apply("reactor"); });
   });
   apply(preferred());
   window.setInterval(function () { apply(preferred()); }, 60000);
@@ -1044,6 +1523,53 @@ PAGE_SCRIPT = """
     tally.textContent = needle ? shown + " of " + total : total + " " + unit;
     if (none) none.hidden = shown !== 0;
   }
-  input.addEventListener("input", refine);
+  input.addEventListener("input", function () {
+    // Only rows the finder brings back fade in, never the list as the page first draws it.
+    list.classList.add("filtered");
+    refine();
+  });
+})();
+"""
+
+# The Run a slice checklist on /family/. Ticks are kept in one localStorage entry, a JSON
+# list of the stage letters ticked, so the page remembers them without an account. Every
+# storage call sits in a try, because a private window or a blocked store throws; the
+# boxes still work then, they are just not remembered. It also stops Enter in the picker
+# from submitting the form the Clear button needs.
+FAMILY_SCRIPT = """
+(function () {
+  var KEY = "family-slice";
+  var boxes = document.querySelectorAll("[data-gate]");
+  var reset = document.querySelector("[data-slice-reset]");
+  var picker = document.querySelector(".picker");
+  if (picker) picker.addEventListener("submit", function (event) { event.preventDefault(); });
+  if (!boxes.length) return;
+  function load() {
+    var list = [];
+    try {
+      var parsed = JSON.parse(localStorage.getItem(KEY) || "[]");
+      if (Array.isArray(parsed)) list = parsed;
+    } catch (e) {}
+    return list;
+  }
+  function save() {
+    var ticked = [];
+    boxes.forEach(function (box) {
+      if (box.checked) ticked.push(box.getAttribute("data-gate"));
+    });
+    try {
+      if (ticked.length) localStorage.setItem(KEY, JSON.stringify(ticked));
+      else localStorage.removeItem(KEY);
+    } catch (e) {}
+  }
+  var saved = load();
+  boxes.forEach(function (box) {
+    box.checked = saved.indexOf(box.getAttribute("data-gate")) !== -1;
+    box.addEventListener("change", save);
+  });
+  if (reset) reset.addEventListener("click", function () {
+    boxes.forEach(function (box) { box.checked = false; });
+    save();
+  });
 })();
 """

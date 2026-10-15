@@ -32,7 +32,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 import export_portable  # noqa: E402
 import package_skills  # noqa: E402
+import site_errors  # noqa: E402
 import site_markdown  # noqa: E402
+import site_offline  # noqa: E402
 import site_style  # noqa: E402
 
 from skillcheck.frontmatter import FrontmatterError, parse  # noqa: E402
@@ -266,16 +268,49 @@ def _to_top() -> str:
     )
 
 
+def _font_preloads(main: str) -> str:
+    """Preload links for the faces a page paints first.
+
+    The body sans is on every page. The serif sets the card text and the rendered Markdown,
+    so it is preloaded only where one of those is in the page: a preload for a font the
+    page never draws is bytes spent for nothing, and Chrome warns about it. ``crossorigin``
+    is required even for a same-origin font, because fonts are fetched in anonymous CORS
+    mode and a preload without it is fetched twice.
+    """
+    urls = [site_style.SANS_URL]
+    if 'class="prose-lab' in main or 'class="card"' in main:
+        urls.append(site_style.SERIF_URL)
+    return "".join(
+        f'<link rel="preload" href="{url}" as="font" type="font/woff2" crossorigin>\n'
+        for url in urls
+    )
+
+
 def _page(
-    title: str, main: str, version: str, *, current: str = "", parent: str | None = None
+    title: str,
+    main: str,
+    version: str,
+    *,
+    current: str = "",
+    parent: str | None = None,
+    style: str = "",
+    script: str = "",
+    noindex: bool = False,
 ) -> str:
     """One document. ``main`` is already escaped HTML for the page body.
 
     ``current`` is the root-relative path of the page, which marks its footer link.
-    ``parent`` is where Back goes without history, and None on the front page.
+    ``parent`` is where Back goes without history, and None on the front page. ``style``
+    and ``script`` are a page's own CSS and script, written after the shared ones; only
+    the 404 and the offline page have any. ``noindex`` keeps a page out of search results.
+    Every page registers the service worker, which the standalone ``/errors/`` pages
+    deliberately do not.
     """
     source = _esc(SOURCE_URL)
     dock = _dock(parent)
+    extra_style = f"<style>\n{style}</style>\n" if style else ""
+    extra_script = f"<script>\n{script}</script>\n" if script else ""
+    robots = '<meta name="robots" content="noindex">\n' if noindex else ""
     return (
         "<!DOCTYPE html>\n"
         '<html lang="en">\n'
@@ -283,14 +318,14 @@ def _page(
         '<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
         f'<meta name="catalogue-version" content="{_esc(version)}">\n'
+        f"{robots}"
         '<meta name="theme-color" content="#f4f1ea">\n'
         f"<title>{html.escape(title)}</title>\n"
         f'<link rel="icon" href="/{FAVICON}" type="image/png" sizes="64x64">\n'
         f'<link rel="apple-touch-icon" href="/{TOUCH_ICON}">\n'
-        '<link rel="preconnect" href="https://fonts.googleapis.com">\n'
-        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
-        f'<link rel="stylesheet" href="{_esc(site_style.FONTS_URL)}">\n'
+        f"{_font_preloads(main)}"
         f"<style>\n{site_style.CSS}</style>\n"
+        f"{extra_style}"
         f"<script>\n{site_style.HEAD_SCRIPT}\n</script>\n"
         "</head>\n"
         "<body>\n"
@@ -320,6 +355,8 @@ def _page(
         "</div>\n</footer>\n"
         f"{_to_top()}"
         f"<script>\n{site_style.PAGE_SCRIPT}</script>\n"
+        f"<script>{site_offline.REGISTER_SCRIPT}</script>\n"
+        f"{extra_script}"
         "</body>\n"
         "</html>\n"
     )
@@ -359,7 +396,15 @@ def _skill_href(plugin: str, name: str) -> str:
     return f"/plugins/{quote(plugin, safe='')}/{quote(name, safe='')}/"
 
 
+# The family plugin has no page of its own: /family/ is the FAMILY workflow and the plugin
+# in one. Every link to a plugin goes through _plugin_href, so this is the single rule
+# that sends the card, the lists, the breadcrumbs and a skill's Back there.
+FAMILY_PLUGIN = "family"
+
+
 def _plugin_href(plugin: str) -> str:
+    if plugin == FAMILY_PLUGIN:
+        return "/family/"
     return f"/plugins/{quote(plugin, safe='')}/"
 
 
@@ -612,28 +657,13 @@ def render_plugin(plugin: str, catalogue: Catalogue, version: str) -> str:
     skills = [skill for skill in catalogue.skills if skill.plugin == plugin]
     blurb = catalogue.blurbs.get(plugin, "")
     about = f'<p class="lede">{_esc(blurb)}</p>\n' if blurb else ""
-    items = "\n".join(
-        f'<li data-name="{_esc(skill.name.lower())}">'
-        f'<a href="{_esc(_skill_href(plugin, skill.name))}">{_esc(skill.name)}</a></li>'
-        for skill in skills
-    )
+    items = _skill_items(plugin, skills)
     install = _code_block(_install_line(plugin, catalogue.marketplace))
-    # The family plugin is the FAMILY workflow, so its page opens on the same typed word
-    # and points at the stage-by-stage guide; every other plugin keeps its plain name.
-    heading = f'<h1 class="title-xl">{_esc(plugin)}</h1>'
-    workflow = ""
-    if plugin == "family":
-        heading = _family_word("family")
-        workflow = (
-            '<p class="family-link"><a href="/family/">The FAMILY workflow, stage by stage'
-            "</a> →</p>\n"
-        )
     main = (
         '<div class="page">\n'
         f"{_back('/')}\n"
-        f"{heading}\n"
+        f'<h1 class="title-xl">{_esc(plugin)}</h1>\n'
         f"{about}"
-        f"{workflow}"
         f'<p class="small count">{_esc(_plural(len(skills), "skill"))}</p>\n'
         f'<div class="install">{install}</div>\n'
         f"{_finder('Find a skill', _plural(len(skills), 'skill'))}"
@@ -775,7 +805,8 @@ def render_start(catalogue: Catalogue, version: str) -> str:
 
 
 def _part_item(part: Part, *, command: bool) -> str:
-    label = ("/" if command else "") + part.name
+    # An installed plugin's command runs as /plugin:name, so that is the name to show.
+    label = f"/{part.plugin}:{part.name}" if command else part.name
     href = _esc(_blob(part.path))
     link = f'<a href="{href}" rel="noopener noreferrer"><code>{_esc(label)}</code></a>'
     hint = f" <code>{_esc(part.hint)}</code>" if part.hint else ""
@@ -1074,9 +1105,11 @@ def render_quality(catalogue: Catalogue, version: str) -> str:
 
 # ------------------------------------------------------------------------ /family/
 
-# The one page this file draws by hand rather than from a plugin's own files. The
-# workflow is the product here, so it gets a stage timeline and profile cards rather
-# than the generated prose and tables every other page falls back to.
+# The pages this file draws by hand rather than from a plugin's own files. The workflow
+# is the product here, so it gets a stage timeline, a profile picker and a checklist
+# rather than the generated prose and tables every other page falls back to. /family/
+# is also the family plugin's page, so it carries the install line, the skills and the
+# subagents a plugin page would.
 FAMILY_STAGES = (
     ("F", "Frame", "What problem, for whom, what done means, and the smallest valuable slice."),
     (
@@ -1090,12 +1123,106 @@ FAMILY_STAGES = (
     ("Y", "Yield", "What the outcome teaches the next slice, fed back into Frame."),
 )
 
+# What the stage list shows when a stage is opened. The verdict words and where each one
+# goes are the routing table in plugins/family/skills/family-relay/SKILL.md; the first
+# question and the waiver rule are in family-workflow/references/stages.md. They are
+# copied here, not parsed, because the page has to say them in one short line each.
+FAMILY_DETAILS = {
+    "F": {
+        "agent": "framer",
+        "verdicts": (
+            ("FRAMED", "the main conversation, which accepts the slice, then architect"),
+            ("NEEDS INPUT", "the main conversation, then framer again"),
+            ("NOT FRAMED", "the main conversation"),
+        ),
+        "question": "Did the last slice change the problem?",
+        "waiver": "No. Every later stage builds on it, and it is one page.",
+    },
+    "A": {
+        "agent": "architect",
+        "verdicts": (
+            ("PROPOSED", "the main conversation, which accepts the approach, then maker"),
+            ("NEEDS FRAME", "framer"),
+            ("BLOCKED", "the main conversation"),
+        ),
+        "question": "Does the approach survive the constraints?",
+        "waiver": (
+            "Yes, when the slice carries no hard-to-reverse decision. "
+            "Write the waiver with the reason and the risk."
+        ),
+    },
+    "M": {
+        "agent": "maker",
+        "verdicts": (
+            ("PLAN READY", "the build"),
+            ("ON PLAN", "inspector"),
+            ("DIVERGED", "architect, never maker again"),
+            ("BLOCKED", "the main conversation"),
+        ),
+        "question": "Which step can be shown working first?",
+        "waiver": "No. The plan may be one line for a one-file change, but it is written.",
+    },
+    "I": {
+        "agent": "inspector",
+        "verdicts": (
+            ("PASS", "launcher, once the Inspect owner answers the go or no-go"),
+            (
+                "FIX",
+                "the build for each FAILS line; the Inspect owner for each NOT ASSESSED one",
+            ),
+            ("STOP", "a person"),
+        ),
+        "question": "Does the change meet the success criterion?",
+        "waiver": "No.",
+    },
+    "L": {
+        "agent": "launcher",
+        "verdicts": (
+            ("READY", "the release owner, who ships and measures the signal, then yielder"),
+            ("N-A", "the main conversation, to write the Launch waiver, then yielder"),
+            ("NOT READY", "the stage that owns the missing piece"),
+        ),
+        "question": "Is there a way back?",
+        "waiver": (
+            "Yes, only when there are no users to reach and the way back is the previous "
+            "version. Write the waiver with the reason and the risk."
+        ),
+    },
+    "Y": {
+        "agent": "yielder",
+        "verdicts": (
+            ("YIELDED", "framer, with the next slice"),
+            ("INSUFFICIENT EVIDENCE", "the main conversation"),
+        ),
+        "question": "What did the criterion measure?",
+        "waiver": "No. It may be three sentences.",
+    },
+}
+
 FAMILY_PROFILES = (
     ("Solo", "One person runs all six stages, with the agents as independent checkers."),
     ("Developer", "Frame, Architect, Make and Yield owned; Inspect and Launch handed off."),
     ("QA", "Inspect owned, with acceptance criteria pushed back into Frame and Architect."),
     ("Team", "All six with a named owner and a handoff contract between each stage."),
 )
+
+# For each profile: the radio value, the skill it starts from, the stages it owns and the
+# stages it only pushes into. A stage of the second kind is not dimmed, because the
+# profile still reaches it, but it is not highlighted either.
+FAMILY_PICKS = (
+    ("Solo", "solo", "solo-development", "FAMILY", ""),
+    ("Developer", "developer", "developer-workflow", "FAMY", ""),
+    ("QA", "qa", "qa-workflow", "I", "FA"),
+    ("Team", "team", "team-workflow", "FAMILY", ""),
+)
+
+# A line under a stage that only shows while that profile is picked.
+FAMILY_NOTES = {
+    ("developer", "I"): "Handed off to someone independent of the developer.",
+    ("developer", "L"): "Handed off to someone independent of the developer.",
+    ("qa", "F"): "QA pushes testable acceptance criteria into this stage.",
+    ("qa", "A"): "QA pushes testable acceptance criteria into this stage.",
+}
 
 
 def _family_word(name: str) -> str:
@@ -1115,43 +1242,361 @@ def _family_word(name: str) -> str:
     )
 
 
-def render_family(catalogue: Catalogue, version: str) -> str:
-    plugin = "family"
-    stages = "\n".join(
-        f'<li class="stage-{letter.lower()}">'
-        f'<span class="letter" aria-hidden="true">{letter}</span>'
-        f"<div><h3>{_esc(name)}</h3><p>{_esc(text)}</p></div></li>"
-        for letter, name, text in FAMILY_STAGES
+def _skill_items(plugin: str, skills: list[Skill]) -> str:
+    """The finder's rows: one link per skill, each carrying the name the finder matches."""
+    return "\n".join(
+        f'<li data-name="{_esc(skill.name.lower())}">'
+        f'<a href="{_esc(_skill_href(plugin, skill.name))}">{_esc(skill.name)}</a></li>'
+        for skill in skills
     )
+
+
+def _agent_line(description: str) -> str:
+    """The first clause of an agent's description: the part before its first dash."""
+    clause = description.split(" — ", 1)[0]
+    return clause.split(". ", 1)[0].rstrip(".")
+
+
+def _family_stage(letter: str, name: str, text: str) -> str:
+    detail = FAMILY_DETAILS[letter]
+    slug = letter.lower()
+    own = [pick[1] for pick in FAMILY_PICKS if letter in pick[3]]
+    feeds = [pick[1] for pick in FAMILY_PICKS if letter in pick[4]]
+    routes = "\n".join(
+        f"<div><dt><code>{_esc(word)}</code></dt><dd>→ {_esc(target)}</dd></div>"
+        for word, target in detail["verdicts"]
+    )
+    notes = "".join(
+        f'<p class="note" data-for="{_esc(profile)}">{_esc(note)}</p>'
+        for (profile, key), note in FAMILY_NOTES.items()
+        if key == letter
+    )
+    return (
+        f'<li class="stage-{slug}" data-own="{" ".join(own)}" data-feeds="{" ".join(feeds)}">\n'
+        "<details>\n"
+        f'<summary><span class="letter" aria-hidden="true">{letter}</span>'
+        f"<h3>{_esc(name)}</h3>"
+        f'<span class="line">{_esc(text)}</span>'
+        f'<span class="chev" aria-hidden="true"></span></summary>\n'
+        '<div class="more">\n'
+        '<dl class="facts">\n'
+        f"<div><dt>Agent</dt><dd><code>{_esc(detail['agent'])}</code></dd></div>\n"
+        f"<div><dt>First question</dt><dd>{_esc(detail['question'])}</dd></div>\n"
+        f"<div><dt>Waivable</dt><dd>{_esc(detail['waiver'])}</dd></div>\n"
+        "</dl>\n"
+        '<p class="routes-head">The verdict it returns, and where it goes next</p>\n'
+        f'<dl class="routes">\n{routes}\n</dl>\n'
+        "</div>\n"
+        "</details>\n"
+        f"{notes}"
+        "</li>"
+    )
+
+
+def _family_picker(catalogue: Catalogue) -> str:
+    names = {skill.name for skill in catalogue.skills if skill.plugin == FAMILY_PLUGIN}
+    said = dict(FAMILY_PROFILES)
+    choices = "".join(
+        f'<label class="chip"><input type="radio" name="profile" value="{_esc(slug)}"> '
+        f"<span>{_esc(label)}</span></label>"
+        for label, slug, _, _, _ in FAMILY_PICKS
+    )
+    panels = []
+    for label, slug, skill, _, _ in FAMILY_PICKS:
+        link = (
+            f'<a href="{_esc(_skill_href(FAMILY_PLUGIN, skill))}">{_esc(skill)}</a>'
+            if skill in names
+            else f"<code>{_esc(skill)}</code>"
+        )
+        panels.append(
+            f'<p class="start" data-for="{_esc(slug)}"><strong>{_esc(label)}</strong> '
+            f"starts from {link}. {_esc(said[label])}</p>"
+        )
+    return (
+        '<form class="picker">\n'
+        "<fieldset>\n"
+        "<legend>Who is running it?</legend>\n"
+        f'<div class="chips">{choices}</div>\n'
+        "</fieldset>\n"
+        '<button type="reset" class="family-reset">Clear</button>\n'
+        "</form>\n" + "\n".join(panels)
+    )
+
+
+def _family_checklist() -> str:
+    rows = "\n".join(
+        f'<li class="stage-{letter.lower()}"><label class="check">'
+        f'<input type="checkbox" data-gate="{letter.lower()}" autocomplete="off">'
+        f'<span class="what"><span class="k">{_esc(name)}</span> '
+        f"{_esc(FAMILY_DETAILS[letter]['question'])}</span></label></li>"
+        for letter, name, _ in FAMILY_STAGES
+    )
+    return (
+        '<ul class="family-checks">\n'
+        f"{rows}\n</ul>\n"
+        '<button type="button" class="family-reset" data-slice-reset>Reset</button>'
+    )
+
+
+def render_family(catalogue: Catalogue, version: str) -> str:
+    plugin = FAMILY_PLUGIN
+    skills = [skill for skill in catalogue.skills if skill.plugin == plugin]
+    by_name = {agent.name: agent for agent in catalogue.agents if agent.plugin == plugin}
+    order = [detail["agent"] for detail in FAMILY_DETAILS.values()]
+    agents = [by_name[name] for name in order if name in by_name]
+    agents += [by_name[name] for name in sorted(by_name) if name not in order]
+    stages = "\n".join(_family_stage(*stage) for stage in FAMILY_STAGES)
     profiles = "\n".join(
         f"<li><h3>{_esc(name)}</h3><p>{_esc(text)}</p></li>" for name, text in FAMILY_PROFILES
     )
+    agent_items = "\n".join(
+        f'<li><a href="{_esc(_blob(agent.path))}" rel="noopener noreferrer">'
+        f"<code>{_esc(agent.name)}</code></a>"
+        + (f" — {_esc(_agent_line(agent.description))}" if agent.description else "")
+        + "</li>"
+        for agent in agents
+    )
+    subagents = (
+        '<section class="family-section">\n<h2>The subagents</h2>\n'
+        "<p>One per stage, none with editing tools, so the main conversation keeps the "
+        "conclusion of a stage and not the material it read. The inspector can still run "
+        "commands, so it runs checks only on a change the owner wrote.</p>\n"
+        f'<ul class="family-agents">\n{agent_items}\n</ul>\n</section>\n'
+        if agents
+        else ""
+    )
+    workflow = next((skill for skill in skills if skill.name == "family-workflow"), None)
+    guide = (
+        f'<a href="{_esc(_skill_href(plugin, workflow.name))}">{_esc(workflow.name)}</a>'
+        if workflow
+        else "family-workflow"
+    )
     main = (
-        '<div class="page narrow">\n'
+        '<div class="page narrow family-page">\n'
         f"{_back('/')}\n"
         f"{_family_word('The FAMILY workflow')}\n"
         '<p class="lede">Frame · Architect · Make · Inspect · Launch · Yield — one '
         "workflow from a vague request to a measured outcome.</p>\n"
-        '<div class="prose-lab page-body">\n'
+        '<p class="family-link"><a href="/family/example/">See one slice end to end</a> →</p>\n'
+        '<section class="family-section">\n<h2>Install it</h2>\n'
+        f"<p>The family plugin ships the {guide} skill, a skill per profile and a "
+        "subagent per stage with no editing tools.</p>\n"
+        f'<div class="install">{_code_block(_install_line(plugin, catalogue.marketplace))}</div>\n'
+        "</section>\n"
+        '<section class="family-section family-flow">\n<h2>The six stages</h2>\n'
         "<p>FAMILY keeps its shape whether one person or a whole team is running it. It "
         "takes one slice of work from a vague request to a measured outcome, and each "
-        "stage has one gate, one artifact and one handoff to the next.</p>\n"
+        "stage has one gate, one artifact and one handoff to the next. Open a stage to see "
+        "the agent that runs it and where each verdict goes.</p>\n"
+        f"{_family_picker(catalogue)}\n"
         f'<ol class="family-stages">\n{stages}\n</ol>\n'
-        "<h2>The four profiles</h2>\n"
+        "</section>\n"
+        '<section class="family-section">\n<h2>Run a slice</h2>\n'
+        "<p>Tick each gate question once you have answered it for the slice in hand. "
+        "This browser remembers the ticks until you reset them.</p>\n"
+        f"{_family_checklist()}\n"
+        "</section>\n"
+        '<section class="family-section">\n<h2>The four profiles</h2>\n'
         "<p>The stages never change; a profile says who runs them, and each slice records "
         "whether it runs light or full, so a shortcut is a decision rather than an "
         "accident.</p>\n"
         f'<ul class="family-profiles">\n{profiles}\n</ul>\n'
-        "<h2>Run it</h2>\n"
-        f'<p>The <a href="{_esc(_plugin_href(plugin))}">family</a> plugin ships the '
-        f'<a href="{_esc(_skill_href(plugin, "family-workflow"))}">family-workflow</a> '
-        "skill and a read-only subagent per stage, so the main conversation keeps the "
-        "conclusion of each stage and not the material it read.</p>\n"
-        f"{_code_block(_install_line(plugin, catalogue.marketplace))}\n"
+        "</section>\n"
+        '<section class="family-section">\n<h2>The skills</h2>\n'
+        f"{_finder('Find a skill', _plural(len(skills), 'skill'))}"
+        '<p class="none" id="none" hidden>Nothing matches that name.</p>\n'
+        f'<ul class="skills" id="list">\n{_skill_items(plugin, skills)}\n</ul>\n'
+        "</section>\n"
+        f"{subagents}"
         "</div>\n"
-        "</div>"
+        f"<script>\n{site_style.FAMILY_SCRIPT}</script>"
     )
     return _page("FAMILY · AI", main, version, current="/family/", parent="/")
+
+
+# What the example page walks through: one real slice, the change that gave the family
+# page its typed heading, told in the order the stages ran. The verdict words are the ones
+# the relay routes on. No product or vendor is named, so the page stays true if a tool
+# changes.
+FAMILY_EXAMPLE = {
+    "F": (
+        "framer",
+        "FRAMED",
+        (
+            "The owner asked for the family page to type the word out letter by letter, "
+            "with the dots, each stage in its own colour.",
+            "Success criterion: the word types in on arrival, and it is still readable with "
+            "motion reduced.",
+            "Slice: the heading and nothing else on the page. Out of scope: any other page, "
+            "and the stage list below it.",
+        ),
+    ),
+    "A": (
+        "architect",
+        "PROPOSED",
+        (
+            "Approach: a CSS-only animation, so a visit with scripts off, or with motion "
+            "reduced, still shows the whole word. The animation sits behind the motion "
+            "preference; the resting state is the finished word.",
+            "Colours are tokens, one set per theme, each at 4.5:1 or better against that "
+            "theme's background. The console theme stays one colour on purpose.",
+            "The decision hardest to reverse: the heading exposes one accessible name, and "
+            "its twelve visible characters are hidden from assistive technology.",
+        ),
+    ),
+    "M": (
+        "maker",
+        "PLAN READY",
+        (
+            "Step one: one helper that writes the heading from the stage table, so the "
+            "letters and their order live in one place. Proof: a page test reads them back.",
+            "Step two: a class per stage and the colour tokens. Proof: a test that every "
+            "stage resolves to its own colour, and that every theme defines all six.",
+            "Step three: tests for the accessible name, the motion gate and the colours. "
+            "The build then checked back against the plan: ON PLAN.",
+        ),
+    ),
+    "I": (
+        "inspector",
+        "FIX, then PASS",
+        (
+            "The first round held on the criterion but an automated review asked for a "
+            "regression test for the accessible name and for the motion gate, since either "
+            "could be lost without a visible change.",
+            "Both were added, as a page test and as a browser test run with motion reduced "
+            "and with motion allowed. The second round passed, and the Inspect owner "
+            "answered go.",
+        ),
+    ),
+    "L": (
+        "launcher",
+        "READY",
+        (
+            "Path: the development branch, then a stage preview behind a sign-in, then the "
+            "main branch, then a tagged release.",
+            "Signal: the version file the site serves names the new tag once it is live.",
+            "Way back: the previous release, redeployed.",
+        ),
+    ),
+    "Y": (
+        "yielder",
+        "YIELDED",
+        (
+            "The criterion held: the word types in on arrival and reads whole with motion reduced.",
+            "Lesson: a pull request opened with placeholder text trips the attribution "
+            "check, so the description is written before the pull request is marked ready. "
+            "That went into the next Frame as a check, not as a reminder.",
+        ),
+    ),
+}
+
+
+def render_family_example(version: str) -> str:
+    sections = []
+    for letter, name, _ in FAMILY_STAGES:
+        agent, verdict, paragraphs = FAMILY_EXAMPLE[letter]
+        body = "\n".join(f"<p>{_esc(text)}</p>" for text in paragraphs)
+        sections.append(
+            f'<section class="example-stage stage-{letter.lower()}">\n'
+            f'<h2><span class="letter" aria-hidden="true">{letter}</span>{_esc(name)}</h2>\n'
+            f'<p class="ran">Run by <code>{_esc(agent)}</code>. Verdict: '
+            f"<code>{_esc(verdict)}</code>.</p>\n"
+            f"{body}\n</section>"
+        )
+    intro = (
+        '<p>This is the slice that gave the <a href="/family/">FAMILY page</a> its typed '
+        "heading, told in the order the stages ran. It is small on purpose: every stage "
+        "still has its gate, its artifact and its handoff, and none was skipped.</p>"
+    )
+    main = _narrow(
+        _back("/family/")
+        + "\n"
+        + _title(
+            "One slice, end to end", "Six stages, one small change, and what each one left behind."
+        )
+        + "\n"
+        + f'<div class="family-example page-body">\n{intro}\n'
+        + "\n".join(sections)
+        + "\n</div>"
+    )
+    return _page("One slice, end to end · AI", main, version, parent="/family/")
+
+
+def _redirects() -> str:
+    """The retired plugin page's address, sent permanently to the page that replaced it.
+
+    Cloudflare's static assets read this file at upload and do not serve it. Both spellings
+    are listed because a rule matches the path as written.
+    """
+    return f"/plugins/{FAMILY_PLUGIN}/ /family/ 301\n/plugins/{FAMILY_PLUGIN} /family/ 301\n"
+
+
+def _headers() -> str:
+    """Cache rules, read by Cloudflare's static assets at upload.
+
+    Every name under ``/fonts/`` carries a hash of its bytes, so a changed file is a new
+    address and a year-long ``immutable`` response can never go stale. The service worker
+    is the opposite: its address never changes, so ``no-cache`` makes the browser ask
+    whether it did on every load, and a deploy's new worker is picked up promptly.
+    """
+    return (
+        f"{site_style.FONT_URL_PREFIX}*\n  Cache-Control: public, max-age=31536000, immutable\n"
+        f"{site_offline.SW_PATH}\n  Cache-Control: no-cache\n"
+    )
+
+
+SUGGESTED_PAGES = (
+    ("family", "The FAMILY workflow"),
+    ("family/example", "One FAMILY slice, end to end"),
+    ("start", "Start"),
+    ("workflows", "Workflows"),
+    ("examples", "Examples"),
+    ("quality", "Quality"),
+)
+
+
+def _suggestions(catalogue: Catalogue, pages: dict[str, str]) -> list[list[str]]:
+    """Every page the 404 can offer: ``[path, name, what it is]``, from what was built.
+
+    Taken from the pages that were actually written, so a page that exists is
+    suggestible and a name that is not a page is not.
+    """
+    found = [[f"/{key}/", label, "Page"] for key, label in SUGGESTED_PAGES if key in pages]
+    for plugin, _ in catalogue.groups:
+        # The family plugin's page is /family/, already offered above under its own name.
+        if plugin != FAMILY_PLUGIN:
+            found.append([_plugin_href(plugin), plugin, "Plugin"])
+    for skill in catalogue.skills:
+        found.append(
+            [_skill_href(skill.plugin, skill.name), skill.name, f"Skill in {skill.plugin}"]
+        )
+    return found
+
+
+def render_missing(suggestions: list[list[str]], version: str) -> str:
+    """The 404 Cloudflare serves for every address with no page, whatever its depth."""
+    main = site_errors.missing_main(_back("/"), suggestions)
+    return _page(
+        "Not found · AI",
+        main,
+        version,
+        parent="/",
+        style=site_errors.LOST_CSS,
+        script=site_errors.LOST_SCRIPT,
+    )
+
+
+def render_offline(version: str) -> str:
+    """The page the service worker serves for an address it cannot answer from its cache."""
+    return _page(
+        "Offline · AI",
+        site_offline.offline_main(_back("/")),
+        version,
+        parent="/",
+        style=site_offline.OFFLINE_CSS,
+        script=site_offline.render_offline_script(),
+        noindex=True,
+    )
 
 
 def _robots(noindex: bool) -> str:
@@ -1204,6 +1649,12 @@ def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> N
             icons[icon] = (SITE_ASSETS / icon).read_bytes()
         except OSError as error:
             raise SystemExit(f"cannot read the site icon {icon}: {error}") from error
+    fonts = {}
+    for built, source in site_style.FONT_ASSETS.items():
+        try:
+            fonts[built] = (site_style.FONT_DIR / source).read_bytes()
+        except OSError as error:
+            raise SystemExit(f"cannot read the site font file {source}: {error}") from error
     if output.exists():
         shutil.rmtree(output)
     output.mkdir(parents=True)
@@ -1220,6 +1671,12 @@ def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> N
     )
     (output / "version.txt").write_text(version + "\n", encoding="utf-8")
     (output / "robots.txt").write_text(_robots(noindex), encoding="utf-8")
+    (output / "_redirects").write_text(_redirects(), encoding="utf-8")
+    (output / "_headers").write_text(_headers(), encoding="utf-8")
+    fonts_dir = output / site_style.FONT_URL_PREFIX.strip("/")
+    fonts_dir.mkdir()
+    for name, data in fonts.items():
+        (fonts_dir / name).write_bytes(data)
     for icon, data in icons.items():
         (output / icon).write_bytes(data)
     groups = _ordered_groups(manifest, grouped)
@@ -1227,26 +1684,39 @@ def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> N
     pages = {
         "": render_index(catalogue, version),
         "family": render_family(catalogue, version),
+        "family/example": render_family_example(version),
         "start": render_start(catalogue, version),
         "workflows": render_workflows(catalogue, version),
         "examples": render_examples(catalogue, version),
         "quality": render_quality(catalogue, version),
     }
     for plugin, _ in groups:
-        pages[f"plugins/{plugin}"] = render_plugin(plugin, catalogue, version)
+        # The family plugin's page is /family/, so it has none of its own here.
+        if plugin != FAMILY_PLUGIN:
+            pages[f"plugins/{plugin}"] = render_plugin(plugin, catalogue, version)
     for skill in catalogue.skills:
         pages[f"plugins/{skill.plugin}/{skill.name}"] = render_skill(skill, catalogue, version)
     for directory, content in pages.items():
         target = output / directory
         target.mkdir(parents=True, exist_ok=True)
         (target / "index.html").write_text(content, encoding="utf-8")
-    missing = _page(
-        "Not found · AI",
-        _narrow(_back("/") + "\n" + _title("Not found", "There is nothing at this address.")),
-        version,
-        parent="/",
+    (output / "404.html").write_text(
+        render_missing(_suggestions(catalogue, pages), version), encoding="utf-8"
     )
-    (output / "404.html").write_text(missing, encoding="utf-8")
+    # offline/index.html, not offline.html: the Worker answers the latter with a redirect, and
+    # a redirected response cannot be served for a navigation. See site_offline.
+    offline = output / site_offline.OFFLINE_PATH.strip("/")
+    offline.mkdir()
+    (offline / "index.html").write_text(render_offline(version), encoding="utf-8")
+    (output / site_offline.SW_PATH.lstrip("/")).write_text(
+        site_offline.render_worker(version), encoding="utf-8"
+    )
+    errors = output / "errors"
+    errors.mkdir()
+    for error in site_errors.ERROR_PAGES:
+        (errors / f"{error.code}.html").write_text(
+            site_errors.render_error(error), encoding="utf-8"
+        )
     print(f"built {output} for {version}")
 
 

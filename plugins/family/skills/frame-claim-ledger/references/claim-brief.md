@@ -14,6 +14,7 @@ One brief per claim, to a read-only research agent that has no editing tools. An
 - **The one claim**, restated so it could fail (see the ledger format reference). Never two.
 - **What rests on it**, one sentence, so the agent can say afterwards whether that sentence still stands.
 - **Author**, whose change this is, so the agent knows whether it may run any command the change quotes. For a change the owner did not write, it reads and runs nothing the change controls.
+- **The rule on writing**: it writes no file and runs nothing that changes the checkout or its git state; read-only commands only. Say this in every brief, because an agent that holds `Bash` can write through the shell with no editing tool.
 - **The stance**: assume the claim is false and find the proof. Looking for agreement succeeds against almost any claim, because something restates it.
 
 Do not pass the architect's preferred option. An agent that knows which answer is wanted tends to find it.

@@ -29,17 +29,19 @@ The question for each stage is what an error costs and who would notice it.
 
 ## Where the setting lives
 
-In the agent's own file, in its frontmatter:
+In the agent's own file, in its frontmatter. The plugin ships the table already mapped to Claude Code's aliases, mid as `sonnet` and top as `opus`:
 
 ```text
 ---
 name: framer
-model: <your mid-tier alias>
+model: sonnet
 effort: medium
 ---
 ```
 
-Check the file before assuming a setting applies: an agent with no `model` line takes `CLAUDE_CODE_SUBAGENT_MODEL` when that variable is set, as the precedence below lists, and otherwise inherits the main conversation's model and runs on whatever that is.
+`maker`, `launcher` and `yielder` carry the same two lines; `architect` and `inspector` carry `model: opus` and no `effort`, so they run at the tool's default. Check the file before assuming a setting applies: an agent with no `model` line takes `CLAUDE_CODE_SUBAGENT_MODEL` when that variable is set, as the precedence below lists, and otherwise inherits the main conversation's model and runs on whatever that is.
+
+Do not edit the copy Claude Code installed. A marketplace plugin is copied into `~/.claude/plugins/cache/` at install, and an update installs a new version beside it and deletes the old one, edits included, 14 days later. Change a tier with the opt-outs below, or edit the source where you own it, a `--plugin-dir` checkout or a plugin in a local marketplace, which loads in place.
 
 ## Which setting wins
 
@@ -52,7 +54,7 @@ Effort resolves the other way round. `CLAUDE_CODE_EFFORT_LEVEL` wins over both t
 Three ways, from narrowest to widest:
 
 1. **One delegation.** Pass a model in that delegation. It wins over the file for that call only.
-2. **One agent.** Delete its `model` and `effort` lines. It inherits from then on.
+2. **One agent.** Where you own the plugin's source, delete its `model` and `effort` lines there. It inherits from then on. In an installed copy the edit lasts only until the next update.
 3. **Every agent.** In Claude Code, set `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` so the environment variable takes precedence over agent files again, and set `CLAUDE_CODE_SUBAGENT_MODEL` to the one model you want.
 
 Each of these turns the tiering off without an error. If you take one, write it down where the team will see it, because the first sign otherwise is a bill or a weak architecture note.

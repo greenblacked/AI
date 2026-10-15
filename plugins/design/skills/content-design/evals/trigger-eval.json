@@ -13,7 +13,7 @@
   {"query": "review this checkout screen for usability problems, people abandon at the last step", "should_trigger": false, "expected": "ui-ux-review"},
   {"query": "audit our forms against WCAG, especially the label and error associations", "should_trigger": false, "expected": "accessibility-audit"},
   {"query": "define the colour and spacing tokens for our design system", "should_trigger": false, "expected": "design-system"},
-  {"query": "write the marketing tagline and homepage hero headline", "should_trigger": false},
+  {"query": "should this form validate on blur or on submit, and where do the errors go", "should_trigger": false, "expected": "form-design"},
   {"query": "write a playwright test that asserts the exact error message text", "should_trigger": false, "expected": "e2e-testing"},
   {"query": "build a settings page with a form that saves preferences", "should_trigger": false, "expected": "code-scaffold"},
   {"query": "plan a usability test with five users on the new onboarding", "should_trigger": false, "expected": "usability-test-plan"},

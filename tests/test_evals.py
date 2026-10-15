@@ -8,6 +8,9 @@ like measurement while measuring nothing.
 from __future__ import annotations
 
 import json
+from pathlib import Path
+
+import pytest
 
 from skillcheck.rules import ERROR, WARNING, check_evals
 
@@ -346,3 +349,19 @@ def test_punctuation_removal_whitespace_is_a_cross_skill_conflict(tmp_path):
         tmp_path, "engineering", "beta", [{"query": "Ship — it", "should_trigger": True}]
     )
     assert [f.code for f in check_eval_conflicts([a, b], tmp_path)] == ["conflicting-eval-query"]
+
+
+@pytest.mark.parametrize(
+    ("skill", "neighbour"), [("form-design", "content-design"), ("content-design", "form-design")]
+)
+def test_form_design_and_content_design_cede_to_each_other(skill, neighbour):
+    # Both covered field labels and error messages, each with positives for the overlap
+    # and neither naming the other: form-design owns structure and timing, content-design
+    # the words. Each says so and has a negative routed to the other.
+    root = Path(__file__).resolve().parent.parent / "plugins" / "design" / "skills" / skill
+    text = (root / "SKILL.md").read_text(encoding="utf-8")
+    description = text.split("description:", 1)[1].split("\n", 1)[0]
+    scope = text.split("Do not use for:", 1)[1].split("\n\n", 1)[0]
+    assert f"({neighbour})" in description and f"`{neighbour}`" in scope
+    queries = json.loads((root / "evals" / "trigger-eval.json").read_text(encoding="utf-8"))
+    assert any(q.get("expected") == neighbour and not q["should_trigger"] for q in queries)

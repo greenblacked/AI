@@ -65,7 +65,7 @@ Use to discover the grouping when you do not know it.
 - **Open sort:** participants group items and name the groups. Reveals the users' categories and labels.
 - **Closed sort:** participants place items into groups you define. Tests a proposed taxonomy.
 - Fifteen to thirty items is a workable set; more than that tires participants and blurs the pattern.
-- Five to fifteen participants per round. Record the groups, the names they give and the items that never agree.
+- Five to fifteen participants per round, read qualitatively for the groups people make. Record the groups, the names they give and the items that never agree.
 - Read the result as a signal, not a vote: an item placed in the same wrong group by everyone is telling you the group's name is wrong.
 
 ## Tree test
@@ -75,7 +75,8 @@ Use to test a drafted structure before build.
 - Give participants the tree (labels only, no design) and a task ("Where would you find last month's invoice?").
 - Measure first-click success, path taken and time; first-click is the strongest signal.
 - Write tasks from real user goals, not from the structure's own labels.
-- Ten to fifteen participants per round is enough; run more rounds rather than a bigger one.
+- Ten to fifteen participants per round is enough to find the wrong turns, which is a qualitative read; run more rounds rather than a bigger one while that is the question.
+- A success rate, or a comparison between two trees, is a quantitative claim. Fifteen people give too wide a margin for either, so size that round for the margin you need before you report a percentage.
 - A task everyone fails by going to the same wrong place is a labelling or grouping defect, not a participant error.
 
 ## Search logs and analytics
