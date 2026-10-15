@@ -39,9 +39,11 @@ decided one three weeks later, when it is code and somebody is defending it.
 **Hands on** the must-have list, the acceptance criteria, and the open questions that
 the layout is allowed to answer. Among the criteria, the grey-box ones stage 3 is judged
 against: what result, seen by whom, in how many sessions, means the loop works. When
-`game-greenlight` already sized a prototype for this, carry its brief and criteria
-rather than writing new ones. When nothing did, two or three such criteria are enough
-for a small feature — this is a proportional check, not a greenlight document.
+`game-greenlight` already ran a prototype for this idea, carry forward what it found —
+which criteria it met, on what evidence, and what it left unverified — not its brief:
+that brief scoped a deliberately small risk test, and this feature's criteria are
+written for the feature. Two or three such criteria are enough for a small feature —
+this is a proportional check, not a greenlight document.
 
 ## 2. Lay it out — `game-level-design`
 
@@ -76,7 +78,7 @@ the user.
 **Stop if** the loop fails the grey-box criteria from stage 1. Say which criterion failed
 and on what evidence, and decide with the user between one bounded revision — a named
 change, re-tested against the same criteria — and going back to stage 1 to rethink the
-loop, or to `game-greenlight`'s call when the criteria came from its brief. Do not
+loop. Do not
 continue on the assumption that the art pass will rescue it. If the loop is fine and
 the space around it is not — one route, nowhere to go in a fight, players lost — that is
 stage 2 rather than stage 1. If nobody could play the build, the stage is unverified,
@@ -141,8 +143,8 @@ is why they are named here rather than discovered at submission.
   turns a concept into a decision to build it at all — a pitch, a feasibility read, the
   one riskiest question a prototype should answer, and go, no-go or pivot criteria
   written before the prototype exists. Run it first; `/level` assumes the idea has
-  already cleared that gate, and its prototype brief and criteria carry into stages 1
-  and 3 when it sized one.
+  already cleared that gate. What its prototype found carries into stage 1's criteria;
+  its brief does not, because it scoped a risk test rather than this feature.
 - **Shipping to a console or a store**: `game-certification` owns the submission gate,
   and its calendar — ratings, platform accounts, storefront lead time — is not something
   this chain can compress.
