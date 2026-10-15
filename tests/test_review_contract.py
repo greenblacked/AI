@@ -81,8 +81,8 @@ def test_the_build_loop_branches_from_and_measures_against_dev(path):
     # Feature work lands on dev; main's first-parent history is promotions and release
     # preparation, so a branch cut from main misses everything dev has not promoted yet.
     text = flat(path)
-    # CONTRIBUTING still names origin/main for `make naming` and `make attribution`,
-    # which diff against it; only the build loop's own base is checked there.
+    # CONTRIBUTING still names origin/main, as the base a promotion passes to
+    # `make naming`; only the build loop's own base is checked there.
     if path != "CONTRIBUTING.md":
         assert "origin/main" not in text, path
     assert re.search(r"(?:origin/dev|[Bb]ranch from `dev`)", text), path
