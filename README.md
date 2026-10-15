@@ -7,7 +7,7 @@
 
 # Agent skills
 
-130 agent skills, 27 read-only subagents and nine slash commands, in ten
+130 agent skills, 27 subagents and nine slash commands, in ten
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -93,7 +93,7 @@ team of ten gives each stage a named owner and a handoff contract.
 
 The [`family`](#family) plugin ships the `family-workflow` skill, a skill for each of the
 four profiles — `solo-development`, `developer-workflow`, `qa-workflow` and `team-workflow`
-— and a read-only subagent per stage, `framer`, `architect`, `maker`, `inspector`,
+— and a subagent per stage with no editing tools, `framer`, `architect`, `maker`, `inspector`,
 `launcher` and `yielder`, so the main conversation keeps the conclusion of each stage and
 not the material it read. Six more skills run those agents together: `family-relay`
 routes each verdict to the next stage, `plan-drift-gate` holds a build to its plan before
