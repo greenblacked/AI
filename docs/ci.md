@@ -730,10 +730,16 @@ manifest and lockfile under [`.github/eval-clients/`](../.github/eval-clients) p
 complete npm dependency tree; [`scripts/install_eval_cli.py`](../scripts/install_eval_cli.py)
 checks that every package resolves from the npm registry with a SHA-512 integrity value
 and that the selected CLI version matches the workflow pin before `npm ci` verifies and
-installs the locked tree. The installer rejects root lifecycle scripts and withholds
-GitHub runner command-file variables from npm and its lifecycle scripts before adding
-the CLI's binary directory to the later steps. Only the credential check and scoring
-steps receive model secrets.
+installs the locked tree. It installs with `--ignore-scripts`, so no lifecycle script
+in the tree runs: withholding the runner's command-file variables from npm hides the
+paths but not the runner's file-command directory, and a script that found
+`GITHUB_ENV` could still steer the scoring step. The one script that does run is
+claude-code's own `install.cjs`, which copies the native binary over a placeholder; it
+runs from the integrity-checked package whose binary receives the key anyway, and
+nothing from a dependency runs. Before adding the CLI's binary directory to the later
+steps, the installer fails, with both files emptied, if anything wrote to `GITHUB_ENV`
+or `GITHUB_PATH` during the step. Only the credential check and scoring steps receive
+model secrets.
 
 Neither job is a required check, and that is the design rather than an omission. A trigger
 eval has two halves that cost different amounts. The schema — twenty queries, at least
@@ -978,9 +984,9 @@ attempts, so a server-requested delay long enough on its own could otherwise sti
 past the job's five-minute `timeout-minutes` even though every individual attempt
 respected its own cap. The digest check afterwards runs on whatever arrives,
 retried or not, so a retry that succeeds is verified exactly as a first-try download
-would be. The `evals.yml` jobs install their selected CLI with `npm ci` from a committed integrity
-lockfile, in a step that receives no model credentials; the setup-node npm cache is
-disabled for those jobs. These evaluations are not on the critical path of any gate.
+would be. The `evals.yml` jobs install their selected CLI with `npm ci --ignore-scripts`
+from a committed integrity lockfile, in a step that receives no model credentials; the
+setup-node npm cache is disabled for those jobs. These evaluations are not on the critical path of any gate.
 
 ## Making CI authoritative
 

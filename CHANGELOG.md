@@ -8,6 +8,14 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Security
+
+- Install the eval CLIs in a step with no model credentials, from committed lockfiles
+  with SHA-512 integrity, and with `--ignore-scripts`, so no dependency's install script
+  can read an API key or write `GITHUB_ENV` or `GITHUB_PATH` to steer the scoring step.
+  Only claude-code's own native-binary setup runs, and the install fails if anything
+  wrote step state.
+
 ## [0.1.10] - 2026-10-15
 
 ### Changed

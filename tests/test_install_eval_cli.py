@@ -66,13 +66,20 @@ def test_install_uses_checked_lock_without_credentials_and_exports_cli_path(
 
     installer.install(tmp_path, backend)
 
-    assert calls[0][0][0] == ["/usr/bin/npm", "ci", "--no-audit", "--no-fund"]
+    assert calls[0][0][0] == ["/usr/bin/npm", "ci", "--ignore-scripts", "--no-audit", "--no-fund"]
     assert calls[0][1]["cwd"] == directory
     assert calls[0][1]["timeout"] == 300
     assert "PATH" in calls[0][1]["env"]
     assert not any(key.startswith(("GITHUB_", "RUNNER_", "ACTIONS_")) for key in calls[0][1]["env"])
     assert output.read_text(encoding="utf-8") == str(directory / "node_modules" / ".bin") + "\n"
-    assert len(calls) == 1
+    if backend == "claude":
+        # Only the wrapper's own native-binary step runs, from inside the package.
+        assert len(calls) == 2
+        assert calls[1][0][0] == ["/usr/bin/node", "install.cjs"]
+        assert calls[1][1]["cwd"] == directory / "node_modules" / "@anthropic-ai/claude-code"
+        assert calls[1][1]["env"] == calls[0][1]["env"]
+    else:
+        assert len(calls) == 1
 
 
 def test_install_refuses_scoring_credentials_before_running_npm(tmp_path, monkeypatch):
@@ -133,7 +140,7 @@ def test_install_requires_github_path_before_running_npm(tmp_path, monkeypatch):
 
 def test_committed_cli_locks_match_the_workflow_pins(tmp_path, monkeypatch):
     workflow = (REPO / ".github" / "workflows" / "evals.yml").read_text(encoding="utf-8")
-    monkeypatch.setenv("GITHUB_PATH", str(tmp_path / "github-path"))
+    monkeypatch.setenv("GITHUB_ENV", str(tmp_path / "github-env"))
     for key in installer.CREDENTIALS:
         monkeypatch.delenv(key, raising=False)
     monkeypatch.setattr(installer.shutil, "which", lambda name: "/usr/bin/npm")
@@ -143,6 +150,8 @@ def test_committed_cli_locks_match_the_workflow_pins(tmp_path, monkeypatch):
         match = re.search(rf"^  {variable}: '([^']+)'$", workflow, re.MULTILINE)
         assert match is not None
         monkeypatch.setenv(variable, match.group(1))
+        # Each workflow step gets its own fresh GITHUB_PATH file.
+        monkeypatch.setenv("GITHUB_PATH", str(tmp_path / f"github-path-{backend}"))
         installer.install(REPO, backend)
 
 
@@ -177,3 +186,42 @@ def test_main_reports_an_install_timeout_as_a_failure(monkeypatch, tmp_path, cap
 
     assert installer.main(["codex"]) == 1
     assert "eval CLI installation failed" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("written", ["GITHUB_ENV", "GITHUB_PATH"])
+def test_install_code_that_writes_step_state_fails_and_is_emptied(tmp_path, monkeypatch, written):
+    write_client(tmp_path, "codex")
+    files = {name: tmp_path / name.lower() for name in ("GITHUB_ENV", "GITHUB_PATH")}
+    monkeypatch.setenv("CODEX_VERSION", "1.2.3")
+    for name, path in files.items():
+        monkeypatch.setenv(name, str(path))
+    for key in installer.CREDENTIALS:
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setattr(installer.shutil, "which", lambda name: f"/usr/bin/{name}")
+
+    def npm_that_plants(*args, **kwargs):
+        files[written].write_text("NODE_OPTIONS=--require=/tmp/planted.js\n", encoding="utf-8")
+
+    monkeypatch.setattr(installer.subprocess, "run", npm_that_plants)
+
+    with pytest.raises(ValueError, match="wrote to GITHUB_ENV or GITHUB_PATH"):
+        installer.install(tmp_path, "codex")
+    assert files[written].read_text(encoding="utf-8") == ""
+    # The install's own GITHUB_PATH line is never written when the check fails.
+    path_file = files["GITHUB_PATH"]
+    assert not path_file.exists() or path_file.read_text(encoding="utf-8") == ""
+
+
+def test_claude_install_fails_without_node(tmp_path, monkeypatch):
+    write_client(tmp_path, "claude")
+    monkeypatch.setenv("CLAUDE_CODE_VERSION", "1.2.3")
+    monkeypatch.setenv("GITHUB_PATH", str(tmp_path / "github-path"))
+    for key in installer.CREDENTIALS:
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setattr(
+        installer.shutil, "which", lambda name: "/usr/bin/npm" if name == "npm" else None
+    )
+    monkeypatch.setattr(installer.subprocess, "run", lambda *args, **kwargs: None)
+
+    with pytest.raises(ValueError, match="node is not installed"):
+        installer.install(tmp_path, "claude")

@@ -16,6 +16,10 @@ CLIENTS = {
     "codex": ("@openai/codex", "CODEX_VERSION"),
     "gemini": ("@google/gemini-cli", "GEMINI_CLI_VERSION"),
 }
+# The one install step allowed to run: the claude-code wrapper's own postinstall,
+# which copies the native binary over a placeholder. It runs from the pinned package
+# whose binary receives the scoring key anyway; nothing from a dependency runs.
+OWN_SETUP = {"claude": "install.cjs"}
 CREDENTIALS = (
     "CLAUDE_CODE_OAUTH_TOKEN",
     "ANTHROPIC_API_KEY",
@@ -67,15 +71,47 @@ def install(root: Path, backend: str) -> None:
         if not key.startswith(("GITHUB_", "RUNNER_", "ACTIONS_"))
     }
     # npm ci checks every tarball against the committed lockfile before extracting it.
+    # --ignore-scripts keeps every lifecycle script in the tree from running: hiding the
+    # GITHUB_* variables does not hide the runner's file-command directory, so a script
+    # could still find GITHUB_ENV and steer the scoring step that holds the key.
     subprocess.run(  # noqa: S603 - fixed npm command, checked-in dependency directory
-        [npm, "ci", "--no-audit", "--no-fund"],
+        [npm, "ci", "--ignore-scripts", "--no-audit", "--no-fund"],
         cwd=directory,
         check=True,
         env=npm_env,
         timeout=300,
     )
+    setup = OWN_SETUP.get(backend)
+    if setup:
+        node = shutil.which("node")
+        if node is None:
+            raise ValueError("node is not installed")
+        subprocess.run(  # noqa: S603 - fixed file inside the integrity-checked package
+            [node, setup],
+            cwd=directory / "node_modules" / package,
+            check=True,
+            env=npm_env,
+            timeout=120,
+        )
+    refuse_step_state(github_path, os.environ.get("GITHUB_ENV"))
     with Path(github_path).open("a", encoding="utf-8") as output:
         output.write(str(directory / "node_modules" / ".bin") + "\n")
+
+
+def refuse_step_state(*paths: str | None) -> None:
+    """Fail, with the files emptied, if install code wrote any step state.
+
+    The runner gives each step fresh files and applies them once the step ends, failed
+    or not, so an entry here can only have come from install code. Emptying them first
+    keeps it out of the steps that still run after a failure.
+    """
+    written = [
+        Path(path) for path in paths if path and Path(path).exists() and Path(path).stat().st_size
+    ]
+    if written:
+        for path in written:
+            path.write_text("", encoding="utf-8")
+        raise ValueError("install code wrote to GITHUB_ENV or GITHUB_PATH")
 
 
 def main(argv: list[str] | None = None) -> int:
