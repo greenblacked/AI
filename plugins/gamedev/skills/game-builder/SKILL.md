@@ -32,7 +32,7 @@ Mobile casual/F2P and 2D or small single-player games are most often built at ti
 
 ## Mode A: Build a new game
 
-Steps A1 and A3 are gates. Do not write project code before the user has chosen a concept direction, and do not build anything that is not the core loop before the loop has been played. Rebuilding menus around a mechanic that turned out not to be fun is the most common way a small game is never finished.
+Steps A1 and A3 are gates. Do not write project code before the user has chosen a concept direction, or brought one already chosen, and do not build anything that is not the core loop before the loop has been played. Rebuilding menus around a mechanic that turned out not to be fun is the most common way a small game is never finished.
 
 ### Step A1: Intake
 
@@ -51,11 +51,13 @@ Ask about:
 
 When the user has already answered most of this, confirm the gaps only and state assumptions for anything minor.
 
+A brief can arrive with the direction already approved: a prototype brief from `game-greenlight`, a spec and layout from `/level`, or a design the user has signed off. Intake then reads that brief rather than re-asking it, and confirms only what it leaves open. Keep its non-goals, its budget and its criteria as they were written — they are what the build is judged against, and quietly widening any of them is how a risk test turns back into a demo.
+
 The scope class is the one answer that decides what "done" means, so write it down:
 
 | Scope class | Done means |
 | --- | --- |
-| Mechanic test | One mechanic playable in grey boxes, and a written verdict on whether it is fun |
+| Mechanic test | One mechanic playable in grey boxes, and a written verdict on whether it is fun, naming who played it |
 | Jam entry | One mechanic, a handful of levels or waves, a title, an ending, and a build uploaded before the deadline |
 | Vertical slice | One level at final quality in every dimension: art, audio, feel, teaching |
 | Small complete game | Every screen and level, settings, persistence if the design needs it, published |
@@ -90,6 +92,8 @@ Then stop and ask which one to build. Do not build all three, and do not start o
 
 Before presenting, check each direction against the brief: if it is the generic version of its genre, replace it. Two strong distinct directions beat three where one is filler.
 
+When intake found an approved direction, the choice this gate exists for has already been made. Restate it in the shape above — core loop, feel target, first playable, and the brief's non-goals in place of a trade-off — fill only the minor gaps, state each assumption, and go on to A4. Offering three fresh directions against an approved brief throws away the decision it records. A major decision the brief leaves open — the core verb, the platform or input, the player count, two plausible readings of the same loop — is not approved: present directions for that open part only, then stop and ask, as above, rather than picking one quietly.
+
 ### Step A4: Build the core loop first, in grey boxes
 
 Build in this order, and play after each line:
@@ -107,6 +111,8 @@ Placeholder art is coloured rectangles with a label. Placeholder audio is a gene
 ### Step A5: Play it, then tune feel against numbers
 
 Play the first build for five minutes before changing anything, and write down where confusion, frustration or boredom happened and how long it took to reach the first moment of fun. That note is the design document now.
+
+Keep three kinds of evidence apart, because none proves the others. A successful build shows only that the project built; an executed smoke check supports only the runtime behaviour it actually exercised and asserted, not the whole simulation or how the game plays. Your own self-playtest shows the feel floor and where you, who built it, got lost; it does not show what a player new to it will do. Only watching intended players answers a criterion about them, and nothing short of that supports calling the game fun. When you cannot run the build, play it, or reach the device or players a criterion needs, say so: that claim is unverified, or blocked where the missing access is the reason, not met — record what is missing and the next concrete test that would supply it, and keep going with the work that does not depend on it.
 
 Then meet the feel floor in `references/feel.md`. Read it at this step; it carries the starting values — coyote time, jump buffering, hit-stop duration, camera lookahead — that turn "floaty" and "unresponsive" into specific edits. In summary: actions fire on press, never on release; every player action has a visible and audible response; a death is explicable from what was on screen; restart is one key and under a second; there is no state the player cannot leave.
 
@@ -145,9 +151,14 @@ Ask before producing a build pipeline. Someone who wanted a prototype does not w
 ## Tuning notes
 [The current feel values and what each was tuned against, so the next person can change them with intent.]
 
+## Evidence against the brief
+[Each criterion from the brief, or the scope class's "done means" when there is no brief: the evidence, its kind — build or smoke check, self-playtest, intended players — and its status: met, not met, UNVERIFIED or BLOCKED. For the last two, what is missing and the next test that would supply it.]
+
 ## Known issues and next
 [What was verified, what was not, and the next three things worth building.]
 ```
+
+Report the evidence; leave the go, no-go or pivot call with whoever owns the brief — `game-greenlight` step 7 for a prototype it sized. A criterion marked not met, UNVERIFIED or BLOCKED is reported as that, never rounded up to met.
 
 ## Mode B: Improve an existing game
 

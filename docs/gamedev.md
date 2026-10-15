@@ -57,6 +57,22 @@ go, no-go or pivot call made against criteria written before the prototype exist
 hands a chosen idea to `game-design-doc`, which is where `/level`'s chain below starts,
 and the prototype itself to `game-builder`.
 
+The prototype runs as a handoff in three parts. `game-greenlight` step 6 hands
+`game-builder` a bounded brief — the riskiest question, scope and non-goals, platform and
+input where they matter, a budget, and the go, no-go and pivot criteria with their
+method, observer and threshold. `game-builder` treats that brief as the approved
+direction rather than offering fresh concepts, builds to it, and returns evidence against
+each criterion. `game-greenlight` step 7 makes the call. Evidence comes in three kinds
+that do not substitute for each other: build success shows only that the project built,
+an executed smoke check supports only the runtime behaviour it exercised and asserted,
+and neither establishes how it plays. The developer's self-playtest shows feel and the
+builder's own confusion; only watching intended players answers a criterion about them.
+When a build, a device or players are
+not available, the criterion is reported unverified or blocked, with the next test that
+would settle it, and nothing downstream treats it as passed. `/level` carries the same
+rule through its stages. No subagent here plays or tests a game: `frame-capture-reader`
+reads a capture someone else recorded.
+
 `/level` runs six of the eleven skills in order for one feature or level:
 `game-design-doc` → `game-level-design` → `game-builder` → `game-balance` →
 `game-performance` → `game-assets`, each with a stop condition, each handing the next
