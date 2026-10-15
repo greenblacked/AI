@@ -92,6 +92,32 @@ For several roles, write one file per role in the setup project and select betwe
 
 A shared account breaks when the application has server-side session state: one worker's logout or session refresh invalidates another's, and the resulting failures look exactly like flake. Override the `storageState` fixture at worker scope and key the file on the worker's parallel index, so each worker authenticates once as its own account. Size the account pool to the worker count and provision the accounts as part of environment setup rather than inside the test run.
 
+```ts
+// e2e/fixtures.ts
+import { test as base, expect } from '@playwright/test';
+
+export const test = base.extend<{}, { workerStorageState: string }>({
+  workerStorageState: [async ({ browser }, use, workerInfo) => {
+    const id = workerInfo.parallelIndex;
+    const fileName = `playwright/.auth/user-${id}.json`;
+    const page = await browser.newPage();
+    await page.goto('/login');
+    await page.getByLabel('Email').fill(process.env[`E2E_USER_${id}`] ?? '');
+    await page.getByLabel('Password').fill(process.env[`E2E_PASSWORD_${id}`] ?? '');
+    await page.getByRole('button', { name: 'Sign in' }).click();
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    await page.context().storageState({ path: fileName });
+    await page.close();
+    await use(fileName);
+  }, { scope: 'worker' }],
+  storageState: ({ workerStorageState }, use) => use(workerStorageState),
+});
+
+export { expect } from '@playwright/test';
+```
+
+Import `test` and `expect` from this file rather than from `@playwright/test` so every test inherits its worker's session.
+
 ## Parallelism and workers
 
 - `fullyParallel: true` runs every test in every file in parallel, which is what makes shared state surface. Turning it off to make a suite green hides the coupling rather than removing it.
