@@ -77,7 +77,7 @@ Announce the tier and the one-line reason before building. If the brief sits bet
 
 For tier 2 and above, read `references/engines.md` before writing project files. For tier 4, read its netcode section before agreeing to the scope at all.
 
-### Step A3: Present concept directions, then stop
+### Step A3: Present concept directions, or confirm the approved one, then stop
 
 Produce **two or three genuinely different directions**, not one idea with three names. Each direction gets:
 
@@ -112,7 +112,7 @@ Placeholder art is coloured rectangles with a label. Placeholder audio is a gene
 
 Play the first build for five minutes before changing anything, and write down where confusion, frustration or boredom happened and how long it took to reach the first moment of fun. That note is the design document now.
 
-Keep three kinds of evidence apart, because none proves the others. A successful build shows only that the project built; an executed smoke check supports only the runtime behaviour it actually exercised and asserted, not the whole simulation or how the game plays. Your own self-playtest shows the feel floor and where you, who built it, got lost; it does not show what a player new to it will do. Only watching intended players answers a criterion about them, and nothing short of that supports calling the game fun. When you cannot run the build, play it, or reach the device or players a criterion needs, say so: that claim is unverified, or blocked where the missing access is the reason, not met — record what is missing and the next concrete test that would supply it, and keep going with the work that does not depend on it.
+Keep three kinds of evidence apart, because none proves the others. A successful build shows only that the project built; an executed smoke check supports only the runtime behaviour it actually exercised and asserted, not the whole simulation or how the game plays. Your own self-playtest shows the feel floor and where you, who built it, got lost; it does not show what a player new to it will do. Only watching intended players answers a criterion about them, and nothing short of that supports calling the game fun for them. When you cannot run the build, play it, or reach the device or players a criterion needs, say so: that claim is unverified, or blocked where the missing access is the reason, not met — record what is missing and the next concrete test that would supply it, and keep going with the work that does not depend on it.
 
 Then meet the feel floor in `references/feel.md`. Read it at this step; it carries the starting values — coyote time, jump buffering, hit-stop duration, camera lookahead — that turn "floaty" and "unresponsive" into specific edits. In summary: actions fire on press, never on release; every player action has a visible and audible response; a death is explicable from what was on screen; restart is one key and under a second; there is no state the player cannot leave.
 
@@ -152,13 +152,13 @@ Ask before producing a build pipeline. Someone who wanted a prototype does not w
 [The current feel values and what each was tuned against, so the next person can change them with intent.]
 
 ## Evidence against the brief
-[Each criterion from the brief, or the scope class's "done means" when there is no brief: the evidence, its kind — build or smoke check, self-playtest, intended players — and its status: met, not met, UNVERIFIED or BLOCKED. For the last two, what is missing and the next test that would supply it.]
+[Each criterion from the brief, or the scope class's "done means" when there is no brief: the evidence, its kind — build or smoke check, self-playtest, intended players — and its status: met, not met, unverified or blocked. For the last two, what is missing and the next test that would supply it.]
 
 ## Known issues and next
 [What was verified, what was not, and the next three things worth building.]
 ```
 
-Report the evidence; leave the go, no-go or pivot call with whoever owns the brief — `game-greenlight` step 7 for a prototype it sized. A criterion marked not met, UNVERIFIED or BLOCKED is reported as that, never rounded up to met.
+Report the evidence; leave the go, no-go or pivot call with whoever owns the brief — `game-greenlight` step 7 for a prototype it sized. A criterion marked not met, unverified or blocked is reported as that, never rounded up to met.
 
 ## Mode B: Improve an existing game
 

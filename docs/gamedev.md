@@ -67,10 +67,9 @@ that do not substitute for each other: build success shows only that the project
 an executed smoke check supports only the runtime behaviour it exercised and asserted,
 and neither establishes how it plays. The developer's self-playtest shows feel and the
 builder's own confusion; only watching intended players answers a criterion about them.
-When a build, a device or players are
-not available, the criterion is reported unverified or blocked, with the next test that
-would settle it, and nothing downstream treats it as passed. `/level` carries the same
-rule through its stages. No subagent here plays or tests a game: `frame-capture-reader`
+When a build, a device or players are not available, the criterion is reported
+unverified or blocked, with the next test that would settle it, and nothing downstream
+treats it as passed. `/level` carries the same rule through its stages. No subagent here plays or tests a game: `frame-capture-reader`
 reads a capture someone else recorded.
 
 `/level` runs six of the eleven skills in order for one feature or level:
