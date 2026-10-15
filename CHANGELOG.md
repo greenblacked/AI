@@ -459,6 +459,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Run `make naming` and `make attribution` against `origin/dev`, the base a feature pull
+  request targets, as CI does; they diffed against `origin/main`, so every commit on `dev`
+  not yet promoted was checked as the branch's own. A promotion passes its own base,
+  `make naming BASE=origin/main`. `check_attribution.py`'s default range follows.
 - Stop a FAMILY stage row from vanishing for a second when it is opened and then left:
   its entrance animation no longer replays when focus moves away.
 - Split field labels and error messages between `form-design` and `content-design`.
