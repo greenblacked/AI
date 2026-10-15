@@ -459,4 +459,4 @@ def test_main_defaults_the_range_to_origin_main_head(repo, monkeypatch):
 
     monkeypatch.setattr(attribution, "check", fake_check)
     assert attribution.main([str(repo)]) == 0
-    assert captured["range"] == "origin/main..HEAD"
+    assert captured["range"] == "origin/dev..HEAD"

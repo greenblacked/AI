@@ -28,12 +28,12 @@ phrases built around them are assembled from fragments rather than written out w
 that a script whose entire purpose is finding this text does not itself become a copy of
 it sitting in the tree.
 
-This needs a commit range to mean anything — the default, `origin/main..HEAD`, is a
-pull request's own commits against the branch it targets — so it is not part of
+This needs a commit range to mean anything — the default, `origin/dev..HEAD`, is a
+feature pull request's own commits against `dev`, the branch it targets — so it is not part of
 `make catalogue`, which runs with nothing but the working tree. `.github/workflows/ci.yml`
 supplies the range, the head branch and the pull request's title and body as a job on
 every pull request; `make attribution` reproduces the commit and branch checks locally
-against `origin/main`, and the pull request title and body are checked only in CI.
+against `origin/dev` (or `BASE=`), and the pull request title and body are checked only in CI.
 
 Standard library only, like the checks it sits beside. It shells out to `git log`, the
 only way to read commit trailers, authors and committers without a third-party library,
@@ -268,8 +268,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--range",
         dest="commit_range",
-        default="origin/main..HEAD",
-        help="git log range to scan (default: origin/main..HEAD)",
+        default="origin/dev..HEAD",
+        help="git log range to scan (default: origin/dev..HEAD)",
     )
     args = parser.parse_args(argv)
     return check(
