@@ -196,6 +196,30 @@ def test_reviewer_dependencies_match_ci_and_follow_scoring_gates():
         assert f'"{package}==${{{version}}}"' in script, package
 
 
+def test_eval_cli_installation_never_receives_scoring_credentials():
+    text = WORKFLOW.read_text(encoding="utf-8")
+    boundaries = [
+        ("- name: Install the eval CLI", "- name: Score the eval sets"),
+        ("- name: Install the changed-target eval CLI", "- name: Score each target"),
+        ("- name: Install the reviewer eval CLI", "- name: Benchmark the reviewer"),
+    ]
+    for install_name, score_name in boundaries:
+        install_step = text.split(install_name, 1)[1].split(score_name, 1)[0]
+        assert "scripts/install_eval_cli.py" in install_step
+        assert "${{ secrets." not in install_step
+        assert "npm install" not in install_step
+        assert "npm ci" not in install_step
+
+    for score_name in (
+        "- name: Score the eval sets",
+        "- name: Score each target",
+        "- name: Benchmark the reviewer",
+    ):
+        score_step = text.split(score_name, 1)[1].split("\n      - ", 1)[0]
+        assert "${{ secrets." in score_step
+        assert "npm install" not in score_step
+
+
 @pytest.mark.parametrize("event", ["pull_request", "schedule", "workflow_dispatch"])
 @pytest.mark.parametrize("credential", [False, True])
 def test_reviewer_credential_gate_preserves_stand_down(tmp_path, event, credential):

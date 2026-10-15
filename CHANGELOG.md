@@ -29,6 +29,13 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   the worker-scoped session is concrete, and fold application-caching's duplicated
   rollout and rollback steps into its failure-and-rollout reference.
 
+### Security
+
+- Install the eval CLIs from committed, integrity-locked npm trees with lifecycle
+  scripts disabled, in a step that holds no model credentials. Previously a package
+  install script ran in, or on the same runner state as, the step that held the API
+  keys.
+
 ## [0.1.10] - 2026-10-15
 
 ### Changed
