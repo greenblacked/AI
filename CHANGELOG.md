@@ -8,6 +8,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Changed
+
+- Document merging `main` back into `dev` after every release, so dev carries the
+  dated changelog and the action bumps that land only on `main`.
+
 ## [0.1.9] - 2026-10-15
 
 ### Added
