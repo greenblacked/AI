@@ -100,7 +100,12 @@ export const test = base.extend<{}, { workerStorageState: string }>({
   workerStorageState: [async ({ browser }, use, workerInfo) => {
     const id = workerInfo.parallelIndex;
     const fileName = `playwright/.auth/user-${id}.json`;
-    const page = await browser.newPage();
+    // A page from `browser` gets none of the project's `use` options, so pass the
+    // base URL in, and start from no stored session.
+    const page = await browser.newPage({
+      storageState: undefined,
+      baseURL: workerInfo.project.use.baseURL,
+    });
     await page.goto('/login');
     await page.getByLabel('Email').fill(process.env[`E2E_USER_${id}`] ?? '');
     await page.getByLabel('Password').fill(process.env[`E2E_PASSWORD_${id}`] ?? '');

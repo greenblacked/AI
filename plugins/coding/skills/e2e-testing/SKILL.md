@@ -38,15 +38,17 @@ done < "$out/ids"
 
 # One row per test: how often it ran, and how often it did not pass cleanly on the
 # first attempt. Playwright's per-test status is one of expected, unexpected, flaky
-# or skipped, so a skip is excluded rather than counted as unclean. Confirm the
-# report shape with `jq keys` before trusting the path.
+# or skipped. A skip is dropped before counting, from the runs as well as the
+# unclean results, so a mostly skipped test is not diluted into looking stable.
+# Confirm the report shape with `jq keys` before trusting the path.
 jq -s '
   [ .[] | .. | objects | select(has("specs")) | .specs[]
     | { test: (.file + " :: " + .title), status: (.tests[0].status // "unknown") } ]
+  | map(select(.status != "skipped"))
   | group_by(.test)
   | map({ test: .[0].test,
           runs: length,
-          unclean: ([ .[] | select(.status != "expected" and .status != "skipped") ] | length) })
+          unclean: ([ .[] | select(.status != "expected") ] | length) })
   | map(. + { rate: (.unclean / .runs) })
   | sort_by(-.rate)
 ' "$out"/*/*.json
