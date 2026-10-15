@@ -459,6 +459,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Stop the README calling the subagents read-only: some hold `Bash`, so it now counts
+  them as subagents and says each FAMILY stage agent has no editing tools, as the site does.
 - Run `make naming` and `make attribution` against `origin/dev`, the base a feature pull
   request targets, as CI does; they diffed against `origin/main`, so every commit on `dev`
   not yet promoted was checked as the branch's own. A promotion passes its own base,
