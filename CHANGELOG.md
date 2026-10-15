@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-10-15
+
 ### Added
 
 - Smooth the day and night switch: the new theme now spreads from the switch with a soft,
@@ -723,7 +725,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/greenblacked/AI/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/greenblacked/AI/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/greenblacked/AI/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/greenblacked/AI/compare/v0.1.5...v0.1.6
