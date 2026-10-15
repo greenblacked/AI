@@ -20,6 +20,15 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   alternatives to `flock` and `sha256sum`, and keep agent-delegation's brief template
   in one place.
 
+### Changed
+
+- Add worked examples and concrete numbers to the coding agent skills: a task-graph
+  example in agent-orchestration, a filled checkpoint contract in agent-handoff,
+  rerun counts in agent-failure-diagnosis, and delegation sizing figures.
+- Show the per-worker `storageState` fixture in e2e-testing's Playwright reference so
+  the worker-scoped session is concrete, and fold application-caching's duplicated
+  rollout and rollback steps into its failure-and-rollout reference.
+
 ## [0.1.10] - 2026-10-15
 
 ### Changed
