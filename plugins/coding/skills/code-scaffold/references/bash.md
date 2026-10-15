@@ -245,7 +245,7 @@ The lock releases when the descriptor closes, so it survives a `kill -9` where a
 file would not. Exit `0` if an overlap is routine, or a distinct code if the caller
 should treat it as notable.
 
-`flock` is util-linux: present on Linux, absent from macOS and from many BusyBox images.
+`flock` is util-linux: present on Linux, absent from macOS and from minimal images built without it.
 Where it is missing, `mkdir "$LOCK_DIR" 2>/dev/null || exit 0` is atomic on every POSIX
 filesystem and portable — pair it with a `trap` that removes the directory and a
 staleness check on its age, since a `kill -9` leaves it behind.

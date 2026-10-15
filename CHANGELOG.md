@@ -8,6 +8,18 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Fixed
+
+- Correct stale technical claims across the coding skills: the `Deprecation`,
+  `Sunset` and `RateLimit` headers in api-design, the Playwright version and flake
+  count in e2e-testing, the retired OpenAI Evals platform, what a `PostToolUse` hook
+  can stop, staticcheck's SA1019, and the refactoring research citation.
+- Pin website-builder's CI example to commit SHAs with read-only permissions, job
+  timeouts and a preview URL the Lighthouse job can actually reach.
+- Give website-builder the `Scope` section its siblings have, note the macOS
+  alternatives to `flock` and `sha256sum`, and keep agent-delegation's brief template
+  in one place.
+
 ## [0.1.10] - 2026-10-15
 
 ### Changed

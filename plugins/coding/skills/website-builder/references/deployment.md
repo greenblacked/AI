@@ -193,8 +193,9 @@ jobs:
         with: { persist-credentials: false }
       - uses: treosh/lighthouse-ci-action@3e7e23fb74242897f95c0ba9cabad3d0227b9b18 # 12.6.2
         with:
-          # On a pull request, point this at the preview URL your host builds for the
-          # branch; the fallback keeps the example runnable without one.
+          # Set the PREVIEW_URL variable to a stable staging URL. A per-branch preview
+          # URL has to come from the preview deploy job's output instead; the
+          # fallback keeps the example runnable without either.
           urls: ${{ vars.PREVIEW_URL || 'https://example.com' }}
           budgetPath: ./lighthouse-budget.json
           uploadArtifacts: true

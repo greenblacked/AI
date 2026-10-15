@@ -137,8 +137,8 @@ RateLimit: "default";r=42;t=30
 ```
 
 The names come from `draft-ietf-httpapi-ratelimit-headers`: `q` is the quota, `w`
-the window in seconds, `r` the remaining quota and `t` the seconds until it
-resets. `Retry-After` still takes precedence when both are present. The widely
+the window in seconds, `r` the remaining quota and `t` the effective window in
+seconds, the time over which that remaining quota can be used. `Retry-After` still takes precedence when both are present. The widely
 deployed `X-RateLimit-*` family is vendor-specific and predates the draft; do not
 present it as the standard.
 
