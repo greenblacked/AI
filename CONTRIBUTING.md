@@ -18,8 +18,10 @@ make attribution
 
 These are what CI runs. `make lint` runs ruff, markdownlint, yamllint, actionlint and
 codespell when they are installed and tells you the install command when they are not.
-`make naming` and `make attribution` diff against `origin/main` to check the branch name
-and commit subjects, and commits for tool attribution; the pull request title and body
+`make naming` and `make attribution` diff against `origin/dev`, the base a feature pull
+request targets, to check the branch name and commit subjects, and commits for tool
+attribution; on a promotion branch pass the base it targets, as in
+`make naming BASE=origin/main`; the pull request title and body
 are checked only in CI, once the pull request exists.
 
 `make catalogue` is the one that fails on work that feels finished. A new skill has no row
@@ -86,7 +88,9 @@ Releases are git tags, cut by the maintainer in two steps documented in
 [docs/ci.md#releasing-a-version](docs/ci.md#releasing-a-version):
 `make release-prepare VERSION=x.y.z` on the branch that promotes `stage` into `main`,
 then Cut release (or `make release VERSION=x.y.z`) on `main` once that promotion has
-merged. A new pull request should add its entry under
+merged. After every release `main` is merged back into `dev` with a merge commit, so
+`dev` carries the dated changelog and any bumps that landed only on `main`. A new pull
+request should add its entry under
 `## [Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md) rather than to a version section,
 since the version and its date are only decided at release time.
 
@@ -149,7 +153,7 @@ prefix and are not re-checked, since only a pull request's own range is scanned)
 and on the pull request's own title, in the `naming` job; a merge commit and anything
 from Dependabot are exempt, since neither subject was written by a person choosing a
 convention. `make naming` reproduces the commit-subject check locally, against
-`origin/main`; the pull request's own title is checked only in CI, once the pull request
+`origin/dev` or the `BASE` you pass; the pull request's own title is checked only in CI, once the pull request
 exists.
 
 ## Naming
@@ -169,7 +173,7 @@ File names are checked on every event `ci` runs for, against every file `git ls-
 tracks rather than only what a pull request changed — unlike the branch and commit
 checks above, which need a base ref and pull request text and so only run on a pull
 request. `make naming` reproduces the file-name, branch and commit checks locally,
-against `origin/main`; the pull request title is checked only in CI, once the pull
+against `origin/dev` or the `BASE` you pass; the pull request title is checked only in CI, once the pull
 request exists. Code identifiers are a separate, existing gate rather than a fifth thing
 this script checks:
 ruff's `pep8-naming` (`N`) runs in `python security lint`, because that job already reads

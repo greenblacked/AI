@@ -534,6 +534,37 @@ def test_the_profile_picker_is_four_radios_in_a_labelled_group_with_no_default(m
     assert '.family-flow:has(input[value="developer"]:checked)' in css and "@@" not in css
 
 
+def test_the_family_page_keeps_every_decision_the_routing_contract_keeps():
+    # family-relay's routing table is the contract. Where it routes a verdict through a
+    # person first (accept the slice, accept the approach, the go or no-go), the page has
+    # to say so too, or a visitor following the page skips a decision the workflow keeps.
+    routing = (REPO / "plugins/family/skills/family-relay/references/routing.md").read_text(
+        encoding="utf-8"
+    )
+    rows = {}
+    for line in routing.splitlines():
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        if len(cells) == 4 and cells[1].startswith("`"):
+            stage = cells[0].split(",")[0]
+            rows.setdefault((stage, cells[1].split("`")[1]), cells[2])
+    gates = {
+        "accepts the slice": "accepts the slice",
+        "accepts the approach": "accepts the approach",
+        "go or no-go": "go or no-go",
+    }
+    checked = 0
+    for detail in site.FAMILY_DETAILS.values():
+        for word, target in detail["verdicts"]:
+            contract = rows.get((detail["agent"], word))
+            if contract is None:
+                continue
+            checked += 1
+            for phrase, wording in gates.items():
+                if phrase in contract:
+                    assert wording in target, (detail["agent"], word, target)
+    assert checked >= 15
+
+
 def test_the_slice_checklist_has_one_box_per_gate_and_a_script_that_survives_no_storage(
     mini_repo, tmp_path
 ):
@@ -548,6 +579,19 @@ def test_the_slice_checklist_has_one_box_per_gate_and_a_script_that_survives_no_
     for call in re.findall(r"localStorage\.\w+", script):
         before = script.split(call, 1)[0]
         assert before.rfind("try {") > before.rfind("} catch"), call
+
+
+def test_the_family_page_never_calls_its_agents_read_only(mini_repo, tmp_path):
+    # The inspector holds Bash, which can change a checkout without an editing tool, so
+    # the page names the real boundary: no editing tools, and checks only on owned work.
+    _with_family(mini_repo)
+    page = (_build(mini_repo, tmp_path) / "family" / "index.html").read_text(encoding="utf-8")
+    # The subagents section renders only when the plugin ships agents, as it does here.
+    assert '<ul class="family-agents">' in page
+    assert "read-only" not in page
+    assert "subagent per stage with no editing tools" in page
+    assert "One per stage, none with editing tools" in page
+    assert "runs checks only on a change the owner wrote" in page
 
 
 def test_the_family_example_walks_one_slice_through_all_six_stages(mini_repo, tmp_path):
