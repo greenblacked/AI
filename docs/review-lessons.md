@@ -852,3 +852,23 @@ a double-quoted command, so only NUL-delimited listings and canonical names
 command.
 
 **First caught:** #165, the automated PR reviewer.
+
+### A rename hides a deleted path from a path allowlist
+
+**Class.** A check that decides what a change touched from a path listing that git has
+already collapsed, so the side of a rename the check most needed to see is missing.
+
+**How it shows up.** The contributor-review rules listed changed paths with `git diff -z
+--name-only` and `--raw`, which run with rename detection on. `git mv
+tests/test_a.py docs/test_a.md` then lists only `docs/test_a.md`, or one `R100` record,
+so the change passes the safe-name check and the inert-content allowlist while a test is
+gone.
+
+**The check that catches it.** Every contributor-mode diff that lists paths in
+`reviewer.md`, `investigator.md`, `/ship`, `/verify`, `docs/chatgpt-agents.md` and
+`docs/using.md` passes `--no-renames`, so a rename is a deletion plus an addition and the
+deleted path meets the allowlist. Only prose enforces this; the
+`rename-hides-deleted-test` benchmark case checks that `reviewer` still notices a test
+moved into `docs/` under a documentation-only intent.
+
+**First caught:** the review of 10f7d9a..9c25708, by an automated reviewer.

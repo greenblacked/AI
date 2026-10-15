@@ -7,6 +7,7 @@ hold in the happy path.
 
 from __future__ import annotations
 
+import hashlib
 import html
 import http.server
 import json
@@ -156,6 +157,11 @@ def _live_tags(page):
         ("style", site.site_style.CSS.strip()),
         ("script", site.site_style.HEAD_SCRIPT.strip()),
         ("script", site.site_style.PAGE_SCRIPT.strip()),
+        ("script", site.site_style.FAMILY_SCRIPT.strip()),
+        ("script", site.site_offline.REGISTER_SCRIPT.strip()),
+        # The offline page's own style and script, which no other page carries.
+        ("style", site.site_offline.OFFLINE_CSS.strip()),
+        ("script", site.site_offline.render_offline_script().strip()),
     }
     parser = _TagParser()
     parser.feed(page)
@@ -174,7 +180,7 @@ SAFE_TAGS = {
     "footer", "div", "p", "section", "h1", "h2", "h3", "h4", "h5", "h6", "span", "ul",
     "ol", "li", "pre", "code", "strong", "em", "br", "hr", "table", "thead", "tbody",
     "tr", "th", "td", "blockquote", "label", "input", "link", "svg", "path", "circle", "g",
-    "article",
+    "article", "details", "summary", "dl", "dt", "dd", "fieldset", "legend", "form", "noscript",
 }  # fmt: skip
 
 
@@ -187,6 +193,7 @@ BACK = '<a class="back" href="{}" data-back>' + site.BACK_ICON + "<span>Back</sp
         ("plugins/engineering/index.html", "/"),
         ("plugins/engineering/alpha/index.html", "/plugins/engineering/"),
         ("family/index.html", "/"),
+        ("family/example/index.html", "/family/"),
         ("start/index.html", "/"),
         ("workflows/index.html", "/"),
         ("examples/index.html", "/"),
@@ -233,6 +240,7 @@ TO_TOP = (
         ("plugins/engineering/index.html", "/"),
         ("plugins/engineering/alpha/index.html", "/plugins/engineering/"),
         ("family/index.html", "/"),
+        ("family/example/index.html", "/family/"),
         ("start/index.html", "/"),
         ("quality/index.html", "/"),
         ("404.html", "/"),
@@ -268,8 +276,14 @@ def test_every_page_names_the_tab_and_home_screen_icons_and_both_ship(mini_repo,
         data = (output / name).read_bytes()
         assert data[:8] == b"\x89PNG\r\n\x1a\n", name
         assert struct.unpack(">II", data[16:24]) == (size, size), name
-    pages = sorted(output.rglob("*.html"))
+    # The pages under errors/ are shown on their own, in place of a failing page, so they
+    # carry no link to a file on the site: their icon is a data URI, checked below.
+    pages = sorted(p for p in output.rglob("*.html") if p.parent.name != "errors")
     assert len(pages) > 5
+    for page in (output / "errors").glob("*.html"):
+        head = page.read_text(encoding="utf-8").split("</head>", 1)[0]
+        assert head.count('<link rel="icon" href="data:image/svg+xml,') == 1, page
+        assert "/favicon.png" not in head and "apple-touch-icon" not in head, page
     links = (
         '<link rel="icon" href="/favicon.png" type="image/png" sizes="64x64">',
         '<link rel="apple-touch-icon" href="/apple-touch-icon.png">',
@@ -280,28 +294,320 @@ def test_every_page_names_the_tab_and_home_screen_icons_and_both_ship(mini_repo,
             assert head.count(link) == 1, (page, link)
 
 
-def test_the_family_plugin_page_opens_on_the_typed_word_and_links_the_guide(mini_repo, tmp_path):
+def _font_urls(page: str) -> set[str]:
+    """Every font address a page names: its preloads and the url() of each @font-face."""
+    urls = set(re.findall(r'<link rel="preload" href="([^"]+)" as="font"', page))
+    for face in re.findall(r"@font-face\s*\{[^}]*\}", page):
+        urls.update(re.findall(r"url\(([^)]+)\)", face))
+    return urls
+
+
+def test_no_built_page_asks_a_font_host_for_anything(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    texts = [p for p in output.rglob("*") if p.suffix in (".html", ".txt", ".json", ".css")]
+    assert len(texts) > 5
+    for path in texts:
+        text = path.read_text(encoding="utf-8")
+        assert "fonts.googleapis.com" not in text, path
+        assert "fonts.gstatic.com" not in text, path
+    # The pages the visitor reads each name the sans and open no connection ahead of time.
+    pages = [p for p in output.rglob("*.html") if p.parent.name != "errors"]
+    assert len(pages) > 5
+    for path in pages:
+        text = path.read_text(encoding="utf-8")
+        assert "preconnect" not in text and '<link rel="stylesheet"' not in text, path
+        assert f'href="{site.site_style.SANS_URL}"' in text, path
+
+
+def test_every_font_a_page_names_exists_in_the_build_and_is_a_real_woff2(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    pages = [p for p in output.rglob("*.html") if p.parent.name != "errors"]
+    seen = set()
+    for path in pages:
+        urls = _font_urls(path.read_text(encoding="utf-8"))
+        # The stylesheet declares both faces, so every page names at least the pair.
+        assert {site.site_style.SANS_URL, site.site_style.SERIF_URL} <= urls, path
+        for url in urls:
+            # Absolute, because the 404 page is served from whatever depth was asked for.
+            assert url.startswith("/fonts/"), (path, url)
+            assert (output / url.lstrip("/")).is_file(), (path, url)
+            seen.add(url)
+    for url in seen:
+        assert (output / url.lstrip("/")).read_bytes()[:4] == b"wOF2", url
+
+
+def test_the_card_and_prose_pages_preload_the_serif_and_others_do_not(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    sans, serif = site.site_style.SANS_URL, site.site_style.SERIF_URL
+    for path in (output / "index.html", output / "plugins" / "engineering" / "index.html"):
+        preloaded = re.findall(r'<link rel="preload" href="([^"]+)"', path.read_text("utf-8"))
+        assert preloaded[0] == sans
+    index = re.findall(
+        r'<link rel="preload" href="([^"]+)"', (output / "index.html").read_text("utf-8")
+    )
+    assert index == [sans, serif]
+    skill = (output / "plugins" / "engineering" / "alpha" / "index.html").read_text("utf-8")
+    assert re.findall(r'<link rel="preload" href="([^"]+)"', skill) == [sans, serif]
+    assert site._font_preloads("<p>plain</p>").count("<link") == 1
+    for tag in re.findall(r"<link rel=\"preload\"[^>]*>", site._font_preloads('class="card"')):
+        # crossorigin is not optional: a font preload without it is fetched a second time.
+        assert 'as="font"' in tag and 'type="font/woff2"' in tag and tag.endswith("crossorigin>")
+
+
+def test_font_file_names_carry_a_hash_of_their_bytes(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    fonts = output / "fonts"
+    names = sorted(p.name for p in fonts.iterdir())
+    assert len(names) == 4
+    for built in fonts.iterdir():
+        stem, digest, suffix = built.name.rsplit(".", 2)
+        assert re.fullmatch(r"[0-9a-f]{10}", digest), built.name
+        assert hashlib.sha256(built.read_bytes()).hexdigest().startswith(digest), built.name
+    # The names in the stylesheet are those hashed names, not the source ones.
+    assert site.site_style.SANS_FILE in names and site.site_style.SERIF_FILE in names
+    assert "instrument-sans-latin.woff2" not in names
+
+
+def test_the_headers_file_caches_the_fonts_for_a_year_and_never_the_worker(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    assert (output / "_headers").read_text(encoding="utf-8") == (
+        "/fonts/*\n  Cache-Control: public, max-age=31536000, immutable\n"
+        "/sw.js\n  Cache-Control: no-cache\n"
+    )
+    # Cloudflare reads _headers and _redirects at upload and does not serve them.
+    assert (output / "_redirects").is_file()
+
+
+def test_each_font_ships_with_its_licence_and_the_upstream_copyright_line(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    licences = {
+        site.site_style.SANS_LICENCE: (
+            "Copyright 2022 The Instrument Sans Project Authors "
+            "(https://github.com/Instrument/instrument-sans)"
+        ),
+        site.site_style.SERIF_LICENCE: (
+            "Copyright 2020 The Newsreader Project Authors "
+            "(http://github.com/productiontype/Newsreader)"
+        ),
+    }
+    for name, copyright_line in licences.items():
+        text = (output / "fonts" / name).read_text(encoding="utf-8")
+        assert text.startswith(copyright_line + "\n"), name
+        assert "SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007" in text, name
+        assert "PERMISSION & CONDITIONS" in text, name
+    # The stylesheet points at them, so the licence is findable from the page that uses it.
+    page = (output / "index.html").read_text(encoding="utf-8")
+    for name in licences:
+        assert f"/fonts/{name}" in page
+    notice = (REPO / "NOTICE").read_text(encoding="utf-8")
+    for copyright_line in licences.values():
+        assert copyright_line in notice
+
+
+def test_the_committed_font_files_are_the_ones_the_licences_describe():
+    # Each woff2 is Google's latin subset of a variable font, so its name table holds the
+    # same copyright line as the licence beside it.
+    for font, licence in (
+        ("instrument-sans-latin.woff2", "OFL-instrument-sans.txt"),
+        ("newsreader-latin.woff2", "OFL-newsreader.txt"),
+    ):
+        assert (site.site_style.FONT_DIR / font).read_bytes()[:4] == b"wOF2"
+        first = (site.site_style.FONT_DIR / licence).read_text(encoding="utf-8").splitlines()[0]
+        assert first.startswith("Copyright ") and "Project Authors" in first
+
+
+def test_a_missing_font_is_refused_before_the_previous_build_is_touched(
+    mini_repo, tmp_path, monkeypatch
+):
+    output = _build(mini_repo, tmp_path)
+    before = sorted(p.relative_to(output) for p in output.rglob("*"))
+    monkeypatch.setattr(site.site_style, "FONT_DIR", tmp_path / "no-fonts")
+    with pytest.raises(SystemExit, match="cannot read the site font file"):
+        site.build(mini_repo, output, "v2")
+    assert sorted(p.relative_to(output) for p in output.rglob("*")) == before
+    assert (output / "version.txt").read_text(encoding="utf-8") != "v2\n"
+
+
+def _with_family(mini_repo):
+    """The mini repository plus a family plugin: two skills and two stage agents."""
     family = mini_repo / "plugins" / "family"
     (family / ".claude-plugin").mkdir(parents=True)
     (family / ".claude-plugin" / "plugin.json").write_text("{}", encoding="utf-8")
-    write_skill(mini_repo, "family", "relay", evals=eval_set("relay"))
+    write_skill(mini_repo, "family", "family-workflow", evals=eval_set("family-workflow"))
+    write_skill(mini_repo, "family", "qa-workflow", evals=eval_set("qa-workflow"))
+    (family / "agents").mkdir()
+    for name, text in (
+        ("inspector", "Inspect a change against its frame — run the checks. Use when ready."),
+        ("framer", "Turn a vague request into a frame. Use when a request arrives."),
+    ):
+        (family / "agents" / f"{name}.md").write_text(
+            f"---\nname: {name}\ndescription: {text}\n---\n\nBody.\n", encoding="utf-8"
+        )
     manifest = mini_repo / ".claude-plugin" / "marketplace.json"
     data = json.loads(manifest.read_text(encoding="utf-8"))
     data["plugins"].append({"name": "family", "source": "./plugins/family"})
     manifest.write_text(json.dumps(data), encoding="utf-8")
+
+
+def test_the_family_plugin_has_no_page_of_its_own_and_its_address_redirects(mini_repo, tmp_path):
+    _with_family(mini_repo)
     output = _build(mini_repo, tmp_path)
-    page = (output / "plugins" / "family" / "index.html").read_text(encoding="utf-8")
-    heading = re.search(r'<h1 class="title family-word">(.*?)</h1>', page).group(1)
-    assert heading.startswith('<span class="sr-only">family</span>')
-    letters = re.findall(r'<span class="fk">(\w)</span>', heading)
-    assert letters == [letter for letter, _, _ in site.FAMILY_STAGES]
-    assert '<a href="/family/">The FAMILY workflow, stage by stage</a>' in page
-    # Every other plugin keeps its plain name as the heading.
-    for other in (output / "plugins").iterdir():
-        if other.name != "family" and (other / "index.html").exists():
-            text = (other / "index.html").read_text(encoding="utf-8")
-            assert '<h1 class="title family-word">' not in text
-            assert f'<h1 class="title-xl">{other.name}</h1>' in text
+    assert not (output / "plugins" / "family" / "index.html").exists()
+    assert (output / "plugins" / "family" / "qa-workflow" / "index.html").is_file()
+    # Both spellings, because a rule matches the path as written; permanent.
+    assert (output / "_redirects").read_text(encoding="utf-8") == (
+        "/plugins/family/ /family/ 301\n/plugins/family /family/ 301\n"
+    )
+    # One rule sends every link there: the card, the plugin list, a skill's Back and crumbs.
+    assert site._plugin_href("family") == "/family/"
+    assert site._plugin_href("engineering") == "/plugins/engineering/"
+    for page in (output / "index.html", output / "start" / "index.html"):
+        text = page.read_text(encoding="utf-8")
+        assert 'href="/family/"' in text and 'href="/plugins/family/"' not in text
+    skill = (output / "plugins" / "family" / "qa-workflow" / "index.html").read_text(
+        encoding="utf-8"
+    )
+    assert BACK.format("/family/") in skill
+    assert '<a href="/family/">family</a>' in skill and '/plugins/family/"' not in skill
+    for path in output.rglob("index.html"):
+        assert 'href="/plugins/family/"' not in path.read_text(encoding="utf-8"), path
+    # Every other plugin keeps its own page and its plain heading.
+    text = (output / "plugins" / "engineering" / "index.html").read_text(encoding="utf-8")
+    assert '<h1 class="title-xl">engineering</h1>' in text
+    assert '<h1 class="title family-word">' not in text
+
+
+def test_the_family_page_is_the_plugin_page_too(mini_repo, tmp_path):
+    _with_family(mini_repo)
+    page = (_build(mini_repo, tmp_path) / "family" / "index.html").read_text(encoding="utf-8")
+    assert "/plugin install family@mini" in page
+    # The same finder the plugin page uses, over the family skills.
+    assert 'id="finder"' in page and 'id="find"' in page and 'id="list"' in page
+    assert '<li data-name="qa-workflow"><a href="/plugins/family/qa-workflow/">' in page
+    assert "2 skills" in page
+    # The subagents, in stage order, each with the first clause of its description.
+    agents = page.split('<ul class="family-agents">', 1)[1].split("</ul>", 1)[0]
+    assert agents.index("framer") < agents.index("inspector")
+    assert "— Turn a vague request into a frame</li>" in agents
+    assert "— Inspect a change against its frame</li>" in agents
+    assert 'href="/family/example/">See one slice end to end</a>' in page
+
+
+def test_the_family_stages_open_to_the_agent_and_where_each_verdict_goes(mini_repo, tmp_path):
+    page = (_build(mini_repo, tmp_path) / "family" / "index.html").read_text(encoding="utf-8")
+    stages = page.split('<ol class="family-stages">', 1)[1].split("</ol>", 1)[0]
+    assert stages.count("<details>") == 6 and stages.count("<summary>") == 6
+    for letter, name, _ in site.FAMILY_STAGES:
+        detail = site.FAMILY_DETAILS[letter]
+        item = stages.split(f'<li class="stage-{letter.lower()}"', 1)[1].split("</li>", 1)[0]
+        assert f"<h3>{name}</h3>" in item
+        assert f"<dd><code>{detail['agent']}</code></dd>" in item
+        assert detail["question"] in item and "Waivable" in item
+        for word, target in detail["verdicts"]:
+            assert f"<dt><code>{word}</code></dt><dd>→ {target}</dd>" in item
+    # The routing table is the source: a diverged build goes back to architect.
+    assert "<dt><code>DIVERGED</code></dt><dd>→ architect, never maker again</dd>" in stages
+    assert "Yes, when the slice carries no hard-to-reverse decision" in stages
+
+
+def test_the_profile_picker_is_four_radios_in_a_labelled_group_with_no_default(mini_repo, tmp_path):
+    _with_family(mini_repo)
+    page = (_build(mini_repo, tmp_path) / "family" / "index.html").read_text(encoding="utf-8")
+    group = page.split("<fieldset>", 1)[1].split("</fieldset>", 1)[0]
+    assert "<legend>Who is running it?</legend>" in group
+    radios = re.findall(r'<label class="chip"><input type="radio" name="profile" value="(\w+)">'
+                        r" <span>(\w+)</span></label>", group)  # fmt: skip
+    assert radios == [("solo", "Solo"), ("developer", "Developer"), ("qa", "QA"), ("team", "Team")]
+    assert "checked" not in group
+    # Each profile names the skill it starts from, linked when the plugin ships it.
+    assert 'starts from <a href="/plugins/family/qa-workflow/">qa-workflow</a>' in page
+    assert "starts from <code>solo-development</code>" in page
+    # What each profile owns, per the profile skills.
+    owns = {
+        letter: re.search(rf'<li class="stage-{letter.lower()}" data-own="([^"]*)"', page).group(1)
+        for letter, _, _ in site.FAMILY_STAGES
+    }
+    assert owns["F"] == "solo developer team" and owns["I"] == "solo qa team"
+    assert owns["L"] == "solo team" and owns["Y"] == "solo developer team"
+    assert 'data-feeds="qa"' in page
+    css = site.site_style.CSS
+    assert '.family-flow:has(input[value="developer"]:checked)' in css and "@@" not in css
+
+
+def test_the_family_page_keeps_every_decision_the_routing_contract_keeps():
+    # family-relay's routing table is the contract. Where it routes a verdict through a
+    # person first (accept the slice, accept the approach, the go or no-go), the page has
+    # to say so too, or a visitor following the page skips a decision the workflow keeps.
+    routing = (REPO / "plugins/family/skills/family-relay/references/routing.md").read_text(
+        encoding="utf-8"
+    )
+    rows = {}
+    for line in routing.splitlines():
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        if len(cells) == 4 and cells[1].startswith("`"):
+            stage = cells[0].split(",")[0]
+            rows.setdefault((stage, cells[1].split("`")[1]), cells[2])
+    gates = {
+        "accepts the slice": "accepts the slice",
+        "accepts the approach": "accepts the approach",
+        "go or no-go": "go or no-go",
+    }
+    checked = 0
+    for detail in site.FAMILY_DETAILS.values():
+        for word, target in detail["verdicts"]:
+            contract = rows.get((detail["agent"], word))
+            if contract is None:
+                continue
+            checked += 1
+            for phrase, wording in gates.items():
+                if phrase in contract:
+                    assert wording in target, (detail["agent"], word, target)
+    assert checked >= 15
+
+
+def test_the_slice_checklist_has_one_box_per_gate_and_a_script_that_survives_no_storage(
+    mini_repo, tmp_path
+):
+    page = (_build(mini_repo, tmp_path) / "family" / "index.html").read_text(encoding="utf-8")
+    assert re.findall(r'<input type="checkbox" data-gate="(\w)"', page) == list("family")
+    for _, detail in site.FAMILY_DETAILS.items():
+        assert detail["question"] in page.split("Run a slice", 1)[1]
+    assert "data-slice-reset" in page
+    script = site.site_style.FAMILY_SCRIPT
+    assert script.strip() in page and script.count('"family-slice"') == 1
+    # Every storage call is guarded, so a blocked store leaves working boxes.
+    for call in re.findall(r"localStorage\.\w+", script):
+        before = script.split(call, 1)[0]
+        assert before.rfind("try {") > before.rfind("} catch"), call
+
+
+def test_the_family_page_never_calls_its_agents_read_only(mini_repo, tmp_path):
+    # The inspector holds Bash, which can change a checkout without an editing tool, so
+    # the page names the real boundary: no editing tools, and checks only on owned work.
+    _with_family(mini_repo)
+    page = (_build(mini_repo, tmp_path) / "family" / "index.html").read_text(encoding="utf-8")
+    # The subagents section renders only when the plugin ships agents, as it does here.
+    assert '<ul class="family-agents">' in page
+    assert "read-only" not in page
+    assert "subagent per stage with no editing tools" in page
+    assert "One per stage, none with editing tools" in page
+    assert "runs checks only on a change the owner wrote" in page
+
+
+def test_the_family_example_walks_one_slice_through_all_six_stages(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    page = (output / "family" / "example" / "index.html").read_text(encoding="utf-8")
+    assert BACK.format("/family/") in page
+    assert '<h1 class="title">One slice, end to end</h1>' in page
+    sections = re.findall(r'<section class="example-stage stage-(\w)">', page)
+    assert sections == list("family")
+    assert page.count("Verdict:") == 6
+    assert "FIX, then PASS" in page and "placeholder text" in page
+    assert 'href="/family/">FAMILY page</a>' in page
+    # No vendor or AI product is named.
+    for word in ("Claude", "Anthropic", "OpenAI", "Cloudflare", "GitHub", "Playwright"):
+        main = page.split('<main id="content">', 1)[1].split("</main>", 1)[0]
+        assert word.lower() not in main.lower(), word
 
 
 def test_every_page_is_written_beside_the_archives(mini_repo, tmp_path):
@@ -309,7 +615,12 @@ def test_every_page_is_written_beside_the_archives(mini_repo, tmp_path):
     for path in (
         "index.html",
         "404.html",
+        "errors/403.html",
+        "errors/500.html",
+        "errors/502.html",
+        "errors/503.html",
         "family/index.html",
+        "family/example/index.html",
         "start/index.html",
         "workflows/index.html",
         "examples/index.html",
@@ -368,8 +679,14 @@ def test_navigation_is_root_relative_and_marks_the_current_page(mini_repo, tmp_p
     assert 'role="switch"' in start and 'aria-label="Dark theme"' in start
     assert 'aria-label="Console theme"' in start
     assert "localStorage.getItem" in start
-    assert site.site_style.FONTS_URL.startswith("https://fonts.googleapis.com/css2?")
-    assert f'<link rel="stylesheet" href="{html.escape(site.site_style.FONTS_URL)}">' in start
+    # The typefaces come from the site itself: a preload for the body sans, no request to a
+    # font host and no stylesheet link at all.
+    assert (
+        f'<link rel="preload" href="{site.site_style.SANS_URL}" as="font" type="font/woff2" '
+        "crossorigin>"
+    ) in start
+    assert "fonts.googleapis.com" not in start and "preconnect" not in start
+    assert '<link rel="stylesheet"' not in start
     # Links off the site say so; links on it do not open a new tab.
     assert 'href="https://github.com/greenblacked/AI/releases" target="_blank"' in start
     assert 'rel="noopener noreferrer"' in start
@@ -520,7 +837,8 @@ def test_workflows_lists_commands_and_subagents_by_plugin(mini_repo, tmp_path):
     extra.mkdir(parents=True)
     (extra / "lone.md").write_text("---\nname: lone\ndescription: Alone.\n---\n", encoding="utf-8")
     page = (_build(mini_repo, tmp_path) / "workflows" / "index.html").read_text(encoding="utf-8")
-    assert "<code>/ship-it</code>" in page and "<code>[branch]</code>" in page
+    assert "<code>/engineering:ship-it</code>" in page and "<code>[branch]</code>" in page
+    assert "<code>/ship-it</code>" not in page
     assert "Ship &lt;b&gt;it&lt;/b&gt;" in page and "<b>it</b>" not in page
     assert (
         "https://github.com/greenblacked/AI/blob/main/plugins/engineering/commands/ship-it.md"
@@ -694,9 +1012,11 @@ def test_the_real_repository_builds_every_page_and_renders_every_markdown_source
     pages = sorted(output.rglob("index.html"))
     skills = list((REPO / "plugins").glob("*/skills/*/SKILL.md"))
     plugins = list((REPO / "plugins").glob("*/skills"))
-    # The index, family, start, workflows, examples and quality; then a page per plugin
-    # and skill.
-    assert len(pages) == len(skills) + len(plugins) + 6
+    # The index, family, its example, start, workflows, examples, quality and offline; then
+    # a page per skill and per plugin, except family, whose page is /family/ and not its own.
+    assert len(pages) == len(skills) + len(plugins) - 1 + 8
+    assert not (output / "plugins" / "family" / "index.html").exists()
+    assert (output / "plugins" / "family" / "family-workflow" / "index.html").is_file()
     for page in pages:
         text = page.read_text(encoding="utf-8")
         assert _live_tags(text) <= SAFE_TAGS, page
@@ -1815,3 +2135,358 @@ def test_a_failed_dispatch_prints_a_command_that_dispatches_on_the_tag():
     dispatch = workflow.split("- name: Dispatch the release workflow on the tag", 1)[1]
     assert "gh workflow run release.yml --repo $GH_REPO --ref v$VERSION" in dispatch
     assert "Actions tab" not in dispatch
+
+
+# --- the 404 and the /errors/ pages -----------------------------------------------------
+
+ERROR_CODES = ("403", "500", "502", "503")
+
+
+def _suggestion_data(page):
+    block = re.search(r'<script type="application/json" id="lost-pages">(.*?)</script>', page, re.S)
+    assert block, "the 404 embeds no page list"
+    return block.group(1), json.loads(block.group(1))
+
+
+def test_the_404_embeds_every_real_page_for_its_suggestions(mini_repo, tmp_path):
+    page = (_build(mini_repo, tmp_path) / "404.html").read_text(encoding="utf-8")
+    _, pages = _suggestion_data(page)
+    built = {entry[0] for entry in pages}
+    assert len(built) == len(pages), "a page is offered twice"
+    assert {
+        "/family/",
+        "/family/example/",
+        "/start/",
+        "/workflows/",
+        "/examples/",
+        "/quality/",
+        "/plugins/engineering/",
+        "/plugins/engineering/alpha/",
+        "/plugins/engineering/beta/",
+    } == built
+    assert ["/plugins/engineering/alpha/", "alpha", "Skill in engineering"] in pages
+    # The 404 is served from any depth, so nothing on it may be relative.
+    for href in re.findall(r'href="([^"]*)"', page):
+        assert href.startswith(("/", "#", "https://")), href
+    for label, href in (("Home", "/"), ("Start", "/start/"), ("FAMILY", "/family/")):
+        assert f'href="{href}">{label}</a>' in page
+    assert 'href="/#finder">Search the catalogue</a>' in page
+    # What the visitor asked for and what is suggested start hidden, and only script shows
+    # them, so without script the page is the heading, the sentence and the links.
+    assert '<p class="lost-asked" hidden>' in page and 'id="lost-suggest"' in page
+    assert "hidden>\n<h2" in page
+
+
+def test_the_embedded_page_list_cannot_close_its_script_element():
+    hostile = [["/x/", "</script><script>alert(1)</script>", "<!-- & \u2028 \u2029 -->"]]
+    escaped = site.site_errors.json_for_script(hostile)
+    assert not set("<>&") & set(escaped) and "\u2028" not in escaped and "\u2029" not in escaped
+    assert json.loads(escaped) == hostile
+    page = site.render_missing(hostile, "v9")
+    assert page.count("<script") == page.count("</script>")
+    block, pages = _suggestion_data(page)
+    assert pages == hostile and "<" not in block
+    # The path the visitor asked for is shown through textContent and nothing else.
+    script = site.site_errors.LOST_SCRIPT
+    assert "textContent" in script
+    assert not re.search(r"innerHTML|outerHTML|insertAdjacentHTML|document\.write", script)
+
+
+def test_the_404_keeps_the_site_header_and_footer_and_its_own_motion_rules(mini_repo, tmp_path):
+    page = (_build(mini_repo, tmp_path) / "404.html").read_text(encoding="utf-8")
+    assert '<header class="site-header" id="banner">' in page
+    assert '<footer class="site-footer">' in page and "Made by Serhii Zolotov" in page
+    assert '<span class="sr-only">Error 404: page not found</span>' in page
+    assert "Did you mean" in page
+    css = site.site_errors.LOST_CSS
+    assert _outside_motion_query(css).count("animation") == 0
+    assert "prefers-reduced-motion: no-preference" in css
+
+
+def test_opening_a_family_stage_moves_only_where_motion_is_allowed():
+    css = site.site_style.CSS
+    still = _outside_motion_query(css)
+    # The open stage is marked in its own colour whatever the motion setting.
+    assert ".family-stages > li:has(> details[open])" in still
+    # Every effect of opening one sits behind the motion query, and none of it targets
+    # the row itself, whose entrance would otherwise replay on every click.
+    for effect in ("::details-content", "family-pop", "family-open", "interpolate-size"):
+        assert effect not in still.split("@keyframes", 1)[0], effect
+        assert effect in css, effect
+    opening = [
+        line
+        for line in css.splitlines()
+        if "details[open]" in line and line.rstrip().endswith(("{", ","))
+    ]
+    assert opening and not any(line.strip().startswith(".family-stages > li {") for line in opening)
+
+
+def test_the_site_moves_one_way_and_only_where_motion_is_allowed():
+    motion = site.site_style.MOTION_CSS
+    still = _outside_motion_query(motion).split("@keyframes", 1)[0]
+    # Every transition and animation sits behind the motion query.
+    assert "transition" not in still and "animation" not in still
+    assert "view-transition" not in still
+    # The cues a visitor needs are drawn for everyone: the underline and the row's arrow.
+    assert ".bar nav a:hover" in still and "background-size: 100% 1px" in still
+    assert ".skills a::after" in still and "\\2192" in still
+    assert site.site_style.CSS.endswith(motion)
+    # A choice ticks in only when made, not when restored from storage on load.
+    assert "input:checked:focus" in motion
+    # The theme spreads out with a soft edge: a registered radius drives a gradient mask,
+    # and a browser without view transitions cross-fades the colours instead.
+    assert "@property --reveal-r" in motion and "mask-image: radial-gradient(" in motion
+    assert "html.theme-fade" in motion
+    assert 'root.classList.add("theme-fade")' in site.site_style.PAGE_SCRIPT
+    # Sun and moon turn into each other rather than one being removed from the layout.
+    assert ".moon { display: none; }" not in site.site_style.CSS
+
+
+def test_no_page_script_declares_one_function_twice():
+    # A second declaration of the same name in one scope silently replaces the first;
+    # that once left the theme switch calling the scroll handler instead of its own.
+    for name in ("PAGE_SCRIPT", "FAMILY_SCRIPT"):
+        script = getattr(site.site_style, name)
+        names = re.findall(r"\bfunction\s+([A-Za-z_$][\w$]*)\s*\(", script)
+        assert len(names) == len(set(names)), (name, sorted(n for n in names if names.count(n) > 1))
+
+
+def _outside_motion_query(css):
+    """The stylesheet with every ``prefers-reduced-motion: no-preference`` block removed."""
+    kept, rest = [], css
+    marker = "@media (prefers-reduced-motion: no-preference) {"
+    while marker in rest:
+        before, _, after = rest.partition(marker)
+        kept.append(before)
+        depth = 1
+        for index, char in enumerate(after):
+            depth += (char == "{") - (char == "}")
+            if depth == 0:
+                rest = after[index + 1 :]
+                break
+        else:  # pragma: no cover - an unbalanced stylesheet fails the assertions anyway
+            rest = ""
+    return "".join(kept) + rest
+
+
+@pytest.mark.parametrize("code", ERROR_CODES)
+def test_each_error_page_is_one_self_contained_noindex_file(mini_repo, tmp_path, code):
+    path = _build(mini_repo, tmp_path) / "errors" / f"{code}.html"
+    raw = path.read_bytes()
+    page = raw.decode("utf-8")
+    # A custom error page is fetched once and shown on its own, so size is a contract.
+    assert len(raw) < 100_000
+    assert '<meta name="robots" content="noindex">' in page
+    # Nothing is loaded: no script, stylesheet, image, font or frame, and every link a
+    # visitor can follow stays on the host serving the page.
+    assert not re.search(r"<(?:img|iframe|object|embed|audio|video|source)\b", page)
+    assert not re.search(r"<script[^>]*\bsrc=", page)
+    assert not re.search(r'<link[^>]*rel="(?:stylesheet|preload|preconnect|prefetch)', page)
+    assert "@import" not in page and "@font-face" not in page
+    assert not re.search(r"url\(\s*[\"']?(?!data:|#)", page)
+    for value in re.findall(r'(?:href|src|action)="([^"]*)"', page):
+        assert value in ("/", "") or value.startswith("data:image/"), value
+    # The one address in the file is the SVG namespace inside the tab icon's data URI.
+    assert "https://" not in page
+    assert page.replace("http://www.w3.org/2000/svg", "").count("http://") == 0
+    # Motion exists only where the visitor has not asked for less; the page is whole
+    # without it, and without script.
+    assert "prefers-reduced-motion: no-preference" in page
+    css = re.search(r"<style>(.*?)</style>", page, re.S).group(1)
+    assert "animation" in css and "animation" not in _outside_motion_query(css)
+    assert "prefers-color-scheme: dark" in css and 'data-theme="night"' in css
+    assert ":focus-visible" in css and "<h1" in page and "Error " + code in page
+    assert page.count('href="/"') == 2  # the mark and the Home button
+    # No vendor, model or host is named.
+    assert not re.search(r"claude|anthropic|openai|gpt|gemini|codex|cloudflare|copilot", page, re.I)
+    retry = 'id="retry"' in page
+    assert retry == (code != "403")
+    if retry:
+        assert "location.reload()" in page or "window.location.reload()" in page
+        assert "<noscript>" in page
+
+
+def test_error_pages_have_distinct_headings_and_stay_small(mini_repo, tmp_path):
+    errors = _build(mini_repo, tmp_path) / "errors"
+    assert sorted(p.name for p in errors.iterdir()) == [f"{code}.html" for code in ERROR_CODES]
+    titles = [
+        re.search(r"<title>(.*?)</title>", (errors / f"{code}.html").read_text("utf-8")).group(1)
+        for code in ERROR_CODES
+    ]
+    assert len(set(titles)) == 4 and all(title.endswith(" · AI") for title in titles)
+    assert max(p.stat().st_size for p in errors.iterdir()) < 20_000
+
+
+def test_a_missing_font_is_refused_by_name_rather_than_with_a_traceback():
+    # The hashed names are computed when site_style is imported, before build() runs its
+    # own check, so this path has to refuse cleanly on its own.
+    import site_style
+
+    with pytest.raises(SystemExit, match="cannot read the site font file no-such-font.woff2"):
+        site_style._hashed("no-such-font.woff2")
+
+
+# --- the offline page and the service worker -------------------------------------------
+
+
+def _worker(output):
+    return (output / "sw.js").read_text(encoding="utf-8")
+
+
+def _worker_list(text, name):
+    """The JSON array a ``var NAME = [...];`` line of the worker holds."""
+    return json.loads(re.search(rf"^var {name} = (\[.*\]);$", text, re.M).group(1))
+
+
+def test_the_worker_is_written_at_the_root_and_names_the_version_in_both_caches(
+    mini_repo, tmp_path
+):
+    output = _build(mini_repo, tmp_path)
+    text = _worker(output)
+    # Each deploy gets a fresh pair of caches, and the old pairs are found by their prefix.
+    assert 'var PREFIX = "ai-site-";' in text
+    assert 'var STATIC = PREFIX + "v9" + "-static";' in text
+    assert 'var PAGES = PREFIX + "v9" + "-pages";' in text
+    other = tmp_path / "other"
+    site.build(mini_repo, other, "v10")
+    assert 'PREFIX + "v10" + "-static"' in _worker(other)
+    assert _worker(other) != text
+    # Not a page, not under a directory: the scope of a worker is the folder it is served from.
+    assert not (output / "sw.js" / "index.html").exists()
+
+
+def test_the_worker_precaches_the_offline_page_the_icon_and_the_two_fonts_and_nothing_else(
+    mini_repo, tmp_path
+):
+    output = _build(mini_repo, tmp_path)
+    precache = _worker_list(_worker(output), "PRECACHE")
+    assert precache == [
+        "/offline/",
+        "/favicon.png",
+        site.site_style.SANS_URL,
+        site.site_style.SERIF_URL,
+    ]
+    # Each is a file the build wrote, at the address the worker will fetch. The offline page
+    # is the directory index: the Worker answers /offline.html with a redirect, and a
+    # redirected response cannot be served for a navigation.
+    assert (output / "offline" / "index.html").is_file()
+    assert not (output / "offline.html").exists()
+    for url in precache:
+        path = output / url.lstrip("/")
+        assert (path / "index.html" if url.endswith("/") else path).is_file(), url
+    assert site.site_offline.precache_urls() == precache
+
+
+def test_the_worker_names_no_other_origin(mini_repo, tmp_path):
+    text = _worker(_build(mini_repo, tmp_path))
+    assert not re.search(r"https?:|(^|[^:*/])//[A-Za-z0-9.-]+\.[a-z]{2,}", text)
+    # Every address it holds is rooted at this origin.
+    for name in ("PRECACHE", "IMMUTABLE_ICONS"):
+        for url in _worker_list(text, name):
+            assert url.startswith("/") and not url.startswith("//"), url
+    assert "importScripts" not in text and "XMLHttpRequest" not in text
+
+
+def test_the_worker_stores_only_a_plain_200_and_never_a_redirect_or_opaque_response(
+    mini_repo, tmp_path
+):
+    text = _worker(_build(mini_repo, tmp_path))
+    # The one gate everything stored passes through: Cloudflare Access's sign-in is a
+    # redirect, and a copy of it served later as a page would lock a visitor out.
+    assert (
+        'return response.status === 200 && response.type === "basic" && !response.redirected;'
+        in text
+    )
+    assert "plain(response) && isHtml(response)" in text
+    assert text.count("cache.put(") == 3  # precache, a page, an immutable file
+    puts = re.findall(r"^.*cache\.put\(.*$", text, re.M)
+    assert all("response" in line or "copy" in line for line in puts), puts
+
+
+def test_the_worker_leaves_everything_but_pages_fonts_and_icons_to_the_browser(mini_repo, tmp_path):
+    text = _worker(_build(mini_repo, tmp_path))
+    handler = text.split('self.addEventListener("fetch"', 1)[1]
+    assert text.count("event.respondWith(") == 2
+    assert 'if (request.method !== "GET") return;' in handler
+    assert "if (url.origin !== self.location.origin) return;" in handler
+    assert handler.index('request.method !== "GET"') < handler.index("event.respondWith(")
+    assert handler.index("url.origin !==") < handler.index("event.respondWith(")
+    assert 'request.mode === "navigate"' in handler
+    assert _worker_list(text, "IMMUTABLE_ICONS") == ["/favicon.png", "/apple-touch-icon.png"]
+    assert 'var FONTS = "/fonts/";' in text
+
+
+def test_the_worker_caps_the_page_cache_and_cleans_up_only_its_own_caches(mini_repo, tmp_path):
+    text = _worker(_build(mini_repo, tmp_path))
+    assert "var MAX_PAGES = 60;" in text
+    assert "keys.slice(0, Math.max(0, keys.length - MAX_PAGES))" in text
+    activate = text.split('self.addEventListener("activate"', 1)[1].split("\n});", 1)[0]
+    assert "name.indexOf(PREFIX) === 0 && name !== STATIC && name !== PAGES" in activate
+    assert activate.index("caches.delete(") < activate.index("self.clients.claim()")
+    # The page a first visit lands on is saved once the worker takes control of it.
+    assert activate.index("self.clients.claim()") < activate.index("keepOpenPages")
+    keep = text.split("function keepOpenPages()", 1)[1].split("\n}\n", 1)[0]
+    assert 'matchAll({ type: "window" })' in keep
+    assert "url.origin !== self.location.origin" in keep
+    assert "plain(response) && isHtml(response)" in keep
+
+
+def test_the_worker_is_plain_es2017(mini_repo, tmp_path):
+    text = _worker(_build(mini_repo, tmp_path))
+    # Syntax newer than ES2017 would stop the worker parsing on an older browser, and a
+    # worker that does not parse is a silent absence of offline support.
+    for newer in ("?.", "??", "catch {", "...", "import ", "#"):
+        assert newer not in re.sub(r"/\*.*?\*/|//[^\n]*", "", text, flags=re.S), newer
+
+
+def test_the_version_reaches_the_worker_only_as_a_json_string():
+    text = site.site_offline.render_worker('v"; evil(); "')
+    assert 'PREFIX + "v\\"; evil(); \\"" + "-static"' in text
+    assert "@@" not in text
+
+
+def test_the_offline_page_is_the_sites_own_and_is_not_indexed(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    page = (output / "offline" / "index.html").read_text(encoding="utf-8")
+    assert '<meta name="robots" content="noindex">' in page
+    assert "<title>Offline · AI</title>" in page
+    # The site's header, footer and Back, and the 404's heading and list.
+    assert '<header class="site-header"' in page and '<footer class="site-footer"' in page
+    assert BACK.format("/") in page
+    assert 'class="title lost-word"' in page and 'class="lost-suggest"' in page
+    assert "You're offline" in page and "You are offline" in page
+    # The script fills the list from the Cache API; without it the page is whole.
+    assert 'id="offline-retry" hidden>Try again</button>' in page
+    assert '<noscript><a class="pill" href="">Try again</a></noscript>' in page
+    assert "window.location.reload()" in page and "caches.keys()" in page
+    # Nothing is loaded from anywhere but the site's own precached files.
+    assert not re.search(r'(src|href)="https?://(?!github\.com/greenblacked)', page)
+    assert "preconnect" not in page and '<link rel="stylesheet"' not in page
+    # Other pages are indexable: only this one carries the tag.
+    assert "noindex" not in (output / "index.html").read_text(encoding="utf-8")
+
+
+def test_the_offline_page_links_only_to_a_rooted_path_of_the_same_origin(mini_repo, tmp_path):
+    script = site.site_offline.render_offline_script()
+    assert "url.origin !== window.location.origin" in script
+    assert 'path.charAt(1) === "/"' in script
+    assert "textContent" in script and "innerHTML" not in script
+    assert "path === OFFLINE" in script
+
+
+def test_every_page_registers_the_worker_after_load_and_the_error_pages_do_not(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    registration = (
+        '<script>(function(){if(!("serviceWorker" in navigator)||!window.isSecureContext)return;'
+        'window.addEventListener("load",function(){'
+        'navigator.serviceWorker.register("/sw.js").catch(function(){});});})();</script>'
+    )
+    pages = [p for p in output.rglob("*.html") if p.parent.name != "errors"]
+    assert len(pages) > 5
+    for path in pages:
+        assert path.read_text(encoding="utf-8").count(registration) == 1, path
+    errors = sorted((output / "errors").glob("*.html"))
+    assert errors
+    for path in errors:
+        text = path.read_text(encoding="utf-8")
+        assert "serviceWorker" not in text and "sw.js" not in text, path

@@ -284,6 +284,35 @@ def test_a_repo_local_command_with_no_readme_row_is_caught(mini_repo, capsys):
     assert "/verify is in .claude/ and has no row" in capsys.readouterr().out
 
 
+def _plugin_command(root):
+    commands = root / "plugins" / "engineering" / "commands"
+    commands.mkdir(parents=True, exist_ok=True)
+    (commands / "sweep.md").write_text(
+        "---\ndescription: " + "f" * 60 + "\ndisable-model-invocation: true\n---\n\nBody.\n",
+        encoding="utf-8",
+    )
+
+
+def test_a_plugin_command_row_may_use_the_namespaced_name(mini_repo, capsys):
+    # An installed plugin's command runs as /plugin:name, so a README that tells people
+    # what to type writes it that way, and the row still has to count.
+    _plugin_command(mini_repo)
+    write_readme(
+        mini_repo, README + "\n| Command | Plugin |\n| --- | --- |\n| `/engineering:sweep` | x |\n"
+    )
+    readme.check(mini_repo)
+    assert "sweep ships with engineering and has no row" not in capsys.readouterr().out
+
+
+def test_a_plugin_command_namespaced_under_another_plugin_fails(mini_repo, capsys):
+    _plugin_command(mini_repo)
+    write_readme(
+        mini_repo, README + "\n| Command | Plugin |\n| --- | --- |\n| `/other:sweep` | x |\n"
+    )
+    assert readme.check(mini_repo) == 1
+    assert "command sweep ships with engineering and has no row" in capsys.readouterr().out
+
+
 def test_a_repo_local_agent_named_in_the_readme_passes(mini_repo, capsys):
     agents = mini_repo / ".claude" / "agents"
     agents.mkdir(parents=True, exist_ok=True)
@@ -886,11 +915,11 @@ def test_export_writes_a_router_and_one_per_plugin(mini_repo, tmp_path):
     assert (out / "router-engineering.md").is_file()
     router = (out / "router.md").read_text(encoding="utf-8")
     assert "## engineering" in router
-    assert "- skills/alpha.md:" in router
-    assert "- skills/beta.md:" in router
+    assert "skills/alpha.md " in router
+    assert "skills/beta.md " in router
     per_plugin = (out / "router-engineering.md").read_text(encoding="utf-8")
-    assert "- skills/alpha.md:" in per_plugin
-    assert "- skills/beta.md:" in per_plugin
+    assert "skills/alpha.md " in per_plugin
+    assert "skills/beta.md " in per_plugin
 
 
 def test_every_path_a_router_names_exists_in_the_export(mini_repo, tmp_path):
@@ -898,7 +927,7 @@ def test_every_path_a_router_names_exists_in_the_export(mini_repo, tmp_path):
     assert portable.export(mini_repo, out) == 0
     for router_path in [out / "router.md", out / "router-engineering.md"]:
         text = router_path.read_text(encoding="utf-8")
-        paths = re.findall(r"^- (skills/[\w.-]+\.md): ", text, re.M)
+        paths = re.findall(r"^(skills/[\w.-]+\.md) ", text, re.M)
         assert paths, router_path.name  # the pattern itself must find something to check
         for relative in paths:
             assert (out / relative).is_file(), f"{router_path.name} names {relative}"
@@ -912,10 +941,65 @@ def test_router_keeps_each_skill_trigger_and_single_link(mini_repo, tmp_path):
             mini_repo / "plugins" / "engineering" / "skills" / skill
         )[1]
         trigger = portable.first_sentence(description, portable.ROUTER_USE_WHEN_CAP)
-        line = f"- skills/{skill}.md: {trigger}"
+        line = f"skills/{skill}.md {trigger}"
         for router in ("router.md", "router-engineering.md"):
             text = (out / router).read_text(encoding="utf-8")
             assert text.count(line) == 1
+
+
+def test_router_rows_keep_order_and_triggers_without_list_markup(mini_repo, tmp_path):
+    first = "Use when café needs routing."
+    second = "Use when " + "x" * 90 + "."  # Exactly 100 characters, without truncation.
+    write_skill(
+        mini_repo,
+        "design",
+        "gamma",
+        description=f"Summarise the procedure. {second} More detail follows.",
+    )
+    plugin = mini_repo / "plugins" / "design" / ".claude-plugin"
+    plugin.mkdir(parents=True)
+    (plugin / "plugin.json").write_text(
+        json.dumps({"name": "design", "description": "test"}), encoding="utf-8"
+    )
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "alpha" / "SKILL.md"
+    skill.write_text(
+        skill.read_text(encoding="utf-8").replace(
+            "Use this skill whenever the user asks for alpha",
+            first + " Use whenever the user asks for alpha",
+        ),
+        encoding="utf-8",
+    )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    triggers = {
+        name: portable.first_sentence(
+            portable.render_skill(mini_repo / "plugins" / plugin / "skills" / name)[1],
+            portable.ROUTER_USE_WHEN_CAP,
+        )
+        for plugin, name in (
+            ("design", "gamma"),
+            ("engineering", "alpha"),
+            ("engineering", "beta"),
+        )
+    }
+    assert triggers["alpha"] == first
+    assert triggers["gamma"] == second
+    groups = (("design", ("gamma",)), ("engineering", ("alpha", "beta")))
+    for filename, selected in (
+        ("router.md", groups),
+        ("router-design.md", groups[:1]),
+        ("router-engineering.md", groups[1:]),
+    ):
+        text = (out / filename).read_text(encoding="utf-8")
+        rows = re.findall(r"^(skills/[\w.-]+\.md) (.+)$", text, re.M)
+        expected = [
+            (f"skills/{name}.md", triggers[name]) for _, names in selected for name in names
+        ]
+        assert rows == expected
+        for path, _ in rows:
+            assert (out / path).is_file()
+        # The list marker and colon are what the format drops to fit the size cap.
+        assert "- skills/" not in text and ".md: " not in text
 
 
 def test_the_router_trigger_cap_stays_at_one_hundred_characters():

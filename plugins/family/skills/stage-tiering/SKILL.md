@@ -1,7 +1,7 @@
 ---
 name: stage-tiering
 description: "Set a model tier and effort level per FAMILY stage by the cost of being wrong there: framer, maker, launcher and yielder survey and plan, so run them on a mid tier at medium effort; architect and inspector decide and judge, so run them on the top tier. Fan out at most two agents in parallel on disjoint questions, then synthesise in the main conversation as a named step. Covers where each is set, which setting beats an environment override, and how to opt out. Written in tiers, not product models. Use when choosing which model runs which agent, when survey agents are burning cost, or when a cheap model made the decision. Not for estimating API spend or prompt caching (llm-cost), coordinating live coding agents (agent-orchestration) or briefing one agent (agent-delegation)."
-allowed-tools: Read, Edit, Grep, Glob
+allowed-tools: Read, Grep, Glob
 ---
 
 # Stage tiering
@@ -31,13 +31,13 @@ The tiers are relative: mid is the capable, economical model your tool offers, a
 
 ## Workflow
 
-### 1. Read the agent file
+### 1. Read the shipped defaults
 
-Open each agent's file and check its `model` and `effort` keys. A file with neither takes `CLAUDE_CODE_SUBAGENT_MODEL` when that variable is set and otherwise inherits the main conversation's model, which is usually the top tier, so the survey stages overspend until you set them.
+Each agent ships with the table above in its own frontmatter, mapped to Claude Code's aliases: `framer`, `maker`, `launcher` and `yielder` carry `model: sonnet` and `effort: medium`, and `architect` and `inspector` carry `model: opus` and leave effort at the tool's default. Read the agent file to confirm what is in force before changing anything. A `model` there wins over the `CLAUDE_CODE_SUBAGENT_MODEL` variable, but `CLAUDE_CODE_EFFORT_LEVEL` wins over every agent's `effort`, so unset it when the per-stage effort has to hold.
 
-### 2. Set the tier where the agent is defined
+### 2. Change a tier without editing the installed plugin
 
-Write `model` and `effort` in the agent's frontmatter. The two resolve differently: a `model` there wins over the `CLAUDE_CODE_SUBAGENT_MODEL` variable, but `CLAUDE_CODE_EFFORT_LEVEL` wins over every agent's `effort`, so unset it when the per-stage effort has to hold. Read `references/tier-table.md` for both orders of precedence and how to opt out.
+The installed plugin is a cached copy, and the next version replaces it, so an edit there is lost on update. Pass a model in the delegation to change one call, or set the environment variables in `references/tier-table.md` to change every agent. Edit the agent file only where you own the plugin's source, such as a `--plugin-dir` checkout. Read `references/tier-table.md` for both orders of precedence and how to opt out.
 
 ### 3. Cap the fan-out at two
 

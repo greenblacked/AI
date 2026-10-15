@@ -8,6 +8,155 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-10-15
+
+### Added
+
+- Smooth the day and night switch: the new theme now spreads from the switch with a soft,
+  feathered edge on a gentler curve, the knob glides across while the sun turns into the
+  moon, and a browser without view transitions cross-fades the colours instead of
+  jumping. A second press while the first reveal is still finishing keeps its own soft
+  edge. With motion reduced the theme still changes at once.
+- Give the catalogue site one motion language. Pages rise in under a steady header as
+  you move between them; a theme chosen by hand spreads out from its switch; header and
+  footer links draw their underline from the left; a skill row slides and shows an arrow
+  on hover; buttons, chips and pills lift and press; a choice in the profile picker or
+  the checklist ticks in; rows the finder brings back fade in; the front page's plugins
+  rise as they scroll into view; and opening a FAMILY stage grows the panel, fades its
+  lines in turn, pops the letter and tints the stage in its own colour. Every movement
+  sits behind `prefers-reduced-motion`; the cues themselves (the underline, the arrow,
+  the open stage's tint) show either way.
+- Add an offline page and a service worker to the catalogue site. `/sw.js` keeps the
+  pages a visitor opens (a plain 200 HTML response only, never a redirect, so Cloudflare
+  Access's sign-in is never stored), serves them again when the connection is lost, and
+  shows `/offline/` for anything else, which also lists the pages saved on the device.
+  The caches are named for the build and the last sixty pages are kept; `_headers` serves
+  the worker with `no-cache`.
+- Add four skills: `retrieval-evaluation` to `coding` for judging a retriever or ranking
+  change against a reproducible benchmark; `feature-flag-lifecycle` and
+  `safe-backfill` to `delivery` for wiring and retiring a flag once the rollout is
+  chosen and for a checkpointed one-off data repair; and `problem-validation` to `design` for testing
+  whether a problem is real before anything is built.
+- Merge the `family` plugin page into `/family/`: one page with the typed heading, the
+  install command, a profile picker that highlights the stages a role owns, each stage as a
+  disclosure naming its agent, verdicts and next hop, a slice checklist kept in the
+  browser, the skills with search and the subagents. `/plugins/family/` redirects there,
+  and `/family/example/` walks one real slice through all six stages.
+- Add the `/family:family` command to the `family` plugin: it frames a request into
+  `docs/slices/<name>/frame.md` with the stage templates beside it, prints the next hop and
+  stops. `family-workflow` gains the slice-folder convention and a pull request template
+  with one label per stage.
+- Replace the site's plain "Not found" page with a 404 that types its own number in, in
+  three of the FAMILY stage colours, shows the address that was asked for, and suggests up
+  to three real pages when it is a near miss, so `/statr/` or `/family-workflw/` offers
+  the page that was meant. Home, Start, a search of the catalogue and FAMILY are always
+  there, and with scripts off the page is the heading, a sentence and those links.
+- Add error pages for 403, 500, 502 and 503 at `/errors/403` and so on, each one file with its styles
+  and script inline and nothing loaded from anywhere, so a host can show one in place of
+  a failing page. Each has its own effect: a lock that closes, digits that shake, a link
+  that drops signal, and a slow progress pulse for maintenance; the 5xx pages have a
+  Retry button. They follow the system's light or dark scheme or the choice made on the
+  site, stop all motion when it is reduced, and are marked `noindex`.
+
+### Changed
+
+- Serve the website's two typefaces, Instrument Sans and Newsreader, from its own domain
+  instead of Google Fonts: no request leaves for a font host, and the files are cached for
+  a year under names that carry a hash of their bytes. Both are under the SIL Open Font
+  License 1.1, whose text ships beside them and is named in `NOTICE`. Wrapping a bare web
+  address in rendered prose, which ran past a 360 px screen once the real serif was
+  measured, is fixed with it.
+- Redraw the site's tab and home-screen icons as bold cyan "AI" letters on a navy tile,
+  so the letters stay sharp at a browser tab's 16 pixels instead of shrinking the crystal
+  picture into a blur.
+- List the `family` plugin second, right after `coding`, in the marketplace manifest, the
+  README and the website, instead of last.
+- Write each portable router row as a plain `skills/<name>.md` path and its trigger,
+  without the list marker and colon, so `router.md` stays inside its size budget with
+  four more skills.
+- Separate qualitative from quantitative reads in `information-architecture`'s guidance
+  on card sorts and tree tests: five to fifteen participants finds groupings and wrong
+  turns, but a tree test's success rate, or a comparison between two trees, needs a
+  study sized for the margin it reports.
+- Say in `frame-claim-ledger` why its `Agent` grant stays unscoped: the plugin ships no
+  research agent, so the claim agent is whichever read-only one the session has, and
+  naming one would refuse the rest. The claim brief now tells every agent to write no
+  file and run nothing that changes the checkout, since one that holds `Bash` can write
+  without an editing tool.
+- Build on `dev` in `/ship`: it branches from `origin/dev`, opens its pull request into
+  `dev` and squash-merges there, `reviewer` measures an owner change against
+  `merge-base HEAD origin/dev` by default, and `CONTRIBUTING.md` says to branch from
+  `dev`. `stage` and `main` take only promotions, so a branch cut from `main` missed
+  everything `dev` had not promoted yet.
+- Prepare a release on the promotion branch from `stage` into `main` instead of a separate
+  pull request: `make release-prepare` dates the changelog there, so after that one merge
+  Cut release runs straight from `main`.
+
+### Fixed
+
+- Keep the FAMILY page's verdict routes to the routing contract: `FRAMED` and `PROPOSED`
+  now go through the main conversation, which accepts the slice or the approach first,
+  and `PASS` reaches launcher only once the Inspect owner answers the go or no-go.
+- Stop the FAMILY page calling its stage agents read-only: the inspector can run
+  commands, so the page now says they have no editing tools and that the inspector runs
+  checks only on a change the owner wrote, as the `family-workflow` skill already does.
+- Stop the README calling the subagents read-only: some hold `Bash`, so it now counts
+  them as subagents and says each FAMILY stage agent has no editing tools, as the site does.
+- Run `make naming` and `make attribution` against `origin/dev`, the base a feature pull
+  request targets, as CI does; they diffed against `origin/main`, so every commit on `dev`
+  not yet promoted was checked as the branch's own. A promotion passes its own base,
+  `make naming BASE=origin/main`. `check_attribution.py`'s default range follows.
+- Stop a FAMILY stage row from vanishing for a second when it is opened and then left:
+  its entrance animation no longer replays when focus moves away.
+- Split field labels and error messages between `form-design` and `content-design`.
+  `form-design` owns which fields a form asks for, their order, when it validates, where
+  an error appears and the keyboard flow; `content-design` owns the words. Each now names
+  the other in its description and scope, and each eval set routes a near miss to the
+  other.
+- Name `family` in `docs/writing-skills.md`'s list of the ten plugins and give it a row
+  in `AGENTS.md`'s layout table; a test now checks both against the marketplace manifest.
+- Describe the `family` stage agents as having no editing tools rather than as
+  read-only in `family-workflow`: `inspector` holds `Bash` and can run commands, which
+  it does only on a change the owner wrote.
+- Ship each `family` stage agent with the tier `stage-tiering` states: `framer`,
+  `maker`, `launcher` and `yielder` on `sonnet` at medium effort, `architect` and
+  `inspector` on `opus` at the tool's default effort. Without a `model` line every stage
+  ran on the main conversation's model. `stage-tiering` no longer tells you to edit the
+  installed plugin, which an update replaces, and drops its `Edit` grant.
+- Use the inspector's own meaning of `STOP` in `family-relay`'s routing reference and
+  `fresh-inspector-rounds`' round protocol: the frame supplied no success criterion, and
+  a person supplies one. A change the owner did not write is a `FIX`, not a `STOP`.
+- End each `family` stage agent's return block with a `### Handoff` section naming the
+  first question for the next stage and its owner. `family-relay` passes the next hop
+  only that section, and no agent returned one. `fresh-inspector-rounds`' copy of the
+  inspector's return block carries it too.
+- Say in `/ship` that the trusted checkout for a contributor review sits exactly at the
+  pinned base, as a clone checked out there or a detached worktree, since `reviewer`
+  stops when `HEAD` is anything else.
+- Have `reviewer` resolve `refs/review/<n>` to one validated commit SHA before reading a
+  contributor's change, and use that SHA in every later diff, show and merge, so a forced
+  re-fetch of the ref mid-review cannot change what is read, gated or merged.
+- Stop counting a contributor's `CLAUDE.md`, `CLAUDE.local.md`, `AGENTS.md` or anything
+  under a `.claude/` segment as inert Markdown in the review allowlist. Those files load
+  as instructions wherever a session opens, so `reviewer` now treats adding or editing
+  one as a blocking finding, and the ChatGPT and usage guides say the same.
+- Return `FIX` pending the owner, not `STOP`, when `reviewer` judges a contributor's
+  permissions, API-write or `workflow_run` change with no live check: the live check is
+  an owner-must-run item, as the contributor rules and the ChatGPT guide already said,
+  and the verdict section now agrees with them.
+- List a contributor change's paths with `--no-renames` in `reviewer`, `investigator`,
+  `/ship`, `/verify` and the ChatGPT and usage guides. With rename detection on, moving
+  a test into `docs/` listed only the new Markdown path, which passed the safe-name check
+  and the inert-content allowlist while the test was gone. A reviewer benchmark case and
+  a review lesson cover it.
+- Run CI in full when a pull request's base is retargeted. `edited` covers a new base as
+  well as a new title or body, and the earlier run's pull request list reports the base
+  as it is now, so a retarget was answered with the two description checks from a run
+  against the old base. `scope` now reads the event's `changes`, treats only a title or
+  body edit as text, and counts only earlier runs that list this pull request.
+- Show each plugin command on the site's Workflows page by the name an installed plugin
+  runs it under, `/plugin:command`, rather than the bare command name.
+
 ## [0.1.8] - 2026-10-10
 
 ### Added
@@ -588,7 +737,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/greenblacked/AI/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/greenblacked/AI/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/greenblacked/AI/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/greenblacked/AI/compare/v0.1.5...v0.1.6
