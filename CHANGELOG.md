@@ -459,6 +459,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Keep the FAMILY page's verdict routes to the routing contract: `FRAMED` and `PROPOSED`
+  now go through the main conversation, which accepts the slice or the approach first,
+  and `PASS` reaches launcher only once the Inspect owner answers the go or no-go.
 - Stop the FAMILY page calling its stage agents read-only: the inspector can run
   commands, so the page now says they have no editing tools and that the inspector runs
   checks only on a change the owner wrote, as the `family-workflow` skill already does.

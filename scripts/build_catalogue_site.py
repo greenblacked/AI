@@ -1131,7 +1131,7 @@ FAMILY_DETAILS = {
     "F": {
         "agent": "framer",
         "verdicts": (
-            ("FRAMED", "architect"),
+            ("FRAMED", "the main conversation, which accepts the slice, then architect"),
             ("NEEDS INPUT", "the main conversation, then framer again"),
             ("NOT FRAMED", "the main conversation"),
         ),
@@ -1141,7 +1141,7 @@ FAMILY_DETAILS = {
     "A": {
         "agent": "architect",
         "verdicts": (
-            ("PROPOSED", "maker"),
+            ("PROPOSED", "the main conversation, which accepts the approach, then maker"),
             ("NEEDS FRAME", "framer"),
             ("BLOCKED", "the main conversation"),
         ),
@@ -1165,7 +1165,7 @@ FAMILY_DETAILS = {
     "I": {
         "agent": "inspector",
         "verdicts": (
-            ("PASS", "launcher"),
+            ("PASS", "launcher, once the Inspect owner answers the go or no-go"),
             (
                 "FIX",
                 "the build for each FAILS line; the Inspect owner for each NOT ASSESSED one",
