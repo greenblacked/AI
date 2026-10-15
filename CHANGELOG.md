@@ -459,6 +459,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Stop the FAMILY page calling its stage agents read-only: the inspector can run
+  commands, so the page now says they have no editing tools and that the inspector runs
+  checks only on a change the owner wrote, as the `family-workflow` skill already does.
 - Stop the README calling the subagents read-only: some hold `Bash`, so it now counts
   them as subagents and says each FAMILY stage agent has no editing tools, as the site does.
 - Run `make naming` and `make attribution` against `origin/dev`, the base a feature pull
