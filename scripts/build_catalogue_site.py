@@ -1358,8 +1358,9 @@ def render_family(catalogue: Catalogue, version: str) -> str:
     )
     subagents = (
         '<section class="family-section">\n<h2>The subagents</h2>\n'
-        "<p>One per stage, each read-only, so the main conversation keeps the conclusion "
-        "of a stage and not the material it read.</p>\n"
+        "<p>One per stage, none with editing tools, so the main conversation keeps the "
+        "conclusion of a stage and not the material it read. The inspector can still run "
+        "commands, so it runs checks only on a change the owner wrote.</p>\n"
         f'<ul class="family-agents">\n{agent_items}\n</ul>\n</section>\n'
         if agents
         else ""
@@ -1379,7 +1380,7 @@ def render_family(catalogue: Catalogue, version: str) -> str:
         '<p class="family-link"><a href="/family/example/">See one slice end to end</a> →</p>\n'
         '<section class="family-section">\n<h2>Install it</h2>\n'
         f"<p>The family plugin ships the {guide} skill, a skill per profile and a "
-        "read-only subagent per stage.</p>\n"
+        "subagent per stage with no editing tools.</p>\n"
         f'<div class="install">{_code_block(_install_line(plugin, catalogue.marketplace))}</div>\n'
         "</section>\n"
         '<section class="family-section family-flow">\n<h2>The six stages</h2>\n'
