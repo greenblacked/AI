@@ -1,5 +1,8 @@
 .DEFAULT_GOAL := help
 PYTHON ?= python3
+# The branch a pull request from here targets: dev for feature work. A promotion into
+# stage or main passes BASE=origin/stage or BASE=origin/main, the same base CI diffs against.
+BASE ?= origin/dev
 SHELL := bash
 
 # Read the pins out of the workflow so there is one source of truth. A local linter on a
@@ -108,11 +111,11 @@ _lint:
 package: ## Build a .skill archive for every skill into dist/
 	@PYTHONPATH=src $(PYTHON) scripts/package_skills.py
 
-attribution: ## Check commits since origin/main and the branch name for tool attribution
-	@GITHUB_HEAD_REF="$$(git rev-parse --abbrev-ref HEAD)" $(PYTHON) scripts/check_attribution.py . --range origin/main..HEAD
+attribution: ## Check commits since BASE (default origin/dev) and the branch name for tool attribution
+	@GITHUB_HEAD_REF="$$(git rev-parse --abbrev-ref HEAD)" $(PYTHON) scripts/check_attribution.py . --range $(BASE)..HEAD
 
-naming: ## Check tracked file names, the branch name and commit subjects for naming convention
-	@GITHUB_HEAD_REF="$$(git rev-parse --abbrev-ref HEAD)" $(PYTHON) scripts/check_naming.py . --range origin/main..HEAD
+naming: ## Check tracked file names, the branch name and commit subjects since BASE for naming convention
+	@GITHUB_HEAD_REF="$$(git rev-parse --abbrev-ref HEAD)" $(PYTHON) scripts/check_naming.py . --range $(BASE)..HEAD
 
 portable: ## Flatten every skill into dist/portable for ChatGPT, Grok and other assistants
 	@PYTHONPATH=src $(PYTHON) scripts/export_portable.py .
