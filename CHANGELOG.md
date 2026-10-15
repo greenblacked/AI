@@ -94,6 +94,15 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- Stop the FAMILY page calling its stage agents read-only: the inspector can run
+  commands, so the page now says they have no editing tools and that the inspector runs
+  checks only on a change the owner wrote, as the `family-workflow` skill already does.
+- Stop the README calling the subagents read-only: some hold `Bash`, so it now counts
+  them as subagents and says each FAMILY stage agent has no editing tools, as the site does.
+- Run `make naming` and `make attribution` against `origin/dev`, the base a feature pull
+  request targets, as CI does; they diffed against `origin/main`, so every commit on `dev`
+  not yet promoted was checked as the branch's own. A promotion passes its own base,
+  `make naming BASE=origin/main`. `check_attribution.py`'s default range follows.
 - Stop a FAMILY stage row from vanishing for a second when it is opened and then left:
   its entrance animation no longer replays when focus moves away.
 - Split field labels and error messages between `form-design` and `content-design`.
