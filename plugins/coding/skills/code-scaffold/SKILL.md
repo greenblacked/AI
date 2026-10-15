@@ -4,7 +4,7 @@ description: "Scaffold new production-ready code — Bash scripts, Python tools,
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(shellcheck:*), Bash(shfmt:*), Bash(ruff:*), Bash(pytest:*), Bash(terraform:*), Bash(git:*)
 ---
 
-# Code Assist
+# Code Scaffold
 
 Write new code that is ready to run in production on the first try, not example code that needs to be hardened later.
 

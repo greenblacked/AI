@@ -1,7 +1,7 @@
 ---
 name: e2e-testing
 description: "Keep a browser end-to-end suite trustworthy instead of rerun until green: measure each test's real flake rate from CI history before fixing any one test, locate elements by role and accessible name rather than CSS or XPath, wait on state instead of a fixed sleep or network idle, give every test its own data, authenticate once through stored session state, stub third parties you do not control, and quarantine a flaking test with a deadline. Use whenever someone says our Playwright tests are flaky, tests pass locally and fail in CI, how should I select elements, should I use page objects, or how do I log in once for all tests. Not for choosing what to test or at which level, which is test-design; not for triaging a red pipeline, which is ci-triage; not for finding the cause of a product bug, which is debugging; not for building the site, which is website-builder."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(npx:*), Bash(npm:*), Bash(gh:*), Bash(jq:*), Bash(git:*)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(npx:*), Bash(npm:*), Bash(gh:*), Bash(jq:*), Bash(mktemp:*), Bash(git:*)
 ---
 
 # End-to-End Testing
@@ -10,7 +10,7 @@ A browser suite is finished when a red run is believed on the first read. Everyt
 
 The defining failure at this tier is not missing coverage, it is flake. A test that fails one run in twenty for a reason unrelated to the product teaches the team a rule — a red e2e run means try again — and once that rule is learned the suite protects nothing, including on the day it is right. Flake is also self-concealing: it is rarest on the machine of the person investigating it, because a laptop running one test is faster and less contended than a CI runner running eight in parallel, which is why "passes locally, fails in CI" is the canonical report rather than an unusual one. The work is therefore statistical before it is technical. Measure which tests actually flake, fix the causes in the order the data gives, and put the ones you cannot fix today under a quarantine that expires.
 
-Playwright is the reasonable default in 2026 and the concrete APIs below are its, verified against the upstream documentation for v1.63.0. Each technique says whether it is general or framework-specific, because the principle usually survives the framework and the method name never does.
+Playwright is the reasonable default in 2026 and the concrete APIs below are its, verified against the upstream documentation for v1.64.1. Each technique says whether it is general or framework-specific, because the principle usually survives the framework and the method name never does.
 
 ## Scope
 
@@ -29,21 +29,24 @@ Get the per-test numbers from CI history. Playwright's reporters carry the statu
 ```bash
 set -Eeuo pipefail
 out=$(mktemp -d)
+artifact=playwright-json   # the artifact name your e2e job uploads
 gh run list --workflow e2e.yml --branch main --limit 50 \
   --json databaseId --jq '.[].databaseId' > "$out/ids"
 while read -r id; do
-  gh run download "$id" --name playwright-json --dir "$out/$id" 2>/dev/null || true
+  gh run download "$id" --name "$artifact" --dir "$out/$id" 2>/dev/null || true
 done < "$out/ids"
 
 # One row per test: how often it ran, and how often it did not pass cleanly on the
-# first attempt. Confirm the report shape with `jq keys` before trusting the path.
+# first attempt. Playwright's per-test status is one of expected, unexpected, flaky
+# or skipped, so a skip is excluded rather than counted as unclean. Confirm the
+# report shape with `jq keys` before trusting the path.
 jq -s '
   [ .[] | .. | objects | select(has("specs")) | .specs[]
     | { test: (.file + " :: " + .title), status: (.tests[0].status // "unknown") } ]
   | group_by(.test)
   | map({ test: .[0].test,
           runs: length,
-          unclean: ([ .[] | select(.status != "expected") ] | length) })
+          unclean: ([ .[] | select(.status != "expected" and .status != "skipped") ] | length) })
   | map(. + { rate: (.unclean / .runs) })
   | sort_by(-.rate)
 ' "$out"/*/*.json
@@ -296,5 +299,5 @@ to still fail when the behaviour is broken.]
 
 - `references/flake-taxonomy.md` — read when a test is flaking and the cause is not obvious from the trace: the eight recurring classes, the artifact signature that identifies each, and the fix.
 - `references/selector-strategy.md` — read when an element has no accessible name, when the app is localised, or when applying the locator ladder in Cypress, Testing Library or Selenium.
-- `references/playwright-config.md` — read when setting up or repairing the configuration: timeouts, artifact capture, the authentication setup project, parallelism, sharding and the CI job shape, verified against upstream v1.63.0.
+- `references/playwright-config.md` — read when setting up or repairing the configuration: timeouts, artifact capture, the authentication setup project, parallelism, sharding and the CI job shape, verified against upstream v1.64.1.
 - `references/quarantine.md` — read when deciding whether to quarantine, delete or fix: the ledger format, how to run quarantined tests without blocking, and how to derive the deadline and the expiry review.

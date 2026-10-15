@@ -219,10 +219,12 @@ the host and installed version. Keep rungs 1 to 5 as the portable default and us
 agent hook as an extra local layer; on unsupported hosts, rely on the portable rungs
 and the available permission or sandbox controls.
 
-**Can enforce.** A rule about the agent's own actions: which path it just wrote, which
-command it ran. Rungs 1 to 5 see the result of a change; this one sees the act, so it is
-the only rung that can notice an edit to a protected path at the moment of the edit
-instead of at review.
+**Can enforce.** A rule about the agent's own actions: which path it is about to write,
+which command it is about to run. Rungs 1 to 5 see the result of a change; this one can
+see the act before it happens and, on an event that supports blocking (Claude Code's
+`PreToolUse`), refuse it — the only rung that can stop an edit to a protected path rather
+than flag it at review. A `PostToolUse` event fires after the tool has run, so it reports
+the write rather than preventing it.
 
 **Cannot see.** Changes made outside the agent's tool calls, such as a person's edit or
 another tool's, and any session where the hook is not registered. It runs code on every

@@ -1,6 +1,6 @@
 # Playwright configuration and CI wiring
 
-Everything here is framework-specific and was checked against the upstream documentation in the `microsoft/playwright` repository at tag `v1.63.0`. Version the assumption: option names and defaults change between releases, so re-check any figure before relying on it in a different version.
+Everything here is framework-specific and was checked against the upstream documentation in the `microsoft/playwright` repository at tag `v1.64.1`. Version the assumption: option names and defaults change between releases, so re-check any figure before relying on it in a different version.
 
 ## Contents
 
