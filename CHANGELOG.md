@@ -8,6 +8,15 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-10-15
+
+### Changed
+
+- Document merging `main` back into `dev` after every release, so dev carries the
+  dated changelog and the action bumps that land only on `main`. When `dev` has moved
+  on since the release, the difference from `main` is the unreleased `dev` work, which
+  stays.
+
 ## [0.1.9] - 2026-10-15
 
 ### Added
@@ -737,7 +746,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.9...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.10...HEAD
+[0.1.10]: https://github.com/greenblacked/AI/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/greenblacked/AI/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/greenblacked/AI/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/greenblacked/AI/compare/v0.1.6...v0.1.7

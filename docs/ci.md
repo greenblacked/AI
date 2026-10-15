@@ -793,6 +793,17 @@ second has two routes, and the Actions one is the usual path.
    credential fails the deploy job and leaves the GitHub Release in place; fix the
    environment and re-run the workflow.
 
+After every release, merge `main` back into `dev`. Open a pull request from a
+`chore/back-merge-main-x.y.z` branch cut from `origin/dev` with `origin/main` merged into
+it, and merge it with a merge commit, never a squash. That carries the dated changelog
+section and any Dependabot bumps that landed only on `main` into `dev`, and makes
+`main`'s history an ancestor of `dev`, so the next promotion starts from a common base
+instead of re-resolving the same changelog conflict. When nothing has merged into `dev`
+since the release, the merged tree equals `main` and `git diff origin/main` on the branch
+is empty. When `dev` has moved on, that diff is the work not yet released: every file it
+lists should be one a pull request into `dev` changed after the release was promoted.
+Keep that newer work; never drop a `dev` commit to make the two trees match.
+
 `scripts/release.py notes x.y.z` prints one version's section body and nothing else; it is
 what `release.yml` writes into a file for `gh release create --notes-file`, and what a
 maintainer can run by hand to preview a release's notes before tagging.
