@@ -123,3 +123,12 @@ def test_every_marketplace_plugin_is_named_where_the_docs_list_them():
     for name in names:
         assert f"`{name}`" in listing, name
         assert f"| `plugins/{name}/skills/` |" in agents, name
+
+
+def test_the_readme_never_calls_the_subagents_read_only():
+    # Some subagents hold Bash, which can change a checkout without an editing tool, so
+    # "read-only" overstates the boundary; the site and the family skill say "no editing
+    # tools" instead, and the README has to agree with them.
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "read-only subagent" not in readme
+    assert "subagent per stage with no editing tools" in readme
