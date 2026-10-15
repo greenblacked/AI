@@ -550,6 +550,19 @@ def test_the_slice_checklist_has_one_box_per_gate_and_a_script_that_survives_no_
         assert before.rfind("try {") > before.rfind("} catch"), call
 
 
+def test_the_family_page_never_calls_its_agents_read_only(mini_repo, tmp_path):
+    # The inspector holds Bash, which can change a checkout without an editing tool, so
+    # the page names the real boundary: no editing tools, and checks only on owned work.
+    _with_family(mini_repo)
+    page = (_build(mini_repo, tmp_path) / "family" / "index.html").read_text(encoding="utf-8")
+    # The subagents section renders only when the plugin ships agents, as it does here.
+    assert '<ul class="family-agents">' in page
+    assert "read-only" not in page
+    assert "subagent per stage with no editing tools" in page
+    assert "One per stage, none with editing tools" in page
+    assert "runs checks only on a change the owner wrote" in page
+
+
 def test_the_family_example_walks_one_slice_through_all_six_stages(mini_repo, tmp_path):
     output = _build(mini_repo, tmp_path)
     page = (output / "family" / "example" / "index.html").read_text(encoding="utf-8")
