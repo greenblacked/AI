@@ -24,6 +24,10 @@ CREDENTIALS = (
     "OPENAI_API_KEY",
     "GEMINI_API_KEY",
 )
+# The one command each backend's lockfile may put on PATH. Every later step, the
+# scoring step with the keys among them, resolves commands through this directory
+# first, so a locked package that shipped a `python` or `git` would shadow it.
+BINARIES = {"claude": "claude", "codex": "codex", "gemini": "gemini"}
 CLAUDE_MACHINES = {"x86_64": "x64", "amd64": "x64", "aarch64": "arm64", "arm64": "arm64"}
 
 
@@ -121,8 +125,36 @@ def install(root: Path, backend: str) -> None:
     )
     if backend == "claude":
         place_claude_binary(directory, version, packages)
+    bin_directory = directory / "node_modules" / ".bin"
+    check_cli_bin(bin_directory, BINARIES[backend])
+    refuse_step_state(github_path, os.environ.get("GITHUB_ENV"))
     with Path(github_path).open("a", encoding="utf-8") as output:
-        output.write(str(directory / "node_modules" / ".bin") + "\n")
+        output.write(str(bin_directory) + "\n")
+
+
+def check_cli_bin(bin_directory: Path, expected: str) -> None:
+    """Refuse to put anything but the backend's own command on later steps' PATH."""
+    found = (
+        sorted(entry.name for entry in bin_directory.iterdir()) if bin_directory.is_dir() else []
+    )
+    if found != [expected]:
+        raise ValueError(f"{bin_directory} must hold only {expected!r}, found {found}")
+
+
+def refuse_step_state(*paths: str | None) -> None:
+    """Fail, with the files emptied, if anything wrote step state during the install.
+
+    Nothing in this step writes GITHUB_ENV or GITHUB_PATH before the installer's own
+    line, and no package code runs, so an entry is unexpected. The runner applies the
+    files once the step ends, failed or not, so empty them before failing.
+    """
+    written = [
+        Path(path) for path in paths if path and Path(path).is_file() and Path(path).stat().st_size
+    ]
+    if written:
+        for path in written:
+            path.write_text("", encoding="utf-8")
+        raise ValueError("the install step wrote to GITHUB_ENV or GITHUB_PATH")
 
 
 def main(argv: list[str] | None = None) -> int:

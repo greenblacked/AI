@@ -736,11 +736,14 @@ filesystem, as the later scoring step, so it could rewrite the harness or the CL
 step executes with the secrets in its environment. No package code therefore runs at
 install time. Claude's wrapper postinstall would only copy the platform's native binary
 over a placeholder, so the installer does that copy itself, from the platform package
-the lockfile pins. Gemini's optional native modules stay unbuilt; it falls back to a
-file keychain and the API key it reads from the environment. The installer also rejects
-root lifecycle scripts and withholds GitHub runner command-file variables from npm
-before adding the CLI's binary directory to the later steps. Only the credential check
-and scoring steps receive model secrets.
+the lockfile pins. Gemini's optional native modules stay unbuilt; `gemini --version`
+runs without them, and a scoring run on that backend has not yet been exercised. The
+installer also rejects root lifecycle scripts and withholds GitHub runner command-file
+variables from npm. Before adding the CLI's binary directory to the later steps it
+checks that the directory holds only that backend's own command, since every later step
+resolves commands there first, and it fails, with both files emptied, if anything wrote
+to `GITHUB_ENV` or `GITHUB_PATH` during the step. Only the credential check and scoring
+steps receive model secrets.
 
 Neither job is a required check, and that is the design rather than an omission. A trigger
 eval has two halves that cost different amounts. The schema — twenty queries, at least
@@ -985,8 +988,8 @@ attempts, so a server-requested delay long enough on its own could otherwise sti
 past the job's five-minute `timeout-minutes` even though every individual attempt
 respected its own cap. The digest check afterwards runs on whatever arrives,
 retried or not, so a retry that succeeds is verified exactly as a first-try download
-would be. The `evals.yml` jobs install their selected CLI with `npm ci` from a committed integrity
-lockfile, in a step that receives no model credentials; the setup-node npm cache is
+would be. The `evals.yml` jobs install their selected CLI with `npm ci --ignore-scripts`
+from a committed integrity lockfile, in a step that receives no model credentials; the setup-node npm cache is
 disabled for those jobs. These evaluations are not on the critical path of any gate.
 
 ## Making CI authoritative

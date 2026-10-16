@@ -63,6 +63,61 @@ def write_client(root: Path, backend: str, *, valid_integrity: bool = True) -> P
     return directory
 
 
+def make_bin(directory: Path, backend: str, *extra: str) -> None:
+    bin_directory = directory / "node_modules" / ".bin"
+    bin_directory.mkdir(parents=True, exist_ok=True)
+    for name in (installer.BINARIES[backend], *extra):
+        (bin_directory / name).write_text("", encoding="utf-8")
+
+
+def ready_codex(tmp_path, monkeypatch):
+    directory = write_client(tmp_path, "codex")
+    files = {name: tmp_path / name.lower() for name in ("GITHUB_ENV", "GITHUB_PATH")}
+    monkeypatch.setenv("CODEX_VERSION", "1.2.3")
+    for name, path in files.items():
+        monkeypatch.setenv(name, str(path))
+    for key in installer.CREDENTIALS:
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setattr(installer.shutil, "which", lambda name: f"/usr/bin/{name}")
+    return directory, files
+
+
+def test_a_locked_package_that_adds_another_command_is_refused(tmp_path, monkeypatch):
+    directory, files = ready_codex(tmp_path, monkeypatch)
+    monkeypatch.setattr(
+        installer.subprocess, "run", lambda *args, **kwargs: make_bin(directory, "codex", "python")
+    )
+
+    with pytest.raises(ValueError, match="must hold only 'codex'"):
+        installer.install(tmp_path, "codex")
+    assert not files["GITHUB_PATH"].exists()
+
+
+def test_a_missing_cli_command_is_refused(tmp_path, monkeypatch):
+    ready_codex(tmp_path, monkeypatch)
+    monkeypatch.setattr(installer.subprocess, "run", lambda *args, **kwargs: None)
+
+    with pytest.raises(ValueError, match="must hold only 'codex', found \\[\\]"):
+        installer.install(tmp_path, "codex")
+
+
+@pytest.mark.parametrize("written", ["GITHUB_ENV", "GITHUB_PATH"])
+def test_step_state_written_during_install_fails_and_is_emptied(tmp_path, monkeypatch, written):
+    directory, files = ready_codex(tmp_path, monkeypatch)
+
+    def npm_that_plants(*args, **kwargs):
+        make_bin(directory, "codex")
+        files[written].write_text("NODE_OPTIONS=--require=/tmp/planted.js\n", encoding="utf-8")
+
+    monkeypatch.setattr(installer.subprocess, "run", npm_that_plants)
+
+    with pytest.raises(ValueError, match="wrote to GITHUB_ENV or GITHUB_PATH"):
+        installer.install(tmp_path, "codex")
+    assert files[written].read_text(encoding="utf-8") == ""
+    path_file = files["GITHUB_PATH"]
+    assert not path_file.exists() or path_file.read_text(encoding="utf-8") == ""
+
+
 @pytest.mark.parametrize("backend", CLIENTS)
 def test_install_uses_checked_lock_without_credentials_and_exports_cli_path(
     tmp_path, monkeypatch, backend
@@ -84,6 +139,7 @@ def test_install_uses_checked_lock_without_credentials_and_exports_cli_path(
 
     def fake_npm(*args, **kwargs):
         calls.append((args, kwargs))
+        make_bin(directory, backend)
         if backend == "claude":
             extract_claude(directory)
 
@@ -158,7 +214,9 @@ def test_install_requires_github_path_before_running_npm(tmp_path, monkeypatch):
 
 def test_committed_cli_locks_match_the_workflow_pins(tmp_path, monkeypatch):
     workflow = (REPO / ".github" / "workflows" / "evals.yml").read_text(encoding="utf-8")
-    monkeypatch.setenv("GITHUB_PATH", str(tmp_path / "github-path"))
+    monkeypatch.setenv("GITHUB_ENV", str(tmp_path / "github-env"))
+    # Nothing is installed here, so there is no .bin directory to inspect.
+    monkeypatch.setattr(installer, "check_cli_bin", lambda bin_directory, expected: None)
     for key in installer.CREDENTIALS:
         monkeypatch.delenv(key, raising=False)
     monkeypatch.setattr(installer.shutil, "which", lambda name: "/usr/bin/npm")
@@ -174,6 +232,8 @@ def test_committed_cli_locks_match_the_workflow_pins(tmp_path, monkeypatch):
         match = re.search(rf"^  {variable}: '([^']+)'$", workflow, re.MULTILINE)
         assert match is not None
         monkeypatch.setenv(variable, match.group(1))
+        # Each workflow step gets its own fresh GITHUB_PATH file.
+        monkeypatch.setenv("GITHUB_PATH", str(tmp_path / f"github-path-{backend}"))
         installer.install(REPO, backend)
     assert len(placed) == 1
 

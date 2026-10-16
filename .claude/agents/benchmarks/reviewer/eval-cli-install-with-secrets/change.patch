@@ -1,8 +1,8 @@
 diff --git a/scripts/install_eval_cli.py b/scripts/install_eval_cli.py
-index d424408..8722a1a 100644
+index 6886f8e..0290c1d 100644
 --- a/scripts/install_eval_cli.py
 +++ b/scripts/install_eval_cli.py
-@@ -113,14 +113,12 @@ def install(root: Path, backend: str) -> None:
+@@ -117,14 +117,12 @@ def install(root: Path, backend: str) -> None:
      # filesystem, as the later step that holds model credentials, so a script in any
      # locked package could alter what that step executes.
      subprocess.run(  # noqa: S603 - fixed npm command, checked-in dependency directory
@@ -15,6 +15,6 @@ index d424408..8722a1a 100644
      )
 -    if backend == "claude":
 -        place_claude_binary(directory, version, packages)
-     with Path(github_path).open("a", encoding="utf-8") as output:
-         output.write(str(directory / "node_modules" / ".bin") + "\n")
- 
+     bin_directory = directory / "node_modules" / ".bin"
+     check_cli_bin(bin_directory, BINARIES[backend])
+     refuse_step_state(github_path, os.environ.get("GITHUB_ENV"))
