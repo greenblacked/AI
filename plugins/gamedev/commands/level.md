@@ -13,10 +13,15 @@ a stage run before its input exists produces work that is thrown away — tuning
 numbers for a loop nobody has played is the expensive version of that, because the
 numbers get re-derived the moment the loop changes.
 
-At each stage, say what you are handing to the next one. If a stage hits its stop
+At each stage, say what you are handing to the next one: the scope it was held to and the
+evidence behind each acceptance criterion it touched. If a stage hits its stop
 condition, stop the chain there and report — a stage that was skipped is not a stage that
 passed, and reporting it as one is how a level reaches review with no frame budget behind
-it.
+it. The same goes for a stage whose evidence could not be gathered — no build to run, no
+device, nobody to watch play: report it unverified, or blocked, with what is missing and
+the next test that would supply it. A later stage that consumes that evidence carries the
+same status rather than running as though it passed; one that does not depend on it can
+still run, labelled as such.
 
 Read each skill's own "Scale and game type" section before deciding how heavily to run
 its stage — what a jam entry can skip, a AAA submission cannot.
@@ -32,7 +37,13 @@ invent requirements to keep moving: an invented requirement is indistinguishable
 decided one three weeks later, when it is code and somebody is defending it.
 
 **Hands on** the must-have list, the acceptance criteria, and the open questions that
-the layout is allowed to answer.
+the layout is allowed to answer. Among the criteria, the grey-box ones stage 3 is judged
+against: what result, seen by whom, in how many sessions, means the loop works. When
+`game-greenlight` already ran a prototype for this idea, carry forward what it found —
+which criteria it met, on what evidence, and what it left unverified — not its brief:
+that brief scoped a deliberately small risk test, and this feature's criteria are
+written for the feature. Two or three such criteria are enough for a small feature —
+this is a proportional check, not a greenlight document.
 
 ## 2. Lay it out — `game-level-design`
 
@@ -60,14 +71,23 @@ the mechanic playable before anything is pretty, because art on a loop that is n
 only makes the loop expensive to cut. Meet the feel floor before calling the stage done: input acts on press,
 a fixed-timestep simulation, failure that reads on screen, restart in one key.
 
-**Stop if** the loop is not fun in grey boxes. Say so and go back to stage 1 rather than
-continuing on the assumption that the art pass will rescue it. If the loop is fine and
-the space around it is not — one route, nowhere to go in a fight, players lost — that is
-stage 2 rather than stage 1.
+The spec and the layout are the approved direction, so `game-builder` builds to them
+rather than reopening concept choice; only a major decision they leave open goes back to
+the user.
 
-**Hands on** a playable build in the laid-out space, the parameters that are deliberately
-left open for tuning, and anything in the spec or the layout that turned out to be wrong
-once it was playable.
+**Stop if** the loop fails the grey-box criteria from stage 1. Say which criterion failed
+and on what evidence, and decide with the user between one bounded revision — a named
+change, re-tested against the same criteria — and going back to stage 1 to rethink the
+loop. Do not
+continue on the assumption that the art pass will rescue it. If the loop is fine and
+the space around it is not — one route, nowhere to go in a fight, players lost — that is
+stage 2 rather than stage 1. If nobody could play the build, the stage is unverified,
+not passed, and stage 4 has no loop to tune yet.
+
+**Hands on** a playable build in the laid-out space, the evidence against each grey-box
+criterion with its kind — build or smoke check, developer self-playtest, or intended
+players watched — the parameters that are deliberately left open for tuning, and
+anything in the spec or the layout that turned out to be wrong once it was playable.
 
 ## 4. Tune — `game-balance`
 
@@ -123,7 +143,8 @@ is why they are named here rather than discovered at submission.
   turns a concept into a decision to build it at all — a pitch, a feasibility read, the
   one riskiest question a prototype should answer, and go, no-go or pivot criteria
   written before the prototype exists. Run it first; `/level` assumes the idea has
-  already cleared that gate.
+  already cleared that gate. What its prototype found carries into stage 1's criteria;
+  its brief does not, because it scoped a risk test rather than this feature.
 - **Shipping to a console or a store**: `game-certification` owns the submission gate,
   and its calendar — ratings, platform accounts, storefront lead time — is not something
   this chain can compress.
@@ -141,6 +162,7 @@ is why they are named here rather than discovered at submission.
 
 ## Finish
 
-Report one block per stage: what it produced, what it decided, what it left open. Name
-any stage that stopped and what stopped it. Then give the one thing a reviewer should
+Report one block per stage: what it produced, what it decided, what it left open, and the
+status of each acceptance criterion it touched. Name any stage that stopped, was skipped
+or is unverified, and what stopped it. Then give the one thing a reviewer should
 play first, and the one number they should not take on trust.

@@ -23,6 +23,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Make the gamedev prototype a written handoff: `game-greenlight` hands `game-builder`
+  a brief with the riskiest question, scope, budget and go, no-go and pivot criteria;
+  `game-builder` builds to it rather than offering fresh concepts and reports evidence
+  against each criterion, keeping a build, a self-playtest and watched players apart.
+  A criterion nobody could test is reported unverified or blocked, and `/level` carries
+  that status through its stages instead of treating it as passed.
 - Add worked examples and concrete numbers to the coding agent skills: a task-graph
   example in agent-orchestration, a filled checkpoint contract in agent-handoff,
   rerun counts in agent-failure-diagnosis, and delegation sizing figures.
