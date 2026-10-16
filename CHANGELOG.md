@@ -8,6 +8,19 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Fixed
+
+- Correct stale technical claims across the coding skills: the `Deprecation`,
+  `Sunset` and `RateLimit` headers in api-design, the Playwright version and flake
+  count in e2e-testing, the OpenAI evaluation reference in agent-evaluation, what a
+  `PostToolUse` hook can stop, staticcheck's SA1019, and the refactoring research
+  citation.
+- Pin website-builder's CI example to commit SHAs with read-only permissions, job
+  timeouts, and have its Lighthouse job audit the build it deploys.
+- Give website-builder the `Scope` section its siblings have, note the macOS
+  alternatives to `flock` and `sha256sum`, and keep agent-delegation's brief template
+  in one place.
+
 ### Changed
 
 - Make the gamedev prototype a written handoff: `game-greenlight` hands `game-builder`
@@ -16,6 +29,19 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   against each criterion, keeping a build, a self-playtest and watched players apart.
   A criterion nobody could test is reported unverified or blocked, and `/level` carries
   that status through its stages instead of treating it as passed.
+- Add worked examples and concrete numbers to the coding agent skills: a task-graph
+  example in agent-orchestration, a filled checkpoint contract in agent-handoff,
+  rerun counts in agent-failure-diagnosis, and delegation sizing figures.
+- Show the per-worker `storageState` fixture in e2e-testing's Playwright reference so
+  the worker-scoped session is concrete, and fold application-caching's duplicated
+  rollout and rollback steps into its failure-and-rollout reference.
+
+### Security
+
+- Install the eval CLIs from committed, integrity-locked npm trees with lifecycle
+  scripts disabled, in a step that holds no model credentials. Previously a package
+  install script ran in, or on the same runner state as, the step that held the API
+  keys.
 
 ## [0.1.10] - 2026-10-15
 

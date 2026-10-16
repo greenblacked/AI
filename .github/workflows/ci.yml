@@ -60,7 +60,7 @@ env:
   PYTEST_COV_VERSION: '7.1.0'
   # The browser tests drive the built site through Playwright's Python package and the
   # Chrome the runner image already ships, so no browser is downloaded.
-  PLAYWRIGHT_VERSION: '1.63.0'
+  PLAYWRIGHT_VERSION: '1.64.0'
   ACTIONLINT_VERSION: '1.7.12'
   ACTIONLINT_SHA256: '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8'
 
