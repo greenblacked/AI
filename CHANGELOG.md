@@ -16,7 +16,7 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   `PostToolUse` hook can stop, staticcheck's SA1019, and the refactoring research
   citation.
 - Pin website-builder's CI example to commit SHAs with read-only permissions, job
-  timeouts and a preview URL the Lighthouse job can actually reach.
+  timeouts, and have its Lighthouse job audit the build it deploys.
 - Give website-builder the `Scope` section its siblings have, note the macOS
   alternatives to `flock` and `sha256sum`, and keep agent-delegation's brief template
   in one place.

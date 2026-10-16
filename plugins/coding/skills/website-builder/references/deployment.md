@@ -191,12 +191,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { persist-credentials: false }
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with: { name: dist, path: dist }
       - uses: treosh/lighthouse-ci-action@3e7e23fb74242897f95c0ba9cabad3d0227b9b18 # 12.6.2
         with:
-          # Set the PREVIEW_URL variable to a stable staging URL. A per-branch preview
-          # URL has to come from the preview deploy job's output instead; the
-          # fallback keeps the example runnable without either.
-          urls: ${{ vars.PREVIEW_URL || 'https://example.com' }}
+          configPath: ./lighthouserc.json
           budgetPath: ./lighthouse-budget.json
           uploadArtifacts: true
 
@@ -212,6 +211,14 @@ jobs:
       - run: npx wrangler pages deploy dist --project-name=example
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+```
+
+The Lighthouse job audits the downloaded `dist` through the config file at the
+repository root, which has Lighthouse CI serve the directory and audit each HTML file in
+it:
+
+```json
+{ "ci": { "collect": { "staticDistDir": "./dist" } } }
 ```
 
 The same shape in GitLab CI is `stages: [build, verify, deploy]` with `only: [main]` on
