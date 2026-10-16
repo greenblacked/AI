@@ -64,17 +64,25 @@ A netcode-risk pitch gets two boxes talking over a real network before either bo
 
 ### 5. Write kill criteria before the prototype exists
 
-For each of go, no-go and pivot, write the observable result that produces it — a number, a session behaviour, a specific failure — before anyone has played the prototype. "We'll know it when we see it" is not a criterion; it is a decision deferred to whoever is most persuasive after the fact. A criterion written once the result is in is not a criterion, it is a description of what already happened wearing the shape of one.
+For each of go, no-go and pivot, write the observable result that produces it — a number, a session behaviour, a specific failure — before anyone has played the prototype, and say how it will be observed: the method (a session count, a measured number, a behaviour watched for), the observer (the team, or players from the target audience in step 1), and the threshold that separates the outcomes. "We'll know it when we see it" is not a criterion; it is a decision deferred to whoever is most persuasive after the fact. A criterion written once the result is in is not a criterion, it is a description of what already happened wearing the shape of one.
 
 Write where the criteria live — a pinned note, the pitch deck, the stage-gate document — and who signs them before the prototype starts. Read `references/kill-criteria.md` for the shape of a good criterion, examples of criteria that quietly failed to constrain anything, and how a pivot differs from a no-go dressed up to avoid saying it.
 
 ### 6. Build the prototype
 
-Hand the riskiest question and the smallest-test scope from step 4 to `game-builder`. This skill does not build; it decides what has to be true for the build to mean anything.
+Hand `game-builder` a prototype brief, not just the question. It carries what the earlier steps already wrote, by reference rather than rewritten:
+
+- **The riskiest question** — the falsifiable assumption from step 3, and the one the build exists to answer.
+- **Scope and non-goals** — the smallest-test scope from step 4 and its list of what the prototype will not include.
+- **Platform and input** — only where step 2 found they shape the core loop, so the test runs on the input it will ship with.
+- **Budget** — the time and people the prototype gets, from the scale table above.
+- **The criteria** — step 5's method, observer, threshold, and the go, no-go and pivot results.
+
+That brief is the approved direction: the builder builds to it rather than reopening concept choice, and comes back to this skill if the brief leaves a major design decision open. What returns is evidence against each criterion, labelled by kind — a build or automated smoke check, the developer's own self-playtest, or observation of intended players — with any criterion it could not test marked unverified or blocked, and what is missing. The call stays here, at step 7. This skill does not build; it decides what has to be true for the build to mean anything.
 
 ### 7. Make the call against what was written, not against how it feels
 
-Read the prototype's result against the criteria from step 5, not against team morale or how much fun the prototype was to make. A result that lands ambiguously between the written thresholds is itself a finding — usually that the test was underpowered, or that it tested the wrong thing — and the answer is to go back to step 4 and run a sharper test, not to let the mood in the room break the tie.
+Read the prototype's result against the criteria from step 5, one criterion at a time, not against team morale or how much fun the prototype was to make. Check each criterion's evidence is the kind it named: build success establishes only that the project built, an executed smoke check supports only the runtime behaviour it exercised and asserted, and a developer's self-playtest shows what the builder found. None stands in for intended players when the criterion is about them. A criterion with unverified or blocked evidence is not met, and it is not a go — name the missing evidence and the test that would supply it, and wait for that test rather than deciding without it. A result that lands ambiguously between the written thresholds is itself a finding — usually that the test was underpowered, or that it tested the wrong thing — and the answer is to go back to step 4 and run a sharper test, not to let the mood in the room break the tie.
 
 ### 8. Hand off
 
