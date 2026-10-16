@@ -90,7 +90,7 @@ For several roles, write one file per role in the setup project and select betwe
 
 ## Per-worker authentication
 
-A shared account breaks when the application has server-side session state: one worker's logout or session refresh invalidates another's, and the resulting failures look exactly like flake. Override the `storageState` fixture at worker scope and key the file on the worker's parallel index, so each worker authenticates once as its own account. Size the account pool to the worker count and provision the accounts as part of environment setup rather than inside the test run.
+A shared account breaks when the application has server-side session state: one worker's logout or session refresh invalidates another's, and the resulting failures look exactly like flake. Override the `storageState` fixture at worker scope so each worker authenticates once as its own account. `parallelIndex` runs from `0` to `workers - 1` inside each Playwright process, so sharded jobs or overlapping CI runs share those indices; include the shard and run identifiers (or acquire an exclusive account from a test-user service) and size or provision the accounts across all concurrent shards and runs rather than one process's worker count alone.
 
 ```ts
 // e2e/fixtures.ts
@@ -98,8 +98,10 @@ import { test as base, expect } from '@playwright/test';
 
 export const test = base.extend<{}, { workerStorageState: string }>({
   workerStorageState: [async ({ browser }, use, workerInfo) => {
-    const id = workerInfo.parallelIndex;
-    const fileName = `playwright/.auth/user-${id}.json`;
+    const shard = workerInfo.config.shard?.current ?? 1;
+    const run = process.env.GITHUB_RUN_ID ?? 'local';
+    const slot = `${shard}_${workerInfo.parallelIndex}`;
+    const fileName = `playwright/.auth/user-${run}-${slot}.json`;
     // A page from `browser` gets none of the project's `use` options, so pass the
     // base URL in, and start from no stored session.
     const page = await browser.newPage({
@@ -107,8 +109,8 @@ export const test = base.extend<{}, { workerStorageState: string }>({
       baseURL: workerInfo.project.use.baseURL,
     });
     await page.goto('/login');
-    await page.getByLabel('Email').fill(process.env[`E2E_USER_${id}`] ?? '');
-    await page.getByLabel('Password').fill(process.env[`E2E_PASSWORD_${id}`] ?? '');
+    await page.getByLabel('Email').fill(process.env[`E2E_USER_${slot}`] ?? '');
+    await page.getByLabel('Password').fill(process.env[`E2E_PASSWORD_${slot}`] ?? '');
     await page.getByRole('button', { name: 'Sign in' }).click();
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
     await page.context().storageState({ path: fileName });
@@ -121,7 +123,7 @@ export const test = base.extend<{}, { workerStorageState: string }>({
 export { expect } from '@playwright/test';
 ```
 
-Import `test` and `expect` from this file rather than from `@playwright/test` so every test inherits its worker's session.
+Import `test` and `expect` from this file rather than from `@playwright/test` so every test inherits its worker's session. When overlapping CI runs share a staging backend, either serialize the e2e workflow with a `concurrency:` group or have each worker provision or lease a run-scoped account before logging in.
 
 ## Parallelism and workers
 
