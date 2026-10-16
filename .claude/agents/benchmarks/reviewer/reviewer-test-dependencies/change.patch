@@ -1,6 +1,6 @@
 --- a/.github/workflows/evals.yml
 +++ b/.github/workflows/evals.yml
-@@ -689,9 +689,3 @@ jobs:
+@@ -690,9 +690,3 @@ jobs:
            package-manager-cache: false
 -      - name: Install the reviewer repository test dependencies
 -        if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'

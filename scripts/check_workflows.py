@@ -54,12 +54,22 @@ Standard library only, like the checks it sits beside.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import shlex
 import sys
 from pathlib import Path
 
 WORKFLOW_DIR = Path(".github") / "workflows"
+NPM_LOCK_PINS = {
+    "WRANGLER_VERSION": (Path("deploy"), "wrangler"),
+    "CLAUDE_CODE_VERSION": (
+        Path(".github") / "eval-clients" / "claude",
+        "@anthropic-ai/claude-code",
+    ),
+    "CODEX_VERSION": (Path(".github") / "eval-clients" / "codex", "@openai/codex"),
+    "GEMINI_CLI_VERSION": (Path(".github") / "eval-clients" / "gemini", "@google/gemini-cli"),
+}
 
 # A job is a two-space key inside `jobs:`; a job's own keys sit at four. A trailing
 # comment is allowed, because a key carrying one is still a job.
@@ -317,6 +327,50 @@ def check_known_gate(rel: Path, text: str, jobs: list[Job]) -> int:
     return problems
 
 
+def check_npm_lock_pin(root: Path, name: str, version: str) -> int:
+    """Ensure a workflow npm version pin agrees with its committed manifest and lockfile."""
+    rel_dir, package = NPM_LOCK_PINS[name]
+    directory = root / rel_dir
+    if not directory.is_dir():
+        return 0
+    manifest_path = directory / "package.json"
+    lock_path = directory / "package-lock.json"
+    if not manifest_path.is_file() or not lock_path.is_file():
+        print(f"::error file={rel_dir}::missing package.json or package-lock.json for {name}")
+        return 1
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        lock = json.loads(lock_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        print(f"::error file={rel_dir}::{name} lockfile is not JSON: {error}")
+        return 1
+    declared = manifest.get("dependencies", {}).get(package) if isinstance(manifest, dict) else None
+    entry = (
+        lock.get("packages", {}).get(f"node_modules/{package}") if isinstance(lock, dict) else None
+    )
+    locked = entry.get("version") if isinstance(entry, dict) else None
+    integrity = entry.get("integrity") if isinstance(entry, dict) else None
+    found = 0
+    if declared != version:
+        print(
+            f"::error file={rel_dir / 'package.json'}::depends on {package} {declared!r}, "
+            f"not {name}={version}"
+        )
+        found += 1
+    if locked != version:
+        print(
+            f"::error file={rel_dir / 'package-lock.json'}::installs {package} {locked!r}, "
+            f"not {name}={version}"
+        )
+        found += 1
+    if not isinstance(integrity, str) or not integrity.startswith("sha512-"):
+        print(
+            f"::error file={rel_dir / 'package-lock.json'}::missing sha512 integrity for {package}"
+        )
+        found += 1
+    return found
+
+
 def check(root: Path) -> int:
     workflows = sorted(
         path for pattern in ("*.yml", "*.yaml") for path in (root / WORKFLOW_DIR).glob(pattern)
@@ -399,13 +453,17 @@ def check(root: Path) -> int:
             problems += 1
 
     for name, places in sorted(seen_pins.items()):
-        if len({value for _, value, _ in places}) > 1:
+        values = {value for _, value, _ in places}
+        if len(values) > 1:
             spread = "; ".join(f"{where}:{line} has {value}" for where, value, line in places)
             print(
                 f"::error::{name} is pinned to more than one value — {spread}. A pin "
                 f"that means two things is one that was bumped in one place"
             )
             problems += 1
+            continue
+        if name in NPM_LOCK_PINS:
+            problems += check_npm_lock_pin(root, name, next(iter(values)))
 
     if problems:
         print(f"\n{problems} workflow problem(s)", file=sys.stderr)

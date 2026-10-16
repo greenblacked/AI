@@ -270,6 +270,51 @@ def test_reviewer_selection_gate_preserves_dispatch_opt_in(tmp_path, event, revi
     assert output.read_text(encoding="utf-8") == f"run={expected}\n"
 
 
+@pytest.mark.parametrize(
+    ("changed_path", "expected"),
+    [
+        (".claude/agents/benchmarks/reviewer/demo/case.json", "true"),
+        (".claude/agents/reviewer.md", "true"),
+        (".github/eval-clients/claude/package-lock.json", "true"),
+        ("scripts/run_review_benchmark.py", "true"),
+        ("scripts/install_eval_cli.py", "true"),
+        ("plugins/coding/skills/code-review/SKILL.md", "false"),
+    ],
+)
+def test_reviewer_selection_gate_matches_measured_pull_request_paths(
+    tmp_path, changed_path, expected
+):
+    script = _extract_run_block(
+        WORKFLOW.read_text(encoding="utf-8"), "Decide whether the benchmark measures this change"
+    )
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    git = bin_dir / "git"
+    git.write_text(
+        f'#!/usr/bin/env bash\nif [ "$1" = "diff" ]; then\n  printf "%s\\n" "{changed_path}"\nfi\n',
+        encoding="utf-8",
+    )
+    git.chmod(0o755)
+    output, summary = tmp_path / "output", tmp_path / "summary"
+    result = subprocess.run(  # noqa: S603 - execute workflow gate without scoring
+        ["bash", "-c", script],  # noqa: S607 - same PATH as workflow
+        cwd=tmp_path,
+        env={
+            "PATH": f"{bin_dir}:/usr/bin:/bin",
+            "GITHUB_EVENT_NAME": "pull_request",
+            "GITHUB_BASE_REF": "dev",
+            "REVIEWER_INPUT": "",
+            "GITHUB_OUTPUT": str(output),
+            "GITHUB_STEP_SUMMARY": str(summary),
+        },
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert output.read_text(encoding="utf-8") == f"run={expected}\n"
+
+
 def run_target_selector(tmp_path, changed, targets):
     """Execute the actual embedded selector against a small catalogue, offline."""
     for path, queries in targets.items():

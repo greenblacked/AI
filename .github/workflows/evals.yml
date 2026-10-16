@@ -633,14 +633,15 @@ jobs:
               exit 0
               ;;
           esac
-          # A pull request: run only when it changes one of the three things a benchmark
-          # number depends on — the cases, the agent under test, or the harness.
+          # A pull request: run only when it changes one of the things a benchmark
+          # number depends on — the cases, the agent under test, the harness, or the
+          # locked eval CLI installation it executes with.
           if ! git rev-parse --verify --quiet "origin/${GITHUB_BASE_REF}" > /dev/null; then
             git fetch --no-tags --prune --quiet origin \
               "+refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}"
           fi
           git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD" > changed-paths.txt
-          measured='^(\.claude/agents/benchmarks/|\.claude/agents/reviewer\.md$|scripts/run_review_benchmark\.py$)'
+          measured='^(\.claude/agents/benchmarks/|\.claude/agents/reviewer\.md$|\.github/eval-clients/|scripts/(run_review_benchmark|install_eval_cli)\.py$)'
           if grep -Eq "$measured" changed-paths.txt; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
