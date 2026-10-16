@@ -12,8 +12,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 - Correct stale technical claims across the coding skills: the `Deprecation`,
   `Sunset` and `RateLimit` headers in api-design, the Playwright version and flake
-  count in e2e-testing, the retired OpenAI Evals platform, what a `PostToolUse` hook
-  can stop, staticcheck's SA1019, and the refactoring research citation.
+  count in e2e-testing, the OpenAI evaluation reference in agent-evaluation, what a
+  `PostToolUse` hook can stop, staticcheck's SA1019, and the refactoring research
+  citation.
 - Pin website-builder's CI example to commit SHAs with read-only permissions, job
   timeouts and a preview URL the Lighthouse job can actually reach.
 - Give website-builder the `Scope` section its siblings have, note the macOS

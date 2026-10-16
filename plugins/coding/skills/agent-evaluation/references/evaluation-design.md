@@ -66,5 +66,5 @@ When a gate fails, preserve the run and explain the failing clause. Changing the
 
 ## Primary sources
 
-- [OpenAI, Evaluation getting started](https://developers.openai.com/api/docs/guides/evaluation-getting-started) — representative test data, human ground truth and deterministic string checks. This replaces the Evals platform, which OpenAI is retiring (read-only 2026-10-31, shut down 2026-11-30).
+- [OpenAI, Evaluation getting started](https://developers.openai.com/api/docs/guides/evaluation-getting-started) — representative test data, human ground truth and deterministic string checks.
 - [Anthropic, Demystifying evals for AI agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) — agent evaluation design, graders, trials and evaluation harnesses.
