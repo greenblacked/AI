@@ -128,6 +128,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with:
           node-version: '22'
+          package-manager-cache: false
       - name: Check the chosen backend has a credential
         id: credentials
         # The harness reads no key of its own; each CLI reads the credential it
@@ -180,19 +181,21 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      - name: Install the eval CLI
+        if: steps.credentials.outputs.skip != 'true'
+        run: |
+          set -Eeuo pipefail
+          python scripts/install_eval_cli.py "$BACKEND"
+        env:
+          BACKEND: ${{ inputs.backend || 'claude' }}
       - name: Score the eval sets
         if: steps.credentials.outputs.skip != 'true'
         run: |
           set -Eeuo pipefail
-          case "$BACKEND" in
-            claude) npm install --global "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" ;;
-            codex)
-              npm install --global "@openai/codex@${CODEX_VERSION}"
-              # codex takes its key through a login rather than from the environment.
-              printenv OPENAI_API_KEY | codex login --with-api-key
-              ;;
-            gemini) npm install --global "@google/gemini-cli@${GEMINI_CLI_VERSION}" ;;
-          esac
+          if [ "$BACKEND" = "codex" ]; then
+            # codex takes its key through a login rather than from the environment.
+            printenv OPENAI_API_KEY | codex login --with-api-key
+          fi
           if [ "$SKILL" = "all" ]; then
             target=(--all)
           elif [[ "$SKILL" == *.md ]]; then
@@ -464,6 +467,12 @@ jobs:
         if: steps.targets.outputs.count != '0' && steps.credentials.outputs.skip != 'true'
         with:
           node-version: '22'
+          package-manager-cache: false
+      - name: Install the changed-target eval CLI
+        if: steps.targets.outputs.count != '0' && steps.credentials.outputs.skip != 'true'
+        run: |
+          set -Eeuo pipefail
+          python scripts/install_eval_cli.py claude
       - name: Score each target
         id: score
         if: steps.targets.outputs.count != '0' && steps.credentials.outputs.skip != 'true'
@@ -472,7 +481,6 @@ jobs:
         # first. The publish step merges the files back into one table.
         run: |
           set -Eeuo pipefail
-          npm install --global "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
           mkdir -p eval-results
           index=0
           while read -r kind path <&3; do
@@ -625,14 +633,15 @@ jobs:
               exit 0
               ;;
           esac
-          # A pull request: run only when it changes one of the three things a benchmark
-          # number depends on — the cases, the agent under test, or the harness.
+          # A pull request: run only when it changes one of the things a benchmark
+          # number depends on — the cases, the agent under test, the harness, or the
+          # locked eval CLI installation it executes with.
           if ! git rev-parse --verify --quiet "origin/${GITHUB_BASE_REF}" > /dev/null; then
             git fetch --no-tags --prune --quiet origin \
               "+refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}"
           fi
           git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD" > changed-paths.txt
-          measured='^(\.claude/agents/benchmarks/|\.claude/agents/reviewer\.md$|scripts/run_review_benchmark\.py$)'
+          measured='^(\.claude/agents/benchmarks/|\.claude/agents/reviewer\.md$|\.github/eval-clients/|scripts/(run_review_benchmark|install_eval_cli)\.py$)'
           if grep -Eq "$measured" changed-paths.txt; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
@@ -678,12 +687,18 @@ jobs:
         if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'
         with:
           node-version: '22'
+          package-manager-cache: false
       - name: Install the reviewer repository test dependencies
         if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'
         run: |
           set -Eeuo pipefail
           python -m pip install "pytest==${PYTEST_VERSION}" "coverage==${COVERAGE_VERSION}" \
             "pytest-xdist==${PYTEST_XDIST_VERSION}" "pytest-cov==${PYTEST_COV_VERSION}"
+      - name: Install the reviewer eval CLI
+        if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'
+        run: |
+          set -Eeuo pipefail
+          python scripts/install_eval_cli.py claude
       - name: Benchmark the reviewer
         id: benchmark
         if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'
@@ -692,7 +707,6 @@ jobs:
         # exit code is the signal either way.
         run: |
           set -Eeuo pipefail
-          npm install --global "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
           python scripts/run_review_benchmark.py \
             --runs 3 --jobs 4 --json reviewer-benchmark.json
         env:

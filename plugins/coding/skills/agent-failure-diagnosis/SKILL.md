@@ -84,7 +84,7 @@ Make the smallest change that would have prevented the failure at that layer. Th
 - every captured case, with the same model and effort as the original;
 - one control: a case that should be unaffected by the change.
 
-A control that changes means the change was broader than intended. Agents vary from run to run, so a case that passes once has not shown the fix works. Repeat each case enough times that a pass is not luck, and report counts, not impressions.
+A control that changes means the change was broader than intended. Agents vary from run to run, so a case that passes once has not shown the fix works. Size the reruns from the failure rate you captured, not from a habit: a failure seen in about half the runs needs roughly five clean reruns before the fix is credible, one seen in one run in five needs about fourteen, and one seen in one run in ten needs about thirty. Report those counts, not an impression.
 
 Keep a log with one row per attempt: failure, layer, evidence, change, result. Read `references/diagnosis-log.md` for the template and a worked example in which the first attribution was wrong.
 
