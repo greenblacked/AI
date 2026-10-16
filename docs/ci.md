@@ -740,8 +740,9 @@ the lockfile pins. Gemini's optional native modules stay unbuilt; `gemini --vers
 runs without them, and a scoring run on that backend has not yet been exercised. The
 installer also rejects root lifecycle scripts and withholds GitHub runner command-file
 variables from npm. Before adding the CLI's binary directory to the later steps it
-checks that the directory holds only that backend's own command, since every later step
-resolves commands there first, and it fails, with both files emptied, if anything wrote
+checks that the directory holds only that backend's own command and that it resolves to
+a file inside the CLI package, with the lockfile allowing no other package to declare a
+command, since every later step resolves commands there first, and it fails, with both files emptied, if anything wrote
 to `GITHUB_ENV` or `GITHUB_PATH` during the step. Only the credential check and scoring
 steps receive model secrets.
 

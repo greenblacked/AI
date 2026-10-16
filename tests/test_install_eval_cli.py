@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -49,7 +50,10 @@ def write_client(root: Path, backend: str, *, valid_integrity: bool = True) -> P
     lock = {
         "packages": {
             "": {"dependencies": {package: version}},
-            f"node_modules/{package}": dependency,
+            f"node_modules/{package}": {
+                **dependency,
+                "bin": {installer.BINARIES[backend]: BIN_TARGETS[backend]},
+            },
         }
     }
     if backend == "claude":
@@ -63,11 +67,22 @@ def write_client(root: Path, backend: str, *, valid_integrity: bool = True) -> P
     return directory
 
 
-def make_bin(directory: Path, backend: str, *extra: str) -> None:
-    bin_directory = directory / "node_modules" / ".bin"
+BIN_TARGETS = {"claude": "bin/claude.exe", "codex": "bin/codex.js", "gemini": "bundle/gemini.js"}
+
+
+def make_bin(directory: Path, backend: str, *extra: str, target: Path | None = None) -> None:
+    """Link the CLI's command the way npm does, plus any extra commands."""
+    package, _ = CLIENTS[backend]
+    modules = directory / "node_modules"
+    if target is None:
+        target = modules / package / BIN_TARGETS[backend]
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if not target.exists():
+        target.write_text("", encoding="utf-8")
+    bin_directory = modules / ".bin"
     bin_directory.mkdir(parents=True, exist_ok=True)
     for name in (installer.BINARIES[backend], *extra):
-        (bin_directory / name).write_text("", encoding="utf-8")
+        (bin_directory / name).symlink_to(os.path.relpath(target, bin_directory))
 
 
 def ready_codex(tmp_path, monkeypatch):
@@ -139,9 +154,9 @@ def test_install_uses_checked_lock_without_credentials_and_exports_cli_path(
 
     def fake_npm(*args, **kwargs):
         calls.append((args, kwargs))
-        make_bin(directory, backend)
         if backend == "claude":
             extract_claude(directory)
+        make_bin(directory, backend)
 
     monkeypatch.setattr(installer.subprocess, "run", fake_npm)
 
@@ -216,7 +231,7 @@ def test_committed_cli_locks_match_the_workflow_pins(tmp_path, monkeypatch):
     workflow = (REPO / ".github" / "workflows" / "evals.yml").read_text(encoding="utf-8")
     monkeypatch.setenv("GITHUB_ENV", str(tmp_path / "github-env"))
     # Nothing is installed here, so there is no .bin directory to inspect.
-    monkeypatch.setattr(installer, "check_cli_bin", lambda bin_directory, expected: None)
+    monkeypatch.setattr(installer, "check_cli_bin", lambda *args: None)
     for key in installer.CREDENTIALS:
         monkeypatch.delenv(key, raising=False)
     monkeypatch.setattr(installer.shutil, "which", lambda name: "/usr/bin/npm")
@@ -378,3 +393,38 @@ def test_main_reports_an_install_timeout_as_a_failure(monkeypatch, tmp_path, cap
 
     assert installer.main(["codex"]) == 1
     assert "eval CLI installation failed" in capsys.readouterr().err
+
+
+def test_a_dependency_declaring_the_same_command_is_refused_before_npm(tmp_path, monkeypatch):
+    # npm links every locked package's bin into one directory, so a dependency that also
+    # declares `codex` could own the single entry the directory check would accept.
+    directory = write_client(tmp_path, "codex")
+    lock_path = directory / "package-lock.json"
+    lock = json.loads(lock_path.read_text(encoding="utf-8"))
+    lock["packages"]["node_modules/lookalike"] = {
+        "version": "1.0.0",
+        "resolved": "https://registry.npmjs.org/lookalike/-/lookalike-1.0.0.tgz",
+        "integrity": "sha512-fixture",
+        "bin": {"codex": "bin/codex.js"},
+    }
+    lock_path.write_text(json.dumps(lock), encoding="utf-8")
+    monkeypatch.setenv("CODEX_VERSION", "1.2.3")
+    monkeypatch.setenv("GITHUB_PATH", str(tmp_path / "github-path"))
+    monkeypatch.setattr(installer.subprocess, "run", lambda *args, **kwargs: pytest.fail("npm ran"))
+
+    with pytest.raises(ValueError, match="only @openai/codex may declare a command"):
+        installer.install(tmp_path, "codex")
+
+
+def test_a_command_linked_outside_the_cli_package_is_refused(tmp_path, monkeypatch):
+    directory, files = ready_codex(tmp_path, monkeypatch)
+    elsewhere = directory / "node_modules" / "lookalike" / "bin" / "codex.js"
+    monkeypatch.setattr(
+        installer.subprocess,
+        "run",
+        lambda *args, **kwargs: make_bin(directory, "codex", target=elsewhere),
+    )
+
+    with pytest.raises(ValueError, match="must point inside"):
+        installer.install(tmp_path, "codex")
+    assert not files["GITHUB_PATH"].exists()

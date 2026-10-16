@@ -95,6 +95,14 @@ def install(root: Path, backend: str) -> None:
             f"{backend} manifest and lockfile must match {variable}={version} "
             "and define no lifecycle scripts"
         )
+    # Only the CLI package may put a command on PATH, and only its own. npm links every
+    # locked package's `bin` into the same directory, so a dependency declaring the
+    # same name could otherwise own the one entry the check below accepts.
+    commands = {path: entry["bin"] for path, entry in packages.items() if path and entry.get("bin")}
+    if commands != {f"node_modules/{package}": commands.get(f"node_modules/{package}")} or set(
+        commands.get(f"node_modules/{package}") or {}
+    ) != {BINARIES[backend]}:
+        raise ValueError(f"only {package} may declare a command, and only {BINARIES[backend]!r}")
     for path, entry in packages.items():
         if not path:
             continue
@@ -126,19 +134,26 @@ def install(root: Path, backend: str) -> None:
     if backend == "claude":
         place_claude_binary(directory, version, packages)
     bin_directory = directory / "node_modules" / ".bin"
-    check_cli_bin(bin_directory, BINARIES[backend])
+    check_cli_bin(bin_directory, BINARIES[backend], directory / "node_modules" / package)
     refuse_step_state(github_path, os.environ.get("GITHUB_ENV"))
     with Path(github_path).open("a", encoding="utf-8") as output:
         output.write(str(bin_directory) + "\n")
 
 
-def check_cli_bin(bin_directory: Path, expected: str) -> None:
-    """Refuse to put anything but the backend's own command on later steps' PATH."""
+def check_cli_bin(bin_directory: Path, expected: str, package_directory: Path) -> None:
+    """Refuse to put anything but the backend's own command on later steps' PATH.
+
+    The name alone is not enough: the one entry must also resolve to a file inside the
+    selected CLI package, not to whichever locked package npm linked last.
+    """
     found = (
         sorted(entry.name for entry in bin_directory.iterdir()) if bin_directory.is_dir() else []
     )
     if found != [expected]:
         raise ValueError(f"{bin_directory} must hold only {expected!r}, found {found}")
+    target = (bin_directory / expected).resolve()
+    if not target.is_file() or not target.is_relative_to(package_directory.resolve()):
+        raise ValueError(f"{bin_directory / expected} must point inside {package_directory}")
 
 
 def refuse_step_state(*paths: str | None) -> None:
