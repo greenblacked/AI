@@ -403,6 +403,20 @@ def test_npm_lock_pin_reports_missing_or_mismatched_lockfile(tmp_path, capsys):
     assert "missing sha512 integrity" in out
 
 
+def test_npm_lock_pin_reports_a_missing_client_directory(tmp_path, capsys):
+    # A deleted or renamed .github/eval-clients directory used to pass, and the eval
+    # install failed only later, in a job that is not required.
+    write_workflows(
+        tmp_path,
+        demo=GATING.replace("  TOOL_VERSION: '1.2.3'\n", "  CODEX_VERSION: '0.160.0'\n"),
+    )
+    assert workflows.check(tmp_path) == 1
+    out = capsys.readouterr().out
+    assert "::error file=.github/eval-clients/codex::" in out
+    assert "CODEX_VERSION is pinned but .github/eval-clients/codex does not exist" in out
+    assert workflows.check_npm_lock_pin(tmp_path, "CODEX_VERSION", "0.160.0") == 1
+
+
 # --- the tree and the entry point --------------------------------------------------
 
 

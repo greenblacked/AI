@@ -332,7 +332,11 @@ def check_npm_lock_pin(root: Path, name: str, version: str) -> int:
     rel_dir, package = NPM_LOCK_PINS[name]
     directory = root / rel_dir
     if not directory.is_dir():
-        return 0
+        # A pin with no directory behind it installs nothing from a lockfile, and the
+        # install step fails only later, in a job that is not required. Silent success
+        # here would let a deleted or renamed client directory through `make catalogue`.
+        print(f"::error file={rel_dir}::{name} is pinned but {rel_dir} does not exist")
+        return 1
     manifest_path = directory / "package.json"
     lock_path = directory / "package-lock.json"
     if not manifest_path.is_file() or not lock_path.is_file():
