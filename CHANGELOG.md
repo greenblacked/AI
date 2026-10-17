@@ -23,6 +23,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Give each plugin page on the catalogue site its own look: the plugin name in large
+  coloured capitals with its own entrance, from typed keys for coding to a lifting
+  redaction for security, and a coloured accent bar on every skill row. Palettes hold
+  4.5:1 contrast in day and night, collapse to one colour in the console theme, and the
+  heading is whole when motion is reduced.
 - Make the gamedev prototype a written handoff: `game-greenlight` hands `game-builder`
   a brief with the riskiest question, scope, budget and go, no-go and pivot criteria;
   `game-builder` builds to it rather than offering fresh concepts and reports evidence
