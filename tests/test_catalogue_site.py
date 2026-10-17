@@ -725,6 +725,141 @@ def test_the_family_page_is_hand_drawn_with_the_stages_and_profiles(mini_repo, t
     assert BACK.format("/") in page
 
 
+def _luminance(colour: str) -> float:
+    red, green, blue = (int(colour.lstrip("#")[i : i + 2], 16) / 255 for i in (0, 2, 4))
+    linear = [
+        c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in (red, green, blue)
+    ]
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+
+def _contrast(foreground: str, background: str) -> float:
+    lighter, darker = sorted((_luminance(foreground), _luminance(background)), reverse=True)
+    return (lighter + 0.05) / (darker + 0.05)
+
+
+# The page colour each theme sets in site_style.CSS, which the palettes are held against.
+DAY_BG, NIGHT_BG_HEX = "#f4f1ea", "#000000"
+
+
+def _content(page: str) -> str:
+    """What a page puts in ``<main>``, without the stylesheet every page carries."""
+    return page.split('<main id="content">', 1)[1].split("</main>", 1)[0]
+
+
+def test_every_plugin_but_family_has_a_look_and_every_look_has_a_plugin():
+    # A plugin added to the marketplace with no look would fall back to the plain page
+    # without anyone choosing that; this is where the gap is seen.
+    manifest = json.loads((REPO / ".claude-plugin" / "marketplace.json").read_text("utf-8"))
+    plugins = {plugin["name"] for plugin in manifest["plugins"]} - {site.FAMILY_PLUGIN}
+    assert set(site.site_style.PLUGIN_LOOKS) == plugins
+
+
+@pytest.mark.parametrize("name", sorted(site.site_style.PLUGIN_LOOKS))
+def test_a_plugin_page_carries_its_signature_and_its_plain_name(mini_repo, name):
+    look = site.site_style.PLUGIN_LOOKS[name]
+    page = _content(site.render_plugin(name, _catalogue(mini_repo), "v9"))
+    assert f'<div class="page plugin-page plugin-{name}">' in page
+    heading = re.search(r'<h1 class="([^"]*)">(.*?)</h1>', page)
+    assert heading and heading.group(1).split()[:2] == ["title", "plugin-word"]
+    assert ("plugin-serif" in heading.group(1)) == look.serif
+    # One accessible name, and the capitals hidden from it.
+    assert heading.group(2).startswith(f'<span class="sr-only">{name}</span>')
+    assert '<span class="plugin-letters" aria-hidden="true">' in heading.group(2)
+    letters = re.findall(r'<span class="pl">(.)</span>', heading.group(2))
+    assert "".join(letters) == name.upper()
+    assert ('<span class="caret"></span>' in heading.group(2)) == look.caret
+    # What the finder and the install line rely on is still there, and nothing inline.
+    for needle in (
+        'id="finder"',
+        'id="find"',
+        'id="list"',
+        'class="small count"',
+        "/plugin install",
+    ):
+        assert needle in page, needle
+    assert 'style="' not in page and "title-xl" not in page
+
+
+def test_a_plugin_without_a_look_falls_back_to_the_plain_page(mini_repo, tmp_path):
+    assert "engineering" not in site.site_style.PLUGIN_LOOKS
+    page = _content(site.render_plugin("engineering", _catalogue(mini_repo), "v9"))
+    assert '<div class="page">' in page
+    assert '<h1 class="title-xl">engineering</h1>' in page
+    assert "plugin-page" not in page and "plugin-word" not in page
+    # And the build goes on: the page is written like any other.
+    built = _build(mini_repo, tmp_path) / "plugins" / "engineering" / "index.html"
+    assert '<h1 class="title-xl">engineering</h1>' in _content(built.read_text(encoding="utf-8"))
+
+
+def test_the_family_page_keeps_its_own_heading_and_has_no_plugin_look(mini_repo, tmp_path):
+    assert site.FAMILY_PLUGIN not in site.site_style.PLUGIN_LOOKS
+    built = _build(mini_repo, tmp_path) / "family" / "index.html"
+    page = _content(built.read_text(encoding="utf-8"))
+    assert '<h1 class="title family-word">' in page
+    assert "plugin-page" not in page and "plugin-word" not in page
+
+
+@pytest.mark.parametrize("name", sorted(site.site_style.PLUGIN_LOOKS))
+def test_a_plugin_palette_holds_4_5_to_1_in_day_and_night(name):
+    look = site.site_style.PLUGIN_LOOKS[name]
+    # Three colours to cycle through; design spreads one hue to a letter instead.
+    assert len(look.day) == len(look.night) == (6 if name == "design" else 3)
+    assert len(set(look.day)) == len(look.day) and len(set(look.night)) == len(look.night)
+    for colour in look.day:
+        assert _contrast(colour, DAY_BG) >= 4.5, (name, colour)
+    for colour in look.night:
+        assert _contrast(colour, NIGHT_BG_HEX) >= 4.5, (name, colour)
+
+
+def test_the_page_backgrounds_the_palettes_are_held_to_are_the_stylesheets():
+    css = site.site_style.CSS
+    assert f"--bg: {DAY_BG};" in css.split('html[data-theme="night"]', 1)[0]
+    night = css.split('html[data-theme="night"] {', 1)[1].split("}", 1)[0]
+    assert f"--bg: {NIGHT_BG_HEX};" in night
+
+
+def test_the_generated_plugin_css_defines_every_palette_in_every_theme():
+    css = site.site_style._plugin_css()
+    day, rest = css.split('html[data-theme="night"] {')
+    night, rest = rest.split('html[data-theme="reactor"] {')
+    reactor = rest.split("}", 1)[0]
+    for name, look in site.site_style.PLUGIN_LOOKS.items():
+        for index, (by_day, by_night) in enumerate(zip(look.day, look.night, strict=True), 1):
+            assert f"--{name}-{index}: {by_day};" in day
+            assert f"--{name}-{index}: {by_night};" in night
+            # The console theme is one colour, as it is for the FAMILY stages.
+            assert f"--{name}-{index}: var(--ink);" in reactor
+        assert f".plugin-{name} {{ --n: {len(name)}; --w: {look.width}; }}" in css
+        # Letters and rows cycle through the palette: one rule for each colour.
+        size = len(look.day)
+        for index in range(1, size + 1):
+            assert f"nth-child({size}n + {index % size}) {{ --c: var(--{name}-{index}); }}" in css
+    longest = max(map(len, site.site_style.PLUGIN_LOOKS))
+    assert f".plugin-word .pl:nth-child({longest}) {{ --i: {longest}; }}" in css
+    assert f"nth-child({longest + 1})" not in css.split("@media", 1)[0]
+
+
+def test_every_plugin_entrance_moves_only_where_motion_is_allowed_and_ends_whole():
+    css = site.site_style._plugin_css()
+    still = _outside_motion_query(css).split("@keyframes", 1)[0]
+    # Nothing that hides or moves a letter applies unless motion is allowed, so reduced
+    # motion, a browser that skips the animation and a page with no script all see the
+    # finished word.
+    assert "animation" not in still and "opacity: 0" not in still
+    assert "transform: scale" not in still and "translate" not in still
+    # Every entrance fills backwards only: afterwards the element's own style shows.
+    assert "forwards" not in css and " both" not in css
+    for name, look in site.site_style.PLUGIN_LOOKS.items():
+        assert f"@keyframes pw-{name}-" in look.keyframes
+        assert look.rules.count("animation") >= 1 and "backwards" in look.rules
+        assert "prefers-reduced-motion: no-preference" in css
+        assert look.rules.strip() and f"pw-{name}-" in look.rules
+    # The accent bar widens on hover and focus in colour and size for everyone; only the
+    # travel between the two widths is motion.
+    assert "--barw: 8px" in still and "transition" not in still
+
+
 def test_a_skill_page_shows_the_skill_and_neutralises_hostile_content(mini_repo, tmp_path):
     _hostile_skill(mini_repo)
     built = (
