@@ -185,7 +185,8 @@ any `.py` can be imported. So the rule is an allowlist, not a list of known-dang
 paths. On a change whose Author is not "repository owner" (absent, or naming anyone but
 the repository owner), run the gates only when every changed path is inert content: a
 `*.md` file under `plugins/` or `docs/`, other than an instruction file (one named
-`CLAUDE.md`, `CLAUDE.local.md`, `AGENTS.md` or `AGENTS.override.md`) or a path with a `.claude/` segment, a
+`CLAUDE.md`, `CLAUDE.local.md`, `AGENTS.md`, `AGENTS.override.md` or any name Codex's
+`project_doc_fallback_filenames` lists) or a path with a `.claude/` segment, a
 trigger eval set
 (`plugins/*/skills/*/evals/*.json` or `plugins/*/agents/evals/*.json`), or
 `CHANGELOG.md` or `README.md` at the root. Any other path, including every `.py`, `.sh`,
@@ -248,7 +249,8 @@ the allowlist and so makes the change non-inert, and a driver must also be defin
 the trusted config, so none runs.
 
 A contributor change that adds or edits an instruction file (`CLAUDE.md`,
-`CLAUDE.local.md`, `AGENTS.md` or `AGENTS.override.md` at any depth) or anything under a `.claude/` segment is a
+`CLAUDE.local.md`, `AGENTS.md`, `AGENTS.override.md` or any name Codex's
+`project_doc_fallback_filenames` lists, at any depth) or anything under a `.claude/` segment is a
 blocking finding, whatever else it does: a tool that opens that directory loads it as
 instructions, so it is configuration, never prose. Only the owner changes those, as
 their own change.

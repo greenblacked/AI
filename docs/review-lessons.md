@@ -905,14 +905,17 @@ configuration is treated as inert content.
 `CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md`. Codex also loads `AGENTS.override.md`
 and prefers it over `AGENTS.md` in the same directory, so a contributor's
 `docs/AGENTS.override.md` passed the inert allowlist as Markdown under `docs/`, could
-reach the gate worktree, and was not a blocking finding.
+reach the gate worktree, and was not a blocking finding. The loader also reads every
+name in the user's `project_doc_fallback_filenames` setting after `AGENTS.md`, so a
+fixed name list misses a file such as `docs/TEAM_GUIDE.md` that a configured session
+loads as instructions.
 
 **The check that catches it.** Verify each tool's loader source for every filename it
 reads, not its documentation's headline name; for Codex, `DEFAULT_AGENTS_MD_FILENAME`
 and `LOCAL_AGENTS_MD_FILENAME` in `codex-rs/core/src/agents_md.rs` in openai/codex.
 `tests/test_review_contract.py` checks that `reviewer.md`, `docs/chatgpt-agents.md` and
 `docs/using.md` name `AGENTS.override.md` in the inert-allowlist exclusion, and that
-`reviewer.md`'s blocking-finding rule names it too. No benchmark case seeds this
+`reviewer.md`'s blocking-finding rule names it and `project_doc_fallback_filenames` too. No benchmark case seeds this
 defect, because the benchmark always briefs `reviewer` as the repository owner and so
 cannot exercise a contributor rule; the contract tests carry it instead.
 

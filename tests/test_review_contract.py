@@ -63,17 +63,25 @@ def test_the_inert_allowlist_excludes_instruction_files(path, anchor):
     # A contributor's nested `docs/CLAUDE.md` is Markdown under `docs/`, and loads as
     # instructions in any session opened there. Codex prefers `AGENTS.override.md` over
     # `AGENTS.md` in the same directory (openai/codex, codex-rs/core/src/agents_md.rs), so
-    # that name is an instruction file too.
+    # that name is an instruction file too, and so is any name its user lists in
+    # `project_doc_fallback_filenames`, which the loader reads after `AGENTS.md`.
     text = flat(path)
     assert anchor in text, (path, anchor)
     clause = text.split(anchor, 1)[1][:260]
-    for name in ("CLAUDE.md", "CLAUDE.local.md", "AGENTS.md", "AGENTS.override.md", ".claude/"):
+    for name in (
+        "CLAUDE.md",
+        "CLAUDE.local.md",
+        "AGENTS.md",
+        "AGENTS.override.md",
+        "project_doc_fallback_filenames",
+        ".claude/",
+    ):
         assert name in clause, (path, name, clause)
 
 
 def test_a_contributor_instruction_file_is_a_blocking_finding():
     text = flat(".claude/agents/reviewer.md")
-    assert re.search(r"adds or edits an instruction file .{0,150}is a blocking finding", text)
+    assert re.search(r"adds or edits an instruction file .{0,190}is a blocking finding", text)
 
 
 def test_the_blocking_rule_names_every_instruction_file():
@@ -81,7 +89,14 @@ def test_the_blocking_rule_names_every_instruction_file():
     # missing from it lets that file through as an ordinary change.
     text = flat(".claude/agents/reviewer.md")
     clause = text.split("adds or edits an instruction file", 1)[1][:200]
-    for name in ("CLAUDE.md", "CLAUDE.local.md", "AGENTS.md", "AGENTS.override.md", ".claude/"):
+    for name in (
+        "CLAUDE.md",
+        "CLAUDE.local.md",
+        "AGENTS.md",
+        "AGENTS.override.md",
+        "project_doc_fallback_filenames",
+        ".claude/",
+    ):
         assert name in clause, (name, clause)
 
 
