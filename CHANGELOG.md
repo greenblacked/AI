@@ -8,6 +8,16 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Security
+
+- Treat a contributor's `AGENTS.override.md`, and any name Codex's
+  `project_doc_fallback_filenames` setting lists, as an instruction file in the review
+  contract, the same as `AGENTS.md`. Codex loads the override in preference to
+  `AGENTS.md` in the same directory and reads configured fallbacks after it, but the
+  inert-path allowlist and the blocking-finding rule named neither, so a
+  `docs/AGENTS.override.md` was read as inert Markdown and could reach the gate
+  worktree.
+
 ## [0.1.11] - 2026-10-18
 
 ### Fixed
