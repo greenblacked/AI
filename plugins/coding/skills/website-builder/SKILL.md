@@ -1,7 +1,7 @@
 ---
 name: website-builder
 description: Design and build a complete website scaled to the brief — from a single landing page to a full web app — or audit an existing one and deliver prioritized improvements. Building runs an intake, picks the build tier, presents 2-3 design directions before any code is written, meets a quality floor, and adds deployment artifacts. Auditing covers UI/UX, accessibility, performance, security, SEO, code health, CI/CD and observability, ranks findings by impact and effort, and implements fixes on request. Use whenever the user asks for a website, landing page, portfolio, blog, marketing site, dashboard, web app or any browser-facing UI — "build me a site for X", "I need a page for Y" — and equally when they point at a site that already exists and ask to review it, improve it, redesign it, make it faster or more secure, or fix its pipeline. Not for an isolated UI component, a backend-only service, or a general question about web technology.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(npm:*), Bash(npx:*), Bash(node:*), Bash(git:*), WebFetch
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(npm:*), Bash(npx:*), Bash(node:*), Bash(git:*), Bash(curl:*), Bash(cloc:*), Bash(du:*), Bash(gh:*), WebFetch
 ---
 
 # Website Builder
@@ -9,6 +9,12 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash(npm:*), Bash(npx:*), Bash(nod
 Build sites that look like someone designed them for this specific subject and can actually be deployed and maintained afterwards — and, where a site already exists, find what is genuinely costing its owner something and fix that rather than everything.
 
 Two failure modes bracket the build side. One is a beautiful page that nobody can host, has no responsive behaviour below 900px, and breaks on keyboard navigation. The other is a technically sound page that looks like every other generated site — cream background, big serif headline, terracotta accent, three feature cards. This skill exists to avoid both: gate the design before writing code, then build it to a real quality floor and hand it over with the deployment story attached.
+
+## Scope
+
+Use for: building a new browser-facing site scaled to the brief — landing page, marketing site, blog, portfolio, dashboard or web app — and auditing or improving one that already exists, across UI/UX, accessibility, performance, security, SEO, code health, CI/CD and observability.
+
+Do not use for: an isolated UI component, a backend-only service with no browser surface, or a general question about web technology that does not change a site. Those are `code-scaffold` or `api-design` depending on what is actually being built.
 
 ## Design direction
 

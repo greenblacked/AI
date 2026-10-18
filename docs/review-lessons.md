@@ -318,6 +318,28 @@ removes the retained-state lookup.
 
 **First caught:** #91, the review stage.
 
+### A third-party package install inherits or precedes scoring secrets
+
+**Class.** A workflow installs third-party packages in a step that holds API secrets, or
+allows lifecycle scripts to run on the same runner user and filesystem that a later
+secret-bearing step uses.
+
+**How it shows up.** `evals.yml` ran `npm install -g` inside the scoring steps that also
+received `CLAUDE_CODE_OAUTH_TOKEN`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` and
+`GEMINI_API_KEY`, and even after separating the steps an `npm ci` run without
+`--ignore-scripts` could still modify the runner binaries, shell startup files or step
+environment files before the secret-bearing step executed.
+
+**The check that catches it.** `scripts/install_eval_cli.py` installs each CLI from a
+committed SHA-512 lockfile with `npm ci --ignore-scripts --no-audit --no-fund`, refuses to
+run when scoring credentials are present, strips `GITHUB_`, `RUNNER_` and `ACTIONS_`
+variables from `npm`'s environment, and places the Claude native binary from the locked
+platform package itself. `tests/test_evals_workflow.py` and `tests/test_install_eval_cli.py`
+enforce both boundaries, and the reviewer benchmark restores `--ignore-scripts`-less /
+in-step installation with secrets.
+
+**First caught:** #236, the review stage.
+
 ### A read-only diagnostic initializes a provider that writes
 
 **Class.** A procedure assumes that reading data or creating a plan cannot write to the

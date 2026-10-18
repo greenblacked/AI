@@ -196,6 +196,30 @@ def test_reviewer_dependencies_match_ci_and_follow_scoring_gates():
         assert f'"{package}==${{{version}}}"' in script, package
 
 
+def test_eval_cli_installation_never_receives_scoring_credentials():
+    text = WORKFLOW.read_text(encoding="utf-8")
+    boundaries = [
+        ("- name: Install the eval CLI", "- name: Score the eval sets"),
+        ("- name: Install the changed-target eval CLI", "- name: Score each target"),
+        ("- name: Install the reviewer eval CLI", "- name: Benchmark the reviewer"),
+    ]
+    for install_name, score_name in boundaries:
+        install_step = text.split(install_name, 1)[1].split(score_name, 1)[0]
+        assert "scripts/install_eval_cli.py" in install_step
+        assert "${{ secrets." not in install_step
+        assert "npm install" not in install_step
+        assert "npm ci" not in install_step
+
+    for score_name in (
+        "- name: Score the eval sets",
+        "- name: Score each target",
+        "- name: Benchmark the reviewer",
+    ):
+        score_step = text.split(score_name, 1)[1].split("\n      - ", 1)[0]
+        assert "${{ secrets." in score_step
+        assert "npm install" not in score_step
+
+
 @pytest.mark.parametrize("event", ["pull_request", "schedule", "workflow_dispatch"])
 @pytest.mark.parametrize("credential", [False, True])
 def test_reviewer_credential_gate_preserves_stand_down(tmp_path, event, credential):
@@ -237,6 +261,53 @@ def test_reviewer_selection_gate_preserves_dispatch_opt_in(tmp_path, event, revi
             "GITHUB_EVENT_NAME": event,
             "REVIEWER_INPUT": reviewer,
             "GITHUB_OUTPUT": str(output),
+        },
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert output.read_text(encoding="utf-8") == f"run={expected}\n"
+
+
+@pytest.mark.parametrize(
+    ("changed_path", "expected"),
+    [
+        (".claude/agents/benchmarks/reviewer/demo/case.json", "true"),
+        (".claude/agents/reviewer.md", "true"),
+        (".github/eval-clients/claude/package-lock.json", "true"),
+        (".github/eval-clients/codex/package-lock.json", "false"),
+        (".github/eval-clients/gemini/package.json", "false"),
+        ("scripts/run_review_benchmark.py", "true"),
+        ("scripts/install_eval_cli.py", "true"),
+        ("plugins/coding/skills/code-review/SKILL.md", "false"),
+    ],
+)
+def test_reviewer_selection_gate_matches_measured_pull_request_paths(
+    tmp_path, changed_path, expected
+):
+    script = _extract_run_block(
+        WORKFLOW.read_text(encoding="utf-8"), "Decide whether the benchmark measures this change"
+    )
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    git = bin_dir / "git"
+    git.write_text(
+        f'#!/usr/bin/env bash\nif [ "$1" = "diff" ]; then\n  printf "%s\\n" "{changed_path}"\nfi\n',
+        encoding="utf-8",
+    )
+    git.chmod(0o755)
+    output, summary = tmp_path / "output", tmp_path / "summary"
+    result = subprocess.run(  # noqa: S603 - execute workflow gate without scoring
+        ["bash", "-c", script],  # noqa: S607 - same PATH as workflow
+        cwd=tmp_path,
+        env={
+            "PATH": f"{bin_dir}:/usr/bin:/bin",
+            "GITHUB_EVENT_NAME": "pull_request",
+            "GITHUB_BASE_REF": "dev",
+            "REVIEWER_INPUT": "",
+            "GITHUB_OUTPUT": str(output),
+            "GITHUB_STEP_SUMMARY": str(summary),
         },
         capture_output=True,
         text=True,

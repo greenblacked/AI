@@ -12,7 +12,7 @@ Read this when deciding whether a task is small enough for one brief, or needs h
 
 Size the expected diff at roughly 400 changed lines or fewer before writing the brief. This is a planning estimate, not a hard cap enforced after the fact — the useful moment to apply it is before the agent starts, when reshaping the task is still cheap, not after the diff comes back and the only options are accepting an oversized change or asking for a rewrite.
 
-A task that plausibly stays under this size, touches a small and nameable set of files, and can be described in one sentence without an "and" joining two unrelated changes is a good candidate for one brief. A task that needs "and" to describe, or that visibly spans more than a handful of files before any code has been written, is usually two tasks wearing one brief.
+A task that plausibly stays under this size, touches a small and nameable set of files — around five, each one named in the brief — and can be described in one sentence without an "and" joining two unrelated changes is a good candidate for one brief. A task that needs "and" to describe, or that visibly spans more than about ten files before any code has been written, is usually two tasks wearing one brief.
 
 ## Why it matches code-review's threshold
 

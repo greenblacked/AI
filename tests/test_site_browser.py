@@ -660,6 +660,128 @@ def test_the_family_heading_types_itself_in_when_motion_is_allowed(browser, base
         made.close()
 
 
+PLUGIN_NAMES = sorted(site.site_style.PLUGIN_LOOKS)
+PLUGIN_STATE = """() => {
+  const rgb = c => c.match(/[\\d.]+/g).slice(0, 3).map(Number);
+  const heading = document.querySelector('.plugin-word');
+  const rows = [...document.querySelectorAll('.plugin-page .skills > li')];
+  return {
+    bg: rgb(getComputedStyle(document.body).backgroundColor),
+    ink: rgb(getComputedStyle(document.body).color),
+    letters: [...heading.querySelectorAll('.pl')].map(e => ({
+      text: e.textContent, color: rgb(getComputedStyle(e).color),
+      opacity: getComputedStyle(e).opacity, transform: getComputedStyle(e).transform,
+      width: e.getBoundingClientRect().width,
+      bar: getComputedStyle(e, '::after').transform })),
+    bars: rows.map(li => rgb(getComputedStyle(li, '::before').backgroundColor)),
+    scroll: document.documentElement.scrollWidth,
+    edge: heading.querySelector('.plugin-letters').getBoundingClientRect().right,
+  };
+}"""
+
+
+def _ratio(a, b) -> float:
+    def lum(colour):
+        v = [c / 255 for c in colour]
+        v = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in v]
+        return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]
+
+    hi, lo = sorted((lum(a), lum(b)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+@pytest.mark.parametrize("name", PLUGIN_NAMES)
+def test_a_plugin_heading_and_accents_are_legible_whole_and_fit_a_phone(browser, base_url, name):
+    look = site.site_style.PLUGIN_LOOKS[name]
+    for theme in ("day", "night", "reactor"):
+        made = new_context(browser, base_url, 360)
+        made.add_init_script(f"try {{ localStorage.setItem('theme', '{theme}'); }} catch (e) {{}}")
+        try:
+            page = made.new_page()
+            page.goto(f"{base_url}/plugins/{name}/")
+            assert page.get_by_role("heading", level=1, name=name).count() == 1
+            state = page.evaluate(PLUGIN_STATE)
+            assert "".join(k["text"] for k in state["letters"]) == name.upper()
+            # Motion is reduced here, and nothing waits on an animation.
+            assert page.evaluate("() => document.getAnimations().length") == 0
+            for k in state["letters"]:
+                assert k["opacity"] == "1" and k["transform"] == "none" and k["width"] > 0
+            colours = {tuple(k["color"]) for k in state["letters"]}
+            marks = {tuple(c) for c in state["bars"]}
+            if theme == "reactor":
+                assert colours == marks == {tuple(state["ink"])}
+            else:
+                for colour in colours | marks:
+                    assert _ratio(colour, state["bg"]) >= 4.5, (name, theme, colour)
+                assert len(colours) == min(len(name), len(look.day))
+                assert marks <= colours
+            # No sideways scroll, and the word sits inside the page's own margin.
+            assert state["scroll"] <= 360 and state["edge"] <= 360 - 20 + 1
+        finally:
+            made.close()
+
+
+@pytest.mark.parametrize("name", PLUGIN_NAMES)
+def test_a_plugin_heading_plays_its_entrance_and_ends_whole(browser, base_url, name):
+    made = browser.new_context(viewport={"width": 360, "height": 800})
+    made.route(re.compile("^(?!" + re.escape(base_url) + "/)"), lambda route: route.abort())
+    try:
+        page = made.new_page()
+        page.emulate_media(reduced_motion="no-preference")
+        page.goto(f"{base_url}/plugins/{name}/")
+        names = page.evaluate(
+            "() => document.getAnimations().filter(a => a.effect.target.closest('.plugin-word'))"
+            ".map(a => a.animationName)"
+        )
+        assert any(n.startswith(f"pw-{name}-") for n in names), names
+        page.wait_for_function(
+            "() => document.getAnimations().every(a => a.playState === 'finished')",
+            timeout=15_000,
+        )
+        state = page.evaluate(PLUGIN_STATE)
+        for k in state["letters"]:
+            assert k["opacity"] == "1" and k["transform"] == "none"
+            assert k["bar"] in ("none", "matrix(0, 0, 0, 1, 0, 0)")
+        assert state["scroll"] <= 360
+    finally:
+        made.close()
+
+
+# Steps every heading animation through its whole run, paused, and returns the least
+# room left between a visible letter and the Back link above the heading. Waiting for
+# the animations to finish cannot see a letter that crosses the link on the way in.
+PLUGIN_CLEARANCE = """() => {
+  const word = document.querySelector('.plugin-word');
+  const back = word.previousElementSibling.getBoundingClientRect();
+  const anims = document.getAnimations().filter(a => a.effect.target.closest('.plugin-word'));
+  anims.forEach(a => a.pause());
+  const end = Math.max(...anims.map(a => a.effect.getComputedTiming().endTime));
+  let least = Infinity;
+  for (let t = 0; t <= end; t += 5) {
+    anims.forEach(a => { a.currentTime = t; });
+    for (const e of document.querySelectorAll('.plugin-word .pl')) {
+      if (parseFloat(getComputedStyle(e).opacity) === 0) continue;
+      least = Math.min(least, e.getBoundingClientRect().top - back.bottom);
+    }
+  }
+  return least;
+}"""
+
+
+@pytest.mark.parametrize("name", PLUGIN_NAMES)
+@pytest.mark.parametrize("width", [360, 1280])
+def test_a_plugin_heading_entrance_stays_below_the_back_link(browser, base_url, name, width):
+    made = browser.new_context(viewport={"width": width, "height": 800})
+    made.route(re.compile("^(?!" + re.escape(base_url) + "/)"), lambda route: route.abort())
+    try:
+        page = made.new_page()
+        page.emulate_media(reduced_motion="no-preference")
+        page.goto(f"{base_url}/plugins/{name}/")
+        assert page.evaluate(PLUGIN_CLEARANCE) >= 0, (name, width)
+    finally:
+        made.close()
+
+
 def test_a_stage_focused_during_the_entrance_is_visible(browser, base_url):
     # The rows rise in seconds after load, but their summaries can take focus at once.
     made = browser.new_context(viewport={"width": 1280, "height": 800})

@@ -3,6 +3,16 @@
 Use this contract for one unfinished work item. Omit inapplicable optional fields, but do
 not replace unknown values with guesses.
 
+## Contents
+
+- [Identity and authority](#identity-and-authority)
+- [Repository snapshot](#repository-snapshot)
+- [Work ledger](#work-ledger)
+- [Evidence ledger](#evidence-ledger)
+- [Continuation and receipt](#continuation-and-receipt)
+- [Copyable checkpoint](#copyable-checkpoint)
+- [Filled example](#filled-example)
+
 ## Identity and authority
 
 - Checkpoint version, durable location, writer, and UTC time. Hash a sealed artifact
@@ -88,4 +98,29 @@ Effects: [system; action; ID/idempotency key; actual/failed/unknown; source; rec
 Next: [smallest safe action; preconditions; expected observation; stop condition]
 Receipt: [successor/time; sources reread; reconciliation/stale resolution; accepted item,
           action and evidence; revised next action; pending until resumed]
+```
+
+## Filled example
+
+```markdown
+Version/location/writer/UTC: v2; docs/handoff/orders-pagination.md; agent-A; 2026-10-15T16:04:00Z
+Sealed artifact digest: sha256:9f2c…; recorded in the task record; n/a for the tree itself
+Goal/acceptance/latest steering: add cursor pagination to GET /orders; p95 under 200ms and
+  stable ordering under concurrent inserts; user confirmed cursor, not offset
+Authority: user turn 12 authorises editing app/ and tests/; deployment not authorised
+Runtime requested/observed: model X, effort medium requested; observed model X, effort medium
+Git: /srv/repo; worktree orders-pagination; branch feat/orders-pagination; HEAD 4a91c2e;
+  base origin/main @ 46f2cd8 verified
+Dirty state: staged app/orders.py; unstaged tests/test_orders.py; no untracked; no submodules
+Recovery artifacts: patches/orders-staged.patch and patches/orders-tests.patch in the
+  checkpoint directory, readable by the successor
+Snapshot: git status --short --branch and git rev-parse HEAD at 2026-10-15T16:03Z; no active
+  writer (no editor, build or job running); quiescent
+Work: T2 pagination — partial; the handler paginates, its tests are not yet written; next:
+  add the concurrent-insert test
+Evidence: pytest tests/test_orders.py — not run (no local test environment); static read only
+Effects: none; no pull request opened and no branch pushed
+Next: run `pytest tests/test_orders.py::test_cursor_survives_concurrent_insert`; precondition:
+  the test environment can reach its database; stop if it cannot
+Receipt: pending until resumed
 ```
