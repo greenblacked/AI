@@ -276,6 +276,8 @@ def test_reviewer_selection_gate_preserves_dispatch_opt_in(tmp_path, event, revi
         (".claude/agents/benchmarks/reviewer/demo/case.json", "true"),
         (".claude/agents/reviewer.md", "true"),
         (".github/eval-clients/claude/package-lock.json", "true"),
+        (".github/eval-clients/codex/package-lock.json", "false"),
+        (".github/eval-clients/gemini/package.json", "false"),
         ("scripts/run_review_benchmark.py", "true"),
         ("scripts/install_eval_cli.py", "true"),
         ("plugins/coding/skills/code-review/SKILL.md", "false"),
