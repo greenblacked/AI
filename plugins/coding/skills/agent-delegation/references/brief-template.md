@@ -1,32 +1,13 @@
 # Brief template, worked
 
-Read this when writing the actual text of a brief. It repeats the fixed section shape from `SKILL.md`'s output format, filled in for two small, genuinely bounded tasks — a one-field addition and a one-function bug fix — so the shape is concrete rather than abstract.
+Read this when writing the actual text of a brief. It fills in the fixed section shape
+from `SKILL.md`'s output format for two small, genuinely bounded tasks — a one-field
+addition and a one-function bug fix — so the shape is concrete rather than abstract.
 
 ## Contents
 
-- [The template](#the-template)
 - [Worked example: a one-field addition](#worked-example-a-one-field-addition)
 - [Worked example: a one-function bug fix](#worked-example-a-one-function-bug-fix)
-
-## The template
-
-```markdown
-## Done-check
-[The exact runnable command whose exit code decides "done".]
-
-## Evidence
-[The failing test's output, the reproduction, or the bug report — pasted or linked, not summarised.]
-
-## Scope
-May edit: [paths]
-May not edit: [paths — tests, CI config, lint and coverage thresholds, lockfiles, named explicitly]
-
-## Stop conditions
-[What forces the agent to stop and ask rather than proceed.]
-
-## Report format required back
-[The exact command and its output, and the list of changed files.]
-```
 
 ## Worked example: a one-field addition
 

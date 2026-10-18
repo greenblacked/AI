@@ -1,15 +1,12 @@
 --- a/.github/workflows/evals.yml
 +++ b/.github/workflows/evals.yml
-@@ -678,12 +678,6 @@ jobs:
-         if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'
-         with:
-           node-version: '22'
+@@ -690,9 +690,3 @@ jobs:
+           package-manager-cache: false
 -      - name: Install the reviewer repository test dependencies
 -        if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'
 -        run: |
 -          set -Eeuo pipefail
 -          python -m pip install "pytest==${PYTEST_VERSION}" "coverage==${COVERAGE_VERSION}" \
 -            "pytest-xdist==${PYTEST_XDIST_VERSION}" "pytest-cov==${PYTEST_COV_VERSION}"
-       - name: Benchmark the reviewer
-         id: benchmark
+       - name: Install the reviewer eval CLI
          if: steps.gate.outputs.run == 'true' && steps.credentials.outputs.skip != 'true'

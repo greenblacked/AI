@@ -93,7 +93,7 @@ directly; extend it where the migration requires the caller to change data model
 | When | Action |
 | --- | --- |
 | T-0 | Announce: changelog, schema `deprecated: true` with a description naming the replacement, an email to identified callers, a migration guide with a worked before-and-after |
-| T-0 | Start returning `Deprecation: true`, `Sunset: [date]`, and `Link: [migration guide]; rel="sunset"` on every response from the deprecated surface |
+| T-0 | Start returning `Deprecation: @[epoch-seconds]` (RFC 9745, a Structured-Field date), `Sunset: [HTTP-date]` (RFC 8594), and `Link: [migration guide]; rel="deprecation"` on every response from the deprecated surface |
 | T+30d | First usage review. Segment the remaining callers by volume and identity |
 | T+60d | Contact each remaining caller individually. This is the step that actually moves the curve |
 | T+90d | First brown-out: return 410 for one hour at a time you choose and have announced |

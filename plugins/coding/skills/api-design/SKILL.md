@@ -136,7 +136,7 @@ You cannot deprecate what you cannot see. Before announcing anything, instrument
 Then run the process on dates:
 
 1. **Announce with a sunset date**, in the changelog, the schema description, and directly to callers you can identify. Give a window proportional to how hard the migration is.
-2. **Signal in the response**: `Deprecation: true` and `Sunset: Wed, 31 Dec 2026 23:59:59 GMT`, plus a `Link` header pointing at the migration guide. A machine-readable signal reaches the client authors who never read the changelog.
+2. **Signal in the response**: `Deprecation: @1782864000` (RFC 9745, a Structured-Field date equal to 2026-07-01T00:00:00Z, the day deprecation takes effect), `Sunset: Thu, 31 Dec 2026 23:59:59 GMT` (RFC 8594, an HTTP-date, the day the endpoint stops answering), and `Link: <https://api.example.com/docs/migrate-v2>; rel="deprecation"`. A machine-readable signal reaches the client authors who never read the changelog.
 3. **Watch the usage curve.** It will flatten well above zero.
 4. **Contact the remaining callers individually.** This is the step that actually works, and it is the step that gets skipped. The long tail is usually a handful of integrations, several of them internal.
 5. **Brown-out before shutdown**: fail the endpoint for a scheduled hour, twice, before the sunset date. It surfaces the callers who never answered and it does so at a time you chose.

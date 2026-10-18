@@ -14,7 +14,7 @@ Read this when picking a concrete type for a point in time, money, an identifier
 
 Use a timezone-aware timestamp type — `timestamptz` in PostgreSQL, `TIMESTAMP` in MySQL, where `TIMESTAMP` is stored and compared in UTC and `DATETIME` carries no timezone at all.
 
-MySQL's `TIMESTAMP` stores seconds since the epoch in a signed 32-bit integer, so it cannot represent a value past `2038-01-19 03:14:07` UTC — the server's own source names this bound `TIMESTAMP_MAX_YEAR` and `TYPE_TIMESTAMP_MAX_VALUE` in `include/my_time.h`. A row that needs a date beyond that — a far-future renewal, expiry or scheduled event — belongs in `DATETIME` instead, kept in UTC by convention, since `DATETIME` itself carries no timezone to enforce that.
+MySQL's `TIMESTAMP` stores seconds since the epoch in a signed 32-bit integer, so it cannot represent a value past `2038-01-19 03:14:07` UTC. A row that needs a date beyond that — a far-future renewal, expiry or scheduled event — belongs in `DATETIME` instead, kept in UTC by convention, since `DATETIME` itself carries no timezone to enforce that.
 
 A naive timestamp is correct for exactly the timezone the person who wrote the migration was sitting in. It stays invisible as long as every reader and writer share that timezone, and breaks the moment one does not — a nightly batch job that runs at a different offset than the web tier, a user in a second country, a daylight-saving transition that silently duplicates or drops an hour. The fix, once the bug is found, is a full backfill against a column that never recorded which timezone its values meant.
 

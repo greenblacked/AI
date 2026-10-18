@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
+from typing import NamedTuple
 
 # The two typefaces are served from the site itself, so a visitor makes no request to a font
 # host. Each file is the `latin` subset Google Fonts serves for its family, one variable
@@ -1317,8 +1318,313 @@ MOTION_CSS = """
 }
 """
 
+# ------------------------------------------------------------------ the plugin pages
+#
+# Every plugin page except /family/ (which is hand-drawn on its own) gets the same frame:
+# the plugin's name in large capitals, one span per letter coloured from a palette that
+# cycles, and a slim accent bar on each skill row in the same cycle. What differs is the
+# palette and one entrance, chosen to fit what the plugin is for. All of it lives in this
+# one table; the CSS is generated from it so nine plugins do not mean nine copies of the
+# sizing, colour-cycling and accent-bar rules.
+#
+# Colours are held to 4.5:1 against the page: day values against --bg in day (#f4f1ea),
+# night values against --bg in night (#000000). The console theme collapses every colour
+# to --ink, as it does for the FAMILY stages. tests/test_catalogue_site.py recomputes the
+# ratios from this table, so a colour edited by eye cannot slip under the floor.
+#
+# The finished heading is the element's own style: every entrance runs with a backwards
+# fill inside the no-preference query, so a visitor who asked for less motion, a browser
+# that does not run the animation, or a page with scripts off all see the whole word.
+# `%P` stands for the plugin's page class, `--i` for a letter's position from 1, `--n` for
+# the number of letters.
+
+
+class PluginLook(NamedTuple):
+    day: tuple[str, ...]
+    night: tuple[str, ...]
+    width: float  # em one capital takes in the heading's face, spacing included
+    rules: str  # the entrance, written inside the no-preference query
+    keyframes: str  # what the entrance animates, written outside it
+    still: str = ""  # rules that hold whatever the motion setting
+    caret: bool = False  # the entrance types, so the heading ends in a caret
+    serif: bool = False  # the heading is set in the serif face
+
+
+PLUGIN_LOOKS: dict[str, PluginLook] = {
+    # Typed one key at a time, the caret trailing the last letter.
+    "coding": PluginLook(
+        day=("#1d4ed8", "#4338ca", "#0f766e"),
+        night=("#8ab4ff", "#a5a0ff", "#4fd1c5"),
+        width=0.66,
+        caret=True,
+        still="%P .plugin-word { font-family: var(--font-mono); font-weight: 700; }",
+        rules="""\
+%P .pl { animation: pw-coding-key 0.12s steps(1, start) calc(var(--i) * 0.16s) backwards; }
+%P .caret {
+  display: inline-block;
+  width: 0.08em;
+  height: 0.8em;
+  margin-left: 0.06em;
+  vertical-align: -0.02em;
+  background: var(--ink);
+  opacity: 0;
+  animation: pw-coding-blink 0.8s steps(1) 0s 6;
+}""",
+        keyframes="""\
+@keyframes pw-coding-key {
+  from { max-width: 0; opacity: 0; }
+  to { max-width: 1em; opacity: 1; }
+}
+@keyframes pw-coding-blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+}""",
+    ),
+    # A pulse that travels across the word, each letter lifting a beat after the last.
+    "operations": PluginLook(
+        day=("#14753a", "#0f766e", "#3f6212"),
+        night=("#4ade80", "#2dd4bf", "#a3e635"),
+        width=0.72,
+        rules="%P .pl { animation: pw-operations-beat 0.9s ease-out calc(var(--i) * 0.09s) "
+        "backwards; }",
+        keyframes="""\
+@keyframes pw-operations-beat {
+  0% { opacity: 0; transform: translateY(0.5em); }
+  28% { opacity: 1; transform: translateY(-0.22em); }
+  42% { transform: translateY(0.06em); }
+  58% { transform: translateY(-0.12em); }
+  78% { transform: translateY(0.02em); }
+  100% { opacity: 1; transform: none; }
+}""",
+    ),
+    # Letters travel in along a line, then the line they ran on fills in underneath.
+    "delivery": PluginLook(
+        day=("#a05400", "#b4400c", "#8a5a00"),
+        night=("#ffb347", "#ff8c4a", "#ffcc4d"),
+        width=0.7,
+        still="""\
+%P .plugin-word { width: fit-content; max-width: 100%; }
+%P .plugin-word::after {
+  content: "";
+  display: block;
+  height: 0.07em;
+  margin-top: 0.12em;
+  border-radius: 0.04em;
+  background: linear-gradient(90deg, var(--delivery-1), var(--delivery-2), var(--delivery-3));
+  transform-origin: left center;
+}""",
+        rules="""\
+%P .pl { animation: pw-delivery-slide 0.5s var(--ease) calc(var(--i) * 0.1s) backwards; }
+%P .plugin-word::after {
+  animation: pw-delivery-fill 0.7s ease-out calc(var(--n) * 0.1s + 0.35s) backwards;
+}""",
+        keyframes="""\
+@keyframes pw-delivery-slide {
+  from { opacity: 0; transform: translateX(-1.4em); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pw-delivery-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}""",
+    ),
+    # Letters fall in and bounce in whole steps, like a sprite on a coarse grid.
+    "gamedev": PluginLook(
+        day=("#b0198f", "#6d28d9", "#0e7490"),
+        night=("#ff7ae0", "#b69cff", "#22d3ee"),
+        width=0.79,
+        rules="%P .pl { animation: pw-gamedev-drop 0.8s steps(4, end) calc(var(--i) * 0.1s) "
+        "backwards; }",
+        keyframes="""\
+@keyframes pw-gamedev-drop {
+  0% { opacity: 0; transform: translateY(-1.6em); }
+  45% { opacity: 1; transform: translateY(0); }
+  65% { transform: translateY(-0.35em); }
+  85% { transform: translateY(0); }
+  93% { transform: translateY(-0.1em); }
+  100% { opacity: 1; transform: none; }
+}""",
+    ),
+    # A solid bar sits on each letter and shrinks away to show it, as a redaction lifts.
+    "security": PluginLook(
+        day=("#b91c1c", "#7f1d1d", "#be123c"),
+        night=("#ff6b6b", "#ff8a80", "#ff5c8a"),
+        width=0.7,
+        rules="""\
+%P .pl { position: relative; }
+%P .pl::after {
+  content: "";
+  position: absolute;
+  inset: 0.1em -0.02em 0.06em;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: right center;
+  animation: pw-security-lift 0.45s cubic-bezier(0.7, 0, 0.3, 1)
+    calc(var(--i) * 0.12s + 0.2s) backwards;
+}""",
+        keyframes="""\
+@keyframes pw-security-lift {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}""",
+    ),
+    # Steady and level: the row settles into place one letter after another.
+    "manager": PluginLook(
+        day=("#1e3a8a", "#334e68", "#3b5b9a"),
+        night=("#8fb0ff", "#9fb3c8", "#7aa2f7"),
+        width=0.79,
+        rules="%P .pl { animation: pw-manager-settle 0.6s ease-out calc(var(--i) * 0.12s) "
+        "backwards; }",
+        keyframes="""\
+@keyframes pw-manager-settle {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    # Set by hand: each letter lands a little crooked and straightens.
+    "personal": PluginLook(
+        day=("#be3a5a", "#a8472c", "#9f2f4a"),
+        night=("#ff8fa8", "#ff9f7a", "#f2a0b5"),
+        width=0.76,
+        serif=True,
+        still="""\
+html:not([data-theme="reactor"]) %P .plugin-word {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}""",
+        rules="""\
+%P .pl:nth-child(odd) { --tilt: -7deg; }
+%P .pl:nth-child(even) { --tilt: 6deg; }
+%P .pl {
+  transform-origin: 50% 90%;
+  animation: pw-personal-set 0.8s ease-out calc(var(--i) * 0.11s) backwards;
+}""",
+        keyframes="""\
+@keyframes pw-personal-set {
+  from { opacity: 0; transform: rotate(var(--tilt)) translateY(0.12em); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    # Each letter starts lower than the one before and climbs to the line.
+    "career": PluginLook(
+        day=("#856500", "#92561a", "#7a5200"),
+        night=("#f2c14e", "#e0a066", "#d4a44a"),
+        width=0.74,
+        rules="%P .pl { animation: pw-career-climb 0.6s var(--ease) calc(var(--i) * 0.12s) "
+        "backwards; }",
+        keyframes="""\
+@keyframes pw-career-climb {
+  from { opacity: 0; transform: translateY(calc(var(--i) * 0.2em)); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    # A swatch card per letter, each in its own hue, popping to size.
+    "design": PluginLook(
+        day=("#c4281c", "#946400", "#137a38", "#0e7490", "#4338ca", "#a21caf"),
+        night=("#ff7a7a", "#f5c542", "#6fdc8c", "#4fd1e6", "#9aa8ff", "#e08cff"),
+        width=0.7,
+        rules="%P .pl { animation: pw-design-swatch 0.5s cubic-bezier(0.3, 1.5, 0.5, 1) "
+        "calc(var(--i) * 0.1s) backwards; }",
+        keyframes="""\
+@keyframes pw-design-swatch {
+  from { opacity: 0; transform: scale(0); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+}
+
+# The shared frame. `--c` is the colour a letter or a row takes from the cycle.
+# The heading is sized against the viewport less the page's 2.5rem of padding and 1rem
+# more, since 100vw also counts a desktop scrollbar the page cannot draw into.
+PLUGIN_BASE_CSS = """\
+.plugin-word {
+  font-size: clamp(2rem, calc((100vw - 3.5rem) / (var(--n) * var(--w))), 6rem);
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.plugin-word .pl { display: inline-block; color: var(--c); }
+.plugin-word .caret { display: none; }
+.plugin-page .skills > li {
+  --barw: 3px;
+  position: relative;
+  padding-left: 1rem;
+}
+.plugin-page .skills > li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.6rem;
+  bottom: 0.6rem;
+  width: var(--barw);
+  border-radius: 3px;
+  background: var(--c);
+}
+.plugin-page .skills > li:hover, .plugin-page .skills > li:focus-within { --barw: 8px; }
+"""
+
+PLUGIN_BASE_MOTION_CSS = """\
+  .plugin-page .skills > li::before { transition: width 0.25s var(--ease); }
+"""
+
+
+def plugin_class(plugin: str) -> str:
+    """The class a plugin's page carries, which every rule of its look is scoped to."""
+    return f"plugin-{plugin}"
+
+
+def _plugin_css() -> str:
+    """The stylesheet for every plugin look, generated from ``PLUGIN_LOOKS``."""
+    longest = max(len(name) for name in PLUGIN_LOOKS)
+    day, night, console, scoped, rules, frames = [], [], [], [], [], []
+    for name, look in PLUGIN_LOOKS.items():
+        page = f".{plugin_class(name)}"
+        size = len(look.day)
+        for index, (by_day, by_night) in enumerate(zip(look.day, look.night, strict=True), 1):
+            day.append(f"  --{name}-{index}: {by_day};")
+            night.append(f"  --{name}-{index}: {by_night};")
+            console.append(f"  --{name}-{index}: var(--ink);")
+        scoped.append(f"{page} {{ --n: {len(name)}; --w: {look.width}; }}")
+        for index in range(1, size + 1):
+            scoped.append(
+                f"{page} :is(.pl, .skills > li):nth-child({size}n + {index % size}) "
+                f"{{ --c: var(--{name}-{index}); }}"
+            )
+        if look.still:
+            scoped.append(look.still.replace("%P", page))
+        rules.append(look.rules.replace("%P", page))
+        frames.append(look.keyframes)
+    letters = "\n".join(
+        f".plugin-word .pl:nth-child({i}) {{ --i: {i}; }}" for i in range(1, longest + 1)
+    )
+    motion = "\n".join(
+        "  " + line if line else line
+        for line in (PLUGIN_BASE_MOTION_CSS.rstrip("\n") + "\n" + "\n".join(rules)).splitlines()
+    )
+    return (
+        ":root {\n" + "\n".join(day) + "\n}\n"
+        'html[data-theme="night"] {\n' + "\n".join(night) + "\n}\n"
+        'html[data-theme="reactor"] {\n'
+        + "\n".join(console)
+        + "\n}\n"
+        + PLUGIN_BASE_CSS
+        + letters
+        + "\n"
+        + "\n".join(scoped)
+        + "\n@media (prefers-reduced-motion: no-preference) {\n"
+        + motion
+        + "\n}\n"
+        + "\n".join(frames)
+        + "\n"
+    )
+
+
 CSS = (
     CSS.replace("@@PROFILE_RULES@@", _profile_rules()).replace("@@FONT_FACES@@", FONT_FACES.strip())
+    + _plugin_css()
     + MOTION_CSS
 )
 

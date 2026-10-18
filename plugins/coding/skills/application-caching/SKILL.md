@@ -142,11 +142,9 @@ Set memory and item-size budgets from the working set. Confirm the eviction poli
 
 ### 9. Roll out and roll back without a miss storm
 
-Start with shadow reads or a small cohort and compare cached answers with the source where the source can safely tolerate the comparison. Track mismatches by reason and version, not only as a count.
+Start with shadow reads or a small cohort, comparing cached answers with the source where it can safely tolerate the comparison, and track mismatches by reason and version rather than as a count. Ramp by tenant or stable cohort while watching source headroom, and pre-warm only the bounded hot set you can identify from evidence — not the whole source as a rollout ritual.
 
-Ramp by tenant or stable cohort while watching source headroom. Pre-warm only the bounded hot set you can identify from evidence. Do not scan the entire source into the cache as a rollout ritual.
-
-Rollback is a traffic plan. Disable new fills first when they are suspect, preserve known-good entries when safe, and rate-limit bypass to the source. If keys or serialization changed, keep readers compatible for the rollback window or use a new namespace. Rehearse cold-cache recovery and estimate how long the origin can sustain it.
+Treat rollback as a traffic plan, not a cache flush: stop suspect fills first, keep known-good entries and reader compatibility across the window, and open bypass only at the source's measured miss capacity. Rehearse cold-cache recovery and know how long the origin can sustain it.
 
 ## Output format
 
