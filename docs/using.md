@@ -311,7 +311,7 @@ role prompts. Its repository gate requires an independent reviewer to execute
 `make validate`, `make catalogue` and `make test` on the reviewed snapshot. On a
 contributor change the reviewer runs them only when every changed path is inert content
 (Markdown under `plugins/` or `docs/` other than an instruction file — `CLAUDE.md`,
-`CLAUDE.local.md` or `AGENTS.md` — or a path with a `.claude/` segment, which loads as
+`CLAUDE.local.md`, `AGENTS.md` or `AGENTS.override.md` — or a path with a `.claude/` segment, which loads as
 instructions and is a blocking finding on a contributor change; a trigger eval set; or the root `README.md` or
 `CHANGELOG.md`, as regular files whose whole NUL-delimited names match
 `^\.?[A-Za-z0-9_][A-Za-z0-9._-]*(/\.?[A-Za-z0-9_][A-Za-z0-9._-]*)*$`, the change fails that check if `git diff --no-renames -z --name-only '<base>'...refs/review/<n> | grep -zvxE '<pattern>'` selects any record (exit 0 means an unsafe name), or if Python `re.fullmatch` fails on any decoded record; a

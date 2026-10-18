@@ -61,17 +61,28 @@ def test_a_contributor_change_missing_its_live_check_is_fix_not_stop():
 )
 def test_the_inert_allowlist_excludes_instruction_files(path, anchor):
     # A contributor's nested `docs/CLAUDE.md` is Markdown under `docs/`, and loads as
-    # instructions in any session opened there.
+    # instructions in any session opened there. Codex prefers `AGENTS.override.md` over
+    # `AGENTS.md` in the same directory (openai/codex, codex-rs/core/src/agents_md.rs), so
+    # that name is an instruction file too.
     text = flat(path)
     assert anchor in text, (path, anchor)
     clause = text.split(anchor, 1)[1][:260]
-    for name in ("CLAUDE.md", "CLAUDE.local.md", "AGENTS.md", ".claude/"):
+    for name in ("CLAUDE.md", "CLAUDE.local.md", "AGENTS.md", "AGENTS.override.md", ".claude/"):
         assert name in clause, (path, name, clause)
 
 
 def test_a_contributor_instruction_file_is_a_blocking_finding():
     text = flat(".claude/agents/reviewer.md")
-    assert re.search(r"adds or edits an instruction file .{0,120}is a blocking finding", text)
+    assert re.search(r"adds or edits an instruction file .{0,150}is a blocking finding", text)
+
+
+def test_the_blocking_rule_names_every_instruction_file():
+    # The blocking rule has its own list, separate from the inert allowlist's, and a name
+    # missing from it lets that file through as an ordinary change.
+    text = flat(".claude/agents/reviewer.md")
+    clause = text.split("adds or edits an instruction file", 1)[1][:200]
+    for name in ("CLAUDE.md", "CLAUDE.local.md", "AGENTS.md", "AGENTS.override.md", ".claude/"):
+        assert name in clause, (name, clause)
 
 
 @pytest.mark.parametrize(

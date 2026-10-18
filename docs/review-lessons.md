@@ -894,3 +894,27 @@ deleted path meets the allowlist. Only prose enforces this; the
 moved into `docs/` under a documentation-only intent.
 
 **First caught:** the review of 10f7d9a..9c25708, by an automated reviewer.
+
+### An instruction-file list omits a tool's alternate filename
+
+**Class.** A list of the files a tool loads as instructions that names the tool's main
+filename and misses another name its loader also reads, so a path the tool treats as
+configuration is treated as inert content.
+
+**How it shows up.** The contributor-review contract listed instruction files as
+`CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md`. Codex also loads `AGENTS.override.md`
+and prefers it over `AGENTS.md` in the same directory, so a contributor's
+`docs/AGENTS.override.md` passed the inert allowlist as Markdown under `docs/`, could
+reach the gate worktree, and was not a blocking finding.
+
+**The check that catches it.** Verify each tool's loader source for every filename it
+reads, not its documentation's headline name; for Codex, `DEFAULT_AGENTS_MD_FILENAME`
+and `LOCAL_AGENTS_MD_FILENAME` in `codex-rs/core/src/agents_md.rs` in openai/codex.
+`tests/test_review_contract.py` checks that `reviewer.md`, `docs/chatgpt-agents.md` and
+`docs/using.md` name `AGENTS.override.md` in the inert-allowlist exclusion, and that
+`reviewer.md`'s blocking-finding rule names it too. No benchmark case seeds this
+defect, because the benchmark always briefs `reviewer` as the repository owner and so
+cannot exercise a contributor rule; the contract tests carry it instead.
+
+**First caught:** the owner's review of the contributor-review contract, against the
+Codex loader source.

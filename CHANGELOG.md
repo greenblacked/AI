@@ -8,6 +8,14 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Security
+
+- Treat a contributor's `AGENTS.override.md` as an instruction file in the review
+  contract, the same as `AGENTS.md`. Codex loads it in preference to `AGENTS.md` in the
+  same directory, but the inert-path allowlist and the blocking-finding rule did not
+  name it, so a `docs/AGENTS.override.md` was read as inert Markdown and could reach the
+  gate worktree.
+
 ## [0.1.11] - 2026-10-18
 
 ### Fixed
