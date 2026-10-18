@@ -1430,23 +1430,23 @@ PLUGIN_LOOKS: dict[str, PluginLook] = {
     ),
     # Letters fall in and bounce frame by frame, like a sprite. steps() applies to each
     # keyframe interval, not the whole animation, so the frames are written out and each
-    # is held with steps(1): even 75ms frames, no half-transparent ghosts, and a fall short
-    # enough to stay clear of the Back link above the heading.
+    # is held with steps(1): even 75ms frames and no half-transparent ghosts. The fall is
+    # capped at 1.25rem because only 1.5rem separates the heading from the Back link.
     "gamedev": PluginLook(
         day=("#b0198f", "#6d28d9", "#0e7490"),
         night=("#ff7ae0", "#b69cff", "#22d3ee"),
         width=0.79,
-        rules="%P .pl { animation: pw-gamedev-drop 0.6s steps(1, end) calc(var(--i) * 0.075s) "
-        "backwards; }",
+        rules="%P .pl { --drop: min(0.6em, 1.25rem); animation: pw-gamedev-drop 0.6s "
+        "steps(1, end) calc(var(--i) * 0.075s) backwards; }",
         keyframes="""\
 @keyframes pw-gamedev-drop {
-  0% { opacity: 0; transform: translateY(-0.6em); }
-  12.5% { opacity: 1; transform: translateY(-0.6em); }
-  25% { opacity: 1; transform: translateY(-0.3em); }
+  0% { opacity: 0; transform: translateY(calc(var(--drop) * -1)); }
+  12.5% { opacity: 1; transform: translateY(calc(var(--drop) * -1)); }
+  25% { opacity: 1; transform: translateY(calc(var(--drop) * -0.5)); }
   37.5% { opacity: 1; transform: translateY(0); }
-  50% { opacity: 1; transform: translateY(-0.15em); }
+  50% { opacity: 1; transform: translateY(calc(var(--drop) * -0.25)); }
   62.5% { opacity: 1; transform: translateY(0); }
-  75% { opacity: 1; transform: translateY(-0.05em); }
+  75% { opacity: 1; transform: translateY(calc(var(--drop) * -0.1)); }
   87.5% { opacity: 1; transform: translateY(0); }
   100% { opacity: 1; transform: none; }
 }""",

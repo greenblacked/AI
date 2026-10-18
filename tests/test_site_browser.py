@@ -747,6 +747,41 @@ def test_a_plugin_heading_plays_its_entrance_and_ends_whole(browser, base_url, n
         made.close()
 
 
+# Steps every heading animation through its whole run, paused, and returns the least
+# room left between a visible letter and the Back link above the heading. Waiting for
+# the animations to finish cannot see a letter that crosses the link on the way in.
+PLUGIN_CLEARANCE = """() => {
+  const word = document.querySelector('.plugin-word');
+  const back = word.previousElementSibling.getBoundingClientRect();
+  const anims = document.getAnimations().filter(a => a.effect.target.closest('.plugin-word'));
+  anims.forEach(a => a.pause());
+  const end = Math.max(...anims.map(a => a.effect.getComputedTiming().endTime));
+  let least = Infinity;
+  for (let t = 0; t <= end; t += 5) {
+    anims.forEach(a => { a.currentTime = t; });
+    for (const e of document.querySelectorAll('.plugin-word .pl')) {
+      if (parseFloat(getComputedStyle(e).opacity) === 0) continue;
+      least = Math.min(least, e.getBoundingClientRect().top - back.bottom);
+    }
+  }
+  return least;
+}"""
+
+
+@pytest.mark.parametrize("name", PLUGIN_NAMES)
+@pytest.mark.parametrize("width", [360, 1280])
+def test_a_plugin_heading_entrance_stays_below_the_back_link(browser, base_url, name, width):
+    made = browser.new_context(viewport={"width": width, "height": 800})
+    made.route(re.compile("^(?!" + re.escape(base_url) + "/)"), lambda route: route.abort())
+    try:
+        page = made.new_page()
+        page.emulate_media(reduced_motion="no-preference")
+        page.goto(f"{base_url}/plugins/{name}/")
+        assert page.evaluate(PLUGIN_CLEARANCE) >= 0, (name, width)
+    finally:
+        made.close()
+
+
 def test_a_stage_focused_during_the_entrance_is_visible(browser, base_url):
     # The rows rise in seconds after load, but their summaries can take focus at once.
     made = browser.new_context(viewport={"width": 1280, "height": 800})
