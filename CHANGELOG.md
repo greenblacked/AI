@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.1.11] - 2026-10-18
+
 ### Fixed
 
 - Correct stale technical claims across the coding skills: the `Deprecation`,
@@ -786,7 +788,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.10...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.11...HEAD
+[0.1.11]: https://github.com/greenblacked/AI/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/greenblacked/AI/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/greenblacked/AI/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/greenblacked/AI/compare/v0.1.7...v0.1.8
