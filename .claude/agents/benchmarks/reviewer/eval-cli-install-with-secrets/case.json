@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the eval CLI installation by allowing npm ci to run postinstall scripts directly instead of copying the Claude native binary by hand.",
+  "lesson": "A third-party package install inherits or precedes scoring secrets",
+  "must_mention": [
+    "install_eval_cli\\.py",
+    "ignore-scripts|postinstall|lifecycle",
+    "secret|credential|CLAUDE_CODE_OAUTH_TOKEN|ANTHROPIC_API_KEY|OPENAI_API_KEY|GEMINI_API_KEY"
+  ]
+}

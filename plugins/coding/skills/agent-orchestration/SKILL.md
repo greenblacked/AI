@@ -233,6 +233,24 @@ before requesting it.
 [Blocker or authorised next action, with owner.]
 ```
 
+### Worked example
+
+Task: add cursor pagination to `GET /orders` and update the web client that consumes it.
+
+| Task | Owner | Depends on | Writable scope | State |
+| --- | --- | --- | --- | --- |
+| T1 decide the cursor encoding | researcher | — | read-only | complete |
+| T2 pagination in the handler and its tests | impl-A | T1 | `app/orders.py`, `tests/test_orders.py` | running |
+| T3 paging in the client | impl-B | T1 | `web/src/api.ts`, `web/src/api.test.ts` | queued |
+| T4 review the combined diff | reviewer | T2, T3 | read-only | pending |
+
+T2 and T3 become independent once T1 lands, so they run in parallel; a shared answer, not
+a shared file, is what forced T1 first. `openapi.yaml` and `package-lock.json` are the
+integrator's, never a worker's. T4 starts only after the integrator has assembled both
+branches and run the combined suite, because two worker-local greens do not prove the
+assembled tree is green — the interface between T2's response shape and T3's parsing is
+exactly what neither worker's own tests exercise.
+
 ## Anti-patterns
 
 **Parallelising a dependency.** Starting implementation before its deciding research

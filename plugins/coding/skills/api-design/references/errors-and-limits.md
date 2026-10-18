@@ -132,10 +132,15 @@ Communicate the limit on every response, not only on rejection, so a well-behave
 can slow down before it is rejected:
 
 ```http
-RateLimit-Limit: 1000
-RateLimit-Remaining: 42
-RateLimit-Reset: 30
+RateLimit-Policy: "default";q=1000;w=60
+RateLimit: "default";r=42;t=30
 ```
+
+The names come from `draft-ietf-httpapi-ratelimit-headers`: `q` is the quota, `w`
+the window in seconds, `r` the remaining quota and `t` the effective window in
+seconds, the time over which that remaining quota can be used. `Retry-After` still takes precedence when both are present. The widely
+deployed `X-RateLimit-*` family is vendor-specific and predates the draft; do not
+present it as the standard.
 
 And on a 429, `Retry-After` with a number of seconds, plus an error code that
 distinguishes a short-term rate limit from an exhausted quota — they call for different

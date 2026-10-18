@@ -271,14 +271,14 @@ def _to_top() -> str:
 def _font_preloads(main: str) -> str:
     """Preload links for the faces a page paints first.
 
-    The body sans is on every page. The serif sets the card text and the rendered Markdown,
-    so it is preloaded only where one of those is in the page: a preload for a font the
-    page never draws is bytes spent for nothing, and Chrome warns about it. ``crossorigin``
-    is required even for a same-origin font, because fonts are fetched in anonymous CORS
-    mode and a preload without it is fetched twice.
+    The body sans is on every page. The serif sets the card text, the rendered Markdown and
+    a serif plugin heading, so it is preloaded only where one of those is in the page: a
+    preload for a font the page never draws is bytes spent for nothing, and Chrome warns
+    about it. ``crossorigin`` is required even for a same-origin font, because fonts are
+    fetched in anonymous CORS mode and a preload without it is fetched twice.
     """
     urls = [site_style.SANS_URL]
-    if 'class="prose-lab' in main or 'class="card"' in main:
+    if 'class="prose-lab' in main or 'class="card"' in main or "plugin-serif" in main:
         urls.append(site_style.SERIF_URL)
     return "".join(
         f'<link rel="preload" href="{url}" as="font" type="font/woff2" crossorigin>\n'
@@ -653,16 +653,46 @@ def _code_block(text: str) -> str:
     return f'<pre tabindex="0"><code>{_esc(text)}\n</code></pre>'
 
 
+def _plugin_word(plugin: str, look: site_style.PluginLook) -> str:
+    """A plugin's name as the page heading: one coloured span per capital.
+
+    The look's entrance animates the spans by CSS alone, so a visitor with motion reduced
+    or scripts off reads the finished word. ``plugin`` is what a screen reader hears
+    instead of the letters, which are hidden from it.
+    """
+    letters = "".join(f'<span class="pl">{_esc(char.upper())}</span>' for char in plugin)
+    caret = '<span class="caret"></span>' if look.caret else ""
+    serif = " plugin-serif" if look.serif else ""
+    return (
+        f'<h1 class="title plugin-word{serif}"><span class="sr-only">{_esc(plugin)}</span>'
+        f'<span class="plugin-letters" aria-hidden="true">{letters}{caret}</span></h1>'
+    )
+
+
 def render_plugin(plugin: str, catalogue: Catalogue, version: str) -> str:
+    """A plugin's page: its name, what it is for, how to install it and its skills.
+
+    A plugin with a look in ``site_style.PLUGIN_LOOKS`` gets its own palette and
+    entrance. One without falls back to the plain heading and rows rather than failing
+    the build, because a new plugin should not need a design before it can be listed;
+    a test fails when the marketplace names a plugin that has no look, so the gap is
+    seen in review and not left as a plain page nobody chose.
+    """
+    look = site_style.PLUGIN_LOOKS.get(plugin)
     skills = [skill for skill in catalogue.skills if skill.plugin == plugin]
     blurb = catalogue.blurbs.get(plugin, "")
     about = f'<p class="lede">{_esc(blurb)}</p>\n' if blurb else ""
     items = _skill_items(plugin, skills)
     install = _code_block(_install_line(plugin, catalogue.marketplace))
+    if look is None:
+        frame, heading = "page", f'<h1 class="title-xl">{_esc(plugin)}</h1>'
+    else:
+        frame = f"page plugin-page {site_style.plugin_class(plugin)}"
+        heading = _plugin_word(plugin, look)
     main = (
-        '<div class="page">\n'
+        f'<div class="{frame}">\n'
         f"{_back('/')}\n"
-        f'<h1 class="title-xl">{_esc(plugin)}</h1>\n'
+        f"{heading}\n"
         f"{about}"
         f'<p class="small count">{_esc(_plural(len(skills), "skill"))}</p>\n'
         f'<div class="install">{install}</div>\n'

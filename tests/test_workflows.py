@@ -355,6 +355,68 @@ def test_a_digest_is_compared_like_any_other_pin(tmp_path, capsys):
     assert "TOOL_SHA256 is pinned to more than one value" in capsys.readouterr().out
 
 
+def test_npm_lock_pin_agrees_with_manifest_and_lockfile(tmp_path):
+    write_workflows(
+        tmp_path,
+        demo=GATING.replace("  TOOL_VERSION: '1.2.3'\n", "  CLAUDE_CODE_VERSION: '2.1.291'\n"),
+    )
+    client = tmp_path / ".github" / "eval-clients" / "claude"
+    client.mkdir(parents=True)
+    (client / "package.json").write_text(
+        '{"dependencies": {"@anthropic-ai/claude-code": "2.1.291"}}', encoding="utf-8"
+    )
+    (client / "package-lock.json").write_text(
+        '{"packages": {"node_modules/@anthropic-ai/claude-code": '
+        '{"version": "2.1.291", "integrity": "sha512-abc"}}}',
+        encoding="utf-8",
+    )
+    assert workflows.check(tmp_path) == 0
+
+
+def test_npm_lock_pin_reports_missing_or_mismatched_lockfile(tmp_path, capsys):
+    write_workflows(
+        tmp_path,
+        demo=GATING.replace("  TOOL_VERSION: '1.2.3'\n", "  CLAUDE_CODE_VERSION: '2.1.291'\n"),
+    )
+    client = tmp_path / ".github" / "eval-clients" / "claude"
+    client.mkdir(parents=True)
+    assert workflows.check(tmp_path) == 1
+    assert "missing package.json or package-lock.json" in capsys.readouterr().out
+
+    (client / "package.json").write_text("{bad", encoding="utf-8")
+    (client / "package-lock.json").write_text("{}", encoding="utf-8")
+    assert workflows.check(tmp_path) == 1
+    assert "lockfile is not JSON" in capsys.readouterr().out
+
+    (client / "package.json").write_text(
+        '{"dependencies": {"@anthropic-ai/claude-code": "2.1.0"}}', encoding="utf-8"
+    )
+    (client / "package-lock.json").write_text(
+        '{"packages": {"node_modules/@anthropic-ai/claude-code": '
+        '{"version": "2.1.1", "integrity": "sha256-wrong"}}}',
+        encoding="utf-8",
+    )
+    assert workflows.check(tmp_path) == 1
+    out = capsys.readouterr().out
+    assert "depends on @anthropic-ai/claude-code '2.1.0'" in out
+    assert "installs @anthropic-ai/claude-code '2.1.1'" in out
+    assert "missing sha512 integrity" in out
+
+
+def test_npm_lock_pin_reports_a_missing_client_directory(tmp_path, capsys):
+    # A deleted or renamed .github/eval-clients directory used to pass, and the eval
+    # install failed only later, in a job that is not required.
+    write_workflows(
+        tmp_path,
+        demo=GATING.replace("  TOOL_VERSION: '1.2.3'\n", "  CODEX_VERSION: '0.160.0'\n"),
+    )
+    assert workflows.check(tmp_path) == 1
+    out = capsys.readouterr().out
+    assert "::error file=.github/eval-clients/codex::" in out
+    assert "CODEX_VERSION is pinned but .github/eval-clients/codex does not exist" in out
+    assert workflows.check_npm_lock_pin(tmp_path, "CODEX_VERSION", "0.160.0") == 1
+
+
 # --- the tree and the entry point --------------------------------------------------
 
 
