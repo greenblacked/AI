@@ -1,0 +1,8 @@
+{
+  "name": "eval-client-codex",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "@openai/codex": "0.160.1"
+  }
+}

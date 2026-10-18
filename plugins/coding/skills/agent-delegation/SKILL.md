@@ -38,7 +38,7 @@ List every path the agent may edit, and, separately, every path it may not: test
 
 ### 4. Name the stop conditions
 
-State the conditions under which the agent must stop and ask rather than improvise: discovering a need for a new dependency, a schema change, a change to a public interface, or touching more files than a stated number. Size the task so the expected result is one diff of roughly 400 changed lines or fewer — the size a reviewer can actually read in one pass, and the reason `code-review` treats a much larger diff as a sign the change should have been split before it reached review.
+State the conditions under which the agent must stop and ask rather than improvise: discovering a need for a new dependency, a schema change, a change to a public interface, or touching a file the brief does not name. Size the task so the expected result is one diff of roughly 400 changed lines or fewer across a nameable set of files, around five of them — the size a reviewer can actually read in one pass, and the reason `code-review` treats a much larger diff as a sign the change should have been split before it reached review.
 
 ### 5. Require evidence in the report
 

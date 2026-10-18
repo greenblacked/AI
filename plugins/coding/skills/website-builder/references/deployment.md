@@ -78,7 +78,7 @@ while you are in it.
 For a container, serve with nginx or Caddy from a small final image:
 
 ```dockerfile
-FROM node:22-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
@@ -163,31 +163,39 @@ on:
   push: { branches: [main] }
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '22', cache: 'npm' }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: '24', cache: 'npm' }
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test -- --run
       - run: npm audit --audit-level=high
       - run: npm run build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: dist, path: dist/, retention-days: 30 }
 
   a11y-and-perf:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: treosh/lighthouse-ci-action@v12
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with: { name: dist, path: dist }
+      - uses: treosh/lighthouse-ci-action@3e7e23fb74242897f95c0ba9cabad3d0227b9b18 # 12.6.2
         with:
-          urls: ${{ github.event_name == 'pull_request'
-                    && needs.build.outputs.preview_url || 'https://example.com' }}
+          configPath: ./lighthouserc.json
           budgetPath: ./lighthouse-budget.json
           uploadArtifacts: true
 
@@ -195,19 +203,30 @@ jobs:
     needs: [build, a11y-and-perf]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment: production
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with: { name: dist, path: dist }
       - run: npx wrangler pages deploy dist --project-name=example
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 ```
 
+The Lighthouse job audits the downloaded `dist` through the config file at the
+repository root, which has Lighthouse CI serve the directory and audit each HTML file in
+it:
+
+```json
+{ "ci": { "collect": { "staticDistDir": "./dist" } } }
+```
+
 The same shape in GitLab CI is `stages: [build, verify, deploy]` with `only: [main]` on
-the deploy job and artifacts passed between stages. Pin action versions, scope the deploy
-token to one project, and deploy the artifact that was tested rather than rebuilding in
-the deploy job — a rebuild is a different set of bits than the one the checks passed.
+the deploy job and artifacts passed between stages. Pin each action to a full commit SHA
+with the release tag in a trailing comment, set a top-level `permissions:` block and a
+`timeout-minutes:` on every job, scope the deploy token to one project, and deploy the
+artifact that was tested rather than rebuilding in the deploy job — a rebuild is a
+different set of bits than the one the checks passed.
 
 ## Rollback
 

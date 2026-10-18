@@ -82,8 +82,9 @@ go list -m -u all                      # available upgrades
 go get example.com/pkg@v2.0.0          # note the /v2 import path for v2+ modules
 go mod tidy && git diff go.sum
 
-go vet ./...                           # deprecations surface via staticcheck's SA1019
-staticcheck -checks SA1019 ./...
+go vet ./...                           # the standard checks; it does not flag deprecated
+                                       # symbols — that is staticcheck's SA1019, a separate tool
+staticcheck -checks SA1019 ./...       # reports use of a deprecated function, type or field
 
 govulncheck ./...                      # reachability: reports only vulnerabilities whose
                                        # affected symbol your code can actually reach

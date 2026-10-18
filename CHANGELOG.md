@@ -8,6 +8,48 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.1.11] - 2026-10-18
+
+### Fixed
+
+- Correct stale technical claims across the coding skills: the `Deprecation`,
+  `Sunset` and `RateLimit` headers in api-design, the Playwright version and flake
+  count in e2e-testing, the OpenAI evaluation reference in agent-evaluation, what a
+  `PostToolUse` hook can stop, staticcheck's SA1019, and the refactoring research
+  citation.
+- Pin website-builder's CI example to commit SHAs with read-only permissions, job
+  timeouts, and have its Lighthouse job audit the build it deploys.
+- Give website-builder the `Scope` section its siblings have, note the macOS
+  alternatives to `flock` and `sha256sum`, and keep agent-delegation's brief template
+  in one place.
+
+### Changed
+
+- Give each plugin page on the catalogue site its own look: the plugin name in large
+  coloured capitals with its own entrance, from typed keys for coding to a lifting
+  redaction for security, and a coloured accent bar on every skill row. Palettes hold
+  4.5:1 contrast in day and night, collapse to one colour in the console theme, and the
+  heading is whole when motion is reduced.
+- Make the gamedev prototype a written handoff: `game-greenlight` hands `game-builder`
+  a brief with the riskiest question, scope, budget and go, no-go and pivot criteria;
+  `game-builder` builds to it rather than offering fresh concepts and reports evidence
+  against each criterion, keeping a build, a self-playtest and watched players apart.
+  A criterion nobody could test is reported unverified or blocked, and `/level` carries
+  that status through its stages instead of treating it as passed.
+- Add worked examples and concrete numbers to the coding agent skills: a task-graph
+  example in agent-orchestration, a filled checkpoint contract in agent-handoff,
+  rerun counts in agent-failure-diagnosis, and delegation sizing figures.
+- Show the per-worker `storageState` fixture in e2e-testing's Playwright reference so
+  the worker-scoped session is concrete, and fold application-caching's duplicated
+  rollout and rollback steps into its failure-and-rollout reference.
+
+### Security
+
+- Install the eval CLIs from committed, integrity-locked npm trees with lifecycle
+  scripts disabled, in a step that holds no model credentials. Previously a package
+  install script ran in, or on the same runner state as, the step that held the API
+  keys.
+
 ## [0.1.10] - 2026-10-15
 
 ### Changed
@@ -746,7 +788,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.10...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.11...HEAD
+[0.1.11]: https://github.com/greenblacked/AI/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/greenblacked/AI/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/greenblacked/AI/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/greenblacked/AI/compare/v0.1.7...v0.1.8
