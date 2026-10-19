@@ -4,6 +4,8 @@ Read this when writing the code between the model call and the rest of the progr
 
 It uses the third-party `jsonschema` package. If a dependency is not allowed, use the schema validator your SDK already depends on (Pydantic's `model_validate_json` does the parse and the schema check together); the order of checks stays the same.
 
+The validator is built with a format checker because without one `jsonschema` treats `format` as an annotation, and a `date` field holding `"not-a-date"` passes. The checker covers `date` with the standard library alone; `date-time` is checked only when `rfc3339-validator` is installed (the package's `format` extras pull it in), and is skipped silently otherwise. Install the extra or add a semantic check for those fields, and keep a fixture with a malformed date that must be rejected.
+
 ## Contents
 
 - [The implementation](#the-implementation)
@@ -84,7 +86,8 @@ def get_structured(
     max_problems_sent: int = 10,
 ) -> object:
     Draft202012Validator.check_schema(schema)  # a broken schema is a bug, not a retry
-    validator = Draft202012Validator(schema)
+    # Without a format checker, `format` is an annotation and "not-a-date" passes.
+    validator = Draft202012Validator(schema, format_checker=Draft202012Validator.FORMAT_CHECKER)
     history = list(messages)
     attempts: list[Attempt] = []
     for _ in range(max_repairs + 1):

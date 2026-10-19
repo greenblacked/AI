@@ -84,7 +84,7 @@ jq -rs 'group_by(.feature // "untagged")
                calls: length,
                output: (map(.output_tokens // 0) | add),
                cost: (map(.cost // 0) | add)})
-        | sort_by(-.cost)' export.json
+        | sort_by(-.cost)' export.jsonl
 ```
 
 Report the untagged share as a headline figure when it is large. If most rows carry no
