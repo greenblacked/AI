@@ -318,7 +318,7 @@ instructions and is a blocking finding on a contributor change that adds, edits 
 `^\.?[A-Za-z0-9_][A-Za-z0-9._-]*(/\.?[A-Za-z0-9_][A-Za-z0-9._-]*)*$`, the change fails that check if `git diff --no-renames -z --name-only '<base>'...refs/review/<n> | grep -zvxE '<pattern>'` selects any record (exit 0 means an unsafe name), or if Python `re.fullmatch` fails on any decoded record; a
 changed name outside that, such as `docs/$(cmd).md`, makes the change non-inert and is a
 blocking finding asking for a rename; dot-prefixed paths are canonical, so never a rename: a `.claude/` path is a blocking finding as instruction configuration, and any other, such as `.github/`, is non-inert and goes to the owner-must-run flow), because the gates execute the change's own code.
-The fallback names are the list the owner resolved from their trusted Codex configuration and states in the
+Instruction-file names, and a `.claude/` segment, compare case-insensitively, the fixed names and the fallback names alike, on any filesystem: a case-insensitive checkout loads `claude.md` or `.Claude/`, or `docs/team_guide.md` where `TEAM_GUIDE.md` is configured, as an instruction file. The fallback names are the list the owner resolved from their trusted Codex configuration and states in the
 brief as a list, `[]` when empty; a changed path whose basename matches one, at any depth, is an instruction file, and a
 config file in the diff is never a source for the list. A brief that states no list is not an empty one:
 `STOP`, asking the caller for it before any Markdown path is classified as inert.

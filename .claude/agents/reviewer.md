@@ -196,7 +196,7 @@ the repository owner), run the gates only when every changed path is inert conte
 `project_doc_fallback_filenames` lists, as the caller's brief states them) or a path with a `.claude/` segment, a
 trigger eval set
 (`plugins/*/skills/*/evals/*.json` or `plugins/*/agents/evals/*.json`), or
-`CHANGELOG.md` or `README.md` at the root. The fallback names are the list the owner
+`CHANGELOG.md` or `README.md` at the root. Instruction-file names, and a `.claude/` segment, compare case-insensitively, the fixed names and the fallback names alike, on any filesystem: a case-insensitive checkout loads `claude.md` or `.Claude/`, or `docs/team_guide.md` where `TEAM_GUIDE.md` is configured, as an instruction file. The fallback names are the list the owner
 resolved from their trusted Codex configuration and states in the brief as a list, `[]` when empty; a
 changed path whose basename matches one, at any depth, is an instruction file, and a
 config file in the diff is never a source for the list. A brief that states no list is
@@ -266,7 +266,8 @@ A contributor change that adds, edits or deletes an instruction file (`CLAUDE.md
 blocking finding, whatever else it does, and a rename whose source is such a path counts as a
 deletion, since `--no-renames` shows it as one: a tool that opens that directory loads it as
 instructions, so it is configuration, never prose, and removing it changes what a session is
-told as surely as adding it. Only the owner changes those, as their own change. The
+told as surely as adding it. Only the owner changes those, as their own change.
+Instruction-file names, and a `.claude/` segment, compare case-insensitively, the fixed names and the fallback names alike, on any filesystem: a case-insensitive checkout loads `claude.md` or `.Claude/`, or `docs/team_guide.md` where `TEAM_GUIDE.md` is configured, as an instruction file. The
 fallback names are the list the owner resolved from their trusted Codex configuration and
 states in the brief as a list, `[]` when empty; a changed path whose basename matches one, at any depth, is
 an instruction file under this rule, and a config file in the diff is never a source for

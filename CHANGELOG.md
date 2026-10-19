@@ -33,7 +33,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   treats a changed path whose basename matches a stated name, at any depth, as an
   instruction file under the same blocking rule, takes the list from nothing in the
   contributor's branch, and stops and asks when the brief does not state it rather than
-  assuming it empty.
+  assuming it empty. Every instruction-file name, the fixed ones and the stated
+  fallbacks alike, is compared case-insensitively, because a case-insensitive checkout (default macOS and Windows)
+  loads `docs/team_guide.md` where `TEAM_GUIDE.md` is configured, and `claude.md` as
+  `CLAUDE.md`, which an exact-case comparison read as inert Markdown.
 
 ## [0.1.11] - 2026-10-18
 

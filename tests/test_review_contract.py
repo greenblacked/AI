@@ -197,6 +197,45 @@ def test_each_statement_of_the_rule_requires_the_caller_supplied_fallback_list(p
             assert needle in clause, (path, needle, clause)
 
 
+# Codex and Claude Code open an instruction file by name and trust the filesystem, so on a
+# case-insensitive one (default macOS and Windows) `docs/team_guide.md` loads where
+# `TEAM_GUIDE.md` is configured and `claude.md` loads as `CLAUDE.md`. The reviewer cannot know
+# the reader's filesystem, so every name comparison is case-insensitive, fixed names included.
+CASE_SENTENCE = (
+    "Instruction-file names, and a .claude/ segment, compare case-insensitively,"
+    " the fixed names and the fallback names alike, on any filesystem:"
+    " a case-insensitive checkout loads claude.md or .Claude/,"
+    " or docs/team_guide.md where TEAM_GUIDE.md is configured, as an instruction file."
+)
+
+
+@pytest.mark.parametrize(
+    ("path", "occurrences"),
+    [
+        (".claude/agents/reviewer.md", 2),
+        ("docs/chatgpt-agents.md", 2),
+        ("docs/using.md", 1),
+    ],
+)
+def test_each_statement_of_the_rule_compares_names_case_insensitively(path, occurrences):
+    # Same five statements as above; a statement that omits the clause reads a changed
+    # `docs/team_guide.md` as inert prose on a checkout that loads it as instructions.
+    text = flat(path).replace("`", "")
+    assert text.count(CASE_SENTENCE) == occurrences, (path, text.count(CASE_SENTENCE))
+    # The clause sits directly before the fallback-list sentence, inside the same statement.
+    assert text.count(CASE_SENTENCE + " " + FALLBACK_SENTENCE) == occurrences, path
+
+
+@pytest.mark.parametrize("path", CONTRACT_FILES)
+def test_no_statement_matches_instruction_file_names_by_exact_case(path):
+    # Negative check: an "exact" or "case-sensitive" basename match is the defect itself.
+    text = flat(path).replace("`", "")
+    assert not re.search(r"\bcase-sensitiv", text, re.IGNORECASE), path
+    assert not re.search(r"\b(?:exact|exactly)[- ](?:case|basename|name)", text, re.IGNORECASE), (
+        path
+    )
+
+
 @pytest.mark.parametrize(
     ("path", "anchor"),
     [
