@@ -166,7 +166,9 @@ def _prose(body: str) -> str:
 
 # A sentence that opens "Do not use for" or "Not for" says where the skill does not
 # apply, so a name inside it is the thing to send the work away from, not a hand-off.
-_BOUNDARY = re.compile(r"[\W_]*(?:do not use for|not for)\b", re.IGNORECASE)
+# An ordered-list marker may lead it: "1)" stays attached, where "1." is split off as
+# a sentence of its own, so the digits are skipped here for both forms to behave alike.
+_BOUNDARY = re.compile(r"[\W_]*(?:\d{1,9}[.)])?[\W_]*(?:do not use for|not for)\b", re.IGNORECASE)
 
 
 # These end in a full stop that does not end the sentence: "e.g. `maker`" inside a

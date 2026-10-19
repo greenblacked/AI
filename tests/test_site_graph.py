@@ -106,6 +106,14 @@ def test_a_do_not_use_for_sentence_draws_no_edge():
     assert graph._code_spans("Do not use for `x`.\nuse `y`") == {"y"}
 
 
+def test_a_boundary_item_in_either_ordered_list_form_draws_no_edge():
+    for marker in ("1)", "1.", "12)"):
+        body = f"{marker} Do not use for `maker`.\n{marker} Ask `scribe`.\n"
+        assert graph._code_spans(body) == {"scribe"}, marker
+    # A digit that is not a list marker does not hide a hand-off.
+    assert graph._code_spans("2 Not for `maker`.") == {"maker"}
+
+
 def test_a_boundary_sentence_wrapped_over_lines_draws_no_edge():
     body = (
         "Use this to plan the change. Not for writing it, which is work for the\n"
