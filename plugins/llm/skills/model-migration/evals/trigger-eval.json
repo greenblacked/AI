@@ -13,7 +13,7 @@
   {"query": "our openai bill tripled this month and I need to see which prompt path is burning the tokens", "should_trigger": false, "expected": "llm-cost"},
   {"query": "how should I structure my prompt so the provider's prompt cache hits more often", "should_trigger": false, "expected": "llm-cost"},
   {"query": "build a golden dataset and calibrate an llm judge against human labels for our tool-using agent", "should_trigger": false, "expected": "agent-evaluation"},
-  {"query": "our retrieval step returns the wrong passages, how do I measure recall and precision of the retriever", "should_trigger": false, "expected": "retrieval-evaluation"},
+  {"query": "we swapped the reranker and need a frozen benchmark to compare recall and precision of the old and new retriever on the same queries", "should_trigger": false, "expected": "retrieval-evaluation"},
   {"query": "bump pydantic from v1 to v2 across the monorepo without a branch that lives for months", "should_trigger": false, "expected": "dependency-upgrade"},
   {"query": "plan a percentage rollout with rings and bake times for the new checkout flow behind a feature flag", "should_trigger": false, "expected": "release-strategy"},
   {"query": "compare three speech-to-text vendors with a scorecard and a proof of concept before we sign", "should_trigger": false, "expected": "vendor-evaluation"},

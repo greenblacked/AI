@@ -122,7 +122,8 @@ def get_structured(
 
 ## Two semantic checks
 
-Worth writing in almost every integration. These run after the schema validator, and the JSON
+Worth writing in almost every integration, with the enum check kept for a field whose schema
+does not carry the `enum` (`SKILL.md` step 4 says the same). These run after the schema validator, and the JSON
 Schema `enum` keyword is case-sensitive, so `enum_case_insensitive` is only reached for a field
 whose schema does not carry that `enum`. For a field where casing drift is tolerable, normalise
 the case before schema validation, or drop the `enum` from the validation copy of the schema

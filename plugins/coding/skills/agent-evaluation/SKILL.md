@@ -156,6 +156,7 @@ Report an evaluation in this shape:
 ## Reference files
 
 - `references/evaluation-design.md` — read when constructing datasets, deterministic graders, judge calibration, repeated trials or a release gate.
+- `references/judge-calibration.md` — read at step 6, before a model judge influences a gate: testing a judge for position, verbosity and self-enhancement bias, swapping order in pairwise grading, freezing and versioning the rubric, reporting judge-human agreement as its own metric, pinning the judge, pass@k versus pass^k, and checking the grader before blaming the agent.
 - `references/trace-diagnosis.md` — read when a failure or score change needs to be localised in an agent trajectory.
 - `references/model-lifecycle.md` — read at step 3, before a model or prompt swap ships: why a moving alias invalidates the evaluation that passed it, the retirement-calendar pattern, the production drift signals to track once a version is live, and the coordination checklist that hands the cost delta to `llm-cost` and the rollout to `release-strategy`.
 - `references/harness-ablation.md` — read when an agent's instructions, checks, hooks, subagent stages or context files have accumulated and the question is which of them still earn their place after a model or tooling change: removing one component at a time, the contamination controls, and the decision record.

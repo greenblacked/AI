@@ -17,6 +17,6 @@
   {"query": "write the AGENTS.md instructions file for our repository so coding agents follow our conventions", "should_trigger": false, "expected": "agent-instructions"},
   {"query": "write a new SKILL.md with a description that triggers reliably for our deploy procedure", "should_trigger": false, "expected": "new-skill"},
   {"query": "profile why our Node service burns so much CPU under load", "should_trigger": false, "expected": "profiling"},
-  {"query": "is this third-party MCP server from GitHub safe to install on everyone's laptops", "should_trigger": false},
+  {"query": "is this third-party MCP server from GitHub safe to install on everyone's laptops", "should_trigger": false, "expected": "agent-extension-audit"},
   {"query": "make the model return JSON that always matches my schema when it extracts fields from invoices", "should_trigger": false, "expected": "structured-output"}
 ]

@@ -967,3 +967,28 @@ cannot exercise a contributor rule; the contract tests carry it instead.
 
 **First caught:** the owner's review of the contributor-review contract, against the
 Codex loader source.
+
+### A reference-style link label wraps across lines
+
+**Class.** Markdown that renders correctly in a browser but is not one of the shapes the
+portable export can re-point, so a file passes every gate that reads the repository and
+fails only when the skills are flattened for other assistants.
+
+**How it shows up.** A reference file written with prose wrapped at about ninety columns
+broke a reference-style link's visible text across two lines, in the shape
+`[some\nlabel][ref]` with `[ref]: https://…` defined below. CommonMark accepts it and
+`make validate` finds nothing wrong, but the export refuses a label that spans a line
+break with `unsupported multiline reference binding`; a definition whose title sits on the
+next line is refused the same way. The failure appears in `make portable` and in the
+`package` CI job's flatten step, not in the validator, so a new reference file can look
+finished while its pull request goes red.
+
+**The check that catches it.** `tests/test_catalogue.py` exports a prose label wrapped
+across lines and asserts the export fails with that message, and asserts that the same
+shape inside a code span, an HTML comment or an HTML block is inert and passes. Write
+every reference-style link, text and label, on one line, or use an inline link, and run
+`make portable` after adding or editing a file under a `references/` directory. No
+benchmark case seeds this defect yet, so `reviewer` holds it from this entry alone.
+
+**First caught:** the implementation run for the injection-architecture reference in the
+AI skills batch, by `make portable`, before the change had a pull request number.

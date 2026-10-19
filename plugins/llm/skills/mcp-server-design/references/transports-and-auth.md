@@ -109,6 +109,10 @@ not a caller. The authorisation rule still requires credentials on every HTTP re
 within a session. A server that keeps sessions in process memory needs sticky routing and
 loses them on restart; do not rely on them, or hold them in storage every instance shares.
 
+The 2025-11-25 transport page writes the header as `MCP-Session-Id`; the 2025-03-26 and
+2025-06-18 pages write `Mcp-Session-Id`. HTTP header names are case-insensitive, so read it
+without regard to case and do not branch on either spelling.
+
 ## What changed in 2026-07-28
 
 From the [changelog](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2026-07-28/changelog.mdx)

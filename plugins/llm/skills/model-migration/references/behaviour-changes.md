@@ -39,11 +39,13 @@ nothing fails. Spend the list on the silent ones, because only a comparison of o
 finds them.
 
 Claude Sonnet 5.5's migration guide shows both kinds side by side. Non-default sampling
-parameters, thinking budgets, a prefilled final assistant turn and forced tool choice each
-return a 400 error. Thinking blocks produced by a model the target cannot read are
-dropped, "the request still returns 200, and dropped blocks aren't billed". The guide
-also notes that text the model writes between tool calls now comes back in thinking
-blocks: "No request fails, but an interface that shows those notes goes quiet."
+parameters, thinking budgets, a prefilled final assistant turn, forced tool choice and
+`thinking: {"type": "disabled"}` each return a 400 error. Thinking blocks produced by a
+model the target cannot read are dropped, "the request still returns 200, and dropped
+blocks aren't billed". The guide also notes that on Claude Sonnet 5.5 notes "longer than a
+sentence or two" that the model writes between tool calls come back as `progress-update`
+thinking blocks, while shorter remarks stay text: "No request fails, but an interface that
+shows those notes goes quiet."
 
 ## The classes
 

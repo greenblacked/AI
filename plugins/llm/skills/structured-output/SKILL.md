@@ -67,8 +67,10 @@ Do the checks in this order, because each makes the next one meaningful:
 1. Check the stop condition. A refusal and a response cut off at the token limit do not match the schema by design. Neither is a validation error to repair; handle them as their own outcomes.
 2. Parse the text as JSON.
 3. Validate against the schema with a real validator, not a field-by-field `if`.
-4. Run the semantic checks the schema cannot express: a value that must appear in the source text, a total that must equal the sum of its lines, an end date that must follow a start date, an enum compared after normalising case.
+4. Run the semantic checks the schema cannot express: a value that must appear in the source text, a total that must equal the sum of its lines, an end date that must follow a start date.
 5. Only then hand the value to the program.
+
+A schema `enum` is case-sensitive and the provider can return a member in different case, so an enum case check placed here never fires for a field whose schema still carries the `enum`. Fold the case before step 3, or leave the `enum` out of the validation copy and let a semantic check own it.
 
 Read `references/validate-and-repair.md` for a reference implementation of this order and the repair loop.
 

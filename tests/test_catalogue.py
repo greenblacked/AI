@@ -1020,6 +1020,20 @@ def test_the_real_router_fits_its_budget_at_the_full_trigger_cap(tmp_path):
         text = path.read_text(encoding="utf-8")
         assert len(text.encode("utf-8")) <= portable.ROUTER_BUDGET_BYTES, path.name
         assert "](skills/" not in text
+    # router.md is either every skill line or the plugin index, never a mixture, and the
+    # message carries its size and form so a change to the preamble or markup that tips the
+    # real catalogue into the split is visible as a number rather than as a silent change.
+    text = (out / "router.md").read_text(encoding="utf-8")
+    skill_rows = re.findall(r"^skills/[\w.-]+\.md ", text, re.M)
+    index_rows = re.findall(r"^router-[\w-]+\.md ", text, re.M)
+    form = "the plugin index" if index_rows else "the combined router"
+    assert bool(skill_rows) != bool(index_rows), f"router.md is neither form: {form}"
+    plugins = portable.find_plugins(REPO)
+    total = sum(len(portable.find_skills(plugin / "skills")) for plugin in plugins)
+    if index_rows:
+        assert len(index_rows) == len(plugins)
+    else:
+        assert len(skill_rows) == total, f"router.md is {len(text.encode('utf-8')):,} bytes"
     for plugin in portable.find_plugins(REPO):
         text = (out / f"router-{plugin.name}.md").read_text(encoding="utf-8")
         for directory in portable.find_skills(plugin / "skills"):
@@ -1039,6 +1053,10 @@ def add_plugin(root, plugin, description="test"):
 def two_plugin_repo(mini_repo):
     add_plugin(mini_repo, "design", "Skills for the look of a product: a, b, c.")
     write_skill(mini_repo, "design", "gamma")
+    # A second design skill keeps the combined router larger than the plugin index, as it
+    # is for any catalogue worth splitting; with two skills in all, the index's note alone
+    # outweighs the lines it replaces.
+    write_skill(mini_repo, "design", "delta")
     return mini_repo
 
 
@@ -1055,7 +1073,7 @@ def test_router_stays_one_file_while_it_fits_the_budget(mini_repo, tmp_path, mon
     monkeypatch.setattr(portable, "ROUTER_BUDGET_BYTES", size)
     assert portable.export(repo, out) == 0
     text = (out / "router.md").read_text(encoding="utf-8")
-    for name in ("alpha", "beta", "gamma"):
+    for name in ("alpha", "beta", "gamma", "delta"):
         assert f"skills/{name}.md " in text
     assert "router-design.md " not in text
 
@@ -1091,7 +1109,7 @@ def test_every_per_plugin_router_keeps_its_triggers_after_a_split(mini_repo, tmp
     }
     monkeypatch.setattr(portable, "ROUTER_BUDGET_BYTES", router_sizes(out)["router.md"] - 1)
     assert portable.export(repo, out) == 0
-    for plugin, skills in (("design", ["gamma"]), ("engineering", ["alpha", "beta"])):
+    for plugin, skills in (("design", ["delta", "gamma"]), ("engineering", ["alpha", "beta"])):
         text = (out / f"router-{plugin}.md").read_text(encoding="utf-8")
         # Splitting changes router.md alone; a plugin's router is the same text either way.
         assert text == unsplit[f"router-{plugin}.md"]
