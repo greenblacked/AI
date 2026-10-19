@@ -1,6 +1,6 @@
 ---
 name: data-visualisation
-description: "Turn data into a chart that is correct and readable in any medium (matplotlib, Vega-Lite, Plotly, D3 or a spreadsheet): pick the chart from the question and the data's shape, keep bars on a zero baseline, avoid dual axes and 3D, use a colour-blind-safe palette that holds 3:1 contrast on light and dark backgrounds, label marks directly, ship a text alternative with the data table, then re-read the rendered image against the data. Use for any \"plot this\" or \"which chart\" ask. Casual asks include \"graph this CSV\", \"bar or line for this\", \"my pie chart is unreadable\", \"can I have two y axes\" or \"make this chart colour-blind safe\". Not for telemetry behind a dashboard (instrumentation), a status report (status-update), screen hierarchy (visual-design), a WCAG audit (accessibility-audit), design tokens (design-system) or building a dashboard app (website-builder)."
+description: "Turn data into a chart that is correct and readable in any medium (matplotlib, Vega-Lite, Plotly, D3 or a spreadsheet): pick the chart from the question and the data's shape, keep bars on a zero baseline, avoid dual axes and 3D, use a colour-blind-safe palette that holds 3:1 contrast on light and dark backgrounds, label marks directly, ship a text alternative with the data table, then re-read the rendered image against the data. Use for any \"plot this\" or \"which chart\" ask. Casual asks: \"graph this CSV\", \"bar or line for this\", \"my pie chart is unreadable\", \"can I have two y axes\" or \"make this chart colour-blind safe\". Not for dashboard telemetry (instrumentation), system diagrams (architecture-diagrams), status reports (status-update), screen hierarchy (visual-design), WCAG audits (accessibility-audit), design tokens (design-system) or dashboard apps (website-builder)."
 allowed-tools: "Read, Write, Edit, Glob, Grep, Bash(python3:*)"
 ---
 
@@ -14,7 +14,7 @@ Charts go wrong in two ways that look like success. The first is a chart that re
 
 Use for: choosing the chart for a question, building it in whatever library or spreadsheet is at hand, fixing a chart that misleads or cannot be read, and making a chart usable without colour and with a screen reader.
 
-Do not use for: the metrics, spans and logs a service emits so that a dashboard has something to plot, which is `instrumentation`; a status report or executive update that happens to contain a chart, which is `status-update`; the layout hierarchy of a whole screen, which is `visual-design`; a WCAG conformance audit of a page, which is `accessibility-audit`; theme tokens for a product, which is `design-system`; building a dashboard application with login and deployment, which is `website-builder`.
+Do not use for: the metrics, spans and logs a service emits so that a dashboard has something to plot, which is `instrumentation`; a status report or executive update that happens to contain a chart, which is `status-update`; a diagram of how a system's parts connect, which is `architecture-diagrams`; the layout hierarchy of a whole screen, which is `visual-design`; a WCAG conformance audit of a page, which is `accessibility-audit`; theme tokens for a product, which is `design-system`; building a dashboard application with login and deployment, which is `website-builder`.
 
 ## Workflow
 

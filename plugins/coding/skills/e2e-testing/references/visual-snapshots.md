@@ -2,6 +2,8 @@
 
 A screenshot assertion fails for two reasons that look identical in the report: the page changed, or the machine rendering it did. Everything here removes the second reason, so that a red run means the first. The failure it prevents is the familiar one: baselines that pass on the laptop that made them, fail in CI, and get loosened until the assertion no longer notices a real regression.
 
+Reviewing the captures themselves, across a viewport and theme matrix, with code checks and a model reading crops, is `visual-review`'s job; its `references/playwright-snapshots.md` repeats these settings for its own capture step. Keep the two in step when a Playwright default changes.
+
 The API facts are Playwright's, checked against the `microsoft/playwright` documentation sources at tag `v1.64.1` (`docs/src/test-snapshots-js.md`, `docs/src/docker.md`, `docs/src/ci.md`, `docs/src/test-cli.md` and the API sources under `docs/src/api/` and `docs/src/test-api/`). Option names and defaults change between releases, so re-check them against the version you run. Where a claim is guidance rather than something the documentation states, the text says so.
 
 ## Contents

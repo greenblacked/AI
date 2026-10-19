@@ -58,7 +58,7 @@ ICU treats the apostrophe as quoting syntax. A pair of ASCII apostrophes always 
 
 ## Ordinals
 
-"1st", "2nd" and "3rd" are a separate rule set from the cardinal plurals: TR35 defines `ordinal` rules next to `cardinal`, with the same six categories. ICU's message pattern grammar has a `selectordinal` argument for them (<https://github.com/unicode-org/icu/blob/main/icu4c/source/i18n/unicode/msgfmt.h>). Do not build ordinals by appending `st` or `nd` in code. German, for instance, writes an ordinal as a number followed by a full stop (CLDR's minimal pairs include `{0}. Abzweigung nach rechts nehmen`, in TR35), and a message gives the translator that choice.
+"1st", "2nd" and "3rd" are a separate rule set from the cardinal plurals: TR35 defines `ordinal` rules next to `cardinal`, with the same six categories. ICU's message pattern grammar has a `selectordinal` argument for them (<https://github.com/unicode-org/icu/blob/main/icu4c/source/i18n/unicode/msgfmt.h>). Do not build ordinals by appending an English suffix such as `st` in code. German, for instance, writes an ordinal as a number followed by a full stop (CLDR's minimal pairs include `{0}. Abzweigung nach rechts nehmen`, in TR35), and a message gives the translator that choice.
 
 ## Gender and other agreement
 

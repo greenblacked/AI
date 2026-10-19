@@ -8,6 +8,35 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- Add seven skills: `data-visualisation` and `visual-review` to `design`, for turning data
+  into a readable chart and for reviewing a rendered page from screenshots without trusting a
+  vision model for what code can measure; `architecture-diagrams` and `feature-spec` to
+  `coding`, for diagrams drawn as code that renders where it is read and for a written spec
+  and checkpointed plan before any code; `agent-extension-audit` to `security`, for vetting a
+  third-party skill, plugin, hook or MCP server before installing it; and `game-localisation`
+  and `game-playtest` to `gamedev`, for taking a game to many languages and for running a
+  playtest that ends in decisions.
+- Add three subagents: `screenshot-reader` to `design`, which reads screenshots in its own
+  context and returns findings by file and region; `extension-reader` to `security`, which
+  reads a quarantined third-party extension without running it; and `llm-trace-reader` to
+  `operations`, which reads an LLM usage or trace export for cost and latency hotspots.
+- Add the `/visual-review` command to `design`, which runs the `visual-review` procedure on a
+  page and hands crops to `screenshot-reader`.
+- Add reference files to existing skills: a charts and graphics reference to
+  `accessibility-audit`, an injection architecture reference to `agent-security-review`, a
+  judge calibration reference to `agent-evaluation`, a visual snapshots reference to
+  `e2e-testing`, a test-first loop reference to `test-design`, and a telemetry, caching and
+  limits reference to `llm-cost`.
+
+### Changed
+
+- Narrow `game-balance` to tuning numbers from playtest evidence. Running a playtest session
+  now belongs to `game-playtest`, so the balance skill's playtest protocol is replaced by a
+  short reference on carrying a playtest finding into a hypothesis about a number. This is a
+  routing correction for the new skill, not an edit made to pass a check.
+
 ## [0.1.12] - 2026-10-19
 
 ### Security

@@ -16,7 +16,7 @@ Use for: planning a playtest session or a round of them, choosing and screening 
 
 Do not use for:
 
-- Tuning numbers from win rates, pick rates or attempt counts. A handful of testers cannot separate a small difference from noise; that is `game-balance`, which also holds the room set-up and silence rule in more depth.
+- Tuning numbers from win rates, pick rates or attempt counts. A handful of testers cannot separate a small difference from noise; that is `game-balance`, which also takes the findings of a session that point at a number.
 - Laying out or re-pacing a level. Watching people fail to find the exit is a playtest finding; moving the exit is `game-level-design`.
 - Deciding whether a concept is worth building, or what a prototype must prove. That is `game-greenlight`, and its criteria come before any session.
 - Usability tests of product UI: settings, accounts, checkout, a storefront, a launcher. The boundary is what friction means. In a game, difficulty, confusion and failure are sometimes the intended experience, so task success is the wrong measure of in-play behaviour; in a product screen the user has a goal outside the interface and friction is a defect. Use `usability-test-plan` for the second, and this skill for what happens while the game is being played. A game's menus and settings screens belong to the second even inside a game.

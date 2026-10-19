@@ -1,6 +1,6 @@
 ---
 name: architecture-diagrams
-description: "Draw architecture, sequence and flow diagrams as code that renders where it will be read: choose the tool by the target surface (Mermaid where GitHub or GitLab render it natively, D2 or Graphviz committed as SVG for large graphs, Structurizr for a C4 model), give each C4 level its own diagram under a node cap, quote every label over plain identifiers, render with the tool's CLI and fail on a non-zero exit, then look at the render for overlap, and keep source and rendered output side by side. Use this skill whenever someone says \"draw the architecture of this service\", \"add a sequence diagram of the login flow to the README\", \"my mermaid diagram shows a syntax error\", or \"this diagram is an unreadable hairball\". Not for charts drawn from data, the prose around a diagram (technical-docs), trust boundaries and threats (threat-model), or recording a decision (decision-record)."
+description: "Draw architecture, sequence and flow diagrams as code that renders where it will be read: choose the tool by the target surface (Mermaid where GitHub or GitLab render it natively, D2 or Graphviz committed as SVG for large graphs, Structurizr for a C4 model), give each C4 level its own diagram under a node cap, quote every label over plain identifiers, render with the tool's CLI and fail on a non-zero exit, then look at the render for overlap, and keep source and render side by side. Use whenever someone says \"draw the architecture of this service\", \"add a sequence diagram of the login flow to the README\", \"my mermaid diagram shows a syntax error\", or \"this diagram is an unreadable hairball\". Not for charts drawn from data (data-visualisation), the prose around a diagram (technical-docs), trust boundaries and threats (threat-model), or recording a decision (decision-record)."
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash(mmdc:*), Bash(d2:*), Bash(dot:*), Bash(git:*)
 ---
 
@@ -14,7 +14,7 @@ The text of a diagram is easy to write and easy to get subtly wrong. Each tool h
 
 Use for: architecture and C4-style views, sequence diagrams, flow and state diagrams, deployment views, written as text that lives in the repository.
 
-Do not use for: charts drawn from data, the document around the diagram (technical-docs), the written orientation of an unfamiliar repository (codebase-orientation), data-flow diagrams drawn to find threats at trust boundaries (threat-model), or the reasoning behind a choice (decision-record, which may embed a diagram this skill produces).
+Do not use for: charts drawn from data (data-visualisation), the document around the diagram (technical-docs), the written orientation of an unfamiliar repository (codebase-orientation), data-flow diagrams drawn to find threats at trust boundaries (threat-model), or the reasoning behind a choice (decision-record, which may embed a diagram this skill produces).
 
 ## Workflow
 

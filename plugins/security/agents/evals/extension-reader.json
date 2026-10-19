@@ -18,6 +18,6 @@
   {"query": "help me write a new skill for our release checklist", "should_trigger": false, "expected": "new-skill"},
   {"query": "the plugin we installed last week leaked an api key into a log, what do I rotate and in what order", "should_trigger": false, "expected": "secret-rotation"},
   {"query": "audit which IAM roles in our aws account have wildcard permissions and what they actually used last quarter", "should_trigger": false, "expected": "policy-auditor"},
-  {"query": "should our team be allowed to install community plugins at all, and what approval process should we put around it", "should_trigger": false},
+  {"query": "should our team be allowed to install community plugins at all, and what approval process should we put around it", "should_trigger": false, "expected": "agent-extension-audit"},
   {"query": "explain how claude code decides which plugin hook runs first when two plugins register the same event", "should_trigger": false}
 ]

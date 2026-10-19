@@ -61,7 +61,8 @@
  },
  {
   "query": "plot monthly signups as a line chart from this CSV and make the axes readable",
-  "should_trigger": false
+  "should_trigger": false,
+  "expected": "data-visualisation"
  },
  {
   "query": "design the database tables for orders and customers, including keys and indexes",

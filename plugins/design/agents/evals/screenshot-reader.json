@@ -17,6 +17,6 @@
   {"query": "set up a type scale and a spacing system for this screen", "should_trigger": false, "expected": "visual-design"},
   {"query": "what breakpoints should we use, the table overflows on a phone and I need to decide what reflows", "should_trigger": false, "expected": "responsive-design"},
   {"query": "add dark mode tokens and make the hover and pressed states consistent across our buttons", "should_trigger": false, "expected": "design-system"},
-  {"query": "set up a pixel diff baseline for every pull request and tell me how to stop the font rendering flakes", "should_trigger": false},
+  {"query": "set up a pixel diff baseline for every pull request and tell me how to stop the font rendering flakes", "should_trigger": false, "expected": "visual-review"},
   {"query": "the nightly UI test job went red, read the run and tell me which class of failure it is", "should_trigger": false, "expected": "ci-log-reader"}
 ]

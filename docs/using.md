@@ -90,8 +90,8 @@ The first line registers the marketplace; it downloads nothing on its own. Each
 session — without it you will wonder why nothing fires.
 
 Installing `gamedev`: [`docs/gamedev.md`](gamedev.md) picks a production scale and a game
-type and routes through the plugin's eleven skills from there, rather than leaving you to
-read all eleven cold.
+type and routes through the plugin's thirteen skills from there, rather than leaving you to
+read all thirteen cold.
 
 Install the plugins you will actually use. Every description a plugin ships sits in
 context for the whole session, and the runtime caps that listing at about 1% of the
@@ -102,7 +102,7 @@ install any of the other eight, or more than one plugin, raise it in
 `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.123 }
+{ "skillListingBudgetFraction": 0.129 }
 ```
 
 ### How a skill fires

@@ -8,6 +8,10 @@ and the [emulation guide](https://playwright.dev/docs/emulation)) and the
 [pixelmatch README](https://github.com/mapbox/pixelmatch). Defaults change between
 releases, so check the version you have installed before relying on one.
 
+Keeping a screenshot assertion stable inside a test suite, as a flake to fix, is covered at more
+length by `e2e-testing`'s `references/visual-snapshots.md`; this file covers the same settings
+only as far as the review's capture step needs them.
+
 ## Contents
 
 - Same environment for baseline and comparison

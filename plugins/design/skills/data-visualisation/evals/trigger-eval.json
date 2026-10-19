@@ -85,6 +85,7 @@
   },
   {
     "query": "draw an architecture diagram of how our services call each other",
-    "should_trigger": false
+    "should_trigger": false,
+    "expected": "architecture-diagrams"
   }
 ]
