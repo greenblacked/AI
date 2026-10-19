@@ -911,7 +911,11 @@ fixed name list misses a file such as `docs/TEAM_GUIDE.md` that a configured ses
 loads as instructions. The blocking rule also said only "adds or edits", so a change that
 deleted `CLAUDE.md`, or renamed it away (`--no-renames` shows that as a deletion plus an
 addition), fell to the owner-must-run flow, whose checklist the owner can clear; removing
-trusted instructions has to block too.
+trusted instructions has to block too. The rule was then restated in the reviewer role
+card without its deletion and rename clauses, and a sentence sending dot-prefixed paths
+such as `.claude/` to the owner-must-run flow survived in three files, so a statement read
+on its own still let an instruction change through: every restatement carries the whole
+rule, and `.claude/` is blocking wherever dot-prefixed paths are discussed.
 
 **The check that catches it.** Verify each tool's loader source for every filename it
 reads, not its documentation's headline name; for Codex, `DEFAULT_AGENTS_MD_FILENAME`
@@ -920,7 +924,8 @@ and `LOCAL_AGENTS_MD_FILENAME` in `codex-rs/core/src/agents_md.rs` in openai/cod
 `docs/using.md` name `AGENTS.override.md` in the inert-allowlist exclusion, and that
 `reviewer.md`'s blocking-finding rule names it and `project_doc_fallback_filenames` too, and
 that the rule says "adds, edits or deletes" and names renames, with the two documents that
-restate it saying the same. No benchmark case seeds this
+restate it, the role card in `docs/chatgpt-agents.md` included, saying the same, and that
+no file sends `.claude/` paths to the owner-must-run flow. No benchmark case seeds this
 defect, because the benchmark always briefs `reviewer` as the repository owner and so
 cannot exercise a contributor rule; the contract tests carry it instead.
 

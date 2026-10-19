@@ -317,7 +317,7 @@ instructions and is a blocking finding on a contributor change that adds, edits 
 `CHANGELOG.md`, as regular files whose whole NUL-delimited names match
 `^\.?[A-Za-z0-9_][A-Za-z0-9._-]*(/\.?[A-Za-z0-9_][A-Za-z0-9._-]*)*$`, the change fails that check if `git diff --no-renames -z --name-only '<base>'...refs/review/<n> | grep -zvxE '<pattern>'` selects any record (exit 0 means an unsafe name), or if Python `re.fullmatch` fails on any decoded record; a
 changed name outside that, such as `docs/$(cmd).md`, makes the change non-inert and is a
-blocking finding asking for a rename; dot-prefixed paths such as `.github/` and `.claude/` are canonical but non-inert, since they are outside the inert allowlist, so they go to the owner-must-run flow, not a rename), because the gates execute the change's own code.
+blocking finding asking for a rename; dot-prefixed paths are canonical, so never a rename: a `.claude/` path is a blocking finding as instruction configuration, and any other, such as `.github/`, is non-inert and goes to the owner-must-run flow), because the gates execute the change's own code.
 Otherwise it runs no gates and cites no CI, because a contributor's pull request runs the
 contributor's own workflow files, `Makefile` and `pyproject.toml`, and a check run's PR
 association is computed when it is read. It returns `FIX` pending the owner, listing

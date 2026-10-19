@@ -20,7 +20,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 - Make deleting an instruction file, or renaming one away, a blocking finding on a
   contributor change in the review contract, the same as adding or editing one. The
   rule said only "adds or edits", so a deletion of `CLAUDE.md` or of a `.claude/` path
-  was left to the owner-must-run flow, whose checklist the owner can clear.
+  was left to the owner-must-run flow, whose checklist the owner can clear. The reviewer
+  role card in `docs/chatgpt-agents.md` now states the same rule beside its own inert-paths
+  list, and the sentence in `reviewer.md`, `docs/chatgpt-agents.md` and `docs/using.md`
+  that sent dot-prefixed `.claude/` paths to the owner-must-run flow now makes them a
+  blocking finding, leaving only paths such as `.github/` to that flow.
 
 ## [0.1.11] - 2026-10-18
 

@@ -127,8 +127,8 @@ match. Never convert NULs to newlines first (no space, quote,
 `$`, backtick, `;`, `|`, `&`, glob character or newline, and no leading dash). A changed
 path outside that pattern makes the change non-inert, is never placed in a command or
 read by name, and is a blocking finding asking the contributor to rename it. Dot-prefixed
-paths such as `.github/` and `.claude/` are canonical but non-inert, since they are outside
-the inert allowlist, so they go to the owner-must-run flow, not a rename finding. Put a
+paths are canonical, so never a rename finding: a `.claude/` path is a blocking finding as
+instruction configuration, and any other, such as `.github/`, is non-inert and goes to the owner-must-run flow. Put a
 canonical path in single quotes in `git show`, because double quotes still expand `$(...)`
 and backticks.
 
