@@ -14,6 +14,14 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   time. An edge is an inline code span naming a subagent in a `SKILL.md` body, outside
   fenced code, so the graph is derived from the files and cannot drift from them.
 
+### Changed
+
+- Split the portable router into a per-plugin index once the combined `router.md` would
+  exceed its size budget. `router.md` then lists one `router-<plugin>.md` per plugin,
+  each keeping every skill's full trigger and each checked against the same budget; the
+  budget and the per-entry trigger cap are unchanged. The combined router sat 16 bytes
+  under the budget, so any new skill would have overflowed it.
+
 ## [0.1.12] - 2026-10-19
 
 ### Security
