@@ -251,8 +251,8 @@ the trusted config, so none runs.
 A contributor change that adds, edits or deletes an instruction file (`CLAUDE.md`,
 `CLAUDE.local.md`, `AGENTS.md`, `AGENTS.override.md` or any name Codex's
 `project_doc_fallback_filenames` lists, at any depth) or anything under a `.claude/` segment is a
-blocking finding, whatever else it does, including a rename whose source is such a path, since
-`--no-renames` shows it as a deletion: a tool that opens that directory loads it as
+blocking finding, whatever else it does, and a rename whose source is such a path counts as a
+deletion, since `--no-renames` shows it as one: a tool that opens that directory loads it as
 instructions, so it is configuration, never prose, and removing it changes what a session is
 told as surely as adding it. Only the owner changes those, as their own change.
 
