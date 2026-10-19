@@ -104,6 +104,11 @@ Where a general browser or computer tool is necessary, isolate its account and p
 restrict reachable origins, and place side-effect boundaries behind trusted UI or API
 checks that the page itself cannot dismiss.
 
+Read [the injection architecture](references/injection-architecture.md) when one session
+holds private data, untrusted content and an outbound path, or when a review needs more
+than a tool-side check: breaking a leg by design, quarantined reading, egress and
+rendering, and testing on action traces.
+
 ### 5. Bind approval to immutable execution
 
 Generate the confirmation preview from canonical tool arguments after defaults,
