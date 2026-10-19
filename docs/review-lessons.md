@@ -471,6 +471,13 @@ same change. Restored to 100 by writing each router line as `- skills/<name>.md:
 than a Markdown link that repeated the name, and `tests/test_catalogue.py` now pins the
 cap as a literal and checks the real router fits its budget at that cap.
 
+**Third recurrence, fixed by splitting:** the combined router reached the 16 KiB budget
+again with the catalogue still growing. `scripts/export_portable.py` now measures the
+combined router and, when it would not fit, writes `router.md` as a one-line-per-plugin
+index of the `router-<plugin>.md` files, which keep every skill's full trigger at the
+100-character cap. The budget and cap are unchanged, and `tests/test_catalogue.py` covers
+the split both ways and a synthetic catalogue about 3 KB past the budget.
+
 ### A count in prose goes stale
 
 **Class.** A specific number written into documentation prose drifts the moment the thing

@@ -245,16 +245,29 @@ Mistral Vibe have no documented cap in the sources checked, which is a narrower 
 "no cap": it says nobody has written one down, not that none exists.
 
 That budget is why the router, not a bundle or `index.md`, is what belongs in
-`AGENTS.md`. `make portable` writes `dist/portable/router.md` — one line per skill, drawn
-from its own description, naming when it applies and the path to open then — plus a
-narrower `dist/portable/router-<plugin>.md` per plugin. Paste the one you want into
-`AGENTS.md`, and copy `dist/portable/skills/` to a `skills/` directory next to that
-`AGENTS.md`: the router's own paths are `skills/<name>.md`, relative to wherever
-`AGENTS.md` itself sits, not to `dist/portable/`.
+`AGENTS.md`. `make portable` writes `dist/portable/router-<plugin>.md` for each plugin —
+one line per skill, drawn from its own description, naming when it applies and the path
+to open then — and `dist/portable/router.md`, which is those lines for every plugin while
+they fit the 16 KiB router budget. Once the catalogue outgrows it, `router.md` becomes an
+index instead: one line per plugin, naming its `router-<plugin>.md` and what the plugin
+covers. The skill lines are not shortened and the budget does not move; they simply live
+only in the per-plugin routers, so the index tells the agent which one to open and the
+router tells it which skill.
+
+Paste the router you want into `AGENTS.md`, and copy `dist/portable/skills/` to a
+`skills/` directory next to that `AGENTS.md`: the router's own paths are
+`skills/<name>.md`, relative to wherever `AGENTS.md` itself sits, not to `dist/portable/`.
+If you paste the index, copy the `router-*.md` files next to `AGENTS.md` too, because its
+lines name them the same way. If you only work in one area, paste that plugin's router
+and skip the index.
 
 ```bash
 cat dist/portable/router-coding.md >> path/to/your/repo/AGENTS.md
 mkdir -p path/to/your/repo/skills && cp -r dist/portable/skills/. path/to/your/repo/skills/
+
+# or the index, with the routers it names
+cat dist/portable/router.md >> path/to/your/repo/AGENTS.md
+cp dist/portable/router-*.md path/to/your/repo/
 ```
 
 The agent reads each line on every turn and opens the file it names only once the
