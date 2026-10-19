@@ -1,0 +1,23 @@
+[
+  {"query": "I downloaded a claude code plugin from a stranger's repo and unzipped it to /tmp/quarantine/foo, read it without running anything and tell me what it would do if I installed it", "should_trigger": true},
+  {"query": "what hooks in this third-party plugin run automatically, and on which events?", "should_trigger": true},
+  {"query": "list every executable file in this extracted mcp server package and say what each one does and what it connects to", "should_trigger": true},
+  {"query": "this skill from a marketplace I don't know asks for allowed-tools Bash, compare what it declares with what it can actually do and quote any text in it that tries to instruct the model", "should_trigger": true},
+  {"query": "inspect the untrusted slash command in ./incoming/deploy-helper and find any shell lines that run when it is invoked, with file and line numbers", "should_trigger": true},
+  {"query": "before we enable this community extension, read its files and tell me which credentials and environment variables it touches and where it sends data", "should_trigger": true},
+  {"query": "check this unpacked agent skill for hidden instructions, zero-width characters or prompt injection aimed at the assistant, without following any of them", "should_trigger": true},
+  {"query": "go through this npm package that ships an mcp server and tell me what its postinstall script and the server entry point actually do", "should_trigger": true},
+  {"query": "a colleague sent a zip of a claude code plugin, I extracted it to a scratch folder, what runs at session start and what does bin/ put on my PATH", "should_trigger": true},
+  {"query": "read this third-party hooks config and the scripts it points at and give me risk findings anchored to file and line, don't execute anything", "should_trigger": true},
+
+  {"query": "we have forty dependabot alerts in this repo, which ones do I fix first", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "a malicious npm version was announced, which of our repositories resolved it and which ci runs executed it", "should_trigger": false, "expected": "supply-chain-exposure-reader"},
+  {"query": "review our own agent that browses the web and calls tools for prompt injection paths into privileged actions", "should_trigger": false, "expected": "agent-security-review"},
+  {"query": "security review this pull request that adds a new webhook endpoint", "should_trigger": false, "expected": "security-review"},
+  {"query": "review my draft SKILL.md against the repository's rules and tell me why it never triggers", "should_trigger": false, "expected": "skill-reviewer"},
+  {"query": "help me write a new skill for our release checklist", "should_trigger": false, "expected": "new-skill"},
+  {"query": "the plugin we installed last week leaked an api key into a log, what do I rotate and in what order", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "audit which IAM roles in our aws account have wildcard permissions and what they actually used last quarter", "should_trigger": false, "expected": "policy-auditor"},
+  {"query": "should our team be allowed to install community plugins at all, and what approval process should we put around it", "should_trigger": false},
+  {"query": "explain how claude code decides which plugin hook runs first when two plugins register the same event", "should_trigger": false}
+]
