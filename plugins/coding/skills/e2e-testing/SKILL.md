@@ -303,3 +303,4 @@ to still fail when the behaviour is broken.]
 - `references/selector-strategy.md` — read when an element has no accessible name, when the app is localised, or when applying the locator ladder in Cypress, Testing Library or Selenium.
 - `references/playwright-config.md` — read when setting up or repairing the configuration: timeouts, artifact capture, the authentication setup project, parallelism, sharding and the CI job shape, verified against upstream v1.64.1.
 - `references/quarantine.md` — read when deciding whether to quarantine, delete or fix: the ledger format, how to run quarantined tests without blocking, and how to derive the deadline and the expiry review.
+- `references/visual-snapshots.md` — read when a screenshot assertion is flaky or being added: pinning the baseline environment, fonts, animations and masks, `threshold` against `maxDiffPixels`, baseline naming, how to update and review a baseline, and pixelmatch or odiff outside Playwright.
