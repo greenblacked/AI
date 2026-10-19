@@ -14,7 +14,7 @@ The hard part is that the reader of your interface is a language model, and it r
 
 Use for: designing the tool surface of a new MCP server, wrapping an existing API or database as tools, choosing stdio or Streamable HTTP, securing a remote server, and writing the tests that keep the tool list from drifting.
 
-Do not use for: shaping the underlying HTTP API (`api-design`), reviewing which actions an agent's tools should be allowed to take and under what approval (`agent-security-review`), designing the login and token machinery itself (`auth-design`), or rotating a credential that has leaked (`secret-rotation`). Deciding whether to install someone else's MCP server is a different job from building one; the `agent-extension-audit` skill in the security plugin covers it, so do not stretch this skill to cover that decision.
+Do not use for: shaping the underlying HTTP API (`api-design`), reviewing which actions an agent's tools should be allowed to take and under what approval (`agent-security-review`), designing the login and token machinery itself (`auth-design`), or rotating a credential that has leaked (`secret-rotation`). Deciding whether to install someone else's MCP server is a different job from building one, so do not stretch this skill to cover that decision.
 
 ## Which spec revision
 

@@ -14,8 +14,8 @@
   {"query": "our openai bill tripled this month and I need to find which prompt path is spending it", "should_trigger": false, "expected": "llm-cost"},
   {"query": "cache user profile reads in redis with per-tenant keys and a safe invalidation rule", "should_trigger": false, "expected": "application-caching"},
   {"query": "model the tables for documents, versions and tenant ownership before we write any migration", "should_trigger": false, "expected": "schema-design"},
-  {"query": "make the model reply with JSON that always validates against our schema and handle the cases where it does not", "should_trigger": false},
-  {"query": "our provider is retiring the model behind the summariser feature; how do we move to its replacement without a silent regression", "should_trigger": false},
+  {"query": "make the model reply with JSON that always validates against our schema and handle the cases where it does not", "should_trigger": false, "expected": "structured-output"},
+  {"query": "our provider is retiring the model behind the summariser feature; how do we move to its replacement without a silent regression", "should_trigger": false, "expected": "model-migration"},
   {"query": "decide which roles may read which customer records and enforce it across the application", "should_trigger": false, "expected": "authorization-design"},
   {"query": "tune this slow sql query that joins the documents and permissions tables using its execution plan", "should_trigger": false, "expected": "sql-performance"},
   {"query": "review our coding agent for prompt injection and unsafe tool permissions before it ships", "should_trigger": false, "expected": "agent-security-review"}

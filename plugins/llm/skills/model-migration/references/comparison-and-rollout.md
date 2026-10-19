@@ -109,8 +109,9 @@ Compare cost per request on the replay set, from the usage the provider returned
 the ratio of two list prices. Three things move it independently of price:
 
 - **Tokens for the same text.** A different tokenizer changes the count; the Sonnet 5.5
-  guide reports about 30% more tokens against earlier Sonnet models. Recount on the target
-  model.
+  migration guide reports that it shares Claude Sonnet 5's tokenizer and that the same text
+  produces about 30% more tokens than on Claude Sonnet 4.6, Claude Sonnet 4.5 and Claude
+  Haiku 4.5. Recount on the target model.
 - **Output tokens you did not write.** Thinking is billed as output tokens, and a changed
   default or effort level changes how many.
 - **Cache behaviour.** Per request, cost is uncached input, plus cache writes, plus cache

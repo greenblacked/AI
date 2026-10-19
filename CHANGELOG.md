@@ -8,6 +8,38 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- Add the `llm` plugin for building features on language models, with five skills:
+  `rag-design` (a retrieval pipeline shown to retrieve the right passages, with a small
+  labelled eval before tuning, permission filtering and refusal on weak retrieval),
+  `structured-output` (the schema as contract, the provider's native or strict mode,
+  validation in code and a bounded repair loop that fails closed), `mcp-server-design`
+  (task-shaped tools, `isError` results, transport and authorisation choices, and a
+  `tools/list` snapshot test), `document-extraction` (values read from scans and photos
+  with source region, confidence and independent cross-checks) and `model-migration`
+  (a retirement or upgrade carried out against a frozen baseline, a canary and a decision
+  record). Its listing ceiling in `listing-budget.json` is new, set at 5,000 characters
+  for these five skills, so the plugin fits the runtime's default listing budget; the
+  catalogue site gives it a page, its own look and an introduction.
+
+### Changed
+
+- Split the portable router once it outgrows its 16 KiB budget: `router.md` becomes an
+  index of one line per plugin, each naming a `router-<plugin>.md` that keeps every
+  skill's full trigger line and is checked against the same budget. Nothing was
+  shortened and the budget did not move.
+- Route model moves to `model-migration`. `agent-evaluation` now cedes planning a move to
+  another model to it, and two queries about swapping a model or an alias that
+  `agent-evaluation`'s trigger set listed as positives are now negatives owned by
+  `model-migration`. Two distant negatives (profiling and codebase-orientation) were
+  dropped, which takes the set from twelve positives and ten negatives to ten a side, so
+  earlier trigger scores for `agent-evaluation` are not comparable and need a rerun on the
+  revised set. This is a routing correction, not a change to make a check pass. The `llm` skills also name each other as owners in their
+  descriptions and trigger sets, and `ai-enablement`'s RAG negative now names `rag-design`.
+- Raise the skills badge, the plugin counts and the recommended
+  `skillListingBudgetFraction` (0.123 to 0.127) for the new skills.
+
 ## [0.1.12] - 2026-10-19
 
 ### Security

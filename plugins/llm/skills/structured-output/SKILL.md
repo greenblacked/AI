@@ -70,7 +70,7 @@ Do the checks in this order, because each makes the next one meaningful:
 4. Run the semantic checks the schema cannot express: a value that must appear in the source text, a total that must equal the sum of its lines, an end date that must follow a start date, an enum compared after normalising case.
 5. Only then hand the value to the program.
 
-Read `references/validate-and-repair.md` for a tested implementation of this order and the repair loop.
+Read `references/validate-and-repair.md` for a reference implementation of this order and the repair loop.
 
 ### 5. Repair in a bounded loop, then fail closed
 

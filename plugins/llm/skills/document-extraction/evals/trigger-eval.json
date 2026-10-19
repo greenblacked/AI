@@ -18,5 +18,5 @@
   {"query": "audit our scanned-document viewer against WCAG 2.2 AA", "should_trigger": false, "expected": "accessibility-audit"},
   {"query": "write a README for our invoice-processing service so a new engineer can run it", "should_trigger": false, "expected": "technical-docs"},
   {"query": "read my tenancy agreement and tell me the notice period and early exit charges", "should_trigger": false, "expected": "terms-reader"},
-  {"query": "make the model return JSON that always matches my schema and retry when it is malformed", "should_trigger": false}
+  {"query": "make the model return JSON that always matches my schema and retry when it is malformed", "should_trigger": false, "expected": "structured-output"}
 ]

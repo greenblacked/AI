@@ -76,12 +76,13 @@ blocks: "No request fails, but an interface that shows those notes goes quiet."
    changing `effort` or the thinking configuration invalidates cached message blocks.
    Check `cache_creation_input_tokens` and `cache_read_input_tokens` in the response
    usage on the target before you assume the hit rate carries over.
-7. **Tokenizer and limits.** The guide reports that the same text produces about 30% more
-   tokens on Claude Sonnet 5.5 than on Claude Sonnet 4.6 and earlier, depending on the
-   content, and that images cost more tokens at the higher resolution tier. Recount with the
-   provider's token-counting endpoint against the target model, then revisit `max_tokens`,
-   context budgets, truncation rules and the cost estimate. Read the target's context and
-   output limits from its model page.
+7. **Tokenizer and limits.** The guide reports that Claude Sonnet 5.5 uses Claude Sonnet 5's
+   tokenizer and that the same text produces about 30% more tokens than on Claude Sonnet 4.6,
+   Claude Sonnet 4.5 and Claude Haiku 4.5, depending on the content, and that images cost
+   more tokens at the higher resolution tier. Recount with the provider's token-counting
+   endpoint against the target model, then revisit `max_tokens`, context budgets,
+   truncation rules and the cost estimate. Read the target's context and output limits
+   from its model page.
 8. **Refusal and safety behaviour.** Claude Sonnet 5.5 declines in more categories than
    Claude Sonnet 5, and the guide says "Benign work can also trigger this category" for one of them. Measure the refusal
    rate on your eval set; a rise is a regression even when the remaining answers are

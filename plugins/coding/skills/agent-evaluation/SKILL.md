@@ -1,6 +1,6 @@
 ---
 name: agent-evaluation
-description: "Evaluate whether an AI agent completes real tasks correctly and safely: turn production failures and representative work into versioned datasets with a sealed holdout, run each case in an isolated reproducible environment, score final state and tool effects with deterministic graders before using rubric-bound model judges, inspect traces to localise failures without rewarding one prescribed path, and set regression and release gates from repeated paired runs. Use for agent benchmarks, tool-call evaluation, trace grading, judge calibration, or deciding whether a prompt, model, tool, scaffold or orchestration change is safe to ship. Do not use for choosing ordinary software test cases (test-design), debugging a product defect (debugging), testing browser journeys (e2e-testing), measuring skill routing (new-skill), or reducing inference spend (llm-cost)."
+description: "Evaluate whether an AI agent completes real tasks correctly and safely: turn production failures and representative work into versioned datasets with a sealed holdout, run each case in an isolated reproducible environment, score final state and tool effects with deterministic graders before using rubric-bound model judges, inspect traces to localise failures without rewarding one prescribed path, and set regression and release gates from repeated paired runs. Use for agent benchmarks, tool-call evaluation, trace grading, judge calibration, or deciding whether a prompt, model, tool, scaffold or orchestration change is safe to ship. Do not use for ordinary test cases (test-design), debugging a product defect (debugging), browser journeys (e2e-testing), skill routing (new-skill), inference spend (llm-cost) or planning a move to another model (model-migration)."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Bash(jq:*)
 ---
 
@@ -14,7 +14,7 @@ Agents make this harder than single responses because they choose tools, alter s
 
 Use for: evaluating a coding or tool-using agent on whole tasks; building representative and held-out task sets; checking tool side effects; grading traces; calibrating model judges; comparing a candidate prompt, model, tool or orchestrator with a baseline; and defining regression or release gates.
 
-Do not use for: selecting cases for ordinary deterministic code, which is `test-design`; finding the root cause of a product bug, which is `debugging`; browser-suite reliability, which is `e2e-testing`; trigger routing for a repository skill, which is `new-skill`; model spend and token budgets, which are `llm-cost`.
+Do not use for: selecting cases for ordinary deterministic code, which is `test-design`; finding the root cause of a product bug, which is `debugging`; browser-suite reliability, which is `e2e-testing`; trigger routing for a repository skill, which is `new-skill`; model spend and token budgets, which are `llm-cost`; planning a feature's move to a different or newer model, which is `model-migration` (this skill supplies the eval set and the gate it uses).
 
 ## Workflow
 
