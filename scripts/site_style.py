@@ -1324,7 +1324,7 @@ MOTION_CSS = """
 # the plugin's name in large capitals, one span per letter coloured from a palette that
 # cycles, and a slim accent bar on each skill row in the same cycle. What differs is the
 # palette and one entrance, chosen to fit what the plugin is for. All of it lives in this
-# one table; the CSS is generated from it so nine plugins do not mean nine copies of the
+# one table; the CSS is generated from it so ten plugins do not mean ten copies of the
 # sizing, colour-cycling and accent-bar rules.
 #
 # Colours are held to 4.5:1 against the page: day values against --bg in day (#f4f1ea),
@@ -1536,6 +1536,21 @@ html:not([data-theme="reactor"]) %P .plugin-word {
 @keyframes pw-design-swatch {
   from { opacity: 0; transform: scale(0); }
   to { opacity: 1; transform: none; }
+}""",
+    ),
+    # A token being sampled: each letter flickers up out of a blur and settles sharp.
+    "llm": PluginLook(
+        day=("#0369a1", "#7e22ce", "#047857"),
+        night=("#38bdf8", "#c084fc", "#34d399"),
+        width=0.68,
+        rules="%P .pl { animation: pw-llm-sample 0.7s ease-out calc(var(--i) * 0.2s) backwards; }",
+        keyframes="""\
+@keyframes pw-llm-sample {
+  0% { opacity: 0; filter: blur(0.3em); }
+  30% { opacity: 0.7; filter: blur(0.18em); }
+  45% { opacity: 0.25; filter: blur(0.12em); }
+  70% { opacity: 0.9; filter: blur(0.05em); }
+  100% { opacity: 1; filter: none; }
 }""",
     ),
 }
