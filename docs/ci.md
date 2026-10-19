@@ -601,7 +601,7 @@ itself whether the event is one it measures:
 | --- | --- | --- |
 | `evaluate` | `score descriptions` | The whole catalogue, on the schedule or on request; skipped on a pull request. A skill scored below the `threshold` input, or a dispatched run has no credential. Nothing depends on this job and no branch rule requires it. Two-hour timeout, because it makes one model call per query per sample. |
 | `evaluate-changed` | `score changed skills` | Only on a pull request; skipped otherwise. A skill or agent the pull request changed, or one of its declared neighbours, scored below **0.7**. Forty-five-minute timeout. |
-| `reviewer-benchmark` | `benchmark the reviewer` | A seeded defect in `.claude/agents/benchmarks/reviewer/` that `reviewer` does not catch, or a clean case it fails with a false alarm, below its thresholds. Runs on the schedule or on request, and on a pull request only when the cases, `reviewer.md` or the harness changed. Two-hour timeout. |
+| `reviewer-benchmark` | `benchmark the reviewer` | A seeded defect in `.claude/agents/benchmarks/reviewer/` that `reviewer` does not catch, or a clean case it fails with a false alarm, below its thresholds. Runs on the schedule or on request, and on a pull request only when the cases, `reviewer.md`, the harness, the installer or the locked Claude client under `.github/eval-clients/claude/` changed. Two-hour timeout. |
 
 ### `evaluate-changed`, the pull request job
 

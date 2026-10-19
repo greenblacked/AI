@@ -90,7 +90,7 @@ For several roles, write one file per role in the setup project and select betwe
 
 ## Per-worker authentication
 
-A shared account breaks when the application has server-side session state: one worker's logout or session refresh invalidates another's, and the resulting failures look exactly like flake. Override the `storageState` fixture at worker scope so each worker authenticates once as its own account. `parallelIndex` runs from `0` to `workers - 1` inside each Playwright process, so sharded jobs or overlapping CI runs share those indices; include the shard and run identifiers (or acquire an exclusive account from a test-user service) and size or provision the accounts across all concurrent shards and runs rather than one process's worker count alone.
+A shared account breaks when the application has server-side session state: one worker's logout or session refresh invalidates another's, and the resulting failures look exactly like flake. Override the `storageState` fixture at worker scope so each worker authenticates once as its own account. `parallelIndex` runs from `0` to `workers - 1` inside each Playwright process, so sharded jobs share those indices; key the account on the shard as well, and provision one account for every shard and worker that runs at once. Fixed per-slot credentials like the ones below cannot tell two CI runs apart, so the run ID in the file name only keeps their local files apart. Either serialise the runs, for example with a workflow `concurrency:` group, or have each worker lease its own exclusive account for the run from a test-user service, in place of the `E2E_USER_` lookup, so no two workers in any run share one.
 
 ```ts
 // e2e/fixtures.ts
@@ -101,6 +101,8 @@ export const test = base.extend<{}, { workerStorageState: string }>({
     const shard = workerInfo.config.shard?.current ?? 1;
     const run = process.env.GITHUB_RUN_ID ?? 'local';
     const slot = `${shard}_${workerInfo.parallelIndex}`;
+    // The run ID separates the files only; the account below is shared by any run
+    // that overlaps this one.
     const fileName = `playwright/.auth/user-${run}-${slot}.json`;
     // A page from `browser` gets none of the project's `use` options, so pass the
     // base URL in, and start from no stored session.
