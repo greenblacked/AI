@@ -96,6 +96,28 @@ def test_unclosed_and_empty_spans_are_not_names():
     assert graph._code_spans("`a`\n`b`") == {"a", "b"}
 
 
+def test_a_longer_fence_is_closed_only_by_an_equal_or_longer_run():
+    body = "````\n```\n`scribe` inside\n```\nstill inside `scribe`\n````\nAfter."
+    assert "scribe" not in graph._prose(body)
+    assert graph._prose(body).strip() == "After."
+    # A different character, or text after the run, does not close the fence.
+    assert graph._prose("```\n~~~\n```x\n`a`\n```\n`b`") == "`b`"
+    # A quoted or indented fence is still a fence.
+    assert graph._prose("> ```\n> `a`\n> ```\n`b`") == "`b`"
+    assert graph._prose("  - ```\n    `a`\n    ```\n`b`") == "`b`"
+    # A quoted, bulleted or deeply indented marker inside an unquoted fence is content,
+    # not a closer: closing on it would read the rest of the sample as prose.
+    for marker in ("> ```", "- ```", "    ```", "1. ```"):
+        body = f"```markdown\n{marker}\n`maker` sample\n```\nAfter."
+        assert graph._prose(body) == "After.", marker
+    assert graph._prose("`````\n    ````\n`a`\n`````\n`b`") == "`b`"
+    # Leaving the quote or the list item ends the fence it held.
+    assert graph._prose("> ```\n> `a`\n`b`") == "`b`"
+    assert graph._prose("- ```\n  `a`\n`b`") == "`b`"
+    # A line of three backticks with a span after it is a code span, not a fence.
+    assert graph._prose("```code```\n`b`") == "```code```\n`b`"
+
+
 def test_a_plugin_without_edges_renders_nothing():
     edges = _edges()
     assert graph.render("empty", edges, site._skill_href) == ""

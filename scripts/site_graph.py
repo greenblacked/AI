@@ -13,7 +13,7 @@ An edge exists only where a source file states it. The rule, and nothing looser:
   nothing else inside the backticks.
 
 The code-span requirement is what keeps prose out. ``maker`` is a subagent and also an
-English word that three unrelated skills use, so matching bare words would draw edges
+English word that several unrelated skills use, so matching bare words would draw edges
 nobody wrote. A subagent description that names a skill is not a source either: those
 sentences say what the agent is *not* for ("Not for ... which is profiling"), which is a
 boundary rather than a hand-off, so reading them as edges would draw the opposite of
@@ -24,6 +24,7 @@ no edge; the omission is visible in the list and fixable in the skill.
 from __future__ import annotations
 
 import html
+import re
 from collections.abc import Callable, Iterable
 from typing import NamedTuple, Protocol
 
@@ -53,21 +54,111 @@ class Edge(NamedTuple):
     agent: str
 
 
+class _Line(NamedTuple):
+    """One source line, split into the container it sits in and what follows it."""
+
+    depth: int  # how many ``>`` quote markers lead the line
+    indent: int  # spaces before the first list marker or content, after the quotes
+    col: int  # the column the content starts at once list markers are skipped
+    listed: bool  # whether a list marker precedes the content
+    blank: bool
+    run: str  # a leading run of three or more backticks or tildes, else empty
+    rest: str  # what follows that run, stripped
+
+
+_QUOTE = re.compile(r" {0,3}> ?")
+_MARKER = re.compile(r"(?:[-*+]|\d{1,9}[.)])(?: +|$)")
+
+
+def _scan(line: str) -> _Line:
+    """Split ``line`` into quote depth, list indentation and a fence run, if it opens one."""
+    line = line.expandtabs(4)
+    depth = pos = 0
+    while match := _QUOTE.match(line, pos):
+        depth += 1
+        pos = match.end()
+    text = line[pos:]
+    body = text.lstrip(" ")
+    indent = col = len(text) - len(body)
+    listed = False
+    while match := _MARKER.match(body):
+        token = match.group()
+        spaces = len(token) - len(token.rstrip(" "))
+        # Five or more spaces after a marker make the content an indented code block,
+        # so the content column is one past the marker, not past the padding.
+        col += len(token) - spaces + (spaces if 0 < spaces < 5 else 1)
+        body = body[match.end() :]
+        listed = True
+    run = ""
+    if body[:1] in ("`", "~"):
+        found = body[: len(body) - len(body.lstrip(body[0]))]
+        run = found if len(found) >= 3 else ""
+    return _Line(depth, indent, col, listed, not text.strip(), run, body[len(run) :].strip())
+
+
+class _Fence(NamedTuple):
+    """The opener of the fence being skipped, and the container it sits in."""
+
+    run: str
+    depth: int
+    col: int
+    listed: bool
+
+
+def _opens(scan: _Line) -> _Fence | None:
+    # A backtick fence's info string cannot hold a backtick; ``a`` alone on a line is a
+    # code span, and skipping it as a fence would swallow the prose after it.
+    if not scan.run or (scan.run[0] == "`" and "`" in scan.rest):
+        return None
+    return _Fence(scan.run, scan.depth, scan.col if scan.listed else scan.indent, scan.listed)
+
+
+def _ends_container(fence: _Fence, scan: _Line) -> bool:
+    """Whether ``scan`` leaves the quote or list item the fence opened in."""
+    if scan.depth < fence.depth:
+        return True
+    return fence.listed and scan.depth == fence.depth and not scan.blank and scan.indent < fence.col
+
+
+def _closes(fence: _Fence, scan: _Line) -> bool:
+    """Whether ``scan`` closes the fence.
+
+    Only a run of the same character, at least as long as the opener's and with nothing
+    after it, closes a fence, and only from the opener's own container: the same quote
+    depth, no list marker, and at most three spaces in from the container's content. A
+    quoted or bulleted marker, or one indented four or more, inside an unquoted fence is
+    fenced content. Closing early on one would read the rest of the sample as prose and
+    draw an edge from it, the direction this rule must not err in.
+    """
+    if not (
+        scan.run
+        and scan.run[0] == fence.run[0]
+        and len(scan.run) >= len(fence.run)
+        and not scan.rest
+        and scan.depth == fence.depth
+        and not scan.listed
+    ):
+        return False
+    # An unlisted opener's own indent is the floor only for how far in a closer may sit.
+    floor = fence.col if fence.listed else 0
+    return floor <= scan.indent <= fence.col + 3
+
+
 def _prose(body: str) -> str:
     """The body with fenced code removed: a sample in a fence is not an instruction."""
     kept = []
-    fence = ""
+    fence: _Fence | None = None
     for line in body.splitlines():
-        stripped = line.lstrip()
-        marker = stripped[:3]
+        scan = _scan(line)
         if fence:
-            if stripped.startswith(fence):
-                fence = ""
-            continue
-        if marker in ("```", "~~~"):
-            fence = marker
-            continue
-        kept.append(line)
+            if not _ends_container(fence, scan):
+                if _closes(fence, scan):
+                    fence = None
+                continue
+            fence = None
+        fence = _opens(scan)
+        if not fence:
+            kept.append(line)
     return "\n".join(kept)
 
 

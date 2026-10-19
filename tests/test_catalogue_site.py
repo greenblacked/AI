@@ -183,6 +183,10 @@ SAFE_TAGS = {
     "article", "details", "summary", "dl", "dt", "dd", "fieldset", "legend", "form", "noscript",
 }  # fmt: skip
 
+# What the routing graph on a plugin page adds. Kept apart so a page built from a hostile
+# SKILL.md is still held to the narrower list: only a real plugin page draws a graph.
+GRAPH_TAGS = {"rect", "text", "desc", "marker", "defs"}
+
 
 BACK = '<a class="back" href="{}" data-back>' + site.BACK_ICON + "<span>Back</span></a>"
 
@@ -1154,7 +1158,7 @@ def test_the_real_repository_builds_every_page_and_renders_every_markdown_source
     assert (output / "plugins" / "family" / "family-workflow" / "index.html").is_file()
     for page in pages:
         text = page.read_text(encoding="utf-8")
-        assert _live_tags(text) <= SAFE_TAGS, page
+        assert _live_tags(text) <= SAFE_TAGS | GRAPH_TAGS, page
         assert "javascript:" not in text.lower(), page
         assert text.count(' id="home"') == 1, page
         ids = re.findall(r' id="([^"]+)"', text)
