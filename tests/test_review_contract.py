@@ -111,11 +111,55 @@ def test_the_blocking_rule_covers_deleting_or_renaming_away_an_instruction_file(
     assert "rename" in clause and "--no-renames" in clause and "deletion" in clause, clause
 
 
-@pytest.mark.parametrize("path", ["docs/chatgpt-agents.md", "docs/using.md"])
-def test_the_restated_blocking_rule_covers_deletion_and_renames(path):
+@pytest.mark.parametrize(
+    ("path", "occurrences"), [("docs/chatgpt-agents.md", 2), ("docs/using.md", 1)]
+)
+def test_the_restated_blocking_rule_covers_deletion_and_renames(path, occurrences):
+    # chatgpt-agents.md states the rule twice, in the long-form section and again in the
+    # standalone reviewer role card, which is pasted on its own; every restatement has to
+    # carry the deletion and rename clauses, not only the first one a split finds.
     text = flat(path)
-    clause = text.split("is a blocking finding on a contributor change", 1)[1][:140]
-    assert "adds, edits or deletes it" in clause and "rename" in clause, (path, clause)
+    marker = "is a blocking finding on a contributor change"
+    assert text.count(marker) == occurrences, (path, text.count(marker))
+    for part in text.split(marker)[1:]:
+        clause = part[:140]
+        assert "adds, edits or deletes it" in clause and "rename" in clause, (path, clause)
+
+
+def test_the_reviewer_role_card_states_the_blocking_rule_itself():
+    # The role card's own inert-paths list excludes instruction files; without the rule
+    # beside it, a card read alone falls back to the owner-must-run flow for them.
+    text = flat("docs/chatgpt-agents.md")
+    anchor = "and no gate runs): a *.md file under plugins/ or docs/"
+    assert anchor in text
+    clause = text.split(anchor, 1)[1][:450]
+    rule = "is a blocking finding on a contributor change that adds, edits or deletes it"
+    assert rule in clause and "a rename counts through its deleted source path" in clause, clause
+
+
+@pytest.mark.parametrize(
+    ("path", "occurrences"),
+    [
+        (".claude/agents/reviewer.md", 1),
+        ("docs/chatgpt-agents.md", 2),
+        ("docs/using.md", 1),
+    ],
+)
+def test_dot_prefixed_claude_paths_are_blocking_not_owner_must_run(path, occurrences):
+    # `.claude/` is canonical, so never a rename finding, but it is instruction
+    # configuration and blocks; only other dot-prefixed paths such as `.github/` are
+    # non-inert and go to the owner-must-run flow.
+    text = flat(path).replace("`", "")
+    assert "canonical but non-inert" not in text, path
+    parts = re.split(r"[Dd]ot-prefixed paths", text)[1:]
+    assert len(parts) == occurrences, (path, len(parts))
+    for part in parts:
+        clause = part[:260]
+        assert re.search(
+            r"\.claude/ path is a blocking finding as instruction configuration, and any"
+            r" other, such as \.github/, is non-inert and goes to the owner-must-run flow",
+            clause,
+        ), (path, clause)
 
 
 @pytest.mark.parametrize(

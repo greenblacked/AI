@@ -117,7 +117,7 @@ only from git show '<candidate ref>:<canonical-path>' (single quotes, since doub
 still expand $(...) and backticks). The inert paths are: a *.md file under plugins/ or docs/ other than an
 instruction file (CLAUDE.md, CLAUDE.local.md, AGENTS.md, AGENTS.override.md or any name Codex's
 project_doc_fallback_filenames lists) or a path with a .claude/
-segment, which loads as instructions and is a blocking finding on a contributor change that adds, edits
+segment, each of which loads as instructions and is a blocking finding on a contributor change that adds, edits
 or deletes it (a rename counts through its deleted source path), a trigger
 eval set (plugins/*/skills/*/evals/*.json or plugins/*/agents/evals/*.json), or
 README.md or CHANGELOG.md at the root, each a regular file (git mode 100644; a symlink
@@ -127,9 +127,9 @@ git diff --no-renames -z --name-only '<base>'...<candidate ref> | grep -zvxE wit
 any record, since exit 0 means at least one unsafe name; in Python, apply re.fullmatch to
 every decoded record and require all to match; never convert NULs to newlines first): any changed path outside that
 pattern (such as docs/$(cmd).md) makes the change non-inert, is never placed in a command and is a
-blocking finding asking the contributor to rename it. Dot-prefixed paths such as .github/ and
-.claude/ are canonical but non-inert, since they are outside the inert allowlist, so they go to
-the owner-must-run flow, not a rename finding. That worktree is safe only because inert-only
+blocking finding asking the contributor to rename it. Dot-prefixed paths are canonical, so never a rename finding: a
+.claude/ path is a blocking finding as instruction configuration, and any other, such as .github/, is non-inert and goes to
+the owner-must-run flow. That worktree is safe only because inert-only
 means every path outside the allowlist matches the merge-base: code, tests, workflows,
 configuration, dotfiles and any new root-level file. A change with any
 contributor-authored content stays a contributor change through every fix round, whoever
@@ -301,7 +301,9 @@ refs/review/<n> equals <base> (otherwise FIX asking the
 contributor to rebase onto the current base, for inert-only and non-inert changes alike,
 and no gate runs): a *.md file under plugins/ or docs/ other than an instruction file
 (CLAUDE.md, CLAUDE.local.md, AGENTS.md, AGENTS.override.md or any name Codex's
-project_doc_fallback_filenames lists) or a path with a .claude/ segment, a trigger eval set
+project_doc_fallback_filenames lists) or a path with a .claude/ segment, which loads as
+instructions and is a blocking finding on a contributor change that adds, edits or deletes it
+(a rename counts through its deleted source path), a trigger eval set
 (plugins/*/skills/*/evals/*.json or plugins/*/agents/evals/*.json), or README.md or
 CHANGELOG.md at the root, each a regular file (git mode 100644; a symlink or gitlink
 counts as any other path) whose whole NUL-delimited name matches
@@ -310,9 +312,9 @@ git diff --no-renames -z --name-only '<base>'...<candidate ref> | grep -zvxE wit
 any record, since exit 0 means at least one unsafe name; in Python, apply re.fullmatch to
 every decoded record and require all to match; never convert NULs to newlines first); a changed path outside that pattern (such as
 docs/$(cmd).md) makes the change non-inert, is never placed in a command or read by name
-and is a blocking finding asking for a rename (dot-prefixed paths such as .github/ and .claude/ are
-canonical but non-inert, since they are outside the inert allowlist, so they go to the
-owner-must-run flow, not a rename), and a canonical path is read in single
+and is a blocking finding asking for a rename (dot-prefixed paths are canonical, so never a rename: a .claude/ path is a blocking
+finding as instruction configuration, and any other, such as .github/, is non-inert and goes to the
+owner-must-run flow), and a canonical path is read in single
 quotes. For any other path, run no gates and cite no CI, because a contributor's pull request runs the contributor's own workflow files, Makefile
 and pyproject.toml, and a check run's PR association is computed when it is read. Return
 FIX pending the owner, listing under Not assessed as owner-must-run: (a) the gates (make
