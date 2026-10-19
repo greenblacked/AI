@@ -82,7 +82,7 @@ def test_the_inert_allowlist_excludes_instruction_files(path, anchor):
 def test_a_contributor_instruction_file_is_a_blocking_finding():
     text = flat(".claude/agents/reviewer.md")
     assert re.search(
-        r"adds, edits or deletes an instruction file .{0,190}is a blocking finding", text
+        r"adds, edits or deletes an instruction file .{0,230}is a blocking finding", text
     )
 
 
@@ -90,7 +90,7 @@ def test_the_blocking_rule_names_every_instruction_file():
     # The blocking rule has its own list, separate from the inert allowlist's, and a name
     # missing from it lets that file through as an ordinary change.
     text = flat(".claude/agents/reviewer.md")
-    clause = text.split("adds, edits or deletes an instruction file", 1)[1][:200]
+    clause = text.split("adds, edits or deletes an instruction file", 1)[1][:240]
     for name in (
         "CLAUDE.md",
         "CLAUDE.local.md",
@@ -107,7 +107,7 @@ def test_the_blocking_rule_covers_deleting_or_renaming_away_an_instruction_file(
     # adding one. `--no-renames` shows a rename as a deletion plus an addition, so a
     # rename whose source is an instruction path is a deletion of it.
     text = flat(".claude/agents/reviewer.md")
-    clause = text.split("adds, edits or deletes an instruction file", 1)[1][:340]
+    clause = text.split("adds, edits or deletes an instruction file", 1)[1][:380]
     assert "rename" in clause and "--no-renames" in clause and "deletion" in clause, clause
 
 
@@ -160,6 +160,120 @@ def test_dot_prefixed_claude_paths_are_blocking_not_owner_must_run(path, occurre
             r" other, such as \.github/, is non-inert and goes to the owner-must-run flow",
             clause,
         ), (path, clause)
+
+
+# The setting's name is not its values: `project_doc_fallback_filenames` is configured in the
+# reviewing user's own Codex configuration, outside this repository, so the trusted caller has
+# to state the resolved list (or `none`) and the reviewer stops rather than assume it empty.
+FALLBACK_SENTENCE = (
+    "The fallback names are the list the owner resolved from their trusted Codex"
+    " configuration and states in the"
+)
+
+
+@pytest.mark.parametrize(
+    ("path", "occurrences"),
+    [
+        (".claude/agents/reviewer.md", 2),
+        ("docs/chatgpt-agents.md", 2),
+        ("docs/using.md", 1),
+    ],
+)
+def test_each_statement_of_the_rule_requires_the_caller_supplied_fallback_list(path, occurrences):
+    # Five statements restate the instruction-file rule (the gates paragraph and the
+    # blocking rule in reviewer.md, the long form and the role card in chatgpt-agents.md,
+    # using.md); each has to carry the whole requirement, since the role card is pasted alone.
+    text = flat(path).replace("`", "")
+    assert text.count(FALLBACK_SENTENCE) == occurrences, (path, text.count(FALLBACK_SENTENCE))
+    for part in text.split(FALLBACK_SENTENCE)[1:]:
+        clause = part[:520]
+        assert re.match(r" (?:brief|packet), or none;", clause), (path, clause)
+        for needle in (
+            "whose basename matches one, at any depth, is an instruction file",
+            "a config file in the diff is never a source for the list",
+            "states no list is not an empty one",
+            "STOP, asking the caller for it before any Markdown path is classified as inert",
+        ):
+            assert needle in clause, (path, needle, clause)
+
+
+@pytest.mark.parametrize(
+    ("path", "anchor"),
+    [
+        (".claude/agents/reviewer.md", "file under plugins/ or docs/"),
+        (".claude/agents/reviewer.md", "adds, edits or deletes an instruction file"),
+        ("docs/chatgpt-agents.md", "The inert paths are: a *.md file under plugins/ or docs/"),
+        ("docs/chatgpt-agents.md", "and no gate runs): a *.md file under plugins/ or docs/"),
+        ("docs/using.md", "(Markdown under plugins/ or docs/"),
+    ],
+)
+def test_the_fallback_clause_in_each_list_names_the_caller_as_the_source(path, anchor):
+    # The inline clause sits in the instruction-file list itself, so a reader who stops at the
+    # list still sees that the names come from the caller and not from the setting's key.
+    text = flat(path).replace("`", "")
+    assert anchor in text, (path, anchor)
+    clause = text.split(anchor, 1)[1][:320]
+    assert re.search(
+        r"project_doc_fallback_filenames lists, as the caller's (?:brief|packet) states them",
+        clause,
+    ), (path, clause)
+
+
+@pytest.mark.parametrize(
+    ("path", "needle"),
+    [
+        (".claude/agents/reviewer.md", "- **Fallback names** — for a contributor change"),
+        (".claude/agents/reviewer.md", "Also require the caller's fallback names, stated as names"),
+        ("docs/chatgpt-agents.md", "- Fallback names, for a contributor change:"),
+        ("docs/chatgpt-agents.md", "Fallback names (contributor only):"),
+        ("docs/chatgpt-agents.md", "the candidate ref and the fallback names (or none) instead"),
+        ("docs/using.md", "the pinned `<base>`, the fallback names ("),
+        ("docs/using.md", "and the fallback names;"),
+        (".claude/commands/ship.md", "the pinned `<base>`, the fallback names ("),
+        (
+            ".claude/commands/ship.md",
+            "the pinned `<base>`, the fallback names and the candidate ref",
+        ),
+        (".claude/commands/verify.md", "the pinned `<base>`, the fallback names ("),
+        (
+            ".claude/commands/verify.md",
+            "the pinned `<base>`, the fallback names and the candidate ref",
+        ),
+    ],
+)
+def test_wherever_the_caller_lists_what_it_passes_the_fallback_names_are_listed(path, needle):
+    assert needle in flat(path), (path, needle)
+
+
+def test_the_reviewers_fallback_input_says_where_the_list_comes_from_and_stops_without_it():
+    text = flat(".claude/agents/reviewer.md")
+    bullet = text.split("**Fallback names**", 1)[1][:700]
+    for needle in (
+        "trusted Codex configuration",
+        "or the word `none`",
+        "neither the diff nor the contributor's branch can supply them",
+        "not an empty one",
+    ):
+        assert needle in bullet, (needle, bullet)
+    stop = text.split("Also require the caller's fallback names", 1)[1][:330]
+    assert "`Verdict: STOP`" in stop and "never assumed empty" in stop, stop
+    assert "never read from the candidate" in stop, stop
+
+
+@pytest.mark.parametrize("path", CONTRACT_FILES)
+def test_no_statement_assumes_an_unstated_list_is_empty_or_reads_it_from_the_branch(path):
+    # Negative check: the failure this guards is a reviewer that defaults to "no fallback
+    # names" or takes them from the contributor's own config file in the diff.
+    text = flat(path).replace("`", "")
+    assert not re.search(
+        r"(?<!never )(?<!not )\b(?:defaults? to|assumed?|treated as|read as) (?:to be )?"
+        r"(?:an? )?(?:none|empty)\b",
+        text,
+    ), path
+    assert not re.search(r"fallback names? (?:from|in) the (?:diff|candidate|contributor)", text), (
+        path
+    )
+    assert not re.search(r"(?:from|in) the contributor's (?:config|\.codex)", text), path
 
 
 @pytest.mark.parametrize(

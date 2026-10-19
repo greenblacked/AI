@@ -917,6 +917,17 @@ such as `.claude/` to the owner-must-run flow survived in three files, so a stat
 on its own still let an instruction change through: every restatement carries the whole
 rule, and `.claude/` is blocking wherever dot-prefixed paths are discussed.
 
+The fallback clause then named the setting and not its values. Every statement said "or
+any name Codex's `project_doc_fallback_filenames` lists", but the values live in the
+reviewing user's own Codex configuration (`~/.codex/config.toml`), not in this repository,
+and neither the packet nor the procedure obtained them, so a reviewer holding only the
+key had nothing to match against: a contributor's `docs/TEAM_GUIDE.md`, where the
+reviewer's configuration lists `TEAM_GUIDE.md`, was still classified as inert prose. The
+setting's name alone is not its values; the trusted caller has to state the resolved list
+(or `none`) in the brief. A brief that omits it is not an empty list, so the reviewer
+stops and asks before classifying any Markdown path as inert, and nothing from the
+contributor's branch, a config file in the diff included, is ever a source for it.
+
 **The check that catches it.** Verify each tool's loader source for every filename it
 reads, not its documentation's headline name; for Codex, `DEFAULT_AGENTS_MD_FILENAME`
 and `LOCAL_AGENTS_MD_FILENAME` in `codex-rs/core/src/agents_md.rs` in openai/codex.
@@ -925,7 +936,12 @@ and `LOCAL_AGENTS_MD_FILENAME` in `codex-rs/core/src/agents_md.rs` in openai/cod
 `reviewer.md`'s blocking-finding rule names it and `project_doc_fallback_filenames` too, and
 that the rule says "adds, edits or deletes" and names renames, with the two documents that
 restate it, the role card in `docs/chatgpt-agents.md` included, saying the same, and that
-no file sends `.claude/` paths to the owner-must-run flow. No benchmark case seeds this
+no file sends `.claude/` paths to the owner-must-run flow. It also checks that each of the five
+statements of the rule (two in `reviewer.md`, two in `docs/chatgpt-agents.md`, one in
+`docs/using.md`) says the list is the one the caller resolved from their trusted Codex
+configuration, matches on basename at any depth, never takes it from the diff, and stops
+and asks when the brief states none, and that the packet, the copy-ready starter and the
+`/ship` and `/verify` commands name the list among what the owner passes. No benchmark case seeds this
 defect, because the benchmark always briefs `reviewer` as the repository owner and so
 cannot exercise a contributor rule; the contract tests carry it instead.
 
