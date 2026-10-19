@@ -250,7 +250,9 @@ make portable       # writes dist/portable/
 Either way: upload the `plugins/*.md` bundles to a ChatGPT Project or a Custom GPT, paste
 a single `skills/<name>.md` into any chat, or paste `router.md` — or one narrower
 `router-<plugin>.md` — into the `AGENTS.md` of the repository a terminal agent is working
-in, with `skills/` copied in beside it. [Using the skills](docs/using.md) has the
+in, with `skills/` copied in beside it. Once the catalogue outgrows the router's size
+budget, `router.md` is an index of the `router-<plugin>.md` files rather than the
+combined router, so paste the plugin files you want. [Using the skills](docs/using.md) has the
 instruction text that makes a Project reach for them, why a terminal agent gets the
 router rather than a bundle, and says plainly what does not survive the trip.
 
