@@ -1,0 +1,90 @@
+[
+  {
+    "query": "i have a csv of monthly signups by plan, can you plot it",
+    "should_trigger": true
+  },
+  {
+    "query": "should this be a bar chart or a line chart, it is revenue by quarter for three regions",
+    "should_trigger": true
+  },
+  {
+    "query": "my pie chart has eleven slices and nobody can read it, what should it be instead",
+    "should_trigger": true
+  },
+  {
+    "query": "the y axis starts at 80 on this bar chart and the gap looks huge, is that okay",
+    "should_trigger": true
+  },
+  {
+    "query": "make this matplotlib chart colour-blind safe and still readable on a dark background",
+    "should_trigger": true
+  },
+  {
+    "query": "i want two y axes, revenue on one and headcount on the other, how do i do that cleanly",
+    "should_trigger": true
+  },
+  {
+    "query": "write a vega-lite spec for a sorted bar chart of tickets by team with the values on the bars",
+    "should_trigger": true
+  },
+  {
+    "query": "add alt text and a data table to this chart so a screen reader user gets the same information",
+    "should_trigger": true
+  },
+  {
+    "query": "my plotly chart of latency by endpoint is unreadable, the legend covers the data and the colours blur",
+    "should_trigger": true
+  },
+  {
+    "query": "chart these survey results in excel, nine questions on a five point scale",
+    "should_trigger": true
+  },
+  {
+    "query": "add queue depth and retry counters to our workers so we can graph them",
+    "should_trigger": false,
+    "expected": "instrumentation"
+  },
+  {
+    "query": "write this week's status update for leadership, with the headline numbers",
+    "should_trigger": false,
+    "expected": "status-update"
+  },
+  {
+    "query": "audit the analytics page against WCAG 2.2 AA",
+    "should_trigger": false,
+    "expected": "accessibility-audit"
+  },
+  {
+    "query": "define colour tokens and a dark theme for our design system",
+    "should_trigger": false,
+    "expected": "design-system"
+  },
+  {
+    "query": "review the usability of our reporting screen, people cannot find the export button",
+    "should_trigger": false,
+    "expected": "ui-ux-review"
+  },
+  {
+    "query": "build me a sales dashboard web app with login and deploy it",
+    "should_trigger": false,
+    "expected": "website-builder"
+  },
+  {
+    "query": "the page feels flat and the type scale is off, what should be the primary button",
+    "should_trigger": false,
+    "expected": "visual-design"
+  },
+  {
+    "query": "i have a py-spy flame graph and cannot tell which function is slow",
+    "should_trigger": false,
+    "expected": "profiling"
+  },
+  {
+    "query": "run a t-test on this dataset and tell me whether the difference is significant",
+    "should_trigger": false
+  },
+  {
+    "query": "draw an architecture diagram of how our services call each other",
+    "should_trigger": false
+  }
+]
