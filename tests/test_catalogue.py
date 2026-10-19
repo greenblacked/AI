@@ -1012,9 +1012,177 @@ def test_the_router_trigger_cap_stays_at_one_hundred_characters():
 def test_the_real_router_fits_its_budget_at_the_full_trigger_cap(tmp_path):
     out = tmp_path / "portable"
     assert portable.export(REPO, out) == 0
+    # router.md is the combined router or, once that would not fit, the plugin index;
+    # either way it and every per-plugin router fit, and no trigger was cut to get there.
+    routers = sorted(out.glob("router*.md"))
+    assert len(routers) == 1 + len(portable.find_plugins(REPO))
+    for path in routers:
+        text = path.read_text(encoding="utf-8")
+        assert len(text.encode("utf-8")) <= portable.ROUTER_BUDGET_BYTES, path.name
+        assert "](skills/" not in text
+    for plugin in portable.find_plugins(REPO):
+        text = (out / f"router-{plugin.name}.md").read_text(encoding="utf-8")
+        for directory in portable.find_skills(plugin / "skills"):
+            description = portable.render_skill(directory)[1]
+            trigger = portable.first_sentence(description, portable.ROUTER_USE_WHEN_CAP)
+            assert f"skills/{directory.name}.md {trigger}\n" in text
+
+
+def add_plugin(root, plugin, description="test"):
+    manifest = root / "plugins" / plugin / ".claude-plugin"
+    manifest.mkdir(parents=True, exist_ok=True)
+    (manifest / "plugin.json").write_text(
+        json.dumps({"name": plugin, "description": description}), encoding="utf-8"
+    )
+
+
+def two_plugin_repo(mini_repo):
+    add_plugin(mini_repo, "design", "Skills for the look of a product: a, b, c.")
+    write_skill(mini_repo, "design", "gamma")
+    return mini_repo
+
+
+def router_sizes(out):
+    return {path.name: len(path.read_bytes()) for path in sorted(out.glob("router*.md"))}
+
+
+def test_router_stays_one_file_while_it_fits_the_budget(mini_repo, tmp_path, monkeypatch):
+    repo = two_plugin_repo(mini_repo)
+    out = tmp_path / "portable"
+    assert portable.export(repo, out) == 0
+    size = router_sizes(out)["router.md"]
+    # Exactly at the budget is still under it: the split starts one byte later.
+    monkeypatch.setattr(portable, "ROUTER_BUDGET_BYTES", size)
+    assert portable.export(repo, out) == 0
     text = (out / "router.md").read_text(encoding="utf-8")
-    assert len(text.encode("utf-8")) <= portable.ROUTER_BUDGET_BYTES
-    assert "](skills/" not in text
+    for name in ("alpha", "beta", "gamma"):
+        assert f"skills/{name}.md " in text
+    assert "router-design.md " not in text
+
+
+def test_router_splits_into_a_plugin_index_when_over_budget(mini_repo, tmp_path, monkeypatch):
+    repo = two_plugin_repo(mini_repo)
+    out = tmp_path / "portable"
+    assert portable.export(repo, out) == 0
+    combined = router_sizes(out)["router.md"]
+    # One byte under what the combined router measures, and above every per-plugin one.
+    assert max(size for name, size in router_sizes(out).items() if name != "router.md") < combined
+    monkeypatch.setattr(portable, "ROUTER_BUDGET_BYTES", combined - 1)
+    assert portable.export(repo, out) == 0
+
+    index = (out / "router.md").read_text(encoding="utf-8")
+    # No skill line: the index names routers, and the skill lines live only in those.
+    assert not re.search(r"^skills/", index, re.M)
+    assert re.findall(r"^(router-[\w-]+\.md) (.+)$", index, re.M) == [
+        ("router-design.md", "the look of a product"),
+        ("router-engineering.md", "test"),
+    ]
+    for name, size in router_sizes(out).items():
+        assert size <= combined - 1, name
+
+
+def test_every_per_plugin_router_keeps_its_triggers_after_a_split(mini_repo, tmp_path, monkeypatch):
+    repo = two_plugin_repo(mini_repo)
+    out = tmp_path / "portable"
+    assert portable.export(repo, out) == 0
+    unsplit = {
+        name: (out / name).read_text(encoding="utf-8")
+        for name in ("router-design.md", "router-engineering.md")
+    }
+    monkeypatch.setattr(portable, "ROUTER_BUDGET_BYTES", router_sizes(out)["router.md"] - 1)
+    assert portable.export(repo, out) == 0
+    for plugin, skills in (("design", ["gamma"]), ("engineering", ["alpha", "beta"])):
+        text = (out / f"router-{plugin}.md").read_text(encoding="utf-8")
+        # Splitting changes router.md alone; a plugin's router is the same text either way.
+        assert text == unsplit[f"router-{plugin}.md"]
+        for skill in skills:
+            description = portable.render_skill(repo / "plugins" / plugin / "skills" / skill)[1]
+            trigger = portable.first_sentence(description, portable.ROUTER_USE_WHEN_CAP)
+            assert text.count(f"skills/{skill}.md {trigger}\n") == 1
+            assert (out / "skills" / f"{skill}.md").is_file()
+    # Every router file the index names exists, and every plugin has one.
+    index = (out / "router.md").read_text(encoding="utf-8")
+    named = re.findall(r"^(router-[\w-]+\.md) ", index, re.M)
+    assert named == ["router-design.md", "router-engineering.md"]
+    assert all((out / name).is_file() for name in named)
+
+
+def test_the_preamble_is_identical_in_the_combined_the_split_and_the_plugin_routers(
+    mini_repo, tmp_path, monkeypatch
+):
+    repo = two_plugin_repo(mini_repo)
+    out = tmp_path / "portable"
+    assert portable.export(repo, out) == 0
+    monkeypatch.setattr(portable, "ROUTER_BUDGET_BYTES", router_sizes(out)["router.md"] - 1)
+    split_out = tmp_path / "split"
+    assert portable.export(repo, split_out) == 0
+    for directory in (out, split_out):
+        for path in directory.glob("router*.md"):
+            assert portable.ROUTER_PREAMBLE in path.read_text(encoding="utf-8"), path.name
+
+
+def test_a_catalogue_three_kilobytes_over_budget_splits_and_every_router_fits(mini_repo, tmp_path):
+    # Roughly the size the real catalogue reaches as skills are added: each router line
+    # is about 120 bytes at a near-cap trigger, so 10 plugins of 16 skills overshoots
+    # the 16 KiB budget by about 3 KB if nothing splits.
+    trigger = "Use when " + " ".join(["thing"] * 15) + "."  # 99 characters, under the cap.
+    for number in range(10):
+        plugin = f"plug{number}"
+        add_plugin(mini_repo, plugin, f"Skills for area {number}: many things.")
+        for skill in range(16):
+            write_skill(
+                mini_repo,
+                plugin,
+                f"p{number}-skill-{skill:02d}",
+                description=f"Do the thing. {trigger} More detail follows after that.",
+            )
+    out = tmp_path / "portable"
+    assert portable.export(mini_repo, out) == 0
+    sizes = router_sizes(out)
+    per_plugin = {name: size for name, size in sizes.items() if name != "router.md"}
+    groups = []
+    for name in sorted(per_plugin):
+        text = (out / name).read_text(encoding="utf-8")
+        rows = re.findall(r"^skills/([\w.-]+)\.md (.+)$", text, re.M)
+        groups.append((name.removeprefix("router-").removesuffix(".md"), rows))
+    # What router.md would measure if nothing split: the same renderer over the same rows.
+    unsplit = len(portable.render_router("Skill router", groups).encode("utf-8"))
+    assert unsplit > portable.ROUTER_BUDGET_BYTES + 2500
+    assert sizes["router.md"] <= portable.ROUTER_BUDGET_BYTES
+    assert all(size <= portable.ROUTER_BUDGET_BYTES for size in per_plugin.values())
+    index = (out / "router.md").read_text(encoding="utf-8")
+    assert not re.search(r"^skills/", index, re.M)
+    named = re.findall(r"^(router-[\w-]+\.md) ", index, re.M)
+    assert named == sorted(per_plugin)
+    # Nothing was shortened to get there: all 160 added skills keep a line at the full cap.
+    lines = [
+        line
+        for name in per_plugin
+        for line in (out / name).read_text(encoding="utf-8").splitlines()
+        if line.startswith("skills/p")
+    ]
+    assert len(lines) == 160
+    assert all(line.endswith(trigger) for line in lines)
+
+
+def test_plugin_scope_is_the_phrase_before_the_first_colon(tmp_path):
+    plugin = tmp_path / "somewhere"
+    manifest = plugin / ".claude-plugin" / "plugin.json"
+    manifest.parent.mkdir(parents=True)
+
+    def scope(description):
+        manifest.write_text(json.dumps({"description": description}), encoding="utf-8")
+        return portable.plugin_scope(plugin)
+
+    assert scope("Skills for keeping a system alive: triage, alerts.") == "keeping a system alive"
+    assert scope("One workflow, start to finish: Frame, Make.") == "One workflow, start to finish"
+    long_scope = scope("Skills for " + "word " * 40 + ": tail")
+    assert len(long_scope) <= portable.ROUTER_SCOPE_CAP and long_scope.endswith("…")
+    # No description, an unreadable manifest, or none at all: the name still stands in.
+    assert scope("") == "somewhere"
+    manifest.write_text("{", encoding="utf-8")
+    assert portable.plugin_scope(plugin) == "somewhere"
+    assert portable.plugin_scope(tmp_path / "missing") == "missing"
 
 
 def test_router_over_budget_fails_without_touching_a_previous_export(
