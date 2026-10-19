@@ -81,14 +81,16 @@ def test_the_inert_allowlist_excludes_instruction_files(path, anchor):
 
 def test_a_contributor_instruction_file_is_a_blocking_finding():
     text = flat(".claude/agents/reviewer.md")
-    assert re.search(r"adds or edits an instruction file .{0,190}is a blocking finding", text)
+    assert re.search(
+        r"adds, edits or deletes an instruction file .{0,190}is a blocking finding", text
+    )
 
 
 def test_the_blocking_rule_names_every_instruction_file():
     # The blocking rule has its own list, separate from the inert allowlist's, and a name
     # missing from it lets that file through as an ordinary change.
     text = flat(".claude/agents/reviewer.md")
-    clause = text.split("adds or edits an instruction file", 1)[1][:200]
+    clause = text.split("adds, edits or deletes an instruction file", 1)[1][:200]
     for name in (
         "CLAUDE.md",
         "CLAUDE.local.md",
@@ -98,6 +100,22 @@ def test_the_blocking_rule_names_every_instruction_file():
         ".claude/",
     ):
         assert name in clause, (name, clause)
+
+
+def test_the_blocking_rule_covers_deleting_or_renaming_away_an_instruction_file():
+    # Removing a trusted instruction file changes what a session is told as surely as
+    # adding one. `--no-renames` shows a rename as a deletion plus an addition, so a
+    # rename whose source is an instruction path is a deletion of it.
+    text = flat(".claude/agents/reviewer.md")
+    clause = text.split("adds, edits or deletes an instruction file", 1)[1][:340]
+    assert "rename" in clause and "--no-renames" in clause and "deletion" in clause, clause
+
+
+@pytest.mark.parametrize("path", ["docs/chatgpt-agents.md", "docs/using.md"])
+def test_the_restated_blocking_rule_covers_deletion_and_renames(path):
+    text = flat(path)
+    clause = text.split("is a blocking finding on a contributor change", 1)[1][:140]
+    assert "adds, edits or deletes it" in clause and "rename" in clause, (path, clause)
 
 
 @pytest.mark.parametrize(
