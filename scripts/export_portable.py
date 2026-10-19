@@ -211,14 +211,15 @@ ROUTER_PREAMBLE = (
     "Each line below names a skill and the situation it applies to. When a line matches "
     "the task at hand, open the `skills/<name>.md` file it names rather than loading "
     "every skill inline; otherwise skip it. In the portable export, router.md holds "
-    "these lines for every plugin while they fit the size budget; past it, router.md "
-    "holds one line per plugin instead, and router-<plugin>.md holds that plugin's."
+    "these lines for every plugin and router-<plugin>.md holds one plugin's."
 )
 
 # Only the split router.md carries this, after the shared preamble, because it is the one
-# file whose lines name a router rather than a skill.
+# file whose lines name a router rather than a skill. The preamble itself stays as short as
+# it was: it sits in every router, and the combined one has only a few bytes of headroom.
 ROUTER_INDEX_NOTE = (
-    "This router is split: every skill line together would pass the size budget. Each "
+    "This router is split: every skill line together would pass the size budget, so "
+    "router.md holds one line per plugin instead of the skill lines described above. Each "
     "line below names a plugin's router file and what that plugin covers. When one "
     "matches the task at hand, open that file and read its skill lines as described above."
 )
