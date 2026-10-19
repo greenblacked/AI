@@ -8,6 +8,38 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Security
+
+- Treat a contributor's `AGENTS.override.md`, and any name Codex's
+  `project_doc_fallback_filenames` setting lists, as an instruction file in the review
+  contract, the same as `AGENTS.md`. Codex loads the override in preference to
+  `AGENTS.md` in the same directory and reads configured fallbacks after it, but the
+  inert-path allowlist and the blocking-finding rule named neither, so a
+  `docs/AGENTS.override.md` was read as inert Markdown and could reach the gate
+  worktree.
+- Make deleting an instruction file, or renaming one away, a blocking finding on a
+  contributor change in the review contract, the same as adding or editing one. The
+  rule said only "adds or edits", so a deletion of `CLAUDE.md` or of a `.claude/` path
+  was left to the owner-must-run flow, whose checklist the owner can clear. The reviewer
+  role card in `docs/chatgpt-agents.md` now states the same rule beside its own inert-paths
+  list, and the sentence in `reviewer.md`, `docs/chatgpt-agents.md` and `docs/using.md`
+  that sent dot-prefixed `.claude/` paths to the owner-must-run flow now makes them a
+  blocking finding, leaving only paths such as `.github/` to that flow.
+- Require the owner who starts a contributor review to state the resolved
+  `project_doc_fallback_filenames` list, read from their own trusted Codex configuration
+  and given as a list, `[]` when empty, in the brief. The contract named the setting but not its values,
+  which live outside the repository, so a contributor's `docs/TEAM_GUIDE.md` was still
+  inert prose when the reviewer's configuration listed `TEAM_GUIDE.md`. The reviewer now
+  treats a changed path whose basename matches a stated name, at any depth, as an
+  instruction file under the same blocking rule, takes the list from nothing in the
+  contributor's branch, and stops and asks when the brief does not state it rather than
+  assuming it empty. Every instruction-file name, the fixed ones and the stated
+  fallbacks alike, is compared case-insensitively, because a case-insensitive checkout (default macOS and Windows)
+  loads `docs/team_guide.md` where `TEAM_GUIDE.md` is configured, and `claude.md` as
+  `CLAUDE.md`, which an exact-case comparison read as inert Markdown.
+
+## [0.1.11] - 2026-10-18
+
 ### Fixed
 
 - Correct stale technical claims across the coding skills: the `Deprecation`,
@@ -786,7 +818,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.10...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.11...HEAD
+[0.1.11]: https://github.com/greenblacked/AI/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/greenblacked/AI/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/greenblacked/AI/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/greenblacked/AI/compare/v0.1.7...v0.1.8
