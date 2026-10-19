@@ -117,7 +117,8 @@ only from git show '<candidate ref>:<canonical-path>' (single quotes, since doub
 still expand $(...) and backticks). The inert paths are: a *.md file under plugins/ or docs/ other than an
 instruction file (CLAUDE.md, CLAUDE.local.md, AGENTS.md, AGENTS.override.md or any name Codex's
 project_doc_fallback_filenames lists) or a path with a .claude/
-segment, which loads as instructions and is a blocking finding on a contributor change, a trigger
+segment, which loads as instructions and is a blocking finding on a contributor change that adds, edits
+or deletes it (a rename counts through its deleted source path), a trigger
 eval set (plugins/*/skills/*/evals/*.json or plugins/*/agents/evals/*.json), or
 README.md or CHANGELOG.md at the root, each a regular file (git mode 100644; a symlink
 or gitlink counts as any other path) whose whole NUL-delimited

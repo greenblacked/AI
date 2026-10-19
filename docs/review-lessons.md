@@ -908,14 +908,19 @@ and prefers it over `AGENTS.md` in the same directory, so a contributor's
 reach the gate worktree, and was not a blocking finding. The loader also reads every
 name in the user's `project_doc_fallback_filenames` setting after `AGENTS.md`, so a
 fixed name list misses a file such as `docs/TEAM_GUIDE.md` that a configured session
-loads as instructions.
+loads as instructions. The blocking rule also said only "adds or edits", so a change that
+deleted `CLAUDE.md`, or renamed it away (`--no-renames` shows that as a deletion plus an
+addition), fell to the owner-must-run flow, whose checklist the owner can clear; removing
+trusted instructions has to block too.
 
 **The check that catches it.** Verify each tool's loader source for every filename it
 reads, not its documentation's headline name; for Codex, `DEFAULT_AGENTS_MD_FILENAME`
 and `LOCAL_AGENTS_MD_FILENAME` in `codex-rs/core/src/agents_md.rs` in openai/codex.
 `tests/test_review_contract.py` checks that `reviewer.md`, `docs/chatgpt-agents.md` and
 `docs/using.md` name `AGENTS.override.md` in the inert-allowlist exclusion, and that
-`reviewer.md`'s blocking-finding rule names it and `project_doc_fallback_filenames` too. No benchmark case seeds this
+`reviewer.md`'s blocking-finding rule names it and `project_doc_fallback_filenames` too, and
+that the rule says "adds, edits or deletes" and names renames, with the two documents that
+restate it saying the same. No benchmark case seeds this
 defect, because the benchmark always briefs `reviewer` as the repository owner and so
 cannot exercise a contributor rule; the contract tests carry it instead.
 

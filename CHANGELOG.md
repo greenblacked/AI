@@ -17,6 +17,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   inert-path allowlist and the blocking-finding rule named neither, so a
   `docs/AGENTS.override.md` was read as inert Markdown and could reach the gate
   worktree.
+- Make deleting an instruction file, or renaming one away, a blocking finding on a
+  contributor change in the review contract, the same as adding or editing one. The
+  rule said only "adds or edits", so a deletion of `CLAUDE.md` or of a `.claude/` path
+  was left to the owner-must-run flow, whose checklist the owner can clear.
 
 ## [0.1.11] - 2026-10-18
 
