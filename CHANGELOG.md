@@ -44,12 +44,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
-- Split the portable router once it outgrows its 16 KiB budget: `router.md` becomes an
-  index of one line per plugin, each naming a `router-<plugin>.md` that keeps every
-  skill's full trigger line and is checked against the same budget. Nothing was
-  shortened and the budget and the per-entry trigger cap did not move. The combined router
-  sat 16 bytes under the budget, so any new skill would have overflowed it. The preamble
-  every router carries is shorter, and the note only the index carries explains the split.
+- Split the portable router into a per-plugin index once the combined `router.md` would
+  exceed its size budget. `router.md` then lists one `router-<plugin>.md` per plugin,
+  each keeping every skill's full trigger and each checked against the same budget; the
+  budget and the per-entry trigger cap are unchanged. The combined router sat 16 bytes
+  under the budget, so any new skill would have overflowed it.
 - Route model moves to `model-migration`. `agent-evaluation` now cedes planning a move to
   another model to it, and two queries about swapping a model or an alias that
   `agent-evaluation`'s trigger set listed as positives are now negatives owned by
