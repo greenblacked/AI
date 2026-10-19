@@ -1,0 +1,22 @@
+[
+  {"query": "I found a Claude Code plugin on GitHub that looks useful; how do I check it is safe before I install it", "should_trigger": true},
+  {"query": "audit this third-party MCP server's tool descriptions for hidden instructions before we add it to the team config", "should_trigger": true},
+  {"query": "someone shared a SKILL.md with a scripts folder; what should I read before I let my agent use it", "should_trigger": true},
+  {"query": "vet this slash command repo before we install it, it has a hooks.json and a postinstall script", "should_trigger": true},
+  {"query": "how do I pin a marketplace plugin so an update cannot change what I already approved", "should_trigger": true},
+  {"query": "is it safe to run npx -y on an MCP server I found in a blog post", "should_trigger": true},
+  {"query": "we want to allow community skills in the company; write the checklist a reviewer follows before approving one", "should_trigger": true},
+  {"query": "this plugin's hook runs on every tool call; fetch it somewhere safe and read what it actually does", "should_trigger": true},
+  {"query": "look at the allowed-tools and network calls in this downloaded agent skill before it goes in our repo", "should_trigger": true},
+  {"query": "how do we detect an MCP server whose tool description changed after we approved it", "should_trigger": true},
+  {"query": "twelve dependabot alerts landed on our lockfile, which ones matter", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "a package we depend on was just reported compromised, find every repository that resolved the bad version", "should_trigger": false, "expected": "supply-chain-exposure-reader"},
+  {"query": "review our own support agent where a web page could make it send email from a logged-in account", "should_trigger": false, "expected": "agent-security-review"},
+  {"query": "security review this pull request that adds a file upload endpoint", "should_trigger": false, "expected": "security-review"},
+  {"query": "write a new skill from our deploy runbook and build its trigger eval", "should_trigger": false, "expected": "new-skill"},
+  {"query": "plan our move from React 18 to the next major version", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "can a fork pull request steal secrets from our GitHub Actions workflow", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "threat model the design of our new internal plugin registry before we build it", "should_trigger": false, "expected": "threat-model"},
+  {"query": "an API key was committed to our repo yesterday, rotate it without downtime", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "compare three vendors for our log platform and write the recommendation memo", "should_trigger": false, "expected": "vendor-evaluation"}
+]
