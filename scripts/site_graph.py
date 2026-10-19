@@ -17,8 +17,10 @@ English word that several unrelated skills use, so matching bare words would dra
 nobody wrote. A subagent description that names a skill is not a source either: those
 sentences say what the agent is *not* for ("Not for ... which is profiling"), which is a
 boundary rather than a hand-off, so reading them as edges would draw the opposite of
-what they say. A skill that names an agent only in prose, or only in ``references/``, has
-no edge; the omission is visible in the list and fixable in the skill.
+what they say. The same holds inside a skill: a sentence opening "Do not use for" or
+"Not for" names where the work should not go, so its code spans are skipped. A skill
+that names an agent only in prose, or only in ``references/``, has no edge; the
+omission is visible in the list and fixable in the skill.
 """
 
 from __future__ import annotations
@@ -162,11 +164,83 @@ def _prose(body: str) -> str:
     return "\n".join(kept)
 
 
-def _code_spans(text: str) -> set[str]:
-    """The contents of every single-backtick span on one line of ``text``."""
-    spans: set[str] = set()
+# A sentence that opens "Do not use for" or "Not for" says where the skill does not
+# apply, so a name inside it is the thing to send the work away from, not a hand-off.
+_BOUNDARY = re.compile(r"[\W_]*(?:do not use for|not for)\b", re.IGNORECASE)
+
+
+# These end in a full stop that does not end the sentence: "e.g. `maker`" inside a
+# boundary sentence must not split it, or the names after the abbreviation would escape.
+_ABBREVIATION = re.compile(r"(?:^|[\s(])(?:e\.g|i\.e|etc|vs|cf)\.$", re.IGNORECASE)
+_HEADING = re.compile(r" {0,3}#{1,6}(?:\s|$)")
+
+
+def _sentences(text: str) -> list[str]:
+    """``text`` split after each sentence-ending mark that sits outside a code span."""
+    sentences = []
+    start = 0
+    inside = False
+    for index, char in enumerate(text):
+        if char == "`":
+            inside = not inside
+        elif (
+            char in ".!?"
+            and not inside
+            and (index + 1 == len(text) or text[index + 1].isspace())
+            and not _ABBREVIATION.search(text[start : index + 1])
+        ):
+            sentences.append(text[start : index + 1])
+            start = index + 1
+    sentences.append(text[start:])
+    return sentences
+
+
+def _paragraphs(text: str) -> list[str]:
+    """``text`` as paragraphs, each one's physical lines joined by a space.
+
+    SKILL.md prose wraps at about ninety columns, so a sentence routinely runs onto the
+    next line and the boundary rule has to see all of it. A blank line, a list item, a
+    heading or a change of quote depth starts a new paragraph, so one bullet's "Not for"
+    cannot swallow the bullet after it.
+    """
+    paragraphs: list[list[str]] = []
+    previous: _Line | None = None
+    after_heading = False
     for line in text.splitlines():
-        parts = line.split("`")
+        scan = _scan(line)
+        if scan.blank:
+            previous = None
+            continue
+        expanded = line.expandtabs(4)
+        pos = 0
+        while match := _QUOTE.match(expanded, pos):
+            pos = match.end()
+        content = expanded[pos:].strip()
+        heading = bool(_HEADING.match(content))
+        if (
+            previous is None
+            or scan.listed
+            or heading
+            or after_heading
+            or previous.depth != scan.depth
+        ):
+            paragraphs.append([])
+        paragraphs[-1].append(content)
+        previous, after_heading = scan, heading
+    return [" ".join(lines) for lines in paragraphs]
+
+
+def _code_spans(text: str) -> set[str]:
+    """The contents of every single-backtick span in the paragraphs of ``text``.
+
+    A sentence that opens "Do not use for" or "Not for" is left out, wherever in its
+    paragraph it sits and however many lines it wraps over: the names in it are what the
+    skill sends work away from.
+    """
+    spans: set[str] = set()
+    for paragraph in _paragraphs(text):
+        kept = "".join(s for s in _sentences(paragraph) if not _BOUNDARY.match(s))
+        parts = kept.split("`")
         # An odd count of backticks leaves the last piece unclosed, so it is not a span.
         # Even indexes are outside a span, odd ones inside; a double backtick yields an
         # empty piece, which is never a name.

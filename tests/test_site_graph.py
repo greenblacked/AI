@@ -89,6 +89,54 @@ def test_a_subagent_name_shared_across_plugins_resolves_to_the_skills_own_plugin
     assert got == {("a", "zeta"), ("b", "mid"), ("c", "alpha")}
 
 
+def test_a_do_not_use_for_sentence_draws_no_edge():
+    body = (
+        "Use for: the plan. Do not use for: writing it (`maker`), or a diff (`diff-reader`). "
+        "Hand the verdicts to `scribe`.\n"
+        "- Not for `log-reader`.\n"
+        "Ask `maker`. Not for `diff-reader`"
+    )
+    got = graph.derive_edges([_Skill("coding", "gate", body)], AGENTS)
+    assert got == [
+        graph.Edge("coding", "gate", "coding", "maker"),
+        graph.Edge("coding", "gate", "ops", "scribe"),
+    ]
+    # A full stop inside a span does not end the sentence early.
+    assert graph._code_spans("Not for `a. b` and `c`. Then `d`.") == {"d"}
+    assert graph._code_spans("Do not use for `x`.\nuse `y`") == {"y"}
+
+
+def test_a_boundary_sentence_wrapped_over_lines_draws_no_edge():
+    body = (
+        "Use this to plan the change. Not for writing it, which is work for the\n"
+        "`maker` subagent, nor for reading a diff with `diff-reader`.\n"
+        "Hand the verdicts to `scribe`.\n"
+    )
+    got = graph.derive_edges([_Skill("coding", "gate", body)], AGENTS)
+    assert got == [graph.Edge("coding", "gate", "ops", "scribe")]
+    # A list item is its own paragraph, so one bullet's boundary does not reach the next.
+    bullets = "- Do not use for\n  `maker`, or similar.\n- Ask `diff-reader`.\n"
+    assert graph._code_spans(bullets) == {"diff-reader"}
+    # A blank line ends the paragraph too.
+    assert graph._code_spans("Not for the\n\n`maker` here.") == {"maker"}
+
+
+def test_an_abbreviation_does_not_end_a_boundary_sentence():
+    body = "Do not use for tasks (e.g. `maker`, i.e. the writer, etc. `diff-reader`). Ask `scribe`."
+    got = graph.derive_edges([_Skill("coding", "gate", body)], AGENTS)
+    assert got == [graph.Edge("coding", "gate", "ops", "scribe")]
+    wrapped = "Not for work such as\ne.g.\n`maker` or `log-reader`."
+    assert graph._code_spans(wrapped) == set()
+
+
+def test_an_ordinary_wrapped_sentence_still_draws_its_edge():
+    body = (
+        "Once the plan is agreed, hand the diff to the\n`diff-reader` subagent for a first\npass.\n"
+    )
+    got = graph.derive_edges([_Skill("coding", "gate", body)], AGENTS)
+    assert got == [graph.Edge("coding", "gate", "coding", "diff-reader")]
+
+
 def test_unclosed_and_empty_spans_are_not_names():
     assert graph._code_spans("a `open and `b` c") == {"open and "}
     assert graph._code_spans("only `one") == set()
