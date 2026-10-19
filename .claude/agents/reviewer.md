@@ -46,8 +46,9 @@ first.
   below and point 4).
 - **Fallback names** — for a contributor change: the names in Codex's
   `project_doc_fallback_filenames`, as the owner who starts the review resolved them
-  from their own trusted Codex configuration (for example `~/.codex/config.toml`), or
-  the word `none`. The setting's key is not its values, and the values live outside this
+  from their own trusted Codex configuration (for example `~/.codex/config.toml`), and
+  stated as a list in the configuration's own form, such as `["TEAM_GUIDE.md"]`, with `[]`
+  for no fallback names. The setting's key is not its values, and the values live outside this
   repository, so neither the diff nor the contributor's branch can supply them. A brief
   that states no list is not an empty one: see the stop rule in the Procedure.
 - **The change's intent, in one paragraph** — what it is trying to do and why, so you can
@@ -103,7 +104,7 @@ contributor checkout or a stale one, and what you run under has already loaded f
 run nothing else. When Author is not the repository owner and no candidate ref is given, return
 `Verdict: STOP`, run nothing, and ask for `<base-branch>`, the pinned `<base>` and `refs/review/<n>` from a trusted
 checkout. `<base>` is the commit SHA the owner pinned right after that `git fetch` with
-`base_sha=$(git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}')`, never a branch name, and you must be given `<base-branch>` as well. Before running any command, the trust check above included, require all of these, else `Verdict: STOP` asking the owner to retarget the PR or re-pin: `<base-branch>` is one of `dev`, `stage` or `main`; `<base>` fully matches `^[0-9a-f]{40}$` (or `^[0-9a-f]{64}$` for SHA-256); `<n>` is all digits; and `<base>` equals `git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}'`. Also require the caller's fallback names, stated as names or as `none`; a brief that states neither is `Verdict: STOP` asking the caller for the list resolved from their trusted Codex configuration, never assumed empty and never read from the candidate. Once validated, single-quote `<base>` in every command (`git diff`, `git rev-parse --verify 'HEAD^{commit}'`, `git merge-base`, `git worktree add`). Then resolve the candidate once, `git rev-parse --verify 'refs/review/<n>^{commit}'`, require the output to match the same full-SHA pattern as `<base>`, record it in Evidence as `<candidate>`, and single-quote that SHA wherever a command below reads the candidate, never the ref name: a forced re-fetch of `refs/review/<n>` mid-review would otherwise move what you read, gate and merge. Once validated and resolved, read the change only through `<candidate>`:
+`base_sha=$(git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}')`, never a branch name, and you must be given `<base-branch>` as well. Before running any command, the trust check above included, require all of these, else `Verdict: STOP` asking the owner to retarget the PR or re-pin: `<base-branch>` is one of `dev`, `stage` or `main`; `<base>` fully matches `^[0-9a-f]{40}$` (or `^[0-9a-f]{64}$` for SHA-256); `<n>` is all digits; and `<base>` equals `git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}'`. Also require the caller's fallback names, stated as a list in the configuration's own form, `[]` when empty; a brief that omits the list is `Verdict: STOP` asking the caller for the list resolved from their trusted Codex configuration, never assumed empty and never read from the candidate. Once validated, single-quote `<base>` in every command (`git diff`, `git rev-parse --verify 'HEAD^{commit}'`, `git merge-base`, `git worktree add`). Then resolve the candidate once, `git rev-parse --verify 'refs/review/<n>^{commit}'`, require the output to match the same full-SHA pattern as `<base>`, record it in Evidence as `<candidate>`, and single-quote that SHA wherever a command below reads the candidate, never the ref name: a forced re-fetch of `refs/review/<n>` mid-review would otherwise move what you read, gate and merge. Once validated and resolved, read the change only through `<candidate>`:
 
 ```bash
 git diff --stat '<base>'...'<candidate>'
@@ -196,7 +197,7 @@ the repository owner), run the gates only when every changed path is inert conte
 trigger eval set
 (`plugins/*/skills/*/evals/*.json` or `plugins/*/agents/evals/*.json`), or
 `CHANGELOG.md` or `README.md` at the root. The fallback names are the list the owner
-resolved from their trusted Codex configuration and states in the brief, or `none`; a
+resolved from their trusted Codex configuration and states in the brief as a list, `[]` when empty; a
 changed path whose basename matches one, at any depth, is an instruction file, and a
 config file in the diff is never a source for the list. A brief that states no list is
 not an empty one: `Verdict: STOP`, asking the caller for it before any Markdown path is
@@ -267,7 +268,7 @@ deletion, since `--no-renames` shows it as one: a tool that opens that directory
 instructions, so it is configuration, never prose, and removing it changes what a session is
 told as surely as adding it. Only the owner changes those, as their own change. The
 fallback names are the list the owner resolved from their trusted Codex configuration and
-states in the brief, or `none`; a changed path whose basename matches one, at any depth, is
+states in the brief as a list, `[]` when empty; a changed path whose basename matches one, at any depth, is
 an instruction file under this rule, and a config file in the diff is never a source for
 the list. A brief that states no list is not an empty one: `Verdict: STOP`, asking the
 caller for it before any Markdown path is classified as inert.

@@ -924,9 +924,13 @@ and neither the packet nor the procedure obtained them, so a reviewer holding on
 key had nothing to match against: a contributor's `docs/TEAM_GUIDE.md`, where the
 reviewer's configuration lists `TEAM_GUIDE.md`, was still classified as inert prose. The
 setting's name alone is not its values; the trusted caller has to state the resolved list
-(or `none`) in the brief. A brief that omits it is not an empty list, so the reviewer
+(as a list, `[]` when empty) in the brief. A brief that omits it is not an empty list, so the reviewer
 stops and asks before classifying any Markdown path as inert, and nothing from the
-contributor's branch, a config file in the diff included, is ever a source for it.
+contributor's branch, a config file in the diff included, is ever a source for it. The
+empty list is written `[]` and not as the word `none`, because Codex accepts `none` as a
+fallback filename (its loader rejects only empty strings, `.`, `..` and path separators):
+the word would be indistinguishable from a configuration that lists `"none"`, and a
+contributor's `docs/none` could be misclassified either way.
 
 **The check that catches it.** Verify each tool's loader source for every filename it
 reads, not its documentation's headline name; for Codex, `DEFAULT_AGENTS_MD_FILENAME`
@@ -939,8 +943,8 @@ restate it, the role card in `docs/chatgpt-agents.md` included, saying the same,
 no file sends `.claude/` paths to the owner-must-run flow. It also checks that each of the five
 statements of the rule (two in `reviewer.md`, two in `docs/chatgpt-agents.md`, one in
 `docs/using.md`) says the list is the one the caller resolved from their trusted Codex
-configuration, matches on basename at any depth, never takes it from the diff, and stops
-and asks when the brief states none, and that the packet, the copy-ready starter and the
+configuration, matches on basename at any depth, never takes it from the diff, writes the empty case as `[]` and never as `none`, and stops
+and asks when the brief states no list, and that the packet, the copy-ready starter and the
 `/ship` and `/verify` commands name the list among what the owner passes. No benchmark case seeds this
 defect, because the benchmark always briefs `reviewer` as the repository owner and so
 cannot exercise a contributor rule; the contract tests carry it instead.

@@ -164,7 +164,7 @@ def test_dot_prefixed_claude_paths_are_blocking_not_owner_must_run(path, occurre
 
 # The setting's name is not its values: `project_doc_fallback_filenames` is configured in the
 # reviewing user's own Codex configuration, outside this repository, so the trusted caller has
-# to state the resolved list (or `none`) and the reviewer stops rather than assume it empty.
+# to state the resolved list (`[]` when empty) and the reviewer stops rather than assume it empty.
 FALLBACK_SENTENCE = (
     "The fallback names are the list the owner resolved from their trusted Codex"
     " configuration and states in the"
@@ -187,7 +187,7 @@ def test_each_statement_of_the_rule_requires_the_caller_supplied_fallback_list(p
     assert text.count(FALLBACK_SENTENCE) == occurrences, (path, text.count(FALLBACK_SENTENCE))
     for part in text.split(FALLBACK_SENTENCE)[1:]:
         clause = part[:520]
-        assert re.match(r" (?:brief|packet), or none;", clause), (path, clause)
+        assert re.match(r" (?:brief|packet) as a list, \[\] when empty;", clause), (path, clause)
         for needle in (
             "whose basename matches one, at any depth, is an instruction file",
             "a config file in the diff is never a source for the list",
@@ -223,10 +223,16 @@ def test_the_fallback_clause_in_each_list_names_the_caller_as_the_source(path, a
     ("path", "needle"),
     [
         (".claude/agents/reviewer.md", "- **Fallback names** — for a contributor change"),
-        (".claude/agents/reviewer.md", "Also require the caller's fallback names, stated as names"),
+        (
+            ".claude/agents/reviewer.md",
+            "Also require the caller's fallback names, stated as a list",
+        ),
         ("docs/chatgpt-agents.md", "- Fallback names, for a contributor change:"),
         ("docs/chatgpt-agents.md", "Fallback names (contributor only):"),
-        ("docs/chatgpt-agents.md", "the candidate ref and the fallback names (or none) instead"),
+        (
+            "docs/chatgpt-agents.md",
+            "the candidate ref and the fallback names (a list, [] when empty) instead",
+        ),
         ("docs/using.md", "the pinned `<base>`, the fallback names ("),
         ("docs/using.md", "and the fallback names;"),
         (".claude/commands/ship.md", "the pinned `<base>`, the fallback names ("),
@@ -250,7 +256,8 @@ def test_the_reviewers_fallback_input_says_where_the_list_comes_from_and_stops_w
     bullet = text.split("**Fallback names**", 1)[1][:700]
     for needle in (
         "trusted Codex configuration",
-        "or the word `none`",
+        "stated as a list in the configuration's own form",
+        "with `[]` for no fallback names",
         "neither the diff nor the contributor's branch can supply them",
         "not an empty one",
     ):
@@ -258,12 +265,14 @@ def test_the_reviewers_fallback_input_says_where_the_list_comes_from_and_stops_w
     stop = text.split("Also require the caller's fallback names", 1)[1][:330]
     assert "`Verdict: STOP`" in stop and "never assumed empty" in stop, stop
     assert "never read from the candidate" in stop, stop
+    assert "`[]` when empty" in stop, stop
 
 
 @pytest.mark.parametrize("path", CONTRACT_FILES)
 def test_no_statement_assumes_an_unstated_list_is_empty_or_reads_it_from_the_branch(path):
     # Negative check: the failure this guards is a reviewer that defaults to "no fallback
     # names" or takes them from the contributor's own config file in the diff.
+    # It also forbids the word `none` as the empty list.
     text = flat(path).replace("`", "")
     assert not re.search(
         r"(?<!never )(?<!not )\b(?:defaults? to|assumed?|treated as|read as) (?:to be )?"
@@ -274,6 +283,17 @@ def test_no_statement_assumes_an_unstated_list_is_empty_or_reads_it_from_the_bra
         path
     )
     assert not re.search(r"(?:from|in) the contributor's (?:config|\.codex)", text), path
+    # Codex accepts `none` as a fallback filename (its loader rejects only empty strings, `.`,
+    # `..` and path separators), so the word cannot also mean "no fallbacks": a configuration
+    # listing "none" would read as empty and a contributor's `docs/none` could be misclassified.
+    # The empty list is `[]`, in the configuration's own form.
+    sentinel = re.compile(
+        r"(?:\bor|\bgiven as|\bstated as names or|\bthe word|\bwords?|\(or)\s+[\"“]?none\b[\"”]?",
+        re.IGNORECASE,
+    )
+    for anchor in re.finditer(r"fallback[ _]name|fallback_filenames", text):
+        window = text[anchor.start() : anchor.start() + 400]
+        assert not sentinel.search(window), (path, window)
 
 
 @pytest.mark.parametrize(
