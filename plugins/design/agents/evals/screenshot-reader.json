@@ -1,0 +1,22 @@
+[
+  {"query": "here are four screenshots of the checkout at 360, 768, 1280 and dark mode in ./shots, tell me what is visibly broken in each", "should_trigger": true},
+  {"query": "read these before and after screenshots of the pricing page and tell me which regions changed", "should_trigger": true},
+  {"query": "the playwright run left a folder of screenshots, go through them and flag anything clipped or overlapping", "should_trigger": true},
+  {"query": "I have a screenshot and the bounding boxes from the DOM, does the header actually overlap the nav at 360px", "should_trigger": true},
+  {"query": "look at shots/home-mobile.png and shots/home-desktop.png without loading them into my context and list what is wrong with each, with the region", "should_trigger": true},
+  {"query": "the visual diff flagged three regions on the settings page, read the screenshots and describe what changed in each region", "should_trigger": true},
+  {"query": "which of these 12 screenshots show a horizontal scrollbar or an element sticking out of its container", "should_trigger": true},
+  {"query": "read the screenshot of the dashboard and separate what you can see from what I would need to measure in code", "should_trigger": true},
+  {"query": "here are the light and dark captures of the settings screen, is there any text that is cut off or any element that did not pick up the theme", "should_trigger": true},
+  {"query": "go through the screenshots from last night's visual test run and give me findings by file and region, I do not want the images in this conversation", "should_trigger": true},
+  {"query": "is this signup flow confusing, here is a screenshot of each step", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "give me UX feedback on this mockup, why would people drop off at this step", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "audit the login page against WCAG 2.2 AA and give me the success criterion for each failure", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "can a keyboard user get through the checkout and is the focus ring ever hidden", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "the page feels flat and cluttered, what should be the primary button and how should I fix the spacing", "should_trigger": false, "expected": "visual-design"},
+  {"query": "set up a type scale and a spacing system for this screen", "should_trigger": false, "expected": "visual-design"},
+  {"query": "what breakpoints should we use, the table overflows on a phone and I need to decide what reflows", "should_trigger": false, "expected": "responsive-design"},
+  {"query": "add dark mode tokens and make the hover and pressed states consistent across our buttons", "should_trigger": false, "expected": "design-system"},
+  {"query": "set up a pixel diff baseline for every pull request and tell me how to stop the font rendering flakes", "should_trigger": false},
+  {"query": "the nightly UI test job went red, read the run and tell me which class of failure it is", "should_trigger": false, "expected": "ci-log-reader"}
+]
