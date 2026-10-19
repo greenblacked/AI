@@ -1,0 +1,22 @@
+[
+  {"query": "my friends all said they loved the demo but nobody finished it, how do i get real feedback from a playtest", "should_trigger": true},
+  {"query": "write the post-playtest survey for our puzzle platformer, a handful of questions with proper scales", "should_trigger": true},
+  {"query": "should testers think aloud while they play or should i interview them afterwards, it is a fast action game", "should_trigger": true},
+  {"query": "we had eight testers on saturday and i have a pile of notes with bugs and design complaints all mixed together, how do i sort it", "should_trigger": true},
+  {"query": "who should i recruit for a playtest of our cosy farming sim, so far we only know our own friends", "should_trigger": true},
+  {"query": "how do i write up playtest findings so the team actually changes something", "should_trigger": true},
+  {"query": "a tester hit a soft lock in the second level, how do i file that with repro steps and rank it against the other bugs", "should_trigger": true},
+  {"query": "what question should this week's playtest answer, so far the plan is just to see if it is fun", "should_trigger": true},
+  {"query": "players keep dying in the first room and i cannot tell if that is a bug or a design problem", "should_trigger": true},
+  {"query": "set up a closed alpha session so we can watch strangers play the first half hour without me helping", "should_trigger": true},
+  {"query": "the shotgun wins most duels at high rank across a couple of thousand matches, how big should the nerf be", "should_trigger": false, "expected": "game-balance"},
+  {"query": "players quit at level four, which enemy stats do i change to flatten the difficulty curve", "should_trigger": false, "expected": "game-balance"},
+  {"query": "set the player metrics and blockout grid for the ice cave before we model anything", "should_trigger": false, "expected": "game-level-design"},
+  {"query": "chart the intensity over time for this level so combat segments do not repeat back to back", "should_trigger": false, "expected": "game-level-design"},
+  {"query": "we have a concept for a deckbuilder, should we greenlight it and what should the prototype prove", "should_trigger": false, "expected": "game-greenlight"},
+  {"query": "write the go, no-go and pivot criteria for the prototype before we build it", "should_trigger": false, "expected": "game-greenlight"},
+  {"query": "plan a usability test of our account settings and refund screens with five customers and score it with SUS", "should_trigger": false, "expected": "usability-test-plan"},
+  {"query": "write neutral tasks to test whether people can find the checkout in our web store", "should_trigger": false, "expected": "usability-test-plan"},
+  {"query": "the game crashes on loading the second level and i need to find out why", "should_trigger": false, "expected": "debugging"},
+  {"query": "write the patch notes for this season's balance changes so players understand them", "should_trigger": false, "expected": "game-live-ops"}
+]
