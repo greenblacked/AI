@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.1.12] - 2026-10-19
+
 ### Security
 
 - Treat a contributor's `AGENTS.override.md`, and any name Codex's
@@ -818,7 +820,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.11...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.12...HEAD
+[0.1.12]: https://github.com/greenblacked/AI/compare/v0.1.11...v0.1.12
 [0.1.11]: https://github.com/greenblacked/AI/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/greenblacked/AI/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/greenblacked/AI/compare/v0.1.8...v0.1.9
