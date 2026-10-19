@@ -313,7 +313,7 @@ contributor change the reviewer runs them only when every changed path is inert 
 (Markdown under `plugins/` or `docs/` other than an instruction file — `CLAUDE.md`,
 `CLAUDE.local.md`, `AGENTS.md`, `AGENTS.override.md` or any name Codex's
 `project_doc_fallback_filenames` lists — or a path with a `.claude/` segment, which loads as
-instructions and is a blocking finding on a contributor change; a trigger eval set; or the root `README.md` or
+instructions and is a blocking finding on a contributor change that adds, edits or deletes it (a rename counts through its deleted source path); a trigger eval set; or the root `README.md` or
 `CHANGELOG.md`, as regular files whose whole NUL-delimited names match
 `^\.?[A-Za-z0-9_][A-Za-z0-9._-]*(/\.?[A-Za-z0-9_][A-Za-z0-9._-]*)*$`, the change fails that check if `git diff --no-renames -z --name-only '<base>'...refs/review/<n> | grep -zvxE '<pattern>'` selects any record (exit 0 means an unsafe name), or if Python `re.fullmatch` fails on any decoded record; a
 changed name outside that, such as `docs/$(cmd).md`, makes the change non-inert and is a
