@@ -25,6 +25,18 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   list, and the sentence in `reviewer.md`, `docs/chatgpt-agents.md` and `docs/using.md`
   that sent dot-prefixed `.claude/` paths to the owner-must-run flow now makes them a
   blocking finding, leaving only paths such as `.github/` to that flow.
+- Require the owner who starts a contributor review to state the resolved
+  `project_doc_fallback_filenames` list, read from their own trusted Codex configuration
+  and given as a list, `[]` when empty, in the brief. The contract named the setting but not its values,
+  which live outside the repository, so a contributor's `docs/TEAM_GUIDE.md` was still
+  inert prose when the reviewer's configuration listed `TEAM_GUIDE.md`. The reviewer now
+  treats a changed path whose basename matches a stated name, at any depth, as an
+  instruction file under the same blocking rule, takes the list from nothing in the
+  contributor's branch, and stops and asks when the brief does not state it rather than
+  assuming it empty. Every instruction-file name, the fixed ones and the stated
+  fallbacks alike, is compared case-insensitively, because a case-insensitive checkout (default macOS and Windows)
+  loads `docs/team_guide.md` where `TEAM_GUIDE.md` is configured, and `claude.md` as
+  `CLAUDE.md`, which an exact-case comparison read as inert Markdown.
 
 ## [0.1.11] - 2026-10-18
 

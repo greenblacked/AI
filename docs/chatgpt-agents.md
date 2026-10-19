@@ -116,7 +116,7 @@ trusted config, so none runs. The reviewer never reads files inside the worktree
 only from git show '<candidate ref>:<canonical-path>' (single quotes, since double quotes
 still expand $(...) and backticks). The inert paths are: a *.md file under plugins/ or docs/ other than an
 instruction file (CLAUDE.md, CLAUDE.local.md, AGENTS.md, AGENTS.override.md or any name Codex's
-project_doc_fallback_filenames lists) or a path with a .claude/
+project_doc_fallback_filenames lists, as the caller's packet states them) or a path with a .claude/
 segment, each of which loads as instructions and is a blocking finding on a contributor change that adds, edits
 or deletes it (a rename counts through its deleted source path), a trigger
 eval set (plugins/*/skills/*/evals/*.json or plugins/*/agents/evals/*.json), or
@@ -129,7 +129,10 @@ every decoded record and require all to match; never convert NULs to newlines fi
 pattern (such as docs/$(cmd).md) makes the change non-inert, is never placed in a command and is a
 blocking finding asking the contributor to rename it. Dot-prefixed paths are canonical, so never a rename finding: a
 .claude/ path is a blocking finding as instruction configuration, and any other, such as .github/, is non-inert and goes to
-the owner-must-run flow. That worktree is safe only because inert-only
+the owner-must-run flow. Instruction-file names, and a .claude/ segment, compare case-insensitively, the fixed names and the fallback names alike, on any filesystem: a case-insensitive checkout loads claude.md or .Claude/, or docs/team_guide.md where TEAM_GUIDE.md is configured, as an instruction file. The fallback names are the list the owner resolved from their trusted Codex configuration and states in the
+packet as a list, [] when empty; a changed path whose basename matches one, at any depth, is an instruction file, and a
+config file in the diff is never a source for the list. A packet that states no list is not an empty one:
+STOP, asking the caller for it before any Markdown path is classified as inert. That worktree is safe only because inert-only
 means every path outside the allowlist matches the merge-base: code, tests, workflows,
 configuration, dotfiles and any new root-level file. A change with any
 contributor-authored content stays a contributor change through every fix round, whoever
@@ -269,9 +272,9 @@ identity or model does not prove independence. If the boundary is unavailable,
 unobservable or inherited, return STOP with useful partial findings. Inspect the full
 change from the supplied merge-base through the current working tree: committed, staged
 and unstaged changes, plus every untracked file in full. Do not review only HEAD or a
-path list. For a contributor change the packet gives <base-branch>, the pinned <base> SHA and the candidate ref
-instead. Before running any command, require that <base-branch> is dev, stage or main, that <base> is
-40- or 64-character lowercase hex, that <n> is all digits, and that <base> equals
+path list. For a contributor change the packet gives <base-branch>, the pinned <base> SHA, the candidate ref and
+the fallback names (a list, [] when empty) instead. Before running any command, require that <base-branch> is dev, stage or main, that <base> is
+40- or 64-character lowercase hex, that <n> is all digits, that the fallback names are stated as a list, [] when empty, and that <base> equals
 git rev-parse --verify 'refs/remotes/origin/<base-branch>^{commit}'; any failure is STOP and runs nothing.
 Your checkout is the trusted base (a clean worktree at the pinned base SHA, with git status --porcelain empty and git rev-parse --verify 'HEAD^{commit}' equal to <base>; any mismatch is STOP), so read the change only with git diff
 '<base>'...<candidate ref>, git show '<candidate ref>:<canonical-path>' (single quotes;
@@ -301,7 +304,7 @@ refs/review/<n> equals <base> (otherwise FIX asking the
 contributor to rebase onto the current base, for inert-only and non-inert changes alike,
 and no gate runs): a *.md file under plugins/ or docs/ other than an instruction file
 (CLAUDE.md, CLAUDE.local.md, AGENTS.md, AGENTS.override.md or any name Codex's
-project_doc_fallback_filenames lists) or a path with a .claude/ segment, which loads as
+project_doc_fallback_filenames lists, as the caller's packet states them) or a path with a .claude/ segment, which loads as
 instructions and is a blocking finding on a contributor change that adds, edits or deletes it
 (a rename counts through its deleted source path), a trigger eval set
 (plugins/*/skills/*/evals/*.json or plugins/*/agents/evals/*.json), or README.md or
@@ -315,7 +318,10 @@ docs/$(cmd).md) makes the change non-inert, is never placed in a command or read
 and is a blocking finding asking for a rename (dot-prefixed paths are canonical, so never a rename: a .claude/ path is a blocking
 finding as instruction configuration, and any other, such as .github/, is non-inert and goes to the
 owner-must-run flow), and a canonical path is read in single
-quotes. For any other path, run no gates and cite no CI, because a contributor's pull request runs the contributor's own workflow files, Makefile
+quotes. Instruction-file names, and a .claude/ segment, compare case-insensitively, the fixed names and the fallback names alike, on any filesystem: a case-insensitive checkout loads claude.md or .Claude/, or docs/team_guide.md where TEAM_GUIDE.md is configured, as an instruction file. The fallback names are the list the owner resolved from their trusted Codex configuration and states in the
+packet as a list, [] when empty; a changed path whose basename matches one, at any depth, is an instruction file, and a
+config file in the diff is never a source for the list. A packet that states no list is not an empty one:
+STOP, asking the caller for it before any Markdown path is classified as inert. For any other path, run no gates and cite no CI, because a contributor's pull request runs the contributor's own workflow files, Makefile
 and pyproject.toml, and a check run's PR association is computed when it is read. Return
 FIX pending the owner, listing under Not assessed as owner-must-run: (a) the gates (make
 validate, make catalogue, make test), which the owner runs only in a disposable sandbox
@@ -368,6 +374,12 @@ Pass these together; sending only the author's summary is insufficient:
   reviewer may execute.
 - Checkout and working branch; target/base branch, its exact tip SHA and merge-base SHA;
   candidate HEAD and stable identity for staged, unstaged and untracked content.
+- Fallback names, for a contributor change: the names in Codex's project_doc_fallback_filenames,
+  as the owner who starts the review resolved them from their own trusted Codex configuration
+  (for example ~/.codex/config.toml), stated as a list in the configuration's own form, such as
+  ["TEAM_GUIDE.md"], with [] for no fallback names. The setting's key is not its values and the
+  values live outside this repository, so the diff and the contributor's branch can never supply
+  them. A packet that states no list is not an empty one: the reviewer stops and asks for it.
 - Base and Candidate ref, for a contributor change: the base branch name (dev, stage or main) and the SHA pinned with git rev-parse --verify right after the fetch, and the
   contributor's head fetched as a ref (refs/review/<n>) with its commit SHA, read with
   git and never checked out. The checkout named above is then a clean worktree at that pinned base SHA (git worktree add --detach '<dir>' '<base>'), or the owner's clone of the PR's own base branch checked out exactly at that SHA.
@@ -413,6 +425,8 @@ Follow the attached guide's Coordinator instructions and role cards.
 Goal: <concrete change>.
 Checkout and working branch: <absolute path and branch, or explain no checkout access>.
 Target/base branch and exact base SHA: <branch and full SHA> (for a contributor change: dev, stage or main, and the SHA pinned with git rev-parse --verify right after the fetch).
+Fallback names (contributor only): <the project_doc_fallback_filenames list read from your own trusted
+Codex configuration, as a list such as ["TEAM_GUIDE.md"], [] when empty; never from the contributor's branch, and never left out>.
 Candidate ref (contributor only): <refs/review/<n> and its SHA, fetched and not checked
 out; the checkout above must be a clean worktree at that pinned base SHA or the owner's clone of the PR's own base branch checked out exactly at it; it must be based on the
 current base tip, else the reviewer returns FIX asking for a rebase>.
