@@ -2,7 +2,7 @@
 
 Read this at step 3, before sending a scan or photo to a model, and again when a request is rejected for size or a field comes back wrong on a small print region.
 
-The figures below are from Anthropic's vision documentation (https://platform.claude.com/docs/en/build-with-claude/vision) and PDF documentation (https://platform.claude.com/docs/en/build-with-claude/pdf-support), read when this file was written. Limits change between models and platforms, so read the current page for the model you call before relying on a number, and prefer to leave headroom.
+The figures below are from Anthropic's vision documentation (<https://platform.claude.com/docs/en/build-with-claude/vision>) and PDF documentation (<https://platform.claude.com/docs/en/build-with-claude/pdf-support>), read when this file was written. Limits change between models and platforms, so read the current page for the model you call before relying on a number, and prefer to leave headroom.
 
 ## What the API accepts
 
@@ -50,13 +50,13 @@ A long receipt, a ledger page or a dense form shrinks to illegible when it is fi
 
 A local OCR engine is the right first reader when the document may not leave the machine, and the right second reader when a vision model is the first.
 
-- Tesseract's output formats include hOCR, TSV, ALTO, PAGE and a searchable PDF, selected by a config name after the output base (https://github.com/tesseract-ocr/tesseract/blob/main/doc/tesseract.1.asc). hOCR carries a bounding box and a word confidence (`x_wconf`) for each word (https://github.com/tesseract-ocr/tessdoc/blob/main/Command-Line-Usage.md), which is the source-region and confidence data the schema asks for.
+- Tesseract's output formats include hOCR, TSV, ALTO, PAGE and a searchable PDF, selected by a config name after the output base (<https://github.com/tesseract-ocr/tesseract/blob/main/doc/tesseract.1.asc>). hOCR carries a bounding box and a word confidence (`x_wconf`) for each word (<https://github.com/tesseract-ocr/tessdoc/blob/main/Command-Line-Usage.md>), which is the source-region and confidence data the schema asks for.
 - The page segmentation mode (`--psm`) tells the engine what shape of page to expect: 3 is the fully automatic default, 4 assumes a single column of variable sizes, 6 a single uniform block of text, and 11 finds sparse text in no particular order. A receipt column and a form often read better in a mode other than the default; try the candidate modes on a few pages and compare against what you can see.
 - OCR output is character recognition without any understanding. It does not repair a smudged digit into a plausible one, which is why it is a useful independent reader, but it confuses visually similar characters (0 and O, 1 and l, 5 and S, 8 and B). Let the format check decide, by field type, which of those is possible.
 - An OCR engine's word confidence is its own estimate. Use it to rank what to review, and calibrate it against your labelled sample before treating a threshold as meaningful.
 
 ## Text-layer PDFs
 
-pdfplumber documents that it works best on machine-generated PDFs rather than scanned ones, returns words with bounding boxes through `extract_words`, and returns table cells through `extract_tables` (https://github.com/jsvine/pdfplumber). Poppler's `pdftotext` and `pdfimages` command-line tools read the text layer and the embedded images; check their manual pages for options rather than copying flags from memory.
+pdfplumber documents that it works best on machine-generated PDFs rather than scanned ones, returns words with bounding boxes through `extract_words`, and returns table cells through `extract_tables` (<https://github.com/jsvine/pdfplumber>). Poppler's `pdftotext` and `pdfimages` command-line tools read the text layer and the embedded images; check their manual pages for options rather than copying flags from memory.
 
 To decide whether a PDF is born-digital, compare three things for each page: the extracted text length, whether an image object covers most of the page, and whether a sample of extracted words appears in the rendered page. A page with a text layer and a page-sized image is a searchable scan, and takes the scan path.

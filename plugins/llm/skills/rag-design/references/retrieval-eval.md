@@ -41,9 +41,11 @@ This runs against any retriever that takes a question and returns ranked chunk i
 ```python
 import json
 
+
 def load(path):
     with open(path) as f:
         return [json.loads(line) for line in f if line.strip()]
+
 
 def evaluate(questions, retrieve, k):
     recalls, rr, misses = [], [], []
@@ -58,8 +60,7 @@ def evaluate(questions, retrieve, k):
         if not found:
             misses.append(q["id"])
     n = len(recalls)
-    return {"questions": n, "recall@k": sum(recalls) / n,
-            "mrr": sum(rr) / n, "missed": misses}
+    return {"questions": n, "recall@k": sum(recalls) / n, "mrr": sum(rr) / n, "missed": misses}
 ```
 
 Run it once per configuration (lexical, dense, merged, reranked) and print the table side by side. Write the output file next to the eval version so a later change can be compared with it.

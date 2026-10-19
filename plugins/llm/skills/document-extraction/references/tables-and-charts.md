@@ -10,7 +10,7 @@ The cell-level format is in `references/extraction-schema.md`. The checks that g
 2. Count against the page. Count the printed rows and columns yourself, on a crop, or take the count from the text layer, and compare with `n_rows` and `n_cols`. Do not let the extraction be the only source of its own dimensions.
 3. Column arithmetic. Sum each numeric column and compare it with a printed totals row, and check any row whose cells relate (quantity, price, amount).
 4. Header alignment. Each numeric column has a header cell above it whose span covers it. A value under the wrong header is the usual outcome of a merged cell, and the sums will often still look reasonable.
-5. A second reading. For a born-digital PDF, extract the table from the text layer with a library such as pdfplumber (`extract_tables` returns rows of cells; https://github.com/jsvine/pdfplumber) and compare it cell by cell. For a scan, use an OCR pass and compare the text of each cell, or re-extract the table a row band at a time.
+5. A second reading. For a born-digital PDF, extract the table from the text layer with a library such as pdfplumber (`extract_tables` returns rows of cells; <https://github.com/jsvine/pdfplumber>) and compare it cell by cell. For a scan, use an OCR pass and compare the text of each cell, or re-extract the table a row band at a time.
 
 Common failures to look for:
 

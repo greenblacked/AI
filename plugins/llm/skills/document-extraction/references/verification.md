@@ -67,7 +67,13 @@ def check_totals(doc):
     if doc["subtotal"] is not None and doc["total"] is not None:
         built = sum(
             part or 0
-            for part in (doc["subtotal"], doc["tax"], doc["tip"], doc["shipping"], -(doc["discount"] or 0))
+            for part in (
+                doc["subtotal"],
+                doc["tax"],
+                doc["tip"],
+                doc["shipping"],
+                -(doc["discount"] or 0),
+            )
         )
         if built != doc["total"]:
             failures.append(f"components give {built}, total printed {doc['total']}")

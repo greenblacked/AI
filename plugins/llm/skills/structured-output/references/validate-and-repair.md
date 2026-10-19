@@ -48,8 +48,7 @@ class StructuredOutputError(Exception):
         self.attempts = attempts
         last = attempts[-1]
         super().__init__(
-            f"{len(attempts)} attempt(s); last stop={last.stop.value}; "
-            f"problems={last.problems}"
+            f"{len(attempts)} attempt(s); last stop={last.stop.value}; problems={last.problems}"
         )
 
 
@@ -69,10 +68,7 @@ def check_reply(
     except json.JSONDecodeError as exc:
         return None, [f"not valid JSON: {exc.msg} at position {exc.pos}"]
     errors = sorted(validator.iter_errors(value), key=lambda e: list(map(str, e.path)))
-    problems = [
-        f"{'/'.join(map(str, e.absolute_path)) or '<root>'}: {e.message}"
-        for e in errors
-    ]
+    problems = [f"{'/'.join(map(str, e.absolute_path)) or '<root>'}: {e.message}" for e in errors]
     if not problems:  # semantic checks assume a well-shaped value
         for check in semantic_checks:
             problems.extend(check(value))
@@ -136,11 +132,7 @@ def enum_case_insensitive(field: str, allowed: set[str]) -> SemanticCheck:
 
     def check(value: object) -> list[str]:
         got = str(value[field])  # type: ignore[index]
-        return (
-            []
-            if got.lower() in lowered
-            else [f"{field}: {got!r} is not an allowed value"]
-        )
+        return [] if got.lower() in lowered else [f"{field}: {got!r} is not an allowed value"]
 
     return check
 
