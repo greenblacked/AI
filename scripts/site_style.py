@@ -1628,9 +1628,43 @@ def _plugin_css() -> str:
     )
 
 
+# The routing graph on a plugin page (see site_graph). `--rg` is the colour of its lines
+# and borders: the plugin's first look colour where it has one, so the drawing follows the
+# day, night and console palettes without an inline style. The drawing is hidden below
+# 40rem and the list beside it carries the page, because a scaled-down label is unreadable.
+GRAPH_CSS = """\
+.rg { --rg: var(--ink); margin-top: 3rem; }
+.rg-title { font-size: 1.5rem; line-height: 1.2; font-weight: 500; letter-spacing: -0.02em; }
+.rg-note { max-width: 42rem; margin-top: 0.5rem; color: var(--muted); }
+.rg-map { display: none; margin-top: 1.5rem; }
+.rg-svg { max-width: 100%; height: auto; }
+.rg-edge { fill: none; stroke: var(--rg); stroke-width: 1.5; }
+.rg-head { fill: var(--rg); }
+.rg-node { fill: var(--card); stroke: var(--rg); stroke-width: 1.5; }
+.rg-agent .rg-node { stroke-dasharray: 5 3; }
+.rg-text { fill: var(--ink); font: 13px var(--font-mono); }
+.rg-label { fill: var(--muted); font: 600 12px var(--font-sans); letter-spacing: 0.04em; }
+.rg-list { display: grid; gap: 0.5rem; margin-top: 1.5rem; }
+.rg-list a { text-decoration: underline; text-underline-offset: 4px; }
+.rg-list code { font-size: 0.9375rem; }
+@media (min-width: 40rem) {
+  .rg-map { display: block; }
+}
+"""
+
+
+def _graph_css() -> str:
+    """The graph rules, then one line per look binding `--rg` to that plugin's colour."""
+    colours = "\n".join(
+        f".{plugin_class(name)} .rg {{ --rg: var(--{name}-1); }}" for name in PLUGIN_LOOKS
+    )
+    return GRAPH_CSS + colours + "\n"
+
+
 CSS = (
     CSS.replace("@@PROFILE_RULES@@", _profile_rules()).replace("@@FONT_FACES@@", FONT_FACES.strip())
     + _plugin_css()
+    + _graph_css()
     + MOTION_CSS
 )
 
