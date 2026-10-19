@@ -894,3 +894,69 @@ deleted path meets the allowlist. Only prose enforces this; the
 moved into `docs/` under a documentation-only intent.
 
 **First caught:** the review of 10f7d9a..9c25708, by an automated reviewer.
+
+### An instruction-file list omits a tool's alternate filename
+
+**Class.** A list of the files a tool loads as instructions that names the tool's main
+filename and misses another name its loader also reads, so a path the tool treats as
+configuration is treated as inert content.
+
+**How it shows up.** The contributor-review contract listed instruction files as
+`CLAUDE.md`, `CLAUDE.local.md` or `AGENTS.md`. Codex also loads `AGENTS.override.md`
+and prefers it over `AGENTS.md` in the same directory, so a contributor's
+`docs/AGENTS.override.md` passed the inert allowlist as Markdown under `docs/`, could
+reach the gate worktree, and was not a blocking finding. The loader also reads every
+name in the user's `project_doc_fallback_filenames` setting after `AGENTS.md`, so a
+fixed name list misses a file such as `docs/TEAM_GUIDE.md` that a configured session
+loads as instructions. The blocking rule also said only "adds or edits", so a change that
+deleted `CLAUDE.md`, or renamed it away (`--no-renames` shows that as a deletion plus an
+addition), fell to the owner-must-run flow, whose checklist the owner can clear; removing
+trusted instructions has to block too. The rule was then restated in the reviewer role
+card without its deletion and rename clauses, and a sentence sending dot-prefixed paths
+such as `.claude/` to the owner-must-run flow survived in three files, so a statement read
+on its own still let an instruction change through: every restatement carries the whole
+rule, and `.claude/` is blocking wherever dot-prefixed paths are discussed.
+
+The fallback clause then named the setting and not its values. Every statement said "or
+any name Codex's `project_doc_fallback_filenames` lists", but the values live in the
+reviewing user's own Codex configuration (`~/.codex/config.toml`), not in this repository,
+and neither the packet nor the procedure obtained them, so a reviewer holding only the
+key had nothing to match against: a contributor's `docs/TEAM_GUIDE.md`, where the
+reviewer's configuration lists `TEAM_GUIDE.md`, was still classified as inert prose. The
+setting's name alone is not its values; the trusted caller has to state the resolved list
+(as a list, `[]` when empty) in the brief. A brief that omits it is not an empty list, so the reviewer
+stops and asks before classifying any Markdown path as inert, and nothing from the
+contributor's branch, a config file in the diff included, is ever a source for it. The
+empty list is written `[]` and not as the word `none`, because Codex accepts `none` as a
+fallback filename (its loader rejects only empty strings, `.`, `..` and path separators):
+the word would be indistinguishable from a configuration that lists `"none"`, and a
+contributor's `docs/none` could be misclassified either way.
+
+The comparison was also exact-case. The loaders open a file by name and trust the
+filesystem, so on a case-insensitive one (default macOS and Windows) a contributor's
+`docs/team_guide.md` loads where `TEAM_GUIDE.md` is configured, and `claude.md` or
+`agents.md` load as the fixed names, yet each read as inert Markdown. Every name
+comparison, fixed and fallback alike, is case-insensitive on any filesystem the reviewer
+runs on, since the reviewer cannot know what kind of checkout the reader has.
+
+**The check that catches it.** Verify each tool's loader source for every filename it
+reads, not its documentation's headline name; for Codex, `DEFAULT_AGENTS_MD_FILENAME`
+and `LOCAL_AGENTS_MD_FILENAME` in `codex-rs/core/src/agents_md.rs` in openai/codex.
+`tests/test_review_contract.py` checks that `reviewer.md`, `docs/chatgpt-agents.md` and
+`docs/using.md` name `AGENTS.override.md` in the inert-allowlist exclusion, and that
+`reviewer.md`'s blocking-finding rule names it and `project_doc_fallback_filenames` too, and
+that the rule says "adds, edits or deletes" and names renames, with the two documents that
+restate it, the role card in `docs/chatgpt-agents.md` included, saying the same, and that
+no file sends `.claude/` paths to the owner-must-run flow. It also checks that each of the five
+statements of the rule (two in `reviewer.md`, two in `docs/chatgpt-agents.md`, one in
+`docs/using.md`) says the list is the one the caller resolved from their trusted Codex
+configuration, matches on basename at any depth, never takes it from the diff, writes the empty case as `[]` and never as `none`, and stops
+and asks when the brief states no list, and that the packet, the copy-ready starter and the
+`/ship` and `/verify` commands name the list among what the owner passes. It also checks that each of the five
+statements says names compare case-insensitively, fixed and fallback alike, and that none
+calls the match exact or case-sensitive. No benchmark case seeds this
+defect, because the benchmark always briefs `reviewer` as the repository owner and so
+cannot exercise a contributor rule; the contract tests carry it instead.
+
+**First caught:** the owner's review of the contributor-review contract, against the
+Codex loader source.
