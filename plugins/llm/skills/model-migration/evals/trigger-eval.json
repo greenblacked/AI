@@ -1,0 +1,22 @@
+[
+  {"query": "anthropic emailed us that the claude version our support summariser uses is being retired, what do we have to do before the date", "should_trigger": true},
+  {"query": "we want to move our extraction pipeline from gpt-4o to the newer model to save money without quality dropping, plan it", "should_trigger": true},
+  {"query": "the replacement model rejects temperature and prefill in our requests, what else will break when we switch", "should_trigger": true},
+  {"query": "I ported our prompts to the new model version and the average score went up, but how do I see which individual test cases got worse", "should_trigger": true},
+  {"query": "set up shadow traffic and a canary with an automatic rollback for swapping the model behind our chat feature", "should_trigger": true},
+  {"query": "will moving to the newer model change our prompt cache hit rate and the cost per request, since it uses a different tokenizer", "should_trigger": true},
+  {"query": "keep the old model id behind a config flag until the deprecation date and write down why we switched", "should_trigger": true},
+  {"query": "we are upgrading from haiku 4.5 to the next haiku release, write the migration plan and checklist", "should_trigger": true},
+  {"query": "the gemini model our ocr cleanup step calls reaches end of life next quarter, migrate it safely", "should_trigger": true},
+  {"query": "before we flip the model in production, run the old and new model on our eval set several times and compare the outputs side by side", "should_trigger": true},
+  {"query": "which of our classification steps could call a cheaper model, and how do we find them", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "our openai bill tripled this month and I need to see which prompt path is burning the tokens", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "how should I structure my prompt so the provider's prompt cache hits more often", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "build a golden dataset and calibrate an llm judge against human labels for our tool-using agent", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "our retrieval step returns the wrong passages, how do I measure recall and precision of the retriever", "should_trigger": false, "expected": "retrieval-evaluation"},
+  {"query": "bump pydantic from v1 to v2 across the monorepo without a branch that lives for months", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "plan a percentage rollout with rings and bake times for the new checkout flow behind a feature flag", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "compare three speech-to-text vendors with a scorecard and a proof of concept before we sign", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "our agent keeps calling the same search tool in a loop, trace it and find the earliest wrong decision", "should_trigger": false, "expected": "agent-failure-diagnosis"},
+  {"query": "design the alerting rules for the error rate on our inference gateway so only actionable things page", "should_trigger": false, "expected": "alert-design"}
+]
