@@ -71,8 +71,13 @@ def evaluate(questions, retrieve, k, can_read=None):
         if not found:
             misses.append(q["id"])
     n = len(recalls)
-    return {"questions": n, "recall@k": sum(recalls) / n, "mrr": sum(rr) / n, "missed": misses,
-            "leaked": leaks}
+    return {
+        "questions": n,
+        "recall@k": sum(recalls) / n,
+        "mrr": sum(rr) / n,
+        "missed": misses,
+        "leaked": leaks,
+    }
 ```
 
 `retrieve` takes the question and the principal the case records, so each permission case runs as that caller rather than under whatever identity the harness happens to hold. Pass `can_read(principal, chunk_id)` from the same permission source the production filter uses: any entry in `leaked` fails the run whatever the recall, because an answer that is right for one caller and shows another caller's chunk beside it is still a leak.
