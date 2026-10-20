@@ -230,17 +230,18 @@ interruptions.
 ### Checks
 
 ```bash
-npm ci --ignore-scripts --prefix tools/audit     # the locked install references/audit.md creates
-A=tools/audit/node_modules/.bin
+T="${XDG_DATA_HOME:-$HOME/.local/share}/audit-tools"   # the locked install references/audit.md creates
+npm ci --ignore-scripts --prefix "$T"
+A="$T/node_modules/.bin"
 CHROME=/usr/bin/chromium CHROMEDRIVER=/usr/bin/chromedriver   # paths vary by distribution
 export CHROME_PATH="$CHROME"
-printf '{"chromeLaunchConfig": {"executablePath": "%s"}}\n' "$CHROME" > pa11y.json
+printf '{"chromeLaunchConfig": {"executablePath": "%s"}}\n' "$CHROME" > "$T/pa11y.json"
 $A/axe https://example.com --chrome-path "$CHROME" --chromedriver-path "$CHROMEDRIVER"   # ~30% of issues
-$A/pa11y --config ./pa11y.json https://example.com
+$A/pa11y --config "$T/pa11y.json" https://example.com
 ```
 
 Not `npx`: with the package absent it runs whatever the registry serves today, unasked.
-On a project with no `tools/audit` yet, create it first with the one-time install in
+Where that directory does not exist yet, create it first with the one-time install in
 the "Gather evidence" section of `references/audit.md`.
 
 Automated tools catch a minority of real problems. The manual pass is: tab the whole

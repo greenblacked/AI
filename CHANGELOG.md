@@ -86,8 +86,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   `Bash(npx:*)` pre-approval that only these commands used.
 - Remove the last `npx` calls from the skills. `accessibility-audit` and
   `website-builder`'s audit references install their audit tools at exact versions into
-  a directory of their own with a committed lockfile and `--ignore-scripts`, then call
-  that directory's binaries against an installed browser. Prisma, Wrangler and
+  a directory outside the audited project, with a version-controlled lockfile and
+  `--ignore-scripts`, then call that directory's binaries against an installed browser. Prisma, Wrangler and
   jscodeshift run from the project's own `node_modules/.bin`, and the deploy job in
   `website-builder`'s example pipeline installs from the lockfile before calling
   Wrangler. The retired `observatory-cli` gives way to MDN's HTTP Observatory, and

@@ -26,20 +26,21 @@ State the target (WCAG 2.2 Level AA), what is in scope (the pages, the flow from
 
 Run at least two engines and run each on every state in the sample, not only on load. Axe is the usual first choice, and pa11y or Lighthouse's accessibility category gives a second opinion.
 
-Run the engines from a locked install, not through `npx`: when a package is not already installed, `npx` fetches whatever version the registry serves now and runs it, and npm assumes `--yes` whenever standard input is not a terminal, which is how an agent runs it. The three need Node 22.19 or later. Create the lockfile once in a directory of its own, commit `tools/a11y/package.json` and `tools/a11y/package-lock.json`, and install from it on every later run. The versions are the ones this procedure was checked against; raise them deliberately.
+Run the engines from a locked install, not through `npx`: when a package is not already installed, `npx` fetches whatever version the registry serves now and runs it, and npm assumes `--yes` whenever standard input is not a terminal, which is how an agent runs it. The three need Node 22.19 or later. Create the lockfile once in a directory of your own outside the project under audit, keep its `package.json` and `package-lock.json` under your own version control, and install from it on every later run. Outside matters: `--prefix` makes that directory the npm project, so an `.npmrc` planted there by the audited repository could point the install at another registry. The versions are the ones this procedure was checked against; raise them deliberately.
 
 ```bash
-npm install --prefix tools/a11y --save-exact --ignore-scripts @axe-core/cli@4.14.0 pa11y@10.0.0 lighthouse@13.5.0   # once
-npm ci --ignore-scripts --prefix tools/a11y                                                                       # every run
-A=tools/a11y/node_modules/.bin
-CHROME=/usr/bin/chromium CHROMEDRIVER=/usr/bin/chromedriver                                                   # paths vary by distribution
-printf '{"chromeLaunchConfig": {"executablePath": "%s"}}\n' "$CHROME" > pa11y.json
+T="${XDG_DATA_HOME:-$HOME/.local/share}/a11y-tools"                                                  # outside the audited tree
+npm install --prefix "$T" --save-exact --ignore-scripts @axe-core/cli@4.14.0 pa11y@10.0.0 lighthouse@13.5.0   # once
+npm ci --ignore-scripts --prefix "$T"                                                                       # every run
+A="$T/node_modules/.bin"
+CHROME=/usr/bin/chromium CHROMEDRIVER=/usr/bin/chromedriver                                                 # paths vary by distribution
+printf '{"chromeLaunchConfig": {"executablePath": "%s"}}\n' "$CHROME" > "$T/pa11y.json"
 $A/axe https://example.com/checkout --tags wcag2a,wcag2aa,wcag21a,wcag21aa,wcag22aa --chrome-path "$CHROME" --chromedriver-path "$CHROMEDRIVER"
-$A/pa11y --config ./pa11y.json --runner axe --runner htmlcs https://example.com/checkout
+$A/pa11y --config "$T/pa11y.json" --runner axe --runner htmlcs https://example.com/checkout
 CHROME_PATH="$CHROME" $A/lighthouse https://example.com/checkout --only-categories=accessibility --output=json --output-path=./a11y.json
 ```
 
-`--ignore-scripts` keeps every package's install script from running, including the ones that download a browser and a driver, so point each engine at a Chrome or Chromium installed by the system package manager: `CHROME_PATH` for Lighthouse, `chromeLaunchConfig.executablePath` in the `pa11y.json` the block writes from `$CHROME`, and for axe a `chromedriver` whose major version matches that browser, since axe refuses to start against a mismatched driver.
+`--ignore-scripts` keeps every package's install script from running, including the ones that download a browser and a driver, so point each engine at a Chrome or Chromium installed by the system package manager: `CHROME_PATH` for Lighthouse, `chromeLaunchConfig.executablePath` in the `pa11y.json` the block writes from `$CHROME` beside the tools, never into the project, and for axe a `chromedriver` whose major version matches that browser, since axe refuses to start against a mismatched driver.
 
 This skill pre-approves no shell, so each of these asks first: the audited page is someone else's code running in a browser on your machine.
 

@@ -22,24 +22,27 @@ Everything below is observable from outside. Run it before forming any opinion.
 Run the audit tools from a locked install, never through `npx`: when a package is not
 already installed, `npx` fetches whatever the registry serves today and runs it, and
 npm skips the prompt whenever standard input is not a terminal. Install them once, at
-exact versions, into a directory of their own, and keep `package.json` and
-`package-lock.json` from that directory. This set needs Node 22.22.2 or later on the 22
+exact versions, into a directory of your own outside the project being audited, and
+keep that directory's `package.json` and `package-lock.json` under your own version
+control. Outside matters: `--prefix` makes the directory the npm project, so an `.npmrc`
+the audited repository planted there could send the install to another registry. This set needs Node 22.22.2 or later on the 22
 line, or 24.15 or later; Lighthouse and npm-check-updates set that floor:
 
 ```bash
-npm install --prefix tools/audit --save-exact --ignore-scripts \
+T="${XDG_DATA_HOME:-$HOME/.local/share}/audit-tools"   # never inside the audited tree
+npm install --prefix "$T" --save-exact --ignore-scripts \
   lighthouse@13.5.0 @axe-core/cli@4.14.0 pa11y@10.0.0 unlighthouse@0.19.1 \
   depcheck@1.4.7 npm-check-updates@23.1.1 source-map-explorer@2.5.3 webpagetest@0.7.6
-npm ci --ignore-scripts --prefix tools/audit       # every later run installs exactly that tree or fails
-A=tools/audit/node_modules/.bin
+npm ci --ignore-scripts --prefix "$T"              # every later run installs exactly that tree or fails
+A="$T/node_modules/.bin"
 CHROME=/usr/bin/chromium CHROMEDRIVER=/usr/bin/chromedriver   # paths vary by distribution
 export CHROME_PATH="$CHROME"                                  # Lighthouse and unlighthouse
-printf '{"chromeLaunchConfig": {"executablePath": "%s"}}\n' "$CHROME" > pa11y.json
+printf '{"chromeLaunchConfig": {"executablePath": "%s"}}\n' "$CHROME" > "$T/pa11y.json"
 ```
 
 `--ignore-scripts` also skips the browser and driver downloads, so every browser tool
 below is pointed at an installed Chrome: `CHROME_PATH` for Lighthouse and unlighthouse,
-`chromeLaunchConfig.executablePath` in the `pa11y.json` written above, and
+`chromeLaunchConfig.executablePath` in the `pa11y.json` written beside the tools, and
 `--chrome-path` with a `--chromedriver-path` of the same major version for axe.
 
 ```bash
@@ -136,7 +139,7 @@ definition.
 ```bash
 $A/axe https://example.com --tags wcag2a,wcag2aa,wcag22aa \
   --chrome-path "$CHROME" --chromedriver-path "$CHROMEDRIVER"
-$A/pa11y --config ./pa11y.json --standard WCAG2AA https://example.com
+$A/pa11y --config "$T/pa11y.json" --standard WCAG2AA https://example.com
 ```
 
 Plus the manual pass automation cannot do: tab the page end to end, confirm focus is
