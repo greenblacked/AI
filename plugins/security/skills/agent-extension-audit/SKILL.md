@@ -123,10 +123,20 @@ nothing, so nothing extracted as a link or a special file.
 
 Bound the expansion before extracting, because an archive whose every entry passes those
 checks can still fill the disk. Count the entries and add up the sizes the listing
-reports: `unzip -Zt` prints both totals for a ZIP, and
-`tar -tvf <archive> | awk '{n++; s+=$3} END {print n, s}'` does it for a tar. Refuse one
-past a ceiling you set for the review, such as 10,000 entries or 500 MB, or one that
-expands to more than about 100 times its own size. The listing reports what the headers
+reports, and stop the listing itself as soon as a ceiling you set for the review is
+crossed, because listing a compressed tar decompresses all of it:
+
+```bash
+set -o pipefail
+timeout 60 tar -tvf <archive> | awk -v max_n=10000 -v max_s=524288000 '
+  {n++; s+=$3}
+  n > max_n || s > max_s {over=1; print "over the review ceiling at entry " n > "/dev/stderr"; exit 1}
+  END {if (!over) print n, s}'
+```
+
+`unzip -Zt` prints both totals for a ZIP from its central directory without inflating
+anything. Refuse an archive past the ceiling, such as 10,000 entries or 500 MB, or one
+that expands to more than about 100 times its own size. The listing reports what the headers
 claim, so extract with a file-size limit as well, which the kernel enforces whatever the
 headers say: `ulimit -f 512000` in a subshell before `tar -x` stops any one file at 500 MB
 (the unit is 1,024-byte blocks), and a quarantine on a size-limited filesystem, such as a

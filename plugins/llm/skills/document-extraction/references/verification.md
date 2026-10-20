@@ -50,7 +50,8 @@ def money(raw, decimal_sep="."):
     thousands = "," if decimal_sep == "." else "."
     t, d = re.escape(thousands), re.escape(decimal_sep)
     body = rf"(?:\d{{1,3}}(?:{t}\d{{3}})+|\d+)(?:{d}\d+)?"
-    match = re.fullmatch(rf"([-+]?)({body})|\(({body})\)", raw.strip().replace(" ", ""))
+    # A space inside the number is rejected, not deleted: "12 34" is a misread, not 1234.
+    match = re.fullmatch(rf"([-+]?)({body})|\(({body})\)", raw.strip())
     if match is None:
         return None
     sign, signed_digits, bracketed = match.groups()

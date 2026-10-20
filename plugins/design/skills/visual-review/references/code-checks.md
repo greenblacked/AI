@@ -86,10 +86,15 @@ const state = await page.evaluate(async () => {
   infinite iterations is the usual cause of a capture that differs run to run. Under
   reduced motion a page may keep short or non-moving animations, such as a fade, so the
   check there is that nothing left moves or loops, not that the list is empty.
-- `faces` must hold a face for each family the design names, each with status `loaded`.
+- `faces` lists every `@font-face` the stylesheets declare, and one the page never
+  renders (an unused italic, weight or subset) stays `unloaded`; that is not a failure.
+  Fail on any face with status `error`, which failed to download, and for each family,
+  weight and style the design renders call `document.fonts.load()` and expect at least
+  one face back, as the `e2e-testing` skill's visual-snapshot reference shows.
   `document.fonts.status` reads `loaded` and `document.fonts.check()` returns true even
   when no face for the family exists, because the browser falls back without an error, so
-  neither proves the right font rendered. A face with status `error` failed to download.
+  neither proves the right font rendered; a system font is not in the set at all, and the
+  DevTools check below is the one that sees it.
 
 ## Horizontal overflow at 360
 
