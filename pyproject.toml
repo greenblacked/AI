@@ -74,5 +74,7 @@ quiet-level = 3
 # spelled that way by Playwright, Jest and Vitest alike, so the e2e-testing skill cannot
 # write it any other way. "AKS" is Azure Kubernetes Service, named beside EKS and GKE in
 # k8s-upgrade — codespell 2.4.3 flags it as "ASK"/"ask" without this entry, verified by
-# removing it and re-running the check.
-ignore-words-list = "trough,applyable,unparseable,stings,caf,aplha,lod,afterall,aks"
+# removing it and re-running the check. "covert" is the security term for a covert channel,
+# which the injection-architecture reference attributes to Microsoft's catalogue of
+# exfiltration channels; codespell 2.x suggests "convert" for it.
+ignore-words-list = "trough,applyable,unparseable,stings,caf,aplha,lod,afterall,aks,covert"

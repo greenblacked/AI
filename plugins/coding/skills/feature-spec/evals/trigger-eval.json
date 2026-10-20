@@ -1,0 +1,22 @@
+[
+  {"query": "I want to add CSV export to the reports page, can you help me work out what to build before we start coding", "should_trigger": true},
+  {"query": "spec out a notifications feature for our app, I only have a rough idea", "should_trigger": true},
+  {"query": "before you write anything, interview me about this feature and turn it into a plan with checkable steps", "should_trigger": true},
+  {"query": "I have an idea for a saved-searches feature, where do we even begin", "should_trigger": true},
+  {"query": "write the acceptance criteria and non-goals for this feature request, then wait for me to approve them", "should_trigger": true},
+  {"query": "give me two or three ways to build team invitations with the trade-offs and tell me which you would pick", "should_trigger": true},
+  {"query": "this ticket just says 'add SSO' and touches half the codebase, plan it out before we start", "should_trigger": true},
+  {"query": "break this feature into small verifiable tasks and put the riskiest one first", "should_trigger": true},
+  {"query": "we are halfway through the plan, re-read it and tell me where the build has drifted from what we agreed", "should_trigger": true},
+  {"query": "don't start coding yet, ask me questions one at a time until the requirements are clear", "should_trigger": true},
+  {"query": "we chose Kafka over SQS last week, write up the decision and why", "should_trigger": false, "expected": "decision-record"},
+  {"query": "write a brief for the coding agent to rename this one config field and tell it which files not to touch", "should_trigger": false, "expected": "agent-delegation"},
+  {"query": "should this endpoint be a PATCH or an action, and how do we paginate the list", "should_trigger": false, "expected": "api-design"},
+  {"query": "how should I model the tables for orders and line items, UUID or bigint keys", "should_trigger": false, "expected": "schema-design"},
+  {"query": "which FAMILY profile fits a team of ten and what are the stages", "should_trigger": false, "expected": "family-workflow"},
+  {"query": "the build is finished, check the diff against the maker plan before we call the inspector", "should_trigger": false, "expected": "plan-drift-gate"},
+  {"query": "plan the phased migration from Jenkins to GitHub Actions with rollback triggers", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "write a feature design document for the new crafting system in our game for the whole studio", "should_trigger": false, "expected": "game-design-doc"},
+  {"query": "this test fails with a null pointer only on CI, help me find out why", "should_trigger": false, "expected": "debugging"},
+  {"query": "write me a bash script that rotates these log files and keeps seven days", "should_trigger": false, "expected": "code-scaffold"}
+]

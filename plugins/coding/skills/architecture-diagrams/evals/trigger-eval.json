@@ -1,0 +1,92 @@
+[
+ {
+  "query": "draw the architecture of our orders service so new hires can see how the pieces connect, and put it in the repo as code",
+  "should_trigger": true
+ },
+ {
+  "query": "add a sequence diagram of the login flow to the README, something that renders on GitHub",
+  "should_trigger": true
+ },
+ {
+  "query": "my mermaid diagram shows a syntax error on GitHub and the node labels have parentheses and colons in them",
+  "should_trigger": true
+ },
+ {
+  "query": "our architecture diagram has sixty boxes and the arrows cross everywhere, nobody can read it",
+  "should_trigger": true
+ },
+ {
+  "query": "should I use mermaid, d2 or graphviz for a service dependency graph with a few hundred nodes",
+  "should_trigger": true
+ },
+ {
+  "query": "make a C4 container diagram for the checkout system and keep it consistent with the context diagram",
+  "should_trigger": true
+ },
+ {
+  "query": "set up CI to render our d2 files to svg and fail the build when the committed svg is stale",
+  "should_trigger": true
+ },
+ {
+  "query": "draw our deploy pipeline as a flowchart in code so it lives next to the pipeline config",
+  "should_trigger": true
+ },
+ {
+  "query": "I rendered a graphviz diagram but the labels overlap and a few are cut off, how do I fix the layout",
+  "should_trigger": true
+ },
+ {
+  "query": "turn this whiteboard sketch of our event-driven system into a diagram we can keep in version control",
+  "should_trigger": true
+ },
+ {
+  "query": "write the README for this service with install, run and test steps for a new developer",
+  "should_trigger": false,
+  "expected": "technical-docs"
+ },
+ {
+  "query": "I just joined this team and inherited this repo, where do I start and how does a request flow through it",
+  "should_trigger": false,
+  "expected": "codebase-orientation"
+ },
+ {
+  "query": "we picked Kafka over RabbitMQ last week, write it up with the options we rejected",
+  "should_trigger": false,
+  "expected": "decision-record"
+ },
+ {
+  "query": "walk through what an attacker could do at each trust boundary of this payments design and what we should mitigate",
+  "should_trigger": false,
+  "expected": "threat-model"
+ },
+ {
+  "query": "plot monthly signups as a line chart from this CSV and make the axes readable",
+  "should_trigger": false,
+  "expected": "data-visualisation"
+ },
+ {
+  "query": "design the database tables for orders and customers, including keys and indexes",
+  "should_trigger": false,
+  "expected": "schema-design"
+ },
+ {
+  "query": "write the 3am procedure for when the job queue backs up and the alert fires",
+  "should_trigger": false,
+  "expected": "runbook"
+ },
+ {
+  "query": "restructure the navigation and page hierarchy of our docs site so people can find things",
+  "should_trigger": false,
+  "expected": "information-architecture"
+ },
+ {
+  "query": "write a blog post explaining how we scaled our architecture to a million users",
+  "should_trigger": false,
+  "expected": "write-technical-article"
+ },
+ {
+  "query": "write up last night's outage with a timeline, contributing factors and follow-up actions",
+  "should_trigger": false,
+  "expected": "postmortem"
+ }
+]

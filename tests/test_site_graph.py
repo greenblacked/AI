@@ -473,8 +473,11 @@ def test_the_real_repository_has_edges_and_only_its_stated_ones():
     assert graph.Edge("operations", "ci-triage", "operations", "ci-log-reader") in edges
     # Cross-plugin: the postmortem skill is in manager and names the operations scribe.
     assert graph.Edge("manager", "postmortem", "operations", "incident-scribe") in edges
-    # "maker" is an English word in several unrelated skills and must not become an edge.
-    assert not [e for e in edges if e.agent == "maker" and e.skill_plugin != "family"]
+    # "maker" is an English word in several unrelated skills and must not become an edge
+    # there; a skill that writes the family agent's name as inline code may route to it.
+    prose = [s.name for s in catalogue_skills if "maker" in s.body and "`maker`" not in s.body]
+    assert prose  # the case this guards is still present in the corpus
+    assert not [e for e in edges if e.agent == "maker" and e.skill in prose]
     names = {skill.name: skill for skill in catalogue_skills}
     for edge in edges:
         assert f"`{edge.agent}`" in names[edge.skill].body

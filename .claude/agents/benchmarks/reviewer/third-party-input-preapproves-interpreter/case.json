@@ -1,0 +1,11 @@
+{
+  "kind": "defect",
+  "intent": "Let document-extraction run a small script to normalise OCR output before the arithmetic checks.",
+  "lesson": "A skill pre-approves an interpreter in the turn that reads someone else's text",
+  "must_mention": [
+    "document-extraction",
+    "python3?|interpreter",
+    "allowed-tools|pre-approv|prompt",
+    "third.party|untrusted|injection|scan|document"
+  ]
+}

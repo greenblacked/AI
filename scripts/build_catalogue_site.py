@@ -150,6 +150,11 @@ ABOUT = {
         "heuristics, audit a page against WCAG 2.2, set up tokens, themes and component states, "
         "and plan a small test with real people."
     ),
+    "llm": (
+        "Build features on language models without trusting them blindly. Retrieval over your "
+        "own documents, structured output a program can rely on, MCP servers, document "
+        "extraction with checked values, and moving to a new model without a silent regression."
+    ),
 }
 
 NUMBER_WORDS = [

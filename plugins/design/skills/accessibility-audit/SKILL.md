@@ -83,3 +83,4 @@ Lead with blockers. State the sample, the engines and versions, the browsers and
 ## References
 
 - `references/wcag22-checklist.md`: read at step 3 for the manual-pass procedure, and at step 4 for the criterion numbers, levels and thresholds, including what is new in WCAG 2.2.
+- `references/charts-and-graphics.md`: read at step 3 when the sample contains a chart, diagram, icon or inline SVG, for text alternatives, SVG naming, colour, graphic contrast and chart motion.
