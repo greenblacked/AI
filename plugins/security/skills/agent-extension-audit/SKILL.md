@@ -63,9 +63,16 @@ Make an empty directory outside any project, such as one under `$TMPDIR`, and fe
 it with a tool that does not build or execute — before reading any of it:
 
 ```bash
-git clone --no-tags -- <url> <quarantine>/src      # no --recurse-submodules
+git -c core.symlinks=false clone --no-tags -- <url> <quarantine>/src  # no submodules
 git -C <quarantine>/src rev-parse HEAD             # the commit under review
+git -C <quarantine>/src ls-files -s | awk '$1 == "120000"'   # symlinks; expect none
 ```
+
+A repository can commit a symlink that looks like a README or a source file and points
+outside the quarantine, at a credentials file or another project's instructions, and
+`Read` follows links. `core.symlinks=false` checks each one out as a small text file
+holding its target instead. List them with the last command before reading anything, and
+treat any that exists as a finding: read its target path as text, never through the link.
 
 For an archive, download it with `curl`, record `sha256sum` of the file, list the members
 with `tar -tvf` or `unzip -l` and look for absolute paths, `..` and symlinks that leave
