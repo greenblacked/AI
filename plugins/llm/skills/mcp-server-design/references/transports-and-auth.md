@@ -121,7 +121,9 @@ and the Streamable HTTP page:
 - No `initialize` handshake and no `MCP-Session-Id`. Each request carries its protocol
   version and client capabilities in `_meta`.
 - `server/discover` is a method servers must implement, advertising supported versions,
-  capabilities and identity.
+  capabilities and identity. Calling it is optional for clients: a client may send any
+  request first, so a server must not refuse one that never called discovery
+  ([`server/discover`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2026-07-28/server/discover.mdx)).
 - The HTTP GET endpoint is gone. Change notifications travel on the response stream of a
   `subscriptions/listen` request.
 - SSE resumption by `Last-Event-ID` is removed: a broken stream loses the in-flight
