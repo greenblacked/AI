@@ -57,7 +57,10 @@ def printed(field, decimal_sep=".", symbols=SYMBOLS):
         if sign:
             return None
         sign, text = "-", text[1:-1].strip()
-    lead, number, trail = MARKED.fullmatch(text).groups()
+    marked = MARKED.fullmatch(text)
+    if marked is None:  # no single-line amount, such as digits split by a newline
+        return None
+    lead, number, trail = marked.groups()
     if lead and trail:
         return None
     marker = lead or trail

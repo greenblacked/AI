@@ -167,7 +167,7 @@ Run the update in the pinned image:
 ```bash
 docker run --rm --init --ipc=host -v "$PWD":/work -w /work \
   "mcr.microsoft.com/playwright:v1.64.1-noble@sha256:${PLAYWRIGHT_DIGEST:?}" \
-  sh -c 'npm ci && npx playwright test pricing.spec.ts --update-snapshots=changed'
+  sh -c 'npm ci && node_modules/.bin/playwright test pricing.spec.ts --update-snapshots=changed'
 ```
 
 Guidance beyond the documentation: mount a named volume at `/work/node_modules` so the container does not overwrite a host install built for another OS, expect root-owned files on a Linux host unless you pass `--user`, and wrap the command in a package script so nobody types it from memory.

@@ -44,11 +44,15 @@ reference for both commands.
 docker pull "$PLAYWRIGHT_IMAGE"
 docker run --rm --ipc=host -v "$PWD":/work -w /work \
   "$PLAYWRIGHT_IMAGE" \
-  npx playwright test --project=w360-dark
+  sh -c 'npm ci && node_modules/.bin/playwright test --project=w360-dark'
 ```
 
-The image does not contain the Playwright package, so install your dependencies inside
-the container or bake them into a derived image. Record the image tag next to the
+The image does not contain the Playwright package, so the command installs your locked
+dependencies inside the container with `npm ci` and runs the binary that installed. Call
+`node_modules/.bin/playwright` rather than `npx playwright`: when the local package is
+missing, `npx` fetches one from the registry, which runs unreviewed code at whatever
+version is current instead of the one your lockfile and the image tag agree on. A
+derived image with the dependencies baked in works too. Record the image tag next to the
 baselines; a baseline with no recorded environment cannot be reproduced.
 
 ## The viewport and theme matrix as projects
@@ -218,7 +222,8 @@ A region with no element is usually the page background and means the layout shi
 
 ## Updating baselines
 
-`npx playwright test --update-snapshots` rewrites the baselines. Run it only after reading
+`node_modules/.bin/playwright test --update-snapshots`, run in the same image after
+`npm ci`, rewrites the baselines. Run it only after reading
 the diff, and review the changed images in the pull request, because an accepted update
 records the defect as the new truth. Commit the snapshot directory with the change that
 caused it, not separately.
