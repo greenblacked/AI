@@ -34,12 +34,13 @@ npm ci --ignore-scripts --prefix tools/audit       # every later run installs ex
 A=tools/audit/node_modules/.bin
 CHROME=/usr/bin/chromium CHROMEDRIVER=/usr/bin/chromedriver   # paths vary by distribution
 export CHROME_PATH="$CHROME"                                  # Lighthouse and unlighthouse
+printf '{"chromeLaunchConfig": {"executablePath": "%s"}}\n' "$CHROME" > pa11y.json
 ```
 
 `--ignore-scripts` also skips the browser and driver downloads, so every browser tool
 below is pointed at an installed Chrome: `CHROME_PATH` for Lighthouse and unlighthouse,
-`{"chromeLaunchConfig": {"executablePath": "/usr/bin/chromium"}}` in `pa11y.json`,
-and `--chrome-path` with a `--chromedriver-path` of the same major version for axe.
+`chromeLaunchConfig.executablePath` in the `pa11y.json` written above, and
+`--chrome-path` with a `--chromedriver-path` of the same major version for axe.
 
 ```bash
 curl -sI https://example.com                          # status, headers, server

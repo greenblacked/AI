@@ -234,14 +234,14 @@ npm ci --ignore-scripts --prefix tools/audit     # the locked install references
 A=tools/audit/node_modules/.bin
 CHROME=/usr/bin/chromium CHROMEDRIVER=/usr/bin/chromedriver   # paths vary by distribution
 export CHROME_PATH="$CHROME"
+printf '{"chromeLaunchConfig": {"executablePath": "%s"}}\n' "$CHROME" > pa11y.json
 $A/axe https://example.com --chrome-path "$CHROME" --chromedriver-path "$CHROMEDRIVER"   # ~30% of issues
 $A/pa11y --config ./pa11y.json https://example.com
 ```
 
 Not `npx`: with the package absent it runs whatever the registry serves today, unasked.
 On a project with no `tools/audit` yet, create it first with the one-time install in
-the "Gather evidence" section of `references/audit.md`. `pa11y.json` names the same
-Chrome: `{"chromeLaunchConfig": {"executablePath": "/usr/bin/chromium"}}`.
+the "Gather evidence" section of `references/audit.md`.
 
 Automated tools catch a minority of real problems. The manual pass is: tab the whole
 page start to finish, use it once with the mouse unplugged, and zoom to 200% to confirm
