@@ -91,7 +91,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   jscodeshift run from the project's own `node_modules/.bin`, and the deploy job in
   `website-builder`'s example pipeline installs from the lockfile before calling
   Wrangler. The retired `observatory-cli` gives way to MDN's HTTP Observatory, and
-  `accessibility-audit`, `website-builder` and `game-builder` drop `Bash(npx:*)`.
+  `accessibility-audit` drops `Bash(npx:*)`, and `website-builder` and `game-builder`,
+  whose improve modes read a site or a game someone else wrote, now pre-approve only
+  `Read`, `Grep` and `Glob`, so every command, fetch and write asks first.
 
 ## [0.1.12] - 2026-10-19
 

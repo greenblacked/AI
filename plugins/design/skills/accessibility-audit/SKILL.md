@@ -26,7 +26,7 @@ State the target (WCAG 2.2 Level AA), what is in scope (the pages, the flow from
 
 Run at least two engines and run each on every state in the sample, not only on load. Axe is the usual first choice, and pa11y or Lighthouse's accessibility category gives a second opinion.
 
-Run the engines from a locked install, not through `npx`: when a package is not already installed, `npx` fetches whatever version the registry serves now and runs it, and npm assumes `--yes` whenever standard input is not a terminal, which is how an agent runs it. Create the lockfile once in a directory of its own, commit `tools/a11y/package.json` and `tools/a11y/package-lock.json`, and install from it on every later run. The versions are the ones this procedure was checked against; raise them deliberately.
+Run the engines from a locked install, not through `npx`: when a package is not already installed, `npx` fetches whatever version the registry serves now and runs it, and npm assumes `--yes` whenever standard input is not a terminal, which is how an agent runs it. The three need Node 22.19 or later. Create the lockfile once in a directory of its own, commit `tools/a11y/package.json` and `tools/a11y/package-lock.json`, and install from it on every later run. The versions are the ones this procedure was checked against; raise them deliberately.
 
 ```bash
 npm install --prefix tools/a11y --save-exact --ignore-scripts @axe-core/cli@4.14.0 pa11y@10.0.0 lighthouse@13.5.0   # once

@@ -23,7 +23,8 @@ Run the audit tools from a locked install, never through `npx`: when a package i
 already installed, `npx` fetches whatever the registry serves today and runs it, and
 npm skips the prompt whenever standard input is not a terminal. Install them once, at
 exact versions, into a directory of their own, and keep `package.json` and
-`package-lock.json` from that directory:
+`package-lock.json` from that directory. This set needs Node 22.22.2 or later on the 22
+line, or 24.15 or later; Lighthouse and npm-check-updates set that floor:
 
 ```bash
 npm install --prefix tools/audit --save-exact --ignore-scripts \
