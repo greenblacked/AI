@@ -30,17 +30,19 @@ if ! eval "$BUILD_CMD"; then
   exit 125
 fi
 
-# A runner named by path that this commit did not install is untestable too.
-runner="${TEST_CMD%% *}"
-if [[ "$runner" == */* && ! -x "$runner" ]]; then
-  log "test runner $runner is not installed at this commit - skipping"
-  exit 125
-fi
-
 for attempt in $(seq 1 "$ATTEMPTS"); do
-  if eval "$TEST_CMD"; then
+  status=0
+  eval "$TEST_CMD" || status=$?
+  if [ "$status" -eq 0 ]; then
     log "attempt $attempt/$ATTEMPTS passed - commit is good"
     exit 0
+  fi
+  # 126 and 127 are the shell saying the command could not run at all, as when this
+  # commit's lockfile installed no runner. That is untestable, not bad, whatever wraps
+  # the runner (`env`, a variable assignment, `xvfb-run`).
+  if [ "$status" -eq 126 ] || [ "$status" -eq 127 ]; then
+    log "test command could not run at this commit (exit $status) - skipping"
+    exit 125
   fi
   log "attempt $attempt/$ATTEMPTS failed"
 done

@@ -44,5 +44,18 @@ def test_a_build_failure_is_skipped(tmp_path: Path) -> None:
     assert run(tmp_path, BISECT_BUILD_CMD="false") == 125
 
 
-def test_a_custom_command_without_a_path_is_not_guarded(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "command",
+    [
+        "env FOO=bar node_modules/.bin/jest path/to/suspect.test.ts",
+        "NODE_OPTIONS=--max-old-space-size=4096 node_modules/.bin/jest path/to/suspect.test.ts",
+    ],
+)
+def test_a_wrapped_runner_that_is_missing_is_skipped(tmp_path: Path, command: str) -> None:
+    # The shell's own "cannot run" codes, whatever wraps the runner, mean untestable.
+    assert run(tmp_path, BISECT_TEST_CMD=command) == 125
+
+
+def test_a_custom_command_decides(tmp_path: Path) -> None:
     assert run(tmp_path, BISECT_TEST_CMD="true") == 0
+    assert run(tmp_path, BISECT_TEST_CMD="false") == 1
