@@ -84,6 +84,16 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   probe now skips a commit whose lockfile has no test runner instead of fetching one, with
   tests for its exit codes, and `ui-ux-review`, `e2e-testing` and `test-design` drop the
   `Bash(npx:*)` pre-approval that only these commands used.
+- Remove the last `npx` calls from the skills. `accessibility-audit` and
+  `website-builder`'s audit references install their audit tools at exact versions into
+  a directory outside the audited project, with a version-controlled lockfile and
+  `--ignore-scripts`, then call that directory's binaries against an installed browser. Prisma, Wrangler and
+  jscodeshift run from the project's own `node_modules/.bin`, and the deploy job in
+  `website-builder`'s example pipeline installs from the lockfile before calling
+  Wrangler. The retired `observatory-cli` gives way to MDN's HTTP Observatory, and
+  `accessibility-audit` drops `Bash(npx:*)`, and `website-builder` and `game-builder`,
+  whose improve modes read a site or a game someone else wrote, now pre-approve only
+  `Read`, `Grep` and `Glob`, so every command, fetch and write asks first.
 
 ## [0.1.12] - 2026-10-19
 
