@@ -79,13 +79,24 @@ one very large share is a finding; a flat spread across users is the other findi
 it points at the prompt path rather than at the people.
 
 ```bash
-jq -rs 'group_by(.feature // "untagged")
+jq -rs '(map(.cost // 0) | add) as $total
+        | group_by(.feature // "untagged")
         | map({feature: (.[0].feature // "untagged"),
                calls: length,
+               input: (map(.input_tokens // 0) | add),
+               cache_read: (map(.cache_read_input_tokens // 0) | add),
+               cache_write: (map(.cache_creation_input_tokens // 0) | add),
                output: (map(.output_tokens // 0) | add),
-               cost: (map(.cost // 0) | add)})
+               cost: (map(.cost // 0) | add),
+               rows_without_cost: (map(select(.cost == null)) | length)})
+        | map(. + {share_pct: (if $total > 0 then (.cost / $total * 100 | round) else null end)})
         | sort_by(-.cost)' export.jsonl
 ```
+
+The field names are the Anthropic-format usage fields from the paragraph above; rename
+them to the export's own. `rows_without_cost` keeps a row with no price visible rather
+than letting it count as free: report it beside the share, because a group whose rows
+mostly lack a cost looks cheaper than it is.
 
 Report the untagged share as a headline figure when it is large. If most rows carry no
 feature or prompt path, any split you produce describes the minority that happened to be

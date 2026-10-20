@@ -58,6 +58,17 @@ def num(field):
     return money(field["value"])  # normalised values use "." and no thousands mark
 
 
+def charge(field):
+    """A total component: zero when the document prints none, None when unreadable.
+
+    A charge the page does not contain adds nothing to the total, so an ``absent`` field
+    counts as zero; one that is printed but could not be read leaves the total unchecked.
+    """
+    if not field or (field.get("value") is None and field.get("confidence_basis") == "absent"):
+        return Decimal(0)
+    return num(field)
+
+
 def check_totals(doc):
     """Return the failed checks; an empty list means the arithmetic closes.
 
@@ -76,11 +87,17 @@ def check_totals(doc):
     subtotal, total = num(doc.get("subtotal")), num(doc.get("total"))
     if None in amounts:
         failures.append("a line amount is missing, so the subtotal cannot be checked")
-    elif subtotal is not None and sum(amounts) != subtotal:
+    elif subtotal is None:
+        failures.append("subtotal not checkable: it is missing or unreadable")
+    elif sum(amounts) != subtotal:
         failures.append(f"lines sum to {sum(amounts)}, subtotal printed {subtotal}")
-    if subtotal is not None and total is not None:
-        extras = [num(doc.get(k)) or 0 for k in ("tax", "tip", "shipping")]
-        built = subtotal + sum(extras) - (num(doc.get("discount")) or 0)
+    parts = {k: charge(doc.get(k)) for k in ("tax", "tip", "shipping", "discount")}
+    unread = [k for k, v in parts.items() if v is None]
+    if subtotal is None or total is None or unread:
+        missing = unread or ["subtotal or total"]
+        failures.append(f"total not checkable: {', '.join(missing)} unreadable")
+    else:
+        built = subtotal + parts["tax"] + parts["tip"] + parts["shipping"] - parts["discount"]
         if built != total:
             failures.append(f"components give {built}, total printed {total}")
     return failures
