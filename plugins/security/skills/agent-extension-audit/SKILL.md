@@ -112,8 +112,18 @@ qgit -C <quarantine>/src checkout HEAD
 
 `git archive` is not a substitute for either: it applies the same filters.
 
-For an archive, download it with `curl`, record `sha256sum` of the file, and list the
-members in the long form that shows each entry's type: `tar -tvf`, or `unzip -Z` for a
+For an archive, hold the download to the same rules as the Git fetch: an `https://` URL
+only, none of your own curl configuration (`-q` has to come first to skip `~/.curlrc`),
+no redirect to another scheme, and a cap on size and time:
+
+```bash
+case "<url>" in https://*) ;; *) echo "refusing a non-https source" >&2; exit 1 ;; esac
+curl -q --proto '=https' --proto-redir '=https' --fail --location --max-redirs 3 \
+  --max-filesize 524288000 --max-time 300 --output <quarantine>/package -- <url>
+sha256sum <quarantine>/package
+```
+
+Then list the members in the long form that shows each entry's type: `tar -tvf`, or `unzip -Z` for a
 ZIP, because `unzip -l` does not mark a symlink. Reject absolute paths, `..`, and every
 entry whose mode does not start with `-` (a regular file) or `d` (a directory): `l` is a
 symlink, `h` a hard link, `p` a FIFO that hangs whatever reads it, and `c` or `b` a

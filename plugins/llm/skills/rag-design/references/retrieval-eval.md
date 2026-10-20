@@ -44,7 +44,7 @@ Report each as a count over a denominator ("31 of 40 questions"), so a reader ca
 
 ## A harness
 
-This runs against any retriever that takes a question and a principal (`None` when the case records none) and returns ranked chunk ids. It needs no third-party package.
+This runs against any retriever that takes a question and a principal (`None` when the case records none) and returns ranked `(chunk_id, score)` pairs, best first. `threshold` is the score below which the pipeline refuses; the harness applies it to every question, so an unanswerable question that still gets a strong candidate counts as a wrongful answer and an answerable one whose best candidate falls short counts as a wrongful refusal, the two error directions the refusal metric above reports separately. It needs no third-party package.
 
 ```python
 import json
@@ -55,15 +55,22 @@ def load(path):
         return [json.loads(line) for line in f if line.strip()]
 
 
-def evaluate(questions, retrieve, k, can_read=None):
+def evaluate(questions, retrieve, k, threshold, can_read=None):
     recalls, rr, misses, leaks = [], [], [], []
+    wrongful_answers, wrongful_refusals = [], []
     for q in questions:
         principal = q.get("principal")
-        got = retrieve(q["question"], principal)[:k]
+        ranked = retrieve(q["question"], principal)[:k]  # [(chunk_id, score), ...] best first
+        got = [cid for cid, _ in ranked]
         if can_read is not None:
             leaks += [(q["id"], cid) for cid in got if not can_read(principal, cid)]
+        answers = bool(ranked) and ranked[0][1] >= threshold
         if not q["answerable"]:
+            if answers:  # a strong candidate for a question the corpus cannot answer
+                wrongful_answers.append(q["id"])
             continue
+        if not answers:
+            wrongful_refusals.append(q["id"])
         want = set(q["relevant"])
         if not want:
             raise ValueError(f"{q['id']}: answerable but lists no relevant passages")
@@ -84,6 +91,8 @@ def evaluate(questions, retrieve, k, can_read=None):
         "recall@k": sum(recalls) / n,
         "mrr": sum(rr) / n,
         "missed": misses,
+        "wrongful_answers": wrongful_answers,
+        "wrongful_refusals": wrongful_refusals,
     }
 ```
 

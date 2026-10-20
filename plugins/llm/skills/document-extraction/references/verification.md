@@ -39,8 +39,9 @@ from decimal import Decimal
 
 # A normalised value: an optional minus, digits, and at most one "." with digits after it.
 NORMALISED = re.compile(r"-?\d+(?:\.\d+)?")
-# A currency marker before or after the number in `raw`, such as "EUR " or " USD".
-MARKER = re.compile(r"^[^\d(+-]+|[^\d)]+$")
+# A currency marker before or after the number in `raw`, such as "EUR " or " USD", and
+# nothing else: a trailing "-" or "(" is sign syntax for money() to reject, not a marker.
+MARKER = re.compile(r"^(?:[A-Z]{3}|[$€£¥])\s*|\s*(?:[A-Z]{3}|[$€£¥])$")
 
 
 def money(raw, decimal_sep="."):
