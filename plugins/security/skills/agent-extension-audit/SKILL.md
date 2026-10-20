@@ -99,7 +99,20 @@ entry whose mode does not start with `-` (a regular file) or `d` (a directory): 
 symlink, `h` a hard link, `p` a FIFO that hangs whatever reads it, and `c` or `b` a
 device node. Then extract only into the empty quarantine directory and confirm that both
 `find <quarantine> ! -type f ! -type d` and `find <quarantine> -type f -links +1` print
-nothing, so nothing extracted as a link or a special file. Pass paths as
+nothing, so nothing extracted as a link or a special file.
+
+Bound the expansion before extracting, because an archive whose every entry passes those
+checks can still fill the disk. Count the entries and add up the sizes the listing
+reports: `unzip -Zt` prints both totals for a ZIP, and
+`tar -tvf <archive> | awk '{n++; s+=$3} END {print n, s}'` does it for a tar. Refuse one
+past a ceiling you set for the review, such as 10,000 entries or 500 MB, or one that
+expands to more than about 100 times its own size. The listing reports what the headers
+claim, so extract with a file-size limit as well, which the kernel enforces whatever the
+headers say: `ulimit -f 512000` in a subshell before `tar -x` stops any one file at 500 MB
+(the unit is 1,024-byte blocks), and a quarantine on a size-limited filesystem, such as a
+`tmpfs` mounted with `size=`, caps the total.
+
+Pass paths as
 arguments (`git -C`, `rg ... <path>`) rather than changing into the directory, because
 interpreters and build tools load code from the current directory.
 

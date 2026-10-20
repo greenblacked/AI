@@ -34,21 +34,26 @@ The document contains its own redundancy, and most financial documents carry ple
 Compare with exact decimal arithmetic and zero tolerance by default. A one-cent difference is a misreading until the document shows a rounding rule (a printed rounding line, or tax computed per line), and a tolerance chosen to make a check pass hides the misreadings the check exists to catch. When a document does round, model the rule explicitly and write it into the check.
 
 ```python
+import re
 from decimal import Decimal, InvalidOperation
+
+# One optional sign or one pair of parentheses around digits and separators, nothing else.
+AMOUNT = re.compile(r"([-+]?)(\d[\d.,]*)|\((\d[\d.,]*)\)")
 
 
 def money(raw, decimal_sep="."):
     """Parse a printed amount. The separator comes from the document, not a guess."""
-    text = raw.strip().replace(" ", "")
-    negative = text.startswith("-") or (text.startswith("(") and text.endswith(")"))
-    text = text.strip("()-+")
+    match = AMOUNT.fullmatch(raw.strip().replace(" ", ""))
+    if match is None:
+        return None
+    sign, signed_digits, bracketed = match.groups()
+    negative = sign == "-" or bracketed is not None
+    text = signed_digits or bracketed
     thousands = "," if decimal_sep == "." else "."
     text = text.replace(thousands, "").replace(decimal_sep, ".")
     try:
         value = Decimal(text)
     except InvalidOperation:
-        return None
-    if not value.is_finite():  # Decimal accepts "Infinity" and "NaN"; neither is an amount
         return None
     return -value if negative else value
 
