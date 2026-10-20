@@ -34,10 +34,16 @@ Generate and compare inside the published Playwright image, at the tag that matc
 installed `@playwright/test`, so fonts, anti-aliasing and the browser build are identical.
 The image is for trusted code; Microsoft says not to use it to visit untrusted sites.
 
+A tag can be moved to different bytes later, so pin the image by digest as well: record
+`mcr.microsoft.com/playwright:v<version>-noble@sha256:<digest>` once, from
+`docker buildx imagetools inspect` on the tag, when you choose the version, and use that
+reference for both commands.
+
 ```bash
-docker pull mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-noble
+: "${PLAYWRIGHT_IMAGE:?set the image as name:tag@sha256:digest}"
+docker pull "$PLAYWRIGHT_IMAGE"
 docker run --rm --ipc=host -v "$PWD":/work -w /work \
-  mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-noble \
+  "$PLAYWRIGHT_IMAGE" \
   npx playwright test --project=w360-dark
 ```
 

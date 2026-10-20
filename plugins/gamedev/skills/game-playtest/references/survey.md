@@ -71,6 +71,6 @@ With a handful of testers the survey cannot support an average or a percentage. 
 
 - Put each item's answers side by side, one mark per tester. A cluster at one end is a finding. A spread is a difference between testers, and the record sheet usually explains it.
 - Compare each answer with the behaviour you recorded. A tester who agrees that they understood why they died, and died to the same enemy five times, is telling you what they believe, which is the problem.
-- Treat the reverse-worded item as a check. A tester who agrees with items 1 and 3 together was not reading, and their other answers carry less weight.
+- Item 3 is reverse-worded so a tester cannot agree all the way down the list on autopilot, but it is not the opposite of item 1: item 1 covers the first level and item 3 the whole session. Agreeing with both is a consistent answer (they understood the start and lost the thread later) and a finding to place on the record sheet, not a sign of inattention, so do not discount their other answers on it.
 - Between rounds, compare the same item's marks. A move of one or two marks is a hint; the claim rests on what the record sheet shows.
 - Send questions about how common something is to telemetry, which has the volume the survey lacks.

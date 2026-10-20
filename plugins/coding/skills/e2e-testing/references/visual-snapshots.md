@@ -21,7 +21,7 @@ The API facts are Playwright's, checked against the `microsoft/playwright` docum
 
 The documentation's own warning is that rendering varies with the host OS, version, settings, hardware, power source, headless mode and other factors, and that screenshots are only reliable when tests run in the environment where the baselines were generated. So the first decision is where baselines are made, and it is made once for the whole team.
 
-Generate and compare in one pinned container. Playwright publishes an image with the browsers and their system dependencies, `mcr.microsoft.com/playwright:v<version>-noble`, where `<version>` is the version of `@playwright/test` in your lockfile. Pin to a specific version: the documentation says a mismatch between the image's Playwright version and the project's leaves Playwright unable to locate browser executables. The image tags also name the Ubuntu release (`noble`, `jammy`, `resolute`). A different Ubuntu release is a different set of system libraries and fonts (guidance, not a documented claim), so treat the release as part of the pin and change it deliberately.
+Generate and compare in one pinned container. Playwright publishes an image with the browsers and their system dependencies, `mcr.microsoft.com/playwright:v<version>-noble`, where `<version>` is the version of `@playwright/test` in your lockfile. Pin to a specific version: the documentation says a mismatch between the image's Playwright version and the project's leaves Playwright unable to locate browser executables. The image tags also name the Ubuntu release (`noble`, `jammy`, `resolute`). A different Ubuntu release is a different set of system libraries and fonts (guidance, not a documented claim), so treat the release as part of the pin and change it deliberately. A tag can also be moved to different bytes later, so pin the digest as well: append the `@sha256:<digest>` that `docker buildx imagetools inspect` reports for the tag when you choose the version, and use the same reference everywhere below.
 
 In GitHub Actions, run the job in the container. Playwright's CI guide recommends this for exactly this purpose, consistent screenshots for visual regression testing, and shows the shape:
 
@@ -30,7 +30,7 @@ jobs:
   playwright:
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.64.1-noble
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:<digest> # recorded once, see above
       options: --user 1001
 ```
 
@@ -166,7 +166,7 @@ Run the update in the pinned image:
 
 ```bash
 docker run --rm --init --ipc=host -v "$PWD":/work -w /work \
-  mcr.microsoft.com/playwright:v1.64.1-noble \
+  "mcr.microsoft.com/playwright:v1.64.1-noble@sha256:${PLAYWRIGHT_DIGEST:?}" \
   sh -c 'npm ci && npx playwright test pricing.spec.ts --update-snapshots=changed'
 ```
 
