@@ -1,7 +1,7 @@
 ---
 description: Review a rendered page from screenshots - pin the render, capture the viewport, theme and reduced-motion matrix, diff against an optional baseline, run the code checks, then have the screenshot-reader subagent read crops - and report measured and unverified findings separately.
 argument-hint: '[page URL or path to a built page] [optional baseline: directory of earlier captures, or a second URL or path]'
-allowed-tools: Skill, Agent(screenshot-reader), Read, Glob, Grep
+allowed-tools: Skill(visual-review), Agent(screenshot-reader), Read, Glob, Grep
 disable-model-invocation: true
 ---
 
