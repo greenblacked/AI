@@ -140,11 +140,13 @@ def enum_case_insensitive(field: str, allowed: set[str]) -> SemanticCheck:
     return check
 
 
-def quote_in_source(field: str, source: str) -> SemanticCheck:
+def quote_in_source(field: str, source: str, allow_none: bool = False) -> SemanticCheck:
+    # A null quote means the claim beside it has no support. Pass allow_none only where
+    # "no evidence" is an acceptable answer, and route those results to review.
     def check(value: object) -> list[str]:
         quote = value[field]  # type: ignore[index]
         if quote is None:
-            return []
+            return [] if allow_none else [f"{field}: no supporting quote"]
         if not str(quote).strip():
             return [f"{field}: quote is empty"]  # "" is a substring of every source
         if str(quote) in source:

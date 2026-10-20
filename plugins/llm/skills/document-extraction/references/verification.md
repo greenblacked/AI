@@ -59,12 +59,14 @@ def num(field):
 
 
 def charge(field):
-    """A total component: zero when the document prints none, None when unreadable.
+    """A total component: zero when the document prints none, None when unknown.
 
-    A charge the page does not contain adds nothing to the total, so an ``absent`` field
-    counts as zero; one that is printed but could not be read leaves the total unchecked.
+    A charge the page does not contain adds nothing to the total, so a field recorded as
+    ``absent`` counts as zero. One that is printed but could not be read, or a record the
+    extraction omitted altogether, leaves the total unchecked: an omitted record says
+    nothing about whether the page has the charge.
     """
-    if not field or (field.get("value") is None and field.get("confidence_basis") == "absent"):
+    if field and field.get("value") is None and field.get("confidence_basis") == "absent":
         return Decimal(0)
     return num(field)
 
@@ -95,7 +97,7 @@ def check_totals(doc):
     unread = [k for k, v in parts.items() if v is None]
     if subtotal is None or total is None or unread:
         missing = unread or ["subtotal or total"]
-        failures.append(f"total not checkable: {', '.join(missing)} unreadable")
+        failures.append(f"total not checkable: {', '.join(missing)} missing or unreadable")
     else:
         built = subtotal + parts["tax"] + parts["tip"] + parts["shipping"] - parts["discount"]
         if built != total:

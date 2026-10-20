@@ -64,7 +64,7 @@ Run the script, then look at what it produced. A script that exits zero says not
 1. Render to PNG at the size it will be shown, once on a light background and once on a dark one if it will appear on both. Open each with Read so you see the pixels, not the code.
 2. Count the marks and compare with the row count from step 1, after any filter or aggregation you chose. A missing bar usually means a join or a filter dropped a category; an extra one means a duplicate row.
 3. Read the order of the marks against the order you intended: sorted by value descending, or the natural order.
-4. Find the baseline. For a bar chart the lowest tick on the value axis is 0 and the bars rise from it.
+4. Find the baseline. For a bar chart the value axis includes 0 and both extremes of the data, and every bar starts at the zero line: up for a positive value, down for a negative one. With no negative values, 0 is the lowest tick.
 5. Pick the first, the last and the largest mark; read their values off the axis or labels and compare with the data to the precision the labels show.
 6. Look for clipped or overlapping labels, a title that states the finding, units on both axes, and no legend that a direct label made redundant.
 7. Run the palette through the contrast check in `references/palettes.md` for each background. If no colour-blind simulator is available, say so in the report rather than reporting the palette as checked; the Okabe-Ito set was designed for it, but a subset or a modified palette needs its own check.
