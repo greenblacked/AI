@@ -43,7 +43,9 @@ printf '{"chromeLaunchConfig": {"executablePath": "%s"}}\n' "$CHROME" > "$T/pa11
 `--ignore-scripts` also skips the browser and driver downloads, so every browser tool
 below is pointed at an installed Chrome: `CHROME_PATH` for Lighthouse and unlighthouse,
 `chromeLaunchConfig.executablePath` in the `pa11y.json` written beside the tools, and
-`--chrome-path` with a `--chromedriver-path` of the same major version for axe.
+`--chrome-path` with a `--chromedriver-path` of the same `MAJOR.MINOR.BUILD` for axe,
+which a browser and driver from one distribution release or one Chrome for Testing
+version give you.
 
 ```bash
 curl -sI https://example.com                          # status, headers, server

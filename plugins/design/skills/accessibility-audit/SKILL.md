@@ -40,7 +40,7 @@ $A/pa11y --config "$T/pa11y.json" --runner axe --runner htmlcs https://example.c
 CHROME_PATH="$CHROME" $A/lighthouse https://example.com/checkout --only-categories=accessibility --output=json --output-path=./a11y.json
 ```
 
-`--ignore-scripts` keeps every package's install script from running, including the ones that download a browser and a driver, so point each engine at a Chrome or Chromium installed by the system package manager: `CHROME_PATH` for Lighthouse, `chromeLaunchConfig.executablePath` in the `pa11y.json` the block writes from `$CHROME` beside the tools, never into the project, and for axe a `chromedriver` whose major version matches that browser, since axe refuses to start against a mismatched driver.
+`--ignore-scripts` keeps every package's install script from running, including the ones that download a browser and a driver, so point each engine at a Chrome or Chromium installed by the system package manager: `CHROME_PATH` for Lighthouse, `chromeLaunchConfig.executablePath` in the `pa11y.json` the block writes from `$CHROME` beside the tools, never into the project, and for axe a `chromedriver` whose `MAJOR.MINOR.BUILD` matches that browser, as Chrome's version-selection guidance asks, since axe refuses to start against a mismatched driver; a browser and driver from the same distribution release, or a Chrome for Testing pair, matches by construction.
 
 This skill pre-approves no shell, so each of these asks first: the audited page is someone else's code running in a browser on your machine.
 

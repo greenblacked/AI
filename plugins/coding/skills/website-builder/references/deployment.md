@@ -218,6 +218,12 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 ```
 
+The deploy job calls the project's own Wrangler, so add it when generating this
+pipeline and commit the lockfile with it: `npm install --save-dev --save-exact
+--ignore-scripts wrangler@4.151.3` (the version this was checked against; raise it
+deliberately). `npm ci` installs only what the lockfile records, so without that
+entry the binary is not there to call.
+
 The Lighthouse job audits the downloaded `dist` through the config file at the
 repository root, which has Lighthouse CI serve the directory and audit each HTML file in
 it:
