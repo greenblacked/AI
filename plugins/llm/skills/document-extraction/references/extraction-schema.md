@@ -28,7 +28,7 @@ A bare `"total": 41.20` cannot be checked, traced or reviewed. Each field carrie
 - `confidence` is `high`, `medium` or `low`, with a short `confidence_basis` naming the cause (obscured, handwritten, low resolution, inferred from context). A categorical value with a reason is harder to over-read than a number such as 0.97 that nothing has calibrated. Keep an OCR engine's own word confidence in a separate field if you have it.
 - `readers` keeps what each independent reader returned, so the verification step compares them and the reviewer sees both.
 
-A field the document does not contain is `null` with a `confidence_basis` of `absent`. Do not let a missing value be filled from context: a missing tax line is a different fact from a tax of zero.
+A field the document does not contain is still a record: `value` is `null` and `confidence_basis` is `absent`. Omitting the record, or writing the field itself as `null`, says nothing about whether the document has it, and the totals check treats either as not checkable. Do not let a missing value be filled from context: a missing tax line is a different fact from a tax of zero.
 
 ## Fields that are easy to get wrong
 
@@ -38,7 +38,7 @@ A field the document does not contain is `null` with a `confidence_basis` of `ab
 | Currency | Read the symbol or code printed on the document. Do not infer it from the merchant or the country. |
 | Dates | Keep `raw`, and store an ISO date only when the day and month are unambiguous in the document; otherwise store both readings and flag the field. |
 | Identifiers | Transcribe exactly, preserving leading zeros and case. Never reformat, and never repair a failing check digit. |
-| Signs | A credit, a refund and a negative are different printed forms of the same sign; record which form the document used. |
+| Signs | A credit, a refund and a negative are different printed forms of the same sign; record which form the document used. A discount is stored as a non-negative amount whatever its printed sign, because the totals check subtracts it. |
 | Checkboxes and radios | Record `checked`, `unchecked` or `unclear`. An unreadable box is `unclear`, not unchecked. |
 
 ## Tables as cell-level JSON

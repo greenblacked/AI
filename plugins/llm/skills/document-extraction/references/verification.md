@@ -111,7 +111,8 @@ def check_totals(doc):
         missing = unread or ["subtotal or total"]
         failures.append(f"total not checkable: {', '.join(missing)} missing or unreadable")
     else:
-        built = subtotal + parts["tax"] + parts["tip"] + parts["shipping"] - parts["discount"]
+        # a discount printed as -5.00 or (5.00) still takes 5.00 off
+        built = subtotal + parts["tax"] + parts["tip"] + parts["shipping"] - abs(parts["discount"])
         if built != total:
             failures.append(f"components give {built}, total printed {total}")
     return failures
