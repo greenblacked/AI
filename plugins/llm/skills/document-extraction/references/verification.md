@@ -39,6 +39,8 @@ from decimal import Decimal
 
 # A normalised value: an optional minus, digits, and at most one "." with digits after it.
 NORMALISED = re.compile(r"-?\d+(?:\.\d+)?")
+# A currency marker before or after the number in `raw`, such as "EUR " or " USD".
+MARKER = re.compile(r"^[^\d(+-]+|[^\d)]+$")
 
 
 def money(raw, decimal_sep="."):
@@ -60,16 +62,21 @@ def money(raw, decimal_sep="."):
     return -value if sign == "-" or bracketed is not None else value
 
 
-def num(field):
-    """A field record's normalised value as a Decimal; None when absent or malformed."""
+def num(field, decimal_sep="."):
+    """A field record's normalised value as a Decimal; None when absent, malformed, or
+    when it disagrees with the printed ``raw`` text the same record carries."""
     if not field or not isinstance(field.get("value"), str):
         return None
     if NORMALISED.fullmatch(field["value"]) is None:
         return None  # normalised values carry no grouping mark and no other sign syntax
-    return Decimal(field["value"])
+    value = Decimal(field["value"])
+    raw = field.get("raw")
+    if isinstance(raw, str) and money(MARKER.sub("", raw.strip()), decimal_sep) != value:
+        return None  # a normaliser that changed the number is a misreading, not a value
+    return value
 
 
-def charge(field):
+def charge(field, decimal_sep="."):
     """A total component: zero when the document prints none, None when unknown.
 
     A charge the page does not contain adds nothing to the total, so a field recorded as
@@ -79,10 +86,10 @@ def charge(field):
     """
     if field and field.get("value") is None and field.get("confidence_basis") == "absent":
         return Decimal(0)
-    return num(field)
+    return num(field, decimal_sep)
 
 
-def check_totals(doc):
+def check_totals(doc, decimal_sep="."):
     """Return the failed checks; an empty list means the arithmetic closes.
 
     ``doc`` holds field records as extraction-schema.md defines them, with amounts as
@@ -91,13 +98,15 @@ def check_totals(doc):
     failures = []
     lines = doc.get("line_items") or []
     for i, item in enumerate(lines):
-        qty, unit, amount = (num(item.get(k)) for k in ("quantity", "unit_price", "amount"))
+        qty, unit, amount = (
+            num(item.get(k), decimal_sep) for k in ("quantity", "unit_price", "amount")
+        )
         if None in (qty, unit, amount):
             failures.append(f"line {i}: not checkable, an operand is missing")
         elif qty * unit != amount:
             failures.append(f"line {i}: {qty} x {unit} != {amount}")
-    amounts = [num(item.get("amount")) for item in lines]
-    subtotal, total = num(doc.get("subtotal")), num(doc.get("total"))
+    amounts = [num(item.get("amount"), decimal_sep) for item in lines]
+    subtotal, total = num(doc.get("subtotal"), decimal_sep), num(doc.get("total"), decimal_sep)
     if None in amounts:
         failures.append("a line amount is missing, so the subtotal cannot be checked")
     elif not lines:
@@ -106,7 +115,7 @@ def check_totals(doc):
         failures.append("subtotal not checkable: it is missing or unreadable")
     elif sum(amounts) != subtotal:
         failures.append(f"lines sum to {sum(amounts)}, subtotal printed {subtotal}")
-    parts = {k: charge(doc.get(k)) for k in ("tax", "tip", "shipping", "discount")}
+    parts = {k: charge(doc.get(k), decimal_sep) for k in ("tax", "tip", "shipping", "discount")}
     unread = [k for k, v in parts.items() if v is None]
     if subtotal is None or total is None or unread:
         missing = unread or ["subtotal or total"]

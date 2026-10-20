@@ -174,6 +174,6 @@ def quote_in_source(
     return check
 ```
 
-The second one is the cheapest defence against a plausible value the source never contained: ask for the supporting quote as a field and verify it by string search.
+The second one is the cheapest defence against a plausible value the source never contained: ask for the supporting quote as a field and verify it by string search. It proves only that the quoted text exists, not that it supports the claim beside it: `billing` with the quote "The site has been down" passes. Pair it with a check specific to the claim where one exists (a category whose evidence must mention an invoice, a charge or a refund; a date the quote must contain), and route a result whose support cannot be checked deterministically to review rather than treating a found quote as proof.
 
 When a value is normalised after validation (case folded to the canonical enum member, whitespace trimmed), do it in one function and store the normalised value, not the raw one.
