@@ -68,7 +68,9 @@ def check_totals(doc):
     lines = doc.get("line_items") or []
     for i, item in enumerate(lines):
         qty, unit, amount = (num(item.get(k)) for k in ("quantity", "unit_price", "amount"))
-        if None not in (qty, unit, amount) and qty * unit != amount:
+        if None in (qty, unit, amount):
+            failures.append(f"line {i}: not checkable, an operand is missing")
+        elif qty * unit != amount:
             failures.append(f"line {i}: {qty} x {unit} != {amount}")
     amounts = [num(item.get("amount")) for item in lines]
     subtotal, total = num(doc.get("subtotal")), num(doc.get("total"))

@@ -56,7 +56,16 @@ await page.evaluate(() => document.fonts.ready);
 await expect(page).toHaveScreenshot('pricing.png');
 ```
 
-Put this in a helper or fixture and call it before every screenshot rather than in a few tests. Serve the fonts from your own origin or the test build, so a third-party font CDN is not a variable. Because the wait cannot fail on a font that never loaded, assert once on the thing it cannot check, for instance the computed `font-family` of a heading, or look at the first baseline by eye. Fonts the page does not ship (system fonts) come from the container image, which is a further reason to pin it.
+Put this in a helper or fixture and call it before every screenshot rather than in a few tests. Serve the fonts from your own origin or the test build, so a third-party font CDN is not a variable. Because the wait cannot fail on a font that never loaded, assert once on the thing it cannot check: that each face the page ships loaded. The computed `font-family` cannot tell you, because it returns the declared list whatever rendered.
+
+```ts
+const faces = await page.evaluate(() =>
+  [...document.fonts].map((f) => ({ family: f.family, status: f.status })),
+);
+expect(faces.filter((f) => f.status !== 'loaded')).toEqual([]);
+```
+
+A face with status `error` failed to download. For glyphs the font does not cover, Chromium's DevTools protocol reports which faces actually drew a node (`CSS.getPlatformFontsForNode`); the `visual-review` skill's code checks show the call. Look at the first baseline by eye as well. Fonts the page does not ship (system fonts) come from the container image, which is a further reason to pin it.
 
 ## Remove motion and time
 
