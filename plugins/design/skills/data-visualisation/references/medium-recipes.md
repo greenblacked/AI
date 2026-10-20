@@ -42,7 +42,7 @@ Every medium below takes the colours from `palettes.md`. Set them explicitly, pe
 
 ## Spreadsheet
 
-- Baseline: set the vertical axis minimum by hand for bar and column charts, to 0, or to just below the smallest value when the data has negative values. Some applications start the automatic axis above 0 once the data sits far from it, so do not rely on the automatic setting.
+- Baseline: set both vertical axis bounds by hand for bar and column charts so that 0 lies between them: the minimum at 0 or just below the smallest value, whichever is lower, and the maximum at 0 or just above the largest value, whichever is higher. With all-negative data, a minimum set alone leaves the automatic maximum below 0 and the baseline off the chart. Some applications start the automatic axis above 0 once the data sits far from it, so do not rely on the automatic setting.
 - Direct labels: turn on data labels for bars and delete the legend; for lines, label the last point with the series name.
 - Palette: set each series colour by hex value. The default chart styles are not the palette in `palettes.md`.
 - Text alternative: use the application's alt-text field on the chart, and keep the source range on the sheet as the data table.
