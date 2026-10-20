@@ -1,6 +1,6 @@
 ---
 name: llm-cost
-description: "Control what an LLM feature or agent pipeline costs without degrading it: fetch today's prices and count tokens against the exact model rather than from memory, attribute token spend to a prompt path before changing anything, judge prompt caching on reads per write rather than hit rate because a cache write carries a premium, route cheap steps to a small model against a measured quality bar, retrieve instead of stuffing, batch what nobody waits on, and set per-request and per-tenant ceilings with degrade, queue or refuse decided in advance. Use whenever someone says \"our OpenAI bill tripled this month\", \"how do I use prompt caching\", \"should this call a cheaper model\", \"our agent loop is burning tokens\", or \"cap what a single request can spend\". Not for the cloud bill (cost-review), load testing (capacity-planning), application CPU time (profiling) or telemetry design (instrumentation)."
+description: "Control what an LLM feature or agent pipeline costs without degrading it: fetch today's prices and count tokens for the exact model, not from memory, attribute token spend to a prompt path before changing anything, judge caching on reads per write, not hit rate, since a write costs a premium, route cheap steps to a small model against a measured bar, retrieve instead of stuffing, batch what nobody waits on, and set per-request and per-tenant ceilings with degrade, queue or refuse decided in advance. Use whenever someone says \"our OpenAI bill tripled this month\", \"how do I use prompt caching\", \"should this call a cheaper model\", \"our agent loop is burning tokens\", or \"cap what a single request can spend\". Not for reading a usage or trace export (llm-trace-reader), the cloud bill (cost-review), load testing (capacity-planning), CPU time (profiling) or telemetry design (instrumentation)."
 allowed-tools: "Read, Write, Edit, Grep, Glob, Bash(jq:*), Bash(python:*), Bash(curl:*)"
 ---
 
@@ -46,6 +46,8 @@ Treat every multiplier in this skill as a shape to substitute current figures in
 Output tokens cost more than input tokens everywhere, and the reason is worth holding onto because it says which lever is large. Input is processed in one parallel prefill pass over the whole prompt; output is generated one token at a time, each pass reading the entire model state, so hardware produces output far more slowly than it consumes input. That asymmetry means an explicit output cap, a tight response schema and an instruction to answer without preamble are frequently a bigger saving than anything done to the prompt — and that a long static prompt is cheaper than it looks, especially once it is genuinely being read from cache.
 
 ### 2. Attribute spend to a prompt path
+
+When the call records already exist as an export file, a provider usage export or a LiteLLM, Langfuse or Helicone log, delegate reading it to the `llm-trace-reader` agent rather than pulling it into the conversation. It returns the per-feature and per-path table this step needs, computed from the file, and the decisions below stay here.
 
 Tag at the call site, not in a dashboard afterwards. The minimum set of fields on every call record:
 

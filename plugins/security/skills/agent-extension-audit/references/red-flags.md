@@ -9,6 +9,15 @@ step 3 is the review; these are the places that reading must not skip.
 All commands take the quarantine path as an argument. Run them with `rg <pattern> --
 <quarantine>/src`, with the `--` before the path, never from inside it.
 
+When step 1 skipped the checkout because a `.gitattributes` names a `filter=`, there is
+no working tree, and every `rg` below would search nothing and report nothing. Run each
+pattern against the commit instead:
+`LC_ALL=C.UTF-8 qgit -C <quarantine>/src grep -n -P '<pattern>' HEAD --`, adding `-i`,
+`-o` or a pathspec such as `'*.md'` where the `rg` line has them. `git grep` on `HEAD`
+reads the stored blobs, so no filter runs, and the UTF-8 locale is what lets `-P` accept
+the `\x{...}` code points in the hidden-text pattern; without it Git 2.43.0 rejected
+them as too large.
+
 ## Contents
 
 - Hidden or invisible text

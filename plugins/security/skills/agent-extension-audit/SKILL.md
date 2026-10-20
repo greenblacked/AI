@@ -179,8 +179,10 @@ possible outcome at install with restrictions. Read
 ### 2. Inventory what runs automatically
 
 Classify every file as runs by itself, runs when named, or prose. List files with
-`qgit -C <quarantine>/src ls-files -z` and `file --` on anything without a text extension, then
-find the entry points for the extension type. Read
+`qgit -C <quarantine>/src ls-tree -r -z --name-only HEAD`, which reads the commit
+itself and so works whether or not step 1 checked anything out; `ls-files` reads the
+index, which a `--no-checkout` clone leaves empty. Type anything without a text extension
+from its blob, `qgit -C <quarantine>/src show HEAD:<path> | file -`, then find the entry points for the extension type. Read
 [extension surfaces](references/extension-surfaces.md) for where each type hides them:
 hooks, `bin/` directories, monitors, MCP server commands, install scripts, and shell
 lines a skill body runs on load.

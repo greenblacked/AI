@@ -18,5 +18,6 @@
   {"query": "compare the model vendors on a three year tco and a scorecard before we sign anything", "should_trigger": false, "expected": "vendor-evaluation"},
   {"query": "we bought ai coding licences for 40 engineers and nobody knows if it is helping. what do we measure", "should_trigger": false, "expected": "ai-enablement"},
   {"query": "checkout p99 is 2.4 seconds and the traces put nearly all of it in one query", "should_trigger": false, "expected": "sql-performance"},
-  {"query": "the pager went off 40 times overnight and none of it was actionable. help me prune the rules", "should_trigger": false, "expected": "alert-design"}
+  {"query": "the pager went off 40 times overnight and none of it was actionable. help me prune the rules", "should_trigger": false, "expected": "alert-design"},
+  {"query": "here is a 300 mb langfuse export from last month. read it and tell me which feature and prompt path the spend came from", "should_trigger": false, "expected": "llm-trace-reader"}
 ]
