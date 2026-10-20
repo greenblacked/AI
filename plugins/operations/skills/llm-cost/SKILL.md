@@ -66,13 +66,15 @@ Aggregate from the structured call log:
 set -Eeuo pipefail
 
 # Token spend by prompt path. Sort by whichever column today's price list makes
-# dominant, which is usually output.
+# dominant, which is usually output. Cache writes are billed at a premium, so a
+# path that writes far more than it reads costs more than its input suggests.
 jq -rs '
   group_by(.prompt_path)
   | map({
       path:       .[0].prompt_path,
       calls:      length,
       input:      (map(.input_tokens)       | add),
+      cache_write: (map(.cache_write_tokens // 0) | add),
       cache_read: (map(.cache_read_tokens   // 0) | add),
       output:     (map(.output_tokens)      | add),
       retries:    (map(select(.outcome == "retry")) | length)
