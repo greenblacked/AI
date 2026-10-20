@@ -32,19 +32,21 @@ npm install --prefix tools/audit --save-exact --ignore-scripts \
   depcheck@1.4.7 npm-check-updates@23.1.1 source-map-explorer@2.5.3 webpagetest@0.7.6
 npm ci --ignore-scripts --prefix tools/audit       # every later run installs exactly that tree or fails
 A=tools/audit/node_modules/.bin
+CHROME=/usr/bin/chromium CHROMEDRIVER=/usr/bin/chromedriver   # paths vary by distribution
+export CHROME_PATH="$CHROME"                                  # Lighthouse and unlighthouse
 ```
 
-`--ignore-scripts` also skips the browser and driver downloads, so point the browser
-tools at an installed Chrome: `CHROME_PATH` for Lighthouse,
-`chromeLaunchConfig.executablePath` in a pa11y config, and `--chrome-path` with a
-`--chromedriver-path` of the same major version for axe.
+`--ignore-scripts` also skips the browser and driver downloads, so every browser tool
+below is pointed at an installed Chrome: `CHROME_PATH` for Lighthouse and unlighthouse,
+`{"chromeLaunchConfig": {"executablePath": "/usr/bin/chromium"}}` in `pa11y.json`,
+and `--chrome-path` with a `--chromedriver-path` of the same major version for axe.
 
 ```bash
 curl -sI https://example.com                          # status, headers, server
 curl -s https://example.com | head -c 4000            # is it server-rendered at all
 $A/lighthouse https://example.com --form-factor=mobile --throttling-method=simulate \
   --output=json --output-path=./lh.json
-$A/axe https://example.com                            # accessibility
+$A/axe https://example.com --chrome-path "$CHROME" --chromedriver-path "$CHROMEDRIVER"
 $A/unlighthouse --site https://example.com            # whole-site sweep, if it is small
 curl -s https://example.com/robots.txt
 curl -s https://example.com/sitemap.xml | head -40
@@ -131,8 +133,9 @@ Full standard in the quality-floor reference the skill lists; a failure there is
 definition.
 
 ```bash
-$A/axe https://example.com --tags wcag2a,wcag2aa,wcag22aa
-$A/pa11y --standard WCAG2AA https://example.com
+$A/axe https://example.com --tags wcag2a,wcag2aa,wcag22aa \
+  --chrome-path "$CHROME" --chromedriver-path "$CHROMEDRIVER"
+$A/pa11y --config ./pa11y.json --standard WCAG2AA https://example.com
 ```
 
 Plus the manual pass automation cannot do: tab the page end to end, confirm focus is

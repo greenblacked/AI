@@ -91,7 +91,7 @@ Watch CSS specificity when hand-writing styles — competing element-level and c
 
 ### Step A5: Meet the quality floor
 
-Non-negotiable regardless of tier, because retrofitting any of it is disproportionately expensive. The detail and the checks are in `references/quality-floor.md`; read it before finishing the build. In summary: responsive down to 360px, visible keyboard focus and correct semantics, `prefers-reduced-motion` respected, images sized and lazy-loaded below the fold, meta and Open Graph tags present, and no console errors.
+Non-negotiable regardless of tier, because retrofitting any of it is disproportionately expensive. The detail and the checks are in `references/quality-floor.md`; read it before finishing the build, and run its checks from the locked tool install it names. In summary: responsive down to 360px, visible keyboard focus and correct semantics, `prefers-reduced-motion` respected, images sized and lazy-loaded below the fold, meta and Open Graph tags present, and no console errors.
 
 ### Step A6: Deployment, only if wanted
 
