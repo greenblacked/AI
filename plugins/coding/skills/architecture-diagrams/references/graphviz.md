@@ -29,7 +29,7 @@ if [ -n "$errors" ]; then
 fi
 ```
 
-A misspelled attribute name gets no warning at all: the DOT grammar accepts any `name=value` pair, so `lable="x"` rendered with exit 0 and empty stderr, and the node kept its default label. The gate above cannot see that. List the names the file uses and check each against the attribute reference at <https://graphviz.org/doc/info/attrs.html> when the diagram changes:
+A misspelled attribute name gets no warning at all: the DOT grammar accepts any `name=value` pair, so `fontcolour="red"` (the attribute is `fontcolor`) rendered with exit 0 and empty stderr, and the text stayed black. The gate above cannot see that. List the names the file uses and check each against the attribute reference at <https://graphviz.org/doc/info/attrs.html> when the diagram changes:
 
 ```bash
 grep -oE '\b[A-Za-z_]+[[:space:]]*=' diagram.dot | tr -d ' =' | sort -u
