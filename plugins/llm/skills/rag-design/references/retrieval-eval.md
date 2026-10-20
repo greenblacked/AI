@@ -9,6 +9,7 @@ One JSON object per question, in a versioned file such as `evals/retrieval.jsonl
 ```json
 {"id": "q-017", "question": "How long do we keep audit logs?", "relevant": ["policy-retention#s3", "policy-retention#s4"], "answerable": true}
 {"id": "q-018", "question": "What is the CEO's home address?", "relevant": [], "answerable": false}
+{"id": "q-019", "question": "What is the Q3 bonus pool?", "relevant": ["comp-plan#s2"], "answerable": true, "principal": "finance-lead"}
 ```
 
 `relevant` lists the chunk ids (or document ids plus spans, if the chunker is still changing) that contain the answer. Label at a unit that survives a re-chunk: a document id and a character span into the source text can be mapped onto whichever chunks the current chunker produces, whereas a chunk id from an old chunker cannot. Several passages can be relevant to one question; list them all, and say in the harness whether one hit is enough or every one must appear.
@@ -36,7 +37,7 @@ Report each as a count over a denominator ("31 of 40 questions"), so a reader ca
 
 ## A harness
 
-This runs against any retriever that takes a question and returns ranked chunk ids. It needs no third-party package.
+This runs against any retriever that takes a question and a principal (`None` when the case records none) and returns ranked chunk ids. It needs no third-party package.
 
 ```python
 import json
@@ -47,12 +48,15 @@ def load(path):
         return [json.loads(line) for line in f if line.strip()]
 
 
-def evaluate(questions, retrieve, k):
-    recalls, rr, misses = [], [], []
+def evaluate(questions, retrieve, k, can_read=None):
+    recalls, rr, misses, leaks = [], [], [], []
     for q in questions:
+        principal = q.get("principal")
+        got = retrieve(q["question"], principal)[:k]
+        if can_read is not None:
+            leaks += [(q["id"], cid) for cid in got if not can_read(principal, cid)]
         if not q["answerable"]:
             continue
-        got = retrieve(q["question"])[:k]
         want = set(q["relevant"])
         found = [i for i, cid in enumerate(got) if cid in want]
         recalls.append(len({got[i] for i in found}) / len(want))
@@ -60,8 +64,11 @@ def evaluate(questions, retrieve, k):
         if not found:
             misses.append(q["id"])
     n = len(recalls)
-    return {"questions": n, "recall@k": sum(recalls) / n, "mrr": sum(rr) / n, "missed": misses}
+    return {"questions": n, "recall@k": sum(recalls) / n, "mrr": sum(rr) / n, "missed": misses,
+            "leaked": leaks}
 ```
+
+`retrieve` takes the question and the principal the case records, so each permission case runs as that caller rather than under whatever identity the harness happens to hold. Pass `can_read(principal, chunk_id)` from the same permission source the production filter uses: any entry in `leaked` fails the run whatever the recall, because an answer that is right for one caller and shows another caller's chunk beside it is still a leak.
 
 Run it once per configuration (lexical, dense, merged, reranked) and print the table side by side. Write the output file next to the eval version so a later change can be compared with it.
 

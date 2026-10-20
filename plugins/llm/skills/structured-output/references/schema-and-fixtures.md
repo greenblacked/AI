@@ -86,25 +86,36 @@ Every attempt in a `StructuredOutputError` is a candidate. Save the raw reply an
   {
     "name": "prose-before-json",
     "stop": "end",
+    "source": "I was charged twice this month.",
     "text": "Here is the result: {\"category\": \"billing\"}",
     "expect_problem": "not valid JSON"
   },
   {
     "name": "enum-near-miss",
     "stop": "end",
-    "text": "{\"category\": \"Billing issue\", \"urgency\": \"low\", \"customer_quote\": null}",
+    "source": "I was charged twice this month.",
+    "text": "{\"category\": \"Billing issue\", \"urgency\": \"low\", \"customer_quote\": \"I was charged twice this month.\"}",
     "expect_problem": "category"
   },
   {
     "name": "truncated",
     "stop": "max_tokens",
+    "source": "The site has been down since 9am.",
     "text": "{\"category\": \"outage\", \"urg",
     "expect_problem": "did not finish normally"
   },
   {
+    "name": "unsupported-claim",
+    "stop": "end",
+    "source": "Can you change the email on my account?",
+    "text": "{\"category\": \"outage\", \"urgency\": \"high\", \"customer_quote\": null}",
+    "expect_problem": "no supporting quote"
+  },
+  {
     "name": "valid",
     "stop": "end",
-    "text": "{\"category\": \"outage\", \"urgency\": \"high\", \"customer_quote\": null}",
+    "source": "The site has been down since 9am.",
+    "text": "{\"category\": \"outage\", \"urgency\": \"high\", \"customer_quote\": \"The site has been down since 9am.\"}",
     "expect_problem": null
   }
 ]
@@ -119,7 +130,7 @@ from pathlib import Path
 import pytest
 from jsonschema import Draft202012Validator
 
-from validate_and_repair import ModelReply, StopReason, check_reply  # your module
+from validate_and_repair import ModelReply, StopReason, check_reply, quote_in_source  # your module
 
 SCHEMA = json.loads(Path("schemas/ticket_v2.json").read_text())
 CASES = json.loads(Path("tests/fixtures/ticket_v2_failures.json").read_text())
@@ -129,7 +140,8 @@ CASES = json.loads(Path("tests/fixtures/ticket_v2_failures.json").read_text())
 def test_fixture(case):
     reply = ModelReply(case["text"], StopReason(case["stop"]))
     validator = Draft202012Validator(SCHEMA, format_checker=Draft202012Validator.FORMAT_CHECKER)
-    value, problems = check_reply(reply, validator)  # the validator production builds
+    checks = [quote_in_source("customer_quote", case["source"])]  # the checks production runs
+    value, problems = check_reply(reply, validator, checks)
     if case["expect_problem"] is None:
         assert problems == [] and value is not None
     else:
@@ -137,6 +149,6 @@ def test_fixture(case):
         assert any(case["expect_problem"] in p for p in problems)
 ```
 
-These tests guard the contract: the validator and the schema still reject what they rejected before. They do not show that the answers are right. For that, run the same inputs against a labelled set with a live model whenever the prompt, the schema or the model changes, and score it with `agent-evaluation`.
+Each case carries the source text its semantic checks read, so the replay runs the same checks production does; a fixture replayed through the schema alone would pass a claim with no supporting quote. These tests guard the contract: the validator, the schema and the semantic checks still reject what they rejected before. They do not show that the answers are right. For that, run the same inputs against a labelled set with a live model whenever the prompt, the schema or the model changes, and score it with `agent-evaluation`.
 
 When a failure the loop could not repair reaches a person, add the case to the fixtures before closing the ticket.

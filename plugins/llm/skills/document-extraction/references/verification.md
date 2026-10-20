@@ -48,6 +48,8 @@ def money(raw, decimal_sep="."):
         value = Decimal(text)
     except InvalidOperation:
         return None
+    if not value.is_finite():  # Decimal accepts "Infinity" and "NaN"; neither is an amount
+        return None
     return -value if negative else value
 
 
