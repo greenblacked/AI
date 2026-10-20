@@ -63,16 +63,30 @@ Make an empty directory outside any project, such as one under `$TMPDIR`, and fe
 it with a tool that does not build or execute — before reading any of it:
 
 ```bash
-git -c core.symlinks=false clone --no-tags -- <url> <quarantine>/src  # no submodules
-git -C <quarantine>/src rev-parse HEAD             # the commit under review
-git -C <quarantine>/src ls-files -s | awk '$1 == "120000"'   # symlinks; expect none
+git clone --no-checkout --no-tags -- <url> <quarantine>/src  # nothing written yet; no submodules
+git -C <quarantine>/src rev-parse HEAD                       # the commit under review
+git -C <quarantine>/src ls-tree -r HEAD | awk '$1 == "120000"'   # symlinks; expect none
+git -C <quarantine>/src grep -n 'filter=' HEAD -- .gitattributes '*/.gitattributes'
 ```
 
-A repository can commit a symlink that looks like a README or a source file and points
-outside the quarantine, at a credentials file or another project's instructions, and
-`Read` follows links. `core.symlinks=false` checks each one out as a small text file
-holding its target instead. List them with the last command before reading anything, and
-treat any that exists as a finding: read its target path as text, never through the link.
+Clone without a checkout, because checking out runs whatever smudge or process filter
+the repository's `.gitattributes` selects from the reviewer's own Git configuration,
+Git LFS and any custom filter included, before a single file has been read. Everything
+above reads the tree object only. A repository can also commit a symlink that looks
+like a README and points outside the quarantine, at a credentials file or another
+project's instructions, and `Read` follows links; treat any listed symlink as a finding
+and read its target path as text, never through the link.
+
+If any `.gitattributes`, at the root or in a subdirectory, names a `filter=`, do not
+check out at all: read each file with `git -C <quarantine>/src show HEAD:<path>`, which
+applies no filter. Otherwise check out with links written as plain files and read the
+tree normally:
+
+```bash
+git -C <quarantine>/src -c core.symlinks=false checkout HEAD
+```
+
+`git archive` is not a substitute for either: it applies the same filters.
 
 For an archive, download it with `curl`, record `sha256sum` of the file, and list the
 members in the long form that shows each entry's type: `tar -tvf`, or `unzip -Z` for a
