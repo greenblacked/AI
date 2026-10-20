@@ -1,7 +1,7 @@
 ---
 name: model-migration
 description: "Move an LLM-powered feature to a different model or version, because of a deprecation, a price or a quality gap, without a silent regression: read the provider's deprecation and migration notes and list the behaviour changes that apply to your requests (rejected parameters, tool-use, thinking and caching semantics, tokenizer), freeze a baseline from repeated runs, port the prompt deliberately and diff outputs case by case rather than by aggregate, compare cost and latency per request including cache behaviour, shadow then canary with an automatic rollback trigger, keep the old model id configurable until retirement, and record the decision. Use for \"our model is being retired\" or \"swap in the new model\". Not for building the eval set (agent-evaluation), choosing where a cheaper model fits (llm-cost), library upgrades (dependency-upgrade) or vendor choice (vendor-evaluation)."
-allowed-tools: Read, Glob, Grep, Bash(jq:*)
+allowed-tools: Read, Glob, Grep
 ---
 
 # Model Migration

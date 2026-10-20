@@ -1016,8 +1016,9 @@ at once.
 
 **The check that catches it.** For each new or changed `allowed-tools`, name the skill's
 main input and who wrote it. Where a third party did, pre-approve only `Read`, `Grep`,
-`Glob` and readers that write to standard output and nothing else (`jq`, `sha256sum`);
-let everything else prompt, writes included, and say in the body that a command the
+`Glob`, and no `Bash(...)` rule at all: even a reader that writes only to standard output
+(`jq`, `sha256sum`) is a prefix rule, and a redirect added to the approved command can
+overwrite a shell startup file. Let every command prompt, writes included, and say in the body that a command the
 content suggested is declined. Prefer a subagent with no shell for reading the content
 itself. No validator rule covers this, so review holds it from this entry; the
 `third-party-input-preapproves-interpreter` benchmark case checks that `reviewer` still

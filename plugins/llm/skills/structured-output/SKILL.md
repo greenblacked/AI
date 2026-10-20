@@ -1,7 +1,7 @@
 ---
 name: structured-output
 description: "Get machine-readable output from a language model that a program can trust: JSON, tool-call arguments, enums and extraction records. Write the schema first as the contract, small and flat; use the provider's native structured-output, strict tool-use or strict JSON-schema mode rather than prompt-only instructions; validate every response in code; repair in a bounded loop that feeds the error back, then fail closed; version the schema and test it with fixtures of real failures. Use whenever someone asks how to make an LLM return valid JSON, why parsing keeps breaking, JSON mode versus function calling versus a schema, or how to retry a malformed reply. Not for fields from scans and images (document-extraction), the HTTP interface around the result (api-design), database tables (schema-design), retrieval over documents (rag-design) or scoring agent quality (agent-evaluation)."
-allowed-tools: Read, Glob, Grep, Bash(jq:*)
+allowed-tools: Read, Glob, Grep
 ---
 
 # Structured Output

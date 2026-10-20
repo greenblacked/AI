@@ -1,7 +1,7 @@
 ---
 name: rag-design
 description: "Design a retrieval-augmented generation pipeline you can show retrieves the right passages: build a small labelled eval of questions mapped to answering passages before tuning anything, score retrieval (recall@k, MRR) apart from answer faithfulness, chunk by document structure keeping source ids and offsets for citations, start with hybrid lexical plus dense search, rerank a wide candidate set, filter by permission inside the retrieval query not after generation, and refuse on empty or weak retrieval. Use for \"answer questions over our docs\", \"the bot cites the wrong page\", or picking chunk size or embedding model. Not for benchmarking a retriever on a sealed holdout (retrieval-evaluation), judging an agent (agent-evaluation), token spend (llm-cost), data caching (application-caching), table design (schema-design), JSON output (structured-output) or a model move (model-migration)."
-allowed-tools: Read, Glob, Grep, Bash(jq:*)
+allowed-tools: Read, Glob, Grep
 ---
 
 # RAG Design
