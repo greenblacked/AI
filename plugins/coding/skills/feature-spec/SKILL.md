@@ -1,7 +1,7 @@
 ---
 name: feature-spec
 description: "Turn a loose feature request into a written spec and a checkpointed task plan before any code exists: interview one question at a time, only about what the code and docs cannot answer; write the spec as problem, users, constraints, explicit non-goals and acceptance criteria phrased as checks; compare two or three approaches and recommend one; split it into tasks small enough to verify, riskiest assumption first, stopping for approval at the spec and at the plan. Use when someone says add this feature, I have an idea for, spec this out, or plan this before we start, or hands over a one-line request that will touch several files. Not for recording a decision already made (decision-record), briefing one agent on one task (agent-delegation), an API (api-design) or tables (schema-design), a game feature document (game-design-doc), or choosing a whole-effort process (family-workflow)."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git diff:*), Bash(git log:*), Bash(git status:*)
 ---
 
 # Feature Spec
