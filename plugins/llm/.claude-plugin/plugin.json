@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "llm",
+  "description": "Skills for building features on language models: ground an answer in your own documents with retrieval, get structured output a program can trust, build and review an MCP server, migrate a feature to a new model without a silent regression, and extract data from images and scans.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "llm",
+    "rag",
+    "structured-output",
+    "mcp",
+    "model-migration"
+  ]
+}

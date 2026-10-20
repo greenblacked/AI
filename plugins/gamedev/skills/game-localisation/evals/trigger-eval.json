@@ -1,0 +1,22 @@
+[
+  {"query": "we want to ship our game in french german and japanese, how should we set up the strings so we are not rewriting ui code later", "should_trigger": true},
+  {"query": "the german text overflows the buttons on half our menus, how do we find every place that will clip before the translations arrive", "should_trigger": true},
+  {"query": "our item counter says 1 coins and the russian translator says the plural form is wrong for most numbers, how should this work", "should_trigger": true},
+  {"query": "we see empty boxes instead of characters when the game switches to chinese and korean", "should_trigger": true},
+  {"query": "what does pseudo-localisation actually check and how do i turn it on in godot", "should_trigger": true},
+  {"query": "we are adding arabic, do we just flip the layout or is there more to right to left support", "should_trigger": true},
+  {"query": "the german voice-over lines run longer than the english ones and the subtitles disappear before they can be read", "should_trigger": true},
+  {"query": "our translators only get a spreadsheet and keep translating close as the wrong word, what should each string entry carry", "should_trigger": true},
+  {"query": "how do we run a linguistic qa pass on the translated build and what categories of bugs should the testers log", "should_trigger": true},
+  {"query": "dates and prices show with the wrong separators in some countries, how should the game format numbers per locale", "should_trigger": true},
+  {"query": "which rating do we need in germany and korea and how long does the certificate take before our console launch", "should_trigger": false, "expected": "game-certification"},
+  {"query": "sony rejected our build for a trc requirement, what do we fix before resubmitting", "should_trigger": false, "expected": "game-certification"},
+  {"query": "plan the content calendar and event schedule for our next live service season", "should_trigger": false, "expected": "game-live-ops"},
+  {"query": "write the player-facing patch notes and a public roadmap that we will not have to walk back", "should_trigger": false, "expected": "game-live-ops"},
+  {"query": "our error messages are useless and the button just says submit, how should we reword them", "should_trigger": false, "expected": "content-design"},
+  {"query": "what tone of voice should the empty states in our settings screens have", "should_trigger": false, "expected": "content-design"},
+  {"query": "the android build is over the store size limit and the textures look blurry, which compression should we use", "should_trigger": false, "expected": "game-assets"},
+  {"query": "should this sound effect be streamed or decompressed on load, and what sample rate should we import it at", "should_trigger": false, "expected": "game-assets"},
+  {"query": "do the colours in our menus pass wcag contrast and work for colour blind players", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "write the feature spec for the inventory screen including its empty and full states", "should_trigger": false, "expected": "game-design-doc"}
+]
