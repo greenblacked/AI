@@ -78,19 +78,17 @@ class Edge(NamedTuple):
 _BOUNDARY = re.compile(r"[\W_]*(?:do not use for|not for)\b", re.IGNORECASE)
 
 
-# These end in a full stop that does not end the sentence: "e.g. `maker`" inside a
-# boundary sentence must not split it, or the names after the abbreviation would escape.
-# A chain of initials ("U.S.") and short titles are covered as a shape, not a list,
-# because a split that ends a boundary sentence early turns the names after it into
-# hand-offs. A lone letter ("option A.") ends its sentence: it is more often a label.
+# A full stop after one of these may or may not end the sentence: "e.g. `maker`" and
+# "U.S. work" continue it, "in the U.S. Ask `maker`" does not. The word after decides,
+# as in most sentence splitters: a capital letter starts a new sentence, anything else
+# continues. A lone letter ("option A.") is not here, because it is more often a label.
 _ABBREVIATION = re.compile(
-    r"(?:^|[\s(])(?:e\.g|i\.e|etc|vs|cf|approx|incl|fig|no|mr|mrs|ms|dr|st|(?:[a-z]\.)+[a-z])\.$",
+    r"(?:^|[\s(])(?:e\.g|i\.e|etc|vs|cf|approx|incl|(?:[a-z]\.)+[a-z])\.$",
     re.IGNORECASE,
 )
-
-# After an abbreviation's full stop, a capitalised boundary phrase still starts a new
-# sentence: "in the U.S. Not for `x`" must not fold the exclusion into the sentence before.
-_OPENS_BOUNDARY = re.compile(r"\s+(?:Do not use for|Not for)\b")
+# A title is followed by a name or a number, so a capital after it continues the sentence.
+_TITLE = re.compile(r"(?:^|[\s(])(?:mr|mrs|ms|dr|st|no|fig)\.$", re.IGNORECASE)
+_STARTS_SENTENCE = re.compile(r"\s+[A-Z]")
 _CLOSERS = "\"')]\u2019\u201d\u00bb"
 
 
@@ -109,8 +107,10 @@ def _sentences(text: str) -> list[str]:
         end = index + 1
         while end < len(text) and text[end] in _CLOSERS:
             end += 1
-        if (end == len(text) or text[end].isspace()) and (
-            not _ABBREVIATION.search(text[start : index + 1]) or _OPENS_BOUNDARY.match(text, end)
+        so_far = text[start : index + 1]
+        if (end == len(text) or text[end].isspace()) and not (
+            _TITLE.search(so_far)
+            or (_ABBREVIATION.search(so_far) and not _STARTS_SENTENCE.match(text, end))
         ):
             sentences.append(text[start:end])
             start = end

@@ -153,7 +153,8 @@ def test_a_nested_bullets_boundary_does_not_reach_its_sibling():
 def test_initials_and_titles_do_not_end_a_boundary_sentence():
     assert _names("Not for U.S. work handled by `maker`. Ask `scribe`.") == {"scribe"}
     assert _names("Not for Dr. Smith's queue in `maker`. Ask `scribe`.") == {"scribe"}
-    # A boundary phrase after an abbreviation still starts its own sentence.
+    # A capital after an abbreviation starts a new sentence, boundary or hand-off.
+    assert _names("Not for work in the U.S. Ask `maker`.") == {"maker"}
     assert _names("Start with `maker` in the U.S. Not for `scribe`.") == {"maker"}
     assert _names("Ask `maker`, etc. Do not use for `scribe`.") == {"maker"}
     # A lone letter is a label that ends its sentence, not an initial.
