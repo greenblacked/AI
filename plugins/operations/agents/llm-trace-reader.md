@@ -55,7 +55,8 @@ List the keys and a count of rows first, and name the field you map to each quan
 below. Where a quantity has no field, say so rather than treating it as zero.
 
 ```bash
-jq -c 'keys' export.jsonl | sort | uniq -c | sort -rn | head
+jq -Rrn 'inputs | (fromjson? | keys | tojson) // "unparseable row"' export.jsonl \
+  | sort | uniq -c | sort -rn | head
 wc -l export.jsonl
 ```
 

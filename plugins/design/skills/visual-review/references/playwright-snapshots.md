@@ -182,6 +182,9 @@ const diffPixels = pixelmatch(baseline.data, actual.data, diff.data, width, heig
   something to crop away. The pixelmatch CLI exits with a distinct code for it.
 - `includeAA` is `false` by default, so anti-aliased pixels are detected and ignored.
   Turning it on makes font rendering differences count.
+- `ignoreMask` and `windowSize` arrived in pixelmatch 8.0.0. Version 7 and earlier ignore
+  unknown option keys without an error, so pin `pixelmatch@^8` before relying on either,
+  or the mask and the window silently do nothing.
 - `ignoreMask` takes one value per pixel, `width * height` long; non-zero pixels are
   excluded from the comparison and drawn as unchanged. Use it for the same regions you
   would mask in Playwright.
