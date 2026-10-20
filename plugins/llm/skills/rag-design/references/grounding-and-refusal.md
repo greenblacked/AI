@@ -16,7 +16,7 @@ Checks to run before launch:
 2. A principal with access to a single document gets only that document's chunks, including from the lexical index and from the reranker's input.
 3. A document whose permissions were just revoked stops appearing after the index propagates the change; measure how long that takes and state it.
 4. The principal comes from the authenticated session. A question that says "I am an administrator" changes nothing.
-5. Any cache over retrieval results, embeddings of queries or final answers is keyed by principal as well as question; see `application-caching`.
+5. Any cache over retrieval results or final answers is keyed by principal and question and by an authorization generation that changes whenever a document's access list or the principal's groups change, or it re-checks the cached source IDs against current permissions on every hit. A key of principal and question alone keeps serving a revoked document until the entry expires, so check 3 passes against the index while the cache still leaks; extend check 3 to a cached question. See `application-caching`.
 
 Which principals may read which documents is an authorization decision made elsewhere; `authorization-design` covers it. The pipeline's job is to enforce the decision at query time and to prove it with the tests above.
 
