@@ -94,9 +94,12 @@ GIT_ATTR_NOSYSTEM=1 git -C <quarantine>/src -c core.attributesFile=/dev/null \
 
 For an archive, download it with `curl`, record `sha256sum` of the file, and list the
 members in the long form that shows each entry's type: `tar -tvf`, or `unzip -Z` for a
-ZIP, because `unzip -l` does not mark a symlink. Reject absolute paths, `..`, and any
-entry whose mode starts with `l`, then extract only into the empty quarantine directory
-and confirm with `find <quarantine> -type l` that nothing extracted as a link. Pass paths as
+ZIP, because `unzip -l` does not mark a symlink. Reject absolute paths, `..`, and every
+entry whose mode does not start with `-` (a regular file) or `d` (a directory): `l` is a
+symlink, `h` a hard link, `p` a FIFO that hangs whatever reads it, and `c` or `b` a
+device node. Then extract only into the empty quarantine directory and confirm that both
+`find <quarantine> ! -type f ! -type d` and `find <quarantine> -type f -links +1` print
+nothing, so nothing extracted as a link or a special file. Pass paths as
 arguments (`git -C`, `rg ... <path>`) rather than changing into the directory, because
 interpreters and build tools load code from the current directory.
 

@@ -143,7 +143,11 @@ def enum_case_insensitive(field: str, allowed: set[str]) -> SemanticCheck:
 def quote_in_source(field: str, source: str) -> SemanticCheck:
     def check(value: object) -> list[str]:
         quote = value[field]  # type: ignore[index]
-        if quote is None or quote in source:
+        if quote is None:
+            return []
+        if not str(quote).strip():
+            return [f"{field}: quote is empty"]  # "" is a substring of every source
+        if str(quote) in source:
             return []
         return [f"{field}: quoted text does not appear in the source"]
 

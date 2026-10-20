@@ -89,9 +89,9 @@ one very large share is a finding; a flat spread across users is the other findi
 it points at the prompt path rather than at the people.
 
 ```bash
-jq -Rn '[inputs | (fromjson? // null) | if type == "object" then . else {unparsed: true} end] as $rows
-        | ($rows | map(select(.unparsed)) | length) as $bad
-        | ($rows | map(select(.unparsed | not))) as $ok
+jq -Rn '[inputs | (fromjson? // null) | if type == "object" then {row: .} else {bad: true} end] as $rows
+        | ($rows | map(select(.bad)) | length) as $bad
+        | ($rows | map(select(.bad | not) | .row)) as $ok
         | ($ok | map(.cost // 0) | add) as $total
         | {unparseable_rows: $bad, groups: ($ok
         | group_by(.feature // "untagged")
