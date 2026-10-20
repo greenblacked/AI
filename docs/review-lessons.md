@@ -992,3 +992,28 @@ benchmark case seeds this defect yet, so `reviewer` holds it from this entry alo
 
 **First caught:** the implementation run for the injection-architecture reference in the
 AI skills batch, by `make portable`, before the change had a pull request number.
+
+### A skill pre-approves an interpreter in the turn that reads someone else's text
+
+**Class.** A skill's `allowed-tools` grants a general interpreter, a package runner or a
+network client without a prompt, in the same conversation where the procedure reads
+content a third party wrote: an extension under audit, a scanned document, a CSV, a
+retrieval corpus, a model's output. An instruction planted in that content can then run
+code or send a file out with nothing for the user to approve.
+
+**How it shows up.** `Bash(python3:*)`, `Bash(node:*)`, `Bash(npx:*)`, `Bash(curl:*)` or
+`Bash(git:*)` on a skill whose first step is to read an input the user did not write. The
+prose usually says to treat that input as data, which no tool boundary enforces. Codex
+security review flagged it four times in one batch, one skill at a time, before the class
+was fixed across every new skill at once.
+
+**The check that catches it.** For each new or changed `allowed-tools`, name the skill's
+main input and who wrote it. Where a third party did, pre-approve only local readers that
+cannot reach the network or run arbitrary code (`jq`, `rg`, `pdftotext`, `tesseract`,
+`sha256sum`), leave interpreters, package runners and fetchers to prompt, and say in the
+body that a command the content suggested is declined. Prefer a subagent with no shell
+for reading the content itself. No validator rule or benchmark case covers this yet, so
+review holds it from this entry alone.
+
+**First caught:** Codex security review of the AI skills batch, on `agent-extension-audit`,
+`document-extraction` and `data-visualisation`.

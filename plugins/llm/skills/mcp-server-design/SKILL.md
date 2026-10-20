@@ -1,7 +1,7 @@
 ---
 name: mcp-server-design
 description: "Build, test and secure a Model Context Protocol server: a few task-shaped tools named and described for the model, strict input schemas, failures returned as isError results, stdio for local servers with logs on stderr, Streamable HTTP with Origin checks and OAuth audience validation (no token passthrough) for remote ones, a tools/list snapshot test and a run through MCP Inspector. Use whenever someone is writing or reviewing an MCP server, wants to expose an API or database to an agent as tools, or asks \"why does the model pick the wrong tool\", \"the client says my server output is invalid\" or \"how do we authenticate a remote MCP server\". Not for the underlying REST interface (api-design), what an agent may do with its tools (agent-security-review), login design (auth-design), a leaked key (secret-rotation) or vetting a third-party server before installing it (agent-extension-audit)."
-allowed-tools: "Read, Grep, Glob, Write, Edit, Bash(npx:*), Bash(curl:*), Bash(jq:*), Bash(rg:*), Bash(git:*)"
+allowed-tools: "Read, Grep, Glob, Write, Edit, Bash(jq:*), Bash(rg:*), Bash(git:*)"
 ---
 
 # MCP Server Design
