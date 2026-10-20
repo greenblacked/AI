@@ -128,7 +128,8 @@ CASES = json.loads(Path("tests/fixtures/ticket_v2_failures.json").read_text())
 @pytest.mark.parametrize("case", CASES, ids=[c["name"] for c in CASES])
 def test_fixture(case):
     reply = ModelReply(case["text"], StopReason(case["stop"]))
-    value, problems = check_reply(reply, Draft202012Validator(SCHEMA))
+    validator = Draft202012Validator(SCHEMA, format_checker=Draft202012Validator.FORMAT_CHECKER)
+    value, problems = check_reply(reply, validator)  # the validator production builds
     if case["expect_problem"] is None:
         assert problems == [] and value is not None
     else:

@@ -51,32 +51,36 @@ def money(raw, decimal_sep="."):
     return -value if negative else value
 
 
+def num(field):
+    """A field record's normalised value as a Decimal; None when absent or unparseable."""
+    if not field or field.get("value") is None:
+        return None
+    return money(field["value"])  # normalised values use "." and no thousands mark
+
+
 def check_totals(doc):
-    """Return the failed checks; an empty list means the arithmetic closes."""
+    """Return the failed checks; an empty list means the arithmetic closes.
+
+    ``doc`` holds field records as extraction-schema.md defines them, with amounts as
+    decimal strings, so every value goes through ``num`` before any arithmetic.
+    """
     failures = []
-    lines = doc["line_items"]
+    lines = doc.get("line_items") or []
     for i, item in enumerate(lines):
-        qty, unit, amount = item["quantity"], item["unit_price"], item["amount"]
+        qty, unit, amount = (num(item.get(k)) for k in ("quantity", "unit_price", "amount"))
         if None not in (qty, unit, amount) and qty * unit != amount:
             failures.append(f"line {i}: {qty} x {unit} != {amount}")
-    amounts = [item["amount"] for item in lines]
+    amounts = [num(item.get("amount")) for item in lines]
+    subtotal, total = num(doc.get("subtotal")), num(doc.get("total"))
     if None in amounts:
         failures.append("a line amount is missing, so the subtotal cannot be checked")
-    elif doc["subtotal"] is not None and sum(amounts) != doc["subtotal"]:
-        failures.append(f"lines sum to {sum(amounts)}, subtotal printed {doc['subtotal']}")
-    if doc["subtotal"] is not None and doc["total"] is not None:
-        built = sum(
-            part or 0
-            for part in (
-                doc["subtotal"],
-                doc["tax"],
-                doc["tip"],
-                doc["shipping"],
-                -(doc["discount"] or 0),
-            )
-        )
-        if built != doc["total"]:
-            failures.append(f"components give {built}, total printed {doc['total']}")
+    elif subtotal is not None and sum(amounts) != subtotal:
+        failures.append(f"lines sum to {sum(amounts)}, subtotal printed {subtotal}")
+    if subtotal is not None and total is not None:
+        extras = [num(doc.get(k)) or 0 for k in ("tax", "tip", "shipping")]
+        built = subtotal + sum(extras) - (num(doc.get("discount")) or 0)
+        if built != total:
+            failures.append(f"components give {built}, total printed {total}")
     return failures
 ```
 
