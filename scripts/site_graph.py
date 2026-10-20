@@ -188,9 +188,10 @@ def derive_edges(skills: Iterable, agents: Iterable[Named]) -> list[Edge]:
     """Every skill-to-subagent edge the skills' own bodies state, sorted.
 
     ``skills`` carry ``plugin``, ``name`` and ``body``, and a ``directory`` if they have
-    one. Each body is rendered exactly as the skill's page renders it. When two subagents
-    share a file name in different plugins, a skill's own plugin wins, and otherwise the
-    first plugin alphabetically does, so the choice is the same on every build.
+    one. Each body is rendered exactly as the skill's page renders it. When subagents
+    share a file name in different plugins, a skill's own plugin wins; otherwise the name
+    is ambiguous and draws no edge, because picking one would claim a hand-off, and an
+    install dependency, that the skill never stated.
     """
     by_name: dict[str, list[Named]] = {}
     for agent in agents:
@@ -209,6 +210,8 @@ def derive_edges(skills: Iterable, agents: Iterable[Named]) -> list[Edge]:
             if not candidates:
                 continue
             own = [agent for agent in candidates if agent.plugin == skill.plugin]
+            if not own and len(candidates) > 1:
+                continue
             target = (own or candidates)[0]
             edges.add(Edge(skill.plugin, skill.name, target.plugin, target.name))
     return sorted(edges)

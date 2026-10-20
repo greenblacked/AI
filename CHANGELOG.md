@@ -11,8 +11,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 ### Added
 
 - Draw each plugin page's skill to subagent routing as an inline SVG graph at build
-  time. An edge is an inline code span naming a subagent in a `SKILL.md` body, outside
-  fenced code, so the graph is derived from the files and cannot drift from them.
+  time. An edge is a subagent's name shown as inline code on the skill's rendered page,
+  outside code blocks and "Not for" sentences, so the graph is derived from the files and
+  cannot drift from them. A name shipped by two other plugins draws no edge.
 
 ### Changed
 

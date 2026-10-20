@@ -78,7 +78,7 @@ def test_edge_derivation_ignores_input_order():
     assert graph.derive_edges(reversed(SKILLS), reversed(AGENTS)) == _edges()
 
 
-def test_a_subagent_name_shared_across_plugins_resolves_to_the_skills_own_plugin():
+def test_a_shared_subagent_name_resolves_to_the_own_plugin_or_draws_nothing():
     agents = [_Agent("zeta", "reader"), _Agent("alpha", "reader"), _Agent("mid", "reader")]
     skills = [
         _Skill("zeta", "a", "`reader`"),
@@ -86,7 +86,11 @@ def test_a_subagent_name_shared_across_plugins_resolves_to_the_skills_own_plugin
         _Skill("x", "c", "`reader`"),
     ]
     got = {(e.skill, e.agent_plugin) for e in graph.derive_edges(skills, agents)}
-    assert got == {("a", "zeta"), ("b", "mid"), ("c", "alpha")}
+    # Skill c's plugin ships no reader and three others do, so the name is ambiguous.
+    assert got == {("a", "zeta"), ("b", "mid")}
+    # One candidate in another plugin is unambiguous and still draws its edge.
+    single = graph.derive_edges([_Skill("x", "c", "`reader`")], [_Agent("alpha", "reader")])
+    assert [(e.skill, e.agent_plugin) for e in single] == [("c", "alpha")]
 
 
 def _names(body):
