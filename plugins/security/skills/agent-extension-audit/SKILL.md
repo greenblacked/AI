@@ -79,11 +79,13 @@ and read its target path as text, never through the link.
 
 If any `.gitattributes`, at the root or in a subdirectory, names a `filter=`, do not
 check out at all: read each file with `git -C <quarantine>/src show HEAD:<path>`, which
-applies no filter. Otherwise check out with links written as plain files and read the
-tree normally:
+applies no filter. Otherwise check out with links written as plain files and with your
+own global and system attribute files switched off, because a pattern there such as
+`*.bin filter=lfs` applies to the repository's files too and runs that filter:
 
 ```bash
-git -C <quarantine>/src -c core.symlinks=false checkout HEAD
+GIT_ATTR_NOSYSTEM=1 git -C <quarantine>/src -c core.attributesFile=/dev/null \
+  -c core.symlinks=false checkout HEAD
 ```
 
 `git archive` is not a substitute for either: it applies the same filters.
