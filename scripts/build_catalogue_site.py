@@ -33,6 +33,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import export_portable  # noqa: E402
 import package_skills  # noqa: E402
 import site_errors  # noqa: E402
+import site_graph  # noqa: E402
 import site_markdown  # noqa: E402
 import site_offline  # noqa: E402
 import site_style  # noqa: E402
@@ -458,6 +459,7 @@ class Catalogue:
     commands: list[Part]
     eval_sets: list[list[dict]]
     blurbs: dict[str, str]
+    edges: list[site_graph.Edge] = field(default_factory=list)
 
 
 def _read_json(path: Path) -> object:
@@ -583,6 +585,7 @@ def collect(
         commands=commands,
         eval_sets=eval_sets,
         blurbs={plugin: _blurb(root, plugin) for plugin in plugins},
+        edges=site_graph.derive_edges(skills, agents),
     )
 
 
@@ -704,6 +707,7 @@ def render_plugin(plugin: str, catalogue: Catalogue, version: str) -> str:
         f"{_finder('Find a skill', _plural(len(skills), 'skill'))}"
         '<p class="none" id="none" hidden>Nothing matches that name.</p>\n'
         f'<ul class="skills" id="list">\n{items}\n</ul>\n'
+        f"{site_graph.render(plugin, catalogue.edges, _skill_href)}"
         "</div>"
     )
     return _page(f"{plugin} · AI", main, version, parent="/")

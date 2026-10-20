@@ -41,6 +41,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   judge calibration reference to `agent-evaluation`, a visual snapshots reference to
   `e2e-testing`, a test-first loop reference to `test-design`, and a telemetry, caching and
   limits reference to `llm-cost`.
+- Draw each plugin page's skill to subagent routing as an inline SVG graph at build
+  time. The `family` page keeps its own workflow layout and has no graph yet. An edge is
+  a subagent's name shown as inline code on the skill's rendered page, outside code
+  blocks. Names after a "Not for" or "Do not use for" phrase in the same paragraph or
+  list item draw no edge, so the graph is derived from the files and cannot drift from
+  them. A name shipped by two other plugins draws no edge.
 
 ### Changed
 
