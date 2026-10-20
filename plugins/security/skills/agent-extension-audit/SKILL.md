@@ -63,11 +63,21 @@ Make an empty directory outside any project, such as one under `$TMPDIR`, and fe
 it with a tool that does not build or execute — before reading any of it:
 
 ```bash
-git clone --no-checkout --no-tags -- <url> <quarantine>/src  # nothing written yet; no submodules
+case "<url>" in https://*) ;; *) echo "refusing a non-https source" >&2; exit 1 ;; esac
+GIT_ALLOW_PROTOCOL=https GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 \
+  git clone --no-checkout --no-tags -- <url> <quarantine>/src  # nothing written yet; no submodules
 git -C <quarantine>/src rev-parse HEAD                       # the commit under review
 git -C <quarantine>/src ls-tree -r HEAD | awk '$1 == "120000"'   # symlinks; expect none
 git -C <quarantine>/src grep -n 'filter=' HEAD -- .gitattributes '*/.gitattributes'
 ```
+
+Accept only an `https://` URL and pin Git to that transport, because the URL is
+publisher text: `<transport>::<address>` makes Git run a `git-remote-<transport>` program
+from `PATH`, and `ext::` runs a command of the URL's choosing where your configuration
+allows it. `GIT_ALLOW_PROTOCOL=https` refuses every other transport, including `ext`,
+`file` and a named helper, before anything runs; ignoring your global and system
+configuration keeps a `url.<base>.insteadOf` rewrite or an inherited `protocol.allow`
+from undoing that.
 
 Clone without a checkout, because checking out runs whatever smudge or process filter
 the repository's `.gitattributes` selects from the reviewer's own Git configuration,
