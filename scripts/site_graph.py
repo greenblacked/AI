@@ -147,20 +147,46 @@ def _closes(fence: _Fence, scan: _Line) -> bool:
 
 
 def _prose(body: str) -> str:
-    """The body with fenced code removed: a sample in a fence is not an instruction."""
+    """The body with fenced and indented code removed: a sample is not an instruction.
+
+    An indented code block is four or more columns past the content of the list item it
+    sits in (or past the margin outside a list), and it cannot interrupt a paragraph, so
+    it starts only after a blank line, a heading or a change of quote depth.
+    """
     kept = []
     fence: _Fence | None = None
+    item_col = 0  # the content column of the list item the text sits in, else 0
+    depth = 0
+    boundary = True  # whether the previous line ended a paragraph
+    indented = False
     for line in body.splitlines():
         scan = _scan(line)
         if fence:
             if not _ends_container(fence, scan):
                 if _closes(fence, scan):
                     fence = None
+                    boundary = True
                 continue
             fence = None
-        fence = _opens(scan)
-        if not fence:
+        if scan.depth != depth:
+            depth, item_col, boundary, indented = scan.depth, 0, True, False
+        if scan.blank:
             kept.append(line)
+            boundary = True
+            continue
+        if (boundary or indented) and scan.indent >= item_col + 4:
+            indented = True
+            continue
+        indented = False
+        if scan.listed:
+            item_col = scan.col
+        elif boundary and scan.indent < item_col:
+            item_col = 0  # a paragraph back at the margin has left the list
+        fence = _opens(scan)
+        if fence:
+            continue
+        kept.append(line)
+        boundary = not scan.listed and not scan.run and bool(_HEADING.match(scan.rest))
     return "\n".join(kept)
 
 

@@ -152,6 +152,22 @@ def test_unclosed_and_empty_spans_are_not_names():
     assert graph._code_spans("`a`\n`b`") == {"a", "b"}
 
 
+def test_an_indented_code_block_draws_no_edge():
+    sample = "Before `scribe`.\n\n    invoke `maker`\n\n    and `diff-reader`\nAfter `gate`.\n"
+    assert graph._code_spans(graph._prose(sample)) == {"scribe", "gate"}
+    # Inside a list item the block starts four columns past the item's content.
+    listed = "- Ask `scribe`.\n\n      invoke `maker`\n\n  Then `gate`.\n"
+    assert graph._code_spans(graph._prose(listed)) == {"scribe", "gate"}
+    # A heading ends a paragraph, so a block may follow it directly.
+    assert graph._code_spans(graph._prose("## Example\n    `maker`\n")) == set()
+    # Indented text cannot interrupt a paragraph: it is a continuation line.
+    assert graph._code_spans(graph._prose("Ask\n    `maker` next.\n")) == {"maker"}
+    # A nested item's text is prose, not code, and a fence inside a block is code.
+    nested = "- a\n\n  - Ask `scribe`.\n\n    ```\n    `maker`\n    ```\n"
+    assert graph._code_spans(graph._prose(nested)) == {"scribe"}
+    assert graph._prose("x\n\n    ```\n`b`\n") == "x\n\n`b`"
+
+
 def test_a_longer_fence_is_closed_only_by_an_equal_or_longer_run():
     body = "````\n```\n`scribe` inside\n```\nstill inside `scribe`\n````\nAfter."
     assert "scribe" not in graph._prose(body)
