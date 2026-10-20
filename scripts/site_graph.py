@@ -141,9 +141,11 @@ def _closes(fence: _Fence, scan: _Line) -> bool:
         and not scan.listed
     ):
         return False
-    # An unlisted opener's own indent is the floor only for how far in a closer may sit.
+    # A closer sits at most three spaces past its container's content, whatever the
+    # opener's own indent: outside a list that is the margin, so "   ```" opening a fence
+    # is not closed by "      ```", which is fenced content.
     floor = fence.col if fence.listed else 0
-    return floor <= scan.indent <= fence.col + 3
+    return floor <= scan.indent <= floor + 3
 
 
 def _prose(body: str) -> str:

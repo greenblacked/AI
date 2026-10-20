@@ -152,6 +152,12 @@ def test_unclosed_and_empty_spans_are_not_names():
     assert graph._code_spans("`a`\n`b`") == {"a", "b"}
 
 
+def test_a_closer_may_sit_only_three_spaces_past_the_margin():
+    # Six spaces is content of a fence opened at three, however far in the opener sat.
+    assert graph._prose("   ```\n      ```\n`maker`\n   ```\n`b`") == "`b`"
+    assert graph._prose("   ```\n`maker`\n   ```\n`b`") == "`b`"
+
+
 def test_an_indented_code_block_draws_no_edge():
     sample = "Before `scribe`.\n\n    invoke `maker`\n\n    and `diff-reader`\nAfter `gate`.\n"
     assert graph._code_spans(graph._prose(sample)) == {"scribe", "gate"}
