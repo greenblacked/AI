@@ -197,12 +197,13 @@ To turn a diff into reviewable regions, group neighbouring differing pixels into
 then look up the element at each box centre and report its selector and bounding box next
 to the box. `document.elementFromPoint` takes viewport coordinates, while a box from a
 `fullPage: true` capture is in page coordinates, so a box below the first screen returns
-`null` or whatever happens to be visible there. Scroll the box into view first and
-subtract the scroll offset:
+`null` or whatever happens to be visible there. Scroll the box into view on both axes
+first, since a page with horizontal overflow can put it to the right of the viewport, and
+subtract the scroll offsets:
 
 ```js
 const el = await page.evaluate(([x, y]) => {
-  window.scrollTo(0, Math.max(0, y - window.innerHeight / 2));
+  window.scrollTo(Math.max(0, x - window.innerWidth / 2), Math.max(0, y - window.innerHeight / 2));
   return document.elementFromPoint(x - window.scrollX, y - window.scrollY)?.outerHTML.slice(0, 200) ?? null;
 }, [box.x + box.width / 2, box.y + box.height / 2]);
 ```

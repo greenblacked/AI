@@ -59,7 +59,7 @@ await expect(page).toHaveScreenshot('pricing.png');
 Put this in a helper or fixture and call it before every screenshot rather than in a few tests. Serve the fonts from your own origin or the test build, so a third-party font CDN is not a variable. Because the wait cannot fail on a font that never loaded, assert once on the thing it cannot check: that the faces the page uses loaded. The computed `font-family` cannot tell you, because it returns the declared list whatever rendered. Load the combinations the page renders explicitly, then check them, because a face the stylesheet declares but the page never uses (an unused weight or italic) stays `unloaded` and is not a failure:
 
 ```ts
-const used = ['16px "Inter"', 'bold 16px "Inter"']; // the family, weight and style the page renders
+const used = ['16px "Inter"', 'bold 16px "Inter"']; // the @font-face combinations the page ships and renders
 const result = await page.evaluate(async (fonts) => {
   const missing = [];
   for (const f of fonts) if ((await document.fonts.load(f)).length === 0) missing.push(f);
@@ -69,7 +69,7 @@ const result = await page.evaluate(async (fonts) => {
 expect(result).toEqual({ missing: [], failed: [] });
 ```
 
-`document.fonts.load` resolves to the faces that matched; an empty result for a string means no face exists for it, which is the fallback case. A face with status `error` failed to download. For glyphs the font does not cover, Chromium's DevTools protocol reports which faces actually drew a node (`CSS.getPlatformFontsForNode`); the `visual-review` skill's code checks show the call. Look at the first baseline by eye as well. Fonts the page does not ship (system fonts) come from the container image, which is a further reason to pin it.
+`document.fonts.load` resolves to the faces that matched; an empty result for a string means no face exists for it, which is the fallback case. It only sees faces declared with `@font-face`: in Chromium, `load('16px Arial')` resolved to no faces on a page that rendered Arial, so list only the web fonts you ship here, and check a system or `local()` face with the DevTools check that follows. A face with status `error` failed to download. For glyphs the font does not cover, Chromium's DevTools protocol reports which faces actually drew a node (`CSS.getPlatformFontsForNode`); the `visual-review` skill's code checks show the call. Look at the first baseline by eye as well. Fonts the page does not ship (system fonts) come from the container image, which is a further reason to pin it.
 
 ## Remove motion and time
 
