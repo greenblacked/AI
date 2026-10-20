@@ -64,7 +64,7 @@ Write the record from `references/decision-record.md`: the reason, the changes m
 
 **Judging by the average.** A higher mean with three flipped high-value cases is a regression with good press. The per-case table is the evidence.
 
-**Comparing against an old baseline.** A run from last quarter measures drift in the world as much as the model. Re-run the baseline on the day of the candidate, or rely on the provider's statement that the id is fixed and say so.
+**Comparing against an old baseline.** A run from last quarter measures drift in the world as much as the model. Re-run the baseline on the day of the candidate, every time: even under an id the provider says is fixed, the serving stack around it can change, and an old run credits that change to the migration.
 
 **Trusting a 200.** The new model can accept a request and drop state, skip the tool call or stop caching without an error. Only compared outputs and usage fields show it.
 

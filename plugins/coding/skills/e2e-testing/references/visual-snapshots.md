@@ -162,15 +162,46 @@ Without an update flag, a missing baseline is created but the test that created 
 
 The flag is `-u` or `--update-snapshots [mode]`; the modes are `all`, `changed`, `missing`, `none` and `default`. With the flag and no value it means `changed`: snapshots that did not match are rewritten, and missing ones are created. Prefer `changed`, restricted to the tests you meant to affect (a file path or `--grep`), over `all`. `all` rewrites every executed snapshot, which makes any incidental sub-threshold difference part of the change and buries the intended one.
 
-Run the update in the pinned image:
+Run the update in the pinned image, in a sealed copy of the tree, with `PLAYWRIGHT_IMAGE` set to `mcr.microsoft.com/playwright:v1.64.1-noble@sha256:<digest>`:
 
 ```bash
-docker run --rm --init --ipc=host -v "$PWD":/work -w /work \
-  "mcr.microsoft.com/playwright:v1.64.1-noble@sha256:${PLAYWRIGHT_DIGEST:?}" \
-  sh -c 'npm ci && node_modules/.bin/playwright test pricing.spec.ts --update-snapshots=changed'
+set -Eeuo pipefail
+: "${PLAYWRIGHT_IMAGE:?set the image as name:tag@sha256:digest}"
+: "${SECCOMP:?path to seccomp_profile.json from the same Playwright release}"
+work="$(mktemp -d)"
+git ls-files -z | xargs -0 cp -P --parents -t "$work" --   # tracked files only, no .git
+chmod -R a+rwX "$work"                                      # pwuser in the image writes here
+docker run --rm --user pwuser -v "$work":/work -w /work "$PLAYWRIGHT_IMAGE" \
+  npm ci --ignore-scripts
+docker run --rm --shm-size=1g --user pwuser --network none \
+  --security-opt seccomp="$SECCOMP" -v "$work":/work -w /work "$PLAYWRIGHT_IMAGE" \
+  node_modules/.bin/playwright test pricing.spec.ts --update-snapshots=changed
+(cd "$work" && find . -type f -path '*-snapshots/*.png' -print)   # review, then copy these back
 ```
 
-Guidance beyond the documentation: mount a named volume at `/work/node_modules` so the container does not overwrite a host install built for another OS, expect root-owned files on a Linux host unless you pass `--user`, and wrap the command in a package script so nobody types it from memory.
+The tests are code, and on a contributor's branch they are the contributor's code, so the
+run gets a disposable copy of the tracked files and nothing else. With no `.git` in it,
+nothing the run writes can become a hook or a config entry that the host's Git runs later;
+`-P` copies a symbolic link as a link rather than the file it points at. `npm ci
+--ignore-scripts` installs the locked tree without running any package's lifecycle
+script, the project's own `postinstall` included, and is the only step with network. The
+test step has none, runs as the image's unprivileged `pwuser`, and sees no credential and
+no host environment. Copy back only the PNGs the last line lists, after reading them, and
+only as regular files: `find -type f` skips links. This was run against a probe project
+whose `postinstall` tried to plant `.git/hooks/post-checkout` and whose tests tried to
+reach the registry and find `.git`: no hook ran, the fetch failed, and the copy had no
+`.git`. `--shm-size=1g` stands in for the `--ipc=host` of Playwright's examples, which
+would share the host's IPC namespace with that code.
+
+`SECCOMP` is `utils/docker/seccomp_profile.json` from the Playwright release tag you
+pinned; at `v1.64.1` its SHA-256 is
+`cc3e61cabda6bbc1e53e54d27ba4d55a9d3be829b6dd1a596f4a7b31b1cc7849`, so check it before use.
+It is what lets Chromium run sandboxed as `pwuser`, but Playwright starts Chromium
+unsandboxed unless the config sets `use: { launchOptions: { chromiumSandbox: true } }`
+(its default is `false`). Without the profile, a sandboxed launch fails with "Chromium
+sandboxing failed!", which is how to tell the sandbox is really on.
+
+The visual-review skill's `references/playwright-snapshots.md` uses the same recipe for its captures; keep the two in step. Wrap it in a script so nobody types it from memory.
 
 When to update, and when not to:
 

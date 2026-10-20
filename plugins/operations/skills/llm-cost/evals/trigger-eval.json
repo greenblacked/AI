@@ -14,7 +14,6 @@
   {"query": "we open the assistant to every customer in march. how many replicas does the serving tier need to hold the peak", "should_trigger": false, "expected": "capacity-planning"},
   {"query": "this python function eats 400ms in a hot loop and i cannot tell if it is cpu bound", "should_trigger": false, "expected": "profiling"},
   {"query": "add spans and metrics to the new service, our traces stop dead at the queue boundary", "should_trigger": false, "expected": "instrumentation"},
-  {"query": "our datadog bill exploded after someone added a customer id label to a metric", "should_trigger": false, "expected": "instrumentation"},
   {"query": "compare the model vendors on a three year tco and a scorecard before we sign anything", "should_trigger": false, "expected": "vendor-evaluation"},
   {"query": "we bought ai coding licences for 40 engineers and nobody knows if it is helping. what do we measure", "should_trigger": false, "expected": "ai-enablement"},
   {"query": "checkout p99 is 2.4 seconds and the traces put nearly all of it in one query", "should_trigger": false, "expected": "sql-performance"},

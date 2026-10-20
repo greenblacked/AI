@@ -1024,5 +1024,7 @@ itself. No validator rule covers this, so review holds it from this entry; the
 `third-party-input-preapproves-interpreter` benchmark case checks that `reviewer` still
 notices an interpreter added to a skill that reads scanned documents.
 
+The class also reaches a skill whose own input is trusted once it starts handing work to a reader of third-party text: the reader's report comes back into that skill's turn, with whatever the skill pre-approves. Check `allowed-tools` on the receiving side of every new handoff, as `llm-cost` needed when it began delegating exports to `llm-trace-reader`.
+
 **First caught:** Codex security review of the AI skills batch, on `agent-extension-audit`,
 `document-extraction` and `data-visualisation`.
