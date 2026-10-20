@@ -37,11 +37,11 @@ If a claim has to hold up outside the team, such as a report to a publisher or a
 | --- | --- | --- |
 | Agreement | "I understood why I failed each time I died." Strongly disagree to strongly agree | Comprehension, fairness, clarity |
 | Frequency | "How often did you feel unsure what to do next?" Never, rarely, sometimes, often, always | Friction, pacing |
-| Yes, no, unsure | "Did you know the shield recharges?" | Whether a specific piece of knowledge was acquired |
+| Unaided recall | "What happens to your shield when you stop taking damage?" with a short free answer, or balanced options that include "I don't know" | Whether a specific piece of knowledge was acquired |
 | Choice | "Where would you have stopped playing at home?" with named points from the build | Quit point, as a check against what you observed |
 | Free text | "What was the most confusing moment?" | A pointer for the interview, not data |
 
-The yes, no, unsure type has a use that scales cannot match: it tests whether a fact reached the player. Pair it with what you recorded. A tester who says they knew the shield recharges and never used it is a different finding from one who did not know.
+The recall type has a use that scales cannot match: it tests whether a fact reached the player. Ask it without stating the answer, because "Did you know the shield recharges?" teaches the mechanic in the act of asking, and a tester who never learned it can simply agree. Reveal the answer in the interview, after the survey. Pair the answer with what you recorded. A tester who describes the recharge correctly and never used it is a different finding from one who could not say.
 
 ## A starting set
 
@@ -55,8 +55,8 @@ Agreement (strongly disagree ... strongly agree)
 4. The challenge felt fair.
 5. I would keep playing if this were my own copy.
 
-Knowledge (yes / no / unsure)
-6. Does <the mechanic under test> do <the thing it does>?
+Knowledge (unaided recall; reveal the answer only in the interview)
+6. What happens when <the situation that triggers the mechanic under test>?
 
 Free text (optional)
 7. What was the most confusing or annoying moment?

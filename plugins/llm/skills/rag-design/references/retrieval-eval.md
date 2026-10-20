@@ -72,6 +72,10 @@ def evaluate(questions, retrieve, k, can_read=None):
         rr.append(1 / (found[0] + 1) if found else 0.0)
         if not found:
             misses.append(q["id"])
+    if leaks:  # a leak fails the run whatever the recall
+        raise AssertionError(
+            f"{len(leaks)} chunk(s) returned to a caller who cannot read them: {leaks}"
+        )
     n = len(recalls)
     if n == 0:
         raise ValueError("no answerable questions to score")
@@ -80,11 +84,10 @@ def evaluate(questions, retrieve, k, can_read=None):
         "recall@k": sum(recalls) / n,
         "mrr": sum(rr) / n,
         "missed": misses,
-        "leaked": leaks,
     }
 ```
 
-`retrieve` takes the question and the principal the case records, so each permission case runs as that caller rather than under whatever identity the harness happens to hold. Pass `can_read(principal, chunk_id)` from the same permission source the production filter uses: any entry in `leaked` fails the run whatever the recall, because an answer that is right for one caller and shows another caller's chunk beside it is still a leak.
+`retrieve` takes the question and the principal the case records, so each permission case runs as that caller rather than under whatever identity the harness happens to hold. Pass `can_read(principal, chunk_id)` from the same permission source the production filter uses. The harness raises on any run that returns an unreadable chunk, whatever the recall, so a leaking configuration cannot reach the comparison table: an answer that is right for one caller and shows another caller's chunk beside it is still a leak.
 
 Run it once per configuration (lexical, dense, merged, reranked) and print the table side by side. Write the output file next to the eval version so a later change can be compared with it.
 

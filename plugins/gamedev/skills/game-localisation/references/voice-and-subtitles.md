@@ -47,10 +47,10 @@ Where lip-sync matters, say so per line, and decide before recording whether lip
 
 ## Subtitles as their own deliverable
 
-A subtitle is a string with timing, and the timing belongs to the language.
+A subtitle is a string with timing. The text belongs to the subtitle language; the timing belongs to the audio it is shown over.
 
-- **Store the timing with the localised entry,** not copied from the source. The reading time of a line depends on its length in the target language and on the script.
-- **Derive display time from a reading-speed target you set per language** and from the clip length, then let a script flag any subtitle that needs more time than the clip provides. Do not adopt a number from a forum post; take it from the accessibility guidance of your platforms or a recognised subtitle standard, and write the source next to the value.
+- **Key the cue timing to the voice clip that is playing,** not to the subtitle entry. Voice and subtitle languages are chosen separately, so one German subtitle may sit over German, English or Japanese audio of three different lengths; timing stored on the entry can match only one of them. Keep the timing with the scene or the clip (or keyed by the voice and subtitle pair), and treat the subtitle's reading time as a constraint on its text.
+- **Derive display time from a reading-speed target you set per language** and from the clip length, then let a script flag any subtitle that needs more time than any voice clip it can be paired with provides. Do not adopt a number from a forum post; take it from the accessibility guidance of your platforms or a recognised subtitle standard, and write the source next to the value.
 - **Set line-length limits per language and script,** as pixel widths on the real font. Languages without spaces, and right-to-left languages, break differently; see `scripts-fonts-and-rtl.md`.
 - **Plan for the subtitle box in pseudo-localisation,** so that an expanded string shows whether the box wraps, grows or clips.
 - **Include speaker names and non-speech information** (sounds that matter to the story) as entries, since subtitles carry them for players who rely on them. The accessibility treatment of subtitle size, background and speaker colour belongs to `accessibility-audit`.
