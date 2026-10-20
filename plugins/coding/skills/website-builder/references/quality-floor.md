@@ -230,9 +230,12 @@ interruptions.
 ### Checks
 
 ```bash
-npx @axe-core/cli https://example.com            # automated pass, ~30% of issues
-npx pa11y https://example.com
+A=tools/audit/node_modules/.bin                  # locked install, as the audit reference sets up
+$A/axe https://example.com                       # automated pass, ~30% of issues
+$A/pa11y https://example.com
 ```
+
+Not `npx`: with the package absent it runs whatever the registry serves today, unasked.
 
 Automated tools catch a minority of real problems. The manual pass is: tab the whole
 page start to finish, use it once with the mouse unplugged, and zoom to 200% to confirm
@@ -306,9 +309,9 @@ A realistic floor for a content site, gzipped, on the initial route:
 | Total initial load | ≤ 500 KB, ≤ 50 requests |
 
 ```bash
-npx lighthouse https://example.com --preset=desktop --view
-npx lighthouse https://example.com --form-factor=mobile --throttling-method=simulate
-npx source-map-explorer 'dist/**/*.js'          # what is actually in the bundle
+$A/lighthouse https://example.com --preset=desktop --view
+$A/lighthouse https://example.com --form-factor=mobile --throttling-method=simulate
+$A/source-map-explorer 'dist/**/*.js'           # what is actually in the bundle
 ```
 
 Measure mobile with throttling. A desktop score on a fast connection tells you nothing
@@ -339,7 +342,7 @@ Configure them where the host allows it — `_headers` on Netlify and Cloudflare
 
 ```bash
 curl -sI https://example.com | grep -iE 'content-security|strict-transport|x-content|referrer'
-npx observatory-cli example.com     # or check securityheaders.com
+# then grade them with MDN's HTTP Observatory or securityheaders.com
 ```
 
 ## SEO and metadata

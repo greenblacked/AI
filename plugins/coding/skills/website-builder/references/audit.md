@@ -19,13 +19,32 @@ act on; the value is entirely in the ranking and the honesty about coverage.
 
 Everything below is observable from outside. Run it before forming any opinion.
 
+Run the audit tools from a locked install, never through `npx`: when a package is not
+already installed, `npx` fetches whatever the registry serves today and runs it, and
+npm skips the prompt whenever standard input is not a terminal. Install them once, at
+exact versions, into a directory of their own, and keep `package.json` and
+`package-lock.json` from that directory:
+
+```bash
+npm install --prefix tools/audit --save-exact --ignore-scripts \
+  lighthouse@13.5.0 @axe-core/cli@4.14.0 pa11y@10.0.0 unlighthouse@0.19.1 \
+  depcheck@1.4.7 npm-check-updates@23.1.1 source-map-explorer@2.5.3 webpagetest@0.7.6
+npm ci --ignore-scripts --prefix tools/audit       # every later run installs exactly that tree or fails
+A=tools/audit/node_modules/.bin
+```
+
+`--ignore-scripts` also skips the browser and driver downloads, so point the browser
+tools at an installed Chrome: `CHROME_PATH` for Lighthouse,
+`chromeLaunchConfig.executablePath` in a pa11y config, and `--chrome-path` with a
+`--chromedriver-path` of the same major version for axe.
+
 ```bash
 curl -sI https://example.com                          # status, headers, server
 curl -s https://example.com | head -c 4000            # is it server-rendered at all
-npx lighthouse https://example.com --form-factor=mobile --throttling-method=simulate \
+$A/lighthouse https://example.com --form-factor=mobile --throttling-method=simulate \
   --output=json --output-path=./lh.json
-npx @axe-core/cli https://example.com                 # accessibility
-npx unlighthouse --site https://example.com           # whole-site sweep, if it is small
+$A/axe https://example.com                            # accessibility
+$A/unlighthouse --site https://example.com            # whole-site sweep, if it is small
 curl -s https://example.com/robots.txt
 curl -s https://example.com/sitemap.xml | head -40
 ```
@@ -51,12 +70,12 @@ than inferring.
 ```bash
 cloc .                                    # size and language mix
 npm audit --audit-level=moderate
-npx depcheck                              # dependencies imported nowhere
-npx npm-check-updates                     # how far behind
+$A/depcheck                               # dependencies imported nowhere
+$A/ncu                                    # how far behind
 git log --oneline -20                     # release cadence and message quality
 git log --format='%ad' --date=short -1    # is this maintained
 ls .github/workflows .gitlab-ci.yml 2>/dev/null
-npm run build && du -sh dist && npx source-map-explorer 'dist/**/*.js'
+npm run build && du -sh dist && $A/source-map-explorer 'dist/**/*.js'
 grep -rInE '(api[_-]?key|secret|password|token)\s*[:=]' --include='*.{js,ts,tsx,env}' .
 git log --all -p -S 'BEGIN PRIVATE KEY' | head    # secrets in history
 ```
@@ -111,8 +130,8 @@ Full standard in the quality-floor reference the skill lists; a failure there is
 definition.
 
 ```bash
-npx @axe-core/cli https://example.com --tags wcag2a,wcag2aa,wcag22aa
-npx pa11y --standard WCAG2AA https://example.com
+$A/axe https://example.com --tags wcag2a,wcag2aa,wcag22aa
+$A/pa11y --standard WCAG2AA https://example.com
 ```
 
 Plus the manual pass automation cannot do: tab the page end to end, confirm focus is
@@ -122,8 +141,8 @@ check contrast on the three worst-looking pairs with a picker.
 ### Performance
 
 ```bash
-npx lighthouse https://example.com --form-factor=mobile --throttling-method=simulate
-npx webpagetest test https://example.com --location Dulles:Chrome --connectivity 3GFast
+$A/lighthouse https://example.com --form-factor=mobile --throttling-method=simulate
+$A/webpagetest test https://example.com --location Dulles:Chrome --connectivity 3GFast
 ```
 
 Report field data (Chrome UX Report, if the site has enough traffic) alongside lab data,
@@ -135,7 +154,6 @@ resources, and unused bytes from the Coverage panel.
 
 ```bash
 curl -sI https://example.com | grep -iE 'content-security|strict-transport|x-content|referrer|permissions'
-npx observatory-cli example.com
 npm audit --audit-level=high
 ```
 
@@ -143,6 +161,8 @@ Also: cookie flags on anything session-shaped, tokens in `localStorage`, secrets
 bundle, `target="_blank"` without `rel="noopener"`, mixed content, `dangerouslySetInnerHTML`
 or `innerHTML` on user data, forms posting cross-origin, exposed `.git`, `.env`,
 `/admin`, source maps in production, and version headers volunteering the stack.
+Grade the headers with MDN's HTTP Observatory or securityheaders.com in a browser; the
+old `observatory-cli` package calls an API Mozilla has retired.
 
 Do not run authenticated, intrusive or load-generating tests without written permission
 from someone who owns the system. Say that plainly when the user asks for a
@@ -154,7 +174,7 @@ Crawl rather than sampling one page — duplicate titles across a site are invis
 a single URL.
 
 ```bash
-npx unlighthouse --site https://example.com
+$A/unlighthouse --site https://example.com
 curl -s https://example.com/sitemap.xml | grep -c '<loc>'
 ```
 
