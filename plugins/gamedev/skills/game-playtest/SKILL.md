@@ -1,7 +1,7 @@
 ---
 name: game-playtest
 description: "Run a game playtest so it ends in decisions rather than opinions: write one question per session tied to a design goal, recruit the target player instead of friends, observe in silence and record behaviour (deaths, quits, time to first success, where they look) before asking, choose think-aloud or retrospective narration knowing what each distorts, follow with a short survey on fixed scales, separate bugs from design findings, triage bugs by severity and reproducibility into the tracker with repro steps and build id, and turn findings into a short ranked change list with the metric that would show each fix worked. Use whenever someone is planning, running or writing up a playtest, a demo-day session or a closed alpha. Not for win-rate tuning (game-balance), level layout (game-level-design), concept go or no-go (game-greenlight), or usability tests of product UI (usability-test-plan)."
-allowed-tools: Read, Write, Edit, Grep, Glob
+allowed-tools: Read, Grep, Glob
 ---
 
 # Game Playtest

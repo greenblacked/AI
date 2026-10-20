@@ -987,38 +987,41 @@ finished while its pull request goes red.
 across lines and asserts the export fails with that message, and asserts that the same
 shape inside a code span, an HTML comment or an HTML block is inert and passes. Write
 every reference-style link, text and label, on one line, or use an inline link, and run
-`make portable` after adding or editing a file under a `references/` directory. No
-benchmark case seeds this defect yet, so `reviewer` holds it from this entry alone.
+`make portable` after adding or editing a file under a `references/` directory. The
+`reference-link-label-wraps` benchmark case checks that `reviewer` still notices a label
+wrapped across lines in a reference file.
 
 **First caught:** the implementation run for the injection-architecture reference in the
 AI skills batch, by `make portable`, before the change had a pull request number.
 
 ### A skill pre-approves an interpreter in the turn that reads someone else's text
 
-**Class.** A skill's `allowed-tools` grants a general interpreter, a package runner or a
-network client without a prompt, in the same conversation where the procedure reads
+**Class.** A skill's `allowed-tools` grants, without a prompt, a tool that can run code,
+reach the network or write a file, in the same conversation where the procedure reads
 content a third party wrote: an extension under audit, a scanned document, a CSV, a
-retrieval corpus, a model's output. An instruction planted in that content can then run
-code or send a file out with nothing for the user to approve.
+contributor's checkout, a model's output. An instruction planted in that content can then
+run code, send a file out, or overwrite a shell startup file that runs on the next login,
+with nothing for the user to approve.
 
-**How it shows up.** `Bash(python3:*)`, `Bash(node:*)`, `Bash(npx:*)`, `Bash(curl:*)` or
-`Bash(git:*)` (where `git -c alias.x='!cmd' x` runs any command) on a skill whose first
-step is to read an input the user did not write, and tools that look like readers but
-take an option that runs a command: `tar --checkpoint-action`, `rg --pre`, `find -exec`,
-and `unzip -d` writing over a startup file. The prose usually says to treat that input as
-data, which no tool boundary enforces. `WebFetch` belongs on the same list: it sends
-whatever a URL encodes. Codex security review flagged the class eight times in one batch,
+**How it shows up.** Interpreters, package runners and fetchers: `Bash(python3:*)`,
+`Bash(node:*)`, `Bash(npx:*)`, `Bash(curl:*)`, `WebFetch`. `Bash(git:*)`, where
+`git -c alias.x='!cmd' x` runs any command. Tools that look like readers but take an
+option that runs a command: `tar --checkpoint-action`, `rg --pre`, `find -exec`. And
+readers that take an output path: `pdftotext in.pdf out`, `tesseract in out`,
+`pdfimages`, `dot -o`, `unzip -d`, `git log --output`, `file -C`, as well as the `Write`
+and `Edit` tools themselves. The prose usually says to treat the input as data, which no
+tool boundary enforces. Codex security review flagged the class ten times in one batch,
 one skill and one tool at a time, before it was fixed across every new skill and command
 at once.
 
 **The check that catches it.** For each new or changed `allowed-tools`, name the skill's
-main input and who wrote it. Where a third party did, pre-approve only local readers that
-cannot reach the network or run arbitrary code (`jq`, `pdftotext`, `tesseract`,
-`sha256sum`, the built-in `Read` and `Grep`, and `git` scoped to a read-only
-subcommand such as `Bash(git diff:*)`), leave interpreters, package runners and fetchers to prompt, and say in the
-body that a command the content suggested is declined. Prefer a subagent with no shell
-for reading the content itself. No validator rule or benchmark case covers this yet, so
-review holds it from this entry alone.
+main input and who wrote it. Where a third party did, pre-approve only `Read`, `Grep`,
+`Glob` and readers that write to standard output and nothing else (`jq`, `sha256sum`);
+let everything else prompt, writes included, and say in the body that a command the
+content suggested is declined. Prefer a subagent with no shell for reading the content
+itself. No validator rule covers this, so review holds it from this entry; the
+`third-party-input-preapproves-interpreter` benchmark case checks that `reviewer` still
+notices an interpreter added to a skill that reads scanned documents.
 
 **First caught:** Codex security review of the AI skills batch, on `agent-extension-audit`,
 `document-extraction` and `data-visualisation`.

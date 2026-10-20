@@ -1,7 +1,7 @@
 ---
 name: visual-review
 description: "Review a rendered web UI from screenshots without trusting a vision model for what code can measure: pin the environment (browser image, fonts, animations off, seeded data, masked regions), capture a viewport and theme matrix, pixel-diff against a baseline, run contrast, overflow, bounding-box, DOM-count and axe-core checks, then read native-resolution crops with DOM facts attached. Every finding cites a selector and box or is labelled unverified. Use for screenshot review or visual regression of a page. Casual asks include \"check the screenshots for layout bugs\", \"did this break dark mode\", \"does the mobile layout overflow\", or \"have the model look at the page\". Not for a flow heuristic review (ui-ux-review), a WCAG audit (accessibility-audit), breakpoints (responsive-design), flaky suites or CI screenshot diffs failing on fonts (e2e-testing) or hierarchy (visual-design)."
-allowed-tools: "Read, Write, Glob, Grep"
+allowed-tools: "Read, Glob, Grep"
 ---
 
 # Visual Review

@@ -1,7 +1,7 @@
 ---
 name: agent-extension-audit
 description: "Vet a third-party agent extension before installing it: a skill with scripts, a Claude Code or other plugin, a hook, an MCP server, a slash command. Fetch it to a quarantine directory without running anything, separate what executes automatically from prose, read every executable file in full, list declared and effective permissions (allowed-tools, network, filesystem, credentials), check for hidden instructions in descriptions and tool descriptions, egress, obfuscation and floating versions, then decide install, install with restrictions or reject and record the pinned commit SHA and hash. Use for \"is this plugin safe to install\", \"check this MCP server before we add it\", \"can we trust this skill from GitHub\". Not for your own agent's design (agent-security-review), a dependency alert (dependency-triage), a diff you are merging (security-review), or writing a skill (new-skill)."
-allowed-tools: "Read, Grep, Glob, Bash(sha256sum:*), Bash(jq:*), Bash(file:*)"
+allowed-tools: "Read, Grep, Glob, Bash(sha256sum:*), Bash(jq:*)"
 ---
 
 # Agent Extension Audit

@@ -1,7 +1,7 @@
 ---
 name: data-visualisation
 description: "Turn data into a chart that is correct and readable in any medium (matplotlib, Vega-Lite, Plotly, D3 or a spreadsheet): pick the chart from the question and the data's shape, keep bars on a zero baseline, avoid dual axes and 3D, use a colour-blind-safe palette that holds 3:1 contrast on light and dark backgrounds, label marks directly, ship a text alternative with the data table, then re-read the rendered image against the data. Use for any \"plot this\" or \"which chart\" ask. Casual asks: \"graph this CSV\", \"bar or line for this\", \"my pie chart is unreadable\", \"can I have two y axes\" or \"make this chart colour-blind safe\". Not for dashboard telemetry (instrumentation), system diagrams (architecture-diagrams), status reports (status-update), screen hierarchy (visual-design), WCAG audits (accessibility-audit), design tokens (design-system) or dashboard apps (website-builder)."
-allowed-tools: "Read, Write, Edit, Glob, Grep"
+allowed-tools: "Read, Glob, Grep"
 ---
 
 # Data visualisation

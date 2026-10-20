@@ -1,7 +1,7 @@
 ---
 name: game-localisation
 description: "Take a game from one language to many without shipping broken text. Moves every player-facing string into keyed tables with a translator note and a length limit from day one, pseudo-localises early to expose hard-coded and clipped text, handles plurals and gender with ICU MessageFormat rather than concatenation, plans fonts and fallback per script, right-to-left layout, voice and subtitle timing and locale formats, then runs linguistic QA in context with screenshots and a bug taxonomy. Use whenever someone says \"we are adding German and Japanese\", \"the text overflows the button\", \"I see boxes instead of characters\", \"how do I do plurals in Russian\", or \"translators have no context\". Not for ratings and store submission (game-certification), English UI wording (content-design), season or patch comms (game-live-ops), or build size and audio import (game-assets)."
-allowed-tools: Read, Write, Edit, Glob, Grep
+allowed-tools: Read, Glob, Grep
 ---
 
 # Game Localisation
