@@ -89,30 +89,50 @@ one very large share is a finding; a flat spread across users is the other findi
 it points at the prompt path rather than at the people.
 
 ```bash
-jq -Rn 'reduce (inputs | (fromjson? // null)) as $r ({bad: 0, g: {}};
-          if ($r | type) != "object" then .bad += 1
-          else (($r.feature // "untagged") | tostring) as $f
-            | .g[$f].calls += 1
-            | .g[$f].input += ($r.input_tokens | numbers // 0)
-            | .g[$f].cache_read += ($r.cache_read_input_tokens | numbers // 0)
-            | .g[$f].cache_write += ($r.cache_creation_input_tokens | numbers // 0)
-            | .g[$f].output += ($r.output_tokens | numbers // 0)
-            | .g[$f].cost += ($r.cost | numbers // 0)
-            | .g[$f].rows_without_cost += (if ($r.cost | type) == "number" then 0 else 1 end)
-          end)
-        | ([.g[].cost] | add // 0) as $total
-        | {unparseable_rows: .bad, groups: (.g | to_entries
-        | map({feature: .key} + .value
-              | . + {share_pct: (if $total > 0 then (.cost / $total * 100 | round) else null end)})
-        | sort_by(-.cost))}' export.jsonl
+jq -Rn 'reduce (inputs | (fromjson? // null)) as $r ({bad: 0, dup: 0, no_id: 0, seen: {}, g: {}};
+    if ($r | type) != "object" then .bad += 1
+    else ($r.request_id | if type == "string" or type == "number" then tostring else null end) as $id
+      | if $id != null and .seen[$id] then .dup += 1
+        else (if $id == null then .no_id += 1 else .seen[$id] = true end)
+          | (($r.feature // "untagged") | tostring) as $f
+          | .g[$f] //= {calls: 0, input: 0, cache_read: 0, cache_write: 0, output: 0, cost: 0,
+                        missing_input: 0, missing_cache_read: 0, missing_cache_write: 0,
+                        missing_output: 0, missing_cost: 0}
+          | .g[$f].calls += 1
+          | reduce (["input", "input_tokens"], ["cache_read", "cache_read_input_tokens"],
+                    ["cache_write", "cache_creation_input_tokens"], ["output", "output_tokens"],
+                    ["cost", "cost"]) as [$k, $src] (.;
+              if ($r[$src] | type) == "number" then .g[$f][$k] += $r[$src]
+              else .g[$f]["missing_" + $k] += 1 end)
+        end
+    end)
+  | ([.g[].cost] | add // 0) as $total
+  | {unparseable_rows: .bad, duplicate_rows_skipped: .dup, rows_without_id: .no_id,
+     groups: (.g | to_entries
+       | map({feature: .key} + .value
+             | . + {share_pct: (if $total > 0 then (.cost / $total * 100 | round) else null end)})
+       | sort_by(-.cost))}' export.jsonl
 ```
 
-It streams: `reduce` keeps only the per-feature totals, so memory stays flat however large the export is (a 99 MB export with prompt bodies peaked at 10 MB, against 221 MB for a version that collected the rows first). Each line is parsed on its own, so one truncated or malformed row, or a valid JSON value
-that is not an object, is counted in `unparseable_rows` instead of aborting the whole query. The field names are the Anthropic-format usage fields from the paragraph above; rename
-them to the export's own. `rows_without_cost` keeps a row with no numeric price visible rather
-than letting it count as free (a field that is missing, null, `false` or a string all count
-there, and add nothing to the sums): report it beside the share, because a group whose rows
-mostly lack a cost looks cheaper than it is.
+It streams: `reduce` keeps only the per-feature totals and the set of call identifiers
+already seen, so memory stays small however large the export is (a 110 MB export of
+100,000 calls with prompt bodies peaked at 14 MB). Each line is parsed on its own, so one
+truncated or malformed row, or a valid JSON value that is not an object, is counted in
+`unparseable_rows` instead of aborting the whole query.
+
+`request_id` stands for whatever identifies one billed attempt in the export: the
+provider's request or response id, or for OpenTelemetry the span that carries the
+`gen_ai.usage.*` attributes, not its parent. A second row with an id already seen is the
+same call written twice and is skipped into `duplicate_rows_skipped`; key on the attempt
+rather than the logical request, because every retry attempt is billed on its own. Rows
+with no id cannot be deduplicated and are summed, but counted in `rows_without_id`; when
+that number is large, the totals are an upper bound and the report has to say so.
+
+The field names are the Anthropic-format usage fields from the paragraph above; rename
+them to the export's own. A missing, null, `false` or string value adds nothing to its sum
+and is counted in that field's `missing_*` counter instead, so an absent quantity is never
+read as zero: report the counters beside the share, because a group whose rows mostly lack
+a cost, or a token count, looks cheaper than it is.
 
 Report the untagged share as a headline figure when it is large. If most rows carry no
 feature or prompt path, any split you produce describes the minority that happened to be

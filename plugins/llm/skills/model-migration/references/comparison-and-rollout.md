@@ -40,10 +40,11 @@ time, report the share of cases that pass on all repeats as well as the mean, as
 Anthropic describes for `pass^k` in
 <https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents>.
 
-If the provider says a model id is fixed (Anthropic does for the 4.6 generation and
-later), you may reuse an old baseline for the same prompt and settings; if time has
-passed or the id was an alias, re-run it on the same day as the candidate. See
-`references/behaviour-changes.md`, class 10.
+Re-run the baseline on the same day as the candidate for every decision, even when the
+provider says a model id is fixed (Anthropic does for the 4.6 generation and later):
+serving infrastructure around an unchanged id can still shift observed behaviour, and an
+old run would credit that drift to the candidate. Keep earlier runs as history, never as
+the comparison. See `references/behaviour-changes.md`, class 10.
 
 A judge model is a dependency on the same schedule as the feature. If an LLM judge scores
 your outputs and it runs on the model being retired, the migration changes the
