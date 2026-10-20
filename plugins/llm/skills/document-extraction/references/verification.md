@@ -41,21 +41,29 @@ from decimal import Decimal
 NORMALISED = re.compile(r"-?\d+(?:\.\d+)?")
 # At most one currency marker before or after the number in `raw`, such as "EUR " or
 # " USD", and nothing else: a trailing "-" or "(" is sign syntax for money() to reject.
-MARKED = re.compile(r"([-+(]?)(?:([A-Z]{3}|[$€£¥])\s*)?(.*?)(?:\s*([A-Z]{3}|[$€£¥]))?")
-# Symbols that name one currency. "$" names several; pass the document's own mapping.
-SYMBOLS = {"€": "EUR", "£": "GBP", "¥": "JPY"}
+MARKED = re.compile(r"(?:([A-Z]{3}|[$€£¥])\s*)?(.*?)(?:\s*([A-Z]{3}|[$€£¥]))?")
+# Symbols that name exactly one currency. "$", "£" and "¥" each name several ("¥" is
+# both yen and yuan), so the document's own mapping has to resolve them.
+SYMBOLS = {"€": "EUR"}
 
 
 def printed(field, decimal_sep=".", symbols=SYMBOLS):
     """The amount the record's ``raw`` text shows, or None when it is unparseable or its
     currency marker disagrees with the record's ``currency``."""
-    sign, lead, number, trail = MARKED.fullmatch(field["raw"].strip()).groups()
+    text, sign = field["raw"].strip(), ""
+    if text[:1] in ("-", "+"):  # "-€5.00"
+        sign, text = text[0], text[1:]
+    if text.startswith("(") and text.endswith(")"):  # "(€5.00)", "(5.00 EUR)"
+        if sign:
+            return None
+        sign, text = "-", text[1:-1].strip()
+    lead, number, trail = MARKED.fullmatch(text).groups()
     if lead and trail:
         return None
     marker = lead or trail
     if marker and symbols.get(marker, marker) != field.get("currency"):
         return None  # "$5.00" on a record that says EUR is a misread currency
-    return money(sign + number, decimal_sep)  # "-€5.00" and "(€5.00)" keep their sign
+    return money(sign + number, decimal_sep)
 
 
 def money(raw, decimal_sep="."):
