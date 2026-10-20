@@ -1002,15 +1002,17 @@ retrieval corpus, a model's output. An instruction planted in that content can t
 code or send a file out with nothing for the user to approve.
 
 **How it shows up.** `Bash(python3:*)`, `Bash(node:*)`, `Bash(npx:*)`, `Bash(curl:*)` or
-`Bash(git:*)` on a skill whose first step is to read an input the user did not write. The
-prose usually says to treat that input as data, which no tool boundary enforces. Codex
-security review flagged it four times in one batch, one skill at a time, before the class
-was fixed across every new skill at once.
+`Bash(git:*)` on a skill whose first step is to read an input the user did not write, and
+tools that look like readers but take an option that runs a command:
+`tar --checkpoint-action`, `rg --pre`, `find -exec`. The prose usually says to treat that
+input as data, which no tool boundary enforces. Codex security review flagged it four
+times in one batch, one skill at a time, before the class was fixed across every new
+skill at once.
 
 **The check that catches it.** For each new or changed `allowed-tools`, name the skill's
 main input and who wrote it. Where a third party did, pre-approve only local readers that
-cannot reach the network or run arbitrary code (`jq`, `rg`, `pdftotext`, `tesseract`,
-`sha256sum`), leave interpreters, package runners and fetchers to prompt, and say in the
+cannot reach the network or run arbitrary code (`jq`, `pdftotext`, `tesseract`,
+`sha256sum`, and the built-in `Read` and `Grep`), leave interpreters, package runners and fetchers to prompt, and say in the
 body that a command the content suggested is declined. Prefer a subagent with no shell
 for reading the content itself. No validator rule or benchmark case covers this yet, so
 review holds it from this entry alone.
