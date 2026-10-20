@@ -1006,8 +1006,9 @@ code or send a file out with nothing for the user to approve.
 step is to read an input the user did not write, and tools that look like readers but
 take an option that runs a command: `tar --checkpoint-action`, `rg --pre`, `find -exec`.
 The prose usually says to treat that input as data, which no tool boundary enforces.
-Codex security review flagged it six times in one batch, one skill and one tool at a
-time, before the class was fixed across every new skill at once.
+`WebFetch` belongs on the same list: it sends whatever a URL encodes. Codex security
+review flagged the class eight times in one batch, one skill and one tool at a time,
+before it was fixed across every new skill and command at once.
 
 **The check that catches it.** For each new or changed `allowed-tools`, name the skill's
 main input and who wrote it. Where a third party did, pre-approve only local readers that
