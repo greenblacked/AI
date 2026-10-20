@@ -153,8 +153,11 @@ headers say: `ulimit -f 512000` in a subshell before `tar -x` stops any one file
 `tmpfs` mounted with `size=`, caps the total.
 
 Pass paths as
-arguments (`git -C`, `rg ... <path>`) rather than changing into the directory, because
-interpreters and build tools load code from the current directory.
+arguments after `--` (`git -C`, `rg <pattern> -- <path>`, `file -- <path>`) rather than
+changing into the directory, because interpreters and build tools load code from the
+current directory. Never expand a glob or a file listing of the publisher's names into a
+command line: a file named `--pre=sh x` is an option to `rg` there, and runs. Read a
+listing with `-z` and pass each name after `--`.
 
 `git`, `curl`, `tar`, `unzip` and `rg` are deliberately not pre-approved by this skill,
 so each asks for approval: the first two reach the network, `tar --checkpoint-action` and
@@ -175,7 +178,7 @@ possible outcome at install with restrictions. Read
 ### 2. Inventory what runs automatically
 
 Classify every file as runs by itself, runs when named, or prose. List files with
-`qgit -C <quarantine>/src ls-files` and `file` on anything without a text extension, then
+`qgit -C <quarantine>/src ls-files -z` and `file --` on anything without a text extension, then
 find the entry points for the extension type. Read
 [extension surfaces](references/extension-surfaces.md) for where each type hides them:
 hooks, `bin/` directories, monitors, MCP server commands, install scripts, and shell

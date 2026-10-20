@@ -6,8 +6,8 @@ verdicts: a hit tells you where to read, and an empty result on a pattern never 
 code is clean, because the same behaviour can be spelled another way. The reading in
 step 3 is the review; these are the places that reading must not skip.
 
-All commands take the quarantine path as an argument. Run them with `rg <pattern>
-<quarantine>/src`, never from inside it.
+All commands take the quarantine path as an argument. Run them with `rg <pattern> --
+<quarantine>/src`, with the `--` before the path, never from inside it.
 
 ## Contents
 
@@ -26,11 +26,11 @@ A human reviewing rendered Markdown does not see these, and the model does.
 
 ```bash
 # zero-width, bidirectional control, invisible and Unicode tag-block characters
-rg -nP '[\x{00AD}\x{034F}\x{061C}\x{115F}\x{1160}\x{180E}\x{200B}-\x{200F}\x{2028}-\x{202E}\x{2060}-\x{2064}\x{2066}-\x{2069}\x{3164}\x{FE00}-\x{FE0F}\x{FEFF}\x{FFA0}\x{E0000}-\x{E007F}]' <quarantine>/src
+rg -nP '[\x{00AD}\x{034F}\x{061C}\x{115F}\x{1160}\x{180E}\x{200B}-\x{200F}\x{2028}-\x{202E}\x{2060}-\x{2064}\x{2066}-\x{2069}\x{3164}\x{FE00}-\x{FE0F}\x{FEFF}\x{FFA0}\x{E0000}-\x{E007F}]' -- <quarantine>/src
 # HTML comments in Markdown, which many renderers hide
-rg -n '<!--' --glob '*.md' <quarantine>/src
+rg -n '<!--' --glob '*.md' -- <quarantine>/src
 # very long unbroken strings that may be encoded data
-rg -n '[A-Za-z0-9+/_-]{80,}={0,2}' <quarantine>/src  # base64 and base64url
+rg -n '[A-Za-z0-9+/_-]{80,}={0,2}' -- <quarantine>/src  # base64 and base64url
 ```
 
 A hit on a legitimate file is possible (a byte order mark, an emoji sequence that uses a
@@ -58,9 +58,9 @@ line number, and do not paraphrase it into something that could be run.
 ## Egress and data movement
 
 ```bash
-rg -n -i '(curl|wget|fetch\(|requests\.|httpx|urllib|axios|http\.request|net\.connect|socket|WebSocket|nc )' <quarantine>/src
-rg -n -o 'https?://[A-Za-z0-9._~:/?#@!$&()*+,;=%-]+' <quarantine>/src
-rg -n -i '(webhook|telemetry|analytics|beacon)' <quarantine>/src
+rg -n -i '(curl|wget|fetch\(|requests\.|httpx|urllib|axios|http\.request|net\.connect|socket|WebSocket|nc )' -- <quarantine>/src
+rg -n -o 'https?://[A-Za-z0-9._~:/?#@!$&()*+,;=%-]+' -- <quarantine>/src
+rg -n -i '(webhook|telemetry|analytics|beacon)' -- <quarantine>/src
 ```
 
 List every host. For each, ask what the stated purpose needs it for, and whether
@@ -73,8 +73,8 @@ that is not mentioned is a finding on honesty alone.
 ## Credentials and ambient authority
 
 ```bash
-rg -n -i '(process\.env|os\.environ|getenv|\.env\b|\.ssh|\.aws|\.config/gcloud|\.npmrc|\.netrc|\.git-credentials|keychain|credentials|id_rsa|token|api[_-]?key)' <quarantine>/src
-rg -n '(\.claude|\.codex|settings\.json|CLAUDE\.md|AGENTS\.md)' <quarantine>/src
+rg -n -i '(process\.env|os\.environ|getenv|\.env\b|\.ssh|\.aws|\.config/gcloud|\.npmrc|\.netrc|\.git-credentials|keychain|credentials|id_rsa|token|api[_-]?key)' -- <quarantine>/src
+rg -n '(\.claude|\.codex|settings\.json|CLAUDE\.md|AGENTS\.md)' -- <quarantine>/src
 ```
 
 Reading an environment variable the extension is documented to need is expected. Reading
@@ -87,7 +87,7 @@ the user.
 ## Obfuscation and execution of fetched content
 
 ```bash
-rg -n -i '(eval|exec\(|new Function|child_process|subprocess|os\.system|Runtime\.exec|base64 +(-d|--decode)|atob\(|b64decode|fromCharCode|\| *(sh|bash|zsh)\b)' <quarantine>/src
+rg -n -i '(eval|exec\(|new Function|child_process|subprocess|os\.system|Runtime\.exec|base64 +(-d|--decode)|atob\(|b64decode|fromCharCode|\| *(sh|bash|zsh)\b)' -- <quarantine>/src
 ```
 
 `eval`, `exec` and a shell invoked on a string built at runtime are the pattern to chase,

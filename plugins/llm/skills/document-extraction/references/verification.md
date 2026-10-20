@@ -64,15 +64,17 @@ def money(raw, decimal_sep="."):
 
 
 def num(field, decimal_sep="."):
-    """A field record's normalised value as a Decimal; None when absent, malformed, or
-    when it disagrees with the printed ``raw`` text the same record carries."""
+    """A field record's normalised value as a Decimal; None when absent, malformed, with
+    no printed ``raw`` text, or when it disagrees with that text."""
     if not field or not isinstance(field.get("value"), str):
         return None
     if NORMALISED.fullmatch(field["value"]) is None:
         return None  # normalised values carry no grouping mark and no other sign syntax
     value = Decimal(field["value"])
     raw = field.get("raw")
-    if isinstance(raw, str) and money(MARKER.sub("", raw.strip()), decimal_sep) != value:
+    if not isinstance(raw, str):
+        return None  # a value with no transcription behind it is not evidence
+    if money(MARKER.sub("", raw.strip()), decimal_sep) != value:
         return None  # a normaliser that changed the number is a misreading, not a value
     return value
 
