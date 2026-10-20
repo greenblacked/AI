@@ -1,7 +1,7 @@
 ---
 name: e2e-testing
 description: "Keep a browser end-to-end suite trustworthy, not rerun until green: measure each test's flake rate from CI history before fixing any one, locate elements by role and accessible name not CSS or XPath, wait on state instead of a fixed sleep or network idle, give every test its own data, authenticate once through stored session state, stub third parties, and quarantine a flaking test with a deadline. Use whenever someone says our Playwright tests are flaky, tests pass locally and fail in CI, how should I select elements, should I use page objects, how do I log in once, or why do screenshot diffs fail in CI on fonts, environment or baselines. Not for choosing what to test or at which level, which is test-design; not for triaging a red pipeline, which is ci-triage; not for finding the cause of a product bug, which is debugging; not for building the site, which is website-builder."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(npx:*), Bash(npm:*), Bash(gh:*), Bash(jq:*), Bash(mktemp:*), Bash(git:*)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(npm:*), Bash(gh:*), Bash(jq:*), Bash(mktemp:*), Bash(git:*)
 ---
 
 # End-to-End Testing
@@ -214,7 +214,7 @@ Configure the capture so the evidence exists before you need it. In Playwright, 
 
 Read them in this order:
 
-1. **The trace, at the failing action.** Open it with `npx playwright show-trace trace.zip`. The DOM snapshots either side of the failing action answer the first question — was the element absent, present but covered, present but disabled, or present with different text — and that answer selects the flake class before any hypothesis is formed. A hosted viewer exists; check whether a trace of your application may leave your network before using it, since a trace contains the rendered page and its requests.
+1. **The trace, at the failing action.** Open it with `node_modules/.bin/playwright show-trace trace.zip`. The DOM snapshots either side of the failing action answer the first question — was the element absent, present but covered, present but disabled, or present with different text — and that answer selects the flake class before any hypothesis is formed. A hosted viewer exists; check whether a trace of your application may leave your network before using it, since a trace contains the rendered page and its requests.
 2. **The network panel, for the request that did not happen.** A large share of e2e flake is a request that was slower, was never fired because a handler had not attached yet, or returned a different shape. The trace records them.
 3. **The console, for the error that preceded the symptom.** An unhandled rejection several actions earlier is frequently the real event.
 4. **The video, only for ordering questions** — did the modal open before the click landed. It is the lowest-information artifact and the largest.

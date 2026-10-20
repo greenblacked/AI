@@ -42,8 +42,8 @@ Tag the test and exclude the tag from the blocking run, rather than skipping it:
 
 ```bash
 set -Eeuo pipefail
-npx playwright test --grep-invert @quarantine         # the blocking job
-npx playwright test --grep @quarantine || true        # a separate, non-blocking job
+node_modules/.bin/playwright test --grep-invert @quarantine   # the blocking job
+node_modules/.bin/playwright test --grep @quarantine || true  # a separate, non-blocking job
 ```
 
 Skipping — `test.skip` or its equivalent — stops the test executing, which stops it producing data. Once that happens nobody can tell whether the cause was fixed by some unrelated change, and the entry is renewed forever on no evidence at all. A quarantined test that keeps running accumulates exactly the statistics that will end the quarantine: a run of clean results is the argument for returning it, and a continuing failure rate is the argument for deleting it.

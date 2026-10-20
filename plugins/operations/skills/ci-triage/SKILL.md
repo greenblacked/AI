@@ -119,11 +119,14 @@ The probe's exit code is the contract: `0` = good, `1`-`127` except `125` = bad,
 #!/usr/bin/env bash
 set -uo pipefail
 npm ci --prefer-offline || exit 125   # can't build this commit -> skip, not bad
+[ -x node_modules/.bin/jest ] || exit 125   # this commit's lockfile has no jest -> skip
 for _ in 1 2 3; do
-  npx jest path/to/suspect.test.ts && exit 0   # any pass means good
+  node_modules/.bin/jest path/to/suspect.test.ts && exit 0   # any pass means good
 done
 exit 1
 ```
+
+The probe calls the commit's own `node_modules/.bin/jest` rather than `npx jest`: on a commit whose lockfile lacks the runner, `npx` would fetch today's release from the registry and run it without asking, so the bisect would judge old code with a runner it never had.
 
 Bisecting CI-only failures that do not reproduce locally is possible but expensive — push each candidate SHA to a branch and let the workflow run. Budget it deliberately; often the workflow diff in step 3 is cheaper.
 

@@ -17,7 +17,9 @@ set -uo pipefail
 
 readonly ATTEMPTS="${BISECT_ATTEMPTS:-3}"
 readonly BUILD_CMD="${BISECT_BUILD_CMD:-npm ci --prefer-offline}"
-readonly TEST_CMD="${BISECT_TEST_CMD:-npx jest path/to/suspect.test.ts}"
+# The runner comes from this commit's own lockfile. `npx jest` would fetch today's release
+# from the registry when the commit has none, and judge old code with a runner it never had.
+readonly TEST_CMD="${BISECT_TEST_CMD:-node_modules/.bin/jest path/to/suspect.test.ts}"
 
 log() { printf '%s bisect-probe: %s\n' "$(date -u +%H:%M:%S)" "$*" >&2; }
 
@@ -25,6 +27,13 @@ log() { printf '%s bisect-probe: %s\n' "$(date -u +%H:%M:%S)" "$*" >&2; }
 # bisect boundary to the wrong place and every later step inherits the error.
 if ! eval "$BUILD_CMD"; then
   log "build failed - skipping this commit"
+  exit 125
+fi
+
+# A runner named by path that this commit did not install is untestable too.
+runner="${TEST_CMD%% *}"
+if [[ "$runner" == */* && ! -x "$runner" ]]; then
+  log "test runner $runner is not installed at this commit - skipping"
   exit 125
 fi
 
