@@ -88,6 +88,9 @@ _ABBREVIATION = re.compile(
     re.IGNORECASE,
 )
 
+# After an abbreviation's full stop, a capitalised boundary phrase still starts a new
+# sentence: "in the U.S. Not for `x`" must not fold the exclusion into the sentence before.
+_OPENS_BOUNDARY = re.compile(r"\s+(?:Do not use for|Not for)\b")
 _CLOSERS = "\"')]\u2019\u201d\u00bb"
 
 
@@ -106,8 +109,8 @@ def _sentences(text: str) -> list[str]:
         end = index + 1
         while end < len(text) and text[end] in _CLOSERS:
             end += 1
-        if (end == len(text) or text[end].isspace()) and not _ABBREVIATION.search(
-            text[start : index + 1]
+        if (end == len(text) or text[end].isspace()) and (
+            not _ABBREVIATION.search(text[start : index + 1]) or _OPENS_BOUNDARY.match(text, end)
         ):
             sentences.append(text[start:end])
             start = end
