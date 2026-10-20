@@ -2309,6 +2309,7 @@ def test_the_404_embeds_every_real_page_for_its_suggestions(mini_repo, tmp_path)
         "/workflows/",
         "/examples/",
         "/quality/",
+        "/pricing/",
         "/plugins/engineering/",
         "/plugins/engineering/alpha/",
         "/plugins/engineering/beta/",
@@ -2642,8 +2643,6 @@ def test_every_page_registers_the_worker_after_load_and_the_error_pages_do_not(m
 
 
 def test_pricing_calculator_has_selectable_plans_and_unambiguous_defaults(mini_repo, tmp_path):
-    from html.parser import HTMLParser
-
     page = (_build(mini_repo, tmp_path) / "pricing" / "index.html").read_text(encoding="utf-8")
     assert "<title>AI subscription pricing · AI</title>" in page
     assert 'href="/pricing/" aria-current="page"' in page
@@ -2656,13 +2655,18 @@ def test_pricing_calculator_has_selectable_plans_and_unambiguous_defaults(mini_r
         assert f'value="{amount}"' in page
     assert "Pro 500" in page
     assert "The X Subscription" in page
-    assert "Existing standalone SuperGrok" in page
+    # No source supports a Grok and Cursor bundle, so the page must not claim one.
+    assert "Cursor" not in page
+    # One radio group per plan, with exactly the default checked, so the static
+    # totals match what a visitor sees before any script runs.
+    assert page.count("<fieldset data-price-plan=") == 5
+    assert page.count(" checked>") == 5
     assert "Google Gemini" in page
     assert "API usage and credits" in page
     assert "data-price-preset=" in page
     assert "localStorage.setItem" not in site.site_pricing.SCRIPT
     assert "eval(" not in site.site_pricing.SCRIPT
-    for key, name, _, url, choices in site.site_pricing.PLANS:
+    for key, _name, _, url, choices in site.site_pricing.PLANS:
         assert key in site.site_pricing.DEFAULT
         assert [amount for _, amount in choices] == sorted(set(amount for _, amount in choices))
         assert site.site_pricing.DEFAULT[key] in [amount for _, amount in choices]
