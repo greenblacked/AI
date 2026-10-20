@@ -17,7 +17,9 @@ set -uo pipefail
 
 readonly ATTEMPTS="${BISECT_ATTEMPTS:-3}"
 readonly BUILD_CMD="${BISECT_BUILD_CMD:-npm ci --prefer-offline}"
-readonly TEST_CMD="${BISECT_TEST_CMD:-npx jest path/to/suspect.test.ts}"
+# The runner comes from this commit's own lockfile. `npx jest` would fetch today's release
+# from the registry when the commit has none, and judge old code with a runner it never had.
+readonly TEST_CMD="${BISECT_TEST_CMD:-node_modules/.bin/jest path/to/suspect.test.ts}"
 
 log() { printf '%s bisect-probe: %s\n' "$(date -u +%H:%M:%S)" "$*" >&2; }
 
@@ -29,9 +31,18 @@ if ! eval "$BUILD_CMD"; then
 fi
 
 for attempt in $(seq 1 "$ATTEMPTS"); do
-  if eval "$TEST_CMD"; then
+  status=0
+  eval "$TEST_CMD" || status=$?
+  if [ "$status" -eq 0 ]; then
     log "attempt $attempt/$ATTEMPTS passed - commit is good"
     exit 0
+  fi
+  # 126 and 127 are the shell saying the command could not run at all, as when this
+  # commit's lockfile installed no runner. That is untestable, not bad, whatever wraps
+  # the runner (`env`, a variable assignment, `xvfb-run`).
+  if [ "$status" -eq 126 ] || [ "$status" -eq 127 ]; then
+    log "test command could not run at this commit (exit $status) - skipping"
+    exit 125
   fi
   log "attempt $attempt/$ATTEMPTS failed"
 done
