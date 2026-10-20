@@ -63,7 +63,7 @@ def money(raw, decimal_sep="."):
     return -value if sign == "-" or bracketed is not None else value
 
 
-def num(field, decimal_sep="."):
+def num(field, decimal_sep=".", magnitude=False):
     """A field record's normalised value as a Decimal; None when absent, malformed, with
     no printed ``raw`` text, or when it disagrees with that text."""
     if not field or not isinstance(field.get("value"), str):
@@ -74,12 +74,13 @@ def num(field, decimal_sep="."):
     raw = field.get("raw")
     if not isinstance(raw, str):
         return None  # a value with no transcription behind it is not evidence
-    if money(MARKER.sub("", raw.strip()), decimal_sep) != value:
+    printed = money(MARKER.sub("", raw.strip()), decimal_sep)
+    if printed is None or (abs(printed) if magnitude else printed) != value:
         return None  # a normaliser that changed the number is a misreading, not a value
     return value
 
 
-def charge(field, decimal_sep="."):
+def charge(field, decimal_sep=".", magnitude=False):
     """A total component: zero when the document prints none, None when unknown.
 
     A charge the page does not contain adds nothing to the total, so a field recorded as
@@ -89,7 +90,7 @@ def charge(field, decimal_sep="."):
     """
     if field and field.get("value") is None and field.get("confidence_basis") == "absent":
         return Decimal(0)
-    return num(field, decimal_sep)
+    return num(field, decimal_sep, magnitude)
 
 
 def check_totals(doc, decimal_sep="."):
@@ -118,7 +119,11 @@ def check_totals(doc, decimal_sep="."):
         failures.append("subtotal not checkable: it is missing or unreadable")
     elif sum(amounts) != subtotal:
         failures.append(f"lines sum to {sum(amounts)}, subtotal printed {subtotal}")
-    parts = {k: charge(doc.get(k), decimal_sep) for k in ("tax", "tip", "shipping", "discount")}
+    # a discount is stored as a magnitude, so -5.00 or (5.00) printed reconciles with 5.00
+    parts = {
+        k: charge(doc.get(k), decimal_sep, magnitude=k == "discount")
+        for k in ("tax", "tip", "shipping", "discount")
+    }
     unread = [k for k, v in parts.items() if v is None]
     if subtotal is None or total is None or unread:
         missing = unread or ["subtotal or total"]
