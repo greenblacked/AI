@@ -39,9 +39,23 @@ from decimal import Decimal
 
 # A normalised value: an optional minus, digits, and at most one "." with digits after it.
 NORMALISED = re.compile(r"-?\d+(?:\.\d+)?")
-# A currency marker before or after the number in `raw`, such as "EUR " or " USD", and
-# nothing else: a trailing "-" or "(" is sign syntax for money() to reject, not a marker.
-MARKER = re.compile(r"^(?:[A-Z]{3}|[$€£¥])\s*|\s*(?:[A-Z]{3}|[$€£¥])$")
+# At most one currency marker before or after the number in `raw`, such as "EUR " or
+# " USD", and nothing else: a trailing "-" or "(" is sign syntax for money() to reject.
+MARKED = re.compile(r"([-+(]?)(?:([A-Z]{3}|[$€£¥])\s*)?(.*?)(?:\s*([A-Z]{3}|[$€£¥]))?")
+# Symbols that name one currency. "$" names several; pass the document's own mapping.
+SYMBOLS = {"€": "EUR", "£": "GBP", "¥": "JPY"}
+
+
+def printed(field, decimal_sep=".", symbols=SYMBOLS):
+    """The amount the record's ``raw`` text shows, or None when it is unparseable or its
+    currency marker disagrees with the record's ``currency``."""
+    sign, lead, number, trail = MARKED.fullmatch(field["raw"].strip()).groups()
+    if lead and trail:
+        return None
+    marker = lead or trail
+    if marker and symbols.get(marker, marker) != field.get("currency"):
+        return None  # "$5.00" on a record that says EUR is a misread currency
+    return money(sign + number, decimal_sep)  # "-€5.00" and "(€5.00)" keep their sign
 
 
 def money(raw, decimal_sep="."):
@@ -63,7 +77,7 @@ def money(raw, decimal_sep="."):
     return -value if sign == "-" or bracketed is not None else value
 
 
-def num(field, decimal_sep=".", magnitude=False):
+def num(field, decimal_sep=".", magnitude=False, symbols=SYMBOLS):
     """A field record's normalised value as a Decimal; None when absent, malformed, with
     no printed ``raw`` text, or when it disagrees with that text."""
     if not field or not isinstance(field.get("value"), str):
@@ -74,13 +88,13 @@ def num(field, decimal_sep=".", magnitude=False):
     raw = field.get("raw")
     if not isinstance(raw, str):
         return None  # a value with no transcription behind it is not evidence
-    printed = money(MARKER.sub("", raw.strip()), decimal_sep)
-    if printed is None or (abs(printed) if magnitude else printed) != value:
+    shown = printed(field, decimal_sep, symbols)
+    if shown is None or (abs(shown) if magnitude else shown) != value:
         return None  # a normaliser that changed the number is a misreading, not a value
     return value
 
 
-def charge(field, decimal_sep=".", magnitude=False):
+def charge(field, decimal_sep=".", magnitude=False, symbols=SYMBOLS):
     """A total component: zero when the document prints none, None when unknown.
 
     A charge the page does not contain adds nothing to the total, so a field recorded as
@@ -90,10 +104,10 @@ def charge(field, decimal_sep=".", magnitude=False):
     """
     if field and field.get("value") is None and field.get("confidence_basis") == "absent":
         return Decimal(0)
-    return num(field, decimal_sep, magnitude)
+    return num(field, decimal_sep, magnitude, symbols)
 
 
-def check_totals(doc, decimal_sep="."):
+def check_totals(doc, decimal_sep=".", symbols=SYMBOLS):
     """Return the failed checks; an empty list means the arithmetic closes.
 
     ``doc`` holds field records as extraction-schema.md defines them, with amounts as
@@ -103,14 +117,18 @@ def check_totals(doc, decimal_sep="."):
     lines = doc.get("line_items") or []
     for i, item in enumerate(lines):
         qty, unit, amount = (
-            num(item.get(k), decimal_sep) for k in ("quantity", "unit_price", "amount")
+            num(item.get(k), decimal_sep, symbols=symbols)
+            for k in ("quantity", "unit_price", "amount")
         )
         if None in (qty, unit, amount):
             failures.append(f"line {i}: not checkable, an operand is missing")
         elif qty * unit != amount:
             failures.append(f"line {i}: {qty} x {unit} != {amount}")
-    amounts = [num(item.get("amount"), decimal_sep) for item in lines]
-    subtotal, total = num(doc.get("subtotal"), decimal_sep), num(doc.get("total"), decimal_sep)
+    amounts = [num(item.get("amount"), decimal_sep, symbols=symbols) for item in lines]
+    subtotal, total = (
+        num(doc.get("subtotal"), decimal_sep, symbols=symbols),
+        num(doc.get("total"), decimal_sep, symbols=symbols),
+    )
     if None in amounts:
         failures.append("a line amount is missing, so the subtotal cannot be checked")
     elif not lines:
@@ -121,7 +139,7 @@ def check_totals(doc, decimal_sep="."):
         failures.append(f"lines sum to {sum(amounts)}, subtotal printed {subtotal}")
     # a discount is stored as a magnitude, so -5.00 or (5.00) printed reconciles with 5.00
     parts = {
-        k: charge(doc.get(k), decimal_sep, magnitude=k == "discount")
+        k: charge(doc.get(k), decimal_sep, k == "discount", symbols)
         for k in ("tax", "tip", "shipping", "discount")
     }
     unread = [k for k, v in parts.items() if v is None]
