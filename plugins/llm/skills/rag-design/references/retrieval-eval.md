@@ -65,12 +65,16 @@ def evaluate(questions, retrieve, k, can_read=None):
         if not q["answerable"]:
             continue
         want = set(q["relevant"])
+        if not want:
+            raise ValueError(f"{q['id']}: answerable but lists no relevant passages")
         found = [i for i, cid in enumerate(got) if cid in want]
         recalls.append(len({got[i] for i in found}) / len(want))
         rr.append(1 / (found[0] + 1) if found else 0.0)
         if not found:
             misses.append(q["id"])
     n = len(recalls)
+    if n == 0:
+        raise ValueError("no answerable questions to score")
     return {
         "questions": n,
         "recall@k": sum(recalls) / n,

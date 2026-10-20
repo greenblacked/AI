@@ -29,8 +29,10 @@ sees rather than what your registration code intended:
 set -Eeuo pipefail
 INSPECTOR="@modelcontextprotocol/inspector@${INSPECTOR_VERSION:?set an exact Inspector version}"
 fresh="$(mktemp)"
-npx --yes "$INSPECTOR" --cli node build/index.js --method tools/list --format json \
-  | jq -S '.result.tools | sort_by(.name)' > "$fresh"
+status=0
+out="$(npx --yes "$INSPECTOR" --cli node build/index.js --method tools/list --format json)" || status=$?
+[ "$status" -eq 0 ] || { echo "inspector exited $status" >&2; exit "$status"; }
+jq -S '.result.tools | sort_by(.name)' <<<"$out" > "$fresh"
 diff -u tools.snapshot.json "$fresh"
 ```
 
@@ -165,7 +167,7 @@ set -Eeuo pipefail
 body='{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 
 status_of() {
-  curl -s -o /dev/null -w '%{http_code}' -X POST "$MCP_URL" \
+  curl -s --max-time 10 -o /dev/null -w '%{http_code}' -X POST "$MCP_URL" \
     -H 'Content-Type: application/json' \
     -H 'Accept: application/json, text/event-stream' \
     -H "MCP-Protocol-Version: $PROTOCOL_VERSION" \

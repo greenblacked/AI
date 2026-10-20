@@ -92,25 +92,26 @@ it points at the prompt path rather than at the people.
 jq -Rn '[inputs | (fromjson? // null) | if type == "object" then {row: .} else {bad: true} end] as $rows
         | ($rows | map(select(.bad)) | length) as $bad
         | ($rows | map(select(.bad | not) | .row)) as $ok
-        | ($ok | map(.cost // 0) | add) as $total
+        | ($ok | map(.cost | numbers // 0) | add) as $total
         | {unparseable_rows: $bad, groups: ($ok
         | group_by(.feature // "untagged")
         | map({feature: (.[0].feature // "untagged"),
                calls: length,
-               input: (map(.input_tokens // 0) | add),
-               cache_read: (map(.cache_read_input_tokens // 0) | add),
-               cache_write: (map(.cache_creation_input_tokens // 0) | add),
-               output: (map(.output_tokens // 0) | add),
-               cost: (map(.cost // 0) | add),
-               rows_without_cost: (map(select(.cost == null)) | length)})
+               input: (map(.input_tokens | numbers // 0) | add),
+               cache_read: (map(.cache_read_input_tokens | numbers // 0) | add),
+               cache_write: (map(.cache_creation_input_tokens | numbers // 0) | add),
+               output: (map(.output_tokens | numbers // 0) | add),
+               cost: (map(.cost | numbers // 0) | add),
+               rows_without_cost: (map(select(.cost | type != "number")) | length)})
         | map(. + {share_pct: (if $total > 0 then (.cost / $total * 100 | round) else null end)})
         | sort_by(-.cost))}' export.jsonl
 ```
 
 Each line is parsed on its own, so one truncated or malformed row, or a valid JSON value
 that is not an object, is counted in `unparseable_rows` instead of aborting the whole query. The field names are the Anthropic-format usage fields from the paragraph above; rename
-them to the export's own. `rows_without_cost` keeps a row with no price visible rather
-than letting it count as free: report it beside the share, because a group whose rows
+them to the export's own. `rows_without_cost` keeps a row with no numeric price visible rather
+than letting it count as free (a field that is missing, null, `false` or a string all count
+there, and add nothing to the sums): report it beside the share, because a group whose rows
 mostly lack a cost looks cheaper than it is.
 
 Report the untagged share as a headline figure when it is large. If most rows carry no

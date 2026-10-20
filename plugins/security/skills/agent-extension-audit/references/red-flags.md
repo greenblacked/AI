@@ -26,11 +26,11 @@ A human reviewing rendered Markdown does not see these, and the model does.
 
 ```bash
 # zero-width, bidirectional control, invisible and Unicode tag-block characters
-rg -nP '[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}-\x{2064}\x{2066}-\x{2069}\x{FEFF}\x{E0000}-\x{E007F}]' <quarantine>/src
+rg -nP '[\x{00AD}\x{034F}\x{061C}\x{115F}\x{1160}\x{180E}\x{200B}-\x{200F}\x{2028}-\x{202E}\x{2060}-\x{2064}\x{2066}-\x{2069}\x{3164}\x{FE00}-\x{FE0F}\x{FEFF}\x{FFA0}\x{E0000}-\x{E007F}]' <quarantine>/src
 # HTML comments in Markdown, which many renderers hide
 rg -n '<!--' --glob '*.md' <quarantine>/src
 # very long unbroken strings that may be encoded data
-rg -n '[A-Za-z0-9+/]{80,}={0,2}' <quarantine>/src
+rg -n '[A-Za-z0-9+/_-]{80,}={0,2}' <quarantine>/src  # base64 and base64url
 ```
 
 A hit on a legitimate file is possible (a byte order mark, an emoji sequence that uses a

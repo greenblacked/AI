@@ -22,7 +22,10 @@ Use `dot -T?` to list the output formats the installed build supports; asking fo
 
 ```bash
 set -Eeuo pipefail
-errors="$(dot -Tsvg diagram.dot -o diagram.svg 2>&1)"
+errors="$(dot -Tsvg diagram.dot -o diagram.svg 2>&1)" || {
+  printf '%s\n' "$errors" >&2 # a syntax error: dot exited 1
+  exit 1
+}
 if [ -n "$errors" ]; then
   printf '%s\n' "$errors" >&2
   exit 1
@@ -32,7 +35,7 @@ fi
 A misspelled attribute name gets no warning at all: the DOT grammar accepts any `name=value` pair, so `fontcolour="red"` (the attribute is `fontcolor`) rendered with exit 0 and empty stderr, and the text stayed black. The gate above cannot see that. List the names the file uses and check each against the attribute reference at <https://graphviz.org/doc/info/attrs.html> when the diagram changes:
 
 ```bash
-grep -oE '\b[A-Za-z_]+[[:space:]]*=' diagram.dot | tr -d ' =' | sort -u
+grep -oE '\b[A-Za-z_]+[[:space:]]*=' diagram.dot | tr -d ' \t=' | sort -u
 ```
 
 ## Pitfalls

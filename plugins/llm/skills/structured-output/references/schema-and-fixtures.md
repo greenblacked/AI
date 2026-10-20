@@ -105,6 +105,13 @@ Every attempt in a `StructuredOutputError` is a candidate. Save the raw reply an
     "expect_problem": "did not finish normally"
   },
   {
+    "name": "non-finite-number",
+    "stop": "end",
+    "source": "The site has been down since 9am.",
+    "text": "{\"category\": \"outage\", \"urgency\": NaN, \"customer_quote\": \"The site has been down since 9am.\"}",
+    "expect_problem": "not valid JSON"
+  },
+  {
     "name": "unsupported-claim",
     "stop": "end",
     "source": "Can you change the email on my account?",

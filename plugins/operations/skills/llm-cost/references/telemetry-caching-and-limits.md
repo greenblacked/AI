@@ -102,12 +102,15 @@ straight across reports a cached prompt as a few dozen tokens.
 ```python
 def to_genai_attributes(usage: dict) -> dict:
     """Map an Anthropic Messages usage block to GenAI span attributes."""
-    fresh = usage.get("input_tokens", 0)  # only tokens after the last breakpoint
+    fresh = usage.get("input_tokens")  # only tokens after the last breakpoint
+    output = usage.get("output_tokens")
+    if fresh is None or output is None:
+        raise ValueError("usage block has no input_tokens or output_tokens")  # not zero
     read = usage.get("cache_read_input_tokens") or 0
     write = usage.get("cache_creation_input_tokens") or 0
     attrs = {
         "gen_ai.usage.input_tokens": fresh + read + write,
-        "gen_ai.usage.output_tokens": usage.get("output_tokens", 0),
+        "gen_ai.usage.output_tokens": output,
     }
     # The cache attributes are Recommended when available and non-zero.
     if read:

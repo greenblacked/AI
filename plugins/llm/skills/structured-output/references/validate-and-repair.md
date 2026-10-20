@@ -16,6 +16,7 @@ The validator is built with a format checker because without one `jsonschema` tr
 
 ```python
 import json
+import math
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from enum import Enum
@@ -57,6 +58,17 @@ class StructuredOutputError(Exception):
 SemanticCheck = Callable[[object], list[str]]
 
 
+def _reject_constant(name: str) -> object:
+    raise ValueError(f"{name} is not a JSON number")  # json.loads accepts NaN and Infinity
+
+
+def _finite_float(text: str) -> float:
+    value = float(text)
+    if not math.isfinite(value):  # 1e400 parses to inf
+        raise ValueError(f"{text} does not fit in a float")
+    return value
+
+
 def check_reply(
     reply: ModelReply,
     validator: Draft202012Validator,
@@ -66,9 +78,11 @@ def check_reply(
     if reply.stop is not StopReason.END:
         return None, [f"reply did not finish normally: {reply.stop.value}"]
     try:
-        value = json.loads(reply.text)
+        value = json.loads(reply.text, parse_constant=_reject_constant, parse_float=_finite_float)
     except json.JSONDecodeError as exc:
         return None, [f"not valid JSON: {exc.msg} at position {exc.pos}"]
+    except ValueError as exc:
+        return None, [f"not valid JSON: {exc}"]
     errors = sorted(validator.iter_errors(value), key=lambda e: list(map(str, e.path)))
     problems = [f"{'/'.join(map(str, e.absolute_path)) or '<root>'}: {e.message}" for e in errors]
     if not problems:  # semantic checks assume a well-shaped value
@@ -140,16 +154,20 @@ def enum_case_insensitive(field: str, allowed: set[str]) -> SemanticCheck:
     return check
 
 
-def quote_in_source(field: str, source: str, allow_none: bool = False) -> SemanticCheck:
+def quote_in_source(
+    field: str, source: str, allow_none: bool = False, min_words: int = 3
+) -> SemanticCheck:
     # A null quote means the claim beside it has no support. Pass allow_none only where
     # "no evidence" is an acceptable answer, and route those results to review.
     def check(value: object) -> list[str]:
         quote = value[field]  # type: ignore[index]
         if quote is None:
             return [] if allow_none else [f"{field}: no supporting quote"]
-        if not str(quote).strip():
-            return [f"{field}: quote is empty"]  # "" is a substring of every source
-        if str(quote) in source:
+        if not isinstance(quote, str):
+            return [f"{field}: quote is not a string"]
+        if len(quote.split()) < min_words:  # "", "." and "2" are in almost every source
+            return [f"{field}: quote is shorter than {min_words} words"]
+        if quote in source:
             return []
         return [f"{field}: quoted text does not appear in the source"]
 

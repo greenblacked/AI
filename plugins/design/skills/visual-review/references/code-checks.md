@@ -61,9 +61,15 @@ const state = await page.evaluate(async () => {
     dark: matchMedia('(prefers-color-scheme: dark)').matches,
     reduced: matchMedia('(prefers-reduced-motion: reduce)').matches,
     bodyBackground: getComputedStyle(document.body).backgroundColor,
+    // JSON.stringify writes Infinity as null, which would hide an infinite animation.
     running: document.getAnimations().map((a) => ({
       name: a.animationName ?? a.id,
-      ...a.effect?.getComputedTiming(),
+      ...Object.fromEntries(
+        Object.entries(a.effect?.getComputedTiming() ?? {}).map(([k, v]) => [
+          k,
+          v === Infinity ? 'infinite' : v,
+        ]),
+      ),
     })),
     faces: [...document.fonts].map((f) => ({ family: f.family, status: f.status })),
   };

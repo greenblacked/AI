@@ -35,34 +35,37 @@ Compare with exact decimal arithmetic and zero tolerance by default. A one-cent 
 
 ```python
 import re
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
-# One optional sign or one pair of parentheses around digits and separators, nothing else.
-AMOUNT = re.compile(r"([-+]?)(\d[\d.,]*)|\((\d[\d.,]*)\)")
+# A normalised value: an optional minus, digits, and at most one "." with digits after it.
+NORMALISED = re.compile(r"-?\d+(?:\.\d+)?")
 
 
 def money(raw, decimal_sep="."):
-    """Parse a printed amount. The separator comes from the document, not a guess."""
-    match = AMOUNT.fullmatch(raw.strip().replace(" ", ""))
+    """Parse a printed amount. The separator comes from the document, not a guess.
+
+    Grouping must be well formed (``1,234`` but not ``1,,234``, ``12,34`` or ``123,``), and
+    the sign is one leading ``-``/``+`` or one pair of parentheses; anything else is None.
+    """
+    thousands = "," if decimal_sep == "." else "."
+    t, d = re.escape(thousands), re.escape(decimal_sep)
+    body = rf"(?:\d{{1,3}}(?:{t}\d{{3}})+|\d+)(?:{d}\d+)?"
+    match = re.fullmatch(rf"([-+]?)({body})|\(({body})\)", raw.strip().replace(" ", ""))
     if match is None:
         return None
     sign, signed_digits, bracketed = match.groups()
-    negative = sign == "-" or bracketed is not None
-    text = signed_digits or bracketed
-    thousands = "," if decimal_sep == "." else "."
-    text = text.replace(thousands, "").replace(decimal_sep, ".")
-    try:
-        value = Decimal(text)
-    except InvalidOperation:
-        return None
-    return -value if negative else value
+    text = (signed_digits or bracketed).replace(thousands, "").replace(decimal_sep, ".")
+    value = Decimal(text)
+    return -value if sign == "-" or bracketed is not None else value
 
 
 def num(field):
-    """A field record's normalised value as a Decimal; None when absent or unparseable."""
-    if not field or field.get("value") is None:
+    """A field record's normalised value as a Decimal; None when absent or malformed."""
+    if not field or not isinstance(field.get("value"), str):
         return None
-    return money(field["value"])  # normalised values use "." and no thousands mark
+    if NORMALISED.fullmatch(field["value"]) is None:
+        return None  # normalised values carry no grouping mark and no other sign syntax
+    return Decimal(field["value"])
 
 
 def charge(field):
@@ -96,6 +99,8 @@ def check_totals(doc):
     subtotal, total = num(doc.get("subtotal")), num(doc.get("total"))
     if None in amounts:
         failures.append("a line amount is missing, so the subtotal cannot be checked")
+    elif not lines:
+        failures.append("subtotal not checkable: no line items")
     elif subtotal is None:
         failures.append("subtotal not checkable: it is missing or unreadable")
     elif sum(amounts) != subtotal:

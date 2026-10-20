@@ -49,10 +49,13 @@ Use a ramp where the amount is the message and a categorical palette would inven
 Compute it; do not eyeball it. Pass the marks and the backgrounds as arguments and read the table it prints.
 
 ```python
+import re
 import sys
 
 
 def luminance(hex_colour):
+    if not re.fullmatch(r"#?[0-9A-Fa-f]{6}", hex_colour):
+        sys.exit(f"{hex_colour!r}: give a six-digit colour such as #009E73, with no alpha")
     h = hex_colour.lstrip("#")
     r, g, b = (int(h[i : i + 2], 16) / 255 for i in (0, 2, 4))
 

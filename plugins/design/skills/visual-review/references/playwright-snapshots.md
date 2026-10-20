@@ -194,9 +194,20 @@ const diffPixels = pixelmatch(baseline.data, actual.data, diff.data, width, heig
   with `width * height` yourself.
 
 To turn a diff into reviewable regions, group neighbouring differing pixels into boxes,
-then call `document.elementFromPoint` at each box centre in the same viewport and report
-that element's selector and bounding box next to the box. A region with no element is
-usually the page background and means the layout shifted.
+then look up the element at each box centre and report its selector and bounding box next
+to the box. `document.elementFromPoint` takes viewport coordinates, while a box from a
+`fullPage: true` capture is in page coordinates, so a box below the first screen returns
+`null` or whatever happens to be visible there. Scroll the box into view first and
+subtract the scroll offset:
+
+```js
+const el = await page.evaluate(([x, y]) => {
+  window.scrollTo(0, Math.max(0, y - window.innerHeight / 2));
+  return document.elementFromPoint(x - window.scrollX, y - window.scrollY)?.outerHTML.slice(0, 200) ?? null;
+}, [box.x + box.width / 2, box.y + box.height / 2]);
+```
+
+A region with no element is usually the page background and means the layout shifted.
 
 ## Updating baselines
 
