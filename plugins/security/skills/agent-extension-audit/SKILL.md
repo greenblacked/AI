@@ -63,21 +63,35 @@ Make an empty directory outside any project, such as one under `$TMPDIR`, and fe
 it with a tool that does not build or execute — before reading any of it:
 
 ```bash
+# Every git command below runs through this: none of your own Git configuration applies.
+qgit() {
+  GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_ATTR_NOSYSTEM=1 GIT_ALLOW_PROTOCOL=https \
+    timeout 300 git -c core.attributesFile=/dev/null -c core.hooksPath=/dev/null \
+    -c core.fsmonitor=false -c core.symlinks=false "$@"
+}
 case "<url>" in https://*) ;; *) echo "refusing a non-https source" >&2; exit 1 ;; esac
-GIT_ALLOW_PROTOCOL=https GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 \
-  git clone --no-checkout --no-tags -- <url> <quarantine>/src  # nothing written yet; no submodules
-git -C <quarantine>/src rev-parse HEAD                       # the commit under review
-git -C <quarantine>/src ls-tree -r HEAD | awk '$1 == "120000"'   # symlinks; expect none
-git -C <quarantine>/src grep -n 'filter=' HEAD -- .gitattributes '*/.gitattributes'
+qgit clone --no-checkout --no-tags --depth 1 --single-branch \
+  -- <url> <quarantine>/src                              # the tip only; nothing written yet
+qgit -C <quarantine>/src rev-parse HEAD                    # the commit under review
+qgit -C <quarantine>/src ls-tree -r HEAD | awk '$1 == "120000"'   # symlinks; expect none
+qgit -C <quarantine>/src grep -n 'filter=' HEAD -- .gitattributes '*/.gitattributes'
 ```
 
 Accept only an `https://` URL and pin Git to that transport, because the URL is
 publisher text: `<transport>::<address>` makes Git run a `git-remote-<transport>` program
 from `PATH`, and `ext::` runs a command of the URL's choosing where your configuration
 allows it. `GIT_ALLOW_PROTOCOL=https` refuses every other transport, including `ext`,
-`file` and a named helper, before anything runs; ignoring your global and system
-configuration keeps a `url.<base>.insteadOf` rewrite or an inherited `protocol.allow`
-from undoing that.
+`file` and a named helper, before anything runs.
+
+`qgit` exists because your own Git configuration is a second way in: a global or system
+`core.fsmonitor`, `core.hooksPath`, attribute file or `url.<base>.insteadOf` runs or
+redirects on the publisher's tree even when the repository itself declares nothing.
+Ignoring the global and system files removes all of them at once, and the `-c` settings
+cover what a repository-local `.git/config` could carry. `--depth 1 --single-branch`
+fetches the one commit under review rather than all of history, and the `timeout` in the
+wrapper stops a server that keeps sending. Neither caps the size of that one commit, so make the
+quarantine a size-limited filesystem (a `tmpfs` mounted with `size=`), which also bounds
+the archive route below.
 
 Clone without a checkout, because checking out runs whatever smudge or process filter
 the repository's `.gitattributes` selects from the reviewer's own Git configuration,
@@ -88,16 +102,12 @@ project's instructions, and `Read` follows links; treat any listed symlink as a 
 and read its target path as text, never through the link.
 
 If any `.gitattributes`, at the root or in a subdirectory, names a `filter=`, do not
-check out at all: read each file with `git -C <quarantine>/src show HEAD:<path>`, which
-applies no filter. Otherwise check out with links written as plain files and with your
-own global and system attribute files and hooks switched off, because a pattern there
-such as `*.bin filter=lfs` applies to the repository's files too and runs that filter,
-and a `core.hooksPath` in your own configuration runs its `post-checkout` hook on the
-freshly written tree:
+check out at all: read each file with `qgit -C <quarantine>/src show HEAD:<path>`, which
+applies no filter. Otherwise check out through the same wrapper, which writes links as
+plain files and keeps your own attribute files, hooks and file-system monitor out of it:
 
 ```bash
-GIT_ATTR_NOSYSTEM=1 git -C <quarantine>/src -c core.attributesFile=/dev/null \
-  -c core.hooksPath=/dev/null -c core.symlinks=false checkout HEAD
+qgit -C <quarantine>/src checkout HEAD
 ```
 
 `git archive` is not a substitute for either: it applies the same filters.
@@ -145,7 +155,7 @@ possible outcome at install with restrictions. Read
 ### 2. Inventory what runs automatically
 
 Classify every file as runs by itself, runs when named, or prose. List files with
-`git -C <quarantine>/src ls-files` and `file` on anything without a text extension, then
+`qgit -C <quarantine>/src ls-files` and `file` on anything without a text extension, then
 find the entry points for the extension type. Read
 [extension surfaces](references/extension-surfaces.md) for where each type hides them:
 hooks, `bin/` directories, monitors, MCP server commands, install scripts, and shell
