@@ -18,7 +18,7 @@ Use `dot -T?` to list the output formats the installed build supports; asking fo
 
 ### A gate that fails on warnings as well as errors
 
-`dot` exits 1 on a syntax error and writes no output file, but an unknown attribute or shape is only a warning: `shape=nonsense` printed `Warning: using box for unknown shape nonsense` and exited 0. A render that fell back to a default is not the picture you wrote. Fail on any stderr output:
+`dot` exits 1 on a syntax error and writes no output file, but an unknown attribute value is only a warning: `shape=nonsense` printed `Warning: using box for unknown shape nonsense` and exited 0. A render that fell back to a default is not the picture you wrote. Fail on any stderr output:
 
 ```bash
 set -Eeuo pipefail
@@ -27,6 +27,12 @@ if [ -n "$errors" ]; then
   printf '%s\n' "$errors" >&2
   exit 1
 fi
+```
+
+A misspelled attribute name gets no warning at all: the DOT grammar accepts any `name=value` pair, so `lable="x"` rendered with exit 0 and empty stderr, and the node kept its default label. The gate above cannot see that. List the names the file uses and check each against the attribute reference at <https://graphviz.org/doc/info/attrs.html> when the diagram changes:
+
+```bash
+grep -oE '\b[A-Za-z_]+[[:space:]]*=' diagram.dot | tr -d ' =' | sort -u
 ```
 
 ## Pitfalls
