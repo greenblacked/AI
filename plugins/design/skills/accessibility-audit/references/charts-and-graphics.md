@@ -120,7 +120,7 @@ Axis labels, tick labels, data labels, legends and annotations are text, so 1.4.
 - Measure labels placed inside bars or slices against the fill behind them, not the page. Labels that sit across a series boundary need the worse case.
 - Grey tick labels and axis titles are the usual failure, set in a muted colour to push them back visually.
 - Text that is only decoration has no requirement, but chart labels are not decoration.
-- Text that has been flattened into an image, such as an exported chart in PNG form, falls under 1.4.5 Images of Text as well. Prefer live text in SVG or HTML, so the user can restyle and resize it. Report a PNG chart with its text baked in, and fix it by rendering the text as text.
+- An exported chart in PNG form is not an image of text for 1.4.5: the Understanding document for 1.4.5 excludes text that is part of a picture with significant other visual content, and names graphs, screenshots and diagrams. Audit it under 1.1.1 (its text alternative carries the values), 1.4.1, 1.4.3 and 1.4.11 instead. 1.4.5 applies only when the image is principally a substitute for text, such as a title or a key figure set as a picture. Live text in SVG or HTML is still the better build, because the user can restyle and resize it, but recommend it as an improvement rather than report it as a 1.4.5 failure.
 - Text set so ornately that it reads as a symbol is treated as non-text content, and then 1.4.11 applies to it.
 
 ## Interactive charts

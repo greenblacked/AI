@@ -176,8 +176,22 @@ count comes from the seeded data, which is why step 1 seeds it.
 - Check `alt` is present and that decorative images have an empty one, not a missing one.
 - Listen for page `console` errors and failed requests during the capture; a missing asset
   often shows in them before it shows as an empty box.
-- A text node whose computed `font-family` resolves to the fallback means the web font did
-  not load. Report it as the cause of any resulting reflow rather than as a layout bug.
+- A fallback font is the cause of a reflow, not a layout bug, so report it as such. The
+  computed `font-family` cannot show it: it returns the declared list whatever rendered.
+  In Chromium, ask the DevTools protocol which faces drew the node's glyphs:
+
+  ```ts
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('DOM.enable');
+  await cdp.send('CSS.enable');
+  const { root } = await cdp.send('DOM.getDocument');
+  const { nodeId } = await cdp.send('DOM.querySelector', { nodeId: root.nodeId, selector: 'h1' });
+  const { fonts } = await cdp.send('CSS.getPlatformFontsForNode', { nodeId });
+  // [{ familyName, isCustomFont, glyphCount }, ...]
+  ```
+
+  A web font shows `isCustomFont: true`. Any entry that is not the expected face, with its
+  `glyphCount`, is text that fell back, including single glyphs the font does not cover.
 
 ## axe-core
 
