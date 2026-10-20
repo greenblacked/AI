@@ -7,28 +7,44 @@ beside it for anyone the drawing does not serve.
 
 An edge exists only where a source file states it. The rule, and nothing looser:
 
-* the source is the body of a ``SKILL.md`` (frontmatter excluded), outside fenced code;
+* the source is the page the site renders for a ``SKILL.md`` body (frontmatter
+  excluded), read as HTML rather than as Markdown;
 * the target is a subagent file under ``plugins/*/agents/``, matched by its file name;
-* the body must write that name as an inline code span, `` `ci-log-reader` ``, with
-  nothing else inside the backticks.
+* the page must show that name as inline code, `` `ci-log-reader` ``, with nothing else
+  inside it, and not inside a code block.
 
-The code-span requirement is what keeps prose out. ``maker`` is a subagent and also an
+Reading the rendered HTML is what makes the graph agree with the page by construction.
+A hand-written Markdown scanner kept disagreeing with the renderer about what counts as
+code, a comment or a list item's text, and each disagreement was an edge the page did not
+show or a missing one it did. Here the renderer decides, and this module only looks at
+what it emitted.
+
+The code requirement is what keeps prose out. ``maker`` is a subagent and also an
 English word that several unrelated skills use, so matching bare words would draw edges
 nobody wrote. A subagent description that names a skill is not a source either: those
 sentences say what the agent is *not* for ("Not for ... which is profiling"), which is a
 boundary rather than a hand-off, so reading them as edges would draw the opposite of
 what they say. The same holds inside a skill: a sentence opening "Do not use for" or
-"Not for" names where the work should not go, so its code spans are skipped. A skill
-that names an agent only in prose, or only in ``references/``, has no edge; the
-omission is visible in the list and fixable in the skill.
+"Not for" names where the work should not go, so its code is skipped. A skill that names
+an agent only in prose, or only in ``references/``, has no edge; the omission is visible
+in the list and fixable in the skill.
 """
 
 from __future__ import annotations
 
 import html
 import re
+import sys
 from collections.abc import Callable, Iterable
+from html.parser import HTMLParser
+from pathlib import Path
 from typing import NamedTuple, Protocol
+
+# Imported by name like the build's other modules, so a test that loads this file alone
+# needs the directory on the path as much as the build does.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import site_markdown  # noqa: E402
 
 # The labels are set in the monospace face, so a label's width follows from its length.
 # The estimate runs a little wide on purpose: a label that overflows its box is a defect
@@ -56,153 +72,15 @@ class Edge(NamedTuple):
     agent: str
 
 
-class _Line(NamedTuple):
-    """One source line, split into the container it sits in and what follows it."""
-
-    depth: int  # how many ``>`` quote markers lead the line
-    indent: int  # spaces before the first list marker or content, after the quotes
-    col: int  # the column the content starts at once list markers are skipped
-    listed: bool  # whether a list marker precedes the content
-    blank: bool
-    run: str  # a leading run of three or more backticks or tildes, else empty
-    rest: str  # what follows that run, stripped
-
-
-_QUOTE = re.compile(r" {0,3}> ?")
-_MARKER = re.compile(r"(?:[-*+]|\d{1,9}[.)])(?: +|$)")
-
-
-def _scan(line: str) -> _Line:
-    """Split ``line`` into quote depth, list indentation and a fence run, if it opens one."""
-    line = line.expandtabs(4)
-    depth = pos = 0
-    while match := _QUOTE.match(line, pos):
-        depth += 1
-        pos = match.end()
-    text = line[pos:]
-    body = text.lstrip(" ")
-    indent = col = len(text) - len(body)
-    listed = False
-    while match := _MARKER.match(body):
-        token = match.group()
-        spaces = len(token) - len(token.rstrip(" "))
-        # Five or more spaces after a marker make the content an indented code block,
-        # so the content column is one past the marker, not past the padding.
-        col += len(token) - spaces + (spaces if 0 < spaces < 5 else 1)
-        body = body[match.end() :]
-        listed = True
-    run = ""
-    if body[:1] in ("`", "~"):
-        found = body[: len(body) - len(body.lstrip(body[0]))]
-        run = found if len(found) >= 3 else ""
-    return _Line(depth, indent, col, listed, not text.strip(), run, body[len(run) :].strip())
-
-
-class _Fence(NamedTuple):
-    """The opener of the fence being skipped, and the container it sits in."""
-
-    run: str
-    depth: int
-    col: int
-    listed: bool
-
-
-def _opens(scan: _Line) -> _Fence | None:
-    # A backtick fence's info string cannot hold a backtick; ``a`` alone on a line is a
-    # code span, and skipping it as a fence would swallow the prose after it.
-    if not scan.run or (scan.run[0] == "`" and "`" in scan.rest):
-        return None
-    return _Fence(scan.run, scan.depth, scan.col if scan.listed else scan.indent, scan.listed)
-
-
-def _ends_container(fence: _Fence, scan: _Line) -> bool:
-    """Whether ``scan`` leaves the quote or list item the fence opened in."""
-    if scan.depth < fence.depth:
-        return True
-    return fence.listed and scan.depth == fence.depth and not scan.blank and scan.indent < fence.col
-
-
-def _closes(fence: _Fence, scan: _Line) -> bool:
-    """Whether ``scan`` closes the fence.
-
-    Only a run of the same character, at least as long as the opener's and with nothing
-    after it, closes a fence, and only from the opener's own container: the same quote
-    depth, no list marker, and at most three spaces in from the container's content. A
-    quoted or bulleted marker, or one indented four or more, inside an unquoted fence is
-    fenced content. Closing early on one would read the rest of the sample as prose and
-    draw an edge from it, the direction this rule must not err in.
-    """
-    if not (
-        scan.run
-        and scan.run[0] == fence.run[0]
-        and len(scan.run) >= len(fence.run)
-        and not scan.rest
-        and scan.depth == fence.depth
-        and not scan.listed
-    ):
-        return False
-    # A closer sits at most three spaces past its container's content, whatever the
-    # opener's own indent: outside a list that is the margin, so "   ```" opening a fence
-    # is not closed by "      ```", which is fenced content.
-    floor = fence.col if fence.listed else 0
-    return floor <= scan.indent <= floor + 3
-
-
-def _prose(body: str) -> str:
-    """The body with fenced and indented code removed: a sample is not an instruction.
-
-    An indented code block is four or more columns past the content of the list item it
-    sits in (or past the margin outside a list), and it cannot interrupt a paragraph, so
-    it starts only after a blank line, a heading or a change of quote depth.
-    """
-    kept = []
-    fence: _Fence | None = None
-    item_col = 0  # the content column of the list item the text sits in, else 0
-    depth = 0
-    boundary = True  # whether the previous line ended a paragraph
-    indented = False
-    for line in body.splitlines():
-        scan = _scan(line)
-        if fence:
-            if not _ends_container(fence, scan):
-                if _closes(fence, scan):
-                    fence = None
-                    boundary = True
-                continue
-            fence = None
-        if scan.depth != depth:
-            depth, item_col, boundary, indented = scan.depth, 0, True, False
-        if scan.blank:
-            kept.append(line)
-            boundary = True
-            continue
-        if (boundary or indented) and scan.indent >= item_col + 4:
-            indented = True
-            continue
-        indented = False
-        if scan.listed:
-            item_col = scan.col
-        elif boundary and scan.indent < item_col:
-            item_col = 0  # a paragraph back at the margin has left the list
-        fence = _opens(scan)
-        if fence:
-            continue
-        kept.append(line)
-        boundary = not scan.listed and not scan.run and bool(_HEADING.match(scan.rest))
-    return "\n".join(kept)
-
-
 # A sentence that opens "Do not use for" or "Not for" says where the skill does not
 # apply, so a name inside it is the thing to send the work away from, not a hand-off.
-# An ordered-list marker may lead it: "1)" stays attached, where "1." is split off as
-# a sentence of its own, so the digits are skipped here for both forms to behave alike.
-_BOUNDARY = re.compile(r"[\W_]*(?:\d{1,9}[.)])?[\W_]*(?:do not use for|not for)\b", re.IGNORECASE)
+# A list marker never leads it: the renderer has already turned "1." and "1)" into markup.
+_BOUNDARY = re.compile(r"[\W_]*(?:do not use for|not for)\b", re.IGNORECASE)
 
 
 # These end in a full stop that does not end the sentence: "e.g. `maker`" inside a
 # boundary sentence must not split it, or the names after the abbreviation would escape.
 _ABBREVIATION = re.compile(r"(?:^|[\s(])(?:e\.g|i\.e|etc|vs|cf)\.$", re.IGNORECASE)
-_HEADING = re.compile(r" {0,3}#{1,6}(?:\s|$)")
 
 
 def _sentences(text: str) -> list[str]:
@@ -225,77 +103,94 @@ def _sentences(text: str) -> list[str]:
     return sentences
 
 
-def _paragraphs(text: str) -> list[str]:
-    """``text`` as paragraphs, each one's physical lines joined by a space.
+# Elements that start or end a block of text. Anything else the renderer emits (``a``,
+# ``em``, ``strong``, ``br``) sits inside a block, so only these split one paragraph from
+# the next; a nested list inside an item is its own block, which is what keeps one
+# bullet's "Not for" from reaching the bullet after it.
+_BLOCKS = frozenset(
+    {
+        "p", "li", "ul", "ol", "dl", "dt", "dd", "blockquote", "div", "hr", "pre",
+        "table", "thead", "tbody", "tr", "td", "th", "h1", "h2", "h3", "h4", "h5", "h6",
+    }
+)  # fmt: skip
 
-    SKILL.md prose wraps at about ninety columns, so a sentence routinely runs onto the
-    next line and the boundary rule has to see all of it. A blank line, a list item, a
-    heading or a change of quote depth starts a new paragraph, so one bullet's "Not for"
-    cannot swallow the bullet after it.
+
+class _Blocks(HTMLParser):
+    """The text of each block in rendered HTML, inline code written back as backticks.
+
+    Code inside ``pre`` is a sample, not an instruction, and is dropped with the rest of
+    the block's text. Every literal backtick is swapped for an apostrophe on the way in,
+    so the only backticks in a block are the pairs written here and the sentence splitter
+    and span reader below never see a stray one. A name never holds a backtick, so the
+    swap cannot hide an edge.
     """
-    paragraphs: list[list[str]] = []
-    previous: _Line | None = None
-    after_heading = False
-    for line in text.splitlines():
-        scan = _scan(line)
-        if scan.blank:
-            previous = None
-            continue
-        expanded = line.expandtabs(4)
-        pos = 0
-        while match := _QUOTE.match(expanded, pos):
-            pos = match.end()
-        content = expanded[pos:].strip()
-        heading = bool(_HEADING.match(content))
-        if (
-            previous is None
-            or scan.listed
-            or heading
-            or after_heading
-            or previous.depth != scan.depth
-        ):
-            paragraphs.append([])
-        paragraphs[-1].append(content)
-        previous, after_heading = scan, heading
-    return [" ".join(lines) for lines in paragraphs]
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)  # entities arrive decoded
+        self.blocks: list[str] = []
+        self._text: list[str] = []
+        self._code: list[str] | None = None
+        self._pre = 0
+
+    def _flush(self) -> None:
+        if self._text:
+            self.blocks.append("".join(self._text))
+            self._text = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag in _BLOCKS:
+            self._flush()
+        if tag == "pre":
+            self._pre += 1
+        elif tag == "code" and not self._pre:
+            self._code = []
+        elif tag == "br":
+            self._text.append(" ")
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "code" and self._code is not None:
+            self._text.append("`" + "".join(self._code).replace("`", "'") + "`")
+            self._code = None
+        if tag == "pre":
+            self._pre = max(self._pre - 1, 0)
+        if tag in _BLOCKS:
+            self._flush()
+
+    def handle_data(self, data: str) -> None:
+        if self._code is not None:
+            self._code.append(data)
+        elif not self._pre:
+            self._text.append(data.replace("`", "'"))
+
+    def close(self) -> None:
+        super().close()
+        self._flush()
 
 
-# A comment renders as nothing, so a name inside one is not an instruction anyone reads.
-# One left unclosed runs to the end, as an HTML block of that kind does.
-_COMMENT = re.compile(r"<!--.*?(?:-->|\Z)", re.DOTALL)
-
-
-def _uncommented(text: str) -> str:
-    """``text`` with every HTML comment removed, keeping its line breaks."""
-    return _COMMENT.sub(lambda match: "\n" * match.group().count("\n"), text)
-
-
-def _code_spans(text: str) -> set[str]:
-    """The contents of every single-backtick span in the paragraphs of ``text``.
+def _code_spans(markup: str) -> set[str]:
+    """The text of every inline code element in ``markup`` outside the boundary sentences.
 
     A sentence that opens "Do not use for" or "Not for" is left out, wherever in its
-    paragraph it sits and however many lines it wraps over: the names in it are what the
+    block it sits and however many lines it wraps over: the names in it are what the
     skill sends work away from.
     """
+    parser = _Blocks()
+    parser.feed(markup)
+    parser.close()
     spans: set[str] = set()
-    for paragraph in _paragraphs(text):
-        kept = "".join(s for s in _sentences(paragraph) if not _BOUNDARY.match(s))
-        parts = kept.split("`")
-        # An odd count of backticks leaves the last piece unclosed, so it is not a span.
-        # Even indexes are outside a span, odd ones inside; a double backtick yields an
-        # empty piece, which is never a name.
-        for index in range(1, len(parts) - 1, 2):
-            if parts[index]:
-                spans.add(parts[index])
+    for block in parser.blocks:
+        kept = "".join(s for s in _sentences(block) if not _BOUNDARY.match(s))
+        spans.update(re.findall(r"`([^`]*)`", kept))
     return spans
 
 
 def derive_edges(skills: Iterable, agents: Iterable[Named]) -> list[Edge]:
     """Every skill-to-subagent edge the skills' own bodies state, sorted.
 
-    ``skills`` carry ``plugin``, ``name`` and ``body``. When two subagents share a file
-    name in different plugins, a skill's own plugin wins, and otherwise the first plugin
-    alphabetically does, so the choice is the same on every build.
+    ``skills`` carry ``plugin``, ``name`` and ``body``, and a ``directory`` if they have
+    one. Each body is rendered exactly as the skill's page renders it. When two subagents
+    share a file name in different plugins, a skill's own plugin wins, and otherwise the
+    first plugin alphabetically does, so the choice is the same on every build.
     """
     by_name: dict[str, list[Named]] = {}
     for agent in agents:
@@ -304,7 +199,12 @@ def derive_edges(skills: Iterable, agents: Iterable[Named]) -> list[Edge]:
         candidates.sort(key=lambda agent: agent.plugin)
     edges: set[Edge] = set()
     for skill in skills:
-        for span in _code_spans(_uncommented(_prose(skill.body))):
+        # The directory only resolves relative links, which draw no edge, so a skill
+        # without one is rendered with none.
+        page = site_markdown.render(
+            skill.body, source_dir=getattr(skill, "directory", ""), offset=1
+        )
+        for span in _code_spans(page):
             candidates = by_name.get(span)
             if not candidates:
                 continue

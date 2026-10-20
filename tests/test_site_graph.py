@@ -51,7 +51,7 @@ SKILLS = [
         "cadence",
         "The decision maker signs off. Ask the maker.\n"
         "```\nuse `log-reader` here\n```\n"
-        "Run `log-reader --help` or ``scribe`` or `Scribe`.\n",
+        "Run `log-reader --help` or `Scribe`.\n",
     ),
     # Own plugin wins over an alphabetically earlier plugin with the same file name.
     _Skill("coding", "build", "Plan with `maker`.\n~~~\n`scribe`\n~~~\nAnd `diff-reader`."),
@@ -89,6 +89,11 @@ def test_a_subagent_name_shared_across_plugins_resolves_to_the_skills_own_plugin
     assert got == {("a", "zeta"), ("b", "mid"), ("c", "alpha")}
 
 
+def _names(body):
+    """The subagents a skill body draws an edge to, as the page it renders would show them."""
+    return {e.agent for e in graph.derive_edges([_Skill("coding", "gate", body)], AGENTS)}
+
+
 def test_a_do_not_use_for_sentence_draws_no_edge():
     body = (
         "Use for: the plan. Do not use for: writing it (`maker`), or a diff (`diff-reader`). "
@@ -102,16 +107,17 @@ def test_a_do_not_use_for_sentence_draws_no_edge():
         graph.Edge("coding", "gate", "ops", "scribe"),
     ]
     # A full stop inside a span does not end the sentence early.
-    assert graph._code_spans("Not for `a. b` and `c`. Then `d`.") == {"d"}
-    assert graph._code_spans("Do not use for `x`.\nuse `y`") == {"y"}
+    assert _names("Not for `a. b` and `maker`. Then `scribe`.") == {"scribe"}
+    assert _names("Do not use for `maker`.\nuse `scribe`") == {"scribe"}
 
 
 def test_a_boundary_item_in_either_ordered_list_form_draws_no_edge():
     for marker in ("1)", "1.", "12)"):
         body = f"{marker} Do not use for `maker`.\n{marker} Ask `scribe`.\n"
-        assert graph._code_spans(body) == {"scribe"}, marker
+        assert _names(body) == {"scribe"}, marker
+        assert _names(f"{marker} Do not use for `maker`.") == set(), marker
     # A digit that is not a list marker does not hide a hand-off.
-    assert graph._code_spans("2 Not for `maker`.") == {"maker"}
+    assert _names("2 Not for `maker`.") == {"maker"}
 
 
 def test_a_boundary_sentence_wrapped_over_lines_draws_no_edge():
@@ -122,11 +128,22 @@ def test_a_boundary_sentence_wrapped_over_lines_draws_no_edge():
     )
     got = graph.derive_edges([_Skill("coding", "gate", body)], AGENTS)
     assert got == [graph.Edge("coding", "gate", "ops", "scribe")]
-    # A list item is its own paragraph, so one bullet's boundary does not reach the next.
+    # A list item is its own block, so one bullet's boundary does not reach the next.
     bullets = "- Do not use for\n  `maker`, or similar.\n- Ask `diff-reader`.\n"
-    assert graph._code_spans(bullets) == {"diff-reader"}
+    assert _names(bullets) == {"diff-reader"}
     # A blank line ends the paragraph too.
-    assert graph._code_spans("Not for the\n\n`maker` here.") == {"maker"}
+    assert _names("Not for the\n\n`maker` here.") == {"maker"}
+
+
+def test_a_nested_bullets_boundary_does_not_reach_its_sibling():
+    nested = "- Plan it\n  - Not for `maker`.\n- Ask `scribe`.\n- Ask `diff-reader`.\n"
+    assert _names(nested) == {"scribe", "diff-reader"}
+    # Text after the nested list is a block of its own too.
+    after = "- Not for `maker`.\n  - inner\n\n  Then `scribe`.\n"
+    assert _names(after) == {"scribe"}
+    # Table cells are blocks: a boundary in one cell leaves its neighbour alone.
+    table = "| a | b |\n|---|---|\n| Not for `maker` | Ask `scribe` |\n"
+    assert _names(table) == {"scribe"}
 
 
 def test_an_abbreviation_does_not_end_a_boundary_sentence():
@@ -134,7 +151,7 @@ def test_an_abbreviation_does_not_end_a_boundary_sentence():
     got = graph.derive_edges([_Skill("coding", "gate", body)], AGENTS)
     assert got == [graph.Edge("coding", "gate", "ops", "scribe")]
     wrapped = "Not for work such as\ne.g.\n`maker` or `log-reader`."
-    assert graph._code_spans(wrapped) == set()
+    assert _names(wrapped) == set()
 
 
 def test_an_ordinary_wrapped_sentence_still_draws_its_edge():
@@ -146,64 +163,115 @@ def test_an_ordinary_wrapped_sentence_still_draws_its_edge():
 
 
 def test_unclosed_and_empty_spans_are_not_names():
-    assert graph._code_spans("a `open and `b` c") == {"open and "}
-    assert graph._code_spans("only `one") == set()
-    assert graph._code_spans("``pair`` `x`") == {"x"}
-    assert graph._code_spans("`a`\n`b`") == {"a", "b"}
+    # The first span is "maker and ", which is not a name; the rest is plain text.
+    assert _names("a `maker and `scribe` c") == set()
+    assert _names("only `maker") == set()
+    assert _names("`` `scribe`") == {"scribe"}
+    assert _names("`maker`\n`scribe`") == {"maker", "scribe"}
+    # The page shows a double-backtick span as code, so it is a name like any other.
+    assert _names("``maker`` and `scribe`") == {"maker", "scribe"}
+    # Surrounding text inside the code element is not the name.
+    assert _names("`maker --help` and `Maker`") == set()
 
 
-def test_a_name_inside_an_html_comment_draws_no_edge():
+def test_escaped_markup_in_the_source_reads_as_the_text_the_page_shows():
+    # The renderer writes "<" and "&" as references; the reader sees the characters.
+    assert _names("Ask <b> `maker` & `scribe`.") == {"maker", "scribe"}
+    assert _names("Not for <b> & `maker`. Ask `scribe`.") == {"scribe"}
+    # A reference typed in the source is shown literally, so it is not the name.
+    assert _names("`mak&#101;r` and `<maker>`") == set()
+
+
+def test_a_name_inside_an_html_comment_is_visible_so_it_draws_an_edge():
+    # The site shows a comment as escaped text rather than hiding it, so `maker` here is
+    # inline code on the page and the graph says so.
     body = "<!-- Deprecated: ask `maker`. -->\nAsk `scribe`."
     got = graph.derive_edges([_Skill("coding", "gate", body)], AGENTS)
-    assert got == [graph.Edge("coding", "gate", "ops", "scribe")]
-    # A comment over several lines keeps the paragraphs around it apart.
+    assert got == [
+        graph.Edge("coding", "gate", "coding", "maker"),
+        graph.Edge("coding", "gate", "ops", "scribe"),
+    ]
+    # Over several lines the comment is the same paragraph as the text around it, and the
+    # visible sentence runs from "<!--" through "Not for", so it does not open with the
+    # boundary phrase and nothing in it is skipped.
     body = "Ask `scribe`.\n<!--\nold: `maker`\n-->\nNot for `diff-reader`."
-    assert graph._code_spans(graph._uncommented(body)) == {"scribe"}
-    assert graph._uncommented("a <!-- `maker`") == "a "
+    assert _names(body) == {"scribe", "maker", "diff-reader"}
+    # Ended with a full stop, the sentence after the comment is a boundary of its own.
+    body = "Ask `scribe`.\n<!--\nold: `maker`\n-->.\nNot for `diff-reader`."
+    assert _names(body) == {"scribe", "maker"}
+
+
+def test_a_fence_run_inside_an_html_comment_follows_the_rendered_page():
+    # The renderer does not know HTML blocks: the comment opener is a paragraph, the
+    # fence that follows interrupts it and runs to the end, so the page shows `maker`
+    # only as fenced text and no edge is drawn.
+    assert _names("<!--\n```\n-->\nAsk `maker`.") == set()
 
 
 def test_a_closer_may_sit_only_three_spaces_past_the_margin():
     # Six spaces is content of a fence opened at three, however far in the opener sat.
-    assert graph._prose("   ```\n      ```\n`maker`\n   ```\n`b`") == "`b`"
-    assert graph._prose("   ```\n`maker`\n   ```\n`b`") == "`b`"
+    assert _names("   ```\n      ```\n`maker`\n   ```\n`scribe`") == {"scribe"}
+    assert _names("   ```\n`maker`\n   ```\n`scribe`") == {"scribe"}
 
 
 def test_an_indented_code_block_draws_no_edge():
-    sample = "Before `scribe`.\n\n    invoke `maker`\n\n    and `diff-reader`\nAfter `gate`.\n"
-    assert graph._code_spans(graph._prose(sample)) == {"scribe", "gate"}
+    sample = (
+        "Before `scribe`.\n\n    invoke `maker`\n\n    and `diff-reader`\nAfter `log-reader`.\n"
+    )
+    assert _names(sample) == {"scribe", "log-reader"}
     # Inside a list item the block starts four columns past the item's content.
-    listed = "- Ask `scribe`.\n\n      invoke `maker`\n\n  Then `gate`.\n"
-    assert graph._code_spans(graph._prose(listed)) == {"scribe", "gate"}
+    listed = "- Ask `scribe`.\n\n      invoke `maker`\n\n  Then `log-reader`.\n"
+    assert _names(listed) == {"scribe", "log-reader"}
     # A heading ends a paragraph, so a block may follow it directly.
-    assert graph._code_spans(graph._prose("## Example\n    `maker`\n")) == set()
+    assert _names("## Example\n    `maker`\n") == set()
     # Indented text cannot interrupt a paragraph: it is a continuation line.
-    assert graph._code_spans(graph._prose("Ask\n    `maker` next.\n")) == {"maker"}
+    assert _names("Ask\n    `maker` next.\n") == {"maker"}
     # A nested item's text is prose, not code, and a fence inside a block is code.
     nested = "- a\n\n  - Ask `scribe`.\n\n    ```\n    `maker`\n    ```\n"
-    assert graph._code_spans(graph._prose(nested)) == {"scribe"}
-    assert graph._prose("x\n\n    ```\n`b`\n") == "x\n\n`b`"
+    assert _names(nested) == {"scribe"}
+    assert _names("x\n\n    ```\n`scribe`\n") == {"scribe"}
+
+
+def test_surplus_padding_after_a_list_marker_makes_indented_code():
+    # Five spaces after the marker: the item's content is an indented code block.
+    assert _names("-     invoke `maker`") == set()
+    # Up to four spaces it is ordinary item text.
+    assert _names("-    invoke `maker`") == {"maker"}
+
+
+def test_an_over_indented_fence_cannot_interrupt_a_paragraph():
+    # Four spaces make the line paragraph text, not a fence, so `maker` is plain inline
+    # code on the page and draws the edge.
+    assert _names("Intro\n    ```\nAsk `maker`.") == {"maker"}
+    # After a blank line the same line is an indented code block, and the name is visible.
+    assert _names("Intro\n\n    ```\nAsk `maker`.") == {"maker"}
+
+
+def test_a_fenced_block_draws_no_edge_but_prose_around_it_does():
+    body = "Plan with `scribe`.\n\n```sh\nmaker `maker`\n```\n\nThen `diff-reader`.\n"
+    assert _names(body) == {"scribe", "diff-reader"}
 
 
 def test_a_longer_fence_is_closed_only_by_an_equal_or_longer_run():
-    body = "````\n```\n`scribe` inside\n```\nstill inside `scribe`\n````\nAfter."
-    assert "scribe" not in graph._prose(body)
-    assert graph._prose(body).strip() == "After."
+    body = "````\n```\n`scribe` inside\n```\nstill inside `scribe`\n````\nAfter `maker`."
+    assert _names(body) == {"maker"}
     # A different character, or text after the run, does not close the fence.
-    assert graph._prose("```\n~~~\n```x\n`a`\n```\n`b`") == "`b`"
+    assert _names("```\n~~~\n```x\n`maker`\n```\n`scribe`") == {"scribe"}
     # A quoted or indented fence is still a fence.
-    assert graph._prose("> ```\n> `a`\n> ```\n`b`") == "`b`"
-    assert graph._prose("  - ```\n    `a`\n    ```\n`b`") == "`b`"
+    assert _names("> ```\n> `maker`\n> ```\n`scribe`") == {"scribe"}
+    assert _names("  - ```\n    `maker`\n    ```\n`scribe`") == {"scribe"}
     # A quoted, bulleted or deeply indented marker inside an unquoted fence is content,
     # not a closer: closing on it would read the rest of the sample as prose.
     for marker in ("> ```", "- ```", "    ```", "1. ```"):
-        body = f"```markdown\n{marker}\n`maker` sample\n```\nAfter."
-        assert graph._prose(body) == "After.", marker
-    assert graph._prose("`````\n    ````\n`a`\n`````\n`b`") == "`b`"
-    # Leaving the quote or the list item ends the fence it held.
-    assert graph._prose("> ```\n> `a`\n`b`") == "`b`"
-    assert graph._prose("- ```\n  `a`\n`b`") == "`b`"
+        body = f"```markdown\n{marker}\n`maker` sample\n```\nAfter `scribe`."
+        assert _names(body) == {"scribe"}, marker
+    assert _names("`````\n    ````\n`maker`\n`````\n`scribe`") == {"scribe"}
+    # Leaving the list item ends the fence it held.
+    assert _names("- ```\n  `maker`\n`scribe`") == {"scribe"}
+    # The renderer keeps a lazy line inside a quoted fence, so the page shows it as code.
+    assert _names("> ```\n> `maker`\n`scribe`") == set()
     # A line of three backticks with a span after it is a code span, not a fence.
-    assert graph._prose("```code```\n`b`") == "```code```\n`b`"
+    assert _names("```maker```\n`scribe`") == {"maker", "scribe"}
 
 
 def test_a_plugin_without_edges_renders_nothing():
