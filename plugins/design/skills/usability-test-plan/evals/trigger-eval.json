@@ -15,7 +15,7 @@
   {"query": "redesign our website, we have the research already", "should_trigger": false, "expected": "website-builder"},
   {"query": "design a structured interview loop for hiring a senior backend engineer", "should_trigger": false, "expected": "hiring-loop"},
   {"query": "i have an interview on friday for a product designer role, help me prepare", "should_trigger": false, "expected": "job-search"},
-  {"query": "run a playtest of my game with friends and tune the difficulty", "should_trigger": false, "expected": "game-balance"},
+  {"query": "set up a playtest of my game with some friends and see where people get stuck", "should_trigger": false, "expected": "game-playtest"},
   {"query": "write the survey questions for our customer satisfaction poll", "should_trigger": false},
   {"query": "write the end to end test for the signup flow in playwright", "should_trigger": false, "expected": "e2e-testing"},
   {"query": "what is the average conversion rate for a saas landing page", "should_trigger": false}

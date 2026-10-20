@@ -90,19 +90,19 @@ The first line registers the marketplace; it downloads nothing on its own. Each
 session — without it you will wonder why nothing fires.
 
 Installing `gamedev`: [`docs/gamedev.md`](gamedev.md) picks a production scale and a game
-type and routes through the plugin's eleven skills from there, rather than leaving you to
-read all eleven cold.
+type and routes through the plugin's thirteen skills from there, rather than leaving you to
+read all thirteen cold.
 
 Install the plugins you will actually use. Every description a plugin ships sits in
 context for the whole session, and the runtime caps that listing at about 1% of the
 context window. Past the cap it drops the descriptions of the skills you invoke least,
 which leaves them invocable by name and stops them being chosen on their own — silently.
-Only `career` and `personal` fit the default budget by themselves. If you
+Only `career`, `llm` and `personal` fit the default budget by themselves. If you
 install any of the other eight, or more than one plugin, raise it in
 `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.123 }
+{ "skillListingBudgetFraction": 0.134 }
 ```
 
 ### How a skill fires
@@ -121,7 +121,7 @@ move when you know exactly what you want.
 
 ### Subagents
 
-27 ship across eight plugins, and they work differently: the main agent delegates to one
+30 ship across nine plugins, and they work differently: the main agent delegates to one
 when the work would otherwise flood your context with material you do not need afterwards.
 A megabyte of CI logs, a Terraform plan, a billing export, a release range. You get the
 conclusion; the raw material never enters your session.

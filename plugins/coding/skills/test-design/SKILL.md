@@ -161,4 +161,5 @@ Report a test design in this shape, before writing the tests:
 
 - `references/case-selection.md` — read when the cross product of parameters exceeds about twenty cases, or when choosing between a hand-picked table, pairwise selection and a property-based generator.
 - `references/determinism.md` — read when a test touches the clock, a random source, more than one thread, or the network: the seams to inject at, per-language, and the failure each one prevents.
+- `references/test-first-loop.md` — read when you are about to implement a criterion or fix a bug and want the red, green, refactor loop an agent can evidence: confirming the failure is the expected one, editing a test honestly, and when to skip test-first.
 - `references/legacy-suites.md` — read when inheriting a suite with unknown value: how to tell a load-bearing test from a pinned implementation, and the order in which to delete.

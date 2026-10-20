@@ -1,0 +1,22 @@
+[
+  {"query": "my LLM keeps returning JSON that breaks json.loads, how do I make it reliable", "should_trigger": true},
+  {"query": "should I use JSON mode, function calling or a json_schema response format to get structured data back from the model", "should_trigger": true},
+  {"query": "the model sometimes returns an enum value that isn't in my list, how do I stop that", "should_trigger": true},
+  {"query": "how many times should I retry when the model's output fails schema validation, and what do I send back", "should_trigger": true},
+  {"query": "I want Claude to classify support tickets into fixed categories and return a typed object my code can route on", "should_trigger": true},
+  {"query": "is strict: true on a tool definition enough or do I still need to validate the arguments myself", "should_trigger": true},
+  {"query": "set up a Pydantic model as the response schema for an OpenAI call and handle refusals", "should_trigger": true},
+  {"query": "our prompt says respond only with JSON but sometimes it wraps it in a markdown fence, what's the proper fix", "should_trigger": true},
+  {"query": "how do I version the schema the model fills in without breaking stored results, and test it against past bad outputs", "should_trigger": true},
+  {"query": "make the model return an extraction record with nullable fields instead of leaving keys out", "should_trigger": true},
+  {"query": "design the REST endpoint that returns these classification results, with error codes and pagination", "should_trigger": false, "expected": "api-design"},
+  {"query": "design the Postgres tables that will store the extracted records and their versions", "should_trigger": false, "expected": "schema-design"},
+  {"query": "pull the line items and totals out of scanned invoices and photographed receipts", "should_trigger": false, "expected": "document-extraction"},
+  {"query": "build retrieval so the chatbot answers from our internal wiki with citations to the right page", "should_trigger": false, "expected": "rag-design"},
+  {"query": "build a graded dataset and judge to decide whether my agent completes tasks correctly across releases", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "reduce our monthly LLM token spend without hurting quality", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "write the system prompt and rules file for my coding agent", "should_trigger": false, "expected": "agent-instructions"},
+  {"query": "which test cases should I write for my invoice parsing function's edge cases", "should_trigger": false, "expected": "test-design"},
+  {"query": "this service throws a KeyError in production only on some requests, help me find why", "should_trigger": false, "expected": "debugging"},
+  {"query": "how do I change an existing OpenAPI response without breaking our clients", "should_trigger": false, "expected": "api-design"}
+]

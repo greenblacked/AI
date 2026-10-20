@@ -1,0 +1,22 @@
+[
+  {"query": "i have screenshots of the checkout at phone, tablet and desktop widths, go through them and find the layout bugs", "should_trigger": true},
+  {"query": "did our header refactor break dark mode? compare the before and after screenshots", "should_trigger": true},
+  {"query": "set up screenshot diffing for the pricing page so a css change that moves things around gets caught", "should_trigger": true},
+  {"query": "after the navbar change, go through the before and after screenshots of the settings page and tell me which differences are real regressions", "should_trigger": true},
+  {"query": "can you have a vision model look at the rendered page and tell me if anything is overlapping or cut off", "should_trigger": true},
+  {"query": "does the mobile layout of the dashboard overflow horizontally at 360px? check the rendered page, not the css", "should_trigger": true},
+  {"query": "review the staging build visually, light and dark, and report what changed since the last release's screenshots", "should_trigger": true},
+  {"query": "the model keeps telling me two buttons overlap in my screenshot but i can't see it, how do i check", "should_trigger": true},
+  {"query": "build a visual regression pass for our storybook components with a pixel diff and masked dynamic regions", "should_trigger": true},
+  {"query": "which findings from the screenshot review are actually verified and which are just the model's guess", "should_trigger": true},
+  {"query": "here's a screenshot of our signup flow, what's wrong with it from a usability point of view", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "does this onboarding flow make sense, three steps and people keep dropping off at the second", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "run a wcag 2.2 AA audit on the login page including the keyboard and screen reader pass", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "axe says the page is clean, does that mean we pass an accessibility review", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "what breakpoints should we use for this layout, and what should reflow at each", "should_trigger": false, "expected": "responsive-design"},
+  {"query": "the data table does not fit on a phone, how should it adapt", "should_trigger": false, "expected": "responsive-design"},
+  {"query": "our playwright checkout test is flaky in CI, it times out about one run in five", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "my playwright screenshot diffs pass on my mac and fail on the linux runner, fonts look slightly different", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "this page feels cluttered, what should be the primary button and how should the type scale work", "should_trigger": false, "expected": "visual-design"},
+  {"query": "define colour tokens and a dark theme for the design system so components stay consistent", "should_trigger": false, "expected": "design-system"}
+]

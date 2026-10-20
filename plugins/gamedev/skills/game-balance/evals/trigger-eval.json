@@ -1,7 +1,7 @@
 [
   {"query": "this shotgun is overpowered, everyone dies to it in two shots. what do i change", "should_trigger": true},
   {"query": "how do i know if my difficulty curve is right, people seem to quit around level 4", "should_trigger": true},
-  {"query": "running a playtest this weekend with six people, what should i actually record while they play", "should_trigger": true},
+  {"query": "six playtesters understood the second boss and still needed a dozen attempts each, which numbers do i look at before touching its health", "should_trigger": true},
   {"query": "our top faction is sitting at 54% win rate over 300 matches, do we nerf it or is that noise", "should_trigger": true},
   {"query": "three of my eight classes are basically never picked but the ones who do pick them win a lot", "should_trigger": true},
   {"query": "one deck dominates at high ranks and loses in casual, which number do i balance against", "should_trigger": true},
@@ -17,6 +17,6 @@
   {"query": "should the server be authoritative for movement or only for damage and pickups", "should_trigger": false, "expected": "game-netcode"},
   {"query": "how many players per matchmaking node can we take at launch and what saturates first", "should_trigger": false, "expected": "capacity-planning"},
   {"query": "our prometheus cardinality exploded because someone put player id on a metric label", "should_trigger": false, "expected": "instrumentation"},
-  {"query": "what spans should the inventory service emit so the next 3am page is diagnosable", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "running a playtest this weekend with six people, what should i actually record while they play", "should_trigger": false, "expected": "game-playtest"},
   {"query": "write the patch notes for this season's balance changes so players understand them", "should_trigger": false, "expected": "game-live-ops"}
 ]
