@@ -74,9 +74,11 @@ outside the quarantine, at a credentials file or another project's instructions,
 holding its target instead. List them with the last command before reading anything, and
 treat any that exists as a finding: read its target path as text, never through the link.
 
-For an archive, download it with `curl`, record `sha256sum` of the file, list the members
-with `tar -tvf` or `unzip -l` and look for absolute paths, `..` and symlinks that leave
-the directory, then extract only into the empty quarantine directory. Pass paths as
+For an archive, download it with `curl`, record `sha256sum` of the file, and list the
+members in the long form that shows each entry's type: `tar -tvf`, or `unzip -Z` for a
+ZIP, because `unzip -l` does not mark a symlink. Reject absolute paths, `..`, and any
+entry whose mode starts with `l`, then extract only into the empty quarantine directory
+and confirm with `find <quarantine> -type l` that nothing extracted as a link. Pass paths as
 arguments (`git -C`, `rg ... <path>`) rather than changing into the directory, because
 interpreters and build tools load code from the current directory.
 
