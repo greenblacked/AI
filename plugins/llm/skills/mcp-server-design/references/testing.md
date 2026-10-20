@@ -27,14 +27,26 @@ sees rather than what your registration code intended:
 
 ```bash
 set -Eeuo pipefail
-INSPECTOR="@modelcontextprotocol/inspector@${INSPECTOR_VERSION:?set an exact Inspector version}"
+npm ci --ignore-scripts --no-audit --no-fund --prefix tools/inspector
+INSPECTOR=tools/inspector/node_modules/.bin/mcp-inspector
 fresh="$(mktemp)"
 status=0
-out="$(npx --yes "$INSPECTOR" --cli node build/index.js --method tools/list --format json)" || status=$?
+out="$("$INSPECTOR" --cli node build/index.js --method tools/list --format json)" || status=$?
 [ "$status" -eq 0 ] || { echo "inspector exited $status" >&2; exit "$status"; }
 jq -S '.result.tools | sort_by(.name)' <<<"$out" > "$fresh"
 diff -u tools.snapshot.json "$fresh"
 ```
+
+The Inspector runs from `tools/inspector/`, a directory holding only a `package.json` and the
+`package-lock.json` npm writes for it, both committed. Create them once with
+`npm install --prefix tools/inspector --save-exact --ignore-scripts @modelcontextprotocol/inspector@<version>`.
+Pinning the top-level version alone is not enough: `npx` resolves the Inspector's own
+dependency ranges afresh on every clean runner, so a later transitive release changes the
+code the gate runs. The lockfile records every package in the tree with an integrity hash,
+and `npm ci` installs exactly that tree or fails, so review a change to the lockfile like a
+change to the code. `--ignore-scripts` skips lifecycle scripts; the Inspector's own
+`postinstall` only installs its clients in a source checkout and does nothing when it is a
+dependency, so the CLI works without it (checked on 2.11.0).
 
 `diff` exits non-zero on any difference, which fails the job. To accept a change, copy the
 new file over the snapshot in the same commit as the code and have a person read the diff.
@@ -67,8 +79,9 @@ The Inspector is the maintainers' tool for exercising a server. It needs Node 22
 later according to its README. Three ways to use it:
 
 ```bash
-npx @modelcontextprotocol/inspector                       # web UI, for exploring
-npx @modelcontextprotocol/inspector --cli node build/index.js --method tools/list --format json
+npm ci --ignore-scripts --no-audit --no-fund --prefix tools/inspector
+tools/inspector/node_modules/.bin/mcp-inspector                # web UI, for exploring
+tools/inspector/node_modules/.bin/mcp-inspector --cli node build/index.js --method tools/list --format json
 ```
 
 The Python SDK's `mcp dev server.py` command opens a server in the Inspector, per its
@@ -81,8 +94,10 @@ How to use it well:
 - Use `--cli` for anything repeatable. Pass `--format json`, since the default output is for
   humans, and keep standard output and standard error apart: the result is on stdout and
   diagnostics on stderr, so merging them corrupts what `jq` reads.
-- Pin an exact Inspector version in CI. The documentation notes that an unpinned `npx` run
-  resolves the newest release each time, and that a range such as `@2` is not a pin.
+- Install the Inspector in CI from the committed lockfile in `tools/inspector/`, as above,
+  never through `npx`. The documentation notes that an unpinned `npx` run resolves the newest
+  release each time and that a range such as `@2` is not a pin, and even an exact pin leaves
+  the transitive tree to resolve afresh.
 - Bound the connection with `--connect-timeout`, so a server that never starts fails the
   job rather than hanging it.
 - Against an authenticated HTTP server in CI, pass `--stored-auth-only`, which fails with an
@@ -106,9 +121,10 @@ execution error with a message the model can act on, not a crash and not a proto
 
 ```bash
 set -Eeuo pipefail
-INSPECTOR="@modelcontextprotocol/inspector@${INSPECTOR_VERSION:?set an exact Inspector version}"
+npm ci --ignore-scripts --no-audit --no-fund --prefix tools/inspector
+INSPECTOR=tools/inspector/node_modules/.bin/mcp-inspector
 status=0
-out="$(npx --yes "$INSPECTOR" --cli node build/index.js \
+out="$("$INSPECTOR" --cli node build/index.js \
   --method tools/call --tool-name get_ticket \
   --tool-args-json '{"ticket_id":"does-not-exist"}' --format json)" || status=$?
 [ "$status" -eq 5 ]

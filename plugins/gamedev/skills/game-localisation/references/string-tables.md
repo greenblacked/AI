@@ -29,7 +29,7 @@ One row per string, with these fields. The first three are what most engines alr
 
 Godot's context mechanism is the model for the second field: the same source text takes a different context argument per meaning, so the translation table can hold two entries for it (<https://docs.godotengine.org/en/stable/tutorials/i18n/internationalizing_games.html>).
 
-The maximum length is a measured limit, not a guess. Set it from the control's size and the longest translation seen so far, and revise it when a longer one arrives. A character count is a proxy: proportional fonts and different scripts give different widths for the same count, so a fixed-size control wants a pixel limit checked in the engine.
+The maximum length is a measured limit, not a guess. Set it from what the control can render, and when a translation exceeds it, treat that as a defect: resize the control or revise the wording, then move the limit only to the control's new rendered capacity, never up to the translation that overflowed. A character count is a proxy: proportional fonts and different scripts give different widths for the same count, so a fixed-size control wants a pixel limit checked in the engine.
 
 ## Keys
 
