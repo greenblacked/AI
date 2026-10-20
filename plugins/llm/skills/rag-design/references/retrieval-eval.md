@@ -1,6 +1,13 @@
 # The retrieval eval
 
-Contents: the file format, the metrics, a harness, classifying misses, scoring generation, and keeping the set honest.
+## Contents
+
+- The file format
+- The metrics
+- A harness
+- Classifying a miss
+- Scoring generation
+- Keeping the set honest
 
 ## The file format
 
