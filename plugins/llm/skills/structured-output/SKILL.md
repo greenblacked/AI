@@ -78,7 +78,7 @@ Read `references/validate-and-repair.md` for a reference implementation of this 
 
 When validation fails and the stop condition was normal, send the failing output back with the validation errors, as paths and messages, and ask for a corrected reply. Cap the attempts at a small fixed number, one or two as a starting point (a judgement, not a provider figure): the error is the only new information a retry has, so when it does not fix the output the schema or the input is usually the problem, and each retry costs latency and tokens.
 
-When the cap is reached, fail closed: raise a named error that carries the attempts and the problems, and let the caller route the item to a queue, a human or a documented fallback. Do not substitute a default, do not pass on a partial record and do not loosen the schema until it passes. Log the raw reply of every failure; each one is a fixture for step 6.
+When the cap is reached, fail closed: raise a named error that carries the attempts and the problems, and let the caller route the item to a queue, a human or a documented fallback. Do not substitute a default, do not pass on a partial record and do not loosen the schema until it passes. Log every failure's stop condition and problems, and keep its raw reply in restricted storage, redacted before it becomes a fixture for step 6, because a reply can echo personal data or a credential from the input.
 
 ### 6. Version the schema and test it with real failures
 

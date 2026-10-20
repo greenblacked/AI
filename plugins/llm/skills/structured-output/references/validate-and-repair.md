@@ -130,7 +130,7 @@ def get_structured(
 - **The stop condition comes first.** A refusal and a truncated reply are not malformed output to repair. Repeating the call reproduces a refusal and a token limit, so the loop stops and the caller decides: raise the limit, shrink the schema, or route the item to a person.
 - **Problems are paths and messages.** They tell the model where the reply is wrong and cost few tokens. Cap how many are sent so one badly broken reply does not flood the retry prompt.
 - **Semantic checks run only on a well-shaped value.** A check that indexes a field the schema did not guarantee raises a `KeyError` instead of reporting a problem.
-- **The error carries every attempt.** The raw replies are the raw material for fixtures; write them to your log before anything else consumes the exception.
+- **The error carries every attempt.** The raw replies are the raw material for fixtures, and they can echo the input: a ticket's personal data, an account number, a pasted credential. Log the stop condition and the problems by default, and keep the raw reply only where access and retention are restricted, redacted before it becomes a fixture.
 - **There is no default branch.** Exhausting the attempts raises. The only code that decides what a failure means is the caller that knows the business context.
 
 ## Two semantic checks
