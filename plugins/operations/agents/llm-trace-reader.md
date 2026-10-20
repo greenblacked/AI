@@ -79,7 +79,11 @@ one very large share is a finding; a flat spread across users is the other findi
 it points at the prompt path rather than at the people.
 
 ```bash
-jq -rs '(map(.cost // 0) | add) as $total
+jq -Rn '[inputs | (fromjson? // {unparsed: true})] as $rows
+        | ($rows | map(select(.unparsed)) | length) as $bad
+        | ($rows | map(select(.unparsed | not))) as $ok
+        | ($ok | map(.cost // 0) | add) as $total
+        | {unparseable_rows: $bad, groups: ($ok
         | group_by(.feature // "untagged")
         | map({feature: (.[0].feature // "untagged"),
                calls: length,
@@ -90,10 +94,11 @@ jq -rs '(map(.cost // 0) | add) as $total
                cost: (map(.cost // 0) | add),
                rows_without_cost: (map(select(.cost == null)) | length)})
         | map(. + {share_pct: (if $total > 0 then (.cost / $total * 100 | round) else null end)})
-        | sort_by(-.cost)' export.jsonl
+        | sort_by(-.cost))}' export.jsonl
 ```
 
-The field names are the Anthropic-format usage fields from the paragraph above; rename
+Each line is parsed on its own, so one truncated or malformed row is counted in
+`unparseable_rows` instead of aborting the whole query. The field names are the Anthropic-format usage fields from the paragraph above; rename
 them to the export's own. `rows_without_cost` keeps a row with no price visible rather
 than letting it count as free: report it beside the share, because a group whose rows
 mostly lack a cost looks cheaper than it is.
