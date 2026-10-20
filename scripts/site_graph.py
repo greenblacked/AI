@@ -80,12 +80,15 @@ _BOUNDARY = re.compile(r"[\W_]*(?:do not use for|not for)\b", re.IGNORECASE)
 
 # These end in a full stop that does not end the sentence: "e.g. `maker`" inside a
 # boundary sentence must not split it, or the names after the abbreviation would escape.
-# Initials ("U.S.", "J.") and short titles are covered as a shape, not a list, because a
-# split that ends a boundary sentence early turns the names after it into hand-offs.
+# A chain of initials ("U.S.") and short titles are covered as a shape, not a list,
+# because a split that ends a boundary sentence early turns the names after it into
+# hand-offs. A lone letter ("option A.") ends its sentence: it is more often a label.
 _ABBREVIATION = re.compile(
-    r"(?:^|[\s(])(?:e\.g|i\.e|etc|vs|cf|approx|incl|fig|no|mr|mrs|ms|dr|st|(?:[a-z]\.)*[a-z])\.$",
+    r"(?:^|[\s(])(?:e\.g|i\.e|etc|vs|cf|approx|incl|fig|no|mr|mrs|ms|dr|st|(?:[a-z]\.)+[a-z])\.$",
     re.IGNORECASE,
 )
+
+_CLOSERS = "\"')]\u2019\u201d\u00bb"
 
 
 def _sentences(text: str) -> list[str]:
@@ -96,14 +99,18 @@ def _sentences(text: str) -> list[str]:
     for index, char in enumerate(text):
         if char == "`":
             inside = not inside
-        elif (
-            char in ".!?"
-            and not inside
-            and (index + 1 == len(text) or text[index + 1].isspace())
-            and not _ABBREVIATION.search(text[start : index + 1])
+            continue
+        if char not in ".!?" or inside:
+            continue
+        # Closing quotes and brackets belong to the sentence they end: 'Not for "x."'
+        end = index + 1
+        while end < len(text) and text[end] in _CLOSERS:
+            end += 1
+        if (end == len(text) or text[end].isspace()) and not _ABBREVIATION.search(
+            text[start : index + 1]
         ):
-            sentences.append(text[start : index + 1])
-            start = index + 1
+            sentences.append(text[start:end])
+            start = end
     sentences.append(text[start:])
     return sentences
 

@@ -153,7 +153,12 @@ def test_a_nested_bullets_boundary_does_not_reach_its_sibling():
 def test_initials_and_titles_do_not_end_a_boundary_sentence():
     assert _names("Not for U.S. work handled by `maker`. Ask `scribe`.") == {"scribe"}
     assert _names("Not for Dr. Smith's queue in `maker`. Ask `scribe`.") == {"scribe"}
-    assert _names("Not for J. Doe or `maker`. Ask `scribe`.") == {"scribe"}
+    # A lone letter is a label that ends its sentence, not an initial.
+    assert _names("Not for option A. Ask `maker`.") == {"maker"}
+    # Terminal punctuation inside closing quotes or brackets still ends the sentence.
+    assert _names("Not for \u201c`scribe`.\u201d Ask `maker`.") == {"maker"}
+    assert _names('Not for "`scribe`." Ask `maker`.') == {"maker"}
+    assert _names("Not for (`scribe`.) Ask `maker`.") == {"maker"}
     # A sentence that really ends still ends: the next one's names are hand-offs.
     assert _names("Not for that. Ask `maker`.") == {"maker"}
 
