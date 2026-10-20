@@ -150,6 +150,14 @@ def test_a_nested_bullets_boundary_does_not_reach_its_sibling():
     assert _names(table) == {"scribe"}
 
 
+def test_initials_and_titles_do_not_end_a_boundary_sentence():
+    assert _names("Not for U.S. work handled by `maker`. Ask `scribe`.") == {"scribe"}
+    assert _names("Not for Dr. Smith's queue in `maker`. Ask `scribe`.") == {"scribe"}
+    assert _names("Not for J. Doe or `maker`. Ask `scribe`.") == {"scribe"}
+    # A sentence that really ends still ends: the next one's names are hand-offs.
+    assert _names("Not for that. Ask `maker`.") == {"maker"}
+
+
 def test_an_abbreviation_does_not_end_a_boundary_sentence():
     body = "Do not use for tasks (e.g. `maker`, i.e. the writer, etc. `diff-reader`). Ask `scribe`."
     got = graph.derive_edges([_Skill("coding", "gate", body)], AGENTS)

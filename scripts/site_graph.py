@@ -80,7 +80,12 @@ _BOUNDARY = re.compile(r"[\W_]*(?:do not use for|not for)\b", re.IGNORECASE)
 
 # These end in a full stop that does not end the sentence: "e.g. `maker`" inside a
 # boundary sentence must not split it, or the names after the abbreviation would escape.
-_ABBREVIATION = re.compile(r"(?:^|[\s(])(?:e\.g|i\.e|etc|vs|cf)\.$", re.IGNORECASE)
+# Initials ("U.S.", "J.") and short titles are covered as a shape, not a list, because a
+# split that ends a boundary sentence early turns the names after it into hand-offs.
+_ABBREVIATION = re.compile(
+    r"(?:^|[\s(])(?:e\.g|i\.e|etc|vs|cf|approx|incl|fig|no|mr|mrs|ms|dr|st|(?:[a-z]\.)*[a-z])\.$",
+    re.IGNORECASE,
+)
 
 
 def _sentences(text: str) -> list[str]:
