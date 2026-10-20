@@ -75,6 +75,16 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   `game-localisation` and `game-playtest` to `gamedev`, and `agent-extension-audit` to
   `security`. The `llm` plugin gets its first ceiling.
 
+### Security
+
+- Run Playwright and Jest from the project's own `node_modules/.bin` in `ui-ux-review`,
+  `e2e-testing`, `test-design` and `ci-triage`, not through `npx`. When a package is not
+  installed locally and standard input is not a terminal, npm assumes `--yes` and `npx`
+  installs and runs whatever the registry serves at that moment. The `ci-triage` bisect
+  probe now skips a commit whose lockfile has no test runner instead of fetching one, with
+  tests for its exit codes, and `ui-ux-review`, `e2e-testing` and `test-design` drop the
+  `Bash(npx:*)` pre-approval that only these commands used.
+
 ## [0.1.12] - 2026-10-19
 
 ### Security

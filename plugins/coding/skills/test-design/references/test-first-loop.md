@@ -25,7 +25,7 @@ The cycle is Kent Beck's: a small failing test, the least change that passes it,
 5. **Refactor only while green.** Rename, extract, remove duplication, rerunning after each step. If a refactor needs a new assertion, you changed behaviour; stop and go back to step 1.
 6. **Take the next criterion.**
 
-Run a single test with the runner's own selector: `pytest path/to/test_file.py::test_name`, `go test -run TestName ./pkg`, or `npx jest path/to/file.test.js -t "name"`.
+Run a single test with the runner's own selector: `pytest path/to/test_file.py::test_name`, `go test -run TestName ./pkg`, or `node_modules/.bin/jest path/to/file.test.js -t "name"`. Call the installed binary rather than `npx jest`, which fetches and runs the registry's current release when the project has none.
 
 The `superpowers` test-driven-development skill goes further and deletes any production code written before its test. The part worth keeping is the evidence, not the ritual. If you wrote the code first, write the test now, revert the change locally, and watch the test fail for the expected reason before restoring it.
 
