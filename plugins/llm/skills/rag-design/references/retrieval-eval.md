@@ -38,13 +38,13 @@ State the cutoff `k` and the unit with every number.
 
 - **Recall@k**: for each answerable question, the share of its relevant passages found in the top k results, averaged over questions. When one passage is enough, use the hit rate instead: the share of questions with at least one relevant passage in the top k. Say which.
 - **MRR**: the mean over answerable questions of 1 divided by the rank of the first relevant result, counting 0 when none appears within the cutoff.
-- **Refusal accuracy**: over all questions, the share where the pipeline answered an answerable question or refused an unanswerable one. Report the two error directions separately, because a wrongful refusal and a wrongful answer cost different things.
+- **Refusal-gate accuracy**: over all questions, the share where the retrieval-score gate let an answerable question through or stopped an unanswerable one. Report the two error directions separately, because a wrongful refusal and a wrongful answer cost different things. This scores the gate before generation, the threshold in `grounding-and-refusal.md`'s refusal rule, not what the pipeline finally said: the generator can still refuse after generation when a citation check fails, and can answer a question the gate let through badly. Score the actual outcome in a separate end-to-end pass that runs the generator on the same questions and records whether it answered or refused, and report its two error counts beside the gate's, so a gap between what the gate decided and what the pipeline said is visible.
 
 Report each as a count over a denominator ("31 of 40 questions"), so a reader can see how few questions moved. With a small set, one question flipping is the resolution of the measurement; do not present a difference of that size as a finding.
 
 ## A harness
 
-This runs against any retriever that takes a question and a principal (`None` when the case records none) and returns ranked `(chunk_id, score)` pairs, best first. `threshold` is the score below which the pipeline refuses; the harness applies it to every question, so an unanswerable question that still gets a strong candidate counts as a wrongful answer and an answerable one whose best candidate falls short counts as a wrongful refusal, the two error directions the refusal metric above reports separately. It needs no third-party package.
+This runs against any retriever that takes a question and a principal (`None` when the case records none) and returns ranked `(chunk_id, score)` pairs, best first. `threshold` is the score below which the gate refuses before generation; the harness applies it to every question and never calls the generator, so an unanswerable question that still gets a strong candidate counts as a wrongful answer and an answerable one whose best candidate falls short counts as a wrongful refusal, the two error directions the refusal-gate metric above reports separately. It needs no third-party package.
 
 ```python
 import json
