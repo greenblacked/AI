@@ -55,7 +55,7 @@ List the keys and a count of rows first, and name the field you map to each quan
 below. Where a quantity has no field, say so rather than treating it as zero.
 
 ```bash
-jq -Rrn 'inputs | (fromjson? | keys | tojson) // "unparseable row"' export.jsonl \
+jq -Rrn 'inputs | (fromjson? | select(type == "object") | keys | tojson) // "unparseable row"' export.jsonl \
   | sort | uniq -c | sort -rn | head
 wc -l export.jsonl
 ```
@@ -89,7 +89,7 @@ one very large share is a finding; a flat spread across users is the other findi
 it points at the prompt path rather than at the people.
 
 ```bash
-jq -Rn '[inputs | (fromjson? // {unparsed: true})] as $rows
+jq -Rn '[inputs | (fromjson? // null) | if type == "object" then . else {unparsed: true} end] as $rows
         | ($rows | map(select(.unparsed)) | length) as $bad
         | ($rows | map(select(.unparsed | not))) as $ok
         | ($ok | map(.cost // 0) | add) as $total
@@ -107,8 +107,8 @@ jq -Rn '[inputs | (fromjson? // {unparsed: true})] as $rows
         | sort_by(-.cost))}' export.jsonl
 ```
 
-Each line is parsed on its own, so one truncated or malformed row is counted in
-`unparseable_rows` instead of aborting the whole query. The field names are the Anthropic-format usage fields from the paragraph above; rename
+Each line is parsed on its own, so one truncated or malformed row, or a valid JSON value
+that is not an object, is counted in `unparseable_rows` instead of aborting the whole query. The field names are the Anthropic-format usage fields from the paragraph above; rename
 them to the export's own. `rows_without_cost` keeps a row with no price visible rather
 than letting it count as free: report it beside the share, because a group whose rows
 mostly lack a cost looks cheaper than it is.

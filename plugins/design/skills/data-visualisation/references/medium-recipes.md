@@ -2,11 +2,13 @@
 
 Read this when building the chart. Each section covers the same five points: pin the baseline, label directly, apply the palette, attach the text alternative, and render a PNG you can read back in step 7. The rules do not change between media; only the spelling does.
 
+A zero baseline means the value axis includes 0 and both extremes of the data, not that 0 is always its minimum: when the data has negative values, the lower bound is the smallest value, and the bars hang below the zero line. Each recipe below keeps both.
+
 Every medium below takes the colours from `palettes.md`. Set them explicitly, per theme, instead of trusting a library default.
 
 ## matplotlib
 
-- Baseline: `ax.set_ylim(bottom=0)` for vertical bars (`set_xlim(left=0)` for horizontal). `ax.bar` draws from 0 by default (`bottom` defaults to 0), but autoscaling can still change the limits when other artists are added, so pin it and check it in step 7.
+- Baseline: after plotting, `lo, hi = ax.get_ylim(); ax.set_ylim(min(lo, 0), max(hi, 0))` for vertical bars (the same with `get_xlim` and `set_xlim` for horizontal). `ax.bar` draws from 0 by default (`bottom` defaults to 0), but autoscaling can still change the limits when other artists are added, so pin it and check it in step 7. `set_ylim(bottom=0)` is the same only for data with no negative values; with any, it clips those bars out of the chart.
 - Direct labels: `ax.bar_label(container, fmt="%g")` on the `BarContainer` that `ax.bar` returns, and widen the axis limit so labels fit, since the method does not. For lines, `ax.annotate` or `ax.text` at the last point, with a small offset, in the series colour. Do not call `ax.legend()` when every series has a label.
 - Palette: set `axes.prop_cycle` from the table for the theme, as in `plt.rcParams["axes.prop_cycle"] = cycler(color=[...])`. The default cycle is `tab10`, which is not the palette in `palettes.md`.
 - Dark variant: `plt.style.context("dark_background")` flips the text, axes and background, and it does not choose your series colours, so apply the dark-theme colours yourself.
@@ -32,7 +34,7 @@ Every medium below takes the colours from `palettes.md`. Set them explicitly, pe
 
 ## D3
 
-- Baseline: `d3.scaleLinear().domain([0, d3.max(data, d => d.value)])` for the value scale of bars. Fix the lower bound at 0 in the domain rather than taking it from `d3.extent`.
+- Baseline: `d3.scaleLinear().domain([Math.min(0, d3.min(data, d => d.value)), Math.max(0, d3.max(data, d => d.value))])` for the value scale of bars. Taking the domain from `d3.extent` alone leaves 0 out whenever every value has the same sign, and fixing the lower bound at 0 drops the negative bars.
 - Direct labels: append `text` elements positioned from the same scales as the marks, so the labels move with the data. Skip the legend.
 - Palette: pass the colour list to an ordinal scale, `d3.scaleOrdinal(domain, range)`.
 - Text alternative: put `<title>` and `<desc>` elements as the first children of the root `<svg>`, with `role="img"` and `aria-labelledby` pointing at them, and put the table in the page.
@@ -40,7 +42,7 @@ Every medium below takes the colours from `palettes.md`. Set them explicitly, pe
 
 ## Spreadsheet
 
-- Baseline: set the vertical axis minimum to 0 by hand for bar and column charts. Some applications start the automatic axis above 0 once the data sits far from it, so do not rely on the automatic setting.
+- Baseline: set the vertical axis minimum by hand for bar and column charts, to 0, or to just below the smallest value when the data has negative values. Some applications start the automatic axis above 0 once the data sits far from it, so do not rely on the automatic setting.
 - Direct labels: turn on data labels for bars and delete the legend; for lines, label the last point with the series name.
 - Palette: set each series colour by hex value. The default chart styles are not the palette in `palettes.md`.
 - Text alternative: use the application's alt-text field on the chart, and keep the source range on the sheet as the data table.
