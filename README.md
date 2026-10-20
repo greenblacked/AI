@@ -2,7 +2,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
-  <img alt="The ten plugins: coding, operations, delivery, security, gamedev, manager, personal, career, design and family" src="docs/assets/banner-light.svg" width="100%">
+  <img alt="The eleven plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design and llm" src="docs/assets/banner-light.svg" width="100%">
 </picture>
 
 # Agent skills
