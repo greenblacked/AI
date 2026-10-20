@@ -40,7 +40,7 @@ The maximum length is a measured limit, not a guess. Set it from what the contro
 
 ## Placeholders
 
-- Name them. `{character} picked up the {weapon}` lets the translator choose the order of both; positional `%s` and `%s` fixes it. This is Godot's own recommendation (<https://docs.godotengine.org/en/stable/tutorials/i18n/internationalizing_games.html>).
+- Name them. `{character} picked up the {weapon}` lets the translator put both in whatever order the language needs. Two anonymous `%s` placeholders do not: neither says which value it holds, and most formatters fill them in source order, so a language that must reorder them gets a mistranslated sentence. This is Godot's own recommendation (<https://docs.godotengine.org/en/stable/tutorials/i18n/internationalizing_games.html>).
 - Give each placeholder one meaning and say which it is in the entry. A translator who sees `{0}` and `{1}` cannot tell which holds the name.
 - Do not put a number into a string by concatenation or by an `if count == 1` branch; see `grammar-and-formatting.md`.
 - Keep markup and engine tags out of the translatable text where the engine allows it, and when it does not, mark the tags so a translator leaves them intact and a check can confirm they survived.
