@@ -9,12 +9,31 @@ A large graph with a fixed shape (a dependency graph, a service map) where Merma
 ## Commands
 
 ```bash
-dot -V                                  # prints the version on stderr; pin it in the regeneration script
+dot -V                                  # prints the version on stderr; a check, not a pin (see below)
 dot -Tsvg diagram.dot -o diagram.svg    # the committed render
 dot -Tpng diagram.dot -o /tmp/diagram.png   # a throwaway copy to open and look at
 ```
 
 Use `dot -T?` to list the output formats the installed build supports; asking for one it does not know exits 1 with that list.
+
+`dot -V` confirms a version; it does not identify the program. Distribution builds of the same version differ, and a later package can carry the same version string, so a regeneration script that only checks it can run different code and commit different SVGs. Pin the bytes instead: build a small image once, when you choose the version, push it, and record its digest.
+
+```dockerfile
+FROM debian:bookworm-slim@sha256:<base digest>
+RUN apt-get update && apt-get install -y --no-install-recommends graphviz \
+ && rm -rf /var/lib/apt/lists/*
+USER 65534:65534
+```
+
+Record the pushed image as `<registry>/graphviz@sha256:<digest>` from `docker buildx imagetools inspect`, and render through that reference only:
+
+```bash
+set -Eeuo pipefail
+: "${GRAPHVIZ_IMAGE:?set the image as name@sha256:digest}"
+docker run --rm -i --network none --read-only "$GRAPHVIZ_IMAGE" dot -Tsvg < diagram.dot > diagram.svg
+```
+
+The source goes in on standard input and the SVG comes out on standard output, so the container mounts nothing and can write nothing of yours; it also has no network. Rebuilding the image later gives a new digest even from the same Dockerfile, because the packages it installs move, which is the point: the digest changes only when you decide to change it.
 
 ### A gate that fails on warnings as well as errors
 
