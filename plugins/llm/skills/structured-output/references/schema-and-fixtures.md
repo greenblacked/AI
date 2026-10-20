@@ -73,8 +73,9 @@ The first has no required fields, free-text categories, no closing `additionalPr
 ## Versioning
 
 - Store a `schema_version` next to every persisted result. Keep it in your storage, not in the model's output, so the model never has a field it can get wrong.
-- Additive and safe: a new nullable field, a new member added to an enum that consumers already handle with a default branch.
-- Breaking: removing or renaming a field, changing a type, removing an enum member, making a nullable field non-null. Ship a new version and keep the old validator for stored values as long as they exist.
+- Under the rules above no change is additive in both directions, so give every change a new version. A new field is required, even when nullable, so every record stored before it fails the new schema; a new property or a new enum member is rejected by the old validator under `additionalProperties: false` and the enum check, which breaks a rollback and any reader still on the old version before its default branch runs.
+- Make a change reader-compatible with two rules rather than by hoping it is additive: validate each stored record against the schema its `schema_version` names, never the latest, and deploy readers before writers, so the validator that meets a new field or enum member already knows it. Roll back writers first, for the same reason.
+- Removing or renaming a field, changing a type, removing an enum member and making a nullable field non-null also change the meaning of stored data, not only its shape: plan the migration of existing records, and keep the old validator for stored values as long as they exist.
 - Change the schema, the prompt and the consumer in one commit, with the fixtures updated in the same change.
 
 ## Fixtures of real failures
