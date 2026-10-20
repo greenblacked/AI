@@ -24,10 +24,14 @@ English word that several unrelated skills use, so matching bare words would dra
 nobody wrote. A subagent description that names a skill is not a source either: those
 sentences say what the agent is *not* for ("Not for ... which is profiling"), which is a
 boundary rather than a hand-off, so reading them as edges would draw the opposite of
-what they say. The same holds inside a skill: a sentence opening "Do not use for" or
-"Not for" names where the work should not go, so its code is skipped. A skill that names
-an agent only in prose, or only in ``references/``, has no edge; the omission is visible
-in the list and fixable in the skill.
+what they say. The same holds inside a skill: from a "Do not use for" or "Not for" phrase
+to the end of its paragraph, list item, table cell or heading, the names are where the
+work should not go, so their code is skipped. The scope is the block, not the sentence,
+because sentence ends cannot be found by rule around abbreviations and quotes. The cost
+is a hand-off written after such a phrase in the same paragraph, which goes unrecorded
+and shows in no list; the rule never draws one the skill excludes. A skill that names an
+agent only in prose, or only in ``references/``, has no edge; the omission is visible in
+the list and fixable in the skill.
 """
 
 from __future__ import annotations
@@ -72,50 +76,11 @@ class Edge(NamedTuple):
     agent: str
 
 
-# A sentence that opens "Do not use for" or "Not for" says where the skill does not
-# apply, so a name inside it is the thing to send the work away from, not a hand-off.
-# A list marker never leads it: the renderer has already turned "1." and "1)" into markup.
-_BOUNDARY = re.compile(r"[\W_]*(?:do not use for|not for)\b", re.IGNORECASE)
-
-
-# A full stop after one of these may or may not end the sentence: "e.g. `maker`" and
-# "U.S. work" continue it, "in the U.S. Ask `maker`" does not. The word after decides,
-# as in most sentence splitters: a capital letter starts a new sentence, anything else
-# continues. A lone letter ("option A.") is not here, because it is more often a label.
-_ABBREVIATION = re.compile(
-    r"(?:^|[\s(])(?:e\.g|i\.e|etc|vs|cf|approx|incl|(?:[a-z]\.)+[a-z])\.$",
-    re.IGNORECASE,
-)
-# A title is followed by a name or a number, so a capital after it continues the sentence.
-_TITLE = re.compile(r"(?:^|[\s(])(?:mr|mrs|ms|dr|st|no|fig)\.$", re.IGNORECASE)
-_STARTS_SENTENCE = re.compile(r"\s+[A-Z]")
-_CLOSERS = "\"')]\u2019\u201d\u00bb"
-
-
-def _sentences(text: str) -> list[str]:
-    """``text`` split after each sentence-ending mark that sits outside a code span."""
-    sentences = []
-    start = 0
-    inside = False
-    for index, char in enumerate(text):
-        if char == "`":
-            inside = not inside
-            continue
-        if char not in ".!?" or inside:
-            continue
-        # Closing quotes and brackets belong to the sentence they end: 'Not for "x."'
-        end = index + 1
-        while end < len(text) and text[end] in _CLOSERS:
-            end += 1
-        so_far = text[start : index + 1]
-        if (end == len(text) or text[end].isspace()) and not (
-            _TITLE.search(so_far)
-            or (_ABBREVIATION.search(so_far) and not _STARTS_SENTENCE.match(text, end))
-        ):
-            sentences.append(text[start:end])
-            start = end
-    sentences.append(text[start:])
-    return sentences
+# The phrase after which a block names where the skill does not apply. A letter or digit
+# before it means it is the tail of another word ("cannot for", "knot for"), not the
+# phrase; a line break may fall between its words.
+_BOUNDARY = re.compile(r"(?<![^\W_])(?:do\s+not\s+use\s+for|not\s+for)\b", re.IGNORECASE)
+_SPAN = re.compile(r"`[^`]*`")
 
 
 # Elements that start or end a block of text. Anything else the renderer emits (``a``,
@@ -135,8 +100,8 @@ class _Blocks(HTMLParser):
 
     Code inside ``pre`` is a sample, not an instruction, and is dropped with the rest of
     the block's text. Every literal backtick is swapped for an apostrophe on the way in,
-    so the only backticks in a block are the pairs written here and the sentence splitter
-    and span reader below never see a stray one. A name never holds a backtick, so the
+    so the only backticks in a block are the pairs written here and the span reader below
+    never sees a stray one. A name never holds a backtick, so the
     swap cannot hide an edge.
     """
 
@@ -183,19 +148,27 @@ class _Blocks(HTMLParser):
 
 
 def _code_spans(markup: str) -> set[str]:
-    """The text of every inline code element in ``markup`` outside the boundary sentences.
+    """The text of every inline code element in ``markup`` that no boundary phrase precedes.
 
-    A sentence that opens "Do not use for" or "Not for" is left out, wherever in its
-    block it sits and however many lines it wraps over: the names in it are what the
-    skill sends work away from.
+    In each block, the first "Do not use for" or "Not for" outside a code span ends what
+    counts: the names after it, to the end of the block, are what the skill sends work
+    away from, and the names before it still count. The scope is the block because a
+    sentence boundary cannot be found reliably ("U.S.", "e.g.", "Dr.", a quoted full
+    stop), and every rule that tried kept misreading some sentence. A block is a bounded
+    unit the renderer already decided, so the rule errs toward omitting a hand-off, never
+    toward drawing one the skill excludes.
     """
     parser = _Blocks()
     parser.feed(markup)
     parser.close()
     spans: set[str] = set()
     for block in parser.blocks:
-        kept = "".join(s for s in _sentences(block) if not _BOUNDARY.match(s))
-        spans.update(re.findall(r"`([^`]*)`", kept))
+        # Code is masked to a character no phrase matches, keeping every offset, so a
+        # phrase quoted inside a span ("`not for`") does not open the boundary.
+        masked = _SPAN.sub(lambda span: "\0" * len(span.group()), block)
+        found = _BOUNDARY.search(masked)
+        kept = block[: found.start()] if found else block
+        spans.update(span[1:-1] for span in _SPAN.findall(kept))
     return spans
 
 

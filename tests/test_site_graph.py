@@ -98,21 +98,25 @@ def _names(body):
     return {e.agent for e in graph.derive_edges([_Skill("coding", "gate", body)], AGENTS)}
 
 
-def test_a_do_not_use_for_sentence_draws_no_edge():
+def test_a_do_not_use_for_phrase_draws_no_edge_for_the_rest_of_its_paragraph():
     body = (
         "Use for: the plan. Do not use for: writing it (`maker`), or a diff (`diff-reader`). "
         "Hand the verdicts to `scribe`.\n"
         "- Not for `log-reader`.\n"
         "Ask `maker`. Not for `diff-reader`"
     )
-    got = graph.derive_edges([_Skill("coding", "gate", body)], AGENTS)
-    assert got == [
-        graph.Edge("coding", "gate", "coding", "maker"),
-        graph.Edge("coding", "gate", "ops", "scribe"),
-    ]
-    # A full stop inside a span does not end the sentence early.
-    assert _names("Not for `a. b` and `maker`. Then `scribe`.") == {"scribe"}
-    assert _names("Do not use for `maker`.\nuse `scribe`") == {"scribe"}
+    # Every name sits after a phrase in its own paragraph or list item, `scribe` and the
+    # lazy line `maker` included, so the paragraph rule leaves nothing.
+    assert _names(body) == set()
+    # Names before the phrase count, and a blank line starts a paragraph the phrase misses.
+    split = (
+        "Hand the verdicts to `scribe`. Do not use for: `maker`.\n\n"
+        "Ask `diff-reader`.\n- Not for `log-reader`.\n\nAsk `maker`."
+    )
+    assert _names(split) == {"scribe", "diff-reader", "maker"}
+    # The expected set shrinks from {"scribe"}: a full stop no longer ends the boundary.
+    assert _names("Not for `a. b` and `maker`. Then `scribe`.") == set()
+    assert _names("Do not use for `maker`.\nuse `scribe`") == set()
 
 
 def test_a_boundary_item_in_either_ordered_list_form_draws_no_edge():
@@ -120,18 +124,18 @@ def test_a_boundary_item_in_either_ordered_list_form_draws_no_edge():
         body = f"{marker} Do not use for `maker`.\n{marker} Ask `scribe`.\n"
         assert _names(body) == {"scribe"}, marker
         assert _names(f"{marker} Do not use for `maker`.") == set(), marker
-    # A digit that is not a list marker does not hide a hand-off.
-    assert _names("2 Not for `maker`.") == {"maker"}
+    # No list marker here, and the phrase is found anyway: `maker` follows it, so no edge.
+    assert _names("2 Not for `maker`.") == set()
 
 
-def test_a_boundary_sentence_wrapped_over_lines_draws_no_edge():
+def test_a_boundary_paragraph_wrapped_over_lines_draws_no_edge():
     body = (
         "Use this to plan the change. Not for writing it, which is work for the\n"
         "`maker` subagent, nor for reading a diff with `diff-reader`.\n"
         "Hand the verdicts to `scribe`.\n"
     )
-    got = graph.derive_edges([_Skill("coding", "gate", body)], AGENTS)
-    assert got == [graph.Edge("coding", "gate", "ops", "scribe")]
+    # The expected set shrinks from {"scribe"}: it is in the same paragraph, after the phrase.
+    assert _names(body) == set()
     # A list item is its own block, so one bullet's boundary does not reach the next.
     bullets = "- Do not use for\n  `maker`, or similar.\n- Ask `diff-reader`.\n"
     assert _names(bullets) == {"diff-reader"}
@@ -150,29 +154,40 @@ def test_a_nested_bullets_boundary_does_not_reach_its_sibling():
     assert _names(table) == {"scribe"}
 
 
-def test_initials_and_titles_do_not_end_a_boundary_sentence():
-    assert _names("Not for U.S. work handled by `maker`. Ask `scribe`.") == {"scribe"}
-    assert _names("Not for Dr. Smith's queue in `maker`. Ask `scribe`.") == {"scribe"}
-    # A capital after an abbreviation starts a new sentence, boundary or hand-off.
-    assert _names("Not for work in the U.S. Ask `maker`.") == {"maker"}
+def test_the_phrase_scopes_to_the_paragraph_whatever_the_punctuation_around_it():
+    # Names after the phrase are excluded to the end of the block, so a full stop, an
+    # abbreviation or a closing quote never gives one back.
+    assert _names("Not for U.S. Government work handled by `maker`. Ask `scribe`.") == set()
+    assert _names('Not for "`scribe`." Ask `maker`.') == set()
+    # Names before it still count.
+    assert _names("Ask `scribe`. Not for `maker`.") == {"scribe"}
     assert _names("Start with `maker` in the U.S. Not for `scribe`.") == {"maker"}
-    assert _names("Ask `maker`, etc. Do not use for `scribe`.") == {"maker"}
-    # A lone letter is a label that ends its sentence, not an initial.
-    assert _names("Not for option A. Ask `maker`.") == {"maker"}
-    # Terminal punctuation inside closing quotes or brackets still ends the sentence.
-    assert _names("Not for \u201c`scribe`.\u201d Ask `maker`.") == {"maker"}
-    assert _names('Not for "`scribe`." Ask `maker`.') == {"maker"}
-    assert _names("Not for (`scribe`.) Ask `maker`.") == {"maker"}
-    # A sentence that really ends still ends: the next one's names are hand-offs.
-    assert _names("Not for that. Ask `maker`.") == {"maker"}
 
 
-def test_an_abbreviation_does_not_end_a_boundary_sentence():
-    body = "Do not use for tasks (e.g. `maker`, i.e. the writer, etc. `diff-reader`). Ask `scribe`."
-    got = graph.derive_edges([_Skill("coding", "gate", body)], AGENTS)
-    assert got == [graph.Edge("coding", "gate", "ops", "scribe")]
-    wrapped = "Not for work such as\ne.g.\n`maker` or `log-reader`."
-    assert _names(wrapped) == set()
+def test_the_phrase_does_not_cross_a_block():
+    assert _names("- Not for `maker`.\n- Ask `scribe`.\n") == {"scribe"}
+    assert _names("Not for `maker`.\n\nAsk `scribe`.") == {"scribe"}
+
+
+def test_a_phrase_inside_a_code_span_opens_no_boundary():
+    assert _names("Run `not for` then ask `scribe`.") == {"scribe"}
+    assert _names("Run `do not use for` then ask `maker`.") == {"maker"}
+    # The span is code, but a real phrase after it still opens one.
+    assert _names("Run `not for`, but not for `maker`. Ask `scribe`.") == set()
+
+
+def test_a_word_that_contains_the_phrase_opens_no_boundary():
+    assert _names("You cannot for now use `maker`.") == {"maker"}
+    assert _names("Tie a knot for `maker`.") == {"maker"}
+    assert _names("Do not forget `maker`.") == {"maker"}
+    assert _names("Step 2not for `maker`.") == {"maker"}
+    # A name, a bracket or the start of the block before it does not hide the phrase.
+    assert _names("(not for `maker`)") == set()
+    assert _names("`scribe`:not for `maker`") == {"scribe"}
+
+
+def test_a_phrase_wrapped_over_a_line_break_still_opens_a_boundary():
+    assert _names("Do not use\nfor `maker`.") == set()
 
 
 def test_an_ordinary_wrapped_sentence_still_draws_its_edge():
@@ -198,7 +213,9 @@ def test_unclosed_and_empty_spans_are_not_names():
 def test_escaped_markup_in_the_source_reads_as_the_text_the_page_shows():
     # The renderer writes "<" and "&" as references; the reader sees the characters.
     assert _names("Ask <b> `maker` & `scribe`.") == {"maker", "scribe"}
-    assert _names("Not for <b> & `maker`. Ask `scribe`.") == {"scribe"}
+    # The expected set shrinks from {"scribe"}: it follows the phrase in the same paragraph.
+    assert _names("Not for <b> & `maker`. Ask `scribe`.") == set()
+    assert _names("Ask `scribe`. Not for <b> & `maker`.") == {"scribe"}
     # A reference typed in the source is shown literally, so it is not the name.
     assert _names("`mak&#101;r` and `<maker>`") == set()
 
@@ -212,12 +229,11 @@ def test_a_name_inside_an_html_comment_is_visible_so_it_draws_an_edge():
         graph.Edge("coding", "gate", "coding", "maker"),
         graph.Edge("coding", "gate", "ops", "scribe"),
     ]
-    # Over several lines the comment is the same paragraph as the text around it, and the
-    # visible sentence runs from "<!--" through "Not for", so it does not open with the
-    # boundary phrase and nothing in it is skipped.
+    # Over several lines the comment is the same paragraph as the text around it. The
+    # expected set drops "diff-reader": it follows "Not for" in that paragraph, while the
+    # names before the phrase, the comment's included, still count.
     body = "Ask `scribe`.\n<!--\nold: `maker`\n-->\nNot for `diff-reader`."
-    assert _names(body) == {"scribe", "maker", "diff-reader"}
-    # Ended with a full stop, the sentence after the comment is a boundary of its own.
+    assert _names(body) == {"scribe", "maker"}
     body = "Ask `scribe`.\n<!--\nold: `maker`\n-->.\nNot for `diff-reader`."
     assert _names(body) == {"scribe", "maker"}
 
