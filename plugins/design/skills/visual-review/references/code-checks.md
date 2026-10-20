@@ -55,13 +55,19 @@ A project that asks for dark mode or reduced motion has asked, not proved. Check
 page, per cell:
 
 ```ts
-const state = await page.evaluate(() => ({
-  dark: matchMedia('(prefers-color-scheme: dark)').matches,
-  reduced: matchMedia('(prefers-reduced-motion: reduce)').matches,
-  bodyBackground: getComputedStyle(document.body).backgroundColor,
-  running: document.getAnimations().length,
-  fonts: document.fonts.status,
-}));
+const state = await page.evaluate(async () => {
+  await document.fonts.ready;
+  return {
+    dark: matchMedia('(prefers-color-scheme: dark)').matches,
+    reduced: matchMedia('(prefers-reduced-motion: reduce)').matches,
+    bodyBackground: getComputedStyle(document.body).backgroundColor,
+    running: document.getAnimations().map((a) => ({
+      name: a.animationName ?? a.id,
+      ...a.effect?.getComputedTiming(),
+    })),
+    faces: [...document.fonts].map((f) => ({ family: f.family, status: f.status })),
+  };
+});
 ```
 
 - `dark` and `reduced` must match the cell. If they do not, every screenshot in that cell
@@ -69,10 +75,15 @@ const state = await page.evaluate(() => ({
 - Pages that switch theme with a class or attribute rather than the media query need that
   switch applied too; check the class or attribute and that `bodyBackground` actually
   differs between the two schemes.
-- `running` should be empty when animations are disabled or reduced. A non-empty list
-  means a motion source the capture options did not stop.
-- `fonts` should be `loaded`. Also confirm the families you expect resolve, for example
-  with `document.fonts.check('16px "Your Family"')`, since a fallback loads without error.
+- `running` is read before the screenshot, so Playwright's `animations: "disabled"` has
+  not acted on it yet; it lists what that option will have to stop. An entry with
+  infinite iterations is the usual cause of a capture that differs run to run. Under
+  reduced motion a page may keep short or non-moving animations, such as a fade, so the
+  check there is that nothing left moves or loops, not that the list is empty.
+- `faces` must hold a face for each family the design names, each with status `loaded`.
+  `document.fonts.status` reads `loaded` and `document.fonts.check()` returns true even
+  when no face for the family exists, because the browser falls back without an error, so
+  neither proves the right font rendered. A face with status `error` failed to download.
 
 ## Horizontal overflow at 360
 
