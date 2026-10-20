@@ -152,6 +152,16 @@ def test_unclosed_and_empty_spans_are_not_names():
     assert graph._code_spans("`a`\n`b`") == {"a", "b"}
 
 
+def test_a_name_inside_an_html_comment_draws_no_edge():
+    body = "<!-- Deprecated: ask `maker`. -->\nAsk `scribe`."
+    got = graph.derive_edges([_Skill("coding", "gate", body)], AGENTS)
+    assert got == [graph.Edge("coding", "gate", "ops", "scribe")]
+    # A comment over several lines keeps the paragraphs around it apart.
+    body = "Ask `scribe`.\n<!--\nold: `maker`\n-->\nNot for `diff-reader`."
+    assert graph._code_spans(graph._uncommented(body)) == {"scribe"}
+    assert graph._uncommented("a <!-- `maker`") == "a "
+
+
 def test_a_closer_may_sit_only_three_spaces_past_the_margin():
     # Six spaces is content of a fence opened at three, however far in the opener sat.
     assert graph._prose("   ```\n      ```\n`maker`\n   ```\n`b`") == "`b`"

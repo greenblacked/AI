@@ -260,6 +260,16 @@ def _paragraphs(text: str) -> list[str]:
     return [" ".join(lines) for lines in paragraphs]
 
 
+# A comment renders as nothing, so a name inside one is not an instruction anyone reads.
+# One left unclosed runs to the end, as an HTML block of that kind does.
+_COMMENT = re.compile(r"<!--.*?(?:-->|\Z)", re.DOTALL)
+
+
+def _uncommented(text: str) -> str:
+    """``text`` with every HTML comment removed, keeping its line breaks."""
+    return _COMMENT.sub(lambda match: "\n" * match.group().count("\n"), text)
+
+
 def _code_spans(text: str) -> set[str]:
     """The contents of every single-backtick span in the paragraphs of ``text``.
 
@@ -294,7 +304,7 @@ def derive_edges(skills: Iterable, agents: Iterable[Named]) -> list[Edge]:
         candidates.sort(key=lambda agent: agent.plugin)
     edges: set[Edge] = set()
     for skill in skills:
-        for span in _code_spans(_prose(skill.body)):
+        for span in _code_spans(_uncommented(_prose(skill.body))):
             candidates = by_name.get(span)
             if not candidates:
                 continue
