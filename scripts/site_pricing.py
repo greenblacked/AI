@@ -58,7 +58,7 @@ PLANS = (
             ("None", 0),
             ("AI Plus", 4.99),
             ("AI Pro", 19.99),
-            ("AI Ultra", 99.99),
+            ("AI Ultra 5x", 99.99),
             ("AI Ultra 20x", 199.99),
         ),
     ),

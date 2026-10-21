@@ -2665,7 +2665,7 @@ def test_pricing_calculator_has_selectable_plans_and_unambiguous_defaults(mini_r
     assert "Google Gemini" in page
     # Every Google AI paid tier the subscriptions page lists, so any subscriber's
     # plan can be chosen.
-    for label, amount in (("AI Plus", 4.99), ("AI Pro", 19.99), ("AI Ultra", 99.99)):
+    for label, amount in (("AI Plus", 4.99), ("AI Pro", 19.99), ("AI Ultra 5x", 99.99)):
         assert f"{label} · ${amount}" in page
     assert "AI Ultra 20x · $199.99" in page
     assert "API usage and credits" in page
