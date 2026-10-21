@@ -40,7 +40,7 @@ Normalise into new columns and keep the original beside them, because a reviewer
 
 Comparing every pair is quadratic: a million records is about 5 x 10^11 pairs. Generate candidate pairs only within blocks that share a cheap key, and run several blocking passes whose union is the candidate set: exact normalised email, exact E.164 phone, postcode plus the first letters of the family name, company web domain, a phonetic code of the name plus a region.
 
-Measure two numbers before going further. The candidate pair count, which must be small enough to score. Pair completeness: of the known matches you can find (records sharing a verified identifier, or matches in the labelled sample), the share that land in at least one block. Recall can never exceed pair completeness, so a blocking scheme that loses 8% of true matches caps recall at 92% whatever the scorer does. Cap block size and inspect any block over the cap; it is usually a junk value from step 2.
+Measure two numbers before going further. The candidate pair count, which must be small enough to score. Pair completeness: of the matches you know independently of blocking (records sharing a verified identifier, or matches found by searching the whole population for a random sample of records), the share that land in at least one block. The pairs labelled in step 6 cannot measure it: they are drawn from the candidate set, so every one of them already passed blocking and completeness would always read 100%. Recall can never exceed pair completeness, so a blocking scheme that loses 8% of true matches caps recall at 92% whatever the scorer does. Cap block size and inspect any block over the cap; it is usually a junk value from step 2.
 
 ### 5. Deterministic rules first, fuzzy score second
 

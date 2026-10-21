@@ -61,7 +61,7 @@ and what the runtime does or does not enforce.
 | [`career`](#career) | Applications, negotiation, speaking and writing | 5 skills |
 | [`design`](#design) | Usability, accessibility and design systems | 13 skills, 1 subagent, 1 command |
 | [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction and model migration | 5 skills |
-| [`data`](#data) | Analytics data and classical machine learning: wrong numbers, warehouse cost, metrics, history and pipelines | 11 skills |
+| [`data`](#data) | Analytics data: wrong numbers, warehouse cost, metrics, history and pipelines | 11 skills |
 
 Install one plugin or all twelve. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
@@ -548,7 +548,7 @@ Building features on language models, and the checks that keep them honest.
 
 ### Data
 
-Analytics engineering, experiments and classical machine learning: why a number is wrong, why a query costs what it does, and what the data really shows.
+Analytics engineering: why a number is wrong, why a query costs what it does, and what the data really shows.
 
 | Skill | What it does |
 | --- | --- |

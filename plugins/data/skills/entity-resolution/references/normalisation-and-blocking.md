@@ -72,7 +72,7 @@ Set a cap on records per block from the scoring budget. Inspect every block over
 
 ## Pair completeness
 
-Pair completeness is the share of true matches that appear in the candidate set. Measure it against matches you know independently of the blocking keys: records sharing a verified tax number, or the pairs labelled "match" in the hand-labelled sample.
+Pair completeness is the share of true matches that appear in the candidate set. Measure it against matches you know independently of the blocking keys: records sharing a verified tax number, or the matches found when a random sample of records is searched for by hand across the whole population. The threshold sample in `thresholds-and-links.md` is drawn from candidate pairs, so every match in it passed blocking already and would report 100%.
 
 ```sql
 -- known_matches(left_id, right_id): matches established without using blocking keys
