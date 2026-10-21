@@ -50,18 +50,18 @@ SELECT COALESCE(s.line_key, p.line_key) AS line_key,
        CASE
          WHEN s.line_key IS NULL THEN 'pipeline only'
          WHEN p.line_key IS NULL THEN 'sheet only'
-         WHEN s.amount <> p.amount THEN 'value differs'
+         WHEN s.amount IS DISTINCT FROM p.amount THEN 'value differs'
        END AS kind
 FROM sheet s
 FULL OUTER JOIN pipe p
   ON s.line_key = p.line_key
 WHERE s.line_key IS NULL
    OR p.line_key IS NULL
-   OR s.amount <> p.amount
+   OR s.amount IS DISTINCT FROM p.amount
 ORDER BY ABS(COALESCE(p.amount, 0) - COALESCE(s.amount, 0)) DESC;
 ```
 
-An empty result is a clean comparison for that measure. Run it for each figure the consumer reads, not only the headline amount. Before trusting an empty result, check that both sides have the expected row count; two empty inputs also reconcile perfectly.
+An empty result is a clean comparison for that measure. Compare amounts with `IS DISTINCT FROM`, not `<>`: when one side's amount is null, `<>` yields unknown and the line silently drops out of the result. Run it for each figure the consumer reads, not only the headline amount. Before trusting an empty result, check that both sides have the expected row count; two empty inputs also reconcile perfectly.
 
 ## The difference log
 

@@ -107,8 +107,8 @@ A conflict on a field that should be unique per entity (tax number, date of birt
 
 A rerun recomputes clusters from scratch, so ids must be reassigned deliberately:
 
-- For each new cluster, find the previous entity id held by the largest share of its members.
-- If that share is a majority and no other new cluster claims the same id with a larger share, keep the id.
-- Otherwise mint a new id and record the old-to-new mapping for consumers.
+- For each new cluster, find the previous entity id held by the largest share of its members. Only a majority share makes the cluster a candidate for that id.
+- Each previous id goes to at most one new cluster. When a split leaves several candidates for the same id (two successors can each be made entirely of members that carried it, and so both show a 100% share), pick one winner by the number of overlapping members, then by a deterministic tie-break such as the lowest member record key.
+- Every other new cluster mints a new id, and the old-to-new mapping is recorded for consumers. Never let two clusters keep the same id: the link and golden-record tables would join them back into one entity.
 
 Report the share of entity ids that changed on each run. A large change on a run with no matcher change means the source data shifted or a junk value slipped through.

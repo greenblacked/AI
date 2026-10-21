@@ -46,18 +46,23 @@ One row per change event: `entity_id`, operation, the new values (and old values
 Rebuild a type-2 dimension from it:
 
 ```sql
-select
-  entity_id,
-  plan,
-  changed_at as valid_from,
-  coalesce(
-    lead(changed_at) over (partition by entity_id order by changed_at, change_seq),
-    '9999-12-31'::timestamp_ntz) as valid_to
-from history.customer_changes
-where operation in ('insert', 'update');
+with versions as (
+  select
+    entity_id,
+    operation,
+    plan,
+    changed_at as valid_from,
+    coalesce(
+      lead(changed_at) over (partition by entity_id order by changed_at, change_seq),
+      '9999-12-31'::timestamp_ntz) as valid_to
+  from history.customer_changes          -- every operation, deletes included
+)
+select entity_id, plan, valid_from, valid_to
+from versions
+where operation in ('insert', 'update');  -- drop tombstones only after the window
 ```
 
-Order ties by a source sequence number (`change_seq`, a log position), not by load time.
+Compute the window over every operation and filter the deletes out afterwards. Filtering them first lets the version before a delete run on to the next insert, or to the far-future sentinel, so a deleted entity appears to exist through the gap and, after a permanent delete, for ever. Order ties by a source sequence number (`change_seq`, a log position), not by load time.
 
 ## Bitemporal table
 
