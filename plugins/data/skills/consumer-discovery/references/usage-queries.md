@@ -71,6 +71,35 @@ group by 1, 2
 order by jobs desc;
 ```
 
+`referenced_tables` is filled only for jobs that were not served from cache, so a reader whose runs all hit the cache, including one served a result another principal warmed, is missing from that list. A cache hit needs the same query text, so match cached jobs to the text of the uncached ones and add their principals:
+
+```sql
+with reading_text as (
+  select distinct j.query
+  from `region-eu`.INFORMATION_SCHEMA.JOBS_BY_PROJECT j,
+       unnest(j.referenced_tables) t
+  where j.creation_time >= timestamp_sub(current_timestamp(), interval 180 day)
+    and j.job_type = 'QUERY'
+    and t.project_id = 'analytics-prod'
+    and t.dataset_id = 'core'
+    and t.table_id   = 'orders'
+)
+select
+  c.user_email,
+  to_json_string(c.labels) as labels,
+  min(c.creation_time)     as first_seen,
+  max(c.creation_time)     as last_seen,
+  count(*)                 as cached_jobs
+from `region-eu`.INFORMATION_SCHEMA.JOBS_BY_PROJECT c
+join reading_text r on r.query = c.query
+where c.creation_time >= timestamp_sub(current_timestamp(), interval 180 day)
+  and c.cache_hit
+group by 1, 2
+order by cached_jobs desc;
+```
+
+The warming run can sit in another project when results are shared across users; read `JOBS_BY_ORGANIZATION` instead when you have it, or the cached reader stays invisible.
+
 Jobs run from other projects against this table are recorded in those projects. `JOBS_BY_ORGANIZATION` covers all projects in the organisation for someone with organisation-level permission; without it, ask the owners of projects known to read the dataset. Check whether queries through a view list the view, the table or both in `referenced_tables` on your setup, and search for the view names as well. For column-level use, the data-access entries in Cloud Audit Logs record the fields a read touched; query them from a log sink if one exists.
 
 ## Redshift
