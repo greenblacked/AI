@@ -37,7 +37,7 @@ On Snowflake the unit matters most: a warehouse is billed while it runs, not whi
 
 ### 2. Pull history grouped by fingerprint
 
-Group statements that differ only in literals, whitespace and comments. Use the warehouse's own fingerprint when it has one — Snowflake's `query_parameterized_hash`, BigQuery's `query_info.query_hashes.normalized_literals`, ClickHouse's `normalized_query_hash` — and normalise the text yourself when it does not. For each fingerprint return run count, total bytes or credits, total elapsed time, distinct users and service accounts, and one sample of the text.
+Group statements that differ only in literals, whitespace and comments. Use the warehouse's own fingerprint when it covers every run — Snowflake's `query_parameterized_hash`, ClickHouse's `normalized_query_hash` — and normalise the text yourself when it does not. BigQuery's `normalized_literals` is empty for cache hits, so hash normalised text for every BigQuery job rather than mixing the two, or one query's hits and misses land in different rows. For each fingerprint return run count, total bytes or credits, total elapsed time, distinct users and service accounts, and one sample of the text.
 
 Read `references/query-history.md` for the query per warehouse, including the BigQuery script-parent double count and the Snowflake idle-time gap.
 

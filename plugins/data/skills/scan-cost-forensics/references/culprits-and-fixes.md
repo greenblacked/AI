@@ -80,7 +80,8 @@ SELECT
   CASE WHEN start_time < '2026-10-01' THEN 'before' ELSE 'after' END AS period,
   query_parameterized_hash AS fingerprint,
   COUNT(*)                 AS runs,
-  SUM(credits_attributed_compute) AS credits
+  SUM(credits_attributed_compute
+      + COALESCE(credits_used_query_acceleration, 0)) AS credits
 FROM snowflake.account_usage.query_attribution_history
 WHERE start_time >= '2026-09-17' AND start_time < '2026-10-15'
 GROUP BY 1, 2

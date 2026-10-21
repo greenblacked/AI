@@ -47,7 +47,9 @@ SELECT
   query_parameterized_hash        AS fingerprint,
   warehouse_name,
   COUNT(*)                        AS runs,
-  SUM(credits_attributed_compute) AS credits
+  -- an accelerated query costs both columns
+  SUM(credits_attributed_compute
+      + COALESCE(credits_used_query_acceleration, 0)) AS credits
 FROM snowflake.account_usage.query_attribution_history
 WHERE start_time >= DATEADD(day, -14, CURRENT_DATE())
   AND start_time <  CURRENT_DATE()
@@ -55,6 +57,8 @@ GROUP BY 1, 2
 ORDER BY credits DESC
 LIMIT 50;
 ```
+
+`QUERY_ATTRIBUTION_HISTORY` does not cover Adaptive Warehouses. For those, read `SNOWFLAKE.ACCOUNT_USAGE.QUERY_METERING_HISTORY`, which has one row per query per metering hour: sum `credits_used` per `query_id` first, then group by `query_parameterized_hash`, so a query that ran across an hour boundary counts as one run. Rows for a query still running can have a null hash; restrict the window to hours that have closed.
 
 Attribution leaves out idle time and very short queries. Compare its total per warehouse with `credits_used_compute` from `SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY` over the same window. A large gap is a warehouse kept awake between queries: look for a schedule firing more often than the warehouse's `AUTO_SUSPEND` (`SHOW WAREHOUSES` shows it) before looking at any SQL.
 
@@ -170,7 +174,7 @@ Redshift Serverless is billed on RPU time. Use `SYS_QUERY_HISTORY`, rank by `ela
 
 ## ClickHouse
 
-`system.query_log` holds one row per query event. Keep only finished queries, or each query counts twice (start and finish). On a cluster or ClickHouse Cloud, each replica has its own log: read it through `clusterAllReplicas` with the cluster's name.
+`system.query_log` holds one row per query event. Keep only finished queries, or each query counts twice (start and finish). On a distributed table, each shard also logs a child query; keep `is_initial_query = 1` to count client requests, and join children on `initial_query_id` only when you need the physical read on each node. On a cluster or ClickHouse Cloud, each replica has its own log: read it through `clusterAllReplicas` with the cluster's name.
 
 ```sql
 SELECT
@@ -184,6 +188,7 @@ SELECT
   any(substring(normalizeQuery(query), 1, 300)) AS sample_text
 FROM clusterAllReplicas('default', system.query_log)
 WHERE type = 'QueryFinish'
+  AND is_initial_query = 1  -- one row per client request, not per shard it fanned out to
   AND event_date >= today() - 14
   AND event_date <  today()
 GROUP BY fingerprint
