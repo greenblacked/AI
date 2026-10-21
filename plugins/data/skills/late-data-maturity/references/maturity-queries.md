@@ -57,13 +57,16 @@ select
   count_if(lag_min <=  4320) / count(*)                    as rows_72h,
   count_if(lag_min <= 10080) / count(*)                    as rows_7d,
   sum(iff(lag_min <=  1440, amount, 0)) / nullif(sum(amount), 0) as value_24h,
-  sum(iff(lag_min <=  4320, amount, 0)) / nullif(sum(amount), 0) as value_72h
+  sum(iff(lag_min <=  4320, amount, 0)) / nullif(sum(amount), 0) as value_72h,
+  -- distance from the final figure, which stays honest when amounts can be negative
+  abs(sum(amount) - sum(iff(lag_min <= 1440, amount, 0))) / nullif(abs(sum(amount)), 0)
+                                                         as value_err_24h
 from lagged
 group by event_day, source_system
 order by event_day, source_system;
 ```
 
-Add value columns for every age you report. When rows are updated after load, this curve undercounts lateness; build the value curve from the metric log instead (below).
+Add value columns for every age you report. The `value_` share is meaningful only for a measure that never goes negative: with refunds or chargebacks, 1,000 of sales at 24 hours followed by a late refund of 900 reads as 1,000% complete. For such a measure use `value_err_` instead, and publish at the first age where its 95th percentile across days is below the agreed error. When rows are updated after load, this curve undercounts lateness; build the value curve from the metric log instead (below).
 
 ## Summary across days
 

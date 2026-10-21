@@ -117,7 +117,8 @@ Rerun the diff against `side_a_at_b`. Keys that leave `only_a` were late. Rows u
 For keys on one side only, profile the attributes filters usually act on, and look for one value covering most of them:
 
 ```sql
-SELECT o.is_test_account, o.status, o.channel, COUNT(*) AS keys
+-- one row per key: a key built from several source rows would otherwise count once per row
+SELECT o.is_test_account, o.status, o.channel, COUNT(DISTINCT d.k) AS keys
 FROM d
 JOIN orders o ON o.order_id = d.k
 WHERE d.bucket = 'only_a'
@@ -140,9 +141,13 @@ Matched keys with different values, or a count metric where one side counts even
 `value_differs` keys where the ratio `a_v / b_v` is near-constant, or constant per currency:
 
 ```sql
-SELECT o.currency, ROUND(AVG(a_v / NULLIF(b_v, 0)), 4) AS ratio, COUNT(*) AS keys
-FROM d JOIN orders o ON o.order_id = d.k
-WHERE d.bucket = 'value_differs'
+WITH per_key AS (            -- one row per key before averaging
+  SELECT DISTINCT d.k, d.a_v, d.b_v, o.currency
+  FROM d JOIN orders o ON o.order_id = d.k
+  WHERE d.bucket = 'value_differs'
+)
+SELECT currency, ROUND(AVG(a_v / NULLIF(b_v, 0)), 4) AS ratio, COUNT(*) AS keys
+FROM per_key
 GROUP BY 1;
 ```
 
