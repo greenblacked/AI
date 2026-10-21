@@ -174,6 +174,12 @@ SCRIPT = """
     });
   });
   update();
+  // The controls ship disabled so a visitor without this script never changes a plan
+  // the totals cannot follow; they come alive only once every listener is attached.
+  groups.forEach(function (group) { group.disabled = false; });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-price-preset]"), function (button) {
+    button.disabled = false;
+  });
 }());
 """
 
@@ -199,7 +205,7 @@ def render_main(back_html: str) -> str:
             f'<div class="pricing-plan-head"><span class="pricing-number">{i:02d}</span>'
             f'<h2 id="plan-{k}-heading">{_escape(name)}</h2></div>'
             f"<p>{_escape(description)}</p>"
-            f'<fieldset data-price-plan="{k}"><legend>Monthly subscription</legend>'
+            f'<fieldset data-price-plan="{k}" disabled><legend>Monthly subscription</legend>'
             f"{options}</fieldset>"
             f'<a class="pricing-source" href="{_escape(url)}" target="_blank" '
             'rel="noopener noreferrer">Official pricing and limits</a></section>'
@@ -220,10 +226,12 @@ def render_main(back_html: str) -> str:
         '<div><dt>Annual</dt><dd id="price-yearly">$2,400</dd></div></dl>'
         '<p class="pricing-difference" id="price-difference">'
         "$80 more per month vs ChatGPT Plus + Claude Max 5x ($120).</p>"
+        '<noscript><p class="pricing-difference">Changing a plan needs JavaScript. '
+        "The totals show the default selection.</p></noscript>"
         '<div class="pricing-presets" aria-label="Example combinations">'
-        '<button type="button" data-price-preset="lean">Lean · $30</button>'
-        '<button type="button" data-price-preset="balanced">Balanced · $120</button>'
-        '<button type="button" data-price-preset="power">Power · $200</button>'
+        '<button type="button" data-price-preset="lean" disabled>Lean · $30</button>'
+        '<button type="button" data-price-preset="balanced" disabled>Balanced · $120</button>'
+        '<button type="button" data-price-preset="power" disabled>Power · $200</button>'
         "</div></section></div>"
         '<div class="pricing-notes">'
         "<p><strong>Prices recorded "
