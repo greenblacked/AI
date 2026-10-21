@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.1.13] - 2026-10-21
+
 ### Added
 
 - Add the `llm` plugin for building features on language models, with five skills:
@@ -910,7 +912,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.12...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.13...HEAD
+[0.1.13]: https://github.com/greenblacked/AI/compare/v0.1.12...v0.1.13
 [0.1.12]: https://github.com/greenblacked/AI/compare/v0.1.11...v0.1.12
 [0.1.11]: https://github.com/greenblacked/AI/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/greenblacked/AI/compare/v0.1.9...v0.1.10
