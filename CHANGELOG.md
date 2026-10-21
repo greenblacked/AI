@@ -15,9 +15,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   chosen plans per month and per year against a fixed baseline, and offers three example
   combinations. Each card links the provider's own pricing page; the prices are an
   editorial snapshot dated on the page, not a live feed. Without scripting it shows
-  the default selection and its totals, and recalculating needs the page's script. It
-  builds its controls from the site's allowed tags and is covered by tests for its
-  links, tiers, default totals and rendering.
+  the default selection and its totals, and its plan choices and presets stay disabled
+  until the page's script enables them. It builds its controls from the site's allowed
+  tags and is covered by tests for its links, tiers, default totals and rendering.
 
 ## [0.1.13] - 2026-10-21
 
