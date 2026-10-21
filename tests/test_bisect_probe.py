@@ -33,7 +33,8 @@ def test_a_commit_without_the_runner_is_skipped_not_fetched(tmp_path: Path) -> N
     assert run(tmp_path) == 125
 
 
-@pytest.mark.parametrize(("runner_exit", "verdict"), [(0, 0), (1, 1)])
+# 126 and 127 from a runner that did launch are failures like any other, not a skip.
+@pytest.mark.parametrize(("runner_exit", "verdict"), [(0, 0), (1, 1), (126, 1), (127, 1)])
 def test_the_installed_runner_decides(tmp_path: Path, runner_exit: int, verdict: int) -> None:
     install_runner(tmp_path, runner_exit)
     assert run(tmp_path) == verdict
@@ -52,8 +53,14 @@ def test_a_build_failure_is_skipped(tmp_path: Path) -> None:
     ],
 )
 def test_a_wrapped_runner_that_is_missing_is_skipped(tmp_path: Path, command: str) -> None:
-    # The shell's own "cannot run" codes, whatever wraps the runner, mean untestable.
-    assert run(tmp_path, BISECT_TEST_CMD=command) == 125
+    # Whatever wraps the runner, the named binary is checked before the command runs.
+    runner = "node_modules/.bin/jest"
+    assert run(tmp_path, BISECT_TEST_CMD=command, BISECT_RUNNER=runner) == 125
+
+
+def test_a_custom_command_that_exits_127_is_bad(tmp_path: Path) -> None:
+    # With no runner to check, a returned 127 is the test's verdict, not a launch error.
+    assert run(tmp_path, BISECT_TEST_CMD="sh -c 'exit 127'") == 1
 
 
 def test_a_custom_command_decides(tmp_path: Path) -> None:
