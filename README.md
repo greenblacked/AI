@@ -2,12 +2,12 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
-  <img alt="The eleven plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design and llm" src="docs/assets/banner-light.svg" width="100%">
+  <img alt="The twelve plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm and data" src="docs/assets/banner-light.svg" width="100%">
 </picture>
 
 # Agent skills
 
-142 agent skills, 30 subagents and ten slash commands, in eleven
+153 agent skills, 30 subagents and ten slash commands, in twelve
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-142-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-153-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -61,14 +61,15 @@ and what the runtime does or does not enforce.
 | [`career`](#career) | Applications, negotiation, speaking and writing | 5 skills |
 | [`design`](#design) | Usability, accessibility and design systems | 13 skills, 1 subagent, 1 command |
 | [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction and model migration | 5 skills |
+| [`data`](#data) | Analytics data and classical machine learning: wrong numbers, warehouse cost, metrics, history and pipelines | 11 skills |
 
-Install one plugin or all eleven. Each is a self-contained directory under `plugins/` with
+Install one plugin or all twelve. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
 
 Install what you will use, though, rather than everything by reflex. Every description you
 install stays resident in context, and Claude Code's default listing budget is about 8,000
 characters against this library's total — `make validate` prints the current figure — so
-installing all eleven at the default drops most of them, silently. The Install section
+installing all twelve at the default drops most of them, silently. The Install section
 below says what to set instead.
 
 ## The FAMILY workflow
@@ -112,7 +113,7 @@ if a deploy fails its check and rolls back, the previous one keeps serving.
 
 | Page | What it shows |
 | --- | --- |
-| [Home](https://ai.szolotov.com) | The eleven plugins with their skill counts, and a search across plugins and skill names |
+| [Home](https://ai.szolotov.com) | The twelve plugins with their skill counts, and a search across plugins and skill names |
 | `/plugins/<plugin>/` | One page per plugin: what it covers, its install line and its skills |
 | `/plugins/<plugin>/<skill>/` | One page per skill: its description, install line and allowed tools when it declares them, the full procedure, its reference files, and the requests it fires on and hands elsewhere |
 | [FAMILY](https://ai.szolotov.com/family/) | The one page that is not generated from a plugin's own files: the Frame–Architect–Make–Inspect–Launch–Yield workflow, drawn as a stage-by-stage guide with the four profiles |
@@ -167,7 +168,7 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`career`, `llm` and `personal` fit the default budget on their own. The other eight are over it —
+`career`, `llm` and `personal` fit the default budget on their own. The other nine are over it —
 each by enough that installed alone at least one of its descriptions is dropped — and the
 split exists to keep that number as small as it can be.
 
@@ -178,7 +179,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.134 }
+{ "skillListingBudgetFraction": 0.15 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -544,6 +545,24 @@ Building features on language models, and the checks that keep them honest.
 | [`mcp-server-design`](plugins/llm/skills/mcp-server-design/SKILL.md) | Build, test and secure a Model Context Protocol server: a few task-shaped tools written for the model, strict schemas, recoverable failures returned as `isError` results, stdio or Streamable HTTP with Origin checks and audience-validated OAuth, and a `tools/list` snapshot test. |
 | [`document-extraction`](plugins/llm/skills/document-extraction/SKILL.md) | Extract structured data from receipts, invoices, forms, tables, charts and scans with a vision model or OCR, and prove the values are right: triage text layer against pixels, source region and confidence per field, arithmetic cross-checks, a second independent extraction and a human for numeric disagreements. |
 | [`model-migration`](plugins/llm/skills/model-migration/SKILL.md) | Move an LLM-powered feature to a different model or version without a silent regression: the provider's behaviour changes listed against your requests, a frozen baseline from repeated runs, case-by-case output diffs, cost and latency compared per request, shadow then canary with a rollback trigger, and a decision record. |
+
+### Data
+
+Analytics engineering, experiments and classical machine learning: why a number is wrong, why a query costs what it does, and what the data really shows.
+
+| Skill | What it does |
+| --- | --- |
+| [`as-of-history`](plugins/data/skills/as-of-history/SKILL.md) | Answer what was true, or what we believed, on a past date, and keep the history to answer it: classify the question as state, validity or arrival, pick a periodic snapshot, type-2 dimension or append-only change log to match, add recorded time beside valid time for anything restated or backdated, join facts on half-open intervals, accept the design only when a known past report reproduces to the unit, and when history was never captured, rebuild it from audit logs, backups or exports and mark the span inferred. |
+| [`consumer-discovery`](plugins/data/skills/consumer-discovery/SKILL.md) | Find who really reads a warehouse table, view or column before you rename, drop or retire it, and retire it safely: pull 90 days or more of warehouse access history and BI query logs, resolve views, service accounts and BI extracts to named people and jobs, add orchestrator lineage and a code search, check for readers logs miss such as data shares and quarter-end jobs, then announce, rename first, run a one-day brownout and read who failed, archive, and drop after a quiet period. |
+| [`data-quality-checks`](plugins/data/skills/data-quality-checks/SKILL.md) | Decide which data quality checks a warehouse table gets, what each threshold is and what happens when one fails. Mine the last ten data incidents and write one check per root cause before anything generic, then cover freshness, volume, key uniqueness, null rate and enum drift on the columns consumers use; give every check an action (block publish, warn an owner, or log), take thresholds from 30 days of history and backtest them, and each month delete or demote checks that fired and nobody acted on. |
+| [`entity-resolution`](plugins/data/skills/entity-resolution/SKILL.md) | Match records for the same customer, company, person or product across systems that share no key, so that a merge can be measured and undone. Normalise fields first, block on cheap candidate keys instead of comparing all pairs, apply deterministic match and hard non-match rules before any fuzzy score, set match and review thresholds from about 200 hand-labelled pairs with precision and recall per threshold, and keep the link table apart from the golden record so a false merge, the worse error, is reversible. |
+| [`join-fanout-hunt`](plugins/data/skills/join-fanout-hunt/SKILL.md) | Find why a total is inflated or a row count grew after a join, and fix it at the grain instead of hiding it: write the grain of every input in one sentence, compare COUNT(*) with COUNT(DISTINCT key) after each join while bisecting the query join by join, classify the cause as many-to-many, a dimension not unique on its key (an unfiltered type-2 history table, overlapping validity ranges) or duplicate source rows, and fix by pre-aggregating to the join grain, never by DISTINCT on the output. |
+| [`late-data-maturity`](plugins/data/skills/late-data-maturity/SKILL.md) | Decide when a daily or hourly figure is final enough to publish, from measured arrival lag: record event time and load time on every row, build a maturity curve of the share of each day's eventual rows and value present 1h, 6h, 24h and 7d after the day closes, publish where it passes an agreed completeness on bad days, not the median day, label earlier figures provisional, compare only at equal age, and fix a restatement window incremental models honour. |
+| [`metric-movement-decomposition`](plugins/data/skills/metric-movement-decomposition/SKILL.md) | Explain why a ratio metric moved — conversion, average order value, churn — with arithmetic instead of a story: rule out data breaks first (volume, null rate on the segment column, a tracking release, an incomplete latest day), check the move is outside normal week-on-week variation, split the change into rate effect within segments and mix effect from shifting segment shares with a symmetric Kitagawa decomposition, rank segments by contribution, test for Simpson's paradox by recomputing with last period's mix, and report the top three contributors with the sums. |
+| [`metric-reconciliation`](plugins/data/skills/metric-reconciliation/SKILL.md) | Settle why two dashboards, teams or systems report different values for the same metric, and end with one definition instead of an explanation: freeze one metric, one day and one segment, reproduce each figure from raw data, diff the two row sets by key with a full outer join, and assign the gap to causes tested in a fixed order — time zone and day boundary, snapshot time, filters and inclusion, dedupe rule, join grain, currency and units — until the residual is zero. Close with one owned, versioned definition and the duplicate retired or renamed. |
+| [`scan-cost-forensics`](plugins/data/skills/scan-cost-forensics/SKILL.md) | Find which queries, users, dashboards and jobs drive a data warehouse bill on Snowflake, BigQuery, Redshift or ClickHouse: group query history by normalised-SQL fingerprint and rank by total bytes or credits across every run rather than by the slowest single run, attribute each fingerprint to a dashboard refresh or job schedule, test the usual culprits in order (refresh faster than the data changes, SELECT * on wide tables, unpruned partitions, identical repeats missing the result cache), fix the schedule before the SQL, and measure before and after on a matching window. |
+| [`spreadsheet-retirement`](plugins/data/skills/spreadsheet-retirement/SKILL.md) | Replace a business-critical spreadsheet or manual report with a pipeline without losing the trust of the people who rely on it. Inventory the hidden logic first by tracing every input, hard-coded cell, manual override, macro, external link and monthly ritual; turn each override into an explicit, owned rule; run old and new side by side for at least two cycles and reconcile line by line to the cent; make the sheet's owner the acceptance tester; and freeze the sheet read-only only after a clean run. |
+| [`upstream-change-defense`](plugins/data/skills/upstream-change-defense/SKILL.md) | Protect warehouse pipelines from source teams changing a field's schema or meaning: classify each surprise as structural (column dropped, renamed, retyped) or semantic (same column, new meaning: a new status code, pence to pounds, a time zone switch, re-keyed ids), land raw untouched, diff the schema at ingest, catch semantic drift with enum, range and match-rate checks, quarantine failing rows and replay from raw after the fix, then give the producer a CI compatibility check and a named contact. |
 
 ## Subagents
 

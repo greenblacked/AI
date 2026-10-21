@@ -1,0 +1,22 @@
+[
+  {"query": "finance says september revenue was 4.21m and the product dashboard says 4.38m, which one is right", "should_trigger": true},
+  {"query": "looker shows 41,200 signups last week but the board deck says 39,850, I need to explain the gap by thursday", "should_trigger": true},
+  {"query": "our warehouse order count never ties to what the shopify admin shows for the same day", "should_trigger": true},
+  {"query": "two teams both have a 'weekly active users' metric and they're 6% apart, how do we settle it for good", "should_trigger": true},
+  {"query": "how do I diff the rows behind two reports that are supposed to show the same churn number", "should_trigger": true},
+  {"query": "marketing counts conversions in UTC and sales ops in pacific time and nobody agrees on october's numbers", "should_trigger": true},
+  {"query": "the stripe dashboard and our revenue model disagree by a few thousand dollars every month", "should_trigger": true},
+  {"query": "we keep getting asked why the exec dashboard and the team dashboard differ, we want one definition of active customer", "should_trigger": true},
+  {"query": "our new dbt model's gross bookings is 2% below the legacy report for the same quarter, find where the difference comes from", "should_trigger": true},
+  {"query": "tie out the refunds figure in the finance close pack against the support team's refund tracker", "should_trigger": true},
+  {"query": "revenue is double what it should be since I joined the order items table onto orders", "should_trigger": false, "expected": "join-fanout-hunt"},
+  {"query": "weekly active users dropped 5% this week, how much of that is the mix of new versus returning users", "should_trigger": false, "expected": "metric-movement-decomposition"},
+  {"query": "yesterday's revenue figure keeps going up all morning as data arrives, when can we call it final", "should_trigger": false, "expected": "late-data-maturity"},
+  {"query": "replace the finance team's monthly commissions spreadsheet with a pipeline without losing their trust", "should_trigger": false, "expected": "spreadsheet-retirement"},
+  {"query": "the dashboard query behind our revenue tile scans 2 TB every refresh and costs too much", "should_trigger": false, "expected": "scan-cost-forensics"},
+  {"query": "pick the right chart to show revenue by region over time for the board pack", "should_trigger": false, "expected": "data-visualisation"},
+  {"query": "write the weekly update to leadership on the analytics team's progress this sprint", "should_trigger": false, "expected": "status-update"},
+  {"query": "link customer records across salesforce and zendesk when there is no shared customer id", "should_trigger": false, "expected": "entity-resolution"},
+  {"query": "which automated checks should block publishing the daily revenue table, and how strict should each be", "should_trigger": false, "expected": "data-quality-checks"},
+  {"query": "our gcp bill jumped 25% this month and nobody knows which service or team drove it", "should_trigger": false, "expected": "cost-review"}
+]

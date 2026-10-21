@@ -10,6 +10,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `data` plugin, for analytics data and classical machine learning, with its first eleven skills: `scan-cost-forensics`, `join-fanout-hunt`, `metric-reconciliation`, `metric-movement-decomposition`, `late-data-maturity`, `as-of-history`, `upstream-change-defense`, `consumer-discovery`, `entity-resolution`, `data-quality-checks` and `spreadsheet-retirement`. Each finds why a number is wrong or expensive and fixes the cause rather than the symptom.
+
 - Add a subscription pricing page to the catalogue site at `/pricing/`, linked from the
   navigation. It compares the monthly plans of five assistant providers, totals the
   chosen plans per month and per year against a fixed baseline, and offers three example
