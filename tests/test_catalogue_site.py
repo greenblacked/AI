@@ -2670,6 +2670,11 @@ def test_pricing_calculator_has_selectable_plans_and_unambiguous_defaults(mini_r
     assert "AI Ultra 20x · $199.99" in page
     assert "API usage and credits" in page
     assert "data-price-preset=" in page
+    # Every control ships disabled and only the script enables it, so without scripting
+    # nothing can be changed that the static totals would then misreport.
+    assert page.count('" disabled><legend>') == 5
+    assert len(re.findall(r'<button type="button" data-price-preset="\w+" disabled>', page)) == 3
+    assert "<noscript><p" in page
     assert "localStorage.setItem" not in site.site_pricing.SCRIPT
     assert "eval(" not in site.site_pricing.SCRIPT
     for key, _name, _, url, choices in site.site_pricing.PLANS:
