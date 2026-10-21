@@ -12,7 +12,8 @@
 # failure is much below 100% reproducible, quarantine the test and stabilise it first;
 # no number of retries rescues a bisect over noise.
 #
-# Adapt BUILD_CMD and TEST_CMD to the project. Everything else is the contract.
+# Adapt BUILD_CMD, TEST_CMD and RUNNER to the project, together: RUNNER is the binary
+# TEST_CMD needs. Everything else is the contract.
 set -uo pipefail
 
 readonly ATTEMPTS="${BISECT_ATTEMPTS:-3}"
@@ -20,13 +21,9 @@ readonly BUILD_CMD="${BISECT_BUILD_CMD:-npm ci --prefer-offline}"
 # The runner comes from this commit's own lockfile. `npx jest` would fetch today's release
 # from the registry when the commit has none, and judge old code with a runner it never had.
 readonly TEST_CMD="${BISECT_TEST_CMD:-node_modules/.bin/jest path/to/suspect.test.ts}"
-# The binary TEST_CMD needs, checked before anything runs. Set it alongside a custom
-# TEST_CMD whose runner this commit might not have; leave it empty to skip the check.
-if [ -n "${BISECT_TEST_CMD+set}" ]; then
-  readonly RUNNER="${BISECT_RUNNER:-}"
-else
-  readonly RUNNER="${BISECT_RUNNER:-node_modules/.bin/jest}"
-fi
+# The binary TEST_CMD needs, checked before the first attempt. Change it whenever
+# TEST_CMD changes; set it empty for a command with no runner this commit could lack.
+readonly RUNNER="${BISECT_RUNNER-node_modules/.bin/jest}"
 
 log() { printf '%s bisect-probe: %s\n' "$(date -u +%H:%M:%S)" "$*" >&2; }
 
