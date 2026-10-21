@@ -2654,6 +2654,7 @@ def test_pricing_calculator_has_selectable_plans_and_unambiguous_defaults(mini_r
     for amount in (20, 100, 200, 500):
         assert f'value="{amount}"' in page
     assert "Pro 500" in page
+    assert "Go · $8" in page
     assert "The X Subscription" in page
     # The X Subscription's own pricing page bundles Grok, Cursor and X in one plan.
     assert "Grok, Cursor and X in one plan" in page

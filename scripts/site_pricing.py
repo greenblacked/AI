@@ -19,7 +19,14 @@ PLANS = (
         "ChatGPT",
         "General AI, deep research and Codex",
         "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
-        (("None", 0), ("Plus", 20), ("Pro 100", 100), ("Pro 200", 200), ("Pro 500", 500)),
+        (
+            ("None", 0),
+            ("Go", 8),
+            ("Plus", 20),
+            ("Pro 100", 100),
+            ("Pro 200", 200),
+            ("Pro 500", 500),
+        ),
     ),
     (
         "claude",
