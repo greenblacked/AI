@@ -83,8 +83,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   `e2e-testing`, `test-design` and `ci-triage`, not through `npx`. When a package is not
   installed locally and standard input is not a terminal, npm assumes `--yes` and `npx`
   installs and runs whatever the registry serves at that moment. The `ci-triage` bisect
-  probe now skips a commit whose lockfile has no test runner instead of fetching one, with
-  tests for its exit codes, and `ui-ux-review`, `e2e-testing` and `test-design` drop the
+  probe now skips a commit whose lockfile has no test runner instead of fetching one,
+  checking for the runner before the test starts so that a test's own exit 126 or 127
+  still marks the commit bad, with tests for its exit codes, and `ui-ux-review`, `e2e-testing` and `test-design` drop the
   `Bash(npx:*)` pre-approval that only these commands used.
 - Remove the last `npx` calls from the skills. `accessibility-audit` and
   `website-builder`'s audit references install their audit tools at exact versions into
