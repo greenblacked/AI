@@ -594,6 +594,87 @@ def test_nothing_scrolls_sideways_and_every_control_is_big_enough(browser, base_
         context.close()
 
 
+@pytest.mark.parametrize("width", [360, 1440])
+def test_every_pricing_choice_and_preset_is_big_enough(browser, base_url, width):
+    # The plan choices and presets are the page's whole interface, so each one is held
+    # to the same target as the site's own controls.
+    context = new_context(browser, base_url, width)
+    try:
+        page = context.new_page()
+        page.goto(base_url + "/pricing/")
+        sizes = page.evaluate(
+            "() => [...document.querySelectorAll('.pricing-choice, .pricing-presets button')]"
+            ".map(e => { const r = e.getBoundingClientRect();"
+            " return [e.textContent.trim(), r.width, r.height]; })"
+        )
+        assert len(sizes) == 27, sizes
+        small = [s for s in sizes if s[1] < TARGET or s[2] < TARGET]
+        assert small == [], small
+        assert page.evaluate("() => document.documentElement.scrollWidth") <= width
+    finally:
+        context.close()
+
+
+def test_pricing_totals_follow_each_choice_and_preset(browser, base_url):
+    # The markup tests read the script as text, so only a real page proves the listeners,
+    # the decimal prices and the preset mapping still add up to what a visitor sees.
+    context = new_context(browser, base_url)
+    try:
+        page = context.new_page()
+        errors = []
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.goto(base_url + "/pricing/")
+
+        def totals():
+            return [
+                page.text_content("#price-monthly"),
+                page.text_content("#price-yearly"),
+                page.text_content("#price-difference"),
+            ]
+
+        assert totals()[:2] == ["$200", "$2,400"]
+        assert page.locator(".pricing-page :disabled").count() == 0
+        page.check('input[name="plan-gemini"][value="4.99"]')
+        monthly, yearly, difference = totals()
+        assert (monthly, yearly) == ("$204.99", "$2,459.88")
+        assert difference.startswith("$84.99 more per month")
+        for preset, monthly, yearly, difference in [
+            ("lean", "$30", "$360", "$90 less"),
+            ("balanced", "$120", "$1,440", "$0 difference"),
+            ("power", "$200", "$2,400", "$80 more"),
+        ]:
+            page.click(f'[data-price-preset="{preset}"]')
+            got = totals()
+            assert got[:2] == [monthly, yearly], (preset, got)
+            assert got[2].startswith(difference + " per month"), (preset, got)
+        assert errors == []
+    finally:
+        context.close()
+
+
+def test_pricing_controls_stay_disabled_without_scripting(browser, base_url):
+    # Without the script nothing recalculates, so a choice the totals cannot follow must
+    # not be possible: every plan and preset stays disabled and the page says why.
+    made = browser.new_context(java_script_enabled=False)
+    made.route(re.compile("^(?!" + re.escape(base_url) + "/)"), lambda route: route.abort())
+    try:
+        page = made.new_page()
+        page.goto(base_url + "/pricing/")
+        radios = page.locator('.pricing-page input[type="radio"]')
+        presets = page.locator("[data-price-preset]")
+        assert radios.count() == 24
+        assert presets.count() == 3
+        assert all(radios.nth(i).is_disabled() for i in range(radios.count()))
+        assert all(presets.nth(i).is_disabled() for i in range(presets.count()))
+        # Text locators skip <noscript>, so the note is found by where it sits.
+        note = page.locator(".pricing-summary noscript p")
+        assert note.is_visible()
+        assert note.inner_text().startswith("Changing a plan needs JavaScript")
+        assert page.text_content("#price-monthly") == "$200"
+    finally:
+        made.close()
+
+
 def test_no_page_scrolls_sideways_on_a_phone(browser, built, base_url):
     # Every page, because the one that overflows is the one with the long path in its
     # prose: seven skill pages did, through a single unbreakable identifier each.
