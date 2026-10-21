@@ -16,18 +16,23 @@ Run these over the two periods plus the eight weeks before them. Replace `sessio
 Daily volumes, to see a step change in either side:
 
 ```sql
+WITH order_counts AS (
+  SELECT session_id, COUNT(*) AS orders
+  FROM orders
+  GROUP BY session_id
+)
 SELECT
   CAST(s.session_start AS DATE)  AS day,
   COUNT(*)                       AS denominator,
-  COUNT(o.order_id)              AS numerator
+  COALESCE(SUM(o.orders), 0)     AS numerator
 FROM sessions s
-LEFT JOIN orders o ON o.session_id = s.session_id
+LEFT JOIN order_counts o ON o.session_id = s.session_id
 WHERE s.session_start >= DATE '2026-08-10'
 GROUP BY 1
 ORDER BY 1;
 ```
 
-If `orders` can hold more than one row per session, this join fans out the numerator; count `DISTINCT o.order_id` or check its grain first.
+Orders are aggregated to one row per session before the join. Joining raw orders would repeat a session once per order and inflate the denominator along with the numerator, so a tracking break could look like a real movement.
 
 Unknown share per segmentation column, per day:
 

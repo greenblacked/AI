@@ -94,13 +94,23 @@ Use a named zone, never a fixed offset: a fixed offset is wrong for half the yea
 
 ## Cause 2: snapshot time
 
-Restrict A to rows loaded before B was computed — B's extract time, or its query time from the log — using the loader's sync timestamp column:
+Restrict A to source rows loaded before B was computed — B's extract time, or its query time from the log — using the loader's sync timestamp column. Apply the cutoff to the rows before they are summed, not to `side_a`: a key whose rows arrived partly before and partly after the snapshot would otherwise vanish whole, and its earlier rows with it. Rebuild A with the cutoff inside:
 
 ```sql
-SELECT * FROM side_a WHERE loaded_at <= TIMESTAMP '2026-10-08 06:00:00';
+CREATE TEMPORARY TABLE side_a_at_b AS
+SELECT
+  o.order_id                AS k,
+  SUM(o.amount)             AS v,
+  MIN(o.created_at)         AS event_ts_utc,
+  MAX(o._loaded_at)         AS loaded_at
+FROM orders o
+WHERE o.created_at >= '2026-10-07 00:00:00' AND o.created_at < '2026-10-08 00:00:00'
+  AND o.country = 'GB'
+  AND o._loaded_at <= TIMESTAMP '2026-10-08 06:00:00'
+GROUP BY o.order_id;
 ```
 
-Rerun the diff. Keys that leave `only_a` were late. Rows updated after B's snapshot (a refund applied, an amount corrected) show up as `value_differs`; where the table keeps no history, this is a cause you can bound but not prove, so say so. A difference of this kind is not a definition problem: both sides are right as of their time. The fix is labelling one figure as provisional until the data is mature, which `late-data-maturity` owns.
+Rerun the diff against `side_a_at_b`. Keys that leave `only_a` were late. Rows updated after B's snapshot (a refund applied, an amount corrected) show up as `value_differs`; where the table keeps no history, this is a cause you can bound but not prove, so say so. A difference of this kind is not a definition problem: both sides are right as of their time. The fix is labelling one figure as provisional until the data is mature, which `late-data-maturity` owns.
 
 ## Cause 3: filter and inclusion
 

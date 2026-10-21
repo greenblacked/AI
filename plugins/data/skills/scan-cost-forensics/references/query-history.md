@@ -120,7 +120,7 @@ SELECT
   COUNT(*)                                AS runs,
   SUM(m.query_blocks_read)                AS blocks_read,
   SUM(m.spectrum_scan_size_mb)            AS spectrum_mb,
-  SUM(m.query_execution_time) / 3600.0    AS execution_hours,
+  SUM(m.query_execution_time) / 3600.0    AS execution_hours,  -- the summary view reports seconds
   MIN(q.label)                            AS sample_label,
   MIN(LEFT(TRIM(q.querytxt), 300))        AS sample_text
 FROM stl_query q
