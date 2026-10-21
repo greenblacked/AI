@@ -1,0 +1,22 @@
+[
+  {"query": "turn this photo of a restaurant receipt into JSON with the merchant, date, line items and total", "should_trigger": true},
+  {"query": "we receive scanned supplier invoices as PDFs and need the invoice number, dates and totals pulled out reliably", "should_trigger": true},
+  {"query": "should I use OCR or a vision model to pull the fields out of these scanned application forms", "should_trigger": true},
+  {"query": "how do I check that the totals the model read off an invoice are actually right", "should_trigger": true},
+  {"query": "extract the table from this scanned PDF page without the merged header cells shifting the columns", "should_trigger": true},
+  {"query": "read the values off this bar chart image into a CSV", "should_trigger": true},
+  {"query": "is this PDF a real text PDF or a scan, and does it need a vision model at all", "should_trigger": true},
+  {"query": "our model keeps misreading digits on photographed receipts, how do we add verification and a human review step", "should_trigger": true},
+  {"query": "keep the medical intake forms on local OCR instead of sending the images to a cloud vision API", "should_trigger": true},
+  {"query": "pull the numbers out of these dashboard screenshots into a spreadsheet and record where each value came from", "should_trigger": true},
+  {"query": "summarise twelve months of CSV exports from my current account and credit card by spending category", "should_trigger": false, "expected": "statement-reader"},
+  {"query": "which of these subscriptions should I cancel to bring my monthly spending down", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "we store scanned passports for customers, what retention period and deletion process do we need", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "cut the token bill of our image-processing LLM pipeline with prompt caching and a cheaper model", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "split our PDFs into chunks and compare two rerankers on a search relevance benchmark", "should_trigger": false, "expected": "retrieval-evaluation"},
+  {"query": "design the receipt upload form so it can be completed by keyboard with clear error messages", "should_trigger": false, "expected": "form-design"},
+  {"query": "audit our scanned-document viewer against WCAG 2.2 AA", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "write a README for our invoice-processing service so a new engineer can run it", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "read my tenancy agreement and tell me the notice period and early exit charges", "should_trigger": false, "expected": "terms-reader"},
+  {"query": "make the model return JSON that always matches my schema and retry when it is malformed", "should_trigger": false, "expected": "structured-output"}
+]

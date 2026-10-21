@@ -1,0 +1,22 @@
+[
+  {"query": "here's the litellm spend log export for last week, about 300k rows. which feature and which model is burning the money", "should_trigger": true},
+  {"query": "the langfuse export is in ./traces/langfuse.jsonl, tell me which prompt path holds the cost and who the top five users are, don't paste rows back", "should_trigger": true},
+  {"query": "our anthropic usage csv for october is attached, are the cache reads actually outnumbering the cache writes on each path", "should_trigger": true},
+  {"query": "helicone dumped 200MB of request logs, find the slowest and most expensive calls and give me p95 latency per model", "should_trigger": true},
+  {"query": "otel genai spans exported as json from the agent service, which tasks have the most steps and what did each cost in tokens", "should_trigger": true},
+  {"query": "we keep getting 429s from the provider in the gateway logs, split them into spend-cap ones and ordinary rate limits and say where they concentrate", "should_trigger": true},
+  {"query": "openai usage export for the quarter is huge, read it and tell me which tenant's spend jumped and how many calls were retries", "should_trigger": true},
+  {"query": "before we touch the prompt cache, read the call log and tell me whether any prompt path writes cache entries it never reads", "should_trigger": true},
+  {"query": "one agent run cost forty dollars last night, the gateway log is in logs/, find the outlier calls and the step count", "should_trigger": true},
+  {"query": "read the llm call export and tell me what share of rows have no feature tag, then split spend by whatever is attributable", "should_trigger": true},
+  {"query": "our openai bill tripled and i need a plan to cut it without hurting quality", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "how should prompt caching be designed for a 20k token system prompt that changes weekly", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "set a per-tenant monthly budget on inference and decide what happens when it runs out", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "should the classification step move to a cheaper model, and how do we measure the quality drop", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "here's the aws cost and usage report for september, what moved and why", "should_trigger": false, "expected": "cost-analyst"},
+  {"query": "the gcp billing export shows egress doubled, which team owns the jump", "should_trigger": false, "expected": "cost-analyst"},
+  {"query": "checkout p99 is 4s, here's the jaeger trace bundle, whose latency is it", "should_trigger": false, "expected": "telemetry-reader"},
+  {"query": "what spans and metrics should we add to the new inference service so the next incident is diagnosable", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "we expect ten times the chat traffic at launch, how many gpu replicas do we need", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "read the coding agent's worker events and tool transcripts from the overnight run and list which calls never returned", "should_trigger": false, "expected": "agent-run-trace-reader"}
+]

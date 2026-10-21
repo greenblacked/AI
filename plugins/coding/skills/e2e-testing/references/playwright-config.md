@@ -48,7 +48,7 @@ export default defineConfig({
 
 Upload the output directory as a CI artifact from the same job that ran the tests. A trace that was recorded and not uploaded is the most common reason a flake investigation starts with a local rerun.
 
-Open one with `npx playwright show-trace trace.zip`. A statically hosted viewer exists at `trace.playwright.dev`; check your organisation's policy before uploading a trace of an internal application to it, since a trace carries the rendered DOM and the recorded requests.
+Open one with `node_modules/.bin/playwright show-trace trace.zip`, the version your lockfile installed. A statically hosted viewer exists at `trace.playwright.dev`; check your organisation's policy before uploading a trace of an internal application to it, since a trace carries the rendered DOM and the recorded requests.
 
 ## Authentication as a setup project
 
@@ -140,7 +140,7 @@ Sharding across runners is the right way to add parallelism once a single runner
 
 ```bash
 set -Eeuo pipefail
-npx playwright test --shard="${SHARD_INDEX}/${SHARD_TOTAL}" --reporter=blob
+node_modules/.bin/playwright test --shard="${SHARD_INDEX}/${SHARD_TOTAL}" --reporter=blob
 ```
 
 ## Pinning the environment

@@ -1,0 +1,12 @@
+diff --git a/plugins/llm/skills/document-extraction/SKILL.md b/plugins/llm/skills/document-extraction/SKILL.md
+--- a/plugins/llm/skills/document-extraction/SKILL.md
++++ b/plugins/llm/skills/document-extraction/SKILL.md
+@@ -1,7 +1,7 @@
+ ---
+ name: document-extraction
+ description: "Extract structured data from receipts, invoices, forms, tables, charts, screenshots and scans with a vision model or OCR, and prove the values are right, not just fluent. Use when pulling fields out of a document image, choosing between text extraction, OCR and a vision model, or checking a number. Triage first: a born-digital PDF has its text layer read, not its pixels; a scan or photo is cropped and sized to the model's image limits. Extract to a schema with source region and confidence per field, tables as cell-level JSON; verify with arithmetic cross-checks, format checks and a second independent extraction, sending numeric disagreements to a human. Read a chart value only from a printed label or tick. Keep regulated documents on local OCR. Not for CSV statement exports (statement-reader), output schemas and retries (structured-output) or classifying personal data (data-privacy)."
+-allowed-tools: "Read, Grep, Glob"
++allowed-tools: "Read, Grep, Glob, Bash(python3:*)"
+ ---
+ 
+ # Document extraction

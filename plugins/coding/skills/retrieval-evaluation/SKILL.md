@@ -1,12 +1,14 @@
 ---
 name: retrieval-evaluation
-description: "Evaluate a retriever or search ranking change against a reproducible, access-safe benchmark rather than a few impressive answers. Use for hybrid versus vector search comparisons, chunking or reranker changes, recall regressions, relevance-label design, search result quality, or a proposal to promote a new retrieval index. Freeze queries, corpus snapshot, ACL context and relevance judgements; compare baseline and candidate on paired inputs with explicit units, denominators and unjudged policies; keep answer grounding and abstention separate from retrieval scores. Treat any cross-tenant or unauthorized result as an independent veto. Keep a sealed holdout out of tuning and stop when the evidence cannot distinguish improvement from noise. Not for grading an entire agent's tool use or conversation: that is agent-evaluation."
+description: "Evaluate a retriever or search ranking change against a reproducible, access-safe benchmark rather than a few impressive answers. Use for a frozen retrieval benchmark, a paired baseline-versus-candidate comparison, scoring a chunking or reranker change, recall regressions, relevance-label design, a sealed holdout, or promoting a new index. Freeze queries, corpus snapshot, ACL context and relevance judgements; compare on paired inputs with explicit units, denominators and unjudged policies; keep answer grounding and abstention separate from retrieval scores. Treat any cross-tenant or unauthorized result as an independent veto, and stop when the evidence cannot distinguish improvement from noise. Not for grading an agent's tool use or conversation (agent-evaluation), or for designing the pipeline: chunking, hybrid search, reranking, permission filtering (rag-design)."
 allowed-tools: "Read, Grep, Glob"
 ---
 
 # Retrieval Evaluation
 
 Prove which documents are found for which authorised searchers before interpreting answer quality. An improved average rank cannot excuse one access leak.
+
+Designing the pipeline being measured (chunking, hybrid search, reranking, permission filtering) belongs to `rag-design`; this skill judges whether a change to it helped.
 
 ## Workflow
 

@@ -27,7 +27,8 @@ Output lands in `dist/portable/`: one file per skill, one per plugin, an index t
 every description so a model can choose between them the way a skills runtime would, a
 router — one line per skill, drawn from its own description, naming when it applies and
 the path to open then, small enough to paste into a repository's own `AGENTS.md` rather
-than pointing at a whole bundle — plus one narrower router per plugin, and a `LICENSE`
+than pointing at a whole bundle, and one line per plugin pointing at its own router once
+the full set would not fit — plus one narrower router per plugin, and a `LICENSE`
 and `NOTICE` copied from the repository root so the release zip carries them too. CI
 builds it on every run and uploads the result, so the files exist for someone with no
 toolchain; `--check` verifies without writing, for when you only want the gate.
@@ -41,6 +42,7 @@ import argparse
 import bisect
 import hashlib
 import html
+import json
 import posixpath
 import re
 import shutil
@@ -190,7 +192,17 @@ ROUTER_USE_WHEN_CAP = 100
 # nothing the session itself is ever told. Half of Codex's default is the ceiling here so
 # a repository's own AGENTS.md content still has room to sit alongside the router rather
 # than the router claiming the whole budget for itself.
+#
+# When every skill line together would pass it, router.md stops carrying skill lines and
+# becomes a one-line-per-plugin index of the router-<plugin>.md files instead (see
+# build_routers). Splitting is how the router grows with the catalogue; shortening a
+# trigger, lowering ROUTER_USE_WHEN_CAP or raising this number is not.
 ROUTER_BUDGET_BYTES = 16 * 1024
+
+# A plugin's line in the split index names what it covers, not every skill in it: the
+# per-plugin router has the skills. A sentence-length scope would put the index back
+# near the size it exists to avoid.
+ROUTER_SCOPE_CAP = 80
 
 # Kept identical across router.md and every router-<plugin>.md: whichever one a reader
 # pastes into AGENTS.md, the text still reads true on its own, without the rest of the
@@ -200,6 +212,16 @@ ROUTER_PREAMBLE = (
     "the task at hand, open the `skills/<name>.md` file it names rather than loading "
     "every skill inline; otherwise skip it. In the portable export, router.md holds "
     "these lines for every plugin and router-<plugin>.md holds one plugin's."
+)
+
+# Only the split router.md carries this, after the shared preamble, because it is the one
+# file whose lines name a router rather than a skill. The preamble itself stays as short as
+# it was: it sits in every router, and the combined one has only a few bytes of headroom.
+ROUTER_INDEX_NOTE = (
+    "This router is split: every skill line together would pass the size budget, so "
+    "router.md holds one line per plugin instead of the skill lines described above. Each "
+    "line below names a plugin's router file and what that plugin covers. When one "
+    "matches the task at hand, open that file and read its skill lines as described above."
 )
 
 
@@ -1758,6 +1780,59 @@ def render_router(title: str, groups: list[tuple[str, list[tuple[str, str]]]]) -
     return "\n".join(lines).rstrip() + "\n"
 
 
+def plugin_scope(plugin: Path) -> str:
+    """What a plugin covers, as a short phrase for the split router's index line.
+
+    Drawn from the plugin's own ``description``: the part before its first colon with a
+    leading "Skills for" dropped, since every plugin here opens "Skills for X: a, b, c"
+    and X is the scope while the list is what the per-plugin router spells out. Falls
+    back to the plugin's name when it has no readable description, so a plugin is never
+    left without a line.
+    """
+    try:
+        manifest = json.loads((plugin / ".claude-plugin" / "plugin.json").read_text("utf-8"))
+        description = " ".join(str(manifest.get("description", "")).split())
+    except (OSError, ValueError, AttributeError):
+        description = ""
+    head = description.split(":", 1)[0].strip()
+    head = re.sub(r"^skills for\s+", "", head, flags=re.IGNORECASE)
+    return _trim_to_word_boundary(head, ROUTER_SCOPE_CAP) if head else plugin.name
+
+
+def render_router_index(title: str, entries: list[tuple[str, str]]) -> str:
+    """The split ``router.md``: one line per plugin, naming its router file and scope.
+
+    Same comment-wrapped header as ``render_router`` so it can be ``cat``-ed into an
+    ``AGENTS.md`` the same way, plus the note saying these lines name routers, not skills.
+    """
+    lines = ["<!--", title, "", ROUTER_PREAMBLE, "", ROUTER_INDEX_NOTE, "-->", ""]
+    lines += [f"router-{plugin}.md {scope}" for plugin, scope in entries]
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def build_routers(
+    groups: dict[str, list[tuple[str, str]]], scopes: dict[str, str]
+) -> dict[str, str]:
+    """Every router file to write, keyed by file name.
+
+    ``router-<plugin>.md`` always carries that plugin's full skill lines. ``router.md``
+    carries every plugin's too, unless that would pass ``ROUTER_BUDGET_BYTES`` — decided
+    by measuring the rendered text, not by a skill count — in which case it is the index
+    of the per-plugin routers instead. No trigger is shortened either way.
+    """
+    combined = render_router("Skill router", list(groups.items()))
+    if len(combined.encode("utf-8")) <= ROUTER_BUDGET_BYTES:
+        router = combined
+    else:
+        router = render_router_index("Skill router", [(p, scopes[p]) for p in groups])
+    routers = {"router.md": router}
+    for plugin, skills in groups.items():
+        routers[f"router-{plugin}.md"] = render_router(
+            f"Skill router: {plugin}", [(plugin, skills)]
+        )
+    return routers
+
+
 HOW_TO_USE = """# Portable skills
 
 Every skill in this library, flattened into files that stand alone. No frontmatter to
@@ -1768,8 +1843,11 @@ own reference material inline, so it works wherever you can paste or upload text
 uploaded files rather than reading one whole document per turn — a ChatGPT Project,
 mainly. For a surface that reads one file in full and pays for every byte of it on every
 turn, `router.md` is the router instead — one line per skill, drawn from its own
-description, naming when it applies and the path to open then — and `router-<plugin>.md`
-covers one plugin alone, for a narrower file. See "Codex, Gemini CLI and other terminal
+description, naming when it applies and the path to open then. Once every skill's line
+together would pass the size budget below, `router.md` is instead one line per plugin,
+naming its `router-<plugin>.md` and what it covers, and each of those files holds that
+plugin's skill lines in full; `router-<plugin>.md` is also the narrower file for one
+plugin alone. See "Codex, Gemini CLI and other terminal
 agents" below for why the distinction matters there and not here.
 
 ## ChatGPT
@@ -1810,7 +1888,9 @@ checked — that is not the same claim as none existing.
 That budget is why `router.md` or `router-<plugin>.md`, not a bundle or `index.md`, is
 what belongs in `AGENTS.md`. Paste one in, and copy the `skills/` directory here to sit
 next to that `AGENTS.md`: the router's own paths are `skills/<name>.md`, relative to
-wherever `AGENTS.md` itself sits, not to here.
+wherever `AGENTS.md` itself sits, not to here. When `router.md` is the one-line-per-plugin
+index, its lines name `router-<plugin>.md` files instead, so copy those next to
+`AGENTS.md` too; the agent opens the matching one, and that file's lines name the skills.
 
 ```bash
 cat router-coding.md >> /path/to/your/repo/AGENTS.md
@@ -1941,21 +2021,17 @@ def export(root: Path, out: Path, check: bool = False) -> int:
         ]
         for plugin in sorted(rendered)
     }
-    routers: dict[str, str] = {
-        "router.md": render_router("Skill router", list(router_groups.items()))
-    }
-    for plugin, skills in router_groups.items():
-        routers[f"router-{plugin}.md"] = render_router(
-            f"Skill router: {plugin}", [(plugin, skills)]
-        )
+    scopes = {plugin.name: plugin_scope(plugin) for plugin in plugins}
+    routers = build_routers(router_groups, scopes)
     router_failed = False
     for filename, text in routers.items():
         size = len(text.encode("utf-8"))
         if size > ROUTER_BUDGET_BYTES:
             print(
                 f"::error::{filename} is {size:,} bytes against a budget of "
-                f"{ROUTER_BUDGET_BYTES:,}; reduce router markup or split the router "
-                "without removing skill triggers or changing the budget by default",
+                f"{ROUTER_BUDGET_BYTES:,}; router.md already splits into per-plugin routers, so "
+                "reduce router markup or split the plugin without removing skill "
+                "triggers or changing the budget by default",
                 file=sys.stderr,
             )
             router_failed = True
