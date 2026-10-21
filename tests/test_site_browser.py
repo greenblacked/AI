@@ -594,6 +594,27 @@ def test_nothing_scrolls_sideways_and_every_control_is_big_enough(browser, base_
         context.close()
 
 
+@pytest.mark.parametrize("width", [360, 1440])
+def test_every_pricing_choice_and_preset_is_big_enough(browser, base_url, width):
+    # The plan choices and presets are the page's whole interface, so each one is held
+    # to the same target as the site's own controls.
+    context = new_context(browser, base_url, width)
+    try:
+        page = context.new_page()
+        page.goto(base_url + "/pricing/")
+        sizes = page.evaluate(
+            "() => [...document.querySelectorAll('.pricing-choice, .pricing-presets button')]"
+            ".map(e => { const r = e.getBoundingClientRect();"
+            " return [e.textContent.trim(), r.width, r.height]; })"
+        )
+        assert len(sizes) == 27, sizes
+        small = [s for s in sizes if s[1] < TARGET or s[2] < TARGET]
+        assert small == [], small
+        assert page.evaluate("() => document.documentElement.scrollWidth") <= width
+    finally:
+        context.close()
+
+
 def test_no_page_scrolls_sideways_on_a_phone(browser, built, base_url):
     # Every page, because the one that overflows is the one with the long path in its
     # prose: seven skill pages did, through a single unbreakable identifier each.

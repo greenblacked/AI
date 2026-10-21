@@ -95,7 +95,7 @@ STYLE = """
 .pricing-plan legend { font-size: .78rem; font-weight: 600; margin-bottom: .45rem;
   padding: 0; }
 .pricing-choice { display: inline-flex; align-items: center; gap: .4rem;
-  min-height: 2.65rem; padding: .45rem .8rem; border: 1px solid var(--line);
+  min-height: 2.75rem; padding: .45rem .8rem; border: 1px solid var(--line);
   border-radius: 999px; background: var(--bg); font-size: .85rem; cursor: pointer; }
 .pricing-choice:has(input:checked) { box-shadow: inset 0 0 0 1px var(--ink); }
 .pricing-choice input:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
@@ -111,7 +111,7 @@ STYLE = """
 .pricing-difference { color: var(--muted); font-size: .84rem; line-height: 1.5;
   border-top: 1px solid var(--line); padding-top: 1rem; }
 .pricing-presets { margin-top: 1.4rem; display: flex; flex-wrap: wrap; gap: .4rem; }
-.pricing-presets button { border: 1px solid var(--line); min-height: 2.65rem;
+.pricing-presets button { border: 1px solid var(--line); min-height: 2.75rem;
   border-radius: 999px; padding: .5rem .8rem; font-size: .82rem;
   background: var(--glass-tint); }
 .pricing-presets button:hover, .pricing-presets button:focus-visible {
