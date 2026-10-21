@@ -45,6 +45,8 @@ group by 1, 2, 3, 4, 5
 order by queries desc;
 ```
 
+This finds readers through every view over the table, but a query that names a view is recorded against the view in `direct_objects_accessed` and against the table underneath in `base_objects_accessed`. To find who still uses a name — a compatibility view left behind after a rename, or any alias — run the same query with `ah.direct_objects_accessed` in the first `flatten` and the alias in the `objectName` filter. Keep the base-object run for the transitive readers.
+
 Object names in `objectName` are fully qualified and upper case unless created with quoted lower-case identifiers. Drop `column_name` from the grouping for a table-level answer. Queries that write from this table into another (`insert ... select`, `create table as select`) appear here too; they are pipelines, and their output tables need the same discovery.
 
 ## BigQuery

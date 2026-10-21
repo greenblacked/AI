@@ -69,7 +69,7 @@ Tell every consumer found, by name, and post a general notice where data users r
 
 Each step is reversible except the last, and each is a chance for a missed reader to surface:
 
-1. **Rename** the object (or move it to a deprecated schema) and, if consumers need time, leave a view under the old name selecting from the new location. Readers of the old name are now visible as queries against the compatibility view.
+1. **Rename** the object (or move it to a deprecated schema) and, if consumers need time, leave a view under the old name selecting from the new location. Readers of the old name are now visible as queries against the compatibility view; in Snowflake, find them through `direct_objects_accessed`, as `references/usage-queries.md` shows, because `base_objects_accessed` records the renamed table instead.
 2. **Brown out** on the announced date: remove the compatibility view or revoke read access for a scheduled window, usually one working day. Then query the warehouse for failed queries that referenced the old name. Every failure is a reader you missed; contact them before going further.
 3. **Archive**: clone or copy the object to an archive location with restricted access and an expiry, and record how to restore it.
 4. **Drop** after a quiet period that covers at least the next run of the slowest consumer you know about, and past a quarter end for anything financial.
