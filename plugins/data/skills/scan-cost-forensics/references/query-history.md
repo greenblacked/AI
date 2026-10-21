@@ -65,7 +65,12 @@ Attribution leaves out idle time and very short queries. Compare its total per w
 ```sql
 WITH jobs AS (
   SELECT
-    query_info.query_hashes.normalized_literals AS fingerprint,
+    -- The native hash is empty for cache hits, so fall back to a hash of the
+    -- literal-stripped text; otherwise every cached run lands in one null bucket.
+    COALESCE(
+      query_info.query_hashes.normalized_literals,
+      TO_HEX(MD5(REGEXP_REPLACE(REGEXP_REPLACE(LOWER(TRIM(query)), r"'[^']*'", '?'), r'[0-9]+', '?')))
+    ) AS fingerprint,
     total_bytes_billed,
     total_slot_ms,
     cache_hit,
