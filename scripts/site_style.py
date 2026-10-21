@@ -1553,7 +1553,7 @@ html:not([data-theme="reactor"]) %P .plugin-word {
   100% { opacity: 1; filter: none; }
 }""",
     ),
-    # Rows land one after another, like a query result filling in.
+    # Rows rise into place one after another, like a query result filling in.
     "data": PluginLook(
         day=("#1e40af", "#9a3412", "#065f46"),
         night=("#93c5fd", "#fdba74", "#6ee7b7"),
@@ -1561,7 +1561,7 @@ html:not([data-theme="reactor"]) %P .plugin-word {
         rules="%P .pl { animation: pw-data-row 0.45s ease-out calc(var(--i) * 0.11s) backwards; }",
         keyframes="""\
 @keyframes pw-data-row {
-  from { opacity: 0; transform: translateY(-0.35em); }
+  from { opacity: 0; transform: translateY(0.35em); }
   to { opacity: 1; transform: none; }
 }""",
     ),
