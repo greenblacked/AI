@@ -50,6 +50,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Accept `release/` as a branch type, for a promotion from `dev` into `stage` or from
+  `stage` into `main`, so a promotion no longer has to borrow `chore/`.
 - Split the portable router into a per-plugin index once the combined `router.md` would
   exceed its size budget. `router.md` then lists one `router-<plugin>.md` per plugin,
   each keeping every skill's full trigger and each checked against the same budget; the

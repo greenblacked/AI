@@ -259,6 +259,7 @@ def test_a_good_pull_request_title_passes(repo, capsys):
         "docs/code-of-conduct",
         "ci/dependabot-auto-merge-and-attribution",
         "test/attribution-branch-shape",
+        "release/promote-dev-to-stage",
     ],
 )
 def test_each_allowed_prefix_passes(branch):
