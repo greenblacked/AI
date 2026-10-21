@@ -58,8 +58,9 @@ select
   count_if(lag_min <= 10080) / count(*)                    as rows_7d,
   sum(iff(lag_min <=  1440, amount, 0)) / nullif(sum(amount), 0) as value_24h,
   sum(iff(lag_min <=  4320, amount, 0)) / nullif(sum(amount), 0) as value_72h,
-  -- distance from the final figure, which stays honest when amounts can be negative
-  abs(sum(amount) - sum(iff(lag_min <= 1440, amount, 0))) / nullif(abs(sum(amount)), 0)
+  -- distance from the final figure, scaled by gross value so a day whose
+  -- refunds cancel its sales to zero still has an error rather than a null
+  abs(sum(amount) - sum(iff(lag_min <= 1440, amount, 0))) / nullif(sum(abs(amount)), 0)
                                                          as value_err_24h
 from lagged
 group by event_day, source_system

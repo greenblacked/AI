@@ -72,8 +72,10 @@ select
   min(start_time)          as first_failure,
   max(start_time)          as last_failure
 from snowflake.account_usage.query_history
-where start_time >= '2026-11-18 09:00'::timestamp_ltz
-  and start_time <  '2026-11-19 09:00'::timestamp_ltz
+-- explicit offsets, so the window does not move with the session's TIMEZONE;
+-- London is +00:00 in November and +01:00 in summer
+where start_time >= '2026-11-18 09:00:00 +00:00'::timestamp_tz
+  and start_time <  '2026-11-19 09:00:00 +00:00'::timestamp_tz
   and execution_status ilike 'fail%'          -- documented as lower-case 'fail'
   and error_message ilike '%does not exist or not authorized%'
   -- qualified, unqualified and quoted spellings: "CORE"."ORDERS", core.orders, orders
