@@ -18,7 +18,7 @@ PLANS = (
         "chatgpt",
         "ChatGPT",
         "General AI, deep research and Codex",
-        "https://help.openai.com/en/articles/9793128-about-chatgpt-pro-tiers",
+        "https://chatgpt.com/pricing",
         (
             ("None", 0),
             ("Go", 8),
