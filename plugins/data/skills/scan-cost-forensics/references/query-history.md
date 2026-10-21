@@ -133,7 +133,7 @@ ORDER BY 2 DESC;
 
 Redshift has no fingerprint column in the views below, so normalise the text (next section) and hash it.
 
-Provisioned clusters are billed per node hour, so the spend does not move with a single query; what moves is whether the cluster needs to be bigger or needs concurrency scaling. Rank by blocks read and by queue time, which is what forces a resize. Spectrum is billed by bytes scanned, so rank Spectrum work on `spectrum_scan_size_mb`.
+Provisioned clusters are billed per node hour, so the spend does not move with a single query; what moves is whether the cluster needs to be bigger or needs concurrency scaling. Rank by blocks read and by queue time, which is what forces a resize: run the query below once ordered by `blocks_read` and once by `queue_hours`, because a workload that waits in the queue can be cheap to scan and never reach the top fifty by blocks. Spectrum is billed by bytes scanned, so rank Spectrum work on `spectrum_scan_size_mb`.
 
 ```sql
 SELECT
@@ -158,10 +158,17 @@ SELECT
   SUM(m.query_blocks_read)                AS blocks_read,
   SUM(m.spectrum_scan_size_mb)            AS spectrum_mb,
   SUM(m.query_execution_time) / 3600.0    AS execution_hours,  -- the summary view reports seconds
+  SUM(w.queue_us) / 3600000000.0          AS queue_hours,      -- STL_WLM_QUERY reports microseconds
   MIN(q.label)                            AS sample_label,
   MIN(LEFT(TRIM(q.querytxt), 300))        AS sample_text
 FROM stl_query q
 JOIN svl_query_metrics_summary m ON m.query = q.query
+LEFT JOIN (
+  -- one row per query, so a query that changed queue is not counted twice
+  SELECT query, SUM(total_queue_time) AS queue_us
+  FROM stl_wlm_query
+  GROUP BY query
+) w ON w.query = q.query
 WHERE q.starttime >= DATEADD(day, -14, TRUNC(GETDATE()))
 GROUP BY 1
 ORDER BY blocks_read DESC

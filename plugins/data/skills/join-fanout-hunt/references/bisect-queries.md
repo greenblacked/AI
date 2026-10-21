@@ -164,12 +164,17 @@ models:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns: [customer_id, valid_from]
   - name: fct_orders_enriched
+    columns:
+      - name: order_id
+        data_tests:
+          - unique
+          - not_null
     data_tests:
       - dbt_utils.equal_rowcount:
           compare_model: ref('stg_orders')
 ```
 
-The last test is the one that catches the next fan-out on the same model whatever its cause: an enriched model that should keep one row per order fails the moment any join multiplies. Save the overlapping-ranges query above as a singular test, which fails when it returns rows.
+The last two tests together catch the next fan-out on the same model whatever its cause. `unique` on `order_id` fails the moment any join multiplies a row; `equal_rowcount` alone does not, because a join that drops one order and duplicates another leaves the count unchanged. The row count adds the mirror case, an order lost to an inner join. Save the overlapping-ranges query above as a singular test, which fails when it returns rows.
 
 Without dbt, schedule the duplicate check from step 2 and the bisection's final row count against the base count, and fail the publish when either disagrees.
 
