@@ -21,12 +21,18 @@ Each check returns rows only when something needs attention, so an orchestrator 
 ## Schema diff for a semi-structured landing table
 
 ```sql
-with observed as (
+with batch as (
+  select count(*) as batch_rows
+  from raw.orders_landing
+  where batch_id = :batch_id
+),
+observed as (
   select
     f.key as field,
     iff(typeof(f.value) in ('INTEGER', 'DECIMAL', 'DOUBLE'), 'NUMBER', typeof(f.value))
       as observed_type,
-    count(*) as rows_with_field
+    count(*) as rows_with_field,
+    sum(count(*)) over (partition by f.key) as field_rows   -- across every observed type
   from raw.orders_landing r,
        lateral flatten(input => r.payload) f
   where r.batch_id = :batch_id
@@ -44,16 +50,19 @@ select
   case
     when e.field is null                        then 'additive: new field'
     when o.field is null and e.required         then 'breaking: required field missing'
+    when e.required
+     and o.field_rows < b.batch_rows            then 'breaking: required field missing from some rows'
     when o.field is null                        then 'warn: optional field absent'
     when o.observed_type = 'NULL_VALUE'         then 'check: field present but null'
     when o.observed_type <> e.expected_type     then 'breaking: type changed'
   end as finding
 from observed o
 full outer join expected e on o.field = e.field
+cross join batch b
 where finding is not null;
 ```
 
-`TYPEOF` reports the type of each value (`INTEGER`, `DECIMAL`, `DOUBLE`, `VARCHAR`, `BOOLEAN`, `OBJECT`, `ARRAY`, `NULL_VALUE`). The query folds the three numeric types into `NUMBER`, because a producer's JSON serialiser writes `10` and `10.5` for the same field; record expected types in that folded vocabulary. A field seen both with a value and as `NULL_VALUE` in one batch returns two rows, which is correct: the null rows are worth a look. For nested objects, flatten with `recursive => true` and compare the `path` instead of the key.
+`TYPEOF` reports the type of each value (`INTEGER`, `DECIMAL`, `DOUBLE`, `VARCHAR`, `BOOLEAN`, `OBJECT`, `ARRAY`, `NULL_VALUE`). The query folds the three numeric types into `NUMBER`, because a producer's JSON serialiser writes `10` and `10.5` for the same field; record expected types in that folded vocabulary. A field seen both with a value and as `NULL_VALUE` in one batch returns two rows, which is correct: the null rows are worth a look. A required field is checked against the batch's row count, not only for being seen at all, so a key that disappears from some payloads fails the batch instead of passing because the other rows still carry it. `field_rows` sums the field's rows across every observed type, so a field seen with two types is not mistaken for one that is missing. For nested objects, flatten with `recursive => true` and compare the `path` instead of the key.
 
 ## Schema diff for a replicated table
 

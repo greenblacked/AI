@@ -94,16 +94,21 @@ If the report wants the attribute as it is today rather than as it was then, fil
 
 ## Overlapping validity ranges
 
-A history table can have the right shape and still overlap. This returns every pair of periods for one key that overlap:
+A history table can have the right shape and still overlap. This returns every pair of periods for one key that overlap, including two versions that start at the same moment. It needs a column that tells versions apart (here the surrogate key `customer_sk`), so each pair is compared once:
 
 ```sql
-SELECT a.customer_id, a.valid_from, a.valid_to, b.valid_from AS next_from, b.valid_to AS next_to
+SELECT a.customer_id,
+       a.customer_sk, a.valid_from, a.valid_to,
+       b.customer_sk AS other_sk, b.valid_from AS other_from, b.valid_to AS other_to
 FROM dim_customer_history a
 JOIN dim_customer_history b
   ON  b.customer_id = a.customer_id
-  AND b.valid_from > a.valid_from
+  AND b.customer_sk > a.customer_sk
+  AND a.valid_from < COALESCE(b.valid_to, TIMESTAMP '9999-12-31 00:00:00')
   AND b.valid_from < COALESCE(a.valid_to, TIMESTAMP '9999-12-31 00:00:00');
 ```
+
+Two half-open intervals overlap when each starts before the other ends; comparing start times alone misses versions with the same start.
 
 Rows here are a defect in the dimension's build, not in the query. Fix the build, then add this query as a test that must return nothing.
 

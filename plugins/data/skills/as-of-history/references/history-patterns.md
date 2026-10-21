@@ -148,11 +148,19 @@ from (
 )
 where next_from is not null and next_from <> valid_to;
 
--- not exactly one open version per live entity
+-- more than one open version for any entity
 select entity_id
 from history.customer_scd2
 group by entity_id
-having sum(iff(valid_to = '9999-12-31', 1, 0)) <> 1;
+having sum(iff(valid_to = '9999-12-31', 1, 0)) > 1;
+
+-- no open version for an entity that is still live
+-- (a permanently deleted entity correctly has none, so check only the live set)
+select l.entity_id
+from core.customer_current l          -- the source's current, undeleted entities
+left join history.customer_scd2 d
+  on d.entity_id = l.entity_id and d.valid_to = '9999-12-31'
+where d.entity_id is null;
 
 -- empty or inverted intervals
 select * from history.customer_scd2 where valid_from >= valid_to;
