@@ -73,16 +73,16 @@ WITH jobs AS (
     -- cache hits, and mixing it with a fallback would split one query's misses
     -- and hits across two rows. Hash the normalised text for every job, in the
     -- order "Normalising text when there is no fingerprint" sets out:
-    -- comments, literals, whitespace, IN lists.
+    -- literals, comments, numbers, whitespace, IN lists.
     TO_HEX(MD5(TRIM(
       REGEXP_REPLACE(
         REGEXP_REPLACE(
           REGEXP_REPLACE(
             REGEXP_REPLACE(
               REGEXP_REPLACE(
-                REGEXP_REPLACE(LOWER(query), r'(?s)/\*.*?\*/', ' '),
-                r'--[^\n]*', ' '),
-              r"'[^']*'", '?'),
+                REGEXP_REPLACE(LOWER(query), r"'[^']*'", '?'),
+                r'(?s)/\*.*?\*/', ' '),
+              r'--[^\n]*', ' '),
             r'\b[0-9]+(\.[0-9]+)?\b', '?'),
           r'\s+', ' '),
         r'in \(\?(\s*,\s*\?)*\)', 'in (?)')
@@ -137,8 +137,8 @@ Provisioned clusters are billed per node hour, so the spend does not move with a
 
 ```sql
 SELECT
-  -- The normalisation from the section below, in its order: comments, then
-  -- literals, then whitespace, then IN lists. POSIX patterns, so the block
+  -- The normalisation from the section below, in its order: literals, then
+  -- comments, then numbers, whitespace and IN lists. POSIX patterns, so the block
   -- comment is matched without a lazy quantifier; digits inside names become
   -- ? too, which folds date-suffixed tables into one group.
   MD5(TRIM(
@@ -147,9 +147,9 @@ SELECT
         REGEXP_REPLACE(
           REGEXP_REPLACE(
             REGEXP_REPLACE(
-              REGEXP_REPLACE(LOWER(q.querytxt), '/\\*([^*]|\\*+[^*/])*\\*+/', ' '),
-              '--[^' || CHR(10) || ']*', ' '),
-            '''[^'']*''', '?'),
+              REGEXP_REPLACE(LOWER(q.querytxt), '''[^'']*''', '?'),
+              '/\\*([^*]|\\*+[^*/])*\\*+/', ' '),
+            '--[^' || CHR(10) || ']*', ' '),
           '[0-9]+(\\.[0-9]+)?', '?'),
         '[[:space:]]+', ' '),
       'in \\(\\?([[:space:]]*,[[:space:]]*\\?)*\\)', 'in (?)')
@@ -207,7 +207,7 @@ Failed queries also read data. Rerun with `type IN ('ExceptionWhileProcessing')`
 
 ## Normalising text when there is no fingerprint
 
-Apply, in this order, to the lower-cased text: strip block and line comments; replace quoted string literals with `?`; replace numeric literals with `?`; collapse runs of whitespace to one space; collapse `IN (?, ?, ?)` lists to `IN (?)`. Hash the result. The comment strip comes first because a per-run comment (a timestamp, a request id) otherwise makes every run unique. Keep the raw sample beside the hash, because the comment you stripped is often the best attribution evidence step 4 has.
+Apply, in this order, to the lower-cased text: replace quoted string literals with `?`; strip block and line comments; replace numeric literals with `?`; collapse runs of whitespace to one space; collapse `IN (?, ?, ?)` lists to `IN (?)`. Hash the result. Literals go first so that a `--` or `/*` inside a string, such as a pattern in a `LIKE`, is not read as a comment that erases the rest of the statement. Comments must still go before hashing, because a per-run comment (a timestamp, a request id) otherwise makes every run unique. An apostrophe inside a comment (`-- don't`) can still pair with a later quote; when that matters, use a SQL tokeniser rather than regular expressions. Keep the raw sample beside the hash, because the comment you stripped is often the best attribution evidence step 4 has.
 
 ## Reading the result
 

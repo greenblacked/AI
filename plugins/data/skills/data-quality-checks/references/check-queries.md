@@ -132,11 +132,17 @@ Great Expectations and Soda express the same dimensions with their own syntax. T
 Volume by weekday, with a median and median absolute deviation per weekday:
 
 ```sql
-WITH daily AS (
-  SELECT order_date AS d, COUNT(*) AS n
-  FROM analytics.fct_orders
-  WHERE order_date BETWEEN CURRENT_DATE - 30 AND CURRENT_DATE - 1
-  GROUP BY order_date
+WITH days AS (
+  -- a calendar spine, so a day with no rows at all appears with n = 0
+  SELECT date_day AS d
+  FROM analytics.dim_date
+  WHERE date_day BETWEEN CURRENT_DATE - 30 AND CURRENT_DATE - 1
+),
+daily AS (
+  SELECT days.d, COUNT(o.order_date) AS n
+  FROM days
+  LEFT JOIN analytics.fct_orders o ON o.order_date = days.d
+  GROUP BY days.d
 )
 SELECT EXTRACT(DOW FROM d) AS weekday,
        MIN(n) AS min_n,
@@ -147,7 +153,7 @@ GROUP BY EXTRACT(DOW FROM d)
 ORDER BY weekday;
 ```
 
-Thirty days gives four or five values per weekday, which is enough for a minimum and maximum but thin for anything finer. The query below uses fail below 0.7 x the weekday's minimum or above 1.3 x its maximum as an illustrative starting point; the margins are yours to set by backtest, not a standard. Use a longer window for tables with monthly cycles, and exclude known incident days from the baseline so the threshold is not trained on the failure.
+Both queries build the days from a calendar table (`dim_date` here; `generate_series` on PostgreSQL), not from the fact table: a day the source delivered nothing has no fact rows to group, so grouping the facts alone silently drops the most important volume failure from the history. Thirty days gives four or five values per weekday, which is enough for a minimum and maximum but thin for anything finer. The query below uses fail below 0.7 x the weekday's minimum or above 1.3 x its maximum as an illustrative starting point; the margins are yours to set by backtest, not a standard. Use a longer window for tables with monthly cycles, and exclude known incident days from the baseline so the threshold is not trained on the failure.
 
 Freshness: take the distribution of observed lag at each scheduled check time over the 30 days. Set warn just above the highest normal lag and error at the consumer's stated deadline. If the highest normal lag already exceeds the consumer's deadline, the problem is the schedule, not the check.
 
@@ -158,13 +164,18 @@ Null rate: take the maximum observed daily null rate and add a margin; a column 
 Replay the check over the history window and count firings:
 
 ```sql
-WITH daily AS (
-  SELECT order_date AS d,
-         EXTRACT(DOW FROM order_date) AS weekday,
-         COUNT(*) AS n
-  FROM analytics.fct_orders
-  WHERE order_date BETWEEN CURRENT_DATE - 30 AND CURRENT_DATE - 1
-  GROUP BY order_date
+WITH days AS (
+  SELECT date_day AS d
+  FROM analytics.dim_date
+  WHERE date_day BETWEEN CURRENT_DATE - 30 AND CURRENT_DATE - 1
+),
+daily AS (
+  SELECT days.d,
+         EXTRACT(DOW FROM days.d) AS weekday,
+         COUNT(o.order_date) AS n
+  FROM days
+  LEFT JOIN analytics.fct_orders o ON o.order_date = days.d
+  GROUP BY days.d
 ),
 bounds AS (
   SELECT weekday, 0.7 * MIN(n) AS lo, 1.3 * MAX(n) AS hi
