@@ -12,7 +12,8 @@
 # failure is much below 100% reproducible, quarantine the test and stabilise it first;
 # no number of retries rescues a bisect over noise.
 #
-# Adapt BUILD_CMD and TEST_CMD to the project. Everything else is the contract.
+# Adapt BUILD_CMD, TEST_CMD and RUNNER to the project, together: RUNNER is the binary
+# TEST_CMD needs. Everything else is the contract.
 set -uo pipefail
 
 readonly ATTEMPTS="${BISECT_ATTEMPTS:-3}"
@@ -20,6 +21,9 @@ readonly BUILD_CMD="${BISECT_BUILD_CMD:-npm ci --prefer-offline}"
 # The runner comes from this commit's own lockfile. `npx jest` would fetch today's release
 # from the registry when the commit has none, and judge old code with a runner it never had.
 readonly TEST_CMD="${BISECT_TEST_CMD:-node_modules/.bin/jest path/to/suspect.test.ts}"
+# The binary TEST_CMD needs, checked before the first attempt. Change it whenever
+# TEST_CMD changes; set it empty for a command with no runner this commit could lack.
+readonly RUNNER="${BISECT_RUNNER-node_modules/.bin/jest}"
 
 log() { printf '%s bisect-probe: %s\n' "$(date -u +%H:%M:%S)" "$*" >&2; }
 
@@ -30,19 +34,20 @@ if ! eval "$BUILD_CMD"; then
   exit 125
 fi
 
+# A runner this commit's lockfile did not install makes the commit untestable, not bad.
+# This is checked up front rather than read back from the exit status: a launched test
+# command may itself return 126 or 127, and that is a real failure.
+if [ -n "$RUNNER" ] && [ ! -x "$RUNNER" ]; then
+  log "no executable $RUNNER at this commit - skipping"
+  exit 125
+fi
+
 for attempt in $(seq 1 "$ATTEMPTS"); do
   status=0
   eval "$TEST_CMD" || status=$?
   if [ "$status" -eq 0 ]; then
     log "attempt $attempt/$ATTEMPTS passed - commit is good"
     exit 0
-  fi
-  # 126 and 127 are the shell saying the command could not run at all, as when this
-  # commit's lockfile installed no runner. That is untestable, not bad, whatever wraps
-  # the runner (`env`, a variable assignment, `xvfb-run`).
-  if [ "$status" -eq 126 ] || [ "$status" -eq 127 ]; then
-    log "test command could not run at this commit (exit $status) - skipping"
-    exit 125
   fi
   log "attempt $attempt/$ATTEMPTS failed"
 done
