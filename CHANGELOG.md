@@ -10,6 +10,19 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add a subscription pricing page to the catalogue site at `/pricing/`, linked from the
+  navigation. It compares the monthly plans of five assistant providers, totals the
+  chosen plans per month and per year against a fixed baseline, and offers three example
+  combinations. Each card links the provider's own pricing page; the prices are an
+  editorial snapshot dated on the page, not a live feed. Without scripting it shows
+  the default selection and its totals, and its plan choices and presets stay disabled
+  until the page's script enables them. It builds its controls from the site's allowed
+  tags and is covered by tests for its links, tiers, default totals and rendering.
+
+## [0.1.13] - 2026-10-21
+
+### Added
+
 - Add the `llm` plugin for building features on language models, with five skills:
   `rag-design` (a retrieval pipeline shown to retrieve the right passages, with a small
   labelled eval before tuning, permission filtering and refusal on weak retrieval),
@@ -910,7 +923,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.12...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.13...HEAD
+[0.1.13]: https://github.com/greenblacked/AI/compare/v0.1.12...v0.1.13
 [0.1.12]: https://github.com/greenblacked/AI/compare/v0.1.11...v0.1.12
 [0.1.11]: https://github.com/greenblacked/AI/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/greenblacked/AI/compare/v0.1.9...v0.1.10
