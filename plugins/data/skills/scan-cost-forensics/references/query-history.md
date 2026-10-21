@@ -133,7 +133,23 @@ Provisioned clusters are billed per node hour, so the spend does not move with a
 
 ```sql
 SELECT
-  MD5(REGEXP_REPLACE(REGEXP_REPLACE(LOWER(TRIM(q.querytxt)), '''[^'']*''', '?'), '[0-9]+', '?')) AS fingerprint,
+  -- The normalisation from the section below, in its order: comments, then
+  -- literals, then whitespace, then IN lists. POSIX patterns, so the block
+  -- comment is matched without a lazy quantifier; digits inside names become
+  -- ? too, which folds date-suffixed tables into one group.
+  MD5(TRIM(
+    REGEXP_REPLACE(
+      REGEXP_REPLACE(
+        REGEXP_REPLACE(
+          REGEXP_REPLACE(
+            REGEXP_REPLACE(
+              REGEXP_REPLACE(LOWER(q.querytxt), '/\\*([^*]|\\*+[^*/])*\\*+/', ' '),
+              '--[^' || CHR(10) || ']*', ' '),
+            '''[^'']*''', '?'),
+          '[0-9]+(\\.[0-9]+)?', '?'),
+        '[[:space:]]+', ' '),
+      'in \\(\\?([[:space:]]*,[[:space:]]*\\?)*\\)', 'in (?)')
+  )) AS fingerprint,
   COUNT(*)                                AS runs,
   SUM(m.query_blocks_read)                AS blocks_read,
   SUM(m.spectrum_scan_size_mb)            AS spectrum_mb,
