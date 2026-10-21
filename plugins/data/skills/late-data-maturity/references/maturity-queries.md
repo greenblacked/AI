@@ -14,7 +14,7 @@ The queries are written for Snowflake and assume an `orders` source with an even
 
 ## The arrivals view
 
-Assign each row to a reporting day and express its load time in the same time zone, once, so every later query compares like with like.
+Assign each row to a reporting day in the reporting time zone, and express the day's close as a UTC instant beside the UTC load time. Lags are measured between UTC instants: subtracting two local wall-clock values counts the 23- and 25-hour days at a clock change as 24 hours and puts rows in the wrong age bucket.
 
 ```sql
 create or replace view analytics.stg_order_arrivals as
@@ -23,9 +23,10 @@ select
   source_system,
   amount,
   convert_timezone('UTC', 'Europe/London', event_ts_utc)::date as event_day,
-  dateadd('day', 1, convert_timezone('UTC', 'Europe/London', event_ts_utc)::date)::timestamp_ntz
-    as day_close_local,
-  convert_timezone('UTC', 'Europe/London', first_loaded_at_utc) as loaded_local
+  convert_timezone('Europe/London', 'UTC',
+    dateadd('day', 1, convert_timezone('UTC', 'Europe/London', event_ts_utc)::date)::timestamp_ntz)
+    as day_close_utc,
+  first_loaded_at_utc as loaded_utc
 from raw.orders;
 ```
 
@@ -41,7 +42,7 @@ with lagged as (
     event_day,
     source_system,
     amount,
-    datediff('minute', day_close_local, loaded_local) as lag_min
+    datediff('minute', day_close_utc, loaded_utc) as lag_min
   from analytics.stg_order_arrivals
   where event_day >= dateadd('day', -120, current_date)
     and event_day <  dateadd('day', -30, current_date)
@@ -119,17 +120,19 @@ For the summary, `approx_quantiles(rows_24h, 100)[offset(5)]` gives the fifth pe
 When the figure is assembled from many tables or rows are updated after load, log each computed value and build the curve from the log:
 
 ```sql
--- metric_log: metric, period_day, segment, computed_at_local, value
+-- metric_log: metric, period_day, segment, computed_at_utc, value
 with final as (
   select metric, period_day, segment, value as final_value
   from metric_log
   qualify row_number() over (
-    partition by metric, period_day, segment order by computed_at_local desc) = 1
+    partition by metric, period_day, segment order by computed_at_utc desc) = 1
 ),
 aged as (
   select
     l.metric, l.period_day, l.segment, l.value,
-    datediff('minute', dateadd('day', 1, l.period_day)::timestamp_ntz, l.computed_at_local) as age_min
+    datediff('minute',
+      convert_timezone('Europe/London', 'UTC', dateadd('day', 1, l.period_day)::timestamp_ntz),
+      l.computed_at_utc) as age_min
   from metric_log l
 )
 select
@@ -148,19 +151,24 @@ group by a.metric, a.period_day, a.segment, f.final_value;
 Compare yesterday as it stands now with the same weekday last week as it stood the same number of minutes after it closed.
 
 ```sql
-with now_local as (
-  select convert_timezone('Europe/London', current_timestamp())::timestamp_ntz as ts
+with now_utc as (
+  select sysdate() as ts  -- the current instant in UTC, as TIMESTAMP_NTZ
+),
+today as (
+  select ts, convert_timezone('UTC', 'Europe/London', ts)::date as today_local
+  from now_utc
 ),
 age as (
   select
-    ts::date                                  as today_local,
-    datediff('minute', date_trunc('day', ts), ts) as age_min
-  from now_local
+    today_local,
+    datediff('minute',
+      convert_timezone('Europe/London', 'UTC', today_local::timestamp_ntz), ts) as age_min
+  from today
 )
 select
   a.event_day,
-  count_if(a.loaded_local <= dateadd('minute', g.age_min, a.day_close_local)) as rows_at_same_age,
-  sum(iff(a.loaded_local <= dateadd('minute', g.age_min, a.day_close_local), a.amount, 0))
+  count_if(a.loaded_utc <= dateadd('minute', g.age_min, a.day_close_utc)) as rows_at_same_age,
+  sum(iff(a.loaded_utc <= dateadd('minute', g.age_min, a.day_close_utc), a.amount, 0))
     as value_at_same_age
 from analytics.stg_order_arrivals a
 cross join age g
@@ -181,7 +189,7 @@ with new_rows as (
   select event_day
   from {{ ref('stg_order_arrivals') }}
   {% if is_incremental() %}
-  where loaded_local > (select max(max_loaded_local) from {{ this }})
+  where loaded_utc > (select max(max_loaded_utc) from {{ this }})
   {% endif %}
 ),
 touched as (
@@ -192,7 +200,7 @@ select
   a.source_system,
   count(*)            as orders,
   sum(a.amount)       as revenue,
-  max(a.loaded_local) as max_loaded_local
+  max(a.loaded_utc)   as max_loaded_utc
 from {{ ref('stg_order_arrivals') }} a
 {% if is_incremental() %}
 where a.event_day in (select event_day from touched)

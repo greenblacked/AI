@@ -67,8 +67,22 @@ WITH jobs AS (
   SELECT
     -- The native hash (query_info.query_hashes.normalized_literals) is empty for
     -- cache hits, and mixing it with a fallback would split one query's misses
-    -- and hits across two rows. Hash the literal-stripped text for every job.
-    TO_HEX(MD5(REGEXP_REPLACE(REGEXP_REPLACE(LOWER(TRIM(query)), r"'[^']*'", '?'), r'[0-9]+', '?'))) AS fingerprint,
+    -- and hits across two rows. Hash the normalised text for every job, in the
+    -- order "Normalising text when there is no fingerprint" sets out:
+    -- comments, literals, whitespace, IN lists.
+    TO_HEX(MD5(TRIM(
+      REGEXP_REPLACE(
+        REGEXP_REPLACE(
+          REGEXP_REPLACE(
+            REGEXP_REPLACE(
+              REGEXP_REPLACE(
+                REGEXP_REPLACE(LOWER(query), r'(?s)/\*.*?\*/', ' '),
+                r'--[^\n]*', ' '),
+              r"'[^']*'", '?'),
+            r'\b[0-9]+(\.[0-9]+)?\b', '?'),
+          r'\s+', ' '),
+        r'in \(\?(\s*,\s*\?)*\)', 'in (?)')
+    ))) AS fingerprint,
     total_bytes_billed,
     total_slot_ms,
     cache_hit,
