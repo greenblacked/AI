@@ -74,8 +74,10 @@ select
 from snowflake.account_usage.query_history
 where start_time >= '2026-11-18 09:00'::timestamp_ltz
   and start_time <  '2026-11-19 09:00'::timestamp_ltz
-  and execution_status = 'FAIL'
-  and query_text ilike '%core.orders%'
+  and execution_status ilike 'fail%'          -- documented as lower-case 'fail'
+  and error_message ilike '%does not exist or not authorized%'
+  -- qualified, unqualified and quoted spellings: "CORE"."ORDERS", core.orders, orders
+  and regexp_like(query_text, '.*(^|[^a-z0-9_$])"?orders"?([^a-z0-9_$]|$).*', 'is')
 group by 1, 2, 3, 4
 order by failures desc;
 ```
@@ -91,12 +93,13 @@ select
 from `region-eu`.INFORMATION_SCHEMA.JOBS_BY_PROJECT
 where creation_time >= timestamp '2026-11-18 09:00:00 Europe/London'
   and creation_time <  timestamp '2026-11-19 09:00:00 Europe/London'
-  and error_result is not null
-  and regexp_contains(lower(query), r'core\.orders\b')
+  and regexp_contains(lower(error_result.message), r'not found|access denied')
+  -- qualified, unqualified and backquoted spellings all end in the table name
+  and regexp_contains(lower(query), r'(^|[^a-z0-9_])`?orders`?\b')
 group by 1, 2;
 ```
 
-A failed query referenced an object that did not exist, so `referenced_tables` is empty; the search has to be on the query text. Also check the BI tool's error log and the orchestrator's failed tasks for the window: a dashboard that failed to refresh may show stale data rather than an error.
+A failed query referenced an object that did not exist, so `referenced_tables` is empty; the search has to be on the query text. Match the bare table name rather than one qualified spelling, because a consumer may write it unqualified under a default schema or quote it, and let the error filter keep the match from sweeping in every other table of the same name. Add a pattern for each alias the object had. Also check the BI tool's error log and the orchestrator's failed tasks for the window: a dashboard that failed to refresh may show stale data rather than an error.
 
 Every failure is a consumer to contact. If any is material, restore, migrate it, and schedule a second brownout rather than proceeding.
 
