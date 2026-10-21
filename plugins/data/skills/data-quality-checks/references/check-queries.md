@@ -161,13 +161,13 @@ Null rate: take the maximum observed daily null rate and add a margin; a column 
 
 ## Backtesting a threshold
 
-Replay the check over the history window and count firings:
+Replay the check over days it was not trained on, and count firings. Bounds taken from the same days can never fire on them: every day's count lies between that weekday's minimum and maximum by definition, so an in-sample replay always reports zero, outages included.
 
 ```sql
 WITH days AS (
   SELECT date_day AS d
   FROM analytics.dim_date
-  WHERE date_day BETWEEN CURRENT_DATE - 30 AND CURRENT_DATE - 1
+  WHERE date_day BETWEEN CURRENT_DATE - 60 AND CURRENT_DATE - 1
 ),
 daily AS (
   SELECT days.d,
@@ -178,15 +178,18 @@ daily AS (
   GROUP BY days.d
 ),
 bounds AS (
+  -- trained on days 31 to 60 only
   SELECT weekday, 0.7 * MIN(n) AS lo, 1.3 * MAX(n) AS hi
   FROM daily
+  WHERE d < CURRENT_DATE - 30
   GROUP BY weekday
 )
 SELECT d.d, d.n, b.lo, b.hi,
        CASE WHEN d.n < b.lo OR d.n > b.hi THEN 1 ELSE 0 END AS would_fire
 FROM daily d
 JOIN bounds b ON b.weekday = d.weekday
+WHERE d.d >= CURRENT_DATE - 30            -- tested on days 1 to 30
 ORDER BY d.d;
 ```
 
-This in-sample replay can only show a threshold that is too tight; bounds computed from the same days rarely fire on them. For a fair test, compute bounds from days 31 to 60 and replay over days 1 to 30, and replay over each incident day from the register. Record both counts in the check register.
+Exclude known incident days from the training window, as for the baseline, then replay each incident day from the register against bounds trained without it: the check is only worth keeping if it fires on those. Record the firing count on normal days and the incidents it caught in the check register.

@@ -132,7 +132,7 @@ join history.customer_scd2 d
 
 Snowflake also has `ASOF JOIN ... MATCH_CONDITION (...)`, which picks the nearest earlier row from a table of point-in-time records. It is a good fit for a change log without explicit `valid_to`; for a type-2 table the interval join above states the intent more plainly.
 
-For a report as known at `:k`, add the recorded-time predicate to the history side and filter facts to `loaded_at <= :k`, so facts that arrived after the report are excluded as well.
+For a report as known at `:k`, add the recorded-time predicate to the history side and filter facts to `loaded_at <= :k`, so facts that arrived after the report are excluded as well. That filter is enough only for facts that are never corrected or deleted after load. A fact table updated in place has lost its earlier values: an order whose amount was corrected shows the new amount whatever `:k` is, and one deleted since is simply gone. Reproducing a past report with mutable facts needs the facts kept as history too, with the same `recorded_from` and `recorded_to` columns and the same `:k` predicate.
 
 ## Integrity checks
 
@@ -161,6 +161,13 @@ from core.customer_current l          -- the source's current, undeleted entitie
 left join history.customer_scd2 d
   on d.entity_id = l.entity_id and d.valid_to = '9999-12-31'
 where d.entity_id is null;
+
+-- an open version for an entity that is no longer live (a hard delete the build missed)
+select d.entity_id
+from history.customer_scd2 d
+left join core.customer_current l on l.entity_id = d.entity_id
+where d.valid_to = '9999-12-31'
+  and l.entity_id is null;
 
 -- empty or inverted intervals
 select * from history.customer_scd2 where valid_from >= valid_to;
