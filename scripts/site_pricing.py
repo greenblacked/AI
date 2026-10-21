@@ -47,7 +47,13 @@ PLANS = (
         "Google Gemini",
         "Research, multimodal tools and Google apps",
         "https://gemini.google/us/subscriptions/",
-        (("None", 0), ("AI Pro (US price)", 19.99)),
+        (
+            ("None", 0),
+            ("AI Plus", 4.99),
+            ("AI Pro", 19.99),
+            ("AI Ultra", 99.99),
+            ("AI Ultra 20x", 199.99),
+        ),
     ),
 )
 
@@ -219,7 +225,7 @@ def render_main(back_html: str) -> str:
         "vendor's page linked on each card before you buy. "
         "Annual totals multiply monthly prices by 12, not discounted annual contracts. "
         "Prices, plan names, availability and limits may change.</p>"
-        "<p><strong>Gemini:</strong> US AI Pro price is shown; local and promotional "
+        "<p><strong>Gemini:</strong> US prices are shown; local and promotional "
         "prices can differ. API usage and credits are never included in these totals.</p>"
         "<p>Sources are linked on each plan card. This comparison is editorial and "
         "is not a live price feed.</p></div>"
