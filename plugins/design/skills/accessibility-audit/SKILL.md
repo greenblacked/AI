@@ -1,7 +1,7 @@
 ---
 name: accessibility-audit
 description: "Audit a page, flow or component against WCAG 2.2 Level AA: run the automated tools first because they are cheap, then the manual pass that automation cannot do (keyboard end to end, focus visible and not obscured, 200 percent zoom, 320 px reflow, screen reader names, reduced motion, target size), and report each finding with its success criterion number, level, severity and fix. Use for any \"is this accessible\" or WCAG 2.2 AA question. Casual asks include \"audit this for WCAG\", \"can a keyboard user get through checkout\", \"axe says it's clean, are we done\", \"screen reader users can't get past the nav\" or \"will this pass an accessibility review\". Not for a whole-site audit across performance, security and SEO, or for building a site (website-builder), writing role-based test locators (e2e-testing), a general usability review (ui-ux-review) or tokens and themes (design-system)."
-allowed-tools: "Read, Grep, Glob, Bash(npx:*)"
+allowed-tools: "Read, Grep, Glob"
 ---
 
 # Accessibility Audit
@@ -26,11 +26,23 @@ State the target (WCAG 2.2 Level AA), what is in scope (the pages, the flow from
 
 Run at least two engines and run each on every state in the sample, not only on load. Axe is the usual first choice, and pa11y or Lighthouse's accessibility category gives a second opinion.
 
+Run the engines from a locked install, not through `npx`: when a package is not already installed, `npx` fetches whatever version the registry serves now and runs it, and npm assumes `--yes` whenever standard input is not a terminal, which is how an agent runs it. The three need Node 22.19 or later. Create the lockfile once in a directory of your own outside the project under audit, keep its `package.json` and `package-lock.json` under your own version control, and install from it on every later run. Outside matters: `--prefix` makes that directory the npm project, so an `.npmrc` planted there by the audited repository could point the install at another registry. The versions are the ones this procedure was checked against; raise them deliberately.
+
 ```bash
-npx @axe-core/cli https://example.com/checkout --tags wcag2a,wcag2aa,wcag21a,wcag21aa,wcag22aa
-npx pa11y --runner axe --runner htmlcs https://example.com/checkout
-npx lighthouse https://example.com/checkout --only-categories=accessibility --output=json --output-path=./a11y.json
+T="${XDG_DATA_HOME:-$HOME/.local/share}/a11y-tools"                                                  # outside the audited tree
+npm install --prefix "$T" --save-exact --ignore-scripts @axe-core/cli@4.14.0 pa11y@10.0.0 lighthouse@13.5.0   # once
+npm ci --ignore-scripts --prefix "$T"                                                                       # every run
+A="$T/node_modules/.bin"
+CHROME=/usr/bin/chromium CHROMEDRIVER=/usr/bin/chromedriver                                                 # paths vary by distribution
+printf '{"chromeLaunchConfig": {"executablePath": "%s"}}\n' "$CHROME" > "$T/pa11y.json"
+$A/axe https://example.com/checkout --tags wcag2a,wcag2aa,wcag21a,wcag21aa,wcag22aa --chrome-path "$CHROME" --chromedriver-path "$CHROMEDRIVER"
+$A/pa11y --config "$T/pa11y.json" --runner axe --runner htmlcs https://example.com/checkout
+CHROME_PATH="$CHROME" $A/lighthouse https://example.com/checkout --only-categories=accessibility --output=json --output-path=./a11y.json
 ```
+
+`--ignore-scripts` keeps every package's install script from running, including the ones that download a browser and a driver, so point each engine at a Chrome or Chromium installed by the system package manager: `CHROME_PATH` for Lighthouse, `chromeLaunchConfig.executablePath` in the `pa11y.json` the block writes from `$CHROME` beside the tools, never into the project, and for axe a `chromedriver` whose `MAJOR.MINOR.BUILD` matches that browser, as Chrome's version-selection guidance asks, since axe refuses to start against a mismatched driver; a browser and driver from the same distribution release, or a Chrome for Testing pair, matches by construction.
+
+This skill pre-approves no shell, so each of these asks first: the audited page is someone else's code running in a browser on your machine.
 
 Confirm from the tool's own help or documentation that the ruleset you selected includes WCAG 2.2 rules. A tag the installed version does not know can be ignored silently and you will have tested less than you think. Record the tool versions. Treat the result as a list of leads, not a score; each violation still needs the element and the fix.
 

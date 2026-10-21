@@ -33,7 +33,8 @@ def test_a_commit_without_the_runner_is_skipped_not_fetched(tmp_path: Path) -> N
     assert run(tmp_path) == 125
 
 
-@pytest.mark.parametrize(("runner_exit", "verdict"), [(0, 0), (1, 1)])
+# 126 and 127 from a runner that did launch are failures like any other, not a skip.
+@pytest.mark.parametrize(("runner_exit", "verdict"), [(0, 0), (1, 1), (126, 1), (127, 1)])
 def test_the_installed_runner_decides(tmp_path: Path, runner_exit: int, verdict: int) -> None:
     install_runner(tmp_path, runner_exit)
     assert run(tmp_path) == verdict
@@ -52,10 +53,28 @@ def test_a_build_failure_is_skipped(tmp_path: Path) -> None:
     ],
 )
 def test_a_wrapped_runner_that_is_missing_is_skipped(tmp_path: Path, command: str) -> None:
-    # The shell's own "cannot run" codes, whatever wraps the runner, mean untestable.
+    # Whatever wraps the runner, the named binary is checked before the command runs.
     assert run(tmp_path, BISECT_TEST_CMD=command) == 125
 
 
+def test_a_custom_runner_is_checked_instead_of_jest(tmp_path: Path) -> None:
+    # Swapping jest for another runner means changing RUNNER with TEST_CMD; the probe
+    # then checks that runner, and a commit without jest is no longer skipped for it.
+    runner = tmp_path / "venv" / "bin" / "pytest"
+    runner.parent.mkdir(parents=True)
+    runner.write_text("#!/bin/sh\nexit 1\n")
+    runner.chmod(runner.stat().st_mode | stat.S_IXUSR)
+    env = {"BISECT_TEST_CMD": "venv/bin/pytest", "BISECT_RUNNER": "venv/bin/pytest"}
+    assert run(tmp_path, **env) == 1
+    runner.unlink()
+    assert run(tmp_path, **env) == 125
+
+
+def test_a_custom_command_that_exits_127_is_bad(tmp_path: Path) -> None:
+    # With no runner to check, a returned 127 is the test's verdict, not a launch error.
+    assert run(tmp_path, BISECT_TEST_CMD="sh -c 'exit 127'", BISECT_RUNNER="") == 1
+
+
 def test_a_custom_command_decides(tmp_path: Path) -> None:
-    assert run(tmp_path, BISECT_TEST_CMD="true") == 0
-    assert run(tmp_path, BISECT_TEST_CMD="false") == 1
+    assert run(tmp_path, BISECT_TEST_CMD="true", BISECT_RUNNER="") == 0
+    assert run(tmp_path, BISECT_TEST_CMD="false", BISECT_RUNNER="") == 1

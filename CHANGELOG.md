@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.1.13] - 2026-10-21
+
 ### Added
 
 - Add the `llm` plugin for building features on language models, with five skills:
@@ -50,6 +52,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Accept `release/` as a branch type, for a promotion from `dev` into `stage` or from
+  `stage` into `main`, so a promotion no longer has to borrow `chore/`.
 - Split the portable router into a per-plugin index once the combined `router.md` would
   exceed its size budget. `router.md` then lists one `router-<plugin>.md` per plugin,
   each keeping every skill's full trigger and each checked against the same budget; the
@@ -81,9 +85,20 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   `e2e-testing`, `test-design` and `ci-triage`, not through `npx`. When a package is not
   installed locally and standard input is not a terminal, npm assumes `--yes` and `npx`
   installs and runs whatever the registry serves at that moment. The `ci-triage` bisect
-  probe now skips a commit whose lockfile has no test runner instead of fetching one, with
-  tests for its exit codes, and `ui-ux-review`, `e2e-testing` and `test-design` drop the
+  probe now skips a commit whose lockfile has no test runner instead of fetching one,
+  checking for the runner before the test starts so that a test's own exit 126 or 127
+  still marks the commit bad, with tests for its exit codes, and `ui-ux-review`, `e2e-testing` and `test-design` drop the
   `Bash(npx:*)` pre-approval that only these commands used.
+- Remove the last `npx` calls from the skills. `accessibility-audit` and
+  `website-builder`'s audit references install their audit tools at exact versions into
+  a directory outside the audited project, with a version-controlled lockfile and
+  `--ignore-scripts`, then call that directory's binaries against an installed browser. Prisma, Wrangler and
+  jscodeshift run from the project's own `node_modules/.bin`, and the deploy job in
+  `website-builder`'s example pipeline installs from the lockfile before calling
+  Wrangler. The retired `observatory-cli` gives way to MDN's HTTP Observatory, and
+  `accessibility-audit` drops `Bash(npx:*)`, and `website-builder` and `game-builder`,
+  whose improve modes read a site or a game someone else wrote, now pre-approve only
+  `Read`, `Grep` and `Glob`, so every command, fetch and write asks first.
 
 ## [0.1.12] - 2026-10-19
 
@@ -897,7 +912,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.12...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.13...HEAD
+[0.1.13]: https://github.com/greenblacked/AI/compare/v0.1.12...v0.1.13
 [0.1.12]: https://github.com/greenblacked/AI/compare/v0.1.11...v0.1.12
 [0.1.11]: https://github.com/greenblacked/AI/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/greenblacked/AI/compare/v0.1.9...v0.1.10
