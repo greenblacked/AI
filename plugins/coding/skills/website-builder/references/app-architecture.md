@@ -254,8 +254,8 @@ Schema changes go through checked-in migration files, applied by the deploy pipe
 never by hand against production:
 
 ```bash
-npx prisma migrate dev --name add_invoice_due_date   # authoring, local
-npx prisma migrate deploy                            # CI, on the way to production
+node_modules/.bin/prisma migrate dev --name add_invoice_due_date   # authoring, local
+node_modules/.bin/prisma migrate deploy                            # CI, on the way to production
 ```
 
 Write migrations to be forward-compatible for one release: add a nullable column,

@@ -90,19 +90,19 @@ The first line registers the marketplace; it downloads nothing on its own. Each
 session — without it you will wonder why nothing fires.
 
 Installing `gamedev`: [`docs/gamedev.md`](gamedev.md) picks a production scale and a game
-type and routes through the plugin's eleven skills from there, rather than leaving you to
-read all eleven cold.
+type and routes through the plugin's thirteen skills from there, rather than leaving you to
+read all thirteen cold.
 
 Install the plugins you will actually use. Every description a plugin ships sits in
 context for the whole session, and the runtime caps that listing at about 1% of the
 context window. Past the cap it drops the descriptions of the skills you invoke least,
 which leaves them invocable by name and stops them being chosen on their own — silently.
-Only `career` and `personal` fit the default budget by themselves. If you
+Only `career`, `llm` and `personal` fit the default budget by themselves. If you
 install any of the other eight, or more than one plugin, raise it in
 `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.123 }
+{ "skillListingBudgetFraction": 0.134 }
 ```
 
 ### How a skill fires
@@ -121,7 +121,7 @@ move when you know exactly what you want.
 
 ### Subagents
 
-27 ship across eight plugins, and they work differently: the main agent delegates to one
+30 ship across nine plugins, and they work differently: the main agent delegates to one
 when the work would otherwise flood your context with material you do not need afterwards.
 A megabyte of CI logs, a Terraform plan, a billing export, a release range. You get the
 conclusion; the raw material never enters your session.
@@ -245,16 +245,29 @@ Mistral Vibe have no documented cap in the sources checked, which is a narrower 
 "no cap": it says nobody has written one down, not that none exists.
 
 That budget is why the router, not a bundle or `index.md`, is what belongs in
-`AGENTS.md`. `make portable` writes `dist/portable/router.md` — one line per skill, drawn
-from its own description, naming when it applies and the path to open then — plus a
-narrower `dist/portable/router-<plugin>.md` per plugin. Paste the one you want into
-`AGENTS.md`, and copy `dist/portable/skills/` to a `skills/` directory next to that
-`AGENTS.md`: the router's own paths are `skills/<name>.md`, relative to wherever
-`AGENTS.md` itself sits, not to `dist/portable/`.
+`AGENTS.md`. `make portable` writes `dist/portable/router-<plugin>.md` for each plugin —
+one line per skill, drawn from its own description, naming when it applies and the path
+to open then — and `dist/portable/router.md`, which is those lines for every plugin while
+they fit the 16 KiB router budget. Once the catalogue outgrows it, `router.md` becomes an
+index instead: one line per plugin, naming its `router-<plugin>.md` and what the plugin
+covers. The skill lines are not shortened and the budget does not move; they simply live
+only in the per-plugin routers, so the index tells the agent which one to open and the
+router tells it which skill.
+
+Paste the router you want into `AGENTS.md`, and copy `dist/portable/skills/` to a
+`skills/` directory next to that `AGENTS.md`: the router's own paths are
+`skills/<name>.md`, relative to wherever `AGENTS.md` itself sits, not to `dist/portable/`.
+If you paste the index, copy the `router-*.md` files next to `AGENTS.md` too, because its
+lines name them the same way. If you only work in one area, paste that plugin's router
+and skip the index.
 
 ```bash
 cat dist/portable/router-coding.md >> path/to/your/repo/AGENTS.md
 mkdir -p path/to/your/repo/skills && cp -r dist/portable/skills/. path/to/your/repo/skills/
+
+# or the index, with the routers it names
+cat dist/portable/router.md >> path/to/your/repo/AGENTS.md
+cp dist/portable/router-*.md path/to/your/repo/
 ```
 
 The agent reads each line on every turn and opens the file it names only once the

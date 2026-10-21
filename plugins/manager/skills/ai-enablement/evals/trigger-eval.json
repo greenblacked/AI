@@ -17,7 +17,7 @@
   {"query": "an agent merged a bad migration on friday and we lost an hour of writes, draft the writeup", "should_trigger": false, "expected": "postmortem"},
   {"query": "cursor business is 40 a seat and copilot enterprise is 39, which is cheaper at 200 seats on an annual commit", "should_trigger": false, "expected": "vendor-evaluation"},
   {"query": "my prompt keeps making it rewrite the whole file instead of the one function, how should i phrase it", "should_trigger": false},
-  {"query": "i want to build an internal assistant over our runbooks with RAG, what stack would you use", "should_trigger": false},
+  {"query": "i want to build an internal assistant over our runbooks with RAG, what stack would you use", "should_trigger": false, "expected": "rag-design"},
   {"query": "raj barely touches the tools we bought him and his output is down. how do i raise that in his review", "should_trigger": false, "expected": "growth-review"},
   {"query": "can you explain how context windows actually work, i keep hearing about them and nodding along", "should_trigger": false}
 ]

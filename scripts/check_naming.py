@@ -183,7 +183,7 @@ def file_naming_problems(paths: list[str]) -> list[str]:
 # other, so one script owns it rather than two agreeing by coincidence.
 
 _ALLOWED_BRANCH_PREFIX = "dependabot/"
-_BRANCH_TYPES = ("feat", "fix", "chore", "docs", "ci", "test")
+_BRANCH_TYPES = ("feat", "fix", "chore", "docs", "ci", "test", "release")
 # A dot is allowed only when followed by digits, so a version number in a branch —
 # bumping a pin, a language runtime, a release — reads as one, rather than as a second,
 # unwanted separator alongside the hyphen. `CONTRIBUTING.md#naming-a-branch` prints this
@@ -233,7 +233,7 @@ _FIRST_WORD_RE = re.compile(r"^([A-Za-z]+)")
 # would otherwise just as easily fail the "starts with a capital letter" rule with a less
 # specific message.
 _TYPE_PREFIX_RE = re.compile(
-    r"^(feat|fix|chore|docs|ci|test|build|perf|refactor|style|revert)(\([^)]*\))?!?:\s*",
+    r"^(feat|fix|chore|docs|ci|test|release|build|perf|refactor|style|revert)(\([^)]*\))?!?:\s*",
     re.IGNORECASE,
 )
 # Past-tense and third-person forms of the verbs a commit subject here reaches for most,

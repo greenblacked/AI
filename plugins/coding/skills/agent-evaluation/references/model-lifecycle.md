@@ -79,3 +79,6 @@ different people on three different days:
    the moment it goes live, not after the old one has already been retired.
 
 Each step hands off to the skill that owns it rather than restating its procedure here.
+Planning the move itself, from reading the provider's migration notes to the canary and the
+decision record, belongs to `model-migration`; this reference covers the evaluation and the
+retirement calendar around it.

@@ -1,6 +1,6 @@
 # Gamedev: start here
 
-The `gamedev` plugin is eleven skills, one subagent and one command. This page is the map:
+The `gamedev` plugin is thirteen skills, one subagent and one command. This page is the map:
 how to size a project so the right amount of each skill's procedure applies, how to read
 what a game type needs from the plugin, and what order to run the skills in. It does not
 repeat any skill's procedure — every line below points at the section that carries the
@@ -33,7 +33,7 @@ signal, not the team photo.
 
 ## Pick your game type
 
-The plugin has no per-genre skill; genre changes which sections of the eleven skills carry
+The plugin has no per-genre skill; genre changes which sections of the thirteen skills carry
 the risk, not which skill applies. Six types come up often enough to name directly:
 
 | Type | Where the risk sits |
@@ -72,7 +72,7 @@ unverified or blocked, with the next test that would settle it, and nothing down
 treats it as passed. `/level` carries the same rule through its stages. No subagent here plays or tests a game: `frame-capture-reader`
 reads a capture someone else recorded.
 
-`/level` runs six of the eleven skills in order for one feature or level:
+`/level` runs six of the thirteen skills in order for one feature or level:
 `game-design-doc` → `game-level-design` → `game-builder` → `game-balance` →
 `game-performance` → `game-assets`, each with a stop condition, each handing the next
 one something specific. `game-netcode` and `game-save-system` are not stages in that
@@ -89,6 +89,14 @@ guardrails that still hands each single number to `game-balance`, KPIs and a sto
 the patch-and-hotfix rhythm, and player-facing communication. It is not a stage of
 `/level` either — it runs continuously once a build has shipped, on its own calendar,
 the way `game-certification`'s does before ship.
+
+`game-playtest` and `game-localisation` are not stages in that chain either. `game-playtest`
+is how any build is put in front of players: one question per session, observation before
+questions, and a ranked change list. It hands the findings that point at a number to
+`game-balance`, which reads them as a hypothesis, and it leaves level layout to
+`game-level-design`. `game-localisation` starts when the first player-facing string is
+written, with keyed strings and a length limit, and it leaves ratings and store submission
+to `game-certification`.
 
 | Scale | How to run the chain |
 | --- | --- |

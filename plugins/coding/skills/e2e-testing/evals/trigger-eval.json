@@ -8,7 +8,7 @@
   {"query": "two of our browser tests fail when run in parallel but pass on their own", "should_trigger": true},
   {"query": "what do I do with a test that has started flaking and nobody has time to fix it", "should_trigger": true},
   {"query": "the stripe checkout page makes our end to end tests fail whenever their sandbox is slow", "should_trigger": true},
-  {"query": "I have a trace.zip from a failed run, how do I work out why the click did nothing", "should_trigger": true},
+  {"query": "our playwright screenshot comparisons pass on my laptop but fail in CI with tiny pixel differences around the text", "should_trigger": true},
 
   {"query": "what should I test for this new discount calculation function", "should_trigger": false, "expected": "test-design"},
   {"query": "is 80% coverage enough or should we be aiming higher", "should_trigger": false, "expected": "test-design"},
@@ -19,5 +19,5 @@
   {"query": "the checkout total comes out wrong for orders with two discounts and I cannot work out why", "should_trigger": false, "expected": "debugging"},
   {"query": "this crashes sometimes in production and I have been staring at it for three hours", "should_trigger": false, "expected": "debugging"},
   {"query": "build me a landing page for my consultancy with a contact form", "should_trigger": false, "expected": "website-builder"},
-  {"query": "our site takes eight seconds to load on mobile, can you make it faster", "should_trigger": false, "expected": "website-builder"}
+  {"query": "review these screenshots of our settings page at three widths and tell me what looks broken", "should_trigger": false, "expected": "visual-review"}
 ]
