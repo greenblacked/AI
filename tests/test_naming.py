@@ -179,6 +179,7 @@ def test_an_imperative_subject_passes(subject):
         "fix(scope): correct the count",
         "docs: update the guide",
         "ci!: bump the pin",
+        "Release: Promote dev to stage",
     ],
 )
 def test_a_conventional_commits_prefix_fails(subject):
@@ -259,6 +260,7 @@ def test_a_good_pull_request_title_passes(repo, capsys):
         "docs/code-of-conduct",
         "ci/dependabot-auto-merge-and-attribution",
         "test/attribution-branch-shape",
+        "release/promote-dev-to-stage",
     ],
 )
 def test_each_allowed_prefix_passes(branch):
