@@ -179,6 +179,7 @@ def test_an_imperative_subject_passes(subject):
         "fix(scope): correct the count",
         "docs: update the guide",
         "ci!: bump the pin",
+        "Release: Promote dev to stage",
     ],
 )
 def test_a_conventional_commits_prefix_fails(subject):

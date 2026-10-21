@@ -233,7 +233,7 @@ _FIRST_WORD_RE = re.compile(r"^([A-Za-z]+)")
 # would otherwise just as easily fail the "starts with a capital letter" rule with a less
 # specific message.
 _TYPE_PREFIX_RE = re.compile(
-    r"^(feat|fix|chore|docs|ci|test|build|perf|refactor|style|revert)(\([^)]*\))?!?:\s*",
+    r"^(feat|fix|chore|docs|ci|test|release|build|perf|refactor|style|revert)(\([^)]*\))?!?:\s*",
     re.IGNORECASE,
 )
 # Past-tense and third-person forms of the verbs a commit subject here reaches for most,
