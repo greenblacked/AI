@@ -2,12 +2,12 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
-  <img alt="The ten plugins: coding, operations, delivery, security, gamedev, manager, personal, career, design and family" src="docs/assets/banner-light.svg" width="100%">
+  <img alt="The eleven plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design and llm" src="docs/assets/banner-light.svg" width="100%">
 </picture>
 
 # Agent skills
 
-130 agent skills, 27 subagents and nine slash commands, in ten
+142 agent skills, 30 subagents and ten slash commands, in eleven
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-130-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-142-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -23,7 +23,7 @@ plugins you install separately.
 </div>
 
 A library of practical Markdown procedures for changing code, operating systems,
-shipping safely, reviewing design and usability, making games, leading teams, and
+shipping safely, reviewing design and usability, building on language models, making games, leading teams, and
 handling career and personal work.
 An agent loads a skill when its description matches your task; the skill supplies the
 ordering, checks and evidence to collect. This is a procedure library, not an application.
@@ -50,24 +50,25 @@ and what the runtime does or does not enforce.
 
 | Plugin | Focus | Contents |
 | --- | --- | --- |
-| [`coding`](#coding) | Reading, reviewing, testing and changing code | 24 skills, 5 subagents, 1 command |
+| [`coding`](#coding) | Reading, reviewing, testing and changing code | 26 skills, 5 subagents, 1 command |
 | [`family`](#family) | One development workflow, from a vague request to a measured outcome | 11 skills, 6 subagents, 1 command |
-| [`gamedev`](#gamedev) | Making games, and shipping them | 11 skills, 1 subagent, 1 command |
-| [`operations`](#operations) | Keeping a running system alive | 19 skills, 6 subagents, 2 commands |
+| [`gamedev`](#gamedev) | Making games, and shipping them | 13 skills, 1 subagent, 1 command |
+| [`operations`](#operations) | Keeping a running system alive | 19 skills, 7 subagents, 2 commands |
 | [`delivery`](#delivery) | Getting a change into production | 12 skills, 1 subagent |
-| [`security`](#security) | The defensive side of shipping software | 14 skills, 4 subagents, 2 commands |
+| [`security`](#security) | The defensive side of shipping software | 15 skills, 5 subagents, 2 commands |
 | [`manager`](#manager) | Engineering leadership | 16 skills, 2 subagents, 2 commands |
 | [`personal`](#personal) | Money, travel, admin, habits and health | 7 skills, 2 subagents |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 5 skills |
-| [`design`](#design) | Usability, accessibility and design systems | 11 skills |
+| [`design`](#design) | Usability, accessibility and design systems | 13 skills, 1 subagent, 1 command |
+| [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction and model migration | 5 skills |
 
-Install one plugin or all ten. Each is a self-contained directory under `plugins/` with
+Install one plugin or all eleven. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
 
 Install what you will use, though, rather than everything by reflex. Every description you
 install stays resident in context, and Claude Code's default listing budget is about 8,000
 characters against this library's total — `make validate` prints the current figure — so
-installing all ten at the default drops most of them, silently. The Install section
+installing all eleven at the default drops most of them, silently. The Install section
 below says what to set instead.
 
 ## The FAMILY workflow
@@ -111,7 +112,7 @@ if a deploy fails its check and rolls back, the previous one keeps serving.
 
 | Page | What it shows |
 | --- | --- |
-| [Home](https://ai.szolotov.com) | The ten plugins with their skill counts, and a search across plugins and skill names |
+| [Home](https://ai.szolotov.com) | The eleven plugins with their skill counts, and a search across plugins and skill names |
 | `/plugins/<plugin>/` | One page per plugin: what it covers, its install line and its skills |
 | `/plugins/<plugin>/<skill>/` | One page per skill: its description, install line and allowed tools when it declares them, the full procedure, its reference files, and the requests it fires on and hands elsewhere |
 | [FAMILY](https://ai.szolotov.com/family/) | The one page that is not generated from a plugin's own files: the Frame–Architect–Make–Inspect–Launch–Yield workflow, drawn as a stage-by-stage guide with the four profiles |
@@ -166,7 +167,7 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`career` and `personal` fit the default budget on their own. The other eight are over it —
+`career`, `llm` and `personal` fit the default budget on their own. The other eight are over it —
 each by enough that installed alone at least one of its descriptions is dropped — and the
 split exists to keep that number as small as it can be.
 
@@ -177,7 +178,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.123 }
+{ "skillListingBudgetFraction": 0.134 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -250,7 +251,9 @@ make portable       # writes dist/portable/
 Either way: upload the `plugins/*.md` bundles to a ChatGPT Project or a Custom GPT, paste
 a single `skills/<name>.md` into any chat, or paste `router.md` — or one narrower
 `router-<plugin>.md` — into the `AGENTS.md` of the repository a terminal agent is working
-in, with `skills/` copied in beside it. [Using the skills](docs/using.md) has the
+in, with `skills/` copied in beside it. Once the catalogue outgrows the router's size
+budget, `router.md` is an index of the `router-<plugin>.md` files rather than the
+combined router, so paste the plugin files you want. [Using the skills](docs/using.md) has the
 instruction text that makes a Project reach for them, why a terminal agent gets the
 router rather than a bundle, and says plainly what does not survive the trip.
 
@@ -336,6 +339,7 @@ Reading, reviewing, testing and changing code.
 | [`agent-instructions`](plugins/coding/skills/agent-instructions/SKILL.md) | Write or repair a repository's AGENTS.md, and a CLAUDE.md that imports it: run the real commands first and keep only what was executed, keep the entry file short with pointers to topic files, give every rule its reason and its enforcer, measure size in bytes, and pass only when a fresh session answers five fixed questions correctly. |
 | [`agent-orchestration`](plugins/coding/skills/agent-orchestration/SKILL.md) | Coordinate a live team of agents: split independent ownership, schedule within the concurrency limit, track progress, resolve blockers and synthesise the results. |
 | [`api-design`](plugins/coding/skills/api-design/SKILL.md) | Design an interface that can still be changed after other people depend on it — compatibility rules, error structure, pagination, and deprecation with usage telemetry. |
+| [`architecture-diagrams`](plugins/coding/skills/architecture-diagrams/SKILL.md) | Draw architecture, sequence and flow diagrams as code that renders where it will be read: the tool chosen by target surface, one C4 level per diagram under a node cap, quoted labels, a render that fails the build on a non-zero exit, and source kept beside the output. |
 | [`application-caching`](plugins/coding/skills/application-caching/SKILL.md) | Design a runtime data cache from its correctness contract: define authority and allowed staleness, make keys preserve isolation, close stale-fill races, control miss load and outage fallback, then roll out against measured safety gates. |
 | [`code-review`](plugins/coding/skills/code-review/SKILL.md) | Review a change in a fixed order — the claim, the error path, concurrency, hostile input — finishing correctness before the first style comment, with a severity on every finding and coverage declared rather than implied. |
 | [`code-scaffold`](plugins/coding/skills/code-scaffold/SKILL.md) | Write new code that survives a 3am cron run: strict error handling, meaningful exit codes, structured logging, validated input, idempotent re-runs. |
@@ -343,6 +347,7 @@ Reading, reviewing, testing and changing code.
 | [`debugging`](plugins/coding/skills/debugging/SKILL.md) | Drive a failure down to a proven cause before changing any code: reproduce it, reduce it, one falsifiable hypothesis at a time, and prove the fix by turning the failure off and on again. |
 | [`dependency-upgrade`](plugins/coding/skills/dependency-upgrade/SKILL.md) | Move onto a new major version without a branch that never lands: deprecation warnings first, one dependency per change, and the uncovered surface named. |
 | [`e2e-testing`](plugins/coding/skills/e2e-testing/SKILL.md) | Keep a browser suite trustworthy instead of rerun until green: measure each test's real flake rate first, locate by role and accessible name, wait on state rather than a sleep or network idle, authenticate once, and prove a repaired test can still fail. |
+| [`feature-spec`](plugins/coding/skills/feature-spec/SKILL.md) | Turn a loose feature request into a written spec and a checkpointed task plan before any code exists: one question at a time, explicit non-goals, acceptance criteria phrased as checks, two or three approaches compared, and tasks small enough to verify with the riskiest first. |
 | [`new-skill`](plugins/coding/skills/new-skill/SKILL.md) | Author a skill that actually fires: decide whether it deserves to exist, write the body before the description, and build the eval set from the neighbouring skills it has to beat. |
 | [`profiling`](plugins/coding/skills/profiling/SKILL.md) | Make slow application code fast or prove it cannot be: rule out the database and the network first, sample the real process under load, read self time and call paths rather than the function that feels slow, and prove each change against measured variance. |
 | [`refactoring`](plugins/coding/skills/refactoring/SKILL.md) | Restructure without changing behaviour, in steps each provably safe: a characterisation test before touching code nobody understands, one kind of change per commit, and a proof at the end. |
@@ -380,15 +385,17 @@ through this plugin's skills by production scale and game type.
 | --- | --- |
 | [`game-greenlight`](plugins/gamedev/skills/game-greenlight/SKILL.md) | Turn a game concept into a chosen idea before any design document exists: a one-page pitch, a feasibility read against team, time, money, platform and technical risk, a risk register naming the one riskiest assumption, and go, no-go and pivot criteria written before the prototype exists to argue for itself. |
 | [`game-assets`](plugins/gamedev/skills/game-assets/SKILL.md) | Get art and audio into the build without it eating the disk, the memory or the download — source kept out of the import path, large binaries behind LFS before the history is too big, and per-platform texture compression chosen rather than defaulted. |
-| [`game-balance`](plugins/gamedev/skills/game-balance/SKILL.md) | Tune a game's numbers against evidence rather than taste: decide what balanced means for this game first, read pick rate against win rate by skill band, change one thing with a window, and run playtests where you watch instead of asking. |
+| [`game-balance`](plugins/gamedev/skills/game-balance/SKILL.md) | Tune a game's numbers against evidence rather than taste: decide what balanced means for this game first, read pick rate against win rate by skill band, change one thing with a window, and carry what a playtest shows into the numbers as a hypothesis. |
 | [`game-builder`](plugins/gamedev/skills/game-builder/SKILL.md) | Build a playable game scaled to the brief — core loop first in grey boxes, then a game-feel floor tuned against numbers — or review one that exists for feel, frame time and structure. |
 | [`game-design-doc`](plugins/gamedev/skills/game-design-doc/SKILL.md) | Turn a game idea or a design conversation into a feature specification the whole team can build from: out of scope before scope, every statement marked as a decision, an assumption, a recommendation or an open question, and acceptance criteria a stranger can fail. |
 | [`game-level-design`](plugins/gamedev/skills/game-level-design/SKILL.md) | Lay out a level as a space: player metrics fixed before any geometry so every dimension derives from them, pacing charted as explore, combat, choreo and puzzle beats with no category repeating, and wayfinding cues built into the blockmesh and playtested there rather than asserted after art. |
+| [`game-localisation`](plugins/gamedev/skills/game-localisation/SKILL.md) | Take a game from one language to many without shipping broken text: keyed strings with translator notes and length limits, pseudo-localisation early, plurals through ICU MessageFormat, fonts and right-to-left planned per script, and linguistic QA in context with a bug taxonomy. |
 | [`game-netcode`](plugins/gamedev/skills/game-netcode/SKILL.md) | Choose a multiplayer authority model from genre and player count, then hide latency with prediction, reconciliation and interpolation — and treat anything the client is authoritative over as a thing the client can lie about. |
 | [`game-certification`](plugins/gamedev/skills/game-certification/SKILL.md) | Clear platform certification and store submission on the first try: work backwards from the release date to a content lock, run the checks that can fail cert before the ones that only polish, and declare ratings and data collection against what the build actually does. |
 | [`game-save-system`](plugins/gamedev/skills/game-save-system/SKILL.md) | Name the compatibility promise before the format — how many builds back a save must load — then version the schema, migrate one step per bump, write atomically so an interrupted save is not a corrupt one, and settle cloud conflicts by lineage rather than by timestamp. |
 | [`game-performance`](plugins/gamedev/skills/game-performance/SKILL.md) | Hold a frame budget on the hardware you ship to: milliseconds not FPS, captured from a real build on the device, judged at the 1% low, and CPU-bound proved against GPU-bound before a single optimisation. |
 | [`game-live-ops`](plugins/gamedev/skills/game-live-ops/SKILL.md) | Run a game after launch: a content and season calendar planned ahead rather than assembled week to week, economy tuning scheduled with guardrails, KPIs and a stop rule chosen before the season starts, a patch-and-hotfix rhythm, and community communication that keeps the roadmap honest. |
+| [`game-playtest`](plugins/gamedev/skills/game-playtest/SKILL.md) | Run a playtest so it ends in decisions rather than opinions: one question per session, the target player instead of friends, silent observation before asking, a short survey on fixed scales, bugs kept apart from design findings, and a ranked change list with the measurement that would show each fix worked. |
 
 ### Operations
 
@@ -442,6 +449,7 @@ The defensive side of shipping software.
 | Skill | What it does |
 | --- | --- |
 | [`access-review`](plugins/security/skills/access-review/SKILL.md) | Reduce who and what can do what toward least privilege without breaking production: evidence over intent, and an audit-only window before enforcement. |
+| [`agent-extension-audit`](plugins/security/skills/agent-extension-audit/SKILL.md) | Vet a third-party skill, plugin, hook, MCP server or slash command before installing it: fetch to quarantine without running anything, read every executable file, list declared and effective permissions, then install, restrict or reject and record the pinned commit and hash. |
 | [`agent-security-review`](plugins/security/skills/agent-security-review/SKILL.md) | Review an agent from untrusted content to privileged effect: trace provenance into tool arguments, enforce authorization and tenant scope at execution, bind approval to the exact action, constrain capabilities and prove deny paths with inert tests. |
 | [`auth-design`](plugins/security/skills/auth-design/SKILL.md) | Design or review how a system proves who a caller is and keeps that proof safe: whether to build identity at all, the flow that fits each client type, session rotation on every privilege change, and where a token's claims can be trusted. |
 | [`authorization-design`](plugins/security/skills/authorization-design/SKILL.md) | Design application permissions around trusted subject, tenant and resource facts, with default-deny policy, server-side enforcement on every path, bounded revocation latency and tests for allowed actions and tenant boundaries. |
@@ -512,6 +520,7 @@ Usability, accessibility and design systems, and the words, structure and handof
 | Skill | What it does |
 | --- | --- |
 | [`accessibility-audit`](plugins/design/skills/accessibility-audit/SKILL.md) | Audit a page, flow or component against WCAG 2.2 Level AA: the automated tools first because they are cheap, then the manual pass they cannot do, with every finding tied to a success criterion, a severity and a fix. |
+| [`data-visualisation`](plugins/design/skills/data-visualisation/SKILL.md) | Turn data into a chart that is correct and readable in any medium: the chart chosen from the question, bars on a zero baseline, no dual axes or 3D, a colour-blind-safe palette that holds contrast on light and dark, direct labels, a text alternative with the data table, and a re-read of the rendered image against the data. |
 | [`content-design`](plugins/design/skills/content-design/SKILL.md) | Write and review the words in an interface: every label naming the user's action, every error saying what happened and what to do, empty and loading states designed rather than left blank, and a voice that holds while the tone shifts by moment. |
 | [`design-handoff`](plugins/design/skills/design-handoff/SKILL.md) | Turn an approved design into a buildable spec: every state and edge case, content extremes, responsive behaviour, token and component mapping, accessibility annotations and acceptance criteria an engineer can check against. |
 | [`design-system`](plugins/design/skills/design-system/SKILL.md) | Set up design tokens named by role, themes that redefine the same roles, and component states derived from them, with a contrast check of every role pair in every theme and a rule for where glass materials belong. |
@@ -520,12 +529,25 @@ Usability, accessibility and design systems, and the words, structure and handof
 | [`ui-ux-review`](plugins/design/skills/ui-ux-review/SKILL.md) | Review one screen or flow against usability heuristics: evidence first, the primary task before polish, every interaction state walked, and each finding written as a problem, a consequence, the smallest fix and a severity from 0 to 4. |
 | [`usability-test-plan`](plugins/design/skills/usability-test-plan/SKILL.md) | Plan and run a small test with real people: a question tied to a decision, about five participants a round, neutral tasks, think-aloud, task success and SUS, and severity-rated fixes before the next round. |
 | [`visual-design`](plugins/design/skills/visual-design/SKILL.md) | Review or set a screen's visual design: the hierarchy that tells the eye where to go, a type scale, colour roles and a spacing scale, alignment, and the one action that is unambiguously primary. |
+| [`visual-review`](plugins/design/skills/visual-review/SKILL.md) | Review a rendered web UI from screenshots without trusting a vision model for what code can measure: a pinned environment, a viewport and theme matrix, a pixel diff, contrast, overflow and DOM checks, then native-resolution crops with every finding tied to a selector and box or labelled unverified. |
 | [`responsive-design`](plugins/design/skills/responsive-design/SKILL.md) | Make a layout work from 320 px up: breakpoints chosen from where the content breaks, reflow that changes arrangement and never availability, thumb-sized targets, and the widths to verify. |
 | [`form-design`](plugins/design/skills/form-design/SKILL.md) | Design a form people finish: cut the fields, label every one, validate after input rather than on every keystroke, put errors with the field and say how to fix them, and keep the form keyboard-operable. |
 
+### LLM
+
+Building features on language models, and the checks that keep them honest.
+
+| Skill | What it does |
+| --- | --- |
+| [`rag-design`](plugins/llm/skills/rag-design/SKILL.md) | Design a retrieval-augmented generation pipeline you can show retrieves the right passages: a small labelled eval before any tuning, retrieval scored apart from answer faithfulness, structure-aware chunking with citable source ids, hybrid search, reranking, permission filtering inside the query, and refusal when retrieval is weak. |
+| [`structured-output`](plugins/llm/skills/structured-output/SKILL.md) | Get machine-readable output from a model that a program can trust: the schema as the contract, the provider's native structured or strict tool mode rather than prompt-only instructions, validation in code, a bounded repair loop that fails closed, and fixtures of real failures. |
+| [`mcp-server-design`](plugins/llm/skills/mcp-server-design/SKILL.md) | Build, test and secure a Model Context Protocol server: a few task-shaped tools written for the model, strict schemas, recoverable failures returned as `isError` results, stdio or Streamable HTTP with Origin checks and audience-validated OAuth, and a `tools/list` snapshot test. |
+| [`document-extraction`](plugins/llm/skills/document-extraction/SKILL.md) | Extract structured data from receipts, invoices, forms, tables, charts and scans with a vision model or OCR, and prove the values are right: triage text layer against pixels, source region and confidence per field, arithmetic cross-checks, a second independent extraction and a human for numeric disagreements. |
+| [`model-migration`](plugins/llm/skills/model-migration/SKILL.md) | Move an LLM-powered feature to a different model or version without a silent regression: the provider's behaviour changes listed against your requests, a frozen baseline from repeated runs, case-by-case output diffs, cost and latency compared per request, shadow then canary with a rollback trigger, and a decision record. |
+
 ## Subagents
 
-27 subagents ship across eight plugins. Each exists to keep bulk out of the main context
+30 subagents ship across nine plugins. Each exists to keep bulk out of the main context
 — the input is a log, a plan, a billing export, a contract, a pile of feedback, a release
 range, and the answer is short — and to be denied the tools it should not have. A reviewer
 that can apply is not a reviewer.
@@ -536,12 +558,15 @@ that can apply is not a reviewer.
 | `telemetry-reader` | `operations` | Traces and structured logs | The critical path, or why the data cannot answer |
 | `k8s-evidence-reader` | `operations` | Captured Kubernetes evidence | Up to five capture-time evidence chains, with contradictions and missing evidence |
 | `frame-capture-reader` | `gamedev` | A profiler capture or frame trace | CPU-bound or GPU-bound with the numbers, or what to capture instead |
+| `screenshot-reader` | `design` | One or more screenshots of a UI | Findings by file and region, with what the image cannot show listed for measurement in code |
 | `cost-analyst` | `operations` | A cloud billing export | The top movers period over period, not the top spenders |
 | `incident-scribe` | `operations` | Raw triage notes and scrollback | A blameless postmortem draft |
 | `page-history-reader` | `operations` | A quarter of pager or alert history | Per-rule fires, action rate, off-hours share and a suggested keep/tighten/demote/delete bucket |
+| `llm-trace-reader` | `operations` | An LLM usage or trace export | Cost and latency hotspots by feature, prompt path, model and user, with spend-cap 429s kept apart from rate-limit 429s |
 | `plan-reviewer` | `security` | A Terraform plan JSON | The blast radius, destroys first |
 | `policy-auditor` | `security` | IAM policies and access logs | The gap between permitted and used, with the window stated |
 | `pii-reader` | `security` | A schema dump, a row sample or a log excerpt | Which fields carry personal data, their class and where they flow |
+| `extension-reader` | `security` | A third-party agent extension in a quarantine directory | What executes automatically, permissions, text aimed at the model quoted as data, and risk findings anchored to file and line |
 | `supply-chain-exposure-reader` | `security` | Lockfile git history and CI run logs across many repositories | Every repository and run that resolved or executed a bad package or action, with the secrets each could reach |
 | `skill-reviewer` | `coding` | A candidate SKILL.md | What is wrong, why it costs something, the smallest fix |
 | `change-impact-reader` | `coding` | A diff and matching repository snapshots | Up to five impact chains, their evidence and unresolved boundaries |
@@ -598,6 +623,7 @@ Each does the mechanical part and points at the skill holding the full procedure
 | `/ci-fail` | `operations` | Classify a failing run from annotations and failed-step logs, after checking whether the default branch is red too. |
 | `/oncall-handover` | `operations` | Draft a handover from pages, deploys and anything left mid-flight, with the fragile mitigations first. |
 | `/level` | `gamedev` | Run a level or feature through spec, layout, grey-box, tuning, frame budget and build size, with a gate between each stage. |
+| `/visual-review` | `design` | Review a rendered page from screenshots: pin the render, capture a viewport and theme matrix, diff against an optional baseline, run the code checks, then have `screenshot-reader` read crops and report measured and unverified findings separately. |
 | `/agent-diff-audit` | `coding` | Run mechanical detectors for shrunk test counts, newly silenced checks and invented dependencies over an agent-written diff, then hand the flagged list to code-review. |
 | `/blast-radius` | `security` | Read a Terraform plan as JSON and report destroys first, with the attribute forcing each replacement. |
 | `/image-audit` | `security` | Audit a built image for secrets in layers, root execution, base currency and a gate that will not get bypassed. |
@@ -680,7 +706,7 @@ skill that fires on everything.
 - [Using the skills](docs/using.md) — installing and using them in Claude Code, ChatGPT, Grok and terminal agents
 - [The repository workflow in ChatGPT](docs/chatgpt-agents.md) — adapted coordinator and role prompts for the survey, write and review loop, and where actual delegation depends on the session's tools
 - [DeepSeek via OpenRouter](docs/deepseek.md) — routing Claude Code to a DeepSeek model through OpenRouter, and what that costs you
-- [Gamedev: start here](docs/gamedev.md) — picking a production scale and a game type, and the route through the eleven gamedev skills
+- [Gamedev: start here](docs/gamedev.md) — picking a production scale and a game type, and the route through the thirteen gamedev skills
 - [Project structure](docs/project-structure.md) — what Claude Code loads from a project, what it loads only when relevant, and what is only a convention
 - [Writing a skill](docs/writing-skills.md) — the contract, every validator code, and how to write a description that actually triggers
 - [Writing a subagent](docs/writing-agents.md) — when a subagent beats doing the work inline

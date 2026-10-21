@@ -1324,7 +1324,7 @@ MOTION_CSS = """
 # the plugin's name in large capitals, one span per letter coloured from a palette that
 # cycles, and a slim accent bar on each skill row in the same cycle. What differs is the
 # palette and one entrance, chosen to fit what the plugin is for. All of it lives in this
-# one table; the CSS is generated from it so nine plugins do not mean nine copies of the
+# one table; the CSS is generated from it so ten plugins do not mean ten copies of the
 # sizing, colour-cycling and accent-bar rules.
 #
 # Colours are held to 4.5:1 against the page: day values against --bg in day (#f4f1ea),
@@ -1538,6 +1538,21 @@ html:not([data-theme="reactor"]) %P .plugin-word {
   to { opacity: 1; transform: none; }
 }""",
     ),
+    # A token being sampled: each letter flickers up out of a blur and settles sharp.
+    "llm": PluginLook(
+        day=("#0369a1", "#7e22ce", "#047857"),
+        night=("#38bdf8", "#c084fc", "#34d399"),
+        width=0.68,
+        rules="%P .pl { animation: pw-llm-sample 0.7s ease-out calc(var(--i) * 0.2s) backwards; }",
+        keyframes="""\
+@keyframes pw-llm-sample {
+  0% { opacity: 0; filter: blur(0.3em); }
+  30% { opacity: 0.7; filter: blur(0.18em); }
+  45% { opacity: 0.25; filter: blur(0.12em); }
+  70% { opacity: 0.9; filter: blur(0.05em); }
+  100% { opacity: 1; filter: none; }
+}""",
+    ),
 }
 
 # The shared frame. `--c` is the colour a letter or a row takes from the cycle.
@@ -1628,9 +1643,43 @@ def _plugin_css() -> str:
     )
 
 
+# The routing graph on a plugin page (see site_graph). `--rg` is the colour of its lines
+# and borders: the plugin's first look colour where it has one, so the drawing follows the
+# day, night and console palettes without an inline style. The drawing is hidden below
+# 40rem and the list beside it carries the page, because a scaled-down label is unreadable.
+GRAPH_CSS = """\
+.rg { --rg: var(--ink); margin-top: 3rem; }
+.rg-title { font-size: 1.5rem; line-height: 1.2; font-weight: 500; letter-spacing: -0.02em; }
+.rg-note { max-width: 42rem; margin-top: 0.5rem; color: var(--muted); }
+.rg-map { display: none; margin-top: 1.5rem; }
+.rg-svg { max-width: 100%; height: auto; }
+.rg-edge { fill: none; stroke: var(--rg); stroke-width: 1.5; }
+.rg-head { fill: var(--rg); }
+.rg-node { fill: var(--card); stroke: var(--rg); stroke-width: 1.5; }
+.rg-agent .rg-node { stroke-dasharray: 5 3; }
+.rg-text { fill: var(--ink); font: 13px var(--font-mono); }
+.rg-label { fill: var(--muted); font: 600 12px var(--font-sans); letter-spacing: 0.04em; }
+.rg-list { display: grid; gap: 0.5rem; margin-top: 1.5rem; }
+.rg-list a { text-decoration: underline; text-underline-offset: 4px; }
+.rg-list code { font-size: 0.9375rem; }
+@media (min-width: 40rem) {
+  .rg-map { display: block; }
+}
+"""
+
+
+def _graph_css() -> str:
+    """The graph rules, then one line per look binding `--rg` to that plugin's colour."""
+    colours = "\n".join(
+        f".{plugin_class(name)} .rg {{ --rg: var(--{name}-1); }}" for name in PLUGIN_LOOKS
+    )
+    return GRAPH_CSS + colours + "\n"
+
+
 CSS = (
     CSS.replace("@@PROFILE_RULES@@", _profile_rules()).replace("@@FONT_FACES@@", FONT_FACES.strip())
     + _plugin_css()
+    + _graph_css()
     + MOTION_CSS
 )
 

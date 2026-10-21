@@ -1,6 +1,6 @@
 ---
 name: game-balance
-description: "Tune a game's numbers against evidence rather than taste, and run playtests that produce signal. Names what balanced means for this game before changing anything — near-equal win rates for a symmetric competitive game, a rising difficulty curve for a single-player one, a spread of viable builds for a roguelike — then instruments win rate by skill band, pick rate against win rate, time-to-kill and where players stop, checks the sample is big enough to act on, kills dominant strategies with a cost curve, and ships one change per patch with a window to read it. Use this skill whenever someone says a weapon, unit, deck, class or build is overpowered or useless, asks whether a difficulty curve is right, wants win-rate or pick-rate numbers interpreted, or is running a playtest. Not for building a game or tuning its feel, its frame budget, its netcode, or server capacity."
+description: "Tune a game's numbers against evidence rather than taste. Names what balanced means for this game before changing anything — near-equal win rates for a symmetric competitive game, a rising difficulty curve for a single-player one, a spread of viable builds for a roguelike — then instruments win rate by skill band, pick rate against win rate, time-to-kill and where players stop, checks the sample is big enough to act on, kills dominant strategies with a cost curve, and ships one change per patch with a window to read it. Use whenever someone says a weapon, unit, deck, class or build is overpowered or useless, asks whether a difficulty curve is right, wants win-rate or pick-rate numbers interpreted, or has playtest findings that point at a number. Not for running a playtest session (game-playtest), building a game or tuning its feel, its frame budget, its netcode, or server capacity."
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash(python3:*)
 ---
 
@@ -12,9 +12,9 @@ Balance is a measurement problem before it is a design problem, and almost every
 
 ## Scope
 
-Use for: deciding what balanced means for a specific game, designing the telemetry that would show it, reading win-rate and pick-rate data, sizing and sequencing balance changes, difficulty and economy curves, dominant-strategy and dead-content checks, and running playtests that produce evidence rather than opinions.
+Use for: deciding what balanced means for a specific game, designing the telemetry that would show it, reading win-rate and pick-rate data, sizing and sequencing balance changes, difficulty and economy curves, dominant-strategy and dead-content checks, and turning playtest findings into a hypothesis about a number.
 
-Do not use for: building a game or a prototype, or tuning how it feels to control — that is `game-builder`. Frame budget and performance, netcode and latency, and server-side capacity or telemetry are each someone else's job; a 200 ms hit that does not register is a netcode problem no damage number fixes.
+Do not use for: running a playtest session — recruiting, room set-up, what to record, surveys and triaging what testers found — that is `game-playtest`, which hands this skill the findings that point at a number. Building a game or a prototype, or tuning how it feels to control, is `game-builder`. Frame budget and performance, netcode and latency, and server-side capacity or telemetry are each someone else's job; a 200 ms hit that does not register is a netcode problem no damage number fixes.
 
 ## Scale and game type
 
@@ -23,10 +23,10 @@ Scale here means what the work requires rather than a headcount or a budget: ind
 | | Indie/A | AA | AAA |
 | --- | --- | --- | --- |
 | Telemetry (step 2) | Often none yet — the honest deliverable is the event schema, not a nerf | Telemetry exists, and the sample sizes in step 3's table are reachable within weeks | Telemetry at the scale step 3 assumes, across skill bands at once |
-| Playtesting (step 6) | Five testers, run by the person tuning the numbers | A scheduled playtest with recruited testers | First-session and retention tests run separately, across multiple builds |
+| Playtest evidence (step 6) | Findings from a handful of sessions, read by the person tuning the numbers | Findings from scheduled sessions with recruited testers | Findings from first-session and retention tests, run separately across builds |
 | Change cadence (step 5) | One change, played immediately, no formal patch process | One change per patch, on a publisher's cadence | One change per patch, coordinated across a live-service calendar with a written prediction |
 
-Mobile F2P and competitive multiplayer or live-service games are where this skill carries the most weight: the economy corridor and the per-skill-band win rate in step 1's table are what those genres are built to be measured by. Single-player and narrative games use the difficulty-curve row instead. Before a game has the volume step 3 needs, step 4's dominance check — arithmetic on the design, doable before a single match is played — is the honest pre-volume answer; step 6's playtests find comprehension problems, not balance ones.
+Mobile F2P and competitive multiplayer or live-service games are where this skill carries the most weight: the economy corridor and the per-skill-band win rate in step 1's table are what those genres are built to be measured by. Single-player and narrative games use the difficulty-curve row instead. Before a game has the volume step 3 needs, step 4's dominance check — arithmetic on the design, doable before a single match is played — is the honest pre-volume answer; playtest findings (step 6) point at comprehension problems and candidate numbers, not at balance results.
 
 ## Workflow
 
@@ -112,17 +112,15 @@ Then give it a window. Discard the first days after release — novelty inflates
 
 Decide the nerf-or-buff policy once and hold it. Buffing everything around an outlier reads as generous and compounds into power creep, shorter time-to-kill and a harder game to balance every season. Nerfing the outlier holds the ceiling and annoys precisely the players who liked it. Both are defensible; alternating between them without a policy is not.
 
-### 6. Playtest for what telemetry cannot see
+### 6. Take playtest evidence into the numbers
 
-Telemetry says what happened and never why. The player who stopped at level four is a number; the reason they stopped is a thing you have to watch someone do.
+Telemetry says what happened and never why. The player who stopped at level four is a number; the reason they stopped is something a playtest session shows. Running that session is `game-playtest`'s job: it owns the question, the recruiting, the silence rule, the survey and the triage into bugs and design findings. This step starts when its findings arrive and some of them point at a number.
 
-Watch, do not ask. What players say they want and what they do diverge, reliably and in a known direction: they ask for the thing that just killed them to be weaker, and they report the parts they remember rather than the parts that decided the session. The protocol is in `references/playtesting.md` — read it before scheduling a session, because the recruiting and the room setup are decided in advance and cannot be fixed afterwards.
+Sort each finding by what it implicates before touching a value. A tester who dies five times to an encounter because they never noticed the shield recharges has found a comprehension problem, and no health value fixes it; send it back to `game-playtest`'s ranked change list. A tester who understood the encounter and still could not clear it in a reasonable number of attempts has found a candidate number. Take the complaint and discard the fix they propose: "make the boss weaker" reports that the fight was frustrating, and the cause may be telegraphing or the camera rather than health.
 
-The short version: sit beside and slightly behind, out of their eyeline. Say nothing while they play, including when they are stuck and especially when they ask a question — the game will not be there to answer it either. Record time to first input, time to first death, time to the moment they visibly understand, every question asked aloud, and every point where they did something the design did not anticipate. Afterwards, ask what they were trying to do at a specific moment and what they expected to happen, not whether they enjoyed it or what should be added.
+Treat that candidate as a hypothesis for steps 2 to 4, not a result. Six people over two hours cannot separate a 55 per cent win rate from a coin, so a playtest can name which number to look at and cannot size the change. Where telemetry exists, read it for the encounter the testers named. Where it does not, the dominance check in step 4 and an attempt count per tester are the honest evidence, and the first deliverable is still the event schema from step 2.
 
-A first-session test and a retention test are different instruments. The first measures comprehension and hook, takes one sitting, and burns the tester — nobody has a first session twice. The second measures whether the loop survives repetition, needs days rather than hours, and its only honest metric is whether they came back unprompted.
-
-Five testers find most comprehension problems. No number of testers you can fit in a room finds a balance problem; that is what step 2 is for.
+Read `references/playtest-evidence.md` for how to carry a finding into a hypothesis and what playtest evidence cannot establish.
 
 ### 7. Write the decision down
 
@@ -156,12 +154,12 @@ The result line is the one that compounds. A balance team that fills it in has a
 
 **Reading the first weekend.** Novelty moves every metric in a known direction for a few days. A patch read on day one is read on the least representative data the patch will ever produce.
 
-**Balancing a game nobody has played enough.** Before there is volume, the honest work is dominance checks and comprehension playtests. A win rate over internal testing is forty matches of noise with a spreadsheet around it.
+**Balancing a game nobody has played enough.** Before there is volume, the honest work is dominance checks and, from `game-playtest`, comprehension findings. A win rate over internal testing is forty matches of noise with a spreadsheet around it.
 
 **Asking players what to change.** Players are expert witnesses to their own experience and poor designers of the fix. "This feels unfair" is data; "reduce its damage by 15" is not.
 
 ## References
 
 - `references/telemetry.md` — read at step 2 and step 3: the event schema, the metric definitions, the two-axis read in full, skill bands, and the traps that make an honest number wrong.
-- `references/playtesting.md` — read before scheduling a session: recruiting, room setup, the silence rule, what to record, the questions worth asking afterwards, and the first-session versus retention distinction.
+- `references/playtest-evidence.md` — read at step 6: sorting playtest findings into comprehension problems and candidate numbers, how to carry one into a hypothesis, and what a handful of sessions cannot establish.
 - `references/cost-curves.md` — read at step 4 before proposing a cost or power change: fitting the curve, the vanilla test, dominance and role checks, and why cheap options win by default.
