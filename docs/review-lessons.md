@@ -1010,7 +1010,7 @@ option that runs a command: `tar --checkpoint-action`, `rg --pre`, `find -exec`.
 readers that take an output path: `pdftotext in.pdf out`, `tesseract in out`,
 `pdfimages`, `dot -o`, `unzip -d`, `git log --output`, `file -C`, as well as the `Write`
 and `Edit` tools themselves. The prose usually says to treat the input as data, which no
-tool boundary enforces. Codex security review flagged the class ten times in one batch,
+tool boundary enforces. The automated security reviewer flagged the class ten times in one batch,
 one skill and one tool at a time, before it was fixed across every new skill and command
 at once.
 
@@ -1026,5 +1026,5 @@ notices an interpreter added to a skill that reads scanned documents.
 
 The class also reaches a skill whose own input is trusted once it starts handing work to a reader of third-party text: the reader's report comes back into that skill's turn, with whatever the skill pre-approves. Check `allowed-tools` on the receiving side of every new handoff, as `llm-cost` needed when it began delegating exports to `llm-trace-reader`.
 
-**First caught:** Codex security review of the AI skills batch, on `agent-extension-audit`,
+**First caught:** #255, the automated security reviewer, on `agent-extension-audit`,
 `document-extraction` and `data-visualisation`.
