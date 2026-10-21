@@ -158,6 +158,8 @@ def _live_tags(page):
         ("script", site.site_style.HEAD_SCRIPT.strip()),
         ("script", site.site_style.PAGE_SCRIPT.strip()),
         ("script", site.site_style.FAMILY_SCRIPT.strip()),
+        ("style", site.site_pricing.STYLE.strip()),
+        ("script", site.site_pricing.SCRIPT.strip()),
         ("script", site.site_offline.REGISTER_SCRIPT.strip()),
         # The offline page's own style and script, which no other page carries.
         ("style", site.site_offline.OFFLINE_CSS.strip()),
@@ -202,6 +204,7 @@ BACK = '<a class="back" href="{}" data-back>' + site.BACK_ICON + "<span>Back</sp
         ("workflows/index.html", "/"),
         ("examples/index.html", "/"),
         ("quality/index.html", "/"),
+        ("pricing/index.html", "/"),
         ("404.html", "/"),
     ],
 )
@@ -629,6 +632,7 @@ def test_every_page_is_written_beside_the_archives(mini_repo, tmp_path):
         "workflows/index.html",
         "examples/index.html",
         "quality/index.html",
+        "pricing/index.html",
         "plugins/engineering/index.html",
         "plugins/engineering/alpha/index.html",
         "plugins/engineering/beta/index.html",
@@ -663,6 +667,7 @@ def test_navigation_is_root_relative_and_marks_the_current_page(mini_repo, tmp_p
         "/workflows/",
         "/examples/",
         "/quality/",
+        "/pricing/",
         "/portable-skills.zip",
     ):
         assert f'href="{href}"' in footer
@@ -1153,7 +1158,7 @@ def test_the_real_repository_builds_every_page_and_renders_every_markdown_source
     plugins = list((REPO / "plugins").glob("*/skills"))
     # The index, family, its example, start, workflows, examples, quality and offline; then
     # a page per skill and per plugin, except family, whose page is /family/ and not its own.
-    assert len(pages) == len(skills) + len(plugins) - 1 + 8
+    assert len(pages) == len(skills) + len(plugins) - 1 + 9
     assert not (output / "plugins" / "family" / "index.html").exists()
     assert (output / "plugins" / "family" / "family-workflow" / "index.html").is_file()
     for page in pages:
@@ -2304,6 +2309,7 @@ def test_the_404_embeds_every_real_page_for_its_suggestions(mini_repo, tmp_path)
         "/workflows/",
         "/examples/",
         "/quality/",
+        "/pricing/",
         "/plugins/engineering/",
         "/plugins/engineering/alpha/",
         "/plugins/engineering/beta/",
@@ -2634,3 +2640,42 @@ def test_every_page_registers_the_worker_after_load_and_the_error_pages_do_not(m
     for path in errors:
         text = path.read_text(encoding="utf-8")
         assert "serviceWorker" not in text and "sw.js" not in text, path
+
+
+def test_pricing_calculator_has_selectable_plans_and_unambiguous_defaults(mini_repo, tmp_path):
+    page = (_build(mini_repo, tmp_path) / "pricing" / "index.html").read_text(encoding="utf-8")
+    assert "<title>AI subscription pricing · AI</title>" in page
+    assert 'href="/pricing/" aria-current="page"' in page
+    assert BACK.format("/") in page
+    assert _live_tags(page) <= SAFE_TAGS
+    assert len(re.findall(r'data-price-plan="[^"]+"', page)) == 5
+    assert 'id="price-monthly">$200<' in page
+    assert 'id="price-yearly">$2,400<' in page
+    for amount in (20, 100, 200, 500):
+        assert f'value="{amount}"' in page
+    assert "Pro 500" in page
+    assert "Go · $8" in page
+    assert "The X Subscription" in page
+    # The X Subscription's own pricing page bundles Grok, Cursor and X in one plan.
+    assert "Grok, Cursor and X in one plan" in page
+    # One radio group per plan, with exactly the default checked, so the static
+    # totals match what a visitor sees before any script runs.
+    assert page.count("<fieldset data-price-plan=") == 5
+    assert page.count(" checked>") == 5
+    assert "Google Gemini" in page
+    # Every Google AI paid tier the subscriptions page lists, so any subscriber's
+    # plan can be chosen.
+    for label, amount in (("AI Plus", 4.99), ("AI Pro", 19.99), ("AI Ultra 5x", 99.99)):
+        assert f"{label} · ${amount}" in page
+    assert "AI Ultra 20x · $199.99" in page
+    assert "API usage and credits" in page
+    assert "data-price-preset=" in page
+    assert "localStorage.setItem" not in site.site_pricing.SCRIPT
+    assert "eval(" not in site.site_pricing.SCRIPT
+    for key, _name, _, url, choices in site.site_pricing.PLANS:
+        assert key in site.site_pricing.DEFAULT
+        assert [amount for _, amount in choices] == sorted(set(amount for _, amount in choices))
+        assert site.site_pricing.DEFAULT[key] in [amount for _, amount in choices]
+        assert f'href="{url}"' in page
+    assert sum(site.site_pricing.DEFAULT.values()) == 200
+    assert site.site_pricing.BASELINE == 120

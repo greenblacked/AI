@@ -36,6 +36,7 @@ import site_errors  # noqa: E402
 import site_graph  # noqa: E402
 import site_markdown  # noqa: E402
 import site_offline  # noqa: E402
+import site_pricing  # noqa: E402
 import site_style  # noqa: E402
 
 from skillcheck.frontmatter import FrontmatterError, parse  # noqa: E402
@@ -194,6 +195,7 @@ PAGES = (
     ("Workflows", "/workflows/"),
     ("Examples", "/examples/"),
     ("Quality", "/quality/"),
+    ("AI Pricing", "/pricing/"),
 )
 ELSEWHERE = (
     ("Repository", SOURCE_URL),
@@ -1142,6 +1144,22 @@ def render_quality(catalogue: Catalogue, version: str) -> str:
     return _page("Quality evidence · AI", main, version, current="/quality/", parent="/")
 
 
+# ------------------------------------------------------------------------ /pricing/
+
+
+def render_pricing(version: str) -> str:
+    """The source-linked AI subscription calculator, all arithmetic in the browser."""
+    return _page(
+        "AI subscription pricing · AI",
+        site_pricing.render_main(_back("/")),
+        version,
+        current="/pricing/",
+        parent="/",
+        style=site_pricing.STYLE,
+        script=site_pricing.SCRIPT,
+    )
+
+
 # ------------------------------------------------------------------------ /family/
 
 # The pages this file draws by hand rather than from a plugin's own files. The workflow
@@ -1591,6 +1609,7 @@ SUGGESTED_PAGES = (
     ("workflows", "Workflows"),
     ("examples", "Examples"),
     ("quality", "Quality"),
+    ("pricing", "AI subscription pricing"),
 )
 
 
@@ -1728,6 +1747,7 @@ def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> N
         "workflows": render_workflows(catalogue, version),
         "examples": render_examples(catalogue, version),
         "quality": render_quality(catalogue, version),
+        "pricing": render_pricing(version),
     }
     for plugin, _ in groups:
         # The family plugin's page is /family/, so it has none of its own here.

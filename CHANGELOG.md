@@ -8,6 +8,17 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- Add a subscription pricing page to the catalogue site at `/pricing/`, linked from the
+  navigation. It compares the monthly plans of five assistant providers, totals the
+  chosen plans per month and per year against a fixed baseline, and offers three example
+  combinations. Each card links the provider's own pricing page; the prices are an
+  editorial snapshot dated on the page, not a live feed. Without scripting it shows
+  the default selection and its totals, and recalculating needs the page's script. It
+  builds its controls from the site's allowed tags and is covered by tests for its
+  links, tiers, default totals and rendering.
+
 ## [0.1.13] - 2026-10-21
 
 ### Added
