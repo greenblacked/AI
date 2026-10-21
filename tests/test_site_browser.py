@@ -633,6 +633,7 @@ def test_pricing_totals_follow_each_choice_and_preset(browser, base_url):
             ]
 
         assert totals()[:2] == ["$200", "$2,400"]
+        assert page.locator(".pricing-page :disabled").count() == 0
         page.check('input[name="plan-gemini"][value="4.99"]')
         monthly, yearly, difference = totals()
         assert (monthly, yearly) == ("$204.99", "$2,459.88")
@@ -649,6 +650,29 @@ def test_pricing_totals_follow_each_choice_and_preset(browser, base_url):
         assert errors == []
     finally:
         context.close()
+
+
+def test_pricing_controls_stay_disabled_without_scripting(browser, base_url):
+    # Without the script nothing recalculates, so a choice the totals cannot follow must
+    # not be possible: every plan and preset stays disabled and the page says why.
+    made = browser.new_context(java_script_enabled=False)
+    made.route(re.compile("^(?!" + re.escape(base_url) + "/)"), lambda route: route.abort())
+    try:
+        page = made.new_page()
+        page.goto(base_url + "/pricing/")
+        radios = page.locator('.pricing-page input[type="radio"]')
+        presets = page.locator("[data-price-preset]")
+        assert radios.count() == 24
+        assert presets.count() == 3
+        assert all(radios.nth(i).is_disabled() for i in range(radios.count()))
+        assert all(presets.nth(i).is_disabled() for i in range(presets.count()))
+        # Text locators skip <noscript>, so the note is found by where it sits.
+        note = page.locator(".pricing-summary noscript p")
+        assert note.is_visible()
+        assert note.inner_text().startswith("Changing a plan needs JavaScript")
+        assert page.text_content("#price-monthly") == "$200"
+    finally:
+        made.close()
 
 
 def test_no_page_scrolls_sideways_on_a_phone(browser, built, base_url):
