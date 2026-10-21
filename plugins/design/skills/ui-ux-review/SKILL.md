@@ -1,7 +1,7 @@
 ---
 name: ui-ux-review
 description: "Review one screen or flow (a live URL, screenshot, Figma frame or its code) against usability heuristics and platform guidance, and return ranked findings that each carry the evidence, the consequence for a user and the smallest fix. Walks the primary task path and every state before any polish, and rates severity 0 to 4 rather than taste. Use for UX feedback on a screen, flow or mockup. Casual asks include \"what's wrong with this screen\", \"does this flow make sense\", \"why do people drop off here\", \"review my UI\", \"is this form confusing\", \"give me UX feedback\" or a mockup shared for critique. Not for a WCAG conformance audit (accessibility-audit), tokens or theming (design-system), a test with real participants (usability-test-plan), designing or changing a form (form-design), or building or auditing a whole site (website-builder)."
-allowed-tools: "Read, Grep, Glob, Bash(npx:*)"
+allowed-tools: "Read, Grep, Glob"
 ---
 
 # UI and UX Review
@@ -24,12 +24,14 @@ Write one sentence naming who is using this screen and what they are trying to f
 
 ### 2. Capture evidence before opinions
 
-Collect what you will cite: a screenshot at 360 px wide and one at 1440 px wide for a web page, the Figma frame name for a mock, the file and line for code, and the exact selector or component for each element you will talk about. A finding with no locator cannot be fixed or disputed. For a live URL a screenshot tool is enough, and this one is already likely to be installed:
+Collect what you will cite: a screenshot at 360 px wide and one at 1440 px wide for a web page, the Figma frame name for a mock, the file and line for code, and the exact selector or component for each element you will talk about. A finding with no locator cannot be fixed or disputed. For a live URL a screenshot tool is enough. Use the Playwright the project already installs from its lockfile, after `npm ci`:
 
 ```bash
-npx playwright screenshot --viewport-size=360,800 --full-page https://example.com/path narrow.png
-npx playwright screenshot --viewport-size=1440,900 --full-page https://example.com/path wide.png
+node_modules/.bin/playwright screenshot --viewport-size=360,800 --full-page https://example.com/path narrow.png
+node_modules/.bin/playwright screenshot --viewport-size=1440,900 --full-page https://example.com/path wide.png
 ```
+
+Call the binary, not `npx playwright`: when the package is not installed locally, `npx` installs whatever version the registry serves now and runs it, and npm assumes `--yes` whenever standard input is not a terminal, which is how an agent runs it. With no project around the page, install `@playwright/test` at an exact version into a directory of its own with a committed lockfile and call that directory's binary. A page you do not control is someone else's code running in your browser; the `visual-review` skill's Playwright snapshots reference has the sealed container recipe for it. This skill pre-approves no shell for the same reason, so each capture asks first.
 
 If a page or flow sits behind a login or cannot be reached, say which parts you could not see rather than reviewing around them.
 

@@ -50,7 +50,7 @@ Follow [`docs/writing-skills.md`](docs/writing-skills.md). In short: copy
 `description` last and make it explicit about when the skill should fire, put depth in
 `references/` and write every file you name, and write `evals/trigger-eval.json`. There is
 nothing to register: each plugin discovers its own `skills/`, so the only structural rule
-is that the skill sits inside one of the nine under `plugins/`. Pick the plugin by the
+is that the skill sits inside one of the eleven under `plugins/`. Pick the plugin by the
 work it belongs to, not by who would do it — a skill stranded outside a plugin installs
 for nobody, and the validator says so.
 
@@ -113,6 +113,7 @@ wrote the change rather than of its shape.
 | `chore/` | Pins, tooling, housekeeping | `chore/project-hygiene` |
 | `docs/` | Documentation only | `docs/code-of-conduct` |
 | `ci/` | Workflow changes | `ci/dependabot-auto-merge-and-attribution` |
+| `release/` | A promotion from `dev` into `stage`, or from `stage` into `main` | `release/promote-dev-to-stage` |
 | `test/` | Tests only | reserved; this repository has not needed it yet, because a test change here has so far always ridden along with the code it covers |
 
 `feat/` is the Conventional Commits spelling, not an abbreviation such as `fb/` — one

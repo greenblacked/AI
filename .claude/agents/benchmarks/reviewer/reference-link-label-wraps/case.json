@@ -1,0 +1,10 @@
+{
+  "kind": "defect",
+  "intent": "Add a short paragraph on seeding known errors to the document-extraction verification reference.",
+  "lesson": "A reference-style link label wraps across lines",
+  "must_mention": [
+    "label|link text|\\[seeded",
+    "line|wrap|multiline|break",
+    "portable|export|inline"
+  ]
+}

@@ -1,0 +1,14 @@
+diff --git a/plugins/llm/skills/document-extraction/references/verification.md b/plugins/llm/skills/document-extraction/references/verification.md
+--- a/plugins/llm/skills/document-extraction/references/verification.md
++++ b/plugins/llm/skills/document-extraction/references/verification.md
+@@ -122,3 +122,10 @@ Do not judge the pipeline by how its output looks. Build a labelled set of real
+ - Whether each check earns its place: how many errors each caught that the others did not.
+ 
+ Published benchmark scores for a model on public document sets do not substitute for this. Your documents differ from theirs, and a score transfers to your population only as far as the populations match. Rerun the labelled set when the model, the preprocessing or the prompt changes.
++
++To measure whether the checks catch what they should, seed a copy of the labelled set with known
++errors and count how many each check flags. Use the [seeded error
++set][seeded] rather than inventing corruptions by hand, so the same errors can be replayed
++whenever the model or the preprocessing changes.
++
++[seeded]: https://example.com/document-extraction/seeded-errors

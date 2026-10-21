@@ -8,6 +8,98 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- Add the `llm` plugin for building features on language models, with five skills:
+  `rag-design` (a retrieval pipeline shown to retrieve the right passages, with a small
+  labelled eval before tuning, permission filtering and refusal on weak retrieval),
+  `structured-output` (the schema as contract, the provider's native or strict mode,
+  validation in code and a bounded repair loop that fails closed), `mcp-server-design`
+  (task-shaped tools, `isError` results, transport and authorisation choices, and a
+  `tools/list` snapshot test), `document-extraction` (values read from scans and photos
+  with source region, confidence and independent cross-checks) and `model-migration`
+  (a retirement or upgrade carried out against a frozen baseline, a canary and a decision
+  record). Its listing ceiling in `listing-budget.json` is new, set at 5,000 characters
+  for these five skills, so the plugin fits the runtime's default listing budget; the
+  catalogue site gives it a page, its own look and an introduction.
+- Add seven skills: `data-visualisation` and `visual-review` to `design`, for turning data
+  into a readable chart and for reviewing a rendered page from screenshots without trusting a
+  vision model for what code can measure; `architecture-diagrams` and `feature-spec` to
+  `coding`, for diagrams drawn as code that renders where it is read and for a written spec
+  and checkpointed plan before any code; `agent-extension-audit` to `security`, for vetting a
+  third-party skill, plugin, hook or MCP server before installing it; and `game-localisation`
+  and `game-playtest` to `gamedev`, for taking a game to many languages and for running a
+  playtest that ends in decisions.
+- Add three subagents: `screenshot-reader` to `design`, which reads screenshots in its own
+  context and returns findings by file and region; `extension-reader` to `security`, which
+  reads a quarantined third-party extension without running it; and `llm-trace-reader` to
+  `operations`, which reads an LLM usage or trace export for cost and latency hotspots.
+- Add the `/visual-review` command to `design`, which runs the `visual-review` procedure on a
+  page and hands crops to `screenshot-reader`.
+- Add reference files to existing skills: a charts and graphics reference to
+  `accessibility-audit`, an injection architecture reference to `agent-security-review`, a
+  judge calibration reference to `agent-evaluation`, a visual snapshots reference to
+  `e2e-testing`, a test-first loop reference to `test-design`, and a telemetry, caching and
+  limits reference to `llm-cost`.
+- Draw each plugin page's skill to subagent routing as an inline SVG graph at build
+  time. The `family` page keeps its own workflow layout and has no graph yet. An edge is
+  a subagent's name shown as inline code on the skill's rendered page, outside code
+  blocks. Names after a "Not for" or "Do not use for" phrase in the same paragraph or
+  list item draw no edge, so the graph is derived from the files and cannot drift from
+  them. A name shipped by two other plugins draws no edge.
+
+### Changed
+
+- Accept `release/` as a branch type, for a promotion from `dev` into `stage` or from
+  `stage` into `main`, so a promotion no longer has to borrow `chore/`.
+- Split the portable router into a per-plugin index once the combined `router.md` would
+  exceed its size budget. `router.md` then lists one `router-<plugin>.md` per plugin,
+  each keeping every skill's full trigger and each checked against the same budget; the
+  budget and the per-entry trigger cap are unchanged. The combined router sat 16 bytes
+  under the budget, so any new skill would have overflowed it.
+- Route model moves to `model-migration`. `agent-evaluation` now cedes planning a move to
+  another model to it, and two queries about swapping a model or an alias that
+  `agent-evaluation`'s trigger set listed as positives are now negatives owned by
+  `model-migration`. Two distant negatives (profiling and codebase-orientation) were
+  dropped, which takes the set from twelve positives and ten negatives to ten a side, so
+  earlier trigger scores for `agent-evaluation` are not comparable and need a rerun on the
+  revised set. This is a routing correction, not a change to make a check pass. The `llm` skills also name each other as owners in their
+  descriptions and trigger sets, and `ai-enablement`'s RAG negative now names `rag-design`.
+- Narrow `game-balance` to tuning numbers from playtest evidence. Running a playtest session
+  now belongs to `game-playtest`, so the balance skill's playtest protocol is replaced by a
+  short reference on carrying a playtest finding into a hypothesis about a number. This is a
+  routing correction for the new skill, not an edit made to pass a check.
+- Raise the skills badge, the plugin counts and the recommended
+  `skillListingBudgetFraction` (0.123 to 0.134) for the new skills.
+- Raise the `coding`, `design`, `gamedev` and `security` listing ceilings in
+  `listing-budget.json` because this change adds skills to each: `architecture-diagrams`
+  and `feature-spec` to `coding`, `data-visualisation` and `visual-review` to `design`,
+  `game-localisation` and `game-playtest` to `gamedev`, and `agent-extension-audit` to
+  `security`. The `llm` plugin gets its first ceiling.
+
+### Security
+
+- Run Playwright and Jest from the project's own `node_modules/.bin` in `ui-ux-review`,
+  `e2e-testing`, `test-design` and `ci-triage`, not through `npx`. When a package is not
+  installed locally and standard input is not a terminal, npm assumes `--yes` and `npx`
+  installs and runs whatever the registry serves at that moment. The `ci-triage` bisect
+  probe now skips a commit whose lockfile has no test runner instead of fetching one,
+  checking for the runner before the test starts so that a test's own exit 126 or 127
+  still marks the commit bad, with tests for its exit codes, and `ui-ux-review`, `e2e-testing` and `test-design` drop the
+  `Bash(npx:*)` pre-approval that only these commands used.
+- Remove the last `npx` calls from the skills. `accessibility-audit` and
+  `website-builder`'s audit references install their audit tools at exact versions into
+  a directory outside the audited project, with a version-controlled lockfile and
+  `--ignore-scripts`, then call that directory's binaries against an installed browser. Prisma, Wrangler and
+  jscodeshift run from the project's own `node_modules/.bin`, and the deploy job in
+  `website-builder`'s example pipeline installs from the lockfile before calling
+  Wrangler. The retired `observatory-cli` gives way to MDN's HTTP Observatory, and
+  `accessibility-audit` drops `Bash(npx:*)`, and `website-builder` and `game-builder`,
+  whose improve modes read a site or a game someone else wrote, now pre-approve only
+  `Read`, `Grep` and `Glob`, so every command, fetch and write asks first.
+
+## [0.1.12] - 2026-10-19
+
 ### Security
 
 - Treat a contributor's `AGENTS.override.md`, and any name Codex's
@@ -818,7 +910,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.11...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.12...HEAD
+[0.1.12]: https://github.com/greenblacked/AI/compare/v0.1.11...v0.1.12
 [0.1.11]: https://github.com/greenblacked/AI/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/greenblacked/AI/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/greenblacked/AI/compare/v0.1.8...v0.1.9

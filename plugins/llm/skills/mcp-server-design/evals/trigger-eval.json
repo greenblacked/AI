@@ -1,0 +1,22 @@
+[
+  {"query": "I want to expose our Postgres reporting tables to Claude through an MCP server, how should I shape the tools", "should_trigger": true},
+  {"query": "my MCP server works in a terminal but the client says it returned invalid JSON after I added some logging", "should_trigger": true},
+  {"query": "the model keeps calling search_docs when it should call get_document, how do I fix my tool descriptions", "should_trigger": true},
+  {"query": "how do we authenticate a remote MCP server so only our employees can reach it", "should_trigger": true},
+  {"query": "add a test that fails when someone edits a tool description in our MCP server without review", "should_trigger": true},
+  {"query": "should our MCP server use stdio or streamable HTTP", "should_trigger": true},
+  {"query": "write an MCP server in Python that wraps our internal ticketing API", "should_trigger": true},
+  {"query": "my tool throws an exception when the date argument is invalid, what should an MCP tool return instead", "should_trigger": true},
+  {"query": "do I need to check the Origin header and bind to localhost on my local MCP server", "should_trigger": true},
+  {"query": "can our MCP server pass the user's access token on to the downstream GitHub API", "should_trigger": true},
+  {"query": "design the REST endpoints, error format and pagination for our public orders API", "should_trigger": false, "expected": "api-design"},
+  {"query": "review our support agent: can a poisoned web page make its tools send email on a customer's behalf", "should_trigger": false, "expected": "agent-security-review"},
+  {"query": "design login with Google plus refresh token rotation for our web app", "should_trigger": false, "expected": "auth-design"},
+  {"query": "threat model our new payments platform across every trust boundary", "should_trigger": false, "expected": "threat-model"},
+  {"query": "our upstream API key showed up in a log file, rotate it and clean up", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "write the AGENTS.md instructions file for our repository so coding agents follow our conventions", "should_trigger": false, "expected": "agent-instructions"},
+  {"query": "write a new SKILL.md with a description that triggers reliably for our deploy procedure", "should_trigger": false, "expected": "new-skill"},
+  {"query": "profile why our Node service burns so much CPU under load", "should_trigger": false, "expected": "profiling"},
+  {"query": "is this third-party MCP server from GitHub safe to install on everyone's laptops", "should_trigger": false, "expected": "agent-extension-audit"},
+  {"query": "make the model return JSON that always matches my schema when it extracts fields from invoices", "should_trigger": false, "expected": "structured-output"}
+]

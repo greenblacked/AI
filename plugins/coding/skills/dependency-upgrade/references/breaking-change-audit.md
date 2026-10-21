@@ -86,8 +86,10 @@ in a queue or a database. Grep for the symbol as a *string* as well as an identi
 
 ## Codemods and where they stop being trustworthy
 
-Many large frameworks ship codemods, and they are worth running: `npx jscodeshift -t`,
-`2to3`-style tools, `go fix`, `cargo fix --edition`, OpenRewrite recipes for Java.
+Many large frameworks ship codemods, and they are worth running: jscodeshift from a
+pinned devDependency as `node_modules/.bin/jscodeshift -t` (not `npx`, which fetches
+the registry's current release when the project has none), `2to3`-style tools,
+`go fix`, `cargo fix --edition`, OpenRewrite recipes for Java.
 
 Run them as their own commit, with no manual edits mixed in, so the review can be
 "the codemod did this" rather than a diff of unknown provenance.

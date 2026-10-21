@@ -2,9 +2,9 @@
 
 Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
 frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md) for
-one of the 21 this repository ships today, five with `coding`, six with
-`operations`, four with `security`, two with `manager`, one with `gamedev`, one with
-`delivery` and two with `personal` — and in `.claude/agents/`
+one of the 30 this repository ships today, five with `coding`, seven with
+`operations`, five with `security`, six with `family`, two with `manager`, two with
+`personal`, and one each with `design`, `gamedev` and `delivery` — and in `.claude/agents/`
 for the four that serve work on this repository rather than shipping to anyone,
 described in [the two loops](#the-two-loops) below. A subagent is a
 separate Claude instance with its own context window, its own system prompt, and its own
@@ -31,16 +31,19 @@ tools: Read, Glob, Grep, Bash
   that wrong.
 - **`disallowedTools`** — optional. A denylist applied before the allowlist. Every
   subagent here that must not change anything sets it to `Write, Edit, NotebookEdit` —
-  three (`agent-run-trace-reader`, `change-impact-reader`, `k8s-evidence-reader`) add
+  some (`agent-run-trace-reader`, `change-impact-reader`, `k8s-evidence-reader`,
+  `terms-reader`, `screenshot-reader`, `extension-reader`) add
   `Bash` to that list too, even though their `tools` allowlist already omits it. The
   allowlist already omits `Write`, `Edit` and `NotebookEdit` for every subagent that sets
   the denylist, so this is a statement rather than a restriction: it says in the file
   that the subagent must not change anything, where a reader will see it, and it
   survives someone later adding the tool back to `tools` for a checker — the same reason
-  those three name `Bash` explicitly rather than leaving its absence from `tools` to
+  those name `Bash` explicitly rather than leaving its absence from `tools` to
   speak for itself. `implementer`, the one loop stage whose job is to write the change,
   sets no `disallowedTools` at all.
-- **`model`** — optional. The model the subagent runs on. None of the 21 here set it.
+- **`model`** — optional. The model the subagent runs on. No plugin-shipped subagent
+  outside `family` sets it; the `family` stage agents do, each at the tier
+  `stage-tiering` states for its stage.
 - Also accepted, because a plugin-shipped subagent supports them: `effort`, `maxTurns`,
   `skills`, `memory`, `background`, `isolation`, `color`, `experimental`, `omitClaudeMd`.
   The last is the one worth knowing: it starts the subagent without the user's, the
@@ -115,6 +118,11 @@ and grant exactly those.
 - A reviewer or analyst gets `Read`, `Glob`, `Grep`, and `Bash` only if it needs to run a
   checker. No `Write`, no `Edit`.
 - A log reader needs `Bash` (for `gh`) and `Read`. It does not need `Edit`.
+- A reader of a large export that no tool reads natively, such as a gateway log or a billing
+  file, gets `Bash` for filters like `jq` and `wc`. Every `tools` line here lists bare tool
+  names, so the limit on what `Bash` may run goes in the body: name the read-only commands the
+  subagent may use and forbid the rest, as `llm-trace-reader` does, and keep `Write`, `Edit`
+  and `NotebookEdit` in `disallowedTools`.
 - Anything that summarises rather than changes should be unable to change anything.
 
 This is not defence against a malicious model; it is defence against a helpful one.
@@ -248,7 +256,7 @@ procedure, for that reason.
 
 A plugin-shipped subagent is free to follow the same shape — a stated input, a first-line
 verdict, fixed headings — and a new one should. This is not a call to migrate the
-21 that ship today; none of them are rewritten by this.
+30 that ship today; none of them are rewritten by this.
 
 ## Failure modes
 
@@ -276,9 +284,9 @@ inline.
 ## The subagents in this repository
 
 Each plugin discovers its own `agents/` directory — nothing lists them in
-[`marketplace.json`](../.claude-plugin/marketplace.json). 21 ship: five with
-`coding`, six with `operations`, four with `security`, two with `manager`, one with
-`gamedev`, one with `delivery` and two with `personal`.
+[`marketplace.json`](../.claude-plugin/marketplace.json). 30 ship: five with
+`coding`, seven with `operations`, five with `security`, six with `family`, two with
+`manager`, two with `personal`, and one each with `design`, `gamedev` and `delivery`.
 
 - **`skill-reviewer`** — reviews a candidate `SKILL.md` against this repository's rules
   and against what makes a skill actually trigger. Runs the validator first to settle
@@ -334,10 +342,20 @@ package or action, and returns which ones actually resolved or executed it and w
 secrets each hit's job could reach, leaving the response to `dependency-triage` and the
 rotation to `secret-rotation`; `telemetry-reader` returns
 the critical path from a trace bundle, and treats "the data cannot answer this" as a
-first-class result. In the `manager` plugin, `contract-reader` quotes the four or
+first-class result. `llm-trace-reader` reads an exported LLM usage or trace
+file and returns cost and latency hotspots by feature, prompt path, model and user, with
+spend-cap 429s kept apart from rate-limit 429s and every figure computed from the rows,
+leaving what to change to `llm-cost`; `extension-reader` reads a third-party agent
+extension from a quarantine directory without running anything and returns what executes
+automatically, permissions and risk findings anchored to file and line, leaving the
+install decision to `agent-extension-audit`. In the `manager` plugin, `contract-reader` quotes the four or
 five clauses in a vendor agreement that decide the deal, and `feedback-synthesiser` turns
 a pile of peer feedback into themes with a source count, refusing to present a
-single-source theme as consensus. In `gamedev`, `frame-capture-reader` reads a profiler
+single-source theme as consensus. In `design`, `screenshot-reader` reads screenshots in its own context and returns
+findings by file and region, keeping what the image shows apart from what has to be
+measured in code, then hands the capture, diff and code checks to `visual-review`. In
+`family`, six stage agents (`framer`, `architect`, `maker`, `inspector`, `launcher` and
+`yielder`) each own one stage of the FAMILY workflow. In `gamedev`, `frame-capture-reader` reads a profiler
 capture and returns whether the frame is CPU-bound or GPU-bound with the three numbers
 that decided it, then hands the decision about what to change to `game-performance`.
 In `delivery`, `changelog-reader` inventories a release range by audience, flags likely
@@ -443,8 +461,8 @@ never fixed it, because the overlap was structural. The cheap-then-expensive spl
 real idea and it may come back as two steps inside one agent; it did not survive as two
 agents.
 
-The tier is set per subagent with the `model` and `effort` keys, the only place in this
-repository either key is used. Claude Code resolves a subagent's model from the
+The tier is set per subagent with the `model` and `effort` keys, which this repository uses
+only here and in the `family` stage agents. Claude Code resolves a subagent's model from the
 per-invocation argument first, then this frontmatter, then the `CLAUDE_CODE_SUBAGENT_MODEL`
 environment variable, then the main conversation's model. Frontmatter winning over the
 environment variable is what makes the tiering hold: someone who has set that variable

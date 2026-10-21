@@ -471,6 +471,13 @@ same change. Restored to 100 by writing each router line as `- skills/<name>.md:
 than a Markdown link that repeated the name, and `tests/test_catalogue.py` now pins the
 cap as a literal and checks the real router fits its budget at that cap.
 
+**Third recurrence, fixed by splitting:** the combined router reached the 16 KiB budget
+again with the catalogue still growing. `scripts/export_portable.py` now measures the
+combined router and, when it would not fit, writes `router.md` as a one-line-per-plugin
+index of the `router-<plugin>.md` files, which keep every skill's full trigger at the
+100-character cap. The budget and cap are unchanged, and `tests/test_catalogue.py` covers
+the split both ways and a synthetic catalogue about 3 KB past the budget.
+
 ### A count in prose goes stale
 
 **Class.** A specific number written into documentation prose drifts the moment the thing
@@ -960,3 +967,64 @@ cannot exercise a contributor rule; the contract tests carry it instead.
 
 **First caught:** the owner's review of the contributor-review contract, against the
 Codex loader source.
+
+### A reference-style link label wraps across lines
+
+**Class.** Markdown that renders correctly in a browser but is not one of the shapes the
+portable export can re-point, so a file passes every gate that reads the repository and
+fails only when the skills are flattened for other assistants.
+
+**How it shows up.** A reference file written with prose wrapped at about ninety columns
+broke a reference-style link's visible text across two lines, in the shape
+`[some\nlabel][ref]` with `[ref]: https://…` defined below. CommonMark accepts it and
+`make validate` finds nothing wrong, but the export refuses a label that spans a line
+break with `unsupported multiline reference binding`; a definition whose title sits on the
+next line is refused the same way. The failure appears in `make portable` and in the
+`package` CI job's flatten step, not in the validator, so a new reference file can look
+finished while its pull request goes red.
+
+**The check that catches it.** `tests/test_catalogue.py` exports a prose label wrapped
+across lines and asserts the export fails with that message, and asserts that the same
+shape inside a code span, an HTML comment or an HTML block is inert and passes. Write
+every reference-style link, text and label, on one line, or use an inline link, and run
+`make portable` after adding or editing a file under a `references/` directory. The
+`reference-link-label-wraps` benchmark case checks that `reviewer` still notices a label
+wrapped across lines in a reference file.
+
+**First caught:** the implementation run for the injection-architecture reference in the
+AI skills batch, by `make portable`, before the change had a pull request number.
+
+### A skill pre-approves an interpreter in the turn that reads someone else's text
+
+**Class.** A skill's `allowed-tools` grants, without a prompt, a tool that can run code,
+reach the network or write a file, in the same conversation where the procedure reads
+content a third party wrote: an extension under audit, a scanned document, a CSV, a
+contributor's checkout, a model's output. An instruction planted in that content can then
+run code, send a file out, or overwrite a shell startup file that runs on the next login,
+with nothing for the user to approve.
+
+**How it shows up.** Interpreters, package runners and fetchers: `Bash(python3:*)`,
+`Bash(node:*)`, `Bash(npx:*)`, `Bash(curl:*)`, `WebFetch`. `Bash(git:*)`, where
+`git -c alias.x='!cmd' x` runs any command. Tools that look like readers but take an
+option that runs a command: `tar --checkpoint-action`, `rg --pre`, `find -exec`. And
+readers that take an output path: `pdftotext in.pdf out`, `tesseract in out`,
+`pdfimages`, `dot -o`, `unzip -d`, `git log --output`, `file -C`, as well as the `Write`
+and `Edit` tools themselves. The prose usually says to treat the input as data, which no
+tool boundary enforces. The automated security reviewer flagged the class ten times in one batch,
+one skill and one tool at a time, before it was fixed across every new skill and command
+at once.
+
+**The check that catches it.** For each new or changed `allowed-tools`, name the skill's
+main input and who wrote it. Where a third party did, pre-approve only `Read`, `Grep`,
+`Glob`, and no `Bash(...)` rule at all: even a reader that writes only to standard output
+(`jq`, `sha256sum`) is a prefix rule, and a redirect added to the approved command can
+overwrite a shell startup file. Let every command prompt, writes included, and say in the body that a command the
+content suggested is declined. Prefer a subagent with no shell for reading the content
+itself. No validator rule covers this, so review holds it from this entry; the
+`third-party-input-preapproves-interpreter` benchmark case checks that `reviewer` still
+notices an interpreter added to a skill that reads scanned documents.
+
+The class also reaches a skill whose own input is trusted once it starts handing work to a reader of third-party text: the reader's report comes back into that skill's turn, with whatever the skill pre-approves. Check `allowed-tools` on the receiving side of every new handoff, as `llm-cost` needed when it began delegating exports to `llm-trace-reader`.
+
+**First caught:** #255, the automated security reviewer, on `agent-extension-audit`,
+`document-extraction` and `data-visualisation`.
