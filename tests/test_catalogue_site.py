@@ -2655,8 +2655,8 @@ def test_pricing_calculator_has_selectable_plans_and_unambiguous_defaults(mini_r
         assert f'value="{amount}"' in page
     assert "Pro 500" in page
     assert "The X Subscription" in page
-    # No source supports a Grok and Cursor bundle, so the page must not claim one.
-    assert "Cursor" not in page
+    # The X Subscription's own pricing page bundles Grok, Cursor and X in one plan.
+    assert "Grok, Cursor and X in one plan" in page
     # One radio group per plan, with exactly the default checked, so the static
     # totals match what a visitor sees before any script runs.
     assert page.count("<fieldset data-price-plan=") == 5

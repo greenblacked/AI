@@ -31,7 +31,7 @@ PLANS = (
     (
         "x",
         "The X Subscription",
-        "Grok on X",
+        "Grok, Cursor and X in one plan",
         "https://docs.x.ai/x-subscription/pricing",
         (("None", 0), ("Plus", 8), ("Premium", 30), ("Super", 100), ("Ultra", 200)),
     ),
