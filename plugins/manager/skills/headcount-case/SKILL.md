@@ -8,7 +8,7 @@ allowed-tools: Read, Grep, Glob
 
 A headcount case is done when a finance partner or executive can approve, defer or decline it from one page, and every figure on that page carries a source or is labelled as a guess. The output is a short document: the ask, the cost of not hiring, the alternatives that lose, the ramp, and the measure that will show the hire worked.
 
-The usual failure is a case built on feeling: the team is stretched, morale is low, we are behind. All of that may be true and none of it is a number a budget owner can weigh against another team's request. The second failure is the flattering timeline, where a hire starting in March is counted as capacity in March. A new engineer costs the team capacity for the first three to six months, because someone has to onboard them, and the benefit arrives after the spend. A case that hides this is found out at the first review and loses the credibility of every other figure in it.
+The usual failure is a case built on feeling: the team is stretched, morale is low, we are behind. All of that may be true and none of it is a number a budget owner can weigh against another team's request. The second failure is the flattering timeline, where a hire starting in March is counted as capacity in March. A new engineer costs the team capacity for the first three to six months, because someone has to onboard them: a hire is a net cost until the cumulative benefit passes the spend. A case that hides this is found out at the first review and loses the credibility of every other figure in it.
 
 ## Scope
 
@@ -47,7 +47,7 @@ An alternative that wins is a good result: the case becomes a smaller ask or a d
 
 ### 4. Show the ramp honestly
 
-Draw the capacity curve, not a single date. Assume the hire starts at the requested date after realistic time to hire (state the time-to-fill for this role from recent data, not the hope), contributes little in the first month, consumes mentor time through months one to three, and reaches full productivity at a point you state, commonly three to six months and longer for a complex domain. Show net capacity of the team, which dips before it rises. Give two dates: the start date and the date the benefit exceeds the cost.
+Draw the capacity curve, not a single date. Assume the hire starts at the requested date after realistic time to hire (state the time-to-fill for this role from recent data, not the hope), contributes little in the first month, consumes mentor time that falls from heavy in month one to light by month six (`references/cost-model.md` has the shares), and reaches full productivity at a point you state, commonly three to six months and longer for a complex domain. Show net capacity of the team, which dips before it rises. Give two dates: the start date and the date the benefit exceeds the cost.
 
 For a backfill, add the vacancy gap: the months between departure and the replacement being productive, and the knowledge already lost. A backfill is not free just because the budget line exists; the case is that the line is still needed at its current level.
 

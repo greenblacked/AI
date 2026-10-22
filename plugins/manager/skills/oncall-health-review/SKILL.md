@@ -49,7 +49,7 @@ Flag, and name the person and the shift:
 - Any single night (or 12-hour period) with more than two interrupting incidents. Report the count of such nights per person and the worst one.
 - Any engineer paged out of hours on more than a quarter of their on-call days.
 
-Two incidents in a night or 12-hour shift is the working limit (the SRE book's own figure is two per 12-hour shift) because an incident takes more than an hour of real work once diagnosis, fix and follow-up are counted, and a second interruption within a night leaves almost no sleep. Never average over a week-long shift or the team: one night with nine pages is about 1.3 a night across a week and disappears. Report counts and the worst case.
+Two incidents in a night or 12-hour shift is the working limit (the SRE book's own figure is two per 12-hour shift, which comes from an average of about 6 hours per incident, follow-up included) because an incident takes hours of real work once diagnosis, fix and follow-up are counted, and a second interruption within a night leaves almost no sleep. Never average over a week-long shift or the team: one night with nine pages is about 1.3 a night across a week and disappears. Report counts and the worst case.
 
 ### 4. Check the structure before the behaviour
 

@@ -1,6 +1,6 @@
 ---
 name: inherited-team-audit
-description: "Run the first 30 days of taking over an existing team or a departing manager's reports — change nothing structural and say so on day one, hold a 1:1 with every report using the same five written questions, read two quarters of postmortems, review comments and plans, sit with upstream and downstream teams, then write a one-page findings memo separating inherited commitments, risks and preferences, share it before acting, and pick at most two changes with an owner, a date and a visible win by day 60. Use for \"I just became manager of this team\", \"I inherited a team from a departing lead\", \"what should I change first in my new org\", \"my predecessor left a mess\". Not for a new engineer's start (onboarding-plan), individual performance (growth-review), the meeting system you may install later (design-team-cadence), or metrics-based rhythm assessment (delivery-review)."
+description: "Run the first 30 days of taking over an existing team or a departing manager's reports — change nothing structural and say so on day one, hold a 1:1 with every report using the same five written questions, read two quarters of postmortems, review comments and plans, sit with upstream and downstream teams, then write a one-page findings memo separating inherited commitments, risks and preferences, share it before acting, and pick at most two changes with an owner, a date and a visible win by day 60. Use for \"I just became manager of this team\", \"I inherited a team from a departing lead\", \"what should I change first in my new org\", \"my predecessor left a mess\". Not for a new engineer's start (onboarding-plan), individual performance (growth-review), the meeting system you may install later (design-team-cadence), metrics-based rhythm assessment (delivery-review), or reading the code you inherited (codebase-orientation)."
 allowed-tools: Read, Grep, Glob
 ---
 
@@ -14,7 +14,7 @@ The usual failure is acting early to show leadership. The new manager sees somet
 
 Use for: taking over a team from a departing or promoted manager; inheriting reports after a reorganisation; stepping into an existing group from outside; deciding what to change first.
 
-Do not use for: a new engineer's first weeks (`onboarding-plan`); judging one person's performance (`growth-review`); installing the meeting system (`design-team-cadence`); assessing delivery with metrics (`delivery-review`).
+Do not use for: a new engineer's first weeks (`onboarding-plan`); judging one person's performance (`growth-review`); installing the meeting system (`design-team-cadence`); assessing delivery with metrics (`delivery-review`); or reading the code the team owns (`codebase-orientation`).
 
 ## Workflow
 

@@ -1,5 +1,5 @@
 [
-  {"query": "can I trust this result in the preprint I just read", "should_trigger": true},
+  {"query": "can I trust the statistics in this result from the preprint I just read", "should_trigger": true},
   {"query": "review the stats in this manuscript for me", "should_trigger": true},
   {"query": "are these p-values right given the t statistics and degrees of freedom", "should_trigger": true},
   {"query": "write a referee report on the analysis section of this paper", "should_trigger": true},
@@ -16,7 +16,7 @@
   {"query": "make my analysis reproducible", "should_trigger": false, "expected": "reproducible-analysis-environment"},
   {"query": "design an A/B test readout for our checkout change", "should_trigger": false},
   {"query": "is the observed effect causal given observational data", "should_trigger": false},
-  {"query": "my loss went NaN", "should_trigger": false, "expected": "nan-origin-trace"},
+  {"query": "what is the main contribution of this paper and is the argument convincing", "should_trigger": false, "expected": "paper-reading"},
   {"query": "write a unit test for my statistics function", "should_trigger": false, "expected": "test-design"},
   {"query": "how large a sample do I need for my own experiment", "should_trigger": false}
 ]

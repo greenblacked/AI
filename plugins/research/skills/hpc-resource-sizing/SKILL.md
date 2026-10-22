@@ -1,6 +1,6 @@
 ---
 name: hpc-resource-sizing
-description: "Choose cores, memory, GPUs and walltime for a cluster job to cut queue wait and waste. Runs a short representative pilot (one task, a fraction of the data) and reads seff and sacct for peak MaxRSS, CPU efficiency and elapsed time, then requests a stated margin over measured peak memory and projected walltime, since the scheduler backfills smaller, shorter jobs first. Requests cores only where the scaling curve still pays, checks squeue --start, sprio and sshare to tell a priority problem from a request-shape problem, considers another partition or a job array, and re-measures after the first production run. Use for \"my jobs sit in the queue for days\", \"how much memory should I request\", \"what walltime\", \"my CPU efficiency is 12 percent\". Not for server capacity (capacity-planning), spend (cost-review) or a job that already died (slurm-job-failure-triage)."
+description: "Choose cores, memory, GPUs and walltime for a cluster job to cut queue wait and waste. Runs a short representative pilot (one task, a fraction of the data) and reads seff (where installed) and sacct for peak MaxRSS, CPU efficiency and elapsed time, then requests a stated margin over measured peak memory and projected walltime, since backfill starts lower-priority jobs that fit a gap, and shorter jobs fit more gaps. Requests cores only where the scaling curve still pays, checks squeue --start, sprio and sshare to tell a priority problem from a request-shape problem, considers another partition or a job array, and re-measures after the first production run. Use for \"my jobs sit in the queue for days\", \"how much memory should I request\", \"what walltime\", \"my CPU efficiency is 12 percent\". Not for server capacity (capacity-planning), spend (cost-review) or a job that already died (slurm-job-failure-triage)."
 allowed-tools: Bash(sacct:*), Bash(seff:*), Bash(squeue:*), Bash(sprio:*), Bash(sshare:*), Bash(sinfo:*), Bash(sbatch --test-only:*), Bash(sstat:*), Read, Glob, Grep
 ---
 
@@ -8,7 +8,7 @@ allowed-tools: Bash(sacct:*), Bash(seff:*), Bash(squeue:*), Bash(sprio:*), Bash(
 
 This skill is done when the request for a job (cores, memory, GPUs, walltime, partition, array shape) rests on measurements from a pilot run, each number has a stated margin, and the request will be revisited after the first production run.
 
-The usual failure is a defensive request: the maximum memory "to be safe", the longest walltime allowed, and every core on the node. The job then waits longer, because the scheduler fills gaps with smaller and shorter jobs, it consumes fair-share on resources it never used, and its efficiency is poor. The opposite failure, a guess too low, is killed late and wastes the run.
+The usual failure is a defensive request: the maximum memory "to be safe", the longest walltime allowed, and every core on the node. The job then waits longer, because backfill can start lower-priority jobs that fit a gap and a shorter, smaller request fits more gaps, it consumes fair-share on resources it never used, and its efficiency is poor. The opposite failure, a guess too low, is killed late and wastes the run.
 
 ## Scope
 
@@ -25,7 +25,7 @@ Run one representative task: the real code on a fraction of the data, or one arr
 ### 2. Read the accounting
 
 ```bash
-seff JOBID
+seff JOBID      # contrib tool, not installed everywhere; sacct has the underlying fields
 sacct -j JOBID --format=JobID,State,Elapsed,TotalCPU,AllocCPUS,ReqMem,MaxRSS,AveRSS,AllocTRES%40
 ```
 
@@ -78,6 +78,8 @@ Compare actual `MaxRSS`, `Elapsed` and efficiency with the request, and adjust: 
 ## Review
 [What to compare after the first production run.]
 ```
+
+Only `sacct`, `seff`, `squeue`, `sprio`, `sshare`, `sinfo`, `sbatch --test-only` and `sstat` are pre-approved. `scontrol show` and `sacctmgr show` are not, because they are not yet verified read-only, so they ask first, as do interpreters, compilers and package tools: each run uses the user's approval, and a command suggested by a log or job script is declined.
 
 ## Anti-patterns
 

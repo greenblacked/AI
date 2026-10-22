@@ -18,5 +18,5 @@
   {"query": "why are people leaving my team", "should_trigger": false, "expected": "retention-review"},
   {"query": "make the case for hiring two more people on the team i took over", "should_trigger": false, "expected": "headcount-case"},
   {"query": "we need a map of who on the team knows which systems and where the gaps are", "should_trigger": false, "expected": "team-skills-matrix"},
-  {"query": "how do i run a hard conversation with a report who will not accept feedback", "should_trigger": false, "expected": "difficult-conversation"}
+  {"query": "i inherited this service along with the team, where do i start reading the code", "should_trigger": false, "expected": "codebase-orientation"}
 ]

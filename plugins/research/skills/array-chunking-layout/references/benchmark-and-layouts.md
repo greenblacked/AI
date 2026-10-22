@@ -7,7 +7,7 @@ Contents: chunks touched per pattern, benchmark skeleton, starting shapes, resul
 For a read described by a half-open range along each dimension, the chunks touched is the product over dimensions of the number of chunk-grid cells the range overlaps.
 
 ```python
-import math, itertools
+import math
 
 
 def chunks_touched(read, chunk):

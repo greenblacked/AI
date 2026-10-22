@@ -36,7 +36,7 @@ Use two variants of equal difficulty (A and B). Give half the cohort A first and
 
 An indicator is a rate from a source that exists whether or not anyone is studying it. Fix the definition before reading.
 
-Review comments naming a practice (adjust the phrase to what was taught). The query above returns pull requests where USER commented and some comment, by anyone, contains the phrase. The two conditions are not tied to one comment, so treat the count as an upper bound only; the date filter also applies to when the pull request was opened, not when the comment was written. For the indicator itself, read the comments endpoint for each pull request and keep comments whose user is the cohort member and whose body contains the phrase, filtering on created_at.
+Review comments naming a practice (adjust the phrase to what was taught). The query below returns pull requests where USER commented and some comment, by anyone, contains the phrase. The two conditions are not tied to one comment, so treat the count as an upper bound only; the date filter also applies to when the pull request was opened, not when the comment was written. For the indicator itself, read the comments endpoint for each pull request and keep comments whose user is the cohort member and whose body contains the phrase, filtering on created_at.
 
 ```bash
 gh api -X GET search/issues -f q='repo:ORG/REPO is:pr "threat model" in:comments commenter:USER created:2026-01-01..2026-03-31' --jq '.total_count'

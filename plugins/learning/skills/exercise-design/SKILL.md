@@ -1,6 +1,6 @@
 ---
 name: exercise-design
-description: "Write a programming or operations exercise, lab or kata that teaches one thing and can be done unattended. Built from the end: the working solution first, then failing tests or a check script that gives the learner a clear signal within two minutes, starter code that compiles and runs, and a three-tier hint ladder (nudge, approach, near-solution) kept in separate files. Calibrate by a cold run with someone outside the author's context, plan for twice the author's time, list every mistake from it, test the error messages a learner will see, and ship the solution with its reasoning. Use when someone says \"write exercises for my workshop\", \"design a lab for learning Git rebase\" or \"my tutorial exercises are too hard or too easy\". Not for the whole session (workshop-design), tests for production code (test-design), or a take-home set by an employer (hiring-loop)."
+description: "Write a programming or operations exercise, lab or kata that teaches one thing and can be done unattended. Built from the end: the working solution first, then failing tests or a check script that gives the learner a clear signal within two minutes, starter code that compiles and runs, and a three-tier hint ladder (nudge, approach, near-solution) kept in separate files. Calibrate by a cold run with someone outside the author's context, plan for twice the author's time, list every mistake from it, test the error messages a learner will see, and ship the solution with its reasoning. Use when someone says \"write exercises for my workshop\", \"design a lab for learning Git rebase\" or \"my tutorial exercises are too hard or too easy\". Not for the whole session (workshop-design), tests for production code (test-design), or a take-home or pairing exercise for interviews (hiring-loop)."
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
@@ -14,7 +14,7 @@ The usual failure is an exercise that works for its author. The author knows whi
 
 Use for: a single programming or operations exercise, lab or kata that a learner does alone, in a workshop, course or self-study setting.
 
-Do not use for: the structure of the whole session, its timing and staffing (`workshop-design`); tests for production code (`test-design`); or a take-home assignment set by an employer (`hiring-loop`).
+Do not use for: the structure of the whole session, its timing and staffing (`workshop-design`); tests for production code (`test-design`); or a take-home or pairing exercise set for interviews (`hiring-loop`).
 
 ## Workflow
 

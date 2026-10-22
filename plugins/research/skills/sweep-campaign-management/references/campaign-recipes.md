@@ -5,8 +5,10 @@
 A CSV or Parquet file, one row per task. Columns: `id`, one column per parameter, `seed`, `code_rev`, `status`. Generate from the grid:
 
 ```python
-import itertools, csv, os
+import itertools, csv, os, subprocess
 
+# the commit the sweep runs from
+REV = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
 grid = {"lr": [1e-3, 1e-2], "width": [64, 128, 256], "seed": range(100)}
 keys = list(grid)
 path = "manifest.csv"

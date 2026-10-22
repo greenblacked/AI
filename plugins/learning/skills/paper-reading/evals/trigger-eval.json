@@ -15,7 +15,7 @@
   {"query": "write the decision record for adopting the approach from that paper", "should_trigger": false, "expected": "decision-record"},
   {"query": "verify the claims behind the proposal before we commit", "should_trigger": false, "expected": "frame-claim-ledger"},
   {"query": "how do I get up to speed on this database library in a week", "should_trigger": false, "expected": "learn-new-technology"},
-  {"query": "compare three vendors of vector databases for us", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "recompute the p-values and check the sample sizes in this paper's results table, the numbers look inconsistent", "should_trigger": false, "expected": "paper-statistics-review"},
   {"query": "turn my reading into a conference talk", "should_trigger": false, "expected": "conference-talk"},
   {"query": "write a technical article explaining a paper to engineers", "should_trigger": false, "expected": "write-technical-article"},
   {"query": "plan my study for the certification next month", "should_trigger": false, "expected": "exam-prep-plan"}

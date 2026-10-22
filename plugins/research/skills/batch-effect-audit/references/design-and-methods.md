@@ -34,7 +34,7 @@ k = min(10, X.shape[0])
 pcs = PCA(n_components=k).fit_transform(X)  # X: samples x features
 for name in ["batch", "condition"]:
     dummies = pd.get_dummies(meta[name], drop_first=True).astype(float)
-    r2 = [sm.OLS(pcs[:, k], sm.add_constant(dummies)).fit().rsquared for k in range(pcs.shape[1])]
+    r2 = [sm.OLS(pcs[:, i], sm.add_constant(dummies)).fit().rsquared for i in range(pcs.shape[1])]
     print(name, np.round(r2, 2))
 ```
 

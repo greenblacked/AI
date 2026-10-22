@@ -18,6 +18,9 @@ end-of-quarter report.
 - Blocks a named goal: "The checkout redesign due in March cannot ship on the current
   payment module without about six weeks of rework. Doing the module work first costs
   three weeks and removes the rework. This is part of the redesign's plan."
+- Long payback, no blocked goal: "These six items cost about 25 engineer-hours a month
+  between them and take over a year to repay one by one. They go in the 15 percent
+  capacity share, ranked by payback, and we re-price them next quarter."
 - Cosmetic: "Eleven items are real but have no measurable cost and block nothing. We are
   not asking for time for them."
 - Long payback, large risk: "This item costs little each month but carries a 20 percent

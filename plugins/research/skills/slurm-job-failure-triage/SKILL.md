@@ -1,6 +1,6 @@
 ---
 name: slurm-job-failure-triage
-description: "Diagnose a failed or killed Slurm batch job from the scheduler's record before the log: sacct -j with State, ExitCode, DerivedExitCode, Elapsed, Timelimit, ReqMem, MaxRSS and NodeList, plus seff. Classify by State (OUT_OF_MEMORY or exit 137 judged on the step's MaxRSS, not the batch script's; TIMEOUT against the time limit; NODE_FAIL or PREEMPTED as infrastructure; CANCELLED; FAILED, where stderr is read for the first failing rank only), find the first failing array index, check module and --export differences, and resubmit resized, not identical. Use for \"my Slurm job died with no error\", \"exit code 137\", \"job TIMEOUT after 3 hours\", \"OUT_OF_MEMORY but I requested plenty\", \"some array tasks failed\" or \"NODE_FAIL\". Not for pods (k8s-triage), CI runs (ci-triage), sizing the next request (hpc-resource-sizing) or a program that is simply wrong (debugging)."
+description: "Diagnose a failed or killed Slurm batch job from the scheduler's record before the log: sacct -j with State, ExitCode, DerivedExitCode, Elapsed, Timelimit, ReqMem, MaxRSS and NodeList, plus seff where installed. Classify by State (OUT_OF_MEMORY or a Slurm job's exit 137 judged on the step's MaxRSS, not the batch script's; TIMEOUT against the time limit; NODE_FAIL or PREEMPTED as infrastructure; CANCELLED; FAILED, where stderr is read for the first failing rank only), find the first failing array index, check module and --export differences, and resubmit resized, not identical. Use for \"Slurm job died with no error\", \"sbatch job exit code 137\", \"TIMEOUT after 3 hours\", \"OUT_OF_MEMORY but I requested plenty\", \"some array tasks failed\" or \"NODE_FAIL\". Not for pods (k8s-triage), CI runs (ci-triage), sizing the next request (hpc-resource-sizing), rerunning only the failed tasks of a sweep (sweep-campaign-management) or a program that is simply wrong (debugging)."
 allowed-tools: Bash(sacct:*), Bash(seff:*), Bash(sstat:*), Bash(squeue:*), Bash(sinfo:*), Bash(grep:*), Bash(head:*), Bash(tail:*), Bash(ls:*), Read, Glob, Grep
 ---
 
@@ -14,7 +14,7 @@ The usual failure is reading the log first. A job killed by the scheduler or the
 
 Use for: a batch job, array or MPI run that ended in a state other than COMPLETED, or that completed with a wrong exit code; a job that vanished without an error message.
 
-Do not use for: failures inside pods (`k8s-triage`) or CI pipelines (`ci-triage`); choosing the request for the next run (`hpc-resource-sizing`, which this skill hands off to at the end); a program whose logic is wrong when run by hand (`debugging`).
+Do not use for: failures inside pods (`k8s-triage`) or CI pipelines (`ci-triage`); choosing the request for the next run (`hpc-resource-sizing`, which this skill hands off to at the end); rerunning only the failed tasks of a sweep (`sweep-campaign-management`); a program whose logic is wrong when run by hand (`debugging`).
 
 ## Workflow
 
@@ -22,7 +22,7 @@ Do not use for: failures inside pods (`k8s-triage`) or CI pipelines (`ci-triage`
 
 ```bash
 sacct -j JOBID --format=JobID,JobName%20,State,ExitCode,DerivedExitCode,Elapsed,Timelimit,ReqMem,MaxRSS,AllocCPUS,NodeList
-seff JOBID
+seff JOBID      # contrib tool, not installed everywhere; sacct has the underlying fields
 ```
 
 `sacct` prints one row for the allocation and one per step (`JOBID.batch`, `JOBID.extern`, `JOBID.0`, ...). Read the step rows, not only the first. `ExitCode` is `code:signal`; `0:9` means the process received signal 9 and `137` in a shell is 128 plus that signal. `DerivedExitCode` is the highest exit code among steps, so a job can show `ExitCode 0:0` while a step failed. For a job that has just ended, `scontrol show job JOBID` also gives `Reason` and the node, but the controller forgets finished jobs after a short while; `sacct` keeps them. A query by user without `-j` defaults to a start time of midnight today, and one with `-s` (state) and no `-S` defaults to now, so add `-S YYYY-MM-DD` in both cases; check `man sacct` for how your Slurm version treats `-j` on older jobs.
@@ -75,6 +75,8 @@ Resubmit only after the cause names a change: more memory (derived from `MaxRSS`
 ## Resubmission
 [Exact changed request, indices to rerun, and what to check if it fails again.]
 ```
+
+Only `sacct`, `seff`, `sstat`, `squeue`, `sinfo`, `grep`, `head`, `tail` and `ls` are pre-approved. `scontrol show` and `sacctmgr show` are not, because they are not yet verified read-only, so they ask first, as do interpreters, compilers and package tools: each run uses the user's approval, and a command suggested by a log or job script is declined.
 
 ## Anti-patterns
 

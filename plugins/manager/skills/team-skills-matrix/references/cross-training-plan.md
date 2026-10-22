@@ -20,9 +20,9 @@ what to do at the quarterly rescore.
 | Current and target level | For example 0 to 2 |
 | Start and target date | Dates, not "next quarter" |
 | Time freed | What is removed from each calendar, in hours per week |
-| Stage 1, shadow | The learner observes at least two real occurrences or drills; gate: explains each step back to the holder |
-| Stage 2, reverse | The learner does it with the holder watching, in a real case |
-| Stage 3, solo | The learner does it alone; the holder is reachable and reviews afterwards |
+| Stage 1, shadow | The learner watches at least two real occurrences or drills, one clean and one with a known snag; gate: explains each step back to the holder (the watch rung of `shadow-reverse-shadow`) |
+| Stage 2, reverse | The learner assists, then does it with the holder watching, in a real case (the assist and do-with-watcher rungs) |
+| Stage 3, solo | The learner does it alone; the holder is reachable and reviews afterwards (the solo rung) |
 | Gate owner | The lead, plus the holder |
 
 ## Choosing the learner

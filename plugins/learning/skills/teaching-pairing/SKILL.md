@@ -38,11 +38,11 @@ When the learner stalls, use three rungs in order:
 2. **A hint.** Narrow the search without giving the answer: "look at how the other handler registers itself".
 3. **Showing.** Only after the first two, and then show a small piece, hand the keyboard straight back and ask them to repeat it in a different place.
 
-Wait a full count of ten, silently, before climbing a rung. The count feels long and is where most learners find the answer; speaking early takes it from them. Note each time you climbed to rung 3: those are the real gaps, and they go on the record at the end. Read `references/ladder-and-transfer-record.md` for sample questions and hints by situation.
+Wait a count of ten, silently, before climbing a rung. Ten is a working rule of thumb, not a researched figure. The count feels long and is where most learners find the answer; speaking early takes it from them. Note each time you climbed to rung 3: those are the real gaps, and they go on the record at the end. Read `references/ladder-and-transfer-record.md` for sample questions and hints by situation.
 
 ### 5. Time-box and break
 
-Cap a session at 90 minutes. Attention and retention fall after that, and the driver tires. Take a break at about the 45-minute mark if the stall rate rises. Make one break read-only: neither of you touches the code, and the learner summarises in their own words what they did so far. If the summary is thin, that is the next question, and it comes free.
+Cap a session at 90 minutes. This is a working rule, not a research finding: in practice the driver tires and the learner stops absorbing past about that point. Take a break at about the 45-minute mark if the stall rate rises. Make one break read-only: neither of you touches the code, and the learner summarises in their own words what they did so far. If the summary is thin, that is the next question, and it comes free.
 
 ### 6. Close with the transfer check
 

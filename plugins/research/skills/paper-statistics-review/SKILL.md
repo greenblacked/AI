@@ -1,6 +1,6 @@
 ---
 name: paper-statistics-review
-description: "Review the statistics of a paper, preprint, thesis chapter or internal result before relying on it, in a fixed order: estimand and primary outcome and whether prespecified; independent unit versus unit analysed; tests actually run, including forks in the garden; recomputation from the text (p from statistic and df, means and SDs against n with a GRIM-style integer check, CI against p); what the error bars are; exclusions, missing data and denominators; effect size with an interval rather than bare significance; power and any 'no difference' claim. Output a ranked list: invalidates the claim, weakens it, cosmetic. Use for \"can I trust this result\", \"review the stats in this manuscript\", \"are these p-values right\" or \"referee report on the analysis\". Not for code review (code-review), reading a paper to learn it (paper-reading) or surveying literature (literature-scan)."
+description: "Review the statistics of a paper, preprint, thesis chapter or internal result before relying on it, in a fixed order: estimand and primary outcome and whether prespecified; independent unit versus unit analysed; tests actually run, including forks in the garden; recomputation from the text (p from statistic and df, means and SDs against n with a GRIM-style integer check, CI against p); what the error bars are; exclusions, missing data and denominators; effect size with an interval rather than bare significance; power and any 'no difference' claim. Output a ranked list: invalidates the claim, weakens it, cosmetic. Use for \"can I trust the statistics in this result\", \"review the stats in this manuscript\", \"are these p-values right\" or \"referee report on the analysis\". Not for code review (code-review), reading a paper for its argument and contribution (paper-reading) or surveying literature (literature-scan)."
 allowed-tools: Read, Glob, Grep
 ---
 
@@ -14,7 +14,7 @@ The usual failure is reviewing the prose. A methods section says "t-tests were u
 
 Use for: a manuscript, preprint, thesis chapter, report or internal write-up whose conclusion rests on a statistical analysis, when someone needs to decide how far to trust it or must write a referee report.
 
-Do not use for: reviewing analysis code (`code-review`); reading a paper to understand it (`paper-reading`); finding and summarising the literature on a topic (`literature-scan`).
+Do not use for: reviewing analysis code (`code-review`); reading a paper for its argument and contribution (`paper-reading`); finding and summarising the literature on a topic (`literature-scan`).
 
 ## Workflow
 

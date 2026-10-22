@@ -57,6 +57,7 @@ Call `check_clean` once at the start of the pipeline, before anything is compute
 Run once per pipeline execution and store with the results:
 
 ```bash
+mkdir -p results
 {
   uname -a
   python3 -V

@@ -1,6 +1,6 @@
 ---
 name: workshop-design
-description: "Design a hands-on technical workshop of two to eight hours for colleagues or a public audience so it stays a workshop and does not turn into a lecture. Three outcomes written as observable tasks, each verified by a closing check; hands-on time of at least 60 per cent with no lecture segment over ten minutes; every segment a card with the task, the expected time and the time a slow pair needs; 20 per cent buffer with tiered stretch tasks; a cap of 25 participants with one helper per eight; a break every 75 minutes; pre-work sent a week early with a verification command; and a full dry run on a clean machine whose stall list gets fixed. Use when someone says \"I'm running a Terraform workshop next month\", \"how do I structure a half-day training\" or \"my workshops turn into lectures\". Not for a one-way talk (conference-talk) or a single exercise (exercise-design)."
+description: "Design a hands-on technical workshop of two to eight hours for colleagues or a public audience so it stays a workshop and does not turn into a lecture. Three outcomes written as observable tasks, each verified by a closing check; hands-on time of at least 60 per cent with no lecture segment over ten minutes; every segment a card with expected and slow-pair times; 20 per cent buffer with tiered stretch tasks; a cap of 25 participants with one helper per eight; pre-work sent a week early with a verification command; and a full dry run on a clean machine whose stall list gets fixed. Use when someone says \"I'm running a Terraform workshop next month\", \"how do I structure a half-day training\" or \"my workshops turn into lectures\". Not for a one-way talk (conference-talk), a single exercise (exercise-design), a programme spanning weeks (team-training-curriculum) or checking training worked (training-effectiveness-check)."
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
@@ -14,7 +14,7 @@ The usual failure is a talk with a lab attached. The instructor knows the materi
 
 Use for: a hands-on session of two to eight hours, for colleagues or a public audience, where participants build, configure or operate something.
 
-Do not use for: a one-way presentation, where the question is how to give a 60-minute talk (`conference-talk`); writing the individual exercises in depth (`exercise-design`); or a programme spanning weeks, which needs its own curriculum design.
+Do not use for: a one-way presentation, where the question is how to give a 60-minute talk (`conference-talk`); writing the individual exercises in depth (`exercise-design`); a programme spanning weeks (`team-training-curriculum`); or measuring whether training changed anything afterwards (`training-effectiveness-check`).
 
 ## Workflow
 
@@ -28,7 +28,7 @@ State the audience profile in a few lines: what they already do daily, what they
 
 Hands-on time is at least 60 per cent of the total, and no lecture segment runs over ten minutes. Count it honestly: time spent watching the instructor type is not hands-on. If the schedule fails the 60 per cent, cut content, not practice.
 
-Hold back 20 per cent of the schedule as buffer, placed in several small pieces and not one lump at the end. Add a break every 75 minutes; attention and typing accuracy fall after that, and a break is also the moment when slow pairs catch up.
+Hold back 20 per cent of the schedule as buffer, placed in several small pieces and not one lump at the end. Add a break every 75 minutes; this is a working rule of thumb, not a researched threshold, and a break is also the moment when slow pairs catch up.
 
 ### 3. Write each segment as a card
 

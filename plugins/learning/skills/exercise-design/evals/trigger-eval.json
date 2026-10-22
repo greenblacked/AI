@@ -18,5 +18,5 @@
   {"query": "i have a take-home to do for a job application, how should i approach it", "should_trigger": false, "expected": "take-home-assignment"},
   {"query": "write a tutorial article that walks readers through setting up a CI pipeline", "should_trigger": false, "expected": "write-technical-article"},
   {"query": "what's the quickest way to learn a new library by building something small", "should_trigger": false, "expected": "learn-new-technology"},
-  {"query": "design the levels of a puzzle game so the difficulty ramps well", "should_trigger": false, "expected": "game-level-design"}
+  {"query": "write a live pairing exercise for our backend interview loop", "should_trigger": false, "expected": "hiring-loop"}
 ]

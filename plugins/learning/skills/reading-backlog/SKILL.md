@@ -40,7 +40,7 @@ The queue holds at most ten items, a figure you can scan at a glance; keep it se
 
 ### 6. Set the abandon rule
 
-Quit a book that has not paid off by 10% of its length, and an article, report or paper that has not paid off by 30 pages. "Paid off" means it has told you something relevant to its named task. Dropping is a result, recorded with a line on why, and it frees a work-in-progress slot. Read the introduction and conclusion of a paper before committing to the body; the rule is for when it still disappoints.
+Quit a book that has not paid off by 10% of its length, and a long piece (a report or paper) that has not paid off by 30 pages. An ordinary article gets its one calendar slot; if it has not paid off by the end of it, drop it. "Paid off" means it has told you something relevant to its named task. Dropping is a result, recorded with a line on why, and it frees a work-in-progress slot. Read the introduction and conclusion of a paper before committing to the body; the rule is for when it still disappoints.
 
 ### 7. Put reading in the calendar
 

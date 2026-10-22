@@ -39,10 +39,10 @@ Walk the intermediates in order and find the first whose relative error jumps by
 
 Stop at the first that brings the error within condition times epsilon:
 
-1. Near-equal subtraction: `1 - cos(x)` for small `x` becomes `2*sin(x/2)**2`; `exp(x) - 1` becomes `expm1(x)`; `log(1 + x)` becomes `log1p(x)`; `sqrt(x*x + y*y)` becomes `hypot(x, y)`; quadratic roots use the stable form that avoids subtracting close values.
+1. Near-equal subtraction: `1 - cos(x)` for small `x` becomes `2*sin(x/2)**2`; `exp(x) - 1` becomes `expm1(x)`; `log(1 + x)` becomes `log1p(x)`; quadratic roots use the stable form that avoids subtracting close values.
 2. Summation: `math.fsum` is exact-rounded for Python lists; NumPy's `sum` uses pairwise summation along contiguous axes but `cumsum` and loops do not; Kahan or Neumaier compensation for streaming sums.
 3. Exponentials: `scipy.special.logsumexp`, or subtract the maximum before exponentiating; keep probabilities in log space.
-4. Order and scale: sum small magnitudes first, or scale the data so values sit near one.
+4. Order and scale: sum small magnitudes first, or scale the data so values sit near one; `sqrt(x*x + y*y)` becomes `hypot(x, y)`, which avoids overflow and underflow of the squares (it does not cure cancellation).
 5. Precision: accumulate in float64 while storing float32; only then consider quad precision.
 
 ### 5. Set tolerances from the measurement

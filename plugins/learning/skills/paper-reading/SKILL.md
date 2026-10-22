@@ -1,6 +1,6 @@
 ---
 name: paper-reading
-description: "Read one research paper efficiently and decide what it means for your work. A five-minute triage reads the abstract's claim, the one results table and the limitations: read, skim or skip. The second pass reads figures and tables before the method. The claim is forced into one sentence, on X, method M improves metric Y by Z over baseline B. Then check baseline tuning, seeds and variance, test-set leakage and whether the ablation isolates the contribution. Capped at 45 minutes, ending in an adopt, watch or ignore verdict. Use when someone says \"summarise this arXiv paper and tell me if it's worth implementing\", \"how do I read papers without losing a day\" or \"is this paper's claim believable\". Not for a field survey (literature-scan), notes afterwards (learning-notes) or your own retriever (retrieval-evaluation)."
+description: "Read one research paper efficiently and decide what it means for your work. A five-minute triage reads the abstract's claim, the one results table and the limitations: read, skim or skip. The second pass reads figures and tables before the method. The claim is forced into one sentence, on X, method M improves metric Y by Z over baseline B. Then check baseline tuning, seeds and variance, test-set leakage and whether the ablation isolates the contribution. Capped at 45 minutes, ending in an adopt, watch or ignore verdict. Use when someone says \"summarise this arXiv paper and tell me if it's worth implementing\", \"how do I read papers without losing a day\" or \"is this paper's claim believable\". Not for a field survey (literature-scan), recomputing a paper's statistics (paper-statistics-review), notes afterwards (learning-notes) or your own retriever (retrieval-evaluation)."
 allowed-tools: Read, Glob, Grep
 ---
 
@@ -14,7 +14,7 @@ The usual failure is reading linearly from the abstract to the appendix, absorbi
 
 Use for: deciding whether one paper is worth acting on; extracting the testable claim from a dense paper; checking a claim before you cite it or build on it.
 
-Do not use for: surveying many papers on a question (`literature-scan`), writing the note afterwards ("add this paper to my notes" goes to `learning-notes`), or evaluating a retrieval system you built (`retrieval-evaluation`).
+Do not use for: surveying many papers on a question (`literature-scan`), writing the note afterwards ("add this paper to my notes" goes to `learning-notes`), recomputing a paper's statistics (`paper-statistics-review`), or evaluating a retrieval system you built (`retrieval-evaluation`).
 
 ## Workflow
 

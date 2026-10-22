@@ -22,7 +22,9 @@ questions, treat its miss rate as rough and confirm with a topic quiz in week on
 Assume 60 study hours and four domains. Take the mock hours out first: two mocks of 2 hours
 each and about 2.5 hours of review each is 9 hours, leaving 51 for study. Set a floor for any
 domain with a weight of 30 per cent or more, here 10 hours, so a heavy domain with a low miss
-rate is not starved; a few misses on 40 per cent of the exam still cost more than anything else.
+rate is not starved. Each point of miss rate on a 40 per cent domain costs four times what it
+costs on a 10 per cent domain, so a heavy domain with a low miss rate has most to lose if it is
+starved.
 
 | Domain | Weight | Miss rate | Product | Hours |
 | --- | --- | --- | --- | --- |

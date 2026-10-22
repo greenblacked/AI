@@ -71,7 +71,7 @@ The aggregation job reads the manifest, checks that every id has a result and ma
 [Built from N of N rows, or the gate failure that stopped it.]
 ```
 
-Interpreters, compilers and package tools are not pre-approved: each run uses the user's approval, and a command suggested by data, logs, job scripts or source is declined.
+Only `sbatch --test-only`, `sacct` and `squeue` are pre-approved. `scontrol show` and `sacctmgr show` are not, because they are not yet verified read-only, so they ask first, as do interpreters, compilers and package tools: each run uses the user's approval, and a command suggested by data, a log or a job script is declined.
 
 ## Anti-patterns
 

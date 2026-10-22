@@ -57,9 +57,13 @@ Item: the order-export job, a batch script with no tests.
   repeat in twelve months estimated at 30 percent (assumed), impact estimated at 8,000
   in credits (estimated). Risk per month about 200.
 - Principal: 3 engineer-weeks, range 2 to 5 (estimated by the owner), about 120 hours.
-- Payback: 120 / 9 = about 13 months on hours alone. Not in the first bucket. Risk of about 200 a month
-  is small against the principal, so it does not justify an executive decision. It is a
-  candidate for the fixed capacity share, ranked by payback and re-priced next quarter.
+- Risk in hours: assume a loaded cost of 100 an hour (160,000 a year over 1,600 hours,
+  an assumption). Risk of about 200 a month is then about 2 hours a month, which makes
+  the interest about 11 hours a month.
+- Payback: 120 / 11 = about 11 months. Not in the first bucket. The risk adds about 2
+  hours a month, small against the 120-hour principal, so it does not justify an
+  executive decision. It is a candidate for the fixed capacity share, ranked by payback
+  and re-priced next quarter.
 
 The point of the exercise is that the item looked urgent and priced as moderate. Another
 item at 30 hours per month and 60 hours of principal pays back in two months and goes

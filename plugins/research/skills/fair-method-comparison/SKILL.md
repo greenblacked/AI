@@ -1,6 +1,6 @@
 ---
 name: fair-method-comparison
-description: "Compare a new method, model or algorithm with baselines so the claim survives scrutiny, starting by reproducing the baseline to its published number at exact versions, logging deviations. Then equal tuning budget for baseline and proposal, tuning on validation only with the test set touched once, at least five seeds or splits compared paired with an interval, paired bootstrap or Wilcoxon signed-rank on per-dataset differences, cost beside accuracy, a trivial baseline, ablations, and a win declared only if the interval lies wholly above a practical threshold. Use for \"does our method beat the baseline\", \"is this improvement real\", \"set up the comparison table\", \"reviewer says baselines are weak\". Not for agents (agent-evaluation), retrieval (retrieval-evaluation), your own pipeline (reproducible-analysis-environment) or paper review (paper-statistics-review)."
+description: "Compare a new method, model or algorithm with baselines so the claim survives scrutiny, starting by reproducing the baseline to its published number at exact versions, logging deviations. Then equal tuning budget for baseline and proposal, tuning on validation only with the test set touched once, at least five seeds or splits compared paired with an interval, paired bootstrap or Wilcoxon signed-rank on per-dataset differences, cost beside accuracy, a trivial baseline, ablations, and a win declared only if the interval lies wholly above a practical threshold. Use for \"does our method beat the baseline\", \"is this improvement real\", \"set up the comparison table\", \"reviewer says baselines are weak\". Not for agents (agent-evaluation), retrieval (retrieval-evaluation), your own pipeline (reproducible-analysis-environment), reproducing a published result on its own (paper-reproduction) or paper review (paper-statistics-review)."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git rev-parse:*)
 ---
 
@@ -14,7 +14,7 @@ The usual failure is an unfair contest that nobody meant to run. The proposed me
 
 Use for: a claim that a new method, model, algorithm or configuration is better than existing ones, at the design stage of the experiment or when a reviewer has challenged it.
 
-Do not use for: judging agent behaviour (`agent-evaluation`) or retrieval quality (`retrieval-evaluation`); making your own pipeline rerunnable (`reproducible-analysis-environment`); checking another paper's statistics (`paper-statistics-review`).
+Do not use for: judging agent behaviour (`agent-evaluation`) or retrieval quality (`retrieval-evaluation`); making your own pipeline rerunnable (`reproducible-analysis-environment`); reproducing a published result on its own (`paper-reproduction`); checking another paper's statistics (`paper-statistics-review`).
 
 ## Workflow
 

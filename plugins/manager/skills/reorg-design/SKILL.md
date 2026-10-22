@@ -60,10 +60,10 @@ The order is fixed, because people judge the reorg by how they heard of it.
 
 1. The affected managers, together, with the full design and the talking points, and time to ask questions.
 2. Each affected individual, in a 1:1 with their own manager, before any group message. People whose manager changes also meet the new manager early.
-3. The affected teams, together, the same day or the next morning.
+3. The affected teams, together, later the same working day.
 4. Everyone else (adjacent teams, stakeholders, the wider organisation).
 
-Hold steps 2 to 4 inside one working day where possible, so nobody carries private knowledge overnight. A person who learns about their own move from a channel post or a colleague will remember that long after the structure has settled. `references/announcement-template.md` has the 1:1 script, the manager briefing and the written announcement.
+Steps 2 to 4 happen in one working day, so nobody carries private knowledge overnight. A person who learns about their own move from a channel post or a colleague will remember that long after the structure has settled. `references/announcement-template.md` has the 1:1 script, the manager briefing and the written announcement.
 
 ### 7. Write the announcement
 

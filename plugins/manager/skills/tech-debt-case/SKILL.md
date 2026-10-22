@@ -1,6 +1,6 @@
 ---
 name: tech-debt-case
-description: "Turn technical debt into a prioritised, defensible investment that product and executives will fund. Prices each item as interest (recurring engineer-hours a month from ticket and incident history, plus probability times impact) against principal (the one-off effort to remove it), ranks by interest divided by principal, sorts items into three buckets (pays back within two quarters, blocks a named product goal, cosmetic), and asks for a fixed capacity share or a bounded project with a measured before and after. Use for \"how do I get time for tech debt\", \"product keeps saying not now\", \"which debt should we pay first\", \"we need a platform quarter\". Not for restructuring code safely (refactoring), team-wide flow and DORA assessment (delivery-review), recording the choice (decision-record), or asking for people rather than time (headcount-case)."
+description: "Turn technical debt into a prioritised, defensible investment that product and executives will fund. Prices each item as interest (recurring engineer-hours a month from ticket and incident history, plus probability times impact) against principal (the one-off effort to remove it), ranks by interest divided by principal, sorts items into four buckets (pays back within two quarters, blocks a named product goal, long payback for the capacity share, cosmetic), and asks for a fixed capacity share or a bounded project with a measured before and after. Use for \"how do I get time for tech debt\", \"product keeps saying not now\", \"which debt should we pay first\", \"we need a platform quarter\". Not for restructuring code safely (refactoring), team-wide flow and DORA assessment (delivery-review), recording the choice (decision-record), or asking for people rather than time (headcount-case)."
 allowed-tools: Read, Grep, Glob
 ---
 
@@ -45,13 +45,12 @@ Principal is the one-off effort to remove the item, in engineer-weeks, with a ra
 
 Compute payback in months for each item: principal expressed in engineer-hours divided by monthly interest. Rank by it, shortest first. Convert the monthly risk cost into the same unit (divide it by the loaded hourly cost) and add it to the hours, or rank the risk column separately and say so, so that the ranking and the pricing agree. Do not rank by severity of the code or by seniority of the person who raised it. An ugly module that costs ten hours a year loses to a dull one that costs thirty hours a month, and putting that on the page is most of the persuasion.
 
-### 5. Sort into three buckets before negotiating
+### 5. Sort into four buckets before negotiating
 
 - **Pays for itself within two quarters.** Payback of about six months or less. Do it from team capacity without asking; asking turns a free win into a negotiation.
 - **Blocks a named product goal.** The item stands in the way of a roadmap item with a date. Attach it to that goal, estimate the delay it causes without the work, and put it in the goal's plan rather than a separate request. Product then funds it as part of their own commitment.
-- **Cosmetic.** Real but with no measurable interest and no blocked goal. Drop it from the request, and say so, which makes the rest of the list more credible.
-
 - **Long payback, measurable interest, no blocked goal.** Candidates for the fixed capacity share: rank them by payback and re-price them next quarter, when the interest figure has been re-measured.
+- **Cosmetic.** Real but with no measurable interest and no blocked goal. Drop it from the request, and say so, which makes the rest of the list more credible.
 
 Items with a long payback and no goal attached are not cosmetic. Only if the risk cost is large does an item go to the executive with the risk stated, as a separate decision.
 
@@ -76,6 +75,8 @@ Whatever happened, report the interest metric against its baseline: hours recove
 ### Do now (pays back in two quarters)
 ### Attached to a product goal
 [Item, goal, date, delay without the work.]
+### Capacity share (long payback)
+[Item, payback in months, interest metric, re-price date.]
 ### Dropped as cosmetic
 
 ### Metrics and targets
@@ -102,4 +103,4 @@ Whatever happened, report the interest metric against its baseline: hours recove
 ## Reference files
 
 - `references/pricing-interest.md` read when pricing an item: the queries for tickets, incidents and change hot spots, the hours-to-money conversion, the risk arithmetic and a worked example with its bucket.
-- `references/the-ask.md` read when writing the request: the wording for the three buckets, a fixed-share proposal, a bounded-project proposal and the end-of-quarter report.
+- `references/the-ask.md` read when writing the request: the wording for the four buckets, a fixed-share proposal, a bounded-project proposal and the end-of-quarter report.

@@ -4,7 +4,7 @@
     "should_trigger": true
   },
   {
-    "query": "job exited with code 137, what killed it",
+    "query": "my sbatch job exited with code 137, what killed it",
     "should_trigger": true
   },
   {
@@ -80,13 +80,13 @@
     "expected": "oom-kill-forensics"
   },
   {
-    "query": "my dataset is larger than RAM, how do I process it in chunks",
+    "query": "my docker container exits with code 137 on my own Linux host, was it the kernel OOM killer",
     "should_trigger": false,
-    "expected": "out-of-core-dataset-handling"
+    "expected": "oom-kill-forensics"
   },
   {
-    "query": "write a Dockerfile for my analysis code",
+    "query": "rerun only the failed tasks of my 5000-config parameter sweep without redoing the finished ones",
     "should_trigger": false,
-    "expected": "code-scaffold"
+    "expected": "sweep-campaign-management"
   }
 ]

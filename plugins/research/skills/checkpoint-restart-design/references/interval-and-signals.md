@@ -26,14 +26,14 @@ requeue() {
   wait "$PID" || true
   scontrol requeue "$SLURM_JOB_ID"
 }
-trap requeue USR1
 
 srun python train.py --resume-latest &
 PID=$!
+trap requeue USR1
 wait "$PID"
 ```
 
-The signal reaches the batch shell, which forwards it to the work and waits for it to checkpoint and exit before requeueing. Adjust to the site's rules on requeue; some sites disallow it or cap restarts. A restart count limit in the program prevents an endless loop on a persistent failure.
+The trap is installed after `PID=$!` because the handler reads `$PID`, which is unset until then and aborts the handler under `set -u`; a USR1 arriving before the trap exists would take the default action and end the script, which cannot happen in practice because Slurm sends it 120 s before the limit, long after startup. The signal reaches the batch shell, which forwards it to the work and waits for it to checkpoint and exit before requeueing. Adjust to the site's rules on requeue; some sites disallow it or cap restarts. A restart count limit in the program prevents an endless loop on a persistent failure.
 
 ## Python handler and atomic write
 
