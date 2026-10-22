@@ -17,7 +17,6 @@
   {"query": "everyone's PRs have been failing since about 2pm, can you work out what landed on main", "should_trigger": false, "expected": "ci-triage"},
   {"query": "pods went CrashLoopBackOff right after the 11:40 deploy, roll back or dig in", "should_trigger": false, "expected": "k8s-triage"},
   {"query": "replace the AWS access key our deploy workflow stores with OIDC federation", "should_trigger": false, "expected": "workload-identity"},
-  {"query": "we need to add a not null column to the users table without locking it, plan the migration", "should_trigger": false, "expected": "db-migration"},
-  {"query": "write up the postmortem for tuesday's outage, i already have the timeline in a doc", "should_trigger": false, "expected": "postmortem"},
-  {"query": "set up ACME so our whole fleet of TLS certificates renews itself before the CA/Browser Forum shortens validity again", "should_trigger": false, "expected": "certificate-automation"}
+  {"query": "set up ACME so our whole fleet of TLS certificates renews itself before the CA/Browser Forum shortens validity again", "should_trigger": false, "expected": "certificate-automation"},
+  {"query": "we committed a .env file two years ago, strip it out of every branch and tag in the repo history", "should_trigger": false, "expected": "git-history-purge"}
 ]

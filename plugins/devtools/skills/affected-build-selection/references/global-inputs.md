@@ -26,5 +26,6 @@ A global input is a file whose change can alter any project's result although no
 | --- | --- |
 | Turborepo | `globalDependencies` (files) and `globalEnv` (environment variables) in `turbo.json`; per-task `inputs` narrows what counts for one task |
 | Nx | `namedInputs` in `nx.json` with a shared set (conventionally `sharedGlobals`) referenced by each target's `inputs` |
-| Bazel and Pants | The build graph already owns file inputs; the gap is files outside any target, so check them with `bazel query` or the tool's equivalent |
+| Bazel | The build graph already owns file inputs, so affected targets come from the graph: `bazel-diff` (hashes every target at two revisions and lists those that differ) or `target-determinator` (the same job, driven by two commits). The gap is files outside any target, so check them with `bazel query` |
+| Pants | `pants --changed-since=<ref> --changed-dependents=transitive list` prints the targets that changed or depend on a changed file, directly or transitively; a changed file no target owns selects nothing, so list those separately |
 | Custom scripts | A path-prefix rule that bypasses the filter and selects all |

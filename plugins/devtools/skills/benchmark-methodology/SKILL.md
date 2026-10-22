@@ -31,9 +31,18 @@ Differences you cannot control must at least be constant between A and B.
 - Use a quiet host: no browser, no indexer, no other build. On a cloud VM expect noisy neighbours and measure it (step 6).
 - Build A and B with the same compiler, flags and optimisation level, from the same commit apart from the change under test.
 
-### 3. Warm up, then measure whole processes
+### 3. Warm up inside each process, then sample many processes
 
-Run enough untimed iterations for caches, the JIT and lazy initialisation to settle. Then run many separate processes, not many iterations inside one: memory layout, address randomisation, JIT compilation decisions and hash seeds vary per process, so a thousand iterations in one process measure that process's luck a thousand times. Use the tool's runs option, for example `hyperfine --warmup 3 --runs 30 'cmd-a' 'cmd-b'` (hyperfine runs all of A and then all of B and does not interleave, so for the ordering in step 5 loop over single-command hyperfine runs in alternating order). Note that `go test -bench . -count=10` repeats each benchmark inside one test binary process, so it does not give per-process samples; for those, build the binary once with `go test -c` and run it N times in a loop, alternating A and B, then feed the outputs to `benchstat`.
+Run enough untimed iterations for caches, the JIT and lazy initialisation to settle, and do it inside every process you sample from. Then take samples from many separate processes (forks), not many iterations inside one: memory layout, address randomisation, JIT compilation decisions and hash seeds vary per process, so a thousand iterations in one process measure that process's luck a thousand times. The opposite mistake is as common: on a JIT runtime a fresh process timed with no warm-up of its own measures cold start, which answers a different question.
+
+Pick the tool by what is being compared:
+
+- **JMH (JVM).** Each fork is a fresh JVM that warms up (`-wi` warm-up iterations) before its measured iterations (`-i`), and `-f` sets how many forks run. This is the right shape for code in a JIT runtime, because the fork gives independent compilation decisions and the warm-up keeps them out of the timings.
+- **criterion (Rust).** Warms up (`--warm-up-time`) and samples inside one process, which suits ahead-of-time compiled code once it is warm. It does not vary layout between runs, so run the benchmark binary several times, alternating A and B, when the difference is small.
+- **pytest-benchmark (Python).** Rounds run in one process after an optional warm-up (`--benchmark-warmup`). CPython has no JIT by default, but the hash seed varies per process, so repeat the whole run or fix `PYTHONHASHSEED` for both sides.
+- **hyperfine (whole-process commands).** Right when the thing you ship is a process invocation (a CLI, a build step, startup time), because each run is a fresh process. `--warmup 3` makes untimed runs first so the file cache is warm; it does not warm a JIT inside the command, so do not use it for steady-state JVM or Node performance.
+
+For hyperfine, `hyperfine --warmup 3 --runs 30 'cmd-a' 'cmd-b'` runs all of A and then all of B and does not interleave, so for the ordering in step 5 loop over single-command hyperfine runs in alternating order. Note that `go test -bench . -count=10` repeats each benchmark inside one test binary process, so it does not give per-process samples; for those, build the binary once with `go test -c` and run it N times in a loop, alternating A and B, then feed the outputs to `benchstat`.
 
 ### 4. Keep the work from being optimised away
 

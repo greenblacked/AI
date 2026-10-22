@@ -37,11 +37,23 @@ git tag --contains <commit>
 | Remove every blob above a size | `git filter-repo --strip-blobs-bigger-than <size>` |
 | Keep large files but store them as pointers | `git lfs migrate import --include=<patterns> --everything` |
 | Rewrite a string inside files | `git filter-repo --replace-text <file>` |
-| Only the latest commit is wrong | Amend and force-push that branch; rotate a secret anyway |
+| Only the latest commit is wrong | Amend and push that branch with `--force-with-lease=<branch>:<sha-you-inspected>`; rotate a secret anyway |
 
 ## After an LFS migration
 
 LFS stores the content on the host's LFS storage, which counts against a quota and is not in the Git packfile. Run `git lfs push --all origin` before pushing refs so the host holds the content, not only pointers. Check that `.gitattributes` now lists the patterns, that `git lfs ls-files` shows the migrated files, and that CI checkouts fetch LFS objects (`lfs: true` on the checkout step, or `git lfs pull`). Ask whether the quota covers the total, since every historical version of a migrated file is uploaded.
+
+## Backup and leases
+
+The restorable copy and the lease list come from the untouched mirror, before any `filter-repo` or `lfs migrate` run:
+
+```bash
+( umask 077; git bundle create ../pre-purge.bundle --all )
+git bundle verify ../pre-purge.bundle
+git for-each-ref --format='%(objectname) %(refname)' refs/heads refs/tags > ../pre-purge-refs.txt
+```
+
+Each line of the list becomes one `--force-with-lease=<ref>:<sha>` on the push, so a ref that moved since the clone refuses the push instead of being overwritten. Keep the bundle where only you can read it, since it still holds the secret, and delete it, the list and any second mirror once the checklist below is complete.
 
 ## Collaborator messages
 
@@ -73,4 +85,5 @@ Reapplying a branch with `git cherry-pick` from the old clone brings only the co
 - A secret scanner run over the full history is clean.
 - `git ls-remote origin` shows no unexpected refs beyond heads, tags and the host's own pull refs, and the support request for those is filed.
 - Branch protection restored; every tag of concern was rewritten and pushed.
+- The pre-rewrite bundle, the ref list and any second mirror are deleted, and the pushes were leased.
 - Forks, mirrors, CI caches and package registries that copied the data are listed with an owner for each.

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "devtools",
-  "description": "Skills for developer tooling and build systems: git recovery and rebases, monorepos, build caching, dependency conflicts, codemods, local environments and CI speed.",
+  "description": "Skills for developer tooling and build systems: recovering and purging git history, repairing rebases, dependency conflicts and phantom dependencies, build cache misses and slow builds, affected-only monorepo builds, partial-release recovery and benchmark methodology.",
   "author": {
     "name": "Serhii Zolotov",
     "url": "https://github.com/greenblacked"

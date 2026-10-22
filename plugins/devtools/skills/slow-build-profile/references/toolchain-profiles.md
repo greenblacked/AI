@@ -45,7 +45,7 @@ The report lists the files that took longest to parse and to optimise, the heade
 
 ## Ninja and Make
 
-`ninja -d explain` states why each edge is dirty. `ninja -n -d explain` does it without building. `.ninja_log` records the start and end of each edge; sorting by duration gives the slowest steps, and the longest chain of dependent edges is the critical path. For Make, `make --debug=b` shows which prerequisite triggered each rebuild, and `make -n` previews without running.
+`ninja -d explain` states why each edge is dirty. `ninja -n -d explain` does it without building. `.ninja_log` in the build directory records the start and end time in milliseconds of each edge (its columns are tab-separated); `ninja -d stats` does not, as it prints only internal counters. `ninjatracing` converts the log into a trace for a viewer such as Perfetto. Sorting by duration gives the slowest steps, and the longest chain of dependent edges is the critical path. For Make, `make --debug=b` shows which prerequisite triggered each rebuild, and `make -n` previews without running.
 
 ## Reading a profile for fan-out
 

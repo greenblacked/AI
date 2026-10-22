@@ -25,14 +25,14 @@ git fsck --unreachable --no-reflogs | awk '/commit/ {print $3}' |
   done | grep -E 'WIP on|On [^ ]+:'
 ```
 
-Stash commits are titled `WIP on <branch>: ...` or `On <branch>: <message>`. Confirm with `git show --stat <sha>`, then `git stash apply <sha>` or `git branch rescue/stash <sha>`. The third parent, when present, holds untracked files saved with `-u`.
+Stash commits are titled `WIP on <branch>: ...` or `On <branch>: <message>`. Confirm with `git log -1 --stat <sha>`, then `git stash apply <sha>` or `git branch rescue/stash <sha>`. The third parent, when present, holds untracked files saved with `-u`.
 
 ## Deleted branch
 
 Git prints the tip when you delete: `Deleted branch x (was abc1234)`. Otherwise find the last time HEAD was on it.
 
 ```bash
-git reflog --date=iso | grep -n 'checkout: moving from <branch> '
+git reflog show --date=iso | grep -n 'checkout: moving from <branch> '
 ```
 
 Each match is a `HEAD@{n}` entry where HEAD left the branch (grep -n counts from 1, so n is the printed line number minus one when the reflog is unfiltered). The reflog lists newest first, so the entry that records the last thing done on the branch is the next, older one: `git rev-parse 'HEAD@{n+1}'` is the branch tip, assuming nothing moved the branch without HEAD on it. Check with `git log --oneline -5 <sha>`. If the reflog has expired, fall back to `git fsck --lost-found` and search candidate commits by message.
@@ -42,7 +42,7 @@ Each match is a `HEAD@{n}` entry where HEAD left the branch (grep -n counts from
 The original commit is still in the HEAD reflog under the pre-rewrite position.
 
 ```bash
-git reflog --date=iso | head -40
+git reflog show --date=iso | head -40
 git range-diff <base>..<pre-rewrite-sha> <base>..<branch>
 ```
 
@@ -53,7 +53,7 @@ git range-diff <base>..<pre-rewrite-sha> <base>..<branch>
 Commits made while detached are reachable only from the reflog.
 
 ```bash
-git reflog --date=iso | head -30
+git reflog show --date=iso | head -30
 git branch rescue/detached <sha-of-latest-detached-commit>
 ```
 
@@ -82,7 +82,7 @@ git fsck --lost-found --no-reflogs        # writes dangling blobs to .git/lost-f
 for b in $(git fsck --no-reflogs --lost-found | awk '/dangling blob/ {print $3}'); do
   printf '%s  ' "$b"; git cat-file -s "$b"
 done | sort -k2 -n -r | head -20
-git show <blob-sha>
+git cat-file -p <blob-sha>
 ```
 
 Blobs carry no filename; match on content by printing each candidate with `git cat-file -p <sha>` and searching for a string you remember.
