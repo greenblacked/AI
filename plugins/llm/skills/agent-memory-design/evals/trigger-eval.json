@@ -1,0 +1,22 @@
+[
+  {"query": "we want the assistant to remember each user's preferences between sessions", "should_trigger": true},
+  {"query": "it remembered something wrong about me and keeps repeating it", "should_trigger": true},
+  {"query": "how do we let users see and delete what the assistant has stored about them", "should_trigger": true},
+  {"query": "could a web page trick our agent into saving a malicious instruction in its memory", "should_trigger": true},
+  {"query": "what should an agent store as a long-term memory and what should it never keep", "should_trigger": true},
+  {"query": "a user changed their address but the assistant still uses the old one", "should_trigger": true},
+  {"query": "design the schema for the facts our agent keeps about a customer across conversations", "should_trigger": true},
+  {"query": "how do we test that remembered facts actually change the answer next week", "should_trigger": true},
+  {"query": "memories from one customer showed up for another tenant, how do we scope them", "should_trigger": true},
+  {"query": "how long should a stored preference live before it expires", "should_trigger": true},
+  {"query": "answer questions over our internal wiki with citations", "should_trigger": false, "expected": "rag-design"},
+  {"query": "review our agent's tool permissions for prompt injection", "should_trigger": false, "expected": "agent-security-review"},
+  {"query": "what is the legal basis for keeping user data and how long must we retain it", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "the conversation hits the context limit and the bot forgets early decisions", "should_trigger": false, "expected": "context-compaction"},
+  {"query": "pass my half-finished coding task to another agent with a checkpoint", "should_trigger": false, "expected": "agent-handoff"},
+  {"query": "cache user profile reads in redis", "should_trigger": false, "expected": "application-caching"},
+  {"query": "model the tables for storing user settings", "should_trigger": false, "expected": "schema-design"},
+  {"query": "shrink what the search tool returns to the model", "should_trigger": false, "expected": "tool-result-shaping"},
+  {"query": "decide which users may read which records", "should_trigger": false, "expected": "authorization-design"},
+  {"query": "help me remember the vocabulary I'm learning for my exam", "should_trigger": false, "expected": "exam-prep-plan"}
+]

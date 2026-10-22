@@ -1,0 +1,22 @@
+[
+  {"query": "we want an LLM to sort incoming support tickets into about twelve categories; how do we know it is good enough", "should_trigger": true},
+  {"query": "two of our reviewers label the same tickets differently, so how can we judge the model against them", "should_trigger": true},
+  {"query": "how confident is the model in a label, and can we trust the confidence it prints", "should_trigger": true},
+  {"query": "should we use an LLM for intent detection or just train a logistic regression on our old tickets", "should_trigger": true},
+  {"query": "set the threshold below which the tagger sends a message to a human instead of acting on it", "should_trigger": true},
+  {"query": "our moderation labeller says 96% accuracy but it never catches the rare abusive class", "should_trigger": true},
+  {"query": "write the label definitions and tie-break rules for routing emails to the right team", "should_trigger": true},
+  {"query": "how many items do I need in a holdout to report precision and recall for each category", "should_trigger": true},
+  {"query": "the classifier worked at launch but we think the mix of tickets has shifted; how do we check", "should_trigger": true},
+  {"query": "build a router that sends each customer message to billing, technical or sales and measure its mistakes", "should_trigger": true},
+  {"query": "make the model reply with JSON that always validates against this schema", "should_trigger": false, "expected": "structured-output"},
+  {"query": "score two hundred recorded agent runs on whether the right tools were called", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "run the tagging prompt over 3 million tickets and make the job resumable", "should_trigger": false, "expected": "llm-batch-processing"},
+  {"query": "stop our chatbot from leaking personal data and from discussing competitors", "should_trigger": false, "expected": "output-filter-calibration"},
+  {"query": "set up retries and a fallback model for when the provider returns 529 errors", "should_trigger": false, "expected": "llm-provider-resilience"},
+  {"query": "which of our prompts is costing the most per month, and how do we cap it", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "measure whether our retriever returns the right passage using recall at k", "should_trigger": false, "expected": "retrieval-evaluation"},
+  {"query": "should this feature be a single call, a workflow or an autonomous agent", "should_trigger": false, "expected": "agent-architecture-choice"},
+  {"query": "review the pull request that adds the new tagging endpoint for correctness", "should_trigger": false, "expected": "code-review"},
+  {"query": "design the pipeline that answers questions over our internal wiki with citations", "should_trigger": false, "expected": "rag-design"}
+]

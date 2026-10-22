@@ -1,0 +1,92 @@
+[
+  {
+    "query": "we only get 500 visitors a week to our landing page, how can we test anything",
+    "should_trigger": true
+  },
+  {
+    "query": "which headline should we use on the homepage, we cannot run a proper test with our traffic",
+    "should_trigger": true
+  },
+  {
+    "query": "our A/B test has run for three months and never reaches significance, what now",
+    "should_trigger": true
+  },
+  {
+    "query": "can we even test our pricing page when it gets about 800 visits a month",
+    "should_trigger": true
+  },
+  {
+    "query": "how long would it take to detect a 15 percent lift on a page with a 2 percent conversion rate and 1,000 weekly visitors",
+    "should_trigger": true
+  },
+  {
+    "query": "should we do a before-and-after instead of a split test because traffic is so low",
+    "should_trigger": true
+  },
+  {
+    "query": "we want to test button colours on a tiny site, is that worth doing",
+    "should_trigger": true
+  },
+  {
+    "query": "how do we avoid peeking at results and calling a winner too early on a small page",
+    "should_trigger": true
+  },
+  {
+    "query": "set up a test log so we stop repeating failed landing page ideas",
+    "should_trigger": true
+  },
+  {
+    "query": "our signup page gets few visitors; what is the best thing to test first",
+    "should_trigger": true
+  },
+  {
+    "query": "ask whether the form leads turn into customers and feed that back to the campaign",
+    "should_trigger": false,
+    "expected": "lead-quality-loop"
+  },
+  {
+    "query": "the ad promises a free trial but the landing page leads with pricing",
+    "should_trigger": false,
+    "expected": "message-match-audit"
+  },
+  {
+    "query": "ad platforms claim more conversions than our backend shows",
+    "should_trigger": false,
+    "expected": "attribution-sanity-check"
+  },
+  {
+    "query": "refresh the old blog posts that lost rankings",
+    "should_trigger": false,
+    "expected": "content-refresh-triage"
+  },
+  {
+    "query": "A/B test our pricing page",
+    "should_trigger": false,
+    "expected": "experiment-design"
+  },
+  {
+    "query": "brief for a new article from the search results",
+    "should_trigger": false,
+    "expected": "content-brief-from-serp"
+  },
+  {
+    "query": "build a naming standard for UTM tags",
+    "should_trigger": false,
+    "expected": "campaign-tagging-standard"
+  },
+  {
+    "query": "check a newsletter before we send it",
+    "should_trigger": false,
+    "expected": "campaign-preflight"
+  },
+  {
+    "query": "find the wasted spend in our paid search account",
+    "should_trigger": false,
+    "expected": "paid-search-waste-audit"
+  },
+  {
+    "query": "decide whether to publish thousands of templated location pages",
+    "should_trigger": false,
+    "expected": "programmatic-seo-gate"
+  }
+]

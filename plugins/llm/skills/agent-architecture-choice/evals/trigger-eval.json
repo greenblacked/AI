@@ -1,0 +1,22 @@
+[
+  {"query": "should this support assistant be an agent with tools or can we just make one call with retrieval", "should_trigger": true},
+  {"query": "do we really need multi-agent for this research feature or would one agent do", "should_trigger": true},
+  {"query": "our agent behaves differently every run and nobody can debug it; would a fixed workflow be better", "should_trigger": true},
+  {"query": "design the architecture for an assistant that books meetings, summarises threads and drafts replies", "should_trigger": true},
+  {"query": "when is it justified to let the model decide the order of steps instead of coding the pipeline", "should_trigger": true},
+  {"query": "how do we compare a prompt chain against an autonomous loop for our invoice processing feature", "should_trigger": true},
+  {"query": "put hard limits on steps, tokens and cost for a tool-using loop and decide what happens when it runs out", "should_trigger": true},
+  {"query": "we split our assistant into planner, researcher and writer agents and it got slower; was that a mistake", "should_trigger": true},
+  {"query": "how many tools should one agent have before it starts picking the wrong one", "should_trigger": true},
+  {"query": "start the design for a new feature that answers HR questions from policy documents, what shape should it take", "should_trigger": true},
+  {"query": "split work between several coding agents on one repository without them overwriting each other", "should_trigger": false, "expected": "agent-orchestration"},
+  {"query": "score two hundred recorded agent runs and set a release gate", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "write an architecture decision record for choosing postgres over dynamodb", "should_trigger": false, "expected": "decision-record"},
+  {"query": "tune chunking and reranking so the docs bot retrieves the right passage", "should_trigger": false, "expected": "rag-design"},
+  {"query": "our agent costs too much per run, find where the tokens go and set a monthly ceiling", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "review our agent for prompt injection and unsafe tool permissions", "should_trigger": false, "expected": "agent-security-review"},
+  {"query": "the agent keeps going in circles and never finishes tasks; read these traces and say why", "should_trigger": false, "expected": "agent-failure-diagnosis"},
+  {"query": "write the instruction file that tells a coding agent how to run our tests", "should_trigger": false, "expected": "agent-instructions"},
+  {"query": "make the model return JSON matching a schema on every call", "should_trigger": false, "expected": "structured-output"},
+  {"query": "choose between a monolith and microservices for our new billing system", "should_trigger": false}
+]

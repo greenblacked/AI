@@ -1,0 +1,90 @@
+[
+  {
+    "query": "people are fighting in our Discord every night and the mods keep disagreeing on what to do",
+    "should_trigger": true
+  },
+  {
+    "query": "write community guidelines for our new forum before we open signups",
+    "should_trigger": true
+  },
+  {
+    "query": "how do we handle a troll who keeps coming back with new accounts",
+    "should_trigger": true
+  },
+  {
+    "query": "we need a ban appeal process that does not just rubber-stamp the first decision",
+    "should_trigger": true
+  },
+  {
+    "query": "a spam wave hit our forum overnight, what should we put in place so it does not happen again",
+    "should_trigger": true
+  },
+  {
+    "query": "our volunteer moderators are burning out because every report lands on the same two people",
+    "should_trigger": true
+  },
+  {
+    "query": "what should the escalation ladder look like between a warning and a permanent ban",
+    "should_trigger": true
+  },
+  {
+    "query": "set up raid mode and new-account limits for our Slack community",
+    "should_trigger": true
+  },
+  {
+    "query": "should we publish a moderation report each quarter and what goes in it",
+    "should_trigger": true
+  },
+  {
+    "query": "a member is posting another user's home address in our chat, what is the procedure",
+    "should_trigger": true
+  },
+  {
+    "query": "draft the status page message for last night's outage",
+    "should_trigger": false,
+    "expected": "incident-comms"
+  },
+  {
+    "query": "I need to tell one of my engineers their behaviour in meetings is a problem",
+    "should_trigger": false,
+    "expected": "difficult-conversation"
+  },
+  {
+    "query": "plan the live operations calendar and event cadence for our multiplayer game",
+    "should_trigger": false,
+    "expected": "game-live-ops"
+  },
+  {
+    "query": "is our community actually healthy, and which numbers should we look at",
+    "should_trigger": false,
+    "expected": "community-health-review"
+  },
+  {
+    "query": "someone emailed us a vulnerability in our login flow, how should we respond",
+    "should_trigger": false,
+    "expected": "vulnerability-disclosure"
+  },
+  {
+    "query": "review this pull request for correctness before I merge it",
+    "should_trigger": false,
+    "expected": "code-review"
+  },
+  {
+    "query": "newcomers open one pull request and then never come back",
+    "should_trigger": false,
+    "expected": "contributor-funnel"
+  },
+  {
+    "query": "write the support macros for handling refund requests",
+    "should_trigger": false
+  },
+  {
+    "query": "set up an on-call rotation for our production services",
+    "should_trigger": false,
+    "expected": "oncall-health-review"
+  },
+  {
+    "query": "draft the terms of service for our paid app",
+    "should_trigger": false
+  }
+]

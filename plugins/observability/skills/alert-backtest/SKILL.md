@@ -1,6 +1,6 @@
 ---
 name: alert-backtest
-description: "Test alert rules against history and incident replays before they page anyone: run the expression as a range query over 60 to 90 days, list every interval it would have fired, score it for recall and detection delay against the incident list (measured from user-impact start) and for false fires against the non-incident period, then tune windows and for-duration from that table; add unit tests for absent data, a single spike and a slow burn, and test Alertmanager routing so the alert reaches the right receiver, with both kept in CI. Use this skill whenever someone asks \"will this alert actually fire\", \"backtest the burn-rate alert\", \"did our alert catch last month's outage\" or \"test the Alertmanager routing\". Not for writing and classifying alerts or building burn-rate rules (alert-design), rehearsing a failure live (game-day), or choosing the SLO (slo-design)."
+description: "Test alert rules against history and incident replays before they page anyone: run the expression as a range query over 60 to 90 days, list every interval it would have fired, score it for recall and detection delay against the incident list (measured from user-impact start) and for false fires against the non-incident period, then tune windows and for-duration from that table; add unit tests for absent data, a single spike and a slow burn, and test Alertmanager routing so the alert reaches the right receiver, with both kept in CI. Use this skill whenever someone asks \"will this alert actually fire\", \"backtest the burn-rate alert\", \"did our alert catch last month's outage\" or \"test the Alertmanager routing\". Not for writing and classifying alerts or building burn-rate rules (alert-design), security detection rules (detection-engineering), rehearsing a failure live (game-day), or choosing the SLO (slo-design)."
 allowed-tools: Read, Glob, Grep, Edit, Write, Bash(promtool check rules:*), Bash(promtool test rules:*), Bash(amtool check-config:*)
 ---
 
@@ -14,7 +14,7 @@ The usual failure is trusting a rule because the YAML parses and one hand-built 
 
 Use for: evaluating a rule against recorded data, tuning from the result, and testing routing.
 
-Do not use for: writing the rule or deciding whether it should page (`alert-design`), exercising a live failure (`game-day`), or setting the target (`slo-design`).
+Do not use for: writing the rule or deciding whether it should page (`alert-design`), security detection rules and their backtests (`detection-engineering`), exercising a live failure (`game-day`), or setting the target (`slo-design`).
 
 The mechanics of `promtool test rules` for burn-rate rules are in the burn-rate reference of `alert-design`; this skill leads with the historical test and adds routing.
 

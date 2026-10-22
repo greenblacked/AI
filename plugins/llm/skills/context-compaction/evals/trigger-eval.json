@@ -1,0 +1,22 @@
+[
+  {"query": "our bot forgets what we decided earlier in the conversation", "should_trigger": true},
+  {"query": "the conversation keeps hitting the context limit, how do we handle long sessions", "should_trigger": true},
+  {"query": "our summaries lose key details like file names and numbers", "should_trigger": true},
+  {"query": "the agent gets worse and worse the longer a session runs", "should_trigger": true},
+  {"query": "what should we always keep verbatim when we summarise old turns", "should_trigger": true},
+  {"query": "when should compaction trigger, at the limit or earlier", "should_trigger": true},
+  {"query": "how can I test that a summarised history still lets the assistant answer questions about earlier turns", "should_trigger": true},
+  {"query": "after the third summary the agent contradicts what the user told it at the start", "should_trigger": true},
+  {"query": "should old tool outputs be cleared from the context and what do we leave in their place", "should_trigger": true},
+  {"query": "design how a long running research agent trims its history without dropping its sources", "should_trigger": true},
+  {"query": "history tokens are costing too much each turn, work out the economics of caching and summarising", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "write a checkpoint so another engineer's agent can pick up my half-done refactor", "should_trigger": false, "expected": "agent-handoff"},
+  {"query": "build search over our document corpus so the bot cites sources", "should_trigger": false, "expected": "rag-design"},
+  {"query": "make the assistant remember each user's preferences next week", "should_trigger": false, "expected": "agent-memory-design"},
+  {"query": "the tool returns fifty thousand tokens, shrink what it sends back", "should_trigger": false, "expected": "tool-result-shaping"},
+  {"query": "write the system prompt instructions for our support agent", "should_trigger": false, "expected": "agent-instructions"},
+  {"query": "split a large task across several subagents and merge their results", "should_trigger": false, "expected": "agent-orchestration"},
+  {"query": "score our agent on two hundred recorded tasks", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "summarise this meeting into a status update for stakeholders", "should_trigger": false, "expected": "status-update"},
+  {"query": "keep my study notes organised so I remember them", "should_trigger": false, "expected": "learning-notes"}
+]
