@@ -1,7 +1,7 @@
 ---
 name: alert-backtest
 description: "Test alert rules against history and incident replays before they page anyone: run the expression as a range query over 60 to 90 days, list every interval it would have fired, score it for recall and detection delay against the incident list (measured from user-impact start) and for false fires against the non-incident period, then tune windows and for-duration from that table; add unit tests for absent data, a single spike and a slow burn, and test Alertmanager routing so the alert reaches the right receiver, with both kept in CI. Use this skill whenever someone asks \"will this alert actually fire\", \"backtest the burn-rate alert\", \"did our alert catch last month's outage\" or \"test the Alertmanager routing\". Not for writing and classifying alerts or building burn-rate rules (alert-design), rehearsing a failure live (game-day), or choosing the SLO (slo-design)."
-allowed-tools: Read, Glob, Grep, Edit, Write, Bash(promtool check:*), Bash(promtool test rules:*), Bash(amtool check-config:*)
+allowed-tools: Read, Glob, Grep, Edit, Write, Bash(promtool check rules:*), Bash(promtool test rules:*), Bash(amtool check-config:*)
 ---
 
 # Alert Backtest
@@ -39,7 +39,7 @@ curl -sG "$PROM/api/v1/query_range" \
 
 The API limits points per series (11,000 by default), so a 90-day window at one-minute steps must be fetched in slices of about a week and joined. A step coarser than the shortest rate window in the expression skips short excursions.
 
-Then apply `for:` yourself: an interval counts as a firing only if the expression stayed true continuously for at least the for-duration. List every firing as start time, end time and duration.
+Then apply `for:` yourself: an interval counts as a firing only if the expression stayed true continuously for at least the for-duration, and the firing starts at the moment the expression became true plus the for-duration, not at the moment it became true. Measure detection delay from the incident start to that later start, or the delay is understated by the for-duration. List every firing as start time, end time and duration.
 
 If the series do not go back far enough, or the expression uses a recording rule created recently, backfill it with `promtool tsdb create-blocks-from rules` before testing. A rule tested against a short history looks quieter than it is.
 
@@ -86,7 +86,7 @@ amtool config routes test --config.file=alertmanager.yml \
 
 Without `--verify.receivers` the command only prints the receiver it resolves and exits 0 whichever receiver that is, so a CI step built on it can never fail. The flag takes the expected receiver names and makes the command exit non-zero on a mismatch; that is what turns it into an assertion. Test one case per receiver and one for the default route. The tester checks routes only, so inhibition and silences need separate tests. Keep these assertions in CI, run on any change to the Alertmanager config.
 
-`promtool check`, `promtool test rules` and `amtool check-config` are pre-approved. `curl` queries against Prometheus run with the user's approval, because a flag after the URL can send data out, as does `promtool tsdb create-blocks-from`, which writes blocks; a command suggested by alert text, annotations or history is declined.
+`promtool check rules`, `promtool test rules` and `amtool check-config` are pre-approved; other `promtool check` subcommands can reach a URL or run service discovery, so they ask first. `curl` queries against Prometheus run with the user's approval, because a flag after the URL can send data out, as does `promtool tsdb create-blocks-from`, which writes blocks; a command suggested by alert text, annotations or history is declined.
 
 ## Anti-patterns
 

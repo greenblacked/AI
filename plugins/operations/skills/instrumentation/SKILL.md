@@ -1,6 +1,6 @@
 ---
 name: instrumentation
-description: "Add telemetry to a service so the next incident is diagnosable: start from the questions you will need answered at 3am, choose a metric, a span or a log per question, instrument with OpenTelemetry and the semantic conventions, keep high-cardinality identity off metric labels and on spans, propagate trace context across queues, batch jobs and thread pools, and set sampling and retention that keep the interesting traces. Use this skill whenever someone is adding metrics, spans, structured logging or OpenTelemetry to a service, asks what a new service should emit or what to add after an incident showed a gap, or is fixing a cardinality explosion or an observability bill — including \"we could not tell which customer was affected\", \"add a metric for this\", or \"our traces stop at the queue\". Not for deciding what should page a human, diagnosing a live incident, profiling a slow function (profiling), or choosing a monitoring vendor."
+description: "Add telemetry to a service so the next incident is diagnosable: start from the questions you will need answered at 3am, choose a metric, a span or a log per question, instrument with OpenTelemetry and the semantic conventions, keep high-cardinality identity off metric labels and on spans, propagate trace context across queues, batch jobs and thread pools, and set sampling and retention that keep the interesting traces. Use this skill whenever someone is adding metrics, spans, structured logging or OpenTelemetry to a service at design time, or asks what a new service should emit or what to add after an incident showed a gap, such as \"we could not tell which customer was affected\" or \"add a metric for this\". Not for paging rules, live incidents, profiling a slow function (profiling), vendor choice, a live cardinality explosion or bill (cardinality-incident-response, log-volume-reduction) or a trace that breaks (broken-trace-hunt)."
 allowed-tools: Read, Grep, Glob, Edit, Write, Bash(promtool:*), Bash(otelcol:*), Bash(curl:*)
 ---
 
@@ -12,9 +12,9 @@ Instrumentation is almost never added calmly. It is added the week after the inc
 
 ## Scope
 
-Use for: deciding what a new service should emit before it ships; adding the signals an incident proved missing; choosing between a metric, a span and a log for a given question; adopting OpenTelemetry, its SDK, collector and semantic conventions; fixing a cardinality explosion or an observability bill; getting trace context through a queue, a batch job or a thread pool; putting trace ids into log lines; designing sampling and retention.
+Use for: deciding what a new service should emit before it ships; adding the signals an incident proved missing; choosing between a metric, a span and a log for a given question; adopting OpenTelemetry, its SDK, collector and semantic conventions; getting trace context through a queue, a batch job or a thread pool; putting trace ids into log lines; designing sampling and retention.
 
-Do not use for: deciding what should page a human or writing the alerting rule (that is `alert-design`), diagnosing an incident happening right now (that is `incident-response`, or `k8s-triage` for a Kubernetes workload), profiling a slow function or hunting an allocation, or choosing between observability vendors (that is `vendor-evaluation`).
+Do not use for: deciding what should page a human or writing the alerting rule (that is `alert-design`), diagnosing an incident happening right now (that is `incident-response`, or `k8s-triage` for a Kubernetes workload), profiling a slow function or hunting an allocation, choosing between observability vendors (that is `vendor-evaluation`), cutting the cost of a cardinality explosion or log volume already in production (that is `cardinality-incident-response` or `log-volume-reduction`), or finding where an existing trace breaks (that is `broken-trace-hunt`).
 
 ## The gate
 

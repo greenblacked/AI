@@ -37,8 +37,9 @@ reason to merge intervals before subtracting.
 ## Fan-out arithmetic
 
 The pricing step calls 25 shard replicas in parallel. If each exceeds its own p99 on 1% of
-calls, at least one is slow on 1-(0.99)^25, about 22% of requests. The step's median
-already sits near the shards' tail.
+calls, at least one is slow on 1-(0.99)^25, about 22% of requests. So requests from roughly the
+78th percentile upward see a slow shard, not the median: the step's p78 and above sit in
+the shards' tail.
 
 ## Next measurements
 

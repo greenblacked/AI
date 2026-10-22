@@ -1,6 +1,6 @@
 [
   {"query": "is Redlock actually safe to use for making sure only one worker charges a customer", "should_trigger": true},
-  {"query": "two pods ran the nightly job at the same time even though we have a lock", "should_trigger": true},
+  {"query": "the lease expired mid-run and a second pod took over even though we have a lock", "should_trigger": true},
   {"query": "the lock expired while the holder was still writing and now we have duplicate rows", "should_trigger": true},
   {"query": "we want a Redis lock to stop double processing of payments, is that enough", "should_trigger": true},
   {"query": "how do I do leader election with etcd without two leaders ever acting", "should_trigger": true},

@@ -27,7 +27,7 @@ for f in "$OUT"/slice-*.json; do
 done
 ```
 
-Reduce each result to the intervals where the value is non-empty, merge slices, then drop intervals shorter than the rule's `for:` duration.
+Reduce each result to the intervals where the value is non-empty, merge slices, then drop intervals shorter than the rule's `for:` duration. A surviving interval starts firing at its start plus the `for:` duration, not at its start, so take detection delay from that shifted start.
 
 ## Worked table
 

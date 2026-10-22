@@ -32,11 +32,11 @@ disallow_subclassing_any = true
 warn_return_any = true
 no_implicit_reexport = true
 strict_equality = true
+extra_checks = true
 warn_unused_ignores = true
-warn_redundant_casts = true
 ```
 
-`strict` is global-only in mypy, so an override must list the per-module flags as above.
+Strict cannot be scoped to a module: in current mypy, setting it inside an override applies globally, so the per-module flags are listed individually as above.
 
 Keep `ignore_missing_imports` out of the global section; set it per untyped package in an override so a typo in an import is still caught.
 

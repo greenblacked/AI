@@ -18,5 +18,5 @@
   {"query": "find unused indexes in a mysql schema that we can drop", "should_trigger": false, "expected": "index-pruning"},
   {"query": "partition our huge mysql events table by month and drop old data cheaply", "should_trigger": false, "expected": "table-partitioning"},
   {"query": "the root filesystem on the database host is full and I do not know which directory is responsible", "should_trigger": false, "expected": "disk-full-triage"},
-  {"query": "plan a backfill of a new column on a billion row mysql table without hurting production", "should_trigger": false, "expected": "safe-backfill"}
+  {"query": "plan a backfill of a new column on a billion row mysql table without hurting production", "should_trigger": false, "expected": "db-migration"}
 ]

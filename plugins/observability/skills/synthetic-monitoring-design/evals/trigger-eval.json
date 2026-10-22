@@ -86,6 +86,7 @@
  },
  {
   "query": "test the performance of the site under load",
-  "should_trigger": false
+  "should_trigger": false,
+  "expected": "load-testing"
  }
 ]

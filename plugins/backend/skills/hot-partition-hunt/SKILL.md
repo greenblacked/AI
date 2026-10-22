@@ -1,6 +1,6 @@
 ---
 name: hot-partition-hunt
-description: "Diagnose throttling or lag on a sharded store while aggregate utilisation looks fine. Get the per-partition or per-key distribution first, compute max over mean and the top-1-percent traffic share, then classify the cause (single hot entity, monotonic key, low-cardinality key, whale tenant) because each has a different fix, and validate the new key design against the measured Zipf-shaped distribution rather than a uniform one. Covers DynamoDB, Kafka, Redis, Cassandra and MongoDB. Use when you hear \"DynamoDB throttles at 20 percent of provisioned capacity\", \"one Redis node is at 100 percent CPU\", \"one shard is hot\", \"celebrity key\", \"all the lag is on one partition\". Not for aggregate sizing (capacity-planning), a slow query on one table (sql-performance), single-database anomalies (transaction-race-hunt)."
+description: "Diagnose throttling or lag on a sharded store while aggregate utilisation looks fine. Get the per-partition or per-key distribution first, compute max over mean and the top-1-percent traffic share, then classify the cause (single hot entity, monotonic key, low-cardinality key, whale tenant) because each has a different fix, and validate the new key design against the measured Zipf-shaped distribution rather than a uniform one. Covers DynamoDB, Kafka, Redis, Cassandra and MongoDB. Use when you hear \"DynamoDB throttles at 20 percent of provisioned capacity\", \"one Redis node is at 100 percent CPU\", \"one shard is hot\", \"celebrity key\". Not for aggregate sizing (capacity-planning), a slow query on one table (sql-performance), single-database anomalies (transaction-race-hunt), consumer lag diagnosis such as a poison record versus a hot key (consumer-lag-triage)."
 allowed-tools: Read, Glob, Grep
 ---
 
@@ -70,4 +70,4 @@ The measured distribution (max/mean, top-1-percent share, window and source), th
 
 **Testing with uniform keys.** The test passes and production skew returns.
 
-**Fixing the symptom at the consumer.** A lagging partition is a partition-key problem when it is one partition among many.
+**Fixing the symptom at the consumer.** One lagging partition is a key problem only once that partition's produce share is shown to be high; a poison record also stalls a single partition, and that diagnosis belongs to `consumer-lag-triage`.

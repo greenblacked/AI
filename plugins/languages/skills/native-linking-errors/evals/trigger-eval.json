@@ -9,7 +9,7 @@
   {"query": "undefined reference to std::__cxx11::basic_string only when linking the vendor's prebuilt library", "should_trigger": true},
   {"query": "how do I list the highest glibc symbol version a compiled binary needs before I ship it", "should_trigger": true},
   {"query": "static library order matters apparently, my link only works when I swap two -l flags, why", "should_trigger": true},
-  {"query": "our C++ build takes forty minutes, show me where the time goes", "should_trigger": false, "expected": "profiling"},
+  {"query": "our C++ build takes forty minutes, show me where the time goes", "should_trigger": false, "expected": "slow-build-profile"},
   {"query": "pip install fails building the wheel for numpy on alpine, compiler errors", "should_trigger": false, "expected": "python-native-wheel-failures"},
   {"query": "harden the container image so it runs as non-root with a minimal base", "should_trigger": false, "expected": "image-hardening"},
   {"query": "the production service segfaulted and we have a core file, work out what happened", "should_trigger": false, "expected": "native-core-dump-analysis"},

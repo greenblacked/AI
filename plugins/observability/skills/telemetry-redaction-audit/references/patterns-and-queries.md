@@ -62,4 +62,4 @@ Metric labels: list label names and a sample of values per label, then flag any 
 
 ## Reporting without leaking
 
-Record pattern name, signal, source, count and a redacted example in which all but the first two characters and the length are shown. Store the raw sample in a restricted location and delete it when the audit closes.
+Record pattern name, signal, source, count and a redacted example in which only the first two characters and the length are shown; the rest is masked. Store the raw sample in a restricted location and delete it when the audit closes.

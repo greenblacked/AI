@@ -63,13 +63,21 @@ Arm this before the risky edit:
 ```bash
 #!/bin/bash
 set -Eeuo pipefail
-# restore the known-good snapshot (see below), never the broken-state evidence from SKILL.md step 4
+# restore the known-good snapshots (see below), never the broken-state evidence from SKILL.md step 4
 test -f /root/ssh.good/sshd_config
-cp -a /root/ssh.good/sshd_config /etc/ssh/sshd_config
+test -f /root/sudoers.good/sudoers
 # replace the drop-ins wholesale so files the edit created disappear too
+cp -a /root/ssh.good/sshd_config /etc/ssh/sshd_config
 rm -rf /etc/ssh/sshd_config.d
 cp -a /root/ssh.good/sshd_config.d /etc/ssh/sshd_config.d
+cp -a /root/sudoers.good/sudoers /etc/sudoers
+rm -rf /etc/sudoers.d
+cp -a /root/sudoers.good/sudoers.d /etc/sudoers.d
+# Include targets outside those paths were saved under include/ with their full paths
+test ! -d /root/ssh.good/include || cp -a /root/ssh.good/include/. /
+test ! -d /root/sudoers.good/include || cp -a /root/sudoers.good/include/. /
 # validate before reloading; under set -e a failed check leaves sshd running as it is
+visudo -c
 /usr/sbin/sshd -t
 systemctl reload ssh || systemctl reload sshd
 ```
@@ -81,7 +89,19 @@ systemd-run --on-active=10min --unit=revert-ssh /usr/local/sbin/revert-ssh.sh
 systemctl stop revert-ssh.timer
 ```
 
-Take the known-good snapshot right before each risky edit, once the repair is done and a fresh login has been tested: `rm -rf /root/ssh.good; mkdir -p /root/ssh.good; cp -a /etc/ssh/sshd_config /etc/ssh/sshd_config.d /root/ssh.good/`. It lives apart from the evidence directory of SKILL.md step 4, which holds the broken state and is never restored from. The snapshot must exist before the timer is armed. Use absolute paths inside the script. A timer or `at` job runs with a minimal environment.
+Take the known-good snapshots right before each risky edit, once the repair is done and a fresh login has been tested, and only after `visudo -c` and `sshd -t` both pass on the live files:
+
+```bash
+rm -rf /root/ssh.good /root/sudoers.good; mkdir -p /root/ssh.good/include /root/sudoers.good/include
+cp -a /etc/ssh/sshd_config /etc/ssh/sshd_config.d /root/ssh.good/
+cp -a /etc/sudoers /etc/sudoers.d /root/sudoers.good/
+# every Include target that step 4 of SKILL.md lists and that sits outside those paths,
+# saved under include/ with its full path so the rollback can copy it straight back:
+cp -a --parents /PATH/FROM/INCLUDE /root/ssh.good/include/       # sshd Include targets
+cp -a --parents /PATH/FROM/INCLUDE /root/sudoers.good/include/   # @include and @includedir targets
+```
+
+An included file that stays live keeps the fault if only the main file is restored, which is why the snapshot, like step 4, covers every target. The snapshots live apart from the evidence directory of SKILL.md step 4, which holds the broken state and is never restored from. Both must exist before the timer is armed, and the script restores sudoers as well as sshd because step 8 arms one rollback for any risky edit, not only an sshd one. Use absolute paths inside the script. A timer or `at` job runs with a minimal environment.
 
 ## Repair recipes
 

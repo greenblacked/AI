@@ -1,7 +1,7 @@
 ---
 name: firewall-rule-tracing
 description: "Find where a Linux firewall drops traffic: \"connection times out but the port is open\", \"nftables rule not matching\", \"Docker bypasses my iptables rules\", \"ufw and firewalld both installed\". Identify the framework really in force first (nft list ruleset is the truth; iptables may be the nft shim; firewalld, ufw, Docker and kube-proxy all inject rules), then trace one packet instead of reading rules: a meta nftrace set 1 rule with nft monitor trace, or iptables -t raw -j TRACE, plus counters read before and after a test connection. Check hook order and priorities, policies, conntrack state, rp_filter and DOCKER-USER. Change with a timed rollback and a second session. Use for any silent drop. Not for writing a baseline (host-hardening), a rule that already cut you off (linux-lockout-recovery), MikroTik (routeros-config) or large packets only (mtu-blackhole-hunt)."
-allowed-tools: Bash(nft list ruleset), Bash(nft -a list ruleset), Bash(iptables -S), Bash(iptables -L -n -v), Bash(iptables-save), Bash(ip6tables-save), Bash(conntrack -S), Bash(ss -ltnp), Bash(ss -s), Bash(ip route get:*), Bash(ip -br addr), Bash(firewall-cmd --list-all), Bash(firewall-cmd --get-active-zones), Bash(ufw status verbose), Bash(systemctl is-active:*), Bash(systemctl status:*), Read, Glob, Grep
+allowed-tools: Bash(nft list ruleset), Bash(nft -a list ruleset), Bash(iptables -S), Bash(iptables -L -n -v), Bash(iptables-save), Bash(ip6tables-save), Bash(conntrack -S), Bash(ss -ltnp), Bash(ss -s), Bash(ip route get:*), Bash(ip -br addr), Bash(firewall-cmd --list-all), Bash(firewall-cmd --get-active-zones), Bash(ufw status verbose), Read, Glob, Grep
 ---
 
 # Firewall Rule Tracing
@@ -83,14 +83,16 @@ Published container ports are DNATed in `prerouting` and then travel the `forwar
 ### 7. Change with a safety net
 
 ```bash
-nft list table inet filter > /tmp/tbl.txt
-{ echo 'table inet filter'; echo 'delete table inet filter'; cat /tmp/tbl.txt; } > /root/fw-rollback.nft
+snap=$(mktemp /root/fw-snap.XXXXXX)    # under /root, never a predictable /tmp path that root will later load
+nft list table inet filter > "$snap"
+test -s "$snap" || echo 'snapshot empty: stop, do not arm the timer'
+{ echo 'table inet filter'; echo 'delete table inet filter'; cat "$snap"; } > /root/fw-rollback.nft
 systemd-run --on-active=5min --unit=fw-rollback /usr/sbin/nft -f /root/fw-rollback.nft
 nft -c -f /root/new-rules.nft          # syntax and semantic check, changes nothing
 nft -f /root/new-rules.nft             # atomic: the whole file applies or none of it
 ```
 
-Replace `inet filter` with the table you are changing. Restoring one table is deliberate: `nft flush ruleset` also removes the tables Docker and firewalld own, and they do not come back until restarted. Then test a fresh connection from a second session, and only when it passes cancel the rollback (`systemctl stop fw-rollback.timer`) and persist: write your table to the file the distribution loads (`/etc/nftables.conf` on Debian family, `/etc/sysconfig/nftables.conf` on RHEL family), or use the manager's own save. `at now + 5 minutes` with the same restore command works where `at` is installed. Read `references/trace-recipes.md` for rollback variants.
+Replace `inet filter` with the table you are changing. The `test -s` line makes a failed save visible: an empty snapshot would turn the rollback into deleting the table and loading nothing, so fix the save before arming the timer. Restoring one table is deliberate: `nft flush ruleset` also removes the tables Docker and firewalld own, and they do not come back until restarted. Then test a fresh connection from a second session, and only when it passes cancel the rollback (`systemctl stop fw-rollback.timer`) and persist: write your table to the file the distribution loads (`/etc/nftables.conf` on Debian family, `/etc/sysconfig/nftables.conf` on RHEL family), or use the manager's own save. `at now + 5 minutes` with the same restore command works where `at` is installed. Read `references/trace-recipes.md` for rollback variants.
 
 ## Output format
 

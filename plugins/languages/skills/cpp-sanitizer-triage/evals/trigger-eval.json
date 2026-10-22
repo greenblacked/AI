@@ -9,7 +9,7 @@
   {"query": "how do I get readable stack frames out of ASan instead of raw hex addresses", "should_trigger": true},
   {"query": "we need to find reads of uninitialised memory in a C++ service, what are the options", "should_trigger": true},
   {"query": "how should we manage suppressions for sanitizer findings in third party code", "should_trigger": true},
-  {"query": "generate random inputs to hammer our image parser and find crashes", "should_trigger": false, "expected": "debugging"},
+  {"query": "generate random inputs to hammer our image parser and find crashes", "should_trigger": false, "expected": "fuzz-harness"},
   {"query": "here is a core file from production, work out why the service segfaulted", "should_trigger": false, "expected": "native-core-dump-analysis"},
   {"query": "review the unsafe blocks in this Rust crate for soundness", "should_trigger": false, "expected": "rust-unsafe-review"},
   {"query": "do a security assessment of our upload service", "should_trigger": false, "expected": "security-review"},

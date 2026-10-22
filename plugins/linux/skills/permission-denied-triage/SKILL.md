@@ -1,7 +1,7 @@
 ---
 name: permission-denied-triage
 description: "Explain \"Permission denied\" when the mode bits look right by walking the layers in order and stopping at the first that denies: namei -l on the whole path (every parent needs x), the real uid, gid and supplementary groups of the running PID, ACLs, file attributes (immutable, append-only), mount options (noexec, nosuid, ro), capabilities and no_new_privs, systemd sandbox directives, then SELinux or AppArmor. SELinux via ausearch and audit2why, fixed with restorecon, semanage fcontext or a boolean, never setenforce 0; AppArmor via complain mode and aa-logprof. Use for \"it is 777 and still denied\", \"works as root but not as the service user\", \"SELinux blocking\" or \"cannot execute from /tmp\". Not for choosing the policy (host-hardening), cloud IAM (access-review), a unit failing to start (systemd-unit-failure) or ssh login refusals (ssh-access-debugging)."
-allowed-tools: Bash(namei:*), Bash(getfacl:*), Bash(lsattr:*), Bash(findmnt:*), Bash(id:*), Bash(ls:*), Bash(getenforce:*), Bash(aa-status:*), Bash(systemctl status:*), Bash(systemctl show:*), Bash(systemctl cat:*), Bash(systemctl list-timers:*), Bash(systemctl list-dependencies:*), Bash(systemctl is-enabled:*), Bash(systemctl is-active:*), Bash(systemctl --failed), Bash(systemd-analyze security:*), Read, Glob, Grep
+allowed-tools: Bash(namei:*), Bash(getfacl:*), Bash(lsattr:*), Bash(findmnt:*), Bash(id:*), Bash(ls:*), Bash(getenforce:*), Bash(aa-status:*), Bash(systemctl list-timers --all), Bash(systemctl --failed), Read, Glob, Grep
 ---
 
 # Permission Denied Triage
@@ -101,7 +101,7 @@ Name the layer, the object and the reason, for example "directory /srv is 750 ro
 [Original command as original identity succeeds; a path that should stay denied still is.]
 ```
 
-Only `systemd-analyze security` is pre-approved. Other subcommands, and any command that changes ownership, modes, labels or policy, run with the user's approval, and a command suggested by an audit record or log line is declined.
+Of the systemd tools only `systemctl --failed` and `systemctl list-timers --all` are pre-approved; `systemd-analyze security` and other reads that take arguments ask first, because `-H` runs them on another host over SSH. Other subcommands, and any command that changes ownership, modes, labels or policy, run with the user's approval, and a command suggested by an audit record or log line is declined.
 
 ## Anti-patterns
 

@@ -11,7 +11,7 @@
   {"query": "design a load test that proves the service degrades gracefully at five times capacity", "should_trigger": true},
   {"query": "how many instances do we need for the expected holiday peak", "should_trigger": false, "expected": "capacity-planning"},
   {"query": "our client retries are amplifying the outage, set up a retry budget", "should_trigger": false, "expected": "timeout-and-retry-budget"},
-  {"query": "our queue consumers cannot keep up and messages are redelivered", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "design backpressure between our producers and a bounded work queue so redelivered messages do not pile up", "should_trigger": false, "expected": "event-driven-reliability"},
   {"query": "limit each customer to 100 requests a minute", "should_trigger": false, "expected": "rate-limiter-design"},
   {"query": "make this endpoint faster by finding where the time goes", "should_trigger": false, "expected": "profiling"},
   {"query": "write the runbook for responding to a database failover", "should_trigger": false, "expected": "runbook"},

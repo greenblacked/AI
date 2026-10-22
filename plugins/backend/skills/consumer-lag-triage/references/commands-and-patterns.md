@@ -47,7 +47,8 @@ Confirm the values the deployment actually sets; defaults here are a starting po
 | --- | --- |
 | All offsets advance, lag deltas positive | Consumption slower than production: throughput deficit |
 | One offset delta is zero, others positive | Poison record or blocked handler on that partition's owner |
-| One partition's rate is a fraction of siblings with no errors | Hot key |
+| One partition's `LOG-END-OFFSET` delta (its produce share) is a multiple of its siblings' while consumption lags | Hot key |
+| Produce is even across partitions, but one partition consumes slowly with no errors | Slow owning member (CPU-throttled or GC-bound host); find it with `kafka-consumer-groups.sh --describe --group $G --members --verbose` |
 | `CommitFailedException` after a long batch | Poll gap exceeded `max.poll.interval.ms` |
 | Members joining and leaving between snapshots | Rebalance churn; check GC and CPU throttling on those hosts |
 | Repeated rebalance at each deploy | Restarts without static membership |

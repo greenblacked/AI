@@ -80,7 +80,7 @@ touch /mnt/.autorelabel                      # SELinux systems: relabel on next 
 umount -R /mnt
 ```
 
-Offline edits create files with the wrong owner or label. Check ownership (`root:root` for sudoers and sshd files; the user for `~/.ssh`) and, on SELinux systems, the label (`ls -Z`), then `touch /.autorelabel` on the real root so the first boot relabels. Expect a longer first boot after a relabel. If the repair is a key, `restorecon -Rv ~/.ssh` inside the chroot where available.
+Offline edits create files with the wrong owner or label. Check ownership (`root:root` for sudoers and sshd files; the user for `~/.ssh`) and, on SELinux systems, the label (`ls -Z`), then `touch /.autorelabel` on the real root so the first boot relabels. Expect a longer first boot after a relabel. If the repair is a key, `restorecon -Rv /home/USER/.ssh` inside the chroot where available, with the user's real home path: `~` in the chroot is root's home, not theirs.
 
 ### 6. Do not reset the root password as the first move
 

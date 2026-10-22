@@ -1,7 +1,7 @@
 ---
 name: oom-kill-forensics
 description: "Work out why the Linux kernel OOM killer fired and what to change: read the kernel's own report, not top (journalctl -k gives constraint= such as CONSTRAINT_MEMCG for a cgroup limit versus system-wide exhaustion, the victim's oom_score_adj and the task table with RSS), classify cgroup limit versus host exhaustion with memory.max and memory.events, account for RAM with MemAvailable, shmem, slab and PSS rather than free, then decide if the victim was the hog or just the largest. Covers oom_score_adj, OOMPolicy, swap or zram for spikes, systemd-oomd and earlyoom; lower demand before raising the limit. Use for \"killed, no error in the app log\", \"Out of memory: Killed process\", \"database keeps getting killed\" or \"memory 95% used\". Not for OOMKilled pods (k8s-triage), finding the allocation in code (profiling), sizing ahead (capacity-planning) or fd and pid limits (resource-limit-exhaustion)."
-allowed-tools: Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(dmesg -T), Bash(systemctl status:*), Bash(systemctl show:*), Bash(systemctl cat:*), Bash(systemctl list-timers:*), Bash(systemctl list-dependencies:*), Bash(systemctl is-enabled:*), Bash(systemctl is-active:*), Bash(systemctl --failed), Bash(systemd-cgtop:*), Bash(cat:*), Bash(grep:*), Bash(free:*), Bash(ps:*), Bash(oomctl:*), Read, Glob, Grep
+allowed-tools: Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(dmesg -T), Bash(systemctl list-timers --all), Bash(systemctl --failed), Bash(systemd-cgtop:*), Bash(cat:*), Bash(grep:*), Bash(free:*), Bash(ps:*), Bash(oomctl:*), Read, Glob, Grep
 ---
 
 # OOM Kill Forensics

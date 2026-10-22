@@ -42,7 +42,7 @@
   {
     "query": "which queries are driving our warehouse bill this month",
     "should_trigger": false,
-    "expected": "cost-review"
+    "expected": "scan-cost-forensics"
   },
   {
     "query": "this clickhouse select takes 40 seconds, help me read the plan and speed it up",

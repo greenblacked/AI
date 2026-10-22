@@ -9,7 +9,7 @@
   {"query": "how do I diff two goroutine profiles to see what grew", "should_trigger": true},
   {"query": "my worker pool never shuts down even after the input is done", "should_trigger": true},
   {"query": "a timeout in our handler leaves the goroutine blocked forever sending its result", "should_trigger": true},
-  {"query": "the race detector reports a data race on a map in our go code", "should_trigger": false, "expected": "debugging"},
+  {"query": "the race detector reports a data race on a map in our go code", "should_trigger": false, "expected": "go-race-triage"},
   {"query": "find the hot function making our go service use too much CPU", "should_trigger": false, "expected": "profiling"},
   {"query": "our node process heap keeps growing and I need heap snapshots", "should_trigger": false, "expected": "node-memory-leak"},
   {"query": "our python worker memory grows over days", "should_trigger": false, "expected": "python-memory-growth"},

@@ -72,7 +72,7 @@
  {
   "query": "backfill a new column on a 500M row table in batches",
   "should_trigger": false,
-  "expected": "safe-backfill"
+  "expected": "db-migration"
  },
  {
   "query": "our elasticsearch shards are unassigned",

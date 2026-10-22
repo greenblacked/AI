@@ -1,7 +1,7 @@
 ---
 name: high-load-triage
 description: "Find the one saturated resource on a slow Linux host: \"load average is 40 but CPU is idle\", \"server is sluggish and I do not know why\", \"is it CPU, memory or disk\". Run a fixed 60-second sequence and write down each reading: uptime, dmesg -T, vmstat 1, mpstat -P ALL 1, pidstat 1, iostat -xz 1, free -m, sar -n DEV 1, sar -n TCP,ETCP 1. Linux load counts uninterruptible D-state tasks, so high load with idle CPU means blocked I/O or a hung mount, not compute. Apply the USE method (utilisation, saturation, errors) per resource, read /proc/pressure for stall time, and check steal on VMs and cgroup throttling before blaming the workload. Name one resource and its process, then hand off. Use for any slow host. Not for code hot spots (profiling), future load (capacity-planning), OOM kills (oom-kill-forensics), full disks (disk-full-triage) or incident command (incident-response)."
-allowed-tools: Bash(uptime:*), Bash(dmesg -T), Bash(vmstat:*), Bash(mpstat:*), Bash(pidstat:*), Bash(iostat:*), Bash(free:*), Bash(top -b:*), Bash(ps:*), Bash(cat /proc/pressure/:*), Bash(cat /proc/loadavg:*), Bash(cat /sys/fs/cgroup/:*), Bash(nproc:*), Bash(findmnt:*), Bash(ss -s), Bash(lscpu:*), Read, Glob, Grep
+allowed-tools: Bash(uptime:*), Bash(dmesg -T), Bash(vmstat:*), Bash(mpstat:*), Bash(iostat:*), Bash(free:*), Bash(top -b:*), Bash(ps:*), Bash(cat /proc/pressure/:*), Bash(cat /proc/loadavg:*), Bash(cat /sys/fs/cgroup/:*), Bash(nproc:*), Bash(findmnt:*), Bash(ss -s), Bash(lscpu:*), Read, Glob, Grep
 ---
 
 # High Load Triage

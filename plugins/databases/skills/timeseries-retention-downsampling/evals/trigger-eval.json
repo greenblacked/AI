@@ -62,7 +62,7 @@
   {
     "query": "run a safe backfill of a new column across a large table",
     "should_trigger": false,
-    "expected": "safe-backfill"
+    "expected": "db-migration"
   },
   {
     "query": "design the tables and indexes for a new feature",

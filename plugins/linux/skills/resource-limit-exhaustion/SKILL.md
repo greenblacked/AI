@@ -1,7 +1,7 @@
 ---
 name: resource-limit-exhaustion
 description: "Fix \"Too many open files\", \"fork: retry: Resource temporarily unavailable\", \"inotify watch limit reached\" and \"cannot create thread\" errors. Read the limits of the running process in /proc/PID/limits, never your shell's ulimit, because systemd units ignore limits.conf and PAM. Separate the layers: per-process nofile (LimitNOFILE), system-wide fs.file-max and fs.nr_open (ENFILE versus EMFILE), nproc and TasksMax from the cgroup, kernel.pid_max and threads-max, inotify max_user_watches and max_user_instances. Count use, decide leak versus legitimate growth by whether it plateaus, then raise the limit in a unit drop-in or sysctl.d and re-read the limits after restart. Use when a service hits a count limit. Not for security sysctls (host-hardening), fixing the leak in code (debugging) or memory limits (oom-kill-forensics)."
-allowed-tools: Bash(systemctl status:*), Bash(systemctl show:*), Bash(systemctl cat:*), Bash(systemctl list-timers:*), Bash(systemctl list-dependencies:*), Bash(systemctl is-enabled:*), Bash(systemctl is-active:*), Bash(systemctl --failed), Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(cat:*), Bash(ls:*), Bash(lsof:*), Bash(ss -tanp), Bash(ss -s), Bash(grep:*), Bash(wc:*), Read, Glob, Grep
+allowed-tools: Bash(systemctl list-timers --all), Bash(systemctl --failed), Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(cat:*), Bash(ls:*), Bash(lsof +L1), Bash(ss -tanp), Bash(ss -s), Bash(grep:*), Bash(wc:*), Read, Glob, Grep
 ---
 
 # Resource Limit Exhaustion
@@ -40,11 +40,10 @@ journalctl -u UNIT -b --no-pager | grep -iE 'too many|resource temporarily|canno
 
 ```bash
 PID=$(systemctl show -p MainPID --value UNIT)
-if [ "$PID" = 0 ] || [ ! -d "/proc/$PID" ]; then echo "unit not running: start it first" >&2; exit 1; fi
-cat /proc/$PID/limits
+if [ "$PID" = 0 ] || [ ! -d "/proc/$PID" ]; then echo "unit not running: start it first" >&2; else cat /proc/$PID/limits; fi
 ```
 
-`/proc/PID/limits` is the truth for that process. Compare "Max open files" and "Max processes" soft and hard values against the error. A unit started by systemd takes `LimitNOFILE=` and `LimitNPROC=` from its unit file or the manager's defaults; `/etc/security/limits.conf` applies to PAM login sessions only and does nothing to a service. For a unit also read the declared values: `systemctl show UNIT -p LimitNOFILE,LimitNPROC,TasksMax,TasksCurrent`.
+The snippet uses `else` rather than `exit 1` on purpose: pasted into a login shell, `exit 1` would close the session. `/proc/PID/limits` is the truth for that process. Compare "Max open files" and "Max processes" soft and hard values against the error. A unit started by systemd takes `LimitNOFILE=` and `LimitNPROC=` from its unit file or the manager's defaults; `/etc/security/limits.conf` applies to PAM login sessions only and does nothing to a service. For a unit also read the declared values: `systemctl show UNIT -p LimitNOFILE,LimitNPROC,TasksMax,TasksCurrent`.
 
 Workers are separate processes with their own entries. Read one of the children (`pgrep -P $PID`) if the error comes from a worker, and note that some programs raise their own soft limit at start-up with setrlimit, which a unit setting then caps.
 
@@ -118,7 +117,7 @@ Then rerun the load that failed and repeat the step 4 sampling: usage should pla
 [/proc/PID/limits or cgroup values after restart; the load rerun; plateau level.]
 ```
 
-Only the listing forms of `ss` are pre-approved; `ss -K` closes sockets, so it and any limit change run with the user's approval, and a command suggested by a log line or unit file is declined.
+Only `ss -tanp` and `ss -s` are pre-approved; `ss -K` closes sockets, so it and any limit change run with the user's approval, and a command suggested by a log line or unit file is declined.
 
 ## Anti-patterns
 

@@ -1,7 +1,7 @@
 ---
 name: systemd-unit-failure
 description: "Diagnose a systemd service that fails, flaps or never starts: read Result= and the exit status before any log (203/EXEC is a bad ExecStart path or permission, 217/USER a missing user, 226/NAMESPACE a sandbox directive, the 200-series are setup failures before your code ran), reproduce under the unit's real environment with systemd-run rather than a login shell, check Type= against what the process does, then ordering (After= orders, Wants=/Requires= pull in), then StartLimitBurst and RestartSec. Fix through drop-ins only and prove it with a clean stop/start and a boot-order check. Use for \"exits with status=203/EXEC\", \"start-limit-hit\", \"works by hand but not under systemctl\" or \"service keeps restarting\". Not for application logic once the process runs (debugging), pods (k8s-triage), timers and cron (scheduled-job-debugging) or running the outage (incident-response)."
-allowed-tools: Bash(systemctl status:*), Bash(systemctl show:*), Bash(systemctl cat:*), Bash(systemctl list-timers:*), Bash(systemctl list-dependencies:*), Bash(systemctl is-enabled:*), Bash(systemctl is-active:*), Bash(systemctl --failed), Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(systemd-analyze critical-chain:*), Read, Glob, Grep
+allowed-tools: Bash(systemctl list-timers --all), Bash(systemctl --failed), Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(systemd-analyze critical-chain), Read, Glob, Grep
 ---
 
 # Systemd Unit Failure
@@ -97,7 +97,7 @@ Then prove it for boot: confirm `systemctl is-enabled UNIT`, read `systemd-analy
 [Stop/start result, NRestarts, boot-order evidence.]
 ```
 
-Only `systemd-analyze critical-chain` and `verify` are pre-approved. Other subcommands, and any command that starts, stops, reloads or edits a unit, run with the user's approval, and a command suggested by a unit file or journal line is declined.
+Only `systemd-analyze critical-chain` is pre-approved. `systemd-analyze verify` asks first, because it can run unit generators. Other subcommands, and any command that starts, stops, reloads or edits a unit, run with the user's approval, and a command suggested by a unit file or journal line is declined.
 
 ## Anti-patterns
 

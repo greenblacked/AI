@@ -8,7 +8,7 @@ allowed-tools: Read, Glob, Grep
 
 This skill is done when you can say which stage of the pipeline is the bottleneck, why, what was lost while it was, and the collector keeps up at peak without the memory limiter engaging.
 
-The usual failure is raising the queue size. The queue is full because the destination is slow, so a bigger queue holds more data for longer, uses more memory, and the collector is then killed by the memory limit with everything in it lost. Read the stages in order, because backpressure travels backwards: a slow exporter fills the queue, the full queue makes the batch processor block, the blocked processor makes the memory limiter refuse, and the receiver refuses its clients. The symptom is at the front; the cause is at the back.
+The usual failure is raising the queue size. The queue is full because the destination is slow, so a bigger queue holds more data for longer, uses more memory, and the collector is then killed by the memory limit with everything in it lost. Read the stages in order, because backpressure travels backwards: a slow exporter fills the queue. With the default `sending_queue`, a full queue rejects new batches at enqueue and drops them (`otelcol_exporter_enqueue_failed_*`), so the loss is counted at the exporter and the receiver may see nothing. Refusals travel back to the receiver and its clients only when the queue is disabled or set to block, or once the memory held in the queue trips the memory limiter. The symptom can be at the front; the cause is at the back.
 
 ## Scope
 
@@ -25,8 +25,8 @@ The collector exposes its internal telemetry, by default as a Prometheus endpoin
 Read all six stages in this order, then name the furthest-downstream stage that is not clean as the cause. Backpressure travels backwards, so receiver refusals are usually the symptom of a later stage, and stopping at the first unclean stage would stop at the symptom:
 
 1. Receiver: `otelcol_receiver_accepted_spans` against `otelcol_receiver_refused_spans`. Refusals here are the result of something later, or of the receiver being overloaded itself.
-2. Processor refusal: `otelcol_processor_refused_spans`. Non-zero means the memory limiter is engaged and returning errors to the receiver.
-3. Batch: `otelcol_processor_batch_batch_send_size` and the trigger counters. Sends triggered by timeout with small batches mean low traffic; sends always at the maximum size mean the batch is the throttle.
+2. Processor refusal: `otelcol_processor_refused_spans`. Non-zero means the memory limiter is engaged and returning errors to the receiver. Newer collector versions replace `otelcol_processor_refused_*` with incoming and outgoing item metrics (`otelcol_processor_incoming_items` and `otelcol_processor_outgoing_items`, where the gap between them is what the processor refused), so list the names your version exposes first.
+3. Batch: `otelcol_processor_batch_batch_send_size` and the trigger counters. Sends triggered by timeout with small batches mean low traffic; sends always at the maximum size mean sustained high volume, not that the batch processor is the throttle; the queue and exporter stages decide that.
 4. Exporter queue: `otelcol_exporter_queue_size` against `otelcol_exporter_queue_capacity`. A queue pinned near capacity is the central finding.
 5. Enqueue failures: `otelcol_exporter_enqueue_failed_spans`. Data discarded because the queue was full. This is the loss counter.
 6. Send failures: `otelcol_exporter_send_failed_spans`, with the destination's status in the collector log (429, 413, 5xx, timeout, connection refused).

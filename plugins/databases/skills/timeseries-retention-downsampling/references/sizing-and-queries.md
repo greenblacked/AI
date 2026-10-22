@@ -166,8 +166,10 @@ FULL OUTER JOIN
   USING (bucket, device_id)
 WHERE r.n != a.n OR r.mn != a.mn OR r.mx != a.mx
    OR abs(r.s - a.s) > 1e-9 * greatest(abs(a.s), 1)
+   OR r.n IS NULL OR a.n IS NULL
 SETTINGS join_use_nulls = 1;
 ```
 
-With `join_use_nulls = 1` a bucket missing on one side appears as NULL columns; check that
-rows with a NULL count are reported as failures by reading the output, not only its row count.
+With `join_use_nulls = 1` a bucket missing on one side appears as NULL columns, and a
+comparison against NULL is never true, so the final `IS NULL` terms are what report those
+buckets.

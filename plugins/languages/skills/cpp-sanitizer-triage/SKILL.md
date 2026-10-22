@@ -1,6 +1,6 @@
 ---
 name: cpp-sanitizer-triage
-description: "Find and read memory and concurrency bugs in C and C++ with AddressSanitizer, UndefinedBehaviorSanitizer, ThreadSanitizer and MemorySanitizer: build the whole test suite with address and undefined together, run ThreadSanitizer alone in its own job, treat MemorySanitizer as a separate Clang-only effort, set the options that make CI fail and frames readable, and read each report in order (error type, faulting access, freed-by and allocated-by stacks). Use whenever a C or C++ program needs memory or race checking, including \"heap-use-after-free\", \"AddressSanitizer report, where do I start\", \"undefined behaviour only in release builds\", \"crashes under -O2\", \"set up sanitizers in CI\", \"ThreadSanitizer data race report\". Not for input exploration (debugging), a production core file (native-core-dump-analysis), unsafe Rust (rust-unsafe-review), or security assessment (security-review)."
+description: "Find and read memory and concurrency bugs in C and C++ with AddressSanitizer, UndefinedBehaviorSanitizer, ThreadSanitizer and MemorySanitizer: build the whole test suite with address and undefined together, run ThreadSanitizer alone in its own job, treat MemorySanitizer as a separate Clang-only effort, set the options that make CI fail and frames readable, and read each report in order (error type, faulting access, freed-by and allocated-by stacks). Use whenever a C or C++ program needs memory or race checking, including \"heap-use-after-free\", \"AddressSanitizer report, where do I start\", \"undefined behaviour only in release builds\", \"crashes under -O2\", \"set up sanitizers in CI\", \"ThreadSanitizer data race report\". Not for input exploration and fuzzing (fuzz-harness), a production core file (native-core-dump-analysis), unsafe Rust (rust-unsafe-review), or security assessment (security-review)."
 allowed-tools: "Read, Grep, Glob"
 ---
 
@@ -14,7 +14,7 @@ The usual failure is running a sanitizer on the application once, reading the fi
 
 Use for: setting up sanitizer builds, reading and fixing their reports, and "only in release" misbehaviour that a sanitizer can expose.
 
-Do not use for: choosing or generating inputs to explore a parser (`debugging` covers narrowing; a dedicated fuzzing skill is out of this skill's scope); a production crash where you have only a core file (`native-core-dump-analysis`); `unsafe` blocks in Rust (`rust-unsafe-review`); judging whether a bug is exploitable or assessing a system (`security-review`).
+Do not use for: choosing or generating inputs to explore a parser, or fuzzing (`fuzz-harness`); a production crash where you have only a core file (`native-core-dump-analysis`); `unsafe` blocks in Rust (`rust-unsafe-review`); judging whether a bug is exploitable or assessing a system (`security-review`).
 
 ## Workflow
 

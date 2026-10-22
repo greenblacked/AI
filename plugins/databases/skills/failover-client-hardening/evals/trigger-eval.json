@@ -72,7 +72,7 @@
  {
   "query": "test fencing and promotion safety on the server side of our cluster",
   "should_trigger": false,
-  "expected": "disaster-recovery-exercise"
+  "expected": "db-replication"
  },
  {
   "query": "add timeouts and retry budgets between our services",

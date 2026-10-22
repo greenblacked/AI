@@ -9,7 +9,7 @@
   {"query": "docker overlay directory is huge and the server is out of space, what can I clear", "should_trigger": true},
   {"query": "the volume looks half empty yet an LVM thin pool is complaining it is full", "should_trigger": true},
   {"query": "a mail spool with millions of small files has made the disk unusable though bytes are free", "should_trigger": true},
-  {"query": "extend the lvm volume and resize the filesystem to give the data disk more room", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "extend the lvm volume and resize the filesystem to give the data disk more room", "should_trigger": false, "expected": "volume-resize"},
   {"query": "forecast when our storage will fill given growth over the next year", "should_trigger": false, "expected": "capacity-planning"},
   {"query": "the whole outage is live and I need to run the incident and send updates", "should_trigger": false, "expected": "incident-response"},
   {"query": "Permission denied writing to a directory the service owns", "should_trigger": false, "expected": "permission-denied-triage"},

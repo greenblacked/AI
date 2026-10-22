@@ -12,8 +12,11 @@
   "keywords": [
     "postgresql",
     "mysql",
-    "search",
+    "clickhouse",
+    "elasticsearch",
+    "vector-search",
     "redis",
-    "sqlite"
+    "sqlite",
+    "search"
   ]
 }

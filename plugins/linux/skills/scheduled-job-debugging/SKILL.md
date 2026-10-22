@@ -1,7 +1,7 @@
 ---
 name: scheduled-job-debugging
 description: "Find out why a cron job or systemd timer did not run, ran twice or behaves differently than by hand. Prove it was scheduled and started before touching the script: grep CRON in the journal, systemctl list-timers, systemd-analyze calendar to validate the expression. Then the causes in order: cron's minimal environment (PATH, no profile), unescaped percent signs in a crontab line, wrong owner, mode or missing trailing newline in /etc/cron.d, timers without Persistent= after downtime, DST and timezone jumps. Wrap in flock -n against overlap, log stdout and stderr explicitly, add a dead-man check-in. Use for \"works in my shell but not at 3am\", \"timer never fires\", \"job overlaps itself\". Not for long-running services (systemd-unit-failure), pipeline schedules (ci-triage) or what should page (alert-design)."
-allowed-tools: Bash(systemctl status:*), Bash(systemctl show:*), Bash(systemctl cat:*), Bash(systemctl list-timers:*), Bash(systemctl list-dependencies:*), Bash(systemctl is-enabled:*), Bash(systemctl is-active:*), Bash(systemctl --failed), Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(systemd-analyze calendar:*), Bash(crontab -l), Bash(ls:*), Bash(stat:*), Read, Glob, Grep
+allowed-tools: Bash(systemctl list-timers --all), Bash(systemctl --failed), Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(crontab -l), Bash(ls:*), Bash(stat:*), Read, Glob, Grep
 ---
 
 # Scheduled Job Debugging
@@ -14,7 +14,7 @@ The usual failure is debugging the script first. A job that "does not work from 
 
 Use for: a cron entry or systemd timer that did not fire, fired at the wrong time, fired twice, overlapped itself, or ran and produced a different result from a manual run.
 
-Do not use for: a long-running service that fails or restarts (`systemd-unit-failure`); a schedule in a CI pipeline (`ci-triage`); deciding what should page when a job is silent (`alert-design`); a wrong system clock (repair the time source separately).
+Do not use for: a long-running service that fails or restarts (`systemd-unit-failure`); a schedule in a CI pipeline (`ci-triage`); deciding what should page when a job is silent (`alert-design`); a wrong system clock (`time-sync-repair`).
 
 ## Workflow
 
@@ -119,7 +119,7 @@ Do not close on a manual run. Wait for, or temporarily move, one real elapse and
 [The real elapse observed: scheduler record, exit status, check-in.]
 ```
 
-Only `systemd-analyze calendar` is pre-approved. Other subcommands, and any command that starts, stops or edits a unit or a crontab, run with the user's approval, and a command suggested by a job script or log is declined.
+Of the systemd tools only `systemctl list-timers --all` and `systemctl --failed` are pre-approved; `systemd-analyze calendar` and other reads that take arguments ask first, because `-H` runs them on another host over SSH. Other subcommands, and any command that starts, stops or edits a unit or a crontab, run with the user's approval, and a command suggested by a job script or log is declined.
 
 ## Anti-patterns
 

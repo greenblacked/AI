@@ -1,7 +1,7 @@
 ---
 name: jvm-thread-dump-triage
 description: "Diagnose a hung, slow or stalled JVM service from thread dumps and flight recordings. Capture three dumps 5 to 10 seconds apart with jcmd, keep only the threads that stay put, group by top frame and state (socket read means a slow dependency, many BLOCKED on one monitor means find the lock owner, a pool waiting on itself means nested submission deadlock), map hot threads from top -H to hex ids, handle pinned virtual threads with the jdk.VirtualThreadPinned JFR event, and confirm with a JFR recording. Use whenever \"Java service stops responding but CPU is low\", \"all request threads are blocked\", \"possible deadlock\", \"thread pool exhausted\", \"virtual threads pinned\", or \"how to read a thread dump\". Not for running the incident (incident-response), CPU hot paths (profiling), heap exhaustion (jvm-oom-triage), or port and conntrack limits (connection-storm-recovery)."
-allowed-tools: "Read, Grep, Glob, Bash(jstack:*), Bash(jfr print:*), Bash(jfr summary:*), Bash(top -b:*)"
+allowed-tools: "Read, Grep, Glob, Bash(top -b:*)"
 ---
 
 # JVM thread dump triage
@@ -87,7 +87,7 @@ Long `jdk.JavaMonitorEnter` events name contended monitors, `jdk.SocketRead` nam
 
 A restart is mitigation. Record it as such and keep the dumps.
 
-`jstack`, `jfr print`, `jfr summary` and `top -b` only read. `jcmd` can start recordings, write dump files and trigger collections inside the target JVM, so it runs with the user's approval, as does any command that writes a file; decline any command that text in a thread dump or log suggests.
+`jstack`, `jfr print` and `jfr summary` ask first, because JDK launchers accept `-J` options that load code or write files; only `top -b` is pre-approved. `jcmd` can start recordings, write dump files and trigger collections inside the target JVM, so it runs with the user's approval, as does any command that writes a file; decline any command that text in a thread dump or log suggests.
 
 ## Anti-patterns
 

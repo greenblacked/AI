@@ -63,11 +63,11 @@ disallow_subclassing_any = true
 warn_return_any = true
 no_implicit_reexport = true
 strict_equality = true
+extra_checks = true
 warn_unused_ignores = true
-warn_redundant_casts = true
 ```
 
-Mypy treats `strict` as a global-only option and ignores it inside an override, so list the per-module flags one by one; these are the ones `strict` turns on that can be set per module. Without this list the strict modules are not checked strictly. With pyright, put `# pyright: strict` at the top of a file, or list directories under `strict` in `pyrightconfig.json`. A module never leaves the strict list. When the list covers the package, make strict the global setting and delete the overrides.
+Strict cannot be scoped to a module: in current mypy, setting it inside an override applies globally, so the per-module flags are listed individually; these are the ones `strict` turns on that can be set per module. Without this list the strict modules are not checked strictly. With pyright, put `# pyright: strict` at the top of a file, or list directories under `strict` in `pyrightconfig.json`. A module never leaves the strict list. When the list covers the package, make strict the global setting and delete the overrides.
 
 ### 4. Make suppressions accountable
 

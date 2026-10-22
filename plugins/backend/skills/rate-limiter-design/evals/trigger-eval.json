@@ -13,10 +13,10 @@
   {"query": "the service collapses at twice normal traffic, whoever is calling", "should_trigger": false, "expected": "overload-protection"},
   {"query": "which roles may call the admin endpoints", "should_trigger": false, "expected": "authorization-design"},
   {"query": "make our client retries back off properly during an outage", "should_trigger": false, "expected": "timeout-and-retry-budget"},
-  {"query": "we need to enforce a monthly billing quota of api calls per plan", "should_trigger": false, "expected": "api-design"},
+  {"query": "we need to enforce a monthly billing quota of api calls per plan", "should_trigger": false},
   {"query": "one slow customer webhook endpoint is blocking our delivery workers", "should_trigger": false, "expected": "webhook-integration"},
   {"query": "two requests decremented the same stock row and it went negative", "should_trigger": false, "expected": "transaction-race-hunt"},
   {"query": "size the cluster for expected peak traffic", "should_trigger": false, "expected": "capacity-planning"},
-  {"query": "consumers fall behind and need backpressure on the queue", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "design backpressure so a fast producer slows down when the downstream queue is full", "should_trigger": false, "expected": "event-driven-reliability"},
   {"query": "protect the login page from credential stuffing and token theft", "should_trigger": false, "expected": "auth-design"}
 ]

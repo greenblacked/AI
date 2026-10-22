@@ -92,7 +92,7 @@ ALTER TABLE big_table SET (
 );
 ```
 
-Raise the cost limit rather than lowering `autovacuum_vacuum_cost_delay` to zero unless disk and IO headroom are measured. Raise `autovacuum_max_workers` only with the cost limit and memory in mind, and before PostgreSQL 18 it needs a restart. If the log shows several index passes per vacuum, `autovacuum_work_mem` (or `maintenance_work_mem` when unset) is too small for the dead-tuple list in versions before 17.
+Raise the cost limit rather than lowering `autovacuum_vacuum_cost_delay` to zero unless disk and IO headroom are measured. Raise `autovacuum_max_workers` only with the cost limit and memory in mind, and before PostgreSQL 18 it needs a restart. If the log shows several index passes per vacuum, `autovacuum_work_mem` (or `maintenance_work_mem` when unset) is too small for the dead-tuple list in versions before 17. From PostgreSQL 17 the TID store makes multiple index passes much rarer, not impossible: a very large dead-tuple set can still exceed the memory limit.
 
 For a table that is updated heavily, reduce the garbage at the source: set a lower `fillfactor` (for example 80) so updated rows fit on the same page, and avoid updating indexed columns, because only an update that changes no indexed column can be a HOT update. Check `n_tup_hot_upd` against `n_tup_upd` in `pg_stat_user_tables`. A low ratio on a hot table is the signal that an index on a frequently changed column is the real problem.
 

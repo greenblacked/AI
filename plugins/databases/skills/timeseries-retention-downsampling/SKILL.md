@@ -16,7 +16,7 @@ Run SQL through the normal permission prompt, rehearse on a copy, and never run 
 
 Use for: retention policy, rollup design, compression and chunk sizing for TimescaleDB, ClickHouse and Prometheus-compatible stores.
 
-Do not use for: partitioning a general relational table, which is `table-partitioning`; deciding which metrics and labels the code emits, which is `instrumentation`; sizing hardware and growth planning, which is `capacity-planning`; running the backfill itself safely at scale, which is `safe-backfill`.
+Do not use for: partitioning a general relational table, which is `table-partitioning`; deciding which metrics and labels the code emits, which is `instrumentation`; sizing hardware and growth planning, which is `capacity-planning`; running the backfill itself safely at scale, which is `safe-backfill`; populating a new column as part of a schema change, which is `db-migration`.
 
 ## Workflow
 

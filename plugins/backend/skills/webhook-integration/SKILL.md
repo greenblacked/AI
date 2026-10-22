@@ -1,6 +1,6 @@
 ---
 name: webhook-integration
-description: "Receive third-party webhooks reliably, or send your own to customers. Receiving: verify the HMAC over the raw request bytes before parsing, compare in constant time, bound replay with a timestamp tolerance, store the raw event and return 2xx fast, dedupe on the provider's event id, and re-fetch current state, since order is not guaranteed. Sending: stable event ids, signed headers, backoff over days, per-endpoint timeouts, auto-pause, secret rotation, a delivery log and SSRF defence. Use whenever someone says \"our Stripe webhook handler times out\", \"the event was processed twice\", \"the webhook arrived before our write committed\", \"verify the signature\" or \"a customer endpoint is down\". Not for queue consumers behind your own broker (event-driven-reliability), resource contracts (api-design), general signature or SSRF review (security-review), who may call (authorization-design)."
+description: "Receive third-party webhooks reliably, or send your own to customers. Receiving: verify the HMAC over the raw request bytes before parsing, compare in constant time, bound replay with a timestamp tolerance where the provider signs a timestamp, store the raw event and return 2xx fast, dedupe on the provider's event id, and re-fetch current state, since order is not guaranteed. Sending: stable event ids, signed headers, backoff over days, per-endpoint timeouts, auto-pause, secret rotation, a delivery log and SSRF defence. Use whenever someone says \"our Stripe webhook handler times out\", \"the event was processed twice\", \"the webhook arrived before our write committed\", \"verify the signature\" or \"a customer endpoint is down\". Not for queue consumers behind your own broker (event-driven-reliability), resource contracts (api-design), general signature or SSRF review (security-review), who may call (authorization-design)."
 allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
@@ -17,7 +17,7 @@ Decide the direction first. Receiving and sending have different failure modes; 
 Compute the HMAC over the exact bytes received, using the signing secret and the construction the provider documents (usually timestamp plus a separator plus body). Frameworks that parse JSON and re-serialise change whitespace and key order, which breaks the signature, so capture the raw body before any body parser runs and verify that.
 
 - Compare with a constant-time function (`hmac.compare_digest`, `crypto.timingSafeEqual`), never `==`.
-- Reject a timestamp outside a tolerance of about five minutes. The signature alone does not stop an attacker replaying a captured request; the timestamp bound does.
+- Where the provider signs a timestamp (Stripe does), reject one outside a tolerance of about five minutes. The signature alone does not stop an attacker replaying a captured request; the timestamp bound does. Where it signs only the body (GitHub does), there is no timestamp to check; the unique event-id constraint bounds replays, so enforce it in the database.
 - Where the provider supports two secrets during rotation, accept either until the old one is retired.
 - Return 400 or 401 on failure and log the event id only; do not echo the body.
 
@@ -61,7 +61,7 @@ Read `references/sending-checklist.md` for the endpoint state machine and the sc
 
 - Send a body with different whitespace than the original and confirm verification fails; send the original and confirm it passes.
 - Send the same event id twice concurrently and confirm one effect.
-- Send an event with a timestamp ten minutes old and confirm rejection.
+- For a provider that signs a timestamp, send an event with a timestamp ten minutes old and confirm rejection; for one that does not, replay a captured event and confirm the unique event-id constraint stops a second effect.
 - Deliver the "updated" event before the "created" event and confirm the final state is correct.
 - Make the handler's downstream slow and confirm the endpoint still answers within a couple of seconds.
 - For sending: point an endpoint at a host that resolves to a private address and confirm it is refused; hang an endpoint and confirm other endpoints are unaffected.

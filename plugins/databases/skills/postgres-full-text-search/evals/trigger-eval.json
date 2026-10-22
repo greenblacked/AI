@@ -18,5 +18,5 @@
   {"query": "design the retrieval layer for a question answering assistant over our documentation", "should_trigger": false, "expected": "rag-design"},
   {"query": "design the tables and keys for a multi-tenant document store", "should_trigger": false, "expected": "schema-design"},
   {"query": "which postgres indexes are never used and can be dropped", "should_trigger": false, "expected": "index-pruning"},
-  {"query": "backfill a new column on a huge postgres table without hurting production", "should_trigger": false, "expected": "safe-backfill"}
+  {"query": "backfill a new column on a huge postgres table without hurting production", "should_trigger": false, "expected": "db-migration"}
 ]

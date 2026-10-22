@@ -9,7 +9,7 @@
   {"query": "we run litestream against our desktop sync server's database, what do we need to check before trusting it", "should_trigger": true},
   {"query": "should we move our sqlite file onto the shared nfs volume so both app servers can use it", "should_trigger": true},
   {"query": "after restoring a sqlite backup how do I know the file is not corrupt", "should_trigger": true},
-  {"query": "our ios app needs to migrate its local sqlite schema in a batch when users update, how do we keep it safe", "should_trigger": false},
+  {"query": "our ios app needs to migrate its local sqlite schema in a batch when users update, how do we keep it safe", "should_trigger": false, "expected": "on-device-migration-safety"},
   {"query": "design the save file format for our game so older saves keep loading", "should_trigger": false, "expected": "game-save-system"},
   {"query": "model the tables and foreign keys for an orders and invoices system", "should_trigger": false, "expected": "schema-design"},
   {"query": "this postgres query takes 40 seconds, read the execution plan and tell me why", "should_trigger": false, "expected": "sql-performance"},

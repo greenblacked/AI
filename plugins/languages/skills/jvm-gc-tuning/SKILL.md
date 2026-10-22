@@ -1,7 +1,7 @@
 ---
 name: jvm-gc-tuning
 description: "Diagnose and tune JVM garbage collection pauses and heap sizing. Turns on unified GC logging first (-Xlog:gc*,gc+heap=debug) and reads four numbers: pause p99 and max, allocation rate, promotion rate and live set after a full or mixed collection. Sizes the heap from the live set, expresses it with MaxRAMPercentage inside the container, cuts allocation and premature promotion in code before touching the collector, and picks G1 or ZGC from a stated goal without hand-sizing the young generation. Verifies on replayed load, allowing for JIT warm-up. Use for \"long GC pauses\", \"G1 versus ZGC\", \"what Xmx in Kubernetes\", \"full GC every few minutes\", \"latency spikes after a deploy\", \"high allocation rate\". Not for OutOfMemoryError and which region failed (jvm-oom-triage), CPU time hotspots (profiling), fleet sizing (capacity-planning)."
-allowed-tools: Read, Grep, Glob, Bash(jstat:*)
+allowed-tools: Read, Grep, Glob
 ---
 
 # JVM GC Tuning

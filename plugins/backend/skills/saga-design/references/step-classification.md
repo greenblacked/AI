@@ -17,7 +17,7 @@ Contents: questions to ask, worked example, awkward steps.
 | 2 | Reserve inventory | Compensable | Release the hold; hold expires on its own at the deadline |
 | 3 | Authorise the card | Compensable | Void the authorisation |
 | 4 | Capture payment | Pivot | None; after this the saga moves forward only |
-| 5 | Issue ticket | Retriable | Retry until success, then `failed_needs_human` |
+| 5 | Issue ticket | Retriable | Retry until success or the retry limit, then `failed_needs_human` |
 | 6 | Send confirmation email | Retriable | Retry with a dedupe key |
 
 Declines surface at authorisation, which is compensable and comes before the pivot. Capture is the pivot because it is the first step that cannot be undone, and everything before it is undoable. Authorising first and capturing last is what makes that possible.

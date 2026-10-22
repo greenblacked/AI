@@ -1,6 +1,6 @@
 ---
 name: search-index-sync
-description: "Keep Elasticsearch, OpenSearch, Solr or a hosted search index consistent with the database. The database is the source of truth and the index is derived from a change stream (outbox or CDC), never a dual write from request code; updates carry the row version so late retries cannot overwrite newer data; reindexing goes through aliases with dual writes, count and checksum comparison and one atomic alias swap; a periodic reconciliation by id range repairs drift. Use when you hear \"deleted items still show in search\", \"search results are stale\", \"reindex without downtime\", \"document count differs from the database\", \"we changed the mapping\", \"new record is not searchable immediately\". Not for relevance quality (retrieval-evaluation), outbox mechanics (event-driven-reliability), one-off repair passes (safe-backfill), vector retrieval pipelines (rag-design)."
+description: "Keep an Elasticsearch or OpenSearch index (self-managed or hosted) consistent with the database. The database is the source of truth and the index is derived from a change stream (outbox or CDC), never a dual write from request code; updates carry the row version so late retries cannot overwrite newer data; reindexing goes through aliases with dual writes, count and checksum comparison and one atomic alias swap; a periodic reconciliation by id range repairs drift. Use when you hear \"deleted items still show in search\", \"search results are stale\", \"reindex without downtime\", \"document count differs from the database\", \"we changed the mapping\", \"new record is not searchable immediately\". Not for relevance quality (retrieval-evaluation), outbox mechanics (event-driven-reliability), one-off repair passes (safe-backfill), vector retrieval pipelines (rag-design), designing field types, analyzers and mappings (search-mapping-design)."
 allowed-tools: Read, Glob, Grep
 ---
 
@@ -47,7 +47,7 @@ Run a periodic job that hashes id ranges in the database and in the index, and c
 ## 6. Limits that bite
 
 - `from`/`size` paging stops at `index.max_result_window`, 10,000 by default. Page deeply with `search_after` and a point in time (`_pit`), not larger windows.
-- Dynamic mapping on user-supplied keys creates a field per distinct key and runs into the total field limit (1,000 by default). Set `dynamic` to `false` or `strict` for objects with user-controlled keys, or model them as key/value pairs.
+- Dynamic mapping on user-supplied keys creates a field per distinct key and runs into the total field limit (1,000 by default). Set `dynamic` to `false` or `strict` for objects with user-controlled keys, or model them as key/value pairs; designing the mapping itself belongs to `search-mapping-design`.
 
 ## Hand back
 

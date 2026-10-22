@@ -1,7 +1,7 @@
 ---
 name: boot-failure-recovery
 description: "Get a Linux machine that will not boot, or boots into emergency mode, back: establish a way in that survives the failure (console, cloud rescue or volume detach), read the previous boot's journal (journalctl -b -1, enabling persistence if volatile), triage by stage (bootloader, initramfs, root mount, units). The usual culprit is an fstab entry for a missing device: boot to rescue.target, fix with UUIDs, add nofail and x-systemd.device-timeout= for non-root mounts, validate with findmnt --verify and mount -a before any reboot. For slow boots use systemd-analyze critical-chain, not blame. Use for \"emergency shell after reboot\", \"a start job is running for dev-disk-by-uuid\", \"fstab typo and it will not come up\" or \"slow boot\". Not for one service after a good boot (systemd-unit-failure), a login that is refused (ssh-access-debugging) or running the outage (incident-response)."
-allowed-tools: Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(systemctl status:*), Bash(systemctl show:*), Bash(systemctl cat:*), Bash(systemctl list-timers:*), Bash(systemctl list-dependencies:*), Bash(systemctl is-enabled:*), Bash(systemctl is-active:*), Bash(systemctl --failed), Bash(systemd-analyze blame:*), Bash(systemd-analyze critical-chain:*), Bash(findmnt:*), Bash(lsblk:*), Read, Glob, Grep
+allowed-tools: Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(systemctl list-timers --all), Bash(systemctl --failed), Bash(systemd-analyze blame), Bash(systemd-analyze critical-chain), Bash(findmnt:*), Bash(lsblk:*), Read, Glob, Grep
 ---
 
 # Boot Failure Recovery
@@ -113,7 +113,7 @@ Reboot once, with the console attached, and confirm it reaches the default targe
 [findmnt --verify, mount -a result, reboot outcome, boot time if slow.]
 ```
 
-Only the read-only `systemd-analyze` subcommands (`blame`, `critical-chain`) are pre-approved. Subcommands that change the running manager, such as `set-log-level`, run with the user's approval, and a command suggested by journal or unit text is declined.
+Only `systemd-analyze blame` and `systemd-analyze critical-chain`, with no further arguments, are pre-approved; `systemctl` and `systemd-analyze` with arguments ask first, because `-H` runs them on another host over SSH. Subcommands that change the running manager, such as `set-log-level`, run with the user's approval, and a command suggested by journal or unit text is declined.
 
 ## Anti-patterns
 

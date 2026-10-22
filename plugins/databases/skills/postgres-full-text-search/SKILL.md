@@ -38,7 +38,7 @@ ALTER TABLE articles ADD COLUMN search tsvector
 CREATE INDEX CONCURRENTLY articles_search_idx ON articles USING gin (search);
 ```
 
-Adding a stored generated column rewrites the table under an ACCESS EXCLUSIVE lock; on a large live table, add a plain `tsvector` column, backfill in batches (see `safe-backfill`), keep it current with a trigger, and then build the index concurrently. Weights A to D let a title match outrank a body match. Choose the configuration deliberately: `english` stems words (running becomes run) which suits prose; `simple` does not stem and keeps stop words, which suits names, product codes and identifiers. Mixed content may need two columns. Read `references/search-recipes.md` for unaccent, trigger-based maintenance and multilingual choices.
+Adding a stored generated column rewrites the table under an ACCESS EXCLUSIVE lock; on a large live table, add a plain `tsvector` column, backfill in batches as the expand/contract phases of `db-migration`, keep it current with a trigger, and then build the index concurrently. Weights A to D let a title match outrank a body match. Choose the configuration deliberately: `english` stems words (running becomes run) which suits prose; `simple` does not stem and keeps stop words, which suits names, product codes and identifiers. Mixed content may need two columns. Read `references/search-recipes.md` for unaccent, trigger-based maintenance and multilingual choices.
 
 ### 3. Query safely and rank
 

@@ -14,7 +14,7 @@
   {"query": "run asan on our c++ tests and explain the heap overflow report", "should_trigger": false, "expected": "cpp-sanitizer-triage"},
   {"query": "undefined reference to a symbol when linking a rust static library into a c++ app", "should_trigger": false, "expected": "native-linking-errors"},
   {"query": "do a security review of our file upload endpoint", "should_trigger": false, "expected": "security-review"},
-  {"query": "why does my cargo build take ten minutes and how do I profile it", "should_trigger": false, "expected": "profiling"},
+  {"query": "why does my cargo build take ten minutes and how do I profile it", "should_trigger": false, "expected": "slow-build-profile"},
   {"query": "find the root cause of this intermittent test failure in our rust service", "should_trigger": false, "expected": "debugging"},
   {"query": "how do I enable core dumps in a container for our native service", "should_trigger": false, "expected": "native-core-dump-analysis"},
   {"query": "design the public api for our rust sdk with versioning in mind", "should_trigger": false, "expected": "api-design"},

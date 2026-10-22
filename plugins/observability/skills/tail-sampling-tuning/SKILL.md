@@ -48,7 +48,7 @@ Scale the sampler tier only after routing is stable. When the pod set changes, t
 
 ### 4. Order the policies by what you refuse to lose
 
-Policies are evaluated together and a trace is kept when any of them matches (unless the processor is set to stop at the first match), so list them in the order of importance and name each so the self-metrics say which one kept the trace:
+Policies are evaluated together and a trace is kept when any of them matches, because top-level policies are ORed and order does not change the decision. List them in the order of importance anyway and name each so the self-metrics say which one kept the trace:
 
 1. errors: a `status_code` policy for `ERROR`, plus a `string_attribute` or `numeric_attribute` match on HTTP 5xx if the instrumentation does not set status
 2. slow: a `latency` policy with `threshold_ms` at the SLO threshold of the entry route, not a round number

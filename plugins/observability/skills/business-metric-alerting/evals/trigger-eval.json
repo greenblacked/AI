@@ -11,7 +11,7 @@
   {"query": "alert on zero orders versus low orders, how should those differ", "should_trigger": true},
   {"query": "page when the checkout error ratio burns the slo budget fast", "should_trigger": false, "expected": "alert-design"},
   {"query": "backtest this rule over the last 90 days of data", "should_trigger": false, "expected": "alert-backtest"},
-  {"query": "conversion dropped last week and I need to work out why", "should_trigger": false, "expected": "debugging"},
+  {"query": "conversion dropped last week and I need to work out why", "should_trigger": false, "expected": "metric-anomaly-triage"},
   {"query": "set the availability slo and error budget policy for payments", "should_trigger": false, "expected": "slo-design"},
   {"query": "a dashboard panel for orders stopped showing data since the release", "should_trigger": false, "expected": "missing-metrics-hunt"},
   {"query": "find which latency metric label exploded our series count", "should_trigger": false, "expected": "cardinality-incident-response"},

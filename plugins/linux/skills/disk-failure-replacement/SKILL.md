@@ -80,7 +80,7 @@ Follow `/proc/mdstat` or `zpool status` until it reports completion. Rebuild spe
 
 ### 6. Verify, then record
 
-When the rebuild ends, run a consistency check: for md, `echo check > /sys/block/md0/md/sync_action` and read `mismatch_cnt` afterwards; for ZFS, `zpool scrub POOL`. Confirm the array reports a clean state and the monitoring alert for degraded redundancy has cleared. Update `mdadm.conf` or the equivalent if the configuration lists devices, and rebuild the initramfs if the distribution requires it. Record the old disk's serial and slot, the new disk's serial, the date, the SMART evidence and the rebuild duration in the asset log. Wipe or destroy the old drive according to the data policy before it leaves the building.
+When the rebuild ends, run a consistency check: for md, `echo check | sudo tee /sys/block/md0/md/sync_action` and read `mismatch_cnt` afterwards; for ZFS, `zpool scrub POOL`. Confirm the array reports a clean state and the monitoring alert for degraded redundancy has cleared. Update `mdadm.conf` or the equivalent if the configuration lists devices, and rebuild the initramfs if the distribution requires it. Record the old disk's serial and slot, the new disk's serial, the date, the SMART evidence and the rebuild duration in the asset log. Wipe or destroy the old drive according to the data policy before it leaves the building.
 
 ## Output format
 

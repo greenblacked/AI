@@ -17,6 +17,6 @@
   {"query": "this query takes twelve seconds, look at the plan", "should_trigger": false, "expected": "sql-performance"},
   {"query": "FATAL: too many connections after the lock cleared", "should_trigger": false, "expected": "connection-storm-recovery"},
   {"query": "dead tuples keep growing and autovacuum cannot keep up", "should_trigger": false, "expected": "vacuum-bloat-triage"},
-  {"query": "backfill a new column on two hundred million rows without hurting production", "should_trigger": false, "expected": "safe-backfill"},
+  {"query": "backfill a new column on two hundred million rows without hurting production", "should_trigger": false, "expected": "db-migration"},
   {"query": "two workers are processing the same job, review our distributed lock", "should_trigger": false, "expected": "distributed-lock-audit"}
 ]

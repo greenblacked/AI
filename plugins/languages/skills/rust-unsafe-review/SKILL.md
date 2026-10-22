@@ -77,7 +77,7 @@ Run `cargo geiger` to count unsafe in your crate and its dependencies, and recor
 
 **`transmute` between layouts.** Types without `#[repr]` have unspecified layout; use a checked cast crate or `from_ne_bytes`.
 
-**Unwinding into C.** A panic crossing an `extern "C"` boundary aborts or is undefined depending on the ABI; catch it at the edge.
+**Unwinding into C.** Since Rust 1.81 a panic that escapes an `extern "C"` function aborts the process; before that it was undefined behaviour. `extern "C-unwind"` is the ABI that permits unwinding across the boundary. Catch the panic at the edge either way, unless the foreign caller is built to unwind.
 
 ## Reference files
 

@@ -1,6 +1,6 @@
 ---
 name: clickhouse-parts-triage
-description: "Fix ClickHouse too-many-parts errors and merge backlogs by reading system.parts, system.merges and system.part_log before changing anything, then removing the cause in order of frequency: many tiny inserts (batch to tens of thousands to a million rows at about one insert per second per table, or async_insert with wait_for_async_insert so acknowledgements stay honest), a PARTITION BY that is too granular (many partitions touched per insert), and queued mutations on large tables. Raising parts_to_throw_insert only delays failure. Use for \"Too many parts. Merges are processing significantly slower than inserts\", \"inserts rejected\", \"ClickHouse merges backlog\" or \"how should I batch inserts\". Not for which queries drive scan cost (cost-review), query speed (sql-performance), relational partitions (table-partitioning) or backfills (safe-backfill)."
+description: "Fix ClickHouse too-many-parts errors and merge backlogs by reading system.parts, system.merges and system.part_log before changing anything, then removing the cause in order of frequency: many tiny inserts (batch to tens of thousands to a million rows at about one insert per second per table, or async_insert with wait_for_async_insert so acknowledgements stay honest), a PARTITION BY that is too granular (many partitions touched per insert), and queued mutations on large tables. Raising parts_to_throw_insert only delays failure. Use for \"Too many parts. Merges are processing significantly slower than inserts\", \"inserts rejected\", \"ClickHouse merges backlog\" or \"how should I batch inserts\". Not for which queries drive scan cost (scan-cost-forensics), query speed (sql-performance), relational partitions (table-partitioning) or backfills (safe-backfill)."
 allowed-tools: Read, Glob, Grep
 ---
 
@@ -16,7 +16,7 @@ Run queries through the normal permission prompt. Queries in this skill only rea
 
 Use for: a rejected-insert error about too many parts, a merge backlog, choosing batch size or async inserts, and partition and sort key choices that cause parts to pile up.
 
-Do not use for: finding which queries drive scan cost, which is `cost-review` for spend and `sql-performance` for a single slow query; relational partitioning in a row-store database, which is `table-partitioning`; running a large backfill safely, which is `safe-backfill`.
+Do not use for: finding which queries drive scan cost, which is `scan-cost-forensics` for spend and `sql-performance` for a single slow query; relational partitioning in a row-store database, which is `table-partitioning`; running a large backfill safely, which is `safe-backfill`.
 
 ## Workflow
 

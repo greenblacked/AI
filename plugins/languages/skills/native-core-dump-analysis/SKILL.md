@@ -1,6 +1,6 @@
 ---
 name: native-core-dump-analysis
-description: "Get a usable backtrace from a crash in a production native binary (C, C++, Rust, Go with cgo): make the next crash capturable before it happens with ulimit -c and kernel.core_pattern (host-wide, so containers need it set on the node, or piped to systemd-coredump and read with coredumpctl), keep symbols apart from the shipped binary indexed by build ID and served through debuginfod, then read the dump with gdb batch mode, faulting thread first and lock holders after. Use for \"segfault in production and no logs\", \"how do I enable core dumps in a container\", \"core file but no symbols\", \"gdb shows question marks\", \"crash only happens on the customer's machine\". Not for mobile app crash reports (debugging), generic bug hunting (debugging), instrumented test builds (cpp-sanitizer-triage) or link failures (native-linking-errors)."
+description: "Get a usable backtrace from a crash in a production native binary (C, C++, Rust, Go with cgo): make the next crash capturable before it happens with ulimit -c and kernel.core_pattern (host-wide, so containers need it set on the node, or piped to systemd-coredump and read with coredumpctl), keep symbols apart from the shipped binary indexed by build ID and served through debuginfod, then read the dump with gdb batch mode, faulting thread first and lock holders after. Use for \"segfault in production and no logs\", \"how do I enable core dumps in a container\", \"core file but no symbols\", \"gdb shows question marks\", \"crash only happens on the customer's machine\". Not for mobile app crash reports (crash-triage), generic bug hunting (debugging), instrumented test builds (cpp-sanitizer-triage) or link failures (native-linking-errors)."
 allowed-tools: Read, Glob, Grep
 ---
 
@@ -14,7 +14,7 @@ The usual failure is arriving at the crash with nothing: core dumps are off by d
 
 Use for: setting up core capture on hosts and containers, preserving symbols so a dump can be read later, analysing a core with gdb, and deciding what to do when the stack is corrupted.
 
-Do not use for: crash reports from phone apps or generic bug hunting, which is `debugging`; reproducing memory errors in an instrumented test build, which is `cpp-sanitizer-triage`; undefined-symbol and link errors, which is `native-linking-errors`.
+Do not use for: crash reports from phone apps, which is `crash-triage`; generic bug hunting, which is `debugging`; reproducing memory errors in an instrumented test build, which is `cpp-sanitizer-triage`; undefined-symbol and link errors, which is `native-linking-errors`.
 
 ## Workflow
 

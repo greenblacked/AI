@@ -40,7 +40,7 @@ Take the measured p99 of legitimate per-customer request rate over a representat
 
 - Check and decrement in one atomic operation. With Redis, that means a Lua script run with `EVAL`/`EVALSHA`, or a single-key GCRA update, never a GET followed by a SET from the application, which two pods interleave.
 - Take time from the store (Redis `TIME`), not from application hosts, whose clocks differ.
-- Give every key a TTL equal to its window so abandoned keys expire.
+- Give every key a TTL that covers every window the algorithm reads, so abandoned keys expire without losing state still in use: one window for a fixed window, two for a sliding-window counter, and the computed theoretical-arrival-time expiry for GCRA.
 - If a round trip per request is too costly, use local token caches that refill from the shared store periodically. This permits overshoot; write the bound down. The worst case is the leased batch size times the number of pods, plus the tokens spent between syncs; state it as a design number. Limit times pods is the bound only when there is no shared store at all.
 
 Read `references/redis-patterns.md` for a GCRA script outline and the checks for racy implementations.

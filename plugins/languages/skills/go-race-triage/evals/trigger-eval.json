@@ -11,7 +11,7 @@
   {"query": "two of my goroutines take mutexes in different orders and sometimes everything stops", "should_trigger": true},
   {"query": "goroutine count keeps climbing and memory grows with traffic in our go service", "should_trigger": false, "expected": "go-goroutine-leak"},
   {"query": "two requests both read the balance row and then both write it, losing an update", "should_trigger": false, "expected": "transaction-race-hunt"},
-  {"query": "a test passes alone but fails after another test runs before it", "should_trigger": false, "expected": "test-design"},
+  {"query": "a test passes alone but fails after another test runs before it", "should_trigger": false, "expected": "test-order-bisect"},
   {"query": "find the hot function making our go service use too much cpu", "should_trigger": false, "expected": "profiling"},
   {"query": "our java service threads are all blocked and cpu is low", "should_trigger": false, "expected": "jvm-thread-dump-triage"},
   {"query": "dotnet requests time out under load with low cpu", "should_trigger": false, "expected": "dotnet-threadpool-starvation"},

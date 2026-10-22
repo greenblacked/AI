@@ -1,7 +1,7 @@
 ---
 name: kernel-update-safety
 description: "Update kernels and reboot fleets safely. Use for \"patching kernels on production tomorrow\", \"DKMS module failed to build after upgrade\", \"how do I roll back a kernel\" or \"needs-restarting says reboot required\". Before rebooting confirm console access, keep a known-good kernel, check dkms status builds for the new kernel (NVIDIA, ZFS, storage drivers) and that the initramfs holds the storage and network modules root needs. Boot once with grub-reboot or a boot-loader entry with automatic fallback rather than changing the default. Canary one host, then batches ordered by redundancy; check uname -r, failed units, mounts, network and service health. Know the rollback and when livepatch suffices. Not for a host that already failed to boot (boot-failure-recovery), patch policy (host-hardening), application rollout (release-strategy) or cluster versions (k8s-upgrade)."
-allowed-tools: Bash(dkms status:*), Bash(uname:*), Bash(lsinitramfs:*), Bash(needs-restarting:*), Bash(grubby --default-kernel), Bash(mokutil --sb-state), Bash(systemctl --failed), Bash(systemctl is-system-running:*), Bash(findmnt:*), Read, Glob, Grep
+allowed-tools: Bash(dkms status:*), Bash(uname:*), Bash(lsinitramfs:*), Bash(needs-restarting:*), Bash(grubby --default-kernel), Bash(mokutil --sb-state), Bash(systemctl --failed), Bash(systemctl is-system-running), Bash(findmnt:*), Read, Glob, Grep
 ---
 
 # Kernel Update Safety
@@ -70,7 +70,7 @@ systemctl is-system-running    # "running", not "degraded"
 findmnt --verify               # /etc/fstab parses and its entries are usable (not a mounted-state check)
 findmnt /MOUNTPOINT            # repeat per fstab target: is it actually mounted (the --failed check above lists failed *.mount units)
 ip -br addr                    # interfaces up with the expected addresses
-dkms status                    # modules loaded for this kernel
+dkms status                    # modules built and installed for this kernel; lsmod shows which are loaded
 ```
 
 Then check the service itself: its health endpoint, its queue depth or replication state, and the error rate, compared with before. A host that is up but not serving is not done. Only now make the entry the default (`grubby --set-default` on Red Hat-family, or the distribution's configuration) and record the date.

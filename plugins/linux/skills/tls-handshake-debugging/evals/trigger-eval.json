@@ -16,7 +16,7 @@
   {"query": "ssh login refused with Permission denied (publickey)", "should_trigger": false, "expected": "ssh-access-debugging"},
   {"query": "the oauth token validation in our code rejects a valid jwt", "should_trigger": false, "expected": "auth-design"},
   {"query": "the service crashes at start with a segfault in the tls library, find the bug", "should_trigger": false, "expected": "debugging"},
-  {"query": "service fails to start with status 226/NAMESPACE", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "how do I get our corporate root CA trusted by Java, Python, Node and the base image so x509 unknown authority goes away", "should_trigger": false, "expected": "private-ca-trust-distribution"},
   {"query": "my nightly job that renews and copies certs does not run", "should_trigger": false, "expected": "scheduled-job-debugging"},
   {"query": "the process has too many open files when many tls connections arrive", "should_trigger": false, "expected": "resource-limit-exhaustion"}
 ]

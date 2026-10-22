@@ -1,7 +1,7 @@
 ---
 name: time-sync-repair
-description: "Fix clock drift and time-sync failures. Use for \"certificate is not yet valid\", \"Kerberos clock skew too great\", \"chrony not syncing\" or \"VM clock jumped after resume\". Measure first with chronyc tracking (offset, frequency, stratum), chronyc sources -v and sourcestats, or timedatectl timesync-status, then diagnose by symptom: UDP 123 blocked, one or exactly two sources (use at least three, ideally four), leap-smearing mixed with non-smearing servers, a VM that steps after pause or migration (hypervisor PTP clock, makestep), a hardware clock in local time. Decide step versus slew before touching a running database, confirm the fleet agrees, and alert on offset, not on the daemon running. Not for TLS errors where skew merely surfaces (tls-handshake-debugging), timezone or DST in a job (scheduled-job-debugging) or a live outage (incident-response)."
-allowed-tools: Bash(chronyc tracking), Bash(chronyc sources -v), Bash(chronyc sourcestats), Bash(chronyc activity), Bash(chronyc ntpdata), Bash(timedatectl status:*), Bash(timedatectl timesync-status:*), Bash(systemctl status:*), Bash(systemctl is-active:*), Read, Glob, Grep
+description: "Fix clock drift and time-sync failures. Use for \"certificate is not yet valid\", \"Kerberos clock skew too great\", \"chrony not syncing\" or \"VM clock jumped after resume\". Measure first with chronyc tracking (offset, frequency, stratum), chronyc sources -v and sourcestats, or timedatectl timesync-status, then diagnose by symptom: UDP 123 blocked, one or exactly two sources (use at least three, ideally four), leap-smearing mixed with non-smearing servers, a VM that steps after pause or migration (hypervisor PTP clock, makestep), a hardware clock in local time. Decide step versus slew before touching a running database, confirm the fleet agrees, and alert on offset, not on the daemon running. Not for TLS failures once the clock is right (tls-handshake-debugging), timezone or DST in a job (scheduled-job-debugging) or a live outage (incident-response)."
+allowed-tools: Bash(chronyc tracking), Bash(chronyc sources -v), Bash(chronyc sourcestats), Bash(chronyc activity), Bash(chronyc ntpdata), Bash(timedatectl status), Bash(timedatectl timesync-status), Read, Glob, Grep
 ---
 
 # Time Sync Repair
@@ -14,7 +14,7 @@ The usual failure is treating "the daemon is running" as "the clock is right". c
 
 Use for: a host or fleet whose clock is wrong or unstable; chrony or timesyncd not synchronising; clocks that jump after VM pause, resume or live migration; choosing and sizing the time sources.
 
-Do not use for: a handshake that fails for other reasons once the clock is correct (`tls-handshake-debugging`); a job that fires at the wrong hour because of timezone or DST (`scheduled-job-debugging`); coordinating an incident that is already live (`incident-response`).
+Do not use for: TLS failures once the clock is right (`tls-handshake-debugging`); a job that fires at the wrong hour because of timezone or DST (`scheduled-job-debugging`); coordinating an incident that is already live (`incident-response`).
 
 ## Workflow
 

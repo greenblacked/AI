@@ -1,7 +1,7 @@
 ---
 name: ssh-access-debugging
-description: "Work out why an SSH login fails or is slow: \"Permission denied (publickey)\", \"Too many authentication failures\", \"connection reset during key exchange\", \"host key changed warning\", \"ssh hangs for 30 seconds before the prompt\". Run the client with ssh -vvv and read which keys were offered, then the server side: journalctl for ssh or sshd, and sshd -T -C for the effective config including Match blocks, not the file. In order: port reachable, MaxStartups or fail2ban bans, too many keys offered (IdentitiesOnly), StrictModes permissions on home, .ssh and authorized_keys, AllowUsers, SELinux context, rsa-sha2 versus ssh-rsa. Slowness: UseDNS and GSSAPI. Validate with sshd -t and reload with a session left open. Use for any failed or slow login. Not for what to set (host-hardening), a leaked key (secret-rotation) or denial after login (permission-denied-triage)."
-allowed-tools: Bash(ssh-add -l), Bash(systemctl status:*), Bash(systemctl show:*), Bash(systemctl cat:*), Bash(systemctl list-timers:*), Bash(systemctl list-dependencies:*), Bash(systemctl is-enabled:*), Bash(systemctl is-active:*), Bash(systemctl --failed), Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(ss -ltnp), Bash(namei:*), Bash(stat:*), Bash(ls:*), Bash(getenforce:*), Read, Glob, Grep
+description: "Work out why an SSH login fails or is slow: \"Permission denied (publickey)\", \"Too many authentication failures\", \"connection reset during key exchange\", \"host key changed warning\", \"ssh hangs for 30 seconds before the prompt\". Run the client with ssh -vvv and read which keys were offered, then the server side: journalctl for ssh or sshd, and sshd -T -C for the effective config including Match blocks, not the file. In order: port reachable, MaxStartups or fail2ban bans, too many keys offered (IdentitiesOnly), StrictModes permissions on home, .ssh and authorized_keys, AllowUsers, SELinux context, rsa-sha2 versus ssh-rsa. Slowness: UseDNS and GSSAPI. Validate with sshd -t and reload with a session left open. Use for any failed or slow login. Not for what to set (host-hardening), a lockout with no way in (linux-lockout-recovery), a leaked key (secret-rotation) or denial after login (permission-denied-triage)."
+allowed-tools: Bash(ssh-add -l), Bash(systemctl list-timers --all), Bash(systemctl --failed), Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(ss -ltnp), Bash(namei:*), Bash(stat:*), Bash(ls:*), Bash(getenforce:*), Read, Glob, Grep
 ---
 
 # SSH Access Debugging
@@ -14,7 +14,7 @@ The usual failure is changing things before reading the failure. People edit `ss
 
 Use for: a login refused or reset, an authentication that picks the wrong key, a host key warning, a connection that is slow to the prompt, and an `sshd` change that needs a safe rollout.
 
-Do not use for: deciding which settings a hardened host should have (`host-hardening`); recovering a machine nobody can log in to at all (needs console access first); rotating a leaked key (`secret-rotation`); a permission error after the shell has started (`permission-denied-triage`).
+Do not use for: deciding which settings a hardened host should have (`host-hardening`); a lockout with no way in, where nobody can log in to the machine at all (`linux-lockout-recovery`); rotating a leaked key (`secret-rotation`); a permission error after the shell has started (`permission-denied-triage`).
 
 Keep one working session open on the server for the whole job. If you have none, the first step is getting console or out-of-band access, not editing the config.
 
@@ -42,12 +42,12 @@ Use `BatchMode=yes` for diagnosis so a password prompt does not hide the result.
 
 ```bash
 ssh -vvv -p PORT HOST true 2>&1 | head -20
-ss -ltnp | grep sshd                      # on the server: is it listening where you think
+ss -ltnp | grep ':22'                     # on the server: is it listening where you think; use your port
 journalctl -u ssh -u sshd --since "30 min ago" --no-pager | grep -iE 'maxstartups|drop connection|refused|banned|connection reset'
 fail2ban-client status sshd
 ```
 
-Reachability first: the right address, port and path, including a bastion in `ProxyJump`. A reset during key exchange with a running daemon points at `MaxStartups` (the log says `drop connection #N from [IP] on [...] past MaxStartups`), a ban from fail2ban or a similar tool, or a TCP wrapper or firewall rule keyed on the source address. Read `fail2ban-client status sshd` for banned addresses and release one with `fail2ban-client set sshd unbanip IP` only after you know why it was banned; a script that retries in a loop will ban itself again.
+On Ubuntu 22.10 and later sshd is socket-activated, so the listener can show as `systemd` rather than `sshd`; that is why the command greps for the port and not the process name. Reachability first: the right address, port and path, including a bastion in `ProxyJump`. A reset during key exchange with a running daemon points at `MaxStartups` (the log says `drop connection #N from [IP] on [...] past MaxStartups`), a ban from fail2ban or a similar tool, or a TCP wrapper or firewall rule keyed on the source address. Read `fail2ban-client status sshd` for banned addresses and release one with `fail2ban-client set sshd unbanip IP` only after you know why it was banned; a script that retries in a loop will ban itself again.
 
 ### 3. Read the server's verdict for this attempt
 
@@ -107,13 +107,16 @@ Time the stages with `ssh -vvv` timestamps (`ts` or `-o LogLevel=DEBUG3` plus a 
 
 ```bash
 grep -rhiE '^\s*include' /etc/ssh/sshd_config /etc/ssh/sshd_config.d 2>/dev/null   # list Include targets
-sudo cp -a /etc/ssh /root/ssh.before     # whole tree: sshd_config plus every drop-in it includes
+snap=/root/ssh.before.$(date +%Y%m%dT%H%M%S); echo "$snap"   # note the name; the variable does not outlive this shell
+sudo mkdir -p "$snap" && sudo cp -a /etc/ssh "$snap/ssh"       # sshd_config plus every drop-in under /etc/ssh
+sudo cp -a --parents /PATH/FROM/INCLUDE "$snap"/                # once per Include target that sits outside /etc/ssh
 # ...make the change, then validate before reloading:
 sudo /usr/sbin/sshd -t                   # syntax and key checks; silent on success
 systemctl reload ssh                     # or sshd on RHEL family; reload keeps existing sessions
+sudo systemctl daemon-reload && sudo systemctl restart ssh.socket   # instead, for a Port or ListenAddress change on a socket-activated host
 ```
 
-Keep the existing session open. From a second terminal make a fresh connection with the same parameters as the real user; a successful reload proves nothing until a new login works. Re-run `/usr/sbin/sshd -T -C ...` for each class of connection that matters (an admin from the office, a service account from a pipeline), because each may land in a different `Match` block. The backup must cover every file the change touches, because default Debian, Ubuntu and Fedora configurations `Include /etc/ssh/sshd_config.d/*.conf`, and a drop-in left behind keeps its settings after `sshd_config` alone is restored. To revert, restore `sshd_config` and any edited drop-in from `/root/ssh.before`, delete any drop-in you created, run `/usr/sbin/sshd -t`, then reload. A reload applies new settings to new connections only, and open sessions keep the old ones, so a restriction you added is not proven until you test a new login.
+Keep the existing session open. From a second terminal make a fresh connection with the same parameters as the real user; a successful reload proves nothing until a new login works. Re-run `/usr/sbin/sshd -T -C ...` for each class of connection that matters (an admin from the office, a service account from a pipeline), because each may land in a different `Match` block. The backup must cover every file the change touches, because default Debian, Ubuntu and Fedora configurations `Include /etc/ssh/sshd_config.d/*.conf`, and a drop-in left behind keeps its settings after `sshd_config` alone is restored. On a socket-activated host (Ubuntu 22.10 and later) a `Port` or `ListenAddress` change is not applied by a reload: it needs `systemctl daemon-reload` and a restart of `ssh.socket`, and the same pair is needed again after you revert it. Each snapshot is a new timestamped directory, so a second attempt never overwrites the known-good copy of the first. To revert, restore `sshd_config` and any edited drop-in from `$snap` (the `/root/ssh.before.TIMESTAMP` directory), including any Include target outside `/etc/ssh` that you changed, delete any drop-in you created, run `/usr/sbin/sshd -t`, then reload. A reload applies new settings to new connections only, and open sessions keep the old ones, so a restriction you added is not proven until you test a new login.
 
 ## Output format
 

@@ -13,8 +13,11 @@
     "python",
     "javascript",
     "typescript",
+    "node",
     "go",
     "rust",
-    "jvm"
+    "jvm",
+    "dotnet",
+    "cpp"
   ]
 }

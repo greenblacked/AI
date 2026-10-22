@@ -1,7 +1,7 @@
 ---
 name: disk-full-triage
-description: "Find and free space on a full Linux filesystem: run df -h and df -i first because \"No space left on device\" covers blocks, inodes, a full thin pool and quotas, explain df and du disagreeing (deleted-but-open files with lsof +L1, data hidden under a mount point), use du -x so nothing crosses filesystems, count inode hogs per directory, then free space in a safe order (caches and rotated logs, truncate a log a live process holds rather than rm, journal vacuum, container layers). Check reserved blocks and find the writer before declaring done, and alert on both blocks and inodes. Use for \"df says 100% but du finds nothing\", \"no space left but there is free space\", \"out of inodes\" or \"what is eating the disk\". Not for growing the volume or forecasting demand (capacity-planning) or running the outage (incident-response)."
-allowed-tools: Bash(df:*), Bash(du:*), Bash(lsof:*), Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(findmnt:*), Bash(lvs:*), Bash(btrfs filesystem usage:*), Bash(btrfs filesystem df:*), Bash(btrfs filesystem show:*), Read, Glob, Grep
+description: "Find and free space on a full Linux filesystem: run df -h and df -i first because \"No space left on device\" covers blocks, inodes, a full thin pool and quotas, explain df and du disagreeing (deleted-but-open files with lsof +L1, data hidden under a mount point), use du -x so nothing crosses filesystems, count inode hogs per directory, then free space in a safe order (caches and rotated logs, truncate a log a live process holds rather than rm, journal vacuum, container layers). Check reserved blocks and find the writer before declaring done, and alert on both blocks and inodes. Use for \"df says 100% but du finds nothing\", \"no space left but there is free space\", \"out of inodes\" or \"what is eating the disk\". Not for growing the volume (volume-resize) or forecasting demand (capacity-planning) or running the outage (incident-response)."
+allowed-tools: Bash(df:*), Bash(du:*), Bash(lsof +L1), Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(findmnt:*), Bash(lvs:*), Bash(btrfs filesystem usage:*), Bash(btrfs filesystem df:*), Bash(btrfs filesystem show:*), Read, Glob, Grep
 ---
 
 # Disk Full Triage
@@ -14,7 +14,7 @@ The usual failure is deleting the wrong thing for the wrong resource. The error 
 
 Use for: a filesystem that is full or reports no space; df and du disagreeing; inode exhaustion; deciding what is safe to remove first.
 
-Do not use for: growing the volume or sizing ahead of demand (`capacity-planning`); commanding a live outage (`incident-response`).
+Do not use for: growing the volume (`volume-resize`) or forecasting demand (`capacity-planning`); commanding a live outage (`incident-response`).
 
 ## Workflow
 
@@ -67,7 +67,7 @@ Typical sources are a mail or session spool, a cache directory of small objects,
 ### 4. Free space in this order
 
 1. Reclaim-safe items that regenerate: package caches (`apt-get clean`, `dnf clean all`), tool caches the owner agrees to lose, old rotated logs already compressed or shipped.
-2. A live log that is huge: truncate, do not remove. `truncate -s 0 /path/app.log` (or `: > /path/app.log`) keeps the open descriptor valid. Removing it frees nothing while the process runs.
+2. A live log that is huge: truncate, do not remove. `sudo truncate -s 0 /path/app.log` keeps the open descriptor valid. Removing it frees nothing while the process runs.
 3. The journal: `journalctl --disk-usage`, then `journalctl --vacuum-size=500M` or `--vacuum-time=2weeks`.
 4. Container storage: `docker system df` shows reclaimable layers, images and build cache; prune only what the owner confirms is unused. Read `references/free-space-order.md` for what each prune removes.
 5. Data the owner must decide on (databases, uploads, backups): stop and ask. Do not remove it to make the error go away.

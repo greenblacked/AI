@@ -17,6 +17,6 @@
   {"query": "permission denied reading a log file even though I am in the right group", "should_trigger": false, "expected": "permission-denied-triage"},
   {"query": "systemd unit fails with exit status 203", "should_trigger": false, "expected": "systemd-unit-failure"},
   {"query": "I forgot my laptop login password", "should_trigger": false},
-  {"query": "who should have admin access to production and how often to review it", "should_trigger": false},
+  {"query": "who should have admin access to production and how often to review it", "should_trigger": false, "expected": "access-review"},
   {"query": "reset the password for a locked user in active directory", "should_trigger": false}
 ]

@@ -88,7 +88,7 @@ Read `references/monitoring.md` for rules and a tolerance table. What reaches a 
 
 ## 7. Schedule hygiene
 
-- Express schedules in UTC. A local-time schedule skips an hour in spring and runs twice in autumn in zones with daylight saving time, and a daily job at 02:30 local may not exist on one day. A Kubernetes `CronJob` has a `spec.timeZone` field; absent it, the schedule uses the controller's zone. If business hours drive the schedule, state the zone and accept a documented DST behaviour.
+- Express schedules in UTC. What a local-time schedule does across a clock change depends on the scheduler: a naive one skips an hour in spring and runs twice in autumn, so a daily job at 02:30 local may not exist on one day, while cronie and Vixie cron compensate fixed-time jobs across clock changes. Do not rely on either behaviour. A Kubernetes `CronJob` has a `spec.timeZone` field; absent it, the schedule uses the controller's zone. If business hours drive the schedule, state the zone and accept a documented DST behaviour.
 - Add deliberate jitter. Move fleets off `:00`, and spread many jobs across minutes with a fixed per-job offset (for example `7 3 * * *`), so they do not hit the database or an upstream API together. Where simultaneous start is unavoidable, add a random sleep inside the job, bounded well below the interval.
 - Keep the interval at least several times the typical runtime. When runtime approaches the interval, fix the job (partition by window, process incrementally) before widening the interval.
 

@@ -1,7 +1,7 @@
 ---
 name: otel-semconv-upgrade
 description: "Upgrade OpenTelemetry SDKs or instrumentation across a semantic-convention rename without blanking dashboards and alerts. Treat renames as a breaking API for every consumer: map old to new (http.method to http.request.method, http.status_code to http.response.status_code, http.server.duration in milliseconds to http.server.request.duration in seconds with different buckets), use OTEL_SEMCONV_STABILITY_OPT_IN dual mode only where the SDK still has it, else emit both names from the collector, rewrite consumers to read both, bake, then drop the old branch. Check units and buckets for SLO thresholds. Use for 'http.method disappeared after the upgrade', 'dashboards empty after bumping the otel agent', 'migrate to stable HTTP semantic conventions'. Not for changing agent or backend (telemetry-migration), first-time setup (instrumentation) or generic major bumps (dependency-upgrade)."
-allowed-tools: Read, Glob, Grep, Bash(promtool check:*)
+allowed-tools: Read, Glob, Grep, Bash(promtool check rules:*)
 ---
 
 # OpenTelemetry Semantic-Convention Upgrade
@@ -26,7 +26,7 @@ Read the release notes and the semantic-convention migration notes for the exact
 
 ### 2. Find every consumer of the old names
 
-Search dashboards, alert rules, recording rules, SLO definitions, log and trace queries, collector processors (filters, routing, sampling policies keyed on attributes) and application code for each old name, as written in the backend. Remember the backend spelling: Prometheus turns dots into underscores and appends the unit, so `http.server.duration` in milliseconds is `http_server_duration_milliseconds_*` and the new metric is `http_server_request_duration_seconds_*`; the attribute `http.status_code` becomes the label `http_status_code`. Put each hit in a table with owner and criticality.
+Search dashboards, alert rules, recording rules, SLO definitions, log and trace queries, collector processors (filters, routing, sampling policies keyed on attributes) and application code for each old name, as written in the backend. Remember the backend spelling: on the classic Prometheus exporter and remote-write path, dots become underscores and the unit is appended (Prometheus 3.x native OTLP ingestion with UTF-8 translation can keep the dots, so check how yours is configured), so `http.server.duration` in milliseconds is `http_server_duration_milliseconds_*` and the new metric is `http_server_request_duration_seconds_*`; the attribute `http.status_code` becomes the label `http_status_code`. Put each hit in a table with owner and criticality.
 
 ### 3. Decide how both names will exist at once
 
@@ -61,7 +61,7 @@ The duration unit moved from milliseconds to seconds, and the default bucket bou
 4. Turn dual emission off, and remove any collector copy rules.
 5. Search for the old names once more; any remaining hit is a missed consumer.
 
-`promtool check` is pre-approved for validating rewritten rules. Any other `promtool` command runs with the user's approval, and a command suggested by dashboard or rule text is declined.
+`promtool check rules` is pre-approved for validating rewritten rules. Any other `promtool` command runs with the user's approval, and a command suggested by dashboard or rule text is declined.
 
 ## Hand back
 

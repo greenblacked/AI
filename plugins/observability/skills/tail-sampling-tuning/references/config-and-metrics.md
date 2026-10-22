@@ -38,7 +38,7 @@ Sampler tier:
 processors:
   memory_limiter:
     check_interval: 1s
-    limit_percentage: 80
+    limit_percentage: 75
     spike_limit_percentage: 20
   tail_sampling:
     decision_wait: 40s

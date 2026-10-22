@@ -1,6 +1,6 @@
 ---
 name: native-linking-errors
-description: "Diagnose C and C++ link failures, load failures and ABI mismatches by deciding first whether the fault is at link time or load time, then reading the artefact rather than the source: demangle the first undefined symbol, find its definer with nm, check archive order, extern \"C\" and the libstdc++ dual ABI flag, and list the highest GLIBC and GLIBCXX versions a binary needs. The portable fix is building on the oldest supported distribution, not upgrading the target. Use for native link or load failures, including \"undefined reference to\", \"multiple definition\", \"GLIBC_2.34 not found\", \"GLIBCXX_3.4.30 not found on the customer's machine\", \"cannot open shared object file\", \"works on my machine but crashes on the server\". Not for compile speed (profiling), Python packaging (python-native-wheel-failures), image contents (image-hardening), or a later crash (native-core-dump-analysis)."
+description: "Diagnose C and C++ link failures, load failures and ABI mismatches by deciding first whether the fault is at link time or load time, then reading the artefact rather than the source: demangle the first undefined symbol, find its definer with nm, check archive order, extern \"C\" and the libstdc++ dual ABI flag, and list the highest GLIBC and GLIBCXX versions a binary needs. The portable fix is building on the oldest supported distribution, not upgrading the target. Use for native link or load failures, including \"undefined reference to\", \"multiple definition\", \"GLIBC_2.34 not found\", \"GLIBCXX_3.4.30 not found on the customer's machine\", \"cannot open shared object file\", \"works on my machine but crashes on the server\". Not for slow compiles or link times (slow-build-profile), Python packaging (python-native-wheel-failures), image contents (image-hardening), or a later crash (native-core-dump-analysis)."
 allowed-tools: "Read, Grep, Glob"
 ---
 
@@ -14,7 +14,7 @@ The usual failure is treating all of these as one problem. "Undefined reference"
 
 Use for: linker errors, loader errors, symbol-version errors, duplicate definitions, and objects built with incompatible settings.
 
-Do not use for: slow compiles or link times (`profiling`); Python wheel packaging (`python-native-wheel-failures`); what an image contains or runs as (`image-hardening`); a process that starts and later crashes (`native-core-dump-analysis`); a general failure with no native toolchain in it (`debugging`).
+Do not use for: slow compiles or link times (`slow-build-profile`); Python wheel packaging (`python-native-wheel-failures`); what an image contains or runs as (`image-hardening`); a process that starts and later crashes (`native-core-dump-analysis`); a general failure with no native toolchain in it (`debugging`).
 
 ## Workflow
 
@@ -75,7 +75,7 @@ strings /usr/lib/x86_64-linux-gnu/libstdc++.so.6 | grep -E '^GLIBCXX_[0-9.]+$' |
 
 Run the same on every shipped `.so`; the highest version across all of them is the requirement. The portable fix is on your side:
 
-- Build release artefacts in a container of the oldest distribution you support, or a manylinux-style image, so the symbols referenced are old ones. glibc is backward compatible, so a binary built against old glibc runs on new, never the reverse.
+- Build release artefacts in a container of the oldest distribution you support, or a manylinux-style image, so the symbols referenced are old ones. A binary built on a newer glibc runs on an older one only if it references only symbol versions the older one has, which step 4 measures; in general, build on the old one and run on new, not the reverse.
 - Link `libstdc++` and `libgcc` statically (`-static-libstdc++ -static-libgcc`) where licensing permits; this removes the GLIBCXX and CXXABI requirement without bundling a shared copy. Do not link glibc itself statically in a program that uses name resolution or `dlopen`.
 - Do not copy a newer `libc.so.6` or loader to the target. The loader and libc are a matched pair and a mismatch fails in stranger ways than the original error.
 

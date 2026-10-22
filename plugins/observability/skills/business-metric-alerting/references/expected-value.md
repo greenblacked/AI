@@ -6,7 +6,7 @@ The recording rules have no history when first created, and `orders:expected5m` 
 
 Record the ratio, then read its lower quantiles over a quiet period:
 
-```promql
+```yaml
 - record: orders:observed_over_expected
   expr: orders:rate5m / (orders:expected5m > 0)
 ```

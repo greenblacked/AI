@@ -8,7 +8,7 @@
   {"query": "should the app write to postgres and elasticsearch in the same request handler", "should_trigger": true},
   {"query": "how do I keep an index in sync using change data capture", "should_trigger": true},
   {"query": "a late retry overwrote a newer document in the index, how do we prevent that", "should_trigger": true},
-  {"query": "we hit the 10000 result limit paging deep through search results and the mapping has thousands of fields from user data", "should_trigger": true},
+  {"query": "we hit the 10000 result limit paging deep through search results", "should_trigger": true},
   {"query": "our search relevance is poor and we want to measure ranking quality with a labelled set", "should_trigger": false, "expected": "retrieval-evaluation"},
   {"query": "publish events reliably from the database with a transactional outbox", "should_trigger": false, "expected": "event-driven-reliability"},
   {"query": "run a one-off repair of ten million rows with a safe backfill", "should_trigger": false, "expected": "safe-backfill"},

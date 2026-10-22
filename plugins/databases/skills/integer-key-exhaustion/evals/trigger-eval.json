@@ -47,7 +47,7 @@
  {
   "query": "backfill the new bigint column in batches without hammering the primary",
   "should_trigger": false,
-  "expected": "safe-backfill"
+  "expected": "db-migration"
  },
  {
   "query": "design the primary key strategy for a new table, uuid or bigint",
@@ -70,9 +70,9 @@
   "expected": "table-partitioning"
  },
  {
-  "query": "deadlock detected between two updates",
+  "query": "we decided on bigint, now run the id type change on the live orders table without locking it",
   "should_trigger": false,
-  "expected": "deadlock-analysis"
+  "expected": "db-migration"
  },
  {
   "query": "the table is bloated, vacuum is not reclaiming space",

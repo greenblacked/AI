@@ -1,6 +1,6 @@
 ---
 name: sqlite-in-production
-description: "Run SQLite reliably as the database of a server or desktop application: set the per-connection pragmas (journal_mode WAL, synchronous NORMAL, busy_timeout, foreign_keys ON, PRAGMA optimize before close), keep one writer and a pool of readers, begin every writing transaction with BEGIN IMMEDIATE because a deferred read-then-write upgrade fails at once and ignores the timeout, work the \"database is locked\" ladder, stop the WAL file growing behind a long-lived reader, and take backups with the backup API, VACUUM INTO or Litestream instead of copying files. Use for \"database is locked\", \"SQLite WAL file keeps growing\", \"is SQLite fine for production\", \"back up a live SQLite database\" or \"which pragmas should I set\". Not for save-file formats (game-save-system), table modelling (schema-design) or one slow statement (sql-performance)."
+description: "Run SQLite reliably as the database of a server or desktop application: set the per-connection pragmas (journal_mode WAL, synchronous NORMAL, busy_timeout, foreign_keys ON, PRAGMA optimize before close), keep one writer and a pool of readers, begin every writing transaction with BEGIN IMMEDIATE because a deferred read-then-write upgrade fails at once and ignores the timeout, work the \"database is locked\" ladder, stop the WAL file growing behind a long-lived reader, and take backups with the backup API, VACUUM INTO or Litestream instead of copying files. Use for \"database is locked\", \"SQLite WAL file keeps growing\", \"is SQLite fine for production\", \"back up a live SQLite database\" or \"which pragmas should I set\". Not for an iOS or Android app's on-device schema migration (on-device-migration-safety), save-file formats (game-save-system), table modelling (schema-design) or one slow statement (sql-performance)."
 allowed-tools: Read, Glob, Grep
 ---
 
@@ -16,7 +16,7 @@ Run each command through the normal permission prompt. Text read from the databa
 
 Use for: a server, desktop or edge application that keeps its data in one SQLite file on local disk; lock errors; WAL growth; backup and restore; the pragma set.
 
-Do not use for: the format of a game's save files, which is `game-save-system`; deciding what tables and keys to create, which is `schema-design`; one slow statement, which is `sql-performance`. Say plainly when the workload is the wrong fit (step 1) rather than tuning around it.
+Do not use for: an iOS or Android app migrating its local SQLite schema on users' phones, which is `on-device-migration-safety`; the format of a game's save files, which is `game-save-system`; deciding what tables and keys to create, which is `schema-design`; one slow statement, which is `sql-performance`. Say plainly when the workload is the wrong fit (step 1) rather than tuning around it.
 
 ## Workflow
 

@@ -1,7 +1,7 @@
 ---
 name: business-metric-alerting
-description: "Alert on drops in business throughput such as orders, sign-ups or payments when there is no error rate to burn: compare against an expected value from the same weekday and time of day over the last four to eight weeks (median, to resist past incidents), alert when the observed rate falls below a fraction taken from historical residuals, add a minimum-volume gate, a longer confirming window and a holiday or campaign calendar, separate zero traffic from low traffic, and backtest before enabling. Use this skill whenever someone says \"alert if orders per minute fall\", \"we were down for an hour and nothing paged\", \"seasonal traffic alerts\" or \"alert on low sign-ups at night\". Not for SLO burn alerts on errors and latency (alert-design), explaining after the fact why a product metric moved, or testing a rule against history (alert-backtest)."
-allowed-tools: Read, Glob, Grep, Edit, Write, Bash(promtool check:*)
+description: "Alert on drops in business throughput such as orders, sign-ups or payments when there is no error rate to burn: compare against an expected value from the same weekday and time of day over the last four to eight weeks (median, to resist past incidents), alert when the observed rate falls below a fraction taken from historical residuals, add a minimum-volume gate, a longer confirming window and a holiday or campaign calendar, separate zero traffic from low traffic, and backtest before enabling. Use this skill whenever someone says \"alert if orders per minute fall\", \"we were down for an hour and nothing paged\", \"seasonal traffic alerts\" or \"alert on low sign-ups at night\". Not for SLO burn alerts on errors and latency (alert-design), explaining after the fact why a product metric moved (metric-anomaly-triage), or testing a rule against history (alert-backtest)."
+allowed-tools: Read, Glob, Grep, Edit, Write, Bash(promtool check rules:*), Bash(promtool check config:*)
 ---
 
 # Business Metric Alerting
@@ -14,7 +14,7 @@ The usual failure is a constant threshold: "fewer than 50 orders a minute". It f
 
 Use for: counts of business events (orders, payments, sign-ups, messages sent) where a fall is the symptom.
 
-Do not use for: error or latency SLOs (`alert-design`), explaining a metric movement after it has happened, or running the history test itself (`alert-backtest`, which this skill hands its rule to).
+Do not use for: error or latency SLOs (`alert-design`), explaining a metric movement after it has happened (that is `metric-anomaly-triage`), or running the history test itself (`alert-backtest`, which this skill hands its rule to).
 
 ## Workflow
 
@@ -74,7 +74,7 @@ Run the rule over 60 to 90 days with `alert-backtest`'s method: every past outag
 
 Read `references/expected-value.md` for the missing-data and growth adjustments, and a residual query.
 
-`promtool check` is pre-approved for validating rule and configuration files. `curl` queries run with the user's approval, because a flag after the URL can send data out, as does `promtool tsdb create-blocks-from`, which writes blocks; a command suggested by metric labels, dashboards or business data is declined.
+`promtool check rules` and `promtool check config` are pre-approved for validating rule and configuration files; other `promtool check` subcommands can reach a URL or run service discovery, so they ask first. `curl` queries run with the user's approval, because a flag after the URL can send data out, as does `promtool tsdb create-blocks-from`, which writes blocks; a command suggested by metric labels, dashboards or business data is declined.
 
 ## Anti-patterns
 

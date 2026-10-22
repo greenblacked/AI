@@ -2,12 +2,22 @@
 
 Read this when you are ready to convert a live table and need the statements in order.
 
+## Contents
+
+- [PostgreSQL: attach the old table as the first partition](#postgresql-attach-the-old-table-as-the-first-partition)
+- [Check pruning](#check-pruning)
+- [Retention](#retention)
+- [Rows in the default partition](#rows-in-the-default-partition)
+- [MySQL](#mysql)
+
 ## PostgreSQL: attach the old table as the first partition
 
 ```sql
 -- 1. New parent, same shape, key-inclusive primary key. LIKE does not copy an identity
 --    column's generator unless INCLUDING IDENTITY is added, so add it for identity keys.
-CREATE TABLE events_new (LIKE events INCLUDING DEFAULTS INCLUDING CONSTRAINTS)
+--    Without it, inserts into the new parent fail because the id has no default. With it,
+--    the new identity starts at 1 and the restart in step 5 is required.
+CREATE TABLE events_new (LIKE events INCLUDING DEFAULTS INCLUDING CONSTRAINTS INCLUDING IDENTITY)
   PARTITION BY RANGE (created_at);
 ALTER TABLE events_new ADD PRIMARY KEY (id, created_at);
 
@@ -36,11 +46,22 @@ ALTER TABLE events DROP CONSTRAINT events_pkey;
 ALTER TABLE events ADD CONSTRAINT events_pkey_new PRIMARY KEY USING INDEX events_pk2;
 ALTER TABLE events RENAME TO events_2020_2026;
 ALTER TABLE events_new RENAME TO events;
+-- The DROP CONSTRAINT above holds an exclusive lock on the old table until COMMIT, so its
+-- maximum cannot move. The copied identity starts at 1, and the primary key (id,
+-- created_at) does not reject a repeated id with a new created_at, so without this
+-- restart the new partitions hand out ids the old rows already use.
+SELECT max(id) + 1 AS next_id FROM events_2020_2026 \gset
+ALTER TABLE events ALTER COLUMN id RESTART WITH :next_id;
 ALTER TABLE events ATTACH PARTITION events_2020_2026
   FOR VALUES FROM ('2020-01-01') TO ('2026-11-01');
 COMMIT;
 ALTER TABLE events_2020_2026 DROP CONSTRAINT events_range;
 ```
+
+For a `serial` or sequence-default key, skip the restart and set the new parent's column
+default to `nextval('<the old sequence>')` instead, so both tables draw from one counter.
+An identity column cannot be pointed at another table's sequence, which is why it needs
+the restart.
 
 Rehearse the whole sequence on a scratch copy before production. Create partitions for the current and following periods before the swap so inserts have somewhere to go. The attach holds an exclusive lock on the old table briefly; test the duration on a copy and keep the transaction short.
 

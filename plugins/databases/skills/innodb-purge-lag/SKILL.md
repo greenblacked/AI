@@ -88,7 +88,7 @@ Prevent the next one: alert on the age of the oldest row in `innodb_trx` and on 
 
 If the oldest read view is recent and the history list is still growing, purge is not keeping pace with the rate of changes. Then, and only then:
 
-- Raise `innodb_purge_threads` (default 4 in 8.0, range 1 to 32) if the host has spare cores and the workload touches many tables; it has no effect when one table dominates.
+- Raise `innodb_purge_threads` (default 4 in 8.0, range 1 to 32) if the host has spare cores and the workload touches many tables; it has no effect when one table dominates. The variable is not dynamic, so changing it means a config change and a restart; plan that window.
 - Use `innodb_max_purge_lag` (default 0, disabled) as a brake, not a cure: when the history list exceeds the value, InnoDB delays data-changing statements, up to `innodb_max_purge_lag_delay` microseconds. It protects the server by slowing writers, so state that trade-off to the application owners before enabling it.
 
 Do not tune these to hide an old read view; the lag returns as soon as the setting runs out of headroom.

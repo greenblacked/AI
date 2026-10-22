@@ -9,7 +9,7 @@
   {"query": "fetch responses we never read, could that leak memory in node", "should_trigger": true},
   {"query": "does max-old-space-size need to match the container limit", "should_trigger": true},
   {"query": "how do I confirm a node memory leak is really fixed after the patch", "should_trigger": true},
-  {"query": "a leak in a web page, the browser tab grows each time I open the modal", "should_trigger": false},
+  {"query": "a leak in a web page, the browser tab grows each time I open the modal", "should_trigger": false, "expected": "browser-memory-leak-hunt"},
   {"query": "the node server has high p99 latency and event loop delay, profile it", "should_trigger": false, "expected": "profiling"},
   {"query": "pod shows OOMKilled and I need to read the events and decide on a rollback", "should_trigger": false, "expected": "k8s-triage"},
   {"query": "ERR_REQUIRE_ESM when importing an ESM-only package", "should_trigger": false, "expected": "node-module-format-errors"},

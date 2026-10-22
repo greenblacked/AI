@@ -17,7 +17,7 @@ ending it costs. Read at step 2 of the workflow.
 | Inactive or lagging logical slot | `pg_replication_slots` `xmin`, `catalog_xmin`, `active` | Resume the consumer, or `pg_drop_replication_slot` | Dropping loses the consumer's position; it must resync |
 | Prepared transaction | `pg_prepared_xacts` | `COMMIT PREPARED` or `ROLLBACK PREPARED` | Needs the coordinator's decision, otherwise data may disagree across systems |
 | Standby with feedback | `pg_stat_replication.backend_xmin`; long query on the standby | End or move the query; or turn feedback off | Without feedback, standby queries can be cancelled by replay conflicts |
-| Long vacuum or index build on the same table | `pg_stat_progress_vacuum`, `pg_stat_progress_create_index` | Wait; it holds its own snapshot for its duration | `CREATE INDEX CONCURRENTLY` waits on old snapshots, and holds a horizon of its own |
+| Long `ANALYZE` or index build | `pg_stat_activity` (`backend_xmin`, `query`), `pg_stat_progress_create_index` | Wait; each holds its own snapshot for its duration | `CREATE INDEX [CONCURRENTLY]` holds a snapshot horizon; the concurrent form also waits on old snapshots. A lazy `VACUUM` does not pin the horizon |
 
 ## A safe order for acting
 
