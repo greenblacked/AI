@@ -66,7 +66,7 @@ Then add a CI check that reads every suppression in the repository, extracts the
 
 ### 5. Re-surface before expiry
 
-A scheduled job notifies the accountable owner 30 days before an entry expires, and again on the day. The owner chooses: fix, renew with a new approval and fresh evidence that the compensating control still works, or let it lapse into an open finding.
+A scheduled job notifies the accountable owner 30 days before an entry expires, and again on the day. The owner chooses: fix, renew with a new approval (which resets `approved_on`, so the term is counted from the renewal) and fresh evidence that the compensating control still works, or let it lapse into an open finding.
 
 Renewal limits matter. Repeated renewal is a decision to carry the risk indefinitely, made in instalments. Escalate the renewal that goes past the limit in the approval matrix's last column one level up (for a high finding, which allows one renewal, the third term).
 

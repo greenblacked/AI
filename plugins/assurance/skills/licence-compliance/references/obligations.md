@@ -17,7 +17,7 @@ the marked cells are the ones where the answer depends on facts a table cannot h
 
 | Family (examples) | Hosted only | Sent to browser | Shipped binary or image | Published library |
 | --- | --- | --- | --- | --- |
-| Permissive (MIT, BSD-2-Clause, BSD-3-Clause, ISC, Apache-2.0, Zlib) | No obligation triggered | Licence text and copyright notices with the copy | Same, plus Apache-2.0 `NOTICE` contents | Keep notices in your source and package |
+| Permissive (MIT, BSD-2-Clause, BSD-3-Clause, ISC, Apache-2.0, Zlib) | No obligation triggered | Licence text and copyright notices with the copy, plus Apache-2.0 `NOTICE` contents (section 4(d) applies to any distribution, a browser download included) | Same | Keep notices in your source and package |
 | Weak copyleft, file or module level (MPL-2.0, EPL-2.0) | No obligation triggered | Source of covered files, modified or not, available; notices | Same | Covered files stay under their licence |
 | Weak copyleft, library (LGPL-2.1, LGPL-3.0) | No obligation triggered | Counsel: unusual in this mode | Library source, plus the recipient's ability to replace the library and relink; dynamic linking makes this straightforward, static linking needs more | Counsel |
 | Strong copyleft (GPL-2.0, GPL-3.0) | No obligation triggered | Counsel | Linked into your code: counsel, usually denied. Separate program alongside: corresponding source, licence text | Your library's licence must be compatible; counsel |

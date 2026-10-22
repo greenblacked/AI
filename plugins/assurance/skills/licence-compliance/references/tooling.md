@@ -139,11 +139,21 @@ whether or not it prints anything. For the gate, capture the output and fail whe
 empty:
 
 ```bash
-out=$(jq -r '.packages[] | select(.SPDXID | startswith("SPDXRef-DocumentRoot-") | not) | select((.licenseDeclared // "NOASSERTION") | IN("NOASSERTION", "NONE")) | "\(.name)@\(.versionInfo)"' sbom.spdx.json) \
-  && { test -z "$out" || { printf '%s\n' "$out"; exit 1; }; }
+set -Eeuo pipefail
+out=$(jq -r '.packages[] | select(.SPDXID | startswith("SPDXRef-DocumentRoot-") | not) | select((.licenseDeclared // "NOASSERTION") | IN("NOASSERTION", "NONE")) | "\(.name)@\(.versionInfo)"' sbom.spdx.json)
+if [ -n "$out" ]; then
+  printf '%s\n' "$out"
+  exit 1
+fi
 ```
 
-Apply the same wrapper to each blocking query below (the allowlist query and the CycloneDX
+Keep the assignment on a line of its own. Written as `out=$(jq …) && { … }`, a failed `jq`
+(a missing or malformed SBOM, a CycloneDX file with no `components`) short-circuits the `&&`
+list, and `set -e` does not exit on a failure inside an `&&` list, so the gate would pass
+having checked nothing. Alone on its line, the assignment takes the exit status of `jq` and
+`set -e` stops the script.
+
+Apply the same shape to each blocking query below (the allowlist query and the CycloneDX
 unknowns query); the listing queries stay bare.
 
 Everything not on a flat allowlist. Compound expressions are reported too, so a person
@@ -174,6 +184,14 @@ like, so the gate fails when the inventory has no components at all, not countin
 
 ```bash
 test "$(jq '[.packages[] | select(.SPDXID | startswith("SPDXRef-DocumentRoot-") | not)] | length' sbom.spdx.json)" -gt 0
+```
+
+The CycloneDX equivalent. `jq -e` exits non-zero when the result is `false` or `null`, and a
+file with no `components` key at all is the same failed scan, so treat it as empty rather than
+letting `.components[]` error or print nothing:
+
+```bash
+jq -e '(.components // []) | length > 0' sbom.cdx.json >/dev/null
 ```
 
 ## The policy file

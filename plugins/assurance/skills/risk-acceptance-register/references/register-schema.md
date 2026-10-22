@@ -33,9 +33,9 @@ Protect the file with a code-owners rule naming the security team, so an entry c
 | `exit_condition` | yes | What closes the entry early |
 | `proposer` | yes | The person asking |
 | `owner` | yes | The accountable person, above the proposer |
-| `approved_on` | yes | ISO date |
+| `approved_on` | yes | ISO date of the current approval; a renewal sets it to the date the renewal was approved |
 | `expires_on` | yes | ISO date, within the maximum term for the severity |
-| `renewals` | yes | Count, starting at 0; each renewal links its approval |
+| `renewals` | yes | Count, starting at 0; each renewal adds one, links its approval, and resets `approved_on` and `expires_on` |
 | `status` | yes | `active`, `closed` (fixed or exit condition met), `expired` |
 
 ## Example entry
@@ -96,7 +96,7 @@ The check has three parts. Write it in whatever language the repository already 
 
 1. **Collect suppressions.** Search the tree for each suppression marker the repository's tools use (the list above), and record file, line and any `risk:RA-…` id on the line or the line above.
 2. **Load the register** and index entries by id.
-3. **Fail** when a suppression has no id, an id not in the register, an id whose entry is `closed`, or an id whose `expires_on` is before today. An entry is valid through its `expires_on` date inclusive, which is why the reminder also fires on that day. Also fail on an entry whose `expires_on` is later than `approved_on` plus the maximum term for its severity, or whose `renewals` exceeds the matrix limit without a linked escalation approval; otherwise the term limits are policy text that nothing enforces. Print each with file and line (or register id) so the fix is obvious.
+3. **Fail** when a suppression has no id, an id not in the register, an id whose entry is `closed`, or an id whose `expires_on` is before today. An entry is valid through its `expires_on` date inclusive, which is why the reminder also fires on that day. Also fail on an entry whose `expires_on` is later than `approved_on` plus the maximum term for its severity (a renewal resets `approved_on` to the renewal's approval date, so a valid renewal is measured from that date and not from the original approval; an entry renewed without that reset fails this check), or whose `renewals` exceeds the matrix limit without a linked escalation approval; otherwise the term limits are policy text that nothing enforces. Print each with file and line (or register id) so the fix is obvious.
 
 Warn, without failing, when an active entry has no suppression pointing at it — either the finding was fixed and the entry should close, or the suppression is missing its id.
 

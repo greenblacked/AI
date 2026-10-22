@@ -54,11 +54,16 @@ Sort arrays only where the contract says order is not meaningful, and sort by a 
 rather than by the whole element:
 
 ```jq
-.items |= (if type == "array" then sort_by(.id) else . end)
+if type == "object" and (.items | type) == "array"
+then .items |= sort_by(.id)
+else . end
 ```
 
-A missing or non-array `items` (an error body, a 404, an empty object) is left alone, so it
-reaches the diff instead of failing normalisation and dropping the pair.
+Any other body (an error body, a 404, an empty object, or a string or array at the top level)
+is left alone, so it reaches the diff instead of failing normalisation and dropping the pair.
+The outer `type == "object"` test matters: `.items` on a string or an array is a jq error
+(exit 5), and on an object without the key an `|=` update would add `"items": null` to a body
+that never had one.
 
 Sorting every array (`walk(if type == "array" then sort else . end)`) is tempting and wrong: it
 hides the regression where a list that must be ordered by date comes back in insertion order.
