@@ -14,7 +14,7 @@ The usual failure is choosing the date first. Engineering picks the quarter it w
 
 Use for: removing a product feature; ending a plan or tier that is no longer sold; shutting down an integration, a legacy app or a whole product; deciding whether something with low usage can simply be deleted; setting a deprecation timeline and its communications.
 
-Do not use for: moving customers to a new price or plan as a pricing change, which is `price-change-rollout`; versioning and retiring an API version as interface design, which is `api-design`; deleting a feature flag from code after a rollout, which is `feature-flag-lifecycle`; upgrading a library or runtime that you consume, which is `dependency-upgrade`; a one-off switchover from one system to another, which is `cutover`; a customer demanding the feature stay on the roadmap, which is `roadmap-disruption-triage` if it reopens the decision.
+Do not use for: moving customers to a new price or plan as a pricing change, which is `price-change-rollout`; versioning and retiring an API version as interface design, which is `api-design`; deleting a feature flag from code after a rollout, which is `feature-flag-lifecycle`; upgrading a library or runtime that you consume, which is `dependency-upgrade`; a one-off switchover from one system to another, which is `cutover`; internal warehouse tables and their readers, which is `consumer-discovery`; an unused service or cloud resource that has no customers, which is `resource-decommission`; a customer demanding the feature stay on the roadmap, which is `roadmap-disruption-triage` if it reopens the decision.
 
 ## Workflow
 

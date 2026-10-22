@@ -14,7 +14,7 @@ Leaks in long-lived pages — dashboards, editors, trading screens, kiosks, sing
 
 Use for: a browser tab whose memory grows over hours or days; a crash with an out-of-memory error page; heap snapshots full of detached DOM nodes; memory that rises each time a modal, route, chart or panel opens and closes; adding a leak check to CI.
 
-Do not use for: code that is slow while memory is stable (`profiling`); a Node.js, JVM or other server process that grows (`debugging`); poor LCP, INP or CLS (`web-vitals-triage`), though a leak that triggers constant garbage collection does make interactions slower.
+Do not use for: code that is slow while memory is stable (`profiling`); a Node.js server that grows (`node-memory-leak`), or a JVM or other server process that grows (`debugging`); poor LCP, INP or CLS (`web-vitals-triage`), though a leak that triggers constant garbage collection does make interactions slower.
 
 ## Workflow
 

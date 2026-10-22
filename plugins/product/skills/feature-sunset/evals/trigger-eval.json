@@ -18,5 +18,6 @@
   {"query": "sales says three prospects asked for a feature we decided not to build. how do we respond to these requests", "should_trigger": false, "expected": "request-triage"},
   {"query": "rename and drop a column from the orders table without downtime", "should_trigger": false, "expected": "db-migration"},
   {"query": "write the release notes for 4.0 including the removed features", "should_trigger": false, "expected": "release-notes"},
-  {"query": "plan the multi-phase migration from our monolith to services over the next year", "should_trigger": false, "expected": "plan-platform-migration"}
+  {"query": "plan the multi-phase migration from our monolith to services over the next year", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "which dashboards and jobs still read this warehouse table before we drop it", "should_trigger": false, "expected": "consumer-discovery"}
 ]

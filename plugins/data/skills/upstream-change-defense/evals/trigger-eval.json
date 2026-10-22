@@ -18,5 +18,6 @@
   {"query": "Yesterday's order count keeps growing for days after midnight. When is it final?", "should_trigger": false, "expected": "late-data-maturity"},
   {"query": "A dependency in our pipeline image has a critical CVE; do we need to patch it this week?", "should_trigger": false, "expected": "dependency-triage"},
   {"query": "Two dashboards disagree on weekly revenue by 2%, find out why.", "should_trigger": false, "expected": "metric-reconciliation"},
-  {"query": "The same customer appears under three different ids across CRM, billing and support. How do we link them?", "should_trigger": false, "expected": "entity-resolution"}
+  {"query": "The same customer appears under three different ids across CRM, billing and support. How do we link them?", "should_trigger": false, "expected": "entity-resolution"},
+  {"query": "weekly active users halved on the dashboard last tuesday, how do we work out why", "should_trigger": false, "expected": "metric-anomaly-triage"}
 ]

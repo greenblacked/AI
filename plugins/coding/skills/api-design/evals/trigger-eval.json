@@ -15,6 +15,7 @@
   {"query": "add a not null column to the orders table in postgres without taking a long lock", "should_trigger": false, "expected": "db-migration"},
   {"query": "write the on-call runbook for when the api starts returning 500s at night", "should_trigger": false, "expected": "runbook"},
   {"query": "what spans and attributes should the orders service emit so we can see latency per endpoint", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "add a ci step that fails the pr when openapi.yaml has a breaking change", "should_trigger": false, "expected": "openapi-diff-gate"},
   {"query": "the api pods have been OOMKilled since the 10:15 deploy. what do i do right now", "should_trigger": false, "expected": "k8s-triage"},
   {"query": "the contract test job fails intermittently in github actions, passes on re-run. flake?", "should_trigger": false, "expected": "ci-triage"},
   {"query": "should we page someone when the api p99 goes over 800ms, or is that a ticket", "should_trigger": false, "expected": "alert-design"},

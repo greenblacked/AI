@@ -18,5 +18,6 @@
   {"query": "the android build is over the store size limit and the textures look blurry, which compression should we use", "should_trigger": false, "expected": "game-assets"},
   {"query": "should this sound effect be streamed or decompressed on load, and what sample rate should we import it at", "should_trigger": false, "expected": "game-assets"},
   {"query": "do the colours in our menus pass wcag contrast and work for colour blind players", "should_trigger": false, "expected": "accessibility-audit"},
-  {"query": "write the feature spec for the inventory screen including its empty and full states", "should_trigger": false, "expected": "game-design-doc"}
+  {"query": "write the feature spec for the inventory screen including its empty and full states", "should_trigger": false, "expected": "game-design-doc"},
+  {"query": "our web app's german labels overflow and arabic layout is mirrored wrong", "should_trigger": false, "expected": "locale-edge-sweep"}
 ]

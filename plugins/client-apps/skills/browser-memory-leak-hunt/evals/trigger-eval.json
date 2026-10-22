@@ -9,7 +9,7 @@
   {"query": "i think the chart library is leaking every time we re-render the panel, how do i prove it", "should_trigger": true},
   {"query": "can we add a CI check that fails if opening and closing a dialog leaks memory", "should_trigger": true},
   {"query": "the javascript heap stays flat but the tab's memory footprint keeps rising while the image gallery is open", "should_trigger": true},
-  {"query": "our node api's memory climbs all day until the container gets killed", "should_trigger": false, "expected": "debugging"},
+  {"query": "our node api's memory climbs all day until the container gets killed", "should_trigger": false, "expected": "node-memory-leak"},
   {"query": "this javascript function takes 300ms to sort the table, memory is fine, how do i speed it up", "should_trigger": false, "expected": "profiling"},
   {"query": "INP on the dashboard is 450ms at p75 according to crux", "should_trigger": false, "expected": "web-vitals-triage"},
   {"query": "the unity webgl build's frame rate drops whenever the garbage collector runs", "should_trigger": false, "expected": "game-performance"},
