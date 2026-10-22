@@ -1,7 +1,7 @@
 ---
 name: new-skill
 description: "Author a Claude Code skill from scratch — decide whether the procedure deserves a skill at all, name and place it, write the body as scope, workflow and anti-patterns, write the description last because it is the only text that decides whether the skill ever fires, push depth into reference files, and build a twenty-query trigger eval set that proves the description discriminates from its neighbours. Use this skill whenever someone wants to write, create, add, draft, scaffold or repair a SKILL.md, an agent skill, a plugin skill or a skills marketplace entry — including casual phrasings like \"make a skill for X\", \"turn this runbook into a skill\", \"my skill never fires\", \"what should the description say\", or \"add this to my skills repo\". Not for scaffolding ordinary application code, scripts or services, and not for reviewing a skill someone else already drafted."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(python3:*), Bash(make:*)
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # New Skill

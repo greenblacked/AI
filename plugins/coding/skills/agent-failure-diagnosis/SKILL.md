@@ -1,7 +1,7 @@
 ---
 name: agent-failure-diagnosis
 description: "Find which layer of a coding agent's environment makes it repeat a mistake, and fix that layer instead of adding prompt text: capture failing runs with transcript and diff, rule out an ambiguous request, a repository defect or a wrong model, attribute each failure to one layer (instructions, tools and permissions, state and context, verification, scope), change one thing, rerun with a control, and re-attribute after three changes that move nothing. Use when someone says the agent keeps forgetting something, says done but nothing works, ignores the rules file, makes the same mistake every session, or asks why the agent does this. Not for writing or restructuring the instruction file (agent-instructions), building the check for a known rule (agent-guardrails), a red pipeline (ci-triage), untrusted content steering a tool (agent-security-review), or scoring runs (agent-evaluation)."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*)
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # Agent Failure Diagnosis

@@ -1,7 +1,7 @@
 ---
 name: db-migration
 description: "Ship a schema change to a live relational database without downtime, a stuck lock, or a deploy that cannot be reverted: expand, backfill in bounded batches, migrate reads, migrate writes, contract — each phase its own independently revertible deploy, every migration session carrying an explicit lock_timeout and a retry loop. Use this skill whenever someone is adding, renaming, dropping or retyping a column, adding an index or a constraint, backfilling a large table, splitting or merging tables, or asking things like \"will this migration lock the table\", \"how do I rename a column with no downtime\", \"the deploy is stuck on the migration\", \"is this migration reversible\", or \"can we drop the old column yet\". Covers PostgreSQL and MySQL/InnoDB, including gh-ost and pt-online-schema-change. Do not use it for choosing a database, ORM or framework setup, tuning a slow query, or building an ETL or data pipeline."
-allowed-tools: "Bash(psql:*), Bash(mysql:*), Read, Grep, Glob"
+allowed-tools: "Read, Grep, Glob"
 ---
 
 # Database Migration

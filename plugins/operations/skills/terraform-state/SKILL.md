@@ -1,7 +1,7 @@
 ---
 name: terraform-state
 description: "Run a Terraform or OpenTofu state operation already decided: import a single resource, move or rename one after a refactor, drop one from state without destroying it, reconcile drift, recover a lost or corrupted state file, clear a stuck lock, or change the backend. Backs up first; prefers reviewable import, moved and removed blocks to state subcommands. Use for \"terraform wants to destroy and recreate everything\", \"I renamed a module and now the plan is wrong\", \"import this bucket into state\", \"state is locked\", or \"accept the console change into state\". Not for reviewing a plan or state move (iac-review), a new module (code-scaffold), a platform move (plan-platform-migration), rotating a credential (secret-rotation), adopting a hand-built estate (brownfield-iac-adoption), splitting an oversized state (monolith-state-split) or a version upgrade (iac-version-upgrade)."
-allowed-tools: Bash(terraform:*), Bash(tofu:*), Bash(jq:*), Bash(git:*), Read, Write, Edit, Grep, Glob
+allowed-tools: Bash(jq:*), Read, Write, Edit, Grep, Glob
 ---
 
 # Terraform State

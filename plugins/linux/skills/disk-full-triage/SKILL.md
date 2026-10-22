@@ -1,7 +1,7 @@
 ---
 name: disk-full-triage
 description: "Find and free space on a full Linux filesystem: run df -h and df -i first because \"No space left on device\" covers blocks, inodes, a full thin pool and quotas, explain df and du disagreeing (deleted-but-open files with lsof +L1, data hidden under a mount point), use du -x so nothing crosses filesystems, count inode hogs per directory, then free space in a safe order (caches and rotated logs, truncate a log a live process holds rather than rm, journal vacuum, container layers). Check reserved blocks and find the writer before declaring done, and alert on both blocks and inodes. Use for \"df says 100% but du finds nothing\", \"no space left but there is free space\", \"out of inodes\" or \"what is eating the disk\". Not for growing the volume (volume-resize) or forecasting demand (capacity-planning) or running the outage (incident-response)."
-allowed-tools: Bash(df:*), Bash(du:*), Bash(lsof +L1), Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(findmnt:*), Bash(lvs), Bash(lvs -o lv_name,vg_name,lv_size,data_percent,metadata_percent), Bash(btrfs filesystem usage:*), Bash(btrfs filesystem df:*), Bash(btrfs filesystem show:*), Read, Glob, Grep
+allowed-tools: Bash(df:*), Bash(du:*), Bash(lsof +L1), Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(findmnt:*), Bash(lvs), Bash(lvs -o lv_name, vg_name, lv_size, data_percent, metadata_percent), Bash(btrfs filesystem usage:*), Bash(btrfs filesystem df:*), Bash(btrfs filesystem show:*), Read, Glob, Grep
 ---
 
 # Disk Full Triage

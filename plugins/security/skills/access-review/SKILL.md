@@ -1,7 +1,7 @@
 ---
 name: access-review
 description: "Review who and what can do what, and reduce it toward least privilege without breaking production: choose between a scheduled review of the whole estate and a targeted reduction of one identity, inventory humans, service accounts, workload identities, CI/CD and third-party grants, judge on last-accessed evidence rather than stated intent over a window long enough to contain the quarterly job, then propose, run in audit-only mode, alert on would-have-denied, enforce and keep the alert. Use this skill whenever someone is doing an access or permissions review, an IAM or RBAC least-privilege cleanup, a user-access certification for an audit, or an offboarding or role-change sweep, or asks \"who has admin\", \"can we drop this wildcard\", or \"does this service account still need full s3 access\". Not for rotating or containing a leaked credential, designing an authentication system, reviewing a Terraform diff, or hardening a container image."
-allowed-tools: "Bash(aws:*), Bash(gcloud:*), Bash(az:*), Bash(gh:*), Bash(kubectl:*), Bash(jq:*), Read, Grep, Glob, Write"
+allowed-tools: "Bash(jq:*), Read, Grep, Glob, Write"
 ---
 
 # Access Review

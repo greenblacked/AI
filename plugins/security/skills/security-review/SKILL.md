@@ -1,7 +1,7 @@
 ---
 name: security-review
 description: "Review a change for the vulnerability classes actually exploited, in order: establish what the diff reaches and who can reach it, object-level authorisation rather than route-level, injection across SQL, command, template and LDAP, deserialisation, SSRF, secrets reaching a log or repo, unsafe defaults, and the supply-chain risk in a dependency or build-step change (OWASP A03 2025); report each finding as reachable path, impact, fix. Use whenever a diff, branch or pull request needs a security look before merge, or someone asks \"is this endpoint safe\", \"can you security review this PR\", or \"did we just commit a key\". Not for a design-time threat model (threat-model), general correctness (code-review), live IAM audits (access-review), a leaked credential (secret-rotation), Terraform (iac-review), images (image-hardening), or a workflow file as the subject itself (pipeline-hardening)."
-allowed-tools: "Bash(git:*), Bash(gh:*), Bash(rg:*), Read, Grep, Glob"
+allowed-tools: "Read, Grep, Glob"
 ---
 
 # Security Review
