@@ -1,0 +1,22 @@
+[
+  {"query": "our java service stopped responding but cpu is low, what do I do first", "should_trigger": true},
+  {"query": "all the http worker threads in our spring app are blocked and requests hang", "should_trigger": true},
+  {"query": "how do I read a jstack thread dump and find the thread holding the lock", "should_trigger": true},
+  {"query": "we think two threads deadlocked, how do I confirm from a dump", "should_trigger": true},
+  {"query": "executor thread pool is exhausted and tasks are queued forever", "should_trigger": true},
+  {"query": "virtual threads seem pinned on JDK 21 and throughput collapsed", "should_trigger": true},
+  {"query": "how many thread dumps should I take and how far apart", "should_trigger": true},
+  {"query": "find the java thread burning cpu using top and a dump", "should_trigger": true},
+  {"query": "a completablefuture join inside the common pool hangs under load", "should_trigger": true},
+  {"query": "what jcmd and JFR commands show where threads are waiting in a live jvm", "should_trigger": true},
+  {"query": "we are mid outage on a java service, assign roles and write the status updates", "should_trigger": false, "expected": "incident-response"},
+  {"query": "find the hottest method in our java service using a flame graph", "should_trigger": false, "expected": "profiling"},
+  {"query": "OutOfMemoryError Java heap space in production, analyse the heap dump", "should_trigger": false, "expected": "jvm-oom-triage"},
+  {"query": "NoSuchMethodError at runtime from two versions of a library on the classpath", "should_trigger": false, "expected": "jvm-classpath-conflict"},
+  {"query": "clients all retry together and exhaust our database connection pool", "should_trigger": false, "expected": "connection-storm-recovery"},
+  {"query": "dotnet requests time out under load with low cpu", "should_trigger": false, "expected": "dotnet-threadpool-starvation"},
+  {"query": "goroutine count keeps climbing in our go service", "should_trigger": false, "expected": "go-goroutine-leak"},
+  {"query": "design timeouts and retry limits for calls between our services", "should_trigger": false, "expected": "timeout-and-retry-budget"},
+  {"query": "two transactions update the same rows and one keeps failing with a deadlock error in postgres", "should_trigger": false, "expected": "deadlock-analysis"},
+  {"query": "upgrade spring boot from 2 to 3 across our services", "should_trigger": false, "expected": "dependency-upgrade"}
+]

@@ -1,0 +1,92 @@
+[
+ {
+  "query": "consumer lag on our orders topic keeps growing and adding pods did not help",
+  "should_trigger": true
+ },
+ {
+  "query": "the consumer group keeps rebalancing every few minutes and throughput drops each time",
+  "should_trigger": true
+ },
+ {
+  "query": "we are seeing CommitFailedException after the batch finishes processing",
+  "should_trigger": true
+ },
+ {
+  "query": "max.poll.interval.ms exceeded in the logs, the member gets kicked out of the group",
+  "should_trigger": true
+ },
+ {
+  "query": "one partition of our events topic is stuck at the same offset while the rest are fine",
+  "should_trigger": true
+ },
+ {
+  "query": "lag shows up on only three of twelve partitions, what should I check",
+  "should_trigger": true
+ },
+ {
+  "query": "our kafka consumers show zero lag but the downstream table is missing a day of records",
+  "should_trigger": true
+ },
+ {
+  "query": "every deploy of the consumer service triggers a rebalance storm, can we avoid that",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I tell if my consumer group is behind or just busy, I only have the lag number",
+  "should_trigger": true
+ },
+ {
+  "query": "I need to rewind a consumer group to yesterday morning, what is the safe way to do it",
+  "should_trigger": true
+ },
+ {
+  "query": "design the dead-letter policy and idempotency for our order event consumers",
+  "should_trigger": false,
+  "expected": "event-driven-reliability"
+ },
+ {
+  "query": "one customer id produces most of our traffic and a single partition is overloaded",
+  "should_trigger": false,
+  "expected": "hot-partition-hunt"
+ },
+ {
+  "query": "the checkout pipeline is down, who should be doing what and how do we communicate",
+  "should_trigger": false,
+  "expected": "incident-response"
+ },
+ {
+  "query": "how many brokers and partitions do we need for next year's event volume",
+  "should_trigger": false,
+  "expected": "capacity-planning"
+ },
+ {
+  "query": "the nightly export job did not run and nobody noticed",
+  "should_trigger": false,
+  "expected": "scheduled-job-reliability"
+ },
+ {
+  "query": "add a new field to our event schema without breaking old consumers",
+  "should_trigger": false,
+  "expected": "event-schema-evolution"
+ },
+ {
+  "query": "our retries amplify load when the downstream service slows down",
+  "should_trigger": false,
+  "expected": "timeout-and-retry-budget"
+ },
+ {
+  "query": "the JVM consumer pauses for seconds at a time and I have a thread dump to read",
+  "should_trigger": false,
+  "expected": "jvm-thread-dump-triage"
+ },
+ {
+  "query": "design an outbox so database writes and published events stay consistent",
+  "should_trigger": false,
+  "expected": "event-driven-reliability"
+ },
+ {
+  "query": "the search index is a few minutes behind the database after writes",
+  "should_trigger": false,
+  "expected": "search-index-sync"
+ }
+]

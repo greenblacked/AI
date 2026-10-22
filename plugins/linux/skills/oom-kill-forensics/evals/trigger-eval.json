@@ -1,0 +1,22 @@
+[
+  {"query": "my process just disappeared and there is nothing in the application log, could the kernel have killed it", "should_trigger": true},
+  {"query": "dmesg shows Out of memory: Killed process 4121 (postgres), how do I work out why", "should_trigger": true},
+  {"query": "the database keeps getting killed every few days on a box with plenty of RAM according to free", "should_trigger": true},
+  {"query": "free shows 95% used, is the machine actually out of memory", "should_trigger": true},
+  {"query": "journal says constraint=CONSTRAINT_MEMCG, what does it mean and which limit was hit", "should_trigger": true},
+  {"query": "how do I make sure the kernel kills the batch worker and not my main service when memory runs out", "should_trigger": true},
+  {"query": "should I add swap or zram to stop our server being OOM killed", "should_trigger": true},
+  {"query": "set up earlyoom or systemd-oomd so the host kills things before it freezes", "should_trigger": true},
+  {"query": "service shows Result=oom-kill after I set MemoryMax, how do I pick a sensible value", "should_trigger": true},
+  {"query": "tmpfs files in /dev/shm seem to be filling memory and the OOM killer is firing", "should_trigger": true},
+  {"query": "pod status says OOMKilled and I need to set memory requests and limits", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "find which function allocates the most memory in my python service", "should_trigger": false, "expected": "profiling"},
+  {"query": "how much memory should we provision before the launch next month", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "too many open files and cannot create threads errors", "should_trigger": false, "expected": "resource-limit-exhaustion"},
+  {"query": "the jvm throws OutOfMemoryError heap space, analyse the heap", "should_trigger": false, "expected": "jvm-oom-triage"},
+  {"query": "node process memory climbs until it crashes, find the leak", "should_trigger": false, "expected": "node-memory-leak"},
+  {"query": "disk is full and writes fail", "should_trigger": false, "expected": "disk-full-triage"},
+  {"query": "service exits with status=203/EXEC", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "machine will not boot and sits at a start job for a device", "should_trigger": false, "expected": "boot-failure-recovery"},
+  {"query": "the live outage needs a commander and status updates", "should_trigger": false, "expected": "incident-response"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "our logging bill doubled last month and nobody knows why", "should_trigger": true},
+  {"query": "we ingest about 3 TB of logs a day and need to bring that down", "should_trigger": true},
+  {"query": "which of our services produce the most log bytes", "should_trigger": true},
+  {"query": "how do we reduce datadog log spend without losing error logs", "should_trigger": true},
+  {"query": "elasticsearch storage for logs keeps growing, what can we drop safely", "should_trigger": true},
+  {"query": "loki costs are climbing, how do we find the noisiest log lines", "should_trigger": true},
+  {"query": "should we sample successful request logs, and how do we keep counts right afterwards", "should_trigger": true},
+  {"query": "health check lines are most of our access logs, can we remove them", "should_trigger": true},
+  {"query": "how do I tell whether anything depends on a log line before I drop it", "should_trigger": true},
+  {"query": "one service logs the same error thousands of times a minute, how do we deal with it", "should_trigger": true},
+  {"query": "our aws bill went up, find where the money goes", "should_trigger": false, "expected": "cost-review"},
+  {"query": "decide what a new service should log, trace and measure", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "a new label exploded our metric series count", "should_trigger": false, "expected": "cardinality-incident-response"},
+  {"query": "keep errors and slow traces but sample the rest in the collector", "should_trigger": false, "expected": "tail-sampling-tuning"},
+  {"query": "scrub personal data from our logs before they are stored", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "the logging pipeline is backing up and dropping events", "should_trigger": false, "expected": "collector-backpressure-triage"},
+  {"query": "write an alert for high error log rate", "should_trigger": false, "expected": "alert-design"},
+  {"query": "work out what happened from the logs during last night's incident", "should_trigger": false, "expected": "incident-response"},
+  {"query": "why do the dashboard percentiles disagree with the logs", "should_trigger": false, "expected": "latency-histogram-design"},
+  {"query": "our llm token spend tripled", "should_trigger": false, "expected": "llm-cost"}
+]

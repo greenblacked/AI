@@ -1,0 +1,22 @@
+[
+  {"query": "our orders table is 400 GB but only holds about 40 GB of live rows, what happened and how do we shrink it", "should_trigger": true},
+  {"query": "autovacuum has been running on the same table for three days and the dead tuples never go down", "should_trigger": true},
+  {"query": "n_dead_tup keeps growing on our events table even though autovacuum runs every few minutes", "should_trigger": true},
+  {"query": "autovacuum can't keep up with our update rate, which settings should I change", "should_trigger": true},
+  {"query": "how do I tell what is stopping vacuum from removing dead rows, I suspect a replication slot", "should_trigger": true},
+  {"query": "is it safe to run VACUUM FULL on a busy production table or what should I use instead", "should_trigger": true},
+  {"query": "our primary key index is three times the size it should be after months of updates, can I rebuild it without downtime", "should_trigger": true},
+  {"query": "the default scale factor means vacuum never fires on our 600 million row table until it is hopelessly bloated", "should_trigger": true},
+  {"query": "table size keeps climbing and a standby with hot_standby_feedback might be the cause", "should_trigger": true},
+  {"query": "pgstattuple says 60 percent of this table is free space, how do I get it back to the operating system", "should_trigger": true},
+  {"query": "age(datfrozenxid) is 1.7 billion and an anti-wraparound autovacuum will not finish", "should_trigger": false, "expected": "xid-wraparound-defense"},
+  {"query": "are we about to hit transaction id wraparound, how much runway do we have", "should_trigger": false, "expected": "xid-wraparound-defense"},
+  {"query": "this query is slow, read the EXPLAIN ANALYZE output and tell me which index to add", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "Heap Fetches is high on an index only scan and the query takes four seconds", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "we are backfilling a new column on a 200 million row table, how do we avoid hurting production", "should_trigger": false, "expected": "db-migration"},
+  {"query": "which of our indexes are unused and safe to drop to cut write amplification", "should_trigger": false, "expected": "index-pruning"},
+  {"query": "our log table is huge, should we partition it by month and drop old partitions", "should_trigger": false, "expected": "table-partitioning"},
+  {"query": "everything is hanging behind an ALTER TABLE, who is blocking whom", "should_trigger": false, "expected": "lock-queue-triage"},
+  {"query": "FATAL: too many connections every time we deploy", "should_trigger": false, "expected": "connection-storm-recovery"},
+  {"query": "the whole service is down and we need someone to run the incident call", "should_trigger": false, "expected": "incident-response"}
+]

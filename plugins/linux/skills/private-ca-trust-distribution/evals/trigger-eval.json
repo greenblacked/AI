@@ -1,0 +1,22 @@
+[
+  {"query": "our go service says x509 certificate signed by unknown authority when it calls the internal api", "should_trigger": true},
+  {"query": "python requests works at home but fails behind the corporate proxy with certificate verify failed", "should_trigger": true},
+  {"query": "java throws PKIX path building failed when it calls our internal service, how do I add our root", "should_trigger": true},
+  {"query": "npm install cannot verify the registry since the company started inspecting traffic", "should_trigger": true},
+  {"query": "we installed our company root with update-ca-certificates but docker pulls from the internal registry still fail", "should_trigger": true},
+  {"query": "how do I get an internal certificate authority trusted on every laptop, ci runner and base image", "should_trigger": true},
+  {"query": "someone suggested NODE_TLS_REJECT_UNAUTHORIZED=0 to get past an ssl error, what is the right fix", "should_trigger": true},
+  {"query": "git clone from our self hosted server says ssl certificate problem unable to get local issuer certificate", "should_trigger": true},
+  {"query": "our private root expires in four months, how do we roll a new one without breaking clients", "should_trigger": true},
+  {"query": "curl works on the host but the same call inside the container fails with an unknown issuer error", "should_trigger": true},
+  {"query": "openssl s_client shows the server sends no intermediate and the handshake alert is unknown, which step is failing", "should_trigger": false, "expected": "tls-handshake-debugging"},
+  {"query": "automate issuing and renewing certificates for our public sites", "should_trigger": false, "expected": "certificate-automation"},
+  {"query": "rotate the database password and the api keys that leaked", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "harden our container base image and drop the unneeded packages", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "the clock is wrong and certificate is not yet valid appears", "should_trigger": false, "expected": "time-sync-repair"},
+  {"query": "lookup of the internal hostname fails from this server", "should_trigger": false, "expected": "dns-resolution-debugging"},
+  {"query": "ssh says permission denied for my key", "should_trigger": false, "expected": "ssh-access-debugging"},
+  {"query": "a unit fails at start with exit code 203", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "a non-root user cannot read the file, permission denied", "should_trigger": false, "expected": "permission-denied-triage"},
+  {"query": "tighten the sshd configuration and kernel settings on the host", "should_trigger": false, "expected": "host-hardening"}
+]

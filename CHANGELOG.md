@@ -10,6 +10,16 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `observability` plugin, for observability engineering, with twenty skills: `alert-backtest`, `broken-trace-hunt`, `business-metric-alerting`, `cardinality-incident-response`, `change-event-correlation`, `collector-backpressure-triage`, `continuous-profiling-rollout`, `dependency-reliability-ledger`, `latency-histogram-design`, `log-volume-reduction`, `missing-metrics-hunt`, `otel-collector-pipeline-review`, `otel-semconv-upgrade`, `service-dashboard-rebuild`, `slow-dashboard-fix`, `synthetic-monitoring-design`, `tail-sampling-tuning`, `telemetry-migration`, `telemetry-redaction-audit` and `trace-latency-analysis`.
+
+- Add the `databases` plugin, for database engineering in depth, with twenty skills: `clickhouse-parts-triage`, `connection-storm-recovery`, `deadlock-analysis`, `failover-client-hardening`, `index-pruning`, `innodb-purge-lag`, `integer-key-exhaustion`, `lock-queue-triage`, `postgres-full-text-search`, `redis-memory-triage`, `search-mapping-design`, `search-relevance-tuning`, `shard-allocation-triage`, `sqlite-in-production`, `table-partitioning`, `timeseries-retention-downsampling`, `typeahead-search-design`, `vacuum-bloat-triage`, `vector-index-tuning` and `xid-wraparound-defense`.
+
+- Add the `linux` plugin, for Linux and systems administration, with twenty skills: `boot-failure-recovery`, `disk-failure-replacement`, `disk-full-triage`, `dns-resolution-debugging`, `firewall-rule-tracing`, `high-load-triage`, `kernel-crash-forensics`, `kernel-update-safety`, `linux-lockout-recovery`, `mtu-blackhole-hunt`, `oom-kill-forensics`, `permission-denied-triage`, `private-ca-trust-distribution`, `resource-limit-exhaustion`, `scheduled-job-debugging`, `ssh-access-debugging`, `systemd-unit-failure`, `time-sync-repair`, `tls-handshake-debugging` and `volume-resize`.
+
+- Add the `languages` plugin, for problems that belong to one runtime or toolchain, with twenty skills: `cpp-sanitizer-triage`, `dotnet-memory-growth`, `dotnet-threadpool-starvation`, `go-gc-tuning`, `go-goroutine-leak`, `go-race-triage`, `jvm-classpath-conflict`, `jvm-gc-tuning`, `jvm-oom-triage`, `jvm-thread-dump-triage`, `native-core-dump-analysis`, `native-linking-errors`, `node-memory-leak`, `node-module-format-errors`, `python-import-failures`, `python-memory-growth`, `python-native-wheel-failures`, `python-typing-migration`, `rust-unsafe-review` and `typescript-strictness-migration`.
+
+- Add the `backend` plugin, for backend and distributed-systems correctness, with twelve skills: `consumer-lag-triage`, `distributed-lock-audit`, `event-schema-evolution`, `hot-partition-hunt`, `overload-protection`, `rate-limiter-design`, `saga-design`, `scheduled-job-reliability`, `search-index-sync`, `timeout-and-retry-budget`, `transaction-race-hunt` and `webhook-integration`.
+
 - Add six skills to the `career` plugin: `raise-negotiation`, `severance-negotiation`, `managing-up`, `technical-interview-prep`, `take-home-assignment` and `interview-retrospective`.
 
 - Add the `smallbiz` plugin, for freelancing and small-business operations, with twenty skills covering rates and quotes (`billing-rate-calculation`, `fixed-price-quote`, `retainer-design`, `statement-of-work`, `prospect-qualification`), delivery and scope (`scope-creep-response`, `stalled-project-recovery`, `subcontract-client-work`, `client-offboarding`, `estimate-actuals-review`, `client-profitability-review`), getting paid (`invoice-hygiene`, `late-payment-chase`, `invoice-dispute-resolution`, `services-agreement-checklist`) and the books (`monthly-bookkeeping-close`, `cashflow-forecast-13-week`, `finance-separation-cleanup`, `tax-set-aside`, `year-end-tax-pack`). Procedure, not professional advice.
@@ -38,6 +48,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   the default selection and its totals, and its plan choices and presets stay disabled
   until the page's script enables them. It builds its controls from the site's allowed
   tags and is covered by tests for its links, tiers, default totals and rendering.
+
+### Fixed
+
+- On the catalogue site, an error code or environment variable quoted in a skill's description or eval query, such as `ERR_PACKAGE_PATH_NOT_EXPORTED`, now wraps instead of pushing the page wider than a phone screen.
 
 ## [0.1.13] - 2026-10-21
 

@@ -78,5 +78,8 @@ quiet-level = 3
 # which the injection-architecture reference attributes to Microsoft's catalogue of
 # exfiltration channels; codespell 2.x suggests "convert" for it. "MAPE" is mean absolute
 # percentage error, the forecast metric forecast-backtesting compares against its
-# alternatives; codespell suggests "MAP".
-ignore-words-list = "trough,applyable,unparseable,stings,caf,aplha,lod,afterall,aks,covert,mape"
+# alternatives; codespell suggests "MAP". "ETCP" is the sar keyword for TCP error
+# counters (`sar -n TCP,ETCP`), and "chage" is the shadow-utils command that reads and
+# sets password ageing; the linux skills quote both as commands to run. "iif" is the
+# nftables match on the input interface (`meta iif`), quoted in the rule-tracing recipes.
+ignore-words-list = "trough,applyable,unparseable,stings,caf,aplha,lod,afterall,aks,covert,mape,etcp,chage,iif"

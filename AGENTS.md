@@ -77,6 +77,11 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `plugins/platform/skills/` | Cloud and platform engineering: Kubernetes, Terraform estates, cloud networks, identity, databases, the edge and commitments |
 | `plugins/devtools/skills/` | Developer tooling and build systems: git recovery, monorepos, build caching, dependencies and benchmarks |
 | `plugins/smallbiz/skills/` | Freelancing and small-business operations: pricing, scope, invoicing, contracts, bookkeeping and tax preparation |
+| `plugins/backend/skills/` | Backend and distributed-systems correctness: webhooks, races, retry budgets, overload, locks, sagas, events and jobs |
+| `plugins/languages/skills/` | Language runtimes and toolchains: Python, Node, TypeScript, Go, the JVM, .NET, C, C++ and Rust |
+| `plugins/linux/skills/` | Linux and systems administration: systemd, boot and kernel, disks, OOM, DNS, firewalls, TLS, SSH and time sync |
+| `plugins/databases/skills/` | Database engineering: PostgreSQL and MySQL internals, locks, failover, partitioning, search, vectors, Redis and SQLite |
+| `plugins/observability/skills/` | Observability engineering: tracing and sampling, metric and log cost, collector pipelines, profiling, alerts and dashboards |
 | `plugins/*/agents/` | Subagent definitions, validated on the same run as the skills |
 | `plugins/*/commands/` | Slash commands the plugin ships, validated on the same run |
 | `.claude/commands/` | Slash commands for working on this repository, not shipped to installers |
@@ -89,7 +94,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `docs/` | How to write skills, subagents, commands, `AGENTS.md`, what the project layout loads, and what CI checks |
 | `docs/review-lessons.md` | Defect classes review on this repository has actually caught, each with how it shows up, the check that catches it and the PR that found it first; `implementer` and `reviewer` read it before writing or judging anything |
 | `template/SKILL.md` | Starting point for a new skill |
-| `.claude-plugin/marketplace.json` | Lists the nineteen plugins; each discovers its own skills |
+| `.claude-plugin/marketplace.json` | Lists the twenty-four plugins; each discovers its own skills |
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `cut-release.yml`, `release.yml`, `deploy.yml`, `ci-triage.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
 | `providers.json` | Which AI tools read `AGENTS.md` and load skills, with sources and a checked date; `scripts/providers_table.py` renders it into the README |

@@ -1,0 +1,92 @@
+[
+  {
+    "query": "our pgvector search misses neighbours that brute force finds, how do I measure and fix it",
+    "should_trigger": true
+  },
+  {
+    "query": "HNSW index build on 20 million vectors takes forever, how do I speed it up",
+    "should_trigger": true
+  },
+  {
+    "query": "filtered vector query returns fewer than 10 rows even though plenty match the filter",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I pick ef_search for hnsw to hit 95 percent recall",
+    "should_trigger": true
+  },
+  {
+    "query": "what should lists and probes be for an ivfflat index on 2 million rows",
+    "should_trigger": true
+  },
+  {
+    "query": "the vector index uses too much memory, can we shrink it without wrecking recall",
+    "should_trigger": true
+  },
+  {
+    "query": "how many num_candidates do I need for the elasticsearch knn query to be accurate enough",
+    "should_trigger": true
+  },
+  {
+    "query": "compute recall at 10 for our approximate nearest neighbour index against exact results",
+    "should_trigger": true
+  },
+  {
+    "query": "should we use halfvec or quantisation for our embeddings table",
+    "should_trigger": true
+  },
+  {
+    "query": "opensearch k-NN latency p95 is too high, tune ef_search against recall",
+    "should_trigger": true
+  },
+  {
+    "query": "how should we chunk our documents and combine keyword and vector search for the assistant",
+    "should_trigger": false,
+    "expected": "rag-design"
+  },
+  {
+    "query": "build a graded relevance set and compare two retrievers on a sealed holdout",
+    "should_trigger": false,
+    "expected": "retrieval-evaluation"
+  },
+  {
+    "query": "design the tables and keys for storing documents and embeddings",
+    "should_trigger": false,
+    "expected": "schema-design"
+  },
+  {
+    "query": "improve ranking of keyword search results in elasticsearch with boosts and synonyms",
+    "should_trigger": false,
+    "expected": "search-relevance-tuning"
+  },
+  {
+    "query": "this slow sql query uses a seq scan, help me read the explain output",
+    "should_trigger": false,
+    "expected": "sql-performance"
+  },
+  {
+    "query": "autocomplete as the user types in the search box",
+    "should_trigger": false,
+    "expected": "typeahead-search-design"
+  },
+  {
+    "query": "choose field types and a strict template for our search index",
+    "should_trigger": false,
+    "expected": "search-mapping-design"
+  },
+  {
+    "query": "postgres is bloated with dead tuples and autovacuum is behind",
+    "should_trigger": false,
+    "expected": "vacuum-bloat-triage"
+  },
+  {
+    "query": "which embedding model should we switch to and how do we migrate the prompts",
+    "should_trigger": false,
+    "expected": "model-migration"
+  },
+  {
+    "query": "partition the events table by month in postgres",
+    "should_trigger": false,
+    "expected": "table-partitioning"
+  }
+]

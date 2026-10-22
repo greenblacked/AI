@@ -717,6 +717,10 @@ html[data-theme="night"] .sun { opacity: 0; transform: rotate(90deg) scale(0.4);
    so on a phone one long one pushed the whole page wider than the screen. It may break
    anywhere; a code block keeps its lines and scrolls inside its own box instead. */
 .prose-lab :not(pre) > code { overflow-wrap: anywhere; }
+/* An error code or an environment variable quoted in a description or an eval query,
+   ERR_PACKAGE_PATH_NOT_EXPORTED say, is plain text rather than code, and is the phrase a
+   reader pastes, so it stays verbatim and is allowed to break instead. */
+.prose-lab p, .prose-lab li { overflow-wrap: break-word; }
 .prose-lab pre {
   margin: 0 0 1.25rem;
   padding: 1rem 1.15rem;
@@ -1666,6 +1670,74 @@ html:not([data-theme="reactor"]) %P .plugin-word {
 @keyframes pw-smallbiz-tally {
   from { opacity: 0; transform: translateY(0.2em); }
   to { opacity: 1; transform: none; }
+}""",
+    ),
+    "backend": PluginLook(
+        day=("#7c2d12", "#1e3a8a", "#14532d"),
+        night=("#fdba74", "#93c5fd", "#86efac"),
+        width=0.72,
+        rules=(
+            "%P .pl { animation: pw-backend-queue 0.4s ease-out calc(var(--i) * 0.08s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-backend-queue {
+  from { opacity: 0; transform: translateX(-0.3em); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    "languages": PluginLook(
+        day=("#581c87", "#0f766e", "#9a3412"),
+        night=("#d8b4fe", "#5eead4", "#fdba74"),
+        width=0.74,
+        rules=(
+            "%P .pl { animation: pw-languages-type 0.3s steps(3, end) cal"
+            "c(var(--i) * 0.07s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-languages-type {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}""",
+    ),
+    "linux": PluginLook(
+        day=("#166534", "#374151", "#92400e"),
+        night=("#86efac", "#d1d5db", "#fcd34d"),
+        width=0.7,
+        rules=(
+            "%P .pl { animation: pw-linux-boot 0.25s linear calc(var(--i) * 0.06s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-linux-boot {
+  from { opacity: 0; clip-path: inset(0 100% 0 0); }
+  to { opacity: 1; clip-path: inset(0 0 0 0); }
+}""",
+    ),
+    "databases": PluginLook(
+        day=("#1e3a8a", "#9f1239", "#115e59"),
+        night=("#93c5fd", "#fda4af", "#5eead4"),
+        width=0.73,
+        rules=(
+            "%P .pl { animation: pw-databases-commit 0.45s ease-out calc("
+            "var(--i) * 0.09s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-databases-commit {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    "observability": PluginLook(
+        day=("#9a3412", "#5b21b6", "#0e7490"),
+        night=("#fdba74", "#c4b5fd", "#67e8f9"),
+        width=0.76,
+        rules=(
+            "%P .pl { animation: pw-observability-trace 0.5s ease-out cal"
+            "c(var(--i) * 0.1s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-observability-trace {
+  from { opacity: 0.2; }
+  to { opacity: 1; }
 }""",
     ),
 }

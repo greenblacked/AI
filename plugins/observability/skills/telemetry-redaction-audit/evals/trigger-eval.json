@@ -1,0 +1,90 @@
+[
+ {
+  "query": "there are customer emails showing up in our traces",
+  "should_trigger": true
+ },
+ {
+  "query": "we accidentally logged a bearer token in production, what now",
+  "should_trigger": true
+ },
+ {
+  "query": "audit what our telemetry captures before the security review",
+  "should_trigger": true
+ },
+ {
+  "query": "scrub PII before logs leave the cluster",
+  "should_trigger": true
+ },
+ {
+  "query": "find credit card numbers in our application logs",
+  "should_trigger": true
+ },
+ {
+  "query": "our spans include full sql statements with user values",
+  "should_trigger": true
+ },
+ {
+  "query": "do any of our metric labels contain user ids or emails",
+  "should_trigger": true
+ },
+ {
+  "query": "set up a collector allow-list so only approved span attributes are exported",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I prove that a redaction change actually works across all services",
+  "should_trigger": true
+ },
+ {
+  "query": "authorization headers are captured in http span attributes, stop that",
+  "should_trigger": true
+ },
+ {
+  "query": "what is our lawful basis for keeping user logs and how do we answer deletion requests",
+  "should_trigger": false,
+  "expected": "data-privacy"
+ },
+ {
+  "query": "rotate the api key that was exposed in the repo",
+  "should_trigger": false,
+  "expected": "secret-rotation"
+ },
+ {
+  "query": "our log bill doubled, find the noisiest lines",
+  "should_trigger": false,
+  "expected": "log-volume-reduction"
+ },
+ {
+  "query": "write an audit trail of admin actions for compliance",
+  "should_trigger": false
+ },
+ {
+  "query": "the collector is dropping spans and queues are full",
+  "should_trigger": false,
+  "expected": "collector-backpressure-triage"
+ },
+ {
+  "query": "scan our repository history for committed secrets",
+  "should_trigger": false
+ },
+ {
+  "query": "add the right attributes to spans for a new service",
+  "should_trigger": false,
+  "expected": "instrumentation"
+ },
+ {
+  "query": "traces have missing parent spans",
+  "should_trigger": false,
+  "expected": "broken-trace-hunt"
+ },
+ {
+  "query": "a new label exploded our metric series count",
+  "should_trigger": false,
+  "expected": "cardinality-incident-response"
+ },
+ {
+  "query": "review this login flow for session fixation",
+  "should_trigger": false,
+  "expected": "auth-design"
+ }
+]

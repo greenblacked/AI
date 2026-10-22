@@ -1,0 +1,22 @@
+[
+  {"query": "df shows the root partition at 100% but du only adds up to a fraction of that, where did the space go", "should_trigger": true},
+  {"query": "I get No space left on device when creating files even though df -h shows 30 GB free", "should_trigger": true},
+  {"query": "we ran out of inodes on /var and I cannot create any new file", "should_trigger": true},
+  {"query": "which directory is eating my disk, the var volume filled up overnight", "should_trigger": true},
+  {"query": "I deleted a huge log file but the disk is still full", "should_trigger": true},
+  {"query": "journald is using forever of disk, how do I shrink it safely", "should_trigger": true},
+  {"query": "write failed, file system is full on the database host and the disk alert only fired at the very end", "should_trigger": true},
+  {"query": "docker overlay directory is huge and the server is out of space, what can I clear", "should_trigger": true},
+  {"query": "the volume looks half empty yet an LVM thin pool is complaining it is full", "should_trigger": true},
+  {"query": "a mail spool with millions of small files has made the disk unusable though bytes are free", "should_trigger": true},
+  {"query": "extend the lvm volume and resize the filesystem to give the data disk more room", "should_trigger": false, "expected": "volume-resize"},
+  {"query": "forecast when our storage will fill given growth over the next year", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "the whole outage is live and I need to run the incident and send updates", "should_trigger": false, "expected": "incident-response"},
+  {"query": "Permission denied writing to a directory the service owns", "should_trigger": false, "expected": "permission-denied-triage"},
+  {"query": "process was killed by the kernel for using too much memory", "should_trigger": false, "expected": "oom-kill-forensics"},
+  {"query": "service fails with too many open files error", "should_trigger": false, "expected": "resource-limit-exhaustion"},
+  {"query": "tune this slow database query with an execution plan", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "the unit exits with status=203/EXEC after install", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "server will not boot and drops into emergency mode", "should_trigger": false, "expected": "boot-failure-recovery"},
+  {"query": "design a backup and restore scheme for our database volumes", "should_trigger": false, "expected": "backup-recovery-design"}
+]
