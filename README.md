@@ -2,12 +2,12 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
-  <img alt="The seventeen plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data, techdocs, assurance, client-apps, product and platform" src="docs/assets/banner-light.svg" width="100%">
+  <img alt="The eighteen plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data, techdocs, assurance, client-apps, product, platform and devtools" src="docs/assets/banner-light.svg" width="100%">
 </picture>
 
 # Agent skills
 
-252 agent skills, 30 subagents and ten slash commands, in seventeen
+262 agent skills, 30 subagents and ten slash commands, in eighteen
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-252-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-262-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -67,14 +67,15 @@ and what the runtime does or does not enforce.
 | [`client-apps`](#client-apps) | Browser and mobile clients: field performance, hydration, memory, version skew, service workers, crashes, hangs, startup, battery, networks | 22 skills |
 | [`product`](#product) | Product and go-to-market: interviews, demand tests, design partners, premortems, pricing, metric diagnosis, activation, churn, win-loss, RFPs | 22 skills |
 | [`platform`](#platform) | Cloud and platform engineering: Kubernetes control plane, networking and storage, Terraform estates, cloud networks, identity, databases, the edge, commitments | 22 skills |
+| [`devtools`](#devtools) | Developer tooling and build systems: git recovery and rebases, monorepos, build caching, dependency conflicts, benchmarks | 10 skills |
 
-Install one plugin or all seventeen. Each is a self-contained directory under `plugins/` with
+Install one plugin or all eighteen. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
 
 Install what you will use, though, rather than everything by reflex. Every description you
 install stays resident in context, and Claude Code's default listing budget is about 8,000
 characters against this library's total — `make validate` prints the current figure — so
-installing all seventeen at the default drops most of them, silently. The Install section
+installing all eighteen at the default drops most of them, silently. The Install section
 below says what to set instead.
 
 ## The FAMILY workflow
@@ -118,7 +119,7 @@ if a deploy fails its check and rolls back, the previous one keeps serving.
 
 | Page | What it shows |
 | --- | --- |
-| [Home](https://ai.szolotov.com) | The seventeen plugins with their skill counts, and a search across plugins and skill names |
+| [Home](https://ai.szolotov.com) | The eighteen plugins with their skill counts, and a search across plugins and skill names |
 | `/plugins/<plugin>/` | One page per plugin: what it covers, its install line and its skills |
 | `/plugins/<plugin>/<skill>/` | One page per skill: its description, install line and allowed tools when it declares them, the full procedure, its reference files, and the requests it fires on and hands elsewhere |
 | [FAMILY](https://ai.szolotov.com/family/) | The one page that is not generated from a plugin's own files: the Frame–Architect–Make–Inspect–Launch–Yield workflow, drawn as a stage-by-stage guide with the four profiles |
@@ -173,7 +174,7 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`career`, `llm` and `personal` fit the default budget on their own. The other fourteen are over it —
+`career`, `llm` and `personal` fit the default budget on their own. The other fifteen are over it —
 each by enough that installed alone at least one of its descriptions is dropped — and the
 split exists to keep that number as small as it can be.
 
@@ -184,7 +185,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.24 }
+{ "skillListingBudgetFraction": 0.25 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -702,6 +703,23 @@ Cloud and platform engineering for the situations that recur and hurt: an overlo
 | [`restore-canary`](plugins/platform/skills/restore-canary/SKILL.md) | Build a scheduled, unattended restore of the newest database backup into a throwaway instance, verified and torn down daily, so "we have backups" becomes a measurement rather than a belief. Fails first when the newest backup is older than its interval, restores into an isolated scratch target, compares row counts and checksums on key tables over a closed watermark range, runs a canary query suite, records restore duration against the RTO, tears down on every exit path, and alerts on a missed run as loudly as a failed one. |
 | [`spot-readiness`](plugins/platform/skills/spot-readiness/SKILL.md) | Make workloads survive spot or preemptible capacity being reclaimed, and decide which must not run there: classify each workload by its recovery time against the interruption notice (two minutes on AWS, 30 seconds on GCP and Azure), diversify across many instance types and every zone, run exactly one interruption handler that cordons and drains, enforce an on-demand floor at the pod level rather than the node group, and prove it by interrupting a spot node under load while the SLO holds. |
 | [`workload-identity`](plugins/platform/skills/workload-identity/SKILL.md) | Replace static cloud keys with federated identity for pods and CI: IRSA or EKS Pod Identity, GKE and Azure workload identity, GitHub Actions OIDC. The trust policy pins issuer, audience and the exact subject (repository plus branch or environment; namespace plus service account), never a wildcard; one role per workload, short sessions; gate: a deliberate failed assumption from an unlisted repository or service account, and only then disable and delete the old keys. |
+
+### Devtools
+
+Developer tooling and build systems: recovering lost git history, untangling rebases and dependency conflicts, finding why a build cache misses, building only what changed in a monorepo, and measuring before claiming anything got faster.
+
+| Skill | What it does |
+| --- | --- |
+| [`affected-build-selection`](plugins/devtools/skills/affected-build-selection/SKILL.md) | Makes a monorepo build and test only what a change can affect, without missing a regression. Affected means the change set against the merge-base mapped through the dependency graph in reverse; each step has a failure: a shallow checkout that degrades to everything or nothing, files outside the graph (lockfile, toolchain, CI config) not declared as global inputs, and a selection never proved sound. Uses the tool's query (turbo --filter with a git ref, nx affected --base), replays the last 50 merged PRs against a full run for zero false negatives, and keeps a full run on main and nightly. Use whenever someone says "CI runs everything on every PR", "set up nx affected", "turbo missed a break", "which projects depend on this library". |
+| [`benchmark-methodology`](plugins/devtools/skills/benchmark-methodology/SKILL.md) | Designs a trustworthy benchmark comparing two implementations, libraries or configurations, and gates CI on it without flaking. States the question and decision, controls the machine (pinned cores, fixed governor), warms up, runs separate processes, consumes results so the compiler cannot delete the work, interleaves A and B, and reports a median with a bootstrap confidence interval, calling a difference only when it clears the noise floor from an A/A run. For shared CI runners it gates on a stable metric such as instruction counts, with a threshold from A/A variance. |
+| [`branch-rebase-repair`](plugins/devtools/skills/branch-rebase-repair/SKILL.md) | Rescues a branch whose rebase or merge produces dozens of bogus conflicts, usually because its base was squash-merged, cherry-picked or rewritten. Diagnoses first (the branch carries commits whose content already landed under other SHAs), finds the real boundary with merge-base --fork-point and the reflog, replays only your own commits with rebase --onto (--update-refs for a stack), turns on rerere, previews with merge-tree --write-tree, and proves nothing was lost with range-diff. Use whenever someone says "I rebased onto main and got 60 conflicts", "my stacked PR parent was squash merged", "my branch has the commits of a PR that already landed", "two-week-old feature branch won't rebase". |
+| [`build-cache-miss-hunt`](plugins/devtools/skills/build-cache-miss-hunt/SKILL.md) | Explains why a build or task cache keeps missing, then removes the volatile input. Measures hit rate per task type and the cold-then-warm ceiling on one commit, diffs the input hashes of a single task between two runs (turbo dry-run JSON, Gradle debug caching output, Bazel execution log), and checks culprits by frequency: absolute paths, leaked environment variables, stamped timestamps or SHAs, tool version drift, unordered output, globs over build output. |
+| [`dependency-resolution-conflict`](plugins/devtools/skills/dependency-resolution-conflict/SKILL.md) | Untangles an install that refuses to resolve, outside a planned major upgrade. Reads the whole conflict chain, names the two requirers that disagree and who owns each constraint (npm explain, pnpm why, pipdeptree --reverse, mvn dependency:tree -Dverbose, gradle dependencyInsight, go mod why -m), classifies it as stale requester, over-strict peer or real incompatibility, then fixes in order: upgrade the requester, constrain at one level, override, and a bypass flag last and never in CI config. Records each override with its removal condition. Use whenever someone says "npm ERESOLVE unable to resolve dependency tree", "pip ResolutionImpossible", "Maven dependency convergence failure", "adding one package breaks the install". |
+| [`git-history-purge`](plugins/devtools/skills/git-history-purge/SKILL.md) | Removes a committed secret, huge binary or private file from every ref, or shrinks a bloated repository. Rotates a credential first because a rewrite never un-leaks it, measures the real culprits with count-objects and a cat-file blob listing, rewrites a fresh mirror clone with git filter-repo (git lfs migrate when files must stay), never filter-branch. Then the skipped step: the host still serves old objects through refs/pull and cached views, so list them, request a host purge, have every collaborator re-clone, and verify with a second listing and a secret scanner. Use whenever someone says "someone committed a 400 MB file", "our clone takes ten minutes", "purge this key from history", "move our assets to LFS". |
+| [`git-history-recovery`](plugins/devtools/skills/git-history-recovery/SKILL.md) | Gets back commits, branches, stashes or a force-pushed tip that look gone. Freezes the repository first (gc.auto off, a copy of .git), then searches cheapest to costliest: reflog and ORIG_HEAD, fsck for dropped stashes and unreachable commits, the hosting push event or a teammate's remote-tracking ref for a force push. Restores onto a new branch, never by resetting the damaged one, proves completeness with diff and range-diff, and says what git cannot recover. Use whenever someone says "I ran reset --hard and lost my commits", "I dropped the wrong stash", "my rebase ate half the branch", "someone force-pushed over main", "detached HEAD and my work vanished". |
+| [`partial-release-recovery`](plugins/devtools/skills/partial-release-recovery/SKILL.md) | Recovers a release that stopped halfway, with some artefacts published and others not. Lists each step (registry, tag, GitHub release, image, docs) with its state and whether it can be undone, treats registries as append-only so a bad or half-finished version is rolled forward and the old one marked (npm deprecate, cargo yank, PyPI yank, go.mod retract), finishes idempotent steps only when the digest matches the tested build, then puts the irreversible step last. |
+| [`phantom-dependency-audit`](plugins/devtools/skills/phantom-dependency-audit/SKILL.md) | Finds imports that work only through hoisting or an accidental transitive install, and declared dependencies nothing uses. Makes the environment strict rather than reading code: install without hoisting (pnpm's isolated layout) or resolve in a fresh virtualenv holding only the declared set, let failures list the phantoms, then cross-check with knip, depcheck, deptry, go mod tidy -diff or cargo machete; treat their output as candidates. Declares phantoms at the range actually tested, removes unused ones in batches, and adds the strict install to CI. |
+| [`slow-build-profile`](plugins/devtools/skills/slow-build-profile/SKILL.md) | Profiles a slow compile or bundle and attacks the biggest cost first. Takes three numbers before any change (clean build, incremental build after a one-line edit, no-op build), treats a no-op that does real work as a broken up-to-date check, then uses the toolchain's own profile (cargo build --timings, tsc --extendedDiagnostics, clang -ftime-trace with ClangBuildAnalyzer, Gradle --profile, ninja -d explain) and ranks by total time times fan-out. Fixes generated-file rewrites first, then the widest fan-out, then parallelism, and reports before and after. |
 
 ## Subagents
 
