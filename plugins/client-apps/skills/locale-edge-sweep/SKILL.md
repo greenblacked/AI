@@ -1,6 +1,6 @@
 ---
 name: locale-edge-sweep
-description: "Find internationalisation defects by sweeping every screen through a fixed hostile locale set, not whichever language is next on the roadmap. Externalise strings as ICU plural and select messages, then sweep: a pseudo-locale with about 40 percent expansion, Turkish dotless i in case mapping, right-to-left with logical properties, German compound words, Thai and Japanese without spaces, collation for sort and search, name and address formats, and numbers, currency and dates via the platform formatter; then gate it in CI. Use when someone says \"we need to support Arabic\", \"the layout breaks in German\", \"plurals are wrong in Polish\" or \"Swedish names sort wrong\". Not for English UI wording (content-design), breakpoints and screen sizes (responsive-design), a game's localisation pipeline (game-localisation), or dates on the wrong day or hour (datetime-bug-hunt)."
+description: "Find internationalisation defects by sweeping every screen through a fixed hostile locale set, not the next market's language. Externalise strings as ICU messages, then sweep: a pseudo-locale with about 40 percent expansion, Turkish dotless i in case mapping, right-to-left with logical properties, German compounds, Thai and Japanese without spaces, collation for sorting, name and address formats, and numbers, currency and dates via the platform formatter; gate it in CI. Use when someone says \"we need to support Arabic\", \"the layout breaks in German\", \"plurals are wrong in Polish\" or \"Swedish names sort wrong\". Not for English UI wording (content-design), breakpoints (responsive-design), a game's localisation pipeline (game-localisation), dates on the wrong day or hour (datetime-bug-hunt), or what users type into a field - IME, normalisation, user-entered bidi (text-input-edge-cases)."
 allowed-tools: Read, Grep, Glob, Edit, Write
 ---
 
@@ -28,7 +28,9 @@ Do not use for: the English wording of labels and errors (`content-design`); lay
 across screen sizes (`responsive-design`), though expansion and RTL are found here; a
 game's string tables, fonts per script, voice and linguistic QA (`game-localisation`); a
 date on the wrong day or hour, which is a time-zone bug rather than a locale one
-(`datetime-bug-hunt`); WCAG conformance (`accessibility-audit`).
+(`datetime-bug-hunt`); WCAG conformance (`accessibility-audit`); what users type into a
+field — IME composition, Unicode normalisation, user-entered right-to-left text and
+matching what they typed (`text-input-edge-cases`).
 
 ## Hard gates
 
@@ -90,7 +92,7 @@ Switch the app to each locale and walk the same screens. Each locale targets a m
 | `de-DE` | Long compound words, `ß` uppercasing to `SS` | Words that overflow instead of wrapping; buttons that grow off screen |
 | `tr-TR` | Case mapping: `i`↔`İ`, `ı`↔`I` | Identifiers, keys, enum names or emails uppercased or lowercased with the default locale |
 | `ar`, `he-IL` | Right-to-left layout and mixed-direction text | Physical left/right in layout; arrows that do not mirror; a Latin username or phone number scrambling the sentence around it |
-| `ja-JP`, `th-TH` | No spaces between words; input methods | Truncation or word counts that split on spaces; Enter submitting a form mid-composition; clipped tall glyphs in Thai |
+| `ja-JP`, `th-TH` | No spaces between words; input methods | Truncation or word counts that split on spaces; clipped tall glyphs in Thai; typing in these scripts is `text-input-edge-cases` |
 | `pl-PL`, `ar` | Plural categories beyond one and other | Polish needs `2 pliki` but `5 plików`, so a one-or-other message is wrong for one of them; Arabic has a dual |
 | `sv-SE`, `de-DE` | Collation | `å`, `ä`, `ö` sort after `z` in Swedish but beside `a` in German |
 | `fr-FR`, `en-IN`, `de-CH` | Number grouping and separators | Narrow no-break space as a group separator in French; `12,34,567` in Indian English; a parser that only accepts `.` |
@@ -113,17 +115,17 @@ running the sweep.
   `inset-inline-start`, `text-align: start`) on the web; `start`/`end` and
   `android:supportsRtl="true"` on Android, with Lint's `RtlHardcoded`; leading and
   trailing constraints on iOS. Mirror icons that show direction (back, forward, reply);
-  leave clocks, checkmarks and media playback controls alone. Isolate user-supplied text
-  inside a sentence with `<bdi>`, `dir="auto"` or the Unicode first-strong isolate.
+  leave clocks, checkmarks and media playback controls alone. Direction of text users typed
+  is `text-input-edge-cases`.
 - **Segmentation:** break, count and truncate with the platform's segmenter —
   `Intl.Segmenter`, ICU `BreakIterator` (`android.icu.text.BreakIterator`), or
   `enumerateSubstrings(in:options:)` with `.byWords` on Apple platforms — and truncate by
-  grapheme cluster so an emoji or a combining mark is not cut in half. In a web form, do
-  not act on Enter while `event.isComposing` is true.
+  grapheme cluster so an emoji or a combining mark is not cut in half. Composition and
+  Enter handling in fields is `text-input-edge-cases`.
 - **Collation and search:** sort with `Intl.Collator` or `localeCompare` with an
   explicit locale, `java.text.Collator.getInstance(locale)`, or `localizedStandardCompare`;
-  match search with a collator at base sensitivity so `é` finds `e`. Check the database
-  collation too; a sort done in SQL ignores the client's collator.
+  a sort done in SQL ignores the client's collator, so check the database collation too.
+  Matching what users typed (`é` finding `e`) is `text-input-edge-cases`.
 - **Formats:** `Intl.NumberFormat`, `Intl.DateTimeFormat`, `Intl.ListFormat` and
   `Intl.PluralRules` on the web; `android.icu.text` and resource `<plurals>` on Android;
   `FormatStyle`, String Catalogs and `PersonNameComponentsFormatter` on Apple platforms.

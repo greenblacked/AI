@@ -5,7 +5,7 @@
   {"query": "our plural strings say '2 plików' in Polish and translators say that's wrong", "should_trigger": true},
   {"query": "contacts list sorts Swedish names with Ö in the middle instead of at the end", "should_trigger": true},
   {"query": "how do I set up a pseudo-locale so we catch hard-coded and clipped strings before translation", "should_trigger": true},
-  {"query": "the Japanese keyboard submits the search form when the user presses enter to pick a kanji", "should_trigger": true},
+  {"query": "our back and reply arrows point the wrong way in Arabic and the clock icon flipped too, which icons should mirror in right-to-left", "should_trigger": true},
   {"query": "prices show as 1,234.50 € for our French customers, how should money be formatted per locale", "should_trigger": true},
   {"query": "add a CI check that fails when someone ships a hard-coded string or breaks right-to-left", "should_trigger": true},
   {"query": "Thai text in our cards never wraps and runs off the edge of the screen", "should_trigger": true},
@@ -16,7 +16,7 @@
   {"query": "can a screen reader user get through checkout, audit it against WCAG 2.2", "should_trigger": false, "expected": "accessibility-audit"},
   {"query": "the address form validates too early and puts the error under the wrong field", "should_trigger": false, "expected": "form-design"},
   {"query": "set up colour and spacing tokens so the dark theme stops drifting from the light one", "should_trigger": false, "expected": "design-system"},
-  {"query": "write the developer guide for our public SDK, including a getting-started page", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "the Japanese keyboard submits the search form when the user presses enter to pick a kanji", "should_trigger": false, "expected": "text-input-edge-cases"},
   {"query": "the app download is 280MB and the localised image assets are a big part of it", "should_trigger": false, "expected": "app-size-budget"},
   {"query": "decide how the navigation and labels should be grouped so users can find billing settings", "should_trigger": false, "expected": "information-architecture"}
 ]

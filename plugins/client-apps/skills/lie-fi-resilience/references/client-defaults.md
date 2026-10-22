@@ -38,7 +38,7 @@ cannot.
 | `408`, `429`, `502`, `503`, `504` | Yes | Honour `Retry-After` when present, within the deadline |
 | `500` | Usually, within the budget | Repeated `500` on one request is a bug, not a network condition |
 | Other `4xx` | No | The same request fails the same way; surface it |
-| `2xx` with an unexpected content type or unparseable body | No, treat as network failure | Captive portal or proxy; never cache it |
+| `2xx` with an unexpected content type or unparseable body | Yes, as a network failure | Captive portal or proxy; count it toward the offline state and never cache it |
 
 ## Backoff and budgets
 

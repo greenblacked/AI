@@ -1,6 +1,6 @@
 ---
 name: text-input-edge-cases
-description: "Harden text fields against what people really type, paste and autofill: count graphemes with Intl.Segmenter rather than .length, ignore Enter during IME composition, normalise to NFC before comparing or storing, trim once at the storage boundary, never reject a name with a pattern, keep client and server limits in one unit, and test every field against a fixed corpus - ZWJ emoji, combining marks, right-to-left text, 4-byte characters, pasted control characters, autofill. Use when \"emoji breaks the character limit\", \"Enter submits while Japanese users are still typing\", \"names with apostrophes are rejected\", \"two usernames look identical\" or text turns into question marks in the database. Not for form layout, validation timing and error placement (form-design), the wording of hints and errors (content-design), or WCAG conformance (accessibility-audit)."
+description: "Harden text fields against what people type, paste and autofill: count graphemes with Intl.Segmenter rather than .length, ignore Enter during IME composition, normalise to NFC before comparing or storing, trim once when saving, never reject a name with a pattern, keep client and server limits in one unit, and test every field against a fixed corpus - ZWJ emoji, combining marks, right-to-left text, 4-byte characters, autofill. Use when \"emoji breaks the character limit\", \"Enter submits while Japanese users are still typing\", \"names with apostrophes are rejected\", \"two usernames look identical\" or text turns into question marks in the database. Not for form layout and error placement (form-design), the wording of hints and errors (content-design), or WCAG conformance (accessibility-audit), or translating and formatting the product's UI per locale (locale-edge-sweep)."
 allowed-tools: "Read, Grep, Glob, Edit"
 ---
 
@@ -14,7 +14,7 @@ The usual failure is validation written and tested against ASCII: `value.length`
 
 Use for fields that accept human text: names, usernames and handles, free-text messages and bios, search boxes, addresses, codes and phone numbers, and the APIs and columns behind them. Covers counting, composition, normalisation, trimming, paste and autofill, right-to-left display and lossless storage.
 
-Leave elsewhere: field order, validation timing and error placement (`form-design`); the words in labels, hints and errors (`content-design`); WCAG conformance of the form (`accessibility-audit`); iOS zooming into inputs with small text and other Safari-only layout bugs (`webkit-only-bug-triage`).
+Leave elsewhere: field order, validation timing and error placement (`form-design`); the words in labels, hints and errors (`content-design`); WCAG conformance of the form (`accessibility-audit`); translating UI strings and formatting numbers, dates and plurals per locale, and mirroring the UI for right-to-left (`locale-edge-sweep`); iOS zooming into inputs with small text and other Safari-only layout bugs (`webkit-only-bug-triage`).
 
 ## Gates
 
@@ -75,7 +75,7 @@ Autofill sets the value and fires `input` and `change`, not `keydown` or `keyup`
 
 ### 8. Display it back without reordering
 
-Set `dir="auto"` on text inputs and on elements that display user text, so a Hebrew or Arabic name is laid out right to left. Wrap user text embedded in a sentence in `<bdi>`, so `שלום posted 3 comments` does not pull the surrounding punctuation and numbers into the wrong order. Check the corpus renders without empty boxes in the product's fonts.
+Mirroring the surrounding UI for right-to-left locales is `locale-edge-sweep`; this step is only about text users typed. Set `dir="auto"` on text inputs and on elements that display user text, so a Hebrew or Arabic name is laid out right to left. Wrap user text embedded in a sentence in `<bdi>`, so `שלום posted 3 comments` does not pull the surrounding punctuation and numbers into the wrong order. Check the corpus renders without empty boxes in the product's fonts.
 
 ### 9. Store without loss
 

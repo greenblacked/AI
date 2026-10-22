@@ -94,7 +94,10 @@ combination finds a different class of bug.
 ### French (`fr-FR`), Indian English (`en-IN`), Swiss German (`de-CH`)
 
 - `1234567.89` formats as `1 234 567,89` in French, with a narrow no-break space;
-  `12,34,567.89` in Indian English; `1’234’567.89` in Swiss German.
+  `12,34,567.89` in Indian English; and in Swiss German an apostrophe as the group
+  separator. Its code point differs between CLDR versions (U+2019 in older, U+0027 in
+  newer; Node 22 with ICU 78 prints U+0027), so assert the group separator via
+  `formatToParts` rather than a literal string.
 - A number parser accepts what the same locale's formatter produced.
 
 ### Hungarian (`hu-HU`)

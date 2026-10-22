@@ -28,14 +28,16 @@ import { setupServer } from 'msw/node';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-const held = new Map(); // query string -> { promise, resolve }
+const held = new Map(); // query string -> { promise, resolve, handled }
 
 const server = setupServer(
   http.get('*/api/search', async ({ request }) => {
     const q = new URL(request.url).searchParams.get('q');
     const gate = Promise.withResolvers();
-    held.set(q, gate);
+    const handled = Promise.withResolvers();
+    held.set(q, { ...gate, handled });
     await gate.promise;
+    handled.resolve();                                   // runs whether or not the client aborted
     return HttpResponse.json({ results: [`result for ${q}`] });
   }),
 );
@@ -54,21 +56,17 @@ test('the latest query wins when responses arrive in reverse order', async () =>
   held.get('ab').resolve();
   expect(await screen.findByText('result for ab')).toBeInTheDocument();
 
-  const staleDone = new Promise((resolve) => {
-    server.events.on('response:mocked', ({ request }) => {
-      if (new URL(request.url).searchParams.get('q') === 'a') resolve();
-    });
-  });
   await act(async () => {
     held.get('a').resolve();                             // the stale one arrives last
-    await staleDone;                                     // its response has been delivered
+    await held.get('a').handled.promise;                 // the server has answered it
+    await new Promise((resolve) => setTimeout(resolve, 0)); // let the client process the reply
   });
   expect(screen.queryByText('result for a')).not.toBeInTheDocument();
   expect(screen.getByText('result for ab')).toBeInTheDocument();
 });
 ```
 
-Use `waitFor` from Testing Library instead of `vi.waitFor` under Jest. Import `act` from `@testing-library/react`. The test waits on MSW's `response:mocked` lifecycle event rather than a fixed delay, so the stale response has been delivered before the assertion runs; revert the fix once and confirm the test fails.
+Use `waitFor` from Testing Library instead of `vi.waitFor` under Jest. Import `act` from `@testing-library/react`. The test waits on a signal the handler itself raises, not on MSW's `response:mocked` event, because that event may never fire for a request the code aborted and the test would hang. Revert the fix once and confirm the test fails.
 
 ## Debounced inputs with fake timers
 

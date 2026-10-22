@@ -15,7 +15,7 @@
   {"query": "this json parsing function is eating 300ms of cpu, how do I profile it", "should_trigger": false, "expected": "profiling"},
   {"query": "our docker image is 2GB, how do we slim it down", "should_trigger": false, "expected": "image-hardening"},
   {"query": "our ci build for the ios app takes 40 minutes, how do we speed it up", "should_trigger": false, "expected": "ci-pipeline-design"},
-  {"query": "the web bundle is huge and LCP is poor on mobile in search console", "should_trigger": false},
+  {"query": "the web bundle is huge and LCP is poor on mobile in search console", "should_trigger": false, "expected": "web-vitals-triage"},
   {"query": "upgrading to the next major version of the android gradle plugin, what's the plan", "should_trigger": false, "expected": "dependency-upgrade"},
   {"query": "our app uses too much battery in the background", "should_trigger": false, "expected": "battery-drain-diagnosis"},
   {"query": "app gets killed by the OS for using too much memory on older iphones", "should_trigger": false, "expected": "anr-watchdog-triage"}
