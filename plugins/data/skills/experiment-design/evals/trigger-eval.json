@@ -18,5 +18,5 @@
   {"query": "the sniper rifle has a 61% win rate in high ranks, is it overpowered and what number should we change", "should_trigger": false, "expected": "game-balance"},
   {"query": "build a rolling-origin backtest for our weekly demand forecast and compare it with seasonal naive", "should_trigger": false, "expected": "forecast-backtesting"},
   {"query": "our churn model scores 0.97 AUC and that seems too good, check whether a feature is leaking the label", "should_trigger": false, "expected": "feature-leakage-audit"},
-  {"query": "set up a load test to see whether the checkout service survives Black Friday traffic", "should_trigger": false, "expected": "capacity-planning"}
+  {"query": "how many visitors does our painted-door test need before we decide", "should_trigger": false, "expected": "fake-door-test"}
 ]

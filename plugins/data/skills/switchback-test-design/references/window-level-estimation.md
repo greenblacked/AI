@@ -23,7 +23,7 @@ SELECT
   COUNT(t.trip_id)                 AS trips,
   AVG(t.pickup_seconds)            AS mean_pickup_seconds,
   COALESCE(SUM(t.fare), 0)         AS gross_fare,
-  COALESCE(SUM(CASE WHEN t.served_arm IS DISTINCT FROM w.arm THEN 1 ELSE 0 END), 0)
+  COALESCE(SUM(CASE WHEN t.trip_id IS NOT NULL AND t.served_arm IS DISTINCT FROM w.arm THEN 1 ELSE 0 END), 0)
                                    AS trips_served_other_arm
 FROM switchback_windows AS w            -- the realised windows, one row each
 LEFT JOIN trips AS t
@@ -33,7 +33,7 @@ LEFT JOIN trips AS t
 GROUP BY w.region, w.day, w.slot, w.block, w.cluster, w.arm;
 ```
 
-The `LEFT JOIN` keeps a window with no trips, which is a real observation (a quiet window in a small region) rather than a missing one; an inner join would silently delete it and then drop its whole block. `COUNT(t.trip_id)` counts trips, not the single null row an empty window produces. Do not filter on `t.served_arm = w.arm` in the join: that would discard the very trips that show the switch is late and would leave the mismatch rate unmeasurable. `IS DISTINCT FROM` also counts a trip whose `served_arm` was never logged, which `<>` would skip because comparing with null is never true. A non-trivial share in `trips_served_other_arm` means the switch is not propagating as fast as the washout assumes; analyse as scheduled, then re-run excluding those trips as a check. A window with zero trips has a null mean: decide in the plan whether it is dropped with its block or scored as zero, before looking.
+The `LEFT JOIN` keeps a window with no trips, which is a real observation (a quiet window in a small region) rather than a missing one; an inner join would silently delete it and then drop its whole block. `COUNT(t.trip_id)` counts trips, not the single null row an empty window produces, and the `t.trip_id IS NOT NULL` test keeps that null row from counting as a mismatch (`IS DISTINCT FROM` is true for a null `served_arm`). `AVG` skips the null row and `SUM(t.fare)` is wrapped in `COALESCE`, so the other aggregates need no guard. Do not filter on `t.served_arm = w.arm` in the join: that would discard the very trips that show the switch is late and would leave the mismatch rate unmeasurable. `IS DISTINCT FROM` also counts a trip whose `served_arm` was never logged, which `<>` would skip because comparing with null is never true. A non-trivial share in `trips_served_other_arm` means the switch is not propagating as fast as the washout assumes; analyse as scheduled, then re-run excluding those trips as a check. A window with zero trips has a null mean: decide in the plan whether it is dropped with its block or scored as zero, before looking.
 
 Decide in the plan whether a window's outcome is a per-window mean (each window weighs the same) or a total, and whether windows are weighted by volume. Equal weighting is the simpler default and matches the randomisation.
 
@@ -83,6 +83,9 @@ import pandas as pd
 import statsmodels.formula.api as smf
 
 df = pd.read_csv("windows.csv")
+# Keep complete rows only: the formula fit drops null outcomes itself, and the
+# unaligned groups series would then be longer than the data it clusters.
+df = df.dropna(subset=["mean_pickup_seconds"]).reset_index(drop=True)
 df["treat"] = (df["arm"] == "treatment").astype(int)
 
 fit = smf.ols("mean_pickup_seconds ~ treat + C(block)", data=df).fit(

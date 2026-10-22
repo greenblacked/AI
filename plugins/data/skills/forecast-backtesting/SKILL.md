@@ -44,7 +44,7 @@ Choose a sequence of forecast origins spaced at the cadence the forecast will ac
 
 Never shuffle. Time-series rows are correlated with their neighbours, so a random split puts near-copies of each test point in training and reports an error the model will never achieve.
 
-Libraries have this built in, and each takes the horizon and spacing explicitly: `StatsForecast.cross_validation(df=..., h=..., step_size=..., n_windows=...)` in Nixtla's `statsforecast`, `prophet.diagnostics.cross_validation(model, horizon=..., period=..., initial=...)` in Prophet, and `sklearn.model_selection.TimeSeriesSplit(n_splits=..., test_size=..., gap=...)` for feature-based models, where `gap` models the data latency. Read `references/backtest-harness.md` for a library-free loop and the scoring code.
+Libraries have this built in, and each takes the horizon and spacing explicitly: `sf = StatsForecast(models=..., freq=...)` then `sf.cross_validation(df=..., h=..., step_size=..., n_windows=...)` in Nixtla's `statsforecast`, `prophet.diagnostics.cross_validation(model, horizon=..., period=..., initial=...)` in Prophet, and `sklearn.model_selection.TimeSeriesSplit(n_splits=..., test_size=..., gap=...)` for feature-based models, where `gap` models the data latency. Read `references/backtest-harness.md` for a library-free loop and the scoring code.
 
 ### 4. Score the baselines first
 
@@ -56,7 +56,7 @@ If no candidate beats seasonal naive by a margin you can defend, stop and ship s
 
 Use an error that compares across series and sizes:
 
-- **MASE**: mean absolute error divided by the in-sample mean absolute error of seasonal naive. Below 1 means better than the in-sample one-step seasonal naive; the bar is the seasonal naive's own backtest MASE at the same horizon, which is usually above 1 beyond one step.
+- **MASE**: mean absolute error divided by the in-sample mean absolute error of seasonal naive. Below 1 means better than the in-sample seasonal naive; the bar is the seasonal naive's own backtest MASE at the same horizon. Up to one season ahead, seasonal naive forecasts each step from the value one season earlier, which is the error the MASE scale uses, so its MASE stays near 1; beyond one season it rises.
 - **WAPE**: sum of absolute errors over sum of actuals. Reads as a percentage and is weighted by volume, which matches most business decisions.
 
 Avoid MAPE when actuals reach or approach zero: it is undefined at zero and explodes near it, so intermittent series dominate the average. Report **bias** separately (sum of forecast minus actual over sum of actuals): an unbiased model with a large error and a biased one with a small error need different fixes, and planners care about the sign.

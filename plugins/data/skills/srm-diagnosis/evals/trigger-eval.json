@@ -13,7 +13,7 @@
   {"query": "how many users do we need for a test that can detect a 1% change in conversion", "should_trigger": false, "expected": "experiment-design"},
   {"query": "in our dispatch switchback two hourly windows were skipped during an outage; how do we analyse what remains", "should_trigger": false, "expected": "switchback-test-design"},
   {"query": "we launched a new onboarding flow to everyone on 1 September; estimate its effect on retention without an experiment", "should_trigger": false, "expected": "causal-inference-review"},
-  {"query": "events from the mobile app stopped arriving in the warehouse yesterday afternoon", "should_trigger": false},
+  {"query": "events from the mobile app stopped arriving in the warehouse yesterday afternoon", "should_trigger": false, "expected": "data-quality-checks"},
   {"query": "our feature store serves stale values for some users, so the live model behaves differently from training", "should_trigger": false, "expected": "serving-skew-replay"},
   {"query": "the deployed churn model's prediction distribution has shifted; should we retrain", "should_trigger": false, "expected": "model-drift-monitoring"},
   {"query": "make the feature flag assignment sticky per user and safe when the config service is down", "should_trigger": false, "expected": "feature-flag-lifecycle"},

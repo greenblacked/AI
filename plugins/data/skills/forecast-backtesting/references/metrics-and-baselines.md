@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | MAE | mean of absolute errors | One series, one unit, and people think in that unit | Comparing series of different size |
 | RMSE | square root of mean squared error | Large misses cost disproportionately more | Comparing across series; a few outliers dominate |
-| MASE | MAE divided by the in-sample MAE of seasonal naive | Comparing across series and against the baseline; below 1 means better than the in-sample one-step seasonal naive; the bar is the seasonal naive's own backtest MASE at the same horizon | The training period has no seasonal variation, so the scale is near zero |
+| MASE | MAE divided by the in-sample MAE of seasonal naive | Comparing across series and against the baseline; below 1 means better than the in-sample seasonal naive; the bar is the seasonal naive's own backtest MASE at the same horizon, which stays near 1 up to one season ahead and rises beyond it | The training period has no seasonal variation, so the scale is near zero |
 | WAPE | sum of absolute errors divided by sum of actuals | Business series where high-volume items matter more | One huge series dominates and hides the rest; report by segment too |
 | MAPE | mean of absolute errors divided by actuals | Avoid for operational series | Any actual is zero or near zero; it also penalises over-forecasts more heavily than under-forecasts |
 | sMAPE | absolute error over the mean of absolute actual and forecast | Rarely; included because people ask | Asymmetric and unstable near zero despite the name |

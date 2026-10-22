@@ -18,5 +18,5 @@
   {"query": "the ramp to 25% looks healthy, can we promote the canary to 100% now", "should_trigger": false, "expected": "release-strategy"},
   {"query": "our weekly revenue forecast was off by 20% last month; backtest it properly against a naive baseline", "should_trigger": false, "expected": "forecast-backtesting"},
   {"query": "the model scores well offline but conversions dropped once it went live; compare served features with the training pipeline", "should_trigger": false, "expected": "serving-skew-replay"},
-  {"query": "win rates for the new hero are 58% after the patch, what should we nerf", "should_trigger": false, "expected": "game-balance"}
+  {"query": "weekly active users fell 12% on Tuesday and no experiment was running; is the drop real", "should_trigger": false, "expected": "metric-anomaly-triage"}
 ]
