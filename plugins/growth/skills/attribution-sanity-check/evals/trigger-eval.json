@@ -18,5 +18,6 @@
   {"query": "write a UTM naming standard for the whole team", "should_trigger": false, "expected": "campaign-tagging-standard"},
   {"query": "check that our email domain passes DMARC", "should_trigger": false, "expected": "email-authentication-rollout"},
   {"query": "our emails land in spam", "should_trigger": false, "expected": "deliverability-triage"},
-  {"query": "template pages for every city are not getting indexed", "should_trigger": false, "expected": "programmatic-seo-gate"}
+  {"query": "template pages for every city are not getting indexed", "should_trigger": false, "expected": "programmatic-seo-gate"},
+  {"query": "the revenue dashboard jumped 60% overnight and nobody knows why", "should_trigger": false, "expected": "metric-anomaly-triage"}
 ]

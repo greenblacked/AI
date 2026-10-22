@@ -16,7 +16,7 @@ The usual failure is arguing about attribution models while the data going into 
 
 Use for: deciding whether channel numbers are believable before shifting budget; explaining a large direct share; resolving a dispute between channel owners.
 
-Do not use for: two reports that disagree on one metric (`metric-reconciliation`), a ratio that moved and needs decomposing (`metric-movement-decomposition`), ad-account tuning (`paid-search-waste-audit`), landing-page copy (`message-match-audit`), or the definition of a good lead (`lead-quality-loop`).
+Do not use for: two reports that disagree on one metric (`metric-reconciliation`), a ratio that moved and needs decomposing (`metric-movement-decomposition`), ad-account tuning (`paid-search-waste-audit`), landing-page copy (`message-match-audit`), or the definition of a good lead (`lead-quality-loop`). A sudden, unexplained jump or drop in a metric is `metric-anomaly-triage`; estimating the effect of a non-randomised launch is `causal-inference-review`.
 
 ## Hard gates
 

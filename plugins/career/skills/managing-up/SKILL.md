@@ -14,7 +14,7 @@ The usual failure is waiting. People assume a manager knows what they do, what t
 
 Use for: setting up or repairing the standing relationship with a manager or a senior stakeholder who holds decisions, bringing bad news upward, disagreeing and committing, getting priorities to stop shifting, and asking for more scope.
 
-Do not use for: scripting one particular hard conversation, writing a review or promotion packet for a report (`growth-review`), formal status reports to a group, or asking for pay, level or a promotion case for yourself (`raise-negotiation`).
+Do not use for: scripting one particular hard conversation (`difficult-conversation`), writing a review or promotion packet for a report (`growth-review`), formal status reports to a group, or asking for pay, level or a promotion case for yourself (`raise-negotiation`).
 
 ## Workflow
 

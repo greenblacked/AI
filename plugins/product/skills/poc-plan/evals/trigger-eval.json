@@ -13,7 +13,7 @@
   {"query": "the tender asks 200 questions, help me answer them and decide whether to bid", "should_trigger": false, "expected": "rfp-response"},
   {"query": "we want to watch five people try the new prototype and see where they get stuck", "should_trigger": false, "expected": "usability-test-plan"},
   {"query": "is this customer problem real enough to build for, how do we find out before writing code", "should_trigger": false, "expected": "problem-validation"},
-  {"query": "set up an A/B test for the new onboarding checklist", "should_trigger": false},
+  {"query": "set up an A/B test for the new onboarding checklist", "should_trigger": false, "expected": "experiment-design"},
   {"query": "turn this feature request into a spec with acceptance criteria before we code it", "should_trigger": false, "expected": "feature-spec"},
   {"query": "our largest account is furious after the migration and threatening to leave", "should_trigger": false, "expected": "escalated-account-recovery"},
   {"query": "why do so many of our deals end with the buyer doing nothing", "should_trigger": false, "expected": "win-loss-review"},

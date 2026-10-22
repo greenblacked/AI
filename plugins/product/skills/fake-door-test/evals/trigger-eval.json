@@ -18,5 +18,6 @@
   {"query": "our game concept needs a go or no-go before we prototype it", "should_trigger": false, "expected": "game-greenlight"},
   {"query": "write the PRD for the export feature with acceptance criteria", "should_trigger": false, "expected": "feature-spec"},
   {"query": "run a premortem on the launch plan for the new pricing page", "should_trigger": false, "expected": "spec-premortem"},
-  {"query": "rewrite the button label and empty state on our settings page", "should_trigger": false, "expected": "content-design"}
+  {"query": "rewrite the button label and empty state on our settings page", "should_trigger": false, "expected": "content-design"},
+  {"query": "the feature is already built, size and schedule a 50/50 a/b test on signup conversion", "should_trigger": false, "expected": "experiment-design"}
 ]

@@ -44,6 +44,9 @@ Do not use for:
   keys that belonged only to a retired service is part of this skill.
 - **Dropping a resource from Terraform state while it keeps running.** That is
   `terraform-state`.
+- **Retiring a feature that customers depend on.** That is `feature-sunset`, which owns
+  the notice, the migration and the deprecation date; a resource with no customers comes
+  here.
 
 ## Hard gates
 

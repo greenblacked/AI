@@ -14,7 +14,7 @@ The usual failure is reading the result after the fact. A button gets 4% click-t
 
 Use for: testing demand for a feature, add-on, plan or new product before building it, with an in-product entry point or a landing page; deciding the threshold and sample size; reading the result.
 
-Do not use for: finding out whether the problem exists at all, which is `problem-validation` and comes first; delivering the service by hand once demand is shown, which is `concierge-mvp`; testing price points, which is `pricing-research`; rolling out a feature that already exists, which is `release-strategy`.
+Do not use for: finding out whether the problem exists at all, which is `problem-validation` and comes first; delivering the service by hand once demand is shown, which is `concierge-mvp`; testing price points, which is `pricing-research`; rolling out a feature that already exists, which is `release-strategy`; a properly powered user-level A/B test of a variant that is already built, which is `experiment-design`.
 
 ## Workflow
 

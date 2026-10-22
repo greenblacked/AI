@@ -27,7 +27,8 @@ interview programme and its guide; turning interview notes into findings with ow
 Do not use for: what a competitor is doing in public (`competitor-signal-watch`); customers
 who bought and then cancel or shrink (`churn-analysis`); rescuing a furious key account
 (`escalated-account-recovery`); interviewing prospects about a problem before there is a
-product to sell them (`problem-validation`). It is not a review of an individual rep's
+product to sell them (`problem-validation`); lead quality before an opportunity exists
+(`lead-quality-loop`); the buyer side of a deal, choosing what to buy (`vendor-evaluation`). It is not a review of an individual rep's
 performance: a buyer interview used to judge a rep stops being candid with the next buyer.
 
 ## Workflow

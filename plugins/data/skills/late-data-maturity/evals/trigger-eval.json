@@ -18,5 +18,6 @@
   {"query": "What plan was this customer on as of 1 March, as we knew it at the time?", "should_trigger": false, "expected": "as-of-history"},
   {"query": "The source team renamed a status code and our pipeline started miscounting cancelled orders.", "should_trigger": false, "expected": "upstream-change-defense"},
   {"query": "Our warehouse bill doubled since the new dashboards went live, which queries are scanning the most?", "should_trigger": false, "expected": "scan-cost-forensics"},
-  {"query": "The pipeline job is paging at 3am whenever it runs a few minutes late; should that alert page someone?", "should_trigger": false, "expected": "alert-design"}
+  {"query": "The pipeline job is paging at 3am whenever it runs a few minutes late; should that alert page someone?", "should_trigger": false, "expected": "alert-design"},
+  {"query": "weekly signups fell 25% on thursday and nothing shipped, did the metric really move", "should_trigger": false, "expected": "metric-anomaly-triage"}
 ]

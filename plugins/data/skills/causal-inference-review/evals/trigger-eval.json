@@ -18,5 +18,6 @@
   {"query": "which chart should I use to show conversion by region over twelve months to an exec audience", "should_trigger": false, "expected": "data-visualisation"},
   {"query": "set next quarter's key results for the growth team with a baseline and a target", "should_trigger": false, "expected": "okr-planning"},
   {"query": "our deployment frequency dropped after the reorg, read our DORA metrics and tell me what changed", "should_trigger": false, "expected": "delivery-review"},
-  {"query": "a model trained on last year's data scores suspiciously well, check whether any feature is only known after the outcome", "should_trigger": false, "expected": "feature-leakage-audit"}
+  {"query": "a model trained on last year's data scores suspiciously well, check whether any feature is only known after the outcome", "should_trigger": false, "expected": "feature-leakage-audit"},
+  {"query": "every ad platform claims the same signups, which channel really drove them", "should_trigger": false, "expected": "attribution-sanity-check"}
 ]

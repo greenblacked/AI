@@ -18,5 +18,6 @@
   {"query": "two of my best engineers quit this quarter, why are people leaving", "should_trigger": false, "expected": "retention-review"},
   {"query": "a lot of renewals are failing because cards are declining, how do we recover them", "should_trigger": false, "expected": "dunning-recovery"},
   {"query": "which vendor should we buy for our data warehouse, help me score the finalists", "should_trigger": false, "expected": "vendor-evaluation"},
-  {"query": "support tickets keep growing every month, what should we fix first", "should_trigger": false, "expected": "contact-reduction-review"}
+  {"query": "support tickets keep growing every month, what should we fix first", "should_trigger": false, "expected": "contact-reduction-review"},
+  {"query": "sales says the leads are junk before they ever become opportunities, how do we fix that", "should_trigger": false, "expected": "lead-quality-loop"}
 ]

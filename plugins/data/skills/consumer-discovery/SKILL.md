@@ -10,6 +10,8 @@ Done means every reader of the object has a name attached (a person, or a job wi
 
 The usual failure is trusting the access log. The log shows a service account, not the forty people who read the dashboard it refreshes; it shows nothing for a consumer querying through a data share or from another project; and 90 days of it cannot see the job that runs at year end. Discovery is resolving what the log shows and then looking for what it cannot.
 
+Do not use for: retiring a feature that customers depend on, with its notice, migration and deprecation timeline, which is `feature-sunset`; this skill finds the readers of a warehouse object.
+
 ## Workflow
 
 ### 1. Fix the object and the change

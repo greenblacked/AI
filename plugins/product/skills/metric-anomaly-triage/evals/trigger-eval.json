@@ -18,5 +18,6 @@
   {"query": "what SLO and error budget should the signup API have", "should_trigger": false, "expected": "slo-design"},
   {"query": "our latency alert pages us every night and it is never real, tune it", "should_trigger": false, "expected": "alert-design"},
   {"query": "build a clear chart of weekly signups by channel for the board deck", "should_trigger": false, "expected": "data-visualisation"},
-  {"query": "the finance report says 4,210 new customers and the product dashboard says 4,380 for the same month, which one is right", "should_trigger": false, "expected": "metric-reconciliation"}
+  {"query": "the finance report says 4,210 new customers and the product dashboard says 4,380 for the same month, which one is right", "should_trigger": false, "expected": "metric-reconciliation"},
+  {"query": "every monday sunday looks down 5% then fills in, when can we publish the daily number", "should_trigger": false, "expected": "late-data-maturity"}
 ]
