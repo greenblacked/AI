@@ -33,7 +33,8 @@ becomes Ready, which is `k8s-triage`; caching behaviour at the edge, which is
 `cdn-configuration`; timeouts from NAT, SNAT, ephemeral-port or conntrack exhaustion
 between the app and what it calls, which is `connection-exhaustion-hunt`; and a
 customer-wide outage that needs an incident commander, which
-is `incident-response`.
+is `incident-response`. What probe, `preStop` and disruption-budget values the pod spec
+should carry is `k8s-workloads`; this skill keeps the 502s and 504s the balancer sees.
 
 ## Workflow
 

@@ -14,7 +14,7 @@ An API is a promise, and the cost of a design mistake is paid by everyone who in
 
 Use for: designing a new HTTP or RPC interface; reviewing one before it ships or after it has; resource modelling and endpoint naming; error taxonomies and status code mapping; pagination, filtering and sorting; idempotency and retry semantics; deciding whether a change is breaking; choosing a versioning strategy; planning a deprecation.
 
-Do not use for: writing the implementation or scaffolding a service (`code-scaffold`), recording the decision between two competing designs for posterity (`decision-record`), rolling a change out gradually behind a flag (`release-strategy`), designing the underlying table schema before any migration exists (`schema-design`), or changing the database schema underneath it once it is live (`db-migration`).
+Do not use for: writing the implementation or scaffolding a service (`code-scaffold`), recording the decision between two competing designs for posterity (`decision-record`), rolling a change out gradually behind a flag (`release-strategy`), designing the underlying table schema before any migration exists (`schema-design`), changing the database schema underneath it once it is live (`db-migration`), wiring a CI check that diffs the OpenAPI document against the last release (`openapi-diff-gate`), or retiring a customer-facing feature or product rather than an API version (`feature-sunset`).
 
 ## Workflow
 
@@ -202,7 +202,7 @@ Report a design or a review in this shape:
 
 **A hand-written spec that drifts.** The document says the field is `customerId` and the service returns `customer_id`. Nothing fails; the schema simply becomes confidently wrong, and every new integration starts by discovering that it cannot be trusted.
 
-**Breaking changes shipped as additive.** Tightening validation, narrowing an enum value's meaning, or changing a default. The schema diff looks harmless and no tool objects, and the failure lands in a caller's production two weeks later where nobody can connect it to your release.
+**Breaking changes shipped as additive.** Tightening validation, narrowing an enum value's meaning, or changing a default. The schema diff looks harmless and no tool objects, and the failure lands in a caller's production two weeks later where nobody can connect it to your release. A structural spec diff in CI catches the part that shows up in the document, such as a new `required` field, a tighter constraint or a removed enum value, and `openapi-diff-gate` sets it up; a changed meaning behind an unchanged schema still needs a reviewer.
 
 **Deprecating without usage telemetry.** The announcement goes out, the window passes, the endpoint is switched off, and an integration nobody knew about breaks. Without per-caller usage you have no way to know when it is safe, so either the retirement never happens or it happens blind.
 

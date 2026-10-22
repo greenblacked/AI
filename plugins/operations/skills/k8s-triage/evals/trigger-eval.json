@@ -18,5 +18,8 @@
   {"query": "we want default-deny network policies on every namespace without breaking dns, how do we roll that out", "should_trigger": false, "expected": "k8s-network-policy"},
   {"query": "the e2e workflow has failed six times in a row at the kind cluster setup step", "should_trigger": false, "expected": "ci-triage"},
   {"query": "terraform plan wants to replace the eks node group, is that going to drain everything", "should_trigger": false, "expected": "iac-review"},
-  {"query": "our payment provider's API is timing out and checkout is failing, I'm IC, what first", "should_trigger": false, "expected": "incident-response"}
+  {"query": "our payment provider's API is timing out and checkout is failing, I'm IC, what first", "should_trigger": false, "expected": "incident-response"},
+  {"query": "the pvc is stuck pending with a volume node affinity conflict after we moved zones", "should_trigger": false, "expected": "k8s-storage"},
+  {"query": "how do we make our workloads survive spot instance reclaim without dropping requests", "should_trigger": false, "expected": "spot-readiness"},
+  {"query": "we need a plan to move from ingress-nginx to gateway api without downtime", "should_trigger": false, "expected": "gateway-api-migration"}
 ]

@@ -10,6 +10,8 @@ Done means every published figure carries a stated maturity: a publish time chos
 
 The usual failure is treating lateness as noise. Yesterday's total is published at 07:00, grows by 3% over the next week, and every Monday someone explains a drop that was only rows still in transit from offline mobile clients, a partner's nightly file or a payment processor's settlement feed. The fix is not a faster pipeline; it is knowing, per source, how much of a day exists at each age and saying so.
 
+Do not use for: a one-off "did this metric really move" question, where late rows are only one suspect among several (`metric-anomaly-triage`).
+
 ## Workflow
 
 ### 1. Confirm the figure moves because rows arrive, not because logic changed

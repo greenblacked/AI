@@ -18,5 +18,6 @@
   {"query": "latency is fine at 70% cpu and terrible at 85%, is that normal and what utilisation should we target", "should_trigger": false, "expected": "capacity-planning"},
   {"query": "memory climbs all day and the pod gets killed overnight, how do i find what's holding it", "should_trigger": false, "expected": "debugging"},
   {"query": "the totals come out one cent off for some orders and i've been staring at it for three hours", "should_trigger": false, "expected": "debugging"},
-  {"query": "is the new json parser really faster than the old one, i want a benchmark i can trust", "should_trigger": false, "expected": "benchmark-methodology"}
+  {"query": "is the new json parser really faster than the old one, i want a benchmark i can trust", "should_trigger": false, "expected": "benchmark-methodology"},
+  {"query": "our node server dies with javascript heap out of memory every few hours", "should_trigger": false, "expected": "node-memory-leak"}
 ]

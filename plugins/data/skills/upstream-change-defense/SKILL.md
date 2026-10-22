@@ -10,6 +10,8 @@ Done means a change in a source arrives as a named, quarantined event with a rep
 
 The usual failure is defending only against the change that breaks loudly. A dropped column fails the load and gets fixed the same morning. A status code reused for a new meaning, or an amount that switched from minor to major units, loads cleanly and is reported for weeks. Semantic change is the expensive half, and no schema check sees it.
 
+Do not use for: diagnosing a move that has already happened on a dashboard (`metric-anomaly-triage`); this skill prevents the next one.
+
 ## Workflow
 
 ### 1. Inventory the sources and their past surprises

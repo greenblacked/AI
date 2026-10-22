@@ -18,5 +18,6 @@
   {"query": "will the load balancer and service hold up at ten times traffic for the launch", "should_trigger": false, "expected": "capacity-planning"},
   {"query": "our TLS certificate on the load balancer expired last night, how do we automate renewal", "should_trigger": false, "expected": "certificate-automation"},
   {"query": "the service is returning 500 internal server error with a stack trace in our own handler", "should_trigger": false, "expected": "debugging"},
-  {"query": "add a redis cache in front of the product catalogue reads with sensible invalidation", "should_trigger": false, "expected": "application-caching"}
+  {"query": "add a redis cache in front of the product catalogue reads with sensible invalidation", "should_trigger": false, "expected": "application-caching"},
+  {"query": "what readiness probe and preStop values should our deployment use", "should_trigger": false, "expected": "k8s-workloads"}
 ]

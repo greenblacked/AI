@@ -17,6 +17,6 @@
   {"query": "our saved game loses inventory when the cloud copy is older than the local one", "should_trigger": false, "expected": "game-save-system"},
   {"query": "two players hit the same enemy at once and the server credits the kill to the wrong one", "should_trigger": false, "expected": "game-netcode"},
   {"query": "our game drops to 20 fps in the busy market scene on the steam deck", "should_trigger": false, "expected": "game-performance"},
-  {"query": "design an experiment to compare two onboarding flows and decide which converts better", "should_trigger": false},
+  {"query": "design an experiment to compare two onboarding flows and decide which converts better", "should_trigger": false, "expected": "experiment-design"},
   {"query": "run a playtest with eight strangers to see whether they understand the crafting menu", "should_trigger": false, "expected": "game-playtest"}
 ]

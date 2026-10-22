@@ -88,5 +88,6 @@
     "query": "how long should we bake the canary at 5 percent before we promote it",
     "should_trigger": false,
     "expected": "release-strategy"
-  }
+  },
+  {"query": "the load balancer logs a burst of 502s every time we deploy", "should_trigger": false, "expected": "intermittent-502-hunt"}
 ]

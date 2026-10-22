@@ -14,7 +14,7 @@ The job is hard because the process is almost always run backwards. Someone sees
 
 Use for: choosing between SaaS products, platforms or managed services; a build-versus-buy decision; a renewal where switching is genuinely on the table; consolidating overlapping tools; designing a proof of concept or a scorecard; building a TCO model; preparing reference calls or a negotiation; writing the recommendation memo.
 
-Do not use for: a technical or architectural choice with nothing to purchase — that is the `decision-record` skill; raising purchase orders and chasing procurement paperwork; hiring decisions; or reading an already-signed contract when no decision is pending.
+Do not use for: a technical or architectural choice with nothing to purchase — that is the `decision-record` skill; raising purchase orders and chasing procurement paperwork; hiring decisions; or reading an already-signed contract when no decision is pending. Running a proof of concept or pilot as the vendor, for a prospect, is `poc-plan`.
 
 ## Sequencing rules
 
