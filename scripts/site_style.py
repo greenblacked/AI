@@ -1740,6 +1740,20 @@ html:not([data-theme="reactor"]) %P .plugin-word {
   to { opacity: 1; }
 }""",
     ),
+    "embedded": PluginLook(
+        day=("#065f46", "#7c2d12", "#3730a3"),
+        night=("#6ee7b7", "#fdba74", "#a5b4fc"),
+        width=0.72,
+        rules=(
+            "%P .pl { animation: pw-embedded-blink 0.3s steps(2, end) "
+            "calc(var(--i) * 0.08s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-embedded-blink {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}""",
+    ),
 }
 
 # The shared frame. `--c` is the colour a letter or a row takes from the cycle.

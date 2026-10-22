@@ -1,0 +1,22 @@
+[
+  {"query": "the game works on my machine but crashes on players with AMD cards", "should_trigger": true},
+  {"query": "which Android phones should we test before launch", "should_trigger": true},
+  {"query": "players on Intel integrated graphics get a black screen after the logo", "should_trigger": true},
+  {"query": "how do we tell whether a rendering bug is a driver bug or our bug", "should_trigger": true},
+  {"query": "how do we decide on the minimum spec for our system requirements page", "should_trigger": true},
+  {"query": "build a list of test machines from the Steam hardware survey and our crash data", "should_trigger": true},
+  {"query": "a crash only happens on one older graphics driver version, what do we send the vendor", "should_trigger": true},
+  {"query": "we cannot test every device so how do we pick a set we will actually run each release", "should_trigger": true},
+  {"query": "publish a list of supported and known-issue hardware for the store page", "should_trigger": true},
+  {"query": "textures look corrupted only on a certain phone chipset", "should_trigger": true},
+  {"query": "frames drop below 30 in the forest level on mid-range cards", "should_trigger": false, "expected": "game-performance"},
+  {"query": "what does the console platform require to pass submission", "should_trigger": false, "expected": "game-certification"},
+  {"query": "will this be Deck Verified and why is the text tiny on the Deck", "should_trigger": false, "expected": "handheld-pc-readiness"},
+  {"query": "write browser end-to-end tests for our storefront checkout", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "the game runs out of memory when the second level loads on console", "should_trigger": false, "expected": "game-memory-budget"},
+  {"query": "shaders compile for the first time and cause stutter", "should_trigger": false, "expected": "shader-compile-stutter"},
+  {"query": "loading takes forty seconds on a hard drive", "should_trigger": false, "expected": "game-load-times"},
+  {"query": "the layout breaks on small phone screens in our web dashboard", "should_trigger": false, "expected": "responsive-design"},
+  {"query": "controller buttons do not rebind correctly on gamepads", "should_trigger": false, "expected": "game-input-mapping"},
+  {"query": "run the game end to end with a bot to find progression blockers", "should_trigger": false, "expected": "automated-playthrough"}
+]

@@ -1,0 +1,92 @@
+[
+ {
+  "query": "the certificates baked into our devices expire in 2027 and some units will still be in the field then",
+  "should_trigger": true
+ },
+ {
+  "query": "how do we rotate our root CA when thousands of units have the old one burned in",
+  "should_trigger": true
+ },
+ {
+  "query": "TLS handshakes fail on our devices that have no real-time clock until they get network time",
+  "should_trigger": true
+ },
+ {
+  "query": "devices that sat in the warehouse for a year cannot connect to the cloud after first power-up",
+  "should_trigger": true
+ },
+ {
+  "query": "should we pin the server leaf certificate in our firmware or something higher up the chain",
+  "should_trigger": true
+ },
+ {
+  "query": "how long should a device certificate be valid when the hardware will run for ten years",
+  "should_trigger": true
+ },
+ {
+  "query": "design the renewal behaviour so a device refreshes its own client cert without a recall",
+  "should_trigger": true
+ },
+ {
+  "query": "we want a spare trust anchor shipped in every unit so a compromise is not a recall",
+  "should_trigger": true
+ },
+ {
+  "query": "what should a device do when its clock says 1970 and the server certificate looks not yet valid",
+  "should_trigger": true
+ },
+ {
+  "query": "how do we dry-run a CA rotation before touching the real fleet",
+  "should_trigger": true
+ },
+ {
+  "query": "set up ACME to renew the certificates on our web servers automatically",
+  "should_trigger": false,
+  "expected": "certificate-automation"
+ },
+ {
+  "query": "rotate the shared API key our services use without downtime",
+  "should_trigger": false,
+  "expected": "secret-rotation"
+ },
+ {
+  "query": "the firmware update bricks units when power drops during the write",
+  "should_trigger": false,
+  "expected": "ota-update-safety"
+ },
+ {
+  "query": "staged rollout of the new firmware to the fleet with halt criteria",
+  "should_trigger": false,
+  "expected": "ota-fleet-rollout"
+ },
+ {
+  "query": "the unit is dead and will not boot, how do we recover it",
+  "should_trigger": false,
+  "expected": "brick-recovery"
+ },
+ {
+  "query": "our SPI flash returns 0xFF on every read",
+  "should_trigger": false,
+  "expected": "serial-bus-debug"
+ },
+ {
+  "query": "decode the fault registers after the device crashed",
+  "should_trigger": false,
+  "expected": "hard-fault-triage"
+ },
+ {
+  "query": "the device hangs and needs a watchdog design",
+  "should_trigger": false,
+  "expected": "watchdog-design"
+ },
+ {
+  "query": "settings stored in flash get corrupted after many writes",
+  "should_trigger": false,
+  "expected": "flash-storage-durability"
+ },
+ {
+  "query": "curl says unable to get local issuer certificate against our API",
+  "should_trigger": false,
+  "expected": "tls-handshake-debugging"
+ }
+]

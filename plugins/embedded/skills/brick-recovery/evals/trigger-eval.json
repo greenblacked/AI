@@ -1,0 +1,22 @@
+[
+  {"query": "the board doesn't boot after flashing the new image, how do I get it back", "should_trigger": true},
+  {"query": "I locked myself out with readout protection on an STM32, can I recover it", "should_trigger": true},
+  {"query": "there is no UART output at all from my custom board", "should_trigger": true},
+  {"query": "how do we recover units in the field that won't start", "should_trigger": true},
+  {"query": "the debugger can't connect to the target any more after I changed the option bytes", "should_trigger": true},
+  {"query": "board draws a repeating pulse of current and never gets to main, how do I revive it", "should_trigger": true},
+  {"query": "is it safe to do a mass erase on a unit with factory calibration in flash", "should_trigger": true},
+  {"query": "a unit came back from a customer dead; what should we do before reflashing it", "should_trigger": true},
+  {"query": "design a recovery mode that needs only a USB cable for our product", "should_trigger": true},
+  {"query": "my ESP32 board shows nothing after upload and won't enter download mode", "should_trigger": true},
+  {"query": "my MikroTik router is stuck and I need to netinstall it", "should_trigger": false, "expected": "routeros-config"},
+  {"query": "design an A/B slot update with rollback so a bad firmware can't brick units", "should_trigger": false, "expected": "ota-update-safety"},
+  {"query": "the SPI sensor link is up but returns shifted bits", "should_trigger": false, "expected": "serial-bus-debug"},
+  {"query": "the firmware hard faults in the timer ISR", "should_trigger": false, "expected": "hard-fault-triage"},
+  {"query": "the config store comes back corrupted after power loss", "should_trigger": false, "expected": "flash-storage-durability"},
+  {"query": "make sure an interrupted firmware update can roll back to the old image", "should_trigger": false, "expected": "ota-update-safety"},
+  {"query": "the device never wakes from sleep", "should_trigger": false, "expected": "sleep-wake-bug-hunt"},
+  {"query": "the watchdog resets the board during boot", "should_trigger": false, "expected": "watchdog-design"},
+  {"query": "which devices should get the new firmware first in the rollout", "should_trigger": false, "expected": "ota-fleet-rollout"},
+  {"query": "our gateway boots to emergency mode, a start job is running for dev-disk-by-uuid", "should_trigger": false, "expected": "boot-failure-recovery"}
+]

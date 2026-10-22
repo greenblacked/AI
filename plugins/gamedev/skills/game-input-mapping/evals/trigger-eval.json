@@ -1,0 +1,22 @@
+[
+  {"query": "we want to add controller support to our PC platformer, where do we start so the keyboard code isn't a mess", "should_trigger": true},
+  {"query": "players keep asking to remap keys and our controls are hard-coded all over the place", "should_trigger": true},
+  {"query": "the on-screen prompt says press E but the player rebound interact to F, and it should show the pad button when they pick one up", "should_trigger": true},
+  {"query": "my character slowly walks to the left on old gamepads, how do I set up deadzones properly", "should_trigger": true},
+  {"query": "when someone switches between mouse and gamepad mid-game the prompts take a second to change or flicker", "should_trigger": true},
+  {"query": "our main menu works with a mouse but with a controller nothing is highlighted and I get stuck", "should_trigger": true},
+  {"query": "when a popup closes the controller focus disappears and the player has to reach for the mouse", "should_trigger": true},
+  {"query": "design a rebinding screen that handles conflicts, alternates and shift-modifier combos", "should_trigger": true},
+  {"query": "how should I store default keybindings versus the player's custom ones so a patch doesn't wipe their changes", "should_trigger": true},
+  {"query": "typing a character name on a console version, how does a controller player enter text", "should_trigger": true},
+  {"query": "the jump feels laggy and I want coyote time and an input buffer so platforming feels forgiving", "should_trigger": false, "expected": "game-builder"},
+  {"query": "add colourblind modes, subtitle sizing and a toggle for hold-to-press actions", "should_trigger": false, "expected": "game-accessibility-pass"},
+  {"query": "what does the console certification test when a controller disconnects during play", "should_trigger": false, "expected": "game-certification"},
+  {"query": "make the signup form on our website keyboard friendly with clear error messages", "should_trigger": false, "expected": "form-design"},
+  {"query": "audit our web app's UI against WCAG success criteria for keyboard operation", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "set up ducking so the music drops under dialogue and measure loudness per output mode", "should_trigger": false, "expected": "game-audio-mix"},
+  {"query": "run a playtest session with five new players and write up what they struggled with", "should_trigger": false, "expected": "game-playtest"},
+  {"query": "the ball goes through the thin wall when the frame rate drops", "should_trigger": false, "expected": "physics-glitch-triage"},
+  {"query": "translate all UI strings and make sure the layout fits German text", "should_trigger": false, "expected": "game-localisation"},
+  {"query": "our game crashes on startup with a null pointer and I need to find the cause", "should_trigger": false, "expected": "debugging"}
+]
