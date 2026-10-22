@@ -1,0 +1,22 @@
+[
+  {"query": "we need a weekly demand forecast per warehouse eight weeks out for purchasing, how should we build and validate it", "should_trigger": true},
+  {"query": "the data scientist says the revenue model has 4% MAPE on a random 20% test split, is that number meaningful", "should_trigger": true},
+  {"query": "backtest our prophet model for daily orders against last year's same-day numbers", "should_trigger": true},
+  {"query": "our call-centre volume forecast completely missed the January peak, how do we find out why and stop it happening again", "should_trigger": true},
+  {"query": "is this gradient boosting forecast actually better than just using the same week last year", "should_trigger": true},
+  {"query": "the 90% prediction intervals on our sales forecast seem too narrow, planners keep getting surprised", "should_trigger": true},
+  {"query": "how should we include black friday and planned promotions in the store traffic forecast without cheating in the evaluation", "should_trigger": true},
+  {"query": "which error metric should we use to compare forecast accuracy across thousands of SKUs, many of which sell zero most days", "should_trigger": true},
+  {"query": "set up time series cross validation for our monthly subscription revenue projections", "should_trigger": true},
+  {"query": "we swapped the forecasting library, what do we need to re-run before trusting the new numbers for ticket volume", "should_trigger": true},
+  {"query": "will our API cluster hold up at 10x traffic on launch day and what breaks first", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "our fraud classifier has terrible precision on new merchants, help me figure out where it is going wrong", "should_trigger": false, "expected": "model-error-analysis"},
+  {"query": "what revenue target should the sales team commit to for next quarter", "should_trigger": false, "expected": "okr-planning"},
+  {"query": "the deployed demand model's input features have shifted since spring, when should we retrain", "should_trigger": false, "expected": "model-drift-monitoring"},
+  {"query": "did the price change in April cause the drop in weekly orders or was it seasonal", "should_trigger": false, "expected": "causal-inference-review"},
+  {"query": "our model's validation score is suspiciously high, check whether a feature is computed after the label date", "should_trigger": false, "expected": "feature-leakage-audit"},
+  {"query": "our cloud bill jumped 40% last month, which services drove it", "should_trigger": false, "expected": "cost-review"},
+  {"query": "turn the forecasting notebook into a scheduled job that runs every monday and can be rerun safely", "should_trigger": false, "expected": "notebook-to-production"},
+  {"query": "the model scores well offline but live predictions for the same stores look different, compare the features", "should_trigger": false, "expected": "serving-skew-replay"},
+  {"query": "build a monthly budget and savings projection for my household for next year", "should_trigger": false, "expected": "personal-finance"}
+]

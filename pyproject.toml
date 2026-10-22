@@ -76,5 +76,7 @@ quiet-level = 3
 # k8s-upgrade — codespell 2.4.3 flags it as "ASK"/"ask" without this entry, verified by
 # removing it and re-running the check. "covert" is the security term for a covert channel,
 # which the injection-architecture reference attributes to Microsoft's catalogue of
-# exfiltration channels; codespell 2.x suggests "convert" for it.
-ignore-words-list = "trough,applyable,unparseable,stings,caf,aplha,lod,afterall,aks,covert"
+# exfiltration channels; codespell 2.x suggests "convert" for it. "MAPE" is mean absolute
+# percentage error, the forecast metric forecast-backtesting compares against its
+# alternatives; codespell suggests "MAP".
+ignore-words-list = "trough,applyable,unparseable,stings,caf,aplha,lod,afterall,aks,covert,mape"
