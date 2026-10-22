@@ -1,7 +1,7 @@
 ---
 name: alert-design
 description: "Write, review or delete alerting rules so every page is user-visible, urgent and actionable — classify each signal as page, ticket or dashboard-only, alert on SLO burn rather than on the mechanism, write multiwindow multi-burn-rate Prometheus rules, give every alert an owner, a runbook link and a title naming what is broken for whom, and prune an existing rule set by how often anyone acted on it. Use this skill whenever someone is adding an alert, tuning a threshold, writing PrometheusRule or Alertmanager config, defining an error budget response policy, or complaining about pager fatigue — including \"should this page someone?\", \"our pager is out of control\", \"add an alert for high CPU\", or \"why didn't we get paged for that\". For selecting SLIs, targets, windows and budget ownership before rules exist, use slo-design."
-allowed-tools: Read, Grep, Glob, Edit, Write
+allowed-tools: Read, Grep, Glob, Edit, Write, Bash(promtool check rules:*), Bash(promtool test rules:*), Bash(amtool check-config:*)
 ---
 
 # Alert Design
