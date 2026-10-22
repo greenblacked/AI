@@ -1,0 +1,22 @@
+[
+  {"query": "we are switching ESPs next month and need a plan so our reputation does not collapse", "should_trigger": true},
+  {"query": "how do I warm up a new dedicated IP", "should_trigger": true},
+  {"query": "how many emails can we send on day one from a brand new domain", "should_trigger": true},
+  {"query": "should we use a new subdomain for marketing mail and keep receipts separate", "should_trigger": true},
+  {"query": "build a ramp schedule for a new sending domain with stop thresholds", "should_trigger": true},
+  {"query": "which subscribers should we mail first when we start sending from a new provider", "should_trigger": true},
+  {"query": "can we move all our email traffic to the new platform over a weekend", "should_trigger": true},
+  {"query": "we have not emailed our list in a year and want to start again without landing in spam", "should_trigger": true},
+  {"query": "what complaint rate and bounce rate should make us pause while warming up", "should_trigger": true},
+  {"query": "we are leaving our old email service, how do we move traffic in stages with both live", "should_trigger": true},
+  {"query": "open rates collapsed last week and Gmail is junking our mail", "should_trigger": false, "expected": "deliverability-triage"},
+  {"query": "publish SPF, DKIM and DMARC for our new domain", "should_trigger": false, "expected": "email-authentication-rollout"},
+  {"query": "plan the one-way switchover of our production database with a rollback point", "should_trigger": false, "expected": "cutover"},
+  {"query": "plan our migration from one CRM platform to another", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "design a welcome series and re-engagement flow for new users", "should_trigger": false, "expected": "lifecycle-sequence-design"},
+  {"query": "failed payment emails are not recovering subscriptions", "should_trigger": false},
+  {"query": "write the subject lines for our product launch email", "should_trigger": false},
+  {"query": "make push notifications deliver reliably on Android", "should_trigger": false},
+  {"query": "reduce wasted spend in our Google Ads account", "should_trigger": false, "expected": "paid-search-waste-audit"},
+  {"query": "stand up a new SMTP relay server for application alerts", "should_trigger": false}
+]

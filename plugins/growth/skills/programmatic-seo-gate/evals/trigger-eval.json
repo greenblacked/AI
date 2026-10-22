@@ -1,0 +1,22 @@
+[
+  {"query": "we want to generate a page for every city we serve from our database, is that a good idea", "should_trigger": true},
+  {"query": "our programmatic location pages got deindexed and we don't know why", "should_trigger": true},
+  {"query": "plan an integration page for each of our 800 partner apps", "should_trigger": true},
+  {"query": "how do we roll out 20,000 comparison pages without hurting the whole site", "should_trigger": true},
+  {"query": "thousands of template pages show as crawled currently not indexed in Search Console", "should_trigger": true},
+  {"query": "how many sample pages should I read before approving a page template at scale", "should_trigger": true},
+  {"query": "can we publish a tool page for every unit conversion pair", "should_trigger": true},
+  {"query": "we want to build pages for every keyword variation using a template and some data merge", "should_trigger": true},
+  {"query": "what do we do when a generated page type is clearly failing, how do we pull it back", "should_trigger": true},
+  {"query": "set stop criteria before we release the next batch of generated pages", "should_trigger": true},
+  {"query": "our single-page app serves soft 404s and canonical tags are wrong", "should_trigger": false},
+  {"query": "which of our old blog posts should we merge, redirect or delete", "should_trigger": false},
+  {"query": "one of our best articles lost half its traffic, what do we update", "should_trigger": false, "expected": "content-refresh-triage"},
+  {"query": "canary a new service version to 5 percent of traffic", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "put the new checkout behind a feature flag and remove it later", "should_trigger": false, "expected": "feature-flag-lifecycle"},
+  {"query": "write a content brief for the keyword based on what ranks", "should_trigger": false, "expected": "content-brief-from-serp"},
+  {"query": "the ad lands on a page that doesn't match the ad", "should_trigger": false, "expected": "message-match-audit"},
+  {"query": "write a customer story for the case study page", "should_trigger": false, "expected": "customer-story-production"},
+  {"query": "find wasted spend in our Google Ads search terms", "should_trigger": false, "expected": "paid-search-waste-audit"},
+  {"query": "explain how canonical URLs and hreflang work", "should_trigger": false}
+]

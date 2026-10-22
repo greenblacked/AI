@@ -1,0 +1,22 @@
+[
+  {"query": "sales keeps telling us the leads from marketing are junk and marketing says sales never calls them", "should_trigger": true},
+  {"query": "help us define MQL and SQL so both teams agree", "should_trigger": true},
+  {"query": "our cost per lead looks great but pipeline is flat", "should_trigger": true},
+  {"query": "how do we tell google ads which leads actually became customers", "should_trigger": true},
+  {"query": "which of our channels produce closed-won revenue and not just form fills", "should_trigger": true},
+  {"query": "reps are rejecting leads without saying why, how do we capture it", "should_trigger": true},
+  {"query": "what response time should we promise inbound leads and how do we measure it", "should_trigger": true},
+  {"query": "set up offline conversion imports from our crm into the ad platforms", "should_trigger": true},
+  {"query": "we need a monthly meeting between marketing and sales about lead quality, what goes in it", "should_trigger": true},
+  {"query": "lead scoring says 80 points but reps do not trust it", "should_trigger": true},
+  {"query": "analyse why we lost the last twelve enterprise deals", "should_trigger": false},
+  {"query": "is our multi-touch attribution model giving organic too much credit", "should_trigger": false, "expected": "attribution-sanity-check"},
+  {"query": "audit our google ads account for wasted spend on irrelevant search terms", "should_trigger": false, "expected": "paid-search-waste-audit"},
+  {"query": "why do new signups never reach the product activation step", "should_trigger": false},
+  {"query": "triage the backlog of feature requests from customers", "should_trigger": false},
+  {"query": "our newsletter goes to spam at Yahoo", "should_trigger": false, "expected": "deliverability-triage"},
+  {"query": "this landing page gets clicks but no one fills the form", "should_trigger": false, "expected": "message-match-audit"},
+  {"query": "write a case study about our best customer", "should_trigger": false, "expected": "customer-story-production"},
+  {"query": "set up SPF, DKIM and DMARC for our sales outreach domain", "should_trigger": false, "expected": "email-authentication-rollout"},
+  {"query": "which blog posts lost organic traffic and need a refresh", "should_trigger": false, "expected": "content-refresh-triage"}
+]

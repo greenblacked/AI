@@ -1,0 +1,22 @@
+[
+  {"query": "we need case studies for the sales team, where do we start", "should_trigger": true},
+  {"query": "customer legal keeps blocking our story, how do we get it through", "should_trigger": true},
+  {"query": "how do we ask a customer for a quote without being awkward", "should_trigger": true},
+  {"query": "verify the numbers in this case study before we publish", "should_trigger": true},
+  {"query": "which customers should we pick for testimonials", "should_trigger": true},
+  {"query": "we want to reuse a customer's logo and quote in a conference booth, are we allowed", "should_trigger": true},
+  {"query": "set up a register of what customers have approved for publication", "should_trigger": true},
+  {"query": "our customer quotes get softened by their comms team, what is a sensible process", "should_trigger": true},
+  {"query": "draft a customer success story from this interview recording", "should_trigger": true},
+  {"query": "the customer never replied to our approval email, can we publish", "should_trigger": true},
+  {"query": "write up our database migration as an engineering case study", "should_trigger": false, "expected": "write-technical-article"},
+  {"query": "turn our incident into a conference talk", "should_trigger": false, "expected": "conference-talk"},
+  {"query": "why do we lose deals once they reach the proposal stage", "should_trigger": false},
+  {"query": "sales says marketing leads are junk", "should_trigger": false, "expected": "lead-quality-loop"},
+  {"query": "interview customers about why they switched to our product for research", "should_trigger": false},
+  {"query": "our landing page claims do not match the ad", "should_trigger": false, "expected": "message-match-audit"},
+  {"query": "which posts need a refresh after traffic fell", "should_trigger": false, "expected": "content-refresh-triage"},
+  {"query": "build a marketing website with a testimonials section", "should_trigger": false, "expected": "website-builder"},
+  {"query": "write a brief for a post about our integration", "should_trigger": false, "expected": "content-brief-from-serp"},
+  {"query": "write release notes for the new version", "should_trigger": false, "expected": "release-notes"}
+]

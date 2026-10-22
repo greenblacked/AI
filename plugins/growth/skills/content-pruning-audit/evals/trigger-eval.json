@@ -1,0 +1,91 @@
+[
+  {
+    "query": "we have 4,000 old blog posts and I think most of them hurt us, where do we start",
+    "should_trigger": true
+  },
+  {
+    "query": "run a thin content cleanup on our site without losing the pages that matter",
+    "should_trigger": true
+  },
+  {
+    "query": "should we delete low traffic pages from our blog",
+    "should_trigger": true
+  },
+  {
+    "query": "we have ten posts about the same topic, help us consolidate overlapping posts safely",
+    "should_trigger": true
+  },
+  {
+    "query": "how should we decide which old articles to redirect, merge or remove",
+    "should_trigger": true
+  },
+  {
+    "query": "build a 301 map for merging duplicate articles and test it before launch",
+    "should_trigger": true
+  },
+  {
+    "query": "can we point all our deleted posts at the homepage",
+    "should_trigger": true
+  },
+  {
+    "query": "our site has thousands of pages and we want to cut the dead weight; what data do we need first",
+    "should_trigger": true
+  },
+  {
+    "query": "which pages should return 410 and which should be kept because of their backlinks",
+    "should_trigger": true
+  },
+  {
+    "query": "we want to test a content purge on one section before touching the rest",
+    "should_trigger": true
+  },
+  {
+    "query": "this one article lost half its traffic since spring and I need to know why",
+    "should_trigger": false,
+    "expected": "content-refresh-triage"
+  },
+  {
+    "query": "we are cannibalising ourselves on one keyword with two posts, what is going on",
+    "should_trigger": false,
+    "expected": "content-refresh-triage"
+  },
+  {
+    "query": "restructure our site navigation and category hierarchy",
+    "should_trigger": false,
+    "expected": "information-architecture"
+  },
+  {
+    "query": "we want to generate ten thousand location pages from a template, is that safe",
+    "should_trigger": false,
+    "expected": "programmatic-seo-gate"
+  },
+  {
+    "query": "write a content brief for a new article based on what ranks today",
+    "should_trigger": false,
+    "expected": "content-brief-from-serp"
+  },
+  {
+    "query": "reduce our log storage volume",
+    "should_trigger": false,
+    "expected": "log-volume-reduction"
+  },
+  {
+    "query": "plan the cutover to a new CMS platform with zero downtime",
+    "should_trigger": false,
+    "expected": "plan-platform-migration"
+  },
+  {
+    "query": "audit whether our ad landing pages match the ad text",
+    "should_trigger": false,
+    "expected": "message-match-audit"
+  },
+  {
+    "query": "clean up the unused branches in our git repository",
+    "should_trigger": false
+  },
+  {
+    "query": "write a customer story about our best client",
+    "should_trigger": false,
+    "expected": "customer-story-production"
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "our ad platforms claim 400 conversions between them but we only had 150 orders", "should_trigger": true},
+  {"query": "direct traffic is half of everything in analytics and that can't be right", "should_trigger": true},
+  {"query": "which channel actually drives our revenue, everyone says it's them", "should_trigger": true},
+  {"query": "google ads reports 300 conversions and the shop had 120 orders last month", "should_trigger": true},
+  {"query": "how do we prove whether our brand search spend is incremental or just capturing people who would have bought anyway", "should_trigger": true},
+  {"query": "payment provider shows up as our top referrer in analytics, what is going on", "should_trigger": true},
+  {"query": "should we trust data-driven attribution before we move budget from social to search", "should_trigger": true},
+  {"query": "we want a how did you hear about us question on signup, how should we use it next to our tracking", "should_trigger": true},
+  {"query": "conversions in the dashboard jumped after the redesign and I suspect the thank-you page fires twice", "should_trigger": true},
+  {"query": "design a geo holdout so we can tell if podcast ads work", "should_trigger": true},
+  {"query": "find wasted spend in our Google Ads search terms report", "should_trigger": false, "expected": "paid-search-waste-audit"},
+  {"query": "the ad lands on a page that doesn't match the ad promise", "should_trigger": false, "expected": "message-match-audit"},
+  {"query": "sales says marketing leads are junk, how do we define a good one", "should_trigger": false, "expected": "lead-quality-loop"},
+  {"query": "GA and the CRM do not agree on signup counts", "should_trigger": false},
+  {"query": "revenue per visitor fell this week, break it into traffic mix and conversion", "should_trigger": false},
+  {"query": "add telemetry and traces to our checkout service", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "write a UTM naming standard for the whole team", "should_trigger": false},
+  {"query": "check that our email domain passes DMARC", "should_trigger": false, "expected": "email-authentication-rollout"},
+  {"query": "our emails land in spam", "should_trigger": false, "expected": "deliverability-triage"},
+  {"query": "template pages for every city are not getting indexed", "should_trigger": false, "expected": "programmatic-seo-gate"}
+]

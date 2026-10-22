@@ -1,0 +1,92 @@
+[
+  {
+    "query": "is our community actually working or are we kidding ourselves",
+    "should_trigger": true
+  },
+  {
+    "query": "nobody answers questions in our forum anymore",
+    "should_trigger": true
+  },
+  {
+    "query": "our Discord has gone quiet, how do we know what is wrong",
+    "should_trigger": true
+  },
+  {
+    "query": "put together a community report for leadership with numbers that mean something",
+    "should_trigger": true
+  },
+  {
+    "query": "new members join our Slack community and never post, what should we measure",
+    "should_trigger": true
+  },
+  {
+    "query": "a handful of people answer everything in our forum, is that a problem",
+    "should_trigger": true
+  },
+  {
+    "query": "what metrics should we track for a developer community besides member count",
+    "should_trigger": true
+  },
+  {
+    "query": "how quickly should questions in our community get a first reply and how do we track it",
+    "should_trigger": true
+  },
+  {
+    "query": "we have ten thousand members but it feels dead, review it",
+    "should_trigger": true
+  },
+  {
+    "query": "monthly community health check with one improvement action each month",
+    "should_trigger": true
+  },
+  {
+    "query": "write the rules and escalation steps for moderators in our community",
+    "should_trigger": false,
+    "expected": "community-moderation-policy"
+  },
+  {
+    "query": "how do we get newcomers to send their first pull request to our open source project",
+    "should_trigger": false,
+    "expected": "contributor-funnel"
+  },
+  {
+    "query": "why is staff attrition so high on the support team",
+    "should_trigger": false,
+    "expected": "retention-review"
+  },
+  {
+    "query": "write the weekly status update for the leadership team",
+    "should_trigger": false,
+    "expected": "status-update"
+  },
+  {
+    "query": "which developer relations activities should we stop doing",
+    "should_trigger": false,
+    "expected": "devrel-impact-review"
+  },
+  {
+    "query": "write a customer story from our best account",
+    "should_trigger": false,
+    "expected": "customer-story-production"
+  },
+  {
+    "query": "refresh the old forum-derived help articles that lost traffic",
+    "should_trigger": false,
+    "expected": "content-refresh-triage"
+  },
+  {
+    "query": "check whether the webinar leads turned into customers",
+    "should_trigger": false,
+    "expected": "lead-quality-loop"
+  },
+  {
+    "query": "tag our community newsletter links consistently",
+    "should_trigger": false,
+    "expected": "campaign-tagging-standard"
+  },
+  {
+    "query": "write a good first issue list for our repo",
+    "should_trigger": false,
+    "expected": "contributor-funnel"
+  }
+]
