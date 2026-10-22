@@ -1,0 +1,22 @@
+[
+  {"query": "alert me if orders per minute fall well below what is normal for this time of week", "should_trigger": true},
+  {"query": "we were down for an hour on tuesday and nothing paged because the error rate stayed flat", "should_trigger": true},
+  {"query": "our sign-ups dip every night so any fixed threshold fires, how do we alert on a real drop", "should_trigger": true},
+  {"query": "how do I build an expected value for payments from the same weekday over past weeks", "should_trigger": true},
+  {"query": "low sign-ups at 3am keep tripping the alert on a handful of events, how do we stop that", "should_trigger": true},
+  {"query": "seasonal traffic makes our throughput alert useless around holidays, what do we do", "should_trigger": true},
+  {"query": "checkout events silently stopped after a deploy and nobody noticed for a long time", "should_trigger": true},
+  {"query": "should a drop in successful payments page someone or open a ticket", "should_trigger": true},
+  {"query": "detect when the number of messages sent falls below the weekly pattern", "should_trigger": true},
+  {"query": "alert on zero orders versus low orders, how should those differ", "should_trigger": true},
+  {"query": "page when the checkout error ratio burns the slo budget fast", "should_trigger": false, "expected": "alert-design"},
+  {"query": "backtest this rule over the last 90 days of data", "should_trigger": false, "expected": "alert-backtest"},
+  {"query": "conversion dropped last week and I need to work out why", "should_trigger": false, "expected": "debugging"},
+  {"query": "set the availability slo and error budget policy for payments", "should_trigger": false, "expected": "slo-design"},
+  {"query": "a dashboard panel for orders stopped showing data since the release", "should_trigger": false, "expected": "missing-metrics-hunt"},
+  {"query": "find which latency metric label exploded our series count", "should_trigger": false, "expected": "cardinality-incident-response"},
+  {"query": "decide what a new service should emit as metrics", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "choose histogram buckets for request duration", "should_trigger": false, "expected": "latency-histogram-design"},
+  {"query": "write the incident update for customers about the outage", "should_trigger": false, "expected": "incident-comms"},
+  {"query": "cut our log volume by sampling successes", "should_trigger": false, "expected": "log-volume-reduction"}
+]

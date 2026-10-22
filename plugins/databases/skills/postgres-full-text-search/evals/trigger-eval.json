@@ -1,0 +1,22 @@
+[
+  {"query": "do we really need elasticsearch for searching a few hundred thousand support articles or can postgres do it", "should_trigger": true},
+  {"query": "add search to our rails app that is backed by postgres, titles should matter more than bodies", "should_trigger": true},
+  {"query": "walk me through setting up tsvector and a gin index for a products table", "should_trigger": true},
+  {"query": "ILIKE '%term%' on our customers table is taking seconds, how do I make it fast", "should_trigger": true},
+  {"query": "how do I do fuzzy matching on names in postgres so smyth finds smith", "should_trigger": true},
+  {"query": "to_tsquery throws a syntax error whenever a user types an ampersand in the search box", "should_trigger": true},
+  {"query": "which text search configuration should I use for product codes and surnames, english stems them badly", "should_trigger": true},
+  {"query": "paging through postgres full text results with offset gets slower on deep pages", "should_trigger": true},
+  {"query": "how do I make postgres search ignore accents so cafe finds café", "should_trigger": true},
+  {"query": "at what point should we stop using postgres search and move to a real search engine, and how do we know", "should_trigger": true},
+  {"query": "design the elasticsearch mapping for our product index with text and keyword fields", "should_trigger": false, "expected": "search-mapping-design"},
+  {"query": "our elasticsearch results rank the wrong documents first, tune the boosts and analyzers", "should_trigger": false, "expected": "search-relevance-tuning"},
+  {"query": "keep the search index in sync with the database after writes without losing updates", "should_trigger": false, "expected": "search-index-sync"},
+  {"query": "this join query takes forty seconds in postgres, read the plan and fix it", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "build typeahead suggestions that respond within 50 milliseconds as the user types", "should_trigger": false, "expected": "typeahead-search-design"},
+  {"query": "tune our vector index for semantic search recall and latency", "should_trigger": false, "expected": "vector-index-tuning"},
+  {"query": "design the retrieval layer for a question answering assistant over our documentation", "should_trigger": false, "expected": "rag-design"},
+  {"query": "design the tables and keys for a multi-tenant document store", "should_trigger": false, "expected": "schema-design"},
+  {"query": "which postgres indexes are never used and can be dropped", "should_trigger": false, "expected": "index-pruning"},
+  {"query": "backfill a new column on a huge postgres table without hurting production", "should_trigger": false, "expected": "safe-backfill"}
+]

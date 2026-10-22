@@ -1,0 +1,22 @@
+[
+  {"query": "ssh says Permission denied (publickey) and I have the right key in authorized_keys", "should_trigger": true},
+  {"query": "Too many authentication failures when I connect, I have lots of keys in my agent", "should_trigger": true},
+  {"query": "kex_exchange_identification connection reset by peer when connecting to the server", "should_trigger": true},
+  {"query": "WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED after we rebuilt the box, what should I do", "should_trigger": true},
+  {"query": "ssh login takes thirty seconds to get to the prompt", "should_trigger": true},
+  {"query": "how do I see what sshd actually applies to a user connecting from a certain address including Match blocks", "should_trigger": true},
+  {"query": "sshd logs Authentication refused: bad ownership or modes for directory", "should_trigger": true},
+  {"query": "my old RSA key stopped working after we upgraded the server, says ssh-rsa not in PubkeyAcceptedAlgorithms", "should_trigger": true},
+  {"query": "how do I change sshd_config and reload it without locking myself out of the box", "should_trigger": true},
+  {"query": "key login fails only on the selinux enforcing servers, authorized_keys looks fine", "should_trigger": true},
+  {"query": "which sshd settings should a hardened server have for the compliance baseline", "should_trigger": false, "expected": "host-hardening"},
+  {"query": "our private deploy key was pasted in a public repo and we must replace it everywhere", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "who should be able to log in to production and how do we review the access list each quarter", "should_trigger": false, "expected": "access-review"},
+  {"query": "after I log in over ssh I get Permission denied reading a file in /var/log", "should_trigger": false, "expected": "permission-denied-triage"},
+  {"query": "my systemd service fails with status 217/USER", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "handshake failure when curl connects to our https endpoint", "should_trigger": false, "expected": "tls-handshake-debugging"},
+  {"query": "dig works but ssh cannot resolve the hostname", "should_trigger": false, "expected": "dns-resolution-debugging"},
+  {"query": "the cron job that copies files over scp does not run at night", "should_trigger": false, "expected": "scheduled-job-debugging"},
+  {"query": "sshd got killed by the out of memory killer on a small vm", "should_trigger": false, "expected": "oom-kill-forensics"},
+  {"query": "the root filesystem is full so new ssh sessions cannot write their logs", "should_trigger": false, "expected": "disk-full-triage"}
+]

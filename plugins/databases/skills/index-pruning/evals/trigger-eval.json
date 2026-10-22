@@ -1,0 +1,92 @@
+[
+ {
+  "query": "which indexes can we drop on our postgres cluster, writes have gotten slow",
+  "should_trigger": true
+ },
+ {
+  "query": "our inserts are slow and the orders table has fourteen indexes, how do we know which ones nobody uses",
+  "should_trigger": true
+ },
+ {
+  "query": "find duplicate indexes in our database",
+  "should_trigger": true
+ },
+ {
+  "query": "a CREATE INDEX CONCURRENTLY failed and left an invalid index, what do we do with it",
+  "should_trigger": true
+ },
+ {
+  "query": "idx_scan is zero for a bunch of indexes, is it safe to drop them",
+  "should_trigger": true
+ },
+ {
+  "query": "can I make an index invisible in MySQL to see if anything breaks before dropping it",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I check unused indexes when we have two read replicas that serve the reports",
+  "should_trigger": true
+ },
+ {
+  "query": "the index bloat and storage bill is huge, we suspect half the indexes are dead weight",
+  "should_trigger": true
+ },
+ {
+  "query": "how do we prove that dropping an index helped write throughput",
+  "should_trigger": true
+ },
+ {
+  "query": "clean up redundant prefix indexes like (a) when (a, b) exists",
+  "should_trigger": true
+ },
+ {
+  "query": "this query does a sequential scan, which index should I add",
+  "should_trigger": false,
+  "expected": "sql-performance"
+ },
+ {
+  "query": "design the keys and indexes for the new billing tables",
+  "should_trigger": false,
+  "expected": "schema-design"
+ },
+ {
+  "query": "how do I create an index on a live table without blocking writes",
+  "should_trigger": false,
+  "expected": "db-migration"
+ },
+ {
+  "query": "the table is bloated and autovacuum is behind",
+  "should_trigger": false,
+  "expected": "vacuum-bloat-triage"
+ },
+ {
+  "query": "should we partition this 2TB table to drop old data",
+  "should_trigger": false,
+  "expected": "table-partitioning"
+ },
+ {
+  "query": "explain analyze shows a nested loop with wrong row estimates",
+  "should_trigger": false,
+  "expected": "sql-performance"
+ },
+ {
+  "query": "deadlock detected between two update statements",
+  "should_trigger": false,
+  "expected": "deadlock-analysis"
+ },
+ {
+  "query": "we are about to run out of int ids on the events table",
+  "should_trigger": false,
+  "expected": "integer-key-exhaustion"
+ },
+ {
+  "query": "every query is stuck behind an ALTER TABLE",
+  "should_trigger": false,
+  "expected": "lock-queue-triage"
+ },
+ {
+  "query": "is the pool exhausted after the restart, connections are spiking",
+  "should_trigger": false,
+  "expected": "connection-storm-recovery"
+ }
+]

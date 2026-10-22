@@ -1,0 +1,22 @@
+[
+  {"query": "SHOW ENGINE INNODB STATUS says history list length is 40 million, what does that mean and what do I do", "should_trigger": true},
+  {"query": "ibdata1 on our mysql server keeps growing and we have not added much data", "should_trigger": true},
+  {"query": "mysql gets slower every hour and the only thing that helps is killing a long running session", "should_trigger": true},
+  {"query": "our undo tablespace is huge after a nightly report, how do we get the space back", "should_trigger": true},
+  {"query": "how do I find which transaction is stopping innodb purge from cleaning up old row versions", "should_trigger": true},
+  {"query": "will mysqldump single-transaction hurt a busy primary, we see undo growing during the backup", "should_trigger": true},
+  {"query": "trx_rseg_history_len keeps climbing in our monitoring, what should the alert threshold be", "should_trigger": true},
+  {"query": "can we shrink ibdata1 after the long transaction finished", "should_trigger": true},
+  {"query": "should I raise innodb_purge_threads because purge cannot keep up", "should_trigger": true},
+  {"query": "queries on our mysql replica get slower while a long analytics query runs there and the history list grows", "should_trigger": true},
+  {"query": "a mysql update is blocked waiting on a row lock held by another session", "should_trigger": false, "expected": "lock-queue-triage"},
+  {"query": "this one mysql query takes 30 seconds, explain output attached", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "postgres table keeps bloating and n_dead_tup is growing even with autovacuum", "should_trigger": false, "expected": "vacuum-bloat-triage"},
+  {"query": "two mysql transactions keep deadlocking on the same rows", "should_trigger": false, "expected": "deadlock-analysis"},
+  {"query": "our mysql auto_increment column is close to the integer limit", "should_trigger": false, "expected": "integer-key-exhaustion"},
+  {"query": "too many connections errors from mysql after the app deploy", "should_trigger": false, "expected": "connection-storm-recovery"},
+  {"query": "find unused indexes in a mysql schema that we can drop", "should_trigger": false, "expected": "index-pruning"},
+  {"query": "partition our huge mysql events table by month and drop old data cheaply", "should_trigger": false, "expected": "table-partitioning"},
+  {"query": "the root filesystem on the database host is full and I do not know which directory is responsible", "should_trigger": false, "expected": "disk-full-triage"},
+  {"query": "plan a backfill of a new column on a billion row mysql table without hurting production", "should_trigger": false, "expected": "safe-backfill"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "we have a booking flow touching payments, inventory and shipping and no way to make it atomic, how do we structure it", "should_trigger": true},
+  {"query": "how do we roll back when step 3 of our checkout fails after the card was already charged", "should_trigger": true},
+  {"query": "design the compensation actions for our order process across four services", "should_trigger": true},
+  {"query": "orders are stuck in pending forever after a crash, how do we find and recover them", "should_trigger": true},
+  {"query": "is there an alternative to two-phase commit for a cross-service purchase", "should_trigger": true},
+  {"query": "should our order workflow be orchestrated or choreographed with events", "should_trigger": true},
+  {"query": "which step should be the point of no return in a travel booking that books a flight, a hotel and a car", "should_trigger": true},
+  {"query": "a refund call timed out and we do not know if it went through, should we retry or compensate", "should_trigger": true},
+  {"query": "how do I test that a multi-service workflow ends up consistent when the coordinator dies halfway", "should_trigger": true},
+  {"query": "we cancel a reservation but the original request arrives afterwards and reserves it again, how do we stop that", "should_trigger": true},
+  {"query": "make a consumer idempotent and publish events atomically with the database write using an outbox", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "design the REST endpoints and error format for our orders service", "should_trigger": false, "expected": "api-design"},
+  {"query": "plan moving our monolith to a new platform with a staged cutover", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "add a not null column to a large table without locking it", "should_trigger": false, "expected": "db-migration"},
+  {"query": "two requests bought the last ticket from the same database row", "should_trigger": false, "expected": "transaction-race-hunt"},
+  {"query": "set timeouts and a retry budget for our calls to the payment provider", "should_trigger": false, "expected": "timeout-and-retry-budget"},
+  {"query": "verify and deduplicate incoming webhooks from our payment provider", "should_trigger": false, "expected": "webhook-integration"},
+  {"query": "a lock expired while the job was still writing and another pod took over", "should_trigger": false, "expected": "distributed-lock-audit"},
+  {"query": "rename a field on the order.created topic without breaking consumers", "should_trigger": false, "expected": "event-schema-evolution"},
+  {"query": "our slow query on the orders table needs an index", "should_trigger": false, "expected": "sql-performance"}
+]

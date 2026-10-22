@@ -1,0 +1,22 @@
+[
+  {"query": "is Redlock actually safe to use for making sure only one worker charges a customer", "should_trigger": true},
+  {"query": "two pods ran the nightly job at the same time even though we have a lock", "should_trigger": true},
+  {"query": "the lock expired while the holder was still writing and now we have duplicate rows", "should_trigger": true},
+  {"query": "we want a Redis lock to stop double processing of payments, is that enough", "should_trigger": true},
+  {"query": "how do I do leader election with etcd without two leaders ever acting", "should_trigger": true},
+  {"query": "what is a fencing token and how do I check it on write", "should_trigger": true},
+  {"query": "can I use postgres advisory locks behind pgbouncer", "should_trigger": true},
+  {"query": "audit all the places in our service that take a lock and tell me which are unsafe", "should_trigger": true},
+  {"query": "how long should the lock TTL be and how often should I renew it", "should_trigger": true},
+  {"query": "our job holder got a long garbage collection pause and then overwrote newer data, how do we prevent that", "should_trigger": true},
+  {"query": "our cache stampedes when a hot key expires and we want a single refill with a lease", "should_trigger": false, "expected": "application-caching"},
+  {"query": "two requests booked the same seat and the unique check runs in application code", "should_trigger": false, "expected": "transaction-race-hunt"},
+  {"query": "make our consumer safe to receive the same message twice", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "design the steps and compensations for a booking that spans payment and inventory", "should_trigger": false, "expected": "saga-design"},
+  {"query": "every shard is fine except one that is throttled, find the hot key", "should_trigger": false, "expected": "hot-partition-hunt"},
+  {"query": "set a timeout and retry budget for calls to our downstream service", "should_trigger": false, "expected": "timeout-and-retry-budget"},
+  {"query": "add a rate limit per API key to our gateway", "should_trigger": false, "expected": "rate-limiter-design"},
+  {"query": "shed load when the service is overloaded before it falls over", "should_trigger": false, "expected": "overload-protection"},
+  {"query": "a postgres query joins three tables and takes ten seconds", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "verify the signature on incoming payment webhooks", "should_trigger": false, "expected": "webhook-integration"}
+]

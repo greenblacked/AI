@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "observability",
+  "description": "Skills for observability engineering: tracing rollout and sampling, log and metric cost, cardinality, telemetry pipelines, production profiling and synthetic checks.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "observability",
+    "tracing",
+    "logging",
+    "metrics",
+    "opentelemetry"
+  ]
+}

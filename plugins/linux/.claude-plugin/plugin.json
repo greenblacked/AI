@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "linux",
+  "description": "Skills for Linux, networking and systems administration: systemd, boot and kernel updates, disks and volumes, the OOM killer, load and resource limits, DNS, firewalls, TLS failures, MTU, SSH, private CAs and time sync.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "linux",
+    "systemd",
+    "networking",
+    "tls",
+    "sysadmin"
+  ]
+}

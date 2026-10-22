@@ -1,0 +1,22 @@
+[
+  {"query": "our login to the domain says Kerberos clock skew too great but nothing changed on the directory server", "should_trigger": true},
+  {"query": "chronyc tracking says Not synchronised and every source shows reach 0, where do I look", "should_trigger": true},
+  {"query": "the VM clock jumped forty seconds after we resumed it from a snapshot, how do I stop that", "should_trigger": true},
+  {"query": "curl fails with certificate is not yet valid on a freshly booted server", "should_trigger": true},
+  {"query": "how many ntp servers should I configure and does it matter if some of them smear leap seconds", "should_trigger": true},
+  {"query": "timedatectl shows RTC in local TZ yes and the time is wrong by two hours after every reboot", "should_trigger": true},
+  {"query": "is it safe to step the clock on a host running postgres or should I let it slew", "should_trigger": true},
+  {"query": "set up an alert so we find out when a host clock drifts before it breaks authentication", "should_trigger": true},
+  {"query": "servers in one rack disagree with the rest by about three seconds, how do I report the spread across the fleet", "should_trigger": true},
+  {"query": "systemd-timesyncd and chrony are both installed and the clock keeps wobbling, which should I keep", "should_trigger": true},
+  {"query": "the handshake fails with unknown ca and a verify error 20 even though the clock is right", "should_trigger": false, "expected": "tls-handshake-debugging"},
+  {"query": "my cron job fires an hour late after the daylight saving change", "should_trigger": false, "expected": "scheduled-job-debugging"},
+  {"query": "production is down right now and we need to coordinate a response", "should_trigger": false, "expected": "incident-response"},
+  {"query": "renew the certificate automatically before it expires", "should_trigger": false, "expected": "certificate-automation"},
+  {"query": "the server will not boot and drops to an emergency shell", "should_trigger": false, "expected": "boot-failure-recovery"},
+  {"query": "the process was killed by the kernel with out of memory", "should_trigger": false, "expected": "oom-kill-forensics"},
+  {"query": "a systemd service enters a failed state after start", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "name resolution fails intermittently from this host", "should_trigger": false, "expected": "dns-resolution-debugging"},
+  {"query": "ssh login is refused with permission denied publickey", "should_trigger": false, "expected": "ssh-access-debugging"},
+  {"query": "disk is at 100 percent and nothing can be written", "should_trigger": false, "expected": "disk-full-triage"}
+]

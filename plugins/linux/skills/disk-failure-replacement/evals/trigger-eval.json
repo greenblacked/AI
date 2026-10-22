@@ -1,0 +1,22 @@
+[
+  {"query": "cat /proc/mdstat shows [U_] and I think a disk in the raid1 has died, what now", "should_trigger": true},
+  {"query": "smartctl reports 40 reallocated sectors and some pending sectors on one of our servers disks, should I replace it", "should_trigger": true},
+  {"query": "zpool status says DEGRADED with one disk UNAVAIL, how do I replace it", "should_trigger": true},
+  {"query": "my ext4 filesystem remounted read-only after I/O errors in dmesg, can I just run fsck", "should_trigger": true},
+  {"query": "how do I make sure I pull the right drive from the chassis when /dev/sdb is the bad one", "should_trigger": true},
+  {"query": "smart shows UDMA_CRC_Error_Count climbing, is the disk dying or is it the cable", "should_trigger": true},
+  {"query": "the raid is rebuilding and one of the other disks just threw a read error, should I keep going", "should_trigger": true},
+  {"query": "copy the partition table to the new disk and add it back to the md array", "should_trigger": true},
+  {"query": "how long should a resilver take and how do I confirm the pool is healthy afterwards", "should_trigger": true},
+  {"query": "lvm mirror lost a leg after a disk failure and I need to repair it with the new disk", "should_trigger": true},
+  {"query": "the root filesystem is at 100 percent and I need to find what is using it", "should_trigger": false, "expected": "disk-full-triage"},
+  {"query": "grow the logical volume and the filesystem by 200 gigabytes online", "should_trigger": false, "expected": "volume-resize"},
+  {"query": "design our backup and retention strategy for the databases", "should_trigger": false, "expected": "backup-recovery-design"},
+  {"query": "the server rebooted on its own and there is no log of why", "should_trigger": false, "expected": "kernel-crash-forensics"},
+  {"query": "the machine does not boot and drops into an initramfs shell", "should_trigger": false, "expected": "boot-failure-recovery"},
+  {"query": "update the kernel on all our hosts this weekend", "should_trigger": false, "expected": "kernel-update-safety"},
+  {"query": "a process was killed by the out of memory killer", "should_trigger": false, "expected": "oom-kill-forensics"},
+  {"query": "a file cannot be read by the service account", "should_trigger": false, "expected": "permission-denied-triage"},
+  {"query": "a systemd mount unit fails at boot", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "we hit the open file limit and the app throws too many open files", "should_trigger": false, "expected": "resource-limit-exhaustion"}
+]

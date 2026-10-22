@@ -1,0 +1,22 @@
+[
+  {"query": "my service shows status=203/EXEC in systemctl status and the app log is empty, what does that mean", "should_trigger": true},
+  {"query": "the unit keeps restarting and finally says start-limit-hit, how do I get it to stay up", "should_trigger": true},
+  {"query": "my script works perfectly when I run it by hand but fails when systemd starts it", "should_trigger": true},
+  {"query": "systemctl start hangs in activating and then times out even though the daemon is running", "should_trigger": true},
+  {"query": "failed with result 'exit-code' and Main process exited, code=exited, status=217/USER", "should_trigger": true},
+  {"query": "I added ReadWritePaths to my unit and now it dies with 226/NAMESPACE", "should_trigger": true},
+  {"query": "my service starts before the database is ready after reboot even though I wrote Requires=", "should_trigger": true},
+  {"query": "how should I override a packaged unit file without my change vanishing on the next upgrade", "should_trigger": true},
+  {"query": "the oneshot unit runs fine but everything that depends on it thinks it is inactive", "should_trigger": true},
+  {"query": "daemon forks into the background and systemd marks the service as failed straight away", "should_trigger": true},
+  {"query": "the app inside the service throws a null pointer once it is running and I need to find the bug in the code", "should_trigger": false, "expected": "debugging"},
+  {"query": "pod stuck in CrashLoopBackOff on our cluster, find out why", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "my systemd timer never fires the nightly job", "should_trigger": false, "expected": "scheduled-job-debugging"},
+  {"query": "production is down right now and I need to coordinate the response and updates", "should_trigger": false, "expected": "incident-response"},
+  {"query": "the machine drops to the emergency shell after a reboot because of a bad fstab line", "should_trigger": false, "expected": "boot-failure-recovery"},
+  {"query": "the kernel killed my database and dmesg shows Out of memory", "should_trigger": false, "expected": "oom-kill-forensics"},
+  {"query": "service says too many open files and cannot fork new threads", "should_trigger": false, "expected": "resource-limit-exhaustion"},
+  {"query": "the service user gets Permission denied reading a file that is mode 777", "should_trigger": false, "expected": "permission-denied-triage"},
+  {"query": "cron job that rotates logs is not running at midnight", "should_trigger": false, "expected": "scheduled-job-debugging"},
+  {"query": "harden our servers with a baseline benchmark and sandbox settings policy", "should_trigger": false, "expected": "host-hardening"}
+]

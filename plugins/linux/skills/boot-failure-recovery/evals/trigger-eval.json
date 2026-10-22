@@ -1,0 +1,22 @@
+[
+  {"query": "server dropped to an emergency shell after a reboot and I do not know why", "should_trigger": true},
+  {"query": "a start job is running for dev-disk-by-uuid and it waits 90 seconds then fails", "should_trigger": true},
+  {"query": "I made a typo in fstab and now the machine will not come up", "should_trigger": true},
+  {"query": "boot takes five minutes, how do I find what is slow", "should_trigger": true},
+  {"query": "Dependency failed for Local File Systems, welcome to emergency mode", "should_trigger": true},
+  {"query": "cloud instance does not come back after reboot and I cannot ssh in, how do I fix the disk", "should_trigger": true},
+  {"query": "we get a dracut shell saying cannot find root device after a kernel update", "should_trigger": true},
+  {"query": "how do I add nofail so a missing data disk does not stop the server booting", "should_trigger": true},
+  {"query": "journalctl has nothing from the last failed boot, how do I keep logs across reboots", "should_trigger": true},
+  {"query": "grub drops to a rescue prompt and says file not found", "should_trigger": true},
+  {"query": "my web service fails with status=203/EXEC after the system is up", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "the machine boots fine but my ssh key is rejected", "should_trigger": false, "expected": "ssh-access-debugging"},
+  {"query": "a kernel panic produced a vmcore and I need to analyse it", "should_trigger": false},
+  {"query": "all production servers are down and the team needs coordinating", "should_trigger": false, "expected": "incident-response"},
+  {"query": "root filesystem is full and nothing can write", "should_trigger": false, "expected": "disk-full-triage"},
+  {"query": "the kernel killed my application for using too much memory", "should_trigger": false, "expected": "oom-kill-forensics"},
+  {"query": "harden our hosts: secure boot, disk encryption and a baseline", "should_trigger": false, "expected": "host-hardening"},
+  {"query": "service denied access to a file it owns", "should_trigger": false, "expected": "permission-denied-triage"},
+  {"query": "my cron job did not run last night", "should_trigger": false, "expected": "scheduled-job-debugging"},
+  {"query": "pod stuck pending after node reboot in kubernetes", "should_trigger": false, "expected": "k8s-triage"}
+]

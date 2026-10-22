@@ -1,0 +1,22 @@
+[
+  {"query": "my cron job runs fine when I run it by hand but does nothing at 3am", "should_trigger": true},
+  {"query": "systemctl list-timers shows my backup timer but LAST is empty and it never fires", "should_trigger": true},
+  {"query": "the nightly export script ran twice last night, how do I stop two copies running at the same time", "should_trigger": true},
+  {"query": "crontab line with date +%F writes a broken file name only when cron runs it", "should_trigger": true},
+  {"query": "I dropped a file in /etc/cron.d and cron ignores it completely", "should_trigger": true},
+  {"query": "after the server was off for the weekend the timer skipped its run, how do I make it catch up", "should_trigger": true},
+  {"query": "how do I check that my OnCalendar expression means what I think it means", "should_trigger": true},
+  {"query": "cron says command not found for something that is clearly installed", "should_trigger": true},
+  {"query": "our job runs an hour late since the clocks changed", "should_trigger": true},
+  {"query": "how do I find out that a cron job silently did not run at all", "should_trigger": true},
+  {"query": "my web service keeps restarting and systemctl shows start-limit-hit", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "the nightly build in our CI pipeline schedule did not trigger", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "decide what should page the on-call when a batch job is late", "should_trigger": false, "expected": "alert-design"},
+  {"query": "the root filesystem is full and logs stopped writing", "should_trigger": false, "expected": "disk-full-triage"},
+  {"query": "the kernel killed my process and dmesg shows Out of memory", "should_trigger": false, "expected": "oom-kill-forensics"},
+  {"query": "the script exits with Permission denied when the service user reads a file", "should_trigger": false, "expected": "permission-denied-triage"},
+  {"query": "service says too many open files under load", "should_trigger": false, "expected": "resource-limit-exhaustion"},
+  {"query": "the machine drops to the emergency shell after reboot", "should_trigger": false, "expected": "boot-failure-recovery"},
+  {"query": "the python script itself throws a KeyError on the third row of the input", "should_trigger": false, "expected": "debugging"},
+  {"query": "ssh login fails with Permission denied (publickey)", "should_trigger": false, "expected": "ssh-access-debugging"}
+]

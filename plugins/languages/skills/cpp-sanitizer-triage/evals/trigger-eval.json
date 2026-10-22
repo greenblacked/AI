@@ -1,0 +1,22 @@
+[
+  {"query": "AddressSanitizer says heap-use-after-free in our test run and I have no idea where to start reading it", "should_trigger": true},
+  {"query": "our C++ code behaves differently with -O2 than -O0, I suspect undefined behaviour, how do I confirm", "should_trigger": true},
+  {"query": "set up sanitizers in CI for our C++ library so regressions fail the build", "should_trigger": true},
+  {"query": "ThreadSanitizer printed a data race report with two stacks, how do I decide which side to fix", "should_trigger": true},
+  {"query": "can I enable ASan and TSan in the same build to save CI time", "should_trigger": true},
+  {"query": "crashes under -O2 but not in debug builds, no obvious cause, where do I start", "should_trigger": true},
+  {"query": "UBSan prints runtime error signed integer overflow but the tests still pass, why", "should_trigger": true},
+  {"query": "how do I get readable stack frames out of ASan instead of raw hex addresses", "should_trigger": true},
+  {"query": "we need to find reads of uninitialised memory in a C++ service, what are the options", "should_trigger": true},
+  {"query": "how should we manage suppressions for sanitizer findings in third party code", "should_trigger": true},
+  {"query": "generate random inputs to hammer our image parser and find crashes", "should_trigger": false, "expected": "debugging"},
+  {"query": "here is a core file from production, work out why the service segfaulted", "should_trigger": false, "expected": "native-core-dump-analysis"},
+  {"query": "review the unsafe blocks in this Rust crate for soundness", "should_trigger": false, "expected": "rust-unsafe-review"},
+  {"query": "do a security assessment of our upload service", "should_trigger": false, "expected": "security-review"},
+  {"query": "undefined reference to foo::bar when linking, how do I find the definition", "should_trigger": false, "expected": "native-linking-errors"},
+  {"query": "GLIBC_2.34 not found when the customer runs our binary", "should_trigger": false, "expected": "native-linking-errors"},
+  {"query": "find where the time goes in our C++ renderer using a profiler", "should_trigger": false, "expected": "profiling"},
+  {"query": "our Python service leaks memory slowly, how do I find it", "should_trigger": false, "expected": "python-memory-growth"},
+  {"query": "write unit tests for this C++ parser", "should_trigger": false, "expected": "test-design"},
+  {"query": "review this pull request that refactors our allocator wrapper", "should_trigger": false, "expected": "code-review"}
+]

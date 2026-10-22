@@ -1,0 +1,91 @@
+[
+ {
+  "query": "set up uptime monitoring for our public site",
+  "should_trigger": true
+ },
+ {
+  "query": "should we use blackbox exporter or checkly for our checks",
+  "should_trigger": true
+ },
+ {
+  "query": "monitor login and checkout from outside our network",
+  "should_trigger": true
+ },
+ {
+  "query": "our uptime probe keeps false alarming at 3am",
+  "should_trigger": true
+ },
+ {
+  "query": "the synthetic test is red but the site is fine",
+  "should_trigger": true
+ },
+ {
+  "query": "how many locations should a synthetic check run from and when should it page",
+  "should_trigger": true
+ },
+ {
+  "query": "design a journey check for our payment flow that does not create real orders",
+  "should_trigger": true
+ },
+ {
+  "query": "synthetic checks are blocked by our waf with 403s",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I keep synthetic traffic out of analytics and fraud scoring",
+  "should_trigger": true
+ },
+ {
+  "query": "we mute the synthetic alert every week because it flaps",
+  "should_trigger": true
+ },
+ {
+  "query": "define an slo and error budget for the api",
+  "should_trigger": false,
+  "expected": "slo-design"
+ },
+ {
+  "query": "write a burn-rate alert for the checkout service",
+  "should_trigger": false,
+  "expected": "alert-design"
+ },
+ {
+  "query": "write end to end tests that run before we release",
+  "should_trigger": false,
+  "expected": "e2e-testing"
+ },
+ {
+  "query": "rebuild the on-call dashboard for this service",
+  "should_trigger": false,
+  "expected": "service-dashboard-rebuild"
+ },
+ {
+  "query": "how much of our availability is lost to vendor outages",
+  "should_trigger": false,
+  "expected": "dependency-reliability-ledger"
+ },
+ {
+  "query": "what is the latency breakdown of this slow trace",
+  "should_trigger": false,
+  "expected": "trace-latency-analysis"
+ },
+ {
+  "query": "a certificate expired on our site, set up automated renewal",
+  "should_trigger": false,
+  "expected": "certificate-automation"
+ },
+ {
+  "query": "our load balancer health checks fail after deploy",
+  "should_trigger": false,
+  "expected": "k8s-triage"
+ },
+ {
+  "query": "run a game day for our payment outage",
+  "should_trigger": false,
+  "expected": "game-day"
+ },
+ {
+  "query": "test the performance of the site under load",
+  "should_trigger": false
+ }
+]

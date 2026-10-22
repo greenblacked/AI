@@ -1,0 +1,22 @@
+[
+  {"query": "memory keeps growing in our ASP.NET Core app until the pod restarts", "should_trigger": true},
+  {"query": "gen 2 collections keep climbing in dotnet-counters", "should_trigger": true},
+  {"query": "OutOfMemoryException in a dotnet container even though the limit seems large", "should_trigger": true},
+  {"query": "large object heap fragmentation in our .net worker", "should_trigger": true},
+  {"query": "working set is three times the gc heap size, where is the rest", "should_trigger": true},
+  {"query": "is Server GC the right choice for a pod with 2 cores", "should_trigger": true},
+  {"query": "how do I compare two dotnet-gcdump files to find what is leaking", "should_trigger": true},
+  {"query": "what does DOTNET_GCHeapHardLimit take, hex or decimal", "should_trigger": true},
+  {"query": "creating HttpClient per request, could that be our memory leak", "should_trigger": true},
+  {"query": "byte arrays over 85000 bytes keep landing on the LOH, how do I pool them", "should_trigger": true},
+  {"query": "dotnet requests hang because the thread pool is starved", "should_trigger": false, "expected": "dotnet-threadpool-starvation"},
+  {"query": "find which method burns the CPU in our c# service", "should_trigger": false, "expected": "profiling"},
+  {"query": "set memory requests and limits for the dotnet deployment", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "go service gets OOMKilled and GC takes lots of CPU", "should_trigger": false, "expected": "go-gc-tuning"},
+  {"query": "java heap keeps growing, tune G1 pauses", "should_trigger": false, "expected": "jvm-gc-tuning"},
+  {"query": "java.lang.OutOfMemoryError Metaspace after redeploys", "should_trigger": false, "expected": "jvm-oom-triage"},
+  {"query": "python worker memory grows over days", "should_trigger": false, "expected": "python-memory-growth"},
+  {"query": "node service heap out of memory after a day", "should_trigger": false, "expected": "node-memory-leak"},
+  {"query": "goroutines pile up and never exit", "should_trigger": false, "expected": "go-goroutine-leak"},
+  {"query": "how many instances do we need for black friday traffic", "should_trigger": false, "expected": "capacity-planning"}
+]

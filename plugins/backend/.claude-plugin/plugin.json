@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "backend",
+  "description": "Skills for backend and distributed-systems correctness: webhooks, transaction races, timeout and retry budgets, overload protection, rate limiting, distributed locks, sagas, event schemas, consumer lag, hot partitions, scheduled jobs and search index sync.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "backend",
+    "distributed-systems",
+    "idempotency",
+    "webhooks",
+    "concurrency"
+  ]
+}

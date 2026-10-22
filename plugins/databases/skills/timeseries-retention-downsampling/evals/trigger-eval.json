@@ -1,0 +1,92 @@
+[
+  {
+    "query": "our metrics table is 4TB and growing, what do we do",
+    "should_trigger": true
+  },
+  {
+    "query": "how long should we keep raw data before downsampling it",
+    "should_trigger": true
+  },
+  {
+    "query": "set up continuous aggregates in timescaledb for hourly rollups",
+    "should_trigger": true
+  },
+  {
+    "query": "what chunk interval should I use for a timescaledb hypertable",
+    "should_trigger": true
+  },
+  {
+    "query": "downsample old data without losing history we might need",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I expire old time-series data without running a huge DELETE",
+    "should_trigger": true
+  },
+  {
+    "query": "configure timescaledb compression with segmentby and orderby",
+    "should_trigger": true
+  },
+  {
+    "query": "clickhouse materialized view into aggregatingmergetree for per minute rollups",
+    "should_trigger": true
+  },
+  {
+    "query": "prometheus long term storage is too expensive, how do we cut it with recording rules",
+    "should_trigger": true
+  },
+  {
+    "query": "high cardinality labels are blowing up our time series storage",
+    "should_trigger": true
+  },
+  {
+    "query": "partition a general postgres orders table by month",
+    "should_trigger": false,
+    "expected": "table-partitioning"
+  },
+  {
+    "query": "decide which metrics and labels our service should emit",
+    "should_trigger": false,
+    "expected": "instrumentation"
+  },
+  {
+    "query": "forecast hardware and disk needed for next year",
+    "should_trigger": false,
+    "expected": "capacity-planning"
+  },
+  {
+    "query": "clickhouse says too many parts and rejects inserts",
+    "should_trigger": false,
+    "expected": "clickhouse-parts-triage"
+  },
+  {
+    "query": "run a safe backfill of a new column across a large table",
+    "should_trigger": false,
+    "expected": "safe-backfill"
+  },
+  {
+    "query": "design the tables and indexes for a new feature",
+    "should_trigger": false,
+    "expected": "schema-design"
+  },
+  {
+    "query": "postgres table is bloated after a large delete",
+    "should_trigger": false,
+    "expected": "vacuum-bloat-triage"
+  },
+  {
+    "query": "a prometheus alert fires too often and gets ignored",
+    "should_trigger": false,
+    "expected": "alert-design"
+  },
+  {
+    "query": "pick latency histogram buckets for our service",
+    "should_trigger": false,
+    "expected": "latency-histogram-design"
+  },
+  {
+    "query": "reduce log volume and storage cost for our logging pipeline",
+    "should_trigger": false,
+    "expected": "log-volume-reduction"
+  }
+]

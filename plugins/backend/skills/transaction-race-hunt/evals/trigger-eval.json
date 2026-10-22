@@ -1,0 +1,22 @@
+[
+  {"query": "two customers booked the same seat even though we check that it is free before inserting", "should_trigger": true},
+  {"query": "an account balance went negative when two withdrawals ran at the same moment", "should_trigger": true},
+  {"query": "we have duplicate rows in the users table even though the code checks for the email first", "should_trigger": true},
+  {"query": "inventory got oversold on launch day, stock went to minus three", "should_trigger": true},
+  {"query": "two workers picked up the same pending job and both sent the email", "should_trigger": true},
+  {"query": "postgres says deadlock detected in our order update path, how do we stop it", "should_trigger": true},
+  {"query": "two doctors both went off call at the same time and now nobody is on call, how does that happen at the database level", "should_trigger": true},
+  {"query": "we increment a counter by reading it and writing it back and counts are low under concurrency", "should_trigger": true},
+  {"query": "does repeatable read in mysql protect us from lost updates in our read-modify-write code", "should_trigger": true},
+  {"query": "how do I write a test that reliably reproduces a race between two requests on the same row", "should_trigger": true},
+  {"query": "this query takes eight seconds and the explain shows a sequential scan", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "the report shows the wrong total and I cannot tell which layer is wrong", "should_trigger": false, "expected": "debugging"},
+  {"query": "we need a lock so only one pod runs the nightly job across the cluster", "should_trigger": false, "expected": "distributed-lock-audit"},
+  {"query": "design the tables and constraints for a new bookings model", "should_trigger": false, "expected": "schema-design"},
+  {"query": "a retry storm took down our payment service when the bank slowed down", "should_trigger": false, "expected": "timeout-and-retry-budget"},
+  {"query": "the same webhook was delivered twice and we processed it twice", "should_trigger": false, "expected": "webhook-integration"},
+  {"query": "our consumer gets the same message twice from the broker", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "one tenant sends far too many requests and we need a limiter", "should_trigger": false, "expected": "rate-limiter-design"},
+  {"query": "a multi-step order flow across services needs compensation when payment fails", "should_trigger": false, "expected": "saga-design"},
+  {"query": "add an index so the dashboard loads faster", "should_trigger": false, "expected": "sql-performance"}
+]

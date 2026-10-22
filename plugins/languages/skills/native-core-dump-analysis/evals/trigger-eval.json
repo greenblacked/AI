@@ -1,0 +1,22 @@
+[
+  {"query": "our c++ service segfaults in production a few times a week and we have no logs, how do we find out why", "should_trigger": true},
+  {"query": "how do I enable core dumps for a process running in a docker container", "should_trigger": true},
+  {"query": "I have a core file from a customer but gdb just shows question marks for every frame", "should_trigger": true},
+  {"query": "the crash only happens on the customer's machine and we can't attach a debugger, what do we capture", "should_trigger": true},
+  {"query": "where should kernel.core_pattern point on a kubernetes node so crashes from pods are kept", "should_trigger": true},
+  {"query": "how do I keep debug symbols for a stripped release binary so I can read old crash dumps later", "should_trigger": true},
+  {"query": "what does coredumpctl give me and how do I open a dump in gdb", "should_trigger": true},
+  {"query": "gdb says the shared libraries are missing when I open the core on my laptop", "should_trigger": true},
+  {"query": "our rust binary aborted in prod, ulimit -c was 0, how do we make sure the next one leaves a core", "should_trigger": true},
+  {"query": "stack trace in the core is only two frames and then garbage, what can I do", "should_trigger": true},
+  {"query": "a user's iphone app crashes on launch and I have a crash report with symbolicated frames, how do I group these", "should_trigger": false, "expected": "debugging"},
+  {"query": "the unit test fails intermittently and I need to find the root cause", "should_trigger": false, "expected": "debugging"},
+  {"query": "run address sanitizer on our test suite and tell me which heap overflow it reports", "should_trigger": false, "expected": "cpp-sanitizer-triage"},
+  {"query": "undefined reference to a symbol when linking my static library into the binary", "should_trigger": false, "expected": "native-linking-errors"},
+  {"query": "review this pull request that changes the connection pool", "should_trigger": false, "expected": "code-review"},
+  {"query": "profile why this function uses so much cpu", "should_trigger": false, "expected": "profiling"},
+  {"query": "we had an outage last night, run the incident", "should_trigger": false, "expected": "incident-response"},
+  {"query": "do a security review of our new upload endpoint", "should_trigger": false, "expected": "security-review"},
+  {"query": "my node process throws an uncaught exception and I need the stack trace", "should_trigger": false, "expected": "debugging"},
+  {"query": "threadsanitizer reports a data race in our tests, is it real", "should_trigger": false, "expected": "cpp-sanitizer-triage"}
+]

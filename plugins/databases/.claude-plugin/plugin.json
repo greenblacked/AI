@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "databases",
+  "description": "Skills for database engineering in depth: PostgreSQL and MySQL internals, locks, deadlocks and vacuum, connection storms and failover, partitioning, search engines, vector indexes, ClickHouse, time series, Redis and SQLite.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "postgresql",
+    "mysql",
+    "search",
+    "redis",
+    "sqlite"
+  ]
+}

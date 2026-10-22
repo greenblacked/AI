@@ -1,0 +1,92 @@
+[
+ {
+  "query": "ERROR: nextval: reached maximum value of sequence orders_id_seq (2147483647)",
+  "should_trigger": true
+ },
+ {
+  "query": "are we going to run out of int ids on our events table, how do I check",
+  "should_trigger": true
+ },
+ {
+  "query": "Duplicate entry '2147483647' for key 'PRIMARY' started failing inserts this morning",
+  "should_trigger": true
+ },
+ {
+  "query": "we need to convert serial to bigint on a 800M row table, where do we start",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I find every table in postgres whose primary key is still a 32-bit integer and how long until it overflows",
+  "should_trigger": true
+ },
+ {
+  "query": "our auto_increment is at 1.9 billion and the column is INT, what are our options this week",
+  "should_trigger": true
+ },
+ {
+  "query": "should we switch the id column to INT UNSIGNED as a stopgap",
+  "should_trigger": true
+ },
+ {
+  "query": "what breaks when ids go above 2^53 in our JavaScript frontend after we move to bigint",
+  "should_trigger": true
+ },
+ {
+  "query": "can we just enable CYCLE on the sequence to avoid the overflow",
+  "should_trigger": true
+ },
+ {
+  "query": "set up an alert that tells us when any sequence passes half of its maximum",
+  "should_trigger": true
+ },
+ {
+  "query": "walk me through expand and contract to change a column type with no downtime",
+  "should_trigger": false,
+  "expected": "db-migration"
+ },
+ {
+  "query": "backfill the new bigint column in batches without hammering the primary",
+  "should_trigger": false,
+  "expected": "safe-backfill"
+ },
+ {
+  "query": "design the primary key strategy for a new table, uuid or bigint",
+  "should_trigger": false,
+  "expected": "schema-design"
+ },
+ {
+  "query": "transaction id wraparound is approaching, autovacuum freeze",
+  "should_trigger": false,
+  "expected": "xid-wraparound-defense"
+ },
+ {
+  "query": "which indexes can we drop",
+  "should_trigger": false,
+  "expected": "index-pruning"
+ },
+ {
+  "query": "partition this table by month",
+  "should_trigger": false,
+  "expected": "table-partitioning"
+ },
+ {
+  "query": "deadlock detected between two updates",
+  "should_trigger": false,
+  "expected": "deadlock-analysis"
+ },
+ {
+  "query": "the table is bloated, vacuum is not reclaiming space",
+  "should_trigger": false,
+  "expected": "vacuum-bloat-triage"
+ },
+ {
+  "query": "this query is slow, read the explain",
+  "should_trigger": false,
+  "expected": "sql-performance"
+ },
+ {
+  "query": "all queries are blocked behind a schema change",
+  "should_trigger": false,
+  "expected": "lock-queue-triage"
+ }
+]

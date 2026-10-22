@@ -1,0 +1,92 @@
+[
+ {
+  "query": "should we partition this 2TB table or is that overkill",
+  "should_trigger": true
+ },
+ {
+  "query": "we need to drop data older than 90 days without a giant DELETE that bloats the table",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I set up pg_partman for a time series events table",
+  "should_trigger": true
+ },
+ {
+  "query": "partition pruning isn't happening, EXPLAIN shows all partitions scanned",
+  "should_trigger": true
+ },
+ {
+  "query": "can I convert a live postgres table to a partitioned one without downtime",
+  "should_trigger": true
+ },
+ {
+  "query": "MySQL says a foreign key is not allowed on our partitioned table",
+  "should_trigger": true
+ },
+ {
+  "query": "how many partitions is too many in postgres",
+  "should_trigger": true
+ },
+ {
+  "query": "the primary key has to include the partition key, how do we handle uniqueness on id",
+  "should_trigger": true
+ },
+ {
+  "query": "rows keep landing in the default partition, what do we do",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I use EXCHANGE PARTITION to archive last month in MySQL",
+  "should_trigger": true
+ },
+ {
+  "query": "model the schema for a new multi-tenant billing system",
+  "should_trigger": false,
+  "expected": "schema-design"
+ },
+ {
+  "query": "change a column type on a live table without downtime using expand and contract",
+  "should_trigger": false,
+  "expected": "db-migration"
+ },
+ {
+  "query": "this single query is slow, explain analyze attached",
+  "should_trigger": false,
+  "expected": "sql-performance"
+ },
+ {
+  "query": "drop unused indexes to cut write cost",
+  "should_trigger": false,
+  "expected": "index-pruning"
+ },
+ {
+  "query": "the table is bloated and autovacuum is behind",
+  "should_trigger": false,
+  "expected": "vacuum-bloat-triage"
+ },
+ {
+  "query": "we are about to run out of 32-bit ids",
+  "should_trigger": false,
+  "expected": "integer-key-exhaustion"
+ },
+ {
+  "query": "backfill a new column on a 500M row table in batches",
+  "should_trigger": false,
+  "expected": "safe-backfill"
+ },
+ {
+  "query": "our elasticsearch shards are unassigned",
+  "should_trigger": false,
+  "expected": "shard-allocation-triage"
+ },
+ {
+  "query": "how much capacity do we need for next quarter's traffic peak",
+  "should_trigger": false,
+  "expected": "capacity-planning"
+ },
+ {
+  "query": "design a backup and restore plan for the database",
+  "should_trigger": false,
+  "expected": "backup-recovery-design"
+ }
+]

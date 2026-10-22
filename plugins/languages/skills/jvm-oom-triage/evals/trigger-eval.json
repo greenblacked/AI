@@ -1,0 +1,22 @@
+[
+  {"query": "java.lang.OutOfMemoryError: Metaspace after a few redeploys", "should_trigger": true},
+  {"query": "my container gets OOMKilled but there is no OutOfMemoryError in the java logs", "should_trigger": true},
+  {"query": "unable to create new native thread in our spring service", "should_trigger": true},
+  {"query": "how do I open a heap dump and find what is holding all the memory", "should_trigger": true},
+  {"query": "GC overhead limit exceeded and the service gets slower before it dies", "should_trigger": true},
+  {"query": "exit code 137 on a java pod, is it heap or something else", "should_trigger": true},
+  {"query": "OutOfMemoryError: Direct buffer memory with netty", "should_trigger": true},
+  {"query": "how should I size Xmx against the container memory limit", "should_trigger": true},
+  {"query": "how do I use native memory tracking to see where non-heap memory goes", "should_trigger": true},
+  {"query": "the jvm heap keeps growing, how do I tell which class is leaking", "should_trigger": true},
+  {"query": "tune G1 pause times and pick a collector for our latency target", "should_trigger": false, "expected": "profiling"},
+  {"query": "pod stuck in CrashLoopBackOff and I need to see events and node pressure", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "read this thread dump, I think two threads are deadlocked", "should_trigger": false, "expected": "jvm-thread-dump-triage"},
+  {"query": "NoSuchMethodError after we upgraded a library", "should_trigger": false, "expected": "jvm-classpath-conflict"},
+  {"query": "node process dies with JavaScript heap out of memory", "should_trigger": false, "expected": "node-memory-leak"},
+  {"query": "python worker gets OOMKilled every few hours", "should_trigger": false, "expected": "python-memory-growth"},
+  {"query": "the checkout endpoint is slow, find the hot method", "should_trigger": false, "expected": "profiling"},
+  {"query": "go service has thousands of goroutines blocked and memory is rising", "should_trigger": false, "expected": "go-goroutine-leak"},
+  {"query": "dotnet web app stalls because the thread pool is starved", "should_trigger": false, "expected": "dotnet-threadpool-starvation"},
+  {"query": "find the bug that makes the invoice total wrong", "should_trigger": false, "expected": "debugging"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "the linker says undefined reference to foo::bar(int) but I definitely include the header, how do I find who defines it", "should_trigger": true},
+  {"query": "our binary prints GLIBC_2.34 not found on the customer's Ubuntu 20.04 box, what do we change in how we build", "should_trigger": true},
+  {"query": "customer reports GLIBCXX_3.4.30 not found when they start our app, building on a newer distro", "should_trigger": true},
+  {"query": "works on my machine but crashes on the server with symbol lookup error as soon as it starts", "should_trigger": true},
+  {"query": "getting multiple definition of a global variable after upgrading to GCC 10 and nothing else changed", "should_trigger": true},
+  {"query": "error while loading shared libraries: libfoo.so.1: cannot open shared object file, but the file exists in our install dir", "should_trigger": true},
+  {"query": "I think we have an ODR violation, two copies of a class with different layouts, how do I prove it", "should_trigger": true},
+  {"query": "undefined reference to std::__cxx11::basic_string only when linking the vendor's prebuilt library", "should_trigger": true},
+  {"query": "how do I list the highest glibc symbol version a compiled binary needs before I ship it", "should_trigger": true},
+  {"query": "static library order matters apparently, my link only works when I swap two -l flags, why", "should_trigger": true},
+  {"query": "our C++ build takes forty minutes, show me where the time goes", "should_trigger": false, "expected": "profiling"},
+  {"query": "pip install fails building the wheel for numpy on alpine, compiler errors", "should_trigger": false, "expected": "python-native-wheel-failures"},
+  {"query": "harden the container image so it runs as non-root with a minimal base", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "the production service segfaulted and we have a core file, work out what happened", "should_trigger": false, "expected": "native-core-dump-analysis"},
+  {"query": "AddressSanitizer reports heap-use-after-free, how do I read it", "should_trigger": false, "expected": "cpp-sanitizer-triage"},
+  {"query": "review this unsafe block in our Rust crate for soundness", "should_trigger": false, "expected": "rust-unsafe-review"},
+  {"query": "this function returns the wrong total only on Tuesdays, find the cause", "should_trigger": false, "expected": "debugging"},
+  {"query": "set up a code review checklist for our C++ pull requests", "should_trigger": false, "expected": "code-review"},
+  {"query": "threat model our update mechanism before we ship it", "should_trigger": false, "expected": "security-review"},
+  {"query": "my test suite passes locally but fails on the CI runner with a timezone difference", "should_trigger": false, "expected": "debugging"}
+]

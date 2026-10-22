@@ -1,0 +1,22 @@
+[
+  {"query": "bulk indexing fails with mapper_parsing_exception failed to parse field of type long, how do I fix it", "should_trigger": true},
+  {"query": "elasticsearch says Limit of total fields [1000] has been exceeded after we started indexing customer attributes", "should_trigger": true},
+  {"query": "should this field be text or keyword in our elasticsearch mapping, we filter and also search it", "should_trigger": true},
+  {"query": "nested vs flattened for storing arbitrary key value metadata in opensearch", "should_trigger": true},
+  {"query": "design the index template for our new orders index so it stays small and rejects unknown fields", "should_trigger": true},
+  {"query": "our elasticsearch index is three times bigger than the source data, how do I shrink it", "should_trigger": true},
+  {"query": "can I change a field from text to keyword on an existing index without reindexing", "should_trigger": true},
+  {"query": "which fields can I turn doc_values and norms off on to save disk", "should_trigger": true},
+  {"query": "set dynamic to strict or false on the production mapping, what is the difference in practice", "should_trigger": true},
+  {"query": "check what tokens our analyzer produces for product names with hyphens before we create the index", "should_trigger": true},
+  {"query": "move our documents into the new index version without downtime and keep it updated from the database", "should_trigger": false, "expected": "search-index-sync"},
+  {"query": "results for the query running shoes rank the wrong products first, tune the scoring", "should_trigger": false, "expected": "search-relevance-tuning"},
+  {"query": "add full text search to our postgres app without a separate search engine", "should_trigger": false, "expected": "postgres-full-text-search"},
+  {"query": "design the relational tables and foreign keys for our order system", "should_trigger": false, "expected": "schema-design"},
+  {"query": "build as-you-type suggestions with edge n-grams and a fast response", "should_trigger": false, "expected": "typeahead-search-design"},
+  {"query": "choose hnsw parameters for our dense vector index to balance recall and memory", "should_trigger": false, "expected": "vector-index-tuning"},
+  {"query": "an elasticsearch shard is unassigned and the cluster is yellow, find out why", "should_trigger": false, "expected": "shard-allocation-triage"},
+  {"query": "our clickhouse table has too many parts and inserts are being rejected", "should_trigger": false, "expected": "clickhouse-parts-triage"},
+  {"query": "decide how long to keep raw metrics and when to roll them up into hourly averages", "should_trigger": false, "expected": "timeseries-retention-downsampling"},
+  {"query": "this postgres query with several joins is slow, interpret the plan", "should_trigger": false, "expected": "sql-performance"}
+]

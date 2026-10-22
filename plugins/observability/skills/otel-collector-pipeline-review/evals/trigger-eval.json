@@ -1,0 +1,22 @@
+[
+  {"query": "can you review our otel collector config before we roll it out to production", "should_trigger": true},
+  {"query": "should we run the collector as a daemonset agent, a gateway deployment, or both", "should_trigger": true},
+  {"query": "is our collector pipeline order right? we have batch before tail_sampling and I have a bad feeling", "should_trigger": true},
+  {"query": "harden our opentelemetry collector deployment, it runs as a k8s deployment with default settings", "should_trigger": true},
+  {"query": "we set memory_limiter to 2000 MiB on a pod with a 2GiB limit, is that sane", "should_trigger": true},
+  {"query": "does our exporter queue survive a restart? we need to not lose metrics when the pod rolls", "should_trigger": true},
+  {"query": "audit this collector yaml and tell me what will bite us under load", "should_trigger": true},
+  {"query": "applications currently ship straight to the vendor, how should we put collectors in between", "should_trigger": true},
+  {"query": "our collector image is the full contrib build, should we trim it with the builder", "should_trigger": true},
+  {"query": "what should our collector's readiness probe and self-monitoring look like before go-live", "should_trigger": true},
+  {"query": "set up opentelemetry for a brand new python service and write the first collector config", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "size num_traces and decision_wait for our tail sampler and pick the policies", "should_trigger": false, "expected": "tail-sampling-tuning"},
+  {"query": "the collector queue is full right now and spans are being dropped, what do we do", "should_trigger": false, "expected": "collector-backpressure-triage"},
+  {"query": "traces are broken across the message queue and spans have no parent", "should_trigger": false, "expected": "broken-trace-hunt"},
+  {"query": "our observability bill doubled because of a label explosion on one metric", "should_trigger": false, "expected": "cardinality-incident-response"},
+  {"query": "write the alert rules and thresholds that page us when the collector drops data", "should_trigger": false, "expected": "alert-design"},
+  {"query": "review our terraform for the kubernetes cluster the collectors run in", "should_trigger": false, "expected": "iac-review"},
+  {"query": "find and strip customer emails from our logs and spans before export", "should_trigger": false, "expected": "telemetry-redaction-audit"},
+  {"query": "work out why our log ingest volume grew and cut it without losing errors", "should_trigger": false, "expected": "log-volume-reduction"},
+  {"query": "migrate our services off the vendor agent and onto opentelemetry without breaking dashboards", "should_trigger": false, "expected": "telemetry-migration"}
+]

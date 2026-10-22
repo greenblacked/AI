@@ -1,0 +1,22 @@
+[
+  {"query": "curl says unable to get local issuer certificate but the site opens fine in chrome", "should_trigger": true},
+  {"query": "SSL handshake failed between our nginx proxy and the backend and I only see a generic error", "should_trigger": true},
+  {"query": "openssl s_client returns the wrong certificate for our domain, what am I missing", "should_trigger": true},
+  {"query": "tlsv1 alert unknown ca when our client connects to the mTLS endpoint", "should_trigger": true},
+  {"query": "how do I tell whether the server is sending the intermediate certificate", "should_trigger": true},
+  {"query": "we get certificate required from the API gateway even though we pass a client cert", "should_trigger": true},
+  {"query": "java app fails with PKIX path building failed against a partner api", "should_trigger": true},
+  {"query": "every https request from this one old device fails but the same url works from my laptop", "should_trigger": true},
+  {"query": "handshake_failure alert when forcing TLS 1.3, how do I find what the server supports", "should_trigger": true},
+  {"query": "the cert looks valid in the browser but hostname verification fails for the short service name", "should_trigger": true},
+  {"query": "set up automatic renewal for our certificates with acme", "should_trigger": false, "expected": "certificate-automation"},
+  {"query": "which tls versions and ciphers should our servers allow under the baseline", "should_trigger": false, "expected": "host-hardening"},
+  {"query": "rotate the private key that was exposed in the repository", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "dig works but the app cannot resolve the host so the connection never starts", "should_trigger": false, "expected": "dns-resolution-debugging"},
+  {"query": "ssh login refused with Permission denied (publickey)", "should_trigger": false, "expected": "ssh-access-debugging"},
+  {"query": "the oauth token validation in our code rejects a valid jwt", "should_trigger": false, "expected": "auth-design"},
+  {"query": "the service crashes at start with a segfault in the tls library, find the bug", "should_trigger": false, "expected": "debugging"},
+  {"query": "service fails to start with status 226/NAMESPACE", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "my nightly job that renews and copies certs does not run", "should_trigger": false, "expected": "scheduled-job-debugging"},
+  {"query": "the process has too many open files when many tls connections arrive", "should_trigger": false, "expected": "resource-limit-exhaustion"}
+]

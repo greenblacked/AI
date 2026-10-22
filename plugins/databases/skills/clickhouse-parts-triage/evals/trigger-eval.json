@@ -1,0 +1,92 @@
+[
+  {
+    "query": "we get Too many parts, merges are processing significantly slower than inserts in clickhouse",
+    "should_trigger": true
+  },
+  {
+    "query": "clickhouse inserts are being rejected and I don't know why",
+    "should_trigger": true
+  },
+  {
+    "query": "our clickhouse merges backlog keeps growing during the day",
+    "should_trigger": true
+  },
+  {
+    "query": "how should I batch inserts into clickhouse from many small producers",
+    "should_trigger": true
+  },
+  {
+    "query": "should we turn on async_insert and what does wait_for_async_insert do",
+    "should_trigger": true
+  },
+  {
+    "query": "is partitioning our clickhouse table by day causing problems",
+    "should_trigger": true
+  },
+  {
+    "query": "system.parts shows thousands of active parts in one partition, what next",
+    "should_trigger": true
+  },
+  {
+    "query": "can I just raise parts_to_throw_insert to stop the errors",
+    "should_trigger": true
+  },
+  {
+    "query": "mutations are piling up on our big clickhouse table and merges are stuck",
+    "should_trigger": true
+  },
+  {
+    "query": "what order by key should I use so clickhouse merges and compresses well",
+    "should_trigger": true
+  },
+  {
+    "query": "which queries are driving our warehouse bill this month",
+    "should_trigger": false,
+    "expected": "cost-review"
+  },
+  {
+    "query": "this clickhouse select takes 40 seconds, help me read the plan and speed it up",
+    "should_trigger": false,
+    "expected": "sql-performance"
+  },
+  {
+    "query": "partition a postgres table by range and migrate existing rows",
+    "should_trigger": false,
+    "expected": "table-partitioning"
+  },
+  {
+    "query": "run a large backfill into a new table without hurting production",
+    "should_trigger": false,
+    "expected": "safe-backfill"
+  },
+  {
+    "query": "decide how long to keep raw metrics and set up rollups",
+    "should_trigger": false,
+    "expected": "timeseries-retention-downsampling"
+  },
+  {
+    "query": "postgres autovacuum is falling behind on a hot table",
+    "should_trigger": false,
+    "expected": "vacuum-bloat-triage"
+  },
+  {
+    "query": "plan capacity for the next year of storage growth",
+    "should_trigger": false,
+    "expected": "capacity-planning"
+  },
+  {
+    "query": "redis memory is climbing and keys are not expiring",
+    "should_trigger": false,
+    "expected": "redis-memory-triage"
+  },
+  {
+    "query": "elasticsearch shards are unassigned after a node restart",
+    "should_trigger": false,
+    "expected": "shard-allocation-triage"
+  },
+  {
+    "query": "mysql history list length keeps growing",
+    "should_trigger": false,
+    "expected": "innodb-purge-lag"
+  }
+]

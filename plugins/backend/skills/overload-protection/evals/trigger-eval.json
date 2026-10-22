@@ -1,0 +1,22 @@
+[
+  {"query": "latency spikes during a traffic burst and never comes back down even after the burst is over", "should_trigger": true},
+  {"query": "our request queue keeps growing and everything starts timing out", "should_trigger": true},
+  {"query": "add load shedding to our api gateway so it survives twice the normal traffic", "should_trigger": true},
+  {"query": "the service falls over whenever traffic doubles instead of just serving what it can", "should_trigger": true},
+  {"query": "how should we choose a concurrency limit for our http server instead of the default thread pool", "should_trigger": true},
+  {"query": "should we drop requests that have waited longer than the client timeout", "should_trigger": true},
+  {"query": "how do we make health checks and checkout flows win over bulk exports when we are overloaded", "should_trigger": true},
+  {"query": "what is metastable failure and how do we recover from it in production", "should_trigger": true},
+  {"query": "can we use an adaptive concurrency limit like envoy or netflix concurrency-limits", "should_trigger": true},
+  {"query": "design a load test that proves the service degrades gracefully at five times capacity", "should_trigger": true},
+  {"query": "how many instances do we need for the expected holiday peak", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "our client retries are amplifying the outage, set up a retry budget", "should_trigger": false, "expected": "timeout-and-retry-budget"},
+  {"query": "our queue consumers cannot keep up and messages are redelivered", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "limit each customer to 100 requests a minute", "should_trigger": false, "expected": "rate-limiter-design"},
+  {"query": "make this endpoint faster by finding where the time goes", "should_trigger": false, "expected": "profiling"},
+  {"query": "write the runbook for responding to a database failover", "should_trigger": false, "expected": "runbook"},
+  {"query": "define slos and error budgets for the checkout service", "should_trigger": false, "expected": "slo-design"},
+  {"query": "two requests updated the same row at the same time", "should_trigger": false, "expected": "transaction-race-hunt"},
+  {"query": "deliver webhooks to customers without one slow endpoint blocking others", "should_trigger": false, "expected": "webhook-integration"},
+  {"query": "set up alerts for rising latency", "should_trigger": false, "expected": "alert-design"}
+]
