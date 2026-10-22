@@ -1,7 +1,7 @@
 ---
 name: pipeline-hardening
 description: "Harden or audit a CI workflow, GitHub Actions first, GitLab CI too: untrusted PR title, branch, comment or fork code reaching a run: step; pull_request_target, workflow_run or issue_comment plus checkout of untrusted code; token/secret reach per job; actions/tools pinned to a SHA, tag recorded; long-lived keys flagged; cache/artefact poisoning across the fork boundary; provenance checked at consumption; zizmor findings judged, not counted. Use for \"is our github actions workflow safe\", \"can a fork PR steal our secrets\", \"should we pin actions to a sha\", \"audit our CI for injection\", \"do we need pull_request_target\". Not for speed (ci-pipeline-design), red CI (ci-triage), diffs (security-review), images (image-hardening), leaked keys (secret-rotation), IAM (access-review), new workflows (code-scaffold), OIDC federation, trust policies (workload-identity)."
-allowed-tools: "Bash(jq:*), Read, Grep, Glob, Edit, Write"
+allowed-tools: "Read, Grep, Glob"
 ---
 
 # Pipeline Hardening
