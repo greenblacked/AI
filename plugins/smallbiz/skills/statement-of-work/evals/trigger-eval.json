@@ -1,0 +1,22 @@
+[
+  {"query": "write a scope of work for a website redesign I just got the go-ahead for", "should_trigger": true},
+  {"query": "what should go in the project brief before I start a freelance job", "should_trigger": true},
+  {"query": "my client keeps interpreting the deliverables differently from me, how do I stop that happening", "should_trigger": true},
+  {"query": "draft a proposal with deliverables and acceptance criteria for a branding project", "should_trigger": true},
+  {"query": "what do I need from the client before I start work", "should_trigger": true},
+  {"query": "how do I write exclusions so the client cannot say I promised that", "should_trigger": true},
+  {"query": "how many rounds of revisions should I include and how do I define a round", "should_trigger": true},
+  {"query": "the client wants a modern and professional look, how do I put that in writing so it can be checked", "should_trigger": true},
+  {"query": "what should I send after the kickoff call so we are on the same page", "should_trigger": true},
+  {"query": "how do I make sure a late client does not push my deadline and leave me blamed", "should_trigger": true},
+  {"query": "how much should I quote for this project and what deposit do I ask", "should_trigger": false, "expected": "fixed-price-quote"},
+  {"query": "what hourly rate do I need for a target income", "should_trigger": false, "expected": "billing-rate-calculation"},
+  {"query": "the client signed last week and now wants three extra pages added at no charge", "should_trigger": false, "expected": "scope-creep-response"},
+  {"query": "which clauses on liability and intellectual property should my services agreement have", "should_trigger": false, "expected": "services-agreement-checklist"},
+  {"query": "write a feature spec for the checkout flow with edge cases for the developers", "should_trigger": false, "expected": "feature-spec"},
+  {"query": "the client has not paid and the invoice is a month overdue", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "build a 13-week forecast so I know if I can pay rent", "should_trigger": false, "expected": "cashflow-forecast-13-week"},
+  {"query": "which of my clients is the least profitable per hour worked", "should_trigger": false, "expected": "client-profitability-review"},
+  {"query": "set up the monthly bookkeeping close for my sole trader business", "should_trigger": false, "expected": "monthly-bookkeeping-close"},
+  {"query": "how much of my income should I move into a tax account each month", "should_trigger": false, "expected": "tax-set-aside"}
+]

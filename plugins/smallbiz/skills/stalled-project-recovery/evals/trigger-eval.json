@@ -1,0 +1,22 @@
+[
+  {"query": "my client has gone quiet in the middle of the project", "should_trigger": true},
+  {"query": "I have been waiting three weeks for feedback on the draft", "should_trigger": true},
+  {"query": "the client ghosted me just before the final payment", "should_trigger": true},
+  {"query": "this project has been sitting on my desk because they never sent the content", "should_trigger": true},
+  {"query": "how many times should I follow up before I pause a project", "should_trigger": true},
+  {"query": "what do I write when a client stops answering emails and I cannot proceed", "should_trigger": true},
+  {"query": "how do I get a slow client to make a decision", "should_trigger": true},
+  {"query": "can I release my calendar slot if the client disappears and then charge to restart", "should_trigger": true},
+  {"query": "at what point do I close out a project that has stalled and send the final invoice", "should_trigger": true},
+  {"query": "what is a polite way to say I will go with option A if I do not hear back", "should_trigger": true},
+  {"query": "the invoice is 30 days overdue and they will not reply", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "the project is finished and I want to wrap it up properly", "should_trigger": false, "expected": "client-offboarding"},
+  {"query": "the client says the work is not good enough and refuses to pay", "should_trigger": false, "expected": "invoice-dispute-resolution"},
+  {"query": "the client wants extra pages added after signing", "should_trigger": false, "expected": "scope-creep-response"},
+  {"query": "what clauses should a services agreement have", "should_trigger": false, "expected": "services-agreement-checklist"},
+  {"query": "how much should I quote for this project", "should_trigger": false, "expected": "fixed-price-quote"},
+  {"query": "should I take on this new client", "should_trigger": false, "expected": "prospect-qualification"},
+  {"query": "how do I plan a hard conversation with my manager", "should_trigger": false, "expected": "difficult-conversation"},
+  {"query": "how do I measure whether my estimates were accurate", "should_trigger": false, "expected": "estimate-actuals-review"},
+  {"query": "how much tax should I set aside", "should_trigger": false, "expected": "tax-set-aside"}
+]

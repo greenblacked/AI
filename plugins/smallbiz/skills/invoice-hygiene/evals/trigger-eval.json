@@ -1,0 +1,22 @@
+[
+  {"query": "what does an invoice need to include so a client's accounts team will accept it", "should_trigger": true},
+  {"query": "the client says they never got my invoice but I emailed it to the project manager", "should_trigger": true},
+  {"query": "accounts payable rejected my invoice and I do not know why", "should_trigger": true},
+  {"query": "how should I number my invoices and what do I do about gaps in the sequence", "should_trigger": true},
+  {"query": "should I send invoices at the end of the month or when the work is done", "should_trigger": true},
+  {"query": "I put net 30 on the invoice and now the client says it is not due yet, how do I word the due date", "should_trigger": true},
+  {"query": "I made a mistake on an invoice I already sent, can I just edit it and resend", "should_trigger": true},
+  {"query": "does a large client expect me to submit invoices through a supplier portal", "should_trigger": true},
+  {"query": "do I need to put the PO number and their legal entity name on every invoice", "should_trigger": true},
+  {"query": "check this invoice before I send it to my client and tell me what is missing", "should_trigger": true},
+  {"query": "how much deposit should I ask for and how should I split milestones on this fixed-price job", "should_trigger": false, "expected": "fixed-price-quote"},
+  {"query": "the invoice is 20 days overdue and the client has gone quiet, how do I chase it", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "how do I record this month's invoices and payments in my books", "should_trigger": false, "expected": "monthly-bookkeeping-close"},
+  {"query": "the client disputes two lines on my invoice and says the hours are too high", "should_trigger": false, "expected": "invoice-dispute-resolution"},
+  {"query": "how much of my income should I set aside for tax each month", "should_trigger": false, "expected": "tax-set-aside"},
+  {"query": "what clauses should my client services agreement include about payment and liability", "should_trigger": false, "expected": "services-agreement-checklist"},
+  {"query": "work out my hourly rate so I can quote a project", "should_trigger": false, "expected": "billing-rate-calculation"},
+  {"query": "write a statement of work with milestones and acceptance criteria", "should_trigger": false, "expected": "statement-of-work"},
+  {"query": "the project is finished, how do I hand it over and revoke my access", "should_trigger": false, "expected": "client-offboarding"},
+  {"query": "forecast my cash for the next 13 weeks including expected invoice payments", "should_trigger": false, "expected": "cashflow-forecast-13-week"}
+]

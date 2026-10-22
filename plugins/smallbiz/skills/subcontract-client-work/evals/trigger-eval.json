@@ -1,0 +1,22 @@
+[
+  {"query": "can I subcontract part of this client project to someone else", "should_trigger": true},
+  {"query": "I am overbooked and need a helper on a client job, how do I do that safely", "should_trigger": true},
+  {"query": "I need to hire my first freelancer to take some of my client work, where do I start", "should_trigger": true},
+  {"query": "my subcontractor missed the deadline and the client is waiting, what now", "should_trigger": true},
+  {"query": "how do I make sure my freelancer's contract covers the confidentiality terms I promised my client", "should_trigger": true},
+  {"query": "what should I pay a subcontractor if the client is paying me a fixed fee", "should_trigger": true},
+  {"query": "how do I test a new contractor before I trust them with a client deliverable", "should_trigger": true},
+  {"query": "I do white-label work for another agency and want to bring in a developer", "should_trigger": true},
+  {"query": "how do I give a freelancer access to the client's systems without sharing my login", "should_trigger": true},
+  {"query": "is my subcontractor likely to be treated as an employee because they work set hours on my tools", "should_trigger": true},
+  {"query": "run a structured interview loop to hire an employee", "should_trigger": false, "expected": "hiring-loop"},
+  {"query": "what clauses should be in my own services agreement with the client", "should_trigger": false, "expected": "services-agreement-checklist"},
+  {"query": "write a brief to delegate a refactor in our codebase", "should_trigger": false, "expected": "agent-delegation"},
+  {"query": "plan the first month for a new employee", "should_trigger": false, "expected": "onboarding-plan"},
+  {"query": "the client wants extra features beyond what we agreed", "should_trigger": false, "expected": "scope-creep-response"},
+  {"query": "write a statement of work for the project", "should_trigger": false, "expected": "statement-of-work"},
+  {"query": "compare my estimate with actual hours on the last project", "should_trigger": false, "expected": "estimate-actuals-review"},
+  {"query": "decide which clients are worth keeping", "should_trigger": false, "expected": "client-profitability-review"},
+  {"query": "the project has stalled and I cannot get a response from the client", "should_trigger": false, "expected": "stalled-project-recovery"},
+  {"query": "set my hourly rate and day rate", "should_trigger": false, "expected": "billing-rate-calculation"}
+]
