@@ -35,7 +35,8 @@ CREATE TABLE unit_cert (
   issued_at    TIMESTAMP NOT NULL,
   revoked_at   TIMESTAMP,
   work_order   TEXT NOT NULL,
-  station_id   TEXT NOT NULL   -- the station that issued it, so exposure needs no unit row
+  station_id   TEXT NOT NULL,  -- the station that issued it, so exposure needs no unit row
+  issuer       TEXT NOT NULL   -- key id of the issuing intermediate
 );
 
 CREATE TABLE failed_unit (
@@ -103,9 +104,15 @@ Anything non-zero is investigated by serial before the next order is opened. Ove
 If an intermediate or a station credential is suspected, list the exposure first and revoke second.
 
 ```sql
+-- a suspected station credential
 SELECT c.serial, c.fingerprint, c.station_id, c.issued_at, c.revoked_at
 FROM unit_cert c
 WHERE c.station_id = :station AND c.issued_at BETWEEN :from AND :to;
+
+-- a suspected intermediate
+SELECT c.serial, c.fingerprint, c.station_id, c.issued_at, c.revoked_at
+FROM unit_cert c
+WHERE c.issuer = :intermediate_key_id;
 ```
 
 Feed the fingerprints to the revocation list or service deny entry. Units in the field then need a path to a fresh identity; plan that before it is needed.
