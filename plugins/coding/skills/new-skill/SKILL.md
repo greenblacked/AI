@@ -92,8 +92,13 @@ The test of a description is not whether it reads well. It is whether someone wh
 `allowed-tools` is a comma-separated list, scoped where scoping helps:
 
 ```yaml
-allowed-tools: Bash(kubectl:*), Bash(helm:*), Read, Grep, Glob
+allowed-tools: Bash(kubectl get:*), Bash(kubectl describe:*), Read, Grep, Glob
 ```
+
+A prefix pre-approves every command that starts with it, flags included, so grant only a binary or
+subcommand with no mode that writes, changes state, runs other code or contacts an arbitrary host.
+`kubectl get` qualifies; `kubectl:*` would also pre-approve `kubectl delete`. Anything else still runs,
+after the user approves it.
 
 Keep it to the minimum the procedure genuinely needs, and be honest about which side you are erring on. Too broad and the declaration means nothing; too narrow and the skill stalls halfway through its own workflow.
 
