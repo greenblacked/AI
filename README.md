@@ -2,12 +2,12 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
-  <img alt="The sixteen plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data, techdocs, assurance, client-apps and product" src="docs/assets/banner-light.svg" width="100%">
+  <img alt="The seventeen plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data, techdocs, assurance, client-apps, product and platform" src="docs/assets/banner-light.svg" width="100%">
 </picture>
 
 # Agent skills
 
-219 agent skills, 30 subagents and ten slash commands, in sixteen
+241 agent skills, 30 subagents and ten slash commands, in seventeen
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-219-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-241-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -66,14 +66,15 @@ and what the runtime does or does not enforce.
 | [`assurance`](#assurance) | Quality engineering and compliance: order-dependent, mutation, property and fuzz testing, replay and load, DPIAs, licences, audit evidence | 11 skills |
 | [`client-apps`](#client-apps) | Browser and mobile clients: field performance, hydration, memory, version skew, service workers, crashes, hangs, startup, battery, networks | 22 skills |
 | [`product`](#product) | Product and go-to-market: interviews, demand tests, design partners, premortems, pricing, metric diagnosis, activation, churn, win-loss, RFPs | 22 skills |
+| [`platform`](#platform) | Cloud and platform engineering: Kubernetes control plane, networking and storage, Terraform estates, cloud networks, identity, databases, the edge, commitments | 22 skills |
 
-Install one plugin or all sixteen. Each is a self-contained directory under `plugins/` with
+Install one plugin or all seventeen. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
 
 Install what you will use, though, rather than everything by reflex. Every description you
 install stays resident in context, and Claude Code's default listing budget is about 8,000
 characters against this library's total — `make validate` prints the current figure — so
-installing all sixteen at the default drops most of them, silently. The Install section
+installing all seventeen at the default drops most of them, silently. The Install section
 below says what to set instead.
 
 ## The FAMILY workflow
@@ -117,7 +118,7 @@ if a deploy fails its check and rolls back, the previous one keeps serving.
 
 | Page | What it shows |
 | --- | --- |
-| [Home](https://ai.szolotov.com) | The sixteen plugins with their skill counts, and a search across plugins and skill names |
+| [Home](https://ai.szolotov.com) | The seventeen plugins with their skill counts, and a search across plugins and skill names |
 | `/plugins/<plugin>/` | One page per plugin: what it covers, its install line and its skills |
 | `/plugins/<plugin>/<skill>/` | One page per skill: its description, install line and allowed tools when it declares them, the full procedure, its reference files, and the requests it fires on and hands elsewhere |
 | [FAMILY](https://ai.szolotov.com/family/) | The one page that is not generated from a plugin's own files: the Frame–Architect–Make–Inspect–Launch–Yield workflow, drawn as a stage-by-stage guide with the four profiles |
@@ -172,7 +173,7 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`career`, `llm` and `personal` fit the default budget on their own. The other thirteen are over it —
+`career`, `llm` and `personal` fit the default budget on their own. The other fourteen are over it —
 each by enough that installed alone at least one of its descriptions is dropped — and the
 split exists to keep that number as small as it can be.
 
@@ -183,7 +184,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.21 }
+{ "skillListingBudgetFraction": 0.23 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -661,6 +662,35 @@ Product management and go-to-market run on evidence: interviews about what peopl
 | [`roadmap-disruption-triage`](plugins/product/skills/roadmap-disruption-triage/SKILL.md) | Decide what to do when a key customer, an executive or a competitor's move tries to force something onto a committed roadmap: write the trade-off ledger before answering (the item moving in, the named items slipping, their new dates, who must be told), sort the demand into promise, proof or pressure, test claimed revenue against a signed contingency rather than a forecast, offer three costed options (do it, a smaller version, do not), and log the decision with a re-plan trigger. |
 | [`spec-premortem`](plugins/product/skills/spec-premortem/SKILL.md) | Attack a spec, PRD, launch plan or big bet before committing to it, then score the forecast afterwards. Assume it failed six months out; have each reviewer write reasons alone before any discussion; sort them into real risks, paper tigers and unspoken elephants; turn each real risk into a tripwire with a metric, threshold, date and owner; record three numeric predictions and score them at day 30 and day 90 so the team learns how well it forecasts. |
 | [`win-loss-review`](plugins/product/skills/win-loss-review/SKILL.md) | Find out why deals are won, lost or stall, from the buyers rather than the CRM: separate no decision, often the biggest bucket, from lost to a competitor; sample every closed deal in the period rather than the ones reps pick; have someone outside the sales team interview buyers within 30 days of close; code answers against the buyer's own decision criteria; report a competitor-specific pattern only once five or more deals show it. |
+
+### Platform
+
+Cloud and platform engineering for the situations that recur and hurt: an overloaded Kubernetes control plane, network policy and storage, Terraform estates that grew by hand, cloud networks and identity, database upgrades and replicas, the edge, and commitments sized to real usage.
+
+| Skill | What it does |
+| --- | --- |
+| [`apiserver-pressure`](plugins/platform/skills/apiserver-pressure/SKILL.md) | Find out why the Kubernetes API server or etcd is slow, throttling or near its limits, and fix the client before raising any limit: slice request rate and latency by verb and resource, name the top caller from the audit log's user agent, count stored objects per resource, read etcd database size against its quota, then fix the offending controller's selectors, caching and reconnect behaviour, and only last give it its own API Priority and Fairness flow. |
+| [`bootstrap-dependency-audit`](plugins/platform/skills/bootstrap-dependency-audit/SKILL.md) | Hostile audit of the tooling needed to recover production, hunting for cycles: could you still sign in, read secrets, pull images, deploy, run Terraform and change DNS if CI, the registry, the identity provider, the secrets store, DNS or the state backend is down? Write the recovery path's dependencies as an edge list, find the loops (a registry on the cluster it repairs, an IdP behind the VPN that needs it, break-glass passwords in an SSO-locked vault), name a break-glass path per loop, then dry-run each with that dependency blocked. |
+| [`brownfield-iac-adoption`](plugins/platform/skills/brownfield-iac-adoption/SKILL.md) | Bring a hand-built, click-ops estate under Terraform or OpenTofu, or measure how much of it is still unmanaged. Enumerate from the provider's inventory API (AWS Resource Explorer or Config, Cloud Asset Inventory, Azure Resource Graph) rather than memory, diff it against every state for the unmanaged set, exclude what another tool rightly owns, import in dependency order with generated configuration then rewrite it into modules, hold a zero-diff plan gate per batch, and schedule a coverage report that makes unmanaged resources a number. |
+| [`cdn-configuration`](plugins/platform/skills/cdn-configuration/SKILL.md) | Tune CDN and edge caching for origin offload and safe purges: audit the origin's Cache-Control and Vary before any edge rule, normalise the cache key (strip tracking parameters, allowlist cookies), make fingerprinted assets immutable and HTML short-lived with stale-while-revalidate, shield the origin, purge by surrogate key rather than wildcard, keep authenticated responses out of shared cache, and report origin offload, not hit ratio alone. |
+| [`commitment-planning`](plugins/platform/skills/commitment-planning/SKILL.md) | Decide how much Savings Plan, reserved instance or committed-use discount to buy, and when, so a discount never becomes a floor paid for idle capacity: rightsize first, measure the trailing 90-day hourly floor of eligible usage rather than the average, convert it to a commitment at the discounted rate net of existing coverage, prefer flexible compute instruments, ladder small purchases monthly so expiries stagger, price the exit of every term against the roadmap, and review utilisation and coverage weekly. |
+| [`connection-exhaustion-hunt`](plugins/platform/skills/connection-exhaustion-hunt/SKILL.md) | Hunt intermittent timeouts caused by exhausting the network path — NAT or SNAT ports, local ephemeral ports, a full conntrack table, or 5-second DNS stalls from ndots:5 search expansion or the conntrack race. Read counters before changing anything, compute connections per destination IP and port against that path's ceiling, then fix in order: client keepalive and pooling, a private endpoint or more NAT addresses, NodeLocal DNSCache or fully qualified names, and last a bigger conntrack table. |
+| [`data-transfer-forensics`](plugins/platform/skills/data-transfer-forensics/SKILL.md) | Find which workloads generate the bytes behind a data-transfer line on the cloud bill — cross-AZ, NAT gateway processing, internet egress, inter-region — and fix the costliest. Enable VPC flow logs with the extended fields, aggregate bytes by source, destination, zone pair, path and port in a query engine, join addresses to the pod or instance that owned them at the time, price each flow at the rate the bill implies, reconcile, and rank by dollars rather than bytes. Typical fixes: same-zone routing, gateway endpoints for object storage, a NAT per zone, compression. |
+| [`db-major-upgrade`](plugins/platform/skills/db-major-upgrade/SKILL.md) | Upgrade a PostgreSQL or MySQL major version, managed or self-hosted: scan extensions, removed features and authentication plugins first; restore a production snapshot and rehearse the whole upgrade with timings; choose in-place pg_upgrade, blue/green or logical replication by the downtime you can tolerate; ANALYZE straight after; compare plans for the top queries by total time; keep the old cluster until a full business cycle passes. |
+| [`db-replication`](plugins/platform/skills/db-replication/SKILL.md) | Operate PostgreSQL and MySQL replicas, logical replication and failover, including a replication slot filling the primary's disk: set a lag budget per read path and send read-your-writes reads to the primary; alert on lag in bytes and seconds and on slot-retained WAL well before the disk fills; write a promotion runbook that fences the old primary first; test failover under load. |
+| [`dns-operations`](plugins/platform/skills/dns-operations/SKILL.md) | Run DNS as code and audit it, so a forgotten record cannot be taken over and a key rollover cannot take the domain offline. Put every zone under Terraform, octoDNS or DNSControl with a reviewed plan and a drift check, harden the registrar (domain locks, MFA, a recovery email off the domain), sweep CNAME, alias, NS, MX and A records on a schedule by resolving each target and proving the resource is still yours, roll DNSSEC keys in order with a TTL wait at every step, and write down split-horizon views. |
+| [`ephemeral-environments`](plugins/platform/skills/ephemeral-environments/SKILL.md) | Build per-pull-request preview environments that are cheap, safe and gone when the pull request is: isolate by data sensitivity and never in the production account, label every resource with owner, pull request and expiry and refuse anything unlabelled, seed synthetic data rather than a production copy, keep production secrets from unreviewed and fork code, tear down on close and run a scheduled reaper for whatever teardown missed, and cap each environment with a quota and a budget alert. |
+| [`gateway-api-migration`](plugins/platform/skills/gateway-api-migration/SKILL.md) | Move HTTP routing off an Ingress controller, such as the retired ingress-nginx or a setup leaning on annotations and snippets, onto Gateway API or another controller without a flag day. Inventory every annotation, snippet and controller-wide default, map each to a Gateway API field or mark it unportable, run the new controller side by side on its own load-balancer address, shift traffic with weighted DNS rather than swapping the class in place, diff status codes and latency per route, then retire the old one. |
+| [`iac-version-upgrade`](plugins/platform/skills/iac-version-upgrade/SKILL.md) | Upgrade Terraform or OpenTofu core, or move a provider across a major version, without an apply nobody meant: read every release's breaking changes against the arguments you use, clear deprecation warnings on the old version first, move one provider at a time with the lock file committed for every platform, back up state and go lowest environment first because a newer provider's schema upgrade in state is one-way, and gate every step on an empty plan in every environment, investigating any diff rather than applying it. |
+| [`intermittent-502-hunt`](plugins/platform/skills/intermittent-502-hunt/SKILL.md) | Find the cause of sporadic 502s and 504s behind a load balancer or proxy, in order: confirm the balancer's idle timeout is shorter than the upstream's keepalive timeout (the reverse makes the backend close a connection the balancer is reusing), then deregistration delay against the longest request, health-check depth, and 502 bursts on deploy from SIGTERM handling; correlate balancer and app logs by request id to prove which side closed. |
+| [`ip-exhaustion-recovery`](plugins/platform/skills/ip-exhaustion-recovery/SKILL.md) | Recover from running out of IP addresses — subnets with no free addresses, pods stuck in ContainerCreating because the CNI cannot assign one, nodes that will not launch, or networks that cannot be peered because their CIDRs overlap — without rebuilding the VPC. Measure who holds the addresses per subnet and per node first, free what the warm pool holds idle, add space with a secondary CIDR from 100.64.0.0/10 and custom networking, raise density with prefix delegation only when the ceiling is per node, bridge overlaps with PrivateLink or private NAT, and leave recreating the network last. |
+| [`k8s-network-policy`](plugins/platform/skills/k8s-network-policy/SKILL.md) | Roll out default-deny Kubernetes NetworkPolicy, or its Cilium or Calico equivalent, without an outage: confirm the CNI enforces policy at all, observe real flows for a full business cycle before writing a rule, generate allows from the observed edges, allow DNS and the API server explicitly, run in audit or log mode until nothing legitimate would be dropped, then enforce one namespace at a time with a one-command rollback that works because policies are additive. |
+| [`k8s-storage`](plugins/platform/skills/k8s-storage/SKILL.md) | Run persistent volumes and stateful workloads on Kubernetes without losing data: set reclaimPolicy Retain, allowVolumeExpansion and WaitForFirstConsumer binding before the first claim, treat a zonal volume as a scheduling constraint, grow a PVC or a StatefulSet's claims, snapshot and prove the restore in a scratch namespace, delete a StatefulSet with --cascade=orphan on purpose, and prefer an operator to hand-rolled database manifests. |
+| [`monolith-state-split`](plugins/platform/skills/monolith-state-split/SKILL.md) | Split one oversized Terraform or OpenTofu state, thousands of resources and half-hour plans, into smaller stacks without destroying or recreating anything. Back up, draw the dependency graph, cut by blast radius and change cadence (network, data, compute, applications), replace in-state references with outputs and data lookups first, then move one slice at a time by scripted state mv or removed and import block pairs, gated by a zero-diff plan in both the old and new state after every slice. |
+| [`resource-decommission`](plugins/platform/skills/resource-decommission/SKILL.md) | Retire an unused service, cloud account or orphaned resource without deleting something still in use: prove no use across a full business cycle including month-end jobs, run a scream test (deny access or scale to zero) for a set window, take a final snapshot, keep deletion protection on until the last step, remove DNS records pointing at it before the address or bucket is released, delete in dependency order through the owning IaC, then clear IAM, monitors and runbooks. Includes orphan sweeps for unattached disks, stale snapshots, idle load balancers and unused IPs on AWS, GCP and Azure. |
+| [`restore-canary`](plugins/platform/skills/restore-canary/SKILL.md) | Build a scheduled, unattended restore of the newest database backup into a throwaway instance, verified and torn down daily, so "we have backups" becomes a measurement rather than a belief. Fails first when the newest backup is older than its interval, restores into an isolated scratch target, compares row counts and checksums on key tables over a closed watermark range, runs a canary query suite, records restore duration against the RTO, tears down on every exit path, and alerts on a missed run as loudly as a failed one. |
+| [`spot-readiness`](plugins/platform/skills/spot-readiness/SKILL.md) | Make workloads survive spot or preemptible capacity being reclaimed, and decide which must not run there: classify each workload by its recovery time against the interruption notice (two minutes on AWS, 30 seconds on GCP and Azure), diversify across many instance types and every zone, run exactly one interruption handler that cordons and drains, enforce an on-demand floor at the pod level rather than the node group, and prove it by interrupting a spot node under load while the SLO holds. |
+| [`workload-identity`](plugins/platform/skills/workload-identity/SKILL.md) | Replace static cloud keys with federated identity for pods and CI: IRSA or EKS Pod Identity, GKE and Azure workload identity, GitHub Actions OIDC. The trust policy pins issuer, audience and the exact subject (repository plus branch or environment; namespace plus service account), never a wildcard; one role per workload, short sessions; gate: a deliberate failed assumption from an unlisted repository or service account, and only then disable and delete the old keys. |
 
 ## Subagents
 

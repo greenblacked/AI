@@ -1,0 +1,22 @@
+[
+  {"query": "set up IRSA so the payments pods stop reading AWS keys from a kubernetes secret", "should_trigger": true},
+  {"query": "our github actions deploy uses a stored service account json key for gcp, how do we switch to workload identity federation", "should_trigger": true},
+  {"query": "is a trust policy with StringLike repo:my-org/* on the token.actions.githubusercontent.com sub claim safe", "should_trigger": true},
+  {"query": "should we use EKS Pod Identity or IRSA for the new cluster, and how do we scope the role to one service account", "should_trigger": true},
+  {"query": "write the AWS role trust policy so only the production environment of one repo can assume the deploy role", "should_trigger": true},
+  {"query": "pods on AKS need to read from key vault without a client secret, how do we wire up workload identity", "should_trigger": true},
+  {"query": "we moved CI to OIDC but how do we prove another repo in the org can't assume the same role before deleting the old keys", "should_trigger": true},
+  {"query": "get rid of every long-lived access key our kubernetes workloads use and stop anyone creating new ones", "should_trigger": true},
+  {"query": "GKE workload identity binding for a namespace and ksa, and does it apply across all clusters in the project", "should_trigger": true},
+  {"query": "one shared ci-deployer role is assumed by twelve repositories, how should we split it up", "should_trigger": true},
+  {"query": "an aws access key was pasted into a public slack channel an hour ago, what do we do right now", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "quarterly review of who has admin in our aws accounts for the soc 2 audit", "should_trigger": false, "expected": "access-review"},
+  {"query": "add sign in with google and refresh token rotation to our customer web app", "should_trigger": false, "expected": "auth-design"},
+  {"query": "can a pull request from a fork inject commands through the PR title into our workflow run step", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "review this terraform plan that changes an IAM role and a bucket policy before we apply it", "should_trigger": false, "expected": "iac-review"},
+  {"query": "the database password needs rotating every 90 days without downtime", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "decide which roles in our app may read which customer records and enforce it in the api", "should_trigger": false, "expected": "authorization-design"},
+  {"query": "our base container image has 40 critical cves, how do we harden it", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "a pod fails with ImagePullBackOff after we changed registries", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "can production still be deployed if our identity provider and CI are both down at the same time", "should_trigger": false, "expected": "bootstrap-dependency-audit"}
+]

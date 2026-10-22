@@ -1,0 +1,22 @@
+[
+  {"query": "we want default deny network policies in every namespace but last time we tried it DNS broke everywhere", "should_trigger": true},
+  {"query": "how do we work out which pods actually talk to each other before locking the cluster down", "should_trigger": true},
+  {"query": "security wants zero-trust between namespaces on our EKS cluster, where do we start", "should_trigger": true},
+  {"query": "we turned on a NetworkPolicy and now the readiness probes and prometheus scrapes fail", "should_trigger": true},
+  {"query": "how do I use Cilium audit mode and Hubble to see what a policy would drop before enforcing it", "should_trigger": true},
+  {"query": "restrict egress from the payments pods so they can only reach the ledger service and the card processor", "should_trigger": true},
+  {"query": "review this NetworkPolicy, I think the namespaceSelector and podSelector are combined wrong", "should_trigger": true},
+  {"query": "what is the fastest way to roll back if a network policy starts dropping production traffic", "should_trigger": true},
+  {"query": "the month-end export job failed right after we isolated the finance namespace", "should_trigger": true},
+  {"query": "is a calico GlobalNetworkPolicy with a log rule a safe way to dry-run our new pod firewall rules", "should_trigger": true},
+  {"query": "threat model the new partner integration before we build it", "should_trigger": false, "expected": "threat-model"},
+  {"query": "which service accounts can still read secrets in every namespace and should they", "should_trigger": false, "expected": "access-review"},
+  {"query": "egress calls to a partner time out intermittently and conntrack insert_failed keeps climbing", "should_trigger": false, "expected": "connection-exhaustion-hunt"},
+  {"query": "the checkout Service has no endpoints and the pods are not Ready", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "lock down ssh and the firewall on our bastion hosts", "should_trigger": false, "expected": "host-hardening"},
+  {"query": "review this terraform plan that changes our VPC security groups", "should_trigger": false, "expected": "iac-review"},
+  {"query": "set up firewall rules on the office MikroTik so the guest wifi cannot reach the NAS", "should_trigger": false, "expected": "routeros-config"},
+  {"query": "our container image runs as root and has a shell, how do we harden it", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "a developer's laptop key leaked and it had kubeconfig access to prod, what now", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "set PodDisruptionBudgets and topology spread for the api deployment", "should_trigger": false, "expected": "k8s-workloads"}
+]

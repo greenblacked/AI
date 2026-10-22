@@ -1,0 +1,22 @@
+[
+  {"query": "DataTransfer-Regional-Bytes doubled in eu-west-1 since august. which services are actually talking across AZs", "should_trigger": true},
+  {"query": "we know NAT processing is the line that grew. how do I find which pods are pushing bytes through the gateway", "should_trigger": true},
+  {"query": "set up vpc flow logs so we can attribute cross-zone traffic to kubernetes namespaces", "should_trigger": true},
+  {"query": "write me an athena query that sums flow log bytes by source, destination and AZ pair", "should_trigger": true},
+  {"query": "is our S3 traffic going through the NAT gateway instead of an endpoint, and how much is that costing", "should_trigger": true},
+  {"query": "internet egress is 14TB a month and nobody knows what is sending it", "should_trigger": true},
+  {"query": "pod IPs get reused constantly, how do I join flow logs to the right workload over a week", "should_trigger": true},
+  {"query": "our kafka consumers read from brokers in other zones, is follower fetching worth it for the transfer bill", "should_trigger": true},
+  {"query": "rank our inter-AZ flows by dollars, not bytes, and tell me which fixes pay for themselves", "should_trigger": true},
+  {"query": "the flow-log totals I get are about twice what the bill says for cross-AZ, am I double counting", "should_trigger": true},
+  {"query": "our AWS bill jumped 30% last month across the board, find out what moved", "should_trigger": false, "expected": "cost-review"},
+  {"query": "should we buy a one-year compute savings plan, and how much of our usage should it cover", "should_trigger": false, "expected": "commitment-planning"},
+  {"query": "our CDN hit ratio is 40% because every query string makes a new cache key, fix the cache config", "should_trigger": false, "expected": "cdn-configuration"},
+  {"query": "pods can't get IPs because the subnet is exhausted, what are our options", "should_trigger": false, "expected": "ip-exhaustion-recovery"},
+  {"query": "random 504s from the load balancer during deploys, how do we track it down", "should_trigger": false, "expected": "intermittent-502-hunt"},
+  {"query": "how much capacity do we need in each zone to survive losing one AZ at peak", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "split our shared kubernetes cluster's cost across teams by namespace for showback", "should_trigger": false, "expected": "cost-review"},
+  {"query": "our LLM API spend tripled after the new summarisation feature, where is it going", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "add spread constraints so the replicas land evenly across zones in this deployment", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "compare three observability vendors on price over three years before we renew", "should_trigger": false, "expected": "vendor-evaluation"}
+]

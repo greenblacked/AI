@@ -1,0 +1,22 @@
+[
+  {"query": "our terraform plan takes 40 minutes and touches 6000 resources, how do we break it up without recreating anything", "should_trigger": true},
+  {"query": "split one giant opentofu state into network, data and app stacks", "should_trigger": true},
+  {"query": "one apply in our main terraform repo can touch every database we own, we want separate states per team", "should_trigger": true},
+  {"query": "how should we decide where to draw the boundaries when carving up a monolithic terraform state", "should_trigger": true},
+  {"query": "is it better to use removed and import blocks or terraform state mv to move hundreds of resources into a new root module", "should_trigger": true},
+  {"query": "after moving half the vpc resources to a new state the old plan wants to create subnets again, we're mid-way through splitting", "should_trigger": true},
+  {"query": "plan a phased breakup of the infra monorepo's single state with a check after every step", "should_trigger": true},
+  {"query": "the app modules reference aws_vpc.main directly, how do we untangle that before moving them to their own state", "should_trigger": true},
+  {"query": "every terraform change waits on a 30 minute refresh because everything is in one state, what's the fix", "should_trigger": true},
+  {"query": "generate import blocks from our existing state so we can adopt the network module in a new stack", "should_trigger": true},
+  {"query": "move this one s3 bucket from module.legacy to module.storage without destroying it", "should_trigger": false, "expected": "terraform-state"},
+  {"query": "state is locked and the job that held it was cancelled, how do I clear it", "should_trigger": false, "expected": "terraform-state"},
+  {"query": "review this plan, it says 3 to destroy in the payments account", "should_trigger": false, "expected": "iac-review"},
+  {"query": "upgrade the aws provider from 5 to 6 across all our environments", "should_trigger": false, "expected": "iac-version-upgrade"},
+  {"query": "we're moving from cloudformation to terraform across twelve accounts, what's the phased plan", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "half our aws account was built by clicking in the console, how do we get all of it into terraform", "should_trigger": false, "expected": "brownfield-iac-adoption"},
+  {"query": "write a reusable terraform module for an rds instance with sane defaults", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "the terraform plan step in ci keeps timing out at provider init", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "argo cd shows the app out of sync after someone edited the deployment by hand", "should_trigger": false, "expected": "gitops-operations"},
+  {"query": "what's the difference between terraform workspaces and a directory per environment", "should_trigger": false, "expected": "terraform-state"}
+]
