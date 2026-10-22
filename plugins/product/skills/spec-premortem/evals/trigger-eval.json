@@ -1,0 +1,22 @@
+[
+  {"query": "review this PRD before we sign it off next week, I want to know what could sink it", "should_trigger": true},
+  {"query": "what could go wrong with this launch plan for the new billing page", "should_trigger": true},
+  {"query": "run a premortem on our plan to move all customers to usage-based reporting", "should_trigger": true},
+  {"query": "how do I stop the most senior person dominating our spec review so the real risks come out", "should_trigger": true},
+  {"query": "turn the risks from our launch review into something we'll actually check after we ship", "should_trigger": true},
+  {"query": "we predicted 200 active teams by day 90 and got 95, how should we score last quarter's bet", "should_trigger": true},
+  {"query": "stress-test this big bet before the exec team commits budget to it", "should_trigger": true},
+  {"query": "everyone in the room knows the deadline isn't real but nobody says it, how do I surface that in a plan review", "should_trigger": true},
+  {"query": "set tripwires with thresholds and owners for the rollout of the new onboarding flow", "should_trigger": true},
+  {"query": "imagine the migration plan failed six months from now and work back to why", "should_trigger": true},
+  {"query": "write an ADR recording that we picked Postgres over DynamoDB", "should_trigger": false, "expected": "decision-record"},
+  {"query": "turn this one-line feature idea into a spec with acceptance criteria and a task plan", "should_trigger": false, "expected": "feature-spec"},
+  {"query": "prepare the redlines and edge states so engineering can build the new settings screen", "should_trigger": false, "expected": "design-handoff"},
+  {"query": "draft the postmortem for yesterday's two-hour checkout outage", "should_trigger": false, "expected": "postmortem"},
+  {"query": "the database is down right now and I'm incident commander", "should_trigger": false, "expected": "incident-response"},
+  {"query": "threat model the new file upload service before launch", "should_trigger": false, "expected": "threat-model"},
+  {"query": "plan the percentage rollout and bake times for the new search backend", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "score our OKRs at the end of the quarter and run the retrospective", "should_trigger": false, "expected": "okr-planning"},
+  {"query": "test whether anyone wants this feature with a button before we write the spec", "should_trigger": false, "expected": "fake-door-test"},
+  {"query": "sales wants us to drop the Q4 roadmap to build a big customer's request", "should_trigger": false, "expected": "roadmap-disruption-triage"}
+]

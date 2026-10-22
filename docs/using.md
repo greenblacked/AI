@@ -98,11 +98,11 @@ context for the whole session, and the runtime caps that listing at about 1% of 
 context window. Past the cap it drops the descriptions of the skills you invoke least,
 which leaves them invocable by name and stops them being chosen on their own — silently.
 Only `career`, `llm` and `personal` fit the default budget by themselves. If you
-install any of the other twelve, or more than one plugin, raise it in
+install any of the other thirteen, or more than one plugin, raise it in
 `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.19 }
+{ "skillListingBudgetFraction": 0.21 }
 ```
 
 ### How a skill fires

@@ -1610,6 +1610,20 @@ html:not([data-theme="reactor"]) %P .plugin-word {
   to { opacity: 1; transform: none; }
 }""",
     ),
+    # Letters rise in steps, like a funnel chart filling in from left to right.
+    "product": PluginLook(
+        day=("#9a3412", "#065f46", "#4338ca"),
+        night=("#fdba74", "#6ee7b7", "#a5b4fc"),
+        width=0.7,
+        rules=(
+            "%P .pl { animation: pw-product-step 0.45s ease-out calc(var(--i) * 0.1s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-product-step {
+  from { opacity: 0; transform: translateY(0.3em); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
 }
 
 # The shared frame. `--c` is the colour a letter or a row takes from the cycle.
