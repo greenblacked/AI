@@ -1,0 +1,22 @@
+[
+  {"query": "I got rejected after the onsite, what went wrong", "should_trigger": true},
+  {"query": "I keep failing the final round and I do not know why", "should_trigger": true},
+  {"query": "what should I do with the feedback the recruiter gave me after my interview", "should_trigger": true},
+  {"query": "the recruiter said we went with someone with more signal, how do I find out what that means", "should_trigger": true},
+  {"query": "I have been rejected from four loops in a row, how do I find the pattern", "should_trigger": true},
+  {"query": "how should I ask a recruiter for useful feedback after a rejection", "should_trigger": true},
+  {"query": "help me write up everything I remember from yesterday's interview before I forget", "should_trigger": true},
+  {"query": "I pass the phone screens but never the system design round, what do I change", "should_trigger": true},
+  {"query": "when should I give up on this kind of role and aim for a different one after repeated rejections", "should_trigger": true},
+  {"query": "my interview went badly and I blanked on two questions, how do I stop that happening again", "should_trigger": true},
+  {"query": "plan my preparation for algorithm rounds over the next six weeks", "should_trigger": false, "expected": "technical-interview-prep"},
+  {"query": "tailor my CV and rehearse behavioural answers for this job description", "should_trigger": false, "expected": "job-search"},
+  {"query": "how do I explain my layoff in interviews", "should_trigger": false, "expected": "job-search"},
+  {"query": "I got a take-home with a four hour limit, how do I scope it", "should_trigger": false, "expected": "take-home-assignment"},
+  {"query": "they made me an offer, how do I negotiate the base", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "run a debrief on our hiring panel so we decide on evidence", "should_trigger": false, "expected": "hiring-loop"},
+  {"query": "run a blameless review of last week's production outage", "should_trigger": false, "expected": "postmortem"},
+  {"query": "I want to turn what I learned this year into a structured set of notes", "should_trigger": false, "expected": "learning-notes"},
+  {"query": "review my last quarter and plan next week's priorities", "should_trigger": false, "expected": "weekly-review"},
+  {"query": "give feedback to a direct report who underperformed in a presentation", "should_trigger": false, "expected": "difficult-conversation"}
+]

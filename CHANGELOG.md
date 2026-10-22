@@ -10,6 +10,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add six skills to the `career` plugin: `raise-negotiation`, `severance-negotiation`, `managing-up`, `technical-interview-prep`, `take-home-assignment` and `interview-retrospective`.
+
 - Add the `smallbiz` plugin, for freelancing and small-business operations, with twenty skills covering rates and quotes (`billing-rate-calculation`, `fixed-price-quote`, `retainer-design`, `statement-of-work`, `prospect-qualification`), delivery and scope (`scope-creep-response`, `stalled-project-recovery`, `subcontract-client-work`, `client-offboarding`, `estimate-actuals-review`, `client-profitability-review`), getting paid (`invoice-hygiene`, `late-payment-chase`, `invoice-dispute-resolution`, `services-agreement-checklist`) and the books (`monthly-bookkeeping-close`, `cashflow-forecast-13-week`, `finance-separation-cleanup`, `tax-set-aside`, `year-end-tax-pack`). Procedure, not professional advice.
 
 - Add the `devtools` plugin, for developer tooling and build systems, with ten skills: `git-history-recovery`, `git-history-purge`, `branch-rebase-repair`, `affected-build-selection`, `build-cache-miss-hunt`, `slow-build-profile`, `dependency-resolution-conflict`, `phantom-dependency-audit`, `partial-release-recovery` and `benchmark-methodology`.

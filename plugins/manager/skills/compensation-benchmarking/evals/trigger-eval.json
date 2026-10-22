@@ -18,5 +18,6 @@
   {"query": "our lead time has doubled, work out why shipping feels slow", "should_trigger": false, "expected": "delivery-review"},
   {"query": "the offer i got is low, help me negotiate it up", "should_trigger": false, "expected": "offer-negotiation"},
   {"query": "should we buy this comp benchmarking tool or build our own", "should_trigger": false, "expected": "vendor-evaluation"},
-  {"query": "write this week's status update for the reorg programme, exec audience", "should_trigger": false, "expected": "status-update"}
+  {"query": "write this week's status update for the reorg programme, exec audience", "should_trigger": false, "expected": "status-update"},
+  {"query": "i think i am underpaid compared to new hires, how do i ask my manager for a raise", "should_trigger": false, "expected": "raise-negotiation"}
 ]

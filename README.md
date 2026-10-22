@@ -7,7 +7,7 @@
 
 # Agent skills
 
-282 agent skills, 30 subagents and ten slash commands, in nineteen
+288 agent skills, 30 subagents and ten slash commands, in nineteen
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-282-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-288-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -58,7 +58,7 @@ and what the runtime does or does not enforce.
 | [`security`](#security) | The defensive side of shipping software | 15 skills, 5 subagents, 2 commands |
 | [`manager`](#manager) | Engineering leadership | 16 skills, 2 subagents, 2 commands |
 | [`personal`](#personal) | Money, travel, admin, habits and health | 7 skills, 2 subagents |
-| [`career`](#career) | Applications, negotiation, speaking and writing | 5 skills |
+| [`career`](#career) | Applications, negotiation, speaking and writing | 11 skills |
 | [`design`](#design) | Usability, accessibility and design systems | 13 skills, 1 subagent, 1 command |
 | [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction and model migration | 5 skills |
 | [`data`](#data) | Analytics data and classical ML: wrong numbers, warehouse cost, metrics, history, experiments and models in production | 22 skills |
@@ -175,7 +175,7 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`career`, `llm` and `personal` fit the default budget on their own. The other sixteen are over it —
+`llm` and `personal` fit the default budget on their own. The other seventeen are over it —
 each by enough that installed alone at least one of its descriptions is dropped — and the
 split exists to keep that number as small as it can be.
 
@@ -186,7 +186,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.27 }
+{ "skillListingBudgetFraction": 0.28 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -516,9 +516,15 @@ Applications, negotiation, speaking and writing.
 | Skill | What it does |
 | --- | --- |
 | [`conference-talk`](plugins/career/skills/conference-talk/SKILL.md) | Take a talk from idea to accepted proposal to a delivery that lands: one takeaway, a structure that survives being heard once, and rehearsal out loud and timed. |
+| [`interview-retrospective`](plugins/career/skills/interview-retrospective/SKILL.md) | Learn from a failed or mediocre interview loop: within 24 hours write down every question asked and your answer as remembered, classify each miss as knowledge gap, structure, communication or time and nerves, ask the recruiter one specific question not 'any feedback?', choose at most three drills tied to the dominant cause, keep a table of pass rate by round type across loops, and define a stop point for revising versus changing target roles. |
 | [`job-search`](plugins/career/skills/job-search/SKILL.md) | Tailor a CV and prepare for interviews from a real history. Selection and evidence, never embellishment. |
 | [`learning-notes`](plugins/career/skills/learning-notes/SKILL.md) | Turn something read into a note that is still useful in a year, on the principle that a summary is not a note. |
+| [`managing-up`](plugins/career/skills/managing-up/SKILL.md) | Manage the relationship with your own manager or a sceptical senior stakeholder so you get decisions, air cover and no surprises. Builds a one-page working agreement from five questions, structures bad news (what happened, impact, action taken, options, recommendation, ask) within a day of knowing, disagrees privately before committing visibly, and sends a weekly three-line update unasked. |
 | [`offer-negotiation`](plugins/career/skills/offer-negotiation/SKILL.md) | Evaluate and negotiate an offer: total compensation decomposed, levelling as the negotiation that compounds, and nothing real until it is in writing. |
+| [`raise-negotiation`](plugins/career/skills/raise-negotiation/SKILL.md) | Ask your current employer for a raise, promotion or level change and get an answer in the same cycle. Fixes timing first (opening a few months before the manager submits recommendations), builds two separate documents (scope and performance case; market case), asks the manager about process before naming a figure, states one figure and an effective date in writing, and turns a no into conditions and a date to revisit. |
+| [`severance-negotiation`](plugins/career/skills/severance-negotiation/SKILL.md) | Read and negotiate a separation or severance agreement after a layoff, firing or mutual exit. Covers not signing on the day, checking the statutory review and revocation period, getting an employment solicitor or attorney to read it, reading what you give up (release of claims, non-compete, non-solicit, confidentiality, non-disparagement) before the amount, separating what is owed anyway from what is extra, and negotiating cheap-for-them items before the lump sum. |
+| [`take-home-assignment`](plugins/career/skills/take-home-assignment/SKILL.md) | Complete a take-home coding task so it shows judgement inside the time asked: send written questions on scope, evaluation criteria and time budget before writing code, choose three decisions to show and list what is deliberately left out, commit early with a readable history, test the core path only, and write a README with four fixed parts (how to run, verified from a clean clone; key decisions; what was cut; what another day would add). Stop at the limit and decline unpaid scope beyond what was stated. |
+| [`technical-interview-prep`](plugins/career/skills/technical-interview-prep/SKILL.md) | Plan weeks of preparation for algorithm and live-coding interview rounds: one interview language, about ten problem patterns with four or five problems each, a 25-minute timeboxed first attempt, a blank-file redo seven days later (only the redo counts), a failure log kept by cause, a spoken protocol, timed mock interviews with another person from week three, and a freeze on new problems three days before the loop. |
 | [`write-technical-article`](plugins/career/skills/write-technical-article/SKILL.md) | Turn real engineering experience and verifiable sources into a publishable technical article with a defensible thesis and no invented authority. |
 
 ### Design
