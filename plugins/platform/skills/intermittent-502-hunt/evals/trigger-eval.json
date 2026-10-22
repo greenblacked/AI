@@ -19,5 +19,5 @@
   {"query": "our TLS certificate on the load balancer expired last night, how do we automate renewal", "should_trigger": false, "expected": "certificate-automation"},
   {"query": "the service is returning 500 internal server error with a stack trace in our own handler", "should_trigger": false, "expected": "debugging"},
   {"query": "add a redis cache in front of the product catalogue reads with sensible invalidation", "should_trigger": false, "expected": "application-caching"},
-  {"query": "what readiness probe and preStop values should our deployment use", "should_trigger": false, "expected": "k8s-workloads"}
+  {"query": "what cpu and memory requests and limits should this deployment have", "should_trigger": false, "expected": "k8s-workloads"}
 ]

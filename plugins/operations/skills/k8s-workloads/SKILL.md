@@ -20,7 +20,7 @@ Do not use for:
 - How many replicas the service needs, how big the cluster should be, designing or reading a load test, sizing an autoscaler. That is `capacity-planning`. This skill sizes one workload's own contract; it does not size the fleet.
 - Generating a project, a chart, a module or boilerplate. That is `code-scaffold`. The work here is not YAML production — it is deciding what the workload claims from the node and promises to the Service, which is the part that survives the YAML being regenerated.
 - The image itself: base image, digest pinning, non-root UID, entrypoint form, scanning. That is `image-hardening`.
-- Sporadic 502s or 504s that a load balancer logs, including a burst at every deploy, when the cause is not yet known. That is `intermittent-502-hunt`, which reads the balancer's and the upstream's logs for the same requests; the probe, `preStop` and budget numbers it lands on are set here.
+- Sporadic 502s or 504s that a load balancer logs at a low rate with no pattern, where the balancer's idle timeout, keepalive or deregistration delay are the suspects. That is `intermittent-502-hunt`, which reads the balancer's and the upstream's logs for the same requests; the probe, `preStop` and budget numbers it lands on are set here.
 
 ## Workflow
 

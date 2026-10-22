@@ -89,5 +89,9 @@
     "should_trigger": false,
     "expected": "release-strategy"
   },
-  {"query": "the load balancer logs a burst of 502s every time we deploy", "should_trigger": false, "expected": "intermittent-502-hunt"}
+  {
+    "query": "random 502s from the alb at 0.1% of requests and the app logs show nothing",
+    "should_trigger": false,
+    "expected": "intermittent-502-hunt"
+  }
 ]
