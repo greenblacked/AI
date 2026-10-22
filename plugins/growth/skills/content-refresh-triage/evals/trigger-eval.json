@@ -1,0 +1,22 @@
+[
+  {"query": "our blog traffic is down 30% since the summer and I have no idea which posts to fix", "should_trigger": true},
+  {"query": "which posts should we update this quarter to win back organic clicks", "should_trigger": true},
+  {"query": "we lost rankings after the latest core update, how do we work out what to change", "should_trigger": true},
+  {"query": "search console shows lots of impressions but very few clicks on our guides", "should_trigger": true},
+  {"query": "our top docs article went from page one to page three, was it a rewrite problem or something else", "should_trigger": true},
+  {"query": "how do I tell whether a traffic dip is seasonal or a real ranking loss", "should_trigger": true},
+  {"query": "two of our pages seem to be competing for the same query and both fell", "should_trigger": true},
+  {"query": "I rewrote titles on a dozen posts and clicks went up, how do I know it was the titles", "should_trigger": true},
+  {"query": "pull last 28 days against the prior 28 and last year from search console and rank pages by clicks lost", "should_trigger": true},
+  {"query": "organic sessions to our pricing guide halved overnight, where do I start", "should_trigger": true},
+  {"query": "write a deep technical article on how we migrated our message queue", "should_trigger": false, "expected": "write-technical-article"},
+  {"query": "what should a new post targeting the keyword vector database comparison cover to rank", "should_trigger": false, "expected": "content-brief-from-serp"},
+  {"query": "should we generate ten thousand city pages from a template for local seo", "should_trigger": false, "expected": "programmatic-seo-gate"},
+  {"query": "is last click or first click attribution telling us the truth about organic", "should_trigger": false, "expected": "attribution-sanity-check"},
+  {"query": "our single page app is not getting indexed because content renders client side", "should_trigger": false, "expected": "web-app-seo"},
+  {"query": "decide which of our four hundred old posts to keep, merge or delete", "should_trigger": false, "expected": "content-pruning-audit"},
+  {"query": "build a landing page for our new product launch", "should_trigger": false, "expected": "website-builder"},
+  {"query": "our paid search spend is up but conversions are flat, find the wasted keywords", "should_trigger": false, "expected": "paid-search-waste-audit"},
+  {"query": "our weekly active users dropped last week, was it a bug or real behaviour", "should_trigger": false, "expected": "metric-anomaly-triage"},
+  {"query": "email open rates collapsed at Gmail this month", "should_trigger": false, "expected": "deliverability-triage"}
+]

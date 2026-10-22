@@ -1,0 +1,22 @@
+[
+  {"query": "we saw a login from an odd country on one of our admins, what did they touch afterwards?", "should_trigger": true},
+  {"query": "build the timeline for this breach from our cloudtrail and idp logs", "should_trigger": true},
+  {"query": "how far did the attacker get once they had that role?", "should_trigger": true},
+  {"query": "is this event the initial access or just a later step?", "should_trigger": true},
+  {"query": "an access key from our dev account was used from a vpn address, work out everything it did", "should_trigger": true},
+  {"query": "which data could the intruder have read, not just what we saw them read", "should_trigger": true},
+  {"query": "the logs from the web host and the cloud account disagree on time, how do I line them up for the investigation", "should_trigger": true},
+  {"query": "someone turned off our trail during the weekend, what else happened around it", "should_trigger": true},
+  {"query": "reconstruct the sequence of events from the audit logs after the account takeover", "should_trigger": true},
+  {"query": "write athena queries to follow an assumed role chain back to where the actor first came in", "should_trigger": true},
+  {"query": "we need to freeze the disks and logs on the compromised box before anyone touches it", "should_trigger": false, "expected": "compromise-evidence-preservation"},
+  {"query": "this api key got committed to github, rotate it and check for persistence", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "run the incident, assign roles and decide severity", "should_trigger": false, "expected": "incident-response"},
+  {"query": "write the blameless review of the incident for the leadership team", "should_trigger": false, "expected": "postmortem"},
+  {"query": "write a sigma rule for suspicious role assumption", "should_trigger": false, "expected": "detection-engineering"},
+  {"query": "audit who currently has access to production and prune it", "should_trigger": false, "expected": "access-review"},
+  {"query": "trace why requests through the gateway are slow", "should_trigger": false, "expected": "trace-latency-analysis"},
+  {"query": "design the alerting thresholds for our api error rate", "should_trigger": false, "expected": "alert-design"},
+  {"query": "threat model our new payments service", "should_trigger": false, "expected": "threat-model"},
+  {"query": "review this pull request for injection bugs", "should_trigger": false, "expected": "security-review"}
+]

@@ -83,4 +83,5 @@ quiet-level = 3
 # sets password ageing; the linux skills quote both as commands to run. "iif" is the
 # nftables match on the input interface (`meta iif`), quoted in the rule-tracing recipes.
 # "FRAM" is ferroelectric RAM, which flash-storage-durability compares with flash.
-ignore-words-list = "trough,applyable,unparseable,stings,caf,aplha,lod,afterall,aks,covert,mape,etcp,chage,iif,fram"
+# "CNA" is a CVE Numbering Authority, which vulnerability-disclosure asks for a CVE ID.
+ignore-words-list = "trough,applyable,unparseable,stings,caf,aplha,lod,afterall,aks,covert,mape,etcp,chage,iif,fram,cna"

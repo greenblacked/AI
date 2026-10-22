@@ -1,0 +1,22 @@
+[
+  {"query": "our ad spend keeps climbing but leads are flat, can you look at the account", "should_trigger": true},
+  {"query": "review our Google Ads account and tell me where the money is going", "should_trigger": true},
+  {"query": "what negative keywords should we add, here's last month's search terms export", "should_trigger": true},
+  {"query": "cost per acquisition doubled in the last two months on search", "should_trigger": true},
+  {"query": "should we turn off search partners and the display network on our search campaigns", "should_trigger": true},
+  {"query": "we are getting clicks from people outside our service area, which setting is that", "should_trigger": true},
+  {"query": "broad match is burning budget since we switched, how do we tell if smart bidding is helping", "should_trigger": true},
+  {"query": "how do I split brand and non-brand so blended ROAS stops looking so good", "should_trigger": true},
+  {"query": "our agency reports great ROAS but the CRM shows far fewer sales, where do we start in the ad account", "should_trigger": true},
+  {"query": "set up a weekly routine to change the account without losing track of what worked", "should_trigger": true},
+  {"query": "the platforms claim more conversions than our backend has, which channel can we believe", "should_trigger": false, "expected": "attribution-sanity-check"},
+  {"query": "our ad promises a free trial but the page leads with pricing", "should_trigger": false, "expected": "message-match-audit"},
+  {"query": "sales says the leads we buy from search are unqualified", "should_trigger": false, "expected": "lead-quality-loop"},
+  {"query": "our AWS bill grew by a third last month", "should_trigger": false, "expected": "cost-review"},
+  {"query": "LLM token spend is out of control", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "write fresh ad copy variants for our spring sale", "should_trigger": false},
+  {"query": "generate city pages for every market from our database", "should_trigger": false, "expected": "programmatic-seo-gate"},
+  {"query": "our emails are going to spam", "should_trigger": false, "expected": "deliverability-triage"},
+  {"query": "improve organic rankings for our blog", "should_trigger": false},
+  {"query": "choose a bidding budget for launching a new product next quarter", "should_trigger": false}
+]

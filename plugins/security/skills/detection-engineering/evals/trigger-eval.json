@@ -1,0 +1,22 @@
+[
+  {"query": "write a detection for impossible travel on our sso logins", "should_trigger": true},
+  {"query": "our siem alerts are all noise and the team ignores them, how do we fix it", "should_trigger": true},
+  {"query": "how do we know this rule would actually catch the attack", "should_trigger": true},
+  {"query": "set up detection as code with sigma rules in git and tests in ci", "should_trigger": true},
+  {"query": "map our detections to mitre attack and show what we cover", "should_trigger": true},
+  {"query": "this rule fires forty times a day and nobody has ever found a real hit, tune or delete it", "should_trigger": true},
+  {"query": "I wrote a rule for new access key creation, what do I need before it goes live", "should_trigger": true},
+  {"query": "how do I test that an alert fires end to end with atomic red team", "should_trigger": true},
+  {"query": "we stopped getting events from one log source and nobody noticed for a week, how do we catch that", "should_trigger": true},
+  {"query": "when should we retire old detection rules from the siem", "should_trigger": true},
+  {"query": "page the on-call when the checkout error budget burns too fast", "should_trigger": false, "expected": "alert-design"},
+  {"query": "add structured logs and metrics to our service", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "list the threats to our new design before we build it", "should_trigger": false, "expected": "threat-model"},
+  {"query": "review this diff for sql injection", "should_trigger": false, "expected": "security-review"},
+  {"query": "reconstruct what the attacker did from the logs", "should_trigger": false, "expected": "intrusion-timeline"},
+  {"query": "preserve the disk and memory from the compromised server", "should_trigger": false, "expected": "compromise-evidence-preservation"},
+  {"query": "backtest this alert threshold against last month of metrics", "should_trigger": false, "expected": "alert-backtest"},
+  {"query": "we are in an incident now, who is incident commander", "should_trigger": false, "expected": "incident-response"},
+  {"query": "reduce our log ingestion bill", "should_trigger": false, "expected": "log-volume-reduction"},
+  {"query": "harden ssh and kernel settings on our hosts", "should_trigger": false, "expected": "host-hardening"}
+]

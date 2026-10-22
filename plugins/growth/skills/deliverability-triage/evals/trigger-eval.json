@@ -1,0 +1,22 @@
+[
+  {"query": "our open rate dropped from 35 percent to 12 in a week and I don't know why", "should_trigger": true},
+  {"query": "Gmail seems to be putting all our newsletters in spam since Monday", "should_trigger": true},
+  {"query": "Yahoo keeps deferring our campaign sends with temporary errors, what should we look at", "should_trigger": true},
+  {"query": "are we on a blocklist and does it matter", "should_trigger": true},
+  {"query": "complaint rate has crept up to 0.2 percent, how do we bring it down safely", "should_trigger": true},
+  {"query": "half our bounces are 5.1.1 after importing a partner list, what now", "should_trigger": true},
+  {"query": "Microsoft is rejecting our mail with a reputation error but Gmail is fine", "should_trigger": true},
+  {"query": "how should I use Google Postmaster Tools to understand why delivery is getting worse", "should_trigger": true},
+  {"query": "we sent to the whole list after a quiet quarter and now nothing is landing in the inbox", "should_trigger": true},
+  {"query": "how do I tell real engagement from Apple Mail Privacy Protection opens when checking recovery", "should_trigger": true},
+  {"query": "publish DMARC and get SPF under the lookup limit for our domain", "should_trigger": false, "expected": "email-authentication-rollout"},
+  {"query": "our DKIM signing broke after we changed email platforms", "should_trigger": false, "expected": "email-authentication-rollout"},
+  {"query": "signups per day fell 20 percent after last release and we need to find why", "should_trigger": false, "expected": "metric-anomaly-triage"},
+  {"query": "our email platform invoice doubled, find where the spend is going", "should_trigger": false},
+  {"query": "write subject lines for our spring promotion", "should_trigger": false},
+  {"query": "reduce wasted spend in our Google Ads account", "should_trigger": false, "expected": "paid-search-waste-audit"},
+  {"query": "which channel really drove last quarter's revenue", "should_trigger": false, "expected": "attribution-sanity-check"},
+  {"query": "push notifications are not arriving on Android devices", "should_trigger": false, "expected": "push-notification-delivery"},
+  {"query": "failed payment emails are not recovering subscriptions", "should_trigger": false, "expected": "dunning-recovery"},
+  {"query": "design the HTML layout of our welcome email template", "should_trigger": false}
+]

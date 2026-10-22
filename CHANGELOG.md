@@ -10,6 +10,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `growth` plugin, for marketing, growth and content operations, with twenty skills: `attribution-sanity-check`, `campaign-preflight`, `campaign-tagging-standard`, `community-health-review`, `community-moderation-policy`, `content-brief-from-serp`, `content-pruning-audit`, `content-refresh-triage`, `contributor-funnel`, `customer-story-production`, `deliverability-triage`, `devrel-impact-review`, `email-authentication-rollout`, `lead-quality-loop`, `lifecycle-sequence-design`, `low-traffic-page-testing`, `message-match-audit`, `paid-search-waste-audit`, `programmatic-seo-gate` and `sending-domain-warmup`.
+
+- Add nine skills to the `llm` plugin: `agent-architecture-choice`, `agent-memory-design`, `context-compaction`, `llm-batch-processing`, `llm-classifier-design`, `llm-latency-budget`, `llm-provider-resilience`, `output-filter-calibration` and `tool-result-shaping`.
+
+- Add six skills to the `security` plugin: `compromise-evidence-preservation`, `credential-stuffing-response`, `detection-engineering`, `intrusion-timeline`, `tenant-isolation-testing` and `vulnerability-disclosure`.
+
 - Add the `research` plugin, for scientific and research engineering, with nineteen skills: `array-chunking-layout`, `batch-effect-audit`, `checkpoint-restart-design`, `convergence-study`, `fair-method-comparison`, `floating-point-error-hunt`, `hpc-resource-sizing`, `monte-carlo-run-length`, `nan-origin-trace`, `nondeterminism-bisect`, `nonindependence-audit`, `out-of-core-dataset-handling`, `paper-statistics-review`, `parallel-filesystem-hygiene`, `parallel-scaling-study`, `reproducible-analysis-environment`, `slurm-job-failure-triage`, `sweep-campaign-management` and `unit-mismatch-audit`.
 
 - Add the `learning` plugin, for learning, teaching and knowledge work, with sixteen skills: `domain-ramp-up`, `exam-prep-plan`, `exercise-design`, `learn-new-technology`, `literature-scan`, `mentoring-cycle`, `paper-reading`, `paper-reproduction`, `reading-backlog`, `shadow-reverse-shadow`, `skill-acquisition-plan`, `tacit-knowledge-elicitation`, `teaching-pairing`, `team-training-curriculum`, `training-effectiveness-check` and `workshop-design`.

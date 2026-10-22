@@ -1,0 +1,22 @@
+[
+  {"query": "we think this web server is compromised, should I just shut it down right now?", "should_trigger": true},
+  {"query": "take a snapshot of the instance before we terminate it, someone has been in there", "should_trigger": true},
+  {"query": "legal wants all the logs from the breach window preserved and untouched, what do we do", "should_trigger": true},
+  {"query": "how do we keep the evidence admissible if this ends up in court", "should_trigger": true},
+  {"query": "we found a cryptominer on a production node; I want to isolate it but keep what is in memory", "should_trigger": true},
+  {"query": "set up a chain of custody sheet and hashing for the disk images from the hacked ec2 box", "should_trigger": true},
+  {"query": "cloudtrail only keeps 90 days and the intruder may have been in longer, how do I lock the logs down before they roll off", "should_trigger": true},
+  {"query": "can I pull a host out of the autoscaling group without terminating it so we can examine it later", "should_trigger": true},
+  {"query": "what order do I collect things in from a live linux server we think was breached", "should_trigger": true},
+  {"query": "the responder logged in as root on the infected machine, did we just ruin the forensics", "should_trigger": true},
+  {"query": "we are mid-incident and need someone to take command and set severity levels", "should_trigger": false, "expected": "incident-response"},
+  {"query": "an access key leaked in a public repo, how do we revoke it without breaking prod", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "build a timeline of what the attacker did from the cloudtrail logs we already exported", "should_trigger": false, "expected": "intrusion-timeline"},
+  {"query": "write the blameless postmortem for last week's breach", "should_trigger": false, "expected": "postmortem"},
+  {"query": "write a detection rule that would have caught this login", "should_trigger": false, "expected": "detection-engineering"},
+  {"query": "pods keep crash looping after the deploy, what is going on", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "harden our ubuntu servers against ssh brute force", "should_trigger": false, "expected": "host-hardening"},
+  {"query": "design the backup and restore plan for our database", "should_trigger": false, "expected": "backup-recovery-design"},
+  {"query": "who has admin access to our aws accounts and should they", "should_trigger": false, "expected": "access-review"},
+  {"query": "threat model the new file upload feature before we build it", "should_trigger": false, "expected": "threat-model"}
+]
