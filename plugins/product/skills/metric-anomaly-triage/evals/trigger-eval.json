@@ -8,7 +8,8 @@
   {"query": "page views doubled overnight from one country, I suspect bots but how do I check properly", "should_trigger": true},
   {"query": "weekly retention on the dashboard suddenly changed after the data team touched the model", "should_trigger": true},
   {"query": "give me a checklist for figuring out whether a sudden KPI drop is a measurement problem", "should_trigger": true},
-  {"query": "revenue per visitor stepped down on the 1st, could that be a mix change in traffic", "should_trigger": true},
+  {"query": "trial starts fell sharply on Monday and nobody knows whether it is the tracking, the pipeline or real, who should be looking at it", "should_trigger": true},
+  {"query": "revenue per visitor stepped down on the 1st, could that be a mix change in traffic", "should_trigger": false, "expected": "metric-movement-decomposition"},
   {"query": "the signup form is returning 500 errors for every user right now", "should_trigger": false, "expected": "incident-response"},
   {"query": "add OpenTelemetry spans and metrics to the signup service so we can see failures", "should_trigger": false, "expected": "instrumentation"},
   {"query": "we hit our engagement OKR but customers seem less happy, are people gaming the metric", "should_trigger": false, "expected": "metric-gaming-audit"},
@@ -17,6 +18,5 @@
   {"query": "what SLO and error budget should the signup API have", "should_trigger": false, "expected": "slo-design"},
   {"query": "our latency alert pages us every night and it is never real, tune it", "should_trigger": false, "expected": "alert-design"},
   {"query": "build a clear chart of weekly signups by channel for the board deck", "should_trigger": false, "expected": "data-visualisation"},
-  {"query": "write this week's status update for the growth programme for the exec team", "should_trigger": false, "expected": "status-update"},
-  {"query": "a competitor just changed their pricing page, what are they betting on", "should_trigger": false, "expected": "competitor-signal-watch"}
+  {"query": "the finance report says 4,210 new customers and the product dashboard says 4,380 for the same month, which one is right", "should_trigger": false, "expected": "metric-reconciliation"}
 ]

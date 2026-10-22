@@ -4,11 +4,14 @@
 
 - Survey order
 - Van Westendorp wording
-- Cleaning and analysis
-- The two marginal-point conventions
-- Gabor-Granger design and analysis
-- A standard-library script
-- How to report the result
+- Cleaning
+- Analysis
+  - The two conventions for the marginal points
+  - What it does not tell you
+- Gabor-Granger design
+- Gabor-Granger analysis
+- Script
+- Reporting
 
 ## Survey order
 

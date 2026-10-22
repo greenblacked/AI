@@ -43,6 +43,7 @@ Filter the export to closed-won deals and save it as CSV with the columns above.
 
 ```python
 import csv
+import math
 import sys
 from collections import defaultdict
 from datetime import date, timedelta
@@ -72,7 +73,8 @@ def main(path):
             except (KeyError, TypeError, ValueError):
                 skipped += 1  # blank or malformed cell: count it, do not abort the run
                 continue
-            if list_price <= 0:
+            # float() accepts "nan" and "inf", which would pass a bare <= 0 test.
+            if not all(math.isfinite(x) for x in (list_price, net, off_invoice)) or list_price <= 0:
                 skipped += 1
                 continue
             deals.append(

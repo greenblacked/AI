@@ -15,7 +15,7 @@
   {"query": "our largest customer's CTO is furious and says they will not renew", "should_trigger": false, "expected": "escalated-account-recovery"},
   {"query": "what is the aha moment that makes trial users stick", "should_trigger": false, "expected": "activation-analysis"},
   {"query": "the MRR chart dipped yesterday, could the billing pipeline just be late", "should_trigger": false, "expected": "metric-anomaly-triage"},
-  {"query": "what is competitor Y betting on, judging by their hiring and changelog", "should_trigger": false, "expected": "competitor-signal-watch"},
+  {"query": "monthly churn went from 2.1% to 2.6%, split the change into segment rate effects and mix effects", "should_trigger": false, "expected": "metric-movement-decomposition"},
   {"query": "our cloud bill grew 40% this quarter, find where the money goes", "should_trigger": false, "expected": "cost-review"},
   {"query": "support tickets keep growing, which product fixes would cut them most", "should_trigger": false, "expected": "contact-reduction-review"},
   {"query": "our retention KR improved after we hid the cancel button, is the metric being gamed", "should_trigger": false, "expected": "metric-gaming-audit"}

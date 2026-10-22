@@ -16,7 +16,7 @@
   {"query": "set up an alert that pages someone when checkout conversion drops sharply", "should_trigger": false, "expected": "alert-design"},
   {"query": "our cloud bill rose 30% last month, find the top movers by service and team", "should_trigger": false, "expected": "cost-review"},
   {"query": "which queries and dashboards are driving our bigquery bill up this quarter", "should_trigger": false, "expected": "scan-cost-forensics"},
-  {"query": "set next quarter's conversion target and the key results that support it", "should_trigger": false, "expected": "okr-planning"},
+  {"query": "signups dropped 20% overnight, is it real or did the tracking break", "should_trigger": false, "expected": "metric-anomaly-triage"},
   {"query": "add tests that block the sessions table from publishing when the device column is suddenly mostly null", "should_trigger": false, "expected": "data-quality-checks"},
   {"query": "checkout is returning errors for 20% of users right now, we need to coordinate a response", "should_trigger": false, "expected": "incident-response"}
 ]
