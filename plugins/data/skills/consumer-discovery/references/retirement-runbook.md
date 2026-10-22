@@ -38,6 +38,8 @@ Send it to each known consumer directly and to the general channel data users re
 
 ## Rename with a compatibility view
 
+Move every writer first. A view is read-only, so a load still writing to the old name fails the moment the table is renamed; and a writer already moved to the replacement leaves a view over the renamed table serving data that no longer changes. Point the compatibility view at whatever is still loaded — the renamed table only while its writer has followed the rename, otherwise a projection of the replacement — and check its freshness against the load schedule before announcing the quiet period. The examples below assume the writer was repointed to the renamed table.
+
 Snowflake:
 
 ```sql
@@ -110,8 +112,10 @@ Every failure is a consumer to contact. If any is material, restore, migrate it,
 Snowflake:
 
 ```sql
+-- record the production grants first: a clone does not carry them
+show grants on table analytics.deprecated.orders;
 create table archive.core_orders_20261201 clone analytics.deprecated.orders;
--- restore
+-- restore, then replay the recorded grants and test a consumer role's read
 create table analytics.core.orders clone archive.core_orders_20261201;
 ```
 
@@ -127,6 +131,8 @@ create snapshot table archive.orders_20261201
 create table core.orders clone archive.orders_20261201;
 ```
 
+A table snapshot leaves out rows still in the streaming buffer. If the table took streaming inserts, wait until `bq show --format=prettyjson core.orders_deprecated` no longer reports a `streamingBuffer`, then compare the snapshot's row count with the source before dropping anything.
+
 Redshift: `UNLOAD` the table to object storage in Parquet with the cluster's existing IAM role, and record the `COPY` command that would load it back.
 
 Restrict access to the archive to the data team, and set an expiry: an archive without one becomes a second copy of the data that nobody owns, which matters most for personal data.
@@ -136,6 +142,6 @@ Restrict access to the archive to the data team, and set an expiry: an archive w
 - Brownout produced no unexplained failures, or each one has migrated.
 - Every known consumer has confirmed, in writing, that they have moved.
 - The quiet period has passed the slowest known schedule and, for financial data, a quarter end.
-- The archive exists, its restore command has been tested once, and its expiry is set.
+- The archive exists, its row count matches the source, its restore command has been tested once, including the replayed grants, and its expiry is set.
 - Dead code found during discovery is removed in the same change, so nothing re-creates a dependency.
 - The drop is announced on the day, with the archive location and contact.
