@@ -16,7 +16,11 @@ Each query returns one measured value; the check compares it to a threshold. Kee
 **Freshness** — minutes since the newest row arrived. Use the load timestamp for "did the job run" and the event timestamp for "is the source sending".
 
 ```sql
-SELECT EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - MAX(_loaded_at))) / 60 AS minutes_stale
+-- an empty table or all-null timestamps would give NULL, which no threshold
+-- comparison fires on; report it as infinitely stale instead
+SELECT COALESCE(
+         EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - MAX(_loaded_at))) / 60,
+         1e9) AS minutes_stale
 FROM analytics.fct_orders;
 ```
 

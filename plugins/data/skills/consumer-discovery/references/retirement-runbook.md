@@ -115,12 +115,13 @@ Snowflake:
 -- record the production grants first: a clone does not carry them
 show grants on table analytics.deprecated.orders;
 create table archive.core_orders_20261201 clone analytics.deprecated.orders;
--- test the restore before the drop, under a scratch name: the old name is
--- still the compatibility view, and a table cannot share it
-create table archive.restore_test_orders clone archive.core_orders_20261201;
+-- test the restore before the drop, under a scratch name in the production
+-- schema: the old name is still the compatibility view, and consumers have no
+-- access to the restricted archive schema, so a test there proves nothing
+create table analytics.core.orders_restore_test clone archive.core_orders_20261201;
 -- compare row counts, replay the recorded grants on it, read it as a consumer
 -- role, then drop it
-drop table archive.restore_test_orders;
+drop table analytics.core.orders_restore_test;
 -- real restore, after the drop: remove the view, then restore the name
 drop view if exists analytics.core.orders;
 create table analytics.core.orders clone archive.core_orders_20261201;
@@ -136,8 +137,9 @@ create snapshot table archive.orders_20261201
   clone core.orders_deprecated
   options (expiration_timestamp = timestamp '2027-06-01 00:00:00 UTC');
 -- test the restore before the drop, under a scratch name
-create table archive.restore_test_orders clone archive.orders_20261201;
-drop table archive.restore_test_orders;
+create table core.orders_restore_test clone archive.orders_20261201;
+-- set the recorded policy on it and read it as a consumer, then drop it
+drop table core.orders_restore_test;
 -- real restore: remove the compatibility view first, then restore the name
 drop view if exists core.orders;
 create table core.orders clone archive.orders_20261201;
