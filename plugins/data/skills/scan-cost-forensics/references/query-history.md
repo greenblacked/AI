@@ -157,9 +157,10 @@ SELECT
       'in \\(\\?([[:space:]]*,[[:space:]]*\\?)*\\)', 'in (?)')
   )) AS fingerprint,
   COUNT(*)                                AS runs,
-  -- user ids, not names: pg_user is a leader-node catalog and cannot join STL tables;
-  -- look the ids up in pg_user in a second query
-  LISTAGG(DISTINCT q.userid::VARCHAR(12), ',') AS user_ids,
+  -- a count and a sample rather than a list: LISTAGG runs only on compute nodes,
+  -- and these system views are read on the leader node, so it fails here
+  COUNT(DISTINCT q.userid)                AS users,
+  MIN(u.usename)                          AS sample_user,
   SUM(m.query_blocks_read)                AS blocks_read,
   SUM(m.spectrum_scan_size_mb)            AS spectrum_mb,
   SUM(m.query_execution_time) / 3600.0    AS execution_hours,  -- the summary view reports seconds
@@ -168,6 +169,7 @@ SELECT
   MIN(LEFT(TRIM(q.querytxt), 300))        AS sample_text
 FROM stl_query q
 JOIN svl_query_metrics_summary m ON m.query = q.query
+LEFT JOIN pg_user u ON u.usesysid = q.userid
 LEFT JOIN (
   -- one row per query, so a query that changed queue is not counted twice
   SELECT query, SUM(total_queue_time) AS queue_us
