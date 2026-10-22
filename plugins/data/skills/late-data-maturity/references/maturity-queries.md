@@ -193,7 +193,8 @@ with new_rows as (
   select event_day
   from {{ ref('stg_order_arrivals') }}
   {% if is_incremental() %}
-  where loaded_utc > (select max(max_loaded_utc) from {{ this }})
+  -- an empty target has no maximum; without the floor every row compares to NULL and none loads
+  where loaded_utc > coalesce((select max(max_loaded_utc) from {{ this }}), '1900-01-01'::timestamp_ntz)
   {% endif %}
 ),
 touched as (

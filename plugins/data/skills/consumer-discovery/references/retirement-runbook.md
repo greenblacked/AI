@@ -79,7 +79,9 @@ from snowflake.account_usage.query_history
 where start_time >= '2026-11-18 09:00:00 +00:00'::timestamp_tz
   and start_time <  '2026-11-19 09:00:00 +00:00'::timestamp_tz
   and execution_status ilike 'fail%'          -- documented as lower-case 'fail'
-  and error_message ilike '%does not exist or not authorized%'
+  -- a dropped view says 'does not exist or not authorized'; a revoked SELECT says 'Insufficient privileges'
+  and (error_message ilike '%does not exist or not authorized%'
+       or error_message ilike '%insufficient privileges%')
   -- qualified, unqualified and quoted spellings: "CORE"."ORDERS", core.orders, orders
   and regexp_like(query_text, '.*(^|[^a-z0-9_$])"?orders"?([^a-z0-9_$]|$).*', 'is')
 group by 1, 2, 3, 4
