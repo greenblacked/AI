@@ -34,7 +34,8 @@ CREATE TABLE unit_cert (
   fingerprint  TEXT NOT NULL UNIQUE,
   issued_at    TIMESTAMP NOT NULL,
   revoked_at   TIMESTAMP,
-  work_order   TEXT NOT NULL
+  work_order   TEXT NOT NULL,
+  station_id   TEXT NOT NULL   -- the station that issued it, so exposure needs no unit row
 );
 
 CREATE TABLE failed_unit (
@@ -54,7 +55,7 @@ CREATE TABLE unit_event (
 );
 ```
 
-Issuance has its own table so an RMA or a retried attempt adds a row and sets `revoked_at` on the earlier one; the `unit` row is never rewritten. State is derived from the latest event, so history is never overwritten. Failed units go in the separate `failed_unit` table with the same station and time fields, so scrap is counted.
+Issuance has its own table so an RMA or a retried attempt adds a row and sets `revoked_at` on the earlier one; the `unit` row is never rewritten. State is derived from the latest event, so history is never overwritten. Failed units go in the separate `failed_unit` table with the same station and time fields, so scrap is counted, and writing that row sets `revoked_at` on the unit's certificate in the same transaction: a scrapped board must not leave the line with a live identity.
 
 ## Signing service work-order check
 
@@ -83,10 +84,10 @@ Four counts per product and week, from four independent sources.
 ```sql
 -- live certificates with no passing registry row; failed shows whether the
 -- unit was recorded as scrap (true) or is unaccounted for (false)
-SELECT c.serial, c.fingerprint, f.serial IS NOT NULL AS failed
+SELECT c.serial, c.fingerprint,
+       EXISTS (SELECT 1 FROM failed_unit f WHERE f.serial = c.serial) AS failed
 FROM unit_cert c
 LEFT JOIN unit u ON u.serial = c.serial AND u.test_result = 'pass'
-LEFT JOIN failed_unit f ON f.serial = c.serial
 WHERE u.serial IS NULL AND c.revoked_at IS NULL;
 
 -- registry rows beyond the work order quantity
@@ -102,9 +103,9 @@ Anything non-zero is investigated by serial before the next order is opened. Ove
 If an intermediate or a station credential is suspected, list the exposure first and revoke second.
 
 ```sql
-SELECT u.serial, c.fingerprint, u.station_id, c.issued_at, c.revoked_at
-FROM unit u JOIN unit_cert c USING (serial)
-WHERE u.station_id = :station AND c.issued_at BETWEEN :from AND :to;
+SELECT c.serial, c.fingerprint, c.station_id, c.issued_at, c.revoked_at
+FROM unit_cert c
+WHERE c.station_id = :station AND c.issued_at BETWEEN :from AND :to;
 ```
 
 Feed the fingerprints to the revocation list or service deny entry. Units in the field then need a path to a fresh identity; plan that before it is needed.
