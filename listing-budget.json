@@ -20,7 +20,7 @@
     "platform": 19500,
     "product": 19500,
     "security": 13500,
-    "smallbiz": 17500,
+    "smallbiz": 18000,
     "techdocs": 10000
   },
   "skills": {
@@ -245,7 +245,7 @@
     "resource-decommission": 882,
     "responsive-design": 730,
     "restore-canary": 883,
-    "retainer-design": 885,
+    "retainer-design": 910,
     "retention-review": 885,
     "retrieval-evaluation": 877,
     "rfp-response": 891,
