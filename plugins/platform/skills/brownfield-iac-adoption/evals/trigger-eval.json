@@ -1,0 +1,22 @@
+[
+  {"query": "half our aws accounts were built by clicking around the console years ago, how do we get it all into terraform without breaking anything", "should_trigger": true},
+  {"query": "how much of our cloud is actually managed by terraform? leadership wants a number", "should_trigger": true},
+  {"query": "adopt our legacy azure subscriptions into opentofu, nobody knows everything that's in there", "should_trigger": true},
+  {"query": "use cloud asset inventory to find every gcp resource that isn't in any terraform state", "should_trigger": true},
+  {"query": "we imported a batch and the plan wants to change 14 attributes on the imported security groups, should we just apply it", "should_trigger": true},
+  {"query": "the config terraform generated for our imported resources is unreadable, how do we turn it into proper modules", "should_trigger": true},
+  {"query": "set up a weekly report of unmanaged resources per account so we can see click-ops creeping back in", "should_trigger": true},
+  {"query": "what order should we import a hand-built vpc, its databases and the ec2 fleet into code", "should_trigger": true},
+  {"query": "diff resource explorer against our terraform states and tell me what's unmanaged", "should_trigger": true},
+  {"query": "a contractor built our whole gcp org by hand, we want it all codified with zero changes to what's running", "should_trigger": true},
+  {"query": "import this one existing rds instance into our terraform, we already have the resource block written", "should_trigger": false, "expected": "terraform-state"},
+  {"query": "write a terraform module for a three-tier vpc for a brand new account", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "is this plan safe to apply, it replaces the nat gateway", "should_trigger": false, "expected": "iac-review"},
+  {"query": "find and delete the unattached volumes and idle load balancers nobody owns", "should_trigger": false, "expected": "resource-decommission"},
+  {"query": "our main terraform state has 5000 resources and plans take 35 minutes, split it into stacks", "should_trigger": false, "expected": "monolith-state-split"},
+  {"query": "bump terraform core from 1.5 to 1.9 and the azurerm provider to the next major", "should_trigger": false, "expected": "iac-version-upgrade"},
+  {"query": "who has admin in our aws org and which of those grants are stale", "should_trigger": false, "expected": "access-review"},
+  {"query": "our gcp bill went up 25 percent last month, what's driving it", "should_trigger": false, "expected": "cost-review"},
+  {"query": "plan our move from cloudformation stacks to terraform across all accounts, phases and rollback", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "a terraform state file ended up in a public bucket, what do we rotate", "should_trigger": false, "expected": "secret-rotation"}
+]

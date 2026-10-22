@@ -1,0 +1,22 @@
+[
+  {"query": "set up a nightly job that restores last night's RDS snapshot into a temp instance, checks the data and deletes it again", "should_trigger": true},
+  {"query": "how do we actually know our postgres backups restore? nobody has tried one since we migrated", "should_trigger": true},
+  {"query": "our backup jobs are all green but I don't trust them; what would continuous proof that they restore look like", "should_trigger": true},
+  {"query": "write the verification step for an automated restore test: row counts and checksums against production without hammering the primary", "should_trigger": true},
+  {"query": "we want an alert if the daily restore test fails or just stops running", "should_trigger": true},
+  {"query": "design a cronjob that pulls the latest pgbackrest backup onto a scratch host every day and runs some sanity queries", "should_trigger": true},
+  {"query": "track how long a restore of the orders database takes each day so we notice before it blows our four-hour RTO", "should_trigger": true},
+  {"query": "can AWS Backup restore testing replace our homemade script, and what would we still need to verify ourselves", "should_trigger": true},
+  {"query": "the canary that restores our cloud sql backup leaves orphaned instances behind when it crashes, fix the teardown", "should_trigger": true},
+  {"query": "automate restoring the cross-account vault copy of our mysql backups weekly to prove they are readable", "should_trigger": true},
+  {"query": "plan a restore drill next quarter where the payments team signs off on the recovered ledger and we time every phase", "should_trigger": false, "expected": "disaster-recovery-exercise"},
+  {"query": "what retention, immutability and cross-region copies do we need to meet a one-hour RPO for the billing database", "should_trigger": false, "expected": "backup-recovery-design"},
+  {"query": "let's kill the primary database in staging during peak traffic and see whether failover works", "should_trigger": false, "expected": "game-day"},
+  {"query": "a logical replication slot is holding WAL and the primary's disk is at 92 percent", "should_trigger": false, "expected": "db-replication"},
+  {"query": "rehearse our postgres 13 to 16 upgrade on a copy of production and compare query plans afterwards", "should_trigger": false, "expected": "db-major-upgrade"},
+  {"query": "the orders database is down right now and we need to restore from backup, coordinate the response", "should_trigger": false, "expected": "incident-response"},
+  {"query": "if our identity provider and container registry are both down, can we still restore anything at all", "should_trigger": false, "expected": "bootstrap-dependency-audit"},
+  {"query": "backfill a new column across 400 million rows without locking the table", "should_trigger": false, "expected": "safe-backfill"},
+  {"query": "write the 3am runbook for the database disk-full alert", "should_trigger": false, "expected": "runbook"},
+  {"query": "our burn-rate alerts page too often for the checkout SLO, rework them", "should_trigger": false, "expected": "alert-design"}
+]

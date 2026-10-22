@@ -1624,6 +1624,20 @@ html:not([data-theme="reactor"]) %P .plugin-word {
   to { opacity: 1; transform: none; }
 }""",
     ),
+    # Letters grow into place one by one, like nodes joining a cluster.
+    "platform": PluginLook(
+        day=("#1d4ed8", "#0f766e", "#854d0e"),
+        night=("#93c5fd", "#5eead4", "#fde047"),
+        width=0.76,
+        rules=(
+            "%P .pl { animation: pw-platform-join 0.4s ease-out calc(var(--i) * 0.08s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-platform-join {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
 }
 
 # The shared frame. `--c` is the colour a letter or a row takes from the cycle.

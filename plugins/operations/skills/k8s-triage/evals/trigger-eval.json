@@ -8,15 +8,15 @@
   {"query": "namespace has been Terminating for an hour and won't go away", "should_trigger": true},
   {"query": "403 forbidden: User system:serviceaccount:prod:api cannot list secrets, started after the chart bump", "should_trigger": true},
   {"query": "readiness never passes on the new version, container is up, logs stop after 'listening on 8080'", "should_trigger": true},
-  {"query": "k8s is down, api server returning etcdserver: request timed out. what do i do first", "should_trigger": true},
+  {"query": "pods are ErrImagePull since the registry pull secret rotated, half of prod is down and the rollback does not help", "should_trigger": true},
   {"query": "read this saved Kubernetes bundle of pod snapshots, events, rollout records, and current and previous logs without querying the live cluster", "should_trigger": false, "expected": "k8s-evidence-reader"},
   {"query": "write the deployment, service and hpa manifests for a new grpc service", "should_trigger": false, "expected": "code-scaffold"},
   {"query": "write the postmortem for tuesday's outage, i've got the timeline and the graphs", "should_trigger": false, "expected": "postmortem"},
   {"query": "we're planning the 1.29 to 1.31 upgrade next quarter, what order do we do things in", "should_trigger": false, "expected": "k8s-upgrade"},
   {"query": "how many nodes do we need for black friday, p95 cpu is sitting around 40 percent today", "should_trigger": false, "expected": "capacity-planning"},
-  {"query": "our staging cluster costs 4k a month, where is the money actually going", "should_trigger": false, "expected": "cost-review"},
+  {"query": "k8s is down, api server returning etcdserver: request timed out. what do i do first", "should_trigger": false, "expected": "apiserver-pressure"},
+  {"query": "we want default-deny network policies on every namespace without breaking dns, how do we roll that out", "should_trigger": false, "expected": "k8s-network-policy"},
   {"query": "the e2e workflow has failed six times in a row at the kind cluster setup step", "should_trigger": false, "expected": "ci-triage"},
-  {"query": "this Dockerfile runs as root and the cluster rejects it, fix the image", "should_trigger": false, "expected": "image-hardening"},
   {"query": "terraform plan wants to replace the eks node group, is that going to drain everything", "should_trigger": false, "expected": "iac-review"},
   {"query": "our payment provider's API is timing out and checkout is failing, I'm IC, what first", "should_trigger": false, "expected": "incident-response"}
 ]

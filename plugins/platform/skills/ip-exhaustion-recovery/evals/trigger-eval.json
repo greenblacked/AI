@@ -1,0 +1,22 @@
+[
+  {"query": "pods are stuck in ContainerCreating and aws-node says failed to assign an IP address to container", "should_trigger": true},
+  {"query": "our EKS private subnets are /24s and they're basically at zero free IPs. what are the options short of a new VPC", "should_trigger": true},
+  {"query": "node group scale-up fails with InsufficientFreeAddressesInSubnet in eu-west-1b", "should_trigger": true},
+  {"query": "should we turn on prefix delegation or add a 100.64 secondary CIDR with custom networking to get more pod IPs", "should_trigger": true},
+  {"query": "we need to peer with the vpc from the company we acquired but both of us use 10.0.0.0/16", "should_trigger": true},
+  {"query": "each node seems to hold way more IPs than it has pods. is WARM_ENI_TARGET eating our subnet", "should_trigger": true},
+  {"query": "GKE node pool can't scale because the pod secondary range is exhausted, how do we get more room", "should_trigger": true},
+  {"query": "the AKS subnet ran out because azure cni reserves 30 addresses per node, what are our choices", "should_trigger": true},
+  {"query": "enabling prefix delegation gave us InsufficientCidrBlocks even though the subnet shows free addresses", "should_trigger": true},
+  {"query": "we keep running out of address space every year. help me lay out a proper IPAM plan so the next VPCs don't overlap", "should_trigger": true},
+  {"query": "pods are Pending with insufficient memory after the deploy and checkout is down", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "plan moving all our services from the old shared VPC into new per-team VPCs over the next two quarters", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "how many nodes will we need for the black friday peak and how much headroom should we keep", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "our cross-AZ data transfer line jumped and I need to know which services are generating it", "should_trigger": false, "expected": "data-transfer-forensics"},
+  {"query": "users see random 502s from the ALB a few times an hour and the app logs show nothing", "should_trigger": false, "expected": "intermittent-502-hunt"},
+  {"query": "review this terraform PR that changes our VPC CIDR and adds subnets, is it safe to apply", "should_trigger": false, "expected": "iac-review"},
+  {"query": "I created the subnets by hand in the console, now import them into terraform state without recreating them", "should_trigger": false, "expected": "terraform-state"},
+  {"query": "our internal hostnames resolve differently inside the VPC and from the office and nobody documented why", "should_trigger": false, "expected": "dns-operations"},
+  {"query": "set up firewall rules and VLANs on our mikrotik router for the new office network", "should_trigger": false, "expected": "routeros-config"},
+  {"query": "the NAT gateway bill is huge this month, where is the money going across the whole account", "should_trigger": false, "expected": "cost-review"}
+]

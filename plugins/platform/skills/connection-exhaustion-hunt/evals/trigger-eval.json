@@ -1,0 +1,22 @@
+[
+  {"query": "calls from our pods to the payment provider time out randomly under load but their status page is all green", "should_trigger": true},
+  {"query": "the NAT gateway shows ErrorPortAllocation spikes every afternoon at peak", "should_trigger": true},
+  {"query": "some requests take exactly 5 seconds longer than they should, always 5, never 4 or 6", "should_trigger": true},
+  {"query": "dmesg on a few nodes says nf_conntrack table full, dropping packet", "should_trigger": true},
+  {"query": "our Go service logs dial tcp: connect: cannot assign requested address when traffic ramps up", "should_trigger": true},
+  {"query": "should we just raise nf_conntrack_max on the nodes, the table keeps filling up", "should_trigger": true},
+  {"query": "coredns is getting hammered with NXDOMAIN lookups for external hostnames with cluster.local appended", "should_trigger": true},
+  {"query": "there are 30,000 sockets in TIME_WAIT to one upstream on each app server, is that why connections fail", "should_trigger": true},
+  {"query": "Cloud NAT on our GKE cluster is dropping packets with OUT_OF_RESOURCES", "should_trigger": true},
+  {"query": "pooled database connections die after sitting idle for a few minutes and the next query hangs", "should_trigger": true},
+  {"query": "the orders Service has no endpoints and every request gets connection refused", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "we need default-deny network policies in every namespace without breaking anything", "should_trigger": false, "expected": "k8s-network-policy"},
+  {"query": "NAT gateway data processing charges are a third of our AWS bill, how do we cut them", "should_trigger": false, "expected": "cost-review"},
+  {"query": "this report query takes 40 seconds and does a sequential scan on orders", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "how big should the connection pool and replica count be for next month's launch traffic", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "kubectl is slow and controllers get 429s from the API server", "should_trigger": false, "expected": "apiserver-pressure"},
+  {"query": "a MikroTik router at the branch office drops connections after the firmware upgrade", "should_trigger": false, "expected": "routeros-config"},
+  {"query": "our TLS certificates expired overnight and clients get handshake errors", "should_trigger": false, "expected": "certificate-automation"},
+  {"query": "add a cache in front of the product catalogue service so we stop calling it on every request", "should_trigger": false, "expected": "application-caching"},
+  {"query": "prod is down for all customers and I am incident commander, the database will not fail over", "should_trigger": false, "expected": "incident-response"}
+]

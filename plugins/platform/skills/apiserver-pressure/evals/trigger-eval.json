@@ -1,0 +1,22 @@
+[
+  {"query": "kubectl takes 20 seconds to return anything on the prod cluster, every command, every namespace", "should_trigger": true},
+  {"query": "our operators keep logging 429 Too Many Requests from the API server since we added the new monitoring agent", "should_trigger": true},
+  {"query": "etcd raised a NOSPACE alarm and now nothing can be created in the cluster", "should_trigger": true},
+  {"query": "how do I find out which controller is hammering the kube-apiserver with list calls", "should_trigger": true},
+  {"query": "we have 180,000 completed jobs and the control plane feels sluggish, is that related", "should_trigger": true},
+  {"query": "EKS control plane latency spikes every time the API server restarts and all the controllers relist at once", "should_trigger": true},
+  {"query": "should we create a FlowSchema to stop the backup operator starving everything else of API server capacity", "should_trigger": true},
+  {"query": "the etcd database is at 1.8 GB of a 2 GB quota and growing, what is filling it", "should_trigger": true},
+  {"query": "our DaemonSet lists every pod in the cluster from each of 600 nodes, is that why the API is slow", "should_trigger": true},
+  {"query": "can we just bump max-requests-inflight on the apiserver, we keep getting throttled", "should_trigger": true},
+  {"query": "pods in the payments namespace are stuck Pending since this morning", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "we are going from Kubernetes 1.29 to 1.30 next week, what do we need to check", "should_trigger": false, "expected": "k8s-upgrade"},
+  {"query": "how many nodes do we need in the cluster for the Black Friday peak", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "what CPU and memory requests should this operator's deployment have", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "here is a 40 MB dump of kubectl describe output and events from the cluster, summarise what matters", "should_trigger": false, "expected": "k8s-evidence-reader"},
+  {"query": "our postgres queries got slow after the table passed 50 million rows", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "which service accounts in the cluster have cluster-admin and do they still need it", "should_trigger": false, "expected": "access-review"},
+  {"query": "outbound calls from pods to a partner API time out intermittently and the NAT gateway shows port allocation errors", "should_trigger": false, "expected": "connection-exhaustion-hunt"},
+  {"query": "the EKS bill doubled after we enabled control plane logging, where is the money going", "should_trigger": false, "expected": "cost-review"},
+  {"query": "our public REST API returns 429 to customers, how should we design the rate limits", "should_trigger": false, "expected": "api-design"}
+]
