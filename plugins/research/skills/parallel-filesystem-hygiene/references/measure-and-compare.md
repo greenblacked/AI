@@ -53,7 +53,7 @@ The `.part` name then rename means a reader never sees a half-copied archive. Th
 
 Three details carry the guarantee. Slurm ends a job that hits its time limit, is preempted or is cancelled with SIGTERM, and without the `TERM` trap bash runs the `EXIT` trap with `$?` equal to 0, so partial output would be published under the final name; the trap turns that into status 143. `set +e` at the top of the handler stops a failed `tar` or `cp` from aborting it before the rename and `exit`. The `${SLURM_ARRAY_TASK_ID:-$SLURM_JOB_ID}` default keeps a job that is not an array element from aborting under `set -u`.
 
-Limits: bash runs a trap only after the foreground command it is waiting on has finished, so a program that ignores SIGTERM keeps the handler from running until Slurm's SIGKILL, which no trap catches (the delay is the cluster's `KillWait`; check it with the site docs). The pack and copy must also fit in that window, so for long runs copy out at coarse checkpoints as well. The trap does not run at all if the node is lost.
+Limits: bash runs a trap only after the foreground command it is waiting on has finished, so a program that ignores SIGTERM keeps the handler from running until Slurm's SIGKILL, which no trap catches (the delay is the cluster's `KillWait` for a timeout or `scancel`, and the partition or QOS `GraceTime` for preemption; check both with the site docs). The pack and copy must also fit in that window, so for long runs copy out at coarse checkpoints as well. The trap does not run at all if the node is lost.
 
 ## Hash sharding
 

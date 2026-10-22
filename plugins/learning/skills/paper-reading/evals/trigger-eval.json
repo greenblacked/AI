@@ -4,7 +4,7 @@
   {"query": "is this paper's claim believable, the improvement looks suspiciously large", "should_trigger": true},
   {"query": "here is a PDF on a new attention variant, should my team try it", "should_trigger": true},
   {"query": "I only have an hour, how do I decide whether to read this paper properly or skip it", "should_trigger": true},
-  {"query": "check whether the baselines in this paper were tuned fairly and whether the results have error bars", "should_trigger": true},
+  {"query": "check whether this paper's comparison against the baselines is a fair one before I cite it", "should_trigger": true},
   {"query": "what is the actual claim of this paper in one sentence and what evidence would make me trust it", "should_trigger": true},
   {"query": "my manager sent me a paper on a new database index structure and wants a view by tomorrow", "should_trigger": true},
   {"query": "could the test set in this benchmark paper have leaked into the training data", "should_trigger": true},

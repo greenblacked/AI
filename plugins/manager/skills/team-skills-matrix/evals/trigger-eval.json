@@ -82,7 +82,7 @@
  {
   "query": "our release process lives in one engineer's head, how do I spread it",
   "should_trigger": false,
-  "expected": "tacit-knowledge-elicitation"
+  "expected": "shadow-reverse-shadow"
  },
  {
   "query": "set up a rotation so a second person can cover on call for the billing system, with dated gates",
