@@ -47,6 +47,7 @@ SELECT
   query_parameterized_hash        AS fingerprint,
   -- one row per fingerprint: a workload spread over warehouses must not split its total
   LISTAGG(DISTINCT warehouse_name, ', ') AS warehouses,
+  ARRAY_AGG(DISTINCT user_name)   AS users,
   COUNT(*)                        AS runs,
   -- an accelerated query costs both columns
   SUM(credits_attributed_compute
@@ -156,6 +157,9 @@ SELECT
       'in \\(\\?([[:space:]]*,[[:space:]]*\\?)*\\)', 'in (?)')
   )) AS fingerprint,
   COUNT(*)                                AS runs,
+  -- user ids, not names: pg_user is a leader-node catalog and cannot join STL tables;
+  -- look the ids up in pg_user in a second query
+  LISTAGG(DISTINCT q.userid::VARCHAR(12), ',') AS user_ids,
   SUM(m.query_blocks_read)                AS blocks_read,
   SUM(m.spectrum_scan_size_mb)            AS spectrum_mb,
   SUM(m.query_execution_time) / 3600.0    AS execution_hours,  -- the summary view reports seconds
