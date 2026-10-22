@@ -1,0 +1,22 @@
+[
+  {"query": "our churn model gets 0.98 AUC on the holdout, that seems too good, what should I check", "should_trigger": true},
+  {"query": "one feature, days_since_last_contact, has five times the importance of anything else in the loan default model; is something wrong", "should_trigger": true},
+  {"query": "is it fine to fit the standard scaler and target encoder on the whole dataset and then do the train/test split", "should_trigger": true},
+  {"query": "we have twenty visits per patient in the readmission data and used a random 80/20 split, is the test score trustworthy", "should_trigger": true},
+  {"query": "audit this training table for any column that is only filled in after the customer cancels", "should_trigger": true},
+  {"query": "how do I join the account snapshot table so each training row only sees what was known at the time of the prediction", "should_trigger": true},
+  {"query": "before we launch the fraud model, check the features for anything that would not exist at scoring time", "should_trigger": true},
+  {"query": "our image classifier might have the same photos resized in both train and validation, how do we find and remove them", "should_trigger": true},
+  {"query": "should the train and test split for our weekly sales propensity model be by date or random, and do we need a gap", "should_trigger": true},
+  {"query": "I did feature selection on all rows before cross-validation and the score fell a lot when a colleague redid it, why", "should_trigger": true},
+  {"query": "the model works offline but the features logged at serving time do not match what the training pipeline computes for the same request", "should_trigger": false, "expected": "serving-skew-replay"},
+  {"query": "our honestly validated spam classifier still misses a lot; sample its worst errors and tell me what to fix", "should_trigger": false, "expected": "model-error-analysis"},
+  {"query": "what unit tests should I write for this date parsing function", "should_trigger": false, "expected": "test-design"},
+  {"query": "the deployed credit model's input distributions have moved since summer, should we retrain now", "should_trigger": false, "expected": "model-drift-monitoring"},
+  {"query": "backtest our weekly demand forecast against seasonal naive with rolling origins", "should_trigger": false, "expected": "forecast-backtesting"},
+  {"query": "convert this exploratory feature engineering notebook into a tested job that runs nightly", "should_trigger": false, "expected": "notebook-to-production"},
+  {"query": "our retriever benchmark may have queries that overlap the tuning set, compare the candidate index on a sealed holdout", "should_trigger": false, "expected": "retrieval-evaluation"},
+  {"query": "our A/B test result came in, the treatment lifted signups by 3%; is it real", "should_trigger": false, "expected": "experiment-readout"},
+  {"query": "find and remove personal data from the training dataset before it is shared with the vendor", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "this pandas pipeline throws a KeyError on the merge step, help me debug it", "should_trigger": false, "expected": "debugging"}
+]

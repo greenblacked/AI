@@ -1,0 +1,22 @@
+[
+  {"query": "what should we be monitoring on our credit risk model now that it is live", "should_trigger": true},
+  {"query": "PSI on half our features is above 0.25 this month, do we need to retrain the model", "should_trigger": true},
+  {"query": "labels for our fraud model take about two months to arrive; how do we tell whether it is getting worse in the meantime", "should_trigger": true},
+  {"query": "set up drift detection for a deployed churn classifier", "should_trigger": true},
+  {"query": "we retrain the ranking model every Monday on a cron job; is there a better rule for when to retrain", "should_trigger": true},
+  {"query": "how should we compare a freshly retrained model against the one in production before swapping them", "should_trigger": true},
+  {"query": "the share of loans the model approves jumped from 40% to 55% this week and we have no outcomes yet", "should_trigger": true},
+  {"query": "design a champion challenger setup with a quick rollback for our pricing model", "should_trigger": true},
+  {"query": "the KS test says every feature drifted, the sample is two million rows, is that real", "should_trigger": true},
+  {"query": "an input column started arriving as all nulls and the model kept scoring on it for three weeks before anyone noticed", "should_trigger": true},
+  {"query": "offline and online scores disagree for the very same request id; find which features differ", "should_trigger": false, "expected": "serving-skew-replay"},
+  {"query": "define an availability objective and error budget for the scoring API", "should_trigger": false, "expected": "slo-design"},
+  {"query": "our model alerts page the on-call at 3am and nobody can act on them; rewrite the paging rules and routing", "should_trigger": false, "expected": "alert-design"},
+  {"query": "before launch, find the slices where the classifier's precision is worst and relabel a sample of its errors", "should_trigger": false, "expected": "model-error-analysis"},
+  {"query": "plan an A/B test of the new ranking model with conversion as the primary metric", "should_trigger": false, "expected": "experiment-design"},
+  {"query": "backtest our monthly revenue forecast against a seasonal naive baseline", "should_trigger": false, "expected": "forecast-backtesting"},
+  {"query": "one feature in our model is computed from data recorded after the prediction date", "should_trigger": false, "expected": "feature-leakage-audit"},
+  {"query": "the GPU nodes serving the model will need more headroom for the black friday peak", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "the hosted model provider behind our summariser is deprecating the model version our extraction feature depends on", "should_trigger": false, "expected": "model-migration"},
+  {"query": "the model server pods keep getting OOMKilled after the last deploy", "should_trigger": false, "expected": "k8s-triage"}
+]

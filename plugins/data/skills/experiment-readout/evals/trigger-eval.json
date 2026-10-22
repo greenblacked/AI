@@ -1,0 +1,22 @@
+[
+  {"query": "the checkout test finished last Friday; tell me whether we should ship it and how confident we can be", "should_trigger": true},
+  {"query": "our onboarding experiment shows +3% activation, is that real or noise", "should_trigger": true},
+  {"query": "the test was flat overall but it looks like it only worked on Android, can we ship it just there", "should_trigger": true},
+  {"query": "write up the results of the recommendations experiment for the leadership review", "should_trigger": true},
+  {"query": "treatment won big in week one but the lift keeps shrinking, what number do we report", "should_trigger": true},
+  {"query": "p is 0.07 on the primary metric after four weeks, does that mean the feature does nothing", "should_trigger": true},
+  {"query": "review this experiment readout from the growth team before it goes to the exec meeting", "should_trigger": true},
+  {"query": "conversion went up but p95 latency got worse in treatment; how do we decide", "should_trigger": true},
+  {"query": "compute the confidence interval for the relative lift in revenue per user from our finished A/B test", "should_trigger": true},
+  {"query": "we sliced the finished pricing test by twelve countries and three of them are significant, what do we do with that", "should_trigger": true},
+  {"query": "how many users and how many weeks do we need for a test of the new search ranking", "should_trigger": false, "expected": "experiment-design"},
+  {"query": "the sample ratio check failed on our 50/50 test with treatment 2% short, find out why", "should_trigger": false, "expected": "srm-diagnosis"},
+  {"query": "plan a test for surge pricing where we alternate the algorithm by hour in each city", "should_trigger": false, "expected": "switchback-test-design"},
+  {"query": "we launched the loyalty programme in Spain only last quarter; estimate its effect on repeat orders against other countries", "should_trigger": false, "expected": "causal-inference-review"},
+  {"query": "the deployed ETA model's input distributions have shifted since summer; is that reason enough to retrain", "should_trigger": false, "expected": "model-drift-monitoring"},
+  {"query": "our fraud classifier misses too many cases; study where it is wrong instead of tuning hyperparameters", "should_trigger": false, "expected": "model-error-analysis"},
+  {"query": "the ramp to 25% looks healthy, can we promote the canary to 100% now", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "our weekly revenue forecast was off by 20% last month; backtest it properly against a naive baseline", "should_trigger": false, "expected": "forecast-backtesting"},
+  {"query": "the model scores well offline but conversions dropped once it went live; compare served features with the training pipeline", "should_trigger": false, "expected": "serving-skew-replay"},
+  {"query": "win rates for the new hero are 58% after the patch, what should we nerf", "should_trigger": false, "expected": "game-balance"}
+]
