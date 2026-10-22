@@ -1,0 +1,22 @@
+[
+{"query":"every time we patch the servers everyone gets dropped mid-match","should_trigger":true},
+{"query":"how do we roll out a new dedicated server build together with a client patch","should_trigger":true},
+{"query":"after the update old clients cannot find a lobby at all","should_trigger":true},
+{"query":"we want to drain game servers before deploying so running matches finish","should_trigger":true},
+{"query":"should we support N-1 clients for a week after a release or force an update","should_trigger":true},
+{"query":"how many warm servers do we need in each region before we switch matchmaking to the new build","should_trigger":true},
+{"query":"what should we watch during a canary of a new game server build","should_trigger":true},
+{"query":"our rolling update kills pods that still have a match running","should_trigger":true},
+{"query":"can we roll back a server release if the new build already changed the profile schema","should_trigger":true},
+{"query":"players on the old version get kicked with a timeout instead of an update message","should_trigger":true},
+{"query":"stage a rollout of our stateless web API to ten percent of traffic","should_trigger":false,"expected":"release-strategy"},
+{"query":"write the Deployment and Service manifests for our lobby service","should_trigger":false,"expected":"k8s-workloads"},
+{"query":"plan the patch calendar and what to tell the community about downtime","should_trigger":false,"expected":"game-live-ops"},
+{"query":"submit the new iOS client build and manage staged release in the store","should_trigger":false,"expected":"mobile-release"},
+{"query":"pods are crashlooping since the last deploy","should_trigger":false,"expected":"k8s-workloads"},
+{"query":"production is down right now and players cannot connect","should_trigger":false,"expected":"incident-response"},
+{"query":"queues are ten minutes at night and ranked matches are lopsided","should_trigger":false,"expected":"matchmaking-tuning"},
+{"query":"two peers of our lockstep game diverged at frame 9000","should_trigger":false,"expected":"game-desync-forensics"},
+{"query":"what tick rate should a 5v5 shooter run at","should_trigger":false,"expected":"game-netcode"},
+{"query":"write release notes for the new version of our game","should_trigger":false,"expected":"release-notes"}
+]

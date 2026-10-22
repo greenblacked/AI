@@ -1,0 +1,22 @@
+[
+  {"query": "we shipped a one line fix and players have to download a 30 gb patch, why", "should_trigger": true},
+  {"query": "our patch size keeps growing every release even though the changes are small", "should_trigger": true},
+  {"query": "how should we split our steam depots so a code change does not redownload the textures", "should_trigger": true},
+  {"query": "we repacked the archives for tidiness and now every file counts as changed in the update", "should_trigger": true},
+  {"query": "how do we make our build deterministic so two builds from the same commit are byte identical", "should_trigger": true},
+  {"query": "does compressing the whole pak file hurt delta patching on steam", "should_trigger": true},
+  {"query": "console package chunking, how should we lay out the content so hotfixes are small", "should_trigger": true},
+  {"query": "set a size ceiling for hotfix patches and fail the release when we exceed it", "should_trigger": true},
+  {"query": "dlc download is larger than the dlc content itself, what could be reshuffling bytes", "should_trigger": true},
+  {"query": "how do I find out how steampipe actually chunks my files before restructuring the build", "should_trigger": true},
+  {"query": "shrink the texture and audio imports so the first install fits under the store limit", "should_trigger": false, "expected": "game-assets"},
+  {"query": "the ios build is over the cellular download limit and the store rejects it", "should_trigger": false, "expected": "game-assets"},
+  {"query": "decide how to stage a rollout to ten percent of players with a kill switch", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "memory keeps growing every time we load a level on switch", "should_trigger": false, "expected": "game-memory-budget"},
+  {"query": "fill out the platform's technical requirements checklist before submission", "should_trigger": false, "expected": "game-certification"},
+  {"query": "build a pipeline that runs tests and caches dependencies for our game repo", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "frame rate drops when the patch version loads many small files at startup", "should_trigger": false, "expected": "game-performance"},
+  {"query": "write the release notes and changelog for the patch we are about to ship", "should_trigger": false, "expected": "release-notes"},
+  {"query": "two artists edited the same prefab and one of them lost their work", "should_trigger": false, "expected": "scene-merge-conflicts"},
+  {"query": "players on old saves crash after the update because the save format changed", "should_trigger": false, "expected": "game-save-system"}
+]

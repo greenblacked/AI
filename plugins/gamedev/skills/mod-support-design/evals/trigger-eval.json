@@ -1,0 +1,22 @@
+[
+  {"query": "we want to support mods in our strategy game; what should we expose and what should we keep private", "should_trigger": true},
+  {"query": "how do we plan Steam Workshop integration so mods keep working after patches", "should_trigger": true},
+  {"query": "how do we sandbox lua scripts that players download so they cannot touch files or the network", "should_trigger": true},
+  {"query": "every patch we ship breaks half the popular mods and the community blames us", "should_trigger": true},
+  {"query": "players report crashes but when we ask they are running 200 mods; what is our policy", "should_trigger": true},
+  {"query": "design the manifest format and load order rules for mods that depend on each other", "should_trigger": true},
+  {"query": "should multiplayer lobbies allow different mods per player, and what about ranked", "should_trigger": true},
+  {"query": "what do we need to ship with the game so modders can build something without our help", "should_trigger": true},
+  {"query": "a mod deleted items from a save and the player lost twenty hours; how do we prevent that", "should_trigger": true},
+  {"query": "do we promise stability for json data overrides or call them unsupported", "should_trigger": true},
+  {"query": "add a version field and migration steps to our save files", "should_trigger": false, "expected": "game-save-system"},
+  {"query": "design the REST endpoints and versioning for our public leaderboard service", "should_trigger": false, "expected": "api-design"},
+  {"query": "audit this third-party extension for security before we install it", "should_trigger": false, "expected": "agent-extension-audit"},
+  {"query": "set up crash dump collection and read the stack from a player's minidump", "should_trigger": false, "expected": "field-failure-triage"},
+  {"query": "our texture import settings make the build huge", "should_trigger": false, "expected": "game-assets"},
+  {"query": "two clients disagree about the game state after a few minutes of play", "should_trigger": false, "expected": "game-desync-forensics"},
+  {"query": "decide how to roll out a new server build to players without downtime", "should_trigger": false, "expected": "game-server-rollout"},
+  {"query": "prepare the submission for console certification", "should_trigger": false, "expected": "game-certification"},
+  {"query": "players found a duplication exploit that is wrecking the in-game economy", "should_trigger": false, "expected": "economy-exploit-response"},
+  {"query": "write the design document for a new crafting system", "should_trigger": false, "expected": "game-design-doc"}
+]

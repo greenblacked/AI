@@ -1,0 +1,22 @@
+[
+  {"query": "what should our devices send to the cloud so we can diagnose problems later without blowing the data plan", "should_trigger": true},
+  {"query": "we cannot tell why our units are resetting in the field, what do we need to capture", "should_trigger": true},
+  {"query": "our cellular bill for the sensors is far too high, how should we cut what they upload", "should_trigger": true},
+  {"query": "what is a good log strategy for battery powered devices that are offline for days", "should_trigger": true},
+  {"query": "should the device send each error as it happens or count them and report later", "should_trigger": true},
+  {"query": "how do we keep the crash and the last events from before a reset and upload them after reboot", "should_trigger": true},
+  {"query": "choose between JSON, CBOR and protobuf for messages from a constrained device", "should_trigger": true},
+  {"query": "I want to raise the log level on one device remotely without leaving it on forever", "should_trigger": true},
+  {"query": "what fields belong in a heartbeat message from a fleet of trackers", "should_trigger": true},
+  {"query": "how much data per day can each device afford given radio energy and plan cost", "should_trigger": true},
+  {"query": "add metrics and tracing to our backend API service", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "decide which conditions should page the on-call engineer", "should_trigger": false, "expected": "alert-design"},
+  {"query": "our cloud bill grew, work out which services are driving it", "should_trigger": false, "expected": "cost-review"},
+  {"query": "we have the data already and returns are climbing, find out if it is firmware or hardware", "should_trigger": false, "expected": "field-failure-triage"},
+  {"query": "decode a HardFault from the stacked registers and map file", "should_trigger": false, "expected": "hard-fault-triage"},
+  {"query": "how big should each task stack be and how do we gate flash size in CI", "should_trigger": false, "expected": "memory-footprint-budget"},
+  {"query": "review this firmware change for interrupt safety", "should_trigger": false, "expected": "firmware-code-review"},
+  {"query": "reduce log volume and storage cost in our observability pipeline", "should_trigger": false, "expected": "log-volume-reduction"},
+  {"query": "timestamps from devices that were offline arrive in 1970", "should_trigger": false, "expected": "device-clock-handling"},
+  {"query": "the device connects to the broker then drops, debug the MQTT session", "should_trigger": false, "expected": "mqtt-session-debug"}
+]

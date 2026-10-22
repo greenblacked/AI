@@ -1,0 +1,22 @@
+[
+  {"query": "the music drowns out the dialogue in fights and players are complaining they can't hear the characters", "should_trigger": true},
+  {"query": "the game is way too quiet on the Switch handheld speakers but fine docked", "should_trigger": true},
+  {"query": "what loudness target should we hit for consoles and how do I measure it", "should_trigger": true},
+  {"query": "set up sidechain ducking so the soundtrack dips when someone talks without pumping", "should_trigger": true},
+  {"query": "the mix sounds different on headphones than on the TV and I don't know which to trust", "should_trigger": true},
+  {"query": "explosions are painfully loud compared with dialogue, how do I even out the volume across the whole game", "should_trigger": true},
+  {"query": "add a night mode that squashes the dynamic range for late-night players", "should_trigger": true},
+  {"query": "set up audio buses and volume sliders for music, effects and voice", "should_trigger": true},
+  {"query": "too many sounds play at once in big fights and it turns to noise, limit the voices", "should_trigger": true},
+  {"query": "what's the true peak limit and how do I check my game's output isn't clipping", "should_trigger": true},
+  {"query": "choose the codec and sample rate for each sound effect to keep the build small", "should_trigger": false, "expected": "game-assets"},
+  {"query": "the Japanese voice lines run longer than the subtitles and the timing is off", "should_trigger": false, "expected": "game-localisation"},
+  {"query": "the audio thread is eating 3 ms per frame, profile it", "should_trigger": false, "expected": "game-performance"},
+  {"query": "add subtitles with size options and speaker names for deaf players", "should_trigger": false, "expected": "game-accessibility-pass"},
+  {"query": "reduce memory use by streaming textures and meshes on the console", "should_trigger": false, "expected": "game-memory-budget"},
+  {"query": "record a podcast episode and clean up the background noise", "should_trigger": false},
+  {"query": "players can't rebind the push to talk key", "should_trigger": false, "expected": "game-input-mapping"},
+  {"query": "our shader compile hitches the first time an effect plays", "should_trigger": false, "expected": "shader-compile-stutter"},
+  {"query": "what must our audio pass for platform certification before submission", "should_trigger": false, "expected": "game-certification"},
+  {"query": "balance weapon damage numbers so shotguns aren't dominant", "should_trigger": false, "expected": "game-balance"}
+]

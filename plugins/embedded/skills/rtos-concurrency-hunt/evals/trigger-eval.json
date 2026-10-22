@@ -1,0 +1,91 @@
+[
+ {
+  "query": "a FreeRTOS task never runs even though it is created and ready",
+  "should_trigger": true
+ },
+ {
+  "query": "our firmware deadlocks after a few hours of operation and I cannot reproduce it on the bench",
+  "should_trigger": true
+ },
+ {
+  "query": "the queue drops messages when several sensors report at once",
+  "should_trigger": true
+ },
+ {
+  "query": "random memory corruption that only happens when several tasks are active",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I tell whether it is priority inversion between my logging task and the control task",
+  "should_trigger": true
+ },
+ {
+  "query": "I call xQueueSend from a timer interrupt and sometimes the scheduler goes wrong",
+  "should_trigger": true
+ },
+ {
+  "query": "one task hogs the CPU and the lower priority ones stop getting scheduled",
+  "should_trigger": true
+ },
+ {
+  "query": "how can I find out which task holds the mutex everything is blocked on",
+  "should_trigger": true
+ },
+ {
+  "query": "should I use a binary semaphore or a mutex to protect this shared buffer between tasks",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I trace the scheduler around a rare failure with SystemView or Tracealyzer",
+  "should_trigger": true
+ },
+ {
+  "query": "my Python service deadlocks when two requests arrive together",
+  "should_trigger": false,
+  "expected": "debugging"
+ },
+ {
+  "query": "review this firmware driver code for bugs before merge",
+  "should_trigger": false,
+  "expected": "firmware-code-review"
+ },
+ {
+  "query": "the unit crashes only after waking from deep sleep",
+  "should_trigger": false,
+  "expected": "sleep-wake-bug-hunt"
+ },
+ {
+  "query": "decode this Cortex-M fault register dump and tell me what crashed",
+  "should_trigger": false,
+  "expected": "hard-fault-triage"
+ },
+ {
+  "query": "the I2C sensor returns 0xFF on every read",
+  "should_trigger": false,
+  "expected": "serial-bus-debug"
+ },
+ {
+  "query": "my board resets every few minutes and I think the watchdog fires",
+  "should_trigger": false,
+  "expected": "watchdog-design"
+ },
+ {
+  "query": "CAN node goes bus-off after a few minutes",
+  "should_trigger": false,
+  "expected": "fieldbus-debug"
+ },
+ {
+  "query": "will this firmware image fit in the flash budget after adding TLS",
+  "should_trigger": false,
+  "expected": "memory-footprint-budget"
+ },
+ {
+  "query": "two Go goroutines deadlock on a channel",
+  "should_trigger": false,
+  "expected": "go-goroutine-leak"
+ },
+ {
+  "query": "choose between FreeRTOS and Zephyr for our new product",
+  "should_trigger": false
+ }
+]

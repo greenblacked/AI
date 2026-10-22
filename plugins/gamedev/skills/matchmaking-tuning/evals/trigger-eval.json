@@ -1,0 +1,22 @@
+[
+{"query":"queues are ten minutes at night in the smaller regions, what can we do","should_trigger":true},
+{"query":"we get constant stomps in low ranks and I suspect the matchmaker","should_trigger":true},
+{"query":"new players keep getting matched with veterans and quitting","should_trigger":true},
+{"query":"is our rating system Elo, Glicko or something else, and what should it be for a 5v5 game","should_trigger":true},
+{"query":"parties of different sizes ruin matches, how should the matcher treat a premade four","should_trigger":true},
+{"query":"how wide should the skill window get as a player waits longer in queue","should_trigger":true},
+{"query":"how do we test a new matchmaking algorithm against last month's queue data","should_trigger":true},
+{"query":"what is a good quality metric for matches besides win rate","should_trigger":true},
+{"query":"should we merge platform queues to cut wait times for ranked","should_trigger":true},
+{"query":"how many matches before a new account's rating can be trusted","should_trigger":true},
+{"query":"the sniper rifle is too strong and top players pick it every game","should_trigger":false,"expected":"game-balance"},
+{"query":"players with high ping get rubber-banding in matches","should_trigger":false,"expected":"game-netcode"},
+{"query":"how do we roll out a new server build without dropping matches","should_trigger":false,"expected":"game-server-rollout"},
+{"query":"design the stat sheet for characters in a tactics game","should_trigger":false,"expected":"game-balance"},
+{"query":"run a playtest session to see whether the tutorial makes sense","should_trigger":false,"expected":"game-playtest"},
+{"query":"someone is boosting accounts with a duplication glitch and wrecking ranked","should_trigger":false,"expected":"economy-exploit-response"},
+{"query":"plan the next season's ranked reset and rewards calendar","should_trigger":false,"expected":"game-live-ops"},
+{"query":"what tick rate should the game server use","should_trigger":false,"expected":"game-netcode"},
+{"query":"a lobby service crashloops after the last deploy","should_trigger":false,"expected":"k8s-triage"},
+{"query":"check that the loot box odds shown to players are the real ones","should_trigger":false,"expected":"loot-odds-verification"}
+]

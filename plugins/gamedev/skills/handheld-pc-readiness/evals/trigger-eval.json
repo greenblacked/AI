@@ -1,0 +1,22 @@
+[
+  {"query": "will our game be Deck Verified and what do we need to change", "should_trigger": true},
+  {"query": "it runs on Proton but the text is tiny on the Steam Deck", "should_trigger": true},
+  {"query": "we want handheld PC support in the next patch", "should_trigger": true},
+  {"query": "controls feel wrong on the ROG Ally with the built-in gamepad", "should_trigger": true},
+  {"query": "the Deck is unplayable because the default launcher needs a mouse", "should_trigger": true},
+  {"query": "what should the default graphics preset be on a Steam Deck to keep battery life reasonable", "should_trigger": true},
+  {"query": "how should we test suspend and resume on a handheld", "should_trigger": true},
+  {"query": "the anti-cheat prompt on first launch cannot be dismissed with a controller", "should_trigger": true},
+  {"query": "players on the Deck report the game gets hot and drains in an hour", "should_trigger": true},
+  {"query": "do we need to test on a real Deck or is a 1280x800 window enough", "should_trigger": true},
+  {"query": "prepare the submission package for console certification", "should_trigger": false, "expected": "game-certification"},
+  {"query": "our frame rate drops in the city level on every machine", "should_trigger": false, "expected": "game-performance"},
+  {"query": "design the action map and rebinding layer for keyboard and gamepad", "should_trigger": false, "expected": "game-input-mapping"},
+  {"query": "make our marketing site layout work on small screens", "should_trigger": false, "expected": "responsive-design"},
+  {"query": "which GPUs and drivers should we put in the test matrix", "should_trigger": false, "expected": "game-compat-matrix"},
+  {"query": "the game takes forty seconds to load from the SD card", "should_trigger": false, "expected": "game-load-times"},
+  {"query": "add colourblind modes and subtitle options", "should_trigger": false, "expected": "game-accessibility-pass"},
+  {"query": "balance the audio mix so dialogue is audible over music on speakers", "should_trigger": false, "expected": "game-audio-mix"},
+  {"query": "our mobile app store size limit is blocking the release", "should_trigger": false, "expected": "game-assets"},
+  {"query": "localise the interface into Japanese and German", "should_trigger": false, "expected": "game-localisation"}
+]
