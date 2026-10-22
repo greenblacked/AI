@@ -1,7 +1,7 @@
 ---
 name: game-balance
 description: "Tune a game's numbers against evidence rather than taste. Names what balanced means for this game before changing anything — near-equal win rates for a symmetric competitive game, a rising difficulty curve for a single-player one, a spread of viable builds for a roguelike — then instruments win rate by skill band, pick rate against win rate, time-to-kill and where players stop, checks the sample is big enough to act on, kills dominant strategies with a cost curve, and ships one change per patch with a window to read it. Use whenever someone says a weapon, unit, deck, class or build is overpowered or useless, asks whether a difficulty curve is right, wants win-rate or pick-rate numbers interpreted, or has playtest findings that point at a number. Not for running a playtest session (game-playtest), building a game or tuning its feel, its frame budget, its netcode, or server capacity."
-allowed-tools: Read, Write, Edit, Grep, Glob, Bash(python3:*)
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # Game Balance

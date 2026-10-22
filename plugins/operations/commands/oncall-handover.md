@@ -1,7 +1,7 @@
 ---
 description: Draft an on-call handover from what actually happened — pages, deploys, open incidents and anything left mid-flight — so the next person starts informed rather than surprised.
 argument-hint: '[since, default the start of the shift]'
-allowed-tools: Bash(gh:*), Bash(git:*), Bash(kubectl:*), Read, Grep
+allowed-tools: Read, Grep
 disable-model-invocation: true
 ---
 

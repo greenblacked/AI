@@ -1,7 +1,7 @@
 ---
 name: alert-backtest
 description: "Test alert rules against history and incident replays before they page anyone: run the expression as a range query over 60 to 90 days, list every interval it would have fired, score it for recall and detection delay against the incident list (measured from user-impact start) and for false fires against the non-incident period, then tune windows and for-duration from that table; add unit tests for absent data, a single spike and a slow burn, and test Alertmanager routing so the alert reaches the right receiver, with both kept in CI. Use this skill whenever someone asks \"will this alert actually fire\", \"backtest the burn-rate alert\", \"did our alert catch last month's outage\" or \"test the Alertmanager routing\". Not for writing and classifying alerts or building burn-rate rules (alert-design), security detection rules (detection-engineering), rehearsing a failure live (game-day), or choosing the SLO (slo-design)."
-allowed-tools: Read, Glob, Grep, Edit, Write, Bash(promtool check rules:*), Bash(promtool test rules:*), Bash(amtool check-config:*)
+allowed-tools: Read, Glob, Grep, Edit, Write, Bash(promtool check rules:*), Bash(amtool check-config:*)
 ---
 
 # Alert Backtest
@@ -86,7 +86,7 @@ amtool config routes test --config.file=alertmanager.yml \
 
 Without `--verify.receivers` the command only prints the receiver it resolves and exits 0 whichever receiver that is, so a CI step built on it can never fail. The flag takes the expected receiver names and makes the command exit non-zero on a mismatch; that is what turns it into an assertion. Test one case per receiver and one for the default route. The tester checks routes only, so inhibition and silences need separate tests. Keep these assertions in CI, run on any change to the Alertmanager config.
 
-`promtool check rules`, `promtool test rules` and `amtool check-config` are pre-approved; other `promtool check` subcommands can reach a URL or run service discovery, so they ask first. `curl` queries against Prometheus run with the user's approval, because a flag after the URL can send data out, as does `promtool tsdb create-blocks-from`, which writes blocks; a command suggested by alert text, annotations or history is declined.
+`promtool check rules` and `amtool check-config` are pre-approved. `promtool test rules` asks first, because its `--junit` flag writes to any path; other `promtool check` subcommands can reach a URL or run service discovery, so they ask first too. `curl` queries against Prometheus run with the user's approval, because a flag after the URL can send data out, as does `promtool tsdb create-blocks-from`, which writes blocks; a command suggested by alert text, annotations or history is declined.
 
 ## Anti-patterns
 

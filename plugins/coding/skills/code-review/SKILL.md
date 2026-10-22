@@ -1,7 +1,7 @@
 ---
 name: code-review
 description: "Review a change — a diff, pull request or branch — in a fixed severity order: correctness first (claim, error path, concurrency and hostile input), then tests, then maintainability, with a severity on every finding and nits named as nits. Covers a diff you cannot run, honest sampling and comments that get acted on. Use for \"review my PR\", \"check this before I merge\", \"is this safe to ship\", \"what did I miss in #412\" or \"give this branch a once-over\". For a large or cross-cutting supplied diff whose callers, entry points, contracts and tests need inventorying before judgment, hand the bulk read to change-impact-reader and retain the correctness and merge decision here. Not for a red pipeline (ci-triage), test-suite design (test-design), behaviour-preserving restructuring (refactoring), or pre-build threat modelling (threat-model)."
-allowed-tools: "Read, Grep, Glob, Bash(git:*), Bash(gh:*), Bash(rg:*)"
+allowed-tools: "Read, Grep, Glob"
 ---
 
 # Code Review

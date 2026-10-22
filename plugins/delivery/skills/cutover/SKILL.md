@@ -1,7 +1,7 @@
 ---
 name: cutover
 description: "Plan and run a high-stakes, hard-to-reverse switchover to completion — a DNS or traffic switch to a new system, a datacentre or region move, a hosting or vendor swap, a monolith-to-service carve-out with a big-bang or gradual shift, a database failover or promotion. Produces the numbered runbook with owners and abort conditions, written go/no-go criteria, a timed rehearsal, a rollback plan with an explicit deadline, the data freeze and reconciliation steps, the comms cadence, and a bake-then-decommission plan. Use this skill for planning or running a migration weekend or switchover window, including phrasings like \"we're moving off Heroku on the 14th\", \"how do we cut DNS over without dropping requests\", or \"who decides to roll back\". Not for routine deploys, feature-flag rollouts, a live unplanned incident, or the multi-phase migration plan a cutover sits inside — that is plan-platform-migration."
-allowed-tools: "Read, Write, Grep, Glob, Bash(dig:*), Bash(curl:*)"
+allowed-tools: "Read, Write, Grep, Glob"
 ---
 
 # Cutover

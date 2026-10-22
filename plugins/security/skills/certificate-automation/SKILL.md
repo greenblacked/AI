@@ -1,7 +1,7 @@
 ---
 name: certificate-automation
 description: "Move a certificate estate onto automated ACME issuance and renewal ahead of the CA/Browser Forum's shrinking maximum lifetimes. Inventory from outside first — CT logs and endpoint scans, not only what the team tracks — because the one nobody owns is the risk. Classify endpoints as native-ACME, cert-manager, cloud-managed, or an appliance that cannot automate, then automate renewal on ACME Renewal Information where supported and a lifetime-fraction backstop otherwise, and alert on renewal failure, not the clock alone. Use for an ACME rollout, a certificate inventory, a schedule ahead of a validity cut, or an appliance stuck on manual renewal. Not for a leaked or compromised certificate or key (secret-rotation), whether an expiry alert pages or tickets (alert-design), a Terraform diff on a certificate resource (iac-review), or migrating the CA or PKI vendor (plan-platform-migration)."
-allowed-tools: "Bash(openssl:*), Bash(certbot:*), Bash(kubectl:*), Bash(aws:*), Bash(gcloud:*), Bash(az:*), Bash(curl:*), Bash(jq:*), Read, Grep, Glob"
+allowed-tools: "Bash(jq:*), Read, Grep, Glob"
 ---
 
 # Certificate Automation

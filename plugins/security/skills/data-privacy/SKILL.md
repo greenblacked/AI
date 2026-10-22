@@ -1,7 +1,7 @@
 ---
 name: data-privacy
 description: "Handle personal data so the obligations are met before anyone tests them — settle whether you are controller or processor and under which regime first, because that decides whom you tell and on what trigger; classify what is held and why, because retention, access and deletion all follow the class; enforce retention with a job that deletes rather than a document that promises; and make deletion reach the replicas, the search index, the caches and the restore path instead of only the primary row. Use when personal data is being designed into a system, when a retention or deletion policy is being written, when a subject request arrives, or when a breach has to be judged notifiable rather than merely recorded. Not for rotating a leaked credential (secret-rotation), designing authentication (auth-design), reducing IAM permissions (access-review), or reading a DPA, which is contract-reader."
-allowed-tools: "Read, Grep, Glob, Write, Edit, Bash(rg:*), Bash(jq:*), Bash(psql:*), Bash(mysql:*)"
+allowed-tools: "Read, Grep, Glob, Write, Edit, Bash(jq:*)"
 ---
 
 # Handling personal data

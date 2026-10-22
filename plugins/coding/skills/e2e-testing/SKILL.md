@@ -1,7 +1,7 @@
 ---
 name: e2e-testing
 description: "Keep a browser end-to-end suite trustworthy, not rerun until green: measure each test's flake rate from CI history before fixing any one, locate elements by role and accessible name not CSS or XPath, wait on state instead of a fixed sleep or network idle, give every test its own data, authenticate once through stored session state, stub third parties, and quarantine a flaking test with a deadline. Use whenever someone says our Playwright tests are flaky, tests pass locally and fail in CI, how should I select elements, should I use page objects, how do I log in once, or why do screenshot diffs fail in CI on fonts, environment or baselines. Not for choosing what to test or at which level, which is test-design; not for triaging a red pipeline, which is ci-triage; not for finding the cause of a product bug, which is debugging; not for building the site, which is website-builder."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(npm:*), Bash(gh:*), Bash(jq:*), Bash(mktemp:*), Bash(git:*)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(jq:*)
 ---
 
 # End-to-End Testing

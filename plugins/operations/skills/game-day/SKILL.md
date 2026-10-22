@@ -1,7 +1,7 @@
 ---
 name: game-day
 description: "Plan and run a deliberate reliability exercise — a chaos experiment, a live failover or an unannounced on-call rehearsal — and convert what it finds into owned, dated work: a falsifiable hypothesis, measured steady state, bounded blast radius with tested abort, roles, human and system timings, and a ticket per finding. Use this skill whenever someone wants to test resilience through fault injection or live failover: \"let us run a game day\", \"kill an AZ and see what happens\", \"test the failover\", \"chaos engineering experiment\", or \"fire drill for the on-call rota\". For restoration from recovery copies with measured RTO, RPO and business acceptance use disaster-recovery-exercise. Do not use for an incident happening now or load testing."
-allowed-tools: Read, Write, Edit, Grep, Glob, Bash(kubectl:*), Bash(aws:*), Bash(gh:*)
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # Game Day
