@@ -1,0 +1,22 @@
+[
+  {"query": "our support tickets grow every month faster than customers, what should product fix to cut the load", "should_trigger": true},
+  {"query": "support is drowning, half the tickets seem to be the same three questions", "should_trigger": true},
+  {"query": "how should we tag tickets so product can actually see what is causing them", "should_trigger": true},
+  {"query": "leadership wants us to deflect 30 percent of tickets, how do we do that without annoying customers", "should_trigger": true},
+  {"query": "rank our contact reasons by what they cost us in agent time", "should_trigger": true},
+  {"query": "set up a monthly review where support hands product the top issues with owners", "should_trigger": true},
+  {"query": "we wrote help articles for everything and tickets did not go down, why", "should_trigger": true},
+  {"query": "ticket volume is up but so is our customer count, how do we tell if things are actually getting better", "should_trigger": true},
+  {"query": "here is a month of zendesk exports, find the drivers worth fixing", "should_trigger": true},
+  {"query": "our ticket categories are by product area and they tell us nothing, redesign them", "should_trigger": true},
+  {"query": "the error message on the payment form just says something went wrong, rewrite it", "should_trigger": false, "expected": "content-design"},
+  {"query": "what do we post on the status page while the API is down", "should_trigger": false, "expected": "incident-comms"},
+  {"query": "tickets tripled overnight, is it a real problem or did something change in the tracking", "should_trigger": false, "expected": "metric-anomaly-triage"},
+  {"query": "why are customers cancelling, build us a health score", "should_trigger": false, "expected": "churn-analysis"},
+  {"query": "a lot of payments are failing at renewal, set up the retry schedule and emails", "should_trigger": false, "expected": "dunning-recovery"},
+  {"query": "the checkout is returning 500s right now, help me find the cause", "should_trigger": false, "expected": "incident-response"},
+  {"query": "our biggest client escalated to our CEO about repeated outages", "should_trigger": false, "expected": "escalated-account-recovery"},
+  {"query": "write an onboarding README for the support tooling repository", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "our OKR was to cut tickets and we hit it but customers seem less happy, did we game it", "should_trigger": false, "expected": "metric-gaming-audit"},
+  {"query": "watch five customers try the new settings page and see where they get stuck", "should_trigger": false, "expected": "usability-test-plan"}
+]

@@ -2,12 +2,12 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
-  <img alt="The fifteen plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data, techdocs, assurance and client-apps" src="docs/assets/banner-light.svg" width="100%">
+  <img alt="The sixteen plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data, techdocs, assurance, client-apps and product" src="docs/assets/banner-light.svg" width="100%">
 </picture>
 
 # Agent skills
 
-197 agent skills, 30 subagents and ten slash commands, in fifteen
+219 agent skills, 30 subagents and ten slash commands, in sixteen
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-197-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-219-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -65,14 +65,15 @@ and what the runtime does or does not enforce.
 | [`techdocs`](#techdocs) | Developer documentation: tested tutorials and samples, drift, stable URLs, API and CLI reference | 11 skills |
 | [`assurance`](#assurance) | Quality engineering and compliance: order-dependent, mutation, property and fuzz testing, replay and load, DPIAs, licences, audit evidence | 11 skills |
 | [`client-apps`](#client-apps) | Browser and mobile clients: field performance, hydration, memory, version skew, service workers, crashes, hangs, startup, battery, networks | 22 skills |
+| [`product`](#product) | Product and go-to-market: interviews, demand tests, design partners, premortems, pricing, metric diagnosis, activation, churn, win-loss, RFPs | 22 skills |
 
-Install one plugin or all fifteen. Each is a self-contained directory under `plugins/` with
+Install one plugin or all sixteen. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
 
 Install what you will use, though, rather than everything by reflex. Every description you
 install stays resident in context, and Claude Code's default listing budget is about 8,000
 characters against this library's total — `make validate` prints the current figure — so
-installing all fifteen at the default drops most of them, silently. The Install section
+installing all sixteen at the default drops most of them, silently. The Install section
 below says what to set instead.
 
 ## The FAMILY workflow
@@ -116,7 +117,7 @@ if a deploy fails its check and rolls back, the previous one keeps serving.
 
 | Page | What it shows |
 | --- | --- |
-| [Home](https://ai.szolotov.com) | The fifteen plugins with their skill counts, and a search across plugins and skill names |
+| [Home](https://ai.szolotov.com) | The sixteen plugins with their skill counts, and a search across plugins and skill names |
 | `/plugins/<plugin>/` | One page per plugin: what it covers, its install line and its skills |
 | `/plugins/<plugin>/<skill>/` | One page per skill: its description, install line and allowed tools when it declares them, the full procedure, its reference files, and the requests it fires on and hands elsewhere |
 | [FAMILY](https://ai.szolotov.com/family/) | The one page that is not generated from a plugin's own files: the Frame–Architect–Make–Inspect–Launch–Yield workflow, drawn as a stage-by-stage guide with the four profiles |
@@ -171,7 +172,7 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`career`, `llm` and `personal` fit the default budget on their own. The other twelve are over it —
+`career`, `llm` and `personal` fit the default budget on their own. The other thirteen are over it —
 each by enough that installed alone at least one of its descriptions is dropped — and the
 split exists to keep that number as small as it can be.
 
@@ -182,7 +183,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.19 }
+{ "skillListingBudgetFraction": 0.21 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -631,6 +632,35 @@ Code that runs on someone else's device: field performance and memory in the bro
 | [`web-app-seo`](plugins/client-apps/skills/web-app-seo/SKILL.md) | Make a JavaScript-rendered site indexable: fetch each template without JavaScript first and compare it with the rendered HTML from Search Console's URL Inspection, then fix in order - rendering mode, status codes and soft 404s, canonicals, truthful sitemap lastmod, reciprocal hreflang, valid structured data - with a crawl policy for faceted URLs and an indexing watch after every migration. |
 | [`web-vitals-triage`](plugins/client-apps/skills/web-vitals-triage/SKILL.md) | Find why a Core Web Vital is poor for real users and fix the part that dominates: refuse lab scores until p75 field data is split by device and URL group, pull attribution (the LCP element and its four sub-parts, the slow interaction's target with its input delay, processing and presentation phases, the node that shifted), change only the dominant sub-part, and judge the fix on the 28-day field window rather than a Lighthouse re-run. |
 | [`webkit-only-bug-triage`](plugins/client-apps/skills/webkit-only-bug-triage/SKILL.md) | Triage a bug that only happens in Safari or on iPhone and iPad: reproduce it in real WebKit (a device, the iOS Simulator or Playwright's WebKit build) with Web Inspector attached before reading code, then check the usual causes in order: 100vh against dvh and the safe area, inputs under 16px zooming on focus, sticky and overflow clipping, date inputs and date parsing, ITP's seven-day cap on script-writable storage, IndexedDB eviction, and an API the user's iOS version lacks. Fix with feature queries, not user-agent checks. |
+
+### Product
+
+Product management and go-to-market run on evidence: interviews about what people actually switched from, cheap tests of demand before a build, pricing changed without a revolt, metrics diagnosed before anyone reacts, and churn, deals and support load read for their causes.
+
+| Skill | What it does |
+| --- | --- |
+| [`activation-analysis`](plugins/product/skills/activation-analysis/SKILL.md) | Define activation from your own data and find where new users stall: cohorts by sign-up week, candidate early actions scored against week-8 retention, the winning event and threshold proven with a randomised nudge test, not declared from a correlation, each drop-off checked for tracking artefacts first, one testable hypothesis per drop-off, and a retention curve that must flatten before anyone calls the product retained. |
+| [`churn-analysis`](plugins/product/skills/churn-analysis/SKILL.md) | Explain why customers cancel or shrink: split logo churn from revenue churn and voluntary from involuntary before anything else, cohort by acquisition month and segment, code reasons from cancellation notes, tickets and the prior 90 days of usage rather than the cancellation dropdown, and back-test any health score on known churners, discarding it if it warns less than 30 days before the customer decided. |
+| [`competitor-signal-watch`](plugins/product/skills/competitor-signal-watch/SKILL.md) | Infer where a competitor is heading from the traces it leaves in public: job postings counted by team, changelog and pricing pages archived and diffed over time, review-site themes, partner and integration pages. Every inference carries its source, the date it was captured and a confidence level; the output is what they appear to be betting on plus three watch triggers that would change what we do, reviewed every 90 days with stale claims deleted. Public sources only. |
+| [`concierge-mvp`](plugins/product/skills/concierge-mvp/SKILL.md) | Deliver a product's outcome by hand to the first five to ten customers before automating anything, and let what happens decide what gets built. Log every manual step with the time it took and the customer's reaction, so the log becomes the spec; automate only a step that has run ten or more times and costs over fifteen minutes; track the cost of serving each customer by hand; stop when customers do not come back unprompted, because automating a service nobody repeats only makes the failure cheaper to run. |
+| [`contact-reduction-review`](plugins/product/skills/contact-reduction-review/SKILL.md) | Treat support tickets as a defect list and cut the contacts at their cause: tag a month of tickets by contact driver, the customer's reason for getting in touch, capped at about twenty tags; cost each driver as volume times handle time; give each of the top ten one fix: product change, copy change, help article, automation, or accept it; track contacts per active customer rather than raw volume; and send a monthly top five to product, each with an owner and a date. |
+| [`design-partner-program`](plugins/product/skills/design-partner-program/SKILL.md) | Run a small cohort of design partners or a customer advisory board that shapes the product without capturing it. Choose five to eight partners for fit to one segment, not logo size; write the give-get (a weekly 30-minute session, real data, a reference at the end, for early access and visible influence); keep a fixed cadence and a shared decision log of what changed because of them; remove a partner after two missed sessions; at the end convert, keep as a reference, or release each one, never leaving them drifting. |
+| [`discount-discipline`](plugins/product/skills/discount-discipline/SKILL.md) | Put deal-desk rules around discounting so margin stops leaking one deal at a time: audit the last 50 closed deals for realised against list price by rep, segment and closeness to quarter end before writing any rule, then set a discount ladder with a named approver per level, a give-get rule so every point of discount buys something (longer term, prepayment, volume, a logo or case study), a first-year cap with the renewal price written into the contract, and no anonymous special-pricing requests. |
+| [`dunning-recovery`](plugins/product/skills/dunning-recovery/SKILL.md) | Recover failed subscription payments before they become churn: measure the involuntary share of churn first, retry by decline code (soft declines retried on a spaced schedule, hard declines sent to the customer), switch on a card account updater, send pre-expiry notices, run a three-email sequence over 14 days with an in-app banner, hold a grace period before access changes, and report recovered MRR per stage. |
+| [`escalated-account-recovery`](plugins/product/skills/escalated-account-recovery/SKILL.md) | Recover a key customer account that is angry and threatening to leave: one named owner who acknowledges within 48 hours, the complaint written back in the customer's own words and agreed before any fix is proposed, a written recovery plan with dated commitments and an executive sponsor on each side, a weekly cadence until agreed exit criteria are met, and root causes fed back to product and support. |
+| [`fake-door-test`](plugins/product/skills/fake-door-test/SKILL.md) | Measure demand for an unbuilt feature or product with a fake door, smoke test or landing page, and decide from a rule written before launch. Set the pass threshold and sample size from what the build is worth; count only a costly action (a waitlist sign-up with a work email, a refundable deposit, a booked call), never a click; tell responders on the follow-up page that it is not live, and contact every one within 48 hours. A pass leads to serving those responders by hand, not to a build. |
+| [`feature-sunset`](plugins/product/skills/feature-sunset/SKILL.md) | Retire a feature, plan, integration or whole product without stranding the customers who depend on it: pull usage by account before deciding, classify every account as unaffected, replaceable or blocked, set the end date from the slowest-migrating segment rather than engineering convenience, then run the sequence (announce, close to new sign-ups, in-product warning, brown-out windows, read-only, remove) with a gate at each stage, and call it done only when blocked accounts reach zero. |
+| [`jobs-timeline-interview`](plugins/product/skills/jobs-timeline-interview/SKILL.md) | Reconstruct why recent buyers or switchers chose your product, from first thought to first use, so positioning and roadmap rest on what happened rather than on opinions. Interview only people who bought or switched in the last 90 days; walk the timeline (first thought, passive looking, active looking, deciding, first use) asking for the day, the place and who was there; code the four forces (push, pull, anxiety, habit), each with a verbatim quote, into a force table across six or more interviews. |
+| [`metric-anomaly-triage`](plugins/product/skills/metric-anomaly-triage/SKILL.md) | Decide whether a sudden move in a product metric is real before anyone explains it: a fixed elimination order of tracking or tag change, pipeline lag or late data, definition or filter change, bot or internal traffic, mix shift, and seasonality or calendar, each ruled out by one named query, and only then a real change in user behaviour located by segment and confirmed from a second source. |
+| [`metric-gaming-audit`](plugins/product/skills/metric-gaming-audit/SKILL.md) | Stress-test product KPIs and key results for the cheap ways to hit them while harming customers: write the three cheapest moves that raise each metric while damaging the customer, pair each with a counter-metric and a data check that would expose it, require every key result to carry a baseline, written definition, source table and owner, and turn anything not measurable today into an instrumentation task before it counts. |
+| [`poc-plan`](plugins/product/skills/poc-plan/SKILL.md) | Scope and run a customer proof of concept or pilot as the vendor so it ends in a decision rather than drifting: success criteria taken from the buyer's own problem, measurable and signed by the buyer before any environment is set up; a fixed window of two to four weeks with a named customer sponsor and a decision date; a mid-point checkpoint that can end it early; and an exit review that states results against each criterion and the agreed commercial next step. No criteria means no POC. |
+| [`price-change-rollout`](plugins/product/skills/price-change-rollout/SKILL.md) | Raise prices or move existing customers onto a new price or plan without a churn spike: model revenue by cohort first (plan, tenure, size, discount, renewal date), choose grandfather-with-sunset or migrate-at-renewal per cohort, give notice of at least the renewal window (60 to 90 days for annual B2B contracts) and whatever contracts, consumer law and app stores require, have account owners tell top accounts before any email goes out, and set a rollback tripwire on churn and downgrade rate against baseline with a dated review. |
+| [`pricing-research`](plugins/product/skills/pricing-research/SKILL.md) | Find out what customers will pay before a price is set: pick the method by sample size (under about 30 respondents, value interviews anchored on what the current alternative costs them; above it, Van Westendorp for the acceptable range plus Gabor-Granger for demand at each price), ask the buyer who signs separately from the user who benefits, cross-check against the economic value the product creates and the share of it you can capture, and hand back a price range with its stated risk rather than one number. |
+| [`request-triage`](plugins/product/skills/request-triage/SKILL.md) | Handle feature requests from sales and customers so real deal-blockers surface and every requester hears back. Record the job and the customer, never the feature wording; ask "what will you do if we never build it, and would you sign without it?" and count a blocker only with the customer's contingency in writing; merge duplicates into one record with customer count and ARR; give one of five dispositions (now, planned, exploring, declined, redirected-to-existing) within five working days with a reason the requester can repeat. |
+| [`rfp-response`](plugins/product/skills/rfp-response/SKILL.md) | Respond to an RFP, RFI, tender or customer security questionnaire as the vendor: score bid or no-bid within 24 hours before anyone writes a word, build the compliance matrix from every requirement before the narrative, answer from an approved-answer library where each answer has an owner and a review date, mark roadmap items as planned with a date range rather than claiming them as capability, and clear legal and security sign-off on a pre-submit checklist. |
+| [`roadmap-disruption-triage`](plugins/product/skills/roadmap-disruption-triage/SKILL.md) | Decide what to do when a key customer, an executive or a competitor's move tries to force something onto a committed roadmap: write the trade-off ledger before answering (the item moving in, the named items slipping, their new dates, who must be told), sort the demand into promise, proof or pressure, test claimed revenue against a signed contingency rather than a forecast, offer three costed options (do it, a smaller version, do not), and log the decision with a re-plan trigger. |
+| [`spec-premortem`](plugins/product/skills/spec-premortem/SKILL.md) | Attack a spec, PRD, launch plan or big bet before committing to it, then score the forecast afterwards. Assume it failed six months out; have each reviewer write reasons alone before any discussion; sort them into real risks, paper tigers and unspoken elephants; turn each real risk into a tripwire with a metric, threshold, date and owner; record three numeric predictions and score them at day 30 and day 90 so the team learns how well it forecasts. |
+| [`win-loss-review`](plugins/product/skills/win-loss-review/SKILL.md) | Find out why deals are won, lost or stall, from the buyers rather than the CRM: separate no decision, often the biggest bucket, from lost to a competitor; sample every closed deal in the period rather than the ones reps pick; have someone outside the sales team interview buyers within 30 days of close; code answers against the buyer's own decision criteria; report a competitor-specific pattern only once five or more deals show it. |
 
 ## Subagents
 

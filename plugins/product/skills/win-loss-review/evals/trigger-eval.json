@@ -1,0 +1,22 @@
+[
+  {"query": "why do we lose deals, the CRM says price every single time and I don't believe it", "should_trigger": true},
+  {"query": "a third of our pipeline ends in no decision, how do we figure out what is going on", "should_trigger": true},
+  {"query": "set up a win loss interview programme for closed deals this quarter", "should_trigger": true},
+  {"query": "we keep losing to Contoso in enterprise deals, how do we find out why from the buyers themselves", "should_trigger": true},
+  {"query": "what questions should I ask a buyer who chose a competitor over us last month", "should_trigger": true},
+  {"query": "who should run the interviews with prospects we lost, the AE wants to do it", "should_trigger": true},
+  {"query": "we won four big deals in a row, I want to understand what actually tipped them", "should_trigger": true},
+  {"query": "deals keep stalling at the evaluation stage and then going quiet, work out the pattern", "should_trigger": true},
+  {"query": "turn these twelve lost-deal interview notes into findings product and sales can act on", "should_trigger": true},
+  {"query": "is it fair to say we lose on onboarding when we only have two deals saying so", "should_trigger": true},
+  {"query": "what is our main competitor betting on, based on their hiring and pricing page", "should_trigger": false, "expected": "competitor-signal-watch"},
+  {"query": "our gross revenue retention dropped this year, why are customers cancelling", "should_trigger": false, "expected": "churn-analysis"},
+  {"query": "our biggest customer is furious and threatening not to renew", "should_trigger": false, "expected": "escalated-account-recovery"},
+  {"query": "before we build this, how do I interview prospective users to see if the pain is real", "should_trigger": false, "expected": "problem-validation"},
+  {"query": "the RFP from the county came in yesterday, should we bid", "should_trigger": false, "expected": "rfp-response"},
+  {"query": "the prospect wants a pilot before signing, write the success criteria with them", "should_trigger": false, "expected": "poc-plan"},
+  {"query": "two of my best engineers quit this quarter, why are people leaving", "should_trigger": false, "expected": "retention-review"},
+  {"query": "a lot of renewals are failing because cards are declining, how do we recover them", "should_trigger": false, "expected": "dunning-recovery"},
+  {"query": "which vendor should we buy for our data warehouse, help me score the finalists", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "support tickets keep growing every month, what should we fix first", "should_trigger": false, "expected": "contact-reduction-review"}
+]

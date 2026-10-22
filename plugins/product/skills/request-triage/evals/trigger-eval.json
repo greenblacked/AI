@@ -1,0 +1,22 @@
+[
+  {"query": "sales keeps asking for SSO, custom fields and an Excel export, how do I figure out which of these actually block deals", "should_trigger": true},
+  {"query": "our feature request backlog is 400 tickets and nobody reads it, help me set up a process", "should_trigger": true},
+  {"query": "a rep says the Acme deal dies unless we build audit logs, how do I check if that's true before I put it in the queue", "should_trigger": true},
+  {"query": "customers keep asking what happened to the things they requested, we never reply", "should_trigger": true},
+  {"query": "design an intake form for product requests from the account managers", "should_trigger": true},
+  {"query": "how do I merge duplicate customer asks and show how much ARR is behind each one", "should_trigger": true},
+  {"query": "write a reply to a customer explaining we're not going to build their integration request", "should_trigger": true},
+  {"query": "what should our response-time commitment be for feature requests coming from customer success", "should_trigger": true},
+  {"query": "every PM gets slacked feature ideas from support, I want one queue and a clear set of answers", "should_trigger": true},
+  {"query": "monthly summary for leadership of which customer requests have the most accounts and revenue behind them", "should_trigger": true},
+  {"query": "the CEO wants the enterprise dashboard shipped this month, which means pushing out the committed Q4 work", "should_trigger": false, "expected": "roadmap-disruption-triage"},
+  {"query": "we're retiring the legacy reports module and some customers want to keep it", "should_trigger": false, "expected": "feature-sunset"},
+  {"query": "is our team shipping too slowly? help me rank the whole roadmap with RICE", "should_trigger": false, "expected": "delivery-review"},
+  {"query": "interview customers who just switched to us to find out what made them buy", "should_trigger": false, "expected": "jobs-timeline-interview"},
+  {"query": "our reps give away 30 percent discounts to close, set up approval levels", "should_trigger": false, "expected": "discount-discipline"},
+  {"query": "turn this feature idea into a spec with acceptance criteria and a task plan", "should_trigger": false, "expected": "feature-spec"},
+  {"query": "test demand for a mobile app with a button that leads to a coming-soon page", "should_trigger": false, "expected": "fake-door-test"},
+  {"query": "write this week's update on the billing migration for the leadership team", "should_trigger": false, "expected": "status-update"},
+  {"query": "choose between three vendors for our support ticketing tool", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "draft our product team's OKRs for next quarter with baselines", "should_trigger": false, "expected": "okr-planning"}
+]

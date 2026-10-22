@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "product",
+  "description": "Skills for evidence-led product management and go-to-market: switch interviews, cheap demand tests, design partners, premortems, pricing and discount control, metric diagnostics, activation, churn and dunning, win-loss, RFPs, proofs of concept and support-driven fixes.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "product-management",
+    "pricing",
+    "discovery",
+    "churn",
+    "sales-engineering",
+    "support"
+  ]
+}

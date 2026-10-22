@@ -1,0 +1,22 @@
+[
+  {"query": "how do we find design partners for the new compliance module and what do we ask of them", "should_trigger": true},
+  {"query": "set up a customer advisory board for next year, who should be on it and how often should it meet", "should_trigger": true},
+  {"query": "we signed four big-name early-access partners and now two never show up, what do we do", "should_trigger": true},
+  {"query": "write a give-get agreement for companies co-building the product with us", "should_trigger": true},
+  {"query": "our early adopter programme ends next month, how do we wrap up with each company", "should_trigger": true},
+  {"query": "one partner in our beta cohort is dictating the whole roadmap, how do we stop that", "should_trigger": true},
+  {"query": "how many design partners should we recruit and should we pick the biggest logos we can get", "should_trigger": true},
+  {"query": "show our partner customers what we changed because of their feedback", "should_trigger": true},
+  {"query": "plan a weekly cadence with six partner companies testing builds on their own data", "should_trigger": true},
+  {"query": "turn our design partners into paying customers at the end of the pilot term", "should_trigger": true},
+  {"query": "plan a moderated usability test of the new dashboard with five participants", "should_trigger": false, "expected": "usability-test-plan"},
+  {"query": "interview prospective customers to check whether audit preparation is a real pain", "should_trigger": false, "expected": "problem-validation"},
+  {"query": "deliver the compliance reports by hand to the first few customers before we automate", "should_trigger": false, "expected": "concierge-mvp"},
+  {"query": "partners keep sending feature asks through sales, which ones actually block a signature", "should_trigger": false, "expected": "request-triage"},
+  {"query": "a strategic customer says they'll churn unless we drop the Q1 plan and build their integration", "should_trigger": false, "expected": "roadmap-disruption-triage"},
+  {"query": "write the quarterly update for our steering committee", "should_trigger": false, "expected": "status-update"},
+  {"query": "plan a closed alpha playtest for our game with twenty players", "should_trigger": false, "expected": "game-playtest"},
+  {"query": "compare three CRM vendors with a scorecard and a three-year cost model", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "set the recurring meetings for our product design team", "should_trigger": false, "expected": "design-team-cadence"},
+  {"query": "interview customers who switched to us in the last month about what made them buy", "should_trigger": false, "expected": "jobs-timeline-interview"}
+]
