@@ -1,0 +1,22 @@
+[
+  {"query": "revenue is exactly 3x too high after I added the join to the currency rates table, what is going on", "should_trigger": true},
+  {"query": "fct_orders went from 2.1 million rows to 2.6 million when I joined dim_customer, there should be one row per order", "should_trigger": true},
+  {"query": "a colleague says just put SELECT DISTINCT on the final query and the totals will match finance, is that ok", "should_trigger": true},
+  {"query": "since the customer dimension started keeping history our segment revenue numbers are inflated", "should_trigger": true},
+  {"query": "joining orders to payments and shipments double counts the amount paid for some orders but not others", "should_trigger": true},
+  {"query": "sum of amount in my model is 17% higher than the same sum on the raw orders table and the only difference is four left joins", "should_trigger": true},
+  {"query": "how do I find which of the six joins in this dbt model is duplicating rows", "should_trigger": true},
+  {"query": "the order count dropped by a few thousand after I added a left join and a where clause on the product table", "should_trigger": true},
+  {"query": "is the account table really one row per account? the totals look multiplied when I join it to events", "should_trigger": true},
+  {"query": "our gross margin report is over-counting cost because each order line seems to appear once per promotion", "should_trigger": true},
+  {"query": "this join between orders and customers is correct but takes 9 minutes to run, how do I speed it up", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "marketing's dashboard says 41,200 signups last week and product's says 39,850, find out why they differ", "should_trigger": false, "expected": "metric-reconciliation"},
+  {"query": "average order value dropped 6% this month, how much is the shift toward mobile versus lower basket sizes", "should_trigger": false, "expected": "metric-movement-decomposition"},
+  {"query": "model the tables for subscriptions, plans and invoices before we write the first migration", "should_trigger": false, "expected": "schema-design"},
+  {"query": "match customer records between the CRM and the billing system when there is no shared id", "should_trigger": false, "expected": "entity-resolution"},
+  {"query": "who keeps running a query that scans the whole events table every ten minutes and costs us a fortune", "should_trigger": false, "expected": "scan-cost-forensics"},
+  {"query": "add a non-null column with a default to a 300 million row postgres table without locking writes", "should_trigger": false, "expected": "db-migration"},
+  {"query": "rewrite the status field on 40 million existing records in batches with a checkpoint so it can resume", "should_trigger": false, "expected": "safe-backfill"},
+  {"query": "which checks should the customers table get: uniqueness, freshness, null rates, and which ones should block publishing", "should_trigger": false, "expected": "data-quality-checks"},
+  {"query": "our api returns a 500 when the user has no orders, help me find the cause in the handler code", "should_trigger": false, "expected": "debugging"}
+]

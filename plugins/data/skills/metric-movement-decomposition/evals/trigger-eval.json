@@ -1,0 +1,22 @@
+[
+  {"query": "conversion fell 8% week over week and the exec team wants to know why by tomorrow", "should_trigger": true},
+  {"query": "average order value is down 5% this month, is it customers buying less or just more orders from the cheaper market", "should_trigger": true},
+  {"query": "every country's checkout rate went up but the overall rate went down, how is that possible", "should_trigger": true},
+  {"query": "split the drop in our trial-to-paid rate into how much came from the channel mix and how much from the rate within each channel", "should_trigger": true},
+  {"query": "monthly churn went from 2.1% to 2.6%, which customer segments account for the increase", "should_trigger": true},
+  {"query": "is our click-through decline a mix effect from more mobile traffic or did mobile actually get worse", "should_trigger": true},
+  {"query": "do a kitagawa style decomposition of the change in approval rate between Q2 and Q3", "should_trigger": true},
+  {"query": "support tickets per order jumped this week, rank the segments that contributed most with the arithmetic", "should_trigger": true},
+  {"query": "before I tell leadership retention dropped because of the redesign, how do I check whether it's just a shift in new versus returning users", "should_trigger": true},
+  {"query": "signup conversion moved from 12.4% to 11.1%, give me the top three contributors and show the maths", "should_trigger": true},
+  {"query": "the product dashboard and the finance report show different conversion rates for the same week", "should_trigger": false, "expected": "metric-reconciliation"},
+  {"query": "total revenue doubled the moment I joined in the promotions table, something is duplicating", "should_trigger": false, "expected": "join-fanout-hunt"},
+  {"query": "yesterday's conversion keeps creeping up through the morning as events land, when is it safe to report", "should_trigger": false, "expected": "late-data-maturity"},
+  {"query": "make a chart of conversion by device for the last twelve weeks that works in the slide deck", "should_trigger": false, "expected": "data-visualisation"},
+  {"query": "set up an alert that pages someone when checkout conversion drops sharply", "should_trigger": false, "expected": "alert-design"},
+  {"query": "our cloud bill rose 30% last month, find the top movers by service and team", "should_trigger": false, "expected": "cost-review"},
+  {"query": "which queries and dashboards are driving our bigquery bill up this quarter", "should_trigger": false, "expected": "scan-cost-forensics"},
+  {"query": "set next quarter's conversion target and the key results that support it", "should_trigger": false, "expected": "okr-planning"},
+  {"query": "add tests that block the sessions table from publishing when the device column is suddenly mostly null", "should_trigger": false, "expected": "data-quality-checks"},
+  {"query": "checkout is returning errors for 20% of users right now, we need to coordinate a response", "should_trigger": false, "expected": "incident-response"}
+]

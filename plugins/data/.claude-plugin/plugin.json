@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "data",
+  "description": "Skills for analytics data: find why a number is wrong or a query costs too much, reconcile and decompose metrics, keep history, defend against upstream change, find who reads a table before changing it, resolve duplicate entities and retire the spreadsheets that shadow the warehouse.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "data",
+    "analytics",
+    "warehouse",
+    "metrics"
+  ]
+}
