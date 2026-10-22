@@ -1,0 +1,22 @@
+[
+  {"query": "my books are a mess and I have not reconciled anything since the spring", "should_trigger": true},
+  {"query": "how often should I do my bookkeeping as a freelancer", "should_trigger": true},
+  {"query": "how do I reconcile my bank account in my accounting software", "should_trigger": true},
+  {"query": "I have hundreds of uncategorised transactions piling up, what is the fastest way to clear them", "should_trigger": true},
+  {"query": "give me a monthly accounting routine for a one-person consultancy", "should_trigger": true},
+  {"query": "I think I am approaching the VAT threshold, how do I keep track of my turnover", "should_trigger": true},
+  {"query": "what should I check every month so there are no surprises at year end", "should_trigger": true},
+  {"query": "my closing balance in the software is 12 pounds different from the bank statement and I cannot find why", "should_trigger": true},
+  {"query": "how do I lock a month once I have finished the books", "should_trigger": true},
+  {"query": "should owner drawings be recorded as an expense in my books", "should_trigger": true},
+  {"query": "predict my cash position week by week over the next quarter", "should_trigger": false, "expected": "cashflow-forecast-13-week"},
+  {"query": "a client is 60 days overdue, write the final notice before I go to a debt service", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "our AWS bill rose 40% this month and I need to find out why", "should_trigger": false, "expected": "cost-review"},
+  {"query": "how much of each payment should I move to a tax savings account", "should_trigger": false, "expected": "tax-set-aside"},
+  {"query": "set a household budget and work out how much to put into index funds", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "which clients earn me the lowest effective hourly rate", "should_trigger": false, "expected": "client-profitability-review"},
+  {"query": "how much should I quote for a three-week website build", "should_trigger": false, "expected": "fixed-price-quote"},
+  {"query": "work out my hourly rate from my target income and billable hours", "should_trigger": false, "expected": "billing-rate-calculation"},
+  {"query": "client keeps asking for extra features outside the agreed work", "should_trigger": false, "expected": "scope-creep-response"},
+  {"query": "check that my client agreement has a late fee and a liability cap", "should_trigger": false, "expected": "services-agreement-checklist"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "my client wants one more thing added to the site and we are already two weeks past kickoff", "should_trigger": true},
+  {"query": "client just asked 'can you just add a members area' to a project that is almost done, what do I say", "should_trigger": true},
+  {"query": "they say this was in the original brief but I am sure it was not, how do I handle it", "should_trigger": true},
+  {"query": "every revision round brings new features and the project keeps growing", "should_trigger": true},
+  {"query": "how do I say no to extra work without losing the client", "should_trigger": true},
+  {"query": "should I do a small extra favour for a client for free or charge for it", "should_trigger": true},
+  {"query": "draft me a reply pricing a change request that came in halfway through a fixed-price build", "should_trigger": true},
+  {"query": "how do I keep track of all the extra bits I agreed to so the final invoice makes sense", "should_trigger": true},
+  {"query": "client is asking for a third revision round when the contract says two, how should I respond", "should_trigger": true},
+  {"query": "a stakeholder joined late and wants the whole homepage reworked, it is outside what we signed", "should_trigger": true},
+  {"query": "write the scope of work and acceptance criteria for a new website project before we sign", "should_trigger": false, "expected": "statement-of-work"},
+  {"query": "how much should I quote for a fixed-price app build", "should_trigger": false, "expected": "fixed-price-quote"},
+  {"query": "I need to tell a team member their work is below standard and I am dreading it", "should_trigger": false, "expected": "difficult-conversation"},
+  {"query": "which of my clients are actually profitable and which should I drop", "should_trigger": false, "expected": "client-profitability-review"},
+  {"query": "does my freelance contract include a change procedure and a kill fee", "should_trigger": false, "expected": "services-agreement-checklist"},
+  {"query": "a client is 45 days late paying my invoice, what should I send", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "work out the hourly rate I need to charge to earn a target income", "should_trigger": false, "expected": "billing-rate-calculation"},
+  {"query": "set up a monthly routine to reconcile my bank accounts", "should_trigger": false, "expected": "monthly-bookkeeping-close"},
+  {"query": "how much of each payment should I put aside for tax", "should_trigger": false, "expected": "tax-set-aside"},
+  {"query": "forecast my cash for the next 13 weeks", "should_trigger": false, "expected": "cashflow-forecast-13-week"}
+]

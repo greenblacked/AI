@@ -1,0 +1,22 @@
+[
+  {"query": "the project is finished, what do I need to do now to wrap it up properly", "should_trigger": true},
+  {"query": "handing over a website build to the client next week, what should the handover include", "should_trigger": true},
+  {"query": "my client is leaving, how do I wrap up the engagement without leaving loose ends", "should_trigger": true},
+  {"query": "I want to revoke all my access to the client's systems now the contract has ended", "should_trigger": true},
+  {"query": "how do I close out a freelance project and make sure I have deleted their data", "should_trigger": true},
+  {"query": "what should be in a handover document so the client can run the app without me", "should_trigger": true},
+  {"query": "when should I release the source code and passwords to the client after the last milestone", "should_trigger": true},
+  {"query": "how long should my bug-fix warranty last after delivery and how do I state the end date", "should_trigger": true},
+  {"query": "the retainer ended last month but I still have admin on their hosting, what is the right way to clean up", "should_trigger": true},
+  {"query": "when is it ok to ask a client for a testimonial after finishing a job", "should_trigger": true},
+  {"query": "write the statement of work for a new website project", "should_trigger": false, "expected": "statement-of-work"},
+  {"query": "rotate the production database password after an engineer left the team", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "plan the first 30 days for a new employee joining our team", "should_trigger": false, "expected": "onboarding-plan"},
+  {"query": "the project has stalled for six weeks waiting on the client, how do I restart it", "should_trigger": false, "expected": "stalled-project-recovery"},
+  {"query": "client has not paid my final invoice and it is 20 days overdue", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "the client disputes the final invoice and says the work was incomplete", "should_trigger": false, "expected": "invoice-dispute-resolution"},
+  {"query": "the client keeps asking for extra features after delivery, how do I respond", "should_trigger": false, "expected": "scope-creep-response"},
+  {"query": "what clauses should my services agreement have about ownership and liability", "should_trigger": false, "expected": "services-agreement-checklist"},
+  {"query": "how should I price a fixed-price quote with a deposit and milestones", "should_trigger": false, "expected": "fixed-price-quote"},
+  {"query": "should I take on this new prospect or is it a poor fit", "should_trigger": false, "expected": "prospect-qualification"}
+]

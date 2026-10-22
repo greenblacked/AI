@@ -1653,6 +1653,21 @@ html:not([data-theme="reactor"]) %P .plugin-word {
   to { opacity: 1; transform: none; }
 }""",
     ),
+    # Letters are tallied in one by one, like entries on a ledger page.
+    "smallbiz": PluginLook(
+        day=("#14532d", "#9a3412", "#1e3a8a"),
+        night=("#86efac", "#fdba74", "#93c5fd"),
+        width=0.7,
+        rules=(
+            "%P .pl { animation: pw-smallbiz-tally 0.35s ease-out "
+            "calc(var(--i) * 0.09s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-smallbiz-tally {
+  from { opacity: 0; transform: translateY(0.2em); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
 }
 
 # The shared frame. `--c` is the colour a letter or a row takes from the cycle.

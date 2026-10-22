@@ -1,0 +1,22 @@
+[
+  {"query": "a client wants me on retainer, how should I set it up", "should_trigger": true},
+  {"query": "should I offer a monthly retainer to my best client", "should_trigger": true},
+  {"query": "how do I price ongoing support hours each month", "should_trigger": true},
+  {"query": "my client's retainer hours go unused every month, what do I do", "should_trigger": true},
+  {"query": "should unused retainer hours roll over", "should_trigger": true},
+  {"query": "what should a retainer agreement spell out beyond the monthly fee", "should_trigger": true},
+  {"query": "the client asks for a discount if they sign a monthly retainer", "should_trigger": true},
+  {"query": "how do I decide between a hours bank and reserved capacity", "should_trigger": true},
+  {"query": "what do I do when a retainer client keeps going over their hours", "should_trigger": true},
+  {"query": "how do I review whether a retainer is still working after a few months", "should_trigger": true},
+  {"query": "how much should I quote for a one-off website build", "should_trigger": false, "expected": "fixed-price-quote"},
+  {"query": "which of my clients should I put on a higher rate", "should_trigger": false, "expected": "client-profitability-review"},
+  {"query": "my client has not paid the retainer invoice", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "what rate do I need to charge per hour", "should_trigger": false, "expected": "billing-rate-calculation"},
+  {"query": "set up a discount approval ladder so our sales reps stop closing every deal at 30 per cent off", "should_trigger": false, "expected": "discount-discipline"},
+  {"query": "the client keeps asking for extra work outside the agreement", "should_trigger": false, "expected": "scope-creep-response"},
+  {"query": "what clauses should my agreement have for liability", "should_trigger": false, "expected": "services-agreement-checklist"},
+  {"query": "the client has stopped replying mid-project", "should_trigger": false, "expected": "stalled-project-recovery"},
+  {"query": "a lead wants a free sample before hiring me", "should_trigger": false, "expected": "prospect-qualification"},
+  {"query": "how much should I put aside for tax each month", "should_trigger": false, "expected": "tax-set-aside"}
+]

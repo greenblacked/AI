@@ -1,0 +1,22 @@
+[
+  {"query": "I need to get ready for my tax return, where do I even start", "should_trigger": true},
+  {"query": "what do I need to send my accountant at the end of the year", "should_trigger": true},
+  {"query": "year-end paperwork for a small business, what is the checklist", "should_trigger": true},
+  {"query": "I have a shoebox of receipts and a year of bank statements, how do I turn that into something usable", "should_trigger": true},
+  {"query": "how do I check that the income in my books matches what actually landed in the bank", "should_trigger": true},
+  {"query": "my accountant has asked for a list of asset purchases, mileage log and loan statements, how do I put that together", "should_trigger": true},
+  {"query": "how do I reconcile my payment processor payouts to my sales for the year", "should_trigger": true},
+  {"query": "what receipts do I need to keep for expenses above the threshold when I file", "should_trigger": true},
+  {"query": "prepare a handover pack for my accountant with an index and a list of what is missing", "should_trigger": true},
+  {"query": "I never did my books for the year, how do I catch up before the filing deadline", "should_trigger": true},
+  {"query": "do the month-end close and reconcile this month's transactions", "should_trigger": false, "expected": "monthly-bookkeeping-close"},
+  {"query": "how much should I put aside from each payment for tax and when are payments due", "should_trigger": false, "expected": "tax-set-aside"},
+  {"query": "help me plan my household budget and savings for next year", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "I have been paying business costs from my personal account, how do I separate them", "should_trigger": false, "expected": "finance-separation-cleanup"},
+  {"query": "what must an invoice include so accounts payable accepts it", "should_trigger": false, "expected": "invoice-hygiene"},
+  {"query": "forecast my cash over the next 13 weeks", "should_trigger": false, "expected": "cashflow-forecast-13-week"},
+  {"query": "work out which clients are actually profitable", "should_trigger": false, "expected": "client-profitability-review"},
+  {"query": "set my hourly rate so I cover tax and holidays", "should_trigger": false, "expected": "billing-rate-calculation"},
+  {"query": "sort out my personal admin, passports and insurance renewals", "should_trigger": false, "expected": "life-admin"},
+  {"query": "my client has not paid an invoice that was due last month", "should_trigger": false, "expected": "late-payment-chase"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "my quotes always come in too low and I end up working for free", "should_trigger": true},
+  {"query": "I keep going over budget on fixed-price projects", "should_trigger": true},
+  {"query": "how do I get better at estimating how long things will take", "should_trigger": true},
+  {"query": "the project has finished, did I actually make money on it", "should_trigger": true},
+  {"query": "how do I turn my past project hours into a multiplier for new quotes", "should_trigger": true},
+  {"query": "how do I work out my real hourly rate on a fixed-fee job", "should_trigger": true},
+  {"query": "I think I underestimate every task, how do I measure by how much", "should_trigger": true},
+  {"query": "should I use average or median when comparing estimates to actual hours", "should_trigger": true},
+  {"query": "what should I record when a project closes so my next quote is more accurate", "should_trigger": true},
+  {"query": "how do I tell whether an overrun was my estimate, the client or my own rework", "should_trigger": true},
+  {"query": "how much should I quote for this new project", "should_trigger": false, "expected": "fixed-price-quote"},
+  {"query": "write a postmortem for last week's outage", "should_trigger": false, "expected": "postmortem"},
+  {"query": "how is my engineering team's delivery performance trending", "should_trigger": false, "expected": "delivery-review"},
+  {"query": "which of my clients is the most profitable this quarter", "should_trigger": false, "expected": "client-profitability-review"},
+  {"query": "the client keeps asking for more revisions beyond the agreed two", "should_trigger": false, "expected": "scope-creep-response"},
+  {"query": "what hourly rate do I need to hit my income target", "should_trigger": false, "expected": "billing-rate-calculation"},
+  {"query": "the client has not paid the invoice", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "should I take this lead who will not share a budget", "should_trigger": false, "expected": "prospect-qualification"},
+  {"query": "the client says the work is not up to standard and will not pay", "should_trigger": false, "expected": "invoice-dispute-resolution"},
+  {"query": "how much tax should I set aside", "should_trigger": false, "expected": "tax-set-aside"}
+]
