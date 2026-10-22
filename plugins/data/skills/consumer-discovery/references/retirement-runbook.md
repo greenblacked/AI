@@ -109,6 +109,8 @@ Every failure is a consumer to contact. If any is material, restore, migrate it,
 
 ## Archive and restore
 
+Take the archive last, after the final write. If a writer still loads the renamed table, stop it or move it to the replacement first, wait for its last run (and, on BigQuery, for the streaming buffer) to finish, and only then clone. A clone taken while the table is still being written misses every row loaded after it, and the drop that follows breaks the writer as well.
+
 Snowflake:
 
 ```sql
@@ -157,6 +159,7 @@ Restrict access to the archive to the data team, and set an expiry: an archive w
 - Brownout produced no unexplained failures, or each one has migrated.
 - Every known consumer has confirmed, in writing, that they have moved.
 - The quiet period has passed the slowest known schedule and, for financial data, a quarter end.
+- No writer targets the table any more, and the archive was taken after its last write.
 - The archive exists, its row count matches the source, its restore command has been tested once, including the replayed grants, and its expiry is set.
 - Dead code found during discovery is removed in the same change, so nothing re-creates a dependency.
 - The drop is announced on the day, with the archive location and contact.
