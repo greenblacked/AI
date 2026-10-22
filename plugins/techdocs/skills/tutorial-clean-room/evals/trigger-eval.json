@@ -1,0 +1,92 @@
+[
+ {
+  "query": "write our getting-started guide for the python SDK and make sure it actually works for someone who has never seen it",
+  "should_trigger": true
+ },
+ {
+  "query": "verify the quickstart still works end to end before the launch next week",
+  "should_trigger": true
+ },
+ {
+  "query": "new users keep getting stuck installing the agent. the docs say five minutes, support says it takes them an hour",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I properly test a tutorial? it works on my machine every single time",
+  "should_trigger": true
+ },
+ {
+  "query": "run through the self-hosted install guide from scratch in a fresh container and log everything that breaks",
+  "should_trigger": true
+ },
+ {
+  "query": "we want a time to first API call number on the quickstart page that is actually true",
+  "should_trigger": true
+ },
+ {
+  "query": "I wrote a ten step setup walkthrough for the CLI, sanity check it as if you were a brand new customer",
+  "should_trigger": true
+ },
+ {
+  "query": "set up a session where someone outside the team follows our onboarding tutorial and we're not allowed to help them",
+  "should_trigger": true
+ },
+ {
+  "query": "every release the hello world guide breaks for somebody, how do we gate it before it ships",
+  "should_trigger": true
+ },
+ {
+  "query": "devrel wants proof that the deploy your first app walkthrough works on a clean machine with a new account",
+  "should_trigger": true
+ },
+ {
+  "query": "write a README for our internal deploy tool so the platform team can run it locally",
+  "should_trigger": false,
+  "expected": "technical-docs"
+ },
+ {
+  "query": "turn our move to postgres 16 into a step by step tutorial post for the engineering blog",
+  "should_trigger": false,
+  "expected": "write-technical-article"
+ },
+ {
+  "query": "the code snippets in our SDK reference don't compile any more, make CI build and run them",
+  "should_trigger": false,
+  "expected": "code-sample-testing"
+ },
+ {
+  "query": "our playwright sign-up test passes locally and fails in CI about a third of the time",
+  "should_trigger": false,
+  "expected": "e2e-testing"
+ },
+ {
+  "query": "what cases should the integration tests for our install script cover",
+  "should_trigger": false,
+  "expected": "test-design"
+ },
+ {
+  "query": "plan a moderated usability study of the new in-app onboarding flow with five participants",
+  "should_trigger": false,
+  "expected": "usability-test-plan"
+ },
+ {
+  "query": "put together a 30 60 90 day plan for the engineer joining my team on monday",
+  "should_trigger": false,
+  "expected": "onboarding-plan"
+ },
+ {
+  "query": "the screenshots in our getting started guide still show last year's dashboard",
+  "should_trigger": false,
+  "expected": "screenshot-rot"
+ },
+ {
+  "query": "document every flag of our command line tool and generate the man page from the parser",
+  "should_trigger": false,
+  "expected": "cli-reference"
+ },
+ {
+  "query": "the docs site is moving to a new domain next month and we can't break inbound links",
+  "should_trigger": false,
+  "expected": "docs-url-permanence"
+ }
+]

@@ -1553,6 +1553,21 @@ html:not([data-theme="reactor"]) %P .plugin-word {
   100% { opacity: 1; filter: none; }
 }""",
     ),
+    # Letters are inked in from faint to full, like a page being proofed.
+    "techdocs": PluginLook(
+        day=("#3f3f46", "#1d4ed8", "#854d0e"),
+        night=("#e4e4e7", "#93c5fd", "#fde047"),
+        width=0.71,
+        serif=True,
+        rules=(
+            "%P .pl { animation: pw-techdocs-ink 0.6s ease-in calc(var(--i) * 0.08s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-techdocs-ink {
+  from { opacity: 0.15; }
+  to { opacity: 1; }
+}""",
+    ),
     # Rows rise into place one after another, like a query result filling in.
     "data": PluginLook(
         day=("#1e40af", "#9a3412", "#065f46"),

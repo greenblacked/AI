@@ -2,12 +2,12 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
-  <img alt="The twelve plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm and data" src="docs/assets/banner-light.svg" width="100%">
+  <img alt="The thirteen plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data and techdocs" src="docs/assets/banner-light.svg" width="100%">
 </picture>
 
 # Agent skills
 
-153 agent skills, 30 subagents and ten slash commands, in twelve
+164 agent skills, 30 subagents and ten slash commands, in thirteen
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-153-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-164-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -62,14 +62,15 @@ and what the runtime does or does not enforce.
 | [`design`](#design) | Usability, accessibility and design systems | 13 skills, 1 subagent, 1 command |
 | [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction and model migration | 5 skills |
 | [`data`](#data) | Analytics data: wrong numbers, warehouse cost, metrics, history and pipelines | 11 skills |
+| [`techdocs`](#techdocs) | Developer documentation: tested tutorials and samples, drift, stable URLs, API and CLI reference | 11 skills |
 
-Install one plugin or all twelve. Each is a self-contained directory under `plugins/` with
+Install one plugin or all thirteen. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
 
 Install what you will use, though, rather than everything by reflex. Every description you
 install stays resident in context, and Claude Code's default listing budget is about 8,000
 characters against this library's total — `make validate` prints the current figure — so
-installing all twelve at the default drops most of them, silently. The Install section
+installing all thirteen at the default drops most of them, silently. The Install section
 below says what to set instead.
 
 ## The FAMILY workflow
@@ -113,7 +114,7 @@ if a deploy fails its check and rolls back, the previous one keeps serving.
 
 | Page | What it shows |
 | --- | --- |
-| [Home](https://ai.szolotov.com) | The twelve plugins with their skill counts, and a search across plugins and skill names |
+| [Home](https://ai.szolotov.com) | The thirteen plugins with their skill counts, and a search across plugins and skill names |
 | `/plugins/<plugin>/` | One page per plugin: what it covers, its install line and its skills |
 | `/plugins/<plugin>/<skill>/` | One page per skill: its description, install line and allowed tools when it declares them, the full procedure, its reference files, and the requests it fires on and hands elsewhere |
 | [FAMILY](https://ai.szolotov.com/family/) | The one page that is not generated from a plugin's own files: the Frame–Architect–Make–Inspect–Launch–Yield workflow, drawn as a stage-by-stage guide with the four profiles |
@@ -168,7 +169,7 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`career`, `llm` and `personal` fit the default budget on their own. The other nine are over it —
+`career`, `llm` and `personal` fit the default budget on their own. The other ten are over it —
 each by enough that installed alone at least one of its descriptions is dropped — and the
 split exists to keep that number as small as it can be.
 
@@ -179,7 +180,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.15 }
+{ "skillListingBudgetFraction": 0.16 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -563,6 +564,24 @@ Analytics engineering: why a number is wrong, why a query costs what it does, an
 | [`scan-cost-forensics`](plugins/data/skills/scan-cost-forensics/SKILL.md) | Find which queries, users, dashboards and jobs drive a data warehouse bill on Snowflake, BigQuery, Redshift or ClickHouse: group query history by normalised-SQL fingerprint and rank by total bytes or credits across every run rather than by the slowest single run, attribute each fingerprint to a dashboard refresh or job schedule, test the usual culprits in order (refresh faster than the data changes, SELECT * on wide tables, unpruned partitions, identical repeats missing the result cache), fix the schedule before the SQL, and measure before and after on a matching window. |
 | [`spreadsheet-retirement`](plugins/data/skills/spreadsheet-retirement/SKILL.md) | Replace a business-critical spreadsheet or manual report with a pipeline without losing the trust of the people who rely on it. Inventory the hidden logic first by tracing every input, hard-coded cell, manual override, macro, external link and monthly ritual; turn each override into an explicit, owned rule; run old and new side by side for at least two cycles and reconcile line by line to the cent; make the sheet's owner the acceptance tester; and freeze the sheet read-only only after a clean run. |
 | [`upstream-change-defense`](plugins/data/skills/upstream-change-defense/SKILL.md) | Protect warehouse pipelines from source teams changing a field's schema or meaning: classify each surprise as structural (column dropped, renamed, retyped) or semantic (same column, new meaning: a new status code, pence to pounds, a time zone switch, re-keyed ids), land raw untouched, diff the schema at ingest, catch semantic drift with enum, range and match-rate checks, quarantine failing rows and replay from raw after the fix, then give the producer a CI compatibility check and a named contact. |
+
+### Techdocs
+
+Documentation as something that can be tested: tutorials run from a clean machine, samples executed in CI, drift caught when the product changes, and URLs that keep working.
+
+| Skill | What it does |
+| --- | --- |
+| [`accessibility-conformance-report`](plugins/techdocs/skills/accessibility-conformance-report/SKILL.md) | Turn accessibility audit results into an Accessibility Conformance Report (a completed VPAT) and a public accessibility statement that buyers and disabled users can rely on. Fixes the product version, platforms, standard edition and test method first; rates every criterion Supports, Partially Supports, Does Not Support or Not Applicable with evidence, the known gap and a remediation target; refuses a full-conformance claim without a complete audit; publishes a feedback route with a response time; and re-issues the report each release. Use whenever someone says "a customer wants our VPAT", "the RFP asks for an ACR", "write our accessibility statement", "fill in the 508 or EN 301 549 report" or "our VPAT is two versions old". |
+| [`cli-reference`](plugins/techdocs/skills/cli-reference/SKILL.md) | Document a command-line tool so --help, the man page, the web reference and shell completions all come from one source, the parser definition. Lays help out as a usage line, a one-line purpose, flags grouped by task with defaults and environment variables, three real examples and exit codes; states which flags conflict, require each other or override; generates the man page, reference and completions in the build instead of copying them; and snapshot-tests --help so an interface change shows up in review. Use whenever someone says "document this command-line tool", "our --help and the README disagree", "generate a man page for our CLI", "add shell completions" or "what exit codes should we document". |
+| [`code-sample-testing`](plugins/techdocs/skills/code-sample-testing/SKILL.md) | Make every code sample in the documentation executable. Samples live as real source files and the page includes them by region marker, never by pasting; CI compiles and runs each one against the released package and against main, asserts its output rather than its exit code, and fails on a pasted runnable block; a sample that genuinely cannot run is labelled as pseudo-code; and each failure is routed to the sample's owner. Use whenever someone says "our docs examples are broken", "the snippets in the SDK reference don't compile", "how do we test the code in our docs" or "users copy the example and it errors". |
+| [`docs-drift-detection`](plugins/techdocs/skills/docs-drift-detection/SKILL.md) | Find which documentation pages a code change makes false, before it merges. Build a reviewed map, kept in the repository, from code paths, config keys, CLI flags, environment variables and endpoints to the pages that name them; have CI list the affected pages on every pull request touching mapped code, and fail it when a removed identifier is still documented; give pages that map to no code a review date or delete them; track the share of mapped-code changes that also touched docs. Use whenever someone says "our docs keep going stale after code changes", "which pages does this PR affect", "nobody remembers to update the docs" or "the docs still mention a flag we deleted". |
+| [`docs-search-vocabulary`](plugins/techdocs/skills/docs-search-vocabulary/SKILL.md) | Fix documentation findability by mining the docs search log for the gap between the reader's words and the docs' words. Export zero-result queries and sessions reformulated twice without a click, cluster them by intent, and decide each cluster: add a search synonym, rename the heading to the reader's term, add an alias redirect, or write the missing page; put the reader's term in the title and the internal term in the body; measure the zero-result rate before and after. Use whenever someone says "people can't find X in our docs", "docs search is useless", "what are users searching for that we don't have" or "we have an export of search analytics, what now". |
+| [`docs-url-permanence`](plugins/techdocs/skills/docs-url-permanence/SKILL.md) | Move, rename or restructure a documentation site without breaking inbound links. Before anything moves, harvest the URLs that matter from search console exports, access logs, links inside the product and READMEs; write the old-to-new redirect map first and test it as a table; give each page one permanent single-hop redirect to its true successor, never the homepage; keep every redirect indefinitely; and after launch replay the old URL list until it returns zero 404s. Use whenever someone says "we're reorganising the docs", "migrating the docs to a new site generator", "moving the docs to a new domain" or "our old Stack Overflow links are all 404". |
+| [`error-catalogue`](plugins/techdocs/skills/error-catalogue/SKILL.md) | Give every error a product shows a stable code and its own documentation page, and keep the two in step. The code is a namespaced, immutable contract that is never reused; each page states the cause, how to confirm it, the fix and whether retrying helps; the runtime message links to its page; CI fails on a code thrown in source with no page or a page with no code; and a new code lands in the same pull request as its throw site. Use whenever someone says "document our error codes", "users paste error messages into support and nobody knows what they mean", "build an error reference like rustc --explain" or "two services use the same error number for different things". |
+| [`openapi-diff-gate`](plugins/techdocs/skills/openapi-diff-gate/SKILL.md) | Catch breaking API changes from the OpenAPI document itself before they merge. Diff the last released spec against the pull request's with a structural differ such as oasdiff, never a text diff; classify each change by direction, because request and response compatibility invert — narrowing what a request accepts breaks callers, and so does widening what a response returns; fail CI on a breaking diff unless the pull request carries a versioning label and a migration entry; and seed the API changelog from the diff. Use whenever someone says "diff our spec against the last release", "add a breaking-change check for the OpenAPI file", "did this PR break any API clients" or "write the API changelog from the spec". |
+| [`screenshot-rot`](plugins/techdocs/skills/screenshot-rot/SKILL.md) | Stop documentation screenshots and diagrams going stale. Inventory every image in the docs and decide per image whether text, a code block or a table would serve instead; replace the hand-taken screenshots that remain with scripted captures (browser automation, seeded demo data, fixed viewport, clock, locale and fonts) regenerated in CI, where a changed image opens a pull request for review; keep diagrams as text sources beside the page; and write alt text that states the image's point. Use whenever someone says "our screenshots are out of date", "the docs still show the old UI", "who re-shoots the images after a redesign" or "can we generate docs screenshots automatically". |
+| [`terminology-lock`](plugins/techdocs/skills/terminology-lock/SKILL.md) | Make one word mean one thing across the product UI, docs, API and support. Inventory the competing terms and where each appears, choose the canonical one, and keep a glossary in the repository giving each term's definition, its banned synonyms and the reason for each ban; generate Vale substitution rules and a UI string check from that one glossary, so docs and interface strings are linted by the same list; run any rename as one tracked change sweeping code, UI, docs, translations and the search synonym list. Use whenever someone says "we call it three different things", "is it a workspace or a project", "lint our docs for product terms" or "we're renaming this feature everywhere". |
+| [`tutorial-clean-room`](plugins/techdocs/skills/tutorial-clean-room/SKILL.md) | Prove a tutorial, quickstart or getting-started guide works for a stranger before it ships: run it in a brand-new container or VM with no cached credentials, dotfiles or warm caches, stopwatch running, executing only what the page literally says; log every stumble as a defect with the minutes it cost; state a time-to-first-result target on the page; then watch one outsider follow it with no questions allowed, and ship only after a zero-stumble run. Use whenever someone says "write our getting-started guide", "verify the quickstart still works", "new users keep getting stuck on install" or "how long does it really take to get going with our SDK". |
 
 ## Subagents
 
