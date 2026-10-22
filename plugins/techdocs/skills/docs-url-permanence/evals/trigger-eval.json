@@ -1,0 +1,23 @@
+[
+  {"query": "we're reorganising the docs into new sections next month, how do we stop every old link from breaking", "should_trigger": true},
+  {"query": "migrating our docs from Docusaurus to Mintlify, what do we need to do about the old URLs", "should_trigger": true},
+  {"query": "docs are moving from example.com/docs to docs.example.com, plan the redirects", "should_trigger": true},
+  {"query": "all the Stack Overflow answers that link to our old docs pages are 404 since the redesign", "should_trigger": true},
+  {"query": "is it fine to redirect the pages we removed to the docs homepage?", "should_trigger": true},
+  {"query": "the error messages in our CLI link to doc pages, we're about to rename half of them", "should_trigger": true},
+  {"query": "build me a redirect map for the docs restructure and a way to test it before launch", "should_trigger": true},
+  {"query": "after the docs migration our search traffic dropped by a third, how do we find which old urls are broken", "should_trigger": true},
+  {"query": "someone wants to clean up the 2,000 line _redirects file on the docs site, can we delete the old entries", "should_trigger": true},
+  {"query": "how do I keep deep links with #anchors working when we rewrite the headings in the guides", "should_trigger": true},
+
+  {"query": "we need a phased plan to move the whole developer portal from our datacentre to the cloud over two quarters", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "run the dns switch to the new docs host on saturday night with a rollback deadline", "should_trigger": false, "expected": "cutover"},
+  {"query": "how should we group and label the sections in the new docs navigation", "should_trigger": false, "expected": "information-architecture"},
+  {"query": "people search our docs for 'api token' but the page is called 'access credentials', fix that", "should_trigger": false, "expected": "docs-search-vocabulary"},
+  {"query": "write a README for this service so a new joiner can run it locally", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "every error code should have its own docs page and the message should link to it", "should_trigger": false, "expected": "error-catalogue"},
+  {"query": "register a wildcard redirect uri for our oauth app so preview deploys can log in", "should_trigger": false, "expected": "auth-design"},
+  {"query": "verify the quickstart works for someone with a brand new laptop", "should_trigger": false, "expected": "tutorial-clean-room"},
+  {"query": "our marketing site loads slowly and the lighthouse score is bad, audit it", "should_trigger": false, "expected": "website-builder"},
+  {"query": "we call the same thing a workspace, a project and a space across the ui and docs", "should_trigger": false, "expected": "terminology-lock"}
+]
