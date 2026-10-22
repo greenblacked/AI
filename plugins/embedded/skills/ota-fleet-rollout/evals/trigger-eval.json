@@ -13,7 +13,7 @@
   {"query": "phased release in the app store for our iOS app", "should_trigger": false, "expected": "mobile-release"},
   {"query": "design the dual-slot bootloader with signature check and rollback", "should_trigger": false, "expected": "ota-update-safety"},
   {"query": "one unit is dead after the update and will not boot", "should_trigger": false, "expected": "brick-recovery"},
-  {"query": "how do we sign firmware and protect the update keys", "should_trigger": false, "expected": "ota-update-safety"},
+  {"query": "how does the device confirm a new image after booting it and revert if the health check fails", "should_trigger": false, "expected": "ota-update-safety"},
   {"query": "the watchdog resets some units after the update", "should_trigger": false, "expected": "watchdog-design"},
   {"query": "write the release notes for version 2.4", "should_trigger": false, "expected": "release-notes"},
   {"query": "our stored settings are lost after the update", "should_trigger": false, "expected": "flash-storage-durability"},

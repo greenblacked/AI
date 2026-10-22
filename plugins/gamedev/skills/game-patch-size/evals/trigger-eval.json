@@ -15,7 +15,7 @@
   {"query": "memory keeps growing every time we load a level on switch", "should_trigger": false, "expected": "game-memory-budget"},
   {"query": "fill out the platform's technical requirements checklist before submission", "should_trigger": false, "expected": "game-certification"},
   {"query": "build a pipeline that runs tests and caches dependencies for our game repo", "should_trigger": false, "expected": "ci-pipeline-design"},
-  {"query": "frame rate drops when the patch version loads many small files at startup", "should_trigger": false, "expected": "game-performance"},
+  {"query": "startup takes much longer since the patch because the game now loads thousands of small files", "should_trigger": false, "expected": "game-load-times"},
   {"query": "write the release notes and changelog for the patch we are about to ship", "should_trigger": false, "expected": "release-notes"},
   {"query": "two artists edited the same prefab and one of them lost their work", "should_trigger": false, "expected": "scene-merge-conflicts"},
   {"query": "players on old saves crash after the update because the save format changed", "should_trigger": false, "expected": "game-save-system"}

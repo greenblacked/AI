@@ -27,12 +27,22 @@ CREATE TABLE unit (
   provisioned_at    TIMESTAMP NOT NULL
 );
 
+-- no foreign key to unit: a certificate is issued (step 4 of the flow) before the
+-- unit row is written (step 7), and a unit that fails test never gets a row
 CREATE TABLE unit_cert (
-  serial       TEXT NOT NULL REFERENCES unit(serial),
+  serial       TEXT NOT NULL,
   fingerprint  TEXT NOT NULL UNIQUE,
   issued_at    TIMESTAMP NOT NULL,
   revoked_at   TIMESTAMP,
   work_order   TEXT NOT NULL
+);
+
+CREATE TABLE failed_unit (
+  serial           TEXT NOT NULL,
+  station_id       TEXT NOT NULL,
+  test_sw_version  TEXT NOT NULL,
+  reason           TEXT,
+  failed_at        TIMESTAMP NOT NULL
 );
 
 CREATE TABLE unit_event (
@@ -44,7 +54,7 @@ CREATE TABLE unit_event (
 );
 ```
 
-Issuance has its own table so an RMA or a retried attempt adds a row and sets `revoked_at` on the earlier one; the `unit` row is never rewritten. State is derived from the latest event, so history is never overwritten. Failed units go in a separate `failed_unit` table with the same station and time fields, so scrap is counted.
+Issuance has its own table so an RMA or a retried attempt adds a row and sets `revoked_at` on the earlier one; the `unit` row is never rewritten. State is derived from the latest event, so history is never overwritten. Failed units go in the separate `failed_unit` table with the same station and time fields, so scrap is counted.
 
 ## Signing service work-order check
 
@@ -71,8 +81,13 @@ Four counts per product and week, from four independent sources.
 | Your receiving or shipping records | units received |
 
 ```sql
--- issued certificates with no passing registry row (unit that failed or was lost)
-SELECT i.serial FROM issued i LEFT JOIN unit u USING (serial) WHERE u.serial IS NULL;
+-- live certificates with no passing registry row; failed shows whether the
+-- unit was recorded as scrap (true) or is unaccounted for (false)
+SELECT c.serial, c.fingerprint, f.serial IS NOT NULL AS failed
+FROM unit_cert c
+LEFT JOIN unit u ON u.serial = c.serial AND u.test_result = 'pass'
+LEFT JOIN failed_unit f ON f.serial = c.serial
+WHERE u.serial IS NULL AND c.revoked_at IS NULL;
 
 -- registry rows beyond the work order quantity
 SELECT work_order, COUNT(*) AS built, MAX(w.quantity) AS ordered

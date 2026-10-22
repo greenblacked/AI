@@ -1,6 +1,6 @@
 ---
 name: serial-bus-debug
-description: "Bring up a UART, I2C or SPI link that returns garbage, NACKs or reads all 0xFF: check electrical before logical (power, common ground, logic levels, RS-232 versus TTL), put a logic analyser with a protocol decoder on the wires before changing code, compute UART baud error from the clock divider, scope I2C rise time against pull-up and bus capacitance, check 7-bit versus 8-bit addressing and free a stuck bus with nine SCL pulses, and set SPI mode from the datasheet timing diagram. Use for \"I2C device doesn't ACK\", \"UART prints garbage\", \"SPI always reads 0xFF\", \"SDA stuck low\". Not for software failures (debugging), a unit that hangs or resets (watchdog-design) or a crash decode (hard-fault-triage)."
+description: "Bring up a UART, I2C or SPI link that returns garbage, NACKs or reads all 0xFF: check electrical before logical (power, common ground, logic levels, RS-232 versus TTL), put a logic analyser with a protocol decoder on the wires before changing code, compute UART baud error from the clock divider, scope I2C rise time against pull-up and bus capacitance, check 7-bit versus 8-bit addressing and free a stuck bus with nine SCL pulses, and set SPI mode from the datasheet timing diagram. Use for \"I2C device doesn't ACK\", \"UART prints garbage\", \"SPI always reads 0xFF\", \"SDA stuck low\". Not for software failures (debugging), a unit that hangs or resets (watchdog-design), a crash decode (hard-fault-triage) or RS-485, Modbus and CAN links on machines (fieldbus-debug)."
 allowed-tools: Read, Glob, Grep
 ---
 
@@ -14,7 +14,7 @@ The usual failure is editing the driver first. A peripheral that does not answer
 
 Use for: a new or changed board where a UART, I2C or SPI device returns garbage, NACKs, hangs the bus or reads constant 0xFF or 0x00.
 
-Do not use for: a software bug in code that otherwise talks to the part, which is `debugging`; a unit that hangs or resets, which is `watchdog-design`; decoding a crash, which is `hard-fault-triage`.
+Do not use for: a software bug in code that otherwise talks to the part, which is `debugging`; a unit that hangs or resets, which is `watchdog-design`; decoding a crash, which is `hard-fault-triage`; RS-485, Modbus and CAN links between machines, which is `fieldbus-debug`.
 
 ## Workflow
 

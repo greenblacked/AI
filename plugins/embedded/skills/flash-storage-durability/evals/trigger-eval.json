@@ -16,7 +16,7 @@
   {"query": "the microcontroller resets with a hard fault and I need to read the fault registers", "should_trigger": false, "expected": "hard-fault-triage"},
   {"query": "our watchdog keeps resetting the device during a long flash erase", "should_trigger": false, "expected": "watchdog-design"},
   {"query": "the device never wakes from deep sleep unless the debugger is attached", "should_trigger": false, "expected": "sleep-wake-bug-hunt"},
-  {"query": "how do we sign and verify firmware images against a hardware root of trust", "should_trigger": false, "expected": "ota-update-safety"},
+  {"query": "how should the update image be staged and swapped so a power cut mid-update rolls back", "should_trigger": false, "expected": "ota-update-safety"},
   {"query": "our SQL query reads too many rows and the page is slow", "should_trigger": false, "expected": "sql-performance"},
   {"query": "the I2C bus returns the wrong bytes from the sensor", "should_trigger": false, "expected": "serial-bus-debug"}
 ]

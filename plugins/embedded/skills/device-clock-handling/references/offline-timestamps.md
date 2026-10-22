@@ -52,4 +52,4 @@ At 20 ppm the clock gains or loses 20 microseconds per second:
 - 86,400 seconds in a day gives 1.728 seconds per day.
 - Over 30 days that is about 52 seconds.
 
-If the product needs one second accuracy, resync at least daily. If it needs one minute, monthly is enough on a crystal that is held within 20 ppm over temperature. For a 1 per cent RC, the same day gives 864 seconds, so a per-day sync is not enough for any accuracy under a quarter of an hour.
+A one second error budget lasts 1 / 20 ppm = 50,000 seconds, about 13.9 hours, so for one second accuracy at 20 ppm (1.728 seconds per day) resync at least twice a day, every 13.9 hours or less. If it needs one minute, monthly is enough on a crystal that is held within 20 ppm over temperature. For a 1 per cent RC, the same day gives 864 seconds, so a per-day sync is not enough for any accuracy under a quarter of an hour.

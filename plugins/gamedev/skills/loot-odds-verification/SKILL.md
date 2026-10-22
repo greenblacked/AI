@@ -30,7 +30,7 @@ Before simulating anything, compute per-item probability from the data by arithm
 
 For a hard pity of N draws with base rate p, the expected draws to the first rare is `(1 - (1-p)^N) / p`. At p = 0.01 and N = 90 that is about 59.5, not 100, which is the figure players quote when they say "one percent" and the figure that explains why the design document's average cost looks too cheap or too dear. Compute the probability of reaching the item by draw k for the k values players talk about (10, 50, 90) and put them next to the stated odds.
 
-Compare with the claims from step 1 and fix mismatches here. Layer one is free and catches the largest share of defects; do not start a ten-million-draw run to discover that two weights were swapped. `references/statistics.md` has the formulas, the pity derivation and a script for the exact table.
+Compare with the claims from step 1 and fix mismatches here. Layer one is free and usually the cheapest place to catch defects; do not start a ten-million-draw run to discover that two weights were swapped. `references/statistics.md` has the formulas, the pity derivation and a script for the exact table.
 
 ### 3. Layer two: run the shipped code, headless
 

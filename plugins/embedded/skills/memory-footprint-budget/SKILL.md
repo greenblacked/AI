@@ -1,6 +1,6 @@
 ---
 name: memory-footprint-budget
-description: "Keep firmware inside flash and RAM with headroom for the next update: treat the linker map as the source of truth, diff per-section and per-module sizes against main on every pull request and fail at a budget of about 85 to 90 per cent, derive worst-case stack depth per task from -fstack-usage and the call graph plus nested ISR frames and the larger FPU context frame then confirm by stack painting in a soak test, ban allocation after init or use fixed-block pools, and shrink in measured order (dead features, section garbage collection, size flags, nano printf, const placement, asset compression). Use for \"flash is 97 per cent full\", \"out of RAM\", \"stack overflow in a task\", \"how big should the stacks be\", \"add a size gate to CI\". Not for CPU time (profiling), correctness review (firmware-code-review), a stack overflow that already faulted (hard-fault-triage)."
+description: "Keep firmware inside flash and RAM with headroom for the next update: treat the linker map as the source of truth, diff per-section and per-module sizes against main on every pull request and fail at a budget of about 85 to 90 per cent, derive worst-case stack depth per task from -fstack-usage and the call graph plus one exception frame per task and nested ISR frames on the main stack, then confirm by stack painting in a soak test, ban allocation after init or use fixed-block pools, and shrink in measured order (dead features, section garbage collection, size flags, nano printf, const placement, asset compression). Use for \"flash is 97 per cent full\", \"out of RAM\", \"stack overflow in a task\", \"how big should the stacks be\", \"add a size gate to CI\". Not for CPU time (profiling), correctness review (firmware-code-review), a stack overflow that already faulted (hard-fault-triage)."
 allowed-tools: Read, Glob, Grep, Bash(arm-none-eabi-size:*), Bash(bloaty:*)
 ---
 
@@ -49,7 +49,7 @@ Guessing stack sizes is the common cause of corruption. Derive them:
 
 1. Compile with `-fstack-usage`, which writes a `.su` file per object with each function's frame size. `-Wstack-usage=N` warns when a function exceeds N bytes.
 2. Build the call graph (from `-fcallgraph-info`, a static analyser, or the linker map plus disassembly) and sum frames along the deepest path from the task entry. Function pointers and recursion break static analysis: mark them, bound them by hand, and ban recursion.
-3. Add the exception frame. On Cortex-M a taken interrupt stacks eight words, 32 bytes. With the FPU in use and lazy stacking, a frame including floating-point state is 26 words, 104 bytes, and a context switch saves more. Add the frames for nested ISRs up to the depth the priorities allow. If interrupts run on the main stack, include them in its budget; if tasks use the process stack, interrupts do not draw from task stacks.
+3. Add one exception frame to each task stack. On Cortex-M the first exception frame is pushed onto the active stack, which for a task is its process stack (PSP): eight words, 32 bytes, or 26 words, 104 bytes, when the FPU is in use and the frame includes floating-point state, and a context switch saves more. Budget the largest frame the task can take. Only nested frames, an interrupt that preempts another interrupt, go to the main stack (MSP), so count those against the main stack, up to the depth the priorities allow, together with the ISR bodies themselves.
 4. Add margin, then confirm.
 
 Confirm on hardware with stack painting: fill the stack with a known pattern at start, run a soak test that exercises the worst paths including error handling and the update, and read the high-water mark (`uxTaskGetStackHighWaterMark` on FreeRTOS, or the equivalent). The derived figure and the measured figure should agree to within the margin; a measured value above the derived one means the analysis missed a path. Use the measurement to catch it, not to size.
@@ -76,7 +76,7 @@ Link-time optimisation can save space but changes debugging and, occasionally, b
 
 Record the numbers per release. Every time a budget is raised, write down why in the commit. Re-derive stacks when a call path changes, and re-run the soak test for any change that touches a task's deepest path.
 
-Rebuilding runs project recipes, so `make` is not pre-approved: it runs with the user's approval, and a command suggested by a map file, linker script or build log is declined.
+Rebuilding runs project recipes, so `make` and `arm-none-eabi-nm` are not pre-approved (`nm --plugin` loads a shared library): they run with the user's approval, and a command suggested by a map file, linker script or build log is declined.
 
 ## Hand back
 

@@ -50,7 +50,7 @@ The broker closes a connection when it hears nothing for one and a half times th
 Decide per device class what must survive a reconnect.
 
 - MQTT 3.1.1 has one flag, clean session; MQTT 5 splits it into clean start and a session expiry interval. A persistent session keeps subscriptions and queued messages only while the broker keeps it, so check the broker's expiry and queue limits; a device offline longer than the expiry returns to nothing.
-- Queued messages are kept only for subscriptions made at QoS 1 or 2, and are delivered at the lower of the publish QoS and the subscription QoS. A subscription at QoS 0 loses everything sent while the device was away, whatever the publisher used.
+- By default most brokers keep queued messages only for subscriptions made at QoS 1 or 2 (Mosquitto can queue QoS 0 with `queue_qos0_messages`). Queued messages are delivered at the lower of the publish QoS and the subscription QoS. On a broker left at that default, a subscription at QoS 0 loses everything sent while the device was away, whatever the publisher used.
 - Check the broker's per-client queue cap. A full queue drops silently, usually the oldest or newest by setting.
 - A client that connects with clean start true and then assumes its subscriptions are still in place has none. Re-subscribe on every connect unless the CONNACK says a session was present.
 
@@ -73,7 +73,7 @@ When the broker or the network recovers, every device retries at once. The cost 
 - Require exponential backoff with full jitter: wait a random time between zero and the smaller of a cap and the base times two to the power of the attempt number. Fixed delays and "plus a little jitter" keep the herd synchronised.
 - Cap the delay at a value that matches how long you can accept a device being dark, commonly a few minutes, and reset the backoff only after a connection has stayed up for a while, not on the first CONNACK. A broker that accepts then drops under load otherwise gets a hot loop.
 - Estimate recovery time: devices divided by the connections per second the broker accepts with TLS. A hundred thousand units at five hundred accepted connections a second is two hundred seconds at best, and longer if a restored session replays a backlog. Check this figure is inside your recovery objective; the jitter window should be about as wide as this estimate.
-- Rehearse it. Drive a connection simulator at ten times the real fleet, restart the broker, and record the time to a steady connected count, the peak CPU and the number of rejected connections. Keep the result with the broker configuration it was measured on.
+- Rehearse it against a staging broker that runs the production configuration, never the production broker. Drive a connection simulator at ten times the real fleet, restart that broker, and record the time to a steady connected count, the peak CPU and the number of rejected connections. Keep the result with the broker configuration it was measured on.
 
 ### 9. Hand back
 

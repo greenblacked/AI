@@ -55,9 +55,9 @@
   "expected": "hard-fault-triage"
  },
  {
-  "query": "my Rust service panics on startup and I need a debugging method",
+  "query": "our Modbus RTU slave returns CRC errors intermittently over RS-485",
   "should_trigger": false,
-  "expected": "debugging"
+  "expected": "fieldbus-debug"
  },
  {
   "query": "the device draws far more current in sleep than the datasheet suggests",
@@ -75,9 +75,9 @@
   "expected": "ota-update-safety"
  },
  {
-  "query": "the device hangs in the field and the watchdog does not catch it",
+  "query": "the RS-485 link loses the first byte of every reply and the register reads are off by one",
   "should_trigger": false,
-  "expected": "watchdog-design"
+  "expected": "fieldbus-debug"
  },
  {
   "query": "the board will not wake from stop mode on the I2C address match interrupt",

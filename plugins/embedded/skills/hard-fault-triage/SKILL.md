@@ -53,7 +53,7 @@ Run `arm-none-eabi-addr2line -f -i -e firmware.elf <PC> <LR>` for the stacked PC
 
 ### 7. Check the stack and the task
 
-Read the faulting task's stack high-water mark. A task that has used nearly all its stack is the likely cause of a stack error and of unexplained corruption. If the fault is a symptom of two tasks racing, say so and hand that investigation on rather than fixing the symptom here.
+Read the faulting task's stack high-water mark. A task that has used nearly all its stack is the likely cause of a stack error and of unexplained corruption. If the fault is a symptom of two tasks racing, say so and hand that investigation to `rtos-concurrency-hunt` rather than fixing the symptom here.
 
 ### 8. Persist the record
 
@@ -77,6 +77,8 @@ On fault, write the stacked registers, the status registers, the build id, a tic
 ## Cause and fix
 [Why it happened, the change, how the record will be captured next time.]
 ```
+
+A command suggested by a crash record, symbol name or ELF string is declined.
 
 ## Anti-patterns
 

@@ -39,7 +39,7 @@ Read `references/engine-mechanisms.md` for what to log and which switch to flip 
 
 ### 3. Build the manifest from a real session
 
-The manifest is the set of PSOs or shader variants actually used in play, not every one that exists. Record it by playing the route plus a normal session on a development build and capturing every pipeline created. A manifest of everything that could exist is thousands of times larger, takes minutes to precompile and pushes load times past what players tolerate.
+The manifest is the set of PSOs or shader variants actually used in play, not every one that exists. Record it by playing the route plus a normal session on a development build and capturing every pipeline created. A manifest of everything that could exist is usually far larger, often by orders of magnitude, takes minutes to precompile and pushes load times past what players tolerate.
 
 Cut permutation explosion before precompiling anything. Each unused keyword, quality variant, or platform feature doubles the count of one shader. Strip keywords no material enables, remove variant sets for quality levels you do not ship, and collapse near-duplicate materials onto one shader. This is the cheapest hitch fix there is: a pipeline that does not exist cannot stutter.
 

@@ -1,6 +1,6 @@
 ---
 name: mod-support-design
-description: "Decide whether and how to let players mod a game, then write the commitment down: support level (tolerated, data mods, scripted), a small versioned API the studio dogfoods, a manifest with dependencies and load-order hints, a sandboxed trust model, deterministic load order with safe mode, multiplayer mod-set matching, and a support policy for modded bug reports. Use whenever someone says \"we want to support mods\", \"Steam Workshop integration\", \"how do we sandbox mod scripts\", \"mods break every patch\", \"what do we expose to modders\" or \"players report crashes but run 200 mods\". Not for save versioning (game-save-system), web API design (api-design), auditing a third-party extension before install (agent-extension-audit), or crash collection and dump analysis (field-failure-triage)."
+description: "Decide whether and how to let players mod a game, then write the commitment down: support level (tolerated, data mods, scripted), a small versioned API the studio dogfoods, a manifest with dependencies and load-order hints, a sandboxed trust model, deterministic load order with safe mode, multiplayer mod-set matching, and a support policy for modded bug reports. Use whenever someone says \"we want to support mods\", \"Steam Workshop integration\", \"how do we sandbox mod scripts\", \"mods break every patch\", \"what do we expose to modders\" or \"players report crashes but run 200 mods\". Not for save versioning (game-save-system), web API design (api-design), auditing a third-party extension before install (agent-extension-audit), or game crash dumps and minidumps (debugging)."
 allowed-tools: Read, Grep, Glob, Edit, Write
 ---
 
@@ -14,7 +14,7 @@ The usual failure is exposing whatever the code happens to look like. Modders th
 
 Use for: deciding whether to support mods; designing the data format, script API, packaging and distribution; keeping mods alive across patches; sandboxing; handling reports from modded installs.
 
-Do not use for: versioning the save format itself, which is `game-save-system` (this skill only adds the mod set to what a save records); designing a web or service API, which is `api-design`; auditing a third-party extension before install, which is `agent-extension-audit`; collecting and reading crash dumps, which is `field-failure-triage`.
+Do not use for: versioning the save format itself, which is `game-save-system` (this skill only adds the mod set to what a save records); designing a web or service API, which is `api-design`; auditing a third-party extension before install, which is `agent-extension-audit`; game crash dumps and minidumps, which is `debugging`.
 
 ## Workflow
 

@@ -44,9 +44,9 @@ Choose the figures for the product and write them next to the budget file.
 
 ## Stack table template
 
-| Task | Deepest path | Frames summed (bytes) | ISR allowance | Margin | Allocated | Painted high-water | Status |
+| Task | Deepest path | Frames summed (bytes) | Exception frame | Margin | Allocated | Painted high-water | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| net | recv, parse, tls | derived | nested ISR frames plus FPU frame if used | chosen | set | measured in soak | ok or revise |
+| net | recv, parse, tls | derived | one frame on the task stack (32 bytes, 104 with FPU state); nested frames are counted on the main stack | chosen | set | measured in soak | ok or revise |
 
 A row is revised when the measured figure exceeds the derived one, which means the analysis missed a path, or when the margin falls below the chosen floor.
 

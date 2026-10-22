@@ -53,7 +53,7 @@ Keep a ring log of the last events, in retained RAM that survives a warm reset o
 
 ### 4. Aggregate on the device, send events on change
 
-Count on the device and send the counter, not each occurrence. Send an event only on a state change: link lost, update started, battery low crossed. A heartbeat is a counter that increments, not a timestamp; the receiver notices a gap in the sequence and does not have to trust the device clock, which see `device-clock-handling`. Report on a schedule that spreads across the fleet with jitter, so a restart does not cause every unit to connect at once.
+Count on the device and send the counter, not each occurrence. Send an event only on a state change: link lost, update started, battery low crossed. A heartbeat is a counter that increments, not a timestamp; the receiver notices a gap in the sequence and does not have to trust the device clock; see `device-clock-handling`. Report on a schedule that spreads across the fleet with jitter, so a restart does not cause every unit to connect at once.
 
 ### 5. Choose a compact, versioned schema
 

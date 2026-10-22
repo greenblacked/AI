@@ -13,7 +13,7 @@
 {"query":"my game stutters every few seconds and I see GC spikes in the profiler","should_trigger":false,"expected":"game-performance"},
 {"query":"is this scene CPU bound or GPU bound","should_trigger":false,"expected":"game-performance"},
 {"query":"texture import settings are making the build huge, how do we compress the art","should_trigger":false,"expected":"game-assets"},
-{"query":"levels take 40 seconds to load from disk, what is slow","should_trigger":false,"expected":"game-performance"},
+{"query":"levels take 40 seconds to load from disk, what is slow","should_trigger":false,"expected":"game-load-times"},
 {"query":"the clients desync","should_trigger":false,"expected":"game-netcode"},
 {"query":"how big a patch can we ship before players complain on console","should_trigger":false,"expected":"game-patch-size"},
 {"query":"we run out of memory on the console after three levels","should_trigger":false,"expected":"game-memory-budget"},

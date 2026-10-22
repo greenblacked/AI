@@ -1,6 +1,6 @@
 ---
 name: watchdog-design
-description: "Design or fix a watchdog so it recovers real hangs without masking them: feed it from exactly one place, only after every monitored task has checked in with a progress token inside the window, never from an ISR or a lone idle hook, set the timeout from measured worst-case loop time with a 2x to 3x margin and longer than the slowest legitimate blocking operation, use a window watchdog when running too fast is also a fault, confirm it cannot be disabled in the release build, and on reset persist cause and last check-in to enter safe mode after repeated resets. Use for \"device hangs in the field\", \"watchdog reset loop\", \"where should I kick the watchdog\", \"it resets during flash erase\". Not for finding the deadlock (debugging), wake failures (sleep-wake-bug-hunt) or revert mechanics (ota-update-safety)."
+description: "Design or fix a watchdog so it recovers real hangs without masking them: feed it from exactly one place, only after every monitored task has checked in with a progress token inside the window, never from an ISR or a lone idle hook, set the timeout from measured worst-case loop time with a 2x to 3x margin and longer than the slowest legitimate blocking operation, use a window watchdog when running too fast is also a fault, confirm it cannot be disabled in the release build, and on reset persist cause and last check-in to enter safe mode after repeated resets. Use for \"device hangs in the field\", \"watchdog reset loop\", \"where should I kick the watchdog\", \"it resets during flash erase\". Not for finding the deadlock in RTOS firmware (rtos-concurrency-hunt), wake failures (sleep-wake-bug-hunt) or revert mechanics (ota-update-safety)."
 allowed-tools: Read, Glob, Grep
 ---
 
@@ -14,7 +14,7 @@ The usual failure is a watchdog that proves a timer is alive. Feeding it from a 
 
 Use for: choosing where to feed the watchdog, the timeout, the window, the reset reaction, and the test that proves it works.
 
-Do not use for: working out why a task deadlocked, which is `debugging`; a device that will not wake from sleep, which is `sleep-wake-bug-hunt`; reverting an update after resets, whose mechanics are in `ota-update-safety`; decoding a fault that triggered a reset, which is `hard-fault-triage`.
+Do not use for: working out why a task deadlocked, which is `rtos-concurrency-hunt`; a device that will not wake from sleep, which is `sleep-wake-bug-hunt`; reverting an update after resets, whose mechanics are in `ota-update-safety`; decoding a fault that triggered a reset, which is `hard-fault-triage`.
 
 ## Workflow
 

@@ -15,7 +15,7 @@
   {"query": "set a per-system memory budget and plot the staircase across level loads", "should_trigger": false, "expected": "game-memory-budget"},
   {"query": "the game drops frames in the busy market scene, find out why", "should_trigger": false, "expected": "game-performance"},
   {"query": "design a pipeline with build caching and parallel test jobs for our repository", "should_trigger": false, "expected": "ci-pipeline-design"},
-  {"query": "players report desyncs in multiplayer when two people open the same chest", "should_trigger": false, "expected": "game-netcode"},
+  {"query": "players report that two people opening the same chest at once get different loot, who should decide the winner", "should_trigger": false, "expected": "game-netcode"},
   {"query": "load test our matchmaking servers with fifty thousand simulated players", "should_trigger": false, "expected": "capacity-planning"},
   {"query": "check that our drop table gives the advertised rates over ten million draws", "should_trigger": false, "expected": "loot-odds-verification"},
   {"query": "tune enemy difficulty so the second level is not a wall for new players", "should_trigger": false, "expected": "game-balance"}

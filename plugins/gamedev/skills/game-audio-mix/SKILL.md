@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 
 The work is done when dialogue is understood at full combat load on every output mode you ship, a measured loudness figure for each reference scene sits inside the platform target, true peak stays below -1 dBTP, and the measurements are repeatable after the next content drop.
 
-The usual failure is a mix balanced by ear in the studio at one listening level. It sounds right there, then the player on laptop speakers cannot hear the dialogue, the handheld player turns everything up and gets blasted by an explosion, and a console certification check fails on loudness. A number and a repeatable route replace taste as the arbiter.
+The usual failure is a mix balanced by ear in the studio at one listening level. It sounds right there, then the player on laptop speakers cannot hear the dialogue, the handheld player turns everything up and gets blasted by an explosion, and the mix misses the platform's loudness recommendation. A number and a repeatable route replace taste as the arbiter.
 
 ## Scope
 

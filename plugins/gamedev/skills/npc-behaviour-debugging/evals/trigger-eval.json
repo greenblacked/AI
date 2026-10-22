@@ -15,7 +15,7 @@
   {"query": "where should I put doors and cover so the level's navigation works well", "should_trigger": false, "expected": "game-level-design"},
   {"query": "the physics body of the enemy jitters when it stands on a moving platform", "should_trigger": false, "expected": "physics-glitch-triage"},
   {"query": "play the game automatically in CI and report whether the level can be completed", "should_trigger": false, "expected": "automated-playthrough"},
-  {"query": "our clients disagree about where the NPCs are in multiplayer", "should_trigger": false, "expected": "game-desync-forensics"},
+  {"query": "the replay shows the npc positions diverging between two lockstep peers at frame 5200", "should_trigger": false, "expected": "game-desync-forensics"},
   {"query": "write a design document for how companions behave in combat", "should_trigger": false, "expected": "game-design-doc"},
   {"query": "run a playtest to see whether players find the enemies fair", "should_trigger": false, "expected": "game-playtest"},
   {"query": "train a reinforcement learning agent to play the game", "should_trigger": false}

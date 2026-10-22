@@ -14,9 +14,9 @@
   {"query": "the watchdog resets the board every few minutes", "should_trigger": false, "expected": "watchdog-design"},
   {"query": "the CPU hard faults and I need to decode the stacked registers", "should_trigger": false, "expected": "hard-fault-triage"},
   {"query": "how do I debug a problem that I can only see once a day", "should_trigger": false, "expected": "debugging"},
-  {"query": "two RTOS tasks race on a shared buffer", "should_trigger": false},
+  {"query": "two RTOS tasks race on a shared buffer", "should_trigger": false, "expected": "rtos-concurrency-hunt"},
   {"query": "the board does not boot at all after flashing", "should_trigger": false, "expected": "brick-recovery"},
   {"query": "I2C reads the wrong register values from the sensor", "should_trigger": false, "expected": "serial-bus-debug"},
   {"query": "settings in flash are corrupted after power loss", "should_trigger": false, "expected": "flash-storage-durability"},
-  {"query": "how do we protect firmware images from tampering at boot", "should_trigger": false, "expected": "ota-update-safety"}
+  {"query": "make sure a power cut during the firmware update cannot leave a half-written image running", "should_trigger": false, "expected": "ota-update-safety"}
 ]

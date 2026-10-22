@@ -1,6 +1,6 @@
 ---
 name: game-memory-budget
-description: "Set and enforce per-system memory budgets and find leaks and fragmentation on memory-constrained targets. Writes the platform ceiling less the OS reserve as one budget table in the repository, measures peak (not average) memory in a release build on the real target at fixed checkpoints, runs a twenty-loop load-play-unload soak to tell a staircase leak from a plateau cache, diffs snapshots by type and allocation site, and fails CI when a checkpoint exceeds its budget. Use whenever someone says \"out of memory on Switch\", \"the phone kills the game after twenty minutes\", \"memory grows every level load\", \"console TRC memory limit\" or \"heap fragmentation\". Not for import settings that shrink textures and audio or a one-shot import-size kill (game-assets), frame time (game-performance), download size (game-patch-size), or memory growth in a non-game app (debugging)."
+description: "Set and enforce per-system memory budgets and find leaks and fragmentation on memory-constrained targets. Writes the platform ceiling less the OS reserve as one budget table in the repository, measures peak (not average) memory in a release build on the real target at fixed checkpoints, runs a twenty-loop load-play-unload soak to tell a staircase leak from a plateau cache, diffs snapshots by type and allocation site, and fails CI when a checkpoint exceeds its budget. Use whenever someone says \"out of memory on Switch\", \"the phone kills the game after twenty minutes\", \"memory grows every level load\", \"console TRC memory limit\" or \"heap fragmentation\". Not for import settings that shrink textures and audio or a first-install size problem (game-assets), frame time (game-performance), download size (game-patch-size), memory growth in a non-game app (debugging), or background kills of non-game apps (anr-watchdog-triage)."
 allowed-tools: Read, Grep, Glob, Edit, Write
 ---
 
@@ -14,7 +14,7 @@ The usual failure is profiling before budgeting. A team opens a memory snapshot,
 
 Use for: out-of-memory crashes and the OS killing the game; memory that grows across level loads or over a session; a console certification memory limit; deciding what a new feature may cost; heap fragmentation on a long-running session.
 
-Do not use for: shrinking a texture or audio import, or a game that is too large on first launch or killed once at import, which is `game-assets` and which owns the import settings. Frame time and hitches, even when caused by garbage collection, are `game-performance`; this skill owns how large the heap grows, that one how often it collects. Download and patch size are `game-patch-size`. Memory growth in a non-game app is `debugging`.
+Do not use for: shrinking a texture or audio import, or a game that is too large on first install, which is `game-assets` and which owns the import settings. Frame time and hitches, even when caused by garbage collection, are `game-performance`; this skill owns how large the heap grows, that one how often it collects. Download and patch size are `game-patch-size`. Memory growth in a non-game app is `debugging`, and background kills of a non-game app are `anr-watchdog-triage`.
 
 ## Workflow
 

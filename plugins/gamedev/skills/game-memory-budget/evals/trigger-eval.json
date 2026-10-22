@@ -9,7 +9,7 @@
   {"query": "diff two memory snapshots from unity to see what grew between the first and the twentieth load", "should_trigger": true},
   {"query": "peak memory spikes during the level transition when old and new assets are both loaded", "should_trigger": true},
   {"query": "android lowmemorykiller closes our game when the player switches apps, what should the memory target be", "should_trigger": true},
-  {"query": "our textures are huge and the app gets killed on first import on a phone, which compression settings should I use", "should_trigger": false, "expected": "game-assets"},
+  {"query": "our game's first install is too big for the phone store limit because of huge textures, which compression settings should I use", "should_trigger": false, "expected": "game-assets"},
   {"query": "the game stutters every few seconds in the market scene, is it the garbage collector or the gpu", "should_trigger": false, "expected": "game-performance"},
   {"query": "a one line fix produced a thirty gigabyte patch on steam", "should_trigger": false, "expected": "game-patch-size"},
   {"query": "build a bot that plays the first level overnight and reports crashes", "should_trigger": false, "expected": "automated-playthrough"},
@@ -18,5 +18,5 @@
   {"query": "prepare the platform certification checklist and the submission build", "should_trigger": false, "expected": "game-certification"},
   {"query": "reduce the first launch download size of our mobile game below the cellular limit", "should_trigger": false, "expected": "game-assets"},
   {"query": "players on cloud saves lose progress when two devices sync", "should_trigger": false, "expected": "game-save-system"},
-  {"query": "review this pull request that changes the inventory allocation code for correctness", "should_trigger": false, "expected": "code-review"}
+  {"query": "our shopping app gets killed in the background after the user switches away and leaves no crash report, how do we find out why", "should_trigger": false, "expected": "anr-watchdog-triage"}
 ]

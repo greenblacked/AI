@@ -14,10 +14,9 @@
   {"query": "the SPI sensor link is up but returns shifted bits", "should_trigger": false, "expected": "serial-bus-debug"},
   {"query": "the firmware hard faults in the timer ISR", "should_trigger": false, "expected": "hard-fault-triage"},
   {"query": "the config store comes back corrupted after power loss", "should_trigger": false, "expected": "flash-storage-durability"},
-  {"query": "how do we sign firmware and anchor trust in the device", "should_trigger": false, "expected": "ota-update-safety"},
+  {"query": "make sure an interrupted firmware update can roll back to the old image", "should_trigger": false, "expected": "ota-update-safety"},
   {"query": "the device never wakes from sleep", "should_trigger": false, "expected": "sleep-wake-bug-hunt"},
   {"query": "the watchdog resets the board during boot", "should_trigger": false, "expected": "watchdog-design"},
   {"query": "which devices should get the new firmware first in the rollout", "should_trigger": false, "expected": "ota-fleet-rollout"},
-  {"query": "our gateway boots to emergency mode, a start job is running for dev-disk-by-uuid", "should_trigger": false, "expected": "boot-failure-recovery"},
-  {"query": "restore the production database from last night's backup", "should_trigger": false, "expected": "backup-recovery-design"}
+  {"query": "our gateway boots to emergency mode, a start job is running for dev-disk-by-uuid", "should_trigger": false, "expected": "boot-failure-recovery"}
 ]

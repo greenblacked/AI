@@ -13,7 +13,7 @@
 {"query":"write the Deployment and Service manifests for our lobby service","should_trigger":false,"expected":"k8s-workloads"},
 {"query":"plan the patch calendar and what to tell the community about downtime","should_trigger":false,"expected":"game-live-ops"},
 {"query":"submit the new iOS client build and manage staged release in the store","should_trigger":false,"expected":"mobile-release"},
-{"query":"pods are crashlooping since the last deploy","should_trigger":false,"expected":"k8s-workloads"},
+{"query":"pods are crashlooping since the last deploy","should_trigger":false,"expected":"k8s-triage"},
 {"query":"production is down right now and players cannot connect","should_trigger":false,"expected":"incident-response"},
 {"query":"queues are ten minutes at night and ranked matches are lopsided","should_trigger":false,"expected":"matchmaking-tuning"},
 {"query":"two peers of our lockstep game diverged at frame 9000","should_trigger":false,"expected":"game-desync-forensics"},

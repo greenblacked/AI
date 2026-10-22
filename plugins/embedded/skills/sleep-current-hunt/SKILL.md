@@ -1,6 +1,6 @@
 ---
 name: sleep-current-hunt
-description: "Find why a battery device draws milliamps asleep or dies in months instead of years, and estimate battery life from a measured trace: measure with a current-ranging power profiler or a shunt and scope, never a bench multimeter, capture a full cycle and integrate charge, rank slices by charge rather than peak, derate capacity for cold, cutoff voltage and self-discharge, then bisect the sleep floor with sleep-only firmware and restore peripherals one at a time. Use for \"sleep current is 800 uA, datasheet says 3\", \"battery lasts weeks not years\", \"estimate battery life from this current trace\". Not for devices that fail to wake or lose state (sleep-wake-bug-hunt), CPU time hot spots (profiling), phone app battery use or a unit that will not start (brick-recovery). A debugger-attached current reading is here; a debugger-attached hang is sleep-wake-bug-hunt."
+description: "Find why a battery device draws milliamps asleep or dies in months instead of years, and estimate battery life from a measured trace: measure with a current-ranging power profiler or a shunt and scope, never a bench multimeter, integrate charge over a full cycle, rank slices by charge rather than peak, derate capacity for cold, cutoff voltage and self-discharge, then bisect the sleep floor with sleep-only firmware and restore peripherals one at a time. Use for \"sleep current is 800 uA, datasheet says 3\", \"battery lasts weeks not years\", \"estimate battery life from this current trace\". Not for devices that fail to wake or lose state (sleep-wake-bug-hunt), CPU time hot spots (profiling), phone app battery use (battery-drain-diagnosis in client-apps) or a unit that will not start (brick-recovery). A debugger-attached current reading is here; a debugger-attached hang is sleep-wake-bug-hunt."
 allowed-tools: Read, Glob, Grep
 ---
 
@@ -14,7 +14,7 @@ The usual failure is trusting a datasheet figure that holds for the bare chip un
 
 Use for: measuring and explaining a device's current in sleep and in its active slices; estimating battery life from a trace; locating the part of the board or firmware that holds the floor high.
 
-Do not use for: a device that does not wake, wakes instantly or loses state (`sleep-wake-bug-hunt`); finding CPU time hot spots (`profiling`); reviving a dead unit (`brick-recovery`). When a debug probe changes the reading, the current question is here, but the functional hang it hides is `sleep-wake-bug-hunt`.
+Do not use for: a device that does not wake, wakes instantly or loses state (`sleep-wake-bug-hunt`); finding CPU time hot spots (`profiling`); reviving a dead unit (`brick-recovery`); a phone app that drains its own battery (`battery-drain-diagnosis`, in the `client-apps` plugin). When a debug probe changes the reading, the current question is here, but the functional hang it hides is `sleep-wake-bug-hunt`.
 
 ## Workflow
 

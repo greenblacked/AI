@@ -18,5 +18,5 @@
   {"query": "plan the staged firmware rollout across our fleet", "should_trigger": false, "expected": "ota-fleet-rollout"},
   {"query": "the UART bytes arrive garbled at the sensor", "should_trigger": false, "expected": "serial-bus-debug"},
   {"query": "the processor takes a hard fault when the timer interrupt fires", "should_trigger": false, "expected": "hard-fault-triage"},
-  {"query": "my phone app drains the battery in the background", "should_trigger": false}
+  {"query": "my phone app drains the battery in the background", "should_trigger": false, "expected": "battery-drain-diagnosis"}
 ]

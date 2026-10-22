@@ -18,7 +18,7 @@ outdir=$(mktemp -d)
 for s in 0 1 2 3 42 1000003 4294967295; do
   ./gen --seed "$s" --version 3 --out "$outdir/out-$s.bin" || exit 1
   sha256sum "$outdir/out-$s.bin"
-done > hashes-$(uname -s)-$(uname -m).txt
+done > "hashes-$(uname -s)-$(uname -m).txt"
 ```
 
 The fresh directory and the `|| exit 1` mean a failed generation stops the run instead of hashing a file left over from an earlier one. The hashes include the output path, so strip it (`sed 's| .*||'` on each file) before the `diff`, or hash from inside `$outdir`.
@@ -93,7 +93,7 @@ For each soft metric, write one row per seed to a CSV during the same sweep, the
 metric              p0.1    p1     p50    p99    p99.9   accepted
 rooms                 3      6      14     22      26     5 to 24
 dead_end_ratio      0.00   0.05   0.22   0.48    0.61     below 0.55
-steps_to_first_reward 2     5      31    190     420      below 120
+steps_to_first_reward 2     5      31    190     420      below 200
 ```
 
-The numbers are examples. Read the rows at both ends: the p0.1 row of `rooms` and the p99.9 row of `steps_to_first_reward` name the seeds to render and look at. Add those seeds to a gallery in the review, and set the accepted range only after looking at them.
+The numbers are examples. Each accepted range here contains the p1 and p99 values, so fewer than 1 percent of seeds fall outside it on either tail; a range that excludes the p99 would report a 1 percent tail of bad levels, which step 3 of `SKILL.md` treats as a defect to fix, not a range to accept. Read the rows at both ends: the p0.1 row of `rooms` and the p99.9 row of `steps_to_first_reward` name the seeds to render and look at. Add those seeds to a gallery in the review, and set the accepted range only after looking at them.

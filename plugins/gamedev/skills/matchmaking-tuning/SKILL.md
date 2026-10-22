@@ -60,7 +60,7 @@ Replay historical queue snapshots (who was waiting, with which rating, region, p
 
 ### 7. Run one change per experiment and gate on player outcomes
 
-Only what survives replay goes to a live A/B, and one change at a time. A/B design (assignment, sample size and duration, and how to avoid interference between arms, which is real in matchmaking because arms share one pool) deserves care; treat the arms as separate pools or split by region where that can be arranged. Primary metrics are the targets from step 1. Gate on post-match leave rate and next-day return, broken out by quality bucket, since an improvement on average can hide a worse experience for the tail that matters.
+Only what survives replay goes to a live A/B, and one change at a time. Design the test itself (assignment, sample size and duration, stopping rule) with `experiment-design`. Interference between arms is the matchmaking-specific risk, because arms share one pool; treat the arms as separate pools or split by region where that can be arranged. Primary metrics are the targets from step 1. Gate on post-match leave rate and next-day return, broken out by quality bucket, since an improvement on average can hide a worse experience for the tail that matters.
 
 ## Hand back
 

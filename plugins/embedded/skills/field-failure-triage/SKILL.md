@@ -63,7 +63,7 @@ On the bench, take a failing unit and a good one and exchange the suspect pieces
 
 ### 7. Decide containment before the root cause
 
-Waiting for a certain cause while units keep shipping or failing is a choice. Decide the containment that is cheap and reversible: hold the suspect lot, stop shipping a hardware revision, pause the rollout of a firmware, or apply a server-side fix that needs no device reachability, such as relaxing a certificate check on the server side or extending a keepalive on the broker. Record what is held and what evidence would release it.
+Waiting for a certain cause while units keep shipping or failing is a choice. Decide the containment that is cheap and reversible: hold the suspect lot, stop shipping a hardware revision, pause the rollout of a firmware, or apply a server-side fix that needs no device reachability, such as extending a keepalive on the broker or, only as a last resort, relaxing a server-side certificate check. Relaxing a check is time-boxed with an expiry date, logged, and needs a security owner's sign-off. It stays consistent with `device-trust-anchors`, which rules out disabling certificate validation to get past a clock or trust problem, so the relaxation applies to the server's own checks of a peer and never to a device's validation of the server. Record what is held and what evidence would release it.
 
 ### 8. Verify against the next lot
 

@@ -1,6 +1,6 @@
 ---
 name: fleet-provisioning
-description: "Give every manufactured device its own factory identity and an auditable record. Generate the key pair inside the secure element or crypto block and export only a CSR; never flash a shared key or keep a private key on the line PC. Run a fixed station flow (firmware, readout protection with RMA path, key, per-product intermediate CA under an offline root, certificate read back, functional test, then record), keep a registry row per unit, reconcile against the manufacturer's count weekly to catch overbuild and claim units by proof of possession. Use for \"how do we provision certificates in manufacturing\", \"we flash the same key to every unit\", \"the contract manufacturer built extras\", \"claim a device to a customer account\". Not for rotating live credentials (secret-rotation), server ACME (certificate-automation) or trust-chain lifetime in the field (device-trust-anchors)."
+description: "Give every manufactured device its own factory identity and an auditable record. Generate the key pair inside the secure element or crypto block and export only a CSR; never flash a shared key or keep a private key on the line PC. Run a fixed station flow (firmware, reversible readout protection, key, per-product intermediate CA under an offline root, certificate read back, functional test, record, then any permanent lock), keep a registry row per unit, reconcile against the manufacturer's count weekly to catch overbuild and claim units by proof of possession. Use for \"how do we provision certificates in manufacturing\", \"we flash the same key to every unit\", \"the contract manufacturer built extras\", \"claim a device to a customer account\". Not for rotating live credentials (secret-rotation), server ACME (certificate-automation) or trust-chain lifetime in the field (device-trust-anchors)."
 allowed-tools: Read, Glob, Grep
 ---
 
@@ -35,12 +35,13 @@ Prefer a part whose secure element supports locking configuration, so the slot p
 The order matters because each step guards the next. A unit that fails midway must be unable to leave as a half-finished product.
 
 1. Program the bootloader and firmware, and read back their hashes.
-2. Enable readout protection, and decide the RMA unlock now. Some parts have a level that can be regressed with a mass erase; others have a permanent level with no way back. Choose per product: a permanent level means a returned unit is scrapped or re-flashed only by replacing the chip, which is a cost to price in. Whatever the choice, document the unlock and require authentication for it, so a field unit cannot be unlocked by anyone holding a debug probe.
+2. Enable readout protection at a reversible level only, one that a mass erase or an authenticated regression can undo, so the unit stays recoverable while it is still being tested. Decide the RMA unlock now. Some parts have a level that can be regressed with a mass erase; others have a permanent level with no way back, and a permanent level means a returned unit is scrapped or re-flashed only by replacing the chip, which is a cost to price in. Whatever the choice, document the unlock and require authentication for it, so a field unit cannot be unlocked by anyone holding a debug probe. If the product uses a permanent level, it is applied in step 8, never here.
 3. Generate the key on the device and export the CSR.
 4. Send the CSR to the signing service (step 4) and receive the certificate.
 5. Write the certificate and read it back. Compare the public key in the certificate with the one the device reports, so a certificate for the wrong unit is caught before it ships.
 6. Run the functional test, including a handshake or a signed challenge using the new identity.
 7. Only then write the registry row and mark the unit as passed. A row written before the test records units that never worked.
+8. If the product uses a permanent or irreversible readout-protection level, set it now, as the very last step, after the functional test has passed and the registry row is written. A permanent level applied earlier turns every unit that fails test or needs rework into scrap. Read the level back and record it in the registry as an appended event.
 
 ### 4. Signing hierarchy
 

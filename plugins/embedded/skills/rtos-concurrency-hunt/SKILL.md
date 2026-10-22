@@ -26,7 +26,7 @@ Write down exactly what was observed and when, then pick the class. The class de
 | --- | --- |
 | Corrupted data, wrong values, crashes in unrelated code | Shared data without protection; stack overflow; a call that is not interrupt-safe made from an interrupt; heap corruption |
 | System or part of it stops, other tasks still run | Lock-order cycle; mutex held while waiting on a queue or event; a task blocked forever on something nobody gives |
-| A high-priority task stalls a low-priority one for long periods | Priority inversion; a task that polls instead of blocking |
+| A high-priority task waits for long periods while lower-priority work runs | Priority inversion; a task that polls instead of blocking |
 | A task never runs | Starved by a higher-priority busy task; suspended; blocked on an object never signalled; created with too little stack and crashed at once |
 | Events or messages missing | Queue full with a zero timeout send; notification coalescing; an interrupt that fires faster than the task drains |
 
@@ -34,7 +34,7 @@ Write down exactly what was observed and when, then pick the class. The class de
 
 These cost little and often end the hunt at once.
 
-- Stack overflow detection. In FreeRTOS set `configCHECK_FOR_STACK_OVERFLOW` to 2 and define `vApplicationStackOverflowHook`; log the task name and stop. Stack depth in `xTaskCreate` is counted in words, not bytes, a common source of stacks a quarter of the intended size. `uxTaskGetStackHighWaterMark` reports the minimum free stack seen; check every task under load and keep a margin. In Zephyr enable `CONFIG_STACK_SENTINEL` or hardware stack protection where the part has it, and `CONFIG_THREAD_ANALYZER` for usage.
+- Stack overflow detection. In FreeRTOS set `configCHECK_FOR_STACK_OVERFLOW` to 2 and define `vApplicationStackOverflowHook`; log the task name and stop. In vanilla FreeRTOS the stack depth in `xTaskCreate` is counted in words, not bytes, so passing a byte count gives four times the intended stack on a 32-bit part. ESP-IDF's `xTaskCreate` takes bytes, so code ported between the two ends up four times too large or a quarter of the intended size. `uxTaskGetStackHighWaterMark` reports the minimum free stack seen; check every task under load and keep a margin. In Zephyr enable `CONFIG_STACK_SENTINEL` or hardware stack protection where the part has it, and `CONFIG_THREAD_ANALYZER` for usage.
 - Assertions. Define `configASSERT` to log and halt. On Cortex-M ports the kernel asserts if an interrupt that calls a `FromISR` function is more urgent than `configMAX_SYSCALL_INTERRUPT_PRIORITY`, which is exactly the check that finds the interrupt-priority bug. It is compiled out when `configASSERT` is undefined.
 - Allocation failures. Define `vApplicationMallocFailedHook` and log `xPortGetMinimumEverFreeHeapSize` to see how close the heap came to empty.
 - Task states and run time. Enable the trace facility and run-time statistics (`configUSE_TRACE_FACILITY`, `configGENERATE_RUN_TIME_STATS`) and dump `vTaskList` and `vTaskGetRunTimeStats` output periodically and from a console command. A task that is always Ready and never Running is starved; a task Blocked with a long age is waiting on something.

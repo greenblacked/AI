@@ -16,14 +16,14 @@ Names below are the ones the engines document at the time of writing. Check the 
 
 ## Unreal Engine
 
-- Recording: the PSO recording mode is enabled with the `-logPSO` command-line switch on a development or test build. The recorded files are then merged into the project's shipping bundled PSO cache by the cook step.
+- Recording: the PSO recording mode is enabled with the `-logPSO` command-line switch on a development or test build. It writes `.rec.upipelinecache` files. Merge them with the `.shk` stable-key files from the cook by running the `ShaderPipelineCacheTools` commandlet with its `expand` command; the resulting `.spc` file goes under `Build/<Platform>/PipelineCaches` and is packaged with the build. Check the docs for your engine version, because file names and paths have changed between releases.
 - Runtime: the shader pipeline cache is controlled by the `r.ShaderPipelineCache.Enabled` console variable; a bundled cache is precompiled in the background during load, and the engine API lets a game pause and resume that batch.
 - Newer versions add PSO precaching, which requests pipelines when a component is registered rather than when first drawn (`r.PSOPrecaching`). Check the version notes: it reduces the recording burden but does not remove it for every material path, and it can be combined with the bundled cache.
 - The cost to watch is draws that wait on a pipeline still being built. Decide whether the engine skips the draw for a frame or stalls; the setting differs by version.
 
 ## Unity
 
-- Collect used variants into a `ShaderVariantCollection` asset (the editor can record the variants used in a play session) and call its `WarmUp` method during loading. `Shader.WarmupAllShaders` exists but compiles every variant in the build, which is the exploded set this skill tries to avoid.
+- Collect used variants into a `ShaderVariantCollection` asset (the editor can record the variants used in a play session) and call its `WarmUp` method during loading. `Shader.WarmupAllShaders` exists but warms every variant of the shaders currently loaded in memory, not every variant in the build; that is still the large set this skill tries to avoid, not the manifest of variants actually used.
 - Strip first: the build's shader stripping, plus removing unused keywords and `shader_feature` versus `multi_compile` choices. A `multi_compile` line multiplies the variant count by its number of options; a `shader_feature` only keeps what materials in the build use.
 - Newer versions provide a graphics state collection that records and warms full pipeline state; where available it is the closer match for DX12, Vulkan and Metal because a shader warm-up alone does not build the PSO.
 
