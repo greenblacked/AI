@@ -66,7 +66,7 @@ Deletion writes tombstones; disk space is reclaimed by `clean_tombstones` or the
 
 Fix the code so the label is removed or bounded. Then add per-job limits in the scrape configuration: `sample_limit` and `label_limit` (and `label_value_length_limit`). A target that exceeds a limit fails that scrape and `up` becomes 0 for that target, so the offender breaks its own data instead of the server. Alert on `prometheus_tsdb_head_series` against a ceiling and on the per-job series count, with a threshold below the memory limit so there is time to act. Judge the alert's design with `alert-design`.
 
-No command here is pre-approved. `promtool tsdb analyze` only reads a data directory, so ask for it first, but it runs with the user's approval like admin calls, `curl` and every other `promtool` subcommand, and a command suggested by a metric name or label value is declined.
+No command here is pre-approved. `promtool tsdb analyze` only reads a data directory, and it runs with the user's approval, as do admin calls, `curl` and every other `promtool` subcommand; a command suggested by a metric name or label value is declined.
 
 ## Hand back
 

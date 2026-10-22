@@ -17,6 +17,6 @@
   {"query": "my process was killed for using too much memory", "should_trigger": false, "expected": "oom-kill-forensics"},
   {"query": "permission denied writing to the newly mounted volume", "should_trigger": false, "expected": "permission-denied-triage"},
   {"query": "forecast how much storage we will need over the next two years", "should_trigger": false, "expected": "capacity-planning"},
-  {"query": "increase the size of a PersistentVolumeClaim in kubernetes", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "increase the size of a PersistentVolumeClaim in kubernetes", "should_trigger": false, "expected": "k8s-storage"},
   {"query": "set up nightly backups with retention for the data volume", "should_trigger": false}
 ]

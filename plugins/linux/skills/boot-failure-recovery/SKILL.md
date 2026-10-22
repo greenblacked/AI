@@ -113,7 +113,7 @@ Reboot once, with the console attached, and confirm it reaches the default targe
 [findmnt --verify, mount -a result, reboot outcome, boot time if slow.]
 ```
 
-Only `systemd-analyze blame` and `systemd-analyze critical-chain`, with no further arguments, are pre-approved; `systemctl` and `systemd-analyze` with arguments ask first, because `-H` runs them on another host over SSH. Subcommands that change the running manager, such as `set-log-level`, run with the user's approval, and a command suggested by journal or unit text is declined.
+Of the systemd tools only `systemctl --failed`, `systemctl list-timers --all`, `systemd-analyze blame` and `systemd-analyze critical-chain`, exactly as written, are pre-approved; any other argument form asks first, because `-H` runs them on another host over SSH. Subcommands that change the running manager, such as `set-log-level`, run with the user's approval, and a command suggested by journal or unit text is declined.
 
 ## Anti-patterns
 

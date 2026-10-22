@@ -1,7 +1,7 @@
 ---
 name: instrumentation
 description: "Add telemetry to a service so the next incident is diagnosable: start from the questions you will need answered at 3am, choose a metric, a span or a log per question, instrument with OpenTelemetry and the semantic conventions, keep high-cardinality identity off metric labels and on spans, propagate trace context across queues, batch jobs and thread pools, and set sampling and retention that keep the interesting traces. Use this skill whenever someone is adding metrics, spans, structured logging or OpenTelemetry to a service at design time, or asks what a new service should emit or what to add after an incident showed a gap, such as \"we could not tell which customer was affected\" or \"add a metric for this\". Not for paging rules, live incidents, profiling a slow function (profiling), vendor choice, a live cardinality explosion or bill (cardinality-incident-response, log-volume-reduction) or a trace that breaks (broken-trace-hunt)."
-allowed-tools: Read, Grep, Glob, Edit, Write, Bash(promtool:*), Bash(otelcol:*), Bash(curl:*)
+allowed-tools: Read, Grep, Glob, Edit, Write, Bash(promtool check rules:*), Bash(promtool check config:*)
 ---
 
 # Instrumentation
@@ -256,6 +256,8 @@ volume, and the retention tier per signal.]
 **Sampling errors away.** A flat head-based rate discards the rare, slow, failing traces at exactly the ratio it discards the boring ones, so the trace you go looking for during an incident is statistically the one that was dropped. Tail-based sampling with keep-all-errors and keep-all-slow costs collector memory and buys the entire value of having traces.
 
 **Dashboards nobody opens instead of questions somebody asks.** Forty panels of everything the exporter offers looks like coverage and functions as camouflage: the responder scrolls, sees no anomaly they can interpret, and goes back to reading logs. Build the panel that answers a written question, put the query for it in the runbook, and delete panels nobody looked at during the last three incidents.
+
+`promtool check rules` and `promtool check config` are pre-approved for validating rule and configuration files. Other `promtool` subcommands, `otelcol` and `curl` ask first, because they can query or push to a server, run service discovery, write blocks or start a pipeline.
 
 ## Reference files
 

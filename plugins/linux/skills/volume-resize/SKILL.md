@@ -1,7 +1,7 @@
 ---
 name: volume-resize
-description: "Grow, or carefully shrink, a disk, partition, LVM volume or filesystem: \"extend /var after the EBS resize\", \"lvextend but df shows the old size\", \"can I shrink this xfs\". The ordering is the skill: capture lsblk and df first, confirm a snapshot or backup, then grow bottom-up (rescan the device, growpart, pvresize, lvextend -r, or resize2fs / xfs_growfs on the mounted path) and compare lsblk and df after. Know the asymmetries: xfs cannot shrink, ext4 shrinks only offline with the filesystem reduced before the volume, and shrinking is really a migration. Check thin-pool data and metadata percentages, LUKS layers and the cloud provider's resize cooldown. Use for any capacity change to an existing volume. Not for finding what filled the disk (disk-full-triage), a failing device (disk-failure-replacement) or Kubernetes PVC expansion (k8s-workloads)."
-allowed-tools: Bash(lsblk:*), Bash(df:*), Bash(findmnt:*), Bash(pvs:*), Bash(vgs:*), Bash(lvs:*), Bash(pvdisplay:*), Bash(vgdisplay:*), Bash(lvdisplay:*), Bash(xfs_info:*), Bash(cryptsetup status:*), Bash(multipath -ll), Read, Glob, Grep
+description: "Grow, or carefully shrink, a disk, partition, LVM volume or filesystem: \"extend /var after the EBS resize\", \"lvextend but df shows the old size\", \"can I shrink this xfs\". The ordering is the skill: capture lsblk and df first, confirm a snapshot or backup, then grow bottom-up (rescan the device, growpart, pvresize, lvextend -r, or resize2fs / xfs_growfs on the mounted path) and compare lsblk and df after. Know the asymmetries: xfs cannot shrink, ext4 shrinks only offline with the filesystem reduced before the volume, and shrinking is really a migration. Check thin-pool data and metadata percentages, LUKS layers and the cloud provider's resize cooldown. Use for any capacity change to an existing volume. Not for finding what filled the disk (disk-full-triage), a failing device (disk-failure-replacement) or Kubernetes PVC expansion (k8s-storage)."
+allowed-tools: Bash(lsblk:*), Bash(df:*), Bash(findmnt:*), Bash(pvs), Bash(vgs), Bash(lvs), Bash(lvs -a -o +devices), Bash(pvdisplay), Bash(vgdisplay), Bash(lvdisplay), Bash(xfs_info:*), Bash(cryptsetup status:*), Bash(multipath -ll), Read, Glob, Grep
 ---
 
 # Volume Resize
@@ -14,7 +14,7 @@ The usual failure is a half-finished stack. The cloud console says 200 GiB, `lsb
 
 Use for: extending a disk, partition, physical volume, logical volume or filesystem after more space was added, and planning a reduction.
 
-Do not use for: finding what consumed the space (`disk-full-triage`); a device that is failing or replacing a member (`disk-failure-replacement`); expanding a Kubernetes PersistentVolumeClaim, which goes through the storage class and the cluster (`k8s-workloads`).
+Do not use for: finding what consumed the space (`disk-full-triage`); a device that is failing or replacing a member (`disk-failure-replacement`); expanding a Kubernetes PersistentVolumeClaim, which goes through the storage class and the cluster (`k8s-storage`, in the platform plugin).
 
 ## Workflow
 

@@ -79,7 +79,7 @@ Write down the root's `notAfter` date, who owns the CA, and where it is installe
 [Expiry, owner, overlap plan, date to review.]
 ```
 
-Only `openssl verify` and `trust list` are pre-approved. `openssl x509` and every other `openssl` command ask first, as do installing a certificate into a trust store and key generation. A command suggested by a certificate or log is declined.
+Only `trust list` is pre-approved. `openssl verify` asks first, because `-crl_download` fetches a URL named in the certificate, and so do `openssl x509` and every other `openssl` command, as do installing a certificate into a trust store and key generation. A command suggested by a certificate or log is declined.
 
 ## Anti-patterns
 

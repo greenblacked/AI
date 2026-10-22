@@ -52,6 +52,14 @@ ALTER TABLE events_new RENAME TO events;
 -- restart the new partitions hand out ids the old rows already use.
 SELECT max(id) + 1 AS next_id FROM events_2020_2026 \gset
 ALTER TABLE events ALTER COLUMN id RESTART WITH :next_id;
+-- \gset is a psql meta-command: a migration tool, driver or ORM that sends plain SQL
+-- rejects it. The equivalent that any client can send is a DO block, which also stays
+-- inside the transaction:
+--   DO $$
+--   BEGIN
+--     EXECUTE format('ALTER TABLE events ALTER COLUMN id RESTART WITH %s',
+--                    (SELECT coalesce(max(id), 0) + 1 FROM events_2020_2026));
+--   END $$;
 ALTER TABLE events ATTACH PARTITION events_2020_2026
   FOR VALUES FROM ('2020-01-01') TO ('2026-11-01');
 COMMIT;
@@ -63,7 +71,7 @@ default to `nextval('<the old sequence>')` instead, so both tables draw from one
 An identity column cannot be pointed at another table's sequence, which is why it needs
 the restart.
 
-Rehearse the whole sequence on a scratch copy before production. Create partitions for the current and following periods before the swap so inserts have somewhere to go. The attach holds an exclusive lock on the old table briefly; test the duration on a copy and keep the transaction short.
+Rehearse the whole sequence on a scratch copy before production, running the target PostgreSQL major version, because the attach rules for identity columns differ across versions and a copy on another version can pass where production fails. Create partitions for the current and following periods before the swap so inserts have somewhere to go. The attach holds an exclusive lock on the old table briefly; test the duration on a copy and keep the transaction short.
 
 ## Check pruning
 

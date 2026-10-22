@@ -1,7 +1,7 @@
 ---
 name: disk-failure-replacement
 description: "Handle a failing or failed disk in mdadm, ZFS or LVM mirrors. Use for \"mdadm array is degraded\", \"SMART says reallocated sectors\", \"zpool shows DEGRADED\" or \"filesystem remounted read-only after I/O errors\". Confirm the failure from the kernel and the drive, not one tool: dmesg I/O errors, smartctl -a (reallocated, pending and CRC counts split media from cabling), mdadm --detail or zpool status. Identify the physical disk by serial number before pulling anything, check the surviving disks' SMART before a rebuild stresses them, and confirm a verified backup first. Then replace in order: fail and remove, copy the partition table, add, watch /proc/mdstat or the resilver. After a read-only remount do not fsck a degraded device until it is imaged. Record the serial and date. Not for space (disk-full-triage), growing volumes (volume-resize) or backup strategy (backup-recovery-design)."
-allowed-tools: Bash(zpool status:*), Bash(zpool list:*), Bash(lsblk:*), Bash(lvs:*), Read, Glob, Grep
+allowed-tools: Bash(zpool status), Bash(zpool status -v), Bash(zpool status -x), Bash(zpool list:*), Bash(lsblk:*), Bash(lvs), Bash(lvs -a -o +devices), Read, Glob, Grep
 ---
 
 # Disk Failure Replacement

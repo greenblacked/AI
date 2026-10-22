@@ -37,7 +37,7 @@ For IPv6 add `-6` to the ping and use `$((lo + 48))`. Run it at a quiet moment: 
 | TCP MSS for a given MTU, IPv6 | MTU - 60 |
 | Inner MTU through a tunnel | underlay MTU - encapsulation overhead |
 
-Example: payload 1372 passes and 1373 fails on IPv4. Packet size 1400. With a 1500 underlay that is 100 bytes of overhead, more than a single WireGuard (60), GRE (24), VXLAN (50) or PPPoE (8) layer adds. Two things match 1400: a single IPsec tunnel (ESP in tunnel mode, with NAT-T, at the low end of the "about 1400 to 1450" range in `SKILL.md`) or a tunnel somebody configured at MTU 1400. Check the interface MTU and the IPsec policy before assuming a stack. Stacked layers have to add up to 100 to explain it: WireGuard plus VXLAN is 60 + 50 = 110 and would give 1390, so it is not this path, and neither is PPPoE under WireGuard (8 + 60 = 68, giving 1432).
+Example: payload 1372 passes and 1373 fails on IPv4. Packet size 1400. With a 1500 underlay that is 100 bytes of overhead, more than a single WireGuard (60), GRE (24), VXLAN (50) or PPPoE (8) layer adds. A single IPsec tunnel does not explain it: `SKILL.md` puts ESP in tunnel mode at 50 to 73 bytes, plus 8 for NAT-T, so at most 81 bytes and an inner MTU of about 1419 or more. Two things really give 100: VXLAN inside VXLAN (50 + 50 = 100, as with an overlay nested in another overlay), or a tunnel interface somebody configured at MTU 1400. Check the interface MTU (`ip -d link`) before assuming a stack. Stacked layers have to add up to 100 to explain it: WireGuard plus VXLAN is 60 + 50 = 110 and would give 1390, so it is not this path, and neither is PPPoE under WireGuard (8 + 60 = 68, giving 1432).
 
 ## Reading the result
 

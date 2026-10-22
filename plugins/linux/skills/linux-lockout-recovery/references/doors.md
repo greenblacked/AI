@@ -73,9 +73,14 @@ cp -a /root/ssh.good/sshd_config.d /etc/ssh/sshd_config.d
 cp -a /root/sudoers.good/sudoers /etc/sudoers
 rm -rf /etc/sudoers.d
 cp -a /root/sudoers.good/sudoers.d /etc/sudoers.d
-# Include targets outside those paths were saved under include/ with their full paths
-test ! -d /root/ssh.good/include || cp -a /root/ssh.good/include/. /
-test ! -d /root/sudoers.good/include || cp -a /root/sudoers.good/include/. /
+# Include targets outside those paths were saved under include/ with their full paths.
+# Restore files and symlinks one by one, never a directory: copying a saved directory
+# onto / or /etc would stamp the snapshot's mode and timestamps onto the live one.
+# An empty include/ restores nothing and is not an error.
+for snap in /root/ssh.good/include /root/sudoers.good/include; do
+  (cd "$snap" && find . \( -type f -o -type l \) -print0) |
+    while IFS= read -r -d '' f; do cp -a "$snap/$f" "/${f#./}"; done
+done
 # validate before reloading; under set -e a failed check leaves sshd running as it is
 visudo -c
 /usr/sbin/sshd -t
@@ -101,7 +106,7 @@ cp -a --parents /PATH/FROM/INCLUDE /root/ssh.good/include/       # sshd Include 
 cp -a --parents /PATH/FROM/INCLUDE /root/sudoers.good/include/   # @include and @includedir targets
 ```
 
-An included file that stays live keeps the fault if only the main file is restored, which is why the snapshot, like step 4, covers every target. The snapshots live apart from the evidence directory of SKILL.md step 4, which holds the broken state and is never restored from. Both must exist before the timer is armed, and the script restores sudoers as well as sshd because step 8 arms one rollback for any risky edit, not only an sshd one. Use absolute paths inside the script. A timer or `at` job runs with a minimal environment.
+An included file that stays live keeps the fault if only the main file is restored, which is why the snapshot, like step 4, covers every target. A copy-back restore only overwrites; it does not remove a file the edit newly created inside an `@includedir` or sshd `Include` directory outside `sudoers.d` and `sshd_config.d`, and that file stays live. After the restore, list each such directory against its snapshot with `diff -rq /root/sudoers.good/include/DIR /DIR` (or `/root/ssh.good/include/DIR`) and remove every file reported as `Only in /DIR`, since it was not in the snapshot. The snapshots live apart from the evidence directory of SKILL.md step 4, which holds the broken state and is never restored from. Both must exist before the timer is armed, and the script restores sudoers as well as sshd because step 8 arms one rollback for any risky edit, not only an sshd one. Use absolute paths inside the script. A timer or `at` job runs with a minimal environment.
 
 ## Repair recipes
 

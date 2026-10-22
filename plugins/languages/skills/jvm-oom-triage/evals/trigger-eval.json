@@ -6,7 +6,7 @@
   {"query": "GC overhead limit exceeded and the service gets slower before it dies", "should_trigger": true},
   {"query": "exit code 137 on a java pod, is it heap or something else", "should_trigger": true},
   {"query": "OutOfMemoryError: Direct buffer memory with netty", "should_trigger": true},
-  {"query": "how should I size Xmx against the container memory limit", "should_trigger": true},
+  {"query": "the pod restarted: was that OOMKilled by the kernel or java.lang.OutOfMemoryError: Java heap space, and how do I tell", "should_trigger": true},
   {"query": "how do I use native memory tracking to see where non-heap memory goes", "should_trigger": true},
   {"query": "the jvm heap keeps growing, how do I tell which class is leaking", "should_trigger": true},
   {"query": "tune G1 pause times and pick a collector for our latency target", "should_trigger": false, "expected": "jvm-gc-tuning"},
