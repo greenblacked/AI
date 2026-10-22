@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "techdocs",
+  "description": "Skills for keeping public and developer documentation true: clean-room tutorials, tested samples, drift detection, stable URLs, error catalogues, API diff gates, search vocabulary, terminology, CLI reference and accessibility conformance reports.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "documentation",
+    "docs-as-code",
+    "api-reference",
+    "tutorials",
+    "accessibility"
+  ]
+}
