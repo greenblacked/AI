@@ -63,7 +63,9 @@ trust condition refuses them. Delete the test workflows and service accounts aft
 ## Retiring the keys
 
 Disable, wait, then delete. Disabling is reversible in seconds when an undocumented
-consumer appears; deletion is not.
+consumer appears; deletion is not. Azure is the exception: an app registration's client
+secrets and certificates cannot be disabled, only deleted, so the Azure step below is
+irreversible and has no wait-and-watch stage of its own.
 
 ```bash
 aws iam update-access-key --user-name "$IAM_USER" --access-key-id "$OLD_KEY_ID" --status Inactive
@@ -72,7 +74,10 @@ gcloud iam service-accounts keys disable "$KEY_ID" --iam-account="$SA_EMAIL"
 
 Wait past the provider's last-used reporting lag and through at least one full cycle of
 the slowest scheduled consumer, watching for authentication failures from anything still
-holding the key. Then:
+holding the key. For Azure, first confirm there have been no sign-ins with the secret or
+certificate over that same window, using the Microsoft Entra sign-in logs for the service
+principal that the positive-evidence table names. Any sign-in means a consumer still
+depends on it; stop and find it, because the delete cannot be undone. Then:
 
 ```bash
 aws iam delete-access-key --user-name "$IAM_USER" --access-key-id "$OLD_KEY_ID"

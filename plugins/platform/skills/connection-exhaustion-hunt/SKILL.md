@@ -1,6 +1,6 @@
 ---
 name: connection-exhaustion-hunt
-description: "Hunt intermittent timeouts caused by exhausting the network path — NAT or SNAT ports, local ephemeral ports, a full conntrack table, or 5-second DNS stalls from ndots:5 search expansion or the conntrack race. Read counters before changing anything, compute connections per destination IP and port against that path's ceiling, then fix in order: client keepalive and pooling, a private endpoint or more NAT addresses, NodeLocal DNSCache or fully qualified names, and last a bigger conntrack table. Use when requests time out under load, latency clusters at exactly five seconds, logs say cannot assign requested address, the kernel logs nf_conntrack table full, the NAT gateway reports ErrorPortAllocation, or pooled connections go dead after idling. Not for a pod or Service failing outright (k8s-triage), a NetworkPolicy blocking traffic (k8s-network-policy), or the NAT bill (cost-review)."
+description: "Hunt intermittent timeouts from exhausting the network path: NAT or SNAT ports, local ephemeral ports, a full conntrack table, or 5-second DNS stalls (ndots:5 search expansion, the conntrack race). Read counters first, compute connections per destination IP and port against its ceiling, then fix in order: client pooling, a private endpoint or more NAT addresses, NodeLocal DNSCache or FQDNs, last a bigger conntrack table. Use when requests time out under load, latency sits at exactly five seconds, logs say cannot assign requested address, nf_conntrack table full appears, the NAT gateway reports ErrorPortAllocation, or pooled connections die idle. Not for a failing pod or Service (k8s-triage), a NetworkPolicy block (k8s-network-policy), balancer 502s (intermittent-502-hunt), exhausted subnet addresses (ip-exhaustion-recovery) or the NAT bill (data-transfer-forensics)."
 allowed-tools: Read, Grep, Glob
 ---
 
@@ -32,8 +32,10 @@ NAT gateway or SNAT port allocation failures, and DNS lookups that are slow only
 sometimes.
 
 Do not use for: a pod that will not start or a Service with no endpoints
-(`k8s-triage`); traffic blocked by a NetworkPolicy (`k8s-network-policy`); why the NAT
-gateway costs so much (`cost-review`); a database that is slow because of its queries
+(`k8s-triage`); traffic blocked by a NetworkPolicy (`k8s-network-policy`); balancer
+502s from an idle-timeout mismatch (`intermittent-502-hunt`); a subnet or pod range out of
+addresses (`ip-exhaustion-recovery`); why the NAT gateway costs so much, which is
+`data-transfer-forensics` for tracing the bytes; a database that is slow because of its queries
 (`sql-performance`).
 
 ## Workflow

@@ -1,6 +1,6 @@
 ---
 name: intermittent-502-hunt
-description: "Find the cause of sporadic 502s and 504s behind a load balancer or proxy, in order: confirm the balancer's idle timeout is shorter than the upstream's keepalive timeout (the reverse makes the backend close a connection the balancer is reusing), then deregistration delay against the longest request, health-check depth, and 502 bursts on deploy from SIGTERM handling; correlate balancer and app logs by request id to prove which side closed. Use when an ALB, nginx, Envoy or Google Cloud load balancer returns occasional 502 Bad Gateway or 504 Gateway Timeout, for \"random 502s we can't reproduce\", \"a burst of 502s every deploy\", \"upstream prematurely closed connection\" or \"the app logs show nothing\". Not for a pod crashing or never Ready (k8s-triage), edge cache rules (cdn-configuration), name resolution (dns-operations), or a full outage being run live (incident-response)."
+description: "Find the cause of sporadic 502s and 504s behind a load balancer or proxy: confirm the balancer's idle timeout is shorter than the upstream's keepalive timeout (the reverse makes the backend close a connection the balancer is reusing), then deregistration delay against the longest request, health-check depth, and deploy-time bursts from SIGTERM handling; correlate balancer and app logs by request id to prove who closed. Use when an ALB, nginx, Envoy or Google Cloud load balancer returns occasional 502 Bad Gateway or 504, for \"random 502s we can't reproduce\", \"a burst of 502s every deploy\", \"upstream prematurely closed connection\" or \"the app logs show nothing\". Not for a pod crashing or never Ready (k8s-triage), edge cache rules (cdn-configuration), name resolution (dns-operations), port exhaustion (connection-exhaustion-hunt) or a live outage (incident-response)."
 allowed-tools: Read, Grep, Glob
 ---
 
@@ -30,7 +30,9 @@ balancer, ingress controller, sidecar, app server) where any hop can be the one 
 Do not use for: an application that returns 5xx itself (that is an application bug —
 the target's own status code is already 5xx); a workload that is crash-looping or never
 becomes Ready, which is `k8s-triage`; caching behaviour at the edge, which is
-`cdn-configuration`; and a customer-wide outage that needs an incident commander, which
+`cdn-configuration`; timeouts from NAT, SNAT, ephemeral-port or conntrack exhaustion
+between the app and what it calls, which is `connection-exhaustion-hunt`; and a
+customer-wide outage that needs an incident commander, which
 is `incident-response`.
 
 ## Workflow

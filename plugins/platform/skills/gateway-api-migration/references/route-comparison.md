@@ -32,12 +32,18 @@ probe() {
 }
 
 rows=0
+unreachable=0   # old-side probes that got no HTTP status (000 or ERR)
+healthy=0       # old-side probes that returned a 2xx or 3xx
 while IFS=$'\t' read -r host path || [[ -n "$host" ]]; do
   [[ -n "$host" ]] || continue
   rows=$((rows + 1))
   for scheme in http https; do
     old="$(probe "$OLD_IP" "$scheme" "$host" "$path")"
     new="$(probe "$NEW_IP" "$scheme" "$host" "$path")"
+    case "$old" in
+      000*|ERR*|*ERR) unreachable=$((unreachable + 1)) ;;
+      [23][0-9][0-9]\ *) healthy=$((healthy + 1)) ;;
+    esac
     if [[ "$old" != "$new" ]]; then
       printf 'DIFF\t%s://%s%s\told=%s\tnew=%s\n' "$scheme" "$host" "$path" "$old" "$new"
     fi
@@ -45,11 +51,19 @@ while IFS=$'\t' read -r host path || [[ -n "$host" ]]; do
 done < routes.tsv
 printf 'compared %d routes over http and https\n' "$rows"
 [[ "$rows" -gt 0 ]] || { echo 'routes.tsv is empty: nothing was compared' >&2; exit 1; }
+# If both addresses fail the same way every row compares equal, so require the old side to work.
+[[ "$healthy" -gt 0 ]] || {
+  echo "old side returned no 2xx or 3xx ($unreachable unreachable): the comparison proves nothing" >&2
+  exit 1
+}
 ```
 
 The loop reads `routes.tsv` on stdin and `curl` does not touch it, so no later row is
 swallowed. The `|| [[ -n "$host" ]]` keeps a final row that lacks a trailing newline, and
-the summary line stops an empty or misnamed file from looking like a clean run.
+the summary line stops an empty or misnamed file from looking like a clean run. The final
+guard covers the other way to a false pass: if both addresses are unreachable, or both
+return the same error for every row, nothing differs, so the script fails unless at least
+one old-side probe returned a 2xx or 3xx.
 
 `-k` is there because the new Gateway's certificate may not be issued for the name yet
 during early testing; drop it once the Gateway holds the real certificate, and add a check

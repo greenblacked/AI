@@ -13,10 +13,10 @@
   {"query": "our cdn hit ratio is 40% and the origin is getting hammered, how should we set cache headers", "should_trigger": false, "expected": "cdn-configuration"},
   {"query": "the whole site is returning 502 for every customer right now and I'm incident commander", "should_trigger": false, "expected": "incident-response"},
   {"query": "a CNAME still points at a deleted storage bucket, how do we audit for dangling records", "should_trigger": false, "expected": "dns-operations"},
+  {"query": "calls out of our pods time out under load and the NAT gateway reports ErrorPortAllocation, are we out of ports", "should_trigger": false, "expected": "connection-exhaustion-hunt"},
   {"query": "this endpoint takes four seconds because of one slow postgres query, explain analyze attached", "should_trigger": false, "expected": "sql-performance"},
   {"query": "will the load balancer and service hold up at ten times traffic for the launch", "should_trigger": false, "expected": "capacity-planning"},
   {"query": "our TLS certificate on the load balancer expired last night, how do we automate renewal", "should_trigger": false, "expected": "certificate-automation"},
-  {"query": "the 5xx alert pages us at 3am for a single error, how should we redesign it", "should_trigger": false, "expected": "alert-design"},
   {"query": "the service is returning 500 internal server error with a stack trace in our own handler", "should_trigger": false, "expected": "debugging"},
   {"query": "add a redis cache in front of the product catalogue reads with sensible invalidation", "should_trigger": false, "expected": "application-caching"}
 ]

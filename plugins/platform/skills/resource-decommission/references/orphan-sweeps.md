@@ -14,11 +14,16 @@ deliberately detached recovery copy; a reserved address may be allow-listed by a
 
 ## AWS
 
-Most EC2 inventory is regional, so loop over every enabled region.
+Most EC2 inventory is regional, so loop over every enabled region. Assign the region list
+on its own line before the loop: `set -e` does not apply to a command substitution in a
+`for` word list, so an expired token would print nothing and exit 0, which reads as "no
+orphans".
 
 ```bash
 set -Eeuo pipefail
-for r in $(aws ec2 describe-regions --query 'Regions[].RegionName' --output text); do
+regions="$(aws ec2 describe-regions --query 'Regions[].RegionName' --output text)"
+[ -n "$regions" ] || { echo "no regions returned" >&2; exit 1; }
+for r in $regions; do
   echo "== $r unattached volumes"
   aws ec2 describe-volumes --region "$r" --filters Name=status,Values=available \
     --query 'Volumes[].[VolumeId,Size,CreateTime]' --output text
@@ -51,7 +56,8 @@ Target groups with nothing registered, in the same region:
 
 ```bash
 set -Eeuo pipefail
-for tg in $(aws elbv2 describe-target-groups --region "$r" --query 'TargetGroups[].TargetGroupArn' --output text); do
+tgs="$(aws elbv2 describe-target-groups --region "$r" --query 'TargetGroups[].TargetGroupArn' --output text)"
+for tg in $tgs; do
   n="$(aws elbv2 describe-target-health --region "$r" --target-group-arn "$tg" \
         --query 'length(TargetHealthDescriptions)' --output text)"
   if [ "$n" = "0" ]; then

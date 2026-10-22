@@ -11,12 +11,12 @@
   {"query": "pooled database connections die after sitting idle for a few minutes and the next query hangs", "should_trigger": true},
   {"query": "the orders Service has no endpoints and every request gets connection refused", "should_trigger": false, "expected": "k8s-triage"},
   {"query": "we need default-deny network policies in every namespace without breaking anything", "should_trigger": false, "expected": "k8s-network-policy"},
-  {"query": "NAT gateway data processing charges are a third of our AWS bill, how do we cut them", "should_trigger": false, "expected": "cost-review"},
+  {"query": "NAT gateway data processing charges are a third of our AWS bill, how do we cut them", "should_trigger": false, "expected": "data-transfer-forensics"},
+  {"query": "the ALB returns an occasional 502 and the target closes idle keepalive connections sooner than the balancer does", "should_trigger": false, "expected": "intermittent-502-hunt"},
+  {"query": "the subnet has zero free IPs and pods are stuck in ContainerCreating with failed to assign an IP address", "should_trigger": false, "expected": "ip-exhaustion-recovery"},
   {"query": "this report query takes 40 seconds and does a sequential scan on orders", "should_trigger": false, "expected": "sql-performance"},
   {"query": "how big should the connection pool and replica count be for next month's launch traffic", "should_trigger": false, "expected": "capacity-planning"},
   {"query": "kubectl is slow and controllers get 429s from the API server", "should_trigger": false, "expected": "apiserver-pressure"},
-  {"query": "a MikroTik router at the branch office drops connections after the firmware upgrade", "should_trigger": false, "expected": "routeros-config"},
-  {"query": "our TLS certificates expired overnight and clients get handshake errors", "should_trigger": false, "expected": "certificate-automation"},
   {"query": "add a cache in front of the product catalogue service so we stop calling it on every request", "should_trigger": false, "expected": "application-caching"},
   {"query": "prod is down for all customers and I am incident commander, the database will not fail over", "should_trigger": false, "expected": "incident-response"}
 ]

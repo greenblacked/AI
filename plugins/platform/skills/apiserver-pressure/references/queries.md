@@ -170,8 +170,9 @@ ready before you disarm.
 1. Compact history to the current revision, using the revision from `endpoint status`:
 
    ```bash
-   etcdctl endpoint status --write-out=json
-   etcdctl compact "$REV"
+   # The JSON is an array with one object per endpoint; the revision is in its header.
+   REV="$(etcdctl endpoint status --write-out=json | jq -r '.[0].Status.header.revision // empty')"
+   etcdctl compact "${REV:?no revision returned}"
    ```
 
 2. Defragment one member at a time, followers before the leader, waiting for each to

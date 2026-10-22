@@ -1,6 +1,6 @@
 ---
 name: ip-exhaustion-recovery
-description: "Recover from running out of IP addresses — subnets with no free addresses, pods stuck in ContainerCreating because the CNI cannot assign one, nodes that will not launch, or networks that cannot be peered because their CIDRs overlap — without rebuilding the VPC. Measure who holds the addresses per subnet and per node first, free what the warm pool holds idle, add space with a secondary CIDR from 100.64.0.0/10 and custom networking, raise density with prefix delegation only when the ceiling is per node, bridge overlaps with PrivateLink or private NAT, and leave recreating the network last. Use for \"failed to assign an IP address to container\", InsufficientFreeAddressesInSubnet, a subnet at zero free IPs, or planning an IPAM layout afterwards. Not for pods failing for other reasons (k8s-triage) or a planned move to a new VPC or cluster (plan-platform-migration)."
+description: "Recover from running out of IP addresses — subnets with no free addresses, pods stuck in ContainerCreating because the CNI cannot assign one, nodes that will not launch, or networks that cannot be peered because their CIDRs overlap — without a rebuild. Measure who holds the addresses per subnet and per node first, free what the warm pool holds idle, add space with a secondary CIDR from 100.64.0.0/10 and custom networking, raise density with prefix delegation only when the ceiling is per node, bridge overlaps with PrivateLink or private NAT, recreate the network last. Use for \"failed to assign an IP address to container\", InsufficientFreeAddressesInSubnet, a subnet at zero free IPs, or planning an IPAM layout. Not for pods failing for other reasons (k8s-triage), port exhaustion (connection-exhaustion-hunt) or a planned move to a new VPC or cluster (plan-platform-migration)."
 allowed-tools: Read, Grep, Glob
 ---
 
@@ -27,8 +27,8 @@ address plan that prevents the next one.
 
 Do not use for: pods failing for reasons other than address assignment, which is
 `k8s-triage`; a planned migration of workloads into a new VPC or cluster as a project,
-which is `plan-platform-migration`; ephemeral-port or connection-tracking exhaustion, which
-is a different resource with different symptoms; a firewall or policy blocking traffic
+which is `plan-platform-migration`; ephemeral-port, NAT port or connection-tracking exhaustion,
+which is `connection-exhaustion-hunt` — a different resource with different symptoms; a firewall or policy blocking traffic
 between ranges that do not overlap.
 
 ## Hard gates
