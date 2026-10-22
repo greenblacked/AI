@@ -1,0 +1,22 @@
+[
+  {"query": "the chrome tab with our dashboard grows to 2GB and eventually shows aw snap out of memory", "should_trigger": true},
+  {"query": "our trading screen crashes after being open for a full day, how do i find what's holding memory", "should_trigger": true},
+  {"query": "the heap snapshot shows thousands of detached HTMLDivElement entries, what do i do with that", "should_trigger": true},
+  {"query": "memory goes up about 5MB every time i open and close the settings modal and never comes back", "should_trigger": true},
+  {"query": "how do i use heap snapshots to find a leak in our react single page app", "should_trigger": true},
+  {"query": "the DOM node count in performance monitor keeps climbing as people switch between routes", "should_trigger": true},
+  {"query": "kiosk browsers running our web app need restarting every morning or they freeze", "should_trigger": true},
+  {"query": "i think the chart library is leaking every time we re-render the panel, how do i prove it", "should_trigger": true},
+  {"query": "can we add a CI check that fails if opening and closing a dialog leaks memory", "should_trigger": true},
+  {"query": "the javascript heap stays flat but the tab's memory footprint keeps rising while the image gallery is open", "should_trigger": true},
+  {"query": "our node api's memory climbs all day until the container gets killed", "should_trigger": false, "expected": "debugging"},
+  {"query": "this javascript function takes 300ms to sort the table, memory is fine, how do i speed it up", "should_trigger": false, "expected": "profiling"},
+  {"query": "INP on the dashboard is 450ms at p75 according to crux", "should_trigger": false, "expected": "web-vitals-triage"},
+  {"query": "the unity webgl build's frame rate drops whenever the garbage collector runs", "should_trigger": false, "expected": "game-performance"},
+  {"query": "pressing back reloads the dashboard instead of restoring it instantly", "should_trigger": false, "expected": "bfcache-eligibility"},
+  {"query": "react warns hydration failed on the dashboard header when the page loads", "should_trigger": false, "expected": "hydration-mismatch-hunt"},
+  {"query": "a component sets state after it unmounts when the fetch finishes late", "should_trigger": false, "expected": "async-ui-races"},
+  {"query": "the service worker cache keeps growing and users are stuck on an old version", "should_trigger": false, "expected": "pwa-service-worker"},
+  {"query": "our in-process cache of product data grows without bound on the api server, how should we size and evict it", "should_trigger": false, "expected": "application-caching"},
+  {"query": "the dashboard is slow to load on first visit, the lcp image takes ages", "should_trigger": false, "expected": "web-vitals-triage"}
+]

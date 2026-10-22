@@ -1,0 +1,22 @@
+[
+  {"query": "after the 5.3 update some users crash on launch every single time, we changed the core data model", "should_trigger": true},
+  {"query": "how do I write a test for a room migration that covers users upgrading from much older versions", "should_trigger": true},
+  {"query": "we need to rename a column in the sqlite database inside our android app, what's the safe way", "should_trigger": true},
+  {"query": "someone left fallbackToDestructiveMigration on and users lost their saved notes after the update", "should_trigger": true},
+  {"query": "a user who skipped a year of updates lost all their drafts when they finally upgraded", "should_trigger": true},
+  {"query": "our swiftdata model changed and I'm not sure how the versioned schema and migration plan should look", "should_trigger": true},
+  {"query": "the local db migration takes ages on old phones and ios kills the app during launch", "should_trigger": true},
+  {"query": "if we have to roll back the app release, what happens to devices whose local database already migrated", "should_trigger": true},
+  {"query": "should we back up the on-device sqlite file before running schema upgrades in the flutter app", "should_trigger": true},
+  {"query": "how many old schema versions should our ios app's migration CI cover", "should_trigger": true},
+  {"query": "adding a not null column to a 300 million row postgres table without locking it", "should_trigger": false, "expected": "db-migration"},
+  {"query": "designing the tables for a new invoicing feature, uuid or bigint primary keys", "should_trigger": false, "expected": "schema-design"},
+  {"query": "our patch broke everyone's save files in the game, how do we version the save format", "should_trigger": false, "expected": "game-save-system"},
+  {"query": "what crash-free threshold should halt our phased release on the app store", "should_trigger": false, "expected": "mobile-release"},
+  {"query": "top crash in the latest build is unsymbolicated, just hex addresses", "should_trigger": false, "expected": "crash-triage"},
+  {"query": "the app is killed in the background with jetsam events, how do we find what's using the memory", "should_trigger": false, "expected": "anr-watchdog-triage"},
+  {"query": "backfilling a new column across the whole orders table in batches without hurting production", "should_trigger": false, "expected": "safe-backfill"},
+  {"query": "users in Sydney see their appointments a day early after the daylight saving change", "should_trigger": false, "expected": "datetime-bug-hunt"},
+  {"query": "offline edits get lost if the app is killed before the phone reconnects", "should_trigger": false, "expected": "lie-fi-resilience"},
+  {"query": "cold start went from 2 seconds to 5 on low-end android after we added three SDKs", "should_trigger": false, "expected": "mobile-startup-and-jank"}
+]

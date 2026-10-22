@@ -1,0 +1,22 @@
+[
+  {"query": "Play Console warns that our user-perceived ANR rate is above the bad behaviour threshold", "should_trigger": true},
+  {"query": "iOS reports show EXC_CRASH SIGKILL with termination reason 0x8badf00d, what does that mean", "should_trigger": true},
+  {"query": "users say the app freezes for a few seconds and then closes, but Crashlytics has nothing", "should_trigger": true},
+  {"query": "the ANR trace shows main waiting to lock an object held by thread 23, how do I read this", "should_trigger": true},
+  {"query": "our widget extension keeps getting killed with 0xdead10cc after we moved the database to the app group", "should_trigger": true},
+  {"query": "we get jetsam events on older iPhones when people scroll the photo gallery", "should_trigger": true},
+  {"query": "the app is killed in the background on Android and users lose the form they were filling in", "should_trigger": true},
+  {"query": "Xcode Organizer shows our hang rate doubled in 5.2", "should_trigger": true},
+  {"query": "most of our ANRs say Input dispatching timed out and the main thread is in nativePollOnce", "should_trigger": true},
+  {"query": "launch gets killed on slow devices but it never happens when I run it from Xcode", "should_trigger": true},
+  {"query": "Crashlytics top issue is a NullPointerException in the checkout fragment", "should_trigger": false, "expected": "crash-triage"},
+  {"query": "our stack traces are all obfuscated since enabling R8, nobody can read them", "should_trigger": false, "expected": "crash-triage"},
+  {"query": "cold start is 4 seconds on a Galaxy A13, where is the time going", "should_trigger": false, "expected": "mobile-startup-and-jank"},
+  {"query": "the feed list drops frames when scrolling on low-end Android", "should_trigger": false, "expected": "mobile-startup-and-jank"},
+  {"query": "this image-resizing function takes 300ms, help me make it faster", "should_trigger": false, "expected": "profiling"},
+  {"query": "memory in our Java backend service climbs all day until the process is killed overnight", "should_trigger": false, "expected": "debugging"},
+  {"query": "the phone gets hot and our app is top of the battery list", "should_trigger": false, "expected": "battery-drain-diagnosis"},
+  {"query": "users crash on launch after updating because the SQLite schema upgrade fails", "should_trigger": false, "expected": "on-device-migration-safety"},
+  {"query": "the app hangs on a spinner forever on train wifi", "should_trigger": false, "expected": "lie-fi-resilience"},
+  {"query": "kubernetes pods are being OOMKilled and restarting since the last deploy", "should_trigger": false, "expected": "k8s-triage"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "the back button reloads the whole search results page and users lose their place", "should_trigger": true},
+  {"query": "going back from a product page loses the scroll position and the filters people set", "should_trigger": true},
+  {"query": "lighthouse says page prevented back/forward cache restoration, what does that mean and how do we fix it", "should_trigger": true},
+  {"query": "why is our page not bfcache eligible, devtools lists an unload handler we didn't write", "should_trigger": true},
+  {"query": "we removed the unload listener and devtools now complains about a websocket instead", "should_trigger": true},
+  {"query": "after someone hits back the cart count still shows the old number from before they added an item", "should_trigger": true},
+  {"query": "how do we measure how often back navigations are restored instantly versus reloaded in the field", "should_trigger": true},
+  {"query": "is cache-control no-store on all our html pages the reason pressing back is slow", "should_trigger": true},
+  {"query": "our analytics vendor's script keeps breaking instant back navigation, how do we stop it", "should_trigger": true},
+  {"query": "what should run on pagehide and pageshow so the chat widget doesn't block the back forward cache", "should_trigger": true},
+  {"query": "our LCP is 3.8 seconds at p75 on phones according to search console", "should_trigger": false, "expected": "web-vitals-triage"},
+  {"query": "INP fails on the filter dropdown, the handler takes forever", "should_trigger": false, "expected": "web-vitals-triage"},
+  {"query": "add a redis cache in front of the product catalogue api without serving stale prices", "should_trigger": false, "expected": "application-caching"},
+  {"query": "make the field app work offline and let people install it on their home screen", "should_trigger": false, "expected": "pwa-service-worker"},
+  {"query": "users are stuck on an old version of the site because of the service worker", "should_trigger": false, "expected": "pwa-service-worker"},
+  {"query": "open tabs start throwing failed to fetch dynamically imported module after we release", "should_trigger": false, "expected": "deploy-version-skew"},
+  {"query": "the search box shows results for what i typed two keystrokes ago", "should_trigger": false, "expected": "async-ui-races"},
+  {"query": "the layout jumps on iphone safari when the address bar hides, 100vh is wrong", "should_trigger": false, "expected": "webkit-only-bug-triage"},
+  {"query": "our playwright test for the back button flow is flaky in CI", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "the single page app keeps growing in memory every time you navigate between routes", "should_trigger": false, "expected": "browser-memory-leak-hunt"}
+]

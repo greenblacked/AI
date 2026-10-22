@@ -1,0 +1,22 @@
+[
+  {"query": "add a Content-Security-Policy to our Rails app without breaking anything in production", "should_trigger": true},
+  {"query": "the security scanner flags a missing CSP header on every page of the site", "should_trigger": true},
+  {"query": "the pentest report says our CSP allows unsafe-inline, what should we replace it with", "should_trigger": true},
+  {"query": "we switched on a CSP and Google Tag Manager plus our chat widget stopped loading", "should_trigger": true},
+  {"query": "how do I set up an endpoint for CSP violation reports and make sense of thousands of them a day", "should_trigger": true},
+  {"query": "nonce or hash based policy for a site where some pages are cached at the CDN", "should_trigger": true},
+  {"query": "what does strict-dynamic actually do and can we drop our list of allowed script domains", "should_trigger": true},
+  {"query": "our CSP reports are full of chrome-extension entries, how do we separate real violations", "should_trigger": true},
+  {"query": "we have Content-Security-Policy-Report-Only running, how do we decide when to enforce it and on which pages", "should_trigger": true},
+  {"query": "our script-src lists twenty CDN and analytics domains, is that really stopping XSS", "should_trigger": true},
+  {"query": "review this pull request for XSS and SQL injection before it merges", "should_trigger": false, "expected": "security-review"},
+  {"query": "harden our Ubuntu web servers and turn off password login over SSH", "should_trigger": false, "expected": "host-hardening"},
+  {"query": "should our session cookie be SameSite Lax or Strict, and should we rotate it on login", "should_trigger": false, "expected": "auth-design"},
+  {"query": "audit our marketing site end to end for performance, SEO and accessibility", "should_trigger": false, "expected": "website-builder"},
+  {"query": "pin our GitHub Actions to commit SHAs and tighten the workflow token permissions", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "npm audit lists 40 vulnerabilities in the frontend, which ones actually matter", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "threat model the new document upload and sharing feature before we build it", "should_trigger": false, "expected": "threat-model"},
+  {"query": "someone pasted our analytics API secret into a public gist, what now", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "scan our nginx container image for CVEs and slim it down", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "our service worker serves an old bundle to everyone after deploy", "should_trigger": false, "expected": "pwa-service-worker"}
+]
