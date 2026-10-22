@@ -115,8 +115,16 @@ Snowflake:
 -- record the production grants first: a clone does not carry them
 show grants on table analytics.deprecated.orders;
 create table archive.core_orders_20261201 clone analytics.deprecated.orders;
--- restore, then replay the recorded grants and test a consumer role's read
+-- test the restore before the drop, under a scratch name: the old name is
+-- still the compatibility view, and a table cannot share it
+create table archive.restore_test_orders clone archive.core_orders_20261201;
+-- compare row counts, replay the recorded grants on it, read it as a consumer
+-- role, then drop it
+drop table archive.restore_test_orders;
+-- real restore, after the drop: remove the view, then restore the name
+drop view if exists analytics.core.orders;
 create table analytics.core.orders clone archive.core_orders_20261201;
+-- replay the recorded grants and test a consumer role's read
 ```
 
 A dropped Snowflake table can also be recovered with `undrop table` within its Time Travel retention, which is short; the clone is the restore path that lasts.
@@ -127,7 +135,11 @@ BigQuery:
 create snapshot table archive.orders_20261201
   clone core.orders_deprecated
   options (expiration_timestamp = timestamp '2027-06-01 00:00:00 UTC');
--- restore
+-- test the restore before the drop, under a scratch name
+create table archive.restore_test_orders clone archive.orders_20261201;
+drop table archive.restore_test_orders;
+-- real restore: remove the compatibility view first, then restore the name
+drop view if exists core.orders;
 create table core.orders clone archive.orders_20261201;
 ```
 
