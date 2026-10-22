@@ -1,0 +1,22 @@
+[
+  {"query": "how many Monte Carlo runs are enough to report this probability with a tight confidence interval", "should_trigger": true},
+  {"query": "is my MCMC converged, R-hat is 1.03 on two parameters", "should_trigger": true},
+  {"query": "what effective sample size should I aim for before trusting posterior quantiles", "should_trigger": true},
+  {"query": "I run 1000 simulations and plot the average, how do I put honest error bars on it", "should_trigger": true},
+  {"query": "my parallel workers are seeded with the rank number, is that a problem", "should_trigger": true},
+  {"query": "how many chains should I run and where should they start", "should_trigger": true},
+  {"query": "I want to compare two policies in my simulator, can I reuse the same random draws for both", "should_trigger": true},
+  {"query": "how long should the burn-in be for this sampler", "should_trigger": true},
+  {"query": "the trace plot of one chain looks stuck while the other three are fine, what does that mean", "should_trigger": true},
+  {"query": "estimating a failure probability around one in ten thousand by simulation, how many runs do I need", "should_trigger": true},
+  {"query": "how many users do I need in an A/B test to detect a two percent lift", "should_trigger": false, "expected": "experiment-design"},
+  {"query": "does my finite element result change when I halve the mesh size", "should_trigger": false, "expected": "convergence-study"},
+  {"query": "same seed same code but a different answer each run", "should_trigger": false, "expected": "nondeterminism-bisect"},
+  {"query": "compare my method against baselines with equal tuning budget", "should_trigger": false, "expected": "fair-method-comparison"},
+  {"query": "my observations come from the same animals, is the p-value inflated", "should_trigger": false, "expected": "nonindependence-audit"},
+  {"query": "the loss became NaN halfway through training", "should_trigger": false, "expected": "nan-origin-trace"},
+  {"query": "launch ten thousand independent simulation tasks and track the failures", "should_trigger": false, "expected": "sweep-campaign-management"},
+  {"query": "sum of a million floats differs from the reference in the last digits", "should_trigger": false, "expected": "floating-point-error-hunt"},
+  {"query": "check the statistics in the methods section of this paper", "should_trigger": false, "expected": "paper-statistics-review"},
+  {"query": "how many cores and how much memory should I request for my sampler job", "should_trigger": false, "expected": "hpc-resource-sizing"}
+]

@@ -1,0 +1,91 @@
+[
+ {
+  "query": "our BLE peripheral disconnects after exactly 30 seconds on iPhone but not on Android",
+  "should_trigger": true
+ },
+ {
+  "query": "BLE throughput is terrible, we only get a couple of kilobytes per second",
+  "should_trigger": true
+ },
+ {
+  "query": "the device won't reconnect to the phone after a firmware update",
+  "should_trigger": true
+ },
+ {
+  "query": "pairing works once and then fails every time afterwards until I forget the device",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I choose connection interval, latency and supervision timeout for a sensor",
+  "should_trigger": true
+ },
+ {
+  "query": "Android returns GATT status 133 when I try to connect to the tag",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I use a sniffer to capture a Bluetooth Low Energy connection in Wireshark",
+  "should_trigger": true
+ },
+ {
+  "query": "after adding a characteristic the app can't find any services on the updated device",
+  "should_trigger": true
+ },
+ {
+  "query": "how can I raise the MTU and enable data length extension to speed up file transfer",
+  "should_trigger": true
+ },
+ {
+  "query": "the peripheral shows up late or not at all after the phone moves out of range and returns",
+  "should_trigger": true
+ },
+ {
+  "query": "the I2C sensor on the board returns 0xFF",
+  "should_trigger": false,
+  "expected": "serial-bus-debug"
+ },
+ {
+  "query": "my UART output is garbage at 115200",
+  "should_trigger": false,
+  "expected": "serial-bus-debug"
+ },
+ {
+  "query": "why is my coin cell dying in three weeks when the radio is mostly idle",
+  "should_trigger": false,
+  "expected": "sleep-current-hunt"
+ },
+ {
+  "query": "the device crashes on wake from deep sleep",
+  "should_trigger": false,
+  "expected": "sleep-wake-bug-hunt"
+ },
+ {
+  "query": "CAN node goes bus-off",
+  "should_trigger": false,
+  "expected": "fieldbus-debug"
+ },
+ {
+  "query": "MQTT devices flap on the cellular network",
+  "should_trigger": false,
+  "expected": "mqtt-session-debug"
+ },
+ {
+  "query": "decode this fault dump from a Cortex-M",
+  "should_trigger": false,
+  "expected": "hard-fault-triage"
+ },
+ {
+  "query": "how do we sign firmware images and roll back a bad update",
+  "should_trigger": false,
+  "expected": "ota-update-safety"
+ },
+ {
+  "query": "my web app's websocket drops after a minute behind the load balancer",
+  "should_trigger": false,
+  "expected": "debugging"
+ },
+ {
+  "query": "which BLE module should we pick for a wearable",
+  "should_trigger": false
+ }
+]

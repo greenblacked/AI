@@ -10,6 +10,52 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `growth` plugin, for marketing, growth and content operations, with twenty skills: `attribution-sanity-check`, `campaign-preflight`, `campaign-tagging-standard`, `community-health-review`, `community-moderation-policy`, `content-brief-from-serp`, `content-pruning-audit`, `content-refresh-triage`, `contributor-funnel`, `customer-story-production`, `deliverability-triage`, `devrel-impact-review`, `email-authentication-rollout`, `lead-quality-loop`, `lifecycle-sequence-design`, `low-traffic-page-testing`, `message-match-audit`, `paid-search-waste-audit`, `programmatic-seo-gate` and `sending-domain-warmup`.
+
+- Add nine skills to the `llm` plugin: `agent-architecture-choice`, `agent-memory-design`, `context-compaction`, `llm-batch-processing`, `llm-classifier-design`, `llm-latency-budget`, `llm-provider-resilience`, `output-filter-calibration` and `tool-result-shaping`.
+
+- Add six skills to the `security` plugin: `compromise-evidence-preservation`, `credential-stuffing-response`, `detection-engineering`, `intrusion-timeline`, `tenant-isolation-testing` and `vulnerability-disclosure`.
+
+- Add the `research` plugin, for scientific and research engineering, with nineteen skills: `array-chunking-layout`, `batch-effect-audit`, `checkpoint-restart-design`, `convergence-study`, `fair-method-comparison`, `floating-point-error-hunt`, `hpc-resource-sizing`, `monte-carlo-run-length`, `nan-origin-trace`, `nondeterminism-bisect`, `nonindependence-audit`, `out-of-core-dataset-handling`, `paper-statistics-review`, `parallel-filesystem-hygiene`, `parallel-scaling-study`, `reproducible-analysis-environment`, `slurm-job-failure-triage`, `sweep-campaign-management` and `unit-mismatch-audit`.
+
+- Add the `learning` plugin, for learning, teaching and knowledge work, with sixteen skills: `domain-ramp-up`, `exam-prep-plan`, `exercise-design`, `learn-new-technology`, `literature-scan`, `mentoring-cycle`, `paper-reading`, `paper-reproduction`, `reading-backlog`, `shadow-reverse-shadow`, `skill-acquisition-plan`, `tacit-knowledge-elicitation`, `teaching-pairing`, `team-training-curriculum`, `training-effectiveness-check` and `workshop-design`.
+
+- Add six skills to the `manager` plugin: `headcount-case`, `inherited-team-audit`, `oncall-health-review`, `reorg-design`, `team-skills-matrix` and `tech-debt-case`.
+
+- Add twenty skills to the `gamedev` plugin: `automated-playthrough`, `economy-exploit-response`, `game-accessibility-pass`, `game-audio-mix`, `game-compat-matrix`, `game-desync-forensics`, `game-input-mapping`, `game-load-times`, `game-memory-budget`, `game-patch-size`, `game-server-rollout`, `handheld-pc-readiness`, `loot-odds-verification`, `matchmaking-tuning`, `mod-support-design`, `npc-behaviour-debugging`, `physics-glitch-triage`, `procgen-seed-testing`, `scene-merge-conflicts` and `shader-compile-stutter`.
+
+- Add the `embedded` plugin, for embedded, IoT and hardware-adjacent software, with twenty skills: `ble-connection-debug`, `brick-recovery`, `device-clock-handling`, `device-telemetry-design`, `device-trust-anchors`, `field-failure-triage`, `fieldbus-debug`, `firmware-code-review`, `flash-storage-durability`, `fleet-provisioning`, `hard-fault-triage`, `memory-footprint-budget`, `mqtt-session-debug`, `ota-fleet-rollout`, `ota-update-safety`, `rtos-concurrency-hunt`, `serial-bus-debug`, `sleep-current-hunt`, `sleep-wake-bug-hunt` and `watchdog-design`.
+
+- Add the `observability` plugin, for observability engineering, with twenty skills: `alert-backtest`, `broken-trace-hunt`, `business-metric-alerting`, `cardinality-incident-response`, `change-event-correlation`, `collector-backpressure-triage`, `continuous-profiling-rollout`, `dependency-reliability-ledger`, `latency-histogram-design`, `log-volume-reduction`, `missing-metrics-hunt`, `otel-collector-pipeline-review`, `otel-semconv-upgrade`, `service-dashboard-rebuild`, `slow-dashboard-fix`, `synthetic-monitoring-design`, `tail-sampling-tuning`, `telemetry-migration`, `telemetry-redaction-audit` and `trace-latency-analysis`.
+
+- Add the `databases` plugin, for database engineering in depth, with twenty skills: `clickhouse-parts-triage`, `connection-storm-recovery`, `deadlock-analysis`, `failover-client-hardening`, `index-pruning`, `innodb-purge-lag`, `integer-key-exhaustion`, `lock-queue-triage`, `postgres-full-text-search`, `redis-memory-triage`, `search-mapping-design`, `search-relevance-tuning`, `shard-allocation-triage`, `sqlite-in-production`, `table-partitioning`, `timeseries-retention-downsampling`, `typeahead-search-design`, `vacuum-bloat-triage`, `vector-index-tuning` and `xid-wraparound-defense`.
+
+- Add the `linux` plugin, for Linux and systems administration, with twenty skills: `boot-failure-recovery`, `disk-failure-replacement`, `disk-full-triage`, `dns-resolution-debugging`, `firewall-rule-tracing`, `high-load-triage`, `kernel-crash-forensics`, `kernel-update-safety`, `linux-lockout-recovery`, `mtu-blackhole-hunt`, `oom-kill-forensics`, `permission-denied-triage`, `private-ca-trust-distribution`, `resource-limit-exhaustion`, `scheduled-job-debugging`, `ssh-access-debugging`, `systemd-unit-failure`, `time-sync-repair`, `tls-handshake-debugging` and `volume-resize`.
+
+- Add the `languages` plugin, for problems that belong to one runtime or toolchain, with twenty skills: `cpp-sanitizer-triage`, `dotnet-memory-growth`, `dotnet-threadpool-starvation`, `go-gc-tuning`, `go-goroutine-leak`, `go-race-triage`, `jvm-classpath-conflict`, `jvm-gc-tuning`, `jvm-oom-triage`, `jvm-thread-dump-triage`, `native-core-dump-analysis`, `native-linking-errors`, `node-memory-leak`, `node-module-format-errors`, `python-import-failures`, `python-memory-growth`, `python-native-wheel-failures`, `python-typing-migration`, `rust-unsafe-review` and `typescript-strictness-migration`.
+
+- Add the `backend` plugin, for backend and distributed-systems correctness, with twelve skills: `consumer-lag-triage`, `distributed-lock-audit`, `event-schema-evolution`, `hot-partition-hunt`, `overload-protection`, `rate-limiter-design`, `saga-design`, `scheduled-job-reliability`, `search-index-sync`, `timeout-and-retry-budget`, `transaction-race-hunt` and `webhook-integration`.
+
+- Add six skills to the `career` plugin: `raise-negotiation`, `severance-negotiation`, `managing-up`, `technical-interview-prep`, `take-home-assignment` and `interview-retrospective`.
+
+- Add the `smallbiz` plugin, for freelancing and small-business operations, with twenty skills covering rates and quotes (`billing-rate-calculation`, `fixed-price-quote`, `retainer-design`, `statement-of-work`, `prospect-qualification`), delivery and scope (`scope-creep-response`, `stalled-project-recovery`, `subcontract-client-work`, `client-offboarding`, `estimate-actuals-review`, `client-profitability-review`), getting paid (`invoice-hygiene`, `late-payment-chase`, `invoice-dispute-resolution`, `services-agreement-checklist`) and the books (`monthly-bookkeeping-close`, `cashflow-forecast-13-week`, `finance-separation-cleanup`, `tax-set-aside`, `year-end-tax-pack`). Procedure, not professional advice.
+
+- Add the `devtools` plugin, for developer tooling and build systems, with ten skills: `git-history-recovery`, `git-history-purge`, `branch-rebase-repair`, `affected-build-selection`, `build-cache-miss-hunt`, `slow-build-profile`, `dependency-resolution-conflict`, `phantom-dependency-audit`, `partial-release-recovery` and `benchmark-methodology`.
+
+- Add eleven experiment and machine-learning skills to the `data` plugin: `experiment-design`, `experiment-readout`, `srm-diagnosis`, `switchback-test-design`, `causal-inference-review`, `forecast-backtesting`, `feature-leakage-audit`, `model-error-analysis`, `serving-skew-replay`, `model-drift-monitoring` and `notebook-to-production`. The plugin's description and tags now cover experiments and machine learning.
+
+- Add the `platform` plugin, for cloud and platform engineering, with twenty-two skills. Cluster and IaC: `apiserver-pressure`, `spot-readiness`, `connection-exhaustion-hunt`, `k8s-network-policy`, `gateway-api-migration`, `k8s-storage`, `monolith-state-split`, `brownfield-iac-adoption`, `iac-version-upgrade`, `ephemeral-environments` and `resource-decommission`. Cloud foundations: `bootstrap-dependency-audit`, `ip-exhaustion-recovery`, `data-transfer-forensics`, `dns-operations`, `intermittent-502-hunt`, `workload-identity`, `db-major-upgrade`, `db-replication`, `restore-canary`, `cdn-configuration` and `commitment-planning`. `cost-review`, `secret-rotation`, `pipeline-hardening`, `disaster-recovery-exercise` and `k8s-triage` now cede the topics these skills own.
+
+- Add the `product` plugin, for evidence-led product management and go-to-market, with twenty-two skills. Discovery and pricing: `jobs-timeline-interview`, `request-triage`, `fake-door-test`, `concierge-mvp`, `design-partner-program`, `spec-premortem`, `roadmap-disruption-triage`, `pricing-research`, `discount-discipline`, `price-change-rollout` and `feature-sunset`. Growth and go-to-market: `escalated-account-recovery`, `metric-anomaly-triage`, `activation-analysis`, `metric-gaming-audit`, `churn-analysis`, `dunning-recovery`, `competitor-signal-watch`, `win-loss-review`, `rfp-response`, `poc-plan` and `contact-reduction-review`.
+
+- Add the `client-apps` plugin, for code that runs on a user's browser or phone, with twenty-two skills. Browser: `web-vitals-triage`, `bfcache-eligibility`, `hydration-mismatch-hunt`, `browser-memory-leak-hunt`, `deploy-version-skew`, `pwa-service-worker`, `csp-report-only-rollout`, `webkit-only-bug-triage`, `web-app-seo`, `async-ui-races` and `text-input-edge-cases`. Native and cross-platform: `datetime-bug-hunt`, `locale-edge-sweep`, `crash-triage`, `anr-watchdog-triage`, `mobile-startup-and-jank`, `battery-drain-diagnosis`, `lie-fi-resilience`, `on-device-migration-safety`, `deep-link-routing`, `push-notification-delivery` and `app-size-budget`.
+
+- Add the `assurance` plugin, for quality engineering and compliance procedure, with eleven skills: `test-order-bisect`, `mutation-testing`, `property-based-testing`, `fuzz-harness`, `traffic-replay-diff`, `load-testing`, `dpia`, `licence-compliance`, `control-evidence`, `risk-acceptance-register` and `audit-trail-design`. `test-design` now cedes scoring a suite by injected faults to `mutation-testing`, and `capacity-planning` cedes scripting and running the load test to `load-testing`.
+
+- Add the `techdocs` plugin, for keeping developer documentation true, with eleven skills: `tutorial-clean-room`, `code-sample-testing`, `docs-drift-detection`, `screenshot-rot`, `docs-url-permanence`, `error-catalogue`, `openapi-diff-gate`, `docs-search-vocabulary`, `terminology-lock`, `cli-reference` and `accessibility-conformance-report`.
+
+- Add the `data` plugin, for analytics data, with its first eleven skills: `scan-cost-forensics`, `join-fanout-hunt`, `metric-reconciliation`, `metric-movement-decomposition`, `late-data-maturity`, `as-of-history`, `upstream-change-defense`, `consumer-discovery`, `entity-resolution`, `data-quality-checks` and `spreadsheet-retirement`. Each finds why a number is wrong or expensive and fixes the cause rather than the symptom.
+
 - Add a subscription pricing page to the catalogue site at `/pricing/`, linked from the
   navigation. It compares the monthly plans of five assistant providers, totals the
   chosen plans per month and per year against a fixed baseline, and offers three example
@@ -18,6 +64,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
   the default selection and its totals, and its plan choices and presets stay disabled
   until the page's script enables them. It builds its controls from the site's allowed
   tags and is covered by tests for its links, tiers, default totals and rendering.
+
+### Fixed
+
+- On the catalogue site, a page title that is one long skill name now wraps on a phone instead of pushing the page wider than the screen.
+- On the catalogue site, an error code or environment variable quoted in a skill's description or eval query, such as `ERR_PACKAGE_PATH_NOT_EXPORTED`, now wraps instead of pushing the page wider than a phone screen.
 
 ## [0.1.13] - 2026-10-21
 

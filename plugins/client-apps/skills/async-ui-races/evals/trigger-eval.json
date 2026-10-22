@@ -1,0 +1,22 @@
+[
+  {"query": "our search box sometimes shows results for what I typed before, not what is in the box now", "should_trigger": true},
+  {"query": "a customer double clicked the pay button and we created two orders, how do we stop that on the frontend", "should_trigger": true},
+  {"query": "when you like a post the heart turns red, then flips back for a second, then turns red again", "should_trigger": true},
+  {"query": "switching tabs quickly on the dashboard sometimes leaves the wrong tab's data on screen", "should_trigger": true},
+  {"query": "should I use AbortController or an ignore flag in useEffect to drop stale fetch responses", "should_trigger": true},
+  {"query": "we added a 300ms debounce to the autocomplete but users on slow connections still see the wrong suggestions", "should_trigger": true},
+  {"query": "after navigating away from the settings page a 'saved' toast and redirect still fire from the old request", "should_trigger": true},
+  {"query": "how do I write a unit test that proves out-of-order responses can't overwrite the latest result", "should_trigger": true},
+  {"query": "pressing Enter in the comment field and clicking Send at the same time posts the comment twice", "should_trigger": true},
+  {"query": "our optimistic update with react query shows the item as saved even when the server rejects it", "should_trigger": true},
+  {"query": "our playwright suite fails randomly in CI but passes locally, how do we find which tests are flaky", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "design the idempotency key semantics for our payments API, including how long keys are stored and what a replay returns", "should_trigger": false, "expected": "api-design"},
+  {"query": "users see a stale profile for minutes after updating it because our redis cache isn't invalidated", "should_trigger": false, "expected": "application-caching"},
+  {"query": "our kafka consumer processes the same order event twice after a rebalance", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "the server-rendered date differs from the client one and React throws a hydration error", "should_trigger": false, "expected": "hydration-mismatch-hunt"},
+  {"query": "after a deploy, people with the app already open get 'Failed to fetch dynamically imported module'", "should_trigger": false, "expected": "deploy-version-skew"},
+  {"query": "the dashboard tab grows to two gigabytes of memory after a day open", "should_trigger": false, "expected": "browser-memory-leak-hunt"},
+  {"query": "where should the error message go on the checkout form and when should validation run", "should_trigger": false, "expected": "form-design"},
+  {"query": "this endpoint takes 400ms of CPU in a hot loop, find out where the time goes", "should_trigger": false, "expected": "profiling"},
+  {"query": "decide which edge cases our order service needs unit tests for before we refactor it", "should_trigger": false, "expected": "test-design"}
+]

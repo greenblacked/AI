@@ -1,0 +1,22 @@
+[
+  {"query": "we want every pull request to get its own deployed environment with a preview URL, how should we set that up", "should_trigger": true},
+  {"query": "there are 300 preview namespaces in our cluster and most of the PRs were merged months ago, how do we stop this happening", "should_trigger": true},
+  {"query": "design review apps for our django service on kubernetes, including how they get cleaned up", "should_trigger": true},
+  {"query": "the teardown job for our per-branch environments fails half the time and leaves rds instances running", "should_trigger": true},
+  {"query": "what data should we load into per-PR environments; product wants a copy of production so demos look real", "should_trigger": true},
+  {"query": "should preview deployments live in the production aws account or somewhere else, and what credentials should the deploy job get", "should_trigger": true},
+  {"query": "how do we cap what each pull request environment can cost us", "should_trigger": true},
+  {"query": "set up an argo cd applicationset that creates an environment for each labelled pull request and removes it afterwards", "should_trigger": true},
+  {"query": "can external contributors from forks get preview deployments without exposing our secrets", "should_trigger": true},
+  {"query": "write a reaper that deletes ephemeral test environments once they pass their expiry", "should_trigger": true},
+  {"query": "my api container starts before postgres is ready in docker compose locally", "should_trigger": false, "expected": "docker-compose"},
+  {"query": "plan a canary rollout of the new checkout service to 5 percent of production users", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "our ci takes 40 minutes; restructure the stages and caching", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "argo cd keeps reverting my kubectl edit on the payments deployment, why", "should_trigger": false, "expected": "gitops-operations"},
+  {"query": "we have a legacy reporting service nobody seems to use; prove it is idle and delete it safely", "should_trigger": false, "expected": "resource-decommission"},
+  {"query": "our aws bill jumped 30 percent last month, find out where the money went", "should_trigger": false, "expected": "cost-review"},
+  {"query": "roll out default-deny network policies across our production namespaces without an outage", "should_trigger": false, "expected": "k8s-network-policy"},
+  {"query": "audit our github actions workflows for pull_request_target and script injection risks", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "set requests, limits and probes for this deployment so it stops getting OOMKilled", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "decide what our retention policy for customer personal data should be and how deletion reaches backups", "should_trigger": false, "expected": "data-privacy"}
+]

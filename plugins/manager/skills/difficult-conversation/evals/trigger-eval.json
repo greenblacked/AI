@@ -18,5 +18,6 @@
   {"query": "I keep saying I will run three times a week and I never do", "should_trigger": false, "expected": "habit-change"},
   {"query": "we need a decision record for picking Postgres over DynamoDB", "should_trigger": false, "expected": "decision-record"},
   {"query": "draft this week's stakeholder status update for the platform programme", "should_trigger": false, "expected": "status-update"},
-  {"query": "the base in this offer is lower than I wanted, how do I push back", "should_trigger": false, "expected": "offer-negotiation"}
+  {"query": "the base in this offer is lower than I wanted, how do I push back", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "my boss keeps finding out about problems from other people before me, how do i fix that", "should_trigger": false, "expected": "managing-up"}
 ]

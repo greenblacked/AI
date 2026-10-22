@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "embedded",
+  "description": "Skills for embedded, IoT and hardware-adjacent software: safe firmware updates and fleet rollouts, provisioning and device trust, device clocks and telemetry, field-failure triage, firmware code review, hard faults, RTOS concurrency and watchdogs, brick recovery, power and sleep bugs, memory and flash budgets, and bus, radio and MQTT debugging.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "embedded",
+    "iot",
+    "firmware",
+    "ota",
+    "rtos",
+    "ble",
+    "mqtt",
+    "hardware"
+  ]
+}

@@ -1,0 +1,22 @@
+[
+  {"query": "we're about to ship and want to make the game accessible, how do we go about it without just guessing", "should_trigger": true},
+  {"query": "add a colourblind mode to our strategy game where teams are red and green", "should_trigger": true},
+  {"query": "what size and background should subtitles have so players can read them on a TV", "should_trigger": true},
+  {"query": "a player with one hand emailed us, they can't play because of the two-button holds", "should_trigger": true},
+  {"query": "do we need a photosensitivity warning and how do I check that our explosions don't flash too much", "should_trigger": true},
+  {"query": "players say hold-to-press for interacting is hard on their wrists, what do we offer instead", "should_trigger": true},
+  {"query": "which of the Game Accessibility Guidelines should we do first on a small team", "should_trigger": true},
+  {"query": "can we turn on assists like slower game speed without disabling achievements", "should_trigger": true},
+  {"query": "what accessibility features should the Steam store page list and how do I word them", "should_trigger": true},
+  {"query": "review whether a deaf player can tell where an off-screen enemy is attacking from", "should_trigger": true},
+  {"query": "audit our marketing website against WCAG 2.2 AA and list the contrast failures", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "build a rebinding screen with conflict swaps and controller glyphs", "should_trigger": false, "expected": "game-input-mapping"},
+  {"query": "plan a playtest with ten players and write the observation sheet", "should_trigger": false, "expected": "game-playtest"},
+  {"query": "the hard difficulty feels unfair, tune enemy damage and health curves", "should_trigger": false, "expected": "game-balance"},
+  {"query": "dialogue is drowned out by music during combat, set up ducking", "should_trigger": false, "expected": "game-audio-mix"},
+  {"query": "design a contrast-checked colour palette for our product's design system", "should_trigger": false, "expected": "design-system"},
+  {"query": "subtitle timing is off in the French build and lines overrun", "should_trigger": false, "expected": "game-localisation"},
+  {"query": "what does console certification require for our age rating and error messages", "should_trigger": false, "expected": "game-certification"},
+  {"query": "write a design document for a new cooperative puzzle game", "should_trigger": false, "expected": "game-design-doc"},
+  {"query": "usability test our mobile app checkout with real users", "should_trigger": false, "expected": "usability-test-plan"}
+]

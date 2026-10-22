@@ -1,0 +1,22 @@
+[
+  {"query": "Google isn't indexing our React SPA, only the homepage shows up when we search for our product names", "should_trigger": true},
+  {"query": "search console says hundreds of our product pages are soft 404 but they load fine in the browser", "should_trigger": true},
+  {"query": "we have duplicate pages in search for the same listing with different filter parameters, how do we stop that", "should_trigger": true},
+  {"query": "page indexing report shows 'Duplicate, Google chose different canonical than user' on our article template, why is it ignoring our canonical", "should_trigger": true},
+  {"query": "organic traffic dropped by half after we moved the storefront from server-rendered pages to a Vue single page app", "should_trigger": true},
+  {"query": "is our hreflang set up right? the German pages keep ranking in Austria instead of the de-AT ones", "should_trigger": true},
+  {"query": "should the sitemap lastmod be the deploy time or something else, google seems to ignore ours", "should_trigger": true},
+  {"query": "curl of our category page returns an empty div with id root, does googlebot actually see the products", "should_trigger": true},
+  {"query": "we are moving from oldbrand.com to newbrand.com next month, what do we need so we don't lose our search rankings", "should_trigger": true},
+  {"query": "our faceted navigation generates millions of colour and size URLs and crawl stats show googlebot wasting time on them", "should_trigger": true},
+  {"query": "build us a marketing site for our new product with a blog and a pricing page", "should_trigger": false, "expected": "website-builder"},
+  {"query": "rewrite the headline and product descriptions on our landing page so they read more clearly", "should_trigger": false, "expected": "content-design"},
+  {"query": "our nav menu has forty items and nobody can find the docs, how should we organise the sections", "should_trigger": false, "expected": "information-architecture"},
+  {"query": "search console core web vitals report says LCP is poor on mobile for our product pages but lighthouse is green", "should_trigger": false, "expected": "web-vitals-triage"},
+  {"query": "next.js logs 'text content does not match server-rendered HTML' on the pricing page and the price flashes", "should_trigger": false, "expected": "hydration-mismatch-hunt"},
+  {"query": "after each deploy users with an open tab get ChunkLoadError when they navigate to another route", "should_trigger": false, "expected": "deploy-version-skew"},
+  {"query": "our users are stuck on an old version of the app because the service worker keeps serving cached files", "should_trigger": false, "expected": "pwa-service-worker"},
+  {"query": "the product table overflows the screen on phones, what breakpoints should we use", "should_trigger": false, "expected": "responsive-design"},
+  {"query": "the security scanner flagged that we send no content security policy header, how do we add one without breaking the site", "should_trigger": false, "expected": "csp-report-only-rollout"},
+  {"query": "should a missing order return 404 or 410 from our public REST API and what should the error body look like", "should_trigger": false, "expected": "api-design"}
+]

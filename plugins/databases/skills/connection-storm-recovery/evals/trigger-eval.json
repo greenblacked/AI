@@ -1,0 +1,22 @@
+[
+  {"query": "FATAL: sorry, too many clients already and the app is down", "should_trigger": true},
+  {"query": "postgres says remaining connection slots are reserved for non-replication superuser connections", "should_trigger": true},
+  {"query": "our app falls over every time we restart the database or deploy, all the connections pile in at once", "should_trigger": true},
+  {"query": "PgBouncer cl_waiting is climbing and clients are timing out", "should_trigger": true},
+  {"query": "mysql ERROR 1040 Too many connections in production", "should_trigger": true},
+  {"query": "how many connections should each app instance open if we have forty instances and a database with max_connections 500", "should_trigger": true},
+  {"query": "should we move to pgbouncer transaction mode and what will break if we do", "should_trigger": true},
+  {"query": "how do I make clients reconnect with jitter so a failover does not trigger a thundering herd", "should_trigger": true},
+  {"query": "safe way to kill idle connections from the application role without restarting postgres", "should_trigger": true},
+  {"query": "does ProxySQL multiplexing help with our connection limit and how do I check it", "should_trigger": true},
+  {"query": "this endpoint is slow because the query scans a big table, tune it", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "the connection pool is exhausted because every query suddenly takes ten times longer", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "work out how many database replicas and what size we need for next year's peak", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "everything is hanging behind an ALTER TABLE and connections are stacking up", "should_trigger": false, "expected": "lock-queue-triage"},
+  {"query": "run the incident, who is incident commander and what do we post to customers", "should_trigger": false, "expected": "incident-response"},
+  {"query": "design backoff and retries between our services so retries do not amplify an outage", "should_trigger": false, "expected": "timeout-and-retry-budget"},
+  {"query": "protect our API from overload with load shedding and concurrency limits", "should_trigger": false, "expected": "overload-protection"},
+  {"query": "our clients should reconnect cleanly after a database failover and not keep stale connections", "should_trigger": false, "expected": "failover-client-hardening"},
+  {"query": "dead tuples keep growing and autovacuum can't keep up", "should_trigger": false, "expected": "vacuum-bloat-triage"},
+  {"query": "design a rate limiter for our public API", "should_trigger": false, "expected": "rate-limiter-design"}
+]

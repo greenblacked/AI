@@ -1,0 +1,92 @@
+[
+  {
+    "query": "we have to prove developer relations is worth it to the executives next quarter",
+    "should_trigger": true
+  },
+  {
+    "query": "write the quarterly devrel report so it shows impact rather than attendee counts",
+    "should_trigger": true
+  },
+  {
+    "query": "is the 40,000 dollar conference sponsorship worth it for us",
+    "should_trigger": true
+  },
+  {
+    "query": "what should our developer advocates stop doing",
+    "should_trigger": true
+  },
+  {
+    "query": "how do we measure whether blog posts and workshops get developers to actually use the API",
+    "should_trigger": true
+  },
+  {
+    "query": "cost per activated developer for each of our devrel programmes",
+    "should_trigger": true
+  },
+  {
+    "query": "track which talks lead to signups with unique links and codes",
+    "should_trigger": true
+  },
+  {
+    "query": "our office hours are popular but I cannot show they matter, how do we decide whether to keep them",
+    "should_trigger": true
+  },
+  {
+    "query": "decide which two devrel activities to cut this year using a rule agreed beforehand",
+    "should_trigger": true
+  },
+  {
+    "query": "how do we capture the deals and integrations that devrel influenced for the review",
+    "should_trigger": true
+  },
+  {
+    "query": "help me prepare a 30 minute conference talk on our architecture",
+    "should_trigger": false,
+    "expected": "conference-talk"
+  },
+  {
+    "query": "our ad platforms claim more conversions than orders",
+    "should_trigger": false,
+    "expected": "attribution-sanity-check"
+  },
+  {
+    "query": "is our Discord community healthy",
+    "should_trigger": false,
+    "expected": "community-health-review"
+  },
+  {
+    "query": "write the weekly status update for leadership",
+    "should_trigger": false,
+    "expected": "status-update"
+  },
+  {
+    "query": "how do newcomers become open source contributors",
+    "should_trigger": false,
+    "expected": "contributor-funnel"
+  },
+  {
+    "query": "write a customer story with measurable results",
+    "should_trigger": false,
+    "expected": "customer-story-production"
+  },
+  {
+    "query": "review the lead quality of webinar signups",
+    "should_trigger": false,
+    "expected": "lead-quality-loop"
+  },
+  {
+    "query": "write the moderation policy for our forum",
+    "should_trigger": false,
+    "expected": "community-moderation-policy"
+  },
+  {
+    "query": "plan the onboarding for a new hire on the team",
+    "should_trigger": false,
+    "expected": "onboarding-plan"
+  },
+  {
+    "query": "audit our paid search account for wasted spend",
+    "should_trigger": false,
+    "expected": "paid-search-waste-audit"
+  }
+]

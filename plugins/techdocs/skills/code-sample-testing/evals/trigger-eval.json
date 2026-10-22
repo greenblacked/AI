@@ -1,0 +1,23 @@
+[
+  {"query": "our docs examples are broken, half the python snippets throw on the current release", "should_trigger": true},
+  {"query": "how do we test the code blocks in our sdk reference so they stop drifting from the api", "should_trigger": true},
+  {"query": "users copy the example from the auth page and get an AttributeError, how do we stop this happening again", "should_trigger": true},
+  {"query": "set up CI that compiles and runs every code sample on the docs site", "should_trigger": true},
+  {"query": "should the snippets in our mkdocs site be pasted in or pulled from real files", "should_trigger": true},
+  {"query": "we renamed a parameter in the go client and nobody noticed the docs still use the old one", "should_trigger": true},
+  {"query": "our examples only show placeholder YOUR_API_KEY values so we can't run them in tests, what's the better pattern", "should_trigger": true},
+  {"query": "the docs samples pass against main but fail for customers on the released package", "should_trigger": true},
+  {"query": "some code blocks in the guide are just sketches, how do we mark those so readers don't try to run them", "should_trigger": true},
+  {"query": "make the typescript examples in the docs type-check and assert what they print", "should_trigger": true},
+
+  {"query": "what test cases do I need for this date parsing function, boundaries and error paths", "should_trigger": false, "expected": "test-design"},
+  {"query": "run our getting started guide from scratch in a fresh container like a new customer would", "should_trigger": false, "expected": "tutorial-clean-room"},
+  {"query": "our playwright tests keep flaking in ci, how should we select elements", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "the build went red overnight and I can't tell why, look at the logs", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "write a README for the payments service for new joiners", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "generate the --help output, man page and web reference for our cli from one source", "should_trigger": false, "expected": "cli-reference"},
+  {"query": "which docs pages become wrong when this pull request renames a config key", "should_trigger": false, "expected": "docs-drift-detection"},
+  {"query": "the screenshots in the admin guide show the old ui, automate them", "should_trigger": false, "expected": "screenshot-rot"},
+  {"query": "diff the openapi spec in this PR against the last release and tell me what breaks", "should_trigger": false, "expected": "openapi-diff-gate"},
+  {"query": "write a blog tutorial walking through our new streaming api for the engineering blog", "should_trigger": false, "expected": "write-technical-article"}
+]

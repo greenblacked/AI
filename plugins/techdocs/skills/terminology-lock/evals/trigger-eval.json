@@ -1,0 +1,22 @@
+[
+  {"query": "we call it a workspace in the app, a project in the docs and a space in support macros, how do we fix that for good", "should_trigger": true},
+  {"query": "set up Vale so our docs fail CI when someone writes one of the old product names", "should_trigger": true},
+  {"query": "build a product glossary with banned synonyms that both the docs and the UI strings get checked against", "should_trigger": true},
+  {"query": "marketing wants to rename Pipelines to Flows everywhere next release, what has to change and how do we not miss anything", "should_trigger": true},
+  {"query": "customers think 'organization' and 'account' are two different things in our product because we use both words", "should_trigger": true},
+  {"query": "is it 'log in', 'sign in' or 'login' across our app and help pages, pick one and enforce it", "should_trigger": true},
+  {"query": "our style guide says use 'member' not 'user' but nobody follows it, how do we make it stick", "should_trigger": true},
+  {"query": "the word token means two different things in our docs and readers keep mixing them up", "should_trigger": true},
+  {"query": "generate lint rules for our locale string files from the terminology list so translators and writers stay consistent", "should_trigger": true},
+  {"query": "count how many times each name for the billing entity appears across docs, UI copy and the API reference", "should_trigger": true},
+  {"query": "rewrite the error message for a failed card payment so it says what happened and what to do next", "should_trigger": false, "expected": "content-design"},
+  {"query": "rename our colour tokens by role and add a dark theme", "should_trigger": false, "expected": "design-system"},
+  {"query": "readers search the docs for 'api key' and get nothing because our pages say access token", "should_trigger": false, "expected": "docs-search-vocabulary"},
+  {"query": "our German build shows clipped text and translators have no context for each string", "should_trigger": false, "expected": "game-localisation"},
+  {"query": "reorganise the docs navigation and decide the top-level section names after a card sort", "should_trigger": false, "expected": "information-architecture"},
+  {"query": "we are moving the docs to a new domain and need every old link to keep working", "should_trigger": false, "expected": "docs-url-permanence"},
+  {"query": "should this REST field be called created_at or creation_time, and how should pagination work", "should_trigger": false, "expected": "api-design"},
+  {"query": "write the release notes for version 5.0 including the breaking changes", "should_trigger": false, "expected": "release-notes"},
+  {"query": "give every error our service returns a stable code and a documentation page", "should_trigger": false, "expected": "error-catalogue"},
+  {"query": "write a README for the ingestion service so a new engineer can run it locally", "should_trigger": false, "expected": "technical-docs"}
+]

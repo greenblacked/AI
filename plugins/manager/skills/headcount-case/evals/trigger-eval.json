@@ -1,0 +1,92 @@
+[
+  {
+"query": "I need to justify two more engineers to my director before planning closes",
+"should_trigger": true
+},
+  {
+"query": "finance wants a business case for the senior hire we asked for",
+"should_trigger": true
+},
+  {
+"query": "one of my people just left, should we backfill the role or rethink it",
+"should_trigger": true
+},
+  {
+"query": "how do I ask for budget to grow the team next year without getting turned down",
+"should_trigger": true
+},
+  {
+"query": "write the case for converting our two contractors into permanent roles",
+"should_trigger": true
+},
+  {
+"query": "the VP says the team is fine as is, what numbers would change her mind",
+"should_trigger": true
+},
+  {
+"query": "we are three people short of the roadmap and I have to show why in a one page memo",
+"should_trigger": true
+},
+  {
+"query": "how long until a new hire actually pays back what they cost us",
+"should_trigger": true
+},
+  {
+"query": "my CFO asked what we will stop doing if we do not get the extra platform engineer",
+"should_trigger": true
+},
+  {
+"query": "put together the argument and cost for an extra SRE on the on-call rotation",
+"should_trigger": true
+},
+  {
+"query": "which observability vendor should we buy for logs and compare the three on cost and lock-in",
+"should_trigger": false,
+"expected": "vendor-evaluation"
+},
+  {
+"query": "what salary band should a senior engineer in Berlin be on and how do I benchmark it",
+"should_trigger": false,
+"expected": "compensation-benchmarking"
+},
+  {
+"query": "write this week's update on project progress for my stakeholders",
+"should_trigger": false,
+"expected": "status-update"
+},
+  {
+"query": "help me set objectives and key results for the team next quarter",
+"should_trigger": false,
+"expected": "okr-planning"
+},
+  {
+"query": "how do I get a quarter of platform time to pay down our legacy debt",
+"should_trigger": false,
+"expected": "tech-debt-case"
+},
+  {
+"query": "design the interview loop for the two roles we just got approved",
+"should_trigger": false,
+"expected": "hiring-loop"
+},
+  {
+"query": "plan the first thirty days for the engineer who starts on Monday",
+"should_trigger": false,
+"expected": "onboarding-plan"
+},
+  {
+"query": "two of my seniors resigned this quarter and I want to know why",
+"should_trigger": false,
+"expected": "retention-review"
+},
+  {
+"query": "we are reorganising into three squads and need to redraw team boundaries",
+"should_trigger": false,
+"expected": "reorg-design"
+},
+  {
+"query": "assess how fast and reliably our team ships, lead time and deploy frequency",
+"should_trigger": false,
+"expected": "delivery-review"
+}
+]

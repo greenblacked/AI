@@ -1,0 +1,22 @@
+[
+  {"query": "ModuleNotFoundError in CI but it imports fine on my laptop", "should_trigger": true},
+  {"query": "my script works with python -m pkg.tool but python pkg/tool.py can't find pkg", "should_trigger": true},
+  {"query": "ImportError: cannot import name 'Config' from partially initialized module, most likely due to a circular import", "should_trigger": true},
+  {"query": "I created a file called random.py and now half my program breaks with weird attribute errors", "should_trigger": true},
+  {"query": "pytest says no module named myapp even though the folder is right there", "should_trigger": true},
+  {"query": "I did pip install -e . but my edits to the new subpackage are not being picked up", "should_trigger": true},
+  {"query": "import mypkg works from the repo root but fails from a different directory", "should_trigger": true},
+  {"query": "the wheel we publish is missing a subpackage that exists in the source tree", "should_trigger": true},
+  {"query": "how do I find out which file python actually loaded for a module name", "should_trigger": true},
+  {"query": "two test files called test_utils.py in different folders give an import file mismatch error", "should_trigger": true},
+  {"query": "restructure our modules into a cleaner layered layout and move the shared helpers out", "should_trigger": false, "expected": "refactoring"},
+  {"query": "pip says ResolutionImpossible because two packages need different versions of urllib3", "should_trigger": false, "expected": "dependency-resolution-conflict"},
+  {"query": "pip install fails building the wheel for a C extension with a missing header", "should_trigger": false, "expected": "python-native-wheel-failures"},
+  {"query": "the app returns the wrong total for orders with discounts and I can't see why", "should_trigger": false, "expected": "debugging"},
+  {"query": "ERR_REQUIRE_ESM when requiring a package from our node service", "should_trigger": false, "expected": "node-module-format-errors"},
+  {"query": "bump pandas from 1.5 to 2.2 and fix the breakages in our codebase", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "this python function takes 400ms in a hot loop, where is the time going", "should_trigger": false, "expected": "profiling"},
+  {"query": "our gunicorn workers use more memory every hour until they are killed", "should_trigger": false, "expected": "python-memory-growth"},
+  {"query": "NoSuchMethodError in our java service only in production", "should_trigger": false, "expected": "jvm-classpath-conflict"},
+  {"query": "which transitive npm package pulled in a vulnerable version, triage the alert", "should_trigger": false, "expected": "dependency-triage"}
+]

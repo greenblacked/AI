@@ -1,0 +1,22 @@
+[
+  {"query": "dig resolves the hostname fine but my application says name or service not known", "should_trigger": true},
+  {"query": "/etc/resolv.conf keeps getting overwritten every time the network reconnects", "should_trigger": true},
+  {"query": "how do I set up split dns so only corp.example queries go to the vpn resolver", "should_trigger": true},
+  {"query": "we get intermittent SERVFAIL for one domain but it works from other machines", "should_trigger": true},
+  {"query": "the same container image resolves a name on debian but fails on alpine", "should_trigger": true},
+  {"query": "resolv.conf says nameserver 127.0.0.53, where do the real dns servers come from", "should_trigger": true},
+  {"query": "lookups for short names are slow and tcpdump shows several nxdomain queries first", "should_trigger": true},
+  {"query": "dns works over tcp with dig but times out over udp for large responses", "should_trigger": true},
+  {"query": "I fixed the record but the host still says it does not exist, is it negative caching", "should_trigger": true},
+  {"query": "ping by name fails and getent hosts also fails but I can reach the dns server", "should_trigger": true},
+  {"query": "the name resolves but curl fails with a certificate hostname mismatch", "should_trigger": false, "expected": "tls-handshake-debugging"},
+  {"query": "ssh login hangs for 30 seconds before the prompt", "should_trigger": false, "expected": "ssh-access-debugging"},
+  {"query": "the service dies with too many open files", "should_trigger": false, "expected": "resource-limit-exhaustion"},
+  {"query": "the cron job does not fire at midnight", "should_trigger": false, "expected": "scheduled-job-debugging"},
+  {"query": "systemd-resolved unit fails to start with exit status 226", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "the server cannot boot after editing fstab", "should_trigger": false, "expected": "boot-failure-recovery"},
+  {"query": "lock down the host with a security baseline and firewall policy", "should_trigger": false, "expected": "host-hardening"},
+  {"query": "my python script raises a KeyError while parsing the dns response json", "should_trigger": false, "expected": "debugging"},
+  {"query": "the root filesystem is full and the resolver cache cannot write", "should_trigger": false, "expected": "disk-full-triage"},
+  {"query": "the kernel killed named because of memory pressure", "should_trigger": false, "expected": "oom-kill-forensics"}
+]

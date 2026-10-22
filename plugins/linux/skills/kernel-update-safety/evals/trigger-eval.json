@@ -1,0 +1,22 @@
+[
+  {"query": "we are patching kernels on the production database hosts tomorrow, what should we check first", "should_trigger": true},
+  {"query": "dkms status shows the nvidia module as built but not installed after the kernel upgrade, is it safe to reboot", "should_trigger": true},
+  {"query": "how do I boot a new kernel just once and have the machine return to the old one if it fails", "should_trigger": true},
+  {"query": "needs-restarting says a reboot is required on forty servers, in what order should I do them", "should_trigger": true},
+  {"query": "how do I roll back to the previous kernel after the update made the network card disappear", "should_trigger": true},
+  {"query": "can livepatch replace the reboot for this cve or do we still need to restart the hosts", "should_trigger": true},
+  {"query": "before I reboot, how do I check the initramfs has the raid and nvme drivers for the new kernel", "should_trigger": true},
+  {"query": "zfs module did not build for the new kernel version, what do I do before restarting", "should_trigger": true},
+  {"query": "we have secure boot enabled and a dkms driver, will it load after the kernel update", "should_trigger": true},
+  {"query": "plan a rolling kernel reboot of our three node cluster without losing quorum", "should_trigger": true},
+  {"query": "the server is stuck at grub rescue and will not boot after the update", "should_trigger": false, "expected": "boot-failure-recovery"},
+  {"query": "define how quickly we must apply security patches and what the policy says", "should_trigger": false, "expected": "host-hardening"},
+  {"query": "roll out the new application version gradually with a canary", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "upgrade our kubernetes cluster from one minor version to the next", "should_trigger": false, "expected": "k8s-upgrade"},
+  {"query": "the server rebooted by itself and I need to know why", "should_trigger": false, "expected": "kernel-crash-forensics"},
+  {"query": "the root filesystem is full and apt failed to install packages", "should_trigger": false, "expected": "disk-full-triage"},
+  {"query": "a unit fails to start after the reboot with a dependency error", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "the host keeps killing processes with out of memory messages", "should_trigger": false, "expected": "oom-kill-forensics"},
+  {"query": "clock is wrong after the reboot and chrony will not sync", "should_trigger": false, "expected": "time-sync-repair"},
+  {"query": "lock down the sshd and sysctl settings according to a benchmark", "should_trigger": false, "expected": "host-hardening"}
+]

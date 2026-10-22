@@ -1,0 +1,91 @@
+[
+ {
+  "query": "what changed before the incident started",
+  "should_trigger": true
+ },
+ {
+  "query": "add deploy markers to our grafana dashboards",
+  "should_trigger": true
+ },
+ {
+  "query": "can we correlate feature flag flips with the error rate",
+  "should_trigger": true
+ },
+ {
+  "query": "we cannot tell whether the deploy caused the latency spike",
+  "should_trigger": true
+ },
+ {
+  "query": "show config changes and deploys on the same timeline as our alerts",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I attach recent changes to a pagerduty alert",
+  "should_trigger": true
+ },
+ {
+  "query": "responders waste the first 20 minutes asking who changed what",
+  "should_trigger": true
+ },
+ {
+  "query": "build a change log feed from terraform applies and kubernetes rollouts",
+  "should_trigger": true
+ },
+ {
+  "query": "did anything change in the hour before checkout errors started",
+  "should_trigger": true
+ },
+ {
+  "query": "our change events use different service names than our metrics, so we cannot join them",
+  "should_trigger": true
+ },
+ {
+  "query": "take command of a live incident and assign roles",
+  "should_trigger": false,
+  "expected": "incident-response"
+ },
+ {
+  "query": "clean up feature flags that are fully rolled out",
+  "should_trigger": false,
+  "expected": "feature-flag-lifecycle"
+ },
+ {
+  "query": "write the post-incident timeline and root cause",
+  "should_trigger": false,
+  "expected": "postmortem"
+ },
+ {
+  "query": "rebuild our service overview dashboard with fewer panels",
+  "should_trigger": false,
+  "expected": "service-dashboard-rebuild"
+ },
+ {
+  "query": "design a release strategy with canaries and rollbacks",
+  "should_trigger": false,
+  "expected": "release-strategy"
+ },
+ {
+  "query": "write release notes for version 2.4",
+  "should_trigger": false,
+  "expected": "release-notes"
+ },
+ {
+  "query": "design the alert that pages when the error budget burns",
+  "should_trigger": false,
+  "expected": "alert-design"
+ },
+ {
+  "query": "find why a metric stopped being reported",
+  "should_trigger": false,
+  "expected": "missing-metrics-hunt"
+ },
+ {
+  "query": "we need a runbook for the payments service",
+  "should_trigger": false,
+  "expected": "runbook"
+ },
+ {
+  "query": "explain the git history of this file",
+  "should_trigger": false
+ }
+]

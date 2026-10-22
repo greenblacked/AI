@@ -1,0 +1,22 @@
+[
+  {"query": "how do I pair with a new hire without just doing it for them", "should_trigger": true},
+  {"query": "my pairing sessions with the junior always end with me typing and her watching", "should_trigger": true},
+  {"query": "I need to teach a colleague the deployment part of our system, how should the sessions go", "should_trigger": true},
+  {"query": "how long should a pairing session with a graduate be and when should we stop", "should_trigger": true},
+  {"query": "when a junior is stuck, should I just tell them the answer or let them struggle", "should_trigger": true},
+  {"query": "how do I know the pairing actually taught him something and he can do it alone", "should_trigger": true},
+  {"query": "the new joiner drives while I navigate but I keep jumping in, how do I stop", "should_trigger": true},
+  {"query": "we pair every day on the billing service and she still cannot do tickets alone, what are we doing wrong", "should_trigger": true},
+  {"query": "how do I teach a mid-level engineer to debug production issues by working through one with them", "should_trigger": true},
+  {"query": "when can I stop pairing with someone on a topic and let them get on with it", "should_trigger": true},
+  {"query": "review this pull request from the new hire and tell me what is wrong with it", "should_trigger": false, "expected": "code-review"},
+  {"query": "set up a six month mentoring relationship for a junior engineer with regular meetings", "should_trigger": false, "expected": "mentoring-cycle"},
+  {"query": "hand the weekly release rotation to a colleague step by step before they do it alone", "should_trigger": false, "expected": "shadow-reverse-shadow"},
+  {"query": "I'm the manager and need a plan for the first ninety days of a new engineer, including who the buddy is", "should_trigger": false, "expected": "onboarding-plan"},
+  {"query": "design a multi-week training path for the whole graduate cohort", "should_trigger": false, "expected": "team-training-curriculum"},
+  {"query": "run a half-day hands-on session for twenty engineers on Docker", "should_trigger": false, "expected": "workshop-design"},
+  {"query": "write a practice exercise with hints for learning recursion", "should_trigger": false, "expected": "exercise-design"},
+  {"query": "get information out of a retiring engineer's head about how the legacy system really works", "should_trigger": false, "expected": "tacit-knowledge-elicitation"},
+  {"query": "how do I show whether the training we ran changed how people work", "should_trigger": false, "expected": "training-effectiveness-check"},
+  {"query": "give feedback to an engineer who keeps missing deadlines", "should_trigger": false, "expected": "difficult-conversation"}
+]

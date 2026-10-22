@@ -1,0 +1,91 @@
+[
+  {
+    "query": "we keep seeing our newsletters flagged as unauthenticated in Gmail, where do we begin fixing it",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I get to p=reject on DMARC without breaking invoices from our billing system",
+    "should_trigger": true
+  },
+  {
+    "query": "our SPF check says permerror too many DNS lookups after we added two more vendors",
+    "should_trigger": true
+  },
+  {
+    "query": "set up DMARC for our company domain, we have never published anything",
+    "should_trigger": true
+  },
+  {
+    "query": "DMARC aggregate reports are arriving as XML, how do I use them to find everything that sends as us",
+    "should_trigger": true
+  },
+  {
+    "query": "marketing wants to use a new email platform and I need it to pass alignment without touching the main domain",
+    "should_trigger": true
+  },
+  {
+    "query": "Google and Yahoo are requiring authentication for bulk senders, what do we have to publish by when",
+    "should_trigger": true
+  },
+  {
+    "query": "how long should we leave DMARC at none before moving to quarantine and what percentage steps are sensible",
+    "should_trigger": true
+  },
+  {
+    "query": "DKIM passes but DMARC still fails for mail sent through our support desk, why",
+    "should_trigger": true
+  },
+  {
+    "query": "we want to stop people spoofing our parked domains that never send mail",
+    "should_trigger": true
+  },
+  {
+    "query": "our open rates fell sharply and Gmail is sending campaigns to spam even though authentication passes",
+    "should_trigger": false,
+    "expected": "deliverability-triage"
+  },
+  {
+    "query": "renew and automate the TLS certificates on our load balancers",
+    "should_trigger": false,
+    "expected": "certificate-automation"
+  },
+  {
+    "query": "someone committed our DKIM private key to a public repo, what do we do",
+    "should_trigger": false,
+    "expected": "secret-rotation"
+  },
+  {
+    "query": "zone cleanup: find dangling CNAMEs and enable DNSSEC for our domain",
+    "should_trigger": false,
+    "expected": "dns-operations"
+  },
+  {
+    "query": "Terraform plan shows our DNS provider wants to recreate the whole zone",
+    "should_trigger": false,
+    "expected": "plan-reviewer"
+  },
+  {
+    "query": "we are paying too much for our email sending platform this quarter",
+    "should_trigger": false
+  },
+  {
+    "query": "write the email sequence that welcomes new trial users",
+    "should_trigger": false,
+    "expected": "lifecycle-sequence-design"
+  },
+  {
+    "query": "zone cleanup: remove stale A records and turn on registrar lock",
+    "should_trigger": false,
+    "expected": "dns-operations"
+  },
+  {
+    "query": "our marketing complaint rate is climbing and Yahoo is deferring sends",
+    "should_trigger": false,
+    "expected": "deliverability-triage"
+  },
+  {
+    "query": "rotate the API key our app uses to talk to the email provider",
+    "should_trigger": false,
+    "expected": "secret-rotation"
+  }
+]

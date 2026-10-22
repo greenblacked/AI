@@ -1,0 +1,22 @@
+[
+  {"query": "nginx logs socket() failed (24: Too many open files) even though I set ulimit -n 65536", "should_trigger": true},
+  {"query": "fork: retry: Resource temporarily unavailable when I try to start anything on this box", "should_trigger": true},
+  {"query": "webpack watch says ENOSPC: System limit for number of file watchers reached", "should_trigger": true},
+  {"query": "java throws unable to create native thread after a few hours of traffic", "should_trigger": true},
+  {"query": "how do I see the open file limit of a running process, not my shell", "should_trigger": true},
+  {"query": "I edited /etc/security/limits.conf but my systemd service still has 1024 open files", "should_trigger": true},
+  {"query": "Too many open files in system, how is that different from the per process error", "should_trigger": true},
+  {"query": "how can I tell whether my service is leaking file descriptors or just needs a higher limit", "should_trigger": true},
+  {"query": "containers on this host fail with inotify instance limit reached", "should_trigger": true},
+  {"query": "systemd service hits TasksMax and cannot spawn more worker threads", "should_trigger": true},
+  {"query": "harden the kernel with sysctl settings for a CIS benchmark", "should_trigger": false, "expected": "host-hardening"},
+  {"query": "the kernel killed my java process because the machine ran out of memory", "should_trigger": false, "expected": "oom-kill-forensics"},
+  {"query": "the file descriptor leak is in our go code and I need to find the unclosed connection in the source", "should_trigger": false, "expected": "debugging"},
+  {"query": "my service exits with status 203/EXEC under systemd", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "the disk is 100 percent full and writes fail with No space left on device", "should_trigger": false, "expected": "disk-full-triage"},
+  {"query": "a process gets permission denied reading a config file", "should_trigger": false, "expected": "permission-denied-triage"},
+  {"query": "my cron job did not run last night", "should_trigger": false, "expected": "scheduled-job-debugging"},
+  {"query": "ssh hangs for thirty seconds before showing the prompt", "should_trigger": false, "expected": "ssh-access-debugging"},
+  {"query": "dig works but the app cannot resolve the hostname", "should_trigger": false, "expected": "dns-resolution-debugging"},
+  {"query": "the server drops to maintenance mode on boot", "should_trigger": false, "expected": "boot-failure-recovery"}
+]

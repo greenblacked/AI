@@ -1,0 +1,22 @@
+[
+  {"query": "our stripe webhook handler keeps timing out and the provider retries it over and over", "should_trigger": true},
+  {"query": "the same payment event got processed twice and we double-credited a customer", "should_trigger": true},
+  {"query": "how do I verify the signature on incoming github webhooks when my framework parses the body first", "should_trigger": true},
+  {"query": "the webhook for the new order arrived before our own database write committed, what do we do", "should_trigger": true},
+  {"query": "we want to offer webhooks to our customers when their invoice status changes, what should the design include", "should_trigger": true},
+  {"query": "a customer's endpoint has been down for two days, should we keep retrying and when do we stop", "should_trigger": true},
+  {"query": "nothing has come in from the payment provider for three days and no errors are logged", "should_trigger": true},
+  {"query": "how should we let customers rotate their webhook signing secret without missing events", "should_trigger": true},
+  {"query": "customers can enter any callback url in our settings page and we fetch it, how do we make that safe", "should_trigger": true},
+  {"query": "we need to re-run a week of webhook events after fixing a bug in our handler", "should_trigger": true},
+  {"query": "our queue consumer processes messages twice after a rebalance and we need dead-letter handling", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "design the REST resources and error format for our public orders API", "should_trigger": false, "expected": "api-design"},
+  {"query": "review our login code for session fixation and weak token handling", "should_trigger": false, "expected": "security-review"},
+  {"query": "decide which roles may refund an order and enforce it in the service", "should_trigger": false, "expected": "authorization-design"},
+  {"query": "add a per-customer request limit to our public api", "should_trigger": false, "expected": "rate-limiter-design"},
+  {"query": "two requests booked the same seat even though we check availability first", "should_trigger": false, "expected": "transaction-race-hunt"},
+  {"query": "what should our outgoing http client timeouts and retries be across three services", "should_trigger": false, "expected": "timeout-and-retry-budget"},
+  {"query": "the checkout service falls over when traffic doubles and never recovers", "should_trigger": false, "expected": "overload-protection"},
+  {"query": "write the oauth login flow for our mobile client", "should_trigger": false, "expected": "auth-design"},
+  {"query": "a workflow step spans payments and inventory and needs compensating actions when one fails", "should_trigger": false, "expected": "saga-design"}
+]

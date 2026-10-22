@@ -1,0 +1,22 @@
+[
+  {"query": "npm publish worked but the git tag push failed, what now", "should_trigger": true},
+  {"query": "pypi says the file already exists when I rerun the upload", "should_trigger": true},
+  {"query": "the container image was pushed but the release job died before creating the github release", "should_trigger": true},
+  {"query": "we published a broken version to npm, can we delete it and publish again under the same number", "should_trigger": true},
+  {"query": "how do I re-run the release workflow safely after it failed halfway", "should_trigger": true},
+  {"query": "our release pipeline published to crates.io then crashed, how do we get back to a clean state", "should_trigger": true},
+  {"query": "the tag points at a commit that is not what we built and the package is already out", "should_trigger": true},
+  {"query": "we need to yank a bad release and ship a fixed one, what is the order", "should_trigger": true},
+  {"query": "make our release job idempotent so a retry after a partial failure converges", "should_trigger": true},
+  {"query": "the go module was tagged with a bug and the proxy already cached it, how do we handle it", "should_trigger": true},
+  {"query": "write the release notes for version 3.2 from the merged pull requests", "should_trigger": false, "expected": "release-notes"},
+  {"query": "roll the new version out to five percent of users first", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "pin the actions in our release workflow and lock down its permissions", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "our ios build was rejected by app store review", "should_trigger": false, "expected": "mobile-release"},
+  {"query": "help me design the stages of our ci pipeline", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "I force pushed over main and lost commits", "should_trigger": false, "expected": "git-history-recovery"},
+  {"query": "remove a committed secret from the whole git history", "should_trigger": false, "expected": "git-history-purge"},
+  {"query": "rebase my branch onto the new release branch and fix conflicts", "should_trigger": false, "expected": "branch-rebase-repair"},
+  {"query": "which vulnerable dependencies in our audit should we fix first", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "the production deploy is failing health checks right now", "should_trigger": false, "expected": "incident-response"}
+]

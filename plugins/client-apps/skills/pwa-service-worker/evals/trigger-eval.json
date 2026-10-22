@@ -1,0 +1,22 @@
+[
+  {"query": "make our field inspection web app keep working in basements with no signal", "should_trigger": true},
+  {"query": "turn our React app into an installable PWA", "should_trigger": true},
+  {"query": "half our users are stuck on a version from three weeks ago and nothing we deploy reaches them", "should_trigger": true},
+  {"query": "how do we safely kill a service worker that cached a broken index.html", "should_trigger": true},
+  {"query": "which caching strategy should each kind of request use in our sw.js", "should_trigger": true},
+  {"query": "show people an update available banner when a new service worker is waiting", "should_trigger": true},
+  {"query": "inspectors submit forms offline, how do we sync them later without creating duplicates on the server", "should_trigger": true},
+  {"query": "we call skipWaiting on install and now tabs that were already open break right after a release", "should_trigger": true},
+  {"query": "cache storage keeps growing, caches from every previous version are still there", "should_trigger": true},
+  {"query": "the install button never shows up in Chrome even though we added a web manifest", "should_trigger": true},
+  {"query": "ChunkLoadError after every deploy, and we do not use a service worker at all", "should_trigger": false, "expected": "deploy-version-skew"},
+  {"query": "cache user profile lookups in Redis with keys that cannot leak across tenants", "should_trigger": false, "expected": "application-caching"},
+  {"query": "set Cache-Control and ETag headers on our public REST API responses", "should_trigger": false, "expected": "api-design"},
+  {"query": "our iOS app was rejected by App Store review for guideline 4.2", "should_trigger": false, "expected": "mobile-release"},
+  {"query": "build a landing page for our offline-first note-taking product", "should_trigger": false, "expected": "website-builder"},
+  {"query": "Safari deletes our IndexedDB data when someone has not opened the site for a week", "should_trigger": false, "expected": "webkit-only-bug-triage"},
+  {"query": "our Playwright tests break because requests are intercepted before the route mock sees them", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "the dashboard layout breaks on small Android phones in portrait", "should_trigger": false, "expected": "responsive-design"},
+  {"query": "add a Content-Security-Policy without breaking our analytics scripts", "should_trigger": false, "expected": "csp-report-only-rollout"},
+  {"query": "pressing back from a product page reloads the whole search results list instead of restoring it", "should_trigger": false, "expected": "bfcache-eligibility"}
+]

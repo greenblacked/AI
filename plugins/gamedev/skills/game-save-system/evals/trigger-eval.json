@@ -14,7 +14,7 @@
   {"query": "add a pause menu and a slot select screen to my platformer", "should_trigger": false, "expected": "game-builder"},
   {"query": "make me a small roguelike prototype i can play in the browser", "should_trigger": false, "expected": "game-builder"},
   {"query": "how do i replicate player position from the server down to clients at 20hz", "should_trigger": false, "expected": "game-netcode"},
-  {"query": "our lockstep rts ends up with two different world states after about ten minutes", "should_trigger": false, "expected": "game-netcode"},
+  {"query": "our lockstep rts ends up with two different world states after about ten minutes", "should_trigger": false, "expected": "game-desync-forensics"},
   {"query": "design the http endpoints for our cloud save service, including what a conflict response returns", "should_trigger": false, "expected": "api-design"},
   {"query": "is adding a required field to the profile response a breaking change for old clients", "should_trigger": false, "expected": "api-design"},
   {"query": "the xp curve flattens out around level 30, how much should i steepen the back half", "should_trigger": false, "expected": "game-balance"},

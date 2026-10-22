@@ -1,0 +1,22 @@
+[
+  {"query": "our sleep current measures 800 uA but the datasheet says 3 uA, where do I start looking", "should_trigger": true},
+  {"query": "the coin cell battery lasts weeks not years, how do I find out what is draining it", "should_trigger": true},
+  {"query": "estimate battery life from this current trace of a sensor node waking every ten minutes", "should_trigger": true},
+  {"query": "how should I measure microamp sleep current, my multimeter reads nonsense", "should_trigger": true},
+  {"query": "is the radio burst or the sleep floor using most of the battery in our tracker", "should_trigger": true},
+  {"query": "current drops by half when I unplug the debugger, what is leaking", "should_trigger": true},
+  {"query": "which unused pins should I configure how to reach the lowest sleep draw", "should_trigger": true},
+  {"query": "a pull-up seems to be back-powering an unpowered chip and wasting current in standby", "should_trigger": true},
+  {"query": "will a 1000 mAh cell last three years if we send a reading every hour", "should_trigger": true},
+  {"query": "battery runs down faster in the cold than on my bench, how do I account for it", "should_trigger": true},
+  {"query": "the device sometimes never wakes from deep sleep", "should_trigger": false, "expected": "sleep-wake-bug-hunt"},
+  {"query": "peripheral is dead after standby and registers lost their values", "should_trigger": false, "expected": "sleep-wake-bug-hunt"},
+  {"query": "the device works until I unplug the debugger and then hangs on wake", "should_trigger": false, "expected": "sleep-wake-bug-hunt"},
+  {"query": "profile where the CPU spends its time in this function", "should_trigger": false, "expected": "profiling"},
+  {"query": "the board is dead after flashing and draws no current at all", "should_trigger": false, "expected": "brick-recovery"},
+  {"query": "settings are corrupted after power loss on our flash storage", "should_trigger": false, "expected": "flash-storage-durability"},
+  {"query": "plan the staged firmware rollout across our fleet", "should_trigger": false, "expected": "ota-fleet-rollout"},
+  {"query": "the UART bytes arrive garbled at the sensor", "should_trigger": false, "expected": "serial-bus-debug"},
+  {"query": "the processor takes a hard fault when the timer interrupt fires", "should_trigger": false, "expected": "hard-fault-triage"},
+  {"query": "my phone app drains the battery in the background", "should_trigger": false, "expected": "battery-drain-diagnosis"}
+]

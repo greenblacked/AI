@@ -1,0 +1,22 @@
+[
+  {"query": "our ASP.NET Core API times out under load but CPU sits at 10 percent, what is going on", "should_trigger": true},
+  {"query": "latency on our .NET service grows in steps of about one second as traffic ramps up", "should_trigger": true},
+  {"query": "we use async everywhere but the service still stalls when requests pile up", "should_trigger": true},
+  {"query": "a legacy WebForms page hangs forever after someone called .Result on an HttpClient call", "should_trigger": true},
+  {"query": "dotnet-counters shows threadpool-queue-length climbing and thread count barely moving", "should_trigger": true},
+  {"query": "how do I find which code is blocking threads in a running dotnet process without restarting it", "should_trigger": true},
+  {"query": "our WPF app freezes when a button handler waits on a task synchronously", "should_trigger": true},
+  {"query": "is calling GetAwaiter().GetResult() in a controller safe, or will it starve the pool", "should_trigger": true},
+  {"query": "should we just bump SetMinThreads to 500 to fix the timeouts", "should_trigger": true},
+  {"query": "which analyzers catch blocking waits on tasks so a review does not have to", "should_trigger": true},
+  {"query": "our .NET service is at 100 percent CPU and I need to find the hot method", "should_trigger": false, "expected": "profiling"},
+  {"query": "the checkout flow returns the wrong total for some orders and I cannot find why", "should_trigger": false, "expected": "debugging"},
+  {"query": "we are paging people for a production outage right now, who does what", "should_trigger": false, "expected": "incident-response"},
+  {"query": "thousands of clients reconnect at once after a restart and exhaust our database connections", "should_trigger": false, "expected": "connection-storm-recovery"},
+  {"query": "plan the move from .NET 6 to .NET 8 across our services", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "our Java service stops responding and CPU is low, read the thread dump", "should_trigger": false, "expected": "jvm-thread-dump-triage"},
+  {"query": "my Go service goroutine count keeps climbing with request volume", "should_trigger": false, "expected": "go-goroutine-leak"},
+  {"query": "the nuget restore cannot satisfy two packages that need different versions of a library", "should_trigger": false, "expected": "dependency-resolution-conflict"},
+  {"query": "our dotnet build takes twenty minutes in CI and I want to find the slow step", "should_trigger": false, "expected": "slow-build-profile"},
+  {"query": "design the schema for storing order history with versioned line items", "should_trigger": false, "expected": "schema-design"}
+]

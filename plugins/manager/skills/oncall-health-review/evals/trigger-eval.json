@@ -1,0 +1,22 @@
+[
+  {"query": "on-call is burning people out and two engineers have asked to come off the rota", "should_trigger": true},
+  {"query": "is our on-call rota fair, some people seem to get all the bad weeks", "should_trigger": true},
+  {"query": "should we pay people for being on call", "should_trigger": true},
+  {"query": "nobody wants to be primary any more, how do we fix that", "should_trigger": true},
+  {"query": "we are a team of four, can we really run 24/7 cover", "should_trigger": true},
+  {"query": "how many people do we need on a rotation before it is sustainable", "should_trigger": true},
+  {"query": "look at the last quarter of pages and tell me who is getting woken up the most", "should_trigger": true},
+  {"query": "what should happen the day after someone has been up all night on call", "should_trigger": true},
+  {"query": "design a handover process between on-call shifts and a recovery policy", "should_trigger": true},
+  {"query": "our secondary never gets paged and the primary does everything, is that a problem", "should_trigger": true},
+  {"query": "which of our alerts should page a human and which should be tickets", "should_trigger": false, "expected": "alert-design"},
+  {"query": "here is our PagerDuty export, give me the per-rule action rate", "should_trigger": false, "expected": "page-history-reader"},
+  {"query": "what availability target should we set for the checkout api", "should_trigger": false, "expected": "slo-design"},
+  {"query": "attrition is up across the whole company, what is driving it", "should_trigger": false, "expected": "retention-review"},
+  {"query": "set up the weekly meetings for my team", "should_trigger": false, "expected": "design-team-cadence"},
+  {"query": "the site is down right now and I am the one on call", "should_trigger": false, "expected": "incident-response"},
+  {"query": "write the postmortem for last night's database failover", "should_trigger": false, "expected": "postmortem"},
+  {"query": "write the runbook for the queue backlog alert", "should_trigger": false, "expected": "runbook"},
+  {"query": "build the case for hiring two more engineers to staff the rotation", "should_trigger": false, "expected": "headcount-case"},
+  {"query": "run a game day to practise our failover", "should_trigger": false, "expected": "game-day"}
+]

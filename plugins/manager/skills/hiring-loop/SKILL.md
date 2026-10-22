@@ -1,6 +1,6 @@
 ---
 name: hiring-loop
-description: "Design and run a structured hiring loop for an engineering role — the scorecard first, then stages mapped to competencies, questions and written rubrics, work samples that respect the candidate's time, calibrated interviewers, and a debrief that decides on evidence. Use this skill whenever the user is hiring: writing a scorecard or role brief, designing or trimming an interview loop, writing interview or behavioural questions, setting a take-home or pairing exercise, building a rubric or debrief form, running a debrief, deciding hire or no-hire, or handling rejections and offers — including phrasings like \"what should we ask\", \"our loop is too long\", or \"the panel is split\". Do not use it for performance reviews or promotion cases (that is growth-review), compensation design (compensation-benchmarking), team delivery metrics (that is delivery-review), or preparing as the candidate (that is job-search)."
+description: "Design and run a structured hiring loop for an engineering role — the scorecard first, then stages mapped to competencies, questions and written rubrics, work samples that respect the candidate's time, calibrated interviewers, and a debrief that decides on evidence. Use this skill whenever the user is hiring: writing a scorecard or role brief, designing or trimming an interview loop, writing interview or behavioural questions, setting a take-home or pairing exercise, building a rubric or debrief form, running a debrief, deciding hire or no-hire, or handling rejections and offers — including phrasings like \"what should we ask\", \"our loop is too long\", or \"the panel is split\". Do not use it for performance reviews or promotion cases (that is growth-review), compensation design (compensation-benchmarking), team delivery metrics (that is delivery-review), or preparing as the candidate (that is job-search or technical-interview-prep)."
 allowed-tools: Read, Write, Grep, Glob
 ---
 
@@ -14,7 +14,7 @@ The job is hard because hiring feels like a skill everyone already has. Intervie
 
 Use for: writing a scorecard, designing or trimming an interview loop, writing questions and rubrics, choosing and scoping a work sample, calibrating interviewers, running a debrief, making a hire or no-hire call, and handling rejection, closing and offers.
 
-Do not use for: performance reviews, promotion cases and levelling of existing employees (that is `growth-review`), compensation design and benchmarking, team delivery health (that is `delivery-review`), or helping someone prepare as the candidate (that is `job-search`).
+Do not use for: performance reviews, promotion cases and levelling of existing employees (that is `growth-review`), compensation design and benchmarking, team delivery health (that is `delivery-review`), or helping someone prepare as the candidate (that is `job-search` or `technical-interview-prep`).
 
 Employment law on interviewing, record-keeping and rejection differs by jurisdiction. This skill encodes practice that is defensible in general; it does not replace advice from whoever owns hiring compliance where the role sits.
 

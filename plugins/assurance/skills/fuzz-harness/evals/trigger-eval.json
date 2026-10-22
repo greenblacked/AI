@@ -1,0 +1,22 @@
+[
+  {"query": "our service accepts uploaded PDFs and parses them in C++, how do we fuzz the parser properly", "should_trigger": true},
+  {"query": "we parse untrusted input from the network in a custom binary protocol, what's the right way to set up fuzzing", "should_trigger": true},
+  {"query": "cargo fuzz found a crash in our image decoder overnight, there are 40 crash files, what do i do with them", "should_trigger": true},
+  {"query": "write a libFuzzer harness for our TLV message decoder and tell me which sanitizers to build with", "should_trigger": true},
+  {"query": "add go test -fuzz to the archive extraction package and run it in CI without making PRs take an hour", "should_trigger": true},
+  {"query": "our fuzzer has run for a week and found nothing, coverage stopped climbing after a minute, is the harness broken", "should_trigger": true},
+  {"query": "set up atheris on the yaml config loader, i keep getting exceptions i'm not sure are real bugs", "should_trigger": true},
+  {"query": "how should we store the fuzzing corpus and where do the crashing inputs go after we fix them", "should_trigger": true},
+  {"query": "the audio codec is written in C and takes files from users, how do we harden it with automated testing before release", "should_trigger": true},
+  {"query": "is clusterfuzzlite or oss-fuzz the better fit for our open source parser library", "should_trigger": true},
+  {"query": "security review this PR that adds a new file upload endpoint before we merge", "should_trigger": false, "expected": "security-review"},
+  {"query": "we need to scope an external pentest of the customer portal and write the rules of engagement", "should_trigger": false, "expected": "security-test-engagement"},
+  {"query": "write hypothesis tests that check our json encoder round-trips every valid order object", "should_trigger": false, "expected": "property-based-testing"},
+  {"query": "dependabot flagged a critical CVE in the xml library we use, do we need to patch today", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "threat model the new document ingestion pipeline before we build it", "should_trigger": false, "expected": "threat-model"},
+  {"query": "our container image runs the parser as root with a full OS, slim it down and drop privileges", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "the decoder is slow on large files, find out where the time goes", "should_trigger": false, "expected": "profiling"},
+  {"query": "the parser crashes in production on one specific customer file, help me track down why", "should_trigger": false, "expected": "debugging"},
+  {"query": "do our unit tests actually fail if someone breaks the bounds check, coverage says the line is hit", "should_trigger": false, "expected": "mutation-testing"},
+  {"query": "pull invoice numbers and totals out of scanned supplier PDFs into a table", "should_trigger": false, "expected": "document-extraction"}
+]

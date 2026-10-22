@@ -1,0 +1,22 @@
+[
+  {"query": "my device sometimes never wakes up from sleep and I can't reproduce it on demand", "should_trigger": true},
+  {"query": "it works fine until I unplug the debugger and then the board hangs after sleep", "should_trigger": true},
+  {"query": "the UART is dead after the MCU comes back from standby mode", "should_trigger": true},
+  {"query": "device wakes and immediately goes back to sleep in a loop", "should_trigger": true},
+  {"query": "an interrupt fires between my flag check and the WFI and the device sleeps through it", "should_trigger": true},
+  {"query": "variables are wrong after stop mode, which RAM is retained", "should_trigger": true},
+  {"query": "the sensor returns garbage right after wake from deep sleep but is fine later", "should_trigger": true},
+  {"query": "how do I find out which source woke my microcontroller", "should_trigger": true},
+  {"query": "the crystal is not stable yet when I start using the radio after waking", "should_trigger": true},
+  {"query": "wake from a pin edge works on the bench and fails in the field", "should_trigger": true},
+  {"query": "sleep current is much higher with the debugger attached than detached, what is leaking", "should_trigger": false, "expected": "sleep-current-hunt"},
+  {"query": "estimate battery life from this current trace", "should_trigger": false, "expected": "sleep-current-hunt"},
+  {"query": "the watchdog resets the board every few minutes", "should_trigger": false, "expected": "watchdog-design"},
+  {"query": "the CPU hard faults and I need to decode the stacked registers", "should_trigger": false, "expected": "hard-fault-triage"},
+  {"query": "how do I debug a problem that I can only see once a day", "should_trigger": false, "expected": "debugging"},
+  {"query": "two RTOS tasks race on a shared buffer", "should_trigger": false, "expected": "rtos-concurrency-hunt"},
+  {"query": "the board does not boot at all after flashing", "should_trigger": false, "expected": "brick-recovery"},
+  {"query": "I2C reads the wrong register values from the sensor", "should_trigger": false, "expected": "serial-bus-debug"},
+  {"query": "settings in flash are corrupted after power loss", "should_trigger": false, "expected": "flash-storage-durability"},
+  {"query": "make sure a power cut during the firmware update cannot leave a half-written image running", "should_trigger": false, "expected": "ota-update-safety"}
+]

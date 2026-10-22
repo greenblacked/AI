@@ -1,0 +1,22 @@
+[
+  {"query": "we have 92 percent coverage but I suspect half the tests assert nothing, how do we prove whether they would catch a bug", "should_trigger": true},
+  {"query": "line coverage on the payments module is near 100% and we still keep shipping off-by-one bugs in it, how do I find which tests are toothless", "should_trigger": true},
+  {"query": "Stryker reports 340 survived mutants on our repo, where do I even start with these", "should_trigger": true},
+  {"query": "PIT says a mutant that changes > to >= survived in RateLimiter, is that a real gap or can I ignore it", "should_trigger": true},
+  {"query": "a full mutmut run takes six hours, can we run mutation testing only on what a PR changed", "should_trigger": true},
+  {"query": "would our test suite even notice if someone deleted the line that writes the audit record", "should_trigger": true},
+  {"query": "how do I tell an equivalent mutant from a test that is genuinely missing an assertion", "should_trigger": true},
+  {"query": "we want a CI gate on mutation score but the legacy code would fail every PR, how should the threshold work", "should_trigger": true},
+  {"query": "set up cargo-mutants on our Rust crate so pull requests get checked for weak tests", "should_trigger": true},
+  {"query": "what does a surviving mutant actually tell me, and what test should I write to kill one", "should_trigger": true},
+  {"query": "what cases should I write for a function that calculates shipping bands from weight and destination", "should_trigger": false, "expected": "test-design"},
+  {"query": "look over my pull request before I merge it, it changes the refund calculation and adds two tests", "should_trigger": false, "expected": "code-review"},
+  {"query": "our JSON serializer needs tests, can we check that decode of encode gives back the original for any input", "should_trigger": false, "expected": "property-based-testing"},
+  {"query": "this test passes alone but fails when the whole suite runs, which earlier test is leaking state", "should_trigger": false, "expected": "test-order-bisect"},
+  {"query": "run a fuzzer with sanitizers against our protobuf decoding entry point", "should_trigger": false, "expected": "fuzz-harness"},
+  {"query": "the unit tests passed on my machine but the CI job failed on the same commit, is it a flake", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "our Playwright suite fails a different test each night, how do we stabilise it", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "pin current behaviour of this untested 2000-line module with characterisation tests before I split it up", "should_trigger": false, "expected": "refactoring"},
+  {"query": "the order total is sometimes off by a cent and I cannot find where the rounding goes wrong", "should_trigger": false, "expected": "debugging"},
+  {"query": "will the checkout service hold launch-day traffic at three times our current peak", "should_trigger": false, "expected": "load-testing"}
+]

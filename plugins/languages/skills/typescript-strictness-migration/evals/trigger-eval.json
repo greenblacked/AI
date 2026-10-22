@@ -1,0 +1,22 @@
+[
+  {"query": "we want to enable strictNullChecks but the compiler reports thousands of errors", "should_trigger": true},
+  {"query": "we have 2,000 errors when we set strict true, how do we get there gradually", "should_trigger": true},
+  {"query": "any keeps spreading through our typescript codebase and I want to stop it", "should_trigger": true},
+  {"query": "should we turn on noUncheckedIndexedAccess and how do we handle the fallout", "should_trigger": true},
+  {"query": "ban ts-ignore across the repo without breaking the build", "should_trigger": true},
+  {"query": "what order should I switch on the strict flags in tsconfig for a big legacy project", "should_trigger": true},
+  {"query": "how do I count the any types and assertions in our typescript so I can track progress", "should_trigger": true},
+  {"query": "set up a second tsconfig that only covers the files that already pass strict checks", "should_trigger": true},
+  {"query": "replace our json.parse casts with something that actually validates at runtime", "should_trigger": true},
+  {"query": "which typescript-eslint no-unsafe rules should we enable and when", "should_trigger": true},
+  {"query": "add type hints to our whole python repo and turn on mypy strict", "should_trigger": false, "expected": "python-typing-migration"},
+  {"query": "split this huge component into smaller modules without changing what it does", "should_trigger": false, "expected": "refactoring"},
+  {"query": "review this pull request that changes the auth middleware", "should_trigger": false, "expected": "code-review"},
+  {"query": "upgrade typescript from 4.9 to 5.x and fix the breakage", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "node reports ERR_REQUIRE_ESM after we changed our tsconfig module setting", "should_trigger": false, "expected": "node-module-format-errors"},
+  {"query": "our node process heap grows until it crashes", "should_trigger": false, "expected": "node-memory-leak"},
+  {"query": "work out why this typescript function returns undefined for some inputs", "should_trigger": false, "expected": "debugging"},
+  {"query": "the build says package resolves to two incompatible versions", "should_trigger": false, "expected": "dependency-resolution-conflict"},
+  {"query": "write unit tests for our typescript api client", "should_trigger": false, "expected": "test-design"},
+  {"query": "why does go test -race report a race in my handler", "should_trigger": false, "expected": "go-race-triage"}
+]

@@ -1,0 +1,92 @@
+[
+ {
+  "query": "my devices keep disconnecting from the broker every few minutes and I cannot see why",
+  "should_trigger": true
+ },
+ {
+  "query": "two of our sensors seem to kick each other off the broker in a loop",
+  "should_trigger": true
+ },
+ {
+  "query": "messages published while the device was offline never arrive after it reconnects",
+  "should_trigger": true
+ },
+ {
+  "query": "the whole fleet reconnected at once after the outage and the broker fell over",
+  "should_trigger": true
+ },
+ {
+  "query": "what keepalive should I use for units on a cellular modem behind carrier NAT",
+  "should_trigger": true
+ },
+ {
+  "query": "my device subscribes fine but never receives anything on the command topic",
+  "should_trigger": true
+ },
+ {
+  "query": "we get the same QoS 1 message twice after a reconnect, is that a bug?",
+  "should_trigger": true
+ },
+ {
+  "query": "the offline status never shows up for a unit that lost power, is the last will broken",
+  "should_trigger": true
+ },
+ {
+  "query": "how should the retry delay grow when the MQTT connection fails, and how long will recovery take",
+  "should_trigger": true
+ },
+ {
+  "query": "a retained reboot command makes the unit reboot every time it reconnects",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I size the broker cluster for two million devices publishing once a minute",
+  "should_trigger": false,
+  "expected": "capacity-planning"
+ },
+ {
+  "query": "our order service queue backs up and consumers fall behind",
+  "should_trigger": false,
+  "expected": "event-driven-reliability"
+ },
+ {
+  "query": "TLS handshake fails on the device because the certificate looks expired",
+  "should_trigger": false,
+  "expected": "tls-handshake-debugging"
+ },
+ {
+  "query": "how do we rotate the root CA that the units trust in the field",
+  "should_trigger": false,
+  "expected": "device-trust-anchors"
+ },
+ {
+  "query": "the CAN node goes bus-off and the register reads are wrong",
+  "should_trigger": false,
+  "expected": "fieldbus-debug"
+ },
+ {
+  "query": "my Python publisher throws an exception when the payload contains unicode",
+  "should_trigger": false,
+  "expected": "debugging"
+ },
+ {
+  "query": "the phone drops the BLE link after thirty seconds",
+  "should_trigger": false,
+  "expected": "ble-connection-debug"
+ },
+ {
+  "query": "which retry and timeout budget should a web client use against our REST API",
+  "should_trigger": false,
+  "expected": "timeout-and-retry-budget"
+ },
+ {
+  "query": "design the topic hierarchy and payload schema for our telemetry",
+  "should_trigger": false,
+  "expected": "device-telemetry-design"
+ },
+ {
+  "query": "firmware update rolled out and some units never came back online",
+  "should_trigger": false,
+  "expected": "ota-fleet-rollout"
+ }
+]

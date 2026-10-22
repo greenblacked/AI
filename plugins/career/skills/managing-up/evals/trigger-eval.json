@@ -1,0 +1,22 @@
+[
+  {"query": "my manager has no idea what i actually do all day and it is going to hurt me at review time", "should_trigger": true},
+  {"query": "how do i tell my boss i disagree with the roadmap without getting labelled difficult", "should_trigger": true},
+  {"query": "priorities change every week and i never finish anything. how do i handle my manager", "should_trigger": true},
+  {"query": "i need to tell my director that the launch is going to slip. how should i structure that", "should_trigger": true},
+  {"query": "i want to take on more scope but my manager just says maybe later", "should_trigger": true},
+  {"query": "what should be in a working agreement with a new manager", "should_trigger": true},
+  {"query": "my vp is sceptical of my team and keeps questioning our work. how do i build trust with them", "should_trigger": true},
+  {"query": "my manager never gives me feedback and i do not know how i am doing. what can i do about it", "should_trigger": true},
+  {"query": "i keep getting blindsided because my boss learns about problems from other people first", "should_trigger": true},
+  {"query": "should i send my manager a weekly update even though nobody asked for one", "should_trigger": true},
+  {"query": "i have a hard conversation with a report on monday about missed deadlines, help me prepare what to say", "should_trigger": false, "expected": "difficult-conversation"},
+  {"query": "write the annual review and the promotion packet for one of my reports", "should_trigger": false, "expected": "growth-review"},
+  {"query": "write the monthly status report for the steering committee", "should_trigger": false, "expected": "status-update"},
+  {"query": "i want to ask for a raise, i think i am underpaid", "should_trigger": false, "expected": "raise-negotiation"},
+  {"query": "they offered me 140k and i want to counter", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "i was laid off and they sent a separation agreement", "should_trigger": false, "expected": "severance-negotiation"},
+  {"query": "build a performance improvement plan for an underperforming engineer on my team", "should_trigger": false, "expected": "performance-improvement-plan"},
+  {"query": "design the hiring loop and scorecards for a senior backend role", "should_trigger": false, "expected": "hiring-loop"},
+  {"query": "give a talk at a conference about our platform migration", "should_trigger": false, "expected": "conference-talk"},
+  {"query": "build a promotion case for myself, i want to make the ask this cycle", "should_trigger": false, "expected": "raise-negotiation"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "we're adopting Kafka and I have to own it, how do I get up to speed", "should_trigger": true},
+  {"query": "how do I get up to speed on Rust quickly, I have to ship a service in it next week", "should_trigger": true},
+  {"query": "where do I start with this library, the docs are huge and I only need to use it for one job", "should_trigger": true},
+  {"query": "we picked ClickHouse for analytics and I have never used a column store, what should I do in my first week", "should_trigger": true},
+  {"query": "I need to learn Terraform well enough to take over our infrastructure code by Friday", "should_trigger": true},
+  {"query": "how do I tell whether a framework is going to bite us before we commit to it", "should_trigger": true},
+  {"query": "I was told to use Redis Streams for this feature and I have only used Redis as a cache", "should_trigger": true},
+  {"query": "what is a good way to evaluate a new database by building something small before adopting it", "should_trigger": true},
+  {"query": "teach me Elixir enough to be productive on real work this week", "should_trigger": true},
+  {"query": "I keep doing tutorials but never feel able to use the tool for real, what should I do differently", "should_trigger": true},
+  {"query": "build me a twelve week plan to become a competent Go developer with a portfolio project", "should_trigger": false, "expected": "skill-acquisition-plan"},
+  {"query": "I inherited this repository and need to find where requests are handled", "should_trigger": false, "expected": "codebase-orientation"},
+  {"query": "I am joining a payments company and need to understand settlement and chargebacks", "should_trigger": false, "expected": "domain-ramp-up"},
+  {"query": "turn the Kafka documentation I read into permanent notes in my vault", "should_trigger": false, "expected": "learning-notes"},
+  {"query": "compare three vendors of managed message queues and recommend one", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "my certification exam is in a month, make a study schedule", "should_trigger": false, "expected": "exam-prep-plan"},
+  {"query": "read this paper on log-structured merge trees and tell me if it is believable", "should_trigger": false, "expected": "paper-reading"},
+  {"query": "what is the prior art on consistent hashing with bounded loads", "should_trigger": false, "expected": "literature-scan"},
+  {"query": "run a hands-on session where my team practises the new deployment tool", "should_trigger": false, "expected": "workshop-design"},
+  {"query": "write the decision record for adopting Kafka over RabbitMQ", "should_trigger": false, "expected": "decision-record"}
+]

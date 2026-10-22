@@ -1,0 +1,22 @@
+[
+  {"query": "add guardrails to our customer chatbot so it stays on topic and never leaks personal data", "should_trigger": true},
+  {"query": "our moderation filter keeps blocking legitimate users, how do we find out how often", "should_trigger": true},
+  {"query": "stop the assistant from recommending competitors in its answers", "should_trigger": true},
+  {"query": "the safety check we added makes responses feel slow, can we cut the latency", "should_trigger": true},
+  {"query": "how do I filter a streamed reply for unsafe content without showing it first", "should_trigger": true},
+  {"query": "what should the bot say when the output filter blocks a message", "should_trigger": true},
+  {"query": "we changed the model and the content filter suddenly blocks more; how do we recheck it", "should_trigger": true},
+  {"query": "decide the order of regex checks, a small classifier and an LLM judge for our support bot", "should_trigger": true},
+  {"query": "how do I measure the false positive rate of a PII redaction step on real chat traffic", "should_trigger": true},
+  {"query": "should a leaked account number fail closed while an off-brand joke fails open", "should_trigger": true},
+  {"query": "set safe permissions and hooks for a coding agent working in our repository", "should_trigger": false, "expected": "agent-guardrails"},
+  {"query": "review our agent for prompt injection through web pages and for over-broad tool access", "should_trigger": false, "expected": "agent-security-review"},
+  {"query": "classify our data into public, internal and restricted and decide retention", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "force the reply to be valid JSON matching a schema", "should_trigger": false, "expected": "structured-output"},
+  {"query": "use an LLM to categorise tickets and report precision and recall per class", "should_trigger": false, "expected": "llm-classifier-design"},
+  {"query": "retry with backoff when the provider returns 429 and fail over to a second model", "should_trigger": false, "expected": "llm-provider-resilience"},
+  {"query": "run a content-tagging prompt over ten million archived posts", "should_trigger": false, "expected": "llm-batch-processing"},
+  {"query": "design the retrieval layer so users only see passages from documents they can open", "should_trigger": false, "expected": "rag-design"},
+  {"query": "design the access control model for who can read which customer records", "should_trigger": false, "expected": "authorization-design"},
+  {"query": "write a threat model for our payment service", "should_trigger": false, "expected": "threat-model"}
+]

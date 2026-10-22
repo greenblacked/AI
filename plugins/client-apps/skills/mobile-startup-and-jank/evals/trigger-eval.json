@@ -1,0 +1,22 @@
+[
+  {"query": "our Android app takes 6 seconds to open on a Galaxy A12, how do we get that down", "should_trigger": true},
+  {"query": "the product list scrolls badly on low-end Android phones, it stutters every time new rows load", "should_trigger": true},
+  {"query": "cold start got 800ms slower in the last release and nobody knows which change did it", "should_trigger": true},
+  {"query": "should we add a splash screen to hide how long the app takes to launch", "should_trigger": true},
+  {"query": "we initialise eleven SDKs in Application.onCreate, which of them can wait", "should_trigger": true},
+  {"query": "how do I set up a baseline profile and prove it helps startup", "should_trigger": true},
+  {"query": "the iOS feed hitches when scrolling on an iPhone 11, Instruments shows hitches in the commit phase", "should_trigger": true},
+  {"query": "pre-main time on iOS is 900ms, we link about thirty dynamic frameworks", "should_trigger": true},
+  {"query": "is average fps a good enough metric to track scrolling smoothness in our app", "should_trigger": true},
+  {"query": "set up a startup benchmark in CI so launch time stops creeping up", "should_trigger": true},
+  {"query": "this JSON parsing function takes 400ms in our backend, profile it", "should_trigger": false, "expected": "profiling"},
+  {"query": "my Unity game drops to 40fps on the Switch during boss fights", "should_trigger": false, "expected": "game-performance"},
+  {"query": "launch is killed with 0x8badf00d on older iPhones", "should_trigger": false, "expected": "anr-watchdog-triage"},
+  {"query": "our ANR rate in Play Console is 0.6 percent and rising", "should_trigger": false, "expected": "anr-watchdog-triage"},
+  {"query": "the APK is 180MB and the store download size is hurting installs", "should_trigger": false, "expected": "app-size-budget"},
+  {"query": "the app drains 20 percent battery overnight while sitting in the background", "should_trigger": false, "expected": "battery-drain-diagnosis"},
+  {"query": "top crash after the release is a NullPointerException in the home screen", "should_trigger": false, "expected": "crash-triage"},
+  {"query": "the first screen shows a spinner forever on a flaky train connection", "should_trigger": false, "expected": "lie-fi-resilience"},
+  {"query": "the endpoint the home screen calls takes 3 seconds and the database is only 80ms of it", "should_trigger": false, "expected": "profiling"},
+  {"query": "the explain plan for the feed query shows a sequential scan on posts", "should_trigger": false, "expected": "sql-performance"}
+]

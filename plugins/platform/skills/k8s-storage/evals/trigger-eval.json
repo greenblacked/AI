@@ -1,0 +1,22 @@
+[
+  {"query": "someone deleted the namespace and the EBS volumes behind our postgres PVCs are gone too, how do we stop that ever happening again", "should_trigger": true},
+  {"query": "pvc has been Pending for twenty minutes, describe says waiting for first consumer", "should_trigger": true},
+  {"query": "pod won't schedule: 1 node(s) had volume node affinity conflict, what does that even mean", "should_trigger": true},
+  {"query": "how do I grow the volumes on a statefulset, it won't let me edit volumeClaimTemplates", "should_trigger": true},
+  {"query": "which storage class should our kafka brokers use and what reclaim policy", "should_trigger": true},
+  {"query": "Multi-Attach error after the node died, the new pod has been stuck ContainerCreating for half an hour", "should_trigger": true},
+  {"query": "we take volume snapshots nightly but nobody has ever restored one, how would we test it without touching prod", "should_trigger": true},
+  {"query": "should we run postgres on a hand-written statefulset or use an operator", "should_trigger": true},
+  {"query": "pvc stuck terminating forever, can I just remove the finalizer", "should_trigger": true},
+  {"query": "the disk is still there after we deleted the claim, it says Released, how do we attach it to a new pvc", "should_trigger": true},
+  {"query": "what memory request and limit should the database pods have, they keep getting OOMKilled", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "define RPO and RTO targets for our customer database and how long to keep backups", "should_trigger": false, "expected": "backup-recovery-design"},
+  {"query": "pod is in CrashLoopBackOff right after the deploy, logs show a config parse error", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "add a non-null column to the orders table without locking it", "should_trigger": false, "expected": "db-migration"},
+  {"query": "run a timed restore drill of the whole production database into the DR region and record the result", "should_trigger": false, "expected": "disaster-recovery-exercise"},
+  {"query": "find all the unattached disks and old snapshots across our accounts and get rid of them safely", "should_trigger": false, "expected": "resource-decommission"},
+  {"query": "will this poddisruptionbudget block draining nodes during the upgrade", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "how many nodes and how much disk will we need for next year's traffic growth", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "our ebs bill doubled this quarter, where's the money going", "should_trigger": false, "expected": "cost-review"},
+  {"query": "upgrade the cluster to the next minor and check the csi driver add-on version along the way", "should_trigger": false, "expected": "k8s-upgrade"}
+]

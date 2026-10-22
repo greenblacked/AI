@@ -1,0 +1,92 @@
+[
+  {
+    "query": "ready to send the newsletter to 40,000 subscribers, what do we check first",
+    "should_trigger": true
+  },
+  {
+    "query": "final check before we blast this announcement to the customer list",
+    "should_trigger": true
+  },
+  {
+    "query": "give me a checklist before the campaign goes live tomorrow morning",
+    "should_trigger": true
+  },
+  {
+    "query": "we are about to email the whole customer base about the price change, anything we should verify",
+    "should_trigger": true
+  },
+  {
+    "query": "how do we make sure the right segment gets the promotion and nobody who unsubscribed does",
+    "should_trigger": true
+  },
+  {
+    "query": "what should a seed test of a marketing email cover",
+    "should_trigger": true
+  },
+  {
+    "query": "do our bulk emails need a one-click unsubscribe header before Google blocks them",
+    "should_trigger": true
+  },
+  {
+    "query": "the list is 30% bigger than the last send of this segment, is that okay to send",
+    "should_trigger": true
+  },
+  {
+    "query": "who should be watching when the first wave of a big email goes out",
+    "should_trigger": true
+  },
+  {
+    "query": "review this newsletter draft for broken links, plain text and unsubscribe before I press send",
+    "should_trigger": true
+  },
+  {
+    "query": "our emails started landing in spam after Tuesday's send",
+    "should_trigger": false,
+    "expected": "deliverability-triage"
+  },
+  {
+    "query": "set up the tagging rules so newsletter links report as one source",
+    "should_trigger": false,
+    "expected": "campaign-tagging-standard"
+  },
+  {
+    "query": "write the changelog for our product release",
+    "should_trigger": false,
+    "expected": "release-notes"
+  },
+  {
+    "query": "design the five-step onboarding email series for new trials",
+    "should_trigger": false,
+    "expected": "lifecycle-sequence-design"
+  },
+  {
+    "query": "roll out SPF, DKIM and DMARC for a new domain",
+    "should_trigger": false,
+    "expected": "email-authentication-rollout"
+  },
+  {
+    "query": "warm up a new sending domain over four weeks",
+    "should_trigger": false,
+    "expected": "sending-domain-warmup"
+  },
+  {
+    "query": "the landing page does not match what the ad says",
+    "should_trigger": false,
+    "expected": "message-match-audit"
+  },
+  {
+    "query": "check the platforms' conversion claims against our backend orders",
+    "should_trigger": false,
+    "expected": "attribution-sanity-check"
+  },
+  {
+    "query": "write a customer story for the case study page",
+    "should_trigger": false,
+    "expected": "customer-story-production"
+  },
+  {
+    "query": "score leads from the webinar and send outcomes back to marketing",
+    "should_trigger": false,
+    "expected": "lead-quality-loop"
+  }
+]

@@ -1,0 +1,91 @@
+[
+ {
+  "query": "a CAN node keeps going bus-off every few hours on our machine",
+  "should_trigger": true
+ },
+ {
+  "query": "Modbus RTU returns CRC errors intermittently on a long RS-485 run",
+  "should_trigger": true
+ },
+ {
+  "query": "all my Modbus register reads are off by one compared with the manual",
+  "should_trigger": true
+ },
+ {
+  "query": "our RS-485 transceiver loses the first byte of each frame",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I check the termination on a CAN bus with a multimeter",
+  "should_trigger": true
+ },
+ {
+  "query": "the float values I read over Modbus are nonsense but integers are fine",
+  "should_trigger": true
+ },
+ {
+  "query": "I see error frames on the CAN bus and want to know which node is causing them",
+  "should_trigger": true
+ },
+ {
+  "query": "how should I decode a CAN trace with a DBC file",
+  "should_trigger": true
+ },
+ {
+  "query": "the last byte of our RS-485 reply is cut off, when should I release the driver enable",
+  "should_trigger": true
+ },
+ {
+  "query": "a lone CAN node shows acknowledge errors on the bench, is it broken",
+  "should_trigger": true
+ },
+ {
+  "query": "the SPI flash returns 0xFF on every read",
+  "should_trigger": false,
+  "expected": "serial-bus-debug"
+ },
+ {
+  "query": "UART prints garbage after I changed the clock",
+  "should_trigger": false,
+  "expected": "serial-bus-debug"
+ },
+ {
+  "query": "my Python script crashes on some inputs and I need to find why",
+  "should_trigger": false,
+  "expected": "debugging"
+ },
+ {
+  "query": "our MQTT devices disconnect every few minutes",
+  "should_trigger": false,
+  "expected": "mqtt-session-debug"
+ },
+ {
+  "query": "a task never runs and I suspect priority inversion in the RTOS",
+  "should_trigger": false,
+  "expected": "rtos-concurrency-hunt"
+ },
+ {
+  "query": "the Bluetooth link drops after thirty seconds",
+  "should_trigger": false,
+  "expected": "ble-connection-debug"
+ },
+ {
+  "query": "decode this Cortex-M fault dump",
+  "should_trigger": false,
+  "expected": "hard-fault-triage"
+ },
+ {
+  "query": "my board resets itself and I think the watchdog is firing",
+  "should_trigger": false,
+  "expected": "watchdog-design"
+ },
+ {
+  "query": "measure the standby current of the sensor node",
+  "should_trigger": false,
+  "expected": "sleep-current-hunt"
+ },
+ {
+  "query": "which PLC should we buy for a packaging line",
+  "should_trigger": false
+ }
+]

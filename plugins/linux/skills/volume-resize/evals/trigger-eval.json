@@ -1,0 +1,22 @@
+[
+  {"query": "I resized the EBS volume in the console, how do I get the extra space into /var", "should_trigger": true},
+  {"query": "lvextend worked but df still shows the old size", "should_trigger": true},
+  {"query": "can I shrink an xfs filesystem to give space back", "should_trigger": true},
+  {"query": "what is the order for growpart, pvresize and resize2fs", "should_trigger": true},
+  {"query": "how do I extend the root partition on an ubuntu cloud vm after adding disk space", "should_trigger": true},
+  {"query": "need to make an ext4 logical volume smaller without losing data", "should_trigger": true},
+  {"query": "xfs_growfs says it is not a mounted XFS filesystem", "should_trigger": true},
+  {"query": "extend a luks encrypted lvm volume after growing the virtual disk", "should_trigger": true},
+  {"query": "thin pool is at 90 percent metadata, can I still add volumes and extend", "should_trigger": true},
+  {"query": "disk is bigger in lsblk than in df, how do I use the rest of it", "should_trigger": true},
+  {"query": "root filesystem is 100 percent full, what is using the space", "should_trigger": false, "expected": "disk-full-triage"},
+  {"query": "smart shows reallocated sectors, how do I swap the failing drive in the raid", "should_trigger": false, "expected": "disk-failure-replacement"},
+  {"query": "server will not boot after I edited fstab", "should_trigger": false, "expected": "boot-failure-recovery"},
+  {"query": "host is slow with high iowait and I need to find the bottleneck", "should_trigger": false, "expected": "high-load-triage"},
+  {"query": "too many open files error on the database host", "should_trigger": false, "expected": "resource-limit-exhaustion"},
+  {"query": "my process was killed for using too much memory", "should_trigger": false, "expected": "oom-kill-forensics"},
+  {"query": "permission denied writing to the newly mounted volume", "should_trigger": false, "expected": "permission-denied-triage"},
+  {"query": "forecast how much storage we will need over the next two years", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "increase the size of a PersistentVolumeClaim in kubernetes", "should_trigger": false, "expected": "k8s-storage"},
+  {"query": "set up nightly backups with retention for the data volume", "should_trigger": false}
+]

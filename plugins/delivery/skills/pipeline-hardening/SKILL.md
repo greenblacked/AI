@@ -1,6 +1,6 @@
 ---
 name: pipeline-hardening
-description: "Harden or audit a CI workflow, GitHub Actions first, GitLab CI too: untrusted PR title, branch, comment or fork code reaching a run: step; pull_request_target, workflow_run or issue_comment plus checkout of untrusted code; token/secret reach per job; actions/tools pinned to a SHA, tag recorded; OIDC over long-lived keys, subject-claim gated; cache/artefact poisoning across the fork boundary; provenance checked at consumption; zizmor findings judged, not counted. Use for \"is our github actions workflow safe\", \"can a fork PR steal our secrets\", \"should we pin actions to a sha\", \"audit our CI for injection\", \"do we need pull_request_target\", \"move CI off aws keys to oidc\". Not for speed (ci-pipeline-design), red CI (ci-triage), diffs (security-review), images (image-hardening), leaked keys (secret-rotation), IAM (access-review), new workflows (code-scaffold)."
+description: "Harden or audit a CI workflow, GitHub Actions first, GitLab CI too: untrusted PR title, branch, comment or fork code reaching a run: step; pull_request_target, workflow_run or issue_comment plus checkout of untrusted code; token/secret reach per job; actions/tools pinned to a SHA, tag recorded; long-lived keys flagged; cache/artefact poisoning across the fork boundary; provenance checked at consumption; zizmor findings judged, not counted. Use for \"is our github actions workflow safe\", \"can a fork PR steal our secrets\", \"should we pin actions to a sha\", \"audit our CI for injection\", \"do we need pull_request_target\". Not for speed (ci-pipeline-design), red CI (ci-triage), diffs (security-review), images (image-hardening), leaked keys (secret-rotation), IAM (access-review), new workflows (code-scaffold), OIDC federation, trust policies (workload-identity)."
 allowed-tools: "Bash(zizmor:*), Bash(actionlint:*), Bash(gh:*), Bash(git:*), Bash(jq:*), Bash(rg:*), Read, Grep, Glob, Edit, Write"
 ---
 
@@ -12,9 +12,9 @@ The job is adversarial in a way most CI review is not. `ci-pipeline-design` opti
 
 ## Scope
 
-Use for: auditing or hardening a workflow definition that already exists — GitHub Actions first, GitLab CI where the equivalent construct exists; deciding whether `pull_request_target`, `workflow_run` or `issue_comment` is safe as used; tracing untrusted input to the step that expands it; reviewing token permissions and secret reach per job; checking that actions and fetched tools are pinned to a SHA with the release tag recorded; moving a pipeline off long-lived cloud keys onto OIDC; reviewing cache and artefact handling across the fork boundary; judging a zizmor report.
+Use for: auditing or hardening a workflow definition that already exists — GitHub Actions first, GitLab CI where the equivalent construct exists; deciding whether `pull_request_target`, `workflow_run` or `issue_comment` is safe as used; tracing untrusted input to the step that expands it; reviewing token permissions and secret reach per job; checking that actions and fetched tools are pinned to a SHA with the release tag recorded; flagging long-lived cloud keys in CI secrets and judging what a job's OIDC token can reach; reviewing cache and artefact handling across the fork boundary; judging a zizmor report.
 
-Do not use for: pipeline structure, caching strategy and wall-clock speed on a workflow nobody is attacking — `ci-pipeline-design`; a pipeline that is red right now — `ci-triage`; the application code in a diff — `security-review`; the container image the pipeline builds — `image-hardening`; a credential that has already leaked — `secret-rotation`; a live cloud or identity estate — `access-review`; writing a new workflow file from a description — `code-scaffold`.
+Do not use for: pipeline structure, caching strategy and wall-clock speed on a workflow nobody is attacking — `ci-pipeline-design`; a pipeline that is red right now — `ci-triage`; the application code in a diff — `security-review`; the container image the pipeline builds — `image-hardening`; a credential that has already leaked — `secret-rotation`; a live cloud or identity estate — `access-review`; setting up OIDC federation for CI, its trust policy and the short-lived cloud credentials it yields — `workload-identity`; writing a new workflow file from a description — `code-scaffold`.
 
 ## Workflow
 
@@ -80,11 +80,11 @@ That is the exact invocation this repository's own CI runs — read `docs/ci.md`
 
 An unexplained pass or an unexplained suppression are both failures of this step. A zizmor run with no judgement attached to each line is a report nobody read.
 
-### 6. Move stored keys to OIDC, and gate the trust policy
+### 6. Flag stored keys, and bound what the OIDC token reaches
 
-A stored cloud credential in a CI secret is a static, long-lived key that every run has read access to and that leaks the moment a log line or a compromised dependency exposes it. Where the provider supports federation, replace it: the job exchanges the workflow's own OIDC token for a short-lived role, and there is nothing left in the secret store to steal.
+A stored cloud credential in a CI secret is a static, long-lived key that every run has read access to and that leaks the moment a log line or a compromised dependency exposes it. Record it as a finding and hand the replacement to `workload-identity`, which owns the federation: the trust policy, its issuer, audience and subject conditions, and the short-lived role the job receives. Do not design that here.
 
-The trust policy is where this is done badly as often as it is skipped. Pin the whole `sub` — repository plus ref or environment — and pin `aud` to the provider's audience string. A wildcard anywhere in the `sub` match is the finding: a policy that accepts `repo:OWNER/REPO:*` trusts every branch and every pull request in that repository, and one that accepts `*` trusts every workflow able to mint a token from that issuer. Repositories created after July 2026 carry immutable identifiers in the claim (`repo:OWNER@ID/REPO@ID:...`), so a policy written against the older shape can silently match nothing. `references/credentials-and-provenance.md` has the exact condition shape per provider.
+What stays here is the pipeline side. Grant `id-token: write` only to the job that exchanges the token, never workflow-wide, and never to a job that also runs untrusted code or a fork's checkout: whoever controls that job's steps can mint a token the cloud trusts. Confirm the token's claims are not influenced by an attacker-controlled branch or ref name. `references/credentials-and-provenance.md` has the per-provider reach of each token and the exact claim shapes.
 
 ### 7. Check caches and artefacts across the fork boundary, and provenance at consumption
 

@@ -1,0 +1,22 @@
+[
+  {"query": "redis is returning OOM command not allowed when used memory is above maxmemory and writes are failing", "should_trigger": true},
+  {"query": "our redis keeps evicting keys that we actually need and sessions are getting logged out", "should_trigger": true},
+  {"query": "redis memory usage keeps climbing every week and nobody knows why", "should_trigger": true},
+  {"query": "mem_fragmentation_ratio is 1.8 on our redis primary, is that a problem and what do we do", "should_trigger": true},
+  {"query": "how do I find the biggest keys in a production redis without blocking it", "should_trigger": true},
+  {"query": "which maxmemory-policy should we use, we store a cache and a job queue in the same instance", "should_trigger": true},
+  {"query": "redis got oom killed by the kernel right after a bgsave started", "should_trigger": true},
+  {"query": "our redis stream has grown to tens of gigabytes, how do we trim it safely", "should_trigger": true},
+  {"query": "half of our redis keys have no ttl and I need to work out which service writes them", "should_trigger": true},
+  {"query": "used_memory_rss is much higher than used_memory on our elasticache node", "should_trigger": true},
+  {"query": "cached product prices are stale after an update, how should we invalidate the redis entries", "should_trigger": false, "expected": "application-caching"},
+  {"query": "one redis cluster shard gets most of the traffic and is pinned at high cpu", "should_trigger": false, "expected": "hot-partition-hunt"},
+  {"query": "how many redis nodes and how much memory should we buy for next year's growth", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "the linux oom killer terminated one of our services and I need to know why", "should_trigger": false, "expected": "oom-kill-forensics"},
+  {"query": "our java service keeps dying with OutOfMemoryError: Java heap space", "should_trigger": false, "expected": "jvm-oom-triage"},
+  {"query": "consumers on our kafka topic are falling behind and lag keeps growing", "should_trigger": false, "expected": "consumer-lag-triage"},
+  {"query": "too many clients are opening connections to our postgres and we hit the max", "should_trigger": false, "expected": "connection-storm-recovery"},
+  {"query": "a distributed lock built on redis let two workers run the same job, audit it", "should_trigger": false, "expected": "distributed-lock-audit"},
+  {"query": "this postgres table is ten times bigger than its data, autovacuum cannot keep up", "should_trigger": false, "expected": "vacuum-bloat-triage"},
+  {"query": "our metrics database has an explosion of label values and memory is spiking", "should_trigger": false, "expected": "cardinality-incident-response"}
+]
