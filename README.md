@@ -2,12 +2,12 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
-  <img alt="The fourteen plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data, techdocs and assurance" src="docs/assets/banner-light.svg" width="100%">
+  <img alt="The fifteen plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data, techdocs, assurance and client-apps" src="docs/assets/banner-light.svg" width="100%">
 </picture>
 
 # Agent skills
 
-175 agent skills, 30 subagents and ten slash commands, in fourteen
+197 agent skills, 30 subagents and ten slash commands, in fifteen
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-175-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-197-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -64,14 +64,15 @@ and what the runtime does or does not enforce.
 | [`data`](#data) | Analytics data: wrong numbers, warehouse cost, metrics, history and pipelines | 11 skills |
 | [`techdocs`](#techdocs) | Developer documentation: tested tutorials and samples, drift, stable URLs, API and CLI reference | 11 skills |
 | [`assurance`](#assurance) | Quality engineering and compliance: order-dependent, mutation, property and fuzz testing, replay and load, DPIAs, licences, audit evidence | 11 skills |
+| [`client-apps`](#client-apps) | Browser and mobile clients: field performance, hydration, memory, version skew, service workers, crashes, hangs, startup, battery, networks | 22 skills |
 
-Install one plugin or all fourteen. Each is a self-contained directory under `plugins/` with
+Install one plugin or all fifteen. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
 
 Install what you will use, though, rather than everything by reflex. Every description you
 install stays resident in context, and Claude Code's default listing budget is about 8,000
 characters against this library's total — `make validate` prints the current figure — so
-installing all fourteen at the default drops most of them, silently. The Install section
+installing all fifteen at the default drops most of them, silently. The Install section
 below says what to set instead.
 
 ## The FAMILY workflow
@@ -115,7 +116,7 @@ if a deploy fails its check and rolls back, the previous one keeps serving.
 
 | Page | What it shows |
 | --- | --- |
-| [Home](https://ai.szolotov.com) | The fourteen plugins with their skill counts, and a search across plugins and skill names |
+| [Home](https://ai.szolotov.com) | The fifteen plugins with their skill counts, and a search across plugins and skill names |
 | `/plugins/<plugin>/` | One page per plugin: what it covers, its install line and its skills |
 | `/plugins/<plugin>/<skill>/` | One page per skill: its description, install line and allowed tools when it declares them, the full procedure, its reference files, and the requests it fires on and hands elsewhere |
 | [FAMILY](https://ai.szolotov.com/family/) | The one page that is not generated from a plugin's own files: the Frame–Architect–Make–Inspect–Launch–Yield workflow, drawn as a stage-by-stage guide with the four profiles |
@@ -170,7 +171,7 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`career`, `llm` and `personal` fit the default budget on their own. The other eleven are over it —
+`career`, `llm` and `personal` fit the default budget on their own. The other twelve are over it —
 each by enough that installed alone at least one of its descriptions is dropped — and the
 split exists to keep that number as small as it can be.
 
@@ -181,7 +182,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.17 }
+{ "skillListingBudgetFraction": 0.19 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -601,6 +602,35 @@ Evidence that software does what it should and that the organisation can show it
 | [`risk-acceptance-register`](plugins/assurance/skills/risk-acceptance-register/SKILL.md) | Record knowingly accepted risk so the acceptance expires instead of becoming permanent: each entry states the risk, the compensating control and how it is verified, an accountable owner above the engineer who proposed it, and an expiry date; every tool-level suppression points to an entry; owners are reminded 30 days before expiry; an expired entry counts as an open finding; and the register is the one place auditors and security review read. |
 | [`test-order-bisect`](plugins/assurance/skills/test-order-bisect/SKILL.md) | Find the polluter behind a test that passes alone and fails in the full suite, then remove the leak rather than the symptom: replay the failing order from its recorded random seed, delta-debug the tests that ran before the victim by halving until one polluter and one victim remain, name the shared state it leaked (a global, env var, temp file, port, database row, clock or patch left in place), isolate that state instead of pinning the order, and add a randomised-order CI job so it cannot return. |
 | [`traffic-replay-diff`](plugins/assurance/skills/traffic-replay-diff/SKILL.md) | Prove a rewrite, port or migrated service answers the same as the old one by replaying captured production requests offline against both and diffing responses: capture sanitised read traffic, start both from one data snapshot with identical stubs, replay old against old first to measure noise, normalise timestamps, ids and unordered collections, bucket every diff by cause, and close each bucket as a bug or a signed-off intentional change. Done at zero unexplained buckets across a full weekly cycle. |
+
+### Client-apps
+
+Code that runs on someone else's device: field performance and memory in the browser, version skew and service workers, Safari-only bugs, and on phones the crashes, hangs, slow starts, battery drain, bad networks and migrations that only show up in the wild.
+
+| Skill | What it does |
+| --- | --- |
+| [`anr-watchdog-triage`](plugins/client-apps/skills/anr-watchdog-triage/SKILL.md) | Diagnose hangs and OS kills that never throw: Android ANRs, iOS watchdog terminations and hangs, and memory-pressure kills such as jetsam. Map each kill to its cause first — an ANR trace whose main thread is blocked on a lock, disk I/O or a binder call; a watchdog kill because launch or resume ran out of time; a memory kill driven by peak footprint, not necessarily a leak — then read the main-thread stack, move blocking work off the main thread, and judge memory from a footprint timeline, not one heap snapshot. |
+| [`app-size-budget`](plugins/client-apps/skills/app-size-budget/SKILL.md) | Cut a native app's download and install size and keep it cut. Start from the size the store reports per device, not the IPA or AAB on disk; decompose it with an App Thinning size report or bundletool and a link map; cut in a fixed order — duplicate and unused assets, extra architectures, image formats, on-demand resources or dynamic feature modules, dead code with R8 and dead stripping, then SDKs — measuring each cut; and gate the size delta on every pull request so it cannot creep back. |
+| [`async-ui-races`](plugins/client-apps/skills/async-ui-races/SKILL.md) | Remove race conditions from client code that talks to a server: classify the race first - out-of-order responses, double submit, optimistic updates diverging from the server, state set after unmount - then fix each with its own tool: request keys or AbortController so the latest wins, a disabled control plus an idempotency key for submits, rollback reconciled with the server for optimistic updates, cancellation in cleanup; prove it with a test that releases responses in reverse order, not one that relies on timing. |
+| [`battery-drain-diagnosis`](plugins/client-apps/skills/battery-drain-diagnosis/SKILL.md) | Find what drains the battery and heats the phone in a native iOS or Android app, and prove the fix. Split foreground from background drain first, trace a scripted scenario on a physical device with batterystats, the Android Studio Power Profiler, Xcode's energy gauge and MetricKit, and check suspects in order: wake locks and background work, location accuracy and frequency, polling instead of batched or pushed network calls, and animations, timers and sensors left running. Re-run the identical scenario to show the delta. |
+| [`bfcache-eligibility`](plugins/client-apps/skills/bfcache-eligibility/SKILL.md) | Make back and forward navigations restore instantly from the browser's back/forward cache: run the DevTools back/forward cache test and read its not-restored reasons, clear blockers in the order they usually occur (unload handlers moved to pagehide, Cache-Control: no-store on pages that do not need it, open WebSocket, BroadcastChannel and IndexedDB connections closed on pagehide, a window.opener reference), refresh stale state on pageshow, and measure the restore rate in the field with the notRestoredReasons API. |
+| [`browser-memory-leak-hunt`](plugins/client-apps/skills/browser-memory-leak-hunt/SKILL.md) | Find and fix a memory leak in a long-lived browser page: confirm the growth is JavaScript heap or DOM rather than images or GPU, run the three-snapshot technique (warm up, snapshot, repeat the action ten times, snapshot, repeat, snapshot) keeping only objects allocated between the first two snapshots that survive into the third, read retainer chains for detached DOM nodes, listeners, closures, timers and observers, and confirm the fix as a flat sawtooth after forced garbage collection. |
+| [`crash-triage`](plugins/client-apps/skills/crash-triage/SKILL.md) | Prioritise native iOS and Android crashes so each release fixes the ones hurting most people. Verify symbolication first — dSYM UUIDs, the R8 mapping.txt, native symbols — since an unsymbolicated crash is a pipeline bug before an app bug; then group by signature, rank by affected users not events, split each top signature by app version, OS version and device, fix the top one per release, and prove it on the new version's cohort, not the blended rate. |
+| [`csp-report-only-rollout`](plugins/client-apps/skills/csp-report-only-rollout/SKILL.md) | Introduce a Content-Security-Policy without breaking the site: start with Content-Security-Policy-Report-Only and a hardened report endpoint, read about two weeks of violation reports grouped by directive, blocked source and page, move scripts to per-response nonces or hashes with strict-dynamic rather than a host allow-list, enforce path by path starting with the least risky, and keep a stricter report-only policy running beside the enforced one. |
+| [`datetime-bug-hunt`](plugins/client-apps/skills/datetime-bug-hunt/SKILL.md) | Fix off-by-one-day, wrong-hour and daylight-saving bugs in apps and their APIs. Classify each temporal value as an instant, a local wall-clock time or a calendar date; store instants in UTC, wall-clock times with an IANA zone name rather than an offset, and dates as dates, never midnight timestamps; expand recurrence in the event's own zone; then prove the fix against one fixed hostile set: DST gap and overlap, UTC+14 and UTC-12, a leap day, and a device zone unlike the user's. |
+| [`deep-link-routing`](plugins/client-apps/skills/deep-link-routing/SKILL.md) | Make https links open the right screen in a native app: iOS universal links, Android App Links and deferred links for people without the app. Host apple-app-site-association and assetlinks.json at their exact well-known paths with no redirect and a JSON content type, check team and bundle IDs and the Play signing fingerprint, verify on a clean install with platform tools, drive app, web and both files from one route table, and treat link parameters as untrusted input. |
+| [`deploy-version-skew`](plugins/client-apps/skills/deploy-version-skew/SKILL.md) | Stop tabs opened on an earlier release breaking when a new one ships: keep earlier releases' hashed assets on the origin and CDN rather than deleting them, upload assets before the HTML that names them, return a real 404, not the SPA fallback, for a missing chunk, stamp the live build id on API responses and compare it with the client's, retry a failed chunk import with one guarded reload, refresh at the next navigation, not mid-form, and keep API changes compatible across two client versions. |
+| [`hydration-mismatch-hunt`](plugins/client-apps/skills/hydration-mismatch-hunt/SKILL.md) | Find why server-rendered HTML and the first client render disagree, and fix the cause rather than the warning: diff the raw server HTML from curl against the parsed DOM and the first client render, never the final DOM, then check the five usual sources (time, randomness or locale read during render; typeof window branches; invalid nesting the HTML parser repairs; nodes injected by browser extensions; per-request data the client never receives) and move the value into serialised props or an effect. |
+| [`lie-fi-resilience`](plugins/client-apps/skills/lie-fi-resilience/SKILL.md) | Make a mobile or web client survive bad networks, not only no network: reproduce under conditioning at 3G, at 100% loss and on a link that is up but carries no data (captive portal, lie-fi), give every request a deadline, a capped retry budget with jittered backoff and an idempotency key, derive the offline banner from failed requests instead of the reachability flag, and queue writes durably so they survive a killed process. |
+| [`locale-edge-sweep`](plugins/client-apps/skills/locale-edge-sweep/SKILL.md) | Find internationalisation defects by sweeping every screen through a fixed hostile locale set, not whichever language is next on the roadmap. Externalise strings as ICU plural and select messages, then sweep: a pseudo-locale with about 40 percent expansion, Turkish dotless i in case mapping, right-to-left with logical properties, German compound words, Thai and Japanese without spaces, collation for sort and search, name and address formats, and numbers, currency and dates via the platform formatter; then gate it in CI. |
+| [`mobile-startup-and-jank`](plugins/client-apps/skills/mobile-startup-and-jank/SKILL.md) | Make a native app open fast and scroll smoothly. Measure cold start on a low-end physical device in a release build with Macrobenchmark, Android vitals, XCTest launch metrics, MetricKit and Instruments; split launch into pre-main or process start, app initialisation and first frame; list every SDK initialised on the launch path with its milliseconds and defer each one; judge scrolling by p95 frame time and hitch rate, not average frames per second; ship a Baseline Profile on Android. |
+| [`on-device-migration-safety`](plugins/client-apps/skills/on-device-migration-safety/SKILL.md) | Ship a change to an app's on-device database — Core Data, SwiftData, Room, SQLite — when the store cannot roll it back and every phone migrates alone. Enumerate every app version still in the field from analytics, keep a fixture database per schema version and run migrations from every one in CI, not just the previous release, migrate inside a transaction after a backup copy, and ship a failure path that restores and degrades instead of bricking launch. Steps are forward-only; old fields stay one release. |
+| [`push-notification-delivery`](plugins/client-apps/skills/push-notification-delivery/SKILL.md) | Find why a push notification did not arrive or did not show by walking the delivery chain in order: permission, token registration and refresh, the APNs or FCM request (push type, priority, collapse key, expiry), the provider's response with dead tokens deleted on 410 or UNREGISTERED, then on-device suppression — Doze, vendor battery killers, channels, Focus. Fix opt-in by asking after a moment of value, never at first launch. |
+| [`pwa-service-worker`](plugins/client-apps/skills/pwa-service-worker/SKILL.md) | Make a web app work offline and install cleanly, with a way out when its service worker goes wrong: ship the rescue first, a no-op worker at the same URL that clears caches and unregisters itself; pick a strategy per resource class (precache the hashed shell, stale-while-revalidate for tolerant reads, network-only for writes); name caches by build and delete old ones on activate; show a waiting worker as an update prompt, not a blind skipWaiting; queue offline writes with idempotency keys. |
+| [`text-input-edge-cases`](plugins/client-apps/skills/text-input-edge-cases/SKILL.md) | Harden text fields against what people really type, paste and autofill: count graphemes with Intl.Segmenter rather than .length, ignore Enter during IME composition, normalise to NFC before comparing or storing, trim once at the storage boundary, never reject a name with a pattern, keep client and server limits in one unit, and test every field against a fixed corpus - ZWJ emoji, combining marks, right-to-left text, 4-byte characters, pasted control characters, autofill. |
+| [`web-app-seo`](plugins/client-apps/skills/web-app-seo/SKILL.md) | Make a JavaScript-rendered site indexable: fetch each template without JavaScript first and compare it with the rendered HTML from Search Console's URL Inspection, then fix in order - rendering mode, status codes and soft 404s, canonicals, truthful sitemap lastmod, reciprocal hreflang, valid structured data - with a crawl policy for faceted URLs and an indexing watch after every migration. |
+| [`web-vitals-triage`](plugins/client-apps/skills/web-vitals-triage/SKILL.md) | Find why a Core Web Vital is poor for real users and fix the part that dominates: refuse lab scores until p75 field data is split by device and URL group, pull attribution (the LCP element and its four sub-parts, the slow interaction's target with its input delay, processing and presentation phases, the node that shifted), change only the dominant sub-part, and judge the fix on the 28-day field window rather than a Lighthouse re-run. |
+| [`webkit-only-bug-triage`](plugins/client-apps/skills/webkit-only-bug-triage/SKILL.md) | Triage a bug that only happens in Safari or on iPhone and iPad: reproduce it in real WebKit (a device, the iOS Simulator or Playwright's WebKit build) with Web Inspector attached before reading code, then check the usual causes in order: 100vh against dvh and the safe area, inputs under 16px zooming on focus, sticky and overflow clipping, date inputs and date parsing, ITP's seven-day cap on script-writable storage, IndexedDB eviction, and an API the user's iOS version lacks. Fix with feature queries, not user-agent checks. |
 
 ## Subagents
 

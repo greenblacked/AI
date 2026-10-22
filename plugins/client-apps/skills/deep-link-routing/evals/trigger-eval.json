@@ -1,0 +1,22 @@
+[
+  {"query": "tapping our product links on iphone opens safari instead of the app", "should_trigger": true},
+  {"query": "android app links verification keeps failing, assetlinks.json looks right to me", "should_trigger": true},
+  {"query": "universal links broke right after we moved the website to a new CDN", "should_trigger": true},
+  {"query": "shared links open the app but always land on the home screen instead of the order", "should_trigger": true},
+  {"query": "firebase dynamic links is gone, what do we replace deferred deep linking with", "should_trigger": true},
+  {"query": "how do we send someone without the app to the store and then straight to the invite after they install", "should_trigger": true},
+  {"query": "deep links work in debug builds but not for anyone who installed from google play", "should_trigger": true},
+  {"query": "what should the apple-app-site-association file look like for excluding some paths", "should_trigger": true},
+  {"query": "is it safe for our app to open whatever url comes in the link's redirect parameter in a webview", "should_trigger": true},
+  {"query": "when a logged out user taps a link to a document, they sign in and then lose where they were going", "should_trigger": true},
+  {"query": "which oauth flow should our mobile app use for google sign-in and how do we register the redirect uri", "should_trigger": false, "expected": "auth-design"},
+  {"query": "should the order details endpoint be a nested resource under the customer", "should_trigger": false, "expected": "api-design"},
+  {"query": "push notifications never show up on some android phones", "should_trigger": false, "expected": "push-notification-delivery"},
+  {"query": "our app store phased release is at 20 percent, should we pause it", "should_trigger": false, "expected": "mobile-release"},
+  {"query": "the website's navigation is confusing, users can't find the pricing page", "should_trigger": false, "expected": "information-architecture"},
+  {"query": "security review this PR that adds a new export endpoint", "should_trigger": false, "expected": "security-review"},
+  {"query": "the app works on wifi but hangs forever on a weak cellular signal", "should_trigger": false, "expected": "lie-fi-resilience"},
+  {"query": "the android app is 300MB and installs from emerging markets are dropping", "should_trigger": false, "expected": "app-size-budget"},
+  {"query": "which certificate authority automation should we use to renew our TLS certs before they expire", "should_trigger": false, "expected": "certificate-automation"},
+  {"query": "our ipa is crashing on launch since the release, crash reports point at the app delegate", "should_trigger": false, "expected": "crash-triage"}
+]

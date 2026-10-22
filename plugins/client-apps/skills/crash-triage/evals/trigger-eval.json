@@ -1,0 +1,22 @@
+[
+  {"query": "our crash-free users rate dropped from 99.6 to 98.9 since Tuesday's iOS release, where do we start", "should_trigger": true},
+  {"query": "what is the top crash in build 8.4.0 on Android and is it new", "should_trigger": true},
+  {"query": "Crashlytics only shows hex addresses for our app frames, no function names", "should_trigger": true},
+  {"query": "the Android stack traces are all a.b.c(SourceFile) since we turned on R8", "should_trigger": true},
+  {"query": "we have 40 open crash issues, which ones should we fix this sprint", "should_trigger": true},
+  {"query": "one crash has 200k events but I'm not sure it's actually affecting many people", "should_trigger": true},
+  {"query": "EXC_BAD_ACCESS KERN_INVALID_ADDRESS in our image cache, mostly on iOS 17, how do I read this", "should_trigger": true},
+  {"query": "we shipped a fix for the NullPointerException in checkout, how do we know it actually worked", "should_trigger": true},
+  {"query": "native SIGSEGV in libvideo.so only on Samsung devices, the tombstone has no symbol names", "should_trigger": true},
+  {"query": "IllegalStateException can not perform this action after onSaveInstanceState is our number one crash", "should_trigger": true},
+  {"query": "should we halt the phased release at 10 percent given the crash numbers, and what threshold do we use", "should_trigger": false, "expected": "mobile-release"},
+  {"query": "Play Console says our ANR rate is above the bad behaviour threshold", "should_trigger": false, "expected": "anr-watchdog-triage"},
+  {"query": "iOS crash report says termination reason 0x8badf00d during launch", "should_trigger": false, "expected": "anr-watchdog-triage"},
+  {"query": "users who skipped two versions crash on launch with a Core Data model incompatible error after updating", "should_trigger": false, "expected": "on-device-migration-safety"},
+  {"query": "this backend job crashes sometimes and I cannot reproduce it locally", "should_trigger": false, "expected": "debugging"},
+  {"query": "the iOS build job in CI fails at the archive step since we bumped Xcode", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "the app takes six seconds to open on a cheap Android phone", "should_trigger": false, "expected": "mobile-startup-and-jank"},
+  {"query": "our app sits at the top of the battery usage list in Android settings", "should_trigger": false, "expected": "battery-drain-diagnosis"},
+  {"query": "the API is returning 500s for every mobile client right now and the status page is red", "should_trigger": false, "expected": "incident-response"},
+  {"query": "what structured logs and spans should the payment service emit so we can debug the next outage", "should_trigger": false, "expected": "instrumentation"}
+]

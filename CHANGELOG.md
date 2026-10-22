@@ -10,6 +10,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `client-apps` plugin, for code that runs on a user's browser or phone, with twenty-two skills. Browser: `web-vitals-triage`, `bfcache-eligibility`, `hydration-mismatch-hunt`, `browser-memory-leak-hunt`, `deploy-version-skew`, `pwa-service-worker`, `csp-report-only-rollout`, `webkit-only-bug-triage`, `web-app-seo`, `async-ui-races` and `text-input-edge-cases`. Native and cross-platform: `datetime-bug-hunt`, `locale-edge-sweep`, `crash-triage`, `anr-watchdog-triage`, `mobile-startup-and-jank`, `battery-drain-diagnosis`, `lie-fi-resilience`, `on-device-migration-safety`, `deep-link-routing`, `push-notification-delivery` and `app-size-budget`.
+
 - Add the `assurance` plugin, for quality engineering and compliance procedure, with eleven skills: `test-order-bisect`, `mutation-testing`, `property-based-testing`, `fuzz-harness`, `traffic-replay-diff`, `load-testing`, `dpia`, `licence-compliance`, `control-evidence`, `risk-acceptance-register` and `audit-trail-design`. `test-design` now cedes scoring a suite by injected faults to `mutation-testing`, and `capacity-planning` cedes scripting and running the load test to `load-testing`.
 
 - Add the `techdocs` plugin, for keeping developer documentation true, with eleven skills: `tutorial-clean-room`, `code-sample-testing`, `docs-drift-detection`, `screenshot-rot`, `docs-url-permanence`, `error-catalogue`, `openapi-diff-gate`, `docs-search-vocabulary`, `terminology-lock`, `cli-reference` and `accessibility-conformance-report`.
