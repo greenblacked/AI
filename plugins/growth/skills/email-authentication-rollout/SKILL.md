@@ -71,7 +71,7 @@ Move one step per full report cycle, and only when no legitimate source fails:
 
 pct tells receivers to apply the policy to that share of failing mail; the rest is treated as the next lower policy. Some receivers ignore pct, so treat it as a ramp, not a guarantee. Set sp= separately if subdomains need a different policy, and publish `v=spf1 -all` plus p=reject for domains that never send mail.
 
-The DMARCbis draft replaces `pct` with a `t=` testing tag. It was still a draft when this was written, so check its status, and whether your receivers honour it, before relying on either tag.
+The DMARCbis draft replaces `pct` with a `t=` testing tag. It was still a draft when this was written and may since have been published, so check its status, and whether your receivers honour it, before relying on either tag.
 
 ### 7. Keep it enforced
 

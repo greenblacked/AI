@@ -42,10 +42,11 @@ WHERE sourceipaddress = '203.0.113.7' AND year = '2026' AND month IN ('09', '10'
 GROUP BY 1
 ```
 
-Role assumptions by that actor (hops to new identities); the new temporary key is in `responseelements.credentials.accesskeyid`, so run the first query again on it:
+Role assumptions by that actor (hops to new identities); `responseelements` is a JSON string in the Athena table, so extract the new temporary key from it and run the first query again on that key:
 
 ```sql
-SELECT eventtime, requestparameters, responseelements
+SELECT eventtime, requestparameters,
+       json_extract_scalar(responseelements, '$.credentials.accessKeyId') AS new_key
 FROM cloudtrail_logs
 WHERE eventname = 'AssumeRole' AND sourceipaddress = '203.0.113.7'
   AND year = '2026' AND month IN ('09', '10')

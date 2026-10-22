@@ -35,6 +35,8 @@ Pull login events for the window and a baseline window of the same weekdays. The
 
 Also check that the usernames are real: a high share of attempts on accounts that exist, with the right passwords for some, points to a leaked list; attempts on non-existent names point to guessing. If the pattern is brute force against a few accounts, a per-account limit is the right tool and the rest of this procedure is optional. Read `references/queries.md` for the aggregation queries.
 
+If it turns out to be spraying, per-account limits will not stop it, because each account sees only one or two attempts; refusing common and known-breached passwords at login and at password change is what closes it.
+
 ### 2. Size it
 
 Answer these in writing before choosing controls:

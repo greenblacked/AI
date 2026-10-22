@@ -70,7 +70,8 @@
   },
   {
     "query": "write the email sequence that welcomes new trial users",
-    "should_trigger": false
+    "should_trigger": false,
+    "expected": "lifecycle-sequence-design"
   },
   {
     "query": "zone cleanup: remove stale A records and turn on registrar lock",

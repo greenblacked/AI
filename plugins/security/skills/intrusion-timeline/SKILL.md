@@ -57,7 +57,7 @@ Bound the scan with the table's partition columns (here `year` and `month`) or p
 From the anchor, ask what identity made it and how that identity came to exist in that form. Pivot only on identifiers that survive hops:
 
 - access key ID, which identifies exactly one credential and does not follow it across a role hop: AssumeRole issues new temporary credentials under a new `ASIA` key ID, so read the new key from the AssumeRole event's `responseElements.credentials.accessKeyId`, link the hop through `sourceIdentity` (or the role session name), and continue from the new key;
-- session ID, which ties the temporary credentials of one assumed-role session together;
+- role session name, which the caller sets on AssumeRole and which appears at the end of the assumed-role ARN, so it ties actions together only while the operator keeps reusing it;
 - source IP and ASN, and user agent, which cluster an operator's tooling;
 - role session name or source identity, which ties an assumed role to the caller.
 
