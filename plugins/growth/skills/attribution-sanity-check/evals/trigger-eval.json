@@ -12,10 +12,10 @@
   {"query": "find wasted spend in our Google Ads search terms report", "should_trigger": false, "expected": "paid-search-waste-audit"},
   {"query": "the ad lands on a page that doesn't match the ad promise", "should_trigger": false, "expected": "message-match-audit"},
   {"query": "sales says marketing leads are junk, how do we define a good one", "should_trigger": false, "expected": "lead-quality-loop"},
-  {"query": "GA and the CRM do not agree on signup counts", "should_trigger": false},
-  {"query": "revenue per visitor fell this week, break it into traffic mix and conversion", "should_trigger": false},
+  {"query": "GA and the CRM do not agree on signup counts", "should_trigger": false, "expected": "metric-reconciliation"},
+  {"query": "revenue per visitor fell this week, break it into traffic mix and conversion", "should_trigger": false, "expected": "metric-movement-decomposition"},
   {"query": "add telemetry and traces to our checkout service", "should_trigger": false, "expected": "instrumentation"},
-  {"query": "write a UTM naming standard for the whole team", "should_trigger": false},
+  {"query": "write a UTM naming standard for the whole team", "should_trigger": false, "expected": "campaign-tagging-standard"},
   {"query": "check that our email domain passes DMARC", "should_trigger": false, "expected": "email-authentication-rollout"},
   {"query": "our emails land in spam", "should_trigger": false, "expected": "deliverability-triage"},
   {"query": "template pages for every city are not getting indexed", "should_trigger": false, "expected": "programmatic-seo-gate"}

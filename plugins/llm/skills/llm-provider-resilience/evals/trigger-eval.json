@@ -1,8 +1,8 @@
 [
   {"query": "the provider had an outage last night and our whole support assistant went down with it, how do we stop that happening", "should_trigger": true},
-  {"query": "we keep getting 429s from the api during our morning peak, what should the client do", "should_trigger": true},
+  {"query": "we keep getting 429s from the model api during our morning peak, what should the client do", "should_trigger": true},
   {"query": "add a fallback model so the feature keeps working when the main one is overloaded", "should_trigger": true},
-  {"query": "our retries made the incident worse, the provider was struggling and we hammered it harder", "should_trigger": true},
+  {"query": "our retries against the llm provider made the incident worse, the provider was struggling and we hammered it harder", "should_trigger": true},
   {"query": "which llm errors are worth retrying and which will just fail again at full price", "should_trigger": true},
   {"query": "a nightly batch job eats our rate limit and interactive users get errors, how do we separate them", "should_trigger": true},
   {"query": "what should happen when the stream drops halfway through a streamed answer", "should_trigger": true},

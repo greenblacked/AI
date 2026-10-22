@@ -13,7 +13,7 @@
   {"query": "traffic to our old guide fell, which posts should we refresh", "should_trigger": false, "expected": "content-refresh-triage"},
   {"query": "should we generate thousands of location pages from a template", "should_trigger": false, "expected": "programmatic-seo-gate"},
   {"query": "this ad landing page does not match the ad copy", "should_trigger": false, "expected": "message-match-audit"},
-  {"query": "make our docs search return the right pages for synonyms", "should_trigger": false},
+  {"query": "make our docs search return the right pages for synonyms", "should_trigger": false, "expected": "docs-search-vocabulary"},
   {"query": "write the microcopy for our onboarding screens", "should_trigger": false, "expected": "content-design"},
   {"query": "build a marketing website for our new product", "should_trigger": false, "expected": "website-builder"},
   {"query": "turn our best customer into a published case study", "should_trigger": false, "expected": "customer-story-production"},

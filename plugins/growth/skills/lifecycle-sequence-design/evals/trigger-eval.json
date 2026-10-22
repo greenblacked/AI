@@ -13,10 +13,10 @@
   {"query": "rewrite the tooltip and empty-state text inside our product", "should_trigger": false, "expected": "content-design"},
   {"query": "we are moving to a new email provider and need to ramp up volume safely", "should_trigger": false, "expected": "sending-domain-warmup"},
   {"query": "publish DMARC and fix our SPF record", "should_trigger": false, "expected": "email-authentication-rollout"},
-  {"query": "failed card payments are not being recovered and subscriptions are lapsing", "should_trigger": false},
-  {"query": "find where users stall inside the product between signup and first value", "should_trigger": false},
+  {"query": "failed card payments are not being recovered and subscriptions are lapsing", "should_trigger": false, "expected": "dunning-recovery"},
+  {"query": "find where users stall inside the product between signup and first value", "should_trigger": false, "expected": "activation-analysis"},
   {"query": "which marketing channel drove last quarter's revenue", "should_trigger": false, "expected": "attribution-sanity-check"},
-  {"query": "make push notifications reach Android devices reliably", "should_trigger": false},
+  {"query": "make push notifications reach Android devices reliably", "should_trigger": false, "expected": "push-notification-delivery"},
   {"query": "write the subject line and copy for our spring promotion", "should_trigger": false},
   {"query": "tag all our campaign links consistently so reports can be trusted", "should_trigger": false, "expected": "campaign-tagging-standard"}
 ]

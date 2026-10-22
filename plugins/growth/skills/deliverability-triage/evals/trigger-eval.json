@@ -11,12 +11,12 @@
   {"query": "how do I tell real engagement from Apple Mail Privacy Protection opens when checking recovery", "should_trigger": true},
   {"query": "publish DMARC and get SPF under the lookup limit for our domain", "should_trigger": false, "expected": "email-authentication-rollout"},
   {"query": "our DKIM signing broke after we changed email platforms", "should_trigger": false, "expected": "email-authentication-rollout"},
-  {"query": "signups per day fell 20 percent after last release and we need to find why", "should_trigger": false},
+  {"query": "signups per day fell 20 percent after last release and we need to find why", "should_trigger": false, "expected": "metric-anomaly-triage"},
   {"query": "our email platform invoice doubled, find where the spend is going", "should_trigger": false},
   {"query": "write subject lines for our spring promotion", "should_trigger": false},
   {"query": "reduce wasted spend in our Google Ads account", "should_trigger": false, "expected": "paid-search-waste-audit"},
   {"query": "which channel really drove last quarter's revenue", "should_trigger": false, "expected": "attribution-sanity-check"},
-  {"query": "push notifications are not arriving on Android devices", "should_trigger": false},
-  {"query": "failed payment emails are not recovering subscriptions", "should_trigger": false},
+  {"query": "push notifications are not arriving on Android devices", "should_trigger": false, "expected": "push-notification-delivery"},
+  {"query": "failed payment emails are not recovering subscriptions", "should_trigger": false, "expected": "dunning-recovery"},
   {"query": "design the HTML layout of our welcome email template", "should_trigger": false}
 ]

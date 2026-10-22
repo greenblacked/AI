@@ -61,7 +61,8 @@
   },
   {
     "query": "A/B test our pricing page",
-    "should_trigger": false
+    "should_trigger": false,
+    "expected": "experiment-design"
   },
   {
     "query": "brief for a new article from the search results",

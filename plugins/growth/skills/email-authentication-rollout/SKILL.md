@@ -71,9 +71,11 @@ Move one step per full report cycle, and only when no legitimate source fails:
 
 pct tells receivers to apply the policy to that share of failing mail; the rest is treated as the next lower policy. Some receivers ignore pct, so treat it as a ramp, not a guarantee. Set sp= separately if subdomains need a different policy, and publish `v=spf1 -all` plus p=reject for domains that never send mail.
 
+The DMARCbis draft replaces `pct` with a `t=` testing tag. It was still a draft when this was written, so check its status, and whether your receivers honour it, before relying on either tag.
+
 ### 7. Keep it enforced
 
-Rotate DKIM keys on a schedule (every six to twelve months is common): publish the new selector, switch the platform to sign with it, leave the old record up until mail signed with it has aged out, then remove it. Review reports monthly and whenever a team adds a tool. Note the Google and Yahoo bulk-sender rules: senders of about 5,000 or more messages a day to their users need SPF and DKIM, a DMARC record (p=none is the minimum), From alignment, one-click unsubscribe for marketing mail and a low spam-complaint rate.
+Rotate DKIM keys on a schedule (every six to twelve months is common): publish the new selector, switch the platform to sign with it, leave the old record up until mail signed with it has aged out, then remove it. Review reports monthly and whenever a team adds a tool. Note the Google and Yahoo bulk-sender rules, which took effect in February 2024, with enforcement of one-click unsubscribe following from June 2024. Google's bulk threshold is about 5,000 or more messages in 24 hours to personal Gmail accounts; Yahoo publishes no fixed number. Bulk senders need SPF and DKIM, a DMARC record (p=none is the minimum), From alignment, one-click unsubscribe for marketing mail and a low spam-complaint rate. This is the position as of 2024; check the providers' current sender pages before quoting a threshold.
 
 ## Hand back
 

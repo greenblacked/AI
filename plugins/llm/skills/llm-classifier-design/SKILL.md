@@ -34,7 +34,7 @@ Sample 300 or more real items, stratified so each class has enough rows for its 
 
 ### 4. Fit a cheap baseline on the same data
 
-Train keyword rules or TF-IDF with logistic regression on the same training split and score it on the same holdout. Cost per item is part of the comparison: the LLM must beat the baseline by enough to justify its price and latency, and sometimes the right design is the baseline for easy items and the model for the rest. Read `references/scoring-and-thresholds.md` for a stdlib scoring script and the baseline recipe.
+Train keyword rules or TF-IDF with logistic regression on the development set from step 3 and score it on the same holdout. Cost per item is part of the comparison: the LLM must beat the baseline by enough to justify its price and latency, and sometimes the right design is the baseline for easy items and the model for the rest. Read `references/scoring-and-thresholds.md` for a stdlib scoring script and the baseline recipe.
 
 ### 5. Score per class, never accuracy alone
 

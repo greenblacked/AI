@@ -34,7 +34,7 @@ Write the projection down with its inputs, and set a stop: if measured spend pas
 
 ### 3. Make the job idempotent and resumable
 
-Give each item a stable id from the source (never a row position) and compute a content hash of the exact input text sent. The dedupe key is the pair of content hash, prompt version and model id: an identical input under the same prompt and model is processed once, even if it appears under several ids.
+Give each item a stable id from the source (never a row position) and compute a content hash of the exact input text sent. The dedupe key is the combination of content hash, prompt version and model id: an identical input under the same prompt and model is processed once, even if it appears under several ids.
 
 Write each result as its own row in a durable store the moment it is validated, with status (`pending`, `done`, `failed`, `dead`), attempt count, error text, model id, prompt version and timestamp. A manifest, which can be the same table, lists every id expected. A restart selects ids that are not `done` for the current prompt version and model; it never trusts an in-memory list or an output file that is written at the end. Read `references/resumable-store.md` for a SQLite schema and the claim-and-write loop.
 

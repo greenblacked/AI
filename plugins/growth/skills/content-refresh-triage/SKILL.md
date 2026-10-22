@@ -16,7 +16,7 @@ The usual failure is rewriting everything that dropped. Most declines are not co
 
 Use for: organic traffic that fell, a ranking loss after an algorithm update, a list of pages to refresh, impressions with weak clicks.
 
-Do not use for: making a JavaScript app crawlable and indexable, drafting a new piece (`write-technical-article`), deciding what a new page should cover (`content-brief-from-serp`), templated page sets at scale (`programmatic-seo-gate`), or channel attribution questions (`attribution-sanity-check`).
+Do not use for: making a JavaScript app crawlable and indexable (`web-app-seo`), drafting a new piece (`write-technical-article`), deciding what a new page should cover (`content-brief-from-serp`), templated page sets at scale (`programmatic-seo-gate`), or channel attribution questions (`attribution-sanity-check`).
 
 ## Hard gates
 

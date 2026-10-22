@@ -8,6 +8,8 @@ allowed-tools: Read, Grep, Glob, Edit
 
 Done means every call chain has one retrying layer, timeouts that shrink down the chain, a retry budget, and a fault-injection run showing that a dead dependency receives about one request per inbound request rather than many. The usual failure is each layer adding its own sensible retries, so a brief downstream slowdown becomes a multiple of normal load and the downstream cannot recover.
 
+Calls to a language-model provider, with its rate limits, model fallback and long generations, are `llm-provider-resilience`.
+
 ## 1. Draw the chain
 
 List every synchronous edge from the user to the deepest dependency. For each edge record: caller, callee, connect timeout, total timeout, attempts, who performs the retry (application code, client library default, service mesh sidecar, load balancer). Client libraries and meshes retry by default in several stacks; read their configuration rather than assuming zero.

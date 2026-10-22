@@ -1,22 +1,92 @@
 [
-  {"query": "our search tool dumps fifty thousand tokens into the context and the agent chokes", "should_trigger": true},
-  {"query": "the model ignores what the tool returned and answers from guesswork", "should_trigger": true},
-  {"query": "the agent loses track of the task after one huge search result comes back", "should_trigger": true},
-  {"query": "how should pagination work for a tool an agent calls", "should_trigger": true},
-  {"query": "what should a tool return when the result is too big to fit, truncate it?", "should_trigger": true},
-  {"query": "rewrite our tool error messages so the model knows what to try next", "should_trigger": true},
-  {"query": "we return full database rows from every tool and the context fills up in five steps", "should_trigger": true},
-  {"query": "how do we let the agent read a ten megabyte log without pasting it all into the conversation", "should_trigger": true},
-  {"query": "measure which of our tools contribute the most tokens to an agent run", "should_trigger": true},
-  {"query": "should tool results use uuids or something shorter the model can copy reliably", "should_trigger": true},
-  {"query": "design the tool names, transport and auth for our new mcp server", "should_trigger": false, "expected": "mcp-server-design"},
-  {"query": "make the model's own answer valid json against a schema", "should_trigger": false, "expected": "structured-output"},
-  {"query": "our model spend is climbing, attribute it to features", "should_trigger": false, "expected": "llm-cost"},
-  {"query": "design the pagination and error format for our public rest api", "should_trigger": false, "expected": "api-design"},
-  {"query": "the assistant forgets what we decided earlier in a long conversation", "should_trigger": false, "expected": "context-compaction"},
-  {"query": "design retrieval so the bot cites the right passage", "should_trigger": false, "expected": "rag-design"},
-  {"query": "grade our agent across two hundred recorded tasks", "should_trigger": false, "expected": "agent-evaluation"},
-  {"query": "an agent step failed and I need to read the trace to see why", "should_trigger": false, "expected": "agent-failure-diagnosis"},
-  {"query": "write instructions for an agent that tell it when to call which tool", "should_trigger": false, "expected": "agent-instructions"},
-  {"query": "review the agent's tool permissions for injection risk", "should_trigger": false, "expected": "agent-security-review"}
+  {
+    "query": "our search tool dumps fifty thousand tokens into the context and the agent chokes",
+    "should_trigger": true
+  },
+  {
+    "query": "the model ignores what the tool returned and answers from guesswork",
+    "should_trigger": true
+  },
+  {
+    "query": "the agent loses track of the task after one huge search result comes back",
+    "should_trigger": true
+  },
+  {
+    "query": "how should pagination work for a tool an agent calls",
+    "should_trigger": true
+  },
+  {
+    "query": "what should a tool return when the result is too big to fit, truncate it?",
+    "should_trigger": true
+  },
+  {
+    "query": "rewrite our tool error messages so the model knows what to try next",
+    "should_trigger": true
+  },
+  {
+    "query": "we return full database rows from every tool and the context fills up in five steps",
+    "should_trigger": true
+  },
+  {
+    "query": "how do we let the agent read a ten megabyte log without pasting it all into the conversation",
+    "should_trigger": true
+  },
+  {
+    "query": "measure which of our tools contribute the most tokens to an agent run",
+    "should_trigger": true
+  },
+  {
+    "query": "should tool results use uuids or something shorter the model can copy reliably",
+    "should_trigger": true
+  },
+  {
+    "query": "design the tool names, transport and auth for our new mcp server",
+    "should_trigger": false,
+    "expected": "mcp-server-design"
+  },
+  {
+    "query": "make the model's own answer valid json against a schema",
+    "should_trigger": false,
+    "expected": "structured-output"
+  },
+  {
+    "query": "our model spend is climbing, attribute it to features",
+    "should_trigger": false,
+    "expected": "llm-cost"
+  },
+  {
+    "query": "design the pagination and error format for our public rest api",
+    "should_trigger": false,
+    "expected": "api-design"
+  },
+  {
+    "query": "the assistant forgets what we decided earlier in a long conversation",
+    "should_trigger": false,
+    "expected": "context-compaction"
+  },
+  {
+    "query": "design retrieval so the bot cites the right passage",
+    "should_trigger": false,
+    "expected": "rag-design"
+  },
+  {
+    "query": "grade our agent across two hundred recorded tasks",
+    "should_trigger": false,
+    "expected": "agent-evaluation"
+  },
+  {
+    "query": "an agent step failed and I need to read the trace to see why",
+    "should_trigger": false,
+    "expected": "agent-failure-diagnosis"
+  },
+  {
+    "query": "write instructions for an agent that tell it when to call which tool",
+    "should_trigger": false,
+    "expected": "agent-instructions"
+  },
+  {
+    "query": "what should my MCP tool return instead of throwing when the date argument is invalid",
+    "should_trigger": false,
+    "expected": "mcp-server-design"
+  }
 ]

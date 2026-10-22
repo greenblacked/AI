@@ -53,10 +53,11 @@ Pull the SMTP responses from the sending platform and group them. Use `reference
 1. Authentication: still passing and aligned for every stream? A changed DNS record, a new platform or an expired key shows here first. Hand repairs to `email-authentication-rollout`.
 2. Complaint rate by segment and by source. Compare to the thresholds above.
 3. List and segment change: new import, a re-activated dormant segment, a signup form without confirmation, a partner list.
-4. Blocklists that matter. Most listings do not affect delivery; Spamhaus entries on your IP or domain are the ones receivers consult widely. A DNS-based check needs the IP octets reversed:
+4. Blocklists that matter. Most listings do not affect delivery; Spamhaus entries on your IP or domain are the ones receivers consult widely. zen.spamhaus.org lists IPs, so it needs the IP octets reversed; domains are checked separately against the DBL, with the domain name in front and no reversal:
 
    ```bash
    dig +short 4.3.2.1.zen.spamhaus.org   # checks 1.2.3.4; no answer means not listed, and a 127.255.255.x answer is a query error from the blocklist, not a listing
+   dig +short example.com.dbl.spamhaus.org   # checks a domain, such as your sending or link-tracking domain; 127.0.1.x answers are listings, 127.255.255.x are query errors
    ```
 
    Spamhaus refuses queries from large public resolvers, so use your own resolver.

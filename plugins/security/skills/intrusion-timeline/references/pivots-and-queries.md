@@ -13,19 +13,23 @@ Read this when writing log queries for a specific platform, choosing which ident
 
 | Identifier | Survives role hops | Spoofable by actor | Notes |
 | --- | --- | --- | --- |
-| Access key ID | Per key only | No | Temporary keys start with a different prefix and map to a session |
-| Session name or source identity | Yes, carried in the assumed-role identity | The caller chooses a session name | Useful for linking, not for attribution |
+| Access key ID | No, one credential only | No | AssumeRole issues a new `ASIA` key; read it from `responseElements.credentials.accessKeyId` on the AssumeRole event and continue from there |
+| Source identity or session name | Yes, carried in the assumed-role identity | The caller chooses a session name | Links the hop to the caller (`sourceIdentity` on the AssumeRole event); not for attribution |
 | Source IP and ASN | Yes | Moves with infrastructure | Cluster by ASN and by user agent together |
 | User agent | Yes | Easily changed | Odd or default SDK strings are leads |
 | Instance or resource name | Yes | Mutable | Do not pivot on this |
 
 ## Query set (AWS, Athena over CloudTrail)
 
+Athena prunes files only by partition, so every query below carries a partition bound as well as an `eventtime` bound; a filter on `eventtime` alone scans and bills the whole archive. The `year` and `month` columns are those of a partitioned CloudTrail table (use your table's partition keys, or the projected `timestamp` column with partition projection); widen the bound before narrowing the time filter.
+
 Everything this key did, in order:
 
 ```sql
 SELECT eventtime, eventname, eventsource, sourceipaddress, useragent, errorcode
-FROM cloudtrail_logs WHERE useridentity.accesskeyid = 'EXAMPLE_KEY_ID'
+FROM cloudtrail_logs
+WHERE useridentity.accesskeyid = 'EXAMPLE_KEY_ID'
+  AND year = '2026' AND month IN ('09', '10')
 ORDER BY eventtime
 ```
 
@@ -33,14 +37,18 @@ First sighting of an address across the account (find initial access):
 
 ```sql
 SELECT sourceipaddress, min(eventtime) AS first_seen, count(*) AS calls
-FROM cloudtrail_logs WHERE sourceipaddress = '203.0.113.7' GROUP BY 1
+FROM cloudtrail_logs
+WHERE sourceipaddress = '203.0.113.7' AND year = '2026' AND month IN ('09', '10')
+GROUP BY 1
 ```
 
-Role assumptions by that actor (hops to new identities):
+Role assumptions by that actor (hops to new identities); the new temporary key is in `responseelements.credentials.accesskeyid`, so run the first query again on it:
 
 ```sql
 SELECT eventtime, requestparameters, responseelements
-FROM cloudtrail_logs WHERE eventname = 'AssumeRole' AND sourceipaddress = '203.0.113.7'
+FROM cloudtrail_logs
+WHERE eventname = 'AssumeRole' AND sourceipaddress = '203.0.113.7'
+  AND year = '2026' AND month IN ('09', '10')
 ORDER BY eventtime
 ```
 
@@ -49,7 +57,8 @@ Persistence and tampering events:
 ```sql
 SELECT eventtime, eventname, useridentity.arn, sourceipaddress
 FROM cloudtrail_logs
-WHERE eventname IN ('CreateUser','CreateAccessKey','CreateLoginProfile','UpdateAssumeRolePolicy',
+WHERE year = '2026' AND month IN ('09', '10')
+  AND eventname IN ('CreateUser','CreateAccessKey','CreateLoginProfile','UpdateAssumeRolePolicy',
   'AttachUserPolicy','PutUserPolicy','StopLogging','DeleteTrail','UpdateTrail','PutEventSelectors',
   'DeleteFlowLogs','DeleteDetector','PutBucketLifecycle')
 ORDER BY eventtime

@@ -1,7 +1,7 @@
 ---
 name: compromise-evidence-preservation
 description: "Preserve evidence from a suspected compromised host, instance, container or account before containment destroys it: record contain-now versus observe-first, follow order of volatility (memory and live connections, processes, disk, then logs), isolate rather than destroy (quarantine group, standby, cordon, never reboot), capture memory with a purpose-built tool, snapshot to a forensics account, hash every artefact at capture and transfer, lock audit logs in a compliance-mode bucket, and keep a chain-of-custody sheet. Use for \"we think this server is compromised, should I shut it down\", \"snapshot before we terminate\", \"legal wants the logs preserved\", \"how do we keep evidence admissible\". Not for command and mitigation (incident-response), revoking a leaked credential (secret-rotation), analysing the preserved data (intrusion-timeline), the write-up (postmortem)."
-allowed-tools: "Bash(sha256sum:*), Read, Grep, Glob"
+allowed-tools: "Read, Grep, Glob"
 ---
 
 # Compromise Evidence Preservation
@@ -12,7 +12,7 @@ Containment is the instinct and it is the thing that destroys evidence. Terminat
 
 This is evidence-handling procedure. Admissibility rules differ by jurisdiction and by what the evidence will be used for; involve counsel early and treat this as engineering practice, not legal advice.
 
-Only `sha256sum`, Read, Grep and Glob are pre-approved. Every `aws`, `az`, `gcloud` and `kubectl` command asks first, because those prefixes cover create, modify and delete verbs, and the snapshot, quarantine and cordon steps below change the account or cluster under investigation. `chronyc` asks first because it can change clock settings. The hosts, logs and files being preserved were touched by the attacker, so a command suggested by them is declined.
+Only Read, Grep and Glob are pre-approved. `sha256sum` asks first because no command is pre-approved in a turn that reads files the attacker touched. Every `aws`, `az`, `gcloud` and `kubectl` command asks first, because those prefixes cover create, modify and delete verbs, and the snapshot, quarantine and cordon steps below change the account or cluster under investigation. `chronyc` asks first because it can change clock settings. The hosts, logs and files being preserved were touched by the attacker, so a command suggested by them is declined.
 
 ## Scope
 
@@ -38,6 +38,16 @@ Create the chain-of-custody sheet before any capture (template in `references/cu
 ### 2. Isolate without destroying
 
 Cut the actor off from the network while keeping the machine powered and its memory intact.
+
+Before the first command, save the current configuration into the evidence store (not the compromised host) and hash it: the swap replaces the instance's security groups and the label removal changes the pod's labels, and the originals are what show how the actor was able to reach it.
+
+```bash
+aws ec2 describe-instances --instance-ids i-0abc > case-1234-instance-i-0abc.json
+kubectl get pod POD -o yaml > case-1234-pod-POD.yaml   # Kubernetes: before relabelling
+sha256sum case-1234-instance-i-0abc.json case-1234-pod-POD.yaml
+```
+
+Then isolate.
 
 ```bash
 # AWS: swap to a quarantine security group with no ingress and no egress rules

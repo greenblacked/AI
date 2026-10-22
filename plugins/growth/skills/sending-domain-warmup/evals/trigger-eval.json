@@ -14,9 +14,9 @@
   {"query": "plan the one-way switchover of our production database with a rollback point", "should_trigger": false, "expected": "cutover"},
   {"query": "plan our migration from one CRM platform to another", "should_trigger": false, "expected": "plan-platform-migration"},
   {"query": "design a welcome series and re-engagement flow for new users", "should_trigger": false, "expected": "lifecycle-sequence-design"},
-  {"query": "failed payment emails are not recovering subscriptions", "should_trigger": false},
+  {"query": "failed payment emails are not recovering subscriptions", "should_trigger": false, "expected": "dunning-recovery"},
   {"query": "write the subject lines for our product launch email", "should_trigger": false},
-  {"query": "make push notifications deliver reliably on Android", "should_trigger": false},
+  {"query": "make push notifications deliver reliably on Android", "should_trigger": false, "expected": "push-notification-delivery"},
   {"query": "reduce wasted spend in our Google Ads account", "should_trigger": false, "expected": "paid-search-waste-audit"},
   {"query": "stand up a new SMTP relay server for application alerts", "should_trigger": false}
 ]

@@ -12,7 +12,7 @@
   {"query": "why do people drop off on the checkout screen of our app", "should_trigger": false, "expected": "ui-ux-review"},
   {"query": "rewrite the error messages and button labels in our product", "should_trigger": false, "expected": "content-design"},
   {"query": "build me a landing page for our new launch", "should_trigger": false, "expected": "website-builder"},
-  {"query": "run an experiment on a page with only 200 visits a month", "should_trigger": false},
+  {"query": "run an experiment on a page with only 200 visits a month", "should_trigger": false, "expected": "low-traffic-page-testing"},
   {"query": "which keywords in our google ads account are wasting budget", "should_trigger": false, "expected": "paid-search-waste-audit"},
   {"query": "sales says the leads from the campaign are junk", "should_trigger": false, "expected": "lead-quality-loop"},
   {"query": "our organic blog posts lost traffic after an update", "should_trigger": false, "expected": "content-refresh-triage"},

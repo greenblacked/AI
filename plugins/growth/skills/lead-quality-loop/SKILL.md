@@ -16,7 +16,7 @@ The usual failure is a handoff defined by a form fill or a score. Marketing is p
 
 Use for: sales and marketing disagreeing about lead quality, defining MQL or SQL, cost per lead that does not turn into pipeline, setting up feedback of sales outcomes to ad platforms.
 
-Do not use for: analysis of why opportunities are lost, whether the attribution model is truthful (`attribution-sanity-check`), the structure and waste of the ad account (`paid-search-waste-audit`), or product activation and onboarding.
+Do not use for: analysis of why opportunities are lost (`win-loss-review`), whether the attribution model is truthful (`attribution-sanity-check`), the structure and waste of the ad account (`paid-search-waste-audit`), or product activation and onboarding (`activation-analysis`).
 
 ## Hard gates
 

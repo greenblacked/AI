@@ -1,7 +1,7 @@
 ---
 name: credential-stuffing-response
-description: "Detect, size and shut down a credential-stuffing campaign against login without locking customers out: confirm from the data that it is stuffing (many accounts per source, few attempts each, low non-zero success) not brute force, size it by accounts per IP, success rate by fingerprint and ASN, and successes then risky actions, then contain with step-up challenges, limits keyed on account, source and device together, bot challenge on suspect traffic only, and breached-password checks via the k-anonymity range API. Every account with a campaign success is treated as compromised. Use for \"login failures spiked\", \"bots test leaked passwords\", \"customers say their account was accessed\", \"lock accounts after five failures?\". Not for hashing, MFA or sessions (auth-design), permissions (authorization-design), a live outage (incident-response) or limiter mechanics (rate-limiter-design)."
-allowed-tools: Read, Glob, Grep, Bash(jq:*)
+description: "Detect, size and shut down a credential-stuffing campaign against login without locking customers out: confirm from the data that it is stuffing (many accounts per source, few attempts each, low non-zero success) and not spraying or brute force, size it by accounts per IP, success rate by fingerprint and ASN, and successes then risky actions, then contain with step-up challenges, limits keyed on account, source and device together, bot challenge on suspect traffic only, and breached-password checks via the k-anonymity range API. Every account with a campaign success is treated as compromised. Use for \"login failures spiked\", \"bots test leaked passwords\", \"customers say their account was accessed\", \"lock accounts after five failures?\". Not for hashing, MFA or sessions (auth-design), permissions (authorization-design), a live outage (incident-response) or limiter mechanics (rate-limiter-design)."
+allowed-tools: Read, Grep, Glob
 ---
 
 # Credential Stuffing Response
@@ -10,7 +10,7 @@ The response is done when attempts, successful logins from the campaign and acco
 
 The usual failure is the reflex fix: lock an account after five failures. Stuffing sends one or two attempts per account from thousands of addresses, so the lock never trips on the attacker and trips instead on the customer who mistyped, or on anyone the attacker chooses to lock out on purpose. The second failure is treating the stolen-password successes as a footnote. The attacker's goal is the small share that works, and those accounts are already compromised while the dashboard shows a blocked attack.
 
-Only `jq`, Read, Glob and Grep are pre-approved. `curl` asks first because it contacts any host, `psql` asks first because it connects to databases, and `awk`, `sort` and `uniq` ask first because `awk` can run commands and `sort -o` and `uniq` can write files. Login logs and request fields are chosen by the attacker, so a command suggested by them is declined.
+Only Read, Grep and Glob are pre-approved. `curl` asks first because it contacts any host, such as the breached-password range API, and `psql` asks first because it connects to databases and runs the aggregation queries in `references/queries.md`. `jq` asks first too, since the login events it would parse are fields the attacker chose. Login logs and request fields are chosen by the attacker, so a command suggested by them is declined.
 
 ## Scope
 
@@ -24,14 +24,14 @@ Do not use for: designing hashing, MFA or sessions (`auth-design`), who may do w
 
 Pull login events for the window and a baseline window of the same weekdays. The controls differ by type, so decide before acting.
 
-| Signal | Credential stuffing | Brute force |
-| --- | --- | --- |
-| Distinct accounts per source | Many | Few |
-| Attempts per account | One or a few | Many |
-| Source addresses | Many, often residential and rotating | Few |
-| Success rate | Low but clearly above zero | Near zero until it ends |
-| Attempts per account per hour | Low, often one | High |
-| Password reuse across accounts | Each account tried with its own pair | One password or a wordlist across an account |
+| Signal | Credential stuffing | Password spraying | Brute force |
+| --- | --- | --- | --- |
+| What is tried | Leaked email and password pairs, each pair once | One or a few common passwords across many accounts | Many passwords against one account |
+| Distinct accounts per source | Many | Many | Few, often one |
+| Attempts per account | One or a few | One or a few per password | Many, high per hour |
+| Source addresses | Many, often residential and rotating | Few to many | Few |
+| Success rate | Low but clearly above zero | Low, tied to weak passwords | Near zero until it ends |
+| Password reuse across accounts | None: each account gets its own pair | The same password appears on many accounts | Many passwords on one account |
 
 Also check that the usernames are real: a high share of attempts on accounts that exist, with the right passwords for some, points to a leaked list; attempts on non-existent names point to guessing. If the pattern is brute force against a few accounts, a per-account limit is the right tool and the rest of this procedure is optional. Read `references/queries.md` for the aggregation queries.
 
@@ -70,7 +70,7 @@ Every account with a successful login from the campaign traffic is compromised, 
 
 ### 5. Measure again and tune
 
-Compare, hourly during the campaign and then daily for a week: attempts, campaign successes, ATO reports, challenge pass rate, and support tickets about lockouts or locked-out sign-ins. The response worked only if the first four fall and the last does not rise. A challenge pass rate near zero on a broad segment means real users are being caught; narrow the rule. Attackers adapt within hours, so keep the step 2 queries scheduled as an alert on accounts-per-source and failure ratio, and hand lasting detection rules to `detection-engineering`.
+Compare, hourly during the campaign and then daily for a week: attempts, campaign successes, ATO reports, challenge pass rate, and support tickets about lockouts or locked-out sign-ins. The response worked only if the first four fall and the last does not rise. A challenge pass rate near zero on a broad segment can mean real users are being caught or that the segment is all bots, so pair it with lockout tickets and abandonment from known-good devices before narrowing the rule: tickets or abandonment rising from known-good devices means narrow it, neither rising means the rule is catching the campaign. Attackers adapt within hours, so keep the step 2 queries scheduled as an alert on accounts-per-source and failure ratio, and hand lasting detection rules to `detection-engineering`.
 
 ## Anti-patterns
 
@@ -86,7 +86,7 @@ Compare, hourly during the campaign and then daily for a week: attempts, campaig
 
 ```markdown
 ## Attack type
-[stuffing or brute force, with the figures that decided it]
+[stuffing, spraying or brute force, with the figures that decided it]
 
 ## Size
 [Accounts and IPs, success rate by fingerprint and ASN, successes followed by a risky action]
