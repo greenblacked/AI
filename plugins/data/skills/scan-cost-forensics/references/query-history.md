@@ -175,6 +175,8 @@ ORDER BY blocks_read DESC
 LIMIT 50;
 ```
 
+`SVL_QUERY_METRICS_SUMMARY` covers the main cluster only. On a cluster that uses concurrency scaling, the queries that ran on scaling clusters are missing from the join above, and they are often the ones that caused the scaling. Read `SYS_QUERY_HISTORY` instead, which includes them: apply the same normalisation to `query_text`, sum `execution_time` and `queue_time` (both in microseconds), and take blocks read from `SYS_QUERY_DETAIL` by `query_id`.
+
 `STL_QUERY.querytxt` is truncated to the first 4,000 characters, and STL views keep only a few days; for a 14-day window, copy them into a table of your own every day and run the query against that.
 
 Redshift Serverless is billed on RPU time. Use `SYS_QUERY_HISTORY`, rank by `elapsed_time` (microseconds), and read `result_cache_hit` for step 5's fourth culprit. `query_label` carries the label set with `SET query_group`.

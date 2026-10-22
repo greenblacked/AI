@@ -49,7 +49,7 @@ create view analytics.core.orders
   as select * from analytics.deprecated.orders;
 ```
 
-BigQuery:
+BigQuery: a table that has received streaming writes cannot be renamed until streaming has stopped and its buffer has cleared, which can take hours. Move the streaming writer first, then wait until `bq show --format=prettyjson core.orders` no longer reports a `streamingBuffer`, and schedule the rename after that rather than in the same window.
 
 ```sql
 alter table core.orders rename to orders_deprecated;

@@ -31,7 +31,7 @@ WHERE o.created_at >= '2026-10-07 00:00:00' AND o.created_at < '2026-10-08 00:00
 GROUP BY o.order_id;
 ```
 
-Prove uniqueness on `k` for each side before diffing (`SELECT k FROM side_a GROUP BY k HAVING COUNT(*) > 1`). A side that is not unique on its key has a join-grain problem of its own.
+Prove uniqueness on `k` for each side before diffing (`SELECT k FROM side_a GROUP BY k HAVING COUNT(*) > 1`), and that no `k` is null (`SELECT COUNT(*) FROM side_a WHERE k IS NULL`): a null key never joins, and the buckets below would misfile it. A side that is not unique on its key has a join-grain problem of its own.
 
 ## The full outer join and buckets
 
@@ -41,14 +41,14 @@ WITH d AS (
     COALESCE(a.k, b.k) AS k,
     a.v AS a_v,
     b.v AS b_v,
-    CASE
-      WHEN b.k IS NULL THEN 'only_a'
-      WHEN a.k IS NULL THEN 'only_b'
-      WHEN a.v = b.v   THEN 'match'
+    CASE                             -- presence flags, not the keys, mark each side
+      WHEN b.in_b IS NULL THEN 'only_a'
+      WHEN a.in_a IS NULL THEN 'only_b'
+      WHEN a.v = b.v      THEN 'match'
       ELSE 'value_differs'
     END AS bucket
-  FROM side_a a
-  FULL OUTER JOIN side_b b ON a.k = b.k
+  FROM (SELECT *, 1 AS in_a FROM side_a) a
+  FULL OUTER JOIN (SELECT *, 1 AS in_b FROM side_b) b ON a.k = b.k
 )
 SELECT
   bucket,
