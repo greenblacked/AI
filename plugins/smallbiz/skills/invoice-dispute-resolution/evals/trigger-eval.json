@@ -1,0 +1,22 @@
+[
+  {"query": "the client says the work is not up to standard and refuses to pay", "should_trigger": true},
+  {"query": "a client is asking for a full refund after I delivered the project", "should_trigger": true},
+  {"query": "the client disputes the number of hours I billed", "should_trigger": true},
+  {"query": "I got a chargeback on my invoice, how do I respond", "should_trigger": true},
+  {"query": "a client is threatening to withhold payment unless I make changes", "should_trigger": true},
+  {"query": "how do I answer a client who complains but will not say what is wrong", "should_trigger": true},
+  {"query": "the client wants to pay only half of the invoice because they are unhappy", "should_trigger": true},
+  {"query": "should I take a client to small claims over a disputed 3,000 invoice", "should_trigger": true},
+  {"query": "can I keep the files until a client who disputes my invoice pays", "should_trigger": true},
+  {"query": "what evidence should I gather before I reply to a payment dispute", "should_trigger": true},
+  {"query": "a client has not paid and has not said why, the invoice is 20 days overdue", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "how do I prepare for a hard conversation with a difficult client", "should_trigger": false, "expected": "difficult-conversation"},
+  {"query": "what clauses should my contract have for disputes", "should_trigger": false, "expected": "services-agreement-checklist"},
+  {"query": "the client wants extra work after signing", "should_trigger": false, "expected": "scope-creep-response"},
+  {"query": "the client has gone silent and the project is stuck", "should_trigger": false, "expected": "stalled-project-recovery"},
+  {"query": "how should I quote this project", "should_trigger": false, "expected": "fixed-price-quote"},
+  {"query": "how do I wrap up a finished project with a client", "should_trigger": false, "expected": "client-offboarding"},
+  {"query": "how much did I actually earn per hour on that job", "should_trigger": false, "expected": "estimate-actuals-review"},
+  {"query": "which clients are not worth keeping", "should_trigger": false, "expected": "client-profitability-review"},
+  {"query": "how much tax should I set aside", "should_trigger": false, "expected": "tax-set-aside"}
+]

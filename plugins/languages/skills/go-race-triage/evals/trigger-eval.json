@@ -1,0 +1,22 @@
+[
+  {"query": "fatal error: concurrent map writes in our go service, it happens a few times a day", "should_trigger": true},
+  {"query": "go test -race reports DATA RACE on a struct field and I do not understand the two stacks", "should_trigger": true},
+  {"query": "the program hangs and then prints all goroutines are asleep - deadlock", "should_trigger": true},
+  {"query": "this test only fails when I run it with -count=100", "should_trigger": true},
+  {"query": "should I add a mutex here or use a channel for this shared counter", "should_trigger": true},
+  {"query": "how do I find which goroutine holds the lock when my go server freezes with no cpu use", "should_trigger": true},
+  {"query": "set up CI so go tests always run with the race detector and shuffled order", "should_trigger": true},
+  {"query": "the race detector says the goroutine was created at a line in my http handler; what does that tell me", "should_trigger": true},
+  {"query": "go vet complains that my function passes a lock by value", "should_trigger": true},
+  {"query": "two of my goroutines take mutexes in different orders and sometimes everything stops", "should_trigger": true},
+  {"query": "goroutine count keeps climbing and memory grows with traffic in our go service", "should_trigger": false, "expected": "go-goroutine-leak"},
+  {"query": "two requests both read the balance row and then both write it, losing an update", "should_trigger": false, "expected": "transaction-race-hunt"},
+  {"query": "a test passes alone but fails after another test runs before it", "should_trigger": false, "expected": "test-order-bisect"},
+  {"query": "find the hot function making our go service use too much cpu", "should_trigger": false, "expected": "profiling"},
+  {"query": "our java service threads are all blocked and cpu is low", "should_trigger": false, "expected": "jvm-thread-dump-triage"},
+  {"query": "dotnet requests time out under load with low cpu", "should_trigger": false, "expected": "dotnet-threadpool-starvation"},
+  {"query": "work out why this function returns the wrong value for empty input", "should_trigger": false, "expected": "debugging"},
+  {"query": "restructure this large go package into smaller ones without changing behaviour", "should_trigger": false, "expected": "refactoring"},
+  {"query": "tune the go garbage collector because pauses are too long", "should_trigger": false, "expected": "go-gc-tuning"},
+  {"query": "review this pull request that adds a worker pool", "should_trigger": false, "expected": "code-review"}
+]

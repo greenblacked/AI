@@ -1,0 +1,22 @@
+[
+  {"query": "can I trust the statistics in this result from the preprint I just read", "should_trigger": true},
+  {"query": "review the stats in this manuscript for me", "should_trigger": true},
+  {"query": "are these p-values right given the t statistics and degrees of freedom", "should_trigger": true},
+  {"query": "write a referee report on the analysis section of this paper", "should_trigger": true},
+  {"query": "the means in table 2 look impossible for 12 participants, check them", "should_trigger": true},
+  {"query": "the authors ran many comparisons and report only two, is that a problem", "should_trigger": true},
+  {"query": "is the error bar in figure 3 SD or SE and does it matter", "should_trigger": true},
+  {"query": "they conclude there is no difference because p was 0.2, is that valid", "should_trigger": true},
+  {"query": "our internal report claims a 15 percent improvement, check the analysis before we rely on it", "should_trigger": true},
+  {"query": "the n in the abstract does not match the n in the figure, how do I look into it", "should_trigger": true},
+  {"query": "review this pull request", "should_trigger": false, "expected": "code-review"},
+  {"query": "help me read and understand this paper", "should_trigger": false, "expected": "paper-reading"},
+  {"query": "find the main papers on this topic and summarise them", "should_trigger": false, "expected": "literature-scan"},
+  {"query": "is our method really better than the baseline, set up the comparison", "should_trigger": false, "expected": "fair-method-comparison"},
+  {"query": "make my analysis reproducible", "should_trigger": false, "expected": "reproducible-analysis-environment"},
+  {"query": "design an A/B test readout for our checkout change", "should_trigger": false},
+  {"query": "is the observed effect causal given observational data", "should_trigger": false},
+  {"query": "what is the main contribution of this paper and is the argument convincing", "should_trigger": false, "expected": "paper-reading"},
+  {"query": "write a unit test for my statistics function", "should_trigger": false, "expected": "test-design"},
+  {"query": "how large a sample do I need for my own experiment", "should_trigger": false}
+]

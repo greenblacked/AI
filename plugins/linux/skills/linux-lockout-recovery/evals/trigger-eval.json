@@ -1,0 +1,22 @@
+[
+  {"query": "I broke /etc/sudoers and now nobody can sudo, how do I get root back", "should_trigger": true},
+  {"query": "I changed sshd_config, restarted ssh, and now I cannot log in to the server", "should_trigger": true},
+  {"query": "I lost the only ssh key for my ec2 instance", "should_trigger": true},
+  {"query": "an iptables rule I added blocked my own ssh connection and the session dropped", "should_trigger": true},
+  {"query": "locked myself out of my vps after enabling the firewall, I only have the provider console", "should_trigger": true},
+  {"query": "how do I fix a server by attaching its root volume to another instance and editing the file", "should_trigger": true},
+  {"query": "can I use ssm run command to fix sshd when ssh no longer works", "should_trigger": true},
+  {"query": "permitrootlogin no and the only user lost sudo, how to recover safely", "should_trigger": true},
+  {"query": "what is the least destructive way to regain access if I do not know any password", "should_trigger": true},
+  {"query": "how do I set things up so a bad ssh change automatically reverts if I lose connection", "should_trigger": true},
+  {"query": "ssh -vvv shows publickey offered and rejected, I still have a working session open", "should_trigger": false, "expected": "ssh-access-debugging"},
+  {"query": "my nft rule is not matching and I want to trace where packets drop", "should_trigger": false, "expected": "firewall-rule-tracing"},
+  {"query": "what settings should a hardened linux server baseline contain", "should_trigger": false, "expected": "host-hardening"},
+  {"query": "the machine hangs at grub and drops to emergency mode after a kernel update", "should_trigger": false, "expected": "boot-failure-recovery"},
+  {"query": "our api key was pushed to a public repository and must be replaced", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "permission denied reading a log file even though I am in the right group", "should_trigger": false, "expected": "permission-denied-triage"},
+  {"query": "systemd unit fails with exit status 203", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "I forgot my laptop login password", "should_trigger": false},
+  {"query": "who should have admin access to production and how often to review it", "should_trigger": false, "expected": "access-review"},
+  {"query": "reset the password for a locked user in active directory", "should_trigger": false}
+]

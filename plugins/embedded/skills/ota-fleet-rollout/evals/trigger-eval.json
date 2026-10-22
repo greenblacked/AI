@@ -1,0 +1,22 @@
+[
+  {"query": "we need to roll out firmware 2.4 to the whole fleet of sensors, how should we stage it", "should_trigger": true},
+  {"query": "how long should the canary bake for devices that only check in once a day", "should_trigger": true},
+  {"query": "pause the OTA campaign, check-ins are dropping after the update", "should_trigger": true},
+  {"query": "which devices should we update first and which should we skip", "should_trigger": true},
+  {"query": "what halt criteria should we set before pushing firmware to 100,000 field units", "should_trigger": true},
+  {"query": "how do we tell a bad update from silence when devices report once a week", "should_trigger": true},
+  {"query": "we can't recall devices once they have the image, how do we roll back a bad firmware version", "should_trigger": true},
+  {"query": "how do we avoid hammering the CDN and cellular data bills when a whole ring downloads", "should_trigger": true},
+  {"query": "plan rings across hardware revisions and carriers for a firmware release", "should_trigger": true},
+  {"query": "should the update wait for devices on low battery or in the middle of a job", "should_trigger": true},
+  {"query": "how long should we bake a canary deploy of our web service", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "phased release in the app store for our iOS app", "should_trigger": false, "expected": "mobile-release"},
+  {"query": "design the dual-slot bootloader with signature check and rollback", "should_trigger": false, "expected": "ota-update-safety"},
+  {"query": "one unit is dead after the update and will not boot", "should_trigger": false, "expected": "brick-recovery"},
+  {"query": "how does the device confirm a new image after booting it and revert if the health check fails", "should_trigger": false, "expected": "ota-update-safety"},
+  {"query": "the watchdog resets some units after the update", "should_trigger": false, "expected": "watchdog-design"},
+  {"query": "write the release notes for version 2.4", "should_trigger": false, "expected": "release-notes"},
+  {"query": "our stored settings are lost after the update", "should_trigger": false, "expected": "flash-storage-durability"},
+  {"query": "roll out the feature to ten percent of users with a flag", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "battery drains fast after the new firmware on the bench unit", "should_trigger": false, "expected": "sleep-current-hunt"}
+]

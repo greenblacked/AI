@@ -1,0 +1,92 @@
+[
+ {
+  "query": "my Cortex-M board hits HardFault and I have the stacked registers, how do I find the line",
+  "should_trigger": true
+ },
+ {
+  "query": "the crash report shows PC at 0xFFFFFFFE, what does that mean",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I read CFSR and know whether it was a null pointer or a stack overflow",
+  "should_trigger": true
+ },
+ {
+  "query": "the unit resets randomly in the field and leaves no log, how do I capture why",
+  "should_trigger": true
+ },
+ {
+  "query": "what is the right way to write a HardFault handler that picks MSP or PSP",
+  "should_trigger": true
+ },
+ {
+  "query": "addr2line gives a line that makes no sense for this crash address",
+  "should_trigger": true
+ },
+ {
+  "query": "I get an imprecise bus fault and the PC points at innocent code",
+  "should_trigger": true
+ },
+ {
+  "query": "how should we store release ELF files so we can decode crashes from old units",
+  "should_trigger": true
+ },
+ {
+  "query": "MMFAR shows a strange address, can I trust it",
+  "should_trigger": true
+ },
+ {
+  "query": "set up crash records in retained RAM that the device uploads after it reboots",
+  "should_trigger": true
+ },
+ {
+  "query": "my Python script fails on some inputs and I need a systematic way to find the bug",
+  "should_trigger": false,
+  "expected": "debugging"
+ },
+ {
+  "query": "the device hangs with no fault and nothing resets it, design a watchdog",
+  "should_trigger": false,
+  "expected": "watchdog-design"
+ },
+ {
+  "query": "the unit stops after the firmware update and does not come back",
+  "should_trigger": false,
+  "expected": "ota-update-safety"
+ },
+ {
+  "query": "the I2C sensor never ACKs",
+  "should_trigger": false,
+  "expected": "serial-bus-debug"
+ },
+ {
+  "query": "sleep current is ten times the datasheet value",
+  "should_trigger": false,
+  "expected": "sleep-current-hunt"
+ },
+ {
+  "query": "the board does not wake from deep sleep on the GPIO interrupt",
+  "should_trigger": false,
+  "expected": "sleep-wake-bug-hunt"
+ },
+ {
+  "query": "the flash settings area is corrupted after power loss",
+  "should_trigger": false,
+  "expected": "flash-storage-durability"
+ },
+ {
+  "query": "the unit is bricked and needs recovery through the bootloader",
+  "should_trigger": false,
+  "expected": "brick-recovery"
+ },
+ {
+  "query": "segfault in production, I have a core file but gdb shows question marks",
+  "should_trigger": false,
+  "expected": "native-core-dump-analysis"
+ },
+ {
+  "query": "the certificates on the devices expire next year",
+  "should_trigger": false,
+  "expected": "device-trust-anchors"
+ }
+]

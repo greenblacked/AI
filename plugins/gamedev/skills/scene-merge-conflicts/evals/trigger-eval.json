@@ -1,0 +1,22 @@
+[
+  {"query": "two of us edited the same scene yesterday and now one person's changes are gone", "should_trigger": true},
+  {"query": "unity merge conflict in a prefab, what is the safest way to resolve it", "should_trigger": true},
+  {"query": "unreal blueprints cannot be merged, how do teams avoid stepping on each other", "should_trigger": true},
+  {"query": "should we use file locking for our level files or just rely on branches", "should_trigger": true},
+  {"query": "godot tscn files keep conflicting every time we merge the level branch", "should_trigger": true},
+  {"query": "how do I set up unityyamlmerge as the merge tool in git", "should_trigger": true},
+  {"query": "set up version control rules for a new unreal project so artists cannot overwrite each other's maps", "should_trigger": true},
+  {"query": "the merge looked clean but the scene now has missing script references", "should_trigger": true},
+  {"query": "how should we divide a big level so several designers can work on it at once", "should_trigger": true},
+  {"query": "add a ci check that rejects scene files with conflict markers or missing meta files", "should_trigger": true},
+  {"query": "which large files should go in git lfs and how big is too big", "should_trigger": false, "expected": "game-assets"},
+  {"query": "review this pull request that changes our enemy ai code", "should_trigger": false, "expected": "code-review"},
+  {"query": "design a build and test pipeline with caching for our game repository", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "a one line fix produced a huge patch on steam", "should_trigger": false, "expected": "game-patch-size"},
+  {"query": "rebase my feature branch onto main and fix the conflicts in our source files", "should_trigger": false, "expected": "branch-rebase-repair"},
+  {"query": "players lose progress when the cloud save conflicts with the local save", "should_trigger": false, "expected": "game-save-system"},
+  {"query": "rewrite our git history to remove a committed file from every commit", "should_trigger": false, "expected": "git-history-purge"},
+  {"query": "build a bot that plays through a level in ci to catch crashes", "should_trigger": false, "expected": "automated-playthrough"},
+  {"query": "set up a style guide and naming convention for our game assets", "should_trigger": false, "expected": "game-assets"},
+  {"query": "recover a deleted branch with unpushed commits", "should_trigger": false, "expected": "git-history-recovery"}
+]

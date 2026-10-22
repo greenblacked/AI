@@ -1,0 +1,22 @@
+[
+  {"query": "our server rebooted by itself at three in the morning and there is nothing obvious in the logs", "should_trigger": true},
+  {"query": "dmesg shows BUG: soft lockup - CPU#3 stuck for 22s, how do I find the cause", "should_trigger": true},
+  {"query": "INFO: task jbd2 blocked for more than 120 seconds, what does it mean and where do I look", "should_trigger": true},
+  {"query": "how do I set up kdump and get a vmcore the next time the kernel panics", "should_trigger": true},
+  {"query": "journalctl only keeps the current boot, how do I find out what happened before the last restart", "should_trigger": true},
+  {"query": "how can I tell whether the host lost power, hit the watchdog, or the kernel panicked", "should_trigger": true},
+  {"query": "the oops says Tainted: P OE, does that matter and who should I report it to", "should_trigger": true},
+  {"query": "set up netconsole so we capture the last kernel messages before a hard hang", "should_trigger": true},
+  {"query": "should I set softlockup_panic and hung_task_panic on our servers so they dump and restart", "should_trigger": true},
+  {"query": "we keep seeing corrected memory errors in rasdaemon and then a random panic, is it the dimm or the kernel", "should_trigger": true},
+  {"query": "the machine will not boot and sits at the grub prompt", "should_trigger": false, "expected": "boot-failure-recovery"},
+  {"query": "the kernel killed my database with out of memory, why", "should_trigger": false, "expected": "oom-kill-forensics"},
+  {"query": "my application segfaults and I need to debug the stack trace", "should_trigger": false, "expected": "debugging"},
+  {"query": "a unit exits with a signal and keeps restarting", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "replace a failed disk in the raid array", "should_trigger": false, "expected": "disk-failure-replacement"},
+  {"query": "we are rolling out a new kernel to production this week", "should_trigger": false, "expected": "kernel-update-safety"},
+  {"query": "the clock jumped after the reboot", "should_trigger": false, "expected": "time-sync-repair"},
+  {"query": "the root partition is full of logs", "should_trigger": false, "expected": "disk-full-triage"},
+  {"query": "too many open files error in the service", "should_trigger": false, "expected": "resource-limit-exhaustion"},
+  {"query": "a cron job did not run last night", "should_trigger": false, "expected": "scheduled-job-debugging"}
+]

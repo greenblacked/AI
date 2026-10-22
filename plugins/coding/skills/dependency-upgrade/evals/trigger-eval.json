@@ -17,6 +17,6 @@
   {"query": "our aws bill jumped 30% last month and finance wants to know where it went", "should_trigger": false, "expected": "cost-review"},
   {"query": "pods in staging went CrashLoopBackOff right after the 11:40 deploy, roll back or dig in?", "should_trigger": false, "expected": "k8s-triage"},
   {"query": "we need to rotate the stripe api key, it was pasted into a slack channel", "should_trigger": false, "expected": "secret-rotation"},
-  {"query": "evaluate three observability vendors for us, we're deciding next quarter", "should_trigger": false, "expected": "vendor-evaluation"},
-  {"query": "our traces stop at the sqs boundary, how do i propagate context across the queue", "should_trigger": false, "expected": "instrumentation"}
+  {"query": "our traces stop at the sqs boundary, how do i propagate context across the queue", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "npm install fails with a peer dependency conflict after adding one plugin, which package is the culprit", "should_trigger": false, "expected": "dependency-resolution-conflict"}
 ]

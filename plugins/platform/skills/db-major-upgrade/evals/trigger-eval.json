@@ -1,0 +1,22 @@
+[
+  {"query": "postgres 13 is end of life, plan the upgrade of our 3TB primary to 17", "should_trigger": true},
+  {"query": "how long will pg_upgrade take on our database, and should we use link mode", "should_trigger": true},
+  {"query": "we need to move from mysql 8.0 to 8.4 LTS before support runs out, what breaks", "should_trigger": true},
+  {"query": "RDS is forcing a major version upgrade on our postgres instance next month, blue/green or in place?", "should_trigger": true},
+  {"query": "after upgrading postgres to the new major version half our queries got slow, what did we miss", "should_trigger": true},
+  {"query": "can we roll back if the cloud sql postgres 17 upgrade goes wrong on saturday", "should_trigger": true},
+  {"query": "upgrade the database engine to the next major with less than a minute of write downtime using logical replication", "should_trigger": true},
+  {"query": "which of our postgres extensions will block the move to a newer major version", "should_trigger": true},
+  {"query": "rehearse the aurora major version upgrade on a production snapshot and time each step", "should_trigger": true},
+  {"query": "self-hosted postgres 12 on ubuntu, we want to get to 16, what's the safest path", "should_trigger": true},
+  {"query": "add a NOT NULL column with a default to a 500 million row table without locking it", "should_trigger": false, "expected": "db-migration"},
+  {"query": "we're two majors behind on django and the ORM, plan the upgrade", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "write the go/no-go criteria and comms plan for moving the database to the new region on the 14th", "should_trigger": false, "expected": "cutover"},
+  {"query": "a replication slot is filling the primary's disk and the replica is hours behind", "should_trigger": false, "expected": "db-replication"},
+  {"query": "upgrade our EKS cluster from 1.29 to 1.30 next week", "should_trigger": false, "expected": "k8s-upgrade"},
+  {"query": "this one report query takes 20 seconds, here's the explain analyze output", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "set up a nightly job that restores the latest database backup and checks it actually works", "should_trigger": false, "expected": "restore-canary"},
+  {"query": "what RPO and RTO should our order database have and what backups do we need for that", "should_trigger": false, "expected": "backup-recovery-design"},
+  {"query": "design the tables for invoices and line items before we write the migration", "should_trigger": false, "expected": "schema-design"},
+  {"query": "move our whole platform from heroku postgres and dynos to aws over the next two quarters", "should_trigger": false, "expected": "plan-platform-migration"}
+]

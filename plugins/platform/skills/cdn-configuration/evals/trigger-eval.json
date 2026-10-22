@@ -1,0 +1,22 @@
+[
+  {"query": "our cloudfront hit rate is stuck around 40 percent and the origin is still getting hammered, where do we start", "should_trigger": true},
+  {"query": "every deploy we purge everything on fastly and the origin falls over for ten minutes, what should we do instead", "should_trigger": true},
+  {"query": "a customer reported seeing another customer's account page, we think the CDN cached it", "should_trigger": true},
+  {"query": "what cache-control headers should our html, hashed js bundles and product images send", "should_trigger": true},
+  {"query": "utm parameters are fragmenting our cloudflare cache, how should the cache key be set up", "should_trigger": true},
+  {"query": "editors update an article and readers still see the old version for an hour, set up tag based purging", "should_trigger": true},
+  {"query": "is origin shield worth turning on for a site with users on four continents and one origin in frankfurt", "should_trigger": true},
+  {"query": "the origin sends Vary: Cookie on everything, is that why nothing gets cached at the edge", "should_trigger": true},
+  {"query": "how should we report whether the cdn changes actually helped, management only looks at hit ratio", "should_trigger": true},
+  {"query": "should we add stale-while-revalidate and stale-if-error to our pages so the edge serves something when the backend is down", "should_trigger": true},
+  {"query": "add redis caching in front of the product catalogue service with per-tenant keys", "should_trigger": false, "expected": "application-caching"},
+  {"query": "build us a marketing site with a blog and a pricing page", "should_trigger": false, "expected": "website-builder"},
+  {"query": "we get a handful of 502s from the ALB every hour with no errors in the app logs", "should_trigger": false, "expected": "intermittent-502-hunt"},
+  {"query": "audit our route53 zones for dangling cnames pointing at deleted buckets", "should_trigger": false, "expected": "dns-operations"},
+  {"query": "move our certificates onto acme with automatic renewal before the lifetime cut", "should_trigger": false, "expected": "certificate-automation"},
+  {"query": "find which service is generating the nat gateway and cross-az bytes on last month's bill", "should_trigger": false, "expected": "data-transfer-forensics"},
+  {"query": "should our REST API use ETags and conditional requests, and how do we document it in the openapi contract", "should_trigger": false, "expected": "api-design"},
+  {"query": "our github actions dependency cache keeps missing and builds take twenty minutes", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "half our users are getting broken css from the edge right now and the site looks wrecked, what do we do this minute", "should_trigger": false, "expected": "incident-response"},
+  {"query": "our aws bill jumped 30 percent last month and nobody knows why", "should_trigger": false, "expected": "cost-review"}
+]

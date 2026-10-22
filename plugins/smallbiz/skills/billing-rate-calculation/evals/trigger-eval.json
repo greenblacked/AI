@@ -1,0 +1,22 @@
+[
+  {"query": "what should I charge per hour as a new freelance designer who wants to take home 45k", "should_trigger": true},
+  {"query": "is my day rate too low, I charge 300 and feel exhausted and broke", "should_trigger": true},
+  {"query": "I am moving from employee to freelance, what rate do I need to match my 70k salary", "should_trigger": true},
+  {"query": "how much do I need to bill each month to cover my costs, tax and a decent living", "should_trigger": true},
+  {"query": "what percentage of my week can I realistically bill if I also do sales and admin", "should_trigger": true},
+  {"query": "work out my freelance rate after holidays, sick days, insurance and the pension I used to get from my employer", "should_trigger": true},
+  {"query": "what is the smallest project I should take at my rate before the admin makes it not worth it", "should_trigger": true},
+  {"query": "my clients pay late and sign short contracts, how much extra should I add to my hourly rate", "should_trigger": true},
+  {"query": "everyone says developers charge 80 an hour, should I just charge that", "should_trigger": true},
+  {"query": "give me a floor, a target and a walk-away rate for my consulting work", "should_trigger": true},
+  {"query": "price this 3-week website build for a client who wants a fixed figure", "should_trigger": false, "expected": "fixed-price-quote"},
+  {"query": "what salary band should an engineer at this level be on in our company", "should_trigger": false, "expected": "compensation-benchmarking"},
+  {"query": "how do I counter the job offer they just sent me", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "build me a household budget from my bank statements", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "how much of each payment should I put aside for my tax bill", "should_trigger": false, "expected": "tax-set-aside"},
+  {"query": "the client has not paid my invoice and it is two weeks late", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "forecast whether I can cover rent over the next three months", "should_trigger": false, "expected": "cashflow-forecast-13-week"},
+  {"query": "which clients are the most profitable once I count all my hours", "should_trigger": false, "expected": "client-profitability-review"},
+  {"query": "write the scope of work and acceptance criteria for this engagement", "should_trigger": false, "expected": "statement-of-work"},
+  {"query": "close the books for the month and reconcile the bank account", "should_trigger": false, "expected": "monthly-bookkeeping-close"}
+]

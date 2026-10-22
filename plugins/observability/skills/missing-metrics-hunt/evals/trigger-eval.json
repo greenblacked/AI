@@ -1,0 +1,22 @@
+[
+  {"query": "all the service metrics disappeared from grafana after yesterday's deploy", "should_trigger": true},
+  {"query": "rate() returns no data even though the counter is there", "should_trigger": true},
+  {"query": "my graph has holes every few minutes", "should_trigger": true},
+  {"query": "this counter keeps dropping to zero, are we losing data", "should_trigger": true},
+  {"query": "remote write is behind by twenty minutes, how do I see where", "should_trigger": true},
+  {"query": "the error rate panel is empty because the error counter has never fired, how do I fix that", "should_trigger": true},
+  {"query": "up is 1 but my metric is not in the query results", "should_trigger": true},
+  {"query": "why does the rate over one minute show nothing when the scrape interval is thirty seconds", "should_trigger": true},
+  {"query": "the dashboard flatlines at zero during a batch job that runs for ten seconds", "should_trigger": true},
+  {"query": "some series vanished after we renamed a label, is the data gone", "should_trigger": true},
+  {"query": "prometheus is out of memory because of too many series", "should_trigger": false, "expected": "cardinality-incident-response"},
+  {"query": "alert me when a metric stops arriving entirely", "should_trigger": false, "expected": "alert-design"},
+  {"query": "what labels should we put on a new histogram", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "the collector is refusing spans at peak", "should_trigger": false, "expected": "collector-backpressure-triage"},
+  {"query": "our traces stop at the message queue", "should_trigger": false, "expected": "broken-trace-hunt"},
+  {"query": "why is p99 checkout four seconds", "should_trigger": false, "expected": "trace-latency-analysis"},
+  {"query": "design histogram buckets for latency", "should_trigger": false, "expected": "latency-histogram-design"},
+  {"query": "backtest this alert against last quarter's incidents", "should_trigger": false, "expected": "alert-backtest"},
+  {"query": "alert on revenue dropping below normal", "should_trigger": false, "expected": "business-metric-alerting"},
+  {"query": "set an slo for availability of the api", "should_trigger": false, "expected": "slo-design"}
+]

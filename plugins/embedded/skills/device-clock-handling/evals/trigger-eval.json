@@ -1,0 +1,22 @@
+[
+  {"query": "after every reboot our devices report timestamps in 1970 until they reach the network, how should we handle that", "should_trigger": true},
+  {"query": "the RTC on our board drifts about a minute a week, what can we do about it", "should_trigger": true},
+  {"query": "our timers stop working after about 49 days of uptime and a reboot fixes it", "should_trigger": true},
+  {"query": "how do we timestamp sensor readings collected while the unit has no connection and no battery-backed clock", "should_trigger": true},
+  {"query": "we use millis for all our timeouts and some of them check now greater than deadline, is that going to bite us", "should_trigger": true},
+  {"query": "what should the firmware do if the network time server suddenly says it is the year 2099", "should_trigger": true},
+  {"query": "will our devices break in 2038 because of time_t", "should_trigger": true},
+  {"query": "choose between NTP, cellular network time and GNSS for setting the clock on a battery powered tracker", "should_trigger": true},
+  {"query": "how often must a device with a 20 ppm crystal resync to stay within two seconds", "should_trigger": true},
+  {"query": "the logs from the field are out of order because boot time differs per unit, how do we make them comparable", "should_trigger": true},
+  {"query": "our web app shows the wrong hour for users in different time zones around the daylight saving change", "should_trigger": false, "expected": "debugging"},
+  {"query": "chrony on our Linux server shows the clock offset growing and the certificate is not yet valid errors started", "should_trigger": false, "expected": "time-sync-repair"},
+  {"query": "the unit never wakes from deep sleep after the timer interrupt is armed", "should_trigger": false, "expected": "sleep-wake-bug-hunt"},
+  {"query": "review this interrupt handler for races with the main loop", "should_trigger": false, "expected": "firmware-code-review"},
+  {"query": "where should the watchdog be fed so a hung task is caught", "should_trigger": false, "expected": "watchdog-design"},
+  {"query": "decide what the device should report each day within a tight cellular data budget", "should_trigger": false, "expected": "device-telemetry-design"},
+  {"query": "flash is nearly full and the next update will not fit", "should_trigger": false, "expected": "memory-footprint-budget"},
+  {"query": "why do the timestamps in our cloud database appear in the wrong order when batch jobs run late", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "set up an MQTT session so the device reconnects with the right keepalive after a link drop", "should_trigger": false, "expected": "mqtt-session-debug"},
+  {"query": "work out why a batch of returned units all stopped working after eight months", "should_trigger": false, "expected": "field-failure-triage"}
+]

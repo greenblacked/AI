@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "growth",
+  "description": "Skills for marketing, growth and content operations: content SEO and programmatic pages, email authentication, warm-up and deliverability, lifecycle sequences, campaign tagging and preflight, attribution and paid-search waste, lead quality, landing-page message match and low-traffic tests, customer stories, community health and moderation, and developer relations.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "marketing",
+    "growth",
+    "seo",
+    "email",
+    "attribution",
+    "community",
+    "devrel"
+  ]
+}

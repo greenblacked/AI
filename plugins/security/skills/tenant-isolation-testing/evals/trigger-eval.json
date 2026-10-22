@@ -1,0 +1,92 @@
+[
+  {
+    "query": "an enterprise customer wants evidence that their data cannot be seen by our other tenants, how do we prove it",
+    "should_trigger": true
+  },
+  {
+    "query": "we use postgres row level security for multi-tenancy, is that enough on its own",
+    "should_trigger": true
+  },
+  {
+    "query": "write tests that check one customer can never read another customer's data through any endpoint",
+    "should_trigger": true
+  },
+  {
+    "query": "how do we test for cross-tenant data leaks in our search index and cache, not just the api",
+    "should_trigger": true
+  },
+  {
+    "query": "plant marker values for two fake tenants and grep our logs and exports for them",
+    "should_trigger": true
+  },
+  {
+    "query": "does RLS apply to the table owner, our app connects as the role that created the tables",
+    "should_trigger": true
+  },
+  {
+    "query": "we set the tenant id with a session variable and use pgbouncer, could one tenant see another's rows",
+    "should_trigger": true
+  },
+  {
+    "query": "generate a test for every route that calls it as tenant A with tenant B's ids and expects a deny",
+    "should_trigger": true
+  },
+  {
+    "query": "when we restore one customer from backup, how do we make sure we do not touch anyone else",
+    "should_trigger": true
+  },
+  {
+    "query": "make CI fail when someone adds a table without an isolation test",
+    "should_trigger": true
+  },
+  {
+    "query": "design roles and permissions so managers can see their team's records only",
+    "should_trigger": false,
+    "expected": "authorization-design"
+  },
+  {
+    "query": "security review this pull request that adds a new tenant filter to the orders query",
+    "should_trigger": false,
+    "expected": "security-review"
+  },
+  {
+    "query": "run a threat model on our new multi-tenant billing platform design",
+    "should_trigger": false,
+    "expected": "threat-model"
+  },
+  {
+    "query": "should we use a schema per tenant or a shared table with a tenant column",
+    "should_trigger": false,
+    "expected": "schema-design"
+  },
+  {
+    "query": "design cache keys and invalidation for our product catalogue",
+    "should_trigger": false,
+    "expected": "application-caching"
+  },
+  {
+    "query": "hire a firm to pentest our platform and scope the engagement",
+    "should_trigger": false,
+    "expected": "security-test-engagement"
+  },
+  {
+    "query": "a researcher emailed us a flaw in our login, how do we handle the report",
+    "should_trigger": false,
+    "expected": "vulnerability-disclosure"
+  },
+  {
+    "query": "bots are testing leaked passwords against our login",
+    "should_trigger": false,
+    "expected": "credential-stuffing-response"
+  },
+  {
+    "query": "write unit tests for this pricing function with good edge cases",
+    "should_trigger": false,
+    "expected": "test-design"
+  },
+  {
+    "query": "plan positive and negative test cases for our permission rules: who can read, edit and share each object",
+    "should_trigger": false,
+    "expected": "authorization-design"
+  }
+]

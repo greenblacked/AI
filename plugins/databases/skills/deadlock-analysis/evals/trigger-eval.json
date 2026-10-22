@@ -1,0 +1,92 @@
+[
+ {
+  "query": "ERROR: deadlock detected, Process 4123 waits for ShareLock on transaction 88123 - what do we change in the code",
+  "should_trigger": true
+ },
+ {
+  "query": "we get Deadlock found when trying to get lock; try restarting transaction a few times an hour since the last release",
+  "should_trigger": true
+ },
+ {
+  "query": "error 1213 keeps happening on our order update job and retries only hide it",
+  "should_trigger": true
+ },
+ {
+  "query": "40P01 spikes after the release, the log shows two UPDATE statements on the same table",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I read the LATEST DETECTED DEADLOCK section of SHOW ENGINE INNODB STATUS and turn it into a fix",
+  "should_trigger": true
+ },
+ {
+  "query": "two batch jobs update the same rows in different order and keep killing each other, how do we stop it",
+  "should_trigger": true
+ },
+ {
+  "query": "inserts into the child table deadlock with updates to the parent row in postgres, why",
+  "should_trigger": true
+ },
+ {
+  "query": "our MySQL repeatable read transactions deadlock on gap locks when inserting after a select for update, what are the options",
+  "should_trigger": true
+ },
+ {
+  "query": "should we just add a retry loop around deadlocks or is there a real fix",
+  "should_trigger": true
+ },
+ {
+  "query": "an UPDATE without a usable index seems to lock half the table and deadlocks with a second worker",
+  "should_trigger": true
+ },
+ {
+  "query": "every query on the orders table hangs behind one idle in transaction session and nothing errors",
+  "should_trigger": false,
+  "expected": "lock-queue-triage"
+ },
+ {
+  "query": "two requests booked the same seat even though we check availability first",
+  "should_trigger": false,
+  "expected": "transaction-race-hunt"
+ },
+ {
+  "query": "the backfill batch hit a deadlock and I want it to retry safely while migrating a column",
+  "should_trigger": false,
+  "expected": "db-migration"
+ },
+ {
+  "query": "this report query takes 40 seconds, read the explain analyze for me",
+  "should_trigger": false,
+  "expected": "sql-performance"
+ },
+ {
+  "query": "connections are exhausted after a restart and the pool is thrashing",
+  "should_trigger": false,
+  "expected": "connection-storm-recovery"
+ },
+ {
+  "query": "autovacuum is not keeping up and the table is bloated",
+  "should_trigger": false,
+  "expected": "vacuum-bloat-triage"
+ },
+ {
+  "query": "balance went negative after concurrent withdrawals, find the anomaly",
+  "should_trigger": false,
+  "expected": "transaction-race-hunt"
+ },
+ {
+  "query": "which indexes can we drop to speed up writes",
+  "should_trigger": false,
+  "expected": "index-pruning"
+ },
+ {
+  "query": "our distributed lock in Redis expires while the job still runs",
+  "should_trigger": false,
+  "expected": "distributed-lock-audit"
+ },
+ {
+  "query": "how do I add a column to a huge table without blocking writes",
+  "should_trigger": false,
+  "expected": "db-migration"
+ }
+]

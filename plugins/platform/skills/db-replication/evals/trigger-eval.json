@@ -1,0 +1,22 @@
+[
+  {"query": "a replication slot is filling the primary's disk and the replica is hours behind", "should_trigger": true},
+  {"query": "pg_wal is at 90% of the volume and there's an inactive logical slot from debezium", "should_trigger": true},
+  {"query": "Seconds_Behind_Source shows 0 but the mysql replica is clearly missing recent orders", "should_trigger": true},
+  {"query": "which of our queries are safe to send to read replicas and how do we handle read-after-write", "should_trigger": true},
+  {"query": "write the runbook for promoting a postgres standby without ending up with two primaries", "should_trigger": true},
+  {"query": "what alerts should we have on replica lag and replication slots before they take the primary down", "should_trigger": true},
+  {"query": "we've never tested patroni failover under real write load, how should we run that test", "should_trigger": true},
+  {"query": "after an aurora failover our java services kept writing to the old writer for ten minutes", "should_trigger": true},
+  {"query": "should we set max_slot_wal_keep_size and what happens to the cdc connector if the slot is lost", "should_trigger": true},
+  {"query": "the reporting replica keeps falling behind and cancelling long queries with a recovery conflict", "should_trigger": true},
+  {"query": "what backups and retention do we need to hit a 15 minute RPO on the orders database", "should_trigger": false, "expected": "backup-recovery-design"},
+  {"query": "rename a column on a busy postgres table without downtime", "should_trigger": false, "expected": "db-migration"},
+  {"query": "automate a daily restore of the latest backup into a scratch instance and verify row counts", "should_trigger": false, "expected": "restore-canary"},
+  {"query": "upgrade our postgres cluster from 14 to 17 with minimal downtime", "should_trigger": false, "expected": "db-major-upgrade"},
+  {"query": "plan a chaos day where we kill dependencies in staging and watch how the team responds", "should_trigger": false, "expected": "game-day"},
+  {"query": "this dashboard query does a sequential scan on a 200 million row table, how do we index it", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "the primary database is down right now and customers can't check out, I'm running the incident", "should_trigger": false, "expected": "incident-response"},
+  {"query": "rehearse restoring the whole service in another region from backups and measure the RTO", "should_trigger": false, "expected": "disaster-recovery-exercise"},
+  {"query": "how many read replicas and what instance size do we need for black friday traffic", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "plan the weekend we move the primary database to a new cloud region, with go/no-go and rollback deadline", "should_trigger": false, "expected": "cutover"}
+]

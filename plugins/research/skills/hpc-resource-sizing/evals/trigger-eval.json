@@ -1,0 +1,22 @@
+[
+  {"query": "my jobs sit in the queue for days, what should I change about the request", "should_trigger": true},
+  {"query": "how much memory should I request for a job that loads a 30 GB index", "should_trigger": true},
+  {"query": "what walltime should I put on this job, I have no idea how long it takes", "should_trigger": true},
+  {"query": "seff says my cpu efficiency is 12 percent, what am I doing wrong", "should_trigger": true},
+  {"query": "should I ask for 32 cores or 8, the program says it is parallel", "should_trigger": true},
+  {"query": "is it better to submit one big job or an array of small tasks to get through the queue faster", "should_trigger": true},
+  {"query": "everyone else's jobs start and mine stay pending with reason priority, how do I read sprio and sshare", "should_trigger": true},
+  {"query": "I always request the max walltime to be safe, is that hurting me", "should_trigger": true},
+  {"query": "pick resources for a gpu training job so it is not wasting the gpus I reserve", "should_trigger": true},
+  {"query": "set up a small pilot run so I can size the full production submission properly", "should_trigger": true},
+  {"query": "my slurm job was killed with OUT_OF_MEMORY and I want to find out why", "should_trigger": false, "expected": "slurm-job-failure-triage"},
+  {"query": "forecast how many servers our service needs next year", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "our cloud compute bill doubled, find where the spend went", "should_trigger": false, "expected": "cost-review"},
+  {"query": "make my five day job resume after being preempted", "should_trigger": false, "expected": "checkpoint-restart-design"},
+  {"query": "load a table bigger than memory without crashing", "should_trigger": false, "expected": "out-of-core-dataset-handling"},
+  {"query": "which lines of my code take the time, profile it", "should_trigger": false, "expected": "profiling"},
+  {"query": "same seed but different answers each run on the cluster", "should_trigger": false, "expected": "nondeterminism-bisect"},
+  {"query": "tune kubernetes resource requests and limits for my pods", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "check the statistics section of this paper before I submit", "should_trigger": false, "expected": "paper-statistics-review"},
+  {"query": "write a docker compose file for local development", "should_trigger": false, "expected": "docker-compose"}
+]

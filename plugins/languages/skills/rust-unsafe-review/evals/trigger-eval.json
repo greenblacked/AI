@@ -1,0 +1,22 @@
+[
+  {"query": "can you review this unsafe block that builds a slice from a raw pointer and length", "should_trigger": true},
+  {"query": "is this transmute from a byte array to a struct sound", "should_trigger": true},
+  {"query": "we want to get rid of unsafe in our parser, is there a safe way to do this", "should_trigger": true},
+  {"query": "audit our FFI bindings to the C library before we ship", "should_trigger": true},
+  {"query": "we implemented Send and Sync by hand for a wrapper around a raw pointer, is that okay", "should_trigger": true},
+  {"query": "Miri complains about stacked borrows in my code, what does it mean", "should_trigger": true},
+  {"query": "how do I stop a panic from unwinding across my extern C function", "should_trigger": true},
+  {"query": "write the safety comment for this unsafe fn and tell me what the caller must guarantee", "should_trigger": true},
+  {"query": "how do I count how much unsafe code my dependencies contain", "should_trigger": true},
+  {"query": "I think there is undefined behaviour in our rust ring buffer but tests pass", "should_trigger": true},
+  {"query": "review this pull request that refactors the retry logic in our service", "should_trigger": false, "expected": "code-review"},
+  {"query": "a core file from our production c binary shows only question marks in gdb", "should_trigger": false, "expected": "native-core-dump-analysis"},
+  {"query": "run asan on our c++ tests and explain the heap overflow report", "should_trigger": false, "expected": "cpp-sanitizer-triage"},
+  {"query": "undefined reference to a symbol when linking a rust static library into a c++ app", "should_trigger": false, "expected": "native-linking-errors"},
+  {"query": "do a security review of our file upload endpoint", "should_trigger": false, "expected": "security-review"},
+  {"query": "why does my cargo build take ten minutes and how do I profile it", "should_trigger": false, "expected": "slow-build-profile"},
+  {"query": "find the root cause of this intermittent test failure in our rust service", "should_trigger": false, "expected": "debugging"},
+  {"query": "how do I enable core dumps in a container for our native service", "should_trigger": false, "expected": "native-core-dump-analysis"},
+  {"query": "design the public api for our rust sdk with versioning in mind", "should_trigger": false, "expected": "api-design"},
+  {"query": "help me refactor this rust module into smaller functions", "should_trigger": false, "expected": "refactoring"}
+]

@@ -90,6 +90,9 @@ and a blast radius wider than any single team. Split along ownership boundaries 
 than technology ones — the network team's state, the platform's, the product's — because
 the boundary you want is the one that decides who can break what.
 
+The full procedure for a large split, with `moved` and `removed` blocks, the order of
+the cut and a plan that proves nothing is destroyed, is `monolith-state-split`.
+
 The move itself, per resource, is the remove-then-import order: copy the object's real id
 out of the old state, remove it there without destroying, then adopt it in the new
 configuration. Two states owning one object is worse than a short gap with no owner,

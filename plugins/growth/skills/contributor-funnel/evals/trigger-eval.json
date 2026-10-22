@@ -1,0 +1,91 @@
+[
+  {
+    "query": "we get plenty of stars but nobody ever sends us a pull request",
+    "should_trigger": true
+  },
+  {
+    "query": "help me curate a set of good first issues for our library",
+    "should_trigger": true
+  },
+  {
+    "query": "new contributors open one pull request and then vanish, how do we keep them",
+    "should_trigger": true
+  },
+  {
+    "query": "our CONTRIBUTING file is out of date and I suspect it is why people give up",
+    "should_trigger": true
+  },
+  {
+    "query": "how do we measure whether newcomers to our open source project actually become contributors",
+    "should_trigger": true
+  },
+  {
+    "query": "first-time contributors wait a week for any maintainer reply, what target should we set",
+    "should_trigger": true
+  },
+  {
+    "query": "can someone new build our project from a fresh clone in one command, and if not what do we fix first",
+    "should_trigger": true
+  },
+  {
+    "query": "our mentorship programme gets applicants but few ever finish a first task",
+    "should_trigger": true
+  },
+  {
+    "query": "which onboarding fixes for outside contributors should we do first given limited maintainer time",
+    "should_trigger": true
+  },
+  {
+    "query": "we want people to come back for a second pull request after the first one is merged",
+    "should_trigger": true
+  },
+  {
+    "query": "review this diff for bugs before I merge it",
+    "should_trigger": false,
+    "expected": "code-review"
+  },
+  {
+    "query": "write the README and usage guide for our package",
+    "should_trigger": false,
+    "expected": "technical-docs"
+  },
+  {
+    "query": "I just joined a team with a huge unfamiliar repository and need to understand how it fits together",
+    "should_trigger": false,
+    "expected": "codebase-orientation"
+  },
+  {
+    "query": "is our community healthy and what should we measure each quarter",
+    "should_trigger": false,
+    "expected": "community-health-review"
+  },
+  {
+    "query": "write moderation rules and a ban appeal process for our forum",
+    "should_trigger": false,
+    "expected": "community-moderation-policy"
+  },
+  {
+    "query": "measure the impact of our developer advocacy programme on adoption",
+    "should_trigger": false,
+    "expected": "devrel-impact-review"
+  },
+  {
+    "query": "write the onboarding plan for a new engineer joining my team next week",
+    "should_trigger": false,
+    "expected": "onboarding-plan"
+  },
+  {
+    "query": "set up CI so pull requests run the test suite automatically",
+    "should_trigger": false,
+    "expected": "ci-pipeline-design"
+  },
+  {
+    "query": "choose a licence for our new open source project",
+    "should_trigger": false
+  },
+  {
+    "query": "write a release announcement for version 3.0",
+    "should_trigger": false,
+    "expected": "release-notes"
+  }
+]

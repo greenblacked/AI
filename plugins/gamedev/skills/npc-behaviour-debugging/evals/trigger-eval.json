@@ -1,0 +1,22 @@
+[
+  {"query": "the enemy gets stuck on the doorway and just stands there pressing into the frame", "should_trigger": true},
+  {"query": "my guard AI flips between patrol and chase every frame and looks like it's twitching", "should_trigger": true},
+  {"query": "the companion won't follow the player after the second room", "should_trigger": true},
+  {"query": "I think there are navmesh gaps in the level because agents path around for no reason", "should_trigger": true},
+  {"query": "our behaviour tree does the wrong thing sometimes and I can't reproduce it", "should_trigger": true},
+  {"query": "how do I see what an NPC is thinking at runtime, which state it's in and why it changed", "should_trigger": true},
+  {"query": "enemies keep walking toward where the player used to be long after losing sight", "should_trigger": true},
+  {"query": "add a stuck detector so agents recover if they stop making progress", "should_trigger": true},
+  {"query": "the zombie stops at the ledge and never uses the jump link", "should_trigger": true},
+  {"query": "pedestrians in our city sim freeze in the middle of the road after an animation plays", "should_trigger": true},
+  {"query": "make the bosses harder by raising their damage and health on higher difficulty", "should_trigger": false, "expected": "game-balance"},
+  {"query": "the AI update takes 4 ms a frame with 500 agents, how do I cut it", "should_trigger": false, "expected": "game-performance"},
+  {"query": "the game crashes with a null reference when the enemy dies", "should_trigger": false, "expected": "debugging"},
+  {"query": "where should I put doors and cover so the level's navigation works well", "should_trigger": false, "expected": "game-level-design"},
+  {"query": "the physics body of the enemy jitters when it stands on a moving platform", "should_trigger": false, "expected": "physics-glitch-triage"},
+  {"query": "play the game automatically in CI and report whether the level can be completed", "should_trigger": false, "expected": "automated-playthrough"},
+  {"query": "the replay shows the npc positions diverging between two lockstep peers at frame 5200", "should_trigger": false, "expected": "game-desync-forensics"},
+  {"query": "write a design document for how companions behave in combat", "should_trigger": false, "expected": "game-design-doc"},
+  {"query": "run a playtest to see whether players find the enemies fair", "should_trigger": false, "expected": "game-playtest"},
+  {"query": "train a reinforcement learning agent to play the game", "should_trigger": false}
+]

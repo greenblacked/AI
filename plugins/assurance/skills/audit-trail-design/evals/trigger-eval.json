@@ -1,0 +1,22 @@
+[
+  {"query": "we need an audit log for our admin panel, what should go in it", "should_trigger": true},
+  {"query": "enterprise customers are asking for an activity history showing who changed what in their workspace", "should_trigger": true},
+  {"query": "someone changed a customer's billing plan last week and we cannot tell who; how do we make sure that never happens again", "should_trigger": true},
+  {"query": "how do we make our audit records tamper-evident so even our own admins can't delete entries", "should_trigger": true},
+  {"query": "support staff can impersonate users; how should we record what they did while impersonating", "should_trigger": true},
+  {"query": "should we log permission denied events, or only the actions that succeeded", "should_trigger": true},
+  {"query": "design a hash-chained, append-only table for recording security-relevant actions with an object lock copy", "should_trigger": true},
+  {"query": "what fields does each audit event need so an investigator can query by record id, actor and tenant", "should_trigger": true},
+  {"query": "our audit entries go through the same log pipeline as debug logs with 14 day retention; how should it be redesigned", "should_trigger": true},
+  {"query": "how would we prove our activity trail is good enough to reconstruct an insider incident", "should_trigger": true},
+  {"query": "add tracing and metrics to the order service so we can see where latency comes from", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "design roles and permissions so tenant admins can manage members but not billing", "should_trigger": false, "expected": "authorization-design"},
+  {"query": "which of our alerts should page the on-call engineer and which should be tickets", "should_trigger": false, "expected": "alert-design"},
+  {"query": "collect the evidence the soc 2 auditor wants for logging and monitoring controls", "should_trigger": false, "expected": "control-evidence"},
+  {"query": "design login, session handling and mfa for the new customer portal", "should_trigger": false, "expected": "auth-design"},
+  {"query": "a user asked us to delete all their personal data; what has to happen across our systems", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "we think an attacker is in production right now, help me run the incident", "should_trigger": false, "expected": "incident-response"},
+  {"query": "which iam users and roles have not used their permissions in ninety days", "should_trigger": false, "expected": "access-review"},
+  {"query": "model the tables and indexes for orders, invoices and refunds", "should_trigger": false, "expected": "schema-design"},
+  {"query": "design backups and restore testing for our postgres cluster", "should_trigger": false, "expected": "backup-recovery-design"}
+]

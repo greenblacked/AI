@@ -1,0 +1,91 @@
+[
+ {
+  "query": "how do we provision a certificate into each device during manufacturing",
+  "should_trigger": true
+ },
+ {
+  "query": "right now we flash the same private key to every unit, how bad is that",
+  "should_trigger": true
+ },
+ {
+  "query": "the contract manufacturer may have built more units than we ordered, how do we detect it",
+  "should_trigger": true
+ },
+ {
+  "query": "design the factory station flow for loading keys into a secure element",
+  "should_trigger": true
+ },
+ {
+  "query": "how should a customer claim a device we shipped to their account",
+  "should_trigger": true
+ },
+ {
+  "query": "we need a registry of serial numbers, certificate fingerprints and firmware hashes for every unit built",
+  "should_trigger": true
+ },
+ {
+  "query": "can the line PC generate the device key pair or should the chip do it",
+  "should_trigger": true
+ },
+ {
+  "query": "what should happen to a returned unit's identity on an RMA",
+  "should_trigger": true
+ },
+ {
+  "query": "should we lock the debug port at the factory and how do we still analyse returns",
+  "should_trigger": true
+ },
+ {
+  "query": "set up a per-product intermediate CA so a compromised line cannot affect other products",
+  "should_trigger": true
+ },
+ {
+  "query": "rotate the database password that our services share without downtime",
+  "should_trigger": false,
+  "expected": "secret-rotation"
+ },
+ {
+  "query": "automate renewal of the TLS certificates on our web servers",
+  "should_trigger": false,
+  "expected": "certificate-automation"
+ },
+ {
+  "query": "our device certificates expire in 2027 and units sit in a warehouse for a year",
+  "should_trigger": false,
+  "expected": "device-trust-anchors"
+ },
+ {
+  "query": "how do we roll out a firmware update to forty thousand units in stages",
+  "should_trigger": false,
+  "expected": "ota-fleet-rollout"
+ },
+ {
+  "query": "make sure a bad firmware image can revert on its own after an update",
+  "should_trigger": false,
+  "expected": "ota-update-safety"
+ },
+ {
+  "query": "a unit will not boot after the update and needs recovering",
+  "should_trigger": false,
+  "expected": "brick-recovery"
+ },
+ {
+  "query": "our MQTT devices disconnect every few minutes",
+  "should_trigger": false,
+  "expected": "mqtt-session-debug"
+ },
+ {
+  "query": "write a threat model for the cloud API behind the app",
+  "should_trigger": false,
+  "expected": "threat-model"
+ },
+ {
+  "query": "review access to our production AWS accounts this quarter",
+  "should_trigger": false,
+  "expected": "access-review"
+ },
+ {
+  "query": "how much will it cost to build ten thousand units this year",
+  "should_trigger": false
+ }
+]

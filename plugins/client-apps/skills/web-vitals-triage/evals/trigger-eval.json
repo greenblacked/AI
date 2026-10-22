@@ -1,0 +1,22 @@
+[
+  {"query": "lighthouse gives us 96 but search console still lists 2,000 urls as poor, what are we missing", "should_trigger": true},
+  {"query": "INP is 400ms on mobile for the category pages and i don't know where to start", "should_trigger": true},
+  {"query": "our product pages fail core web vitals on LCP, the hero image is a big jpeg", "should_trigger": true},
+  {"query": "CLS keeps getting flagged on the article template even though nothing visibly jumps for me", "should_trigger": true},
+  {"query": "crux says our origin is slow on phones but fine on desktop, how do i find which pages are dragging it down", "should_trigger": true},
+  {"query": "we added fetchpriority high and a preload and the field LCP didn't budge, why", "should_trigger": true},
+  {"query": "pagespeed insights shows field data failing but the lab section is all green, which do i trust", "should_trigger": true},
+  {"query": "the add to cart button feels laggy and our rum says interaction to next paint is 650ms at p75", "should_trigger": true},
+  {"query": "we shipped a fix for layout shift last week, why hasn't search console validation passed yet", "should_trigger": true},
+  {"query": "how do i break down our largest contentful paint into ttfb, load delay and render delay from real users", "should_trigger": true},
+  {"query": "build us a fast marketing site for the new product launch with a blog", "should_trigger": false, "expected": "website-builder"},
+  {"query": "review our existing site for performance, accessibility, security and SEO and rank what to fix", "should_trigger": false, "expected": "website-builder"},
+  {"query": "this node handler takes 900ms and the database is only 60ms of it, where's the rest", "should_trigger": false, "expected": "profiling"},
+  {"query": "pressing back on mobile reloads the whole listing page from scratch instead of restoring it", "should_trigger": false, "expected": "bfcache-eligibility"},
+  {"query": "the dashboard tab hits 3GB of memory after being open all day", "should_trigger": false, "expected": "browser-memory-leak-hunt"},
+  {"query": "react says hydration failed because the initial UI does not match on the pricing page", "should_trigger": false, "expected": "hydration-mismatch-hunt"},
+  {"query": "users get ChunkLoadError right after every deploy until they refresh", "should_trigger": false, "expected": "deploy-version-skew"},
+  {"query": "google isn't indexing our single page app, only the homepage shows up", "should_trigger": false, "expected": "web-app-seo"},
+  {"query": "add opentelemetry tracing to the checkout api so we can see where latency goes", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "what breakpoints should we use so the pricing table stops overflowing on phones", "should_trigger": false, "expected": "responsive-design"}
+]

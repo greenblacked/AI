@@ -15,8 +15,8 @@
   {"query": "generate a ci job that runs pytest on 3.10 through 3.13 and uploads coverage", "should_trigger": false, "expected": "code-scaffold"},
   {"query": "write me a release script that tags the repo and pushes the image to ecr", "should_trigger": false, "expected": "code-scaffold"},
   {"query": "what percent of traffic should the canary get, and how long do we bake before going to 100", "should_trigger": false, "expected": "release-strategy"},
-  {"query": "we need a kill switch on the new pricing path before we turn it on for anyone", "should_trigger": false, "expected": "release-strategy"},
-  {"query": "coverage is 90% and it tells us nothing, what should we actually be testing in the payments module", "should_trigger": false, "expected": "test-design"},
   {"query": "we're moving off jenkins onto github actions across 40 repos, how do we sequence that without a code freeze", "should_trigger": false, "expected": "plan-platform-migration"},
-  {"query": "our github actions bill doubled last month, where is the money actually going", "should_trigger": false, "expected": "cost-review"}
+  {"query": "our github actions bill doubled last month, where is the money actually going", "should_trigger": false, "expected": "cost-review"},
+  {"query": "cargo build takes eleven minutes on one crate, find which compile step dominates", "should_trigger": false, "expected": "slow-build-profile"},
+  {"query": "in our monorepo every PR rebuilds all packages, make CI build only the projects a change can affect", "should_trigger": false, "expected": "affected-build-selection"}
 ]

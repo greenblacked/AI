@@ -1,0 +1,22 @@
+[
+  {"query": "I got a take-home, they say it should take 4 hours, how do I approach it", "should_trigger": true},
+  {"query": "how much should I polish this take-home before sending it back", "should_trigger": true},
+  {"query": "what do reviewers actually look for in a take-home coding exercise", "should_trigger": true},
+  {"query": "this take-home is already at 9 hours and they said 3, what do I do", "should_trigger": true},
+  {"query": "should I add Docker and CI to my take-home submission", "should_trigger": true},
+  {"query": "what should go in the README for a coding challenge I am submitting to a company", "should_trigger": true},
+  {"query": "the recruiter sent a second unpaid exercise after the first one, can I say no", "should_trigger": true},
+  {"query": "what questions should I ask the recruiter before starting the coding assignment", "should_trigger": true},
+  {"query": "how many tests do I need for a job application project", "should_trigger": true},
+  {"query": "they want a small API built over the weekend as part of the hiring process, how do I scope it", "should_trigger": true},
+  {"query": "design a take-home exercise for our backend candidates and a rubric to score it", "should_trigger": false, "expected": "hiring-loop"},
+  {"query": "rewrite my CV for a staff engineer role", "should_trigger": false, "expected": "job-search"},
+  {"query": "plan six weeks of LeetCode practice before my live coding round", "should_trigger": false, "expected": "technical-interview-prep"},
+  {"query": "I was rejected after the take-home review and want to learn from it", "should_trigger": false, "expected": "interview-retrospective"},
+  {"query": "scaffold a production Python CLI with logging and exit codes", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "they offered me the job and I want to counter on base salary", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "which test cases should I write for this validation function", "should_trigger": false, "expected": "test-design"},
+  {"query": "review this pull request for correctness before I merge", "should_trigger": false, "expected": "code-review"},
+  {"query": "write a feature spec for a new reporting dashboard at work", "should_trigger": false, "expected": "feature-spec"},
+  {"query": "turn my migration story into a technical blog post", "should_trigger": false, "expected": "write-technical-article"}
+]

@@ -1,0 +1,92 @@
+[
+ {
+  "query": "our device hangs in the field and never recovers on its own, how should the watchdog work",
+  "should_trigger": true
+ },
+ {
+  "query": "where in the code should I kick the watchdog",
+  "should_trigger": true
+ },
+ {
+  "query": "the watchdog keeps resetting the board during flash erase",
+  "should_trigger": true
+ },
+ {
+  "query": "we are stuck in a watchdog reset loop after a new feature, what do we do",
+  "should_trigger": true
+ },
+ {
+  "query": "is it fine to feed the watchdog from a timer interrupt",
+  "should_trigger": true
+ },
+ {
+  "query": "should I use a window watchdog or an independent one on this MCU",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I set the watchdog timeout so it is neither too short nor too slow",
+  "should_trigger": true
+ },
+ {
+  "query": "how can I be sure the watchdog is actually enabled in the release build",
+  "should_trigger": true
+ },
+ {
+  "query": "what should the device do after several watchdog resets in a row",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I test that the watchdog really catches a hung task",
+  "should_trigger": true
+ },
+ {
+  "query": "find why two threads deadlock in our service",
+  "should_trigger": false,
+  "expected": "debugging"
+ },
+ {
+  "query": "decode the stacked registers from a HardFault",
+  "should_trigger": false,
+  "expected": "hard-fault-triage"
+ },
+ {
+  "query": "the device will not wake from sleep after a button press",
+  "should_trigger": false,
+  "expected": "sleep-wake-bug-hunt"
+ },
+ {
+  "query": "design the revert path for a failed firmware update",
+  "should_trigger": false,
+  "expected": "ota-update-safety"
+ },
+ {
+  "query": "the sensor bus returns garbage",
+  "should_trigger": false,
+  "expected": "serial-bus-debug"
+ },
+ {
+  "query": "battery drains overnight and we need to find the sleep current leak",
+  "should_trigger": false,
+  "expected": "sleep-current-hunt"
+ },
+ {
+  "query": "log partition wears out too soon",
+  "should_trigger": false,
+  "expected": "flash-storage-durability"
+ },
+ {
+  "query": "recover a unit that will not boot",
+  "should_trigger": false,
+  "expected": "brick-recovery"
+ },
+ {
+  "query": "roll out the fix to the fleet in waves",
+  "should_trigger": false,
+  "expected": "ota-fleet-rollout"
+ },
+ {
+  "query": "pick certificate lifetimes for ten year devices",
+  "should_trigger": false,
+  "expected": "device-trust-anchors"
+ }
+]

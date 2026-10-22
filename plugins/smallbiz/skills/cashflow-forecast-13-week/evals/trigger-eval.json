@@ -1,0 +1,22 @@
+[
+  {"query": "will I run out of money next month, I have two big invoices outstanding", "should_trigger": true},
+  {"query": "I need a cash flow forecast for my freelance business", "should_trigger": true},
+  {"query": "my biggest client is paying late, can I still make payroll and rent", "should_trigger": true},
+  {"query": "build me a 13-week cash forecast from my bank balance and invoice list", "should_trigger": true},
+  {"query": "how do I forecast income when my clients pay at random times", "should_trigger": true},
+  {"query": "when will my bank balance be at its lowest over the next quarter given the tax bill and insurance renewal", "should_trigger": true},
+  {"query": "how much cash buffer should my small studio keep before I start worrying", "should_trigger": true},
+  {"query": "should unsigned proposals count in my cash forecast, and how", "should_trigger": true},
+  {"query": "what do I do if the forecast shows I go negative in week six", "should_trigger": true},
+  {"query": "I am profitable on paper but always short of cash, where do I start", "should_trigger": true},
+  {"query": "plan my household budget for the year from my bank statements", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "how many servers will we need as traffic grows next year", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "reconcile my accounts and close the books for last month", "should_trigger": false, "expected": "monthly-bookkeeping-close"},
+  {"query": "how much of each payment should go into my tax account", "should_trigger": false, "expected": "tax-set-aside"},
+  {"query": "the client is 30 days overdue, write the chasing sequence", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "what should I charge per hour to cover my costs", "should_trigger": false, "expected": "billing-rate-calculation"},
+  {"query": "how much should I quote for this website project", "should_trigger": false, "expected": "fixed-price-quote"},
+  {"query": "which clients are actually profitable after all the hours", "should_trigger": false, "expected": "client-profitability-review"},
+  {"query": "write the scope of work for a new engagement", "should_trigger": false, "expected": "statement-of-work"},
+  {"query": "what terms belong in my services agreement", "should_trigger": false, "expected": "services-agreement-checklist"}
+]

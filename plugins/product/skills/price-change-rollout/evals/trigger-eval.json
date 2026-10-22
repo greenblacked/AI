@@ -1,0 +1,22 @@
+[
+  {"query": "we need to raise prices 20 percent on existing customers next year without a churn spike", "should_trigger": true},
+  {"query": "should we grandfather our early customers on the old price, and for how long", "should_trigger": true},
+  {"query": "we have six legacy plans and want to move everyone onto the current pricing", "should_trigger": true},
+  {"query": "how much notice do we need to give B2B customers before a price increase at renewal", "should_trigger": true},
+  {"query": "plan the rollout of our new pricing to the installed base, including who tells the biggest accounts", "should_trigger": true},
+  {"query": "we are switching existing customers from per-seat to usage-based billing. how do we not lose half of them", "should_trigger": true},
+  {"query": "draft the email telling customers their subscription price is going up in March", "should_trigger": true},
+  {"query": "how do I model how many customers we can afford to lose if we increase prices by 15 percent", "should_trigger": true},
+  {"query": "what churn signal should make us pause a price increase halfway through", "should_trigger": true},
+  {"query": "some customers are on 60 percent legacy discounts, how do we bring them up to list without losing them", "should_trigger": true},
+  {"query": "what should the new enterprise tier cost, we have not priced it yet", "should_trigger": false, "expected": "pricing-research"},
+  {"query": "a rep wants to give 25 percent off on a new deal, who approves it and what do we get in return", "should_trigger": false, "expected": "discount-discipline"},
+  {"query": "we are shutting down the desktop app entirely next year, plan the end of life", "should_trigger": false, "expected": "feature-sunset"},
+  {"query": "write the changelog for version 3.2 including the breaking changes", "should_trigger": false, "expected": "release-notes"},
+  {"query": "run a willingness to pay survey before we change anything", "should_trigger": false, "expected": "pricing-research"},
+  {"query": "our cloud bill went up 30 percent this month, find out why", "should_trigger": false, "expected": "cost-review"},
+  {"query": "roll the new checkout out to 5 percent of traffic first and promote if errors stay flat", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "write a weekly update for leadership on how the pricing project is going", "should_trigger": false, "expected": "status-update"},
+  {"query": "our CRM vendor is raising its price at renewal, compare alternatives before we sign again", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "our CEO wants the new pricing page shipped this week, which bumps the onboarding work everyone was promised", "should_trigger": false, "expected": "roadmap-disruption-triage"}
+]

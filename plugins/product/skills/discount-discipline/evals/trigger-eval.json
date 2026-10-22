@@ -1,0 +1,22 @@
+[
+  {"query": "our reps discount too much and I want to stop it without slowing every deal down", "should_trigger": true},
+  {"query": "set up an approval process for discounts above 15 percent", "should_trigger": true},
+  {"query": "almost every enterprise deal closes at 30 percent off, is that a rules problem or a pricing problem", "should_trigger": true},
+  {"query": "we want to build a deal desk, what should the discount approval ladder look like", "should_trigger": true},
+  {"query": "a customer got 40 percent off in year one and now expects the same price at renewal forever", "should_trigger": true},
+  {"query": "what should we ask customers to give us in return when they want a bigger discount", "should_trigger": true},
+  {"query": "here is a CSV of last quarter's closed deals, show me where we are leaking margin on price", "should_trigger": true},
+  {"query": "reps keep sending me 'customer needs special pricing' with no detail. how do I handle these requests", "should_trigger": true},
+  {"query": "everything closes in the last week of the quarter at a huge discount, how do we stop training customers to wait", "should_trigger": true},
+  {"query": "sales keeps throwing in free months and extra seats to close, how do we count and control that", "should_trigger": true},
+  {"query": "how should we price our new product tier, we have no idea what customers would pay", "should_trigger": false, "expected": "pricing-research"},
+  {"query": "we are raising list prices 15 percent for all existing customers, plan the notice and grandfathering", "should_trigger": false, "expected": "price-change-rollout"},
+  {"query": "they offered me 120k base and I want to ask for more, how do I counter", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "our contract with the logging vendor renews in six weeks, how do we negotiate it down", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "a big prospect says they will only sign if we build a custom integration this quarter", "should_trigger": false, "expected": "roadmap-disruption-triage"},
+  {"query": "sales keeps asking for features to close deals, which requests are real blockers", "should_trigger": false, "expected": "request-triage"},
+  {"query": "are we underpriced compared to the value we deliver", "should_trigger": false, "expected": "pricing-research"},
+  {"query": "set salary bands and a merit budget for the sales team", "should_trigger": false, "expected": "compensation-benchmarking"},
+  {"query": "help me build a monthly budget and pay down my credit card", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "retire the old starter plan that we no longer sell", "should_trigger": false, "expected": "feature-sunset"}
+]

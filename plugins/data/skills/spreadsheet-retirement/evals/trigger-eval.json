@@ -1,0 +1,22 @@
+[
+  {"query": "finance builds the monthly board pack from a 40-tab excel workbook by hand; we want it automated in the warehouse without them losing faith in the numbers", "should_trigger": true},
+  {"query": "replace the sales commission spreadsheet with a dbt model, how do we prove the new numbers are right before payroll uses them", "should_trigger": true},
+  {"query": "nobody understands the VBA macros in this ops report workbook but the operations director reads it every Monday; how do we move it off excel safely", "should_trigger": true},
+  {"query": "we rebuilt the revenue report in looker but it's a few hundred pounds off the old spreadsheet every month and finance won't switch", "should_trigger": true},
+  {"query": "how long should we run the new automated report alongside the old google sheet before turning the sheet off", "should_trigger": true},
+  {"query": "the inventory reconciliation is a manual report someone assembles from three exports every week; plan replacing it with a pipeline", "should_trigger": true},
+  {"query": "how do I find all the hard-coded overrides and typed-over formulas in a workbook before we rebuild its logic", "should_trigger": true},
+  {"query": "our controller keeps a manual adjustments tab in the forecast sheet, how do we carry those into the new pipeline", "should_trigger": true},
+  {"query": "when is it safe to make the old KPI spreadsheet read-only now that the dashboard replaces it", "should_trigger": true},
+  {"query": "automate the regulatory return we currently prepare in excel each quarter without breaking anything the regulator sees", "should_trigger": true},
+  {"query": "we move billing to the new provider on saturday night; write the switchover runbook with go/no-go and rollback", "should_trigger": false, "expected": "cutover"},
+  {"query": "plan a phased migration of our whole BI stack from tableau server to the cloud", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "the sales dashboard and the finance dashboard show different bookings for Q3, which definition is right", "should_trigger": false, "expected": "metric-reconciliation"},
+  {"query": "make this chart from the spreadsheet readable, should it be a bar or a line", "should_trigger": false, "expected": "data-visualisation"},
+  {"query": "extract the line items and totals from these scanned supplier invoices into a table", "should_trigger": false, "expected": "document-extraction"},
+  {"query": "what freshness and volume checks should the new revenue model get once it is live", "should_trigger": false, "expected": "data-quality-checks"},
+  {"query": "before we drop the legacy reporting table, how do we find every dashboard and job that still reads it", "should_trigger": false, "expected": "consumer-discovery"},
+  {"query": "here are twelve months of my bank CSV exports, where is my money going", "should_trigger": false, "expected": "statement-reader"},
+  {"query": "fix the wrong currency code on 2 million historical invoice rows in production", "should_trigger": false, "expected": "safe-backfill"},
+  {"query": "dedupe customer rows that came from three different systems with no shared id", "should_trigger": false, "expected": "entity-resolution"}
+]

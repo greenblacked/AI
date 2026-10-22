@@ -1,0 +1,22 @@
+[
+  {"query": "Error [ERR_REQUIRE_ESM]: require() of ES Module not supported when I run my script", "should_trigger": true},
+  {"query": "SyntaxError: Cannot use import statement outside a module in my node app", "should_trigger": true},
+  {"query": "import { foo } from a package gives does not provide an export named foo", "should_trigger": true},
+  {"query": "ERR_PACKAGE_PATH_NOT_EXPORTED when I import a file from inside a dependency", "should_trigger": true},
+  {"query": "typescript is happy with the import but node throws at runtime", "should_trigger": true},
+  {"query": "how do I publish an npm package that works for both require and import", "should_trigger": true},
+  {"query": "jest fails because one of our dependencies is esm only", "should_trigger": true},
+  {"query": "what should module and moduleResolution be in tsconfig for code run by node 22", "should_trigger": true},
+  {"query": "can I require an ES module now that node 22 supports it", "should_trigger": true},
+  {"query": "should our library ship esm only or a dual cjs and esm build", "should_trigger": true},
+  {"query": "move our node services from 18 to 22 and update the dependencies safely", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "npm install fails with ERESOLVE peer dependency conflict", "should_trigger": false, "expected": "dependency-resolution-conflict"},
+  {"query": "our webpack build takes eight minutes, where does the time go", "should_trigger": false, "expected": "slow-build-profile"},
+  {"query": "node process heap keeps growing until it is killed", "should_trigger": false, "expected": "node-memory-leak"},
+  {"query": "python import fails with ModuleNotFoundError in the container", "should_trigger": false, "expected": "python-import-failures"},
+  {"query": "pip install is compiling a package from source and fails with gcc errors", "should_trigger": false, "expected": "python-native-wheel-failures"},
+  {"query": "the api returns the wrong status code for a missing resource and I cannot see why", "should_trigger": false, "expected": "debugging"},
+  {"query": "which packages are imported in code but missing from package.json", "should_trigger": false, "expected": "phantom-dependency-audit"},
+  {"query": "design a versioned json api for our mobile clients", "should_trigger": false, "expected": "api-design"},
+  {"query": "set up the ci pipeline to build and publish our package on tags", "should_trigger": false, "expected": "ci-pipeline-design"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "our app works fine on office wifi but just hangs on a spinner when people use it on the train", "should_trigger": true},
+  {"query": "users on hotel wifi get 'something went wrong' before they've even logged into the network, how should the app handle that", "should_trigger": true},
+  {"query": "what timeout and retry settings should our iOS client use for API calls on flaky cellular", "should_trigger": true},
+  {"query": "a customer got charged twice because the app retried the checkout POST after the response got lost", "should_trigger": true},
+  {"query": "our offline banner says we're online while nothing actually loads, we use the reachability API", "should_trigger": true},
+  {"query": "messages typed in airplane mode disappear if the app gets killed before signal comes back", "should_trigger": true},
+  {"query": "how do I test our android app against a connection that's connected but passes no data", "should_trigger": true},
+  {"query": "okhttp requests sometimes sit there for minutes on a bad network, never failing", "should_trigger": true},
+  {"query": "add exponential backoff with jitter to the mobile client so we don't hammer the api when signal drops", "should_trigger": true},
+  {"query": "spinner forever on the feed screen in rural areas, how do we make it fail gracefully and show cached posts", "should_trigger": true},
+  {"query": "how should our payments endpoint store idempotency keys and what status should a replayed request return", "should_trigger": false, "expected": "api-design"},
+  {"query": "our kafka consumer processes the same order event twice after a rebalance", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "what ttl and cache key should we use for the product catalogue in redis", "should_trigger": false, "expected": "application-caching"},
+  {"query": "the android app takes six seconds to show its first screen on a cheap phone", "should_trigger": false, "expected": "mobile-startup-and-jank"},
+  {"query": "our app sits at the top of the battery settings list after the background sync change", "should_trigger": false, "expected": "battery-drain-diagnosis"},
+  {"query": "push notifications aren't arriving on some xiaomi phones", "should_trigger": false, "expected": "push-notification-delivery"},
+  {"query": "crash-free rate dropped to 97% in the latest iOS build, which crash do we fix first", "should_trigger": false, "expected": "crash-triage"},
+  {"query": "play console shows our ANR rate over the bad behaviour threshold", "should_trigger": false, "expected": "anr-watchdog-triage"},
+  {"query": "our playwright tests are flaky in CI and pass locally", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "this endpoint takes 400ms server-side and the database is only 50ms of it", "should_trigger": false, "expected": "profiling"}
+]

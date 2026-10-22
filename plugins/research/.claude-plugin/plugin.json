@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "research",
+  "description": "Skills for scientific and research engineering: reproducible analyses, numerical precision, HPC jobs, large datasets, benchmarking methodology and statistical review.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "research",
+    "reproducibility",
+    "hpc",
+    "benchmarking",
+    "statistics"
+  ]
+}

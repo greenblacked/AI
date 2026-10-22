@@ -1,0 +1,22 @@
+[
+  {"query": "gunicorn workers use more RAM every hour and have to be restarted", "should_trigger": true},
+  {"query": "celery worker keeps getting OOMKilled after a few hours of tasks", "should_trigger": true},
+  {"query": "RSS never goes down after one big request even though the objects are gone", "should_trigger": true},
+  {"query": "memory use doubles after the master process forks its workers", "should_trigger": true},
+  {"query": "is this a real leak or just fragmentation in the python allocator", "should_trigger": true},
+  {"query": "how do I use tracemalloc snapshots to see which line is accumulating memory", "should_trigger": true},
+  {"query": "objgraph shows a dict growing, how do I find what holds it", "should_trigger": true},
+  {"query": "does gc.freeze before fork help with copy on write memory bloat", "should_trigger": true},
+  {"query": "should I set MALLOC_ARENA_MAX or use jemalloc for my django workers", "should_trigger": true},
+  {"query": "we added max-requests to gunicorn to hide the memory growth, how do we find the real cause", "should_trigger": true},
+  {"query": "this python function is slow in a hot loop, profile it", "should_trigger": false, "expected": "profiling"},
+  {"query": "the pandas job runs out of memory when loading a huge csv", "should_trigger": false},
+  {"query": "java heap keeps growing and I have a heap dump", "should_trigger": false, "expected": "jvm-oom-triage"},
+  {"query": "node process memory climbs until OOMKilled", "should_trigger": false, "expected": "node-memory-leak"},
+  {"query": "ModuleNotFoundError only in CI", "should_trigger": false, "expected": "python-import-failures"},
+  {"query": "the pod was OOMKilled, show the events and tell me whether to roll back", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "pip install fails compiling a C extension", "should_trigger": false, "expected": "python-native-wheel-failures"},
+  {"query": "find why the report totals are wrong for some customers", "should_trigger": false, "expected": "debugging"},
+  {"query": "split this giant module into smaller ones", "should_trigger": false, "expected": "refactoring"},
+  {"query": "go service memory grows with goroutines", "should_trigger": false, "expected": "go-goroutine-leak"}
+]

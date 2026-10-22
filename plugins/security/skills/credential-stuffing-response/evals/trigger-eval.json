@@ -1,0 +1,22 @@
+[
+  {"query": "our login failures spiked tenfold overnight and most are from addresses we have never seen, what is going on", "should_trigger": true},
+  {"query": "bots are testing leaked passwords against our app, how do we shut that down", "should_trigger": true},
+  {"query": "several customers say someone logged into their accounts and changed their payout details", "should_trigger": true},
+  {"query": "should we lock accounts after five failed logins to stop the attack", "should_trigger": true},
+  {"query": "how do I tell credential stuffing from brute force in our auth logs", "should_trigger": true},
+  {"query": "we are being hit by residential proxies trying email and password pairs, per-IP limits do nothing", "should_trigger": true},
+  {"query": "can we reject passwords that appear in known breaches without sending the password to a third party", "should_trigger": true},
+  {"query": "after the attack we found 300 accounts that logged in from the bot traffic, what do we do with them", "should_trigger": true},
+  {"query": "account takeover reports doubled this week and the login endpoint looks like it is being tested at scale", "should_trigger": true},
+  {"query": "add a challenge only for suspicious logins so real users are not annoyed during this attack", "should_trigger": true},
+  {"query": "design password hashing and MFA enrolment for our new customer portal", "should_trigger": false, "expected": "auth-design"},
+  {"query": "decide which roles can approve refunds and export customer lists", "should_trigger": false, "expected": "authorization-design"},
+  {"query": "the whole site is down and we need someone to run the incident and set severity", "should_trigger": false, "expected": "incident-response"},
+  {"query": "implement a token bucket limiter backed by redis for our public api", "should_trigger": false, "expected": "rate-limiter-design"},
+  {"query": "turn what we learned about the bot traffic into a standing alert rule on login anomalies", "should_trigger": false, "expected": "detection-engineering"},
+  {"query": "an attacker is inside our cloud account, preserve the disks and logs before we rebuild", "should_trigger": false, "expected": "compromise-evidence-preservation"},
+  {"query": "build a timeline of what the intruder did from the cloudtrail export", "should_trigger": false, "expected": "intrusion-timeline"},
+  {"query": "an api key was pushed to a public repo, rotate it", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "review this pull request that changes the login handler for injection flaws", "should_trigger": false, "expected": "security-review"},
+  {"query": "which employees still have admin access to production, run the quarterly review", "should_trigger": false, "expected": "access-review"}
+]

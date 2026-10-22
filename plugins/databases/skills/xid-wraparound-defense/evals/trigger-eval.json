@@ -1,0 +1,22 @@
+[
+  {"query": "postgres is warning that the database must be vacuumed within 38 million transactions, what do we do", "should_trigger": true},
+  {"query": "age(datfrozenxid) is 1.6 billion on our main database", "should_trigger": true},
+  {"query": "the anti-wraparound autovacuum on our biggest table has been running for two days and won't finish", "should_trigger": true},
+  {"query": "are we about to hit transaction id wraparound, how do I check how much runway we have", "should_trigger": true},
+  {"query": "what should I alert on so we get weeks of warning before xid wraparound", "should_trigger": true},
+  {"query": "can I use INDEX_CLEANUP off when freezing the oldest tables in an emergency", "should_trigger": true},
+  {"query": "how do I check mxid_age and multixact wraparound risk per table", "should_trigger": true},
+  {"query": "should I bump autovacuum_freeze_max_age or run a manual VACUUM FREEZE after loading a few billion rows", "should_trigger": true},
+  {"query": "postgres stopped accepting writes with a message about avoiding wraparound data loss, how do we get back up", "should_trigger": true},
+  {"query": "a forgotten replication slot is stopping freezing, how do I confirm and what is safe to drop", "should_trigger": true},
+  {"query": "our table is ten times bigger than its live data and autovacuum cannot keep up", "should_trigger": false, "expected": "vacuum-bloat-triage"},
+  {"query": "n_dead_tup keeps growing, how do I tune autovacuum for one big table", "should_trigger": false, "expected": "vacuum-bloat-triage"},
+  {"query": "our integer primary key is at 2 billion and about to overflow", "should_trigger": false, "expected": "integer-key-exhaustion"},
+  {"query": "the database is down and customers are affected, who should run the call and what are the roles", "should_trigger": false, "expected": "incident-response"},
+  {"query": "how much database capacity should we plan for next year's peak", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "this query takes ten seconds, look at the execution plan", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "queries are piling up behind a lock, who is blocking whom", "should_trigger": false, "expected": "lock-queue-triage"},
+  {"query": "plan a zero-downtime column type change on a big table", "should_trigger": false, "expected": "db-migration"},
+  {"query": "FATAL: remaining connection slots are reserved for non-replication superuser connections", "should_trigger": false, "expected": "connection-storm-recovery"},
+  {"query": "write a postmortem for last week's database outage", "should_trigger": false, "expected": "postmortem"}
+]

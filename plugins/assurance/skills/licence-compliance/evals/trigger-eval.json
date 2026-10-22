@@ -1,0 +1,22 @@
+[
+  {"query": "can we ship this GPL library inside our desktop app installer", "should_trigger": true},
+  {"query": "a customer's procurement team wants every open source component and its licence in our on-prem product", "should_trigger": true},
+  {"query": "produce an SBOM for the 4.2 release so we can send it to the customer", "should_trigger": true},
+  {"query": "set up a CI check that fails when someone adds a dependency under a licence we haven't approved", "should_trigger": true},
+  {"query": "is it a problem that our SaaS backend pulls in an AGPL package", "should_trigger": true},
+  {"query": "we need a third-party notices page for the mobile app's about screen", "should_trigger": true},
+  {"query": "half our transitive npm packages report UNKNOWN as their licence, what do we do about that", "should_trigger": true},
+  {"query": "due diligence for the acquisition wants our open source obligations written down by Friday", "should_trigger": true},
+  {"query": "we vendored some fonts and an icon set into the repo years ago, do we owe anyone attribution", "should_trigger": true},
+  {"query": "a library we depend on switched from MPL to BUSL in its latest release, does upgrading affect us", "should_trigger": true},
+  {"query": "dependabot opened fifteen security PRs this week, which of them actually matter for us", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "is this lodash CVE actually reachable from our code or can we suppress it", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "make our Dockerfile smaller and switch to a distroless base", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "sign our container images with cosign and verify the signature at admission", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "which of three observability vendors should we buy, and what will each cost over three years", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "a popular npm package was compromised last night, find which of our repos and CI runs installed the bad version", "should_trigger": false, "expected": "supply-chain-exposure-reader"},
+  {"query": "upgrade us from Spring Boot 2 to 3 without a branch that never lands", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "read the enterprise agreement for this SaaS tool and pull out the renewal and termination terms", "should_trigger": false, "expected": "contract-reader"},
+  {"query": "pin the third-party actions in our workflows to commit SHAs and tighten the token permissions", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "review this pull request for injection and auth bugs before it merges", "should_trigger": false, "expected": "security-review"}
+]

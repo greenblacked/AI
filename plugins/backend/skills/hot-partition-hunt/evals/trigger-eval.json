@@ -1,0 +1,22 @@
+[
+  {"query": "our DynamoDB table throttles at about 20 percent of provisioned capacity, what is going on", "should_trigger": true},
+  {"query": "one redis cluster node sits at 100 percent CPU while the others are idle", "should_trigger": true},
+  {"query": "one shard in our database is hot and the rest are almost empty of traffic", "should_trigger": true},
+  {"query": "we have a celebrity account that gets a million times the writes of anyone else, how do we key the table", "should_trigger": true},
+  {"query": "partition 7 gets 60 percent of the produce rate and the other partitions are nearly idle, how do we fix the key", "should_trigger": true},
+  {"query": "is a timestamp prefix a bad partition key and what should I use instead", "should_trigger": true},
+  {"query": "how do I split a counter that gets thousands of increments a second on a single item", "should_trigger": true},
+  {"query": "one big tenant is overloading its shard in our multi-tenant store", "should_trigger": true},
+  {"query": "how do I find the most throttled keys in dynamodb", "should_trigger": true},
+  {"query": "how many salt buckets should I use for a hot write key and what does it cost on reads", "should_trigger": true},
+  {"query": "how many nodes and how much storage will we need for next year's growth", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "this query on the orders table is slow even with an index", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "two transactions update the same row and one update is lost", "should_trigger": false, "expected": "transaction-race-hunt"},
+  {"query": "make the service shed load gracefully when traffic spikes", "should_trigger": false, "expected": "overload-protection"},
+  {"query": "limit each customer to 100 requests per minute", "should_trigger": false, "expected": "rate-limiter-design"},
+  {"query": "a distributed lock expired and two workers wrote at once", "should_trigger": false, "expected": "distributed-lock-audit"},
+  {"query": "our search index is missing documents deleted in the database", "should_trigger": false, "expected": "search-index-sync"},
+  {"query": "our cache hit rate fell after a deploy and we need to fix invalidation", "should_trigger": false, "expected": "application-caching"},
+  {"query": "profile this function that uses too much CPU", "should_trigger": false, "expected": "profiling"},
+  {"query": "consumer lag is stuck on partition 7 while the others are at zero, is it a poison record", "should_trigger": false, "expected": "consumer-lag-triage"}
+]

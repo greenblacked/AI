@@ -1,0 +1,23 @@
+[
+  {"query": "we get random 502s from the ALB, maybe 0.1% of requests, and the app logs show nothing for them", "should_trigger": true},
+  {"query": "every deploy we see a spike of 502 bad gateway for about thirty seconds, how do we stop that", "should_trigger": true},
+  {"query": "nginx error log keeps saying upstream prematurely closed connection while reading response header, but only now and then", "should_trigger": true},
+  {"query": "our node service behind an aws load balancer throws occasional bad gateway errors, worse overnight when traffic is low", "should_trigger": true},
+  {"query": "istio shows sporadic 503 upstream connect error or disconnect/reset before headers with the UC flag", "should_trigger": true},
+  {"query": "users hit a 504 gateway timeout on the report export every so often, what should we check", "should_trigger": true},
+  {"query": "what should the deregistration delay and preStop sleep be so scaling in doesn't drop requests", "should_trigger": true},
+  {"query": "how do I match load balancer access log entries to our app logs to see which side closed the connection", "should_trigger": true},
+  {"query": "the google cloud load balancer logs keep saying the backend connection closed before data was sent, a few hundred times a day", "should_trigger": true},
+  {"query": "is gunicorn's keepalive setting why we get intermittent 502s behind the load balancer", "should_trigger": true},
+  {"query": "pods for the checkout service are stuck in CrashLoopBackOff since this morning", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "our cdn hit ratio is 40% and the origin is getting hammered, how should we set cache headers", "should_trigger": false, "expected": "cdn-configuration"},
+  {"query": "the whole site is returning 502 for every customer right now and I'm incident commander", "should_trigger": false, "expected": "incident-response"},
+  {"query": "a CNAME still points at a deleted storage bucket, how do we audit for dangling records", "should_trigger": false, "expected": "dns-operations"},
+  {"query": "calls out of our pods time out under load and the NAT gateway reports ErrorPortAllocation, are we out of ports", "should_trigger": false, "expected": "connection-exhaustion-hunt"},
+  {"query": "this endpoint takes four seconds because of one slow postgres query, explain analyze attached", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "will the load balancer and service hold up at ten times traffic for the launch", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "our TLS certificate on the load balancer expired last night, how do we automate renewal", "should_trigger": false, "expected": "certificate-automation"},
+  {"query": "the service is returning 500 internal server error with a stack trace in our own handler", "should_trigger": false, "expected": "debugging"},
+  {"query": "add a redis cache in front of the product catalogue reads with sensible invalidation", "should_trigger": false, "expected": "application-caching"},
+  {"query": "what cpu and memory requests and limits should this deployment have", "should_trigger": false, "expected": "k8s-workloads"}
+]

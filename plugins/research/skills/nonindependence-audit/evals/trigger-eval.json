@@ -1,0 +1,22 @@
+[
+  {"query": "we imaged 10,000 cells but they came from only 3 mice per group; is a t-test on the cells legitimate", "should_trigger": true},
+  {"query": "each patient has about 40 repeated measurements and I ran a regression treating all of them as independent, is my p-value inflated", "should_trigger": true},
+  {"query": "reviewer says this is pseudoreplication; how do I redo the analysis properly", "should_trigger": true},
+  {"query": "samples were collected from 6 sites with many plots each; how many independent observations do I really have", "should_trigger": true},
+  {"query": "should I use a random intercept or cluster-robust standard errors for students nested in classrooms", "should_trigger": true},
+  {"query": "how do I calculate the intraclass correlation and design effect for my clustered data", "should_trigger": true},
+  {"query": "my permutation test shuffles individual rows but the rows come from the same animals, is that okay", "should_trigger": true},
+  {"query": "we have weekly readings from each of twelve stations and the residuals look autocorrelated; do the standard errors need fixing", "should_trigger": true},
+  {"query": "I only have four litters per condition and the mixed model fits fine, can I trust the variance components", "should_trigger": true},
+  {"query": "the significant result disappears when I average per subject first, which analysis is right", "should_trigger": true},
+  {"query": "review the statistics section of this whole manuscript before we submit", "should_trigger": false, "expected": "paper-statistics-review"},
+  {"query": "my samples cluster by sequencing lane in the PCA, do I need batch correction", "should_trigger": false, "expected": "batch-effect-audit"},
+  {"query": "how many Monte Carlo samples do I need for a tight confidence interval", "should_trigger": false, "expected": "monte-carlo-run-length"},
+  {"query": "the same seed gives different results on every run", "should_trigger": false, "expected": "nondeterminism-bisect"},
+  {"query": "compare two methods fairly using the same tuning budget and splits", "should_trigger": false, "expected": "fair-method-comparison"},
+  {"query": "which columns in my merged dataset are in different units", "should_trigger": false, "expected": "unit-mismatch-audit"},
+  {"query": "run 5000 simulations on the cluster and track which finished", "should_trigger": false, "expected": "sweep-campaign-management"},
+  {"query": "the results are NaN after step 300 of my simulation", "should_trigger": false, "expected": "nan-origin-trace"},
+  {"query": "my analysis environment differs between laptop and cluster, how do I pin it", "should_trigger": false, "expected": "reproducible-analysis-environment"},
+  {"query": "design a database schema for storing patient visits", "should_trigger": false, "expected": "schema-design"}
+]

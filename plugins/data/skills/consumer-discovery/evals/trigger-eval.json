@@ -1,0 +1,22 @@
+[
+  {"query": "Who actually uses the analytics.core.orders_legacy table? We want to drop it next month.", "should_trigger": true},
+  {"query": "can we drop the discount_code column from the fact table or is some dashboard still reading it", "should_trigger": true},
+  {"query": "We're deprecating 40 tables in the old reporting schema. How do we make sure nobody's report breaks?", "should_trigger": true},
+  {"query": "The access log says only the tableau_svc account reads this table. Does that mean only one consumer?", "should_trigger": true},
+  {"query": "What breaks if I rename this warehouse view? I need a list of people and jobs to warn.", "should_trigger": true},
+  {"query": "How do I query Snowflake ACCESS_HISTORY to find every user and job that read a specific column in the last 90 days?", "should_trigger": true},
+  {"query": "We plan to switch off the old customer mart. Should we do a brownout before deleting it, and how?", "should_trigger": true},
+  {"query": "Is anything still reading the legacy BigQuery dataset? Nobody admits to using it.", "should_trigger": true},
+  {"query": "Last time we dropped a table, finance's year-end job broke three months later. How do we find consumers like that next time?", "should_trigger": true},
+  {"query": "Before we change the grain of the orders model, list everything downstream in dbt and in the BI tool.", "should_trigger": true},
+  {"query": "How do I drop a column from our production MySQL users table without locking it?", "should_trigger": false, "expected": "db-migration"},
+  {"query": "We want to retire v1 of our public REST API. How long should the deprecation period be?", "should_trigger": false, "expected": "api-design"},
+  {"query": "The source team dropped a column from the replicated table and our models broke overnight.", "should_trigger": false, "expected": "upstream-change-defense"},
+  {"query": "Our Snowflake bill doubled; which users and dashboards are scanning the most data?", "should_trigger": false, "expected": "scan-cost-forensics"},
+  {"query": "This feature flag has been at 100% for six months; how do we delete it safely?", "should_trigger": false, "expected": "feature-flag-lifecycle"},
+  {"query": "We need to move from Redshift to Snowflake over the next two quarters. Plan the phases.", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "Replace the finance team's monthly revenue spreadsheet with a proper pipeline without losing their trust.", "should_trigger": false, "expected": "spreadsheet-retirement"},
+  {"query": "Review who has access to the production database and remove permissions nobody needs.", "should_trigger": false, "expected": "access-review"},
+  {"query": "How do we keep the history of customer attributes so old reports can be reproduced?", "should_trigger": false, "expected": "as-of-history"},
+  {"query": "We're three major versions behind on our data pipeline framework. How do we upgrade?", "should_trigger": false, "expected": "dependency-upgrade"}
+]

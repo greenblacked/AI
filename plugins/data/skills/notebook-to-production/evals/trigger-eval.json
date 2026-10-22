@@ -1,0 +1,22 @@
+[
+  {"query": "productionise this jupyter notebook so it runs every night without anyone opening it", "should_trigger": true},
+  {"query": "our analyst builds the weekly churn report by running a notebook by hand; how do we schedule it safely", "should_trigger": true},
+  {"query": "convert analysis.ipynb into a proper python package with tests", "should_trigger": true},
+  {"query": "the notebook only works if you run the cells in a particular order, help me turn it into a job", "should_trigger": true},
+  {"query": "how do I make sure the scripted version gives exactly the same numbers the notebook did", "should_trigger": true},
+  {"query": "there is a database password pasted in a notebook cell and we want to run that notebook on Airflow", "should_trigger": true},
+  {"query": "rerunning last Tuesday appends duplicate rows; the job was lifted straight out of a notebook", "should_trigger": true},
+  {"query": "set up papermill or similar so the report notebook takes a run date parameter for backfills", "should_trigger": true},
+  {"query": "move our model training code out of notebooks into something a scheduler can run unattended", "should_trigger": true},
+  {"query": "what is the checklist before a data science notebook goes onto the scheduler", "should_trigger": true},
+  {"query": "this 2000-line python module is unreadable, split it up without changing its behaviour", "should_trigger": false, "expected": "refactoring"},
+  {"query": "write me a new python CLI that pulls invoices from the billing API and saves them", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "design the CI pipeline for our data repository and decide which checks block a merge", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "an API key was committed to git last month, how do we rotate it without downtime", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "upgrade pandas from 1.5 to 2.2 across all our jobs", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "the nightly job wrote wrong totals into the orders table for a week; repair those records", "should_trigger": false, "expected": "safe-backfill"},
+  {"query": "turn the results of this analysis into clear charts for the leadership deck", "should_trigger": false, "expected": "data-visualisation"},
+  {"query": "which test cases should cover this date bucketing function", "should_trigger": false, "expected": "test-design"},
+  {"query": "the model trained in the notebook scores differently in production than offline for the same users", "should_trigger": false, "expected": "serving-skew-replay"},
+  {"query": "our nightly job is red in CI with an import error since this morning", "should_trigger": false, "expected": "ci-triage"}
+]

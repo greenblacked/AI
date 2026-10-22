@@ -1,0 +1,92 @@
+[
+  {
+"query": "product keeps saying not now to our tech debt work, how do I make the case",
+"should_trigger": true
+},
+  {
+"query": "which of our twenty known debt items should we pay down first",
+"should_trigger": true
+},
+  {
+"query": "I need a platform quarter and have to convince the VP of product",
+"should_trigger": true
+},
+  {
+"query": "how can I put a cost on our legacy billing code so it competes with features",
+"should_trigger": true
+},
+  {
+"query": "engineers say the codebase is slowing us down, how do I turn that into a number",
+"should_trigger": true
+},
+  {
+"query": "how much capacity should we reserve each sprint for cleanup and how do I defend it",
+"should_trigger": true
+},
+  {
+"query": "rank our maintenance backlog by what it costs us every month",
+"should_trigger": true
+},
+  {
+"query": "we keep getting incidents from the same old service, make the argument for rewriting it",
+"should_trigger": true
+},
+  {
+"query": "how do I sell a migration off our end of life framework to the exec team",
+"should_trigger": true
+},
+  {
+"query": "what do I say when the PM asks why the refactor is worth more than a feature",
+"should_trigger": true
+},
+  {
+"query": "how do I restructure this module safely in small steps without breaking behaviour",
+"should_trigger": false,
+"expected": "refactoring"
+},
+  {
+"query": "assess our team's delivery performance with DORA metrics",
+"should_trigger": false,
+"expected": "delivery-review"
+},
+  {
+"query": "write up why we chose postgres over dynamodb so it is on record",
+"should_trigger": false,
+"expected": "decision-record"
+},
+  {
+"query": "justify hiring two more engineers to finance",
+"should_trigger": false,
+"expected": "headcount-case"
+},
+  {
+"query": "walk me through this stack trace and find the bug",
+"should_trigger": false,
+"expected": "debugging"
+},
+  {
+"query": "upgrade our major dependencies without breaking the build",
+"should_trigger": false,
+"expected": "dependency-upgrade"
+},
+  {
+"query": "set quarterly objectives and key results for the platform team",
+"should_trigger": false,
+"expected": "okr-planning"
+},
+  {
+"query": "review this pull request for correctness issues",
+"should_trigger": false,
+"expected": "code-review"
+},
+  {
+"query": "plan the migration of our monolith database to a new platform",
+"should_trigger": false,
+"expected": "plan-platform-migration"
+},
+  {
+"query": "write the status report on the migration for stakeholders",
+"should_trigger": false,
+"expected": "status-update"
+}
+]

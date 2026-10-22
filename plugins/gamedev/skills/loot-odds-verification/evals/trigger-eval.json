@@ -1,0 +1,22 @@
+[
+  {"query": "players on the forum say our legendary drop rate is way lower than the 1 percent we advertise, how do we find out who is right", "should_trigger": true},
+  {"query": "write a test for our loot table that proves each item drops at the rate in the design doc", "should_trigger": true},
+  {"query": "how does a pity counter work and what is the expected number of pulls to the first rare with a hard pity at 90", "should_trigger": true},
+  {"query": "do we need to publish drop odds for our crates, and how do we back up the numbers we publish", "should_trigger": true},
+  {"query": "is our random number generator fair enough for a gacha banner, or could the seeding be skewing results", "should_trigger": true},
+  {"query": "run ten million simulated pulls through the shipped drop code and tell me whether the observed rates match", "should_trigger": true},
+  {"query": "a player says the pity counter reset after they linked their account on a second platform, how do we test persistence", "should_trigger": true},
+  {"query": "our server logs show every roll, can you check them against the stated odds split by client version", "should_trigger": true},
+  {"query": "chi-square or binomial test for checking a weighted drop table, and how do I handle forty items at once", "should_trigger": true},
+  {"query": "streaks of bad luck are getting complained about, how do I tell a real bug from variance in the draws needed for a rare item", "should_trigger": true},
+  {"query": "tune the drop rates and crate prices so the economy feels rewarding without being too generous", "should_trigger": false, "expected": "game-balance"},
+  {"query": "fill in the store's loot box disclosure form and prepare for the age rating questionnaire", "should_trigger": false, "expected": "game-certification"},
+  {"query": "write the design document section describing the reward systems and progression", "should_trigger": false, "expected": "game-design-doc"},
+  {"query": "a group of players found a way to duplicate legendary items and the economy is flooded, what do we do now", "should_trigger": false, "expected": "economy-exploit-response"},
+  {"query": "plan a seasonal event with new banners, a battle pass and a schedule of content drops", "should_trigger": false, "expected": "game-live-ops"},
+  {"query": "our saved game loses inventory when the cloud copy is older than the local one", "should_trigger": false, "expected": "game-save-system"},
+  {"query": "two players hit the same enemy at once and the server credits the kill to the wrong one", "should_trigger": false, "expected": "game-netcode"},
+  {"query": "our game drops to 20 fps in the busy market scene on the steam deck", "should_trigger": false, "expected": "game-performance"},
+  {"query": "design an experiment to compare two onboarding flows and decide which converts better", "should_trigger": false, "expected": "experiment-design"},
+  {"query": "run a playtest with eight strangers to see whether they understand the crafting menu", "should_trigger": false, "expected": "game-playtest"}
+]

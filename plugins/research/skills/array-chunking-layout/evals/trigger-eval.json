@@ -1,0 +1,22 @@
+[
+  {"query": "reading a time series for one grid cell from my NetCDF file takes forever", "should_trigger": true},
+  {"query": "how should I chunk this HDF5 dataset, I read maps one day at a time and time series per pixel", "should_trigger": true},
+  {"query": "should we store our reanalysis data as Zarr or NetCDF for use on object storage", "should_trigger": true},
+  {"query": "slicing my 4D array along the last axis is painfully slow", "should_trigger": true},
+  {"query": "what chunk size in megabytes is sensible for a large gridded dataset", "should_trigger": true},
+  {"query": "compare zstd and gzip with the shuffle filter for float32 climate fields, what do I pick", "should_trigger": true},
+  {"query": "how do I rechunk a 2 TB netcdf file so point queries are fast without breaking map queries", "should_trigger": true},
+  {"query": "my zarr store has millions of tiny chunks and opening it is slow", "should_trigger": true},
+  {"query": "h5py reads of a single column of a huge volume read the whole file, why", "should_trigger": true},
+  {"query": "where should I record the chunk layout so the next person appending data does not ruin it", "should_trigger": true},
+  {"query": "design the tables and indexes for storing sensor readings in postgres", "should_trigger": false, "expected": "schema-design"},
+  {"query": "this sql query joining two large tables takes 40 seconds, speed it up", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "scratch quota complains about millions of small files from my simulation", "should_trigger": false, "expected": "parallel-filesystem-hygiene"},
+  {"query": "aggregate a 300 GB csv that does not fit in memory with pandas", "should_trigger": false, "expected": "out-of-core-dataset-handling"},
+  {"query": "profile my python loop to see where the time goes", "should_trigger": false, "expected": "profiling"},
+  {"query": "pick a plotting style and colour scale for this gridded temperature field", "should_trigger": false, "expected": "data-visualisation"},
+  {"query": "set up a conda environment so my analysis reruns on another machine", "should_trigger": false, "expected": "reproducible-analysis-environment"},
+  {"query": "check that my solution does not change when I refine the mesh", "should_trigger": false, "expected": "convergence-study"},
+  {"query": "my job needs how many cores and how much memory to start quickly", "should_trigger": false, "expected": "hpc-resource-sizing"},
+  {"query": "plan backups and restore tests for the lab file server", "should_trigger": false, "expected": "backup-recovery-design"}
+]
