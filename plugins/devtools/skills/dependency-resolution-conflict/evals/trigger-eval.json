@@ -1,0 +1,22 @@
+[
+  {"query": "npm install fails with ERESOLVE unable to resolve dependency tree after I added one package", "should_trigger": true},
+  {"query": "pip says ResolutionImpossible because two packages need different versions of urllib3", "should_trigger": true},
+  {"query": "maven dependency convergence rule fails and lists three paths with different versions of guava", "should_trigger": true},
+  {"query": "two of our libraries want different versions of the same transitive dependency, what are my options", "should_trigger": true},
+  {"query": "can I just use --legacy-peer-deps in CI to get past this peer dependency error", "should_trigger": true},
+  {"query": "how do I find out which package is pulling in the old version of lodash", "should_trigger": true},
+  {"query": "a react plugin declares a peer range that excludes the react version we run, install is blocked", "should_trigger": true},
+  {"query": "when is it right to add an npm overrides block and how should I document it", "should_trigger": true},
+  {"query": "gradle picks the wrong version of a transitive library and the build breaks, how do I see why", "should_trigger": true},
+  {"query": "uv refuses to resolve my project because of conflicting requirements", "should_trigger": true},
+  {"query": "plan our move from webpack 4 to webpack 5 and the loaders that go with it", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "we got forty vulnerability alerts from the scanner, which ones matter", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "our code imports a package that is not in package.json but works because something else installs it", "should_trigger": false, "expected": "phantom-dependency-audit"},
+  {"query": "the CI build re-downloads every dependency each run and misses the cache", "should_trigger": false, "expected": "build-cache-miss-hunt"},
+  {"query": "installing dependencies takes ten minutes in CI, profile it", "should_trigger": false, "expected": "slow-build-profile"},
+  {"query": "which open source licences are we allowed to ship in our product", "should_trigger": false},
+  {"query": "the app throws a TypeError after startup, find the bug", "should_trigger": false, "expected": "debugging"},
+  {"query": "pin all our GitHub Actions to commit SHAs", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "write a Dockerfile that installs python dependencies reproducibly", "should_trigger": false},
+  {"query": "bump every dependency in the repo to the latest major and fix the breakage", "should_trigger": false, "expected": "dependency-upgrade"}
+]

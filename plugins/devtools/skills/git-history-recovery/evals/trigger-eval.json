@@ -1,0 +1,22 @@
+[
+  {"query": "I ran git reset --hard HEAD~5 and now three days of commits are gone, can I get them back", "should_trigger": true},
+  {"query": "I dropped the wrong stash and it had a week of changes in it", "should_trigger": true},
+  {"query": "my interactive rebase finished but half the branch is missing from the log", "should_trigger": true},
+  {"query": "a teammate force pushed over main this morning and the last six merges are not on it", "should_trigger": true},
+  {"query": "I checked out a commit by hash, made changes, switched branch and now I cannot find that work", "should_trigger": true},
+  {"query": "deleted a feature branch before it was merged, how do I find the tip again", "should_trigger": true},
+  {"query": "git stash clear wiped everything, is there any way to see what was in there", "should_trigger": true},
+  {"query": "I amended a commit and lost the original message and the file I had added", "should_trigger": true},
+  {"query": "what does git reflog show and how long do old entries stick around before they are collected", "should_trigger": true},
+  {"query": "we need the commit that was on origin/release before the force push, the reflog on my machine does not have it", "should_trigger": true},
+  {"query": "my rebase onto main is stopped with sixty conflicts and the parent PR was squash merged", "should_trigger": false, "expected": "branch-rebase-repair"},
+  {"query": "move my stacked branches onto main after the first PR landed", "should_trigger": false, "expected": "branch-rebase-repair"},
+  {"query": "someone committed a 400 MB video, remove it from every branch and shrink the repository", "should_trigger": false, "expected": "git-history-purge"},
+  {"query": "purge the api key we pushed last week from the whole history", "should_trigger": false, "expected": "git-history-purge"},
+  {"query": "the service crashes with a null pointer after the last deploy, help me find the cause", "should_trigger": false, "expected": "debugging"},
+  {"query": "review my pull request diff for bugs before I merge", "should_trigger": false, "expected": "code-review"},
+  {"query": "restructure this module into smaller functions without changing behaviour", "should_trigger": false, "expected": "refactoring"},
+  {"query": "which git branching model should our team of twelve adopt", "should_trigger": false},
+  {"query": "write a commit message for this change", "should_trigger": false},
+  {"query": "rotate the token that leaked into our public repository", "should_trigger": false, "expected": "secret-rotation"}
+]

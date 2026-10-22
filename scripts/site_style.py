@@ -1638,6 +1638,21 @@ html:not([data-theme="reactor"]) %P .plugin-word {
   to { opacity: 1; transform: none; }
 }""",
     ),
+    # Letters snap into a grid one after another, like a build graph resolving.
+    "devtools": PluginLook(
+        day=("#334155", "#7c3aed", "#0f766e"),
+        night=("#cbd5e1", "#c4b5fd", "#5eead4"),
+        width=0.7,
+        rules=(
+            "%P .pl { animation: pw-devtools-snap 0.35s steps(3, end) "
+            "calc(var(--i) * 0.07s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-devtools-snap {
+  from { opacity: 0; transform: translateX(-0.25em); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
 }
 
 # The shared frame. `--c` is the colour a letter or a row takes from the cycle.
