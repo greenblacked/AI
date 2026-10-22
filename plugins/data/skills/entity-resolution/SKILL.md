@@ -44,7 +44,7 @@ Measure two numbers before going further. The candidate pair count, which must b
 
 ### 5. Deterministic rules first, fuzzy score second
 
-Apply exact rules on verified identifiers first and record a reason code on each link: same tax number, same verified email, same payment fingerprint. They are explainable, cheap and right more often than any model.
+Apply exact rules on verified identifiers first and record a reason code on each link: same tax number, same payment fingerprint, and same verified email only where the source guarantees one mailbox per entity. They are explainable, cheap and right more often than any model. Verification proves someone controls an identifier, not that nobody else shares it: a family mailbox, one billing address for several companies or a reassigned work account all verify. Before an identifier becomes a hard match, count how many entities already hold it; one held by more than one becomes a scored feature that needs corroboration instead.
 
 Write hard non-match rules alongside them: different tax numbers, different dates of birth, different countries of incorporation. A pair that trips one is never auto-matched, whatever its name similarity. They are the cheapest protection against a false merge, because they do not depend on where a threshold sits.
 

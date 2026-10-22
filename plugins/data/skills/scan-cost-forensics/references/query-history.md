@@ -45,7 +45,8 @@ Bytes scanned is a proxy on Snowflake, because the bill is warehouse running tim
 ```sql
 SELECT
   query_parameterized_hash        AS fingerprint,
-  warehouse_name,
+  -- one row per fingerprint: a workload spread over warehouses must not split its total
+  LISTAGG(DISTINCT warehouse_name, ', ') AS warehouses,
   COUNT(*)                        AS runs,
   -- an accelerated query costs both columns
   SUM(credits_attributed_compute
@@ -53,7 +54,7 @@ SELECT
 FROM snowflake.account_usage.query_attribution_history
 WHERE start_time >= DATEADD(day, -14, CURRENT_DATE())
   AND start_time <  CURRENT_DATE()
-GROUP BY 1, 2
+GROUP BY 1
 ORDER BY credits DESC
 LIMIT 50;
 ```
