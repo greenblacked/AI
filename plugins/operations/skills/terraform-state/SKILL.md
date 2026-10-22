@@ -1,6 +1,6 @@
 ---
 name: terraform-state
-description: "Execute a Terraform or OpenTofu state operation that has already been decided: import an existing resource, move or rename one after a refactor, drop one from state without destroying it, reconcile drift, recover a lost or corrupted state file, clear a stuck lock, or separate state per environment and backend. Takes a backup first and prefers the reviewable import, moved and removed blocks over the state subcommands. Use whenever someone says \"terraform wants to destroy and recreate everything\", \"I renamed a module and now the plan is wrong\", \"how do I import existing resources\", \"state is locked\", or \"accept the console change into state so the plan stops fighting it\". Do not use it to review a plan, a PR or a proposed state move, which is iac-review, to write a new module (code-scaffold), to plan a platform move (plan-platform-migration), or to rotate a credential (secret-rotation)."
+description: "Run a Terraform or OpenTofu state operation already decided: import a single resource, move or rename one after a refactor, drop one from state without destroying it, reconcile drift, recover a lost or corrupted state file, clear a stuck lock, or change the backend. Backs up first; prefers reviewable import, moved and removed blocks to state subcommands. Use for \"terraform wants to destroy and recreate everything\", \"I renamed a module and now the plan is wrong\", \"import this bucket into state\", \"state is locked\", or \"accept the console change into state\". Not for reviewing a plan or state move (iac-review), a new module (code-scaffold), a platform move (plan-platform-migration), rotating a credential (secret-rotation), adopting a hand-built estate (brownfield-iac-adoption), splitting an oversized state (monolith-state-split) or a version upgrade (iac-version-upgrade)."
 allowed-tools: Bash(terraform:*), Bash(tofu:*), Bash(jq:*), Bash(git:*), Read, Write, Edit, Grep, Glob
 ---
 
@@ -26,8 +26,8 @@ Use for: executing a state operation that has already been decided — adopting 
 resource with `import`, moving or renaming after a refactor, dropping a resource from
 state without destroying it, reconciling drift once a plan has shown it, recovering a
 corrupted, partially applied or lost state file, clearing a stuck lock, and backend,
-remote state, workspace and per-environment separation, including what follows from state
-holding secrets in plaintext.
+remote state and workspace mechanics, including what follows from state holding secrets in
+plaintext.
 
 Do not use for:
 
@@ -44,6 +44,11 @@ Do not use for:
   that has already been planned.
 - **Rotating a credential.** That is `secret-rotation`, including the credential you found
   sitting in a state file.
+- **Bulk adoption, splitting or upgrading.** Adopting a whole hand-built estate is
+  `brownfield-iac-adoption`; splitting an oversized state into smaller stacks is
+  `monolith-state-split`; a Terraform, OpenTofu or provider version bump is
+  `iac-version-upgrade`. This skill keeps the mechanics each of them calls on: moving or
+  importing one resource, locks, corruption and drift.
 
 ## Hard gates
 
@@ -324,6 +329,5 @@ identifier does.
   nothing.
 - `references/state-recovery.md` — read when state is corrupt, truncated, rolled back or
   lost, when an apply was killed part way through, or after force-unlocking one.
-- `references/backend-and-workspaces.md` — read when choosing or changing a backend,
-  splitting one state into several, or deciding between workspaces and a directory per
-  environment.
+- `references/backend-and-workspaces.md` — read when choosing or changing a backend, or
+  deciding between workspaces and a directory per environment.

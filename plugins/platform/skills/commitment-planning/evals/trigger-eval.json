@@ -1,0 +1,22 @@
+[
+  {"query": "finance wants us to buy reserved instances before year end, how much should we actually commit to", "should_trigger": true},
+  {"query": "cost explorer recommends a 180 dollar per hour compute savings plan, should we just buy it", "should_trigger": true},
+  {"query": "one year or three year savings plan for our EKS node fleet when we might move half of it to graviton next spring", "should_trigger": true},
+  {"query": "our savings plan utilisation dropped from 99 to 81 percent this month, what do we do about it", "should_trigger": true},
+  {"query": "how do we size committed use discounts on gcp for our n2 fleet in europe-west1", "should_trigger": true},
+  {"query": "half our reserved instances expire in march, plan the renewal", "should_trigger": true},
+  {"query": "should we pay all upfront or no upfront on a compute commitment, and what happens if we migrate off aws in 18 months", "should_trigger": true},
+  {"query": "write a monthly purchase ladder for azure savings plans so we are not exposed to one big expiry", "should_trigger": true},
+  {"query": "what coverage percentage of our steady compute should be under commitments versus left on demand", "should_trigger": true},
+  {"query": "work out the hourly baseline from the cur so we commit to the trough rather than average spend", "should_trigger": true},
+  {"query": "our aws bill jumped 30 percent last month and nobody can say where it went", "should_trigger": false, "expected": "cost-review"},
+  {"query": "will the checkout service survive black friday at five times normal traffic", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "compare datadog, grafana cloud and new relic for our observability renewal", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "the nat gateway line doubled, find which pods are sending the bytes", "should_trigger": false, "expected": "data-transfer-forensics"},
+  {"query": "our anthropic and openai token spend is out of control on the support bot", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "here is a 400MB cost and usage report export, tell me the top movers since august", "should_trigger": false, "expected": "cost-analyst"},
+  {"query": "what cpu and memory requests should this deployment have, it keeps getting OOMKilled", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "should I fix my mortgage for five years or stay on a tracker", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "plan moving our whole platform from ECS to kubernetes over the next two quarters", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "set up tagging and showback so each team sees its own cloud spend", "should_trigger": false, "expected": "cost-review"}
+]

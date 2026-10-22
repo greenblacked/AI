@@ -1,6 +1,6 @@
 ---
 name: disaster-recovery-exercise
-description: "Rehearse restoration of a business service from recovery copies and measure whether the declared RTO, RPO and integrity criteria actually hold. Use when planning or reviewing a restore drill, proving cross-region recovery from backups, measuring the full dependency-ordered restore path, validating recovered transactions with a business owner, or testing recovery identity and keys. Establish an isolated scope, written abort, point-in-time evidence, timestamps and acceptance before the exercise. For backup topology, retention and recovery objectives use backup-recovery-design; for fault injection, chaos experiments, on-call and failover drills without restoration from copies use game-day; for a real outage use incident-response."
+description: "Rehearse restoration of a business service from recovery copies and measure whether the declared RTO, RPO and integrity criteria actually hold. Use when planning or reviewing a restore drill, proving cross-region recovery from backups, measuring the full dependency-ordered restore path, validating recovered transactions with a business owner, or testing recovery identity and keys. Establish an isolated scope, written abort, point-in-time evidence, timestamps and acceptance before the exercise. For backup topology, retention and recovery objectives use backup-recovery-design; for fault injection, chaos experiments, on-call and failover drills without restoration from copies use game-day; for a real outage use incident-response; for an unattended, scheduled restore check of the newest backup use restore-canary."
 allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
@@ -10,7 +10,7 @@ A successful backup job proves that a copy was produced. A successful recovery e
 
 ## Scope
 
-Use for restore-from-copy exercises, including regional rebuilds and ransomware recovery rehearsals. Use `backup-recovery-design` to set the recovery architecture and objectives first. Use `game-day` for deliberate fault injection or failover that does not restore from copies, and `incident-response` when the failure is real. This procedure plans and assesses a drill; any destructive command or live traffic change needs its own approved change window and operator.
+Use for restore-from-copy exercises, including regional rebuilds and ransomware recovery rehearsals. Use `backup-recovery-design` to set the recovery architecture and objectives first. Use `restore-canary` for continuous, automated restore verification that runs without a person; this skill is the human-run exercise with business sign-off. Use `game-day` for deliberate fault injection or failover that does not restore from copies, and `incident-response` when the failure is real. This procedure plans and assesses a drill; any destructive command or live traffic change needs its own approved change window and operator.
 
 ## Hard gates
 

@@ -1,0 +1,22 @@
+[
+  {"query": "if github actions is down in the middle of an outage, can we still ship a hotfix? I honestly don't know", "should_trigger": true},
+  {"query": "our harbor registry runs on the same cluster it serves. what happens when that cluster needs rebuilding", "should_trigger": true},
+  {"query": "audit our break-glass access. I suspect half of it goes through okta anyway", "should_trigger": true},
+  {"query": "the emergency admin passwords are in 1password, which we sign into with SSO. is that a problem", "should_trigger": true},
+  {"query": "map everything an on-call engineer needs to get into prod and fix it, and find anything circular", "should_trigger": true},
+  {"query": "keycloak is self-hosted behind the vpn and the vpn logs in through keycloak. how do we get out of that if it breaks", "should_trigger": true},
+  {"query": "could we run terraform at all if our state bucket's account and the public registry were both unreachable", "should_trigger": true},
+  {"query": "we want to test our emergency access paths without actually taking the identity provider down", "should_trigger": true},
+  {"query": "argo cd authenticates through the IdP; if the IdP is gone how would we deploy a fix and stop argo reverting it", "should_trigger": true},
+  {"query": "a kyverno webhook set to fail closed runs in the cluster it guards. are there more traps like that in our recovery path", "should_trigger": true},
+  {"query": "design our backup strategy and retention so we can meet a four hour RTO for the orders database", "should_trigger": false, "expected": "backup-recovery-design"},
+  {"query": "schedule a restore drill from the isolated backup copies and measure whether we actually hit the RPO", "should_trigger": false, "expected": "disaster-recovery-exercise"},
+  {"query": "plan a chaos experiment that kills one availability zone under load and see whether checkout survives", "should_trigger": false, "expected": "game-day"},
+  {"query": "okta is down right now and nobody can sign in to the console, help me run this incident", "should_trigger": false, "expected": "incident-response"},
+  {"query": "the break-glass password was pasted into a slack channel yesterday, how do we replace it safely", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "who in the org still has standing admin on the production accounts and can we cut it back", "should_trigger": false, "expected": "access-review"},
+  {"query": "how should break-glass identity and KMS keys work if SSO and the production project are both unavailable", "should_trigger": false, "expected": "backup-recovery-design"},
+  {"query": "replace the static AWS keys our CI uses with OIDC federation scoped to the repo and branch", "should_trigger": false, "expected": "workload-identity"},
+  {"query": "how do we do break glass properly instead of five people having standing admin forever", "should_trigger": false, "expected": "access-review"},
+  {"query": "set up a nightly job that restores the latest database backup into a scratch instance and checks row counts", "should_trigger": false, "expected": "restore-canary"}
+]

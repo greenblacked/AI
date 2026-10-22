@@ -1,0 +1,22 @@
+[
+  {"query": "ingress-nginx is end of life and we have about 140 Ingress objects on it, what's the safest way off", "should_trigger": true},
+  {"query": "convert our Ingress resources to Gateway API HTTPRoutes, half of them use rewrite-target with capture groups", "should_trigger": true},
+  {"query": "what replaces a configuration-snippet that adds security headers once we move to envoy gateway", "should_trigger": true},
+  {"query": "can I just change ingressClassName on each ingress to the new controller and be done", "should_trigger": true},
+  {"query": "we ran ingress2gateway and the output looks fine, anything it might have silently dropped?", "should_trigger": true},
+  {"query": "plan moving from nginx ingress to istio's gateway with no downtime, both running at once", "should_trigger": true},
+  {"query": "after switching ingress controllers our file uploads over a megabyte started failing and http no longer redirects to https", "should_trigger": true},
+  {"query": "how do I shift traffic gradually from the old ingress load balancer to the new gateway's address", "should_trigger": true},
+  {"query": "map our nginx.ingress.kubernetes.io annotations to gateway api fields and tell me which ones have no equivalent", "should_trigger": true},
+  {"query": "when is it safe to uninstall the old ingress controller after the new one is serving everything", "should_trigger": true},
+  {"query": "write the runbook for this saturday's switch of the whole storefront from the old datacentre to aws, with go/no-go and rollback deadline", "should_trigger": false, "expected": "cutover"},
+  {"query": "we're moving every service from the old eks cluster to a new one next quarter, need the phased plan", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "the ingress is returning 503 for every request since ten minutes ago and the pods look healthy", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "set up automatic certificate renewal with cert-manager and ACME for all our public endpoints", "should_trigger": false, "expected": "certificate-automation"},
+  {"query": "lock down which namespaces can talk to the payments pods with a default-deny network policy", "should_trigger": false, "expected": "k8s-network-policy"},
+  {"query": "we keep getting random 5 second delays on outbound calls from pods, dns maybe", "should_trigger": false, "expected": "connection-exhaustion-hunt"},
+  {"query": "set up a canary for the checkout service with automated promotion on error rate", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "argo cd keeps reverting the httproute I edited by hand", "should_trigger": false, "expected": "gitops-operations"},
+  {"query": "upgrade our cluster from 1.31 to 1.32 and check nothing still calls a removed api", "should_trigger": false, "expected": "k8s-upgrade"},
+  {"query": "what readiness probe and preStop hook should the backend behind our gateway have so rollouts don't drop requests", "should_trigger": false, "expected": "k8s-workloads"}
+]
