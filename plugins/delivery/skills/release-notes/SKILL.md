@@ -1,7 +1,7 @@
 ---
 name: release-notes
 description: "Turn a range of merged changes into release notes the affected reader can act on, and run the release gates: derive the range from the last shipped tag, not a date, sort entries by who is affected instead of by component, write each breaking change with its migration, cut the noise, resolve the ambiguous semantic-version call, and clear the pre-publish checklist — version bumped, tag matching the artefact, rollback stated, the tested build the one shipped. Use this skill whenever notes, a changelog or an upgrade guide are due for a version, or someone says \"write the release notes for 2.4\", \"what changed since last release\", \"is this a minor or a major\", or \"draft the changelog\". Not for how to roll a change out (release-strategy), a one-way switchover (cutover), schema steps (db-migration), a weekly status (status-update), or recording a decision (decision-record)."
-allowed-tools: "Bash(jq:*), Read, Write, Edit, Grep, Glob"
+allowed-tools: "Read, Write, Edit, Grep, Glob"
 ---
 
 # Release Notes

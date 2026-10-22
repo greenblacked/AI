@@ -92,8 +92,10 @@ The test of a description is not whether it reads well. It is whether someone wh
 `allowed-tools` is a comma-separated list, scoped where scoping helps:
 
 ```yaml
-allowed-tools: Bash(kubectl:*), Bash(helm:*), Read, Grep, Glob
+allowed-tools: Bash(jq:*), Bash(systemctl --failed), Read, Grep, Glob
 ```
+
+A prefix pre-approves every command that starts with it, flags included, so a `:*` prefix is safe only on a tool with no flag that writes, changes state, runs other code or contacts a host, and only in a skill whose input the user wrote. Even a read-only subcommand can fail that test through its binary's global flags: `kubectl get:*` drops `delete` and `apply`, but it still pre-approves `--server`, which sends your cluster credentials to any host, and `--kubeconfig`, whose credential plugin runs any command. Read a binary's global flags before granting any subcommand of it, and pin the rest to the exact command, like `systemctl --failed` above. Every other command still runs, after the user approves it.
 
 Keep it to the minimum the procedure genuinely needs, and be honest about which side you are erring on. Too broad and the declaration means nothing; too narrow and the skill stalls halfway through its own workflow.
 
