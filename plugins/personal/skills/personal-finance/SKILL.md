@@ -1,7 +1,7 @@
 ---
 name: personal-finance
 description: "Build the real picture of where the money goes from statements rather than memory, categorise it as fixed, variable and irregular-but-certain, annualise the subscriptions and renewals, size an emergency fund against fixed outgoings, work the order of operations — buffer, employer match, debt above a threshold rate, tax-advantaged saving — and model the decision before committing to it. Use this skill whenever someone asks \"where is my money actually going\", \"can I afford this\", \"should I overpay the mortgage or invest\", \"which fund do I put it in\", wants a budget that survives a real month, is choosing a debt payoff order, or is worried about fees eating a pension. Not for pay and offers (offer-negotiation), big purchases and their finance (major-purchase), cloud spend (cost-review), supplier choice (vendor-evaluation), self-employed tax set-aside (tax-set-aside), or the week (weekly-review)."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(python3:*)
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # Personal Finance

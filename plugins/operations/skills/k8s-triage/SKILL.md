@@ -1,7 +1,7 @@
 ---
 name: k8s-triage
 description: "Triage a broken Kubernetes workload, mitigation before diagnosis — check for a deploy and roll back, scope the blast radius, capture evidence before mutating, pattern-match the symptom, then escalate: rollback, scale-out, load shedding, failover, drain, restore. Use when a pod, deployment, service or cluster is misbehaving — CrashLoopBackOff, OOMKilled, ImagePullBackOff, Pending pods, running but never Ready, stuck Terminating, DNS failures, RBAC 403s, a Service with no endpoints — or for \"my pod won't start\", \"the rollout broke prod\", \"k8s is down\". Bulky saved evidence: k8s-evidence-reader. Not for new manifests, capacity planning, postmortems, non-Kubernetes incidents (incident-response), API server or etcd overload (apiserver-pressure), NetworkPolicy (k8s-network-policy), storage design (k8s-storage), spot reclaim (spot-readiness) and Ingress-to-Gateway (gateway-api-migration)."
-allowed-tools: Bash(kubectl:*), Bash(helm:*), Bash(jq:*), Read, Grep, Glob
+allowed-tools: Bash(jq:*), Read, Grep, Glob
 ---
 
 # Kubernetes Triage and Incident Response

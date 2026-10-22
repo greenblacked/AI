@@ -1,7 +1,7 @@
 ---
 name: app-size-budget
 description: "Cut a native app's download and install size and keep it cut. Start from the size the store reports per device, not the IPA or AAB on disk; decompose it with an App Thinning size report or bundletool and a link map; cut in a fixed order — duplicate and unused assets, extra architectures, image formats, on-demand resources or dynamic feature modules, dead code with R8 and dead stripping, then SDKs — measuring each cut; and gate the size delta on every pull request so it cannot creep back. Use when someone says the app is 300MB, size is hurting installs, the APK grew 40MB in one release, or wants a size check in CI. Not for a game's textures, audio and asset pipeline (game-assets), the store rollout (mobile-release), slow launch or dropped frames (mobile-startup-and-jank), or CPU hot spots (profiling)."
-allowed-tools: Read, Write, Edit, Grep, Glob, Bash(apkanalyzer:*)
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # App Size Budget
@@ -64,7 +64,7 @@ asset catalogues, resources, fonts, media, ML models, localisations.
 `references/measurement-commands.md` has the exact commands, the export options and how
 to read each report. `xcodebuild` runs the project's build scripts, and `bundletool` and
 `unzip` write files and sign or install packages, so those run with the user's approval;
-only `apkanalyzer`, which reads an APK, is pre-approved.
+`apkanalyzer`, which reads an APK, asks for approval too.
 
 *Gate:* the largest ten components with their bytes, summing to most of the store figure.
 If they do not sum, the decomposition is wrong — usually a component measured

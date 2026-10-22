@@ -1,7 +1,7 @@
 ---
 name: host-hardening
 description: "Audit or harden a Linux or Unix host — a VM, a bare-metal server or a bastion — against a named baseline: preserve a second way in before touching sshd or sudo, export the config either side, change one class at a time on a canary host, and verify over a path you did not edit. Covers SSH and keys, sudo and users, auditd and logging, sysctl, service and port minimisation, filesystem permissions, patch policy, and CIS/NIST mapping. Use when someone says \"harden the ubuntu hosts\", \"lock down ssh on the bastion\", \"the CIS scan has forty findings\", \"we still allow password login\", or \"we need auditd evidence by friday\". Not for a container image (image-hardening), a MikroTik or network device (routeros-config), the Ansible or Terraform that applies it (code-scaffold, iac-review), IAM permissions (access-review), a leaked key (secret-rotation), or a live compromise."
-allowed-tools: "Bash(ssh:*), Bash(sudo:*), Bash(sshd:*), Bash(systemctl:*), Bash(sysctl:*), Bash(auditctl:*), Bash(ss:*), Bash(find:*), Read, Grep, Glob"
+allowed-tools: "Read, Grep, Glob"
 ---
 
 # Host Hardening

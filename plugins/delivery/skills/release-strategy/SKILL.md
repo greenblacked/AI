@@ -1,7 +1,7 @@
 ---
 name: release-strategy
 description: "Get a change into production gradually, so that being wrong costs a fraction of users rather than all of them — separate deploy from release, choose the mechanism (feature flag, percentage or ring rollout, blue/green, shadow traffic) from how the change fails, design rings and bake times that cross a full traffic cycle, write promotion gates and guardrails as numbers agreed before it starts, automate the rollback signal, and give every flag a removal date and an owner. Use this skill whenever someone is planning a canary, a staged, ring or percentage rollout, a feature flag or dark launch, a kill switch, or an experiment's guardrails — including phrasings like \"how do we ship this safely\", \"what percent should we start at\", \"how long do we bake before promoting\", or \"can we flag this off\". Not for a hard-to-reverse one-off switchover, a multi-phase platform migration, a red pipeline, a live incident, or a shipped mobile binary (mobile-release)."
-allowed-tools: "Read, Write, Edit, Grep, Glob, Bash(kubectl:*), Bash(gh:*), Bash(git:*)"
+allowed-tools: "Read, Write, Edit, Grep, Glob"
 ---
 
 # Release Strategy

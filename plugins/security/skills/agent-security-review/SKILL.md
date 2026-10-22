@@ -1,7 +1,7 @@
 ---
 name: agent-security-review
 description: "Review an LLM agent where untrusted web pages, retrieved documents, files, messages or tool results can influence privileged tool calls: trace content through the model into action parameters; require tool-side authorization and tenant scoping at execution; bind human approval to the immutable normalized action; constrain schemas, credentials, sandbox and egress; and test indirect prompt injection with benign sentinels while preserving evidence. Use when an agent can send, write, buy, delete, deploy, browse authenticated sites or access cross-tenant data. Not for a general design threat model (threat-model), an ordinary code diff (security-review), IAM estate cleanup (access-review), broad agent benchmarks (agent-evaluation), authentication design (auth-design), or privacy policy (data-privacy)."
-allowed-tools: "Read, Grep, Glob, Bash(rg:*), Bash(git:*)"
+allowed-tools: "Read, Grep, Glob"
 ---
 
 # Agent Security Review

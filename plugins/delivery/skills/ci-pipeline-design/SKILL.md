@@ -1,7 +1,7 @@
 ---
 name: ci-pipeline-design
 description: "Design a CI/CD pipeline, or restructure one that grew badly: decide which checks may block a merge before drawing any stage, lay the stages out as a dependency graph so nothing waits on unused output, key caches on what actually invalidates them, choose a matrix or separate jobs, build the artefact once and promote the same digest through every environment, decide which job may see a secret, and hold wall-clock to a number people will wait for. Use whenever someone says \"our CI takes 40 minutes\", \"what should be a required check\", \"how do I cache node_modules properly\", or \"set up a pipeline for this repo\". Not for red CI (ci-triage), writing a workflow file or script (code-scaffold), how a change reaches users (release-strategy), a slow compile (slow-build-profile), affected-only builds (affected-build-selection), or auditing a workflow for attacker reach (pipeline-hardening)."
-allowed-tools: "Read, Write, Edit, Grep, Glob, Bash(gh:*), Bash(jq:*), Bash(git:*), Bash(actionlint:*)"
+allowed-tools: "Read, Write, Edit, Grep, Glob, Bash(jq:*)"
 ---
 
 # CI Pipeline Design

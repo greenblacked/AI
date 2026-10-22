@@ -1,7 +1,7 @@
 ---
 name: game-save-system
 description: "Design, version and repair a game's save files so player progress survives every future patch. Names the compatibility promise first — how many builds back a save has to load, and what happens outside that window — then picks the format from the promise rather than the other way round, version-tags the schema with one migration step per bump, makes the write atomic so an interrupted save is not a corrupt one, checksums and rotates backups, and settles cloud-save conflicts by lineage rather than last-write-wins. Use this skill whenever someone is building or changing a save system, or says \"the patch broke everyone's saves\", \"how do I version my save format\", \"players lose progress syncing between two devices\", or \"the save file is corrupt\". Not for a server database schema change (db-migration), an account or inventory service (api-design), or building the game itself (game-builder)."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Bash(python:*)
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # Game Save System

@@ -1,7 +1,7 @@
 ---
 name: lie-fi-resilience
 description: "Make a mobile or web client survive bad networks, not only no network: reproduce under conditioning at 3G, at 100% loss and on a link that is up but carries no data (captive portal, lie-fi), give every request a deadline, a capped retry budget with jittered backoff and an idempotency key, derive the offline banner from failed requests instead of the reachability flag, and queue writes durably so they survive a killed process. Use when someone says the app works on wifi but hangs on the train, the spinner never ends, hotel wifi breaks the app, a retry submitted an order twice, or asks what timeouts and retries a client should have. Not for the server's endpoint contract (api-design), server-side queue consumers (event-driven-reliability), cache freshness and keys (application-caching), or a slow cold start (mobile-startup-and-jank)."
-allowed-tools: Read, Write, Edit, Grep, Glob, Bash(adb emu network:*), Bash(adb reverse:*)
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # Lie-Fi Resilience
