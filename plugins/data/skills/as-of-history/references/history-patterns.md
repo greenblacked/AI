@@ -46,23 +46,31 @@ One row per change event: `entity_id`, operation, the new values (and old values
 Rebuild a type-2 dimension from it:
 
 ```sql
-with versions as (
+with effective as (
+  -- several events at one changed_at would each become a zero-length version;
+  -- keep the last one per instant, by source sequence
+  select *
+  from history.customer_changes          -- every operation, deletes included
+  qualify row_number() over (
+    partition by entity_id, changed_at order by change_seq desc) = 1
+),
+versions as (
   select
     entity_id,
     operation,
     plan,
     changed_at as valid_from,
     coalesce(
-      lead(changed_at) over (partition by entity_id order by changed_at, change_seq),
+      lead(changed_at) over (partition by entity_id order by changed_at),
       '9999-12-31'::timestamp_ntz) as valid_to
-  from history.customer_changes          -- every operation, deletes included
+  from effective
 )
 select entity_id, plan, valid_from, valid_to
 from versions
 where operation in ('insert', 'update');  -- drop tombstones only after the window
 ```
 
-Compute the window over every operation and filter the deletes out afterwards. Filtering them first lets the version before a delete run on to the next insert, or to the far-future sentinel, so a deleted entity appears to exist through the gap and, after a permanent delete, for ever. Order ties by a source sequence number (`change_seq`, a log position), not by load time.
+Compute the window over every operation and filter the deletes out afterwards. Filtering them first lets the version before a delete run on to the next insert, or to the far-future sentinel, so a deleted entity appears to exist through the gap and, after a permanent delete, for ever. Events sharing one `changed_at` collapse to the last by a source sequence number (`change_seq`, a log position), not by load time; ordering them without collapsing would still give every one but the last an empty interval, which the integrity checks below reject.
 
 ## Bitemporal table
 
