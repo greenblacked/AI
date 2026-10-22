@@ -1,0 +1,22 @@
+[
+  {"query": "will this alert actually fire during a real outage like the one we had in march", "should_trigger": true},
+  {"query": "backtest our burn-rate alert against the last 90 days and tell me how many false pages it would have sent", "should_trigger": true},
+  {"query": "did our alert catch last month's checkout outage and how late was it", "should_trigger": true},
+  {"query": "how can I test that this alertmanager route sends the database alerts to the dba receiver", "should_trigger": true},
+  {"query": "before we make this rule page someone, replay the last quarter and count the firings", "should_trigger": true},
+  {"query": "we tuned the for duration, how do I know the alert is not worse now", "should_trigger": true},
+  {"query": "write tests so a change to alertmanager.yml cannot send critical alerts to the wrong channel", "should_trigger": true},
+  {"query": "check this prometheus rule against absent data and a single spike", "should_trigger": true},
+  {"query": "how many times would this threshold have paged us in the last two months", "should_trigger": true},
+  {"query": "measure detection delay of our latency alert against the incident list", "should_trigger": true},
+  {"query": "write a burn-rate alert for a 99.9 percent availability slo", "should_trigger": false, "expected": "alert-design"},
+  {"query": "our pager is out of control, decide which alerts should page", "should_trigger": false, "expected": "alert-design"},
+  {"query": "run a game day where we kill the primary database and see what happens", "should_trigger": false, "expected": "game-day"},
+  {"query": "choose the sli and target for the search api", "should_trigger": false, "expected": "slo-design"},
+  {"query": "alert when orders per minute fall below what we expect for this hour", "should_trigger": false, "expected": "business-metric-alerting"},
+  {"query": "pick histogram buckets so the slo ratio is exact", "should_trigger": false, "expected": "latency-histogram-design"},
+  {"query": "page the on-call during an active incident and coordinate the response", "should_trigger": false, "expected": "incident-response"},
+  {"query": "a dashboard shows no data for a metric since friday", "should_trigger": false, "expected": "missing-metrics-hunt"},
+  {"query": "reduce our log storage bill", "should_trigger": false, "expected": "log-volume-reduction"},
+  {"query": "write a runbook for the disk full alert", "should_trigger": false, "expected": "runbook"}
+]

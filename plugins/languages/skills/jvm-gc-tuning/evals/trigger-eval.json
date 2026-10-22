@@ -1,0 +1,22 @@
+[
+  {"query": "our java service has GC pauses of over a second every few minutes, how do I tune it", "should_trigger": true},
+  {"query": "should we move from G1 to ZGC for a latency sensitive api", "should_trigger": true},
+  {"query": "what Xmx and MaxRAMPercentage should I use for a java pod with a 4Gi limit", "should_trigger": true},
+  {"query": "we see a full GC every five minutes in the gc log", "should_trigger": true},
+  {"query": "p99 latency spikes right after each deploy of the spring app, could it be garbage collection", "should_trigger": true},
+  {"query": "how do I read unified gc logging output from -Xlog:gc", "should_trigger": true},
+  {"query": "allocation rate is huge in our jvm and young collections happen constantly", "should_trigger": true},
+  {"query": "is it safe to set Xmn with G1 to speed up young collections", "should_trigger": true},
+  {"query": "how big should the heap be relative to the live set after a full gc", "should_trigger": true},
+  {"query": "enable generational ZGC on JDK 21, what do I need to watch", "should_trigger": true},
+  {"query": "java.lang.OutOfMemoryError: Java heap space, find what holds the memory", "should_trigger": false, "expected": "jvm-oom-triage"},
+  {"query": "java container killed with exit code 137 but no OutOfMemoryError logged", "should_trigger": false, "expected": "jvm-oom-triage"},
+  {"query": "find the hottest method in our java endpoint using a flame graph", "should_trigger": false, "expected": "profiling"},
+  {"query": "how many replicas will we need for next quarter's traffic", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "go service uses 30 percent of CPU in garbage collection, what should GOGC be", "should_trigger": false, "expected": "go-gc-tuning"},
+  {"query": ".net app memory keeps growing and gen2 collections climb", "should_trigger": false, "expected": "dotnet-memory-growth"},
+  {"query": "two java threads look deadlocked in this thread dump", "should_trigger": false, "expected": "jvm-thread-dump-triage"},
+  {"query": "NoSuchMethodError after upgrading a maven dependency", "should_trigger": false, "expected": "jvm-classpath-conflict"},
+  {"query": "set memory requests and limits for the deployment so pods stop being evicted", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "python worker memory grows until it is killed", "should_trigger": false, "expected": "python-memory-growth"}
+]

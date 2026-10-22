@@ -1,0 +1,22 @@
+[
+  {"query": "NoSuchMethodError in production but the unit tests pass and the build is green", "should_trigger": true},
+  {"query": "after the Spring Boot upgrade we get a Jackson error about a missing method", "should_trigger": true},
+  {"query": "how do I find which jar a class was actually loaded from at runtime", "should_trigger": true},
+  {"query": "two versions of guava end up on the classpath and I do not know which one wins", "should_trigger": true},
+  {"query": "our shaded jar throws ClassNotFoundException for a class that is definitely in it", "should_trigger": true},
+  {"query": "LinkageError: loader constraint violation when the plugin loads its own copy of a library", "should_trigger": true},
+  {"query": "AbstractMethodError after bumping a library that another dependency compiled against", "should_trigger": true},
+  {"query": "maven dependency convergence: how do I stop transitive version drift for good", "should_trigger": true},
+  {"query": "gradle picked the highest version of a library and now a caller breaks at runtime", "should_trigger": true},
+  {"query": "works in the IDE but throws NoClassDefFoundError when started with java -jar", "should_trigger": true},
+  {"query": "npm ERESOLVE unable to resolve dependency tree when adding a package", "should_trigger": false, "expected": "dependency-resolution-conflict"},
+  {"query": "plan the upgrade of our services from Spring Boot 2 to 3 including the deprecations", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "we got a CVE alert for log4j, which of our services are affected and in what order do we fix", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "java.lang.OutOfMemoryError: Java heap space in the order service", "should_trigger": false, "expected": "jvm-oom-triage"},
+  {"query": "the JVM is stuck at 100 percent CPU and I need to read a thread dump", "should_trigger": false, "expected": "jvm-thread-dump-triage"},
+  {"query": "python cannot import a module only in CI", "should_trigger": false, "expected": "python-import-failures"},
+  {"query": "node app memory climbs until it is killed", "should_trigger": false, "expected": "node-memory-leak"},
+  {"query": "pip fails to resolve two packages that need different numpy versions", "should_trigger": false, "expected": "dependency-resolution-conflict"},
+  {"query": "this method is slow, sample the java process and show me the hot frames", "should_trigger": false, "expected": "profiling"},
+  {"query": "a function returns the wrong value for negative input", "should_trigger": false, "expected": "debugging"}
+]

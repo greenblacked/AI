@@ -1,0 +1,22 @@
+[
+  {"query": "why is p99 checkout 4 seconds when the median is 400 ms", "should_trigger": true},
+  {"query": "read this trace and tell me where the time went", "should_trigger": true},
+  {"query": "only some requests are slow and I cannot see why", "should_trigger": true},
+  {"query": "how do I compare slow traces with typical ones to find what is different", "should_trigger": true},
+  {"query": "this trace has a big gap between two spans, what could be in it", "should_trigger": true},
+  {"query": "our fan-out to a hundred shards makes the tail terrible, how do I reason about it", "should_trigger": true},
+  {"query": "I see forty identical database spans in one request, is that the problem", "should_trigger": true},
+  {"query": "what share of the critical path does each service take in this trace", "should_trigger": true},
+  {"query": "latency regressed after the release, can traces show which hop", "should_trigger": true},
+  {"query": "the child span starts before its parent in the waterfall, what is going on", "should_trigger": true},
+  {"query": "the cpu time inside our worker process is high, find the hot function", "should_trigger": false, "expected": "profiling"},
+  {"query": "this sql statement is slow, how do I add an index", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "summarise this large export of trace json files", "should_trigger": false, "expected": "telemetry-reader"},
+  {"query": "the trace is cut in half at the gateway", "should_trigger": false, "expected": "broken-trace-hunt"},
+  {"query": "choose histogram buckets for latency", "should_trigger": false, "expected": "latency-histogram-design"},
+  {"query": "set a latency slo for the api", "should_trigger": false, "expected": "slo-design"},
+  {"query": "debug a null pointer in the checkout handler", "should_trigger": false, "expected": "debugging"},
+  {"query": "the collector drops spans at peak", "should_trigger": false, "expected": "collector-backpressure-triage"},
+  {"query": "add spans and metrics to a new service", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "plan capacity for black friday traffic", "should_trigger": false, "expected": "capacity-planning"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "we need to rename a field on the orders Kafka topic without breaking the consumers", "should_trigger": true},
+  {"query": "can I add a new enum value to our event schema", "should_trigger": true},
+  {"query": "which schema registry compatibility mode should we use for a topic with many independent consumers", "should_trigger": true},
+  {"query": "a consumer crashes on the new version of the event, how do we avoid this next time", "should_trigger": true},
+  {"query": "can we change what the status field means in our order events", "should_trigger": true},
+  {"query": "we need a v2 of order.created, how do we roll it out and retire v1", "should_trigger": true},
+  {"query": "how do I stop incompatible protobuf changes in CI", "should_trigger": true},
+  {"query": "is BACKWARD compatibility enough if we replay the topic from the start", "should_trigger": true},
+  {"query": "our avro schema removed a field and old messages fail to decode", "should_trigger": true},
+  {"query": "how do I know when every consumer has moved off the old topic so I can delete it", "should_trigger": true},
+  {"query": "make our consumers idempotent and publish events with an outbox", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "add a field to our REST API response without breaking clients", "should_trigger": false, "expected": "api-design"},
+  {"query": "add a column to a huge table and backfill without downtime", "should_trigger": false, "expected": "db-migration"},
+  {"query": "backfill the new column for ten million existing rows safely", "should_trigger": false, "expected": "safe-backfill"},
+  {"query": "design the compensation steps for a booking that spans three services", "should_trigger": false, "expected": "saga-design"},
+  {"query": "verify signatures on webhooks sent by a partner", "should_trigger": false, "expected": "webhook-integration"},
+  {"query": "deleted items still appear in our search results", "should_trigger": false, "expected": "search-index-sync"},
+  {"query": "design the tables for a new subscriptions feature", "should_trigger": false, "expected": "schema-design"},
+  {"query": "plan the move from our old platform to the new one", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "one partition of our topic is hot while the others are idle", "should_trigger": false, "expected": "hot-partition-hunt"}
+]

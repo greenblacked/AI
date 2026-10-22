@@ -1,0 +1,92 @@
+[
+  {
+    "query": "the wrong product shows up first when people search for running shoes and I don't know where to start fixing it",
+    "should_trigger": true
+  },
+  {
+    "query": "we want to boost popular items in our elasticsearch results without drowning out relevance",
+    "should_trigger": true
+  },
+  {
+    "query": "synonyms aren't working in our product search, tv and television return different results",
+    "should_trigger": true
+  },
+  {
+    "query": "search results are bad for one-word queries on our opensearch catalogue",
+    "should_trigger": true
+  },
+  {
+    "query": "customers get zero results for obvious queries like sneakers and we sell sneakers",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I measure whether a ranking change actually helped, we keep tuning by gut feel",
+    "should_trigger": true
+  },
+  {
+    "query": "explain why document A scores higher than document B for this query in elasticsearch",
+    "should_trigger": true
+  },
+  {
+    "query": "should I change BM25 k1 and b or fix the analyzer first",
+    "should_trigger": true
+  },
+  {
+    "query": "set up a graded judgment list and run rank_eval with ndcg before we touch boosts",
+    "should_trigger": true
+  },
+  {
+    "query": "every time we fix one complaint about ranking another query gets worse",
+    "should_trigger": true
+  },
+  {
+    "query": "compare our retriever against a candidate on a sealed holdout with paired significance testing",
+    "should_trigger": false,
+    "expected": "retrieval-evaluation"
+  },
+  {
+    "query": "design the retrieval pipeline that feeds our support chatbot, including chunking and reranking",
+    "should_trigger": false,
+    "expected": "rag-design"
+  },
+  {
+    "query": "build autocomplete suggestions that appear as the user types in the search box",
+    "should_trigger": false,
+    "expected": "typeahead-search-design"
+  },
+  {
+    "query": "choose text or keyword for each field and write a strict index template",
+    "should_trigger": false,
+    "expected": "search-mapping-design"
+  },
+  {
+    "query": "keep the search index in sync with the orders database and reindex without downtime",
+    "should_trigger": false,
+    "expected": "search-index-sync"
+  },
+  {
+    "query": "add full text search to our postgres table with tsvector and a gin index",
+    "should_trigger": false,
+    "expected": "postgres-full-text-search"
+  },
+  {
+    "query": "our vector search misses obvious neighbours and recall is low",
+    "should_trigger": false,
+    "expected": "vector-index-tuning"
+  },
+  {
+    "query": "this sql query joining orders and customers is slow, read the plan",
+    "should_trigger": false,
+    "expected": "sql-performance"
+  },
+  {
+    "query": "design the columns and constraints for the products table",
+    "should_trigger": false,
+    "expected": "schema-design"
+  },
+  {
+    "query": "the search input box has no label and fails keyboard navigation",
+    "should_trigger": false,
+    "expected": "form-design"
+  }
+]

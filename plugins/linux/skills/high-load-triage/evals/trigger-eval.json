@@ -1,0 +1,22 @@
+[
+  {"query": "load average is 40 but the cpu is mostly idle, what is going on", "should_trigger": true},
+  {"query": "the server is really sluggish and I do not know whether it is cpu, memory or disk", "should_trigger": true},
+  {"query": "what commands should I run in the first minute on a slow linux box", "should_trigger": true},
+  {"query": "vmstat shows a high b column and wa, how do I find what is blocked", "should_trigger": true},
+  {"query": "how do I read /proc/pressure to see which resource is stalling", "should_trigger": true},
+  {"query": "everything on this vm feels slow and top shows nothing obviously using cpu", "should_trigger": true},
+  {"query": "how can I tell if steal time from the hypervisor is slowing my instance", "should_trigger": true},
+  {"query": "many processes stuck in D state and load keeps climbing", "should_trigger": true},
+  {"query": "container is slow but the host looks idle, could it be cpu throttling", "should_trigger": true},
+  {"query": "walk me through the USE method on a linux server that is struggling", "should_trigger": true},
+  {"query": "where in my python code is the time being spent, I need a flame graph", "should_trigger": false, "expected": "profiling"},
+  {"query": "how many servers will we need for next year's traffic", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "the kernel killed my java process and dmesg says out of memory", "should_trigger": false, "expected": "oom-kill-forensics"},
+  {"query": "df shows 100 percent on the root filesystem", "should_trigger": false, "expected": "disk-full-triage"},
+  {"query": "fork: retry: resource temporarily unavailable when starting jobs", "should_trigger": false, "expected": "resource-limit-exhaustion"},
+  {"query": "production is down and we need someone to run the incident and write updates", "should_trigger": false, "expected": "incident-response"},
+  {"query": "large downloads hang over the vpn but small requests work", "should_trigger": false, "expected": "mtu-blackhole-hunt"},
+  {"query": "a systemd service keeps restarting with exit code 203", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "set up grafana dashboards and alerts for cpu and memory", "should_trigger": false},
+  {"query": "a scheduled job runs at night and makes the database slow, how do I stop it competing with users", "should_trigger": false}
+]

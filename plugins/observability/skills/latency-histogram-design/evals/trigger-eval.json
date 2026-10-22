@@ -1,0 +1,22 @@
+[
+  {"query": "the p99 on our dashboard says 400ms but the request logs show over a second, why do they disagree", "should_trigger": true},
+  {"query": "can I average the p95 from each of our pods to get the service p95", "should_trigger": true},
+  {"query": "what histogram buckets should I use for an api with a 300ms slo", "should_trigger": true},
+  {"query": "histogram_quantile on our latency metric jumps all over the place between refreshes", "should_trigger": true},
+  {"query": "we upgraded the otel sdk and now every request lands in the first latency bucket", "should_trigger": true},
+  {"query": "should we move to native histograms or exponential histograms for our latency metrics", "should_trigger": true},
+  {"query": "how do I read the share of requests under 500ms straight from a prometheus histogram", "should_trigger": true},
+  {"query": "how accurate is a p99 that falls inside a bucket from 0.5 to 1 second", "should_trigger": true},
+  {"query": "our p50 p95 and p99 panels all show exactly the same number, what is wrong", "should_trigger": true},
+  {"query": "can I sum percentiles across regions to get a global latency number", "should_trigger": true},
+  {"query": "pick the sli and the target percentage for checkout latency", "should_trigger": false, "expected": "slo-design"},
+  {"query": "decide which metrics and spans a new service should emit", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "walk through this trace and tell me which span makes the request slow", "should_trigger": false, "expected": "trace-latency-analysis"},
+  {"query": "write multiwindow burn rate alert rules for the latency slo", "should_trigger": false, "expected": "alert-design"},
+  {"query": "a new label tripled our active series, find the metric responsible", "should_trigger": false, "expected": "cardinality-incident-response"},
+  {"query": "keep only error and slow traces in the collector", "should_trigger": false, "expected": "tail-sampling-tuning"},
+  {"query": "will this alert rule have fired during last month's outage", "should_trigger": false, "expected": "alert-backtest"},
+  {"query": "our dashboards lost a metric after the deploy and the panel is empty", "should_trigger": false, "expected": "missing-metrics-hunt"},
+  {"query": "profile the hot function in this python service", "should_trigger": false, "expected": "profiling"},
+  {"query": "cut our log ingestion cost by half", "should_trigger": false, "expected": "log-volume-reduction"}
+]

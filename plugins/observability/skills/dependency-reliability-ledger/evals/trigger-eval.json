@@ -1,0 +1,91 @@
+[
+ {
+  "query": "our vendor keeps failing but their status page is green",
+  "should_trigger": true
+ },
+ {
+  "query": "can we promise 99.9 availability given all our third party dependencies",
+  "should_trigger": true
+ },
+ {
+  "query": "what is our real availability with these providers",
+  "should_trigger": true
+ },
+ {
+  "query": "compare the vendor sla to what we actually measured",
+  "should_trigger": true
+ },
+ {
+  "query": "how much of our error budget is eaten by the payment provider",
+  "should_trigger": true
+ },
+ {
+  "query": "we have five serial dependencies at 99.9 each, what is our ceiling",
+  "should_trigger": true
+ },
+ {
+  "query": "build a table of every dependency with measured uptime and our decision for each",
+  "should_trigger": true
+ },
+ {
+  "query": "help me file an sla credit claim with evidence from our own metrics",
+  "should_trigger": true
+ },
+ {
+  "query": "should we add a fallback or replace the flaky identity provider",
+  "should_trigger": true
+ },
+ {
+  "query": "which of our downstream services causes most of our failed requests",
+  "should_trigger": true
+ },
+ {
+  "query": "compare three vendors and pick one for our email provider",
+  "should_trigger": false,
+  "expected": "vendor-evaluation"
+ },
+ {
+  "query": "define the slo for our own api",
+  "should_trigger": false,
+  "expected": "slo-design"
+ },
+ {
+  "query": "take charge of the outage happening now",
+  "should_trigger": false,
+  "expected": "incident-response"
+ },
+ {
+  "query": "set timeouts and retry budgets for our http clients",
+  "should_trigger": false,
+  "expected": "timeout-and-retry-budget"
+ },
+ {
+  "query": "write the postmortem for last week's vendor outage",
+  "should_trigger": false,
+  "expected": "postmortem"
+ },
+ {
+  "query": "design synthetic probes for our login",
+  "should_trigger": false,
+  "expected": "synthetic-monitoring-design"
+ },
+ {
+  "query": "which of our dependencies have known vulnerabilities",
+  "should_trigger": false,
+  "expected": "dependency-triage"
+ },
+ {
+  "query": "upgrade a major library version safely",
+  "should_trigger": false,
+  "expected": "dependency-upgrade"
+ },
+ {
+  "query": "negotiate the terms of the sla in our contract",
+  "should_trigger": false
+ },
+ {
+  "query": "our service is slow, where is the time going in this trace",
+  "should_trigger": false,
+  "expected": "trace-latency-analysis"
+ }
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "we want to migrate off the vendor agent to opentelemetry without losing our alerts", "should_trigger": true},
+  {"query": "we're switching observability vendors next quarter, how do we keep the dashboards working", "should_trigger": true},
+  {"query": "replace our opentracing jaeger client with opentelemetry across forty services", "should_trigger": true},
+  {"query": "moving logs from elasticsearch and kibana to loki, what will break", "should_trigger": true},
+  {"query": "how do we run old and new metrics pipelines side by side and prove they agree", "should_trigger": true},
+  {"query": "we are moving from datadog to grafana cloud, list every monitor and dashboard that needs porting", "should_trigger": true},
+  {"query": "when is it safe to turn off the old APM agent after the move", "should_trigger": true},
+  {"query": "how long should we dual-ship before trusting the new telemetry", "should_trigger": true},
+  {"query": "drop the proprietary tracing library and use the otel sdk, but keep our service maps intact", "should_trigger": true},
+  {"query": "build the old-to-new attribute translation table for our observability move", "should_trigger": true},
+  {"query": "plan the phases, owners and governance for replacing jenkins with github actions", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "http.method vanished after we bumped the otel java agent, dashboards are empty", "should_trigger": false, "expected": "otel-semconv-upgrade"},
+  {"query": "compare three observability vendors on price and features for us", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "run the production switchover window for the new database with a go or no-go checklist", "should_trigger": false, "expected": "cutover"},
+  {"query": "set up opentelemetry in a service that has no telemetry at all yet", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "bump our major dependency versions safely", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "review the collector config before we send it to production", "should_trigger": false, "expected": "otel-collector-pipeline-review"},
+  {"query": "reduce our log ingest bill by dropping noisy lines", "should_trigger": false, "expected": "log-volume-reduction"},
+  {"query": "migrate the postgres schema with a zero downtime change", "should_trigger": false, "expected": "db-migration"},
+  {"query": "our dashboards are slow to load on long time ranges", "should_trigger": false, "expected": "slow-dashboard-fix"}
+]

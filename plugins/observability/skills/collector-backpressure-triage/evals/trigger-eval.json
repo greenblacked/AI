@@ -1,0 +1,22 @@
+[
+  {"query": "the otel collector queue is full and we are losing spans", "should_trigger": true},
+  {"query": "collector exporter send failed with 429 from the backend", "should_trigger": true},
+  {"query": "our collector keeps getting oomkilled during the evening peak", "should_trigger": true},
+  {"query": "spans go missing only at peak traffic and the collector logs say data refused", "should_trigger": true},
+  {"query": "memory_limiter is refusing data and I do not know why the queue is nearly empty", "should_trigger": true},
+  {"query": "how do I tell whether the collector or the backend is the bottleneck", "should_trigger": true},
+  {"query": "telemetry arrives ten minutes late through the collector", "should_trigger": true},
+  {"query": "the collector exporter enqueue-failed spans counter is climbing, what does that mean", "should_trigger": true},
+  {"query": "do we shed debug logs or add replicas when the collector falls behind", "should_trigger": true},
+  {"query": "our gateway collectors drop metrics when the backend slows down", "should_trigger": true},
+  {"query": "how many traces should the tail sampler keep", "should_trigger": false, "expected": "tail-sampling-tuning"},
+  {"query": "traces are fragmented, the parent spans are missing", "should_trigger": false, "expected": "broken-trace-hunt"},
+  {"query": "prometheus series exploded and it is crashing", "should_trigger": false, "expected": "cardinality-incident-response"},
+  {"query": "add opentelemetry to a new go service", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "lead the incident call for a sev1", "should_trigger": false, "expected": "incident-response"},
+  {"query": "my rate query returns nothing", "should_trigger": false, "expected": "missing-metrics-hunt"},
+  {"query": "reduce what we send to our log vendor", "should_trigger": false, "expected": "log-volume-reduction"},
+  {"query": "size the kubernetes cluster for next year", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "why is checkout p99 slow, read the trace", "should_trigger": false, "expected": "trace-latency-analysis"},
+  {"query": "what should page on call for the ingest pipeline", "should_trigger": false, "expected": "alert-design"}
+]

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "languages",
+  "description": "Skills for recurring problems in language ecosystems: Python packaging, imports, memory and typing, Node modules and memory, TypeScript strictness, Go, the JVM, .NET, C and C++ sanitizers, linking and core dumps, and unsafe Rust.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "python",
+    "javascript",
+    "typescript",
+    "node",
+    "go",
+    "rust",
+    "jvm",
+    "dotnet",
+    "cpp"
+  ]
+}

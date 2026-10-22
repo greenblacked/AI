@@ -1,0 +1,22 @@
+[
+  {"query": "our grafana dashboard takes a full minute to load, how do I find what is slow", "should_trigger": true},
+  {"query": "panels time out when anyone picks a 30 day range on the service overview", "should_trigger": true},
+  {"query": "prometheus gets sluggish every time the team opens the big overview dashboard", "should_trigger": true},
+  {"query": "getting query timeout errors on the latency panel, should I just raise the timeout", "should_trigger": true},
+  {"query": "which of our panels should become recording rules and how do I name them", "should_trigger": true},
+  {"query": "this dashboard requests ten thousand points per series on long ranges, how do I fix the step", "should_trigger": true},
+  {"query": "should I use $__rate_interval or a fixed 5m window in these rate queries", "should_trigger": true},
+  {"query": "the pod variable dropdown takes ages to populate and slows the whole dashboard", "should_trigger": true},
+  {"query": "dashboard refresh every 10s across forty open tabs is loading mimir, what do we change", "should_trigger": true},
+  {"query": "prove the dashboard is faster after the changes with before and after query costs", "should_trigger": true},
+  {"query": "this postgres query behind the report panel does a sequential scan, tune it", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "rebuild the checkout service dashboard so on-call sees the right signals first", "should_trigger": false, "expected": "service-dashboard-rebuild"},
+  {"query": "how many prometheus replicas and how much memory do we need for next year", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "design histogram buckets so our p99 latency panel is accurate", "should_trigger": false, "expected": "latency-histogram-design"},
+  {"query": "our prometheus memory exploded after a new label with unbounded values", "should_trigger": false, "expected": "cardinality-incident-response"},
+  {"query": "a metric we dashboard has stopped arriving, find out why", "should_trigger": false, "expected": "missing-metrics-hunt"},
+  {"query": "write a burn rate alert for the checkout SLO", "should_trigger": false, "expected": "alert-design"},
+  {"query": "choose the colours and layout of the panels so the page reads well", "should_trigger": false, "expected": "data-visualisation"},
+  {"query": "a flame graph shows our handler is slow, speed up the function", "should_trigger": false, "expected": "profiling"},
+  {"query": "reduce the volume of logs we ingest into loki", "should_trigger": false, "expected": "log-volume-reduction"}
+]
