@@ -62,12 +62,15 @@ WHERE order_date = CURRENT_DATE - 1
   AND status NOT IN ('placed', 'shipped', 'delivered', 'returned', 'cancelled')
 GROUP BY status;
 
--- accepted values seen in the last 30 days but absent yesterday
+-- accepted values seen in the last 30 days but absent yesterday; nulls are
+-- left to the null-rate check, since NULL never joins NULL
 SELECT a.status
 FROM (SELECT DISTINCT status FROM analytics.fct_orders
-      WHERE order_date BETWEEN CURRENT_DATE - 31 AND CURRENT_DATE - 2) a
+      WHERE order_date BETWEEN CURRENT_DATE - 31 AND CURRENT_DATE - 2
+        AND status IS NOT NULL) a
 LEFT JOIN (SELECT DISTINCT status FROM analytics.fct_orders
-           WHERE order_date = CURRENT_DATE - 1) y
+           WHERE order_date = CURRENT_DATE - 1
+             AND status IS NOT NULL) y
   ON a.status = y.status
 WHERE y.status IS NULL;
 ```
@@ -133,7 +136,7 @@ Great Expectations and Soda express the same dimensions with their own syntax. T
 
 ## Thresholds from 30 days of history
 
-Volume by weekday, with a median and median absolute deviation per weekday:
+Volume by weekday, with the minimum, median and maximum per weekday. These are min-and-max bounds, so exclude incident days from the window first or a single outage widens them for a month; for a bound that resists outliers, use the median plus or minus a multiple of the median absolute deviation instead:
 
 ```sql
 WITH days AS (
