@@ -1,0 +1,22 @@
+[
+  {"query": "which of my clients are actually profitable once I count all the emails and calls", "should_trigger": true},
+  {"query": "I feel overworked and underpaid and I do not know which clients are the problem", "should_trigger": true},
+  {"query": "it is time to raise my rates, how do I do it with my existing clients", "should_trigger": true},
+  {"query": "one client is 60% of my income and it scares me, what should I do", "should_trigger": true},
+  {"query": "should I fire this client who pays late and keeps changing the brief", "should_trigger": true},
+  {"query": "work out my effective hourly rate per client for the last quarter", "should_trigger": true},
+  {"query": "how much notice should I give existing clients before a price increase", "should_trigger": true},
+  {"query": "write an email to a client I want to stop working with and refer elsewhere", "should_trigger": true},
+  {"query": "is it worth moving a difficult client onto a retainer with deposits and shorter payment terms", "should_trigger": true},
+  {"query": "I do a quarterly review of my freelance business and want to decide who to keep", "should_trigger": true},
+  {"query": "were my estimates on the last five projects accurate or did they overrun", "should_trigger": false},
+  {"query": "I need to give a team member hard feedback and want to plan the conversation", "should_trigger": false, "expected": "difficult-conversation"},
+  {"query": "why are our engineers leaving, run a retention review", "should_trigger": false, "expected": "retention-review"},
+  {"query": "calculate the hourly rate I need for a 60,000 income target", "should_trigger": false, "expected": "billing-rate-calculation"},
+  {"query": "client wants another feature that was not in the brief", "should_trigger": false, "expected": "scope-creep-response"},
+  {"query": "an invoice is 30 days overdue, what do I send", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "price a fixed-fee project for a new client", "should_trigger": false, "expected": "fixed-price-quote"},
+  {"query": "does my agreement have a kill fee and a liability cap", "should_trigger": false, "expected": "services-agreement-checklist"},
+  {"query": "how much of each payment should I save for tax", "should_trigger": false, "expected": "tax-set-aside"},
+  {"query": "run my monthly bookkeeping close", "should_trigger": false, "expected": "monthly-bookkeeping-close"}
+]

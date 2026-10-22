@@ -1,0 +1,22 @@
+[
+  {"query": "how much should I save for tax as a freelancer", "should_trigger": true},
+  {"query": "I got hit with a tax bill I could not pay, how do I make sure that never happens again", "should_trigger": true},
+  {"query": "what percentage of my income should I set aside for taxes", "should_trigger": true},
+  {"query": "should I open a separate savings account just for tax", "should_trigger": true},
+  {"query": "how do I plan for estimated tax payments when my income is irregular", "should_trigger": true},
+  {"query": "I am a new sole trader with no tax history, what rate should I put away", "should_trigger": true},
+  {"query": "how do I keep VAT I have collected separate so I do not spend it", "should_trigger": true},
+  {"query": "my profits went up a lot this year, do I need to change how much I am setting aside", "should_trigger": true},
+  {"query": "when should I put money aside, when the invoice is sent or when it is paid", "should_trigger": true},
+  {"query": "build a calendar of tax payment dates with reminders so I never miss one", "should_trigger": true},
+  {"query": "plan a household budget and decide how much to invest each month", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "forecast my weekly cash for the next three months", "should_trigger": false, "expected": "cashflow-forecast-13-week"},
+  {"query": "reconcile my bank statements and clear uncategorised items", "should_trigger": false, "expected": "monthly-bookkeeping-close"},
+  {"query": "which of my clients is least profitable per hour", "should_trigger": false, "expected": "client-profitability-review"},
+  {"query": "work out the hourly rate I need to charge", "should_trigger": false, "expected": "billing-rate-calculation"},
+  {"query": "a client has not paid for 50 days and I need to chase", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "put together my documents for filing my annual tax return", "should_trigger": false},
+  {"query": "how much should I charge for a fixed-price logo project", "should_trigger": false, "expected": "fixed-price-quote"},
+  {"query": "check that my consulting contract has payment terms and a liability cap", "should_trigger": false, "expected": "services-agreement-checklist"},
+  {"query": "client asked for extra pages after we signed, how do I respond", "should_trigger": false, "expected": "scope-creep-response"}
+]

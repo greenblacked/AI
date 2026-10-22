@@ -1,0 +1,22 @@
+[
+  {"query": "should I take this client who wants a full website for a tiny budget", "should_trigger": true},
+  {"query": "a new lead wants a quote by tomorrow and will not tell me their budget", "should_trigger": true},
+  {"query": "a prospect asks me to do a free sample logo before they commit", "should_trigger": true},
+  {"query": "how do I tell whether an enquiry is a red flag client", "should_trigger": true},
+  {"query": "I keep wasting hours on proposals that never turn into work, how do I screen leads", "should_trigger": true},
+  {"query": "the person emailing me says they need to check with their boss but will not name them", "should_trigger": true},
+  {"query": "a potential client says it is only a quick favour, should take an hour", "should_trigger": true},
+  {"query": "what questions should I ask a new enquiry before I write a quote", "should_trigger": true},
+  {"query": "they refuse to pay any deposit and say they have fired three freelancers already", "should_trigger": true},
+  {"query": "how do I politely turn down a project that smells like trouble", "should_trigger": true},
+  {"query": "how much should I charge for this project and what milestones", "should_trigger": false, "expected": "fixed-price-quote"},
+  {"query": "write a statement of work with deliverables and revision limits", "should_trigger": false, "expected": "statement-of-work"},
+  {"query": "the client has gone silent in the middle of the project", "should_trigger": false, "expected": "stalled-project-recovery"},
+  {"query": "help me tailor my CV for a product manager role", "should_trigger": false, "expected": "job-search"},
+  {"query": "the client wants extra pages after signing", "should_trigger": false, "expected": "scope-creep-response"},
+  {"query": "the invoice is 30 days overdue", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "which clients are my most profitable", "should_trigger": false, "expected": "client-profitability-review"},
+  {"query": "what clauses should my services agreement include", "should_trigger": false, "expected": "services-agreement-checklist"},
+  {"query": "how do I work out the hourly rate I need", "should_trigger": false, "expected": "billing-rate-calculation"},
+  {"query": "how much should I set aside for tax", "should_trigger": false, "expected": "tax-set-aside"}
+]

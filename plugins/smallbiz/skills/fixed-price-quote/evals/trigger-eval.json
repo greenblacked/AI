@@ -1,0 +1,22 @@
+[
+  {"query": "how much should I quote for this website, the client wants a fixed price by Friday", "should_trigger": true},
+  {"query": "I need to estimate this project: five page templates, a booking integration and content loading", "should_trigger": true},
+  {"query": "what do I charge for a 3-week build when the client will not accept hourly billing", "should_trigger": true},
+  {"query": "how much deposit should I ask for before starting a design project", "should_trigger": true},
+  {"query": "net 30 or net 14 on a small job for a new client, which should I put on the quote", "should_trigger": true},
+  {"query": "my last two fixed-price jobs ran 40% over, how do I stop under-estimating", "should_trigger": true},
+  {"query": "client wants to pay on completion only, how do I structure milestones so I am not funding the whole thing", "should_trigger": true},
+  {"query": "should I add a flat 20% contingency to my project quote or is there a better way", "should_trigger": true},
+  {"query": "the client has not given me their content yet but wants a price today, what do I send", "should_trigger": true},
+  {"query": "put together a proposal price for a three-month migration where the client insists on net 90", "should_trigger": true},
+  {"query": "what hourly rate do I need to hit a 60k take-home as a freelancer", "should_trigger": false, "expected": "billing-rate-calculation"},
+  {"query": "write the scope document with acceptance criteria and revision rounds for the signed job", "should_trigger": false, "expected": "statement-of-work"},
+  {"query": "the client keeps adding pages after signing, how do I respond to the extra requests", "should_trigger": false, "expected": "scope-creep-response"},
+  {"query": "what clauses should be in my services agreement for liability and ownership of the work", "should_trigger": false, "expected": "services-agreement-checklist"},
+  {"query": "the invoice is 20 days overdue and the client has gone quiet, how do I chase it", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "will I have enough cash to cover rent in six weeks with two invoices outstanding", "should_trigger": false, "expected": "cashflow-forecast-13-week"},
+  {"query": "which of my clients actually made me money last year once I count the hours", "should_trigger": false, "expected": "client-profitability-review"},
+  {"query": "how much tax should I set aside from each payment I receive", "should_trigger": false, "expected": "tax-set-aside"},
+  {"query": "negotiate a higher base salary on the job offer I just received", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "write a feature spec for the booking flow so the engineers can build it", "should_trigger": false, "expected": "feature-spec"}
+]
