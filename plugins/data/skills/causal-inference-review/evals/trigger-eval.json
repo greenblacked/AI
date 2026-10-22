@@ -1,0 +1,22 @@
+[
+  {"query": "we launched the new onboarding flow in March and activation went up 6%, can I say the flow caused it", "should_trigger": true},
+  {"query": "we raised prices in Germany and France but not Spain or Italy; how do I estimate what the increase did to conversion", "should_trigger": true},
+  {"query": "marketing wants to claim the TV campaign drove the sales bump in the north region, how would we actually test that from the data we have", "should_trigger": true},
+  {"query": "users who adopted the new dashboard retain 20% better than those who did not, is that the feature or just who chose it", "should_trigger": true},
+  {"query": "review this difference-in-differences analysis before it goes to the exec meeting, I am not convinced the stores are comparable", "should_trigger": true},
+  {"query": "customers with a credit score above 650 get the premium offer automatically; can we use that cutoff to measure the offer's effect on spend", "should_trigger": true},
+  {"query": "the policy only changed in one country, can synthetic control give us a counterfactual from the others", "should_trigger": true},
+  {"query": "we rolled the feature out region by region over six months and someone ran a two-way fixed effects regression, is that estimate trustworthy", "should_trigger": true},
+  {"query": "is this before-and-after chart of support tickets enough to prove the help centre redesign worked", "should_trigger": true},
+  {"query": "we can't randomise the new warehouse process; what is the most defensible way to measure its effect on delivery times", "should_trigger": true},
+  {"query": "our A/B test finished yesterday, here are the numbers per arm, should we ship the treatment", "should_trigger": false, "expected": "experiment-readout"},
+  {"query": "plan an A/B test for the new checkout button: primary metric, sample size and how long to run it", "should_trigger": false, "expected": "experiment-design"},
+  {"query": "the control arm got 52% of traffic instead of 50%, why is our split off", "should_trigger": false, "expected": "srm-diagnosis"},
+  {"query": "we want to test a new dispatch algorithm but drivers are shared across all orders, how do we randomise", "should_trigger": false, "expected": "switchback-test-design"},
+  {"query": "build a weekly demand forecast for each warehouse and check it against a seasonal naive baseline", "should_trigger": false, "expected": "forecast-backtesting"},
+  {"query": "our churn classifier is 0.91 AUC but the retention team says its top picks are wrong; where is it failing", "should_trigger": false, "expected": "model-error-analysis"},
+  {"query": "which chart should I use to show conversion by region over twelve months to an exec audience", "should_trigger": false, "expected": "data-visualisation"},
+  {"query": "set next quarter's key results for the growth team with a baseline and a target", "should_trigger": false, "expected": "okr-planning"},
+  {"query": "our deployment frequency dropped after the reorg, read our DORA metrics and tell me what changed", "should_trigger": false, "expected": "delivery-review"},
+  {"query": "a model trained on last year's data scores suspiciously well, check whether any feature is only known after the outcome", "should_trigger": false, "expected": "feature-leakage-audit"}
+]

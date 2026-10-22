@@ -7,7 +7,7 @@
 
 # Agent skills
 
-241 agent skills, 30 subagents and ten slash commands, in seventeen
+252 agent skills, 30 subagents and ten slash commands, in seventeen
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-241-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-252-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -61,7 +61,7 @@ and what the runtime does or does not enforce.
 | [`career`](#career) | Applications, negotiation, speaking and writing | 5 skills |
 | [`design`](#design) | Usability, accessibility and design systems | 13 skills, 1 subagent, 1 command |
 | [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction and model migration | 5 skills |
-| [`data`](#data) | Analytics data: wrong numbers, warehouse cost, metrics, history and pipelines | 11 skills |
+| [`data`](#data) | Analytics data and classical ML: wrong numbers, warehouse cost, metrics, history, experiments and models in production | 22 skills |
 | [`techdocs`](#techdocs) | Developer documentation: tested tutorials and samples, drift, stable URLs, API and CLI reference | 11 skills |
 | [`assurance`](#assurance) | Quality engineering and compliance: order-dependent, mutation, property and fuzz testing, replay and load, DPIAs, licences, audit evidence | 11 skills |
 | [`client-apps`](#client-apps) | Browser and mobile clients: field performance, hydration, memory, version skew, service workers, crashes, hangs, startup, battery, networks | 22 skills |
@@ -184,7 +184,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.23 }
+{ "skillListingBudgetFraction": 0.24 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -553,7 +553,7 @@ Building features on language models, and the checks that keep them honest.
 
 ### Data
 
-Analytics engineering: why a number is wrong, why a query costs what it does, and what the data really shows.
+Analytics engineering and classical machine learning: why a number is wrong, why a query costs what it does, what the data really shows, whether an experiment's result holds, and whether a model still works once it is in production.
 
 | Skill | What it does |
 | --- | --- |
@@ -568,6 +568,17 @@ Analytics engineering: why a number is wrong, why a query costs what it does, an
 | [`scan-cost-forensics`](plugins/data/skills/scan-cost-forensics/SKILL.md) | Find which queries, users, dashboards and jobs drive a data warehouse bill on Snowflake, BigQuery, Redshift or ClickHouse: group query history by normalised-SQL fingerprint and rank by total bytes or credits across every run rather than by the slowest single run, attribute each fingerprint to a dashboard refresh or job schedule, test the usual culprits in order (refresh faster than the data changes, SELECT * on wide tables, unpruned partitions, identical repeats missing the result cache), fix the schedule before the SQL, and measure before and after on a matching window. |
 | [`spreadsheet-retirement`](plugins/data/skills/spreadsheet-retirement/SKILL.md) | Replace a business-critical spreadsheet or manual report with a pipeline without losing the trust of the people who rely on it. Inventory the hidden logic first by tracing every input, hard-coded cell, manual override, macro, external link and monthly ritual; turn each override into an explicit, owned rule; run old and new side by side for at least two cycles and reconcile line by line to the cent; make the sheet's owner the acceptance tester; and freeze the sheet read-only only after a clean run. |
 | [`upstream-change-defense`](plugins/data/skills/upstream-change-defense/SKILL.md) | Protect warehouse pipelines from source teams changing a field's schema or meaning: classify each surprise as structural (column dropped, renamed, retyped) or semantic (same column, new meaning: a new status code, pence to pounds, a time zone switch, re-keyed ids), land raw untouched, diff the schema at ingest, catch semantic drift with enum, range and match-rate checks, quarantine failing rows and replay from raw after the fix, then give the producer a CI compatibility check and a named contact. |
+| [`causal-inference-review`](plugins/data/skills/causal-inference-review/SKILL.md) | Estimate the effect of something that was not randomised — a launch, a price change, a policy, a campaign — and say honestly whether the data supports a causal claim: write the estimand and a confounder diagram first, let the assignment mechanism pick the method (difference-in-differences with an event-study plot, synthetic control, regression discontinuity, matching or weighting), run a placebo on the pre-period, cluster errors where treatment was assigned, and specify the experiment that would settle it when no design holds. |
+| [`experiment-design`](plugins/data/skills/experiment-design/SKILL.md) | Plan an A/B test before launch so its result can be trusted: write one primary metric and its guardrails down first, randomise on the same unit you analyse, size the test from baseline variance and a minimum detectable effect worth shipping (delta method for ratio metrics), round the duration up to whole weeks, decide CUPED before any data exists, fix a stopping rule so peeking cannot decide, and run an A/A test when the platform is new. |
+| [`experiment-readout`](plugins/data/skills/experiment-readout/SKILL.md) | Read out a finished A/B test and turn it into a ship, hold or rerun decision: run the sample ratio gate first and stop if it fails, estimate the effect with a confidence interval on the pre-registered primary metric only, check guardrails against their margins, label every segment cut exploratory with a multiple-comparison correction, check novelty and primacy by week since exposure, and phrase the verdict as an interval against a practical threshold rather than a p-value. |
+| [`feature-leakage-audit`](plugins/data/skills/feature-leakage-audit/SKILL.md) | Detect target leakage before trusting a model's offline score: for every feature record when its value becomes known against the moment of prediction, rebuild joins point-in-time, split by time or by entity group instead of random rows, fit encoders, scalers, imputers and feature selection inside each training fold only, flag implausibly strong single features, delete each suspect and re-measure the drop, then hunt duplicates and near-duplicates across the split. |
+| [`forecast-backtesting`](plugins/data/skills/forecast-backtesting/SKILL.md) | Build or judge a time-series forecast — demand, revenue, traffic, load — with a backtest that mirrors how it will be used: rolling-origin evaluation at the real decision horizon using only data known at each origin, never a random split; a seasonal-naive baseline it must beat or the work stops; a scale-free error such as MASE or WAPE reported with bias; intervals whose coverage the backtest checks; holidays and promotions as known-future regressors; and a decision by value added over the baseline, re-run on every model change. |
+| [`model-drift-monitoring`](plugins/data/skills/model-drift-monitoring/SKILL.md) | Monitor a deployed classical model and decide when to retrain: check in order input schema and null rates, feature distributions (PSI or KS statistic against the training window, per-feature thresholds from history), prediction distribution, then delayed-label performance on matured cohorts; measure label delay and pick a proxy for the gap; make the retrain trigger a performance or cost metric, never drift alone; promote a challenger only by beating the champion on the same frozen eval set, with one-command rollback. |
+| [`model-error-analysis`](plugins/data/skills/model-error-analysis/SKILL.md) | Improve a classifier or regressor by studying where it is wrong instead of tuning hyperparameters: choose the metric from what each error costs (PR-AUC and precision at a recall floor when positives are rare), pull the hundred worst errors and relabel them by hand to tally label noise against missing information against genuinely hard cases, compute the metric per segment with confidence intervals and make the worst slice a ship gate, check calibration and set the threshold from a cost curve, then touch the test set once. |
+| [`notebook-to-production`](plugins/data/skills/notebook-to-production/SKILL.md) | Turn an exploratory Jupyter notebook into a scheduled, tested job without changing its answer: prove it runs top to bottom headless, record golden output on a pinned sample as a characterisation test, extract functions behind that test, take dates and paths as parameters, secrets from the environment, lock dependencies, strip outputs and keep the notebook as a thin caller, and write output to a partition keyed by run date so a rerun replaces rather than appends. Run it on a clean checkout before scheduling. |
+| [`serving-skew-replay`](plugins/data/skills/serving-skew-replay/SKILL.md) | Find why a model scores well offline and badly live by proving or ruling out train/serve skew: log the exact served feature vector with a request id and timestamp, replay the same entities through the training feature pipeline as of that timestamp, diff column by column, ranked by scaled mean absolute difference and prediction impact, and pin each gap on null handling, a stale join, time zone, categorical vocabulary or units. The fix is one shared feature code path, not a retrain. |
+| [`srm-diagnosis`](plugins/data/skills/srm-diagnosis/SKILL.md) | Find why an experiment's traffic split differs from its design (sample ratio mismatch) and decide what to do with the result: confirm with a chi-square test at p below 0.001 on randomisation units, locate the stage where the arms diverge by counting at assignment, exposure, first event and the analysis table, slice by day, platform and browser, then test causes in a fixed order — bot filtering by arm, redirects or load time, cache or CDN serving, triggering logic, logging loss on one arm — and discard the result until fixed rather than reweighting. |
+| [`switchback-test-design`](plugins/data/skills/switchback-test-design/SKILL.md) | Design and analyse an experiment where units interact, so a user-level split is biased — marketplaces, dispatch, matching, pricing, shared inventory, ops queues: randomise time windows or regions instead of users, make each window longer than the effect's carryover after measuring it, balance arms within blocks of region and hour, drop a washout slice after each switch, size by simulating the schedule on history, and analyse at window level with block-clustered errors or randomisation inference, saying up front that units are fewer and noisier. |
 
 ### Techdocs
 

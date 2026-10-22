@@ -1,0 +1,22 @@
+[
+  {"query": "our fraud model is 99% accurate but the investigators say it misses most real fraud, what metric should we be looking at", "should_trigger": true},
+  {"query": "we've spent two weeks on hyperparameter search for the ticket classifier and gained half a point, what should we do instead", "should_trigger": true},
+  {"query": "pull the worst mistakes of our product categorisation model and help me work out why it gets them wrong", "should_trigger": true},
+  {"query": "does our credit risk model perform equally well in every country, and how do I tell a real gap from noise", "should_trigger": true},
+  {"query": "which probability cutoff should we use for flagging transactions when a missed fraud costs 50 times a false alert", "should_trigger": true},
+  {"query": "the churn scores say 30% but only 10% of those customers actually leave, can we trust the probabilities", "should_trigger": true},
+  {"query": "I suspect a lot of our training labels for the defect detector are wrong, how do I check that systematically", "should_trigger": true},
+  {"query": "our house price regressor is way off on expensive properties, how should I analyse the big residuals", "should_trigger": true},
+  {"query": "set a ship gate for the moderation classifier so it can't launch if it is bad for any language", "should_trigger": true},
+  {"query": "what should we fix next on the lead scoring model, more data, new features or a bigger model", "should_trigger": true},
+  {"query": "grade our support agent across two hundred recorded tasks and decide whether the new prompt is safe to ship", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "compare the new search index with the current one on our frozen relevance benchmark", "should_trigger": false, "expected": "retrieval-evaluation"},
+  {"query": "the model hits 0.99 AUC on validation which nobody believes, check whether a feature encodes the label", "should_trigger": false, "expected": "feature-leakage-audit"},
+  {"query": "backtest the monthly revenue forecast against last year's values at a three-month horizon", "should_trigger": false, "expected": "forecast-backtesting"},
+  {"query": "set up monitoring for the deployed recommendation model so we know when to retrain", "should_trigger": false, "expected": "model-drift-monitoring"},
+  {"query": "the classifier scored fine offline but live predictions for the same users differ, replay the served features", "should_trigger": false, "expected": "serving-skew-replay"},
+  {"query": "read out the A/B test of the new ranking model against the old one, was the lift real", "should_trigger": false, "expected": "experiment-readout"},
+  {"query": "our prompt's JSON responses fail schema validation about 2% of the time, how do we make them reliable", "should_trigger": false, "expected": "structured-output"},
+  {"query": "this training script is slow, profile it and tell me where the time goes", "should_trigger": false, "expected": "profiling"},
+  {"query": "we are moving the summariser from one hosted model version to the next, how do we avoid a silent regression", "should_trigger": false, "expected": "model-migration"}
+]

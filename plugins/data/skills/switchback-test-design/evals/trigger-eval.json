@@ -1,0 +1,22 @@
+[
+  {"query": "we want to test a new dispatch algorithm but drivers are shared between riders, so a rider split will not work", "should_trigger": true},
+  {"query": "plan a test for surge pricing where we alternate the algorithm by hour in each city", "should_trigger": true},
+  {"query": "how long should each window be in a switchback experiment for our courier matching change", "should_trigger": true},
+  {"query": "treatment and control sellers compete for the same buyers in our marketplace; how do we A/B test a ranking change without bias", "should_trigger": true},
+  {"query": "design an experiment for a new warehouse picking strategy where all pickers share one queue", "should_trigger": true},
+  {"query": "in our dispatch switchback two hourly windows were skipped during an outage; how do we analyse what remains", "should_trigger": true},
+  {"query": "should we randomise by region or by time slot to test a new delivery fee, given customers come back weekly", "should_trigger": true},
+  {"query": "how many weeks do we need for a geo experiment across eight cities to detect a 2% change in orders per hour", "should_trigger": true},
+  {"query": "the support routing change affects every agent's queue at once; how do we measure whether it lowers wait times", "should_trigger": true},
+  {"query": "our user-level test of the driver incentive showed a big win but the rollout did nothing; was the test design wrong", "should_trigger": true},
+  {"query": "how many users and how many weeks do we need for a checkout button test on the web shop", "should_trigger": false, "expected": "experiment-design"},
+  {"query": "our A/B test of the new search page ended yesterday; is the 2% lift real and should we ship", "should_trigger": false, "expected": "experiment-readout"},
+  {"query": "the treatment arm has 3% fewer users than control in our homepage test, find the cause", "should_trigger": false, "expected": "srm-diagnosis"},
+  {"query": "we changed delivery fees in two cities last spring without a test; estimate the effect using the other cities as controls", "should_trigger": false, "expected": "causal-inference-review"},
+  {"query": "roll the new dispatch service out region by region with automatic rollback if error rates rise", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "forecast hourly ride demand per city for the next eight weeks and check it against last year", "should_trigger": false, "expected": "forecast-backtesting"},
+  {"query": "will the dispatch service handle New Year's Eve peak traffic, and how many replicas do we need", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "our ETA model was great offline but is off by minutes in production; replay served features against the training pipeline", "should_trigger": false, "expected": "serving-skew-replay"},
+  {"query": "the matchmaking queue puts new players against veterans; tune the rating numbers so matches feel fair", "should_trigger": false, "expected": "game-balance"},
+  {"query": "set up monitoring for the deployed pricing model and decide when it needs retraining", "should_trigger": false, "expected": "model-drift-monitoring"}
+]

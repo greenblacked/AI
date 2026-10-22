@@ -1,0 +1,22 @@
+[
+  {"query": "we want to A/B test the new checkout page, how many users do we need and how long should it run", "should_trigger": true},
+  {"query": "is two weeks enough for a pricing page test with about 40k visitors a day", "should_trigger": true},
+  {"query": "help me pick a primary metric and guardrails for a recommendations experiment before we launch it", "should_trigger": true},
+  {"query": "should we randomise by user or by session for a search ranking test where the metric is clicks per query", "should_trigger": true},
+  {"query": "work out the minimum detectable effect for revenue per user given our traffic and its variance", "should_trigger": true},
+  {"query": "is it worth using CUPED on this onboarding test and how much sample would it save", "should_trigger": true},
+  {"query": "the PM wants to look at the experiment dashboard every day and stop when it goes green; how do we set this up so that is not a problem", "should_trigger": true},
+  {"query": "we just built our own assignment service; how do we check it is trustworthy before running real tests on it", "should_trigger": true},
+  {"query": "write the pre-registration doc for an email subject line experiment with three variants", "should_trigger": true},
+  {"query": "only about 15% of users ever open the settings screen we are changing; how do we design the test so the effect is not diluted", "should_trigger": true},
+  {"query": "the checkout test finished last Friday; tell me whether we should ship it and how confident we can be", "should_trigger": false, "expected": "experiment-readout"},
+  {"query": "our 50/50 test came out 50.6/49.4 across two million users, what went wrong", "should_trigger": false, "expected": "srm-diagnosis"},
+  {"query": "we want to test a new dispatch algorithm but drivers are shared between riders, so a rider split will not work", "should_trigger": false, "expected": "switchback-test-design"},
+  {"query": "what percentage should the canary start at and how long do we bake before promoting to everyone", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "wire the new feature flag into the worker so assignment is sticky and the off path is safe if config is unavailable", "should_trigger": false, "expected": "feature-flag-lifecycle"},
+  {"query": "we raised prices in March without a test; estimate what that did to retention", "should_trigger": false, "expected": "causal-inference-review"},
+  {"query": "the sniper rifle has a 61% win rate in high ranks, is it overpowered and what number should we change", "should_trigger": false, "expected": "game-balance"},
+  {"query": "build a rolling-origin backtest for our weekly demand forecast and compare it with seasonal naive", "should_trigger": false, "expected": "forecast-backtesting"},
+  {"query": "our churn model scores 0.97 AUC and that seems too good, check whether a feature is leaking the label", "should_trigger": false, "expected": "feature-leakage-audit"},
+  {"query": "how many visitors does our painted-door test need before we decide", "should_trigger": false, "expected": "fake-door-test"}
+]

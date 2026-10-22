@@ -168,7 +168,9 @@
         "data",
         "analytics",
         "warehouse",
-        "metrics"
+        "metrics",
+        "experiments",
+        "machine-learning"
       ]
     },
     {

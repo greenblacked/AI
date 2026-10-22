@@ -1,0 +1,22 @@
+[
+  {"query": "our fraud model had 0.91 AUC in validation but in production it catches almost nothing, and the feature dashboards look the same as training", "should_trigger": true},
+  {"query": "how do I check whether the features the model sees at inference time match what the training pipeline computed for the same request", "should_trigger": true},
+  {"query": "the same customer gets a different churn score from the online endpoint than from the nightly batch scoring job", "should_trigger": true},
+  {"query": "I think we have training-serving skew, how do I actually prove it", "should_trigger": true},
+  {"query": "set up logging of the exact feature vector at prediction time so we can replay those requests offline", "should_trigger": true},
+  {"query": "after moving feature computation into the online feature store our recommendation click-through dropped, the model itself did not change", "should_trigger": true},
+  {"query": "day_of_week might be computed in local time online and in UTC in training; how do I find every feature where the two paths disagree", "should_trigger": true},
+  {"query": "rank which features differ most between what was served and an offline recomputation of the same entities at the same timestamp", "should_trigger": true},
+  {"query": "we retrained twice and the live model is still much worse than its offline evaluation, what else could cause that", "should_trigger": true},
+  {"query": "unknown categories are handled differently by our training encoder and the serving code; how do I measure how much that hurts predictions", "should_trigger": true},
+  {"query": "validation AUC is 0.99 on the first try and I suspect one of the features gives away the label", "should_trigger": false, "expected": "feature-leakage-audit"},
+  {"query": "the model has degraded slowly since spring as customer behaviour changed; when should we retrain it", "should_trigger": false, "expected": "model-drift-monitoring"},
+  {"query": "our api keeps serving stale cached prices for several minutes after an update", "should_trigger": false, "expected": "application-caching"},
+  {"query": "which customer segments does our classifier get most wrong, and is it worth fixing those first", "should_trigger": false, "expected": "model-error-analysis"},
+  {"query": "turn this feature engineering notebook into a nightly scheduled job with tests", "should_trigger": false, "expected": "notebook-to-production"},
+  {"query": "define a latency and availability objective for the model inference endpoint", "should_trigger": false, "expected": "slo-design"},
+  {"query": "add OpenTelemetry spans to the inference service so we can see where request time goes", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "the scoring function takes 300ms per call in a hot loop, profile it and tell me where the time goes", "should_trigger": false, "expected": "profiling"},
+  {"query": "our weekly demand forecast missed by 30 percent during the holiday promotion; evaluate it properly against a baseline", "should_trigger": false, "expected": "forecast-backtesting"},
+  {"query": "our provider is retiring the hosted model behind the summariser, how do we move to the replacement safely", "should_trigger": false, "expected": "model-migration"}
+]
