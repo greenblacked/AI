@@ -49,7 +49,7 @@ create view analytics.core.orders
   as select * from analytics.deprecated.orders;
 ```
 
-BigQuery: a table that has received streaming writes cannot be renamed until streaming has stopped and its buffer has cleared, which can take hours. Move the streaming writer first, then wait until `bq show --format=prettyjson core.orders` no longer reports a `streamingBuffer`, and schedule the rename after that rather than in the same window. Check the dataset's default table expiration too (`bq show --format=prettyjson core`, `defaultTableExpirationMs`): a renamed table keeps its original creation time, so a table older than the default can expire the moment it is renamed. Remove or lengthen the dataset default before renaming, confirm the renamed table's `expirationTime` with `bq show`, and restore the default afterwards.
+BigQuery: a table that has received streaming writes cannot be renamed until streaming has stopped and its buffer has cleared, which can take hours. Move the streaming writer first, then wait until `bq show --format=prettyjson core.orders` no longer reports a `streamingBuffer`, and schedule the rename after that rather than in the same window. Check the dataset's default table expiration too (`bq show --format=prettyjson core`, `defaultTableExpirationMs`): a renamed table keeps its original creation time, so a table older than the default can expire the moment it is renamed. Remove or lengthen the dataset default before renaming, confirm the renamed table's `expirationTime` with `bq show`, and restore the default afterwards. A rename also drops the table's search and vector indexes and its catalogue metadata: list them first (`INFORMATION_SCHEMA.SEARCH_INDEXES` and `INFORMATION_SCHEMA.VECTOR_INDEXES` for the dataset, and the table's catalogue entry), and recreate them on the renamed table so readers through the view keep the same query path.
 
 ```sql
 alter table core.orders rename to orders_deprecated;
@@ -129,7 +129,7 @@ create table analytics.core.orders clone archive.core_orders_20261201;
 
 A dropped Snowflake table can also be recovered with `undrop table` within its Time Travel retention, which is short; the clone is the restore path that lasts.
 
-BigQuery:
+BigQuery: record the table-level access policy before archiving (`bq get-iam-policy --format=prettyjson core.orders_deprecated > orders_policy.json`), because a restored clone takes its access from the destination dataset, not from the snapshot.
 
 ```sql
 create snapshot table archive.orders_20261201
@@ -141,6 +141,7 @@ drop table archive.restore_test_orders;
 -- real restore: remove the compatibility view first, then restore the name
 drop view if exists core.orders;
 create table core.orders clone archive.orders_20261201;
+-- then: bq set-iam-policy core.orders orders_policy.json, and read it as a consumer
 ```
 
 A table snapshot leaves out rows still in the streaming buffer. If the table took streaming inserts, wait until `bq show --format=prettyjson core.orders_deprecated` no longer reports a `streamingBuffer`, then compare the snapshot's row count with the source before dropping anything.
