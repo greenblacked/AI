@@ -83,9 +83,12 @@ Store the result after each accepted change and compare each run with the stored
 
 ```sql
 with batch as (
+  -- nulls are left to the null-rate check: NULL = NULL never joins, so a
+  -- normal null share would otherwise be reported as a new value every run
   select payload:status::string as status, count(*) as n
   from raw.orders_landing
   where batch_id = :batch_id
+    and payload:status::string is not null
   group by 1
 ),
 baseline_daily as (
@@ -96,6 +99,7 @@ baseline_daily as (
   from raw.orders_landing
   where loaded_at >= dateadd('day', -30, current_timestamp())
     and batch_id <> :batch_id
+    and payload:status::string is not null
   group by 1, 2
 ),
 baseline as (
