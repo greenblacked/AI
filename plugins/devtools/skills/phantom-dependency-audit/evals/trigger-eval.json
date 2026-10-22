@@ -1,0 +1,22 @@
+[
+  {"query": "it works on my laptop but the docker build says cannot find module for a package we never installed", "should_trigger": true},
+  {"query": "we are switching the monorepo to pnpm and half the packages now fail to resolve their imports", "should_trigger": true},
+  {"query": "our build was green until a transitive dependency bumped and now an import is gone", "should_trigger": true},
+  {"query": "find all the dependencies in package.json that nothing actually uses and remove them safely", "should_trigger": true},
+  {"query": "how do I find python imports that are not listed in requirements.txt", "should_trigger": true},
+  {"query": "a workspace package imports something only its neighbour declares, how do I find every case of that", "should_trigger": true},
+  {"query": "run knip and tell me which of its unused dependency results are real", "should_trigger": true},
+  {"query": "go.mod has a lot of indirect requirements the code imports directly, clean that up", "should_trigger": true},
+  {"query": "is cargo machete output trustworthy, some crates it flags are used through macros", "should_trigger": true},
+  {"query": "make CI fail whenever someone imports a package they did not add to the manifest", "should_trigger": true},
+  {"query": "npm install fails with ERESOLVE because two packages want different react majors", "should_trigger": false, "expected": "dependency-resolution-conflict"},
+  {"query": "which of the forty vulnerable packages in our audit report should we upgrade first", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "the compose service cannot reach the database container by hostname", "should_trigger": false, "expected": "docker-compose"},
+  {"query": "upgrade our framework from version 14 to 15 and fix the breaking changes", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "our docker image is huge and runs as root, harden it", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "the incremental build rebuilds everything every time", "should_trigger": false, "expected": "slow-build-profile"},
+  {"query": "our remote build cache hit rate is only twenty percent", "should_trigger": false, "expected": "build-cache-miss-hunt"},
+  {"query": "only run tests for the packages affected by this pull request", "should_trigger": false, "expected": "affected-build-selection"},
+  {"query": "pin all our github actions to commit hashes", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "the lockfile has merge conflict markers after a rebase", "should_trigger": false, "expected": "branch-rebase-repair"}
+]

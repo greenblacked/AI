@@ -1,0 +1,22 @@
+[
+  {"query": "is this json library actually faster than the one we use now", "should_trigger": true},
+  {"query": "I want to benchmark approach A against approach B, how should I set it up", "should_trigger": true},
+  {"query": "my benchmark results are all over the place from run to run", "should_trigger": true},
+  {"query": "how many runs do I need before I can trust a difference of three percent", "should_trigger": true},
+  {"query": "our performance benchmarks flake in CI and people just rerun them", "should_trigger": true},
+  {"query": "should I report the mean or the median and how do I put an interval on it", "should_trigger": true},
+  {"query": "my benchmark says zero point three nanoseconds per call, that cannot be right", "should_trigger": true},
+  {"query": "add a regression gate on performance to our pull requests without false alarms", "should_trigger": true},
+  {"query": "compare two sorting implementations fairly in rust", "should_trigger": true},
+  {"query": "does pinning cpu cores and fixing the governor really matter for benchmarks", "should_trigger": true},
+  {"query": "this endpoint is slow, find which function holds the time", "should_trigger": false, "expected": "profiling"},
+  {"query": "the build takes ten minutes, find the biggest cost", "should_trigger": false, "expected": "slow-build-profile"},
+  {"query": "simulate ten thousand concurrent users against the checkout service", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "restructure our pipeline stages so tests run in parallel", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "tune this sql query using its execution plan", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "our game frame time spikes in the main level", "should_trigger": false, "expected": "game-performance"},
+  {"query": "the build cache hit rate is low on ci", "should_trigger": false, "expected": "build-cache-miss-hunt"},
+  {"query": "compare two retrieval systems on a frozen question set", "should_trigger": false, "expected": "retrieval-evaluation"},
+  {"query": "add metrics and spans so we can see request latency in production", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "how much capacity do we need for black friday traffic", "should_trigger": false, "expected": "capacity-planning"}
+]

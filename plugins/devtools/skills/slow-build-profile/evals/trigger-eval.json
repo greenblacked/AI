@@ -1,0 +1,22 @@
+[
+  {"query": "incremental builds take ninety seconds after a one line change", "should_trigger": true},
+  {"query": "cargo build is painfully slow, where is the time going", "should_trigger": true},
+  {"query": "tsc takes forever on our monorepo and I do not know which part is slow", "should_trigger": true},
+  {"query": "touching one header recompiles half the project", "should_trigger": true},
+  {"query": "gradle configuration phase takes forty seconds before any task runs", "should_trigger": true},
+  {"query": "running the build twice in a row with no changes still recompiles things, why", "should_trigger": true},
+  {"query": "our webpack production bundle takes eight minutes, find the biggest cost first", "should_trigger": true},
+  {"query": "how do I use clang time trace to find expensive includes", "should_trigger": true},
+  {"query": "a barrel file seems to pull the whole package into every import and slow the type checker", "should_trigger": true},
+  {"query": "make our builds faster but I want to know which change actually helped, with numbers", "should_trigger": true},
+  {"query": "this endpoint takes four hundred milliseconds in a hot loop, profile the python function", "should_trigger": false, "expected": "profiling"},
+  {"query": "our remote build cache hit rate is only twenty percent", "should_trigger": false, "expected": "build-cache-miss-hunt"},
+  {"query": "restructure the github actions pipeline so lint and tests run in parallel", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "only build the packages affected by this change", "should_trigger": false, "expected": "affected-build-selection"},
+  {"query": "this sql query takes six seconds, read the plan", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "the game drops frames in the main level", "should_trigger": false, "expected": "game-performance"},
+  {"query": "docker build reinstalls all dependencies on every code change", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "works locally but module not found in the clean docker build", "should_trigger": false, "expected": "phantom-dependency-audit"},
+  {"query": "how many runs do I need to say the new serializer is faster than the old one", "should_trigger": false, "expected": "benchmark-methodology"},
+  {"query": "dependency tree will not resolve, two packages need different versions", "should_trigger": false, "expected": "dependency-resolution-conflict"}
+]

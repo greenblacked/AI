@@ -10,6 +10,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `devtools` plugin, for developer tooling and build systems, with ten skills: `git-history-recovery`, `git-history-purge`, `branch-rebase-repair`, `affected-build-selection`, `build-cache-miss-hunt`, `slow-build-profile`, `dependency-resolution-conflict`, `phantom-dependency-audit`, `partial-release-recovery` and `benchmark-methodology`.
+
 - Add eleven experiment and machine-learning skills to the `data` plugin: `experiment-design`, `experiment-readout`, `srm-diagnosis`, `switchback-test-design`, `causal-inference-review`, `forecast-backtesting`, `feature-leakage-audit`, `model-error-analysis`, `serving-skew-replay`, `model-drift-monitoring` and `notebook-to-production`. The plugin's description and tags now cover experiments and machine learning.
 
 - Add the `platform` plugin, for cloud and platform engineering, with twenty-two skills. Cluster and IaC: `apiserver-pressure`, `spot-readiness`, `connection-exhaustion-hunt`, `k8s-network-policy`, `gateway-api-migration`, `k8s-storage`, `monolith-state-split`, `brownfield-iac-adoption`, `iac-version-upgrade`, `ephemeral-environments` and `resource-decommission`. Cloud foundations: `bootstrap-dependency-audit`, `ip-exhaustion-recovery`, `data-transfer-forensics`, `dns-operations`, `intermittent-502-hunt`, `workload-identity`, `db-major-upgrade`, `db-replication`, `restore-canary`, `cdn-configuration` and `commitment-planning`. `cost-review`, `secret-rotation`, `pipeline-hardening`, `disaster-recovery-exercise` and `k8s-triage` now cede the topics these skills own.
