@@ -1,0 +1,22 @@
+[
+  {"query": "our soc 2 type ii audit starts in six weeks and we have nothing organised, where do we begin", "should_trigger": true},
+  {"query": "the auditor sent a request list with 140 items; how should we track who is supplying what and by when", "should_trigger": true},
+  {"query": "every year we take hundreds of screenshots for the audit; how do we collect this evidence automatically instead", "should_trigger": true},
+  {"query": "what evidence proves our change management control worked for the whole observation period, not just today", "should_trigger": true},
+  {"query": "the auditor will sample from our list of leavers; where should that list come from so it is complete", "should_trigger": true},
+  {"query": "we have an iso 27001 surveillance audit next quarter; how do we show the annex a controls in our statement of applicability actually operate", "should_trigger": true},
+  {"query": "should we test our own controls before the auditors arrive, and what do we do with the failures we find", "should_trigger": true},
+  {"query": "set up a monthly job that exports branch protection, merged pull requests and backup job history into a dated evidence bucket", "should_trigger": true},
+  {"query": "our type 2 period started three months ago and nobody kept the approval records; what are our options", "should_trigger": true},
+  {"query": "map our security controls to soc 2 criteria and iso 27001 so each one is evidenced once rather than three times", "should_trigger": true},
+  {"query": "run the quarterly user access certification for the production database and remove what is no longer needed", "should_trigger": false, "expected": "access-review"},
+  {"query": "we are shipping with a known medium finding from the pentest; who signs it off and how long can it stay open", "should_trigger": false, "expected": "risk-acceptance-register"},
+  {"query": "design an audit log for admin actions in our saas product that can't be tampered with", "should_trigger": false, "expected": "audit-trail-design"},
+  {"query": "do we need a data protection impact assessment before launching location tracking in the app", "should_trigger": false, "expected": "dpia"},
+  {"query": "a customer asked for a list of every open-source licence in the binaries we ship", "should_trigger": false, "expected": "licence-compliance"},
+  {"query": "compare three compliance automation platforms and decide whether to buy one", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "add opentelemetry spans and metrics to the checkout service so incidents are diagnosable", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "write a retention policy for customer personal data and make deletion reach the backups", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "review this pull request for injection and authorisation bugs before merge", "should_trigger": false, "expected": "security-review"},
+  {"query": "harden our github actions workflows: pin actions, narrow token permissions, stop script injection", "should_trigger": false, "expected": "pipeline-hardening"}
+]

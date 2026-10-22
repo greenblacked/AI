@@ -1580,6 +1580,21 @@ html:not([data-theme="reactor"]) %P .plugin-word {
   to { opacity: 1; transform: none; }
 }""",
     ),
+    # Each letter is pressed in and settles, like a stamp on a signed-off record.
+    "assurance": PluginLook(
+        day=("#14532d", "#1e3a8a", "#7c2d12"),
+        night=("#86efac", "#93c5fd", "#fdba74"),
+        width=0.7,
+        rules=(
+            "%P .pl { animation: pw-assurance-stamp 0.4s ease-out "
+            "calc(var(--i) * 0.09s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-assurance-stamp {
+  from { opacity: 0; transform: scale(1.25); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
 }
 
 # The shared frame. `--c` is the colour a letter or a row takes from the cycle.

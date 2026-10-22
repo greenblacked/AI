@@ -1,0 +1,22 @@
+[
+  {"query": "how do i test this csv serialiser properly? i've got twelve hand-written examples and it still broke on a field with a quote in it", "should_trigger": true},
+  {"query": "we're rewriting the pricing engine for speed, how can i check the new one gives the same answer as the old one on basically any input", "should_trigger": true},
+  {"query": "my hypothesis test keeps failing the filter_too_much health check, the generator rejects almost everything", "should_trigger": true},
+  {"query": "write a fast-check model-based test for our in-memory cache with put, get, delete and expiry", "should_trigger": true},
+  {"query": "what invariants should i check for a markdown-to-html sanitiser, running it twice should be safe right", "should_trigger": true},
+  {"query": "proptest found a failing case in CI last night and now it passes locally, how do i keep that case around", "should_trigger": true},
+  {"query": "i want generated inputs instead of an example table for our date range parser, where do i start", "should_trigger": true},
+  {"query": "how many examples should quickcheck-style tests run on PRs versus a nightly job", "should_trigger": true},
+  {"query": "test the order state machine, transitions like paid to refunded to cancelled, i keep missing weird sequences", "should_trigger": true},
+  {"query": "how do i generate valid invoices for a property test without half of them being thrown away by assume", "should_trigger": true},
+  {"query": "set up libFuzzer with address sanitizer on our image decoder and run it in CI", "should_trigger": false, "expected": "fuzz-harness"},
+  {"query": "our coverage is 94% but a flipped comparison in the rounding code still shipped, would our tests even notice a wrong line", "should_trigger": false, "expected": "mutation-testing"},
+  {"query": "which boundary values and error cases should the shipping-band function have tests for", "should_trigger": false, "expected": "test-design"},
+  {"query": "test_refund passes on its own but fails when the whole suite runs, something before it leaks state", "should_trigger": false, "expected": "test-order-bisect"},
+  {"query": "the nightly build went red on the payments job, is that a flake or a real break", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "orders sometimes save with a zero total and i can't reproduce it, help me find the cause", "should_trigger": false, "expected": "debugging"},
+  {"query": "replay last week's production requests against the old and new search service and diff the responses", "should_trigger": false, "expected": "traffic-replay-diff"},
+  {"query": "will the checkout API hold 3000 requests per second at launch", "should_trigger": false, "expected": "load-testing"},
+  {"query": "get the model to always return valid json matching our schema", "should_trigger": false, "expected": "structured-output"},
+  {"query": "design the tables for orders, line items and refunds in postgres", "should_trigger": false, "expected": "schema-design"}
+]
