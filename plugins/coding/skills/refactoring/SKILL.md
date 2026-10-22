@@ -1,7 +1,7 @@
 ---
 name: refactoring
 description: "Restructure code without changing behaviour, in steps small enough that each one is provably safe: pin behaviour with a characterisation test before touching code you do not understand, find a seam when there are no tests at all, then apply one operation at a time — rename, extract, inline, move, split a module, break a dependency cycle, replace a conditional — keeping each commit to one kind of change, never mixing a behaviour change with a move, and proving behaviour unchanged before you stop. Use when someone says \"clean this up\", \"this file is 2000 lines\", \"untangle these circular imports\", \"rename this everywhere\", \"extract this into its own module\", or \"make this readable before I add the feature\". Not for judging someone else's change (code-review), writing new code (code-scaffold), choosing test cases (test-design), or moving onto a new major version or API (dependency-upgrade)."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Bash(pytest:*), Bash(rg:*), Bash(lint-imports:*), Bash(pydeps:*), Bash(madge:*)
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # Refactoring

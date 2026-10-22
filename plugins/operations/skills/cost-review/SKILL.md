@@ -1,7 +1,7 @@
 ---
 name: cost-review
 description: "Investigate a cloud bill that has grown, or reduce spend deliberately, without trading away reliability — attribute the spend before touching anything, read the top movers period over period rather than the top spenders, classify each finding as idle, overprovisioned, wrong purchase model, data transfer, retention or architectural, state what every change degrades, and report unit cost per request or tenant, not a total. Use when someone asks why the AWS, GCP or Azure bill went up, wants a FinOps or cost-cutting plan, is looking at rightsizing, spot, untagged spend, Kubernetes cost attribution or showback, or says \"our bill jumped 30% last month\", \"where is all this money going\", or \"finance wants 20% off cloud\". Not for slow performance, launch capacity, choosing a vendor, a live incident, tracing NAT, cross-AZ or egress bytes to workloads (data-transfer-forensics), or sizing a commitment purchase (commitment-planning)."
-allowed-tools: "Read, Write, Edit, Grep, Glob, Bash(aws:*), Bash(gcloud:*), Bash(az:*), Bash(kubectl:*), Bash(jq:*)"
+allowed-tools: "Read, Write, Edit, Grep, Glob, Bash(jq:*)"
 ---
 
 # Cost Review

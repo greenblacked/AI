@@ -1,7 +1,7 @@
 ---
 name: game-performance
 description: "Make a game hold a frame budget on the hardware it ships to. Convert the target frame rate into a millisecond budget, capture frame times from a real build on the target device, judge the 1% low and the 99th percentile rather than an average, prove whether the frame is CPU-bound or GPU-bound before changing anything, then attack that side alone — draw calls, per-frame allocation and garbage-collection hitches, physics tick rate, overdraw, fill rate, shadows, texture bandwidth — one change at a time. Use this skill whenever a game stutters, hitches, drops frames or misses its target frame rate: \"my game stutters\", \"frame drops on the steam deck\", \"why is this 20fps on mobile\", \"GC spike every few seconds\", \"is this CPU or GPU bound\". Not for building a game, floaty controls or server latency, nor first-encounter hitches from shader or pipeline compilation (shader-compile-stutter), load times (game-load-times) or memory budgets (game-memory-budget)."
-allowed-tools: Read, Grep, Glob, Edit, Write, Bash(godot:*), Bash(python:*), Bash(node:*), Bash(git:*)
+allowed-tools: Read, Grep, Glob, Edit, Write
 ---
 
 # Game Performance

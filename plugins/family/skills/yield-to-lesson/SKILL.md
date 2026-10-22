@@ -1,7 +1,7 @@
 ---
 name: yield-to-lesson
 description: "Turn the Change items of a retro into checks the next inspection can fail on, instead of resolutions. A change item is accepted only as a lessons-file entry (how it shows up, the check that catches it, where it was first found) plus a benchmark case: a seeded diff and the verdict the inspector must return. Covers rejecting a lesson with no case, the inspector reading the lessons file first, promoting a lesson caught twice to a mechanical check, and reporting catch rate and false alarms per run. Use when a yielder retro lists things to change, a defect class recurs across slices, or an inspector needs a tested memory. Not for writing the retro (yielder), an incident postmortem (postmortem), enforcing a rule mechanically (agent-guardrails), or general agent benchmarks (agent-evaluation)."
-allowed-tools: Agent(yielder), Agent(inspector), Read, Write, Edit, Grep, Glob, Bash(git:*)
+allowed-tools: Agent(yielder), Agent(inspector), Read, Write, Edit, Grep, Glob
 ---
 
 # Yield to lesson

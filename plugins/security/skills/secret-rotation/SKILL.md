@@ -1,7 +1,7 @@
 ---
 name: secret-rotation
 description: "Rotate a credential, or contain one that has leaked, without an outage or a leftover copy: choose the planned or incident path first, inventory every consumer from access logs not the runbook, issue a second live credential not an in-place edit, prove adoption from last-used telemetry past reporting lag, then disable, bake and delete. Use when rotating, replacing, expiring or revoking an API key, access key, token, service-account key, database password, signing secret or certificate; when a secret has been committed, pushed or pasted somewhere it should not be; when someone with access leaves or a vendor reports a breach; or for \"this key is in a public repo\" or \"how do we roll this password without downtime\". Not for designing authentication, choosing a secrets manager, reviewing IAM policy, history scrubbing (git-history-purge), certificate renewal or ACME rollout (certificate-automation), or federation such as IRSA or GitHub OIDC (workload-identity)."
-allowed-tools: "Bash(aws:*), Bash(gcloud:*), Bash(az:*), Bash(gh:*), Bash(kubectl:*), Bash(vault:*), Bash(git:*), Read, Grep, Glob"
+allowed-tools: "Read, Grep, Glob"
 ---
 
 # Secret Rotation

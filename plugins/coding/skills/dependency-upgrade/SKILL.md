@@ -1,7 +1,7 @@
 ---
 name: dependency-upgrade
 description: "Move a codebase onto a new major version of a dependency, runtime or framework without a six-month branch that never lands: state why you are upgrading before how, read the changelog and grep for every breaking change that applies to code you actually have, escalate deprecation warnings and land those fixes first, choose an incremental or direct jump, bump one dependency per change so a revert is precise, and name the surface your tests do not cover. Use whenever someone is bumping a major version, planning a framework, runtime or language upgrade, reacting to a security advisory with no patch for their version, an end-of-support date or a transitive break — including \"upgrade us to React 19\", \"we are three majors behind\", \"can we move to Python 3.13\", or \"the upgrade branch has been open since March\". Not for a red pipeline, a schema change, the rollout mechanics, choosing between competing libraries, or a resolver conflict (dependency-resolution-conflict)."
-allowed-tools: "Read, Grep, Glob, Edit, Write, Bash(npm:*), Bash(pnpm:*), Bash(yarn:*), Bash(pip:*), Bash(uv:*), Bash(go:*), Bash(mvn:*), Bash(cargo:*), Bash(git:*), Bash(gh:*), Bash(rg:*), Bash(jq:*)"
+allowed-tools: "Read, Grep, Glob, Edit, Write"
 ---
 
 # Dependency Upgrade

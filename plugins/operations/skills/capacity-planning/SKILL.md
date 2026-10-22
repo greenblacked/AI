@@ -1,7 +1,7 @@
 ---
 name: capacity-planning
 description: "Work out whether a system will survive an expected load — a launch, a migration, a seasonal peak — and what to change if it will not: build a demand model with a peak-to-mean ratio before opening a load-test tool, find which resource saturates first and name it, size headroom from the latency tail you are willing to accept rather than a rule of thumb, and decide the scaling actions with their lead times and the defined behaviour past capacity. Use this skill whenever someone asks if a system can handle a launch, a Black Friday peak, a migration or a large tenant, is sizing instances, connection pools, autoscaling or pre-scaling, or asks things like \"will this hold at 10x\", \"how many replicas do we need\", or \"what breaks first\". Not for a live incident, a reliability drill, cutting a cloud bill, adding telemetry, or running or scripting the load test itself, its load model, phases and thresholds (load-testing)."
-allowed-tools: "Read, Write, Edit, Grep, Glob, Bash(k6:*), Bash(kubectl:*), Bash(aws:*), Bash(psql:*), Bash(curl:*), Bash(jq:*)"
+allowed-tools: "Read, Write, Edit, Grep, Glob, Bash(jq:*)"
 ---
 
 # Capacity Planning

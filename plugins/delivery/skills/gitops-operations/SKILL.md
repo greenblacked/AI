@@ -1,7 +1,7 @@
 ---
 name: gitops-operations
 description: "Operate Argo CD without fighting the controller: establish which repository and generator own desired state, explain OutOfSync and drift, review rendered changes before sync, order dependencies, choose prune and self-heal policy, recover by changing Git, and verify convergence from commit to workload. Use this skill when someone asks why Argo CD keeps reverting a kubectl edit, whether to sync or prune, how to structure sync waves, how to recover or roll back a GitOps deployment, why an ApplicationSet child changed, or how multiple sources produced an unexpected manifest. Also use its ownership workflow for Flux drift, while verifying Flux-specific controls in the installed controller documentation. Not for designing canary cohorts and promotion metrics (`release-strategy`), authoring workload probes and resources (`k8s-workloads`), or diagnosing a live broken cluster (`k8s-triage`)."
-allowed-tools: "Read, Write, Edit, Grep, Glob, Bash(git:*), Bash(kubectl:*), Bash(argocd:*), Bash(flux:*)"
+allowed-tools: "Read, Write, Edit, Grep, Glob"
 ---
 
 # GitOps Operations

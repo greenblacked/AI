@@ -1,7 +1,7 @@
 ---
 name: design-system
 description: "Set up or tidy a design system's foundations: design tokens named by role (colour, type with fallbacks, spacing, radius, elevation, motion), light, dark and further themes that redefine the same role tokens, and component state rules so buttons and controls stay consistent. Covers where translucent glass belongs, and contrast as a gate in every theme. Use for design tokens, theming and consistent component states. Casual asks include \"set up design tokens\", \"add dark mode\", \"our buttons are all slightly different\", \"clean up our CSS variables\", \"theme this app\", \"how do I do a frosted glass nav bar\" or \"make the hover and pressed states consistent\". Not for reviewing one screen's usability (ui-ux-review), a WCAG audit (accessibility-audit), testing with users (usability-test-plan), or building a new site (website-builder) or a single component from scratch (code-scaffold)."
-allowed-tools: "Read, Write, Edit, Glob, Grep, Bash(git:*)"
+allowed-tools: "Read, Write, Edit, Glob, Grep"
 ---
 
 # Design System

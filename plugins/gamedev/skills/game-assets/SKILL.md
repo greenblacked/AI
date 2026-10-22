@@ -1,7 +1,7 @@
 ---
 name: game-assets
 description: "Get art and audio into a game build without the build eating the disk, the memory or the download: keep lossless source out of the engine's import path, put large binaries behind Git LFS before the history is too big to migrate, choose per-platform texture compression (BC7, ASTC, ETC2) rather than shipping RGBA32, set resolution, mipmap, polygon and LOD budgets against the target hardware, pick compressed, decompressed or streamed per sound, fix import scale and unit conventions, and apply import presets per folder so a new asset is correct by default. Use whenever someone says the build is 4GB, the APK is over the store limit, textures look terrible on Android, a mesh imports at the wrong scale, or asks whether to use LFS for this. Not for frame time, draw calls or stutter (game-performance), slow loading (game-load-times), an OS memory kill or runtime memory budget (game-memory-budget), or building the game itself."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Bash(godot:*), Bash(ffprobe:*), Bash(ffmpeg:*), Bash(du:*), Bash(unzip:*)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(du:*)
 ---
 
 # Game Assets
