@@ -27,7 +27,7 @@ Because the sample is stratified, the raw share of matches among labelled pairs 
 
 For band `b`: `n_b` labelled pairs (excluding `cannot tell`), `m_b` labelled matches, `N_b` candidate pairs in the population. Estimated true matches in the band: `M_b = N_b * m_b / n_b`.
 
-At threshold `t`, over bands whose lower edge is at or above `t`:
+Evaluate candidate thresholds only at band edges, so every pair above `t` belongs to a band that was sampled as a whole; a threshold inside a band would borrow the precision of the band above it for pairs that were never measured. With ten equal-width bands the candidates are 0.90, 0.80 and so on; for a finer threshold, split the band and label inside it first. At threshold `t`, over bands whose lower edge is at or above `t`:
 
 - Precision(t) = sum of `M_b` / sum of `N_b`
 - Recall among candidates(t) = sum of `M_b` above `t` / sum of `M_b` over all bands
@@ -37,10 +37,10 @@ Report the threshold table:
 
 | Threshold | Pairs above | Est. precision | Est. recall (overall) | Labelled pairs above | Labelled false merges above |
 | --- | --- | --- | --- | --- | --- |
-| 0.95 | | | | | |
 | 0.90 | | | | | |
-| 0.85 | | | | | |
 | 0.80 | | | | | |
+| 0.70 | | | | | |
+| 0.60 | | | | | |
 
 The last column matters as much as the estimate: precision estimated from 12 labelled pairs with no errors is not evidence of 100%. If the band you would auto-match has few labelled pairs, label more there before deciding.
 
@@ -85,9 +85,26 @@ FROM entity_link
 WHERE valid_to IS NULL
 GROUP BY source_system, source_id
 HAVING COUNT(*) > 1;
+
+-- a live source record with no current link at all; singletons get a link too
+SELECT r.source_system, r.source_id
+FROM source_records r                  -- current, undeleted records from every source
+LEFT JOIN entity_link l
+  ON l.source_system = r.source_system
+ AND l.source_id = r.source_id
+ AND l.valid_to IS NULL
+WHERE l.source_id IS NULL;
 ```
 
-On PostgreSQL a partial unique index (`CREATE UNIQUE INDEX ... ON entity_link (source_system, source_id) WHERE valid_to IS NULL`) enforces the same rule; warehouses that do not enforce constraints need the check. Every run applies `entity_override` before scoring: a `non-match` override acts as a hard non-match rule, a `match` override as a deterministic rule.
+On PostgreSQL a partial unique index (`CREATE UNIQUE INDEX ... ON entity_link (source_system, source_id) WHERE valid_to IS NULL`) enforces the same rule; warehouses that do not enforce constraints need the check. Every run applies `entity_override` before scoring: a `non-match` override acts as a hard non-match rule, a `match` override as a deterministic rule. Store each pair in one canonical order (the lower `system:id` on the left) and apply only the latest decision per pair, so a reviewer reversing an earlier `match` with a `non-match` replaces it rather than leaving both in force:
+
+```sql
+SELECT *
+FROM entity_override
+QUALIFY ROW_NUMBER() OVER (
+  PARTITION BY left_system, left_id, right_system, right_id
+  ORDER BY decided_at DESC) = 1;
+```
 
 The golden record is a derived table or view built from current links and the source rows. It is never the place a correction is made; corrections go into links, overrides or the source system.
 
