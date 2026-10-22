@@ -77,7 +77,17 @@ CREATE TABLE entity_override (
 );
 ```
 
-Adjust types to the warehouse. The current link for a record is the row with `valid_to IS NULL`. Every run applies `entity_override` before scoring: a `non-match` override acts as a hard non-match rule, a `match` override as a deterministic rule.
+Adjust types to the warehouse. The current link for a record is the row with `valid_to IS NULL`, and there must be exactly one. The primary key cannot enforce that, because a rerun's new row has a different `linked_at`: close the old link and insert the new one in one transaction, and run this check after every run, expecting no rows:
+
+```sql
+SELECT source_system, source_id, COUNT(*) AS current_links
+FROM entity_link
+WHERE valid_to IS NULL
+GROUP BY source_system, source_id
+HAVING COUNT(*) > 1;
+```
+
+On PostgreSQL a partial unique index (`CREATE UNIQUE INDEX ... ON entity_link (source_system, source_id) WHERE valid_to IS NULL`) enforces the same rule; warehouses that do not enforce constraints need the check. Every run applies `entity_override` before scoring: a `non-match` override acts as a hard non-match rule, a `match` override as a deterministic rule.
 
 The golden record is a derived table or view built from current links and the source rows. It is never the place a correction is made; corrections go into links, overrides or the source system.
 

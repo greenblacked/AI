@@ -30,16 +30,16 @@ Export the sheet's consumer-facing tab for each cycle to CSV with values (not fo
 
 ## The reconciliation query
 
-Join at the lowest grain the sheet has. Compare after rounding both sides to the minor unit. Check first that `line_key` is unique on each side: two rows for one key on each side become four comparisons and invent differences, and equal row counts do not prove it. Run `SELECT line_key, COUNT(*) FROM <side> GROUP BY 1 HAVING COUNT(*) > 1` on both and expect nothing; if either returns rows, aggregate that side to the key first.
+Join at the lowest grain the sheet has. Compare after rounding both sides to the minor unit. Check first that `line_key` is never blank or null on either side, since a null key never joins and would be reported as missing from the other side, and that it is unique on each side: two rows for one key on each side become four comparisons and invent differences, and equal row counts do not prove it. Run `SELECT line_key, COUNT(*) FROM <side> GROUP BY 1 HAVING COUNT(*) > 1` on both and expect nothing; if either returns rows, aggregate that side to the key first.
 
 ```sql
 WITH sheet AS (
-  SELECT cycle, line_key, ROUND(amount, 2) AS amount
+  SELECT cycle, line_key, ROUND(amount, 2) AS amount, 1 AS in_sheet
   FROM recon.sheet_output
   WHERE cycle = '2026-09'
 ),
 pipe AS (
-  SELECT cycle, line_key, ROUND(amount, 2) AS amount
+  SELECT cycle, line_key, ROUND(amount, 2) AS amount, 1 AS in_pipe
   FROM reporting.commission_lines
   WHERE cycle = '2026-09'
 )
@@ -48,15 +48,15 @@ SELECT COALESCE(s.line_key, p.line_key) AS line_key,
        p.amount AS pipeline_amount,
        COALESCE(p.amount, 0) - COALESCE(s.amount, 0) AS diff,
        CASE
-         WHEN s.line_key IS NULL THEN 'pipeline only'
-         WHEN p.line_key IS NULL THEN 'sheet only'
+         WHEN s.in_sheet IS NULL THEN 'pipeline only'   -- presence flags, not the keys
+         WHEN p.in_pipe  IS NULL THEN 'sheet only'
          WHEN (s.amount <> p.amount OR (s.amount IS NULL) <> (p.amount IS NULL)) THEN 'value differs'
        END AS kind
 FROM sheet s
 FULL OUTER JOIN pipe p
   ON s.line_key = p.line_key
-WHERE s.line_key IS NULL
-   OR p.line_key IS NULL
+WHERE s.in_sheet IS NULL
+   OR p.in_pipe  IS NULL
    OR (s.amount <> p.amount OR (s.amount IS NULL) <> (p.amount IS NULL))
 ORDER BY ABS(COALESCE(p.amount, 0) - COALESCE(s.amount, 0)) DESC;
 ```

@@ -20,14 +20,20 @@ WITH order_counts AS (
   SELECT session_id, COUNT(*) AS orders
   FROM orders
   GROUP BY session_id
+),
+-- a calendar spine, so a day with no sessions at all shows as zero
+days AS (
+  SELECT date_day AS day
+  FROM dim_date
+  WHERE date_day >= DATE '2026-08-10' AND date_day < CURRENT_DATE
 )
 SELECT
-  CAST(s.session_start AS DATE)  AS day,
-  COUNT(*)                       AS denominator,
+  d.day,
+  COUNT(s.session_id)            AS denominator,
   COALESCE(SUM(o.orders), 0)     AS numerator
-FROM sessions s
+FROM days d
+LEFT JOIN sessions s ON CAST(s.session_start AS DATE) = d.day
 LEFT JOIN order_counts o ON o.session_id = s.session_id
-WHERE s.session_start >= DATE '2026-08-10'
 GROUP BY 1
 ORDER BY 1;
 ```
