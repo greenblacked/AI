@@ -60,8 +60,8 @@ JavaScript `length`, Java `length()` and HTML `maxlength` count UTF-16 code unit
 grapheme counts for any limit a person sees, and code units only for a storage limit, and
 say which one each limit is.
 
-For input methods on the web, ignore Enter and suppress live validation while
-`KeyboardEvent.isComposing` is true or between `compositionstart` and `compositionend`.
+Composition events and Enter handling during an input method conversion belong to the
+field, not the locale: see `text-input-edge-cases`.
 
 ## Collation and search
 

@@ -63,8 +63,8 @@ combination finds a different class of bug.
 
 - A long sentence with no spaces wraps at sensible points and truncates without breaking
   a character.
-- Typing with the Japanese input method: pressing Enter to confirm a conversion does not
-  submit the form.
+- Typing with the Japanese input method: whether Enter during a conversion submits the
+  form is a field-handling bug, owned by `text-input-edge-cases`.
 - Full-width digits (`１２３`) in a number field are accepted after normalisation, or
   rejected with a clear message.
 - A greeting built from a name shows the family name first when the user enters it that
