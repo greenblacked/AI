@@ -2,12 +2,12 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
-  <img alt="The thirteen plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data and techdocs" src="docs/assets/banner-light.svg" width="100%">
+  <img alt="The fourteen plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data, techdocs and assurance" src="docs/assets/banner-light.svg" width="100%">
 </picture>
 
 # Agent skills
 
-164 agent skills, 30 subagents and ten slash commands, in thirteen
+175 agent skills, 30 subagents and ten slash commands, in fourteen
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-164-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-175-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -63,14 +63,15 @@ and what the runtime does or does not enforce.
 | [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction and model migration | 5 skills |
 | [`data`](#data) | Analytics data: wrong numbers, warehouse cost, metrics, history and pipelines | 11 skills |
 | [`techdocs`](#techdocs) | Developer documentation: tested tutorials and samples, drift, stable URLs, API and CLI reference | 11 skills |
+| [`assurance`](#assurance) | Quality engineering and compliance: order-dependent, mutation, property and fuzz testing, replay and load, DPIAs, licences, audit evidence | 11 skills |
 
-Install one plugin or all thirteen. Each is a self-contained directory under `plugins/` with
+Install one plugin or all fourteen. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
 
 Install what you will use, though, rather than everything by reflex. Every description you
 install stays resident in context, and Claude Code's default listing budget is about 8,000
 characters against this library's total — `make validate` prints the current figure — so
-installing all thirteen at the default drops most of them, silently. The Install section
+installing all fourteen at the default drops most of them, silently. The Install section
 below says what to set instead.
 
 ## The FAMILY workflow
@@ -114,7 +115,7 @@ if a deploy fails its check and rolls back, the previous one keeps serving.
 
 | Page | What it shows |
 | --- | --- |
-| [Home](https://ai.szolotov.com) | The thirteen plugins with their skill counts, and a search across plugins and skill names |
+| [Home](https://ai.szolotov.com) | The fourteen plugins with their skill counts, and a search across plugins and skill names |
 | `/plugins/<plugin>/` | One page per plugin: what it covers, its install line and its skills |
 | `/plugins/<plugin>/<skill>/` | One page per skill: its description, install line and allowed tools when it declares them, the full procedure, its reference files, and the requests it fires on and hands elsewhere |
 | [FAMILY](https://ai.szolotov.com/family/) | The one page that is not generated from a plugin's own files: the Frame–Architect–Make–Inspect–Launch–Yield workflow, drawn as a stage-by-stage guide with the four profiles |
@@ -169,7 +170,7 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`career`, `llm` and `personal` fit the default budget on their own. The other ten are over it —
+`career`, `llm` and `personal` fit the default budget on their own. The other eleven are over it —
 each by enough that installed alone at least one of its descriptions is dropped — and the
 split exists to keep that number as small as it can be.
 
@@ -180,7 +181,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.16 }
+{ "skillListingBudgetFraction": 0.17 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -582,6 +583,24 @@ Documentation as something that can be tested: tutorials run from a clean machin
 | [`screenshot-rot`](plugins/techdocs/skills/screenshot-rot/SKILL.md) | Stop documentation screenshots and diagrams going stale. Inventory every image in the docs and decide per image whether text, a code block or a table would serve instead; replace the hand-taken screenshots that remain with scripted captures (browser automation, seeded demo data, fixed viewport, clock, locale and fonts) regenerated in CI, where a changed image opens a pull request for review; keep diagrams as text sources beside the page; and write alt text that states the image's point. Use whenever someone says "our screenshots are out of date", "the docs still show the old UI", "who re-shoots the images after a redesign" or "can we generate docs screenshots automatically". |
 | [`terminology-lock`](plugins/techdocs/skills/terminology-lock/SKILL.md) | Make one word mean one thing across the product UI, docs, API and support. Inventory the competing terms and where each appears, choose the canonical one, and keep a glossary in the repository giving each term's definition, its banned synonyms and the reason for each ban; generate Vale substitution rules and a UI string check from that one glossary, so docs and interface strings are linted by the same list; run any rename as one tracked change sweeping code, UI, docs, translations and the search synonym list. Use whenever someone says "we call it three different things", "is it a workspace or a project", "lint our docs for product terms" or "we're renaming this feature everywhere". |
 | [`tutorial-clean-room`](plugins/techdocs/skills/tutorial-clean-room/SKILL.md) | Prove a tutorial, quickstart or getting-started guide works for a stranger before it ships: run it in a brand-new container or VM with no cached credentials, dotfiles or warm caches, stopwatch running, executing only what the page literally says; log every stumble as a defect with the minutes it cost; state a time-to-first-result target on the page; then watch one outsider follow it with no questions allowed, and ship only after a zero-stumble run. Use whenever someone says "write our getting-started guide", "verify the quickstart still works", "new users keep getting stuck on install" or "how long does it really take to get going with our SDK". |
+
+### Assurance
+
+Evidence that software does what it should and that the organisation can show it: tests that find their own blind spots, load and replay before a change ships, and privacy, licence and audit work run as procedure rather than legal advice.
+
+| Skill | What it does |
+| --- | --- |
+| [`audit-trail-design`](plugins/assurance/skills/audit-trail-design/SKILL.md) | Design the audit log for user and admin actions: start from the investigation questions (who did what to which record, when, from where, allowed or denied), log denials as well as successes, write state changes in the same transaction as the change, keep the trail in an append-only store separate from application logs with tamper evidence from a hash chain or write-once storage, keep secrets and full personal data out of entries, fix retention and reviewer access, and accept it only when a staged incident can be reconstructed from the trail alone. |
+| [`control-evidence`](plugins/assurance/skills/control-evidence/SKILL.md) | Collect SOC 2 or ISO 27001 audit evidence without a screenshot scramble: map each control to one system-generated artefact, with an API export preferred over a screenshot; define every population and the sampling period before the auditor asks, reconciled against an independent source; automate dated collection on the audit cadence; keep a tracker of request, owner and due date; and test each control yourself first, filing exceptions with remediation inside the period. |
+| [`dpia`](plugins/assurance/skills/dpia/SKILL.md) | Run a data protection impact assessment as a dated, versioned procedure rather than a form filled in after launch: screen against a written trigger list first and record the answer either way, describe every data flow, test necessity and proportionality field by field, list risks to the people whose data it is rather than to the company, give each mitigation a named owner, have a named person with authority accept the residual risk, and re-run when the design changes. Procedure, not legal advice. |
+| [`fuzz-harness`](plugins/assurance/skills/fuzz-harness/SKILL.md) | Put a coverage-guided fuzzer on your own parsing and decoding code: one small harness per entry point that takes bytes and must not crash, hang or exhaust memory, a seed corpus from real files and past bug reports, builds under AddressSanitizer and UndefinedBehaviorSanitizer, every crash minimised, deduplicated by stack and committed as a regression input, and a short fuzz run on each pull request with a long one on a schedule. Covers libFuzzer, AFL++, cargo-fuzz, Go native fuzzing, Atheris and Jazzer. |
+| [`licence-compliance`](plugins/assurance/skills/licence-compliance/SKILL.md) | Audit the open-source licence obligations of what you ship: inventory every component from lockfiles and built artefacts, with transitive packages, vendored code, fonts and base images included; classify each artefact by how it reaches people — hosted, sent to browsers, shipped binary or image, published library — since the same licence binds differently in each; enforce an allowlist in CI where an unknown or missing licence blocks; generate the NOTICE or third-party attribution from the inventory; record exceptions pinned to a version. Procedure, not legal advice. |
+| [`load-testing`](plugins/assurance/skills/load-testing/SKILL.md) | Run a load test that answers one stated question and cannot pass by accident: fix the question and SLO-based pass thresholds before the run, take the workload mix and parameters from production logs, drive an open arrival-rate model, not fixed virtual users, so coordinated omission cannot hide stalls, warm up, ramp and hold on production-shaped infrastructure and data, prove the generator hit the offered rate, correlate with server telemetry, and report percentiles and errors, never averages. |
+| [`mutation-testing`](plugins/assurance/skills/mutation-testing/SKILL.md) | Measure whether the tests fail when the code is wrong, not merely whether they run it: run a mutation tool on only the lines a pull request changed, triage every surviving mutant as an equivalent mutant, a missing assertion or an untested branch, kill the worst survivors by writing the test that notices, and ratchet on changed code instead of chasing a global mutation score. Covers diff-scoped runs in Stryker, PIT, mutmut, cargo-mutants and Infection. |
+| [`property-based-testing`](plugins/assurance/skills/property-based-testing/SKILL.md) | Replace hand-picked example lists with properties a library checks across generated inputs: choose the property class first (round trip, idempotence, oracle comparison, an invariant after any sequence of operations, never crashes), build generators that construct valid domain objects instead of filtering, pin every shrunk counterexample as a permanent example test, run a small seeded budget on pull requests and a large one nightly, and test stateful APIs against a simple model. |
+| [`risk-acceptance-register`](plugins/assurance/skills/risk-acceptance-register/SKILL.md) | Record knowingly accepted risk so the acceptance expires instead of becoming permanent: each entry states the risk, the compensating control and how it is verified, an accountable owner above the engineer who proposed it, and an expiry date; every tool-level suppression points to an entry; owners are reminded 30 days before expiry; an expired entry counts as an open finding; and the register is the one place auditors and security review read. |
+| [`test-order-bisect`](plugins/assurance/skills/test-order-bisect/SKILL.md) | Find the polluter behind a test that passes alone and fails in the full suite, then remove the leak rather than the symptom: replay the failing order from its recorded random seed, delta-debug the tests that ran before the victim by halving until one polluter and one victim remain, name the shared state it leaked (a global, env var, temp file, port, database row, clock or patch left in place), isolate that state instead of pinning the order, and add a randomised-order CI job so it cannot return. |
+| [`traffic-replay-diff`](plugins/assurance/skills/traffic-replay-diff/SKILL.md) | Prove a rewrite, port or migrated service answers the same as the old one by replaying captured production requests offline against both and diffing responses: capture sanitised read traffic, start both from one data snapshot with identical stubs, replay old against old first to measure noise, normalise timestamps, ids and unordered collections, bucket every diff by cause, and close each bucket as a bug or a signed-off intentional change. Done at zero unexplained buckets across a full weekly cycle. |
 
 ## Subagents
 

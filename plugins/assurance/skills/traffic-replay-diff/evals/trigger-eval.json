@@ -1,0 +1,22 @@
+[
+  {"query": "we rewrote the pricing service from ruby to go. how do we actually know it returns the same answers as the old one", "should_trigger": true},
+  {"query": "i want to replay a week of prod GET requests against both the legacy api and the new one and compare the responses", "should_trigger": true},
+  {"query": "our response diff between old and new has 60k differences, mostly timestamps and ids. how do we get signal out of this", "should_trigger": true},
+  {"query": "set up something like diffy so we can compare the extracted orders service against the monolith endpoint", "should_trigger": true},
+  {"query": "we swapped mongo for postgres behind the same api. what's a rigorous way to prove nothing changed for clients", "should_trigger": true},
+  {"query": "how should we capture production traffic for a replay without keeping customer tokens and emails in the files", "should_trigger": true},
+  {"query": "the replay diff came back clean but i'm not sure it exercised the month-end endpoints at all", "should_trigger": true},
+  {"query": "half the diffs are just json key order and arrays in different order, can we ignore them or is that dangerous", "should_trigger": true},
+  {"query": "when can we call the parity check done? product keeps finding one more difference every time we replay", "should_trigger": true},
+  {"query": "the new search backend returns results in a slightly different order for some queries, is that a bug or do we sign it off", "should_trigger": true},
+  {"query": "mirror 1% of live traffic to the new service through envoy while we canary it", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "we flip DNS to the new cluster on saturday night, who calls the rollback and by when", "should_trigger": false, "expected": "cutover"},
+  {"query": "plan the phases for moving everything off the monolith over the next two quarters", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "will the rewritten checkout hold three times launch traffic at our latency target", "should_trigger": false, "expected": "load-testing"},
+  {"query": "is renaming the total field to amount in the v2 response a breaking change for our clients", "should_trigger": false, "expected": "api-design"},
+  {"query": "our model version is being retired next month, how do we move the summariser to the new one without quality dropping", "should_trigger": false, "expected": "model-migration"},
+  {"query": "this 3000 line file needs splitting up without changing what it does, where do i start", "should_trigger": false, "expected": "refactoring"},
+  {"query": "we're three majors behind on spring boot, plan the upgrade", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "a bad deploy corrupted two million order rows, we need to repair them in place safely", "should_trigger": false, "expected": "safe-backfill"},
+  {"query": "our playwright suite started flaking after the migration, tests pass locally and fail in ci", "should_trigger": false, "expected": "e2e-testing"}
+]

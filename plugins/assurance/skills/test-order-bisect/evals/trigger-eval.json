@@ -1,0 +1,22 @@
+[
+  {"query": "test_invoice_totals passes when I run it on its own but fails every time the full suite runs", "should_trigger": true},
+  {"query": "we installed pytest-randomly and now about one run in five goes red with a different test each time, how do I find which test is breaking the others", "should_trigger": true},
+  {"query": "go test -shuffle=on printed -test.shuffle 1718203 and TestRefundWindow failed, it never fails without shuffle", "should_trigger": true},
+  {"query": "rspec fails with seed 48213 but passes with any other seed I try, what is leaking between specs", "should_trigger": true},
+  {"query": "this spec only breaks if the auth specs run before it, I think something is leaking global state", "should_trigger": true},
+  {"query": "one of 900 tests earlier in the run is leaving a row in the database that makes the export test fail, how do I find which one without reading them all", "should_trigger": true},
+  {"query": "the opposite problem: this test fails when I run it alone but passes as part of the suite", "should_trigger": true},
+  {"query": "a junit test fails only when the classes run in random order, how do I narrow down which earlier class causes it", "should_trigger": true},
+  {"query": "someone fixed an order-dependent failure by pinning the test order, what should they have done instead", "should_trigger": true},
+  {"query": "we want to switch on random test ordering in CI without it turning into a permanent flaky mess, what is the process", "should_trigger": true},
+  {"query": "the checkout Playwright spec times out waiting for the pay button about once a day in CI", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "the build on my PR is red and I have no idea whether it is my change, a flake or the runner", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "here are 400 junit xml reports from the last month of CI, which tests flake most and what should we quarantine first", "should_trigger": false, "expected": "test-history-reader"},
+  {"query": "the discount calculation is wrong for customers in two currencies and I cannot see why from the code", "should_trigger": false, "expected": "debugging"},
+  {"query": "we have 92 percent coverage but I suspect half the tests assert nothing, how do we prove whether they would catch a bug", "should_trigger": false, "expected": "mutation-testing"},
+  {"query": "how should we structure tests so that time and randomness never make them flaky in the first place", "should_trigger": false, "expected": "test-design"},
+  {"query": "replace our hand-picked examples for the date parser with generated inputs and invariants", "should_trigger": false, "expected": "property-based-testing"},
+  {"query": "our CI pipeline takes 35 minutes end to end, how should we split and cache the test stages", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "put a coverage-guided fuzzer on the image decoder so malformed files cannot crash it", "should_trigger": false, "expected": "fuzz-harness"},
+  {"query": "review this pull request that adds integration tests for the billing module", "should_trigger": false, "expected": "code-review"}
+]

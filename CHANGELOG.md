@@ -10,6 +10,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `assurance` plugin, for quality engineering and compliance procedure, with eleven skills: `test-order-bisect`, `mutation-testing`, `property-based-testing`, `fuzz-harness`, `traffic-replay-diff`, `load-testing`, `dpia`, `licence-compliance`, `control-evidence`, `risk-acceptance-register` and `audit-trail-design`. `test-design` now cedes scoring a suite by injected faults to `mutation-testing`, and `capacity-planning` cedes scripting and running the load test to `load-testing`.
+
 - Add the `techdocs` plugin, for keeping developer documentation true, with eleven skills: `tutorial-clean-room`, `code-sample-testing`, `docs-drift-detection`, `screenshot-rot`, `docs-url-permanence`, `error-catalogue`, `openapi-diff-gate`, `docs-search-vocabulary`, `terminology-lock`, `cli-reference` and `accessibility-conformance-report`.
 
 - Add the `data` plugin, for analytics data, with its first eleven skills: `scan-cost-forensics`, `join-fanout-hunt`, `metric-reconciliation`, `metric-movement-decomposition`, `late-data-maturity`, `as-of-history`, `upstream-change-defense`, `consumer-discovery`, `entity-resolution`, `data-quality-checks` and `spreadsheet-retirement`. Each finds why a number is wrong or expensive and fixes the cause rather than the symptom.
