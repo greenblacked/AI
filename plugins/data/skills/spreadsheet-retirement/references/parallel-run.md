@@ -30,7 +30,7 @@ Export the sheet's consumer-facing tab for each cycle to CSV with values (not fo
 
 ## The reconciliation query
 
-Join at the lowest grain the sheet has. Compare after rounding both sides to the minor unit.
+Join at the lowest grain the sheet has. Compare after rounding both sides to the minor unit. Check first that `line_key` is unique on each side: two rows for one key on each side become four comparisons and invent differences, and equal row counts do not prove it. Run `SELECT line_key, COUNT(*) FROM <side> GROUP BY 1 HAVING COUNT(*) > 1` on both and expect nothing; if either returns rows, aggregate that side to the key first.
 
 ```sql
 WITH sheet AS (
