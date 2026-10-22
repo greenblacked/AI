@@ -42,7 +42,8 @@ expected as (
   select field, expected_type, required
   from contracts.expected_fields
   where source = 'orders'
-)
+),
+findings as (
 select
   coalesce(o.field, e.field) as field,
   e.expected_type,
@@ -59,6 +60,9 @@ select
 from observed o
 full outer join expected e on o.field = e.field
 cross join batch b
+)
+-- filtered in an outer query, so the alias is in scope on every engine
+select * from findings
 where finding is not null;
 ```
 
