@@ -43,9 +43,8 @@ rather than a blanket promise that nothing outside the isolation gets touched.
    never the source repository's, because hooks themselves are not transported by a
    clone. `-c core.hooksPath=/dev/null` on both invocations closes both paths regardless,
    before step 2's confirmation exists to gate anything. None of the three forms above is
-   pre-approved, so each one prompts —
-   correct, since creating a copy of a repository this command has not yet audited is
-   exactly the moment that should ask.
+   pre-approved, so each one prompts — correct, since creating a copy of a repository this
+   command has not yet audited is exactly the moment that should ask.
 
    Every command below runs inside `$scratch` — step 3's `cd` is what enforces that,
    since `env -i` alone clears variables but never changes the working directory. A
