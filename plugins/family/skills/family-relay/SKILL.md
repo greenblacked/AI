@@ -1,7 +1,7 @@
 ---
 name: family-relay
 description: "Run the six FAMILY stage agents as a relay in which the verdict word decides the next hop: FRAMED goes to architect, PROPOSED to maker, PLAN READY to the build, DIVERGED back to architect, PASS to launcher, STOP to a person. Covers the routing table, passing each hop the artifact plus only the previous Handoff section, treating a report with no verdict as a question, and the two-strike rule that steps back a stage when the same verdict returns. Use when framer, architect, maker, inspector, launcher or yielder reports are coming back and someone asks what happens next, what to do with a FIX, DIVERGED or NOT READY, or how to chain the stage agents. Not for choosing the workflow (family-workflow), dependency-graph orchestration (agent-orchestration), or briefing one agent (agent-delegation)."
-allowed-tools: Agent(framer), Agent(architect), Agent(maker), Agent(inspector), Agent(launcher), Agent(yielder), Read, Write, Edit, Grep, Glob, Bash(git:*)
+allowed-tools: Agent(framer), Agent(architect), Agent(maker), Agent(inspector), Agent(launcher), Agent(yielder), Read, Write, Edit, Grep, Glob
 ---
 
 # The FAMILY relay

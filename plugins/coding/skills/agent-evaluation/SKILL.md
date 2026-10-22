@@ -1,7 +1,7 @@
 ---
 name: agent-evaluation
 description: "Evaluate whether an AI agent completes real tasks correctly and safely: turn production failures and representative work into versioned datasets with a sealed holdout, run each case in an isolated reproducible environment, score final state and tool effects with deterministic graders before using rubric-bound model judges, inspect traces to localise failures without rewarding one prescribed path, and set regression and release gates from repeated paired runs. Use for agent benchmarks, tool-call evaluation, trace grading, judge calibration, or deciding whether a prompt, model, tool, scaffold or orchestration change is safe to ship. Do not use for ordinary test cases (test-design), debugging a product defect (debugging), browser journeys (e2e-testing), skill routing (new-skill), inference spend (llm-cost) or planning a move to another model (model-migration)."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Bash(jq:*)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(jq:*)
 ---
 
 # Agent Evaluation

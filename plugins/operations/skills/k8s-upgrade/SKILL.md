@@ -1,7 +1,7 @@
 ---
 name: k8s-upgrade
 description: "Upgrade a Kubernetes cluster one minor at a time — control plane, add-ons, node pools — after finding removed or deprecated APIs from live traffic, not git manifests: the apiserver_requested_deprecated_apis metric and the audit log, with kubent or pluto as a second opinion. Fix every PodDisruptionBudget that would block a drain before the window opens, canary one node pool across a full traffic peak, then roll the rest. Use when someone asks to upgrade EKS, GKE, AKS or a self-managed cluster to the next minor version, plans a maintenance window for a version bump, or asks what an upgrade breaks or whether anything still calls a removed API. Not for a workload already broken (k8s-triage), sizing a workload's resources or its PodDisruptionBudget (k8s-workloads), or building and cutting over to a replacement cluster once that is the decision (plan-platform-migration)."
-allowed-tools: Bash(kubectl:*), Bash(jq:*), Bash(aws:*), Bash(gcloud:*), Bash(az:*), Bash(kubeadm:*), Bash(kubent:*), Bash(pluto:*), Read, Write, Grep, Glob
+allowed-tools: Bash(jq:*), Read, Write, Grep, Glob
 ---
 
 # Kubernetes Cluster Upgrade

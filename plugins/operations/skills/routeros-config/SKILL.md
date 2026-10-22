@@ -1,7 +1,7 @@
 ---
 name: routeros-config
 description: Change, upgrade or recover a MikroTik RouterOS device without locking yourself out of it. Establish the version and a second way in, export the config as text, make the change in safe mode so a dropped session reverts it, verify with a connection opened after it, then release. Covers the changes that actually strand people — firewall input rules, bridge VLAN filtering, addresses, routes, users and services — the package and RouterBOOT upgrade order, and the recovery ladder. Use whenever someone configures, upgrades, backs up or is locked out of a MikroTik router or switch, or mentions RouterOS, WinBox, hEX, CRS, CCR, /export or safe mode. Not for reviewing a written Ansible or Terraform diff (iac-review), rotating a credential (secret-rotation), an access review (access-review), or another vendor's router or firewall, which nothing here covers.
-allowed-tools: Read, Grep, Glob, Bash(ssh:*), Bash(diff:*)
+allowed-tools: Read, Grep, Glob, Bash(diff:*)
 ---
 
 # RouterOS configuration and recovery

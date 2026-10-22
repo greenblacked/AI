@@ -1,7 +1,7 @@
 ---
 name: runbook
 description: "Write, review or repair the operational document someone follows at 3am — the thing on the other end of an alert's runbook link: what the symptom means in user terms, how to confirm it is real rather than a monitoring artefact, what to capture before mutating anything, the mitigations ordered least-destructive first with the blast radius and the undo next to each, a decision table mapping observation to conclusion to next step, and an owner and last-verified date so it can be trusted. Use this skill whenever someone is writing or fixing a runbook, playbook, on-call procedure or operational checklist — including \"this alert has no runbook\", \"document what to do when the queue backs up\", \"write the on-call procedure for failover\", or \"our runbooks are out of date\". Do not use it to diagnose an incident happening now, to decide what should page, to plan a rehearsal, or to write the postmortem afterwards."
-allowed-tools: Read, Write, Edit, Grep, Glob, Bash(kubectl:*), Bash(gh:*)
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # Runbook

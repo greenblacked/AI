@@ -1,7 +1,7 @@
 ---
 name: k8s-workloads
 description: "Specify a Kubernetes workload so it holds under pressure: measure the real CPU and memory profile before writing any number, then set requests and limits knowing CPU limits throttle while memory limits kill, pick the QoS class on purpose, keep liveness, readiness and startup probes distinct, size the PodDisruptionBudget, maxSurge and maxUnavailable, spread across zones, and close the race between SIGTERM and endpoint removal with a preStop hook. Use when someone asks \"what should I set for resource limits\", \"my pods get OOMKilled under load\", \"should this have a readiness probe\", \"will this PodDisruptionBudget block a node drain\", or is reviewing the numbers in a Deployment or StatefulSet spec. Not for a workload already broken (k8s-triage), how many replicas or how big the cluster (capacity-planning), generating YAML or a project (code-scaffold), or the image itself (image-hardening)."
-allowed-tools: Read, Write, Edit, Grep, Glob, Bash(kubectl:*), Bash(jq:*)
+allowed-tools: Read, Write, Edit, Grep, Glob, Bash(jq:*)
 ---
 
 # Kubernetes Workload Specification
