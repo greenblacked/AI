@@ -10,6 +10,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- Add the `research` plugin, for scientific and research engineering, with nineteen skills: `array-chunking-layout`, `batch-effect-audit`, `checkpoint-restart-design`, `convergence-study`, `fair-method-comparison`, `floating-point-error-hunt`, `hpc-resource-sizing`, `monte-carlo-run-length`, `nan-origin-trace`, `nondeterminism-bisect`, `nonindependence-audit`, `out-of-core-dataset-handling`, `paper-statistics-review`, `parallel-filesystem-hygiene`, `parallel-scaling-study`, `reproducible-analysis-environment`, `slurm-job-failure-triage`, `sweep-campaign-management` and `unit-mismatch-audit`.
+
+- Add the `learning` plugin, for learning, teaching and knowledge work, with sixteen skills: `domain-ramp-up`, `exam-prep-plan`, `exercise-design`, `learn-new-technology`, `literature-scan`, `mentoring-cycle`, `paper-reading`, `paper-reproduction`, `reading-backlog`, `shadow-reverse-shadow`, `skill-acquisition-plan`, `tacit-knowledge-elicitation`, `teaching-pairing`, `team-training-curriculum`, `training-effectiveness-check` and `workshop-design`.
+
+- Add six skills to the `manager` plugin: `headcount-case`, `inherited-team-audit`, `oncall-health-review`, `reorg-design`, `team-skills-matrix` and `tech-debt-case`.
+
 - Add twenty skills to the `gamedev` plugin: `automated-playthrough`, `economy-exploit-response`, `game-accessibility-pass`, `game-audio-mix`, `game-compat-matrix`, `game-desync-forensics`, `game-input-mapping`, `game-load-times`, `game-memory-budget`, `game-patch-size`, `game-server-rollout`, `handheld-pc-readiness`, `loot-odds-verification`, `matchmaking-tuning`, `mod-support-design`, `npc-behaviour-debugging`, `physics-glitch-triage`, `procgen-seed-testing`, `scene-merge-conflicts` and `shader-compile-stutter`.
 
 - Add the `embedded` plugin, for embedded, IoT and hardware-adjacent software, with twenty skills: `ble-connection-debug`, `brick-recovery`, `device-clock-handling`, `device-telemetry-design`, `device-trust-anchors`, `field-failure-triage`, `fieldbus-debug`, `firmware-code-review`, `flash-storage-durability`, `fleet-provisioning`, `hard-fault-triage`, `memory-footprint-budget`, `mqtt-session-debug`, `ota-fleet-rollout`, `ota-update-safety`, `rtos-concurrency-hunt`, `serial-bus-debug`, `sleep-current-hunt`, `sleep-wake-bug-hunt` and `watchdog-design`.
@@ -55,6 +61,7 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- On the catalogue site, a page title that is one long skill name now wraps on a phone instead of pushing the page wider than the screen.
 - On the catalogue site, an error code or environment variable quoted in a skill's description or eval query, such as `ERR_PACKAGE_PATH_NOT_EXPORTED`, now wraps instead of pushing the page wider than a phone screen.
 
 ## [0.1.13] - 2026-10-21

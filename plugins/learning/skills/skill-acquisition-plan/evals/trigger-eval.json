@@ -1,0 +1,22 @@
+[
+  {"query": "i want to get really good at distributed systems this year, can you help me plan it", "should_trigger": true},
+  {"query": "make me a plan to learn Go over four months, i'm switching jobs and need to be hireable as a Go developer", "should_trigger": true},
+  {"query": "i keep buying courses and never finishing them, how do i actually learn something properly", "should_trigger": true},
+  {"query": "how do i structure learning rust alongside a full-time job over about six months", "should_trigger": true},
+  {"query": "i want to become a competent data engineer by december, where do i even start", "should_trigger": true},
+  {"query": "how do i know whether i'm really learning a new skill or just consuming tutorials", "should_trigger": true},
+  {"query": "plan a year of learning machine learning with something to show at the end", "should_trigger": true},
+  {"query": "i want to learn to play the cello as an adult, how should i organise the first year", "should_trigger": true},
+  {"query": "help me decide what not to learn while i'm getting good at kubernetes", "should_trigger": true},
+  {"query": "i'm three weeks into a learning plan and it's not working, how should i change it", "should_trigger": true},
+  {"query": "i want to read every night before bed, how do i make that stick", "should_trigger": false, "expected": "habit-change"},
+  {"query": "my AWS solutions architect exam is in 5 weeks, how should i study", "should_trigger": false, "expected": "exam-prep-plan"},
+  {"query": "i need to learn terraform well enough to use it by next week", "should_trigger": false, "expected": "learn-new-technology"},
+  {"query": "help me plan my week and look back at what i got done", "should_trigger": false, "expected": "weekly-review"},
+  {"query": "i start a fintech job on monday and know nothing about settlement", "should_trigger": false, "expected": "domain-ramp-up"},
+  {"query": "how do i read this research paper efficiently", "should_trigger": false, "expected": "paper-reading"},
+  {"query": "i need to survey the literature on retrieval augmented generation for my thesis", "should_trigger": false, "expected": "literature-scan"},
+  {"query": "i'm preparing for coding interviews at big tech next month", "should_trigger": false, "expected": "technical-interview-prep"},
+  {"query": "design a workshop to teach my team the basics of terraform", "should_trigger": false, "expected": "workshop-design"},
+  {"query": "turn my notes from this book into something i can reuse", "should_trigger": false, "expected": "learning-notes"}
+]

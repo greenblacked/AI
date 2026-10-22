@@ -1,0 +1,92 @@
+[
+  {
+    "query": "I've been asked to mentor a junior engineer from another team; how should the first meeting go",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I get real value from my mentor instead of just chatting",
+    "should_trigger": true
+  },
+  {
+    "query": "our mentoring meetings are just chats and nothing changes afterwards",
+    "should_trigger": true
+  },
+  {
+    "query": "what should we agree in the first session of a mentoring relationship",
+    "should_trigger": true
+  },
+  {
+    "query": "as a mentor I keep giving advice before I understand the problem; how do I stop",
+    "should_trigger": true
+  },
+  {
+    "query": "my mentee never has an agenda and our slots feel wasted",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I tell a mentor, politely, that I want to stop meeting",
+    "should_trigger": true
+  },
+  {
+    "query": "we have met monthly for six months with no goal; how do we decide whether to carry on",
+    "should_trigger": true
+  },
+  {
+    "query": "a mentee asked me for a promotion opinion; where is the line as their mentor",
+    "should_trigger": true
+  },
+  {
+    "query": "how often should a mentor and mentee meet and what should each session produce",
+    "should_trigger": true
+  },
+  {
+    "query": "prepare the evidence-based growth review and development plan for my direct report",
+    "should_trigger": false,
+    "expected": "growth-review"
+  },
+  {
+    "query": "I need to tell a colleague their work is slipping and I am dreading the talk",
+    "should_trigger": false,
+    "expected": "difficult-conversation"
+  },
+  {
+    "query": "draft the thirty-sixty-ninety plan for the engineer starting on Monday",
+    "should_trigger": false,
+    "expected": "onboarding-plan"
+  },
+  {
+    "query": "how do I pair with a new hire for an afternoon without typing for them",
+    "should_trigger": false,
+    "expected": "teaching-pairing"
+  },
+  {
+    "query": "hand over my on-call duty with a shadow week and a reverse-shadow week",
+    "should_trigger": false,
+    "expected": "shadow-reverse-shadow"
+  },
+  {
+    "query": "write up the quarterly skills matrix for my team",
+    "should_trigger": false,
+    "expected": "team-skills-matrix"
+  },
+  {
+    "query": "how should I prepare for the salary conversation with my boss",
+    "should_trigger": false,
+    "expected": "raise-negotiation"
+  },
+  {
+    "query": "plan how I will learn Rust over the next three months",
+    "should_trigger": false,
+    "expected": "skill-acquisition-plan"
+  },
+  {
+    "query": "run my one-to-ones with my direct reports better",
+    "should_trigger": false,
+    "expected": "design-team-cadence"
+  },
+  {
+    "query": "how do I stop my manager's priorities from blowing up my week",
+    "should_trigger": false,
+    "expected": "managing-up"
+  }
+]
