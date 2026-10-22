@@ -1,0 +1,22 @@
+[
+  {"query": "i just became manager of this team, where do i start", "should_trigger": true},
+  {"query": "i inherited a team from a departing lead and nobody has told me what is going on", "should_trigger": true},
+  {"query": "what should i change first in my new org", "should_trigger": true},
+  {"query": "my predecessor left a mess and the team is looking to me to fix it", "should_trigger": true},
+  {"query": "plan my first thirty days as the new engineering manager of an existing group", "should_trigger": true},
+  {"query": "what questions should i ask each of my new reports in the first one to ones", "should_trigger": true},
+  {"query": "how do i tell which of the things i found are commitments i have to honour and which i can drop", "should_trigger": true},
+  {"query": "i got promoted over my peers and now manage the team i used to be part of", "should_trigger": true},
+  {"query": "the previous manager left suddenly and i am taking over his five reports on monday", "should_trigger": true},
+  {"query": "i want to make changes right away in my new team but people seem nervous, how fast should i go", "should_trigger": true},
+  {"query": "plan the first two weeks for the new engineer joining my team", "should_trigger": false, "expected": "onboarding-plan"},
+  {"query": "write up the performance review for one of my engineers", "should_trigger": false, "expected": "growth-review"},
+  {"query": "set up weekly meetings and a planning rhythm for my team", "should_trigger": false, "expected": "design-team-cadence"},
+  {"query": "look at our cycle time and deployment frequency and tell me if delivery is healthy", "should_trigger": false, "expected": "delivery-review"},
+  {"query": "we are splitting the team in two and need to announce it", "should_trigger": false, "expected": "reorg-design"},
+  {"query": "one of my inherited reports is underperforming and needs a formal plan", "should_trigger": false, "expected": "performance-improvement-plan"},
+  {"query": "why are people leaving my team", "should_trigger": false, "expected": "retention-review"},
+  {"query": "make the case for hiring two more people on the team i took over", "should_trigger": false, "expected": "headcount-case"},
+  {"query": "we need a map of who on the team knows which systems and where the gaps are", "should_trigger": false, "expected": "team-skills-matrix"},
+  {"query": "i inherited this service along with the team, where do i start reading the code", "should_trigger": false, "expected": "codebase-orientation"}
+]

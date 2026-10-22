@@ -1,0 +1,22 @@
+[
+  {"query": "i'm the only one who can run our production deploys and i need someone to cover while i'm away. how do i train them properly", "should_trigger": true},
+  {"query": "train someone to cover my on-call shifts, we have six weeks before i go on parental leave", "should_trigger": true},
+  {"query": "i'm going on leave in two months, who can run the release and how do i get them ready", "should_trigger": true},
+  {"query": "cross-train the second person on the monthly close so it doesn't all sit with me", "should_trigger": true},
+  {"query": "how do i hand over the vendor relationship with our payment processor to a colleague without dropping something", "should_trigger": true},
+  {"query": "i want my junior to take over the weekly database failover drill, what's a safe way to go from watching to doing it alone", "should_trigger": true},
+  {"query": "what does a reverse shadow look like, where they drive and i just watch", "should_trigger": true},
+  {"query": "our certificate renewals are all in my head and i'm moving teams in a month. plan the handover so someone can do them solo", "should_trigger": true},
+  {"query": "how do we make sure the backup person for payroll runs can actually do it before the primary is out", "should_trigger": true},
+  {"query": "set gates for each stage when i teach a colleague to run the incident commander role", "should_trigger": true},
+  {"query": "what should be in the on-call prerequisites for new engineers joining the team next month", "should_trigger": false, "expected": "onboarding-plan"},
+  {"query": "write the runbook for restoring the orders database from backup", "should_trigger": false, "expected": "runbook"},
+  {"query": "our only DBA is leaving in a month and nothing she knows is written down, how do we capture it", "should_trigger": false, "expected": "tacit-knowledge-elicitation"},
+  {"query": "capture what she knows about the billing batch job before she goes", "should_trigger": false, "expected": "tacit-knowledge-elicitation"},
+  {"query": "i want to learn Kubernetes over the next three months, make me a plan", "should_trigger": false, "expected": "skill-acquisition-plan"},
+  {"query": "plan my first 90 days in the new job", "should_trigger": false, "expected": "onboarding-plan"},
+  {"query": "run a workshop for my colleagues on the deploy process", "should_trigger": false, "expected": "workshop-design"},
+  {"query": "write a post-incident review for last night's outage", "should_trigger": false, "expected": "postmortem"},
+  {"query": "document how this service works before i go on leave", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "what should the escalation policy look like for the rotation, who gets paged and when", "should_trigger": false, "expected": "alert-design"}
+]

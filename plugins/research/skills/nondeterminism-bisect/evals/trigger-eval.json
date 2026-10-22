@@ -1,0 +1,92 @@
+[
+  {
+    "query": "I set the seed everywhere but my training run gives a different validation accuracy every time, how do I find out why",
+    "should_trigger": true
+  },
+  {
+    "query": "the same simulation gives slightly different totals when I run it with 8 threads versus 16",
+    "should_trigger": true
+  },
+  {
+    "query": "pytorch on gpu is not deterministic even with torch.manual_seed, what else is varying",
+    "should_trigger": true
+  },
+  {
+    "query": "results differ between two cluster nodes with identical code and input, where do I even start",
+    "should_trigger": true
+  },
+  {
+    "query": "run the job ten times and tell me how much the headline metric moves before I claim a 0.3 point improvement",
+    "should_trigger": true
+  },
+  {
+    "query": "my analysis script outputs a different p-value each launch and I never call a random function",
+    "should_trigger": true
+  },
+  {
+    "query": "same seed same data and yet my numbers drift in the third decimal between runs",
+    "should_trigger": true
+  },
+  {
+    "query": "should I turn on deterministic algorithms for the paper run or just report the variance across seeds",
+    "should_trigger": true
+  },
+  {
+    "query": "dataloader with 4 workers gives batches in a different order each epoch even though I seeded",
+    "should_trigger": true
+  },
+  {
+    "query": "two runs of the same script on the same node give different totals and I want to find which source of randomness is responsible",
+    "should_trigger": true
+  },
+  {
+    "query": "the laptop and the cluster produce different results for the same notebook",
+    "should_trigger": false,
+    "expected": "reproducible-analysis-environment"
+  },
+  {
+    "query": "this pytest only fails when the suite runs in a certain order and passes alone",
+    "should_trigger": false,
+    "expected": "debugging"
+  },
+  {
+    "query": "my sum of a million floats is wrong compared with the exact value and I want to find which operation loses the digits",
+    "should_trigger": false,
+    "expected": "floating-point-error-hunt"
+  },
+  {
+    "query": "my loss turned into NaN at step 4000 and I need the first operation that produced it",
+    "should_trigger": false,
+    "expected": "nan-origin-trace"
+  },
+  {
+    "query": "capture the exact package versions and container image so a collaborator can rebuild my analysis",
+    "should_trigger": false,
+    "expected": "reproducible-analysis-environment"
+  },
+  {
+    "query": "my slurm job was killed with exit code 137 and left no error",
+    "should_trigger": false,
+    "expected": "slurm-job-failure-triage"
+  },
+  {
+    "query": "design checkpointing so my five day run survives the walltime limit",
+    "should_trigger": false,
+    "expected": "checkpoint-restart-design"
+  },
+  {
+    "query": "set up a fair benchmark comparing two compiled libraries with warmup and confidence intervals",
+    "should_trigger": false,
+    "expected": "benchmark-methodology"
+  },
+  {
+    "query": "how much memory and walltime should I request for my cluster job",
+    "should_trigger": false,
+    "expected": "hpc-resource-sizing"
+  },
+  {
+    "query": "compare my method against the baseline with the same tuning budget so the comparison is fair",
+    "should_trigger": false,
+    "expected": "fair-method-comparison"
+  }
+]

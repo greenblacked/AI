@@ -1,0 +1,22 @@
+[
+  {"query": "I need to run 10,000 parameter configs on the cluster and I want to be able to tell afterwards exactly which ones finished", "should_trigger": true},
+  {"query": "about 300 of my 5000 array tasks failed for assorted reasons, how do I rerun only those without redoing the rest", "should_trigger": true},
+  {"query": "set up the bookkeeping for a hyperparameter grid spread across several nodes so a crash does not lose work", "should_trigger": true},
+  {"query": "my sweep tasks each take 40 seconds and the scheduler is struggling, how should I organise a hundred thousand of them", "should_trigger": true},
+  {"query": "how do I make a simulation task safe to resubmit if it gets killed halfway through writing its output", "should_trigger": true},
+  {"query": "I aggregated my sweep results but I think some seeds never ran, how do I check and prevent that next time", "should_trigger": true},
+  {"query": "we are running a seed-by-scenario grid of 2000 independent simulations, how should I submit and track them", "should_trigger": true},
+  {"query": "what is a good way to cap how many array elements run at once so I do not flood the queue", "should_trigger": true},
+  {"query": "after the array finished I want a single job that combines results but stops if anything is missing", "should_trigger": true},
+  {"query": "I keep a spreadsheet of which parameter combinations I submitted and it is always out of date, what should replace it", "should_trigger": true},
+  {"query": "fix up 40 million wrong rows in the production orders table without locking it", "should_trigger": false, "expected": "safe-backfill"},
+  {"query": "split a research task across several agent workers and merge what they return", "should_trigger": false, "expected": "agent-orchestration"},
+  {"query": "this one slurm job died with exit code 137 after an hour, find out why", "should_trigger": false, "expected": "slurm-job-failure-triage"},
+  {"query": "millions of small result files are making the shared filesystem crawl, how should I lay them out", "should_trigger": false, "expected": "parallel-filesystem-hygiene"},
+  {"query": "how many cpus and how much memory should I request for this job, I have never sized one before", "should_trigger": false, "expected": "hpc-resource-sizing"},
+  {"query": "my long training run must survive the 24 hour wall time limit, add checkpoint and resume", "should_trigger": false, "expected": "checkpoint-restart-design"},
+  {"query": "choose the chunk shape for my HDF5 dataset so slice reads along time are fast", "should_trigger": false, "expected": "array-chunking-layout"},
+  {"query": "the same seed gives different numbers on different runs of my simulation", "should_trigger": false, "expected": "nondeterminism-bisect"},
+  {"query": "how many independent runs do I need before the error bar on my estimate is small enough", "should_trigger": false, "expected": "monte-carlo-run-length"},
+  {"query": "measure how my solver speeds up from 1 to 64 cores and where it stops scaling", "should_trigger": false, "expected": "parallel-scaling-study"}
+]

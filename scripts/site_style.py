@@ -672,6 +672,9 @@ html[data-theme="night"] .sun { opacity: 0; transform: rotate(90deg) scale(0.4);
   letter-spacing: -0.02em;
   text-wrap: balance;
   line-height: 1.15;
+  /* A skill name is the page title, and one long segment of it, nonindependence- say,
+     is wider than a phone at this size; it may break rather than widen the page. */
+  overflow-wrap: break-word;
 }
 .prose-lab h1 {
   font-family: var(--font-serif);
@@ -1752,6 +1755,33 @@ html:not([data-theme="reactor"]) %P .plugin-word {
 @keyframes pw-embedded-blink {
   from { opacity: 0; }
   to { opacity: 1; }
+}""",
+    ),
+    "learning": PluginLook(
+        day=("#1e40af", "#9d174d", "#166534"),
+        night=("#93c5fd", "#f9a8d4", "#86efac"),
+        width=0.74,
+        rules=(
+            "%P .pl { animation: pw-learning-turn 0.4s ease-out calc(var(--i) * 0.09s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-learning-turn {
+  from { opacity: 0; transform: translateX(0.25em); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    "research": PluginLook(
+        day=("#0f766e", "#7c2d12", "#4338ca"),
+        night=("#5eead4", "#fdba74", "#a5b4fc"),
+        width=0.73,
+        rules=(
+            "%P .pl { animation: pw-research-plot 0.45s ease-out "
+            "calc(var(--i) * 0.08s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-research-plot {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: none; }
 }""",
     ),
 }

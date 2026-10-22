@@ -1,0 +1,92 @@
+[
+  {
+    "query": "I have 300 saved articles and have read none of them",
+    "should_trigger": true
+  },
+  {
+    "query": "my read-later list is a guilt pile and I dread opening it",
+    "should_trigger": true
+  },
+  {
+    "query": "which of the books on my shelf should I actually finish",
+    "should_trigger": true
+  },
+  {
+    "query": "I keep bookmarking papers and never reading them; how do I get control",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I decide when to stop reading a book I am not enjoying",
+    "should_trigger": true
+  },
+  {
+    "query": "my downloads folder has two hundred PDFs I meant to read; what do I do with them",
+    "should_trigger": true
+  },
+  {
+    "query": "set up a system so my reading queue stops growing faster than I read",
+    "should_trigger": true
+  },
+  {
+    "query": "is it okay to delete everything I saved last year without reading it",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I fit reading into a busy week so the queue actually shrinks",
+    "should_trigger": true
+  },
+  {
+    "query": "I have forty browser tabs open of things to read later and it is out of hand",
+    "should_trigger": true
+  },
+  {
+    "query": "I just finished a book on distributed systems; turn it into notes in my vault",
+    "should_trigger": false,
+    "expected": "learning-notes"
+  },
+  {
+    "query": "do my weekly review and plan next week",
+    "should_trigger": false,
+    "expected": "weekly-review"
+  },
+  {
+    "query": "I want to read every night before bed and keep failing to stick to it",
+    "should_trigger": false,
+    "expected": "habit-change"
+  },
+  {
+    "query": "read this paper and tell me whether it is worth implementing",
+    "should_trigger": false,
+    "expected": "paper-reading"
+  },
+  {
+    "query": "survey everything published on prompt caching and map the field",
+    "should_trigger": false,
+    "expected": "literature-scan"
+  },
+  {
+    "query": "make a plan to learn Kubernetes in three months",
+    "should_trigger": false,
+    "expected": "skill-acquisition-plan"
+  },
+  {
+    "query": "plan my revision timetable for the certification exam",
+    "should_trigger": false,
+    "expected": "exam-prep-plan"
+  },
+  {
+    "query": "how should I get up to speed in an unfamiliar domain in my first month",
+    "should_trigger": false,
+    "expected": "domain-ramp-up"
+  },
+  {
+    "query": "quiz me on the notes I made last week",
+    "should_trigger": false,
+    "expected": "learning-notes"
+  },
+  {
+    "query": "organise my life admin, bills and renewals into one system",
+    "should_trigger": false,
+    "expected": "life-admin"
+  }
+]

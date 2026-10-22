@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "learning",
+  "description": "Skills for learning, teaching and knowledge work: ramping up on a domain or a technology, study and exam plans, workshops and exercises, mentoring and pairing, capturing tacit knowledge, measuring whether training worked, and reading, reproducing and scanning research.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "learning",
+    "teaching",
+    "mentoring",
+    "workshops",
+    "study",
+    "papers"
+  ]
+}

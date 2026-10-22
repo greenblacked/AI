@@ -1,0 +1,91 @@
+[
+  {
+    "query": "I can't reproduce my own results from six months ago",
+    "should_trigger": true
+  },
+  {
+    "query": "it worked on my laptop but gives different numbers on the cluster",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I make this analysis reproducible for the reviewers",
+    "should_trigger": true
+  },
+  {
+    "query": "which version of the data produced figure 3",
+    "should_trigger": true
+  },
+  {
+    "query": "I want one command that rebuilds every figure and table from the raw data",
+    "should_trigger": true
+  },
+  {
+    "query": "how should I pin my Python environment so a collaborator gets the same results",
+    "should_trigger": true
+  },
+  {
+    "query": "what should I record besides requirements.txt, like BLAS and CUDA versions",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I seed everything including dataloader workers",
+    "should_trigger": true
+  },
+  {
+    "query": "my paper's supplement needs a way to trace each output to its input files",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to prove that a fresh clone reproduces our results",
+    "should_trigger": true
+  },
+  {
+    "query": "upgrade all my dependencies to the latest versions",
+    "should_trigger": false,
+    "expected": "dependency-upgrade"
+  },
+  {
+    "query": "write a docker compose file for my services",
+    "should_trigger": false,
+    "expected": "docker-compose"
+  },
+  {
+    "query": "same code, same seed, but two runs give different results, find why",
+    "should_trigger": false,
+    "expected": "nondeterminism-bisect"
+  },
+  {
+    "query": "set up a CI pipeline that runs tests on each push",
+    "should_trigger": false,
+    "expected": "ci-pipeline-design"
+  },
+  {
+    "query": "compare my new model with the baseline fairly",
+    "should_trigger": false,
+    "expected": "fair-method-comparison"
+  },
+  {
+    "query": "review the statistics in this manuscript",
+    "should_trigger": false,
+    "expected": "paper-statistics-review"
+  },
+  {
+    "query": "my job was killed on the cluster",
+    "should_trigger": false,
+    "expected": "slurm-job-failure-triage"
+  },
+  {
+    "query": "log which user changed which record in the app",
+    "should_trigger": false
+  },
+  {
+    "query": "move my notebook into a scheduled production job",
+    "should_trigger": false,
+    "expected": "ci-pipeline-design"
+  },
+  {
+    "query": "my dataset is too big to load into pandas",
+    "should_trigger": false,
+    "expected": "out-of-core-dataset-handling"
+  }
+]

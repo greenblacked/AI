@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "greenblacked-ai",
-  "description": "Agent skills, subagents and slash commands for software engineering, building features on language models, design and usability, making games, engineering leadership, and life outside work, plus one development workflow from problem to outcome. Twenty-five focused plugins; install only the ones you want.",
+  "description": "Agent skills, subagents and slash commands for software engineering, building features on language models, design and usability, making games, engineering leadership, and life outside work, plus one development workflow from problem to outcome. Twenty-seven focused plugins; install only the ones you want.",
   "owner": {
     "name": "Serhii Zolotov",
     "url": "https://github.com/greenblacked"
@@ -332,6 +332,29 @@
         "firmware",
         "ota",
         "hardware"
+      ]
+    },
+    {
+      "name": "learning",
+      "source": "./plugins/learning",
+      "category": "productivity",
+      "tags": [
+        "learning",
+        "teaching",
+        "mentoring",
+        "study"
+      ]
+    },
+    {
+      "name": "research",
+      "source": "./plugins/research",
+      "category": "development",
+      "tags": [
+        "research",
+        "reproducibility",
+        "hpc",
+        "benchmarking",
+        "statistics"
       ]
     }
   ]

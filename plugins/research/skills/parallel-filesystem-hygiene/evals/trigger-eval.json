@@ -1,0 +1,22 @@
+[
+  {"query": "the cluster admins emailed saying I'm over the file quota even though I'm using hardly any storage", "should_trigger": true},
+  {"query": "ls hangs for minutes in my results directory on the shared scratch", "should_trigger": true},
+  {"query": "my simulation writes a small output file per task per timestep and now we have millions of files", "should_trigger": true},
+  {"query": "my job is slow because of I/O, it spends most of its time opening and creating files on lustre", "should_trigger": true},
+  {"query": "what does lfs quota show and how do I check my inode usage on scratch", "should_trigger": true},
+  {"query": "should I write to $TMPDIR on the node and copy results out at the end of the job", "should_trigger": true},
+  {"query": "how should I set the stripe count for a single 80 GB output file written by 256 ranks", "should_trigger": true},
+  {"query": "we have a hundred thousand csv files in one directory and listing it takes forever, how do we reorganise", "should_trigger": true},
+  {"query": "every task in my array opens the same config file at startup and the metadata server is struggling", "should_trigger": true},
+  {"query": "how do I pack thousands of small result files into one archive per group before moving them off the cluster", "should_trigger": true},
+  {"query": "find out which function in my solver takes the most time", "should_trigger": false, "expected": "profiling"},
+  {"query": "choose chunk shape and compression for a four dimensional NetCDF file so time series reads are fast", "should_trigger": false, "expected": "array-chunking-layout"},
+  {"query": "design backups and a tested restore for the lab's shared data server", "should_trigger": false, "expected": "backup-recovery-design"},
+  {"query": "track which of my 20000 parameter sweep tasks finished so I only rerun the missing ones", "should_trigger": false, "expected": "sweep-campaign-management"},
+  {"query": "my root partition is at 100 percent on a linux server, find what filled it", "should_trigger": false, "expected": "disk-full-triage"},
+  {"query": "load a 200 GB parquet table that does not fit in memory and aggregate it", "should_trigger": false, "expected": "out-of-core-dataset-handling"},
+  {"query": "my job was killed with out of memory, how much memory should I request next time", "should_trigger": false, "expected": "hpc-resource-sizing"},
+  {"query": "why did my slurm job end with TIMEOUT after two hours", "should_trigger": false, "expected": "slurm-job-failure-triage"},
+  {"query": "make my long run survive preemption by writing restartable checkpoints", "should_trigger": false, "expected": "checkpoint-restart-design"},
+  {"query": "how many cores should I use, my code stops speeding up past 16", "should_trigger": false, "expected": "parallel-scaling-study"}
+]
