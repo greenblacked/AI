@@ -1,0 +1,22 @@
+[
+  {"query": "our snowflake bill doubled since august and finance wants to know which team is responsible", "should_trigger": true},
+  {"query": "someone is scanning about 4 TB a day in bigquery and I can't tell who from the billing page", "should_trigger": true},
+  {"query": "which dashboards are burning the most credits on our analytics warehouse", "should_trigger": true},
+  {"query": "the BI warehouse never auto-suspends, it's running 24 hours a day even though nobody works nights", "should_trigger": true},
+  {"query": "we blew through our bigquery slot reservation by the 12th of the month again, how do I find what is using the slots", "should_trigger": true},
+  {"query": "group our query history by query pattern so I can see which statements cost the most in total, not just the slowest ones", "should_trigger": true},
+  {"query": "a tableau extract refreshes every 15 minutes against a table that loads nightly, is that why the warehouse costs so much", "should_trigger": true},
+  {"query": "clickhouse cloud compute charges jumped 60% this quarter, help me work out which queries read the most data", "should_trigger": true},
+  {"query": "redshift serverless RPU spend keeps climbing and the only user in the logs is the looker service account", "should_trigger": true},
+  {"query": "I changed three dashboard schedules last week, how do I prove the warehouse spend actually went down", "should_trigger": true},
+  {"query": "our aws bill went up 30% last month and most of the increase looks like NAT gateway and EC2", "should_trigger": false, "expected": "cost-review"},
+  {"query": "here is a 400MB cost and usage report CSV, tell me the top movers month over month", "should_trigger": false, "expected": "cost-analyst"},
+  {"query": "this postgres query behind the checkout endpoint takes four seconds, explain analyze attached", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "revenue in the new model is three times what finance reports since I joined the order lines table", "should_trigger": false, "expected": "join-fanout-hunt"},
+  {"query": "the growth dashboard and the finance dashboard show different weekly active users for the same week", "should_trigger": false, "expected": "metric-reconciliation"},
+  {"query": "conversion rate fell 8% week over week, break down whether it was the traffic mix or the rate itself", "should_trigger": false, "expected": "metric-movement-decomposition"},
+  {"query": "our openai spend tripled after we launched the summariser, which prompts are costing the most", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "we expect black friday traffic to be five times normal, how many database replicas do we need", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "decide which checks the orders table should get before each publish: freshness, row volume, null rates", "should_trigger": false, "expected": "data-quality-checks"},
+  {"query": "design the tables and partitioning for a new events model before we write any CREATE TABLE", "should_trigger": false, "expected": "schema-design"}
+]
