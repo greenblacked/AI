@@ -1,0 +1,22 @@
+[
+  {"query": "our 280 character limit counts one family emoji as 11 characters and users are furious", "should_trigger": true},
+  {"query": "Japanese users say pressing Enter to pick a kanji conversion sends the chat message half-typed", "should_trigger": true},
+  {"query": "signup rejects names like O'Brien and Zoë with 'invalid characters', what should the validation be", "should_trigger": true},
+  {"query": "the counter under the bio field says 150 is fine but the API returns 'too long'", "should_trigger": true},
+  {"query": "two accounts have usernames that look exactly the same on screen, how did that get past our uniqueness check", "should_trigger": true},
+  {"query": "emoji in customer messages come out as ???? after they are saved to our MySQL database", "should_trigger": true},
+  {"query": "searching for 'cafe' doesn't find 'café' in some records even though both look the same", "should_trigger": true},
+  {"query": "what strings should our test fixtures include so text fields get tested with more than plain ASCII", "should_trigger": true},
+  {"query": "browser autofill puts the email in but our validation still says the field is required until you type something", "should_trigger": true},
+  {"query": "Arabic display names make the 'X replied to you' notification text show up in a scrambled order", "should_trigger": true},
+  {"query": "should the shipping address form be one page or split into steps, and where should errors appear", "should_trigger": false, "expected": "form-design"},
+  {"query": "rewrite our validation error messages so they tell people how to fix the problem", "should_trigger": false, "expected": "content-design"},
+  {"query": "can a screen reader user complete our signup form, check it against WCAG 2.2 AA", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "on iPhone the page zooms in whenever you tap into the search field and never zooms back out", "should_trigger": false, "expected": "webkit-only-bug-triage"},
+  {"query": "double clicking the send button posts the same comment twice", "should_trigger": false, "expected": "async-ui-races"},
+  {"query": "we are adding German and Japanese to our game and the translated text overflows the buttons", "should_trigger": false, "expected": "game-localisation"},
+  {"query": "model the users table for usernames, emails and soft delete before we write the migration", "should_trigger": false, "expected": "schema-design"},
+  {"query": "the signup form layout breaks on small phones, what breakpoints should we use", "should_trigger": false, "expected": "responsive-design"},
+  {"query": "review this endpoint for SQL injection and XSS before we ship it", "should_trigger": false, "expected": "security-review"},
+  {"query": "the text field loses what you typed after a page refresh, how do we persist drafts", "should_trigger": false}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "Hydration failed because the initial UI does not match what was rendered on the server, on our next.js pricing page", "should_trigger": true},
+  {"query": "warning: text content did not match. server: \"10/21/2026\" client: \"21.10.2026\"", "should_trigger": true},
+  {"query": "the header flashes one version then changes to another a split second after load", "should_trigger": true},
+  {"query": "sentry is full of minified react error 418 and 425 but i can't reproduce it locally", "should_trigger": true},
+  {"query": "hydration errors only show up in production, never on my machine", "should_trigger": true},
+  {"query": "a teammate added suppressHydrationWarning to twelve components, is that ok", "should_trigger": true},
+  {"query": "nuxt keeps logging hydration node mismatch on the product card component", "should_trigger": true},
+  {"query": "only users with grammarly seem to get the hydration error on our blog", "should_trigger": true},
+  {"query": "server renders the control variant and the browser renders variant b and then everything re-renders", "should_trigger": true},
+  {"query": "dark mode users see a white flash on every page load in our ssr app", "should_trigger": true},
+  {"query": "the vite spa crashes with undefined is not a function when you open settings", "should_trigger": false, "expected": "debugging"},
+  {"query": "google only indexes our homepage, the product pages are rendered client side", "should_trigger": false, "expected": "web-app-seo"},
+  {"query": "typing fast in the search box shows results for an earlier query", "should_trigger": false, "expected": "async-ui-races"},
+  {"query": "INP is 600ms on the product page and the trace shows a long hydration task before the click", "should_trigger": false, "expected": "web-vitals-triage"},
+  {"query": "after each release open tabs fail to load the next route's javascript chunk", "should_trigger": false, "expected": "deploy-version-skew"},
+  {"query": "the page looks broken only on iphone safari, works fine in chrome", "should_trigger": false, "expected": "webkit-only-bug-triage"},
+  {"query": "our new content security policy blocks the inline script that next.js injects", "should_trigger": false, "expected": "csp-report-only-rollout"},
+  {"query": "build a next.js marketing site with a blog and contact form for our agency", "should_trigger": false, "expected": "website-builder"},
+  {"query": "pasting a name with an emoji makes the character counter say 2 instead of 1", "should_trigger": false, "expected": "text-input-edge-cases"},
+  {"query": "our playwright screenshot tests fail in CI because fonts render differently", "should_trigger": false, "expected": "e2e-testing"}
+]

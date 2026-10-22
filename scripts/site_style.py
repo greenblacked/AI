@@ -1595,6 +1595,21 @@ html:not([data-theme="reactor"]) %P .plugin-word {
   to { opacity: 1; transform: none; }
 }""",
     ),
+    # Letters slide in from the side and land, like a screen being swiped into view.
+    "client-apps": PluginLook(
+        day=("#0e7490", "#6d28d9", "#be123c"),
+        night=("#67e8f9", "#c4b5fd", "#fda4af"),
+        width=0.68,
+        rules=(
+            "%P .pl { animation: pw-client-apps-swipe 0.4s ease-out "
+            "calc(var(--i) * 0.06s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-client-apps-swipe {
+  from { opacity: 0; transform: translateX(0.5em); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
 }
 
 # The shared frame. `--c` is the colour a letter or a row takes from the cycle.

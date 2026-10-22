@@ -1,0 +1,22 @@
+[
+  {"query": "pushes aren't delivered on some android phones, mostly xiaomi and huawei", "should_trigger": true},
+  {"query": "fcm says the message was sent successfully but the user never saw anything", "should_trigger": true},
+  {"query": "our silent pushes used to refresh content in the background on ios and now they barely ever wake the app", "should_trigger": true},
+  {"query": "apns keeps returning 410 for a bunch of tokens, what should the server do with them", "should_trigger": true},
+  {"query": "only 38% of new users allow notifications, we ask on the first screen", "should_trigger": true},
+  {"query": "after logging out and someone else logging in on the same phone, they got the previous user's notifications", "should_trigger": true},
+  {"query": "notifications arrive hours late when the phone has been sitting on the desk", "should_trigger": true},
+  {"query": "should chat messages be sent as fcm data messages or notification messages", "should_trigger": true},
+  {"query": "testflight builds get pushes fine but debug builds from xcode never do", "should_trigger": true},
+  {"query": "android 13 users stopped getting our alerts after the targetSdk bump", "should_trigger": true},
+  {"query": "our notification sender worker sometimes sends the same message twice after a redeploy", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "rewrite our push notification copy so it doesn't sound so robotic", "should_trigger": false, "expected": "content-design"},
+  {"query": "tapping the notification opens the app on the home screen instead of the conversation", "should_trigger": false, "expected": "deep-link-routing"},
+  {"query": "our app is near the top of the battery usage list since we started background syncing every 15 minutes", "should_trigger": false, "expected": "battery-drain-diagnosis"},
+  {"query": "how do we retire the new_onboarding flag without breaking old app versions", "should_trigger": false, "expected": "feature-flag-lifecycle"},
+  {"query": "what should page the on-call engineer and what should just be a ticket", "should_trigger": false, "expected": "alert-design"},
+  {"query": "users near the date line see yesterday's reminders", "should_trigger": false, "expected": "datetime-bug-hunt"},
+  {"query": "the app freezes for a few seconds when opening the inbox screen and android shows app not responding", "should_trigger": false, "expected": "anr-watchdog-triage"},
+  {"query": "our API returns 503s under load, how should mobile clients back off", "should_trigger": false, "expected": "lie-fi-resilience"},
+  {"query": "we need to email customers when their subscription renews, what's the most reliable way to send it", "should_trigger": false}
+]
