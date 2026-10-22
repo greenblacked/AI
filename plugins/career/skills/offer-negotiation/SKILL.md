@@ -1,6 +1,6 @@
 ---
 name: offer-negotiation
-description: Evaluate and negotiate a job offer — scoring it against priorities written down before the number arrived, decomposing total compensation into base, bonus, equity terms, sign-on, pension and benefits, finding the leverage you actually have, making one consolidated ask, arguing for a higher level, and reading the written offer before you resign. Use this skill whenever the user has an offer or expects one, says "they offered me X", asks whether an offer is any good or how to counter, is asked for salary expectations, is comparing two offers, is weighing equity against base, faces an exploding deadline, has a counteroffer from their employer, or wants to decline gracefully. Casual phrasings count — "can I ask for more", "is this equity worth anything", "they want an answer by Friday". Not for CV writing or interview preparation (job-search), promotion cases inside a company (growth-review), or running a hiring loop as the employer (hiring-loop).
+description: Evaluate and negotiate a job offer — scoring it against priorities written down before the number arrived, decomposing total compensation into base, bonus, equity terms, sign-on, pension and benefits, finding the leverage you actually have, making one consolidated ask, arguing for a higher level, and reading the written offer before you resign. Use this skill whenever the user has an offer or expects one, says "they offered me X", asks whether an offer is any good or how to counter, is asked for salary expectations, is comparing two offers, is weighing equity against base, faces an exploding deadline, has a counteroffer from their employer, or wants to decline gracefully. Casual phrasings count — "can I ask for more", "is this equity worth anything", "they want an answer by Friday". Not for CV or interview preparation (job-search, technical-interview-prep), your own raise or promotion ask (raise-negotiation), or running a hiring loop (hiring-loop).
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
@@ -21,7 +21,7 @@ The offer conversation is the highest hourly-rate conversation of a career — a
 
 Use for: deciding whether to accept, comparing offers, decomposing total compensation, understanding equity terms, planning and rehearsing the ask, levelling arguments, deadline handling, reviewing a written offer against what was said, handling a counteroffer, and declining.
 
-Do not use for: writing a CV or preparing for interview rounds, promotion and performance cases inside a current employer, running a hiring loop from the employer's side, or setting compensation bands for a team.
+Do not use for: writing a CV or preparing for interview rounds, a raise or promotion ask inside a current employer (that is `raise-negotiation`), running a hiring loop from the employer's side, or setting compensation bands for a team.
 
 ## Workflow 1: Evaluate before you negotiate
 

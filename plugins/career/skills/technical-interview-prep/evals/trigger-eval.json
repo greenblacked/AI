@@ -1,0 +1,22 @@
+[
+  {"query": "I have a coding interview in 6 weeks and I have not touched algorithms since university, where do I begin", "should_trigger": true},
+  {"query": "how many LeetCode problems should I actually do before a big tech loop", "should_trigger": true},
+  {"query": "I freeze when someone watches me code, how do I train for that", "should_trigger": true},
+  {"query": "I solve practice problems and then forget them a week later, what am I doing wrong", "should_trigger": true},
+  {"query": "which algorithm patterns come up most often and in what order should I study them", "should_trigger": true},
+  {"query": "build me an eight week schedule for live coding rounds, I can do about six hours a week", "should_trigger": true},
+  {"query": "should I switch from Java to Python for interviews", "should_trigger": true},
+  {"query": "what should I do in the last three days before my onsite coding rounds", "should_trigger": true},
+  {"query": "how do I talk through a problem out loud while I code without rambling", "should_trigger": true},
+  {"query": "when should I start doing mock interviews with a friend and what should they look for", "should_trigger": true},
+  {"query": "tailor my CV for this platform engineering role and rehearse the behavioural questions", "should_trigger": false, "expected": "job-search"},
+  {"query": "grill me on a system design round for a senior infrastructure job", "should_trigger": false, "expected": "job-search"},
+  {"query": "help me answer why I left my last company in a layoff", "should_trigger": false, "expected": "job-search"},
+  {"query": "they sent a four hour take-home and I need to decide how much to build", "should_trigger": false, "expected": "take-home-assignment"},
+  {"query": "I was rejected after the final round and want to work out what went wrong", "should_trigger": false, "expected": "interview-retrospective"},
+  {"query": "design a structured interview loop and rubric for hiring backend engineers", "should_trigger": false, "expected": "hiring-loop"},
+  {"query": "I have an offer and need to negotiate the equity and level", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "choose which unit test cases to write for this date parsing function", "should_trigger": false, "expected": "test-design"},
+  {"query": "this python function is too slow on large inputs, profile it and find the hotspot", "should_trigger": false, "expected": "profiling"},
+  {"query": "outline a conference talk about our migration and rehearse the delivery", "should_trigger": false, "expected": "conference-talk"}
+]

@@ -1,6 +1,6 @@
 ---
 name: job-search
-description: Tailor a CV, write a cover note and prepare for interviews from the user's real history as a senior infrastructure, platform or engineering-leadership candidate — reading a job description for what it is really hiring to solve, rewriting experience as outcome-first bullets, and rehearsing STAR, system-design and leadership answers. Use whenever the user pastes a job description or link, asks to tailor, rewrite, review or shorten a CV or resume, wants a cover note, is preparing for an interview or hiring loop, wants a system-design or behavioural rehearsal, or asks how to explain a gap, a layoff or a career change. Casual phrasings count — "is this CV any good", "help me apply for this one", "grill me on this role". Not for handling an offer once one arrives (offer-negotiation), writing job descriptions as a hiring manager, performance reviews or promotion packets, and never for inventing experience the user does not have.
+description: Tailor a CV, write a cover note and prepare for interviews from the user's real history as a senior infrastructure, platform or engineering-leadership candidate — reading a job description for what it is hiring to solve, rewriting experience outcome-first, and rehearsing STAR, system-design and leadership answers. Use whenever the user pastes a job description or link, asks to tailor, rewrite, review or shorten a CV or resume, wants a cover note, is preparing for an interview or hiring loop, wants a system-design or behavioural rehearsal, or asks how to explain a gap, a layoff or a career change. Casual phrasings count — "is this CV any good", "help me apply for this one", "grill me on this role". Not for an offer (offer-negotiation), coding rounds (technical-interview-prep), take-homes (take-home-assignment), interview retrospectives (interview-retrospective), hiring-side job descriptions, performance reviews or promotion packets, or inventing experience.
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
@@ -18,7 +18,7 @@ Never assert an achievement, a metric, a date, a job title or a technology the u
 
 Use for: reading a job description, rewriting experience bullets, assembling or trimming a tailored CV, writing a cover note, interview rehearsal (behavioural, system design, leadership), offer and negotiation questions, and framing gaps or a layoff.
 
-Do not use for: writing job descriptions from the hiring side, performance or promotion documents, or generating a work history the user has not lived.
+Do not use for: coding-round preparation (`technical-interview-prep`), take-home exercises (`take-home-assignment`), post-interview retrospectives (`interview-retrospective`), writing job descriptions from the hiring side, performance or promotion documents, or generating a work history the user has not lived.
 
 ## Workflow 1: Read the job description properly
 
