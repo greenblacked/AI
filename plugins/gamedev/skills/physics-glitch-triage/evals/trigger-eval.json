@@ -1,0 +1,22 @@
+[
+  {"query": "the ball goes through the wall when it's moving fast", "should_trigger": true},
+  {"query": "my character jitters when standing on a moving platform", "should_trigger": true},
+  {"query": "physics explodes when the frame rate drops below 20", "should_trigger": true},
+  {"query": "the ragdoll flings across the map when the enemy dies", "should_trigger": true},
+  {"query": "crates vibrate and creep when I stack them in a pile", "should_trigger": true},
+  {"query": "after I teleport the player they get launched into the sky", "should_trigger": true},
+  {"query": "bullets sometimes pass through thin doors but only on slow machines", "should_trigger": true},
+  {"query": "the camera shakes when following a rigidbody but the object itself looks fine", "should_trigger": true},
+  {"query": "objects spawned overlapping each other shoot apart violently", "should_trigger": true},
+  {"query": "vehicle physics behaves differently at 144 hz than at 60", "should_trigger": true},
+  {"query": "jumping feels floaty and I want coyote time and variable jump height", "should_trigger": false, "expected": "game-builder"},
+  {"query": "physics takes 8 ms a frame with a thousand bodies, how do I reduce it", "should_trigger": false, "expected": "game-performance"},
+  {"query": "two players in a rollback match end up in different positions after the same inputs", "should_trigger": false, "expected": "game-desync-forensics"},
+  {"query": "the enemy gets stuck on the doorway and doesn't path around it", "should_trigger": false, "expected": "npc-behaviour-debugging"},
+  {"query": "the game crashes when two bodies collide with a null pointer exception", "should_trigger": false, "expected": "debugging"},
+  {"query": "balance how much damage falling does to the player", "should_trigger": false, "expected": "game-balance"},
+  {"query": "design the level layout so the player has room to swing across gaps", "should_trigger": false, "expected": "game-level-design"},
+  {"query": "shader compilation hitches the first time an explosion plays", "should_trigger": false, "expected": "shader-compile-stutter"},
+  {"query": "automatically play the game in CI to check the level can be completed", "should_trigger": false, "expected": "automated-playthrough"},
+  {"query": "simulate fluid for a scientific paper and check numerical stability", "should_trigger": false}
+]

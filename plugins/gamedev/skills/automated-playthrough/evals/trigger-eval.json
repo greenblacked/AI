@@ -1,0 +1,22 @@
+[
+  {"query": "we need a smoke test for the game that runs on every commit and proves it boots and reaches the menu", "should_trigger": true},
+  {"query": "set up an overnight soak test that loads and unloads levels for hours and reports crashes", "should_trigger": true},
+  {"query": "qa saw a soft lock once and cannot reproduce it, can a bot help find it", "should_trigger": true},
+  {"query": "write a bot that plays through the first level and tells us if it can be finished", "should_trigger": true},
+  {"query": "how do I make an automated gameplay test that does not break every time the ui changes", "should_trigger": true},
+  {"query": "our ci should run the game headless and fail when it hangs, how do we detect a hang", "should_trigger": true},
+  {"query": "we want an unattended run that records its random seed so we can replay a crash", "should_trigger": true},
+  {"query": "what should a failed bot run save so someone can debug it without being there", "should_trigger": true},
+  {"query": "automate checking that every level of the game still loads after each build", "should_trigger": true},
+  {"query": "can unity play mode tests drive the game with simulated input from the command line", "should_trigger": true},
+  {"query": "write browser tests that click through the signup flow of our game's website", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "run a session with six players watching where they get confused in the tutorial", "should_trigger": false, "expected": "game-playtest"},
+  {"query": "what unit tests should cover this inventory class, and how do I structure them", "should_trigger": false, "expected": "test-design"},
+  {"query": "set a per-system memory budget and plot the staircase across level loads", "should_trigger": false, "expected": "game-memory-budget"},
+  {"query": "the game drops frames in the busy market scene, find out why", "should_trigger": false, "expected": "game-performance"},
+  {"query": "design a pipeline with build caching and parallel test jobs for our repository", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "players report that two people opening the same chest at once get different loot, who should decide the winner", "should_trigger": false, "expected": "game-netcode"},
+  {"query": "load test our matchmaking servers with fifty thousand simulated players", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "check that our drop table gives the advertised rates over ten million draws", "should_trigger": false, "expected": "loot-odds-verification"},
+  {"query": "tune enemy difficulty so the second level is not a wall for new players", "should_trigger": false, "expected": "game-balance"}
+]

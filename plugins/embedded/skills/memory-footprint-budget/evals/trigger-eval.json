@@ -1,0 +1,22 @@
+[
+  {"query": "our flash is at 97 percent and the next release will not fit, where do we start cutting", "should_trigger": true},
+  {"query": "we keep running out of RAM on the sensor board after adding the TLS library", "should_trigger": true},
+  {"query": "a task stack overflowed in testing, how do I decide how big each task stack should be", "should_trigger": true},
+  {"query": "add a check to CI that fails the pull request if the firmware image grows too much", "should_trigger": true},
+  {"query": "is it safe to call malloc in our firmware after startup or should we use pools", "should_trigger": true},
+  {"query": "what does linker section garbage collection do and why is my binary still so big", "should_trigger": true},
+  {"query": "enabling float in printf added thirty kilobytes, is there a way around it", "should_trigger": true},
+  {"query": "how do we measure how much stack each RTOS task really uses over a long run", "should_trigger": true},
+  {"query": "we need room for two image slots for over-the-air updates, how much flash should we keep free", "should_trigger": true},
+  {"query": "which source files take the most space in our firmware build and how do I find out", "should_trigger": true},
+  {"query": "the control loop takes too long, find where the CPU time goes", "should_trigger": false, "expected": "profiling"},
+  {"query": "review this driver change for races and missing timeouts", "should_trigger": false, "expected": "firmware-code-review"},
+  {"query": "the unit hard faulted with a stack error, here are the stacked registers", "should_trigger": false, "expected": "hard-fault-triage"},
+  {"query": "our game exceeds the console memory limit on loading screens", "should_trigger": false, "expected": "game-memory-budget"},
+  {"query": "where should the watchdog be fed in a multi-task application", "should_trigger": false, "expected": "watchdog-design"},
+  {"query": "how do we roll out an update to a hundred thousand devices in stages", "should_trigger": false, "expected": "ota-fleet-rollout"},
+  {"query": "the Python service keeps growing in memory until it is killed", "should_trigger": false, "expected": "python-memory-growth"},
+  {"query": "the flash chip wears out because we log too often, how do we spread writes", "should_trigger": false, "expected": "flash-storage-durability"},
+  {"query": "what should the device report about heap and stack so we can see problems in the field", "should_trigger": false, "expected": "device-telemetry-design"},
+  {"query": "a bad update left the unit unresponsive and I need to revive it on the bench", "should_trigger": false, "expected": "brick-recovery"}
+]

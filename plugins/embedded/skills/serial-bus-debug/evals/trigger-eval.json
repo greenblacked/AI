@@ -1,0 +1,92 @@
+[
+ {
+  "query": "my I2C temperature sensor never ACKs its address on the new board",
+  "should_trigger": true
+ },
+ {
+  "query": "the UART console prints garbage characters after I changed the clock",
+  "should_trigger": true
+ },
+ {
+  "query": "SPI flash read returns 0xFF for every byte",
+  "should_trigger": true
+ },
+ {
+  "query": "SDA is stuck low after a reset and the bus will not recover",
+  "should_trigger": true
+ },
+ {
+  "query": "the datasheet says address 0x90 but nothing answers at that address",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I pick pull-up resistor values for an I2C bus with a few long traces",
+  "should_trigger": true
+ },
+ {
+  "query": "we get the right bytes at 100 kHz but not at 400 kHz on the sensor bus",
+  "should_trigger": true
+ },
+ {
+  "query": "which SPI mode should I use for this ADC, I cannot tell from the datasheet",
+  "should_trigger": true
+ },
+ {
+  "query": "serial output works from the bench supply but is nonsense on the battery board",
+  "should_trigger": true
+ },
+ {
+  "query": "I have a logic analyser, what should I look for to find why this peripheral will not talk",
+  "should_trigger": true
+ },
+ {
+  "query": "my Python parser throws an exception on some inputs and I need a method to find the cause",
+  "should_trigger": false,
+  "expected": "debugging"
+ },
+ {
+  "query": "the board resets itself every few minutes and I need to know whether a watchdog is firing",
+  "should_trigger": false,
+  "expected": "watchdog-design"
+ },
+ {
+  "query": "work out the line in the source that caused this crash from the stacked PC",
+  "should_trigger": false,
+  "expected": "hard-fault-triage"
+ },
+ {
+  "query": "our Modbus RTU slave returns CRC errors intermittently over RS-485",
+  "should_trigger": false,
+  "expected": "fieldbus-debug"
+ },
+ {
+  "query": "the device draws far more current in sleep than the datasheet suggests",
+  "should_trigger": false,
+  "expected": "sleep-current-hunt"
+ },
+ {
+  "query": "the board hits a HardFault when it reads the sensor",
+  "should_trigger": false,
+  "expected": "hard-fault-triage"
+ },
+ {
+  "query": "firmware update leaves some units unbootable after a power cut",
+  "should_trigger": false,
+  "expected": "ota-update-safety"
+ },
+ {
+  "query": "the RS-485 link loses the first byte of every reply and the register reads are off by one",
+  "should_trigger": false,
+  "expected": "fieldbus-debug"
+ },
+ {
+  "query": "the board will not wake from stop mode on the I2C address match interrupt",
+  "should_trigger": false,
+  "expected": "sleep-wake-bug-hunt"
+ },
+ {
+  "query": "the settings partition in flash is corrupting after power loss",
+  "should_trigger": false,
+  "expected": "flash-storage-durability"
+ }
+]

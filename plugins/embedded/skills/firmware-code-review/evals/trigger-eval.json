@@ -1,0 +1,22 @@
+[
+  {"query": "can you review this SPI driver pull request before it goes onto the board, it has an interrupt handler and a DMA path", "should_trigger": true},
+  {"query": "check this ISR, it increments a counter that the main loop reads, is that safe on a Cortex-M0", "should_trigger": true},
+  {"query": "do a MISRA-ish review of my firmware PR, mostly the I2C code and the state machine", "should_trigger": true},
+  {"query": "I wrote a UART receive handler that copies a length-prefixed frame into a buffer, what would you flag", "should_trigger": true},
+  {"query": "look over my bootloader change for anything that could leave the heater on after a brownout", "should_trigger": true},
+  {"query": "is it okay that this timeout check compares now against start plus timeout on a 32-bit tick counter", "should_trigger": true},
+  {"query": "review the BLE stack glue I added to our nRF project, I am worried about what happens when a call fails", "should_trigger": true},
+  {"query": "my colleague says volatile is enough for sharing a 64-bit timestamp with an interrupt, review the change and tell me if he is right", "should_trigger": true},
+  {"query": "go through this motor controller diff and tell me what could hang or misbehave in the field", "should_trigger": true},
+  {"query": "audit the driver I wrote for the flash chip for missing timeouts and ignored return codes", "should_trigger": true},
+  {"query": "review my PR before I merge it", "should_trigger": false, "expected": "code-review"},
+  {"query": "check this login endpoint change for injection and broken authentication", "should_trigger": false, "expected": "security-review"},
+  {"query": "flash is at 97 percent and the next feature will not fit, how do we find what to cut", "should_trigger": false, "expected": "memory-footprint-budget"},
+  {"query": "the device hit a HardFault and I have the stacked registers, find the source line", "should_trigger": false, "expected": "hard-fault-triage"},
+  {"query": "where should the watchdog be fed so a deadlocked task is caught", "should_trigger": false, "expected": "watchdog-design"},
+  {"query": "why do our timestamps show 1970 after every reboot and how do we keep time offline", "should_trigger": false, "expected": "device-clock-handling"},
+  {"query": "is the profile of this hot function dominated by the sort or by the allocation", "should_trigger": false, "expected": "profiling"},
+  {"query": "our OTA update sometimes leaves units on the old image, what is wrong with the rollback logic", "should_trigger": false, "expected": "ota-update-safety"},
+  {"query": "write unit tests for the parsing module in our backend service", "should_trigger": false, "expected": "test-design"},
+  {"query": "the SPI bus reads all ones from the sensor and I need to work out whether it is wiring or software", "should_trigger": false, "expected": "serial-bus-debug"}
+]
