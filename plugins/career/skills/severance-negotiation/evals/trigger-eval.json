@@ -1,0 +1,22 @@
+[
+  {"query": "i was laid off today and hr sent me a separation agreement to sign by friday", "should_trigger": true},
+  {"query": "should i sign this severance agreement or ask for more", "should_trigger": true},
+  {"query": "what can i actually negotiate in an exit package apart from the lump sum", "should_trigger": true},
+  {"query": "they gave me 7 days to sign the settlement agreement. is that normal", "should_trigger": true},
+  {"query": "the agreement has a one year non compete and a general release. how worried should i be", "should_trigger": true},
+  {"query": "my company wants a mutual exit and offered three months pay. how do i respond", "should_trigger": true},
+  {"query": "how do i ask for my unvested options to accelerate as part of a layoff", "should_trigger": true},
+  {"query": "i was fired last week and they want me to sign something to get paid", "should_trigger": true},
+  {"query": "do i need a lawyer to look at my redundancy paperwork", "should_trigger": true},
+  {"query": "how do i ask for a neutral reference as part of my exit terms", "should_trigger": true},
+  {"query": "a startup offered me a job at 130k and 0.1 percent, how do i counter", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "i lost my job and need to rebuild my cv and start applying", "should_trigger": false, "expected": "job-search"},
+  {"query": "work out how long my savings last now that i have no income", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "i have to lay off two people next week, how do i hold the conversation", "should_trigger": false, "expected": "difficult-conversation"},
+  {"query": "extract the termination and renewal clauses from this vendor contract", "should_trigger": false, "expected": "contract-reader"},
+  {"query": "ask my employer for a raise this cycle", "should_trigger": false, "expected": "raise-negotiation"},
+  {"query": "my manager keeps changing my priorities and i want to push back", "should_trigger": false, "expected": "managing-up"},
+  {"query": "build a performance improvement plan for a struggling report", "should_trigger": false, "expected": "performance-improvement-plan"},
+  {"query": "how should i budget for a career break next year", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "prepare me for the system design round at my next interview", "should_trigger": false, "expected": "job-search"}
+]
