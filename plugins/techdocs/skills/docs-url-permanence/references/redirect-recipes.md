@@ -183,9 +183,10 @@ missing=$(comm -23 <(sort -u published-urls.txt) \
   <(sort -u <(cd site && find . -name '*.html' | sed 's|^\.||; s|/index\.html$|/|') \
            <(cut -d, -f1 redirects.csv | tail -n +2)))
 # A path under a pattern's prefix counts as covered; the replay proves the expansion.
+# The prefix is compared as literal text: a regex would let /v1.0/ also cover /v1x0/.
 while IFS=, read -r old _ _; do
   prefix="${old%\*}"
-  missing=$(printf '%s\n' "$missing" | grep -v -F -x -e '' | grep -v "^${prefix}" || true)
+  missing=$(printf '%s\n' "$missing" | awk -v p="$prefix" 'NF && index($0, p) != 1')
 done < <(tail -n +2 patterns.csv)
 [ -z "$missing" ] || { printf '%s\n' "$missing"; exit 1; }
 ```

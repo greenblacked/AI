@@ -86,11 +86,11 @@ volatile values, and the page only promises a few fields.
 ## The expected-output runner
 
 A minimal runner for samples without a native mechanism. Each sample `foo.py` (or any
-extension) has a sibling `foo.out`, and a `samples.json` maps extension to command.
+extension) has a sibling `foo.py.out`, and a `samples.json` maps extension to command.
 
 ```python
 #!/usr/bin/env python3
-"""Run every sample that has a .out file and diff its normalised stdout."""
+"""Run every sample and diff its normalised stdout with its .out file."""
 
 import difflib
 import json
@@ -109,21 +109,20 @@ if not any(p.suffix in commands for p in root.rglob("*")):
     print(f"nothing checked: no samples under {root}")
     sys.exit(1)
 
-# A sample with no .out file would never run and the job would stay green, so list them.
+# The expected output is named after the whole file name, so list_orders.py and
+# list_orders.js in one directory each get their own and neither can pass unrun.
 # Helper modules the samples import start with an underscore and are skipped.
-for source in sorted(
-    p for p in root.rglob("*") if p.suffix in commands and not p.name.startswith("_")
-):
-    if not source.with_suffix(".out").exists():
-        print(f"NO EXPECTED OUTPUT {source}")
+sources = sorted(p for p in root.rglob("*") if p.suffix in commands and not p.name.startswith("_"))
+for expected in sorted(root.rglob("*.out")):
+    if expected.with_suffix("") not in sources:
+        print(f"NO SOURCE {expected}")
         failed += 1
 
-for expected in sorted(root.rglob("*.out")):
-    source = next(
-        (s for s in expected.parent.glob(expected.stem + ".*") if s.suffix in commands), None
-    )
-    if source is None:
-        print(f"NO SOURCE {expected}")
+for source in sources:
+    expected = source.with_name(source.name + ".out")
+    # A sample with no expected output would never be compared and the job would stay green.
+    if not expected.exists():
+        print(f"NO EXPECTED OUTPUT {source}")
         failed += 1
         continue
     run = subprocess.run(

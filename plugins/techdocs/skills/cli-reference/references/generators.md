@@ -50,7 +50,9 @@ Points that bite:
 
 - **Generation timestamps.** cobra's doc generators append a footer naming cobra and
   the generation date unless `cmd.DisableAutoGenTag = true` is set on the root command. With the tag on, every regeneration is a diff and the freshness check
-  fails daily for no reason.
+  fails daily for no reason. `GenManTree` also writes today's date into each page's `.TH`
+  header; set `header.Date` in the `GenManHeader` it takes, or `SOURCE_DATE_EPOCH` in the
+  build, so a committed man page stays the same between runs.
 - **Hidden and deprecated flags.** Confirm the generator honours `hidden` the same way the
   help does; otherwise the web reference documents what the help hides, or the reverse.
 - **One page per subcommand.** The tree generators write one file per command. Link them
