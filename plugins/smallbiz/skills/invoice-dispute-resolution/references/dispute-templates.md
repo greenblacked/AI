@@ -27,7 +27,9 @@ Mark missing items and decide whether they can be recovered (export the email th
 
 ## Offer 2: itemised partial settlement
 
-> To resolve this, I propose the following against invoice [number]: line [x] reduced by [amount] because [reason]; lines [y, z] unchanged. The revised total is [amount], payable by [date, within seven days of your acceptance]. On receipt, the invoice is settled in full and neither of us will pursue the matter further. If you agree, please reply to confirm.
+> To resolve this, I propose the following against invoice [number]: line [x] reduced by [amount] because [reason]; lines [y, z] unchanged. I will issue credit note [number] against invoice [number], leaving that invoice unchanged: net [amount], tax [amount] at the original rate of [rate], gross [amount]. The balance due is [original gross minus credit note gross], payable by [date, within seven days of your acceptance]. On receipt, the invoice is settled in full and neither of us will pursue the matter further. If you agree, please reply to confirm.
+
+Worked example, at an example tax rate of 20% (use the rate on the original invoice): invoice 1,200 net plus 240 tax is 1,440 gross. An agreed reduction of 300 net gives a credit note of 300 net, 60 tax (300 x 20%) and 360 gross. The balance due is 1,440 - 360 = 1,080. If you are registered for VAT or an equivalent sales tax, the 60 reduces the output tax you owe; check your tax authority for when and how to adjust the return. The original invoice is not edited.
 
 ## Step 3: classification
 

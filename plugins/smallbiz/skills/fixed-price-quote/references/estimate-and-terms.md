@@ -20,18 +20,37 @@ Hours are best / likely / worst. Weighted = (best + 4 x likely + worst) / 6.
 | Testing and fixes | 4 | 6 | 10 | 6.3 | no |
 | Deployment and handover | 2 | 3 | 5 | 3.2 | no |
 
-Totals: weighted 52.0 hours, worst case 105 hours. That spread is the exposure. Add a
-buffer on the risk lines only: plan client content at 14 hours and the integration at 24,
-each a stated figure between weighted and worst case, which brings planned task hours to
-about 64.3. Also name the worst case in the assumptions ("the booking provider's
-interface is documented and stable"); for client content, state the delivery date and the
-rule that late content moves the launch.
+Totals: weighted 52.0 hours (the raw estimate), worst case 105 hours. That spread is the
+exposure. The order is: raw weighted hours, then the personal multiplier once, then the
+buffer on the risk lines only, then the rate.
 
-Then add the separate lines: project management (for example 10% of build hours, shown
-as its own line) and two revision rounds, each defined as one consolidated set of
-written changes. A third round is billed at the rate.
+Case A, fewer than 8 finished jobs, so the multiplier is unknown and nothing automatic
+applies. Plan client content at 14 hours and the integration at 24, each a stated figure
+between weighted and worst case: 12.7 + 14.0 + 24.0 + 4.2 + 6.3 + 3.2 = 64.4 hours (64.3
+from unrounded figures). Management at 10% of that is 6.4 hours; two revision rounds at
+3 raw hours each are 6.0 hours. Total 64.3 + 6.4 + 6.0 = 76.7 hours; at an example
+target rate of 70 an hour, 76.7 x 70 = 5,369.
 
-Price = (buffered task hours + management + revisions) x personal multiplier x target rate.
+Case B, 8 or more finished jobs and a median multiplier of 1.25 from
+`estimate-actuals-review`, used here for every task type to keep the arithmetic short
+(in practice use each task type's own). Multiply the raw hours once: 52.0 x 1.25 = 65.0
+hours, which is 15.8, 12.5, 19.6, 5.2, 7.9 and 4.0 hours line by line. Then buffer the
+risk lines from their multiplied figures, not by multiplying a buffered figure: plan
+client content at 16 (between 12.5 and the worst case of 24) and the integration at 28
+(between 19.6 and 40). Buffered task hours: 15.8 + 16.0 + 28.0 + 5.2 + 7.9 + 4.0 = 76.9.
+Management at 10% of that is 7.7 hours, and it is not multiplied again because it is
+taken from hours that already carry the multiplier. Two revision rounds at 3 raw hours
+are 3 x 2 x 1.25 = 7.5 hours (the multiplier applied once, to the raw hours). Total
+76.9 + 7.7 + 7.5 = 92.1 hours; at 70 an hour, 92.1 x 70 = 6,447.
+
+Also name the worst case in the assumptions ("the booking provider's interface is
+documented and stable"); for client content, state the delivery date and the rule that
+late content moves the launch. Management and two revision rounds, each defined as one
+consolidated set of written changes, stay as separate lines on the quote. A third round
+is billed at the rate.
+
+Price = (raw hours x multiplier once, then risk buffers, plus management and revisions)
+x target rate. Never multiply the multiplier into hours that already carry it.
 
 ## The quote layout
 

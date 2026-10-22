@@ -51,6 +51,8 @@ Billable hours per year = working weeks x hours per week x billable share.
 - Target = floor plus a premium for risk. Add for late payers, short or uncertain contracts, a single dominant client, and a specialised skill that is hard to replace; 15-30% is a common range and the number should be justified, not picked. The target is what you quote.
 - Walk-away = the lowest rate you accept, set above the floor so that a discounted client still leaves room, and written down before any negotiation so a conversation does not set it.
 
+If a client's hours are zero in a period, as with a reserved-capacity retainer where nothing was asked for, revenue per hour is not defined: report it as not defined and judge that client on margin against the reserved capacity.
+
 For day rates, multiply the target hourly rate by the hours of client work a billed day contracts to deliver, and define that in the agreement (for example eight). The hourly rate already carries the unbillable share, so shortening the day would count it twice and can push the day rate below the floor.
 
 ### 5. Find the minimum project size

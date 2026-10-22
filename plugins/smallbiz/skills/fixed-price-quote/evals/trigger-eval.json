@@ -17,6 +17,6 @@
   {"query": "will I have enough cash to cover rent in six weeks with two invoices outstanding", "should_trigger": false, "expected": "cashflow-forecast-13-week"},
   {"query": "which of my clients actually made me money last year once I count the hours", "should_trigger": false, "expected": "client-profitability-review"},
   {"query": "how much tax should I set aside from each payment I receive", "should_trigger": false, "expected": "tax-set-aside"},
-  {"query": "negotiate a higher base salary on the job offer I just received", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "what would customers pay for my new software product, how do I set its price", "should_trigger": false, "expected": "pricing-research"},
   {"query": "write a feature spec for the booking flow so the engineers can build it", "should_trigger": false, "expected": "feature-spec"}
 ]

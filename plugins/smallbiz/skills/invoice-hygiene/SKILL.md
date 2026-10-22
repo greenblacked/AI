@@ -46,7 +46,7 @@ Larger clients and public bodies often require submission through a supplier por
 
 ### 5. Never edit a sent invoice
 
-Once sent, an invoice is a record. To correct an error, issue a credit note that references and cancels the original in full, then issue a new invoice with a new number. Overwriting the original breaks the numbering, confuses the client's books and fails an audit. Credit notes take numbers from their own series or the same one, but consistently, and each states the invoice it reverses.
+Once sent, an invoice is a record. To correct an error, issue a credit note that references and cancels the original in full, then issue a new invoice with a new number. Overwriting the original breaks the numbering, confuses the client's books and fails an audit. Credit notes take numbers from their own series or the same one, but consistently, and each states the invoice it reverses. An agreed reduction (for example a dispute settlement) is a credit note for that amount alone against the original, showing net, tax and gross at the original's rate; the procedure is in the reference.
 
 ### 6. Keep the trail
 

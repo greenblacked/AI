@@ -13,7 +13,7 @@
   {"query": "which of my clients should I put on a higher rate", "should_trigger": false, "expected": "client-profitability-review"},
   {"query": "my client has not paid the retainer invoice", "should_trigger": false, "expected": "late-payment-chase"},
   {"query": "what rate do I need to charge per hour", "should_trigger": false, "expected": "billing-rate-calculation"},
-  {"query": "write a statement of work for a new project", "should_trigger": false, "expected": "statement-of-work"},
+  {"query": "set up a discount approval ladder so our sales reps stop closing every deal at 30 per cent off", "should_trigger": false, "expected": "discount-discipline"},
   {"query": "the client keeps asking for extra work outside the agreement", "should_trigger": false, "expected": "scope-creep-response"},
   {"query": "what clauses should my agreement have for liability", "should_trigger": false, "expected": "services-agreement-checklist"},
   {"query": "the client has stopped replying mid-project", "should_trigger": false, "expected": "stalled-project-recovery"},

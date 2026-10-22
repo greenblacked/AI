@@ -44,6 +44,14 @@ Send this to the client before the first invoice and keep their answer.
 4. File the three documents together. If the client has already paid part, the credit note
    and the new invoice net off in the books; tell the client the balance.
 
+An agreed reduction, such as a partial settlement of a dispute, is not a correction of an
+error, so no replacement invoice follows. Issue a credit note against the original invoice
+for the agreed amount only, stating net, tax and gross at the original invoice's tax rate,
+and leave the original unedited. Example at a 20% rate: a 300 net reduction is a credit
+note of 300 net, 60 tax and 360 gross. If you are registered for VAT or an equivalent sales
+tax, the credit note reduces the output tax you owe; your tax authority sets the credit
+note's required content and when the return may be adjusted, so check it.
+
 ## Diagnosing a rejected or missing invoice
 
 - Never arrived: check the address, the spam folder on their side, and ask for a

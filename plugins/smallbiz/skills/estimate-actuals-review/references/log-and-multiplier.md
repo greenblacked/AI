@@ -10,7 +10,7 @@ One row per project per task type. A spreadsheet is enough.
 | Acme site | 2026-03-14 | revisions | 8 | 14 | 6 | 0 | 1.00 | no |
 | Birch shop | 2026-04-30 | build | 60 | 57 | 0 | 0 | 0.95 | no |
 
-Every task type gets a row, including those that came in on or under estimate, so the sample is not made only of overruns. Record client-added and rework hours in their own columns. Ratio = (tracked hours - client-added hours - rework hours) / estimated hours, so it measures only your own estimating error and can be below 1.0. A task type estimated at 0 hours (unplanned work) has no ratio: log it as a missing estimate on a separate line and leave it out of the median.
+The `est h` column is the raw weighted estimate, before any multiplier or risk buffer, so the ratio measures estimating error and not padding already added. Every task type gets a row, including those that came in on or under estimate, so the sample is not made only of overruns. Record client-added and rework hours in their own columns. Ratio = (tracked hours - client-added hours - rework hours) / estimated hours, so it measures only your own estimating error and can be below 1.0. A task type estimated at 0 hours (unplanned work) has no ratio: log it as a missing estimate on a separate line and leave it out of the median.
 
 ## Worked median
 
@@ -21,7 +21,7 @@ Build ratios from non-reconstructed rows across eight projects: 1.1, 1.2, 1.25, 
 
 Applying 1.475 would overprice a typical project because of one disaster. Apply 1.35, and look at the 2.6 project separately for its cause.
 
-Multiplier use: raw build estimate 40 hours x 1.35 = 54 hours quoted. Pass the 54 into `fixed-price-quote` as the estimate, and say in the quote notes which multiplier was applied.
+Multiplier use: hand `fixed-price-quote` the raw build estimate (40 hours) and the multiplier (1.35). It applies the multiplier once, to the raw hours: 40 x 1.35 = 54 hours, and only then adds any risk buffer. Do not pass the 54 in as if it were a raw estimate, or the multiplier is applied a second time. Say in the quote notes which multiplier was applied. Below 8 finished projects there is no multiplier; say so, and use stated buffers.
 
 ## Effective hourly rate
 

@@ -1,6 +1,6 @@
 ---
 name: late-payment-chase
-description: "Collect an overdue invoice with a calm escalating sequence anchored on the due date: a friendly reminder three days before, a day-1 approval check asking for a payment date, a phone call on day 7 to the person who releases payments, a firm notice on day 14 citing the agreed late fee or statutory interest (verified from the authority) and a work pause where the contract allows, and a final demand on day 30 with a 7-day deadline. Every rung gets a payment date, not a promise; includes an ageing table. Use whenever someone asks 'client has not paid my invoice', 'invoice 30 days overdue', 'how do I chase payment politely', 'can I charge late fees', 'when do I stop work'. Not for setting payment terms in a quote (fixed-price-quote), the legal wording of late-fee clauses (services-agreement-checklist), or forecasting the cash gap (cashflow-forecast-13-week)."
+description: "Collect an overdue invoice with a calm escalating sequence anchored on the due date: a friendly reminder three days before, a day-1 approval check asking for a payment date, a phone call on day 7 to the person who releases payments, a firm notice on day 14 citing the agreed late fee or statutory interest (verified from the authority) and a work pause where the contract allows, and a final demand on day 30 whose deadline follows the local pre-action rules. Every rung gets a payment date, not a promise; includes an ageing table. Use whenever someone asks 'client has not paid my invoice', 'invoice 30 days overdue', 'how do I chase payment politely', 'can I charge late fees', 'when do I stop work'. Not for setting payment terms in a quote (fixed-price-quote), the legal wording of late-fee clauses (services-agreement-checklist), or forecasting the cash gap (cashflow-forecast-13-week)."
 allowed-tools: Read, Glob, Grep
 ---
 
@@ -34,7 +34,7 @@ Each rung has a purpose and a channel. Message templates are in `references/chas
 | Day 1 overdue | Email: confirm the invoice is approved, ask for the payment date | Move it from inbox to a scheduled run |
 | Day 7 | Phone call, not another email, to the person who releases payments | Reach the human who can act; confirm by email afterwards |
 | Day 14 | Firm written notice: amount, due date, days overdue, late fee or interest as agreed or as the law allows, and a work pause if the contract allows | Make delay cost something and signal the next step |
-| Day 30 | Formal final demand with a 7-day deadline, stating the next step | Set a last date and name the route |
+| Day 30 | Formal final demand with the deadline your local pre-action rules require, stating the next step | Set a last date that keeps a later claim safe, and name the route |
 
 The ladder is a default. Shorten it for a client with a bad record or a small business under financial strain; lengthen it only for a client who has paid reliably and gives a credible reason.
 
@@ -52,7 +52,7 @@ If the terms include a pause clause (see `fixed-price-quote`), invoke it in writ
 
 ### 6. Make the final demand, then follow through
 
-The day-30 letter states the amount, the invoice and due date, interest or fee claimed, the 7-day deadline, and the next step in plain words: referral to a collections agency, a small-claims or money claim, or mediation, whichever applies where you are. Use the local small-claims or debt-recovery process, whose steps and thresholds differ; read its official guidance before naming it. Send it by a method that proves receipt, to the contact and a senior contact. When the deadline passes, do what the letter says, or the next letter will be ignored.
+The day-30 letter states the amount, the invoice and due date, interest or fee claimed, the deadline, and the next step in plain words: referral to a collections agency, a small-claims or money claim, or mediation, whichever applies where you are. The deadline is the period your local pre-action rules require, not a number of your choosing, and filing before it ends can cost you. England and Wales is one example: the Pre-Action Protocol for Debt Claims gives an individual debtor, a sole trader included, 30 days to respond to a letter before claim, while a claim against a company falls under the Practice Direction on pre-action conduct, which expects a reasonable period, such as 14 days. Other places differ. Check the rule that applies to this debtor and this court before sending the letter and again before filing, and use a professional if the sum is large or the status of the debtor is unclear. The local small-claims or debt-recovery process has its own steps and thresholds; read its official guidance before naming it. Send it by a method that proves receipt, to the contact and a senior contact. When the deadline passes, do what the letter says, or the next letter will be ignored.
 
 ### 7. Decide the write-off line in advance
 
@@ -80,7 +80,8 @@ Contact log: [date - channel - person - outcome]
 - **Email only.** An email is easy to leave. At day 7, call the person who actually releases the payment.
 - **Accepting "this week".** It cannot be checked. Ask for a date and a method.
 - **Inventing a late fee.** An unagreed fee with no legal basis damages the claim. Cite the clause or the statute.
-- **Threats you will not carry out.** If the letter says small claims, file. An empty next step costs you the rest.
+- **Threats you will not carry out.** If the letter names a claim, file once its pre-action period has run and the local rule is met. An empty next step costs you the rest.
+- **A deadline chosen for effect.** A short deadline that is shorter than the local pre-action period can mean cost sanctions if you file on it. Use the required period.
 - **Continuing work on an unpaid account.** The debt grows. Use the pause clause.
 - **Deciding the write-off line in the moment.** Set it in advance.
 

@@ -45,9 +45,17 @@ is received, and delivery dates move accordingly.
 Day 30:
 Subject: Final demand - invoice [number]
 Hello [name], invoice [number] for [amount], due [date], remains unpaid after the
-reminders of [dates]. Unless payment of [total] is received by [date, 7 days from today],
-I will [refer the matter to collections / start a small-claims or money claim /
-propose mediation]. Payment details are attached.
+reminders of [dates]. Unless payment of [total] is received by [date, the end of the
+pre-action period your local rules require], I will [refer the matter to collections /
+start a small-claims or money claim / propose mediation]. Payment details are attached.
+
+Set that date from the local rule, not from habit. Example for England and Wales: 30 days
+from the letter for an individual debtor or sole trader under the Pre-Action Protocol for
+Debt Claims, and a reasonable period, such as 14 days, for a company under the Practice
+Direction on pre-action conduct. Other jurisdictions differ. Check the rule that applies
+before sending, and check it again before filing, because a claim filed early can attract
+cost sanctions. Where the protocol applies, the letter has its own required content, such
+as how to respond and where to find advice; take it from the official text.
 
 ## Contact log
 

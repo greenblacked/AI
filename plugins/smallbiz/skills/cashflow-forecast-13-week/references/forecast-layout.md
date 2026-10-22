@@ -42,7 +42,12 @@ Opening balance 6,000, fixed costs 1,800 a week, first four weeks shown:
 
 The lowest balance is -700 in week 4, even though the business is profitable. A
 client B invoice for 5,000 is due in week 3 on 30-day terms, but client B's median is
-52 days, so the receipt belongs in week 7. Levers: ask client A about the next invoice
+52 days from the invoice date. The invoice date is the due date minus 30 days, so the
+receipt lands 52 - 30 = 22 days after the due date. A due date on day 14 to 20 counted
+from the start of week 1 (days 0 to 6 are week 1) puts the receipt on day 36 to 42, which
+is week 6 for every due date except the last day of week 3 (day 20 + 22 = day 42, week 7).
+Use week 6. It falls after the four weeks shown, so the totals above do not change; it
+is the receipt that cannot be counted on to rescue week 4. Levers: ask client A about the next invoice
 early (chase), move the insurance to monthly instalments (defer), pause the draw for two
 weeks (cut). Rerun with those and record the new lowest balance.
 

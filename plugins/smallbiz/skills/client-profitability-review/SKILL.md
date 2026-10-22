@@ -35,6 +35,8 @@ effective hourly rate = revenue / total hours worked
 share of revenue      = client revenue / total revenue
 ```
 
+If a client has zero hours in the period, as a reserved-capacity retainer can when nothing was asked for, revenue per hour is not defined: report it as not defined, and judge that client on margin against the capacity you reserved for them.
+
 Put every client in one table, sorted by effective rate. Place your target rate from `billing-rate-calculation` beside it. A column for cost of lateness is optional: days late multiplied by the invoice value is a free loan, and it can be converted into an annual percentage to show its price. Layout and a worked example are in `references/review-table.md`.
 
 ### 3. Flag concentration

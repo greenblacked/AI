@@ -46,7 +46,7 @@ Then compare the complaint with the scope as written: is it a defect against the
 Order of offers, stopping at the first the client accepts:
 
 1. **A defined correction.** Name what you will fix, by what date, and how they will confirm acceptance. Keep it to a window (for example, one revision round within five working days) so it cannot become open-ended.
-2. **An itemised partial settlement.** If correction is not wanted or the complaint has partial merit, propose a specific reduction against named lines, payable within seven days of agreement, with the remainder confirmed as settled in writing.
+2. **An itemised partial settlement.** If correction is not wanted or the complaint has partial merit, propose a specific reduction against named lines, payable within seven days of agreement, with the remainder confirmed as settled in writing. Record the agreed reduction as a credit note against the original invoice, stating net, tax and gross at the original invoice's tax rate, and leave the original invoice unedited. If you are registered for VAT or an equivalent sales tax, the credit note reduces the output tax you owe, so the settled amount to collect is the original gross less the credit note's gross. Your tax authority sets the credit note's required content and when you may adjust your return: check it.
 3. **Formal steps from the contract.** Mediation or the dispute clause, then small claims or the equivalent. Only after steps 1 and 2 are refused.
 
 Offers are made without prejudice to your position where the law of your jurisdiction recognises that wording; ask for advice on its effect before relying on it.
