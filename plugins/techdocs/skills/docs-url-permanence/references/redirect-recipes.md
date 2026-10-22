@@ -22,6 +22,7 @@ Run before any preview deploy, and in CI on every change to the map.
 ```python
 #!/usr/bin/env python3
 """Check redirects.csv against the new build: python3 check_map.py redirects.csv site/"""
+
 import csv
 import sys
 from pathlib import Path

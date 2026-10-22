@@ -147,10 +147,7 @@ def main():
             errors.append(f"{code}: namespace not registered")
         if entry.get("status") not in STATUSES:
             errors.append(f"{code}: status must be one of {', '.join(STATUSES)}")
-        if (
-            not isinstance(entry.get("retryable"), bool)
-            and entry.get("status") != "retired"
-        ):
+        if not isinstance(entry.get("retryable"), bool) and entry.get("status") != "retired":
             errors.append(f"{code}: retryable must be true or false")
 
     # Compared as Path objects so `./src/x.ts` and `src/x.ts` name the same file.
@@ -162,8 +159,10 @@ def main():
     sep = re.escape(args.separator)
     tail = "[0-9]{3,5}"  # numbered codes only; readable codes supply --pattern
     if not args.pattern and args.separator != "-":
-        p.error("--pattern is required with a separator other than '-'; "
-                "match quoted string literals so billing.charge() is not read as a code")
+        p.error(
+            "--pattern is required with a separator other than '-'; "
+            "match quoted string literals so billing.charge() is not read as a code"
+        )
     pattern = args.pattern or rf"\b(?:{names}){sep}{tail}\b"
     in_source = codes_in_source(args.src, re.compile(pattern), excluded)
     for code, where in sorted(in_source.items()):
@@ -193,13 +192,9 @@ def main():
         for code, old in sorted(base.items()):
             new = registry.get(code)
             if new is None:
-                errors.append(
-                    f"{code}: removed from the registry; mark it retired instead"
-                )
+                errors.append(f"{code}: removed from the registry; mark it retired instead")
             elif ORDER.get(new.get("status"), -1) < ORDER.get(old.get("status"), -1):
-                errors.append(
-                    f"{code}: status moved back from {old['status']} to {new['status']}"
-                )
+                errors.append(f"{code}: status moved back from {old['status']} to {new['status']}")
 
     for line in errors:
         print(f"error: {line}", file=sys.stderr)

@@ -91,6 +91,7 @@ extension) has a sibling `foo.out`, and a `samples.json` maps extension to comma
 ```python
 #!/usr/bin/env python3
 """Run every sample that has a .out file and diff its normalised stdout."""
+
 import difflib
 import json
 import re
@@ -99,7 +100,7 @@ import sys
 from pathlib import Path
 
 root = Path(sys.argv[1])
-commands = json.loads((root / "samples.json").read_text())   # {".py": ["python3"], ".js": ["node"]}
+commands = json.loads((root / "samples.json").read_text())  # {".py": ["python3"], ".js": ["node"]}
 masks = [(re.compile(p), r) for p, r in json.loads((root / "masks.json").read_text())]
 failed = 0
 
@@ -110,26 +111,35 @@ if not any(p.suffix in commands for p in root.rglob("*")):
 
 # A sample with no .out file would never run and the job would stay green, so list them.
 # Helper modules the samples import start with an underscore and are skipped.
-for source in sorted(p for p in root.rglob("*") if p.suffix in commands and not p.name.startswith("_")):
+for source in sorted(
+    p for p in root.rglob("*") if p.suffix in commands and not p.name.startswith("_")
+):
     if not source.with_suffix(".out").exists():
         print(f"NO EXPECTED OUTPUT {source}")
         failed += 1
 
 for expected in sorted(root.rglob("*.out")):
-    source = next((s for s in expected.parent.glob(expected.stem + ".*") if s.suffix in commands), None)
+    source = next(
+        (s for s in expected.parent.glob(expected.stem + ".*") if s.suffix in commands), None
+    )
     if source is None:
         print(f"NO SOURCE {expected}")
         failed += 1
         continue
-    run = subprocess.run(commands[source.suffix] + [str(source)], capture_output=True, text=True, timeout=120)
+    run = subprocess.run(
+        commands[source.suffix] + [str(source)], capture_output=True, text=True, timeout=120
+    )
     actual = run.stdout
     for pattern, replacement in masks:
         actual = pattern.sub(replacement, actual)
     if run.returncode != 0 or actual != expected.read_text():
         failed += 1
         print(f"FAIL {source} (exit {run.returncode})")
-        sys.stdout.writelines(difflib.unified_diff(
-            expected.read_text().splitlines(True), actual.splitlines(True), "expected", "actual"))
+        sys.stdout.writelines(
+            difflib.unified_diff(
+                expected.read_text().splitlines(True), actual.splitlines(True), "expected", "actual"
+            )
+        )
         print(run.stderr[-2000:])
 
 sys.exit(1 if failed else 0)

@@ -90,12 +90,30 @@ moving between `text`, `sh` and `console`. Give a bare fence that holds output a
 ```python
 #!/usr/bin/env python3
 """Fail on pasted runnable code blocks in Markdown docs."""
+
 import re
 import sys
 from pathlib import Path
 
-RUNNABLE = {"python", "py", "go", "rust", "rs", "js", "javascript", "ts", "typescript",
-            "java", "kotlin", "csharp", "cs", "ruby", "rb", "php", "swift"}
+RUNNABLE = {
+    "python",
+    "py",
+    "go",
+    "rust",
+    "rs",
+    "js",
+    "javascript",
+    "ts",
+    "typescript",
+    "java",
+    "kotlin",
+    "csharp",
+    "cs",
+    "ruby",
+    "rb",
+    "php",
+    "swift",
+}
 INCLUDE = re.compile(r"^\s*(--8<--|\{\{#(rustdoc_)?include|include::)")
 # Any indent: fences inside list items and admonitions sit four or more spaces in.
 OPEN = re.compile(r"^(\s*)(`{3,}|~{3,})\s*([\w+-]*)")

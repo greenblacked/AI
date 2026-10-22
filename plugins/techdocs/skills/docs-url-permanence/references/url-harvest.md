@@ -117,6 +117,7 @@ Then rank by inbound value:
 ```python
 #!/usr/bin/env python3
 """Union harvested URLs into old-urls.csv: path,fragment,tier,sources."""
+
 import csv
 import sys
 from urllib.parse import parse_qsl, urlencode, urlsplit
@@ -127,7 +128,11 @@ rows = {}
 
 def add(raw, source, tier):
     parts = urlsplit(raw.strip() if "://" in raw else "https://x" + raw.strip())
-    query = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if not k.startswith(TRACKING)]
+    query = [
+        (k, v)
+        for k, v in parse_qsl(parts.query, keep_blank_values=True)
+        if not k.startswith(TRACKING)
+    ]
     path = parts.path or "/"
     if query:
         path += "?" + urlencode(query)
