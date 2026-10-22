@@ -24,7 +24,7 @@ Do not use for: finding what consumed the space (`disk-full-triage`); a device t
 lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS
 df -hT
 findmnt -no SOURCE,FSTYPE /var
-pvs; vgs; lvs -a -o+devices
+pvs; vgs; lvs -a -o +devices
 ```
 
 Write down which layers exist between the physical disk and the mount: bare partition, LVM, LUKS (`TYPE crypt` in `lsblk`), software RAID, multipath. The commands differ per layer and the order is fixed by the stack: you grow from the bottom to the top. Note the filesystem type, which decides the tool: `ext4` uses `resize2fs`, `xfs` uses `xfs_growfs`, `btrfs` uses `btrfs filesystem resize`.

@@ -76,8 +76,9 @@ cp -a /root/sudoers.good/sudoers.d /etc/sudoers.d
 # Include targets outside those paths were saved under include/ with their full paths.
 # Restore files and symlinks one by one, never a directory: copying a saved directory
 # onto / or /etc would stamp the snapshot's mode and timestamps onto the live one.
-# An empty include/ restores nothing and is not an error.
+# A missing or empty include/ restores nothing and is not an error.
 for snap in /root/ssh.good/include /root/sudoers.good/include; do
+  test -d "$snap" || continue
   (cd "$snap" && find . \( -type f -o -type l \) -print0) |
     while IFS= read -r -d '' f; do cp -a "$snap/$f" "/${f#./}"; done
 done

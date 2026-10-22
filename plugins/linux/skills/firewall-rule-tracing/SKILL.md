@@ -87,15 +87,15 @@ snap=$(mktemp /root/fw-snap.XXXXXX)    # under /root, never a predictable /tmp p
 nft list table inet filter > "$snap"
 if test -s "$snap"; then
   { echo 'table inet filter'; echo 'delete table inet filter'; cat "$snap"; } > /root/fw-rollback.nft
-  systemd-run --on-active=5min --unit=fw-rollback /usr/sbin/nft -f /root/fw-rollback.nft
+  systemd-run --on-active=5min --unit=fw-rollback /usr/sbin/nft -f /root/fw-rollback.nft &&
+  nft -c -f /root/new-rules.nft &&     # syntax and semantic check, changes nothing
+  nft -f /root/new-rules.nft           # atomic: the whole file applies or none of it
 else
-  echo 'snapshot empty: stop, do not arm the rollback' >&2
+  echo 'snapshot empty: stop, nothing applied and no rollback armed' >&2
 fi
-nft -c -f /root/new-rules.nft          # syntax and semantic check, changes nothing
-nft -f /root/new-rules.nft             # atomic: the whole file applies or none of it
 ```
 
-Replace `inet filter` with the table you are changing. The `if test -s` guard writes the rollback file and arms the timer only when the save produced something: an empty snapshot would turn the rollback into deleting the table and loading nothing, so on the `else` branch stop and fix the save, and do not run the `nft -f` line below until the timer is armed. Restoring one table is deliberate: `nft flush ruleset` also removes the tables Docker and firewalld own, and they do not come back until restarted. Then test a fresh connection from a second session, and only when it passes cancel the rollback (`systemctl stop fw-rollback.timer`) and persist: write your table to the file the distribution loads (`/etc/nftables.conf` on Debian family, `/etc/sysconfig/nftables.conf` on RHEL family), or use the manager's own save. `at now + 5 minutes` with the same restore command works where `at` is installed. Read `references/trace-recipes.md` for rollback variants.
+Replace `inet filter` with the table you are changing. The `if test -s` guard writes the rollback file, arms the timer and only then applies the new rules, all inside the branch: an empty snapshot would turn the rollback into deleting the table and loading nothing, so on the `else` branch nothing is applied; fix the save and run the block again. A failed `systemd-run` or check also stops before the change. Restoring one table is deliberate: `nft flush ruleset` also removes the tables Docker and firewalld own, and they do not come back until restarted. Then test a fresh connection from a second session, and only when it passes cancel the rollback (`systemctl stop fw-rollback.timer`) and persist: write your table to the file the distribution loads (`/etc/nftables.conf` on Debian family, `/etc/sysconfig/nftables.conf` on RHEL family), or use the manager's own save. `at now + 5 minutes` with the same restore command works where `at` is installed. Read `references/trace-recipes.md` for rollback variants.
 
 ## Output format
 
