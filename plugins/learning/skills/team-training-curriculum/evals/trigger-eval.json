@@ -1,0 +1,22 @@
+[
+  {"query": "we need to upskill the whole platform team on Kubernetes over the next two months, how should we structure it", "should_trigger": true},
+  {"query": "design a training programme for the four new SREs starting in January", "should_trigger": true},
+  {"query": "I need a curriculum for our graduate intake that actually gets them shipping by month three", "should_trigger": true},
+  {"query": "our internal bootcamp is a list of talks and nobody can do the job afterwards, how do I rebuild it", "should_trigger": true},
+  {"query": "how do I decide which topics to teach the support team about our new billing system and in what order", "should_trigger": true},
+  {"query": "plan a six week learning path for engineers moving from the monolith to our service platform", "should_trigger": true},
+  {"query": "what should the capstone be for an internal security champions programme", "should_trigger": true},
+  {"query": "we have budget for training the data team, how do I work out what they actually need before booking courses", "should_trigger": true},
+  {"query": "how many hours a week can I reasonably ask the cohort to give to our internal training", "should_trigger": true},
+  {"query": "which of our training modules should we drop, nobody seems to use what we taught", "should_trigger": true},
+  {"query": "plan a hands-on Terraform workshop for next Thursday, half a day for twenty people", "should_trigger": false, "expected": "workshop-design"},
+  {"query": "write the first ninety days for the engineer who starts on Monday", "should_trigger": false, "expected": "onboarding-plan"},
+  {"query": "did our onboarding course change how people review code, how do I show it", "should_trigger": false, "expected": "training-effectiveness-check"},
+  {"query": "roll out an AI coding assistant to the engineering org and set the guardrails", "should_trigger": false, "expected": "ai-enablement"},
+  {"query": "map who on my team knows which technologies so I can see where the gaps are", "should_trigger": false, "expected": "team-skills-matrix"},
+  {"query": "design one practice exercise with hints and a check for learning git rebase", "should_trigger": false, "expected": "exercise-design"},
+  {"query": "I want to learn Rust myself over the next three months, how do I plan it", "should_trigger": false, "expected": "skill-acquisition-plan"},
+  {"query": "hand over the weekly release duty to a colleague with gates before they run it alone", "should_trigger": false, "expected": "shadow-reverse-shadow"},
+  {"query": "prepare my promotion case and growth plan for a senior engineer on my team", "should_trigger": false, "expected": "growth-review"},
+  {"query": "set up a regular mentoring relationship between a staff engineer and a mid-level one", "should_trigger": false, "expected": "mentoring-cycle"}
+]

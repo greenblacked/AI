@@ -1,0 +1,22 @@
+[
+  {"query": "our only DBA is leaving in a month and everything about how our databases behave is in her head. how do we get it out", "should_trigger": true},
+  {"query": "capture what she knows about the billing batch before her last day", "should_trigger": true},
+  {"query": "Priya is the only one who understands the ledger reconciliation system and she leaves in six weeks, how do we get it out of her head", "should_trigger": true},
+  {"query": "how do i interview a senior engineer who's retiring so that the judgement calls he makes don't walk out the door", "should_trigger": true},
+  {"query": "the person who knows why the legacy scheduler misbehaves is overloaded and has no time to write anything. how do i get their knowledge", "should_trigger": true},
+  {"query": "i keep asking our architect to document what he knows and he just says it's all obvious. what else can i try", "should_trigger": true},
+  {"query": "turn an expert's instincts into rules a newer engineer can follow when the system acts up", "should_trigger": true},
+  {"query": "how do we check that the notes we took from the interviews are actually usable by someone else", "should_trigger": true},
+  {"query": "critical incident interview technique for pulling out expert reasoning", "should_trigger": true},
+  {"query": "she's the only one who understands the year-end tax batch and she leaves friday, what should i ask her", "should_trigger": true},
+  {"query": "document this service for the wiki before i go on leave", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "write the runbook for when the queue backs up", "should_trigger": false, "expected": "runbook"},
+  {"query": "write up last week's outage as a blameless review", "should_trigger": false, "expected": "postmortem"},
+  {"query": "train a colleague to run the release while i'm away, with sign-off at each stage", "should_trigger": false, "expected": "shadow-reverse-shadow"},
+  {"query": "i want to learn about databases properly over the next six months", "should_trigger": false, "expected": "skill-acquisition-plan"},
+  {"query": "i'm new to payments and need to understand the domain quickly", "should_trigger": false, "expected": "domain-ramp-up"},
+  {"query": "map the codebase of this unfamiliar repository so i can start work on it", "should_trigger": false, "expected": "codebase-orientation"},
+  {"query": "summarise this book chapter into notes i can keep", "should_trigger": false, "expected": "learning-notes"},
+  {"query": "work out who on my team is the sole expert on each system", "should_trigger": false, "expected": "team-skills-matrix"},
+  {"query": "plan the first 30 days for the engineer who is replacing our departing lead", "should_trigger": false, "expected": "onboarding-plan"}
+]

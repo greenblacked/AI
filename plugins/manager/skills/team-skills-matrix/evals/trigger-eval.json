@@ -1,0 +1,92 @@
+[
+  {
+"query": "what happens to the payments service if Priya is out for a month",
+"should_trigger": true
+},
+  {
+"query": "build a skills matrix for my team of eight",
+"should_trigger": true
+},
+  {
+"query": "we have one person who knows how the nightly reconciliation works and I am worried",
+"should_trigger": true
+},
+  {
+"query": "who on the team can actually restore the database from backup besides me",
+"should_trigger": true
+},
+  {
+"query": "find our bus factor problems and make a cross training plan",
+"should_trigger": true
+},
+  {
+"query": "our release process lives in one engineer's head, how do I spread it",
+"should_trigger": true
+},
+  {
+"query": "which capabilities would stop if our most senior person left tomorrow",
+"should_trigger": true
+},
+  {
+"query": "help me see where the team has no coverage for the roadmap next two quarters",
+"should_trigger": true
+},
+  {
+"query": "set up a rotation so more than one person can handle on call for the billing system",
+"should_trigger": true
+},
+  {
+"query": "map who knows what across the team and pick the riskiest gaps to close first",
+"should_trigger": true
+},
+  {
+"query": "evaluate how my report is growing and whether she is ready for promotion",
+"should_trigger": false,
+"expected": "growth-review"
+},
+  {
+"query": "plan the first month for a new engineer joining next week",
+"should_trigger": false,
+"expected": "onboarding-plan"
+},
+  {
+"query": "how many servers do we need for the traffic forecast next year",
+"should_trigger": false,
+"expected": "capacity-planning"
+},
+  {
+"query": "which of my people are likely to leave and what should I ask them",
+"should_trigger": false,
+"expected": "retention-review"
+},
+  {
+"query": "run a shadow reverse shadow handover of the payroll job from Dan to Mei",
+"should_trigger": false,
+"expected": "shadow-reverse-shadow"
+},
+  {
+"query": "interview our retiring architect to capture what he knows that is not written down",
+"should_trigger": false,
+"expected": "tacit-knowledge-elicitation"
+},
+  {
+"query": "justify two more engineers to finance",
+"should_trigger": false,
+"expected": "headcount-case"
+},
+  {
+"query": "review the on-call load and burnout on our rotation",
+"should_trigger": false,
+"expected": "oncall-health-review"
+},
+  {
+"query": "design a new team structure after the merger",
+"should_trigger": false,
+"expected": "reorg-design"
+},
+  {
+"query": "write a performance improvement plan for an underperforming engineer",
+"should_trigger": false,
+"expected": "performance-improvement-plan"
+}
+]

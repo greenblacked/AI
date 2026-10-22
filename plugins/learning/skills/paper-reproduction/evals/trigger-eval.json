@@ -1,0 +1,92 @@
+[
+  {
+    "query": "can we reproduce the numbers in this paper before we build on it",
+    "should_trigger": true
+  },
+  {
+    "query": "implement the method from this paper and tell me whether it works on our data",
+    "should_trigger": true
+  },
+  {
+    "query": "their repo doesn't match the paper's results table; where do I even start",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to port a published training recipe to our dataset and see if the gain holds",
+    "should_trigger": true
+  },
+  {
+    "query": "we got three points below the reported accuracy; is the paper wrong or is our code wrong",
+    "should_trigger": true
+  },
+  {
+    "query": "how long should I spend trying to replicate a result from an arXiv paper",
+    "should_trigger": true
+  },
+  {
+    "query": "the authors' code runs but gives different numbers from the paper; what do I check first",
+    "should_trigger": true
+  },
+  {
+    "query": "write up whether this published method is reproduced, partly reproduced or not",
+    "should_trigger": true
+  },
+  {
+    "query": "paper leaves out the learning-rate schedule and warm-up; how do I handle the gaps in my reimplementation",
+    "should_trigger": true
+  },
+  {
+    "query": "should we spend two weeks reproducing this benchmark claim or just trust it",
+    "should_trigger": true
+  },
+  {
+    "query": "summarise this arXiv paper and tell me if it is believable",
+    "should_trigger": false,
+    "expected": "paper-reading"
+  },
+  {
+    "query": "survey the literature on retrieval for code and map the field",
+    "should_trigger": false,
+    "expected": "literature-scan"
+  },
+  {
+    "query": "compare four optimisers fairly under the same tuning budget",
+    "should_trigger": false,
+    "expected": "fair-method-comparison"
+  },
+  {
+    "query": "pin the python and CUDA versions so my analysis reruns in a year",
+    "should_trigger": false,
+    "expected": "reproducible-analysis-environment"
+  },
+  {
+    "query": "two identical training runs give different losses and I want to find why",
+    "should_trigger": false,
+    "expected": "nondeterminism-bisect"
+  },
+  {
+    "query": "write notes from the paper I just finished",
+    "should_trigger": false,
+    "expected": "learning-notes"
+  },
+  {
+    "query": "evaluate my own retriever on a held-out question set",
+    "should_trigger": false,
+    "expected": "retrieval-evaluation"
+  },
+  {
+    "query": "tell me how to read papers without losing a whole day",
+    "should_trigger": false,
+    "expected": "paper-reading"
+  },
+  {
+    "query": "check whether the statistics in this paper are sound, p-values and all",
+    "should_trigger": false,
+    "expected": "paper-statistics-review"
+  },
+  {
+    "query": "my NaN loss appears after step 4000 and I need its origin",
+    "should_trigger": false,
+    "expected": "nan-origin-trace"
+  }
+]

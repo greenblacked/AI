@@ -1,0 +1,22 @@
+[
+  {"query": "write exercises for my workshop on docker networking, each one should teach one thing", "should_trigger": true},
+  {"query": "design a lab for learning git rebase that people can do on their own", "should_trigger": true},
+  {"query": "my tutorial exercises are either too hard or too easy and learners keep getting stuck, how do i calibrate them", "should_trigger": true},
+  {"query": "i want to make a kata for practising refactoring legacy code, how should it be built", "should_trigger": true},
+  {"query": "how do i write hints for a programming exercise so they help without giving the answer away", "should_trigger": true},
+  {"query": "create a self-paced lab where students fix a broken kubernetes deployment, with a script that tells them when they're done", "should_trigger": true},
+  {"query": "how long should i say an exercise takes, mine always runs over when other people try it", "should_trigger": true},
+  {"query": "build a coding exercise with starter code and failing tests for teaching closures in javascript", "should_trigger": true},
+  {"query": "what makes a good practice problem for sql window functions, i'm writing a course", "should_trigger": true},
+  {"query": "learners get an unreadable stack trace when they make the obvious mistake in my lab, what should i do about it", "should_trigger": true},
+  {"query": "plan the whole schedule for a one-day terraform workshop", "should_trigger": false, "expected": "workshop-design"},
+  {"query": "what tests should i write for my pricing function", "should_trigger": false, "expected": "test-design"},
+  {"query": "design a take-home assignment for backend candidates", "should_trigger": false, "expected": "hiring-loop"},
+  {"query": "i'm preparing for a coding interview next week, what should i practise", "should_trigger": false, "expected": "technical-interview-prep"},
+  {"query": "make me a plan to learn rust over the next four months", "should_trigger": false, "expected": "skill-acquisition-plan"},
+  {"query": "how do i prepare for a certification exam in three weeks", "should_trigger": false, "expected": "exam-prep-plan"},
+  {"query": "i have a take-home to do for a job application, how should i approach it", "should_trigger": false, "expected": "take-home-assignment"},
+  {"query": "write a tutorial article that walks readers through setting up a CI pipeline", "should_trigger": false, "expected": "write-technical-article"},
+  {"query": "what's the quickest way to learn a new library by building something small", "should_trigger": false, "expected": "learn-new-technology"},
+  {"query": "design the levels of a puzzle game so the difficulty ramps well", "should_trigger": false, "expected": "game-level-design"}
+]

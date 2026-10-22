@@ -1,0 +1,92 @@
+[
+  {
+    "query": "my Slurm job died overnight and the output file just stops, no error",
+    "should_trigger": true
+  },
+  {
+    "query": "job exited with code 137, what killed it",
+    "should_trigger": true
+  },
+  {
+    "query": "sacct says TIMEOUT but my code only needs about two hours",
+    "should_trigger": true
+  },
+  {
+    "query": "state is OUT_OF_MEMORY although I asked for 64G",
+    "should_trigger": true
+  },
+  {
+    "query": "I submitted an array of 200 and about 30 tasks failed, where do I start",
+    "should_trigger": true
+  },
+  {
+    "query": "squeue shows my job gone, sacct says NODE_FAIL",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I read seff output for a failed job",
+    "should_trigger": true
+  },
+  {
+    "query": "the MPI job aborted with 'rank 57 exited' and the log is full of errors from every rank",
+    "should_trigger": true
+  },
+  {
+    "query": "the script runs fine on the login node but fails when submitted with sbatch",
+    "should_trigger": true
+  },
+  {
+    "query": "sacct MaxRSS is tiny for the batch step yet the job was killed for memory",
+    "should_trigger": true
+  },
+  {
+    "query": "the pod keeps restarting with OOMKilled and CrashLoopBackOff",
+    "should_trigger": false,
+    "expected": "k8s-triage"
+  },
+  {
+    "query": "our GitHub Actions workflow is red after the last merge",
+    "should_trigger": false,
+    "expected": "ci-triage"
+  },
+  {
+    "query": "how much memory and how many cores should I request for my alignment jobs",
+    "should_trigger": false,
+    "expected": "hpc-resource-sizing"
+  },
+  {
+    "query": "my python function returns the wrong answer for negative inputs",
+    "should_trigger": false,
+    "expected": "debugging"
+  },
+  {
+    "query": "design checkpointing so my 48 hour simulation can resume after the time limit",
+    "should_trigger": false,
+    "expected": "checkpoint-restart-design"
+  },
+  {
+    "query": "two runs of the same job give slightly different results",
+    "should_trigger": false,
+    "expected": "nondeterminism-bisect"
+  },
+  {
+    "query": "my loss became NaN at step 40000",
+    "should_trigger": false,
+    "expected": "nan-origin-trace"
+  },
+  {
+    "query": "the process was OOM killed on my own Linux server, dmesg shows the oom-killer",
+    "should_trigger": false,
+    "expected": "oom-kill-forensics"
+  },
+  {
+    "query": "my dataset is larger than RAM, how do I process it in chunks",
+    "should_trigger": false,
+    "expected": "out-of-core-dataset-handling"
+  },
+  {
+    "query": "write a Dockerfile for my analysis code",
+    "should_trigger": false,
+    "expected": "code-scaffold"
+  }
+]

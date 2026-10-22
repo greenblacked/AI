@@ -1,0 +1,92 @@
+[
+  {
+    "query": "my five day simulation keeps getting killed by the walltime limit and I lose everything",
+    "should_trigger": true
+  },
+  {
+    "query": "add checkpointing to this training script so it can resume where it died",
+    "should_trigger": true
+  },
+  {
+    "query": "we are moving to the preemptible queue and jobs can be taken away at any moment, how do I make the run survive",
+    "should_trigger": true
+  },
+  {
+    "query": "how often should I write a checkpoint if saving takes two minutes and nodes fail about every half day",
+    "should_trigger": true
+  },
+  {
+    "query": "I resumed from a checkpoint but the loss curve jumps, what state did I forget to save",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I catch the slurm warning signal before timeout, save, and requeue automatically",
+    "should_trigger": true
+  },
+  {
+    "query": "my job died while writing its checkpoint and now the file is corrupt",
+    "should_trigger": true
+  },
+  {
+    "query": "how can I test that restarting from a checkpoint gives the same final answer as an uninterrupted run",
+    "should_trigger": true
+  },
+  {
+    "query": "make this week long monte carlo run restartable on any node of the cluster",
+    "should_trigger": true
+  },
+  {
+    "query": "a 3 day optimisation keeps being evicted overnight, how do I stop losing the progress",
+    "should_trigger": true
+  },
+  {
+    "query": "how do consumers of our event queue shut down cleanly mid-batch without losing messages",
+    "should_trigger": false,
+    "expected": "event-driven-reliability"
+  },
+  {
+    "query": "my slurm job ended with TIMEOUT, work out what happened and what to change",
+    "should_trigger": false,
+    "expected": "slurm-job-failure-triage"
+  },
+  {
+    "query": "design backups and restore tests for our production database",
+    "should_trigger": false,
+    "expected": "backup-recovery-design"
+  },
+  {
+    "query": "how do we make consumers of the event queue retry safely without duplicates",
+    "should_trigger": false,
+    "expected": "event-driven-reliability"
+  },
+  {
+    "query": "how much memory and walltime should I request for the next submission",
+    "should_trigger": false,
+    "expected": "hpc-resource-sizing"
+  },
+  {
+    "query": "same seed gives different results on each run, find out why",
+    "should_trigger": false,
+    "expected": "nondeterminism-bisect"
+  },
+  {
+    "query": "backfill the new column in batches without taking the table down",
+    "should_trigger": false,
+    "expected": "safe-backfill"
+  },
+  {
+    "query": "run an incident response for the outage that started an hour ago",
+    "should_trigger": false,
+    "expected": "incident-response"
+  },
+  {
+    "query": "process a dataset that does not fit in memory using parquet",
+    "should_trigger": false,
+    "expected": "out-of-core-dataset-handling"
+  },
+  {
+    "query": "capture my python environment so a collaborator can reproduce the run",
+    "should_trigger": false,
+    "expected": "reproducible-analysis-environment"
+  }
+]

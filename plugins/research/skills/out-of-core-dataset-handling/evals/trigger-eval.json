@@ -1,0 +1,22 @@
+[
+  {"query": "pandas read_csv dies with a MemoryError on my 40 GB file", "should_trigger": true},
+  {"query": "how do I process a 200 GB csv on a single workstation with 64 GB of ram", "should_trigger": true},
+  {"query": "my dataframe does not fit in memory, what are my options short of renting a cluster", "should_trigger": true},
+  {"query": "should I convert my giant csv to parquet and what row group size should I use", "should_trigger": true},
+  {"query": "duckdb or polars or dask for a group by over 500 million rows", "should_trigger": true},
+  {"query": "the kernel keeps getting killed when I load the whole table into pandas", "should_trigger": true},
+  {"query": "I want to prototype on a small sample of a huge table and then be sure the full run gives the same answer", "should_trigger": true},
+  {"query": "how can I read just three columns of a very wide parquet dataset and filter on date without loading everything", "should_trigger": true},
+  {"query": "processing a big log export row by row crashes after hours and I have to start from scratch every time", "should_trigger": true},
+  {"query": "the join of two huge tables runs out of memory in pandas", "should_trigger": true},
+  {"query": "this postgres query over 100 million rows takes minutes, how do I read the plan", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "design the tables and keys for our orders and customers data", "should_trigger": false, "expected": "schema-design"},
+  {"query": "how many cores and how much memory should I request for the cluster job", "should_trigger": false, "expected": "hpc-resource-sizing"},
+  {"query": "add checkpointing so my long processing job can resume after being killed", "should_trigger": false, "expected": "checkpoint-restart-design"},
+  {"query": "my python service memory grows over days and never goes down", "should_trigger": false, "expected": "python-memory-growth"},
+  {"query": "backfill a new column across a billion row production table without locking it", "should_trigger": false, "expected": "safe-backfill"},
+  {"query": "profile where the time goes in my pandas pipeline", "should_trigger": false, "expected": "profiling"},
+  {"query": "our warehouse bill jumped and I need to see which scans cost the most", "should_trigger": false, "expected": "cost-review"},
+  {"query": "pin the python and library versions for my analysis so it reruns the same way", "should_trigger": false, "expected": "reproducible-analysis-environment"},
+  {"query": "my results differ every run even with a fixed seed", "should_trigger": false, "expected": "nondeterminism-bisect"}
+]

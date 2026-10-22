@@ -1,0 +1,22 @@
+[
+  {"query": "summarise this arXiv paper and tell me if it's worth implementing", "should_trigger": true},
+  {"query": "how do I read research papers without losing a whole day on each one", "should_trigger": true},
+  {"query": "is this paper's claim believable, the improvement looks suspiciously large", "should_trigger": true},
+  {"query": "here is a PDF on a new attention variant, should my team try it", "should_trigger": true},
+  {"query": "I only have an hour, how do I decide whether to read this paper properly or skip it", "should_trigger": true},
+  {"query": "check whether the baselines in this paper were tuned fairly and whether the results have error bars", "should_trigger": true},
+  {"query": "what is the actual claim of this paper in one sentence and what evidence would make me trust it", "should_trigger": true},
+  {"query": "my manager sent me a paper on a new database index structure and wants a view by tomorrow", "should_trigger": true},
+  {"query": "could the test set in this benchmark paper have leaked into the training data", "should_trigger": true},
+  {"query": "give me an adopt, watch or ignore call on this paper about speculative decoding", "should_trigger": true},
+  {"query": "survey the research on log anomaly detection and organise the approaches", "should_trigger": false, "expected": "literature-scan"},
+  {"query": "add this paper to my notes and link it to what I already have in my vault", "should_trigger": false, "expected": "learning-notes"},
+  {"query": "compare our retriever with the candidate index on a frozen benchmark", "should_trigger": false, "expected": "retrieval-evaluation"},
+  {"query": "write the decision record for adopting the approach from that paper", "should_trigger": false, "expected": "decision-record"},
+  {"query": "verify the claims behind the proposal before we commit", "should_trigger": false, "expected": "frame-claim-ledger"},
+  {"query": "how do I get up to speed on this database library in a week", "should_trigger": false, "expected": "learn-new-technology"},
+  {"query": "compare three vendors of vector databases for us", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "turn my reading into a conference talk", "should_trigger": false, "expected": "conference-talk"},
+  {"query": "write a technical article explaining a paper to engineers", "should_trigger": false, "expected": "write-technical-article"},
+  {"query": "plan my study for the certification next month", "should_trigger": false, "expected": "exam-prep-plan"}
+]
