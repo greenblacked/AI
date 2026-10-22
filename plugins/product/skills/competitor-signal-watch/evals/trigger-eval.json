@@ -1,0 +1,22 @@
+[
+  {"query": "what is Acme actually doing lately, are they coming after our mid-market customers", "should_trigger": true},
+  {"query": "set up a way to monitor our three main competitors without it turning into a news feed", "should_trigger": true},
+  {"query": "they just changed their pricing page, help me work out what it says about where they are going", "should_trigger": true},
+  {"query": "our biggest rival posted a dozen data engineering jobs this quarter, what should we read into that", "should_trigger": true},
+  {"query": "the battlecard for Northwind is a year old, refresh the facts and tell me which ones still hold", "should_trigger": true},
+  {"query": "sales keeps saying the competitor is moving upmarket, is there any public evidence for that", "should_trigger": true},
+  {"query": "build a register of what we know about a competitor with sources and how confident we are in each", "should_trigger": true},
+  {"query": "track a rival's changelog and packaging changes over time so we notice when they shift", "should_trigger": true},
+  {"query": "it's been three months since our competitive review, what should we re-check and throw away", "should_trigger": true},
+  {"query": "read through their review site complaints and tell me what themes keep coming up for companies our size", "should_trigger": true},
+  {"query": "we lost four deals to the same competitor last quarter, interview the buyers and find out why", "should_trigger": false, "expected": "win-loss-review"},
+  {"query": "why do we keep losing deals to no decision", "should_trigger": false, "expected": "win-loss-review"},
+  {"query": "we need to pick an observability vendor, compare the three on the shortlist", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "what could an attacker do with the new partner integration we are designing", "should_trigger": false, "expected": "threat-model"},
+  {"query": "a prospect sent a 200-question RFP due in two weeks, should we even bid", "should_trigger": false, "expected": "rfp-response"},
+  {"query": "why is gross retention falling, are customers leaving for a competitor or for some other reason", "should_trigger": false, "expected": "churn-analysis"},
+  {"query": "the customer wants a three week proof of concept before they sign, scope it", "should_trigger": false, "expected": "poc-plan"},
+  {"query": "signups dropped 20 percent overnight, is that number even real", "should_trigger": false, "expected": "metric-anomaly-triage"},
+  {"query": "our renewal with the analytics vendor is in six weeks, is it worth the money", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "write the customer notice for this morning's outage", "should_trigger": false, "expected": "incident-comms"}
+]

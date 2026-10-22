@@ -1,0 +1,22 @@
+[
+  {"query": "we want to test demand for a team analytics add-on before building it, what's the cheapest honest way", "should_trigger": true},
+  {"query": "set up a smoke test landing page for our new product idea and tell me what conversion counts as success", "should_trigger": true},
+  {"query": "can we put a 'coming soon' button in the app to see if anyone wants scheduled exports", "should_trigger": true},
+  {"query": "our painted door got 3% click-through, is that enough to start building", "should_trigger": true},
+  {"query": "how many visitors does our waitlist page need before we can call the demand test", "should_trigger": true},
+  {"query": "what should the page say after someone clicks a feature that doesn't exist yet", "should_trigger": true},
+  {"query": "set a pass threshold for a demand test from what the build would cost us", "should_trigger": true},
+  {"query": "should we take refundable deposits to see if anyone really wants the hardware version", "should_trigger": true},
+  {"query": "200 people joined the waitlist for the new plan, what do we do with them now", "should_trigger": true},
+  {"query": "validate interest in an automatic summary feature with a fake menu item before engineering touches it", "should_trigger": true},
+  {"query": "interview potential users to find out whether this scheduling pain is even real", "should_trigger": false, "expected": "problem-validation"},
+  {"query": "we have five eager customers, let's deliver the reports by hand before writing any code", "should_trigger": false, "expected": "concierge-mvp"},
+  {"query": "run a Van Westendorp survey to find the acceptable price range for the pro tier", "should_trigger": false, "expected": "pricing-research"},
+  {"query": "roll the finished feature out to 5 percent of users behind a flag and set guardrails", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "wire the new feature flag into the worker and make the kill switch safe", "should_trigger": false, "expected": "feature-flag-lifecycle"},
+  {"query": "we're raising the price of the starter plan, how do we avoid a churn spike", "should_trigger": false, "expected": "price-change-rollout"},
+  {"query": "our game concept needs a go or no-go before we prototype it", "should_trigger": false, "expected": "game-greenlight"},
+  {"query": "write the PRD for the export feature with acceptance criteria", "should_trigger": false, "expected": "feature-spec"},
+  {"query": "run a premortem on the launch plan for the new pricing page", "should_trigger": false, "expected": "spec-premortem"},
+  {"query": "rewrite the button label and empty state on our settings page", "should_trigger": false, "expected": "content-design"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "why is gross retention falling, it was 92% last year and 86% now", "should_trigger": true},
+  {"query": "why are customers leaving us, the cancellation dropdown just says too expensive", "should_trigger": true},
+  {"query": "build a health score so the success team knows which accounts are at risk", "should_trigger": true},
+  {"query": "NRR dropped this quarter and the board wants an explanation", "should_trigger": true},
+  {"query": "downgrades are up across mid-market plans, what is driving the contraction", "should_trigger": true},
+  {"query": "our health score turns red the week before customers cancel, is it any use", "should_trigger": true},
+  {"query": "which acquisition cohorts and segments are carrying our logo churn", "should_trigger": true},
+  {"query": "code the reasons behind last quarter's cancellations from tickets and usage, not the exit survey", "should_trigger": true},
+  {"query": "lots of accounts cancel right at their first annual renewal, help me understand it", "should_trigger": true},
+  {"query": "separate voluntary from involuntary churn and tell me which one we should work on", "should_trigger": true},
+  {"query": "renewal charges are failing with insufficient funds, set up retries and emails", "should_trigger": false, "expected": "dunning-recovery"},
+  {"query": "engineers keep leaving after two years, work out why", "should_trigger": false, "expected": "retention-review"},
+  {"query": "why do we keep losing deals to the same competitor in the final round", "should_trigger": false, "expected": "win-loss-review"},
+  {"query": "our largest customer's CTO is furious and says they will not renew", "should_trigger": false, "expected": "escalated-account-recovery"},
+  {"query": "what is the aha moment that makes trial users stick", "should_trigger": false, "expected": "activation-analysis"},
+  {"query": "the MRR chart dipped yesterday, could the billing pipeline just be late", "should_trigger": false, "expected": "metric-anomaly-triage"},
+  {"query": "what is competitor Y betting on, judging by their hiring and changelog", "should_trigger": false, "expected": "competitor-signal-watch"},
+  {"query": "our cloud bill grew 40% this quarter, find where the money goes", "should_trigger": false, "expected": "cost-review"},
+  {"query": "support tickets keep growing, which product fixes would cut them most", "should_trigger": false, "expected": "contact-reduction-review"},
+  {"query": "our retention KR improved after we hid the cancel button, is the metric being gamed", "should_trigger": false, "expected": "metric-gaming-audit"}
+]

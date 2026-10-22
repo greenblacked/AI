@@ -1,0 +1,22 @@
+[
+  {"query": "review our product metrics before we put them on the company dashboard", "should_trigger": true},
+  {"query": "our OKR got hit but nothing improved for customers, what went wrong", "should_trigger": true},
+  {"query": "engagement is up 30% since the notification change but NPS fell, are we fooling ourselves", "should_trigger": true},
+  {"query": "can this KPI be gamed? support wants first response time under an hour as the main target", "should_trigger": true},
+  {"query": "we want weekly active teams as our north star, stress-test it before we commit", "should_trigger": true},
+  {"query": "what counter-metrics should sit next to trial conversion so nobody hits it the wrong way", "should_trigger": true},
+  {"query": "half our key results have no baseline or source table, how do we audit them", "should_trigger": true},
+  {"query": "churn went down after we moved the cancel button into settings, is that a real win", "should_trigger": true},
+  {"query": "bonuses are tied to tickets closed per agent and I am worried about what that rewards", "should_trigger": true},
+  {"query": "find the ways each of these product KPIs could be hit while customers get worse off", "should_trigger": true},
+  {"query": "help me draft our Q3 objectives and key results from scratch", "should_trigger": false, "expected": "okr-planning"},
+  {"query": "what availability target and error budget should the payments API have", "should_trigger": false, "expected": "slo-design"},
+  {"query": "our lead time and deployment frequency look bad, is the team healthy", "should_trigger": false, "expected": "delivery-review"},
+  {"query": "weekly active users jumped 40% on Monday, is that a tracking bug", "should_trigger": false, "expected": "metric-anomaly-triage"},
+  {"query": "add the events and spans we need to measure the new export feature", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "work out what activation should mean for our product from usage data", "should_trigger": false, "expected": "activation-analysis"},
+  {"query": "build a customer health score that warns us before accounts cancel", "should_trigger": false, "expected": "churn-analysis"},
+  {"query": "which support contact drivers cost us the most handle time each month", "should_trigger": false, "expected": "contact-reduction-review"},
+  {"query": "set up paging alerts when the checkout error rate crosses a threshold", "should_trigger": false, "expected": "alert-design"},
+  {"query": "write the monthly status update on the growth programme for leadership", "should_trigger": false, "expected": "status-update"}
+]

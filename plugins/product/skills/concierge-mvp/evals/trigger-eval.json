@@ -1,0 +1,22 @@
+[
+  {"query": "we want to validate the reporting service before we build the workflow, can we just do it by hand for a few customers", "should_trigger": true},
+  {"query": "how do we do things that don't scale for our first eight customers without losing what we learn", "should_trigger": true},
+  {"query": "we've been doing the onboarding manually for six clients, which steps should we automate first", "should_trigger": true},
+  {"query": "set up a manual pilot where our ops team delivers the outcome and we track the time per step", "should_trigger": true},
+  {"query": "our demand test passed, what happens next before engineering starts building", "should_trigger": true},
+  {"query": "when should we give up on a manual service if customers aren't coming back for more", "should_trigger": true},
+  {"query": "what should we log while we hand-deliver the analysis so it turns into a spec later", "should_trigger": true},
+  {"query": "is it worth charging the first few customers of a service we're running with spreadsheets and email", "should_trigger": true},
+  {"query": "work out the cost per customer of our hand-run matching service and whether it's coming down", "should_trigger": true},
+  {"query": "concierge MVP for a meal-planning product, how do we structure it", "should_trigger": true},
+  {"query": "put a fake button in the app to see if anyone wants this before doing anything else", "should_trigger": false, "expected": "fake-door-test"},
+  {"query": "recruit six companies to co-design the product with weekly sessions and a give-get agreement", "should_trigger": false, "expected": "design-partner-program"},
+  {"query": "we have a game pitch and need go, no-go and pivot criteria for the prototype", "should_trigger": false, "expected": "game-greenlight"},
+  {"query": "turn our notes on the manual process into a feature spec with acceptance criteria", "should_trigger": false, "expected": "feature-spec"},
+  {"query": "interview prospects about how they handle month-end today before we commit to anything", "should_trigger": false, "expected": "problem-validation"},
+  {"query": "write a runbook so on-call can restart the export job at night", "should_trigger": false, "expected": "runbook"},
+  {"query": "attack this launch plan before we commit: assume it failed in six months", "should_trigger": false, "expected": "spec-premortem"},
+  {"query": "we're choosing between two reconciliation tools to buy and want a two-week trial on our own data first", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "find out why the customers who signed last month picked us over the incumbent", "should_trigger": false, "expected": "jobs-timeline-interview"},
+  {"query": "scaffold a python script that automates the reconciliation step", "should_trigger": false, "expected": "code-scaffold"}
+]
