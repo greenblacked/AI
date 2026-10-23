@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-23
+
 ### Added
 
 - Add the `growth` plugin, for marketing, growth and content operations, with twenty skills: `attribution-sanity-check`, `campaign-preflight`, `campaign-tagging-standard`, `community-health-review`, `community-moderation-policy`, `content-brief-from-serp`, `content-pruning-audit`, `content-refresh-triage`, `contributor-funnel`, `customer-story-production`, `deliverability-triage`, `devrel-impact-review`, `email-authentication-rollout`, `lead-quality-loop`, `lifecycle-sequence-design`, `low-traffic-page-testing`, `message-match-audit`, `paid-search-waste-audit`, `programmatic-seo-gate` and `sending-domain-warmup`.
@@ -976,7 +978,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.1.13...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/greenblacked/AI/compare/v0.1.13...v0.2.0
 [0.1.13]: https://github.com/greenblacked/AI/compare/v0.1.12...v0.1.13
 [0.1.12]: https://github.com/greenblacked/AI/compare/v0.1.11...v0.1.12
 [0.1.11]: https://github.com/greenblacked/AI/compare/v0.1.10...v0.1.11
