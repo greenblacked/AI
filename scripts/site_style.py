@@ -292,48 +292,69 @@ a[aria-current="page"] { text-decoration: underline; text-underline-offset: 4px;
 #console-theme { color: var(--muted); }
 #console-theme[aria-pressed="true"] { color: var(--ink); }
 #console-theme svg { width: 1rem; height: 1rem; }
+/* The day/night switch: a 52 by 32 track with a 2px edge and a 24px knob that slides 20px.
+   Sizes are px and do not grow with the text size. The edge is the track's own colour, so
+   the knob sits 4px in as before; forced colours give it a visible one. The knob is the
+   inverse of the page, so it reads against the track. The sun and the moon are swapped
+   with display, not turned or faded: the page changes in one frame, and only the switch
+   itself moves. */
 .track {
+  --track: #cfc8bc;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  width: 3.25rem;
-  height: 2rem;
-  padding: 0.25rem;
+  width: 52px;
+  height: 32px;
+  padding: 2px;
+  border: 2px solid var(--track);
   border-radius: 999px;
-  background: #cfc8bc;
+  background-color: var(--track);
   box-shadow: inset 0 1px 2px rgba(20, 20, 19, 0.18);
 }
-html[data-theme="night"] .track { background: var(--ink); }
-html[data-theme="reactor"] .track { background: #1c2816; }
+html[data-theme="night"] .track { --track: var(--ink); }
+html[data-theme="reactor"] .track { --track: #1c2816; }
 .knob {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 24px;
+  height: 24px;
   border-radius: 999px;
-  background: var(--ink);
+  background-color: var(--ink);
   color: var(--bg);
   box-shadow: 0 1px 2px rgba(20, 20, 19, 0.35), 0 2px 6px rgba(20, 20, 19, 0.2);
 }
 html[data-theme="night"] .knob {
-  transform: translateX(1.25rem);
-  background: var(--bg);
+  transform: translateX(20px);
+  background-color: var(--bg);
   color: var(--ink);
 }
-/* Sun and moon share the knob's centre; one is shown, the other turned away and faded,
-   so the switch can turn one into the other rather than swap them. */
-.knob svg { position: absolute; width: 0.875rem; height: 0.875rem; }
-.moon { opacity: 0; transform: rotate(-90deg) scale(0.4); }
-html[data-theme="night"] .moon { opacity: 1; transform: none; }
-html[data-theme="night"] .sun { opacity: 0; transform: rotate(90deg) scale(0.4); }
+.knob svg { width: 14px; height: 14px; }
+.moon { display: none; }
+html[data-theme="night"] .sun { display: none; }
+html[data-theme="night"] .moon { display: block; }
+/* Only where motion is welcome; under reduced motion the knob is simply at the other end. */
 @media (prefers-reduced-motion: no-preference) {
-  .track { transition: background-color 600ms cubic-bezier(0.45, 0, 0.2, 1); }
-  .knob {
-    transition: transform 600ms cubic-bezier(0.45, 0, 0.2, 1),
-      background-color 600ms ease, color 600ms ease;
+  .track {
+    transition: background-color 300ms cubic-bezier(0.2, 0, 0, 1),
+      border-color 300ms cubic-bezier(0.2, 0, 0, 1);
   }
-  .knob svg { transition: opacity 400ms ease, transform 600ms cubic-bezier(0.45, 0, 0.2, 1); }
+  .knob {
+    transition: transform 300ms cubic-bezier(0.2, 0, 0, 1),
+      background-color 300ms cubic-bezier(0.2, 0, 0, 1), color 300ms cubic-bezier(0.2, 0, 0, 1);
+  }
+}
+/* Forced colours drop backgrounds: the edge and the knob take the system's own. */
+@media (forced-colors: active) {
+  .track {
+    border-color: ButtonText;
+    background-color: ButtonFace;
+  }
+  .knob {
+    forced-color-adjust: none;
+    background-color: ButtonText;
+    color: ButtonFace;
+  }
 }
 
 /* Footer. */
@@ -1200,14 +1221,6 @@ MOTION_CSS = """
 :root {
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-press: cubic-bezier(0.2, 0.9, 0.25, 1.35);
-  --ease-theme: cubic-bezier(0.3, 0, 0.15, 1);
-}
-/* The radius of the theme reveal, registered so it can be animated: the soft edge of the
-   new theme is a gradient mask that grows with it. */
-@property --reveal-r {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
 }
 /* Links in the header and the footer draw their underline from the left. */
 .bar nav a, .foot nav a {
@@ -1283,43 +1296,11 @@ MOTION_CSS = """
       animation-range: entry 0% entry 60%;
     }
   }
-  /* Switching theme spreads the new one out from the switch that was pressed. */
-  html.theming .site-header { view-transition-name: none; }
-  html.theming::view-transition-old(root) { animation: none; }
-  html.theming::view-transition-new(root) {
-    -webkit-mask-image: radial-gradient(
-      circle at var(--reveal-x, 100%) var(--reveal-y, 0),
-      #000 calc(var(--reveal-r) - 16vmax), transparent var(--reveal-r)
-    );
-    mask-image: radial-gradient(
-      circle at var(--reveal-x, 100%) var(--reveal-y, 0),
-      #000 calc(var(--reveal-r) - 16vmax), transparent var(--reveal-r)
-    );
-    animation: theme-in 900ms var(--ease-theme) both;
-  }
-  /* A very tall page cannot afford the reveal, whose cost per frame grows with the height
-     of the page; it dips through the new colour on a layer the size of the screen. */
-  .theme-veil { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
-  /* Under the veil nothing eases, colours included: a page this tall pays for every colour
-     transition on every link and on the switch, frame after frame, well past the veil. Only
-     the knob's travel and its icons' turn stay, as transforms, which cost nothing. */
-  html.theme-dip, html.theme-dip *, html.theme-dip *::before, html.theme-dip *::after {
+  /* A press changes the whole page in one frame. For that frame and the next, nothing but the
+     switch eases, so the links and buttons that fade their colours on hover do not smear the
+     swap; the script adds this class on a press and removes it two frames later. */
+  html.theme-swap :is(*, *::before, *::after):not(.track, .knob, .knob svg) {
     transition: none !important;
-  }
-  html.theme-dip .knob { transition: transform 600ms cubic-bezier(0.45, 0, 0.2, 1) !important; }
-  html.theme-dip .knob svg { transition: transform 600ms var(--ease-theme) !important; }
-  /* Where a browser has no view transitions, the colours cross-fade instead of jumping. */
-  html.theme-fade, html.theme-fade * {
-    transition: background-color 500ms ease, color 500ms ease, border-color 500ms ease,
-      fill 500ms ease, stroke 500ms ease !important;
-  }
-  /* More specific, so the knob keeps its glide and the icons their turn during the fade. */
-  html.theme-fade .knob {
-    transition: transform 600ms var(--ease-theme), background-color 600ms ease,
-      color 600ms ease !important;
-  }
-  html.theme-fade .knob svg {
-    transition: opacity 400ms ease, transform 600ms var(--ease-theme) !important;
   }
 }
 @keyframes page-out { to { opacity: 0; } }
@@ -1329,10 +1310,6 @@ MOTION_CSS = """
   0% { transform: scale(1); }
   45% { transform: scale(1.3); }
   100% { transform: scale(1); }
-}
-@keyframes theme-in {
-  from { --reveal-r: 0px; }
-  to { --reveal-r: 180vmax; }
 }
 """
 
@@ -1974,9 +1951,9 @@ PAGE_SCRIPT = """
       else localStorage.removeItem(KEY);
     } catch (e) {}
   }
-  // The theme the visitor has asked for. apply() runs later, inside the transition's
-  // update callback, so data-theme still shows the old one when the next press arrives;
-  // this is what every press reads and every update callback applies.
+  // The theme the visitor has asked for. apply() runs in the same turn as every choice, so
+  // this always equals data-theme; every press reads it, and sync() brings it back in line
+  // with storage and the clock.
   var intent = preferred();
   // The day or night choice that was in place when the console theme was turned on, so
   // turning it off puts that back instead of falling to the clock. Kept in storage too,
@@ -2000,106 +1977,37 @@ PAGE_SCRIPT = """
     intent = preferred();
     apply(intent);
   }
-  // A theme chosen by hand spreads out from the control that chose it. The clock's own
-  // changes, and any visitor who asked for less motion, switch at once.
-  var fadeTimer = 0;
-  var spreading = null;
-  // The reveal repaints the whole page on every frame, so its cost grows with the page's
-  // height: a page this many screens tall drops to a quarter of its frames on a phone.
-  var TALL = 16;
-  var veil = null;
-  var dipping = 0;
-  // The cheap way to the same place: the screen fades to the new theme's colour, the
-  // page changes underneath it, and the screen fades back. Only opacity moves, and only
-  // on a layer the size of the screen. A press in the middle starts again from where the
-  // veil is, so the page changes once, to the theme asked for last.
-  function dip() {
-    var run = ++dipping;
-    root.classList.add("theme-dip");
-    if (!veil) {
-      veil = document.createElement("div");
-      veil.className = "theme-veil";
-      veil.setAttribute("aria-hidden", "true");
-      veil.style.opacity = "0";
-      document.body.appendChild(veil);
-    }
-    var level = getComputedStyle(veil).opacity;
-    veil.getAnimations().forEach(function (running) { running.cancel(); });
-    veil.style.opacity = level;
-    veil.style.backgroundColor = COLORS[intent];
-    veil.animate([{ opacity: level }, { opacity: 1 }], {
-      duration: 160, easing: "ease-out", fill: "forwards"
-    }).onfinish = function () {
-      if (run !== dipping) return;
-      apply(intent);
-      veil.animate([{ opacity: 1 }, { opacity: 0 }], {
-        duration: 380, easing: "ease-in", fill: "forwards"
-      }).onfinish = function () {
-        if (run !== dipping) return;
-        veil.remove();
-        veil = null;
-        root.classList.remove("theme-dip");
-      };
-    };
-  }
-  function spreadTheme(from) {
-    var still = !window.matchMedia ||
-      !window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
-    if (still) { apply(intent); return; }
-    if (root.scrollHeight > TALL * window.innerHeight) { dip(); return; }
-    if (!document.startViewTransition) {
-      // A second change while the first still fades restarts the clock, so the class is
-      // never removed in the middle of the newer fade.
-      root.classList.add("theme-fade");
-      apply(intent);
-      window.clearTimeout(fadeTimer);
-      fadeTimer = window.setTimeout(function () { root.classList.remove("theme-fade"); }, 600);
-      return;
-    }
-    var box = from.getBoundingClientRect();
-    root.style.setProperty("--reveal-x", Math.round(box.left + box.width / 2) + "px");
-    root.style.setProperty("--reveal-y", Math.round(box.top + box.height / 2) + "px");
-    root.classList.add("theming");
-    // A new transition skips the one still running, whose cleanup then fires early; only
-    // the latest one may remove the class, or the newer reveal loses its mask mid-way.
-    var transition = document.startViewTransition(function () { apply(intent); });
-    spreading = transition;
-    function done() {
-      if (spreading !== transition) return;
-      spreading = null;
-      root.classList.remove("theming");
-    }
-    transition.finished.then(done, done);
-  }
-  function choose(theme, from) {
-    intent = theme;
-    spreadTheme(from);
-  }
-  // While a reveal runs the page is its own picture and no control in it can be hit: a press
-  // lands on the document itself, and pointer-events on the transition does not let it
-  // through. Hand that press to the switch it was over, or the second press is lost.
-  document.addEventListener("click", function (event) {
-    if (event.target !== root || !root.classList.contains("theming")) return;
-    [dark, consoleTheme].some(function (control) {
-      var box = control.getBoundingClientRect();
-      if (event.clientX < box.left || event.clientX > box.right) return false;
-      if (event.clientY < box.top || event.clientY > box.bottom) return false;
-      control.click();
-      return true;
+  // A press changes the whole page at once. For two frames after it the page's own colour
+  // transitions are switched off (html.theme-swap), so only the switch itself eases. A
+  // quick second press adds the class again; the counter keeps the first press's removal
+  // from taking it off in the middle of the second.
+  var swaps = 0;
+  function quiet() {
+    var run = ++swaps;
+    root.classList.add("theme-swap");
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        if (run === swaps) root.classList.remove("theme-swap");
+      });
     });
-  }, true);
+  }
+  function choose(theme) {
+    intent = theme;
+    quiet();
+    apply(intent);
+  }
   dark.addEventListener("click", function () {
     var next = intent === "night" ? "day" : "night";
     remember(null);
     store(next);
-    choose(next, dark);
+    choose(next);
   });
   consoleTheme.addEventListener("click", function () {
     if (intent === "reactor") {
       var back = recall();
       remember(null);
       store(back);
-      choose(back || clock(), consoleTheme);
+      choose(back || clock());
       return;
     }
     // A stored "reactor" from before this was remembered has no choice behind it.
@@ -2107,13 +2015,18 @@ PAGE_SCRIPT = """
     try { stored = localStorage.getItem(KEY); } catch (e) {}
     remember(choice(stored));
     store("reactor");
-    choose("reactor", consoleTheme);
+    choose("reactor");
   });
   sync();
   window.setInterval(sync, 60000);
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "visible") sync();
   });
+  // Another tab's choice, and a page restored from the back/forward cache, follow storage.
+  window.addEventListener("storage", function (event) {
+    if (event.key === KEY || event.key === null) sync();
+  });
+  window.addEventListener("pageshow", sync);
 
   var home = document.getElementById("home");
   home.addEventListener("click", function (event) {

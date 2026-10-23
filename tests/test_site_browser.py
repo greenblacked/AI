@@ -1019,117 +1019,21 @@ def _moving(browser, base_url, width=1280, touch=False):
     return made, page
 
 
-def test_the_theme_switch_spreads_the_new_theme_and_lands_on_it(browser, base_url):
-    made, page = _moving(browser, base_url)
-    try:
-        page.goto(base_url + "/plugins/design/")
-        before = page.evaluate("() => document.documentElement.dataset.theme")
-        page.click("#dark-switch")
-        page.wait_for_function(
-            "b => document.documentElement.dataset.theme !== b"
-            " && !document.documentElement.classList.contains('theming')",
-            arg=before,
-        )
-        after = page.evaluate("() => document.documentElement.dataset.theme")
-        assert {before, after} == {"day", "night"}
-        assert page.evaluate("() => localStorage.getItem('theme')") == after
-        assert (
-            page.locator("#dark-switch").get_attribute("aria-checked")
-            == str(after == "night").lower()
-        )
-        page.click("#console-theme")
-        page.wait_for_function("() => document.documentElement.dataset.theme === 'reactor'")
-    finally:
-        made.close()
-
-
-def test_without_view_transitions_the_theme_fades_and_the_knob_still_glides(browser, base_url):
-    made, page = _moving(browser, base_url)
-    try:
-        # A browser with no view transitions takes the cross-fade path instead.
-        page.add_init_script("delete Document.prototype.startViewTransition")
-        page.goto(base_url + "/plugins/design/")
-        before = page.evaluate("() => document.documentElement.dataset.theme")
-        page.click("#dark-switch")
-        fading = page.evaluate(
-            "() => { const k = document.querySelector('.knob');"
-            " const i = document.querySelector('.knob svg');"
-            " return [document.documentElement.classList.contains('theme-fade'),"
-            " getComputedStyle(k).transitionProperty, getComputedStyle(i).transitionProperty,"
-            " getComputedStyle(document.body).transitionProperty]; }"
-        )
-        assert fading[0] is True
-        assert "transform" in fading[1] and "transform" in fading[2] and "opacity" in fading[2]
-        assert "background-color" in fading[3]
-        page.wait_for_function(
-            "b => document.documentElement.dataset.theme !== b"
-            " && !document.documentElement.classList.contains('theme-fade')",
-            arg=before,
-        )
-        # Two changes in quick succession: the second fade keeps its class to the end.
-        page.click("#dark-switch")
-        page.wait_for_timeout(250)
-        page.click("#dark-switch")
-        page.wait_for_timeout(450)
-        assert page.evaluate("() => document.documentElement.classList.contains('theme-fade')")
-        page.wait_for_function("() => !document.documentElement.classList.contains('theme-fade')")
-        assert page.evaluate("() => document.documentElement.dataset.theme") != before
-    finally:
-        made.close()
-
-
-def test_a_second_switch_mid_reveal_keeps_its_own_soft_reveal(browser, base_url):
-    # The second view transition skips the first, whose cleanup then runs while the
-    # second is still revealing; it must leave the second's class in place.
-    made, page = _moving(browser, base_url)
-    try:
-        page.goto(base_url + "/plugins/design/")
-        before = page.evaluate("() => document.documentElement.dataset.theme")
-        # The keyboard reaches the focused switch while a reveal is running; a pointer
-        # would land on the transition overlay instead.
-        page.focus("#dark-switch")
-        page.keyboard.press("Enter")
-        page.wait_for_timeout(650)
-        page.keyboard.press("Enter")
-        page.wait_for_timeout(150)
-        assert page.evaluate("() => document.documentElement.classList.contains('theming')")
-        page.wait_for_function("() => !document.documentElement.classList.contains('theming')")
-        assert page.evaluate("() => document.documentElement.dataset.theme") == before
-    finally:
-        made.close()
-
-
-def test_the_switch_is_painted_moving_while_the_theme_spreads(browser, base_url):
-    # The new state under the reveal is live, so the knob's glide and the icon's turn are
-    # on screen, not only their end points.
-    made, page = _moving(browser, base_url)
-    try:
-        page.goto(base_url + "/plugins/design/")
-        page.mouse.move(600, 700)
-        box = page.locator("#dark-switch").bounding_box()
-        page.evaluate("() => document.getElementById('dark-switch').click()")
-        frames = []
-        for _ in range(8):
-            page.wait_for_timeout(40)
-            frames.append(page.screenshot(clip=box))
-        page.wait_for_function("() => !document.documentElement.classList.contains('theming')")
-        settled = page.screenshot(clip=box)
-        assert len(set(frames)) >= 3
-        assert frames[0] != settled
-    finally:
-        made.close()
-
-
-_THEME_SETTLED = (
-    "() => !document.documentElement.classList.contains('theming')"
-    " && !document.documentElement.classList.contains('theme-dip')"
-    " && !document.querySelector('.theme-veil') && document.getAnimations().length === 0"
-)
-# Counts the view transitions the page starts, to tell which way a switch went.
+_THEME_SETTLED = "() => document.getAnimations().length === 0"
+# Counts the view transitions the page starts, to tell whether a switch started one.
 _COUNT_TRANSITIONS = (
     "window.__transitions = 0; const start = document.startViewTransition;"
     " if (start) document.startViewTransition = function (...args) {"
     " window.__transitions += 1; return start.apply(this, args); };"
+)
+# What a press leaves behind, read in the same turn as the click that made it.
+_PRESS_AND_READ = (
+    "id => { const root = document.documentElement;"
+    " const meta = () => document.querySelector('meta[name=theme-color]').content;"
+    " const before = [root.dataset.theme, meta()];"
+    " document.getElementById(id).click();"
+    " return {before, after: [root.dataset.theme, meta()],"
+    " stored: localStorage.getItem('theme')}; }"
 )
 
 
@@ -1156,82 +1060,142 @@ def _assert_theme_agrees(state: dict, expected: str) -> None:
     }
 
 
-def test_a_very_tall_page_dips_to_the_new_theme_instead_of_running_the_reveal(browser, base_url):
+def test_a_press_changes_the_theme_and_the_colour_meta_within_the_click(browser, base_url):
     made, page = _moving(browser, base_url)
     try:
-        page.add_init_script(_COUNT_TRANSITIONS)
-        page.goto(base_url + SKILL_PATH)
-        # The longest page in the catalogue, so this stays a tall page if the others shrink.
-        assert page.evaluate("() => document.documentElement.scrollHeight / innerHeight") > 16
-        before = theme(page)
-        page.click("#dark-switch")
-        # The reveal's mask is what costs more the taller the page is, so none is started:
-        # no view transition, no `theming` class, and a veil the size of the screen instead.
-        assert page.evaluate("() => window.__transitions") == 0
-        assert not page.evaluate("() => document.documentElement.classList.contains('theming')")
-        assert page.locator(".theme-veil").count() == 1
-        assert page.locator(".theme-veil").evaluate(
-            "el => { const s = getComputedStyle(el); return [s.position, s.pointerEvents,"
-            " el.getBoundingClientRect().height === innerHeight]; }"
-        ) == ["fixed", "none", True]
-        after = "day" if before == "night" else "night"
-        _assert_theme_agrees(_theme_state(page), after)
-        assert page.evaluate("() => window.__transitions") == 0
+        page.goto(base_url + "/plugins/design/")
+        first = page.evaluate(_PRESS_AND_READ, "dark-switch")
+        flipped = "day" if first["before"][0] == "night" else "night"
+        colour = {"day": "#f4f1ea", "night": "#000000", "reactor": "#070807"}
+        # Both are read in the turn that clicked, before any frame could have painted.
+        assert first["before"] == [first["before"][0], colour[first["before"][0]]]
+        assert first["after"] == [flipped, colour[flipped]]
+        assert first["stored"] == flipped
+        second = page.evaluate(_PRESS_AND_READ, "console-theme")
+        assert second["after"] == ["reactor", colour["reactor"]]
+        assert second["stored"] == "reactor"
     finally:
         made.close()
 
 
-def test_a_short_page_still_gets_the_reveal_and_no_veil(browser, base_url):
+def test_a_press_starts_no_view_transition(browser, base_url):
     made, page = _moving(browser, base_url)
     try:
         page.add_init_script(_COUNT_TRANSITIONS)
         page.goto(base_url + "/plugins/design/")
-        assert page.evaluate("() => document.documentElement.scrollHeight / innerHeight") < 16
+        # The counter only wraps a browser that has the API, so the zero below means something.
+        assert page.evaluate("() => typeof document.startViewTransition") == "function"
         page.click("#dark-switch")
-        assert page.evaluate("() => window.__transitions") == 1
-        assert page.locator(".theme-veil").count() == 0
-        _theme_state(page)
+        page.click("#console-theme")
+        assert theme(page) == "reactor"
+        page.click("#console-theme")
+        assert theme(page) in {"day", "night"}
+        assert page.evaluate("() => window.__transitions") == 0
     finally:
         made.close()
 
 
-@pytest.mark.parametrize("pointer", ["mouse", "touch"])
-def test_a_press_on_the_switch_in_the_middle_of_the_reveal_toggles_it_back(
-    browser, base_url, pointer
-):
-    # The overlay the browser lays over the page during a view transition used to take
-    # the press, so the second one vanished and the theme stayed where the first left it.
-    made, page = _moving(browser, base_url, touch=pointer == "touch")
+def test_the_knob_slides_twenty_pixels_over_three_hundred_milliseconds(browser, base_url):
+    made, page = _moving(browser, base_url)
+    try:
+        page.clock.install(time="2026-10-06T12:30:00")
+        page.goto(base_url + "/plugins/design/")
+        sizes = (
+            "() => ['.track', '.knob'].map(s => document.querySelector(s).getBoundingClientRect())"
+        )
+        track, knob = page.evaluate(sizes)
+        assert (track["width"], track["height"]) == (52, 32)
+        assert (knob["width"], knob["height"]) == (24, 24)
+        page.click("#dark-switch")
+        assert theme(page) == "night"
+        page.wait_for_function(_THEME_SETTLED)
+        state = page.evaluate(
+            "() => { const k = document.querySelector('.knob'); const s = getComputedStyle(k);"
+            " return {duration: s.transitionDuration, property: s.transitionProperty,"
+            " x: new DOMMatrix(s.transform).m41,"
+            " sun: getComputedStyle(document.querySelector('.sun')).display,"
+            " moon: getComputedStyle(document.querySelector('.moon')).display}; }"
+        )
+        assert "0.3s" in state["duration"] and "transform" in state["property"]
+        assert state["x"] == 20
+        assert (state["sun"], state["moon"]) == ("none", "block")
+    finally:
+        made.close()
+
+
+def test_another_tabs_choice_follows_through_a_storage_event(browser, base_url):
+    made, page = _moving(browser, base_url)
+    try:
+        page.clock.install(time="2026-10-06T12:30:00")
+        page.goto(base_url + "/plugins/design/")
+        assert theme(page) == "day"
+        read = (
+            "() => [document.documentElement.dataset.theme,"
+            " document.getElementById('dark-switch').getAttribute('aria-checked')]"
+        )
+        fire = "key => window.dispatchEvent(new StorageEvent('storage', {key}))"
+        # A key the page does not own changes nothing, even with a new value behind it.
+        page.evaluate("() => localStorage.setItem('theme', 'night')")
+        page.evaluate(fire, "unrelated")
+        assert page.evaluate(read) == ["day", "false"]
+        page.evaluate(fire, "theme")
+        assert page.evaluate(read) == ["night", "true"]
+        # A cleared store (a null key) falls back to the clock, noon here.
+        page.evaluate("() => localStorage.clear()")
+        page.evaluate("() => window.dispatchEvent(new StorageEvent('storage', {key: null}))")
+        assert page.evaluate(read) == ["day", "false"]
+    finally:
+        made.close()
+
+
+def test_a_press_silences_the_pages_own_transitions_for_two_frames_only(browser, base_url):
+    made, page = _moving(browser, base_url)
     try:
         page.goto(base_url + "/plugins/design/")
-        before = theme(page)
-        box = page.locator("#dark-switch").bounding_box()
-        x, y = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
-        # The first press is a script's, so only the second one can be swallowed.
-        page.evaluate("() => document.getElementById('dark-switch').click()")
-        page.wait_for_function("() => document.documentElement.classList.contains('theming')")
-        page.wait_for_timeout(250)
-        assert page.evaluate("() => document.documentElement.classList.contains('theming')")
-        if pointer == "touch":
-            page.touchscreen.tap(x, y)
-        else:
-            page.mouse.click(x, y)
-        state = _theme_state(page)
-        assert state["theme"] == before
-        assert state["stored"] == before
-        assert state["aria"] == str(before == "night").lower()
+        link = "() => getComputedStyle(document.querySelector('a[href]')).transitionProperty"
+        assert "color" in page.evaluate(link)
+        during = page.evaluate(
+            "() => { document.getElementById('dark-switch').click();"
+            " const k = getComputedStyle(document.querySelector('.knob'));"
+            " return [document.documentElement.classList.contains('theme-swap'),"
+            " getComputedStyle(document.querySelector('a[href]')).transitionProperty,"
+            " k.transitionProperty, k.transitionDuration]; }"
+        )
+        assert during[0] is True and during[1] == "none"
+        # The switch is the one thing that still eases.
+        assert "transform" in during[2] and "0.3s" in during[3]
+        page.wait_for_function("() => !document.documentElement.classList.contains('theme-swap')")
+        assert "color" in page.evaluate(link)
     finally:
         made.close()
 
 
-@pytest.mark.parametrize("path", ["/plugins/design/", SKILL_PATH], ids=["reveal", "dip"])
+def test_a_quick_second_press_keeps_the_page_quiet_past_the_first_ones_removal(browser, base_url):
+    made, page = _moving(browser, base_url)
+    try:
+        page.goto(base_url + "/plugins/design/")
+        held = page.evaluate(
+            "async () => { const frame = () => new Promise(r => requestAnimationFrame(r));"
+            " const swap = () => document.documentElement.classList.contains('theme-swap');"
+            " const dark = document.getElementById('dark-switch');"
+            " dark.click(); await frame(); dark.click();"
+            # The first press's second frame arrives here; the class must outlive it.
+            " await frame(); return swap(); }"
+        )
+        assert held is True
+        page.wait_for_function("() => !document.documentElement.classList.contains('theme-swap')")
+    finally:
+        made.close()
+
+
+@pytest.mark.parametrize("path", ["/plugins/design/", SKILL_PATH], ids=["short", "tall"])
 @pytest.mark.parametrize("gap", [0, 70], ids=["together", "spaced"])
 @pytest.mark.parametrize("presses", [2, 3, 5])
 def test_fast_presses_on_the_dark_switch_end_on_the_theme_their_parity_names(
     browser, base_url, path, gap, presses
 ):
-    # The next theme used to be read from the page, which only changes once the transition
-    # has started, so a second press before then chose from stale state and cancelled out.
+    # Every press reads the theme the previous one chose, not the page's, so presses in
+    # the same turn or a few frames apart still flip it once each.
     made, page = _moving(browser, base_url)
     try:
         page.goto(base_url + path)
