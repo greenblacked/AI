@@ -1299,7 +1299,10 @@ MOTION_CSS = """
   /* A press changes the whole page in one frame. For that frame and the next, nothing but the
      switch eases, so the links and buttons that fade their colours on hover do not smear the
      swap; the script adds this class on a press and removes it two frames later. */
-  html.theme-swap :is(*, *::before, *::after):not(.track, .knob, .knob svg) {
+  /* :is() cannot match a pseudo-element, so the bars and marks drawn with ::before and
+     ::after are named on their own; nothing on the switch eases through one. */
+  html.theme-swap *:not(.track, .knob, .knob svg), html.theme-swap ::before,
+  html.theme-swap ::after {
     transition: none !important;
   }
 }

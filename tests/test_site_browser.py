@@ -1170,6 +1170,25 @@ def test_a_press_silences_the_pages_own_transitions_for_two_frames_only(browser,
         made.close()
 
 
+def test_a_press_silences_transitions_drawn_on_pseudo_elements_too(browser, base_url):
+    # The family page's stage bars are ::before boxes whose colour is a per-theme token.
+    made, page = _moving(browser, base_url)
+    try:
+        page.goto(base_url + "/family/")
+        bar = "() => getComputedStyle(document.querySelector('.family-stages > li'), '::before')"
+        assert "background-color" in page.evaluate(bar + ".transitionProperty")
+        during = page.evaluate(
+            "() => { document.getElementById('dark-switch').click();"
+            " return getComputedStyle(document.querySelector('.family-stages > li'),"
+            " '::before').transitionProperty; }"
+        )
+        assert during == "none"
+        page.wait_for_function("() => !document.documentElement.classList.contains('theme-swap')")
+        assert "background-color" in page.evaluate(bar + ".transitionProperty")
+    finally:
+        made.close()
+
+
 def test_a_quick_second_press_keeps_the_page_quiet_past_the_first_ones_removal(browser, base_url):
     made, page = _moving(browser, base_url)
     try:
