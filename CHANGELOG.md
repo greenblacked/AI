@@ -69,6 +69,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 - On the catalogue site, a page title that is one long skill name now wraps on a phone instead of pushing the page wider than the screen.
 - On the catalogue site, an error code or environment variable quoted in a skill's description or eval query, such as `ERR_PACKAGE_PATH_NOT_EXPORTED`, now wraps instead of pushing the page wider than a phone screen.
+- On the catalogue site, a press on the theme switches while the theme change is spreading across the page is no longer lost, and several quick presses end on the theme the last one asked for. A page taller than sixteen screens now fades to the new theme instead of running the spreading change, which lagged on a throttled phone.
+- On the catalogue site, turning off the console theme now puts back the day or night choice made before it, instead of forgetting it. A visitor who never chose still follows the clock.
 
 ## [0.1.13] - 2026-10-21
 
