@@ -8,6 +8,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Changed
+
+- The catalogue site's theme switch now changes the page at once and animates only the switch: the radial reveal, the dip and the cross-fade are gone, the knob slides 20px over 300ms, and a change made in another tab or restored from the back/forward cache is followed.
+
 ## [0.2.0] - 2026-10-23
 
 ### Added
