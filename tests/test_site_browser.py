@@ -1189,6 +1189,29 @@ def test_a_press_silences_transitions_drawn_on_pseudo_elements_too(browser, base
         made.close()
 
 
+@pytest.mark.parametrize("theme", ["day", "night", "reactor"])
+def test_under_forced_colours_the_knob_takes_the_system_colours_in_every_theme(
+    browser, base_url, theme
+):
+    made, page = _moving(browser, base_url)
+    try:
+        page.add_init_script(f"localStorage.setItem('theme', '{theme}')")
+        page.emulate_media(forced_colors="active")
+        page.goto(base_url + "/plugins/design/")
+        assert page.evaluate("() => document.documentElement.dataset.theme") == theme
+        knob = page.evaluate(
+            "() => { const k = getComputedStyle(document.querySelector('.knob'));"
+            " const probe = document.createElement('span');"
+            " probe.style.color = 'ButtonText'; probe.style.backgroundColor = 'ButtonFace';"
+            " document.body.appendChild(probe); const p = getComputedStyle(probe);"
+            " const out = [k.backgroundColor, k.color, p.color, p.backgroundColor];"
+            " probe.remove(); return out; }"
+        )
+        assert knob[0] == knob[2] and knob[1] == knob[3]
+    finally:
+        made.close()
+
+
 def test_a_quick_second_press_keeps_the_page_quiet_past_the_first_ones_removal(browser, base_url):
     made, page = _moving(browser, base_url)
     try:

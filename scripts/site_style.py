@@ -350,7 +350,8 @@ html[data-theme="night"] .moon { display: block; }
     border-color: ButtonText;
     background-color: ButtonFace;
   }
-  .knob {
+  /* As specific as the night rule, so the system's colours win in every theme. */
+  .knob, html[data-theme] .knob {
     forced-color-adjust: none;
     background-color: ButtonText;
     color: ButtonFace;
