@@ -1,0 +1,22 @@
+[
+  {"query": "the CEO came back from a conference and wants a mobile app in the product by end of month. our roadmap is full. how do I respond", "should_trigger": true},
+  {"query": "our biggest customer says they will not renew unless we build custom reporting this quarter", "should_trigger": true},
+  {"query": "a competitor just launched offline mode and the sales VP wants us to drop everything and match it", "should_trigger": true},
+  {"query": "sales went over my head to the CTO to get a feature for one deal pulled into this sprint. what now", "should_trigger": true},
+  {"query": "how do I show leadership what slips if we squeeze in this urgent request without just saying no", "should_trigger": true},
+  {"query": "an enterprise prospect claims a two million dollar deal depends on us shipping SAML next month, which would mean dropping the Q4 billing work. how do I check that is real", "should_trigger": true},
+  {"query": "we keep getting interrupted mid-quarter by exec pet projects and the committed roadmap never lands", "should_trigger": true},
+  {"query": "board member wants us to pivot two engineers onto a partnership integration starting monday", "should_trigger": true},
+  {"query": "give me three options with costs for a customer escalation that wants their feature moved ahead of everything else", "should_trigger": true},
+  {"query": "a key account is threatening to churn over a missing integration and the founder already told them yes", "should_trigger": true},
+  {"query": "sales keeps sending us one-off feature asks from prospects, how do we triage the backlog and decide which matter", "should_trigger": false, "expected": "request-triage"},
+  {"query": "help me draft our Q1 objectives and key results for the product team", "should_trigger": false, "expected": "okr-planning"},
+  {"query": "write the weekly update telling stakeholders the billing project slipped two weeks", "should_trigger": false, "expected": "status-update"},
+  {"query": "before we commit to this launch plan, run a premortem on what could go wrong", "should_trigger": false, "expected": "spec-premortem"},
+  {"query": "we want to deprecate the legacy reports feature, how do we plan the end-of-life", "should_trigger": false, "expected": "feature-sunset"},
+  {"query": "a customer wants 40 percent off to renew, who should approve that discount", "should_trigger": false, "expected": "discount-discipline"},
+  {"query": "write up why we chose Kafka over SQS as an architecture decision record", "should_trigger": false, "expected": "decision-record"},
+  {"query": "turn this one-line feature request into a spec with acceptance criteria and a task plan", "should_trigger": false, "expected": "feature-spec"},
+  {"query": "plan the canary rollout percentages for the new checkout flow", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "write the customer email for the outage we had this morning", "should_trigger": false, "expected": "incident-comms"}
+]

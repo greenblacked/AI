@@ -14,7 +14,7 @@ These conversations go wrong in seven repeatable ways: postponed until the behav
 
 Use for: preparing and holding the conversation itself — underperformance, a missed standard, a boundary or a refusal, a decision someone will not like, a conflict between two people you manage, news that lands badly, and the rehearsal of what to say when it goes sideways.
 
-Do not use for: the written performance review, the rating, the levelling argument or the promotion packet — all of those are `growth-review`, which owns the document while this skill owns the meeting. Telling customers about an outage is `incident-comms`. Interview loops, scorecards and hiring debriefs are `hiring-loop`. A new joiner's first weeks and their early expectations are `onboarding-plan`. A blameless incident write-up is `postmortem`; if an incident conversation has turned into a performance conversation, that is a separate meeting and it is this one.
+Do not use for: the written performance review, the rating, the levelling argument or the promotion packet — all of those are `growth-review`, which owns the document while this skill owns the meeting. Telling customers about an outage is `incident-comms`. Interview loops, scorecards and hiring debriefs are `hiring-loop`. A new joiner's first weeks and their early expectations are `onboarding-plan`. The standing relationship with your own manager — keeping them informed, bringing bad news upward as a habit, disagree-and-commit — is `managing-up`; preparing one specific conversation with your manager stays here. A blameless incident write-up is `postmortem`; if an incident conversation has turned into a performance conversation, that is a separate meeting and it is this one.
 
 ## Feedback or a decision already made
 

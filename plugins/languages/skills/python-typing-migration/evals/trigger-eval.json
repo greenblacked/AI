@@ -1,0 +1,22 @@
+[
+  {"query": "add type hints to the whole repo and get mypy running in ci", "should_trigger": true},
+  {"query": "we turned on mypy strict and now have 3,000 type errors", "should_trigger": true},
+  {"query": "how do we stop our python typing from rotting once we have it", "should_trigger": true},
+  {"query": "there are too many type: ignore comments in this codebase, how do we control them", "should_trigger": true},
+  {"query": "can we adopt pyright gradually without fixing every existing error first", "should_trigger": true},
+  {"query": "what is a baseline for a type checker and how do I make ci fail only on new errors", "should_trigger": true},
+  {"query": "replace dict[str, Any] coming from our api with proper types", "should_trigger": true},
+  {"query": "how do I measure how much Any is left in our typed python code", "should_trigger": true},
+  {"query": "when is it safe to add py.typed to our library", "should_trigger": true},
+  {"query": "which modules should we annotate first in a large untyped python service", "should_trigger": true},
+  {"query": "enable strictNullChecks in our typescript project", "should_trigger": false, "expected": "typescript-strictness-migration"},
+  {"query": "reorganise these python modules to remove circular imports", "should_trigger": false, "expected": "refactoring"},
+  {"query": "upgrade our service from python 3.9 to 3.12", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "importerror no module named when running pytest from a different directory", "should_trigger": false, "expected": "python-import-failures"},
+  {"query": "pip install fails building a wheel for a native extension", "should_trigger": false, "expected": "python-native-wheel-failures"},
+  {"query": "our python worker memory grows over days", "should_trigger": false, "expected": "python-memory-growth"},
+  {"query": "review this pull request that adds a new endpoint", "should_trigger": false, "expected": "code-review"},
+  {"query": "work out why this python function raises keyerror only in production", "should_trigger": false, "expected": "debugging"},
+  {"query": "design test cases for a function that parses dates", "should_trigger": false, "expected": "test-design"},
+  {"query": "two packages need conflicting versions of the same library", "should_trigger": false, "expected": "dependency-resolution-conflict"}
+]

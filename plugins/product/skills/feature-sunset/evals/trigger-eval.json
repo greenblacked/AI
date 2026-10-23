@@ -1,0 +1,23 @@
+[
+  {"query": "we want to deprecate the legacy dashboard feature, how do we plan it", "should_trigger": true},
+  {"query": "end-of-life the old starter plan that we stopped selling two years ago", "should_trigger": true},
+  {"query": "nobody uses the PDF export anymore, can we just delete it", "should_trigger": true},
+  {"query": "we are shutting down our desktop app next year, what is the plan to get customers off it", "should_trigger": true},
+  {"query": "how long a deprecation notice should we give before removing the old reports module", "should_trigger": true},
+  {"query": "some enterprise customers still depend on the classic editor and we want to remove it, how do we handle them", "should_trigger": true},
+  {"query": "should we do brown-outs before turning off the legacy integration for good", "should_trigger": true},
+  {"query": "we keep announcing the end date for the old workflow builder and then pushing it back. how do we actually finish", "should_trigger": true},
+  {"query": "retire our Zapier integration and move people onto the native one", "should_trigger": true},
+  {"query": "work out which accounts would be hurt if we remove the team calendar feature", "should_trigger": true},
+  {"query": "we are raising prices and moving everyone off legacy pricing plans onto the new tiers", "should_trigger": false, "expected": "price-change-rollout"},
+  {"query": "how do we version our REST API and retire v1 for third-party integrators", "should_trigger": false, "expected": "api-design"},
+  {"query": "the checkout flag has been at 100 percent for months, clean it out of the code", "should_trigger": false, "expected": "feature-flag-lifecycle"},
+  {"query": "React 17 is end of life, upgrade our frontend to React 19", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "we are moving off Heroku to AWS on the 14th, plan the switchover weekend", "should_trigger": false, "expected": "cutover"},
+  {"query": "a big customer insists we keep building on the feature we planned to drop, and the CEO agrees", "should_trigger": false, "expected": "roadmap-disruption-triage"},
+  {"query": "sales says three prospects asked for a feature we decided not to build. how do we respond to these requests", "should_trigger": false, "expected": "request-triage"},
+  {"query": "rename and drop a column from the orders table without downtime", "should_trigger": false, "expected": "db-migration"},
+  {"query": "write the release notes for 4.0 including the removed features", "should_trigger": false, "expected": "release-notes"},
+  {"query": "plan the multi-phase migration from our monolith to services over the next year", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "which dashboards and jobs still read this warehouse table before we drop it", "should_trigger": false, "expected": "consumer-discovery"}
+]

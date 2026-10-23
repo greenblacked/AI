@@ -1,7 +1,7 @@
 ---
 name: codebase-orientation
 description: "Get oriented in a codebase you did not write, in a fixed order: what it does and for whom before how it is built, the entry points, one real request traced end to end, a named behaviour located in the code, the tests read as the specification, the history read as evidence of what churns and what has never moved, and the local dev loop run once — then separate live code from dead, generated and vendored code, and finish with a written map plus one small change. Use this skill whenever someone lands in unfamiliar code and asks \"where do I even start with this repo\", \"how does this service actually work\", \"I just inherited this project\", \"where does X actually happen in here\", or \"what should my first change be\". Do not use it to chase a specific failure (debugging), judge a diff (code-review), restructure code already understood (refactoring), or write the documentation afterwards (technical-docs)."
-allowed-tools: Read, Grep, Glob, Bash(git:*), Bash(rg:*), Bash(make:*), Bash(npm:*)
+allowed-tools: Read, Grep, Glob
 ---
 
 # Codebase Orientation

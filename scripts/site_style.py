@@ -672,6 +672,9 @@ html[data-theme="night"] .sun { opacity: 0; transform: rotate(90deg) scale(0.4);
   letter-spacing: -0.02em;
   text-wrap: balance;
   line-height: 1.15;
+  /* A skill name is the page title, and one long segment of it, nonindependence- say,
+     is wider than a phone at this size; it may break rather than widen the page. */
+  overflow-wrap: break-word;
 }
 .prose-lab h1 {
   font-family: var(--font-serif);
@@ -717,6 +720,10 @@ html[data-theme="night"] .sun { opacity: 0; transform: rotate(90deg) scale(0.4);
    so on a phone one long one pushed the whole page wider than the screen. It may break
    anywhere; a code block keeps its lines and scrolls inside its own box instead. */
 .prose-lab :not(pre) > code { overflow-wrap: anywhere; }
+/* An error code or an environment variable quoted in a description or an eval query,
+   ERR_PACKAGE_PATH_NOT_EXPORTED say, is plain text rather than code, and is the phrase a
+   reader pastes, so it stays verbatim and is allowed to break instead. */
+.prose-lab p, .prose-lab li { overflow-wrap: break-word; }
 .prose-lab pre {
   margin: 0 0 1.25rem;
   padding: 1rem 1.15rem;
@@ -1290,6 +1297,17 @@ MOTION_CSS = """
     );
     animation: theme-in 900ms var(--ease-theme) both;
   }
+  /* A very tall page cannot afford the reveal, whose cost per frame grows with the height
+     of the page; it dips through the new colour on a layer the size of the screen. */
+  .theme-veil { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  /* Under the veil nothing eases, colours included: a page this tall pays for every colour
+     transition on every link and on the switch, frame after frame, well past the veil. Only
+     the knob's travel and its icons' turn stay, as transforms, which cost nothing. */
+  html.theme-dip, html.theme-dip *, html.theme-dip *::before, html.theme-dip *::after {
+    transition: none !important;
+  }
+  html.theme-dip .knob { transition: transform 600ms cubic-bezier(0.45, 0, 0.2, 1) !important; }
+  html.theme-dip .knob svg { transition: transform 600ms var(--ease-theme) !important; }
   /* Where a browser has no view transitions, the colours cross-fade instead of jumping. */
   html.theme-fade, html.theme-fade * {
     transition: background-color 500ms ease, color 500ms ease, border-color 500ms ease,
@@ -1553,6 +1571,243 @@ html:not([data-theme="reactor"]) %P .plugin-word {
   100% { opacity: 1; filter: none; }
 }""",
     ),
+    # Letters are inked in from faint to full, like a page being proofed.
+    "techdocs": PluginLook(
+        day=("#3f3f46", "#1d4ed8", "#854d0e"),
+        night=("#e4e4e7", "#93c5fd", "#fde047"),
+        width=0.71,
+        serif=True,
+        rules=(
+            "%P .pl { animation: pw-techdocs-ink 0.6s ease-in calc(var(--i) * 0.08s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-techdocs-ink {
+  from { opacity: 0.15; }
+  to { opacity: 1; }
+}""",
+    ),
+    # Rows rise into place one after another, like a query result filling in.
+    "data": PluginLook(
+        day=("#1e40af", "#9a3412", "#065f46"),
+        night=("#93c5fd", "#fdba74", "#6ee7b7"),
+        width=0.7,
+        rules="%P .pl { animation: pw-data-row 0.45s ease-out calc(var(--i) * 0.11s) backwards; }",
+        keyframes="""\
+@keyframes pw-data-row {
+  from { opacity: 0; transform: translateY(0.35em); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    # Each letter is pressed in and settles, like a stamp on a signed-off record.
+    "assurance": PluginLook(
+        day=("#14532d", "#1e3a8a", "#7c2d12"),
+        night=("#86efac", "#93c5fd", "#fdba74"),
+        width=0.7,
+        rules=(
+            "%P .pl { animation: pw-assurance-stamp 0.4s ease-out "
+            "calc(var(--i) * 0.09s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-assurance-stamp {
+  from { opacity: 0; transform: scale(1.25); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    # Letters slide in from the side and land, like a screen being swiped into view.
+    "client-apps": PluginLook(
+        day=("#0e7490", "#6d28d9", "#be123c"),
+        night=("#67e8f9", "#c4b5fd", "#fda4af"),
+        width=0.68,
+        rules=(
+            "%P .pl { animation: pw-client-apps-swipe 0.4s ease-out "
+            "calc(var(--i) * 0.06s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-client-apps-swipe {
+  from { opacity: 0; transform: translateX(0.5em); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    # Letters rise in steps, like a funnel chart filling in from left to right.
+    "product": PluginLook(
+        day=("#9a3412", "#065f46", "#4338ca"),
+        night=("#fdba74", "#6ee7b7", "#a5b4fc"),
+        width=0.7,
+        rules=(
+            "%P .pl { animation: pw-product-step 0.45s ease-out calc(var(--i) * 0.1s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-product-step {
+  from { opacity: 0; transform: translateY(0.3em); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    # Letters grow into place one by one, like nodes joining a cluster.
+    "platform": PluginLook(
+        day=("#1d4ed8", "#0f766e", "#854d0e"),
+        night=("#93c5fd", "#5eead4", "#fde047"),
+        width=0.76,
+        rules=(
+            "%P .pl { animation: pw-platform-join 0.4s ease-out calc(var(--i) * 0.08s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-platform-join {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    # Letters snap into a grid one after another, like a build graph resolving.
+    "devtools": PluginLook(
+        day=("#334155", "#7c3aed", "#0f766e"),
+        night=("#cbd5e1", "#c4b5fd", "#5eead4"),
+        width=0.7,
+        rules=(
+            "%P .pl { animation: pw-devtools-snap 0.35s steps(3, end) "
+            "calc(var(--i) * 0.07s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-devtools-snap {
+  from { opacity: 0; transform: translateX(-0.25em); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    # Letters are tallied in one by one, like entries on a ledger page.
+    "smallbiz": PluginLook(
+        day=("#14532d", "#9a3412", "#1e3a8a"),
+        night=("#86efac", "#fdba74", "#93c5fd"),
+        width=0.7,
+        rules=(
+            "%P .pl { animation: pw-smallbiz-tally 0.35s ease-out "
+            "calc(var(--i) * 0.09s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-smallbiz-tally {
+  from { opacity: 0; transform: translateY(0.2em); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    "backend": PluginLook(
+        day=("#7c2d12", "#1e3a8a", "#14532d"),
+        night=("#fdba74", "#93c5fd", "#86efac"),
+        width=0.72,
+        rules=(
+            "%P .pl { animation: pw-backend-queue 0.4s ease-out calc(var(--i) * 0.08s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-backend-queue {
+  from { opacity: 0; transform: translateX(-0.3em); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    "languages": PluginLook(
+        day=("#581c87", "#0f766e", "#9a3412"),
+        night=("#d8b4fe", "#5eead4", "#fdba74"),
+        width=0.74,
+        rules=(
+            "%P .pl { animation: pw-languages-type 0.3s steps(3, end) cal"
+            "c(var(--i) * 0.07s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-languages-type {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}""",
+    ),
+    "linux": PluginLook(
+        day=("#166534", "#374151", "#92400e"),
+        night=("#86efac", "#d1d5db", "#fcd34d"),
+        width=0.7,
+        rules=(
+            "%P .pl { animation: pw-linux-boot 0.25s linear calc(var(--i) * 0.06s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-linux-boot {
+  from { opacity: 0; clip-path: inset(0 100% 0 0); }
+  to { opacity: 1; clip-path: inset(0 0 0 0); }
+}""",
+    ),
+    "databases": PluginLook(
+        day=("#1e3a8a", "#9f1239", "#115e59"),
+        night=("#93c5fd", "#fda4af", "#5eead4"),
+        width=0.73,
+        rules=(
+            "%P .pl { animation: pw-databases-commit 0.45s ease-out calc("
+            "var(--i) * 0.09s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-databases-commit {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    "observability": PluginLook(
+        day=("#9a3412", "#5b21b6", "#0e7490"),
+        night=("#fdba74", "#c4b5fd", "#67e8f9"),
+        width=0.76,
+        rules=(
+            "%P .pl { animation: pw-observability-trace 0.5s ease-out cal"
+            "c(var(--i) * 0.1s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-observability-trace {
+  from { opacity: 0.2; }
+  to { opacity: 1; }
+}""",
+    ),
+    "embedded": PluginLook(
+        day=("#065f46", "#7c2d12", "#3730a3"),
+        night=("#6ee7b7", "#fdba74", "#a5b4fc"),
+        width=0.72,
+        rules=(
+            "%P .pl { animation: pw-embedded-blink 0.3s steps(2, end) "
+            "calc(var(--i) * 0.08s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-embedded-blink {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}""",
+    ),
+    "learning": PluginLook(
+        day=("#1e40af", "#9d174d", "#166534"),
+        night=("#93c5fd", "#f9a8d4", "#86efac"),
+        width=0.74,
+        rules=(
+            "%P .pl { animation: pw-learning-turn 0.4s ease-out calc(var(--i) * 0.09s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-learning-turn {
+  from { opacity: 0; transform: translateX(0.25em); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    "research": PluginLook(
+        day=("#0f766e", "#7c2d12", "#4338ca"),
+        night=("#5eead4", "#fdba74", "#a5b4fc"),
+        width=0.73,
+        rules=(
+            "%P .pl { animation: pw-research-plot 0.45s ease-out "
+            "calc(var(--i) * 0.08s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-research-plot {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
+    "growth": PluginLook(
+        day=("#166534", "#9d174d", "#1e3a8a"),
+        night=("#86efac", "#f9a8d4", "#93c5fd"),
+        width=0.78,
+        rules=(
+            "%P .pl { animation: pw-growth-rise 0.4s ease-out calc(var(--i) * 0.08s) backwards; }"
+        ),
+        keyframes="""\
+@keyframes pw-growth-rise {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
 }
 
 # The shared frame. `--c` is the colour a letter or a row takes from the cycle.
@@ -1719,19 +1974,84 @@ PAGE_SCRIPT = """
       else localStorage.removeItem(KEY);
     } catch (e) {}
   }
+  // The theme the visitor has asked for. apply() runs later, inside the transition's
+  // update callback, so data-theme still shows the old one when the next press arrives;
+  // this is what every press reads and every update callback applies.
+  var intent = preferred();
+  // The day or night choice that was in place when the console theme was turned on, so
+  // turning it off puts that back instead of falling to the clock. Kept in storage too,
+  // so it survives a reload while the console theme is on.
+  var BEFORE = "theme-before-console";
+  var before = null;
+  function choice(value) { return value === "night" || value === "day" ? value : null; }
+  function remember(value) {
+    before = value;
+    try {
+      if (value) localStorage.setItem(BEFORE, value);
+      else localStorage.removeItem(BEFORE);
+    } catch (e) {}
+  }
+  function recall() {
+    var stored = null;
+    try { stored = localStorage.getItem(BEFORE); } catch (e) {}
+    return choice(stored) || before;
+  }
+  function sync() {
+    intent = preferred();
+    apply(intent);
+  }
   // A theme chosen by hand spreads out from the control that chose it. The clock's own
   // changes, and any visitor who asked for less motion, switch at once.
   var fadeTimer = 0;
   var spreading = null;
-  function spreadTheme(from, change) {
+  // The reveal repaints the whole page on every frame, so its cost grows with the page's
+  // height: a page this many screens tall drops to a quarter of its frames on a phone.
+  var TALL = 16;
+  var veil = null;
+  var dipping = 0;
+  // The cheap way to the same place: the screen fades to the new theme's colour, the
+  // page changes underneath it, and the screen fades back. Only opacity moves, and only
+  // on a layer the size of the screen. A press in the middle starts again from where the
+  // veil is, so the page changes once, to the theme asked for last.
+  function dip() {
+    var run = ++dipping;
+    root.classList.add("theme-dip");
+    if (!veil) {
+      veil = document.createElement("div");
+      veil.className = "theme-veil";
+      veil.setAttribute("aria-hidden", "true");
+      veil.style.opacity = "0";
+      document.body.appendChild(veil);
+    }
+    var level = getComputedStyle(veil).opacity;
+    veil.getAnimations().forEach(function (running) { running.cancel(); });
+    veil.style.opacity = level;
+    veil.style.backgroundColor = COLORS[intent];
+    veil.animate([{ opacity: level }, { opacity: 1 }], {
+      duration: 160, easing: "ease-out", fill: "forwards"
+    }).onfinish = function () {
+      if (run !== dipping) return;
+      apply(intent);
+      veil.animate([{ opacity: 1 }, { opacity: 0 }], {
+        duration: 380, easing: "ease-in", fill: "forwards"
+      }).onfinish = function () {
+        if (run !== dipping) return;
+        veil.remove();
+        veil = null;
+        root.classList.remove("theme-dip");
+      };
+    };
+  }
+  function spreadTheme(from) {
     var still = !window.matchMedia ||
       !window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
-    if (still) { change(); return; }
+    if (still) { apply(intent); return; }
+    if (root.scrollHeight > TALL * window.innerHeight) { dip(); return; }
     if (!document.startViewTransition) {
       // A second change while the first still fades restarts the clock, so the class is
       // never removed in the middle of the newer fade.
       root.classList.add("theme-fade");
-      change();
+      apply(intent);
       window.clearTimeout(fadeTimer);
       fadeTimer = window.setTimeout(function () { root.classList.remove("theme-fade"); }, 600);
       return;
@@ -1742,7 +2062,7 @@ PAGE_SCRIPT = """
     root.classList.add("theming");
     // A new transition skips the one still running, whose cleanup then fires early; only
     // the latest one may remove the class, or the newer reveal loses its mask mid-way.
-    var transition = document.startViewTransition(change);
+    var transition = document.startViewTransition(function () { apply(intent); });
     spreading = transition;
     function done() {
       if (spreading !== transition) return;
@@ -1751,24 +2071,48 @@ PAGE_SCRIPT = """
     }
     transition.finished.then(done, done);
   }
+  function choose(theme, from) {
+    intent = theme;
+    spreadTheme(from);
+  }
+  // While a reveal runs the page is its own picture and no control in it can be hit: a press
+  // lands on the document itself, and pointer-events on the transition does not let it
+  // through. Hand that press to the switch it was over, or the second press is lost.
+  document.addEventListener("click", function (event) {
+    if (event.target !== root || !root.classList.contains("theming")) return;
+    [dark, consoleTheme].some(function (control) {
+      var box = control.getBoundingClientRect();
+      if (event.clientX < box.left || event.clientX > box.right) return false;
+      if (event.clientY < box.top || event.clientY > box.bottom) return false;
+      control.click();
+      return true;
+    });
+  }, true);
   dark.addEventListener("click", function () {
-    var next = root.getAttribute("data-theme") === "night" ? "day" : "night";
+    var next = intent === "night" ? "day" : "night";
+    remember(null);
     store(next);
-    spreadTheme(dark, function () { apply(next); });
+    choose(next, dark);
   });
   consoleTheme.addEventListener("click", function () {
-    if (root.getAttribute("data-theme") === "reactor") {
-      store(null);
-      spreadTheme(consoleTheme, function () { apply(clock()); });
+    if (intent === "reactor") {
+      var back = recall();
+      remember(null);
+      store(back);
+      choose(back || clock(), consoleTheme);
       return;
     }
+    // A stored "reactor" from before this was remembered has no choice behind it.
+    var stored = null;
+    try { stored = localStorage.getItem(KEY); } catch (e) {}
+    remember(choice(stored));
     store("reactor");
-    spreadTheme(consoleTheme, function () { apply("reactor"); });
+    choose("reactor", consoleTheme);
   });
-  apply(preferred());
-  window.setInterval(function () { apply(preferred()); }, 60000);
+  sync();
+  window.setInterval(sync, 60000);
   document.addEventListener("visibilitychange", function () {
-    if (document.visibilityState === "visible") apply(preferred());
+    if (document.visibilityState === "visible") sync();
   });
 
   var home = document.getElementById("home");

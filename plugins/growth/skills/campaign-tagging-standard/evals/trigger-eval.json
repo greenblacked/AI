@@ -1,0 +1,92 @@
+[
+  {
+    "query": "our UTMs are a mess and the channel report is useless, can you sort it out",
+    "should_trigger": true
+  },
+  {
+    "query": "the newsletter shows up as three different sources in analytics, how do we stop that",
+    "should_trigger": true
+  },
+  {
+    "query": "we need a naming convention for campaign tags before the team launches more links",
+    "should_trigger": true
+  },
+  {
+    "query": "build a link builder sheet so marketing stops hand-typing utm parameters",
+    "should_trigger": true
+  },
+  {
+    "query": "should internal banners on our site carry utm_campaign tags",
+    "should_trigger": true
+  },
+  {
+    "query": "write the one-page tagging standard for our marketing team",
+    "should_trigger": true
+  },
+  {
+    "query": "monthly check that nobody is using values outside our approved source and medium list",
+    "should_trigger": true
+  },
+  {
+    "query": "how should we name campaigns so they sort by date and can be matched to spend",
+    "should_trigger": true
+  },
+  {
+    "query": "people tag links with capital letters and spaces and our reports split everything, what rule do we set",
+    "should_trigger": true
+  },
+  {
+    "query": "our paid social traffic lands in unassigned in the channel report, fix the tagging scheme",
+    "should_trigger": true
+  },
+  {
+    "query": "we think the ad platform claims twice the conversions our orders show, check whether we can trust attribution",
+    "should_trigger": false,
+    "expected": "attribution-sanity-check"
+  },
+  {
+    "query": "final checklist before we send the newsletter to the whole list",
+    "should_trigger": false,
+    "expected": "campaign-preflight"
+  },
+  {
+    "query": "our marketing emails are landing in spam since last week",
+    "should_trigger": false,
+    "expected": "deliverability-triage"
+  },
+  {
+    "query": "set up SPF, DKIM and DMARC for our sending domain",
+    "should_trigger": false,
+    "expected": "email-authentication-rollout"
+  },
+  {
+    "query": "the landing page headline does not match what our ads promise",
+    "should_trigger": false,
+    "expected": "message-match-audit"
+  },
+  {
+    "query": "find the search terms wasting our paid search budget",
+    "should_trigger": false,
+    "expected": "paid-search-waste-audit"
+  },
+  {
+    "query": "score our leads and feed outcomes back to the campaigns",
+    "should_trigger": false,
+    "expected": "lead-quality-loop"
+  },
+  {
+    "query": "write release notes for version 3.2",
+    "should_trigger": false,
+    "expected": "release-notes"
+  },
+  {
+    "query": "add request latency metrics and labels to our service",
+    "should_trigger": false,
+    "expected": "instrumentation"
+  },
+  {
+    "query": "rewrite the old blog posts that lost traffic",
+    "should_trigger": false,
+    "expected": "content-refresh-triage"
+  }
+]

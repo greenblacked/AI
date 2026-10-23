@@ -1,0 +1,92 @@
+[
+  {
+    "query": "build autocomplete suggestions for our product search box",
+    "should_trigger": true
+  },
+  {
+    "query": "we need search as you type on elasticsearch",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I set up an edge ngram analyzer without getting junk matches",
+    "should_trigger": true
+  },
+  {
+    "query": "our typeahead is slow, p99 is over 300 ms",
+    "should_trigger": true
+  },
+  {
+    "query": "suggestions should still work when the user makes a typo",
+    "should_trigger": true
+  },
+  {
+    "query": "completion suggester or search_as_you_type for a catalogue of 2 million products",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I rank autocomplete suggestions by popularity from our query logs",
+    "should_trigger": true
+  },
+  {
+    "query": "autocomplete returns suggestions from other tenants, how do I scope them",
+    "should_trigger": true
+  },
+  {
+    "query": "test our autocomplete with real keystroke sequences from the logs",
+    "should_trigger": true
+  },
+  {
+    "query": "typing 'sh' in the box returns almost everything, why",
+    "should_trigger": true
+  },
+  {
+    "query": "the wrong result is first when users submit a full search query",
+    "should_trigger": false,
+    "expected": "search-relevance-tuning"
+  },
+  {
+    "query": "choose field types and write a strict index template",
+    "should_trigger": false,
+    "expected": "search-mapping-design"
+  },
+  {
+    "query": "design the combobox input with keyboard and screen reader behaviour",
+    "should_trigger": false,
+    "expected": "form-design"
+  },
+  {
+    "query": "keep the elasticsearch index in sync with postgres",
+    "should_trigger": false,
+    "expected": "search-index-sync"
+  },
+  {
+    "query": "add full text search to postgres with tsvector",
+    "should_trigger": false,
+    "expected": "postgres-full-text-search"
+  },
+  {
+    "query": "measure ranking quality against a sealed holdout",
+    "should_trigger": false,
+    "expected": "retrieval-evaluation"
+  },
+  {
+    "query": "tune hnsw ef_search for vector recall",
+    "should_trigger": false,
+    "expected": "vector-index-tuning"
+  },
+  {
+    "query": "design the retrieval pipeline for a docs chatbot",
+    "should_trigger": false,
+    "expected": "rag-design"
+  },
+  {
+    "query": "rate limit requests to our search api",
+    "should_trigger": false,
+    "expected": "rate-limiter-design"
+  },
+  {
+    "query": "elasticsearch shards are unassigned",
+    "should_trigger": false,
+    "expected": "shard-allocation-triage"
+  }
+]

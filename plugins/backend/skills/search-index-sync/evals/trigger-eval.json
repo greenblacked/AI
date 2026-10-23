@@ -1,0 +1,22 @@
+[
+  {"query": "deleted products still show up in our elasticsearch results", "should_trigger": true},
+  {"query": "search results are stale after we update a record in the database", "should_trigger": true},
+  {"query": "how do I reindex our opensearch index without any downtime", "should_trigger": true},
+  {"query": "the document count in the index is different from the row count in the database", "should_trigger": true},
+  {"query": "we changed the analyzer mapping and need to apply it to existing data", "should_trigger": true},
+  {"query": "a newly created record is not searchable right after saving, how do we fix this", "should_trigger": true},
+  {"query": "should the app write to postgres and elasticsearch in the same request handler", "should_trigger": true},
+  {"query": "how do I keep an index in sync using change data capture", "should_trigger": true},
+  {"query": "a late retry overwrote a newer document in the index, how do we prevent that", "should_trigger": true},
+  {"query": "we hit the 10000 result limit paging deep through search results", "should_trigger": true},
+  {"query": "our search relevance is poor and we want to measure ranking quality with a labelled set", "should_trigger": false, "expected": "retrieval-evaluation"},
+  {"query": "publish events reliably from the database with a transactional outbox", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "run a one-off repair of ten million rows with a safe backfill", "should_trigger": false, "expected": "safe-backfill"},
+  {"query": "design retrieval for a document question answering bot with embeddings", "should_trigger": false, "expected": "rag-design"},
+  {"query": "rename a field on the order event without breaking consumers", "should_trigger": false, "expected": "event-schema-evolution"},
+  {"query": "a postgres query is slow and needs an index", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "invalidate our application cache safely when a record changes", "should_trigger": false, "expected": "application-caching"},
+  {"query": "one shard of the store is throttled while the others are idle", "should_trigger": false, "expected": "hot-partition-hunt"},
+  {"query": "plan moving the whole platform to another cloud", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "add a column to the table and migrate existing data", "should_trigger": false, "expected": "db-migration"}
+]

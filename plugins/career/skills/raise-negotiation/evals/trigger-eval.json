@@ -1,0 +1,22 @@
+[
+  {"query": "how do i ask my boss for a raise, i have been here three years and never had more than the standard bump", "should_trigger": true},
+  {"query": "i just found out the new hire on my team earns more than me for the same role", "should_trigger": true},
+  {"query": "i got promoted to senior but my pay did not change at all", "should_trigger": true},
+  {"query": "review was great but the increase was tiny. is there anything i can do now", "should_trigger": true},
+  {"query": "when is the right time to bring up compensation with my manager before the review cycle", "should_trigger": true},
+  {"query": "i want to ask for a title change and a pay rise, how do i structure the case", "should_trigger": true},
+  {"query": "my manager said there is no budget this year. what do i say next", "should_trigger": true},
+  {"query": "how many market data points do i need to justify asking for more money at my current job", "should_trigger": true},
+  {"query": "should i mention a recruiter message i got when asking my employer for more", "should_trigger": true},
+  {"query": "what do i do if they say not now to my raise request", "should_trigger": true},
+  {"query": "a new company offered me 150k and i want to counter", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "help me design pay bands for my engineering team", "should_trigger": false, "expected": "compensation-benchmarking"},
+  {"query": "write the performance review for my report ahead of calibration", "should_trigger": false, "expected": "growth-review"},
+  {"query": "my manager does not know what i do and keeps changing priorities", "should_trigger": false, "expected": "managing-up"},
+  {"query": "i was laid off and need to negotiate my severance package", "should_trigger": false, "expected": "severance-negotiation"},
+  {"query": "tailor my cv for a staff engineer application", "should_trigger": false, "expected": "job-search"},
+  {"query": "plan how to tell my team that bonuses are cut this year", "should_trigger": false, "expected": "difficult-conversation"},
+  {"query": "work out how much i can save each month on my current salary", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "run a retention review for the people most likely to leave my team", "should_trigger": false, "expected": "retention-review"},
+  {"query": "write the quarterly status update for the programme board", "should_trigger": false, "expected": "status-update"}
+]

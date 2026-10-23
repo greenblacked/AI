@@ -1,0 +1,22 @@
+[
+  {"query": "pip install fails with error: command gcc failed with exit status 1", "should_trigger": true},
+  {"query": "pip install is building from source for twenty minutes, why is there no wheel", "should_trigger": true},
+  {"query": "no matching distribution found for a package on python alpine docker", "should_trigger": true},
+  {"query": "this package installs on my intel laptop but fails on apple silicon and arm64 docker", "should_trigger": true},
+  {"query": "ImportError: libstdc++.so cannot open shared object file after pip install", "should_trigger": true},
+  {"query": "how do I check whether a wheel exists for linux aarch64 python 3.12 before building", "should_trigger": true},
+  {"query": "make pip fail instead of silently compiling a package from source in ci", "should_trigger": true},
+  {"query": "psycopg2 or lxml needs a compiler in our slim image, is there a better way", "should_trigger": true},
+  {"query": "what does auditwheel show tell me about a wheel that will not import", "should_trigger": true},
+  {"query": "we bumped python to 3.13 and several packages now compile on install", "should_trigger": true},
+  {"query": "two of our python dependencies need incompatible versions of requests", "should_trigger": false, "expected": "dependency-resolution-conflict"},
+  {"query": "harden our python docker image and pick a minimal base for security", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "undefined reference errors when linking my own c extension against a library", "should_trigger": false, "expected": "native-linking-errors"},
+  {"query": "ModuleNotFoundError for my own package when I run the script from another directory", "should_trigger": false, "expected": "python-import-failures"},
+  {"query": "python worker memory grows over days and never shrinks", "should_trigger": false, "expected": "python-memory-growth"},
+  {"query": "esm and commonjs import error in node", "should_trigger": false, "expected": "node-module-format-errors"},
+  {"query": "plan the upgrade from django 4 to 5 with a test strategy", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "our python test suite is slow, find where the time goes", "should_trigger": false, "expected": "profiling"},
+  {"query": "which of our dependencies have known vulnerabilities and what do we fix first", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "write a script that renames files in a folder with logging and error handling", "should_trigger": false, "expected": "code-scaffold"}
+]

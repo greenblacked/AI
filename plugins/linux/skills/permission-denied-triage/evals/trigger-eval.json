@@ -1,0 +1,22 @@
+[
+  {"query": "the file is chmod 777 and I still get permission denied, what else can block it", "should_trigger": true},
+  {"query": "my script works as root but the service user gets Permission denied on the same path", "should_trigger": true},
+  {"query": "is SELinux blocking nginx from reading my web directory, how do I tell", "should_trigger": true},
+  {"query": "cannot execute a binary from /tmp, it says permission denied even though it is executable", "should_trigger": true},
+  {"query": "I added the user to the group but the running daemon still cannot read the file", "should_trigger": true},
+  {"query": "even root gets operation not permitted when deleting a file, no idea why", "should_trigger": true},
+  {"query": "AppArmor is denying my application a path, how do I allow it properly", "should_trigger": true},
+  {"query": "ausearch shows an avc denial, what should I do instead of setenforce 0", "should_trigger": true},
+  {"query": "my service with ProtectSystem=strict cannot write to its data directory", "should_trigger": true},
+  {"query": "reading a file over NFS fails for root but works for a normal user", "should_trigger": true},
+  {"query": "write the baseline hardening policy for our servers, including which SELinux mode to use", "should_trigger": false, "expected": "host-hardening"},
+  {"query": "which IAM roles can read this bucket and who has admin in the cloud account", "should_trigger": false, "expected": "access-review"},
+  {"query": "systemd says status=203/EXEC and the service never starts", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "ssh says Permission denied (publickey) when I log in", "should_trigger": false, "expected": "ssh-access-debugging"},
+  {"query": "the disk is full and writes fail with no space left on device", "should_trigger": false, "expected": "disk-full-triage"},
+  {"query": "decide which roles may read which records and enforce it in the application", "should_trigger": false, "expected": "authorization-design"},
+  {"query": "the kernel killed my process and dmesg shows out of memory", "should_trigger": false, "expected": "oom-kill-forensics"},
+  {"query": "the machine fails to boot after I edited fstab", "should_trigger": false, "expected": "boot-failure-recovery"},
+  {"query": "cron job does not run at the scheduled time", "should_trigger": false, "expected": "scheduled-job-debugging"},
+  {"query": "audit our container images for excessive privileges and a hardened base", "should_trigger": false, "expected": "image-hardening"}
+]

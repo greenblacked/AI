@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "assurance",
+  "description": "Skills for quality engineering and compliance procedure: order-dependent tests, mutation, property and fuzz testing, traffic replay, load tests, DPIAs, licence obligations, audit evidence, risk acceptance and audit trails, as procedure rather than legal advice.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "testing",
+    "quality",
+    "compliance",
+    "privacy",
+    "audit",
+    "licensing"
+  ]
+}

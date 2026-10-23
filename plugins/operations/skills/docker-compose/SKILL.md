@@ -1,7 +1,7 @@
 ---
 name: docker-compose
 description: "Compose several containers into one working environment for local development and CI: gate every depends_on edge on a healthcheck condition, since service_started means started, not ready; design the check and its start_period; service discovery by name, container port versus published port; named volumes versus bind mounts and their permission traps; layering .env, environment and env_file; profiles for optional services; digest pinning against drift. Use whenever someone says \"my app starts before the database is ready\", \"containers cannot reach each other\", \"works on my machine but not in CI\", \"how do I keep secrets out of my compose file\", or \"why is node_modules empty in the container\". Not for the image itself (image-hardening), a Kubernetes workload's requests, limits or probes (k8s-workloads), pipeline structure (ci-pipeline-design), or generating YAML (code-scaffold)."
-allowed-tools: Read, Write, Edit, Grep, Glob, Bash(docker:*), Bash(jq:*)
+allowed-tools: Read, Write, Edit, Grep, Glob, Bash(jq:*)
 ---
 
 # Compose Environments

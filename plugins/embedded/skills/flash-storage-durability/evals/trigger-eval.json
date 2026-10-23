@@ -1,0 +1,22 @@
+[
+  {"query": "our devices lose their config sometimes after the battery is pulled; how do we make settings survive a power cut", "should_trigger": true},
+  {"query": "flash wore out after a year in the field, we save a counter every few seconds. what should we have done", "should_trigger": true},
+  {"query": "should I use littlefs or write raw sectors for a few hundred bytes of settings", "should_trigger": true},
+  {"query": "how often can we write this setting to internal flash before it wears out", "should_trigger": true},
+  {"query": "compute whether our EEPROM logging rate will last the five year product life", "should_trigger": true},
+  {"query": "the stored calibration is garbage on about one unit in a thousand after unplugging; is it wear or a torn write", "should_trigger": true},
+  {"query": "design a two-copy config record with a CRC so a brownout never leaves us with nothing", "should_trigger": true},
+  {"query": "how do I test that my file system on NOR flash survives power loss at any moment", "should_trigger": true},
+  {"query": "is our brownout threshold high enough to finish a sector erase on the supercap", "should_trigger": true},
+  {"query": "we log sensor data to flash every second and the part is dying; how do we batch the writes", "should_trigger": true},
+  {"query": "design backups and restore tests for our customer database", "should_trigger": false, "expected": "backup-recovery-design"},
+  {"query": "model the tables and indexes for our orders and customers", "should_trigger": false, "expected": "schema-design"},
+  {"query": "how do we make the new firmware image install safely with a rollback slot", "should_trigger": false, "expected": "ota-update-safety"},
+  {"query": "the board will not boot after flashing and I locked myself out with readout protection", "should_trigger": false, "expected": "brick-recovery"},
+  {"query": "the microcontroller resets with a hard fault and I need to read the fault registers", "should_trigger": false, "expected": "hard-fault-triage"},
+  {"query": "our watchdog keeps resetting the device during a long flash erase", "should_trigger": false, "expected": "watchdog-design"},
+  {"query": "the device never wakes from deep sleep unless the debugger is attached", "should_trigger": false, "expected": "sleep-wake-bug-hunt"},
+  {"query": "how should the update image be staged and swapped so a power cut mid-update rolls back", "should_trigger": false, "expected": "ota-update-safety"},
+  {"query": "our SQL query reads too many rows and the page is slow", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "the I2C bus returns the wrong bytes from the sensor", "should_trigger": false, "expected": "serial-bus-debug"}
+]

@@ -1,7 +1,7 @@
 ---
 name: secret-rotation
-description: "Rotate a credential, or contain one that has leaked, without an outage and without leaving a copy behind: choose the planned or incident path first, inventory every consumer from access logs rather than the runbook, issue a second live credential instead of editing one in place, prove adoption from last-used telemetry past its reporting lag, then disable, bake and delete. Use this skill to rotate, replace, expire or revoke an API key, access key, token, service-account key, database password, signing secret or certificate; when a secret has been committed, pushed or pasted somewhere it should not be; when someone with access leaves or a vendor reports a breach; and for phrasings like \"this key is in a public repo\", \"do we need to rotate\", or \"how do we roll this password without downtime\". Do not use it for designing an authentication system, choosing a secrets manager, or reviewing IAM policy. Cede scheduled renewal or ACME rollout to certificate-automation."
-allowed-tools: "Bash(aws:*), Bash(gcloud:*), Bash(az:*), Bash(gh:*), Bash(kubectl:*), Bash(vault:*), Bash(git:*), Read, Grep, Glob"
+description: "Rotate a credential, or contain one that has leaked, without an outage or a leftover copy: choose the planned or incident path first, inventory every consumer from access logs not the runbook, issue a second live credential not an in-place edit, prove adoption from last-used telemetry past reporting lag, then disable, bake and delete. Use when rotating, replacing, expiring or revoking an API key, access key, token, service-account key, database password, signing secret or certificate; when a secret has been committed, pushed or pasted somewhere it should not be; when someone with access leaves or a vendor reports a breach; or for \"this key is in a public repo\" or \"how do we roll this password without downtime\". Not for designing authentication, choosing a secrets manager, reviewing IAM policy, history scrubbing (git-history-purge), certificate renewal or ACME rollout (certificate-automation), or federation such as IRSA or GitHub OIDC (workload-identity)."
+allowed-tools: "Read, Grep, Glob"
 ---
 
 # Secret Rotation
@@ -12,7 +12,7 @@ Rotation is hard because it is a two-writer problem in disguise. Every consumer 
 
 ## Scope
 
-Use for: a scheduled or policy-driven rotation, a rotation triggered by a departure or a vendor breach notice, a leaked or suspected-compromised credential, designing a rotation procedure for something that has never been rotated, setting a cadence, and moving a workload off long-lived static keys.
+Use for: a scheduled or policy-driven rotation, a rotation triggered by a departure or a vendor breach notice, a leaked or suspected-compromised credential, designing a rotation procedure for something that has never been rotated, and setting a cadence.
 
 Do not use for: designing an authentication or authorisation system, choosing between secret managers, a general IAM policy or least-privilege review, or anything intended to obtain, harvest or test credentials you were not given. This skill is defensive procedure; it does not produce exploitation tooling.
 
@@ -163,7 +163,7 @@ Write it up afterwards with the `postmortem` skill. The interesting question is 
 
 The best rotation is the one you do not have to perform, because the credential expires on its own in an hour.
 
-- **Federate CI to the cloud with OIDC.** GitHub Actions and GitLab CI can exchange a workload identity token for a short-lived cloud role, so no static key exists in CI at all. This deletes an entire class of leak: the CI secret that ends up echoed into a log. Setting the federation up, and checking the trust policy is conditioned on the right repository and ref rather than on `sub: *`, is `pipeline-hardening`.
+- **Federate CI to the cloud with OIDC.** GitHub Actions and GitLab CI can exchange a workload identity token for a short-lived cloud role, so no static key exists in CI at all. This deletes an entire class of leak: the CI secret that ends up echoed into a log. Setting the federation up, and checking the trust policy is conditioned on the right repository and ref rather than on `sub: *`, is `workload-identity`; auditing the workflow itself for injection and for how far its token reaches is `pipeline-hardening`.
 - **Use workload identity in the runtime.** IAM roles for service accounts or EKS Pod Identity, GKE Workload Identity, Azure workload identity, instance profiles. The credential becomes a rotating token the platform manages.
 - **Use dynamic credentials for databases.** A secret manager that mints a per-connection database user with a short lease turns rotation into expiry.
 - **Scan before the push and in CI.** A pre-commit hook catches the value before it exists in history; a CI scan over full history catches what the hook missed. Provider-side push protection is better than both, because it rejects the push rather than reporting it. Do not stop at the hook — the hook is the control someone bypasses at 6pm on a Friday.

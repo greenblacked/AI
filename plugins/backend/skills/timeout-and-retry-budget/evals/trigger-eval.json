@@ -1,0 +1,22 @@
+[
+  {"query": "the retries made the outage worse, the database fell over harder after the blip ended", "should_trigger": true},
+  {"query": "what should our http client timeouts be for calls from the api to the pricing service", "should_trigger": true},
+  {"query": "requests pile up in the gateway when the downstream is slow and threads run out", "should_trigger": true},
+  {"query": "how do we configure retries in the grpc client without making things worse", "should_trigger": true},
+  {"query": "our service calls three others and each retries three times, is that a problem", "should_trigger": true},
+  {"query": "we want to propagate a deadline across services so work stops when the caller gives up", "should_trigger": true},
+  {"query": "how do I stop a retry storm when a dependency is completely down", "should_trigger": true},
+  {"query": "should we retry a post that timed out", "should_trigger": true},
+  {"query": "set up envoy retry budgets for the orders cluster", "should_trigger": true},
+  {"query": "how do I test that my retry settings do not amplify load using toxiproxy", "should_trigger": true},
+  {"query": "our queue consumer needs a retry and dead-letter policy for failing messages", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "document the retry-after and idempotency-key behaviour of our public endpoints", "should_trigger": false, "expected": "api-design"},
+  {"query": "the service collapses when traffic doubles, add load shedding on the server", "should_trigger": false, "expected": "overload-protection"},
+  {"query": "how many pods do we need for black friday peak traffic", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "add per-customer rate limiting to the public api", "should_trigger": false, "expected": "rate-limiter-design"},
+  {"query": "our webhook delivery to customers keeps hammering a dead endpoint", "should_trigger": false, "expected": "webhook-integration"},
+  {"query": "two requests wrote the same row and one update was lost", "should_trigger": false, "expected": "transaction-race-hunt"},
+  {"query": "why is this endpoint slow, find where the time goes", "should_trigger": false, "expected": "profiling"},
+  {"query": "design the alerts for our latency slo", "should_trigger": false, "expected": "alert-design"},
+  {"query": "our order flow spans several services and needs compensation on failure", "should_trigger": false, "expected": "saga-design"}
+]

@@ -1,0 +1,92 @@
+[
+ {
+  "query": "we need to design the firmware update for our sensor nodes, what is the safe sequence on the device",
+  "should_trigger": true
+ },
+ {
+  "query": "do we really need A/B partitions or can we get by with one slot and a staging area",
+  "should_trigger": true
+ },
+ {
+  "query": "a batch of units bricked after the last OTA and we think it was a power cut during the write",
+  "should_trigger": true
+ },
+ {
+  "query": "what happens to the device if the battery dies halfway through flashing the new image",
+  "should_trigger": true
+ },
+ {
+  "query": "how should the bootloader decide the new image is good and when to roll back to the old one",
+  "should_trigger": true
+ },
+ {
+  "query": "audit our update code for places a bad image could leave the board unbootable",
+  "should_trigger": true
+ },
+ {
+  "query": "we confirm the new firmware as soon as main starts, is that safe",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I test that my update survives power loss at every flash write",
+  "should_trigger": true
+ },
+ {
+  "query": "when should the anti-rollback counter be incremented relative to the first boot of the new image",
+  "should_trigger": true
+ },
+ {
+  "query": "our MCU has a single flash bank, how do we update it in the field without a brick risk",
+  "should_trigger": true
+ },
+ {
+  "query": "plan the staged rollout of this firmware across 50000 devices with halt rules and wave sizes",
+  "should_trigger": false,
+  "expected": "ota-fleet-rollout"
+ },
+ {
+  "query": "the unit will not boot at all and we need to get it back over a programmer",
+  "should_trigger": false,
+  "expected": "brick-recovery"
+ },
+ {
+  "query": "our web service deploys should go to 5 percent of users first and widen on healthy metrics",
+  "should_trigger": false,
+  "expected": "release-strategy"
+ },
+ {
+  "query": "submit the new app build to the app stores and handle review rejections",
+  "should_trigger": false,
+  "expected": "mobile-release"
+ },
+ {
+  "query": "our logging partition wears out the flash after a year, how do we spread the writes",
+  "should_trigger": false,
+  "expected": "flash-storage-durability"
+ },
+ {
+  "query": "the device reboots every few minutes and I think the watchdog is the cause",
+  "should_trigger": false,
+  "expected": "watchdog-design"
+ },
+ {
+  "query": "I2C sensor never ACKs on the new board",
+  "should_trigger": false,
+  "expected": "serial-bus-debug"
+ },
+ {
+  "query": "decode this HardFault register dump from a crashed unit",
+  "should_trigger": false,
+  "expected": "hard-fault-triage"
+ },
+ {
+  "query": "device certificates will expire before the hardware is retired, how do we rotate the root",
+  "should_trigger": false,
+  "expected": "device-trust-anchors"
+ },
+ {
+  "query": "the unit does not wake from deep sleep after the update",
+  "should_trigger": false,
+  "expected": "sleep-wake-bug-hunt"
+ }
+]

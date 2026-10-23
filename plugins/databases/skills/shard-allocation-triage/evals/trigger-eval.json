@@ -1,0 +1,22 @@
+[
+  {"query": "our elasticsearch cluster went red overnight, where do I start", "should_trigger": true},
+  {"query": "there are 40 unassigned shards after a node restarted and they will not come back", "should_trigger": true},
+  {"query": "all our indices went read-only after the disk filled up, how do I get writes back", "should_trigger": true},
+  {"query": "cluster allocation explain says the disk threshold decider returned NO for every node", "should_trigger": true},
+  {"query": "the opensearch cluster has been yellow for hours and won't turn green", "should_trigger": true},
+  {"query": "when is it safe to use allocate_stale_primary on a red index", "should_trigger": true},
+  {"query": "reroute retry_failed does nothing and one shard keeps failing allocation", "should_trigger": true},
+  {"query": "we get too many shards open errors, what does cluster.max_shards_per_node do", "should_trigger": true},
+  {"query": "after draining a node the replicas will not allocate, I think an exclude filter was left behind", "should_trigger": true},
+  {"query": "every index has gone read-only allow-delete and I am not sure why", "should_trigger": true},
+  {"query": "the kubernetes node pool running our search pods is out of memory and pods are pending", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "run the incident for a search outage, assign commander and scribe", "should_trigger": false, "expected": "incident-response"},
+  {"query": "search results are missing records that exist in our database, how do we keep the index in sync", "should_trigger": false, "expected": "search-index-sync"},
+  {"query": "design the backup and restore plan for our search cluster", "should_trigger": false, "expected": "backup-recovery-design"},
+  {"query": "how much storage and how many data nodes will we need for next year", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "this elasticsearch query is slow, how should I restructure it", "should_trigger": false},
+  {"query": "design the retrieval layer for a question answering bot over our documents", "should_trigger": false, "expected": "rag-design"},
+  {"query": "which log lines should I alert on for our search cluster", "should_trigger": false, "expected": "alert-design"},
+  {"query": "a hot shard is taking all the traffic because of our partition key", "should_trigger": false, "expected": "hot-partition-hunt"},
+  {"query": "upgrade our kubernetes cluster without downtime", "should_trigger": false, "expected": "k8s-upgrade"}
+]

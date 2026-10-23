@@ -1,0 +1,22 @@
+[
+  {"query": "design a welcome series for people who sign up for our app", "should_trigger": true},
+  {"query": "our trial users do not convert to paid and I want to fix the emails they get", "should_trigger": true},
+  {"query": "we need a drip campaign for new customers that stops when they do the thing we ask", "should_trigger": true},
+  {"query": "build a re-engagement campaign for users who have gone quiet for two months", "should_trigger": true},
+  {"query": "people complain they get six emails a day from us across different flows", "should_trigger": true},
+  {"query": "how do I prove our onboarding emails actually cause activation and do not just take credit", "should_trigger": true},
+  {"query": "when should we stop emailing people who never open or click anything", "should_trigger": true},
+  {"query": "map all our automated emails on one page and set a frequency cap", "should_trigger": true},
+  {"query": "which step of our onboarding sequence should we cut first, opens look fine on all of them", "should_trigger": true},
+  {"query": "write a win-back flow for churned subscribers with a date when we remove non-responders", "should_trigger": true},
+  {"query": "Gmail is putting our newsletters in spam since Monday", "should_trigger": false, "expected": "deliverability-triage"},
+  {"query": "rewrite the tooltip and empty-state text inside our product", "should_trigger": false, "expected": "content-design"},
+  {"query": "we are moving to a new email provider and need to ramp up volume safely", "should_trigger": false, "expected": "sending-domain-warmup"},
+  {"query": "publish DMARC and fix our SPF record", "should_trigger": false, "expected": "email-authentication-rollout"},
+  {"query": "failed card payments are not being recovered and subscriptions are lapsing", "should_trigger": false, "expected": "dunning-recovery"},
+  {"query": "find where users stall inside the product between signup and first value", "should_trigger": false, "expected": "activation-analysis"},
+  {"query": "which marketing channel drove last quarter's revenue", "should_trigger": false, "expected": "attribution-sanity-check"},
+  {"query": "make push notifications reach Android devices reliably", "should_trigger": false, "expected": "push-notification-delivery"},
+  {"query": "write the subject line and copy for our spring promotion", "should_trigger": false},
+  {"query": "tag all our campaign links consistently so reports can be trusted", "should_trigger": false, "expected": "campaign-tagging-standard"}
+]

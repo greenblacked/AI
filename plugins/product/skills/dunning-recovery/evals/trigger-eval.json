@@ -1,0 +1,22 @@
+[
+  {"query": "we have a lot of failed payments at renewal, how do we get that money back", "should_trigger": true},
+  {"query": "how much of our churn is involuntary and what do we do about it", "should_trigger": true},
+  {"query": "design a dunning email sequence for past-due subscriptions", "should_trigger": true},
+  {"query": "customers keep churning because their card expired, how do we stop that", "should_trigger": true},
+  {"query": "what retry schedule should we use for declined subscription charges in Stripe", "should_trigger": true},
+  {"query": "should we keep retrying cards that come back as do_not_honor or stolen_card", "should_trigger": true},
+  {"query": "when a renewal charge fails, how long should the customer keep access before we lock the account", "should_trigger": true},
+  {"query": "set up a card account updater and expiry reminders to cut payment failures", "should_trigger": true},
+  {"query": "report how much MRR our dunning process actually recovers at each step", "should_trigger": true},
+  {"query": "only the person who signed up gets the payment failed email and they often left the company", "should_trigger": true},
+  {"query": "why are customers choosing to cancel, the dropdown is useless", "should_trigger": false, "expected": "churn-analysis"},
+  {"query": "build a health score that warns us before accounts leave", "should_trigger": false, "expected": "churn-analysis"},
+  {"query": "an enterprise customer is furious about billing errors and threatening not to renew", "should_trigger": false, "expected": "escalated-account-recovery"},
+  {"query": "my own credit card bill is out of control, help me plan a budget to pay it down", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "the payments service is returning 502s for every checkout right now", "should_trigger": false, "expected": "incident-response"},
+  {"query": "write the status page post about the billing outage this morning", "should_trigger": false, "expected": "incident-comms"},
+  {"query": "threat model our payment flow before the security review", "should_trigger": false, "expected": "threat-model"},
+  {"query": "design the Postgres tables for subscriptions, invoices and payment attempts", "should_trigger": false, "expected": "schema-design"},
+  {"query": "MRR dipped overnight on the dashboard, is the drop real or a pipeline delay", "should_trigger": false, "expected": "metric-anomaly-triage"},
+  {"query": "rewrite the error message on our checkout form when the card number is wrong", "should_trigger": false, "expected": "content-design"}
+]

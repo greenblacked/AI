@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "client-apps",
+  "description": "Skills for code that runs on a user's browser or phone: field performance, hydration, memory, version skew, service workers, CSP and Safari bugs, dates and locales, crashes, hangs, startup, battery, bad networks, on-device migrations, deep links, pushes and app size.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "web",
+    "frontend",
+    "mobile",
+    "ios",
+    "android",
+    "performance"
+  ]
+}

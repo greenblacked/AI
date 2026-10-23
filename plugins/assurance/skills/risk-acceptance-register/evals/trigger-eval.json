@@ -1,0 +1,22 @@
+[
+  {"query": "we're shipping friday with a known gap in rate limiting; how do we record that properly so it doesn't get forgotten", "should_trigger": true},
+  {"query": "an engineer wants to suppress this semgrep finding to get the build green, what should the process be", "should_trigger": true},
+  {"query": "who should sign off on accepting a high severity pentest finding, the team lead or someone above them", "should_trigger": true},
+  {"query": "our repo has dozens of nosec and trivyignore lines with no explanation; how do we make every one of them traceable and time-limited", "should_trigger": true},
+  {"query": "set up a register of security exceptions that expire and remind the owner a month before", "should_trigger": true},
+  {"query": "the threat model lists three things we chose not to mitigate; where should those live so someone owns them", "should_trigger": true},
+  {"query": "we need a policy exception for a legacy server that can't run the endpoint agent until it is decommissioned next year", "should_trigger": true},
+  {"query": "add a ci check that fails when a scanner ignore has no approved, unexpired waiver behind it", "should_trigger": true},
+  {"query": "our accepted risks were approved two years ago and nobody has looked since; how should renewals work", "should_trigger": true},
+  {"query": "auditors want to see how we approve and track residual risk for iso 27001; what should the record contain", "should_trigger": true},
+  {"query": "we have twelve dependabot alerts open, which ones are actually exploitable for us", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "write an adr explaining why we chose postgres over dynamodb for the orders service", "should_trigger": false, "expected": "decision-record"},
+  {"query": "threat model the new payment webhook integration before we build it", "should_trigger": false, "expected": "threat-model"},
+  {"query": "audit starts in six weeks and we need the evidence for every control collected", "should_trigger": false, "expected": "control-evidence"},
+  {"query": "an api key was pushed to a public repo an hour ago, what do we do", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "security review this diff that adds a file upload endpoint", "should_trigger": false, "expected": "security-review"},
+  {"query": "set a gate so container images with critical vulnerabilities cannot be deployed", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "can we ship this gpl dependency inside our closed-source desktop app", "should_trigger": false, "expected": "licence-compliance"},
+  {"query": "review our terraform plan for public buckets and open security groups", "should_trigger": false, "expected": "iac-review"},
+  {"query": "clean up stale feature flags that have been fully rolled out for months", "should_trigger": false, "expected": "feature-flag-lifecycle"}
+]

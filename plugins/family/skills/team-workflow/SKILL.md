@@ -1,7 +1,7 @@
 ---
 name: team-workflow
 description: "Run FAMILY across a whole team: all six stages with a named owner, a handoff contract between each, and a cadence that runs Yield on a schedule. Covers the owner table, what each stage hands on, the artifacts that make a stall visible, and how the chosen profile stays visible. Use this skill whenever a team is setting up or fixing its development process. Triggers include a team workflow, roles and ownership, handoffs between design and engineering, a team retro cadence, or \"who owns each stage\" — including phrasings like \"our handoffs keep dropping\" or \"set up a process for the team\". Do not use it for the stage definitions themselves (family-workflow), a solo developer (solo-development), one developer's own loop (developer-workflow), or a QA role (qa-workflow)."
-allowed-tools: Read, Write, Edit, Grep, Glob, Bash(git:*)
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # Team workflow

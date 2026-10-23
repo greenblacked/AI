@@ -1,0 +1,22 @@
+[
+  {"query": "a customer's procurement team wants our VPAT before they will sign, we have never written one", "should_trigger": true},
+  {"query": "the RFP asks for an Accessibility Conformance Report against WCAG 2.2 AA, here are last month's audit findings", "should_trigger": true},
+  {"query": "write our accessibility statement for the website footer, including how people can report problems", "should_trigger": true},
+  {"query": "fill in the Section 508 edition of the ITI template for our federal bid", "should_trigger": true},
+  {"query": "two pages fail colour contrast and the rest pass, do we put Supports or Partially Supports for 1.4.3", "should_trigger": true},
+  {"query": "our VPAT describes version 3 and we're shipping version 6, how do we bring it up to date", "should_trigger": true},
+  {"query": "a European council tender wants an EN 301 549 conformance report for our booking app", "should_trigger": true},
+  {"query": "sales want to tell the prospect we're fully WCAG compliant, what can we honestly claim from our audit", "should_trigger": true},
+  {"query": "we run a public sector website in the EU and need the statement in the official model format", "should_trigger": true},
+  {"query": "how should the remarks column explain known accessibility gaps and when they will be fixed", "should_trigger": true},
+  {"query": "audit our checkout flow against WCAG 2.2 AA with a keyboard and a screen reader", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "axe reports no violations on the signup page, is it accessible now", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "give me UX feedback on this onboarding screen, people drop off at step two", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "we're choosing between three support desk vendors and have their VPATs, help us score them", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "will our react app pass a VPAT review, it has a sticky header and a cookie banner", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "set up colour tokens in our design system so every text and background pair passes contrast", "should_trigger": false, "expected": "design-system"},
+  {"query": "rewrite our error messages so they say what happened and what to do next", "should_trigger": false, "expected": "content-design"},
+  {"query": "the screenshots in our help centre are out of date and their alt text just says screenshot", "should_trigger": false, "expected": "screenshot-rot"},
+  {"query": "write playwright tests that find elements by accessible role and name instead of css selectors", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "draft the release notes for 6.2 including the accessibility fixes we shipped", "should_trigger": false, "expected": "release-notes"}
+]

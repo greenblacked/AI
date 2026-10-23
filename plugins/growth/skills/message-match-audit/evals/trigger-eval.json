@@ -1,0 +1,22 @@
+[
+  {"query": "our ads get a great click-through rate but almost nobody converts on the landing page", "should_trigger": true},
+  {"query": "can you review this landing page for our paid campaign", "should_trigger": true},
+  {"query": "bounce rate on our campaign traffic is 80 percent", "should_trigger": true},
+  {"query": "the ad says free trial but the page says book a demo, does that matter", "should_trigger": true},
+  {"query": "do our email subject lines and the page they link to say the same thing", "should_trigger": true},
+  {"query": "how do I run a five second test on a landing page", "should_trigger": true},
+  {"query": "we send three different audiences to one page, how should we split it", "should_trigger": true},
+  {"query": "visitors from our linkedin ads leave in seconds", "should_trigger": true},
+  {"query": "is our campaign page too cluttered, it has navigation and four buttons", "should_trigger": true},
+  {"query": "why does the same offer convert at 8% from email and 1% from google ads", "should_trigger": true},
+  {"query": "why do people drop off on the checkout screen of our app", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "rewrite the error messages and button labels in our product", "should_trigger": false, "expected": "content-design"},
+  {"query": "build me a landing page for our new launch", "should_trigger": false, "expected": "website-builder"},
+  {"query": "run an experiment on a page with only 200 visits a month", "should_trigger": false, "expected": "low-traffic-page-testing"},
+  {"query": "which keywords in our google ads account are wasting budget", "should_trigger": false, "expected": "paid-search-waste-audit"},
+  {"query": "sales says the leads from the campaign are junk", "should_trigger": false, "expected": "lead-quality-loop"},
+  {"query": "our organic blog posts lost traffic after an update", "should_trigger": false, "expected": "content-refresh-triage"},
+  {"query": "which channel truly drove the signup, last click or first touch", "should_trigger": false, "expected": "attribution-sanity-check"},
+  {"query": "make our dashboard easier to navigate for new users", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "write the case study for our biggest customer", "should_trigger": false, "expected": "customer-story-production"}
+]

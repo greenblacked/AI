@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "manager",
-  "description": "Skills for engineering leadership: record a decision and what would falsify it, write a status update an executive can act on, run a blameless postmortem, read delivery health honestly, design a team's operating cadence, set goals worth having, communicate an incident to customers, onboard a new engineer, evaluate a vendor, design a hiring loop, prepare a growth or promotion case, prepare for a conversation you are dreading, and assess how a team uses AI.",
+  "description": "Skills for engineering leadership: take over a team and audit what you inherited, record decisions, write status updates, run postmortems and incident comms, read delivery health, review on-call load, design the team cadence, a reorganisation and goals, make the case for headcount or for paying down tech debt, map team skills and single points of knowledge, plan onboarding, hire, benchmark pay, evaluate vendors, handle retention, growth reviews, improvement plans and difficult conversations, and assess how a team uses AI. Also ships two subagents, for reading contracts and synthesising feedback, and two commands.",
   "author": {
     "name": "Serhii Zolotov",
     "url": "https://github.com/greenblacked"

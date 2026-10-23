@@ -1,0 +1,22 @@
+[
+  {"query": "we need to bump the azurerm provider from 3.x to 4.x across dev, staging and prod without breaking anything", "should_trigger": true},
+  {"query": "our terraform is still on 0.13 and the CI image is ancient; how do we get to a current 1.x version safely", "should_trigger": true},
+  {"query": "I ran terraform init -upgrade on a branch and now the plan wants to change 40 resources nobody touched, what happened", "should_trigger": true},
+  {"query": "plan for moving our whole estate from terraform to opentofu, what are the gates and how do we roll back", "should_trigger": true},
+  {"query": "the aws provider is a major version behind and the plan is full of deprecation warnings, how do we upgrade", "should_trigger": true},
+  {"query": "after upgrading the google provider in staging the old pipeline says resource instance managed by newer provider version", "should_trigger": true},
+  {"query": "how should we handle the .terraform.lock.hcl when upgrading providers so CI on linux and devs on macs both work", "should_trigger": true},
+  {"query": "can we upgrade the kubernetes and helm terraform providers in the same PR or should they go separately", "should_trigger": true},
+  {"query": "what order should we upgrade terraform core across environments and when do we raise required_version", "should_trigger": true},
+  {"query": "the new provider major version wants to replace our storage accounts in the plan, is that the upgrade or something else", "should_trigger": true},
+  {"query": "upgrade our react app from 17 to 19 without a long-lived branch", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "I renamed a module and terraform wants to destroy and recreate everything, how do I fix the addresses", "should_trigger": false, "expected": "terraform-state"},
+  {"query": "review this terraform plan json before we apply it to production", "should_trigger": false, "expected": "iac-review"},
+  {"query": "upgrade our EKS cluster from 1.29 to 1.30 and find anything still calling removed APIs", "should_trigger": false, "expected": "k8s-upgrade"},
+  {"query": "our single terraform state has 4000 resources and plans take 30 minutes, how do we split it into stacks", "should_trigger": false, "expected": "monolith-state-split"},
+  {"query": "bring all these hand-built aws resources under terraform and report what is still unmanaged", "should_trigger": false, "expected": "brownfield-iac-adoption"},
+  {"query": "terraform state is locked and the CI job that held it was cancelled", "should_trigger": false, "expected": "terraform-state"},
+  {"query": "write a new terraform module for an s3 bucket with versioning and encryption", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "we can't move to python 3.13 until three of our libraries support it, plan the upgrade", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "is this pull request that changes our iam policies in terraform safe to merge", "should_trigger": false, "expected": "iac-review"}
+]

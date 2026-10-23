@@ -1,0 +1,22 @@
+[
+  {"query": "I rebased onto main and got 60 conflicts in files I never touched", "should_trigger": true},
+  {"query": "my stacked PR's parent was squash merged and now the child branch will not rebase cleanly", "should_trigger": true},
+  {"query": "my branch contains the commits from a PR that already landed on main, how do I drop them", "should_trigger": true},
+  {"query": "this two-week-old feature branch won't rebase, every commit conflicts", "should_trigger": true},
+  {"query": "what is the right way to use rebase --onto after the base branch was squashed", "should_trigger": true},
+  {"query": "move three stacked branches onto main in one go after the first one merged", "should_trigger": true},
+  {"query": "can I see what would conflict between my branch and main without actually merging", "should_trigger": true},
+  {"query": "the base branch was force pushed with an amended commit and now my branch has duplicate history", "should_trigger": true},
+  {"query": "after rebasing how do I make sure none of my commits were dropped", "should_trigger": true},
+  {"query": "merge keeps showing the same conflict I already fixed yesterday, can git remember my resolution", "should_trigger": true},
+  {"query": "I reset --hard by mistake and my commits are gone", "should_trigger": false, "expected": "git-history-recovery"},
+  {"query": "someone force pushed over the release branch and I need the old tip back", "should_trigger": false, "expected": "git-history-recovery"},
+  {"query": "review this diff for correctness before I approve it", "should_trigger": false, "expected": "code-review"},
+  {"query": "split this large function into smaller steps without changing behaviour", "should_trigger": false, "expected": "refactoring"},
+  {"query": "remove the committed credentials from every branch in the repository", "should_trigger": false, "expected": "git-history-purge"},
+  {"query": "set up trunk-based development with short-lived branches for our team", "should_trigger": false},
+  {"query": "write a clear commit message for this refactor", "should_trigger": false},
+  {"query": "squash my last four commits into one before I open the pull request", "should_trigger": false},
+  {"query": "the test suite fails only on CI after the merge", "should_trigger": false, "expected": "debugging"},
+  {"query": "choose a release branching strategy for a product with two supported versions", "should_trigger": false, "expected": "release-strategy"}
+]

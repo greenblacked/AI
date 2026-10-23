@@ -1,0 +1,22 @@
+[
+  {"query": "my samples cluster by sequencing run date rather than by treatment in the PCA, what do I do", "should_trigger": true},
+  {"query": "we ran all the controls on one plate and all the treated samples on another, can the batch effect be corrected", "should_trigger": true},
+  {"query": "do I need batch correction before differential expression, and which method", "should_trigger": true},
+  {"query": "the instrument was recalibrated halfway through our study and the readings shift, how do I check it is not driving the result", "should_trigger": true},
+  {"query": "is ComBat safe to use when my groups are unevenly spread across batches", "should_trigger": true},
+  {"query": "design the plate layout for 96 samples so that processing day does not bias the comparison", "should_trigger": true},
+  {"query": "how can I tell whether the reagent lot changed my assay results", "should_trigger": true},
+  {"query": "after batch correction my known marker genes lost their signal, did I overcorrect", "should_trigger": true},
+  {"query": "operators ran different halves of the patient cohort and the measurements look different, how large is the operator effect", "should_trigger": true},
+  {"query": "single cell data from three labs forms separate islands in the UMAP, is that technical", "should_trigger": true},
+  {"query": "how many visitors do we need per variant and how long should the A/B test run", "should_trigger": false, "expected": "experiment-design"},
+  {"query": "forty measurements per mouse and three mice per group, is my p-value inflated", "should_trigger": false, "expected": "nonindependence-audit"},
+  {"query": "validate the incoming data for nulls, duplicates and out of range values", "should_trigger": false},
+  {"query": "traffic split in my experiment is 52 to 48 when it should be 50 to 50", "should_trigger": false, "expected": "srm-diagnosis"},
+  {"query": "review the statistics in this paper before submission", "should_trigger": false, "expected": "paper-statistics-review"},
+  {"query": "the numbers from the two labs differ by a factor of a thousand", "should_trigger": false, "expected": "unit-mismatch-audit"},
+  {"query": "how many Monte Carlo draws do I need for a stable estimate", "should_trigger": false, "expected": "monte-carlo-run-length"},
+  {"query": "pin the package versions so my analysis runs the same next year", "should_trigger": false, "expected": "reproducible-analysis-environment"},
+  {"query": "my array job needs bookkeeping for ten thousand tasks", "should_trigger": false, "expected": "sweep-campaign-management"},
+  {"query": "results differ on every run even with the same seed", "should_trigger": false, "expected": "nondeterminism-bisect"}
+]

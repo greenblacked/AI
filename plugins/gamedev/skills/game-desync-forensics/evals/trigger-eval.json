@@ -1,0 +1,22 @@
+[
+{"query":"our RTS desyncs after about ten minutes and I need to find which unit state diverged","should_trigger":true},
+{"query":"rollback match ended with the two players seeing different winners","should_trigger":true},
+{"query":"we got a hash mismatch on frame 41200, how do I work out what caused it","should_trigger":true},
+{"query":"the desync only happens between the console build and the PC build","should_trigger":true},
+{"query":"how do I bisect a desync replay to the first bad frame","should_trigger":true},
+{"query":"we log one hash of the whole state, how do we split it up so a mismatch tells us which system diverged","should_trigger":true},
+{"query":"is it floating point or an unordered map that made our lockstep sim diverge","should_trigger":true},
+{"query":"a headless replay of the inputs does not reproduce the mismatch, where else could it come from","should_trigger":true},
+{"query":"the sim hashes agree but a player still sees a different outcome, what state is outside the hash","should_trigger":true},
+{"query":"turn a desync bug report into a regression test that runs on all our platforms","should_trigger":true},
+{"query":"the clients desync","should_trigger":false,"expected":"game-netcode"},
+{"query":"should my fighting game use rollback or delay-based netcode","should_trigger":false,"expected":"game-netcode"},
+{"query":"what tick rate should a 5v5 shooter server run at","should_trigger":false,"expected":"game-netcode"},
+{"query":"players rubber-band when their ping spikes","should_trigger":false,"expected":"game-netcode"},
+{"query":"frame time spikes every time a big fight starts","should_trigger":false,"expected":"game-performance"},
+{"query":"this function returns the wrong value on the second call and I cannot see why","should_trigger":false,"expected":"debugging"},
+{"query":"design a determinism checklist for a new lockstep strategy game","should_trigger":false,"expected":"game-netcode"},
+{"query":"how do we roll out a new dedicated server build without dropping live matches","should_trigger":false,"expected":"game-server-rollout"},
+{"query":"someone found a dupe and gold is flooding the market","should_trigger":false,"expected":"economy-exploit-response"},
+{"query":"track down a memory leak that grows during long sessions","should_trigger":false,"expected":"game-memory-budget"}
+]

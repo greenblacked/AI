@@ -1,7 +1,7 @@
 ---
 description: Run mechanical detectors — shrunk test counts, newly silenced checks including bulk lint suppressions, and dependencies that do not exist on their registry — over an agent-written diff against a base ref, then hand the flagged list to code-review for judgement.
 argument-hint: '[base ref or PR number, default the default branch]'
-allowed-tools: Bash(git:*), Bash(gh:*), Bash(jq:*), Bash(curl:*), Read, Grep, Glob
+allowed-tools: Read, Grep, Glob
 disable-model-invocation: true
 ---
 

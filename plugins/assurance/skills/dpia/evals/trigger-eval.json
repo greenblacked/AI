@@ -1,0 +1,22 @@
+[
+  {"query": "do we need a DPIA for the new dashboard that shows managers how active each employee is", "should_trigger": true},
+  {"query": "legal says we need an impact assessment before we launch face login, can you draft it", "should_trigger": true},
+  {"query": "we're going to approve or decline loan applicants automatically from a model score; what privacy assessment has to happen before go-live", "should_trigger": true},
+  {"query": "write the data protection impact assessment for our symptom tracker app", "should_trigger": true},
+  {"query": "our DPO wants to know if the location history feature counts as high risk processing", "should_trigger": true},
+  {"query": "here are the six features on next quarter's roadmap, screen them and tell me which need a full privacy impact assessment", "should_trigger": true},
+  {"query": "the assessment we signed off last year assumed EU hosting and now the data is moving to a US region, what happens to it", "should_trigger": true},
+  {"query": "how do I show the processing is necessary and proportionate for a learning app used by eight year olds", "should_trigger": true},
+  {"query": "who is supposed to sign off the residual risk at the end of a DPIA, and what if the DPO disagrees", "should_trigger": true},
+  {"query": "marketing wants to join our customer records with a purchased lifestyle dataset for targeting; is a privacy risk assessment needed first", "should_trigger": true},
+  {"query": "a customer asked us to erase everything we hold on them, which systems does the deletion have to reach", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "how long are we allowed to keep closed support tickets, and what job enforces it", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "someone exported a customer list to a personal drive, is that something we have to report to the regulator", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "what could an attacker do with the webhook integration we're designing, walk the trust boundaries", "should_trigger": false, "expected": "threat-model"},
+  {"query": "add the security section to this design doc for the new partner API", "should_trigger": false, "expected": "threat-model"},
+  {"query": "read the data processing agreement this vendor sent and tell me what it commits us to", "should_trigger": false, "expected": "contract-reader"},
+  {"query": "here's the dump of all 300 table schemas, tell me which columns hold personal data", "should_trigger": false, "expected": "pii-reader"},
+  {"query": "we're choosing between three CRM platforms, build the scorecard and the proof of concept plan", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "quarterly review of who still has access to the HR database, here are the grants", "should_trigger": false, "expected": "access-review"},
+  {"query": "write up why we chose Postgres over DynamoDB as a decision record", "should_trigger": false, "expected": "decision-record"}
+]

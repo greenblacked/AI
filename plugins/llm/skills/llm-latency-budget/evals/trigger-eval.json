@@ -1,0 +1,22 @@
+[
+  {"query": "our chatbot feels slow, users wait ages before anything appears", "should_trigger": true},
+  {"query": "time to first token is around 6 seconds on our summarisation endpoint, where is it going", "should_trigger": true},
+  {"query": "p95 latency of our agent is terrible even though the median looks fine", "should_trigger": true},
+  {"query": "does streaming actually help with perceived speed or only the first byte", "should_trigger": true},
+  {"query": "break down where the time goes in a request that calls a model, two tools and a retrieval step", "should_trigger": true},
+  {"query": "would a smaller model make our classification step fast enough without hurting accuracy", "should_trigger": true},
+  {"query": "set a latency budget for each stage of our assistant so first visible progress is under two seconds", "should_trigger": true},
+  {"query": "can we run the tool calls in parallel and start retrieval before the model call returns", "should_trigger": true},
+  {"query": "our answers are long and slow, how do we shorten output without losing the content", "should_trigger": true},
+  {"query": "is prompt caching going to cut our response time or only our bill", "should_trigger": true},
+  {"query": "the monthly model spend is too high, find which route to cut", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "this python function burns cpu, profile it and find the hot loop", "should_trigger": false, "expected": "profiling"},
+  {"query": "how many instances do we need to serve a thousand concurrent chats", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "retries during provider outages made things worse, add a fallback model", "should_trigger": false, "expected": "llm-provider-resilience"},
+  {"query": "our sql query on the orders table takes forty seconds", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "benchmark two implementations fairly and report the difference with confidence", "should_trigger": false, "expected": "benchmark-methodology"},
+  {"query": "design the retrieval step so the bot cites the right page", "should_trigger": false, "expected": "rag-design"},
+  {"query": "force the model to return json matching a schema", "should_trigger": false, "expected": "structured-output"},
+  {"query": "set up slo targets and error budgets for our checkout service", "should_trigger": false, "expected": "slo-design"},
+  {"query": "frame rate drops in our game on low end phones", "should_trigger": false, "expected": "game-performance"}
+]

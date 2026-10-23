@@ -1,0 +1,22 @@
+[
+  {"query": "can you review my freelance contract and tell me what is missing", "should_trigger": true},
+  {"query": "what should be in a client agreement for a freelance designer", "should_trigger": true},
+  {"query": "a client sent me their contract to sign and I am not sure what to look for", "should_trigger": true},
+  {"query": "I need a template contract for consulting work, what clauses should it include", "should_trigger": true},
+  {"query": "does my agreement protect me if a client cancels halfway through", "should_trigger": true},
+  {"query": "this contract says I indemnify the client for everything, is that normal", "should_trigger": true},
+  {"query": "they want me to sign work for hire terms, does that include my own tools", "should_trigger": true},
+  {"query": "the contract says net 90 and I only get paid once their customer pays, should I sign", "should_trigger": true},
+  {"query": "when should IP transfer to the client, on delivery or after payment", "should_trigger": true},
+  {"query": "what questions should I take to a solicitor about my services agreement", "should_trigger": true},
+  {"query": "read the SaaS contract we are buying and flag auto-renewal and price rises", "should_trigger": false, "expected": "contract-reader"},
+  {"query": "compare three suppliers and pick one for our platform", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "write the scope, deliverables and acceptance criteria for this project", "should_trigger": false, "expected": "statement-of-work"},
+  {"query": "client wants extra work that is not in the agreement", "should_trigger": false, "expected": "scope-creep-response"},
+  {"query": "how much should I quote and what deposit should I ask for", "should_trigger": false, "expected": "fixed-price-quote"},
+  {"query": "a client has not paid and I want to send a reminder", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "which clients should I raise rates for or leave", "should_trigger": false, "expected": "client-profitability-review"},
+  {"query": "how much should I set aside from each payment for tax", "should_trigger": false, "expected": "tax-set-aside"},
+  {"query": "run the monthly reconciliation of my accounts", "should_trigger": false, "expected": "monthly-bookkeeping-close"},
+  {"query": "decide what hourly rate to charge", "should_trigger": false, "expected": "billing-rate-calculation"}
+]

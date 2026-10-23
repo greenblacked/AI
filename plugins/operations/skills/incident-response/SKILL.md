@@ -1,6 +1,6 @@
 ---
 name: incident-response
-description: "Declare, command and mitigate a live production incident on any surface — a managed database failover, a third-party outage, a VM fleet, serverless, a CDN or DNS provider — mitigation first, diagnosis second. Assign an Incident Commander who is not a resolver, set severity once without debating it, scope the blast radius, mitigate by symptom (rollback, failover, feature-flag off, shed load, scale, switch dependency), capture evidence before the platform deletes it, and separate mitigated from resolved. Use this skill whenever someone says \"we have an incident\", \"the database won't fail over\", or \"prod is down and I'm IC\". Not for Kubernetes symptoms (k8s-triage), customer-facing wording (incident-comms), the write-up (postmortem), a durable procedure (runbook), alert or SLO tuning (alert-design), a rehearsed drill (game-day), or a red pipeline with no customer impact (ci-triage)."
+description: "Declare, command and mitigate a live production incident on any surface — a managed database failover, a third-party outage, a VM fleet, serverless, a CDN or DNS provider — mitigation first, diagnosis second. Assign an Incident Commander who is not a resolver, set severity once without debating it, scope the blast radius, mitigate by symptom (rollback, failover, feature-flag off, shed load, scale, switch dependency), capture evidence before the platform deletes it, and separate mitigated from resolved. Use this skill whenever someone says \"we have an incident\", \"the database won't fail over\", or \"prod is down and I'm IC\". Not for Kubernetes symptoms (k8s-triage), customer-facing wording (incident-comms), forensic evidence preservation (compromise-evidence-preservation), the write-up (postmortem), a durable procedure (runbook), alert or SLO tuning (alert-design), a rehearsed drill (game-day), or a red pipeline with no customer impact (ci-triage)."
 allowed-tools: Read, Grep, Glob
 ---
 
@@ -37,7 +37,8 @@ service is restored, which is `postmortem`; a durable operational procedure writ
 advance, which is `runbook`; tuning what pages or an SLO, which is `alert-design`; a
 rehearsed drill rather than a real incident, which is `game-day`; a red CI pipeline that
 has not caused customer impact, which is `ci-triage`; sizing a system for expected load,
-which is `capacity-planning`; and turning raw scrollback into a postmortem draft, which is
+which is `capacity-planning`; forensic preservation of a suspected compromise, which is
+`compromise-evidence-preservation`; and turning raw scrollback into a postmortem draft, which is
 the `incident-scribe` subagent.
 
 ## Workflow

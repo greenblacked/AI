@@ -1,0 +1,22 @@
+[
+  {"query": "my total changes in the 10th digit when I shuffle the array before summing it", "should_trigger": true},
+  {"query": "the answer from float32 and float64 differ by 3 percent and I do not know which operation is responsible", "should_trigger": true},
+  {"query": "I think this formula suffers from catastrophic cancellation near zero, how do I confirm and fix it", "should_trigger": true},
+  {"query": "the code works on my intel laptop but gives slightly wrong answers on an arm server", "should_trigger": true},
+  {"query": "my assert_allclose test passes locally and flakes in ci, how do I pick a tolerance that is not a guess", "should_trigger": true},
+  {"query": "variance computed as mean of squares minus square of mean goes negative on large offset data", "should_trigger": true},
+  {"query": "should I use kahan summation or just switch the accumulator to double", "should_trigger": true},
+  {"query": "how do I check whether my linear solve is inaccurate because of the code or because the matrix is ill conditioned", "should_trigger": true},
+  {"query": "log of softmax on moderate logits loses digits and the log-probabilities are slightly off, how do I compute them accurately", "should_trigger": true},
+  {"query": "does turning on fast-math explain why my simulation energy differs from the reference by 1e-9", "should_trigger": true},
+  {"query": "my model produced nan after step 300 and I need to find where the first infinity appeared", "should_trigger": false, "expected": "nan-origin-trace"},
+  {"query": "two identical runs with the same seed give different final accuracy", "should_trigger": false, "expected": "nondeterminism-bisect"},
+  {"query": "the function returns the wrong value for negative input because of a sign error in my logic", "should_trigger": false, "expected": "debugging"},
+  {"query": "pin the exact numpy and blas versions so a reviewer can rerun my analysis", "should_trigger": false, "expected": "reproducible-analysis-environment"},
+  {"query": "which lines of my python loop take the most time", "should_trigger": false, "expected": "profiling"},
+  {"query": "the statistics in my paper use the wrong test for paired data, can you check the methods", "should_trigger": false, "expected": "paper-statistics-review"},
+  {"query": "my sql aggregate is slow on a 50 million row table", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "load a table too large for ram without running out of memory", "should_trigger": false, "expected": "out-of-core-dataset-handling"},
+  {"query": "design test cases for this parser including edge cases and error paths", "should_trigger": false, "expected": "test-design"},
+  {"query": "choose the walltime and memory request for my array job", "should_trigger": false, "expected": "hpc-resource-sizing"}
+]

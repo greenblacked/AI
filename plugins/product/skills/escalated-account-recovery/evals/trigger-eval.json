@@ -1,0 +1,22 @@
+[
+  {"query": "our biggest customer is furious after the third outage this quarter and their VP says they are reviewing alternatives", "should_trigger": true},
+  {"query": "their CTO emailed our CEO directly to complain, the CEO forwarded it to me and wants a plan by Friday", "should_trigger": true},
+  {"query": "a key account just told us they will not renew in March unless things change, how do we save it", "should_trigger": true},
+  {"query": "exec escalation from a client about support response times, what do I send back first", "should_trigger": true},
+  {"query": "how should I structure a recovery plan for an enterprise customer that is threatening to leave", "should_trigger": true},
+  {"query": "the customer is angry about six months of slow tickets and a feature sales promised them, where do I even start", "should_trigger": true},
+  {"query": "our largest client threatened to go public on LinkedIn about how we handled their data migration", "should_trigger": true},
+  {"query": "write the first reply to a customer who sent a long angry email to our founder", "should_trigger": true},
+  {"query": "we agreed a get-well plan with a big account but the weekly calls have stopped, is that a good sign", "should_trigger": true},
+  {"query": "what exit criteria should we agree with an unhappy customer before we call the escalation closed", "should_trigger": true},
+  {"query": "what do we put on the status page while the API is still down for customers", "should_trigger": false, "expected": "incident-comms"},
+  {"query": "write the customer-facing summary of last week's outage for all affected accounts", "should_trigger": false, "expected": "incident-comms"},
+  {"query": "prod database is down and I'm incident commander, what do we do first", "should_trigger": false, "expected": "incident-response"},
+  {"query": "gross revenue retention has fallen three quarters in a row, explain why customers are leaving", "should_trigger": false, "expected": "churn-analysis"},
+  {"query": "we lost the Northwind deal to a competitor last week, find out why", "should_trigger": false, "expected": "win-loss-review"},
+  {"query": "a lot of renewals are failing because cards are declined, how do we recover them", "should_trigger": false, "expected": "dunning-recovery"},
+  {"query": "a big prospect wants a four week pilot before signing, how do we scope it", "should_trigger": false, "expected": "poc-plan"},
+  {"query": "a customer sent us a 300 question security questionnaire due next week", "should_trigger": false, "expected": "rfp-response"},
+  {"query": "support ticket volume keeps growing every month, what should we fix in the product to cut it", "should_trigger": false, "expected": "contact-reduction-review"},
+  {"query": "how do I tell one of my engineers that the way he spoke to a customer was unacceptable", "should_trigger": false, "expected": "difficult-conversation"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "our ios app is 300MB to download and marketing says it's hurting installs", "should_trigger": true},
+  {"query": "the android apk grew 40MB in one release and nobody knows why", "should_trigger": true},
+  {"query": "how do I find out which SDKs are taking up the most space in our app binary", "should_trigger": true},
+  {"query": "set up a CI check that fails a pull request if it makes the app much bigger", "should_trigger": true},
+  {"query": "is it worth moving the onboarding videos into an on-demand module to shrink the install", "should_trigger": true},
+  {"query": "turning on r8 and resource shrinking, what will it actually save and what can break", "should_trigger": true},
+  {"query": "users in india with cheap phones uninstall us because the app takes too much storage", "should_trigger": true},
+  {"query": "the aab is 90MB but play console shows a different download size, which number matters", "should_trigger": true},
+  {"query": "how do I read the app thinning size report xcode generated", "should_trigger": true},
+  {"query": "our app is over the size where iphones ask before downloading on cellular, how do we get under it", "should_trigger": true},
+  {"query": "our game's textures look bad on android and the build is 4GB", "should_trigger": false, "expected": "game-assets"},
+  {"query": "should we pause the staged rollout on google play at 10 percent", "should_trigger": false, "expected": "mobile-release"},
+  {"query": "the app takes 5 seconds to show the first screen on a low-end android phone", "should_trigger": false, "expected": "mobile-startup-and-jank"},
+  {"query": "this json parsing function is eating 300ms of cpu, how do I profile it", "should_trigger": false, "expected": "profiling"},
+  {"query": "our docker image is 2GB, how do we slim it down", "should_trigger": false, "expected": "image-hardening"},
+  {"query": "our ci build for the ios app takes 40 minutes, how do we speed it up", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "the web bundle is huge and LCP is poor on mobile in search console", "should_trigger": false, "expected": "web-vitals-triage"},
+  {"query": "upgrading to the next major version of the android gradle plugin, what's the plan", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "our app uses too much battery in the background", "should_trigger": false, "expected": "battery-drain-diagnosis"},
+  {"query": "app gets killed by the OS for using too much memory on older iphones", "should_trigger": false, "expected": "anr-watchdog-triage"}
+]

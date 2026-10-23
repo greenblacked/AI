@@ -1,0 +1,22 @@
+[
+  {"query": "I need to run the same classification prompt over about 2 million support tickets, how should I structure the job", "should_trigger": true},
+  {"query": "our nightly enrichment job over the product catalogue died at 60% and the rerun started from zero again", "should_trigger": true},
+  {"query": "should we use the provider batch API or a pool of workers to summarise 800k documents", "should_trigger": true},
+  {"query": "backfill embeddings and category tags for every article we have ever published without paying twice if it crashes", "should_trigger": true},
+  {"query": "before I launch the full extraction run, how do I estimate the total cost and how long it will take", "should_trigger": true},
+  {"query": "about 4% of the outputs from our bulk tagging run fail to parse; what do we do with them", "should_trigger": true},
+  {"query": "how do I make sure a partial rerun with a new prompt does not get mixed with rows from the old prompt", "should_trigger": true},
+  {"query": "we submitted a batch yesterday and lost the batch id, how do we avoid that happening in the pipeline", "should_trigger": true},
+  {"query": "the extraction over our archive of 300k PDFs finished but how do I know the answers are actually right", "should_trigger": true},
+  {"query": "design a resumable pipeline that tags every review in the warehouse with a sentiment and a topic", "should_trigger": true},
+  {"query": "repair the null customer_email values in the orders table without locking production", "should_trigger": false, "expected": "safe-backfill"},
+  {"query": "which feature is driving our model spend, and where should we put a monthly ceiling", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "make the model reply with JSON that always matches this schema in a single request", "should_trigger": false, "expected": "structured-output"},
+  {"query": "we keep getting 429s from the provider in our live chat feature; set up backoff and a circuit breaker", "should_trigger": false, "expected": "llm-provider-resilience"},
+  {"query": "build a labelled set to measure whether the LLM tagger meets a precision target and choose an abstain threshold", "should_trigger": false, "expected": "llm-classifier-design"},
+  {"query": "design the retrieval layer so our docs bot cites the right passage", "should_trigger": false, "expected": "rag-design"},
+  {"query": "the provider is retiring our model, how do we move the feature to the replacement safely", "should_trigger": false, "expected": "model-migration"},
+  {"query": "set up a consumer that processes order events from a queue with retries and a dead-letter topic", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "score two hundred recorded agent runs and set a release gate on tool-call success", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "add a rolling sync that copies new rows from one postgres table into another every five minutes", "should_trigger": false}
+]

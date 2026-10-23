@@ -1,7 +1,7 @@
 ---
 name: technical-docs
 description: "Write and prune internal documentation: a README for a newcomer's first hour, an onboarding or handover guide, an architecture overview, an API guide beside the generated spec. Name the reader, pick one Diátaxis mode — tutorial, how-to, reference, explanation — not two, execute every command, stamp an owner and date, and delete what is stale. Use this skill whenever someone says \"write a README for this\", \"document this service before I go on leave\", \"our wiki keeps growing and nobody deletes anything\", or \"nobody can onboard onto this service without me sitting with them for a day\" — the onboarding document, not the on-call one. Not for the 3am procedure (runbook), a decision and its alternatives (decision-record), a publishable article (write-technical-article), or the orientation snapshot of an unfamiliar repository (codebase-orientation); the owned, re-verified page is this skill's."
-allowed-tools: Read, Write, Edit, Grep, Glob, Bash(git:*), Bash(rg:*), Bash(curl:*)
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # Technical Docs

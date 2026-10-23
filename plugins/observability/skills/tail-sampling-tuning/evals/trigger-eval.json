@@ -1,0 +1,22 @@
+[
+  {"query": "our tail sampling keeps dropping traces that I know exist, errors included, how do I find out why", "should_trigger": true},
+  {"query": "the collector pods running tail_sampling keep getting OOM killed at peak traffic, what should num_traces and decision_wait be", "should_trigger": true},
+  {"query": "we want to keep every error and slow trace but only 1% of the rest, how do I set that up in the otel collector", "should_trigger": true},
+  {"query": "traces look incomplete in the backend after we turned on sampling, spans from the same request are split up", "should_trigger": true},
+  {"query": "how do I size a tier of collectors that does tail-based sampling for about two thousand new traces a second", "should_trigger": true},
+  {"query": "is it safe to autoscale the sampling collectors on cpu, every scale up seems to break traces", "should_trigger": true},
+  {"query": "our trace storage bill is huge, how do we keep only the interesting traces without losing the error ones", "should_trigger": true},
+  {"query": "which self metrics tell me the sampler is evicting traces before it decides", "should_trigger": true},
+  {"query": "the rate and latency panels changed after we edited the sampling policies, how do we stop that happening", "should_trigger": true},
+  {"query": "set up a load balancing exporter keyed on trace id in front of our sampler collectors", "should_trigger": true},
+  {"query": "should we sample at the sdk or later in the pipeline, and what should a new checkout service emit", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "the collector is refusing data and the exporter queue is full, find out where the backpressure starts", "should_trigger": false, "expected": "collector-backpressure-triage"},
+  {"query": "this one trace has a child span with no parent and the service map is wrong, find the break", "should_trigger": false, "expected": "broken-trace-hunt"},
+  {"query": "a new label on our request metric blew up the active series count, stop the bleeding", "should_trigger": false, "expected": "cardinality-incident-response"},
+  {"query": "our logging bill doubled this quarter and we need to cut ingestion", "should_trigger": false, "expected": "log-volume-reduction"},
+  {"query": "pick histogram buckets so the p99 on our dashboard is accurate", "should_trigger": false, "expected": "latency-histogram-design"},
+  {"query": "why is the checkout request slow, walk through the spans of this trace and find the longest wait", "should_trigger": false, "expected": "trace-latency-analysis"},
+  {"query": "write multiwindow burn rate alerts for our availability slo", "should_trigger": false, "expected": "alert-design"},
+  {"query": "our cloud bill for compute and storage went up, where is the money going", "should_trigger": false, "expected": "cost-review"},
+  {"query": "a dashboard panel shows no data since the deploy, which metric stopped being emitted", "should_trigger": false, "expected": "missing-metrics-hunt"}
+]

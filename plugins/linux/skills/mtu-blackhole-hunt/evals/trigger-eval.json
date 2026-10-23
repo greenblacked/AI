@@ -1,0 +1,22 @@
+[
+  {"query": "small requests work but anything with a large body hangs over our site-to-site VPN", "should_trigger": true},
+  {"query": "TLS connection stalls right after the ClientHello only through the tunnel", "should_trigger": true},
+  {"query": "ssh logs in fine but hangs as soon as I run ls in a big directory", "should_trigger": true},
+  {"query": "how do I find the path MTU to a host with ping and the don't fragment bit", "should_trigger": true},
+  {"query": "what MTU should I set on a wireguard interface running over a 1500 byte link", "should_trigger": true},
+  {"query": "pods can reach each other but large responses time out in our vxlan overlay", "should_trigger": true},
+  {"query": "do I need to clamp mss on the gateway for the gre tunnel", "should_trigger": true},
+  {"query": "we blocked all icmp on the firewall and now some sites load halfway and freeze", "should_trigger": true},
+  {"query": "pppoe link works for pings but big downloads never finish", "should_trigger": true},
+  {"query": "ping -M do -s 1472 gets no reply but -s 1200 works", "should_trigger": true},
+  {"query": "my nftables input chain drops everything to port 9000, how do I find the rule", "should_trigger": false, "expected": "firewall-rule-tracing"},
+  {"query": "openssl s_client shows a handshake failure alert from the server", "should_trigger": false, "expected": "tls-handshake-debugging"},
+  {"query": "ssh says permission denied publickey after I rotated my key", "should_trigger": false, "expected": "ssh-access-debugging"},
+  {"query": "dns lookups time out intermittently from the application host", "should_trigger": false, "expected": "dns-resolution-debugging"},
+  {"query": "the server is running out of ephemeral ports and conntrack is full", "should_trigger": false, "expected": "resource-limit-exhaustion"},
+  {"query": "which firewall baseline should a new host start with", "should_trigger": false, "expected": "host-hardening"},
+  {"query": "configure a wireguard road warrior vpn from scratch for the team", "should_trigger": false},
+  {"query": "load average is 40 and the host feels slow", "should_trigger": false, "expected": "high-load-triage"},
+  {"query": "set up the MikroTik router with an ipsec tunnel to the data centre", "should_trigger": false, "expected": "routeros-config"},
+  {"query": "latency to our api doubled since the region move, where is the time going", "should_trigger": false}
+]

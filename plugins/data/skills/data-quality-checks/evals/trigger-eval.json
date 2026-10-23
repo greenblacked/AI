@@ -1,0 +1,22 @@
+[
+  {"query": "what tests should our fct_orders dbt model have beyond unique and not_null on the id", "should_trigger": true},
+  {"query": "we have 300 data checks firing into a slack channel and everyone has muted it, how do we fix this", "should_trigger": true},
+  {"query": "bad data reached the board deck again last month; how do we decide which checks would actually have stopped it", "should_trigger": true},
+  {"query": "how should I set the row count threshold for a daily load that is much lower on weekends", "should_trigger": true},
+  {"query": "which data quality failures should stop the pipeline from publishing and which should just warn", "should_trigger": true},
+  {"query": "setting up soda checks for the finance warehouse, where do I even start choosing what to check", "should_trigger": true},
+  {"query": "we're adopting great expectations; should we just generate expectations from the profiler for every column", "should_trigger": true},
+  {"query": "design freshness, volume and null-rate monitoring for our core customer and revenue tables", "should_trigger": true},
+  {"query": "half our dbt tests are severity warn and nobody looks at them, should we delete some", "should_trigger": true},
+  {"query": "turn our last few data incidents into checks so the same thing cannot reach dashboards again", "should_trigger": true},
+  {"query": "write unit tests for this python transformation function that parses invoice lines", "should_trigger": false, "expected": "test-design"},
+  {"query": "should a high error rate on the checkout API page someone at night or open a ticket", "should_trigger": false, "expected": "alert-design"},
+  {"query": "the billing team keeps renaming columns and changing what status codes mean without telling us; how do we protect ingest", "should_trigger": false, "expected": "upstream-change-defense"},
+  {"query": "yesterday's revenue figure keeps changing for three days after we publish it, when is it final", "should_trigger": false, "expected": "late-data-maturity"},
+  {"query": "order count went from 1.2 million to 3.8 million after I joined the shipments table", "should_trigger": false, "expected": "join-fanout-hunt"},
+  {"query": "marketing and finance dashboards show different numbers for march revenue, which is right", "should_trigger": false, "expected": "metric-reconciliation"},
+  {"query": "define the availability SLO and error budget for our ingestion service", "should_trigger": false, "expected": "slo-design"},
+  {"query": "our snowflake bill doubled this month, which queries and dashboards are scanning the most", "should_trigger": false, "expected": "scan-cost-forensics"},
+  {"query": "the integration test job is red on main again and I don't know if it's flaky", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "match supplier records across our ERP and procurement tool that share no id", "should_trigger": false, "expected": "entity-resolution"}
+]

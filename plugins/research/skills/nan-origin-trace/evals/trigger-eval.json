@@ -1,0 +1,91 @@
+[
+  {
+    "query": "my loss became NaN around step 40k, how do I find out why",
+    "should_trigger": true
+  },
+  {
+    "query": "simulation runs fine for hours then everything turns to NaN",
+    "should_trigger": true
+  },
+  {
+    "query": "I get 'RuntimeWarning: overflow encountered in exp' and then inf in my output array",
+    "should_trigger": true
+  },
+  {
+    "query": "where do I start when a PyTorch model suddenly produces nan gradients",
+    "should_trigger": true
+  },
+  {
+    "query": "how do I turn on floating point exceptions in gfortran so it stops at the first invalid operation",
+    "should_trigger": true
+  },
+  {
+    "query": "fp16 training diverges with NaN, is it loss scaling",
+    "should_trigger": true
+  },
+  {
+    "query": "the output grid has -inf in some cells and I do not know which step created them",
+    "should_trigger": true
+  },
+  {
+    "query": "adding nan_to_num fixed the crash but results look off, how do I find the real cause",
+    "should_trigger": true
+  },
+  {
+    "query": "training only goes NaN on some batches, how do I find the bad rows",
+    "should_trigger": true
+  },
+  {
+    "query": "my CFD run blows up after 3 hours of simulated time",
+    "should_trigger": true
+  },
+  {
+    "query": "results differ in the 7th decimal place between my laptop and the cluster",
+    "should_trigger": false,
+    "expected": "floating-point-error-hunt"
+  },
+  {
+    "query": "my function returns the wrong answer for negative inputs",
+    "should_trigger": false,
+    "expected": "debugging"
+  },
+  {
+    "query": "how often should a long run write checkpoints and how do I resume it",
+    "should_trigger": false,
+    "expected": "checkpoint-restart-design"
+  },
+  {
+    "query": "my job was killed with exit code 137",
+    "should_trigger": false,
+    "expected": "slurm-job-failure-triage"
+  },
+  {
+    "query": "two runs with the same seed give different final accuracy",
+    "should_trigger": false,
+    "expected": "nondeterminism-bisect"
+  },
+  {
+    "query": "the model's accuracy is low on a subset of classes",
+    "should_trigger": false
+  },
+  {
+    "query": "my Python service is leaking memory",
+    "should_trigger": false,
+    "expected": "python-memory-growth"
+  },
+  {
+    "query": "the slurm job ran out of time",
+    "should_trigger": false,
+    "expected": "slurm-job-failure-triage"
+  },
+  {
+    "query": "the dataset does not fit in memory",
+    "should_trigger": false,
+    "expected": "out-of-core-dataset-handling"
+  },
+  {
+    "query": "profile why my training loop is slow",
+    "should_trigger": false,
+    "expected": "profiling"
+  }
+]

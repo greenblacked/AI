@@ -1,0 +1,22 @@
+[
+  {"query": "we are launching an analytics add-on next quarter, how should we price it", "should_trigger": true},
+  {"query": "I think we are massively underpriced but I have no evidence either way. how would I find out", "should_trigger": true},
+  {"query": "design a willingness to pay survey for our B2B scheduling tool", "should_trigger": true},
+  {"query": "we ran a Van Westendorp survey with 120 responses, help me read the curves", "should_trigger": true},
+  {"query": "should we charge per seat or per project for the new collaboration product", "should_trigger": true},
+  {"query": "we only have about a dozen customers. how do we work out what the pro tier should cost", "should_trigger": true},
+  {"query": "what questions should I ask customers in interviews to figure out what they would pay", "should_trigger": true},
+  {"query": "our users love the product but nobody will tell us what they would pay for it", "should_trigger": true},
+  {"query": "how do I estimate the economic value our tool creates for a customer and turn that into a price", "should_trigger": true},
+  {"query": "competitor charges 49 a month, should we just match them or is there a better way to set our price", "should_trigger": true},
+  {"query": "our reps give 35 percent off on almost every deal, how do we put approval rules around discounts", "should_trigger": false, "expected": "discount-discipline"},
+  {"query": "we decided to raise prices 20 percent, how do we tell existing customers and handle grandfathering", "should_trigger": false, "expected": "price-change-rollout"},
+  {"query": "I got a job offer with a base of 140k, how do I counter", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "put up a landing page with a pricing button to see if anyone wants this before we build it", "should_trigger": false, "expected": "fake-door-test"},
+  {"query": "before building anything, how do we know customers actually have this problem", "should_trigger": false, "expected": "problem-validation"},
+  {"query": "set salary bands for our engineering levels using benchmark data", "should_trigger": false, "expected": "compensation-benchmarking"},
+  {"query": "compare three observability vendors on price and build a three year total cost of ownership", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "is this 1,800 standing desk worth it or should I get the cheaper one", "should_trigger": false, "expected": "major-purchase"},
+  {"query": "the CEO wants usage-based pricing live by next month and it would push back two committed roadmap items, how do I respond", "should_trigger": false, "expected": "roadmap-disruption-triage"},
+  {"query": "interview customers who switched to us last month about why they chose us", "should_trigger": false, "expected": "jobs-timeline-interview"}
+]

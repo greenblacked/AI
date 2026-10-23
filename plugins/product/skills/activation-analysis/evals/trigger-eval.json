@@ -1,0 +1,22 @@
+[
+  {"query": "what is our aha moment, product wants one number for onboarding to chase", "should_trigger": true},
+  {"query": "help me define activation for our project management tool from the event data", "should_trigger": true},
+  {"query": "where do new users drop off between signing up and their first real use", "should_trigger": true},
+  {"query": "why don't trial users convert, most of them never come back after day two", "should_trigger": true},
+  {"query": "which first-week action best predicts that someone is still using us at week 8", "should_trigger": true},
+  {"query": "users who invite a teammate retain 3x better, should we push invites hard in onboarding", "should_trigger": true},
+  {"query": "our retention curve keeps sloping down at week 12, is onboarding the problem or the product", "should_trigger": true},
+  {"query": "build signup-week cohorts and tell me what separates the users who stick", "should_trigger": true},
+  {"query": "the onboarding funnel shows half of mobile users never connect a data source, what is going on", "should_trigger": true},
+  {"query": "we picked an activation metric last year by gut feel, how do we check it actually drives retention", "should_trigger": true},
+  {"query": "why are paying customers cancelling after their first annual renewal", "should_trigger": false, "expected": "churn-analysis"},
+  {"query": "activations fell 30% yesterday with no release, is the number even real", "should_trigger": false, "expected": "metric-anomaly-triage"},
+  {"query": "plan a usability test of the new onboarding prototype with five participants", "should_trigger": false, "expected": "usability-test-plan"},
+  {"query": "before we build this onboarding assistant, is the problem real for customers", "should_trigger": false, "expected": "problem-validation"},
+  {"query": "rewrite the empty state copy on the first-run screen so it is less vague", "should_trigger": false, "expected": "content-design"},
+  {"query": "add analytics events and traces to every step of the onboarding service", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "reorder the sign-up form fields and fix where validation errors appear", "should_trigger": false, "expected": "form-design"},
+  {"query": "draft the growth team's OKRs for next quarter", "should_trigger": false, "expected": "okr-planning"},
+  {"query": "our activation key result was hit by shortening onboarding, check whether that metric can be gamed", "should_trigger": false, "expected": "metric-gaming-audit"},
+  {"query": "trial-to-paid conversions are failing because the card declines at the first charge", "should_trigger": false, "expected": "dunning-recovery"}
+]

@@ -18,5 +18,6 @@
   {"query": "we're hiring a staff platform engineer, design the interview loop and the rubric", "should_trigger": false, "expected": "hiring-loop"},
   {"query": "write this week's status update for the migration programme, exec audience", "should_trigger": false, "expected": "status-update"},
   {"query": "should we roll out AI coding tools to the platform team and how would we measure whether it helped", "should_trigger": false, "expected": "ai-enablement"},
-  {"query": "rank the backlog for next quarter, 40 items and six engineers, what framework should i use", "should_trigger": false, "expected": "delivery-review"}
+  {"query": "rank the backlog for next quarter, 40 items and six engineers, what framework should i use", "should_trigger": false, "expected": "delivery-review"},
+  {"query": "we're the vendor, a prospect wants a 30 day pilot, how do we scope it", "should_trigger": false, "expected": "poc-plan"}
 ]

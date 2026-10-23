@@ -1,0 +1,22 @@
+[
+  {"query": "our 50/50 test came out 50.6/49.4 across two million users, what went wrong", "should_trigger": true},
+  {"query": "the sample ratio check failed on our 50/50 test with treatment 2% short, find out why", "should_trigger": true},
+  {"query": "treatment has about 8,000 fewer users than control after three weeks; does that matter or can we still read the result", "should_trigger": true},
+  {"query": "the platform flagged an SRM on the new homepage experiment, where do I start looking", "should_trigger": true},
+  {"query": "can we just reweight the arms back to 50/50 and report the result anyway", "should_trigger": true},
+  {"query": "the new variant is served through a redirect and it has fewer exposed users than control; is that a problem", "should_trigger": true},
+  {"query": "our 90/10 test shows 88.7/11.3, is the split broken", "should_trigger": true},
+  {"query": "control and treatment counts match at assignment but diverge in the analytics table, how do I trace where users are lost", "should_trigger": true},
+  {"query": "the imbalance between arms only appears on Safari, what could cause that", "should_trigger": true},
+  {"query": "set up a daily check that warns us when an experiment's split drifts from its design", "should_trigger": true},
+  {"query": "the split is balanced and the test ran four weeks; tell me if the lift on revenue is real", "should_trigger": false, "expected": "experiment-readout"},
+  {"query": "how many users do we need for a test that can detect a 1% change in conversion", "should_trigger": false, "expected": "experiment-design"},
+  {"query": "in our dispatch switchback two hourly windows were skipped during an outage; how do we analyse what remains", "should_trigger": false, "expected": "switchback-test-design"},
+  {"query": "we launched a new onboarding flow to everyone on 1 September; estimate its effect on retention without an experiment", "should_trigger": false, "expected": "causal-inference-review"},
+  {"query": "events from the mobile app stopped arriving in the warehouse yesterday afternoon", "should_trigger": false, "expected": "data-quality-checks"},
+  {"query": "our feature store serves stale values for some users, so the live model behaves differently from training", "should_trigger": false, "expected": "serving-skew-replay"},
+  {"query": "the deployed churn model's prediction distribution has shifted; should we retrain", "should_trigger": false, "expected": "model-drift-monitoring"},
+  {"query": "make the feature flag assignment sticky per user and safe when the config service is down", "should_trigger": false, "expected": "feature-flag-lifecycle"},
+  {"query": "our ten percent canary shows a higher error rate than the baseline; should we roll back", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "add structured logging and metrics to the assignment service so we can see what it is doing", "should_trigger": false, "expected": "instrumentation"}
+]

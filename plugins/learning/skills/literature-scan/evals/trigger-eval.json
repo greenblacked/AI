@@ -1,0 +1,22 @@
+[
+  {"query": "what's the prior art for this before we build our own", "should_trigger": true},
+  {"query": "is there a known approach to consistent hashing with bounded loads", "should_trigger": true},
+  {"query": "survey the research on log anomaly detection", "should_trigger": true},
+  {"query": "what does the literature say about detecting duplicate records at scale, I want the main families of approach", "should_trigger": true},
+  {"query": "before we design our own scheduler, find out how this problem has been solved in papers and in practice", "should_trigger": true},
+  {"query": "give me a state of the art overview on learned index structures", "should_trigger": true},
+  {"query": "has anyone published on rate limiting across many regions with eventual consistency", "should_trigger": true},
+  {"query": "I need background research for a design doc on CRDT-based collaborative editing", "should_trigger": true},
+  {"query": "how do I find all the important papers on a topic without reading everything, and know when to stop", "should_trigger": true},
+  {"query": "map the approaches to time series forecasting for capacity planning with evidence and maturity", "should_trigger": true},
+  {"query": "read this one paper and tell me whether the claim holds up", "should_trigger": false, "expected": "paper-reading"},
+  {"query": "record why we chose approach B over approach A", "should_trigger": false, "expected": "decision-record"},
+  {"query": "check each claim our proposal rests on before the committee meets", "should_trigger": false, "expected": "frame-claim-ledger"},
+  {"query": "compare three managed vector database products for our team", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "add these papers to my vault as notes with links", "should_trigger": false, "expected": "learning-notes"},
+  {"query": "I am new to the payments industry and need to learn it quickly", "should_trigger": false, "expected": "domain-ramp-up"},
+  {"query": "learn Apache Flink well enough to use it next week", "should_trigger": false, "expected": "learn-new-technology"},
+  {"query": "benchmark two hashing implementations on our hardware properly", "should_trigger": false, "expected": "benchmark-methodology"},
+  {"query": "design the retrieval layer for our documentation chatbot", "should_trigger": false, "expected": "rag-design"},
+  {"query": "write a blog post summarising what we learned about the topic", "should_trigger": false, "expected": "write-technical-article"}
+]

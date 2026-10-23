@@ -1,0 +1,22 @@
+[
+  {"query": "The CFO wants to know what the revenue dashboard showed on 1 March, before the corrections went in. Can we get that back?", "should_trigger": true},
+  {"query": "Our customer table gets overwritten every night so last quarter's revenue by segment now uses today's segments. How do we fix this going forward?", "should_trigger": true},
+  {"query": "Should we use dbt snapshots, a type 2 dimension or daily snapshot tables for the account owner history?", "should_trigger": true},
+  {"query": "We can't reproduce the numbers in last quarter's board deck anymore. How would we set things up so that's possible?", "should_trigger": true},
+  {"query": "Sales sometimes backdates a plan change by a few weeks. How do we keep both what was true and what we thought was true at the time?", "should_trigger": true},
+  {"query": "what tier was this customer on when they placed the order in January, not what tier they are on now", "should_trigger": true},
+  {"query": "We never kept history on the product price table. Is there any way to reconstruct what prices were last year?", "should_trigger": true},
+  {"query": "Our fact table joins to the SCD2 dimension and some orders come out duplicated at version boundaries. What's the right join?", "should_trigger": true},
+  {"query": "Explain bitemporal modelling for our contracts table: valid time vs transaction time, and how corrections work.", "should_trigger": true},
+  {"query": "Can Snowflake time travel be our history solution for auditing customer attribute changes over the past year?", "should_trigger": true},
+  {"query": "Design the tables for a new subscription billing feature: keys, constraints and soft delete.", "should_trigger": false, "expected": "schema-design"},
+  {"query": "How do I add a valid_to column to a 400 million row Postgres table in production without locking it?", "should_trigger": false, "expected": "db-migration"},
+  {"query": "Yesterday's order count keeps going up for a week after the day ends; when should we publish it?", "should_trigger": false, "expected": "late-data-maturity"},
+  {"query": "Two teams report different monthly active users for October; find which definition is right.", "should_trigger": false, "expected": "metric-reconciliation"},
+  {"query": "We need to fix bad region codes on five million existing customer rows in production.", "should_trigger": false, "expected": "safe-backfill"},
+  {"query": "Match customers between the CRM and the billing system when they share no common id.", "should_trigger": false, "expected": "entity-resolution"},
+  {"query": "How long do we have to keep customer records under GDPR, and how do we delete them from backups?", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "Our backups have never been restored; how do we test that we can meet our recovery point objective?", "should_trigger": false, "expected": "disaster-recovery-exercise"},
+  {"query": "Revenue tripled after I joined orders to the customer address table. What went wrong?", "should_trigger": false, "expected": "join-fanout-hunt"},
+  {"query": "Who still queries the legacy customer_history table before we drop it?", "should_trigger": false, "expected": "consumer-discovery"}
+]

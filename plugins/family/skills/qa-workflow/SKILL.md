@@ -1,7 +1,7 @@
 ---
 name: qa-workflow
 description: "Run FAMILY from QA: own Inspect, push acceptance criteria and testability back into Frame and Architect, and own the go/no-go before Launch. Covers what QA reads at each stage, the test strategy tied to the success criteria, exploratory testing, and turning a repeated defect into a Frame check. Use this skill whenever QA is setting up how it works with a team. Triggers include a QA process, a test strategy tied to acceptance criteria, deciding what QA owns, or \"how do we run QA\" — including phrasings like \"what should our QA do\" or \"how do we stop shipping the same bug\". Do not use it for the stage definitions themselves (family-workflow), writing the tests (test-design), a WCAG audit (accessibility-audit), a solo developer (solo-development), or a developer's own loop (developer-workflow)."
-allowed-tools: Read, Write, Edit, Grep, Glob, Bash(git:*)
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # QA workflow

@@ -1,7 +1,7 @@
 ---
 description: Clone a repository and run every fenced shell command its AGENTS.md contains — on this machine, with a stripped environment rather than a sandbox — after listing the commands and stopping for confirmation. Use only on a repository you would already trust enough to run its test suite. Also checks instruction-file size against a known agent tool cap and flags dangling paths and exposed secrets.
 argument-hint: '[path or URL to the repository, default the current directory]'
-allowed-tools: Bash(git clone:*), Bash(git worktree:*), Bash(rg:*), Read, Glob, Grep
+allowed-tools: Read, Glob, Grep
 disable-model-invocation: true
 ---
 
@@ -43,10 +43,8 @@ rather than a blanket promise that nothing outside the isolation gets touched.
    never the source repository's, because hooks themselves are not transported by a
    clone. `-c core.hooksPath=/dev/null` on both invocations closes both paths regardless,
    before step 2's confirmation exists to gate anything. None of the three forms above is
-   guaranteed to match the allow-list above once the
-   safety flags are on it, so treat every one of them as a prompt, not a pre-approval —
-   correct, since creating a copy of a repository this command has not yet audited is
-   exactly the moment that should ask.
+   pre-approved, so each one prompts — correct, since creating a copy of a repository this
+   command has not yet audited is exactly the moment that should ask.
 
    Every command below runs inside `$scratch` — step 3's `cd` is what enforces that,
    since `env -i` alone clears variables but never changes the working directory. A

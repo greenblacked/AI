@@ -1,7 +1,7 @@
 ---
 name: test-design
-description: "Choose what to test before writing a test: partition the input space into equivalence classes and take the boundary of each, enumerate the error and exception paths nobody writes, cut a combinatorial explosion down with pairwise selection, place every case at the unit, integration or no level at all, pin time, randomness, concurrency and I/O behind seams so the suite cannot go flaky, and keep only tests that would catch a regression rather than tests that pin the current implementation. Use this skill whenever someone asks \"what should I test here\", \"are these tests any good\", \"is our coverage enough\", \"how do I test this without it being flaky\", or wants a failing test that reproduces a reported bug before the fix lands. Do not use it to triage a test already red in CI (ci-triage), to find the cause of a bug (debugging), or to restructure code (refactoring)."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(pytest:*), Bash(coverage:*), Bash(npm:*), Bash(go:*), Bash(git:*)
+description: "Choose what to test before writing a test: partition the input space into equivalence classes and take the boundary of each, enumerate the error paths nobody writes, cut a combinatorial explosion with pairwise selection, place every case at the unit, integration or no level at all, pin time, randomness, concurrency and I/O behind seams so the suite cannot go flaky, and keep tests that would catch a regression rather than ones pinning the implementation. Use it whenever someone asks \"what should I test here\", \"are these tests any good\", \"how do I test this without it being flaky\", or wants a failing test that reproduces a reported bug before the fix lands. Not for scoring an existing suite by injected faults (mutation-testing), a test already red in CI (ci-triage), a bug's cause (debugging), or restructuring code (refactoring)."
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # Test Design
@@ -12,9 +12,9 @@ Test selection goes wrong in five specific ways. The happy path gets three tests
 
 ## Scope
 
-Use for: deciding which cases a change needs, reviewing whether an existing suite tests anything, choosing the unit/integration/end-to-end level for a case, designing around time, randomness, concurrency and I/O, interpreting a coverage number, and writing the reproduction test for a reported bug.
+Use for: deciding which cases a change needs, reviewing whether an existing suite tests anything, choosing the unit/integration/end-to-end level for a case, designing around time, randomness, concurrency and I/O, reading what a coverage number does and does not cover, and writing the reproduction test for a reported bug.
 
-Do not use for: a test that is already failing in CI and may be a flake, which is `ci-triage` and owns the quarantine policy; locating the cause of a defect, which is `debugging`; restructuring code under an existing suite, which is `refactoring`; judging a colleague's diff, which is `code-review`.
+Do not use for: a test that is already failing in CI and may be a flake, which is `ci-triage` and owns the quarantine policy; locating the cause of a defect, which is `debugging`; restructuring code under an existing suite, which is `refactoring`; judging a colleague's diff, which is `code-review`. Whether a suite would notice a fault, measured by injecting faults and triaging the survivors, or a coverage figure that is high while bugs still ship, is `mutation-testing`.
 
 ## Workflow
 

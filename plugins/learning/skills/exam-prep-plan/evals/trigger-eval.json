@@ -1,0 +1,22 @@
+[
+  {"query": "my exam is in 6 weeks and I work full time, how should I plan the study", "should_trigger": true},
+  {"query": "how do I study for the Kubernetes admin cert", "should_trigger": true},
+  {"query": "I failed the first attempt at the AWS solutions architect exam, what now", "should_trigger": true},
+  {"query": "build a schedule that works backwards from my CISSP date in March", "should_trigger": true},
+  {"query": "I have a practice test result by domain, how do I decide where to spend my hours", "should_trigger": true},
+  {"query": "when should I do my last full mock before the certification and when do I stop learning new topics", "should_trigger": true},
+  {"query": "how do I know whether I am ready to sit the exam or should I move the date", "should_trigger": true},
+  {"query": "my final module exam is in a month and I have not opened the notes, help me plan", "should_trigger": true},
+  {"query": "what should I check the day before an online proctored certification exam", "should_trigger": true},
+  {"query": "I keep getting the same kinds of questions wrong in practice tests, how do I fix that before the exam", "should_trigger": true},
+  {"query": "write spaced-repetition cards from my Kubernetes notes", "should_trigger": false, "expected": "learning-notes"},
+  {"query": "plan six months to become a decent data engineer, no exam involved", "should_trigger": false, "expected": "skill-acquisition-plan"},
+  {"query": "how do I prepare for a live coding interview next month", "should_trigger": false, "expected": "technical-interview-prep"},
+  {"query": "I want to study every morning but keep skipping it, how do I make it stick", "should_trigger": false, "expected": "habit-change"},
+  {"query": "we adopt Kafka next week and I need to be useful quickly", "should_trigger": false, "expected": "learn-new-technology"},
+  {"query": "I am joining a logistics company and need to learn the industry", "should_trigger": false, "expected": "domain-ramp-up"},
+  {"query": "is this paper's claim about transformer scaling believable", "should_trigger": false, "expected": "paper-reading"},
+  {"query": "run a training workshop to prepare our team for the new on-call process", "should_trigger": false, "expected": "workshop-design"},
+  {"query": "design a take-home exercise for new hires to practise incident response", "should_trigger": false, "expected": "exercise-design"},
+  {"query": "survey the literature on spaced repetition effectiveness", "should_trigger": false, "expected": "literature-scan"}
+]
