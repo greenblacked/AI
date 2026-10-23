@@ -8,6 +8,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-23
+
+### Changed
+
+- The catalogue site's theme switch now changes the page at once and animates only the switch: the radial reveal, the dip and the cross-fade are gone, the knob slides 20px over 300ms, and a change made in another tab or restored from the back/forward cache is followed.
+
 ## [0.2.0] - 2026-10-23
 
 ### Added
@@ -978,7 +984,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/greenblacked/AI/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/greenblacked/AI/compare/v0.1.13...v0.2.0
 [0.1.13]: https://github.com/greenblacked/AI/compare/v0.1.12...v0.1.13
 [0.1.12]: https://github.com/greenblacked/AI/compare/v0.1.11...v0.1.12
