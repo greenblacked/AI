@@ -503,7 +503,11 @@ def test_the_dark_switch_flips_the_theme_and_the_choice_survives_a_reload(page, 
     assert theme(page) == after
 
 
-def test_the_console_theme_toggles_and_forgets_itself_when_turned_off(page, base_url):
+@pytest.mark.parametrize(("hour", "expected"), [(21, "night"), (12, "day")])
+def test_the_console_theme_toggles_and_a_visitor_who_never_chose_gets_the_clock_back(
+    page, base_url, hour, expected
+):
+    page.clock.install(time=f"2026-10-06T{hour:02d}:30:00")
     page.goto(base_url + "/")
     page.click("#console-theme")
     assert theme(page) == "reactor"
@@ -511,8 +515,54 @@ def test_the_console_theme_toggles_and_forgets_itself_when_turned_off(page, base
     page.reload()
     assert theme(page) == "reactor"
     page.click("#console-theme")
-    assert theme(page) in {"day", "night"}
+    # Nothing was chosen before the console theme, so there is nothing to put back: the
+    # page follows the clock again and stores nothing.
+    assert theme(page) == expected
+    assert page.get_attribute("#console-theme", "aria-pressed") == "false"
     assert page.evaluate("() => localStorage.getItem('theme')") is None
+    assert page.evaluate("() => localStorage.getItem('theme-before-console')") is None
+    page.reload()
+    assert theme(page) == expected
+
+
+@pytest.mark.parametrize("chosen", ["day", "night"])
+def test_leaving_the_console_theme_puts_back_the_day_or_night_choice_made_before_it(
+    page, base_url, chosen
+):
+    # The opposite of the clock, so a fall back to it would show up as the wrong theme.
+    page.clock.install(time=f"2026-10-06T{'12' if chosen == 'night' else '21'}:30:00")
+    page.goto(base_url + "/")
+    if theme(page) != chosen:
+        page.click("#dark-switch")
+    assert theme(page) == chosen
+    page.click("#console-theme")
+    assert theme(page) == "reactor"
+    # The choice is remembered across a reload while the console theme is on.
+    page.reload()
+    assert theme(page) == "reactor"
+    page.click("#console-theme")
+    assert theme(page) == chosen
+    assert page.evaluate("() => localStorage.getItem('theme')") == chosen
+    assert page.evaluate("() => localStorage.getItem('theme-before-console')") is None
+    assert page.get_attribute("#dark-switch", "aria-checked") == str(chosen == "night").lower()
+    page.reload()
+    assert theme(page) == chosen
+
+
+def test_a_choice_made_from_the_console_theme_replaces_what_would_be_put_back(page, base_url):
+    page.clock.install(time="2026-10-06T12:30:00")
+    page.goto(base_url + "/")
+    page.click("#dark-switch")  # night, against the clock
+    page.click("#console-theme")
+    assert theme(page) == "reactor"
+    page.click("#dark-switch")  # leaves the console theme for night
+    assert theme(page) == "night"
+    assert page.evaluate("() => localStorage.getItem('theme-before-console')") is None
+    page.click("#dark-switch")
+    assert theme(page) == "day"
+    page.click("#console-theme")
+    page.click("#console-theme")
+    assert theme(page) == "day"
 
 
 # --- Finder -----------------------------------------------------------------------------
@@ -961,8 +1011,8 @@ def test_opening_a_stage_is_still_and_whole_when_motion_is_reduced(page, base_ur
     assert row.locator(".routes > div").first.evaluate("el => getComputedStyle(el).opacity") == "1"
 
 
-def _moving(browser, base_url, width=1280):
-    made = browser.new_context(viewport={"width": width, "height": 800})
+def _moving(browser, base_url, width=1280, touch=False):
+    made = browser.new_context(viewport={"width": width, "height": 800}, has_touch=touch)
     made.route(re.compile("^(?!" + re.escape(base_url) + "/)"), lambda route: route.abort())
     page = made.new_page()
     page.emulate_media(reduced_motion="no-preference")
@@ -1066,6 +1116,162 @@ def test_the_switch_is_painted_moving_while_the_theme_spreads(browser, base_url)
         settled = page.screenshot(clip=box)
         assert len(set(frames)) >= 3
         assert frames[0] != settled
+    finally:
+        made.close()
+
+
+_THEME_SETTLED = (
+    "() => !document.documentElement.classList.contains('theming')"
+    " && !document.documentElement.classList.contains('theme-dip')"
+    " && !document.querySelector('.theme-veil') && document.getAnimations().length === 0"
+)
+# Counts the view transitions the page starts, to tell which way a switch went.
+_COUNT_TRANSITIONS = (
+    "window.__transitions = 0; const start = document.startViewTransition;"
+    " if (start) document.startViewTransition = function (...args) {"
+    " window.__transitions += 1; return start.apply(this, args); };"
+)
+
+
+def _theme_state(page) -> dict:
+    """Every place the theme is written down, read once the switch has stopped moving."""
+    page.wait_for_function(_THEME_SETTLED)
+    return page.evaluate(
+        "() => ({theme: document.documentElement.dataset.theme,"
+        " aria: document.getElementById('dark-switch').getAttribute('aria-checked'),"
+        " stored: localStorage.getItem('theme'),"
+        " meta: document.querySelector('meta[name=theme-color]').content,"
+        " knobAcross: getComputedStyle(document.querySelector('.knob')).transform !== 'none'})"
+    )
+
+
+def _assert_theme_agrees(state: dict, expected: str) -> None:
+    colour = {"day": "#f4f1ea", "night": "#000000"}[expected]
+    assert state == {
+        "theme": expected,
+        "aria": str(expected == "night").lower(),
+        "stored": expected,
+        "meta": colour,
+        "knobAcross": expected == "night",
+    }
+
+
+def test_a_very_tall_page_dips_to_the_new_theme_instead_of_running_the_reveal(browser, base_url):
+    made, page = _moving(browser, base_url)
+    try:
+        page.add_init_script(_COUNT_TRANSITIONS)
+        page.goto(base_url + SKILL_PATH)
+        # The longest page in the catalogue, so this stays a tall page if the others shrink.
+        assert page.evaluate("() => document.documentElement.scrollHeight / innerHeight") > 16
+        before = theme(page)
+        page.click("#dark-switch")
+        # The reveal's mask is what costs more the taller the page is, so none is started:
+        # no view transition, no `theming` class, and a veil the size of the screen instead.
+        assert page.evaluate("() => window.__transitions") == 0
+        assert not page.evaluate("() => document.documentElement.classList.contains('theming')")
+        assert page.locator(".theme-veil").count() == 1
+        assert page.locator(".theme-veil").evaluate(
+            "el => { const s = getComputedStyle(el); return [s.position, s.pointerEvents,"
+            " el.getBoundingClientRect().height === innerHeight]; }"
+        ) == ["fixed", "none", True]
+        after = "day" if before == "night" else "night"
+        _assert_theme_agrees(_theme_state(page), after)
+        assert page.evaluate("() => window.__transitions") == 0
+    finally:
+        made.close()
+
+
+def test_a_short_page_still_gets_the_reveal_and_no_veil(browser, base_url):
+    made, page = _moving(browser, base_url)
+    try:
+        page.add_init_script(_COUNT_TRANSITIONS)
+        page.goto(base_url + "/plugins/design/")
+        assert page.evaluate("() => document.documentElement.scrollHeight / innerHeight") < 16
+        page.click("#dark-switch")
+        assert page.evaluate("() => window.__transitions") == 1
+        assert page.locator(".theme-veil").count() == 0
+        _theme_state(page)
+    finally:
+        made.close()
+
+
+@pytest.mark.parametrize("pointer", ["mouse", "touch"])
+def test_a_press_on_the_switch_in_the_middle_of_the_reveal_toggles_it_back(
+    browser, base_url, pointer
+):
+    # The overlay the browser lays over the page during a view transition used to take
+    # the press, so the second one vanished and the theme stayed where the first left it.
+    made, page = _moving(browser, base_url, touch=pointer == "touch")
+    try:
+        page.goto(base_url + "/plugins/design/")
+        before = theme(page)
+        box = page.locator("#dark-switch").bounding_box()
+        x, y = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+        # The first press is a script's, so only the second one can be swallowed.
+        page.evaluate("() => document.getElementById('dark-switch').click()")
+        page.wait_for_function("() => document.documentElement.classList.contains('theming')")
+        page.wait_for_timeout(250)
+        assert page.evaluate("() => document.documentElement.classList.contains('theming')")
+        if pointer == "touch":
+            page.touchscreen.tap(x, y)
+        else:
+            page.mouse.click(x, y)
+        state = _theme_state(page)
+        assert state["theme"] == before
+        assert state["stored"] == before
+        assert state["aria"] == str(before == "night").lower()
+    finally:
+        made.close()
+
+
+@pytest.mark.parametrize("path", ["/plugins/design/", SKILL_PATH], ids=["reveal", "dip"])
+@pytest.mark.parametrize("gap", [0, 70], ids=["together", "spaced"])
+@pytest.mark.parametrize("presses", [2, 3, 5])
+def test_fast_presses_on_the_dark_switch_end_on_the_theme_their_parity_names(
+    browser, base_url, path, gap, presses
+):
+    # The next theme used to be read from the page, which only changes once the transition
+    # has started, so a second press before then chose from stale state and cancelled out.
+    made, page = _moving(browser, base_url)
+    try:
+        page.goto(base_url + path)
+        before = theme(page)
+        page.evaluate(
+            "async ([n, gap]) => { for (let i = 0; i < n; i++) {"
+            " document.getElementById('dark-switch').click();"
+            " if (gap) await new Promise(r => setTimeout(r, gap)); } }",
+            [presses, gap],
+        )
+        flipped = "day" if before == "night" else "night"
+        _assert_theme_agrees(_theme_state(page), flipped if presses % 2 else before)
+    finally:
+        made.close()
+
+
+def test_fast_presses_across_the_switches_agree_with_the_last_one(browser, base_url):
+    made, page = _moving(browser, base_url)
+    try:
+        # Daytime, so the first dark press goes to night and night is what gets remembered;
+        # at night the same press would remember day and the last assertion would flip.
+        page.clock.install(time="2026-10-06T12:30:00")
+        page.goto(base_url + "/plugins/design/")
+        page.evaluate(
+            "() => { document.getElementById('dark-switch').click();"
+            " document.getElementById('console-theme').click(); }"
+        )
+        page.wait_for_function(_THEME_SETTLED)
+        assert theme(page) == "reactor"
+        assert page.get_attribute("#console-theme", "aria-pressed") == "true"
+        assert page.get_attribute("#dark-switch", "aria-checked") == "false"
+        assert page.evaluate("() => localStorage.getItem('theme')") == "reactor"
+        assert page.evaluate("() => document.querySelector('meta[name=theme-color]').content") == (
+            "#070807"
+        )
+        page.evaluate("() => document.getElementById('console-theme').click()")
+        page.wait_for_function(_THEME_SETTLED)
+        # The dark switch was pressed first, so night was what stood before the console.
+        assert theme(page) == "night"
+        assert page.evaluate("() => localStorage.getItem('theme')") == "night"
     finally:
         made.close()
 
