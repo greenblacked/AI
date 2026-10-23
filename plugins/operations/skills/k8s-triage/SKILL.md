@@ -1,7 +1,7 @@
 ---
 name: k8s-triage
-description: "Triage and mitigate a broken Kubernetes workload, mitigation first and diagnosis second — test whether it is deploy-related and roll back, scope the blast radius, capture evidence before mutating anything, pattern-match the symptom, then escalate through rollback, scale-out, load shedding, failover, drain and restore. Use this skill whenever a pod, deployment, service or cluster is misbehaving — CrashLoopBackOff, OOMKilled, ImagePullBackOff, Pending or unschedulable pods, running but never Ready, stuck Terminating, DNS failures, RBAC 403s, a Service with no endpoints — and equally for casual phrasings like \"my pod won't start\", \"the rollout broke prod\", \"k8s is down\", or \"why is this pending\". For bulky captured Kubernetes evidence, use k8s-evidence-reader before deciding here. Not for authoring new manifests, capacity planning, writing the postmortem once service is restored, or a live incident on a non-Kubernetes surface (incident-response)."
-allowed-tools: Bash(kubectl:*), Bash(helm:*), Bash(jq:*), Read, Grep, Glob
+description: "Triage a broken Kubernetes workload, mitigation before diagnosis — check for a deploy and roll back, scope the blast radius, capture evidence before mutating, pattern-match the symptom, then escalate: rollback, scale-out, load shedding, failover, drain, restore. Use when a pod, deployment, service or cluster is misbehaving — CrashLoopBackOff, OOMKilled, ImagePullBackOff, Pending pods, running but never Ready, stuck Terminating, DNS failures, RBAC 403s, a Service with no endpoints — or for \"my pod won't start\", \"the rollout broke prod\", \"k8s is down\". Bulky saved evidence: k8s-evidence-reader. Not for new manifests, capacity planning, postmortems, non-Kubernetes incidents (incident-response), API server or etcd overload (apiserver-pressure), NetworkPolicy (k8s-network-policy), storage design (k8s-storage), spot reclaim (spot-readiness) and Ingress-to-Gateway (gateway-api-migration)."
+allowed-tools: Bash(jq:*), Read, Grep, Glob
 ---
 
 # Kubernetes Triage and Incident Response
@@ -12,9 +12,9 @@ The job is hard because the instinct that makes someone a good engineer — unde
 
 ## Scope
 
-Use for: a workload that will not start, will not stay up or will not serve; a cluster or control-plane problem; deciding whether to roll back.
+Use for: a workload that will not start, will not stay up or will not serve; a cluster-wide fault such as DNS or node loss; deciding whether to roll back. Live triage of a failing workload stays here whatever the cause.
 
-Do not use for: writing new manifests or Helm charts, capacity and cost planning, a cluster upgrade planned in advance — that is `k8s-upgrade`'s job, from finding removed APIs before the window to sequencing add-ons and node pools — writing the postmortem after service is restored — that is the companion `postmortem` skill's job, and this skill hands off to it — or a live incident on a surface that is not Kubernetes, which is `incident-response`.
+Do not use for: writing new manifests or Helm charts, capacity and cost planning, a cluster upgrade planned in advance — that is `k8s-upgrade`'s job, from finding removed APIs before the window to sequencing add-ons and node pools — writing the postmortem after service is restored — that is the companion `postmortem` skill's job, and this skill hands off to it — a live incident on a surface that is not Kubernetes, which is `incident-response`; or the topics the platform plugin owns once the workload is stable: API server or etcd overload and who is hammering it, `apiserver-pressure`; designing or rolling out NetworkPolicy, `k8s-network-policy`; StorageClass, PVC expansion and stateful volume design, `k8s-storage`; making workloads survive spot or preemptible reclaim, `spot-readiness`; moving Ingress to Gateway API, `gateway-api-migration`. Mitigate first here, then hand the topic over.
 
 ## Workflow
 

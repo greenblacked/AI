@@ -1,0 +1,22 @@
+[
+  {"query": "I need to do a mesh convergence study for my cfd model, how do I set it up and report it", "should_trigger": true},
+  {"query": "how fine does my grid need to be before I can trust the drag coefficient", "should_trigger": true},
+  {"query": "is my time step small enough or will the answer change if I halve it", "should_trigger": true},
+  {"query": "does the answer change if I refine the mesh, and how do I put an error bar on it", "should_trigger": true},
+  {"query": "reviewers want model validation against independent data for our simulation paper", "should_trigger": true},
+  {"query": "my observed order of accuracy comes out as 1.1 but the scheme is second order, is that fine", "should_trigger": true},
+  {"query": "explain Richardson extrapolation and the grid convergence index for three meshes", "should_trigger": true},
+  {"query": "how do I show my finite element result is independent of element size", "should_trigger": true},
+  {"query": "we calibrated the model on all our measurements, how do we validate it now", "should_trigger": true},
+  {"query": "I halved the solver tolerance and the result barely moved, can I call the iteration converged", "should_trigger": true},
+  {"query": "how many mcmc samples do I need before the posterior mean is stable", "should_trigger": false, "expected": "monte-carlo-run-length"},
+  {"query": "the sum changes in the last digits depending on summation order, track down the precision bug", "should_trigger": false, "expected": "floating-point-error-hunt"},
+  {"query": "same code and same seed give different numbers on every run, find out why", "should_trigger": false, "expected": "nondeterminism-bisect"},
+  {"query": "compare my new algorithm against the baselines so the claim survives review", "should_trigger": false, "expected": "fair-method-comparison"},
+  {"query": "which function in my solver is the bottleneck", "should_trigger": false, "expected": "profiling"},
+  {"query": "review the statistics in this paper, the p values and the sample sizes", "should_trigger": false, "expected": "paper-statistics-review"},
+  {"query": "my simulation produced NaN after step 4000, find where it started", "should_trigger": false, "expected": "nan-origin-trace"},
+  {"query": "how does my code scale from 16 to 256 cores", "should_trigger": false, "expected": "parallel-scaling-study"},
+  {"query": "convert the units in my input deck, the results are off by a factor of 1000", "should_trigger": false, "expected": "unit-mismatch-audit"},
+  {"query": "make this analysis rerunnable on another machine from raw data", "should_trigger": false, "expected": "reproducible-analysis-environment"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "connection to port 8443 times out but ss shows the service listening and I can curl it locally", "should_trigger": true},
+  {"query": "I added an nftables rule to allow the port and the counter never moves", "should_trigger": true},
+  {"query": "docker publishes port 5432 to the world even though ufw denies it", "should_trigger": true},
+  {"query": "both ufw and firewalld are installed on this box and I do not know which one is actually enforcing", "should_trigger": true},
+  {"query": "how do I trace a single packet through nftables to see which rule drops it", "should_trigger": true},
+  {"query": "iptables -L looks empty but traffic is still blocked", "should_trigger": true},
+  {"query": "what does nft monitor trace output mean and how do I set nftrace", "should_trigger": true},
+  {"query": "SYN arrives on eth0 in tcpdump but no SYN-ACK goes out, something on the host is dropping it", "should_trigger": true},
+  {"query": "how do I add a firewall rule on a live server safely with an automatic rollback if I break it", "should_trigger": true},
+  {"query": "my DOCKER-USER chain rules are ignored for forwarded container traffic", "should_trigger": true},
+  {"query": "which sysctl and firewall settings should a CIS hardened server use", "should_trigger": false, "expected": "host-hardening"},
+  {"query": "I flushed iptables over ssh and now I cannot log in at all", "should_trigger": false, "expected": "linux-lockout-recovery"},
+  {"query": "ping with a big payload fails but small pings work through the tunnel", "should_trigger": false, "expected": "mtu-blackhole-hunt"},
+  {"query": "set up a firewall filter rule on my MikroTik router for the guest vlan", "should_trigger": false, "expected": "routeros-config"},
+  {"query": "ssh says permission denied (publickey) for my user", "should_trigger": false, "expected": "ssh-access-debugging"},
+  {"query": "curl reports ssl handshake failure against our https endpoint", "should_trigger": false, "expected": "tls-handshake-debugging"},
+  {"query": "dig returns an answer but the application cannot resolve the name", "should_trigger": false, "expected": "dns-resolution-debugging"},
+  {"query": "too many open files error from nginx under load", "should_trigger": false, "expected": "resource-limit-exhaustion"},
+  {"query": "our service is returning 502s and the incident channel needs a commander", "should_trigger": false, "expected": "incident-response"},
+  {"query": "write the quarterly firewall change approval checklist for the audit", "should_trigger": false}
+]

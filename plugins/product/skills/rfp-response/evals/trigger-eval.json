@@ -1,0 +1,22 @@
+[
+  {"query": "an RFP came in from a hospital group this morning, where do we start", "should_trigger": true},
+  {"query": "a prospect sent us a 300-line security questionnaire spreadsheet due Friday", "should_trigger": true},
+  {"query": "should we even bid on this tender, we have never spoken to the buyer", "should_trigger": true},
+  {"query": "the customer wants us to fill in the CAIQ, can we reuse what we already have", "should_trigger": true},
+  {"query": "sales wants to answer yes to the offline mode requirement because it is on the roadmap", "should_trigger": true},
+  {"query": "our answers library is full of stuff from two years ago, how do we keep it current", "should_trigger": true},
+  {"query": "what has to be signed off before we submit this proposal to the council", "should_trigger": true},
+  {"query": "a university sent the HECVAT and we have never done one", "should_trigger": true},
+  {"query": "how do we structure the compliance matrix for a 40 page request for proposal", "should_trigger": true},
+  {"query": "we have two weeks to answer an RFI from a bank, plan the response", "should_trigger": true},
+  {"query": "we are buying a ticketing tool, write the RFP we send to vendors and score the replies", "should_trigger": false, "expected": "vendor-evaluation"},
+  {"query": "read the vendor's DPA and tell me what we are committing to on breach notification", "should_trigger": false, "expected": "contract-reader"},
+  {"query": "how long should we keep customer personal data and how do we delete it from backups", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "the buyer wants a four week proof of concept on their own data, how do we set it up", "should_trigger": false, "expected": "poc-plan"},
+  {"query": "review this pull request for security problems before we merge it", "should_trigger": false, "expected": "security-review"},
+  {"query": "draw the trust boundaries for the new integration and work out what could go wrong", "should_trigger": false, "expected": "threat-model"},
+  {"query": "we lost the last three tenders, interview the buyers and find out why", "should_trigger": false, "expected": "win-loss-review"},
+  {"query": "what is the competitor's new pricing page telling us about their strategy", "should_trigger": false, "expected": "competitor-signal-watch"},
+  {"query": "write the customer-facing summary of last week's outage", "should_trigger": false, "expected": "incident-comms"},
+  {"query": "write the technical README for our public API so integrators can onboard", "should_trigger": false, "expected": "technical-docs"}
+]

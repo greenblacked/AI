@@ -1,7 +1,7 @@
 ---
 name: agent-instructions
 description: "Write or repair a repository's agent instruction file: AGENTS.md and, where Claude Code is used, a CLAUDE.md that imports it, so a cold agent session can work in the repo. Run the real build, test and lint commands first and keep only what was executed, keep the entry file short, pointing to topic files, give every rule its reason and its enforcer, measure bytes against Codex's truncation limit, and pass only when a fresh session answers five fixed questions. Use when someone says write an AGENTS.md for this repo, the commands in the instruction file are stale, the instruction file got huge, or set up CLAUDE.md and AGENTS.md together. Not for a human README or onboarding guide (technical-docs), shaping one delegated task (agent-delegation), a team rollout (ai-enablement), authoring a skill (new-skill), or an agent that ignores a file that is already correct (agent-failure-diagnosis)."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*), Bash(wc:*)
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(wc:*)
 ---
 
 # Agent Instructions

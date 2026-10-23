@@ -50,9 +50,9 @@
     "expected": "backup-recovery-design"
   },
   {
-    "query": "draw the restore dependency graph for a new disaster recovery architecture",
+    "query": "set up a nightly job that restores the newest database backup into a scratch instance and alerts if the row counts differ",
     "should_trigger": false,
-    "expected": "backup-recovery-design"
+    "expected": "restore-canary"
   },
   {
     "query": "kill an AZ and see whether the live service remains available",

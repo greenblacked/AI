@@ -1,7 +1,7 @@
 ---
 name: schema-design
 description: "Design the tables for a new feature before any migration exists: write the queries the schema must serve first, with expected cardinalities, then choose keys, constraints and types that are expensive to reverse later — tenancy in every unique key, a foreign-key index on every referencing column, timestamptz over timestamp, integer minor units over float for money, and a considered default on soft delete. Use whenever someone asks how to model these tables, whether to use a UUID or a bigint key, whether to soft-delete, or how to represent a many-to-many relationship, before a single CREATE TABLE is written. Not for shipping a change to a schema that already exists in production (db-migration), tuning a slow query after the fact (sql-performance), or designing the HTTP or RPC interface in front of the tables (api-design)."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash(psql:*), Bash(mysql:*)
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # Schema Design

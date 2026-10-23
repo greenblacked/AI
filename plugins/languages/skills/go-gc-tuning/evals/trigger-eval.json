@@ -1,0 +1,22 @@
+[
+  {"query": "our go service gets OOMKilled but the heap profile shows only a few hundred MB", "should_trigger": true},
+  {"query": "GC is taking about 30 percent of CPU in our go api", "should_trigger": true},
+  {"query": "what should I set GOGC to for a latency sensitive service", "should_trigger": true},
+  {"query": "how do I use GOMEMLIMIT in a kubernetes container", "should_trigger": true},
+  {"query": "reading gctrace=1 output, what do these numbers mean", "should_trigger": true},
+  {"query": "reduce allocations in a hot path of a go handler, escape analysis says things move to heap", "should_trigger": true},
+  {"query": "p99 latency spikes line up with go garbage collection cycles", "should_trigger": true},
+  {"query": "is sync.Pool worth it for our request buffers", "should_trigger": true},
+  {"query": "can I set GOGC=off if I have a memory limit", "should_trigger": true},
+  {"query": "which pprof sample index shows who is allocating the most, alloc_space or inuse_space", "should_trigger": true},
+  {"query": "number of goroutines keeps climbing and never goes down", "should_trigger": false, "expected": "go-goroutine-leak"},
+  {"query": "find the slowest function in our go service with a cpu profile", "should_trigger": false, "expected": "profiling"},
+  {"query": "java service has long G1 pauses, which collector should we use", "should_trigger": false, "expected": "jvm-gc-tuning"},
+  {"query": "how many pods will we need to handle double the traffic", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": ".net container memory working set far above the heap size", "should_trigger": false, "expected": "dotnet-memory-growth"},
+  {"query": "node process dies with javascript heap out of memory", "should_trigger": false, "expected": "node-memory-leak"},
+  {"query": "python process memory grows over days", "should_trigger": false, "expected": "python-memory-growth"},
+  {"query": "set requests and limits on the go deployment so it schedules correctly", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "go test fails intermittently with the race detector", "should_trigger": false, "expected": "go-race-triage"},
+  {"query": "dotnet thread pool starvation making requests hang", "should_trigger": false, "expected": "dotnet-threadpool-starvation"}
+]

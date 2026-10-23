@@ -1,0 +1,22 @@
+[
+  {"query": "we want to move the checkout service node pool to spot instances, how do we make sure it survives interruptions", "should_trigger": true},
+  {"query": "which of our workloads are actually safe to run on GKE spot VMs and which are not", "should_trigger": true},
+  {"query": "AWS reclaimed a bunch of spot nodes at once yesterday and the API was down for four minutes", "should_trigger": true},
+  {"query": "setting up Karpenter with spot and on-demand, how do we guarantee some replicas always stay on on-demand", "should_trigger": true},
+  {"query": "do we need the aws node termination handler if we already use karpenter", "should_trigger": true},
+  {"query": "can kafka brokers run on preemptible nodes or is that a bad idea", "should_trigger": true},
+  {"query": "how do I test that our services survive a spot interruption before we roll spot out to prod", "should_trigger": true},
+  {"query": "our AKS spot node pool evictions keep killing pods mid-request, we only get 30 seconds", "should_trigger": true},
+  {"query": "how many instance types should the spot node group allow so we do not lose everything when one pool dries up", "should_trigger": true},
+  {"query": "the batch jobs on spot keep restarting from scratch after preemption, how should we set this up", "should_trigger": true},
+  {"query": "is spot or a three-year savings plan cheaper for our steady baseline compute", "should_trigger": false, "expected": "cost-review"},
+  {"query": "our AWS bill went up 40% last quarter, where is it going", "should_trigger": false, "expected": "cost-review"},
+  {"query": "what should the readiness probe and preStop hook look like for this deployment", "should_trigger": false, "expected": "k8s-workloads"},
+  {"query": "pods are stuck Terminating on one node right now and the deploy is blocked", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "how many replicas do we need to handle the launch traffic", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "let us run a game day where we kill an availability zone and watch what happens", "should_trigger": false, "expected": "game-day"},
+  {"query": "plan the upgrade of our node pools from Kubernetes 1.30 to 1.31", "should_trigger": false, "expected": "k8s-upgrade"},
+  {"query": "move our Postgres from self-managed VMs to a managed database service without downtime", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "the control plane is throwing 429s at every controller since the new operator went in", "should_trigger": false, "expected": "apiserver-pressure"},
+  {"query": "what should our backup RPO and RTO be for the order database", "should_trigger": false, "expected": "backup-recovery-design"}
+]

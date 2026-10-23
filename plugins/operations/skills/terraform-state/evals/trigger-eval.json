@@ -9,7 +9,8 @@
   },
   {
     "query": "about 200 s3 buckets were made by hand before we had terraform, any way to bulk adopt them",
-    "should_trigger": true
+    "should_trigger": false,
+    "expected": "brownfield-iac-adoption"
   },
   {
     "query": "Error acquiring the state lock, ConditionalCheckFailedException. the CI job that held it was cancelled an hour ago",
@@ -29,6 +30,15 @@
   },
   {
     "query": "we're splitting the monorepo, how do i move these resources into the new state file",
+    "should_trigger": false,
+    "expected": "monolith-state-split"
+  },
+  {
+    "query": "terraform state mv put the web[1] address on the wrong instance's object, how do i bind it back safely",
+    "should_trigger": true
+  },
+  {
+    "query": "i have one security group that exists in aws and not in terraform, import it and show me the plan before it lands",
     "should_trigger": true
   },
   {
@@ -55,17 +65,7 @@
     "expected": "code-scaffold"
   },
   {
-    "query": "bootstrap the terraform for a brand new account, nothing exists in it yet",
-    "should_trigger": false,
-    "expected": "code-scaffold"
-  },
-  {
     "query": "we're moving off cloudformation onto terraform across twelve accounts, what does the plan look like",
-    "should_trigger": false,
-    "expected": "plan-platform-migration"
-  },
-  {
-    "query": "shift every workload from the old eks cluster to the new one without downtime, need the phasing",
     "should_trigger": false,
     "expected": "plan-platform-migration"
   },
@@ -85,7 +85,8 @@
     "expected": "cost-review"
   },
   {
-    "query": "why does terraform create the nat gateway before the route table, how does it order things",
-    "should_trigger": false
+    "query": "bump the azurerm provider to 4.x and the plan exploded after the upgrade, what now",
+    "should_trigger": false,
+    "expected": "iac-version-upgrade"
   }
 ]

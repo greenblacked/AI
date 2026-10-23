@@ -1,0 +1,22 @@
+[
+  {"query": "I'm joining a fintech next month and I know nothing about how settlement actually works, where do I start", "should_trigger": true},
+  {"query": "how do I learn the logistics industry fast, I have two weeks before I lead the freight integration", "should_trigger": true},
+  {"query": "I keep sitting in meetings where nobody explains the terms and everyone says interchange and reconciliation like it is obvious", "should_trigger": true},
+  {"query": "we acquired a clinical billing company and I need to get competent in how claims and denials work before designing anything", "should_trigger": true},
+  {"query": "give me a plan to understand ad-tech well enough to review our bidding service design", "should_trigger": true},
+  {"query": "what questions should I ask the experts in the telecom billing team in my first weeks", "should_trigger": true},
+  {"query": "I moved from web apps to a medical device company, how do I get up to speed on the regulated side of the business", "should_trigger": true},
+  {"query": "help me build a glossary and a picture of who pays whom in the insurance claims business", "should_trigger": true},
+  {"query": "I need to explain payments to an outsider by Friday but I only started here last week, how do I get there", "should_trigger": true},
+  {"query": "what do I need to know about the rules that make obvious designs illegal in the energy trading business", "should_trigger": true},
+  {"query": "I just inherited this repo, where do I even start with it", "should_trigger": false, "expected": "codebase-orientation"},
+  {"query": "turn this article about interchange fees into a note in my vault", "should_trigger": false, "expected": "learning-notes"},
+  {"query": "write the 30-60-90 day plan for the engineer who starts on my team on Monday", "should_trigger": false, "expected": "onboarding-plan"},
+  {"query": "my exam is in six weeks, how should I schedule my study", "should_trigger": false, "expected": "exam-prep-plan"},
+  {"query": "we are adopting Kafka and I have to own it, how do I get up to speed on the tool", "should_trigger": false, "expected": "learn-new-technology"},
+  {"query": "plan twelve weeks to get good at Rust with something I can show at the end", "should_trigger": false, "expected": "skill-acquisition-plan"},
+  {"query": "run a half-day hands-on workshop where the team practises the payment retry tooling", "should_trigger": false, "expected": "workshop-design"},
+  {"query": "interview our retiring settlement expert so her undocumented knowledge is captured", "should_trigger": false, "expected": "tacit-knowledge-elicitation"},
+  {"query": "survey the research on fraud detection for card transactions", "should_trigger": false, "expected": "literature-scan"},
+  {"query": "build a habit of reading industry news every morning", "should_trigger": false, "expected": "habit-change"}
+]

@@ -1,7 +1,7 @@
 ---
 name: cost-review
-description: "Investigate a cloud bill that has grown, or reduce spend deliberately, without trading away reliability — attribute the spend before touching anything, read the top movers period over period rather than the top spenders, classify each finding as idle, overprovisioned, wrong purchase model, data transfer, retention or architectural, state what every change degrades, and report unit cost per request or tenant, not a total. Use this skill whenever someone asks why the AWS, GCP or Azure bill went up, wants a FinOps or cost-optimisation plan, is looking at rightsizing, reserved instances, savings plans, spot, NAT gateway or egress charges, untagged spend, Kubernetes cost attribution or showback, or says things like \"our bill jumped 30% last month\", \"where is all this money going\", or \"finance wants 20% off cloud\". Not for debugging slow performance, capacity planning for a launch, choosing a vendor or tool, or a live incident."
-allowed-tools: "Read, Write, Edit, Grep, Glob, Bash(aws:*), Bash(gcloud:*), Bash(az:*), Bash(kubectl:*), Bash(jq:*)"
+description: "Investigate a cloud bill that has grown, or reduce spend deliberately, without trading away reliability — attribute the spend before touching anything, read the top movers period over period rather than the top spenders, classify each finding as idle, overprovisioned, wrong purchase model, data transfer, retention or architectural, state what every change degrades, and report unit cost per request or tenant, not a total. Use when someone asks why the AWS, GCP or Azure bill went up, wants a FinOps or cost-cutting plan, is looking at rightsizing, spot, untagged spend, Kubernetes cost attribution or showback, or says \"our bill jumped 30% last month\", \"where is all this money going\", or \"finance wants 20% off cloud\". Not for slow performance, launch capacity, choosing a vendor, a live incident, tracing NAT, cross-AZ or egress bytes to workloads (data-transfer-forensics), or sizing a commitment purchase (commitment-planning)."
+allowed-tools: "Read, Write, Edit, Grep, Glob, Bash(jq:*)"
 ---
 
 # Cost Review
@@ -12,9 +12,9 @@ Cost work fails in two opposite directions and both are common. In the first, so
 
 ## Scope
 
-Use for: explaining a bill that grew and finding the specific cause; a deliberate spend-reduction target; building cost attribution, tagging or showback where none exists; rightsizing, purchase-model and commitment decisions; data-transfer and retention investigations; Kubernetes per-namespace or per-workload cost; setting budgets and anomaly alerts; adding a cost line to architecture review.
+Use for: explaining a bill that grew and finding the specific cause; a deliberate spend-reduction target; building cost attribution, tagging or showback where none exists; rightsizing and purchase-model triage; data-transfer and retention triage; Kubernetes per-namespace or per-workload cost; setting budgets and anomaly alerts; adding a cost line to architecture review.
 
-Do not use for: debugging why something is slow, which is a performance problem that happens to have a cost; capacity planning for a launch, where the question is whether it survives rather than what it costs; choosing between vendors or tools, which is `vendor-evaluation`; a live incident, which is `incident-response`; or the migration itself when the recommendation turns out to be a replatform, which is `plan-platform-migration`.
+Do not use for: debugging why something is slow, which is a performance problem that happens to have a cost; capacity planning for a launch, where the question is whether it survives rather than what it costs; choosing between vendors or tools, which is `vendor-evaluation`; a live incident, which is `incident-response`; the migration itself when the recommendation turns out to be a replatform, which is `plan-platform-migration`; sizing how much to commit, which is `commitment-planning`; or tracing which workloads generate the NAT, cross-AZ or egress bytes, which is `data-transfer-forensics`.
 
 ## Two gates
 
@@ -76,7 +76,7 @@ Two accounting traps to clear before believing any delta: amortised versus unble
 | **Storage class and retention** | Logs and metrics at full fidelity forever, snapshots with no expiry, hot storage for cold objects, high-cardinality metrics | Lifecycle rules, tiering, downsampling, a retention policy with a stated reason per class | Debugging and compliance both need history. Check the legal floor before cutting |
 | **Architectural** | Per-request cost of a chatty design, an N+1 against a metered API, a serverless function invoked per row, a queue polled at high frequency for a quiet topic | A code or design change, sized as engineering work | Highest effort, and usually the only lever that fixes unit cost rather than total |
 
-Idle and retention findings are where the safe money is. Data transfer is where the surprise usually is, because it is invisible on every dashboard the team looks at and often turns out to be the largest single mover.
+Idle and retention findings are where the safe money is. Data transfer is where the surprise usually is, because it is invisible on every dashboard the team looks at and often turns out to be the largest single mover. Flag the usage type here; attributing its bytes to workloads is `data-transfer-forensics`.
 
 ### 4. Size from percentiles, with the headroom written down
 
@@ -92,9 +92,7 @@ Rightsizing from an average is how a cost saving becomes a page. Pull at least t
 
 Committed spend is the largest single lever on most bills and the easiest to regret. Before committing, answer one question: will this workload exist, in this shape, for the length of the term? A three-year commitment on a fleet you are about to move to a different instance family, a managed service, or another region converts a discount into a floor you keep paying.
 
-- Commit to the **trough**, not the average and not the peak. The trough is what runs at 04:00 on a public holiday.
-- Prefer the flexible instruments (compute savings plans over per-instance reservations) unless the inflexible discount is materially larger, because flexibility is what survives a re-architecture.
-- Ladder the terms rather than committing everything at once on the same date, so a change of plan does not have to wait for a single cliff.
+- Sizing the commitment itself, the trough arithmetic, instrument choice and laddering, is `commitment-planning`; hand it the workload's remaining life and the rightsized baseline from this review.
 - Spot is for work that tolerates interruption: batch, CI, stateless replicas behind capacity that can absorb the loss. Requiring a specific instance type in a single AZ removes most of spot's safety, so diversify across families and zones.
 
 ### 6. Name what each change degrades, then write the finding
@@ -162,7 +160,7 @@ stops the same suggestion arriving again next quarter.]
 
 **Rightsizing from averages.** An average hides the peak that sizing exists to survive. The instance runs fine for three weeks and falls over on the monthly close, the marketing send, or the Monday morning ramp — and the incident is attributed to load rather than to the change that caused it. Size from p95 or p99 over a window that contains a real peak, and write the headroom down.
 
-**Committing to a workload you are about to change.** A three-year commitment on a fleet that is mid-replatform buys a discount and a floor. You keep paying for the old shape while running the new one, and the migration's business case quietly gets worse. Commit to the trough, prefer flexible instruments, and ladder the end dates.
+**Committing to a workload you are about to change.** A three-year commitment on a fleet that is mid-replatform buys a discount and a floor. You keep paying for the old shape while running the new one, and the migration's business case quietly gets worse. Size it with `commitment-planning` before buying.
 
 **A cost initiative with no owner and no unit metric.** Produces a spreadsheet, a kickoff, and a bill that is unchanged. Without a named owner per finding nothing ships, and without a unit metric nobody can tell growth from waste, so the initiative argues about the total until attention runs out.
 

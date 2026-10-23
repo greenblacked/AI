@@ -1,0 +1,22 @@
+[
+  {"query": "everything is hanging on one table and nobody knows why", "should_trigger": true},
+  {"query": "queries piled up behind an ALTER TABLE and the app is timing out", "should_trigger": true},
+  {"query": "show processlist is full of Waiting for table metadata lock", "should_trigger": true},
+  {"query": "how do I find out who is blocking whom in postgres right now", "should_trigger": true},
+  {"query": "we keep getting Lock wait timeout exceeded; try restarting transaction on mysql", "should_trigger": true},
+  {"query": "there are fifty sessions waiting and one idle in transaction at the top, is it safe to terminate it", "should_trigger": true},
+  {"query": "a migration is stuck waiting for a lock and now plain selects on that table are hanging too", "should_trigger": true},
+  {"query": "how do I walk pg_blocking_pids to the session at the head of the chain", "should_trigger": true},
+  {"query": "what should I record before pg_terminate_backend on a production session", "should_trigger": true},
+  {"query": "set up lock_timeout and an idle-in-transaction timeout so a stuck session does not take the site down again", "should_trigger": true},
+  {"query": "plan a zero-downtime ALTER TABLE for a busy table with lock_timeout and a retry loop", "should_trigger": false, "expected": "db-migration"},
+  {"query": "which lock does adding a foreign key take and how do I do it safely before tomorrow's release", "should_trigger": false, "expected": "db-migration"},
+  {"query": "postgres logged ERROR: deadlock detected, how do I stop it happening", "should_trigger": false, "expected": "deadlock-analysis"},
+  {"query": "two transactions update the same rows in opposite order and one is always rolled back", "should_trigger": false, "expected": "deadlock-analysis"},
+  {"query": "run the incident call, assign roles and write the status updates", "should_trigger": false, "expected": "incident-response"},
+  {"query": "this query takes twelve seconds, look at the plan", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "FATAL: too many connections after the lock cleared", "should_trigger": false, "expected": "connection-storm-recovery"},
+  {"query": "dead tuples keep growing and autovacuum cannot keep up", "should_trigger": false, "expected": "vacuum-bloat-triage"},
+  {"query": "backfill a new column on two hundred million rows without hurting production", "should_trigger": false, "expected": "db-migration"},
+  {"query": "two workers are processing the same job, review our distributed lock", "should_trigger": false, "expected": "distributed-lock-audit"}
+]

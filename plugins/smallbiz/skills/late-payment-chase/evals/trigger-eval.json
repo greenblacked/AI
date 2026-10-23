@@ -1,0 +1,22 @@
+[
+  {"query": "my client has not paid my invoice and it was due two weeks ago", "should_trigger": true},
+  {"query": "an invoice is now 30 days overdue, what do I do next", "should_trigger": true},
+  {"query": "how do I chase payment politely without souring the relationship", "should_trigger": true},
+  {"query": "can I charge late fees on an overdue invoice if I never mentioned them", "should_trigger": true},
+  {"query": "when should I stop work for a client who has not paid", "should_trigger": true},
+  {"query": "write a firm reminder email for an invoice that is two weeks past due", "should_trigger": true},
+  {"query": "the client says the cheque is in the post for the third time, how do I get an actual date", "should_trigger": true},
+  {"query": "when is a final demand letter appropriate and what should it say", "should_trigger": true},
+  {"query": "how do I decide whether an unpaid 150 invoice is worth pursuing", "should_trigger": true},
+  {"query": "set up a way to track which invoices are overdue and who to chase first", "should_trigger": true},
+  {"query": "the client says the work was not what they asked for and refuses to pay the invoice", "should_trigger": false},
+  {"query": "the project has stalled because the client has not sent the content I asked for", "should_trigger": false},
+  {"query": "our subscription customers' cards keep failing, how should we retry them", "should_trigger": false},
+  {"query": "how much should I quote for this project and what payment terms", "should_trigger": false, "expected": "fixed-price-quote"},
+  {"query": "what rate do I need to charge to earn my target income", "should_trigger": false, "expected": "billing-rate-calculation"},
+  {"query": "will I have enough cash for rent if this payment arrives three weeks late", "should_trigger": false, "expected": "cashflow-forecast-13-week"},
+  {"query": "write a scope of work with a revision limit", "should_trigger": false, "expected": "statement-of-work"},
+  {"query": "what legal clauses should my services agreement have about late payment", "should_trigger": false, "expected": "services-agreement-checklist"},
+  {"query": "the client wants extra pages added now that we have signed", "should_trigger": false, "expected": "scope-creep-response"},
+  {"query": "how much tax should I put aside from each payment", "should_trigger": false, "expected": "tax-set-aside"}
+]

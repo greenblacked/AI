@@ -1,0 +1,22 @@
+[
+  {"query": "our CI runs every test in the monorepo on every pull request and it takes 50 minutes, can we only run what changed", "should_trigger": true},
+  {"query": "set up nx affected in our workspace so builds only cover impacted projects", "should_trigger": true},
+  {"query": "turbo only ran the changed packages but a dependent package broke and nobody noticed", "should_trigger": true},
+  {"query": "which projects in the monorepo depend on this shared library so I know what to test", "should_trigger": true},
+  {"query": "affected builds in GitHub Actions run nothing at all on some PRs, what is going on", "should_trigger": true},
+  {"query": "how do I make sure a root lockfile change triggers a rebuild of every package", "should_trigger": true},
+  {"query": "we want path filtering for CI but are afraid it will skip tests it should have run", "should_trigger": true},
+  {"query": "how can I check that our affected test selection never misses a failing project", "should_trigger": true},
+  {"query": "turbo --filter with a git ref is selecting everything even for a one line docs change", "should_trigger": true},
+  {"query": "should we still run the full test suite on main if PRs only run affected tests", "should_trigger": true},
+  {"query": "design the stages and required checks for our CI pipeline", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "this build task re-runs every time even though no source file changed", "should_trigger": false, "expected": "build-cache-miss-hunt"},
+  {"query": "our build takes 40 minutes, show me where the time goes", "should_trigger": false, "expected": "slow-build-profile"},
+  {"query": "two packages import each other and we need to break the cycle", "should_trigger": false, "expected": "refactoring"},
+  {"query": "the pipeline is red, work out why", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "split this monolith into separate services", "should_trigger": false},
+  {"query": "add a nightly scheduled workflow that runs the e2e suite", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "pin our GitHub Actions to commit SHAs and tighten token permissions", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "what is a good directory layout for a new typescript monorepo", "should_trigger": false},
+  {"query": "upgrade the nx version across the workspace and handle the breaking changes", "should_trigger": false, "expected": "dependency-upgrade"}
+]

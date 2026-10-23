@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "smallbiz",
+  "description": "Skills for freelancing and small-business operations: quoting work, scope control, invoicing and late payment, contract checklists, bookkeeping and tax-deadline preparation. Procedure, not professional advice.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "freelancing",
+    "small-business",
+    "invoicing",
+    "contracts",
+    "bookkeeping"
+  ]
+}

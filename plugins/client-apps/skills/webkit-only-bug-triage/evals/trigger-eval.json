@@ -1,0 +1,22 @@
+[
+  {"query": "works perfectly in Chrome but the checkout button does nothing on iPhone", "should_trigger": true},
+  {"query": "our full-height hero section is cut off behind the toolbar in iOS Safari", "should_trigger": true},
+  {"query": "the page zooms in every time someone taps the email field on an iPhone", "should_trigger": true},
+  {"query": "iOS users get signed out after about a week but Android users stay logged in", "should_trigger": true},
+  {"query": "the booking calendar shows Invalid Date only in Safari", "should_trigger": true},
+  {"query": "our sticky table header works everywhere except Safari on the Mac", "should_trigger": true},
+  {"query": "the fixed bottom bar jumps around when the keyboard opens on iPhone", "should_trigger": true},
+  {"query": "saved drafts in IndexedDB disappear for some of our Safari users", "should_trigger": true},
+  {"query": "a customer on an older iPad gets a blank page while everyone else is fine", "should_trigger": true},
+  {"query": "Chrome on iPhone is broken too, but Chrome on Android is fine, what is going on", "should_trigger": true},
+  {"query": "which breakpoints should we use for phone, tablet and desktop layouts", "should_trigger": false, "expected": "responsive-design"},
+  {"query": "our Playwright suite is flaky in CI across all three browsers", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "can VoiceOver users get through our signup flow, audit it against WCAG 2.2", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "the checkout form's error messages are confusing and the labels are unclear", "should_trigger": false, "expected": "form-design"},
+  {"query": "our iPhone app build was rejected by App Store review", "should_trigger": false, "expected": "mobile-release"},
+  {"query": "the cart crashes in every browser once it holds more than a hundred items", "should_trigger": false, "expected": "debugging"},
+  {"query": "visual regression screenshots differ between the macOS and Linux CI runners", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "design a mobile-first landing page for our new product", "should_trigger": false, "expected": "website-builder"},
+  {"query": "the data table overflows horizontally on narrow phones in every browser", "should_trigger": false, "expected": "responsive-design"},
+  {"query": "users stay on an old version because the service worker never updates, in every browser", "should_trigger": false, "expected": "pwa-service-worker"}
+]

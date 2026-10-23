@@ -1,0 +1,22 @@
+[
+  {"query": "prometheus got oomkilled right after the deploy and keeps restarting", "should_trigger": true},
+  {"query": "active series tripled overnight and nobody knows why", "should_trigger": true},
+  {"query": "our custom metrics bill spiked this month, find what is causing it", "should_trigger": true},
+  {"query": "we got a tsdb head series alert and memory is climbing", "should_trigger": true},
+  {"query": "the metrics backend is rejecting our writes because we hit the max series per tenant", "should_trigger": true},
+  {"query": "someone added a user_id label to a counter and now the server is struggling, how do we stop it right now", "should_trigger": true},
+  {"query": "how do I find which metric has the most series in prometheus", "should_trigger": true},
+  {"query": "it takes forever to come back after the crash, the wal replay keeps running out of memory", "should_trigger": true},
+  {"query": "can we drop a label at scrape time without waiting for a code deploy", "should_trigger": true},
+  {"query": "how do I delete a bad metric from prometheus after we stop scraping it", "should_trigger": true},
+  {"query": "we are designing metrics for a new service, which labels are safe to use", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "how much memory will prometheus need next year as we grow", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "we have a sev1 right now, who should be incident commander", "should_trigger": false, "expected": "incident-response"},
+  {"query": "my graph has gaps and rate shows no data after the deploy", "should_trigger": false, "expected": "missing-metrics-hunt"},
+  {"query": "the collector queue is full and spans are being dropped", "should_trigger": false, "expected": "collector-backpressure-triage"},
+  {"query": "our traces are split in two", "should_trigger": false, "expected": "broken-trace-hunt"},
+  {"query": "design an slo and error budget for our checkout api", "should_trigger": false, "expected": "slo-design"},
+  {"query": "our log bill is too high, how do we cut volume", "should_trigger": false, "expected": "log-volume-reduction"},
+  {"query": "what histogram buckets should I use for request latency", "should_trigger": false, "expected": "latency-histogram-design"},
+  {"query": "tune alerts that fire too often at night", "should_trigger": false, "expected": "alert-design"}
+]

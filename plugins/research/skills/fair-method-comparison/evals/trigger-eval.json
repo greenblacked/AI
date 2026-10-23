@@ -1,0 +1,22 @@
+[
+  {"query": "does our new method beat the baseline", "should_trigger": true},
+  {"query": "is this improvement real or just seed noise", "should_trigger": true},
+  {"query": "set up the comparison table for the paper", "should_trigger": true},
+  {"query": "a reviewer says our baselines are weak, what do we do", "should_trigger": true},
+  {"query": "the baseline in our comparison scores well below the number published for it, how do I handle that", "should_trigger": true},
+  {"query": "how many seeds should I run before claiming my model is better", "should_trigger": true},
+  {"query": "how do I compare my algorithm against ten baselines on many datasets", "should_trigger": true},
+  {"query": "should the baseline get the same hyperparameter search budget as mine", "should_trigger": true},
+  {"query": "what ablations do I need to show that each component matters", "should_trigger": true},
+  {"query": "how do I decide whether a 0.4 point gain is a win", "should_trigger": true},
+  {"query": "evaluate how well my agent completes tasks", "should_trigger": false, "expected": "agent-evaluation"},
+  {"query": "measure retrieval quality with recall at k", "should_trigger": false, "expected": "retrieval-evaluation"},
+  {"query": "make my own pipeline rerunnable", "should_trigger": false, "expected": "reproducible-analysis-environment"},
+  {"query": "review the statistics in this paper", "should_trigger": false, "expected": "paper-statistics-review"},
+  {"query": "benchmark the latency of two implementations of my API", "should_trigger": false, "expected": "benchmark-methodology"},
+  {"query": "I want to reproduce the headline result of a paper I read, with no comparison involved", "should_trigger": false, "expected": "paper-reproduction"},
+  {"query": "check whether test data leaked into training", "should_trigger": false},
+  {"query": "my training run produced NaN", "should_trigger": false, "expected": "nan-origin-trace"},
+  {"query": "my slurm job timed out", "should_trigger": false, "expected": "slurm-job-failure-triage"},
+  {"query": "same seed gives different results on rerun", "should_trigger": false, "expected": "nondeterminism-bisect"}
+]

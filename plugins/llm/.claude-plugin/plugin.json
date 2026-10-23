@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "llm",
-  "description": "Skills for building features on language models: ground an answer in your own documents with retrieval, get structured output a program can trust, build and review an MCP server, migrate a feature to a new model without a silent regression, and extract data from images and scans.",
+  "description": "Skills for building features on language models: ground an answer in your own documents with retrieval, get structured output a program can trust, build and review an MCP server, migrate a feature to a new model without a silent regression, extract data from images and scans, choose between a single call, a workflow and an agent, design agent memory and context compaction, run bulk jobs in batch, build and measure classifiers, budget latency, survive provider outages, calibrate output filters and shape tool results.",
   "author": {
     "name": "Serhii Zolotov",
     "url": "https://github.com/greenblacked"
@@ -14,6 +14,9 @@
     "rag",
     "structured-output",
     "mcp",
-    "model-migration"
+    "model-migration",
+    "agents",
+    "classifiers",
+    "latency"
   ]
 }

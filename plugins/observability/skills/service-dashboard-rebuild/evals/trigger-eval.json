@@ -1,0 +1,92 @@
+[
+ {
+  "query": "our service dashboard has 80 panels and tells us nothing during an incident",
+  "should_trigger": true
+ },
+ {
+  "query": "design the on-call dashboard for the payments service",
+  "should_trigger": true
+ },
+ {
+  "query": "what should be on a service overview dashboard",
+  "should_trigger": true
+ },
+ {
+  "query": "rebuild our grafana dashboard so a new on-call can find the problem",
+  "should_trigger": true
+ },
+ {
+  "query": "the dashboard shows lots of cpu graphs but not whether users are affected",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I lay out a dashboard so it answers is it broken and for whom",
+  "should_trigger": true
+ },
+ {
+  "query": "we want an slo and error budget row at the top of the service dashboard",
+  "should_trigger": true
+ },
+ {
+  "query": "on-call keeps jumping between five tools, build one page that links to logs and traces",
+  "should_trigger": true
+ },
+ {
+  "query": "clean up panels nobody uses on our team dashboard",
+  "should_trigger": true
+ },
+ {
+  "query": "which dimensions should we split error rate by on the main service page",
+  "should_trigger": true
+ },
+ {
+  "query": "which chart type is best for showing latency distribution",
+  "should_trigger": false,
+  "expected": "data-visualisation"
+ },
+ {
+  "query": "our grafana dashboard takes a minute to load",
+  "should_trigger": false,
+  "expected": "slow-dashboard-fix"
+ },
+ {
+  "query": "write the alert that pages on error budget burn",
+  "should_trigger": false,
+  "expected": "alert-design"
+ },
+ {
+  "query": "decide which metrics and attributes a new service should emit",
+  "should_trigger": false,
+  "expected": "instrumentation"
+ },
+ {
+  "query": "define the slo for our api",
+  "should_trigger": false,
+  "expected": "slo-design"
+ },
+ {
+  "query": "add deploy and flag markers to dashboards",
+  "should_trigger": false,
+  "expected": "change-event-correlation"
+ },
+ {
+  "query": "dashboard of quarterly revenue for the exec team",
+  "should_trigger": false,
+  "expected": "data-visualisation"
+ },
+ {
+  "query": "histogram buckets are wrong so p99 jumps around",
+  "should_trigger": false,
+  "expected": "latency-histogram-design"
+ },
+ {
+  "query": "the metric on my panel stopped updating",
+  "should_trigger": false,
+  "expected": "missing-metrics-hunt"
+ },
+ {
+  "query": "write the runbook for this alert",
+  "should_trigger": false,
+  "expected": "runbook"
+ }
+]

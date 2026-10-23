@@ -1,0 +1,22 @@
+[
+  {"query": "we have customers in salesforce, stripe and zendesk with no common id; how do we work out which records are the same person", "should_trigger": true},
+  {"query": "the same company shows up four times in our CRM under slightly different names, what's a sane way to dedupe it", "should_trigger": true},
+  {"query": "our fuzzy name matcher merged two different customers and one of them saw the other's invoices; how should matching have been set up", "should_trigger": true},
+  {"query": "what similarity threshold should I use for record linkage, and how do I justify it to the data protection officer", "should_trigger": true},
+  {"query": "comparing every supplier record against every other one takes days on 3 million rows, how do people avoid all pairs", "should_trigger": true},
+  {"query": "we acquired a company and need to match their customer list to ours before migrating accounts", "should_trigger": true},
+  {"query": "design a golden customer record from four source systems in a way that lets us undo bad merges", "should_trigger": true},
+  {"query": "should I use splink or just write deterministic SQL rules to link patient records across two clinics", "should_trigger": true},
+  {"query": "product catalogue from three distributors uses different SKUs for the same item, how do we map them together", "should_trigger": true},
+  {"query": "how many pairs should we hand label to set match and review cut-offs for our dedupe job", "should_trigger": true},
+  {"query": "design the tables and keys for a new customer accounts feature, uuid or bigint", "should_trigger": false, "expected": "schema-design"},
+  {"query": "a customer asked us to delete everything we hold on them; which systems does that have to reach", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "rewrite customer_id on 40 million order rows after the merge, without stopping live writes", "should_trigger": false, "expected": "safe-backfill"},
+  {"query": "revenue tripled after I joined orders to the customer dimension, what did I do wrong", "should_trigger": false, "expected": "join-fanout-hunt"},
+  {"query": "finance and sales report different active customer counts for last month, which one is right", "should_trigger": false, "expected": "metric-reconciliation"},
+  {"query": "which checks should our customers table get, uniqueness, nulls, freshness, and what thresholds", "should_trigger": false, "expected": "data-quality-checks"},
+  {"query": "pull the vendor name, invoice number and total out of these scanned invoices", "should_trigger": false, "expected": "document-extraction"},
+  {"query": "the customer lookup query takes 6 seconds on postgres, should I add an index on email", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "replace the account manager's excel workbook that maps customers to regions with a proper pipeline", "should_trigger": false, "expected": "spreadsheet-retirement"},
+  {"query": "what did our customer table say about this account's segment on 1 March, before it was reclassified", "should_trigger": false, "expected": "as-of-history"}
+]

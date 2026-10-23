@@ -1,0 +1,22 @@
+[
+  {"query": "our screenshots are out of date again after the redesign, there must be a better way than re-taking them all", "should_trigger": true},
+  {"query": "the user guide still shows the old sidebar in about forty images, how do we stop this happening every release", "should_trigger": true},
+  {"query": "can we generate the screenshots in our help centre automatically from the app with seeded demo data", "should_trigger": true},
+  {"query": "half the images in our developer docs are screenshots of terminal output, should we keep them", "should_trigger": true},
+  {"query": "set up a nightly job that re-captures docs images and opens a PR when one changes", "should_trigger": true},
+  {"query": "our architecture diagrams in the docs are PNG exports nobody can edit anymore", "should_trigger": true},
+  {"query": "every docs screenshot was taken on someone's laptop in dark mode at a different zoom, make them consistent and maintainable", "should_trigger": true},
+  {"query": "write better alt text for the images in our setup guide, they all say 'screenshot'", "should_trigger": true},
+  {"query": "a customer's real email address showed up in one of our documentation screenshots, how should we capture images instead", "should_trigger": true},
+  {"query": "which images in our docs folder are stale or not used by any page anymore", "should_trigger": true},
+  {"query": "this settings screen feels cluttered and nothing stands out, fix the visual hierarchy", "should_trigger": false, "expected": "visual-design"},
+  {"query": "audit the checkout flow against WCAG 2.2 AA and list failures by success criterion", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "prepare the redlines and state annotations for the new billing page before engineering builds it", "should_trigger": false, "expected": "design-handoff"},
+  {"query": "set up pixel-diff visual regression for our marketing pages across mobile and desktop viewports", "should_trigger": false, "expected": "visual-review"},
+  {"query": "our Playwright screenshot assertions fail in CI but pass locally because of fonts", "should_trigger": false, "expected": "e2e-testing"},
+  {"query": "draw a sequence diagram of the OAuth login flow for the README in mermaid", "should_trigger": false, "expected": "architecture-diagrams"},
+  {"query": "look at these before and after screenshots and tell me what changed visually region by region", "should_trigger": false, "expected": "screenshot-reader"},
+  {"query": "build a chart of weekly signups by plan for the quarterly report", "should_trigger": false, "expected": "data-visualisation"},
+  {"query": "which documentation pages does this pull request renaming a config flag make wrong", "should_trigger": false, "expected": "docs-drift-detection"},
+  {"query": "write an onboarding README for the reporting service for engineers joining next month", "should_trigger": false, "expected": "technical-docs"}
+]

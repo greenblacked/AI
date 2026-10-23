@@ -1,0 +1,22 @@
+[
+  {"query": "we are top of the battery settings list on Android and users are leaving one-star reviews about it", "should_trigger": true},
+  {"query": "the phone gets really hot after ten minutes in our app", "should_trigger": true},
+  {"query": "our iOS app drains 15 percent overnight while it is just sitting in the background", "should_trigger": true},
+  {"query": "is requesting best location accuracy every second why our running app eats battery", "should_trigger": true},
+  {"query": "batterystats shows a partial wake lock held for hours by our app, how do I find who holds it", "should_trigger": true},
+  {"query": "we poll the server every 30 seconds for new messages, is that bad for battery", "should_trigger": true},
+  {"query": "how do we prove our energy fix actually helped rather than just eyeballing the battery percentage", "should_trigger": true},
+  {"query": "Xcode Organizer energy reports flag our app for high background CPU", "should_trigger": true},
+  {"query": "users say battery drops fast even when they are only reading articles in our app", "should_trigger": true},
+  {"query": "an animation on a hidden tab might still be running and burning power, how would I check", "should_trigger": true},
+  {"query": "pushes are not delivered to some Android phones until the app is opened", "should_trigger": false, "expected": "push-notification-delivery"},
+  {"query": "the app takes four seconds to show the first screen on a budget phone", "should_trigger": false, "expected": "mobile-startup-and-jank"},
+  {"query": "iOS reports show our app was terminated with 0xc00010ff, what kills an app like that", "should_trigger": false, "expected": "anr-watchdog-triage"},
+  {"query": "this image filter function takes 200ms per frame, help me speed it up", "should_trigger": false, "expected": "profiling"},
+  {"query": "requests hang forever with a spinner when the train goes through a tunnel", "should_trigger": false, "expected": "lie-fi-resilience"},
+  {"query": "our cloud bill doubled last month and we do not know which service caused it", "should_trigger": false, "expected": "cost-review"},
+  {"query": "set up alerts that page us when the mobile API error rate spikes", "should_trigger": false, "expected": "alert-design"},
+  {"query": "my mobile game overheats the phone and drops to 30fps after five minutes", "should_trigger": false, "expected": "game-performance"},
+  {"query": "the app download is 250MB, how do we shrink it", "should_trigger": false, "expected": "app-size-budget"},
+  {"query": "Crashlytics shows a new top crash in the location service class since 6.1", "should_trigger": false, "expected": "crash-triage"}
+]

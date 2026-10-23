@@ -1,0 +1,22 @@
+[
+  {"query": "http.method disappeared from our spans after the opentelemetry upgrade and the alerts that use it went quiet", "should_trigger": true},
+  {"query": "dashboards are empty after bumping the otel java agent to the new major", "should_trigger": true},
+  {"query": "how do we migrate to the stable http semantic conventions without breaking anything", "should_trigger": true},
+  {"query": "http.server.duration is now reported in seconds and our latency slo threshold is in milliseconds", "should_trigger": true},
+  {"query": "can we emit both http.status_code and http.response.status_code during the transition", "should_trigger": true},
+  {"query": "what does OTEL_SEMCONV_STABILITY_OPT_IN do and does our sdk version still support http/dup", "should_trigger": true},
+  {"query": "rewrite our promql alerts to accept both the old and new otel metric names", "should_trigger": true},
+  {"query": "db.statement is gone from our database spans after upgrading the instrumentation, what replaced it", "should_trigger": true},
+  {"query": "after the sdk update the histogram buckets changed and our p99 panel looks different", "should_trigger": true},
+  {"query": "list every renamed otel attribute that our alert rules depend on before we upgrade", "should_trigger": true},
+  {"query": "move us from the vendor agent to opentelemetry and prove the dashboards still agree", "should_trigger": false, "expected": "telemetry-migration"},
+  {"query": "set up opentelemetry in a new service and decide which attributes to emit", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "bump our major framework version and fix the breakages", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "design histogram buckets for a new latency metric", "should_trigger": false, "expected": "latency-histogram-design"},
+  {"query": "a metric stopped appearing in prometheus and I do not know why", "should_trigger": false, "expected": "missing-metrics-hunt"},
+  {"query": "review our collector processor order before production", "should_trigger": false, "expected": "otel-collector-pipeline-review"},
+  {"query": "label explosion on one metric is blowing up our series count", "should_trigger": false, "expected": "cardinality-incident-response"},
+  {"query": "traces lose their parent across our kafka consumers", "should_trigger": false, "expected": "broken-trace-hunt"},
+  {"query": "backtest this alert threshold against last quarter of data", "should_trigger": false, "expected": "alert-backtest"},
+  {"query": "upgrade kubernetes to the next minor version safely", "should_trigger": false, "expected": "k8s-upgrade"}
+]

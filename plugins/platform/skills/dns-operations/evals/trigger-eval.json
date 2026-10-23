@@ -1,0 +1,22 @@
+[
+  {"query": "we have about 400 records across six route53 zones and I suspect some CNAMEs point at things we deleted years ago", "should_trigger": true},
+  {"query": "security flagged a possible subdomain takeover on promo.example.com, how do we sweep for any others", "should_trigger": true},
+  {"query": "move our DNS zones out of the console and into terraform without breaking anything", "should_trigger": true},
+  {"query": "we need to roll the KSK on our signed zone, what order do the DS change and key removal go in", "should_trigger": true},
+  {"query": "how do we turn off DNSSEC before switching DNS providers without the domain going dark", "should_trigger": true},
+  {"query": "our domain registrar login is on a former employee's gmail, how do we lock this down properly", "should_trigger": true},
+  {"query": "set up octodns or dnscontrol so every DNS change goes through a pull request", "should_trigger": true},
+  {"query": "internal clients can't resolve status.example.com but it works from outside, we have a private hosted zone with the same name", "should_trigger": true},
+  {"query": "dig returns SERVFAIL for our domain on some resolvers but works with +cd, what broke", "should_trigger": true},
+  {"query": "external-dns and our terraform keep overwriting each other's records in the same zone", "should_trigger": true},
+  {"query": "we're cutting checkout over to the new cluster on saturday by changing the DNS record, plan the switch and rollback", "should_trigger": false, "expected": "cutover"},
+  {"query": "automate certificate renewal with ACME DNS-01 challenges for our wildcard certs", "should_trigger": false, "expected": "certificate-automation"},
+  {"query": "our DNS provider is having an outage right now and the site is unreachable, help me coordinate", "should_trigger": false, "expected": "incident-response"},
+  {"query": "import the existing route53 records into terraform state so the plan stops trying to create them", "should_trigger": false, "expected": "terraform-state"},
+  {"query": "review this terraform plan that modifies three route53 records and a hosted zone", "should_trigger": false, "expected": "iac-review"},
+  {"query": "pods can't resolve service names inside the cluster since this morning, coredns looks unhappy", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "set cache-control and purge rules on the CDN so html updates show up quickly", "should_trigger": false, "expected": "cdn-configuration"},
+  {"query": "could we still change DNS and deploy if okta and our CI were both down during an outage", "should_trigger": false, "expected": "bootstrap-dependency-audit"},
+  {"query": "the API token for our DNS provider was committed to a public repo, rotate it", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "configure the DNS server and static leases on our mikrotik router", "should_trigger": false, "expected": "routeros-config"}
+]

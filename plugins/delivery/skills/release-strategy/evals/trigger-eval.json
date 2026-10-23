@@ -18,5 +18,6 @@
   {"query": "should high cpu on the nodes page someone or is that a dashboard-only thing", "should_trigger": false, "expected": "alert-design"},
   {"query": "review this terraform plan for me, it says it is replacing the RDS instance and i do not trust it", "should_trigger": false, "expected": "iac-review"},
   {"query": "launchdarkly vs unleash vs building our own. need a three year tco and a scorecard for the decision", "should_trigger": false, "expected": "vendor-evaluation"},
-  {"query": "our cloud bill jumped 30% after last month, can you work out where the money went", "should_trigger": false, "expected": "cost-review"}
+  {"query": "our cloud bill jumped 30% after last month, can you work out where the money went", "should_trigger": false, "expected": "cost-review"},
+  {"query": "how many users and how many weeks does our checkout a/b test need", "should_trigger": false, "expected": "experiment-design"}
 ]

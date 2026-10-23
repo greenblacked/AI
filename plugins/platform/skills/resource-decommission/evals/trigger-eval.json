@@ -1,0 +1,23 @@
+[
+  {"query": "there is an old reporting service nobody claims; how do we prove it is unused and turn it off safely", "should_trigger": true},
+  {"query": "can we delete this rds instance? the dashboard shows no connections for the last week", "should_trigger": true},
+  {"query": "we want to close three aws accounts left over from an acquisition, what needs to happen first", "should_trigger": true},
+  {"query": "find and clean up unattached ebs volumes, stale snapshots and unused elastic ips across all our regions", "should_trigger": true},
+  {"query": "the migration to the new platform is finished; walk me through retiring the old load balancers and databases", "should_trigger": true},
+  {"query": "how long should we run a scream test before deleting a legacy internal api", "should_trigger": true},
+  {"query": "set up a monthly sweep for orphaned disks and reserved IP addresses in our gcp projects", "should_trigger": true},
+  {"query": "we deleted an s3 bucket last year and someone says the cname for it is a security problem, what is the right order for tearing things down", "should_trigger": true},
+  {"query": "this azure subscription looks abandoned; what evidence do we need before we cancel it", "should_trigger": true},
+  {"query": "someone deleted an old instance in the console and terraform recreated it on the next apply, how should we have done it", "should_trigger": true},
+  {"query": "our aws bill jumped 30 percent last month, where is the money going", "should_trigger": false, "expected": "cost-review"},
+  {"query": "write the phased plan to move our services from heroku to kubernetes with rollback points", "should_trigger": false, "expected": "plan-platform-migration"},
+  {"query": "preview environments for every pull request keep piling up in the cluster, design the clean-up", "should_trigger": false, "expected": "ephemeral-environments"},
+  {"query": "this service account has full s3 access; can we cut it down to what it actually uses", "should_trigger": false, "expected": "access-review"},
+  {"query": "remove this resource from terraform state but keep it running because another team will manage it", "should_trigger": false, "expected": "terraform-state"},
+  {"query": "run the dns cutover from the old datacentre to the new region this saturday", "should_trigger": false, "expected": "cutover"},
+  {"query": "the old feature flag for checkout v2 has been at 100 percent for months, how do we remove it", "should_trigger": false, "expected": "feature-flag-lifecycle"},
+  {"query": "an api key for the retired billing service was found in a public repo, contain it", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "design how long we keep database backups and how we prove we can restore them", "should_trigger": false, "expected": "backup-recovery-design"},
+  {"query": "bring all the hand-built resources in this account under terraform and report what is still unmanaged", "should_trigger": false, "expected": "brownfield-iac-adoption"},
+  {"query": "customers still use our legacy reports module, plan the notice and deprecation", "should_trigger": false, "expected": "feature-sunset"}
+]

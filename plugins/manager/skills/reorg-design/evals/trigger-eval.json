@@ -1,0 +1,22 @@
+[
+  {"query": "we need to split the platform team, it has fourteen people and two unrelated mandates", "should_trigger": true},
+  {"query": "merge these two teams without losing the good people, where do I start", "should_trigger": true},
+  {"query": "how do we announce the new org structure so nobody hears about it in a hallway", "should_trigger": true},
+  {"query": "reorg rumours are spreading and nothing has been decided yet, what do I say", "should_trigger": true},
+  {"query": "who should be told first when we change reporting lines", "should_trigger": true},
+  {"query": "our team boundaries cause constant handoffs between three groups, how do we redraw them", "should_trigger": true},
+  {"query": "help me write the announcement for moving the mobile engineers under the product organisation", "should_trigger": true},
+  {"query": "how do I test whether a new team structure would have made our last few projects easier", "should_trigger": true},
+  {"query": "we are about to restructure and I want a way to know in three months if it worked", "should_trigger": true},
+  {"query": "the leadership group knows about the restructure but the teams do not, how long can we wait", "should_trigger": true},
+  {"query": "set up the weekly meetings and planning rhythm for the two new teams", "should_trigger": false, "expected": "design-team-cadence"},
+  {"query": "four people left this year, work out why and what to do about it", "should_trigger": false, "expected": "retention-review"},
+  {"query": "write the customer update for yesterday's outage", "should_trigger": false, "expected": "incident-comms"},
+  {"query": "one of my engineers is taking the move badly and I need to talk to him", "should_trigger": false, "expected": "difficult-conversation"},
+  {"query": "build the case for four more engineers next year", "should_trigger": false, "expected": "headcount-case"},
+  {"query": "I have just taken over a team and want to know what to change in the first month", "should_trigger": false, "expected": "inherited-team-audit"},
+  {"query": "plan the first two weeks for the new hire joining the platform team", "should_trigger": false, "expected": "onboarding-plan"},
+  {"query": "set our quarterly objectives and key results for the combined group", "should_trigger": false, "expected": "okr-planning"},
+  {"query": "how should we benchmark salaries for the new levels", "should_trigger": false, "expected": "compensation-benchmarking"},
+  {"query": "write up the architecture decision to move the billing service into its own repository", "should_trigger": false, "expected": "decision-record"}
+]

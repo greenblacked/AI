@@ -1,0 +1,23 @@
+[
+  {"query": "diff our openapi spec against the last release and tell me which changes break existing clients", "should_trigger": true},
+  {"query": "add a CI check that fails the PR when the openapi.yaml has a breaking change", "should_trigger": true},
+  {"query": "oasdiff flags 'response property enum value added' as a warning, do we need to block on that", "should_trigger": true},
+  {"query": "generate the API section of the changelog from the spec instead of writing it by hand", "should_trigger": true},
+  {"query": "two harmless-looking PRs together removed a field from the orders response and nobody caught it, how do we stop that", "should_trigger": true},
+  {"query": "our spec is generated from the FastAPI app, how do we compare it between the release tag and this branch", "should_trigger": true},
+  {"query": "we made a request parameter required in this PR, the reviewer said it looked fine, did this break the old SDK", "should_trigger": true},
+  {"query": "how should approved breaking changes get through our spec diff check without just turning it off", "should_trigger": true},
+  {"query": "a shared Status schema is used in both the request and the response, we added a value, is the diff check right to complain", "should_trigger": true},
+  {"query": "set up oasdiff in github actions with a semver-major label override", "should_trigger": true},
+
+  {"query": "design the endpoints for our new invoicing service, should cancel be a PATCH or an action", "should_trigger": false, "expected": "api-design"},
+  {"query": "we want to retire v1 of the public API next year, what deprecation process should we follow", "should_trigger": false, "expected": "api-design"},
+  {"query": "write the release notes for 4.0 including the upgrade guide", "should_trigger": false, "expected": "release-notes"},
+  {"query": "every error our API returns needs a stable code and a docs page", "should_trigger": false, "expected": "error-catalogue"},
+  {"query": "how do we roll this API change out behind a flag to 5 percent of tenants first", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "make the curl examples in our api docs run in CI so they stop going stale", "should_trigger": false, "expected": "code-sample-testing"},
+  {"query": "should we version our public API in the URL path or in a header", "should_trigger": false, "expected": "api-design"},
+  {"query": "which docs pages mention the endpoints this PR touches", "should_trigger": false, "expected": "docs-drift-detection"},
+  {"query": "review this diff for security issues before it merges", "should_trigger": false, "expected": "security-review"},
+  {"query": "design a JSON schema the output must conform to and validate against it", "should_trigger": false, "expected": "structured-output"}
+]

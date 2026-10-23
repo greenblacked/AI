@@ -1,0 +1,22 @@
+[
+  {"query": "why did customers switch to us from the big competitor last quarter? I want to actually talk to some of them", "should_trigger": true},
+  {"query": "help me interview a handful of customers who signed up in the last two months about how they came to buy", "should_trigger": true},
+  {"query": "set up jobs-to-be-done switch interviews with recent buyers and tell me what to ask", "should_trigger": true},
+  {"query": "what really triggered people to start paying for our product? our survey just says 'ease of use'", "should_trigger": true},
+  {"query": "I've done seven calls with new customers, how do I turn them into push, pull, anxiety and habit", "should_trigger": true},
+  {"query": "our positioning feels like guesswork, I want to rebuild it from the stories of people who just bought", "should_trigger": true},
+  {"query": "most new accounts came off spreadsheets; how do I find the moment they decided the sheet wasn't good enough", "should_trigger": true},
+  {"query": "write an interview guide that walks a new customer from first thought to first use", "should_trigger": true},
+  {"query": "who should I recruit to understand what made teams leave their old tool and pick ours", "should_trigger": true},
+  {"query": "build a force table from our recent switcher interviews so marketing knows what to lead with", "should_trigger": true},
+  {"query": "before we build anything, interview prospects to see whether this invoicing pain is even real", "should_trigger": false, "expected": "problem-validation"},
+  {"query": "watch five people try the new onboarding prototype and score the tasks", "should_trigger": false, "expected": "usability-test-plan"},
+  {"query": "how much would customers pay for the analytics add-on, and how do we find out", "should_trigger": false, "expected": "pricing-research"},
+  {"query": "sales keeps forwarding customer feature asks, how do we decide which ones are real blockers", "should_trigger": false, "expected": "request-triage"},
+  {"query": "put up a landing page to see if anyone signs up for the product before we build it", "should_trigger": false, "expected": "fake-door-test"},
+  {"query": "recruit six customers to co-build the new reporting module with us over the next quarter", "should_trigger": false, "expected": "design-partner-program"},
+  {"query": "plan the interview loop and scorecard for our senior product manager hire", "should_trigger": false, "expected": "hiring-loop"},
+  {"query": "three engineers resigned this quarter, help me run stay interviews and find the pattern", "should_trigger": false, "expected": "retention-review"},
+  {"query": "review our signup screen against usability heuristics", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "rewrite the error messages on our checkout form in plain language", "should_trigger": false, "expected": "content-design"}
+]

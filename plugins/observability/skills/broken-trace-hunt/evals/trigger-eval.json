@@ -1,0 +1,22 @@
+[
+  {"query": "our traces are split in two halves, the frontend part and the backend part never join", "should_trigger": true},
+  {"query": "lots of spans in jaeger show a parent that does not exist, how do I find out why", "should_trigger": true},
+  {"query": "the trace stops at the queue; the consumer starts a brand new trace every time", "should_trigger": true},
+  {"query": "every request to the orders service shows up as its own one-span trace", "should_trigger": true},
+  {"query": "after we put the new api gateway in front, traces from the mobile app start in the middle of the journey", "should_trigger": true},
+  {"query": "half our services use b3 and the rest use w3c headers; could that explain broken traces", "should_trigger": true},
+  {"query": "how can I tell whether traceparent survives our CDN and load balancer", "should_trigger": true},
+  {"query": "we see child spans whose parents are missing but only for traffic through the lambda function", "should_trigger": true},
+  {"query": "the callee keeps ignoring the caller's trace id and starts a fresh trace, what do I check", "should_trigger": true},
+  {"query": "spans from the same request land under different trace ids once they pass the thread pool", "should_trigger": true},
+  {"query": "we are adding a new service and want trace context to flow through it from day one", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "read this checkout trace and tell me where the 3 seconds went", "should_trigger": false, "expected": "trace-latency-analysis"},
+  {"query": "the collector queue is full and it is refusing spans at peak", "should_trigger": false, "expected": "collector-backpressure-triage"},
+  {"query": "how many traces should the tail sampler keep and which policies should it have", "should_trigger": false, "expected": "tail-sampling-tuning"},
+  {"query": "our checkout endpoint returns a 500 only for some users, help me find the bug", "should_trigger": false, "expected": "debugging"},
+  {"query": "prometheus series tripled overnight and it is running out of memory", "should_trigger": false, "expected": "cardinality-incident-response"},
+  {"query": "my grafana graph has gaps after the deploy", "should_trigger": false, "expected": "missing-metrics-hunt"},
+  {"query": "what should page the on-call for our api", "should_trigger": false, "expected": "alert-design"},
+  {"query": "profile the cpu time inside our python worker", "should_trigger": false, "expected": "profiling"},
+  {"query": "shrink our log volume without losing the errors", "should_trigger": false, "expected": "log-volume-reduction"}
+]

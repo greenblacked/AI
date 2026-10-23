@@ -1,0 +1,92 @@
+[
+ {
+  "query": "document our error codes, all we have is a wiki table someone made in 2021",
+  "should_trigger": true
+ },
+ {
+  "query": "users paste raw error messages into support tickets and nobody on the team knows what half of them mean",
+  "should_trigger": true
+ },
+ {
+  "query": "build an error reference for our CLI, something like rustc --explain",
+  "should_trigger": true
+ },
+ {
+  "query": "two of our services both use error 1001 for different things, how should we number errors from now on",
+  "should_trigger": true
+ },
+ {
+  "query": "every error our public API returns should link to a docs page explaining it, how do we set that up",
+  "should_trigger": true
+ },
+ {
+  "query": "add a CI check that fails when someone adds a new error code without documenting it",
+  "should_trigger": true
+ },
+ {
+  "query": "we deleted an error code last year and reused the number, now old logs and forum answers are misleading",
+  "should_trigger": true
+ },
+ {
+  "query": "write the troubleshooting page for E2041 quota exceeded with the cause, the fix and whether clients should retry",
+  "should_trigger": true
+ },
+ {
+  "query": "design an error code scheme for our SDK that won't break customers who match on the codes",
+  "should_trigger": true
+ },
+ {
+  "query": "we're retrofitting error codes into a five year old product, where do I even start",
+  "should_trigger": true
+ },
+ {
+  "query": "our error messages are vague and robotic, rewrite them in plain language",
+  "should_trigger": false,
+  "expected": "content-design"
+ },
+ {
+  "query": "what should our API's error response JSON look like, problem details or our own envelope",
+  "should_trigger": false,
+  "expected": "api-design"
+ },
+ {
+  "query": "the high 5xx rate alert links to nothing, write what the on-call should do when it fires",
+  "should_trigger": false,
+  "expected": "runbook"
+ },
+ {
+  "query": "this exception shows up in prod a few times a day and I can't work out why",
+  "should_trigger": false,
+  "expected": "debugging"
+ },
+ {
+  "query": "add structured logging and spans so we can tell which customer hit a failure",
+  "should_trigger": false,
+  "expected": "instrumentation"
+ },
+ {
+  "query": "write the help output, man page and exit code table for our new command line tool",
+  "should_trigger": false,
+  "expected": "cli-reference"
+ },
+ {
+  "query": "summarise what changed in 3.0 for customers, including the breaking changes and how to migrate",
+  "should_trigger": false,
+  "expected": "release-notes"
+ },
+ {
+  "query": "is removing this field from the response a breaking change? diff the openapi spec against the last release",
+  "should_trigger": false,
+  "expected": "openapi-diff-gate"
+ },
+ {
+  "query": "should a page fire when 5xx errors burn the error budget this fast",
+  "should_trigger": false,
+  "expected": "alert-design"
+ },
+ {
+  "query": "people type 'error 403' into our docs search and get zero results",
+  "should_trigger": false,
+  "expected": "docs-search-vocabulary"
+ }
+]

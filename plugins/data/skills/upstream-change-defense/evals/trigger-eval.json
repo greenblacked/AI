@@ -1,0 +1,23 @@
+[
+  {"query": "The app team renamed customer_ref to customer_id last night and half our dbt models failed. How do we stop this happening every quarter?", "should_trigger": true},
+  {"query": "Order amounts in the warehouse are suddenly 100x higher since Tuesday, looks like the source switched from pennies to pounds. How should we have caught that?", "should_trigger": true},
+  {"query": "A new status value 'partially_refunded' showed up from the billing system and our revenue model silently dropped those rows.", "should_trigger": true},
+  {"query": "We want a data contract with the checkout team. What should it contain and how do we enforce it in their CI?", "should_trigger": true},
+  {"query": "upstream keeps breaking our pipeline with schema changes, what's the right way to land source data so we can recover", "should_trigger": true},
+  {"query": "Should failing rows from the partner feed be quarantined or should we just fail the whole load?", "should_trigger": true},
+  {"query": "The source system changed its timestamps from local time to UTC without telling anyone and our hourly charts shifted.", "should_trigger": true},
+  {"query": "Which schema registry compatibility mode should our Avro topics use if the warehouse replays from raw?", "should_trigger": true},
+  {"query": "How do we detect that a source team reused an old customer id for a new customer?", "should_trigger": true},
+  {"query": "Our loader crashes whenever the vendor adds a column to the CSV export. How should ingestion be set up instead?", "should_trigger": true},
+  {"query": "Is adding a required field to our public REST endpoint a breaking change for API clients?", "should_trigger": false, "expected": "api-design"},
+  {"query": "We need to rename a column in our production Postgres orders table without downtime.", "should_trigger": false, "expected": "db-migration"},
+  {"query": "Which checks should the fact_orders table have: freshness, volume, uniqueness, nulls?", "should_trigger": false, "expected": "data-quality-checks"},
+  {"query": "Before we rename the orders table, who downstream is still querying it?", "should_trigger": false, "expected": "consumer-discovery"},
+  {"query": "Our event consumer processes the same message twice after a crash; how do we make it idempotent?", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "We need to bump our ORM to the next major version and the changelog lists breaking changes.", "should_trigger": false, "expected": "dependency-upgrade"},
+  {"query": "Yesterday's order count keeps growing for days after midnight. When is it final?", "should_trigger": false, "expected": "late-data-maturity"},
+  {"query": "A dependency in our pipeline image has a critical CVE; do we need to patch it this week?", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "Two dashboards disagree on weekly revenue by 2%, find out why.", "should_trigger": false, "expected": "metric-reconciliation"},
+  {"query": "The same customer appears under three different ids across CRM, billing and support. How do we link them?", "should_trigger": false, "expected": "entity-resolution"},
+  {"query": "weekly active users halved on the dashboard last tuesday, how do we work out why", "should_trigger": false, "expected": "metric-anomaly-triage"}
+]

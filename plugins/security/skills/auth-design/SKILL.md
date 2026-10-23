@@ -1,7 +1,7 @@
 ---
 name: auth-design
 description: "Design or review how a system proves who a caller is and keeps that proof safe: whether to build identity at all, authorization code with PKCE per client type (the implicit and password grants are removed, not discouraged), exact-string redirect URI matching, state, nonce and PKCE, session id rotation on every privilege change, refresh token rotation with reuse detection, JWT algorithm, audience and issuer validation, password hashing and phishing-resistant MFA. Use whenever someone is designing or reviewing login, signup, SSO, logout or session handling, or asks \"should we use JWTs or sessions\", \"adding google login\", \"is our refresh token flow safe\", or \"how should we hash passwords\". Not for rotating a leaked credential (secret-rotation), reviewing who holds which grant (access-review), a diff security review (security-review), or endpoint shape and status codes (api-design)."
-allowed-tools: "Read, Grep, Glob, Write, Edit, Bash(curl:*), Bash(jq:*), Bash(openssl:*), Bash(git:*)"
+allowed-tools: "Read, Grep, Glob, Write, Edit, Bash(jq:*)"
 ---
 
 # Auth Design

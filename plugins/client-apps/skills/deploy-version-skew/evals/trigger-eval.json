@@ -1,0 +1,22 @@
+[
+  {"query": "every time we deploy, Sentry fills up with ChunkLoadError: Loading chunk 412 failed for about an hour", "should_trigger": true},
+  {"query": "TypeError: Failed to fetch dynamically imported module shows up after each release of our Vite app", "should_trigger": true},
+  {"query": "people who leave the admin console open overnight get a blank screen when they click into another section the next morning", "should_trigger": true},
+  {"query": "our deploy script runs aws s3 sync --delete and anyone with an old tab open starts seeing errors, how should we publish static assets", "should_trigger": true},
+  {"query": "how do we let an open single-page app know a newer build is out and get it refreshed without losing what someone is typing", "should_trigger": true},
+  {"query": "we added a reload when a lazy route fails to load and now a few users are stuck in an endless reload loop", "should_trigger": true},
+  {"query": "Expected a JavaScript module script but the server responded with a MIME type of text/html, only in the hour after we ship", "should_trigger": true},
+  {"query": "during the kubernetes rolling update some page loads 404 on js bundles that exist on the other pods", "should_trigger": true},
+  {"query": "how long should we keep old frontend bundles on the CDN and how do we know when it is safe to prune them", "should_trigger": true},
+  {"query": "the new web client sends a field the old API pods reject while the deploy is half done, how do we sequence frontend and backend releases", "should_trigger": true},
+  {"query": "plan a canary for the checkout service with 1, 10 and 50 percent stages and automatic rollback thresholds", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "should our public REST API carry its version in the URL or a header, and how do we retire v1", "should_trigger": false, "expected": "api-design"},
+  {"query": "our service worker keeps serving last week's index.html even after a hard refresh", "should_trigger": false, "expected": "pwa-service-worker"},
+  {"query": "crash rate jumped after iOS 4.2 reached 20 percent of users, should we halt the phased release", "should_trigger": false, "expected": "mobile-release"},
+  {"query": "the frontend build job fails in CI with a webpack out-of-memory error since this morning", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "how do we delete the old_checkout flag from the web client when some deployed clients still read it", "should_trigger": false, "expected": "feature-flag-lifecycle"},
+  {"query": "rename a column on the orders table without taking the app down", "should_trigger": false, "expected": "db-migration"},
+  {"query": "our Redis cache returns stale product prices for minutes after an update", "should_trigger": false, "expected": "application-caching"},
+  {"query": "the lazy-loaded settings page throws undefined is not a function in every browser, even on a fresh load", "should_trigger": false, "expected": "debugging"},
+  {"query": "our Playwright test for the lazily loaded reports route is flaky on CI but passes locally", "should_trigger": false, "expected": "e2e-testing"}
+]

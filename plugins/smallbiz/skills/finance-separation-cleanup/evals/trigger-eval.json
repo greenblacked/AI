@@ -1,0 +1,22 @@
+[
+  {"query": "I have been using my personal account for business and need to sort it out", "should_trigger": true},
+  {"query": "how do I stop mixing personal and business expenses", "should_trigger": true},
+  {"query": "how do I set up a business bank account and move my client payments over", "should_trigger": true},
+  {"query": "my accountant says my books are commingled and I need to fix it before filing", "should_trigger": true},
+  {"query": "I paid for business software on my personal card all year, how do I get that back out properly", "should_trigger": true},
+  {"query": "what do I do about a phone bill that is half business and half personal", "should_trigger": true},
+  {"query": "I took money out of the business account for rent a few times, how do I record that", "should_trigger": true},
+  {"query": "how should I pay myself from my freelance business, a regular amount or whenever", "should_trigger": true},
+  {"query": "help me go through twelve months of statements and tag what is business and what is personal", "should_trigger": true},
+  {"query": "which subscriptions should I move to a business card and how do I tell clients about new bank details", "should_trigger": true},
+  {"query": "do my month-end bookkeeping close and reconcile the accounts", "should_trigger": false, "expected": "monthly-bookkeeping-close"},
+  {"query": "help me build a household budget and savings plan", "should_trigger": false, "expected": "personal-finance"},
+  {"query": "get my passport, insurance and other personal paperwork in order", "should_trigger": false, "expected": "life-admin"},
+  {"query": "assemble the tax return pack for my accountant at year end", "should_trigger": false, "expected": "year-end-tax-pack"},
+  {"query": "how much of each payment should I keep for tax", "should_trigger": false, "expected": "tax-set-aside"},
+  {"query": "what must an invoice contain so accounts payable pays it", "should_trigger": false, "expected": "invoice-hygiene"},
+  {"query": "which of my clients make me the most money", "should_trigger": false, "expected": "client-profitability-review"},
+  {"query": "forecast my cash flow for the next quarter", "should_trigger": false, "expected": "cashflow-forecast-13-week"},
+  {"query": "chase a client who is 30 days late with an invoice", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "work out my hourly rate for the coming year", "should_trigger": false, "expected": "billing-rate-calculation"}
+]

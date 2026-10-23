@@ -1,0 +1,22 @@
+[
+  {"query": "our docs keep going stale after code changes, how do we catch it before merge instead of from support tickets", "should_trigger": true},
+  {"query": "when someone renames a config key, how would we even know which of our 300 doc pages mention it", "should_trigger": true},
+  {"query": "the configuration page still documents a --legacy-mode flag we deleted two releases ago", "should_trigger": true},
+  {"query": "set up a CI check that comments on a pull request with the documentation pages it probably made wrong", "should_trigger": true},
+  {"query": "the 'did you update the docs' checkbox in our PR template gets ticked every time and nothing changes", "should_trigger": true},
+  {"query": "build a mapping from environment variables and endpoints to the docs that describe them so we can track drift", "should_trigger": true},
+  {"query": "what fraction of our code changes that affect documented behaviour actually come with a docs change", "should_trigger": true},
+  {"query": "fail the build if a removed CLI option is still mentioned anywhere in the current docs", "should_trigger": true},
+  {"query": "half our guides describe settings that changed months ago; find which pages are tied to which parts of the code", "should_trigger": true},
+  {"query": "engineers change the API and the docs team finds out from customers, give us a process that flags affected pages automatically", "should_trigger": true},
+  {"query": "rewrite the outdated setup page for the payments service so a new hire can follow it", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "draft the changelog for 3.2 from the merged pull requests since the last tag", "should_trigger": false, "expected": "release-notes"},
+  {"query": "users search our docs for 'api key' and get zero results even though the page exists", "should_trigger": false, "expected": "docs-search-vocabulary"},
+  {"query": "the code snippets in our docs no longer compile against the latest SDK, run them in CI", "should_trigger": false, "expected": "code-sample-testing"},
+  {"query": "does this change to our OpenAPI spec break existing clients", "should_trigger": false, "expected": "openapi-diff-gate"},
+  {"query": "every screenshot in the admin guide shows the old navigation bar", "should_trigger": false, "expected": "screenshot-rot"},
+  {"query": "list every caller, config dependency and test this large refactoring diff can affect before I review it", "should_trigger": false, "expected": "change-impact-reader"},
+  {"query": "review this pull request for correctness bugs before it merges", "should_trigger": false, "expected": "code-review"},
+  {"query": "each error code we throw should have a docs page and CI should fail when one is missing", "should_trigger": false, "expected": "error-catalogue"},
+  {"query": "our pipeline takes forty minutes, restructure the stages and decide which checks should be required", "should_trigger": false, "expected": "ci-pipeline-design"}
+]

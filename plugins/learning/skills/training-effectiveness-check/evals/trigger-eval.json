@@ -1,0 +1,22 @@
+[
+  {"query": "did our secure coding training actually work, the scores were fine but I can't tell", "should_trigger": true},
+  {"query": "how do I show the finance director that the training budget was worth it", "should_trigger": true},
+  {"query": "the feedback scores for the workshop were great but nothing in how people work has changed", "should_trigger": true},
+  {"query": "we are about to run incident response training for forty engineers, how should we measure whether it helped", "should_trigger": true},
+  {"query": "what should I measure thirty and ninety days after a course to see whether people kept using it", "should_trigger": true},
+  {"query": "is a quiz at the end of the course a good way to tell if the training stuck", "should_trigger": true},
+  {"query": "we train the second cohort next quarter, can I use them to see if the first cohort's training made a difference", "should_trigger": true},
+  {"query": "how many questions should the post-training survey have and what do I do with the answers", "should_trigger": true},
+  {"query": "decide whether we should run the code review bootcamp again or drop it", "should_trigger": true},
+  {"query": "set up a before and after exercise so we can prove the onboarding lab improved people's skills", "should_trigger": true},
+  {"query": "assess whether one of my engineers has improved since her last review cycle", "should_trigger": false, "expected": "growth-review"},
+  {"query": "our deployment frequency and lead time look worse this quarter, how do I read the delivery metrics", "should_trigger": false, "expected": "delivery-review"},
+  {"query": "plan a usability test with five users for the new checkout flow", "should_trigger": false, "expected": "usability-test-plan"},
+  {"query": "design an eight week training path for the new SRE cohort", "should_trigger": false, "expected": "team-training-curriculum"},
+  {"query": "plan a hands-on workshop on observability for next month", "should_trigger": false, "expected": "workshop-design"},
+  {"query": "measure how much time the AI coding assistant saves our developers", "should_trigger": false, "expected": "ai-enablement"},
+  {"query": "build a map of who on the team knows which tools", "should_trigger": false, "expected": "team-skills-matrix"},
+  {"query": "write a postmortem for last week's outage", "should_trigger": false, "expected": "postmortem"},
+  {"query": "set the quarterly objectives and key results for my team", "should_trigger": false, "expected": "okr-planning"},
+  {"query": "design a practice exercise with a check for learning SQL joins", "should_trigger": false, "expected": "exercise-design"}
+]

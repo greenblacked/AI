@@ -1,7 +1,7 @@
 ---
 name: k8s-workloads
 description: "Specify a Kubernetes workload so it holds under pressure: measure the real CPU and memory profile before writing any number, then set requests and limits knowing CPU limits throttle while memory limits kill, pick the QoS class on purpose, keep liveness, readiness and startup probes distinct, size the PodDisruptionBudget, maxSurge and maxUnavailable, spread across zones, and close the race between SIGTERM and endpoint removal with a preStop hook. Use when someone asks \"what should I set for resource limits\", \"my pods get OOMKilled under load\", \"should this have a readiness probe\", \"will this PodDisruptionBudget block a node drain\", or is reviewing the numbers in a Deployment or StatefulSet spec. Not for a workload already broken (k8s-triage), how many replicas or how big the cluster (capacity-planning), generating YAML or a project (code-scaffold), or the image itself (image-hardening)."
-allowed-tools: Read, Write, Edit, Grep, Glob, Bash(kubectl:*), Bash(jq:*)
+allowed-tools: Read, Write, Edit, Grep, Glob, Bash(jq:*)
 ---
 
 # Kubernetes Workload Specification
@@ -20,6 +20,7 @@ Do not use for:
 - How many replicas the service needs, how big the cluster should be, designing or reading a load test, sizing an autoscaler. That is `capacity-planning`. This skill sizes one workload's own contract; it does not size the fleet.
 - Generating a project, a chart, a module or boilerplate. That is `code-scaffold`. The work here is not YAML production — it is deciding what the workload claims from the node and promises to the Service, which is the part that survives the YAML being regenerated.
 - The image itself: base image, digest pinning, non-root UID, entrypoint form, scanning. That is `image-hardening`.
+- Sporadic 502s or 504s that a load balancer logs at a low rate with no pattern, where the balancer's idle timeout, keepalive or deregistration delay are the suspects. That is `intermittent-502-hunt`, which reads the balancer's and the upstream's logs for the same requests; the probe, `preStop` and budget numbers it lands on are set here.
 
 ## Workflow
 

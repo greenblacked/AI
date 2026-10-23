@@ -1,0 +1,22 @@
+[
+  {"query": "will the new checkout hold launch traffic? we expect about 1800 rps and the slo says p99 under 400ms", "should_trigger": true},
+  {"query": "write me a k6 script for our api that uses the real endpoint mix from our access logs", "should_trigger": true},
+  {"query": "our load test passed last month and production still fell over on launch day. what did we get wrong", "should_trigger": true},
+  {"query": "what pass/fail thresholds should the perf test have, right now it just prints graphs and someone eyeballs them", "should_trigger": true},
+  {"query": "should we use 500 virtual users or a fixed request rate in gatling for this test", "should_trigger": true},
+  {"query": "someone told me our jmeter results suffer from coordinated omission, what does that mean and how do i fix it", "should_trigger": true},
+  {"query": "k6 is reporting dropped_iterations and the achieved rate is lower than what i configured, can i trust this run", "should_trigger": true},
+  {"query": "the load test report only has average response time, what should it show instead", "should_trigger": true},
+  {"query": "we want a small perf regression check in ci that fails the build if p95 on search gets worse", "should_trigger": true},
+  {"query": "client-side p99 in the load test is 2 seconds but the service's own histogram says 300ms, where is the time going", "should_trigger": true},
+  {"query": "how many replicas and how much db headroom do we need for black friday given last year's peak", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "this python function eats 400ms in a hot loop, where is the time actually going", "should_trigger": false, "expected": "profiling"},
+  {"query": "what latency objective should the search api have and over what window", "should_trigger": false, "expected": "slo-design"},
+  {"query": "replay last week's production requests against the rewritten service and diff the responses against the old one", "should_trigger": false, "expected": "traffic-replay-diff"},
+  {"query": "kill an availability zone in staging and see whether failover actually works", "should_trigger": false, "expected": "game-day"},
+  {"query": "the orders query takes 3 seconds, explain analyze output attached", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "set up burn-rate alerts on checkout latency so we get paged before the budget is gone", "should_trigger": false, "expected": "alert-design"},
+  {"query": "how long should the canary bake at 5 percent before we promote it", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "the nightly perf job went red this morning with a docker pull error, can you find out why", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "add metrics and spans so we can see latency per endpoint and per tenant", "should_trigger": false, "expected": "instrumentation"}
+]

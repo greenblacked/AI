@@ -1,0 +1,22 @@
+[
+  {"query": "document this command-line tool properly, right now the only docs are a flag table in the README", "should_trigger": true},
+  {"query": "our --help says the default timeout is 30s but the docs site says 60s, how do we stop that happening", "should_trigger": true},
+  {"query": "generate a man page for our Go CLI built on cobra and install it with the package", "should_trigger": true},
+  {"query": "add bash, zsh and fish completions to our click-based tool and have them complete profile names", "should_trigger": true},
+  {"query": "what exit codes should our deploy tool document, and how do we keep them stable", "should_trigger": true},
+  {"query": "the help output for our rust tool is an alphabetical wall of forty flags, restructure it so people can find things", "should_trigger": true},
+  {"query": "write a test that fails whenever someone changes what --help prints so reviewers see interface changes", "should_trigger": true},
+  {"query": "how should we show which flags conflict with each other and whether the env var or the config file wins", "should_trigger": true},
+  {"query": "build a web reference page for every subcommand of our CLI from the argparse definitions instead of copying help text", "should_trigger": true},
+  {"query": "we're renaming --output-dir to --out, how do we deprecate the old flag in the help and the reference", "should_trigger": true},
+  {"query": "write me a python command-line tool that bulk renames photos by their exif date", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "review our REST endpoints and decide whether pagination should use cursors or offsets", "should_trigger": false, "expected": "api-design"},
+  {"query": "make sure our getting-started guide actually works for someone installing the CLI on a fresh laptop", "should_trigger": false, "expected": "tutorial-clean-room"},
+  {"query": "give every error our CLI can print a stable code and its own docs page explaining the fix", "should_trigger": false, "expected": "error-catalogue"},
+  {"query": "the shell snippets on our docs pages are broken half the time, make them run in CI", "should_trigger": false, "expected": "code-sample-testing"},
+  {"query": "write the release notes for version 3.2 of our command-line tool from the merged PRs", "should_trigger": false, "expected": "release-notes"},
+  {"query": "which docs pages become wrong when a PR renames a config key, and can CI tell us", "should_trigger": false, "expected": "docs-drift-detection"},
+  {"query": "is removing a field from this OpenAPI response a breaking change, and can CI catch it", "should_trigger": false, "expected": "openapi-diff-gate"},
+  {"query": "write a README and onboarding guide for the billing service so a new engineer can run it locally", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "the product calls it a workspace, the CLI calls it a project and the docs say space, pick one and enforce it", "should_trigger": false, "expected": "terminology-lock"}
+]

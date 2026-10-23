@@ -1,0 +1,23 @@
+[
+  {"query": "signups dropped 20% overnight and the CEO wants to know why by lunch", "should_trigger": true},
+  {"query": "is this number real? daily active users jumped 35% on Sunday and nothing shipped", "should_trigger": true},
+  {"query": "conversion fell off a cliff on Tuesday, where do I start looking", "should_trigger": true},
+  {"query": "our trial starts chart shows a sharp dip yesterday, could it just be late data", "should_trigger": true},
+  {"query": "leadership is asking about the dip in activations this week, what do I tell them before I know", "should_trigger": true},
+  {"query": "checkout completions look 40% lower since the new app version, is that the tracking or real users", "should_trigger": true},
+  {"query": "page views doubled overnight from one country, I suspect bots but how do I check properly", "should_trigger": true},
+  {"query": "weekly retention on the dashboard suddenly changed after the data team touched the model", "should_trigger": true},
+  {"query": "give me a checklist for figuring out whether a sudden KPI drop is a measurement problem", "should_trigger": true},
+  {"query": "trial starts fell sharply on Monday and nobody knows whether it is the tracking, the pipeline or real, who should be looking at it", "should_trigger": true},
+  {"query": "revenue per visitor stepped down on the 1st, could that be a mix change in traffic", "should_trigger": false, "expected": "metric-movement-decomposition"},
+  {"query": "the signup form is returning 500 errors for every user right now", "should_trigger": false, "expected": "incident-response"},
+  {"query": "add OpenTelemetry spans and metrics to the signup service so we can see failures", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "we hit our engagement OKR but customers seem less happy, are people gaming the metric", "should_trigger": false, "expected": "metric-gaming-audit"},
+  {"query": "which first-week actions predict that a new user is still around two months later", "should_trigger": false, "expected": "activation-analysis"},
+  {"query": "net revenue retention has been sliding all year, why are accounts shrinking", "should_trigger": false, "expected": "churn-analysis"},
+  {"query": "what SLO and error budget should the signup API have", "should_trigger": false, "expected": "slo-design"},
+  {"query": "our latency alert pages us every night and it is never real, tune it", "should_trigger": false, "expected": "alert-design"},
+  {"query": "build a clear chart of weekly signups by channel for the board deck", "should_trigger": false, "expected": "data-visualisation"},
+  {"query": "the finance report says 4,210 new customers and the product dashboard says 4,380 for the same month, which one is right", "should_trigger": false, "expected": "metric-reconciliation"},
+  {"query": "every monday sunday looks down 5% then fills in, when can we publish the daily number", "should_trigger": false, "expected": "late-data-maturity"}
+]

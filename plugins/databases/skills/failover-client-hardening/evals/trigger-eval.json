@@ -1,0 +1,92 @@
+[
+ {
+  "query": "the app stayed down for ten minutes after the RDS failover even though the database was back in forty seconds",
+  "should_trigger": true
+ },
+ {
+  "query": "we get cannot execute INSERT in a read-only transaction after promotion",
+  "should_trigger": true
+ },
+ {
+  "query": "connections hang after the Patroni switchover and only a restart fixes them",
+  "should_trigger": true
+ },
+ {
+  "query": "how long should failover take from the client's point of view",
+  "should_trigger": true
+ },
+ {
+  "query": "our Java services keep resolving the old IP after a multi-AZ failover, what do we set",
+  "should_trigger": true
+ },
+ {
+  "query": "how do I configure tcp keepalive and tcp_user_timeout for libpq so dead connections are noticed",
+  "should_trigger": true
+ },
+ {
+  "query": "HikariCP hands out dead connections after the writer changed, what settings matter",
+  "should_trigger": true
+ },
+ {
+  "query": "make our services retry correctly during an Aurora failover without duplicating writes",
+  "should_trigger": true
+ },
+ {
+  "query": "MySQL error 1290 read-only option after the replica was promoted, how should the client react",
+  "should_trigger": true
+ },
+ {
+  "query": "we want to measure time to first successful write per service during a forced failover",
+  "should_trigger": true
+ },
+ {
+  "query": "the connection pool is exhausted and everything piles up when the app restarts",
+  "should_trigger": false,
+  "expected": "connection-storm-recovery"
+ },
+ {
+  "query": "queries are stuck waiting behind one long transaction",
+  "should_trigger": false,
+  "expected": "lock-queue-triage"
+ },
+ {
+  "query": "plan and run a disaster recovery exercise for the primary region",
+  "should_trigger": false,
+  "expected": "disaster-recovery-exercise"
+ },
+ {
+  "query": "design backups and point-in-time restore for the database",
+  "should_trigger": false,
+  "expected": "backup-recovery-design"
+ },
+ {
+  "query": "deadlock detected between two transactions",
+  "should_trigger": false,
+  "expected": "deadlock-analysis"
+ },
+ {
+  "query": "we need to run the incident for a database outage right now",
+  "should_trigger": false,
+  "expected": "incident-response"
+ },
+ {
+  "query": "test fencing and promotion safety on the server side of our cluster",
+  "should_trigger": false,
+  "expected": "db-replication"
+ },
+ {
+  "query": "add timeouts and retry budgets between our services",
+  "should_trigger": false,
+  "expected": "timeout-and-retry-budget"
+ },
+ {
+  "query": "this query is slow",
+  "should_trigger": false,
+  "expected": "sql-performance"
+ },
+ {
+  "query": "rolling out a schema change without downtime",
+  "should_trigger": false,
+  "expected": "db-migration"
+ }
+]

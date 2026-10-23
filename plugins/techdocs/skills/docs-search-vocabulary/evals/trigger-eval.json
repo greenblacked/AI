@@ -1,0 +1,92 @@
+[
+ {
+  "query": "people can't find the webhooks docs even though we have three pages about it",
+  "should_trigger": true
+ },
+ {
+  "query": "our docs search returns nothing for about a fifth of what people type, how do we fix that",
+  "should_trigger": true
+ },
+ {
+  "query": "I have a CSV export of our docsearch analytics, what should I do with the no-results queries",
+  "should_trigger": true
+ },
+ {
+  "query": "users search for api key but every page calls it an access token, should we rename the pages",
+  "should_trigger": true
+ },
+ {
+  "query": "which docs pages are we missing, judging by what people actually search for",
+  "should_trigger": true
+ },
+ {
+  "query": "find where the words customers type into the docs search box don't match our headings",
+  "should_trigger": true
+ },
+ {
+  "query": "someone added a pile of search synonyms on a whim and results got worse, how should we decide them properly",
+  "should_trigger": true
+ },
+ {
+  "query": "build a plan to bring our documentation zero-result rate down and prove it worked",
+  "should_trigger": true
+ },
+ {
+  "query": "analyse the search sessions where people rephrase their query twice and then leave the docs",
+  "should_trigger": true
+ },
+ {
+  "query": "support keeps sending links to pages that customers swear they searched for and couldn't find",
+  "should_trigger": true
+ },
+ {
+  "query": "our docs sidebar is a mess, regroup the sections and rename the categories",
+  "should_trigger": false,
+  "expected": "information-architecture"
+ },
+ {
+  "query": "write a how-to page for configuring webhook retries for the integrations team",
+  "should_trigger": false,
+  "expected": "technical-docs"
+ },
+ {
+  "query": "we call the same thing a workspace, a project and a space depending on the screen, pick one and enforce it",
+  "should_trigger": false,
+  "expected": "terminology-lock"
+ },
+ {
+  "query": "our docs search-and-answer feature keeps retrieving the wrong chunks, how should we chunk and index the pages",
+  "should_trigger": false,
+  "expected": "rag-design"
+ },
+ {
+  "query": "measure recall at ten for our retrieval pipeline against a labelled question set",
+  "should_trigger": false,
+  "expected": "retrieval-evaluation"
+ },
+ {
+  "query": "we're moving the docs to a new static site generator and need the old URLs to redirect",
+  "should_trigger": false,
+  "expected": "docs-url-permanence"
+ },
+ {
+  "query": "pages keep going stale every time someone changes a config flag in the code",
+  "should_trigger": false,
+  "expected": "docs-drift-detection"
+ },
+ {
+  "query": "the empty state on our search results page just says no results, what should it say instead",
+  "should_trigger": false,
+  "expected": "content-design"
+ },
+ {
+  "query": "write the recruitment screener and task script for a tree test of the new docs navigation",
+  "should_trigger": false,
+  "expected": "usability-test-plan"
+ },
+ {
+  "query": "nobody can find the pricing page, where should it live in the nav",
+  "should_trigger": false,
+  "expected": "information-architecture"
+ }
+]

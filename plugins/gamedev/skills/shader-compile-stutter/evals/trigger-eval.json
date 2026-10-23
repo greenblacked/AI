@@ -1,0 +1,22 @@
+[
+{"query":"every new spell effect hitches the first time it plays, but the second cast is smooth","should_trigger":true},
+{"query":"we get big stutters on DX12 that we do not see on DX11","should_trigger":true},
+{"query":"first launch of the game is terrible, second launch is perfectly smooth","should_trigger":true},
+{"query":"how do we ship a shader cache so Steam Deck players do not stutter on first run","should_trigger":true},
+{"query":"set up PSO precaching and a bundled pipeline cache for our Unreal build","should_trigger":true},
+{"query":"should we save and reload a Vulkan pipeline cache between launches","should_trigger":true},
+{"query":"Unity builds hitch when a new enemy type spawns, I think it is shader variants compiling","should_trigger":true},
+{"query":"can we fail CI if there are more than a handful of compile hitches on a fresh machine","should_trigger":true},
+{"query":"our shader variant count exploded to 80k and loading with warm-up takes minutes","should_trigger":true},
+{"query":"how long should a first-run compiling shaders screen be before players think the game crashed","should_trigger":true},
+{"query":"frame rate sits at 40 on the GPU all the time in the city level, what do I cut","should_trigger":false,"expected":"game-performance"},
+{"query":"my game stutters every few seconds and I see GC spikes in the profiler","should_trigger":false,"expected":"game-performance"},
+{"query":"is this scene CPU bound or GPU bound","should_trigger":false,"expected":"game-performance"},
+{"query":"texture import settings are making the build huge, how do we compress the art","should_trigger":false,"expected":"game-assets"},
+{"query":"levels take 40 seconds to load from disk, what is slow","should_trigger":false,"expected":"game-load-times"},
+{"query":"the clients desync","should_trigger":false,"expected":"game-netcode"},
+{"query":"how big a patch can we ship before players complain on console","should_trigger":false,"expected":"game-patch-size"},
+{"query":"we run out of memory on the console after three levels","should_trigger":false,"expected":"game-memory-budget"},
+{"query":"write a GLSL shader for a water surface with foam","should_trigger":false},
+{"query":"plan the season calendar and patch cadence for next year","should_trigger":false,"expected":"game-live-ops"}
+]

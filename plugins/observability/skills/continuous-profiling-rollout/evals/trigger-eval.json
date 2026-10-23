@@ -1,0 +1,22 @@
+[
+  {"query": "we want to set up continuous profiling in production, where do we start", "should_trigger": true},
+  {"query": "planning a pyroscope rollout across our services, what should the labels be", "should_trigger": true},
+  {"query": "parca versus an in-process agent for always-on profiles, how do we choose", "should_trigger": true},
+  {"query": "we want flame graphs from production all the time, not just when someone attaches a profiler", "should_trigger": true},
+  {"query": "can we run an ebpf profiler across the whole kubernetes fleet and what will break", "should_trigger": true},
+  {"query": "how much overhead is acceptable for always-on profiling and how do we prove it", "should_trigger": true},
+  {"query": "our ebpf flame graphs show hex addresses for the python services, is the profiler working", "should_trigger": true},
+  {"query": "link traces to profiles so we can jump from a slow span to the code, is it worth it", "should_trigger": true},
+  {"query": "show me what changed in cpu between the last two deploys using production profiles", "should_trigger": true},
+  {"query": "how long should we retain profiles so we can compare release versions", "should_trigger": true},
+  {"query": "this function is slow, take a profile and make it faster", "should_trigger": false, "expected": "profiling"},
+  {"query": "add metrics, logs and traces to a service that has none", "should_trigger": false, "expected": "instrumentation"},
+  {"query": "how many nodes do we need for next quarter's traffic", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "our jvm heap keeps growing and the pod is getting oom killed", "should_trigger": false, "expected": "jvm-oom-triage"},
+  {"query": "go goroutines pile up and never exit", "should_trigger": false, "expected": "go-goroutine-leak"},
+  {"query": "find the slowest spans in our traces and explain the latency", "should_trigger": false, "expected": "trace-latency-analysis"},
+  {"query": "reduce our cloud bill by finding the most expensive workloads", "should_trigger": false, "expected": "cost-review"},
+  {"query": "benchmark two implementations fairly and report the difference", "should_trigger": false, "expected": "benchmark-methodology"},
+  {"query": "our dashboards time out on long ranges", "should_trigger": false, "expected": "slow-dashboard-fix"},
+  {"query": "tune go garbage collection settings for our latency-sensitive service", "should_trigger": false, "expected": "go-gc-tuning"}
+]

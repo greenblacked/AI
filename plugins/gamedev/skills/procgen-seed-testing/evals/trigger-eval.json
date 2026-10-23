@@ -1,0 +1,22 @@
+[
+  {"query": "our roguelike generator sometimes makes a level where the exit is unreachable", "should_trigger": true},
+  {"query": "the same seed gives different dungeons on the Mac and Windows builds", "should_trigger": true},
+  {"query": "how do I test procedural generation without playing every level", "should_trigger": true},
+  {"query": "a player sent us a seed that produced an empty map; how do we stop it happening again", "should_trigger": true},
+  {"query": "we are adding a daily challenge seed that everyone shares and want to be sure it is fair", "should_trigger": true},
+  {"query": "how many seeds should CI sweep and what should it check on each one", "should_trigger": true},
+  {"query": "we changed the room placement algorithm and now old shared seeds produce different worlds", "should_trigger": true},
+  {"query": "reachability passes but some generated levels are still impossible to beat", "should_trigger": true},
+  {"query": "how do we measure whether the loot generator ever gives a run with no weapon until floor five", "should_trigger": true},
+  {"query": "put the generator version in the seed code so players can replay old runs", "should_trigger": true},
+  {"query": "lay out the tutorial level by hand so new players learn the jump", "should_trigger": false, "expected": "game-level-design"},
+  {"query": "adjust enemy health and damage so the third boss feels fair", "should_trigger": false, "expected": "game-balance"},
+  {"query": "run a bot through the entire game to find progression blockers", "should_trigger": false, "expected": "automated-playthrough"},
+  {"query": "verify that published drop rates match what the loot box actually gives", "should_trigger": false, "expected": "loot-odds-verification"},
+  {"query": "our lockstep clients show a hash mismatch at frame 9000 on a shared seed", "should_trigger": false, "expected": "game-desync-forensics"},
+  {"query": "how should we version our save files across patches", "should_trigger": false, "expected": "game-save-system"},
+  {"query": "write tests that generate random inputs for our json parser", "should_trigger": false, "expected": "test-design"},
+  {"query": "plan the playtest sessions for next month", "should_trigger": false, "expected": "game-playtest"},
+  {"query": "set the loot and currency sources so the economy does not inflate", "should_trigger": false, "expected": "game-balance"},
+  {"query": "players found an item duplication exploit", "should_trigger": false, "expected": "economy-exploit-response"}
+]

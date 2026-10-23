@@ -1,7 +1,7 @@
 ---
 name: instrumentation
-description: "Add telemetry to a service so the next incident is diagnosable: start from the questions you will need answered at 3am, choose a metric, a span or a log per question, instrument with OpenTelemetry and the semantic conventions, keep high-cardinality identity off metric labels and on spans, propagate trace context across queues, batch jobs and thread pools, and set sampling and retention that keep the interesting traces. Use this skill whenever someone is adding metrics, spans, structured logging or OpenTelemetry to a service, asks what a new service should emit or what to add after an incident showed a gap, or is fixing a cardinality explosion or an observability bill — including \"we could not tell which customer was affected\", \"add a metric for this\", or \"our traces stop at the queue\". Not for deciding what should page a human, diagnosing a live incident, profiling a slow function (profiling), or choosing a monitoring vendor."
-allowed-tools: Read, Grep, Glob, Edit, Write, Bash(promtool:*), Bash(otelcol:*), Bash(curl:*)
+description: "Add telemetry to a service so the next incident is diagnosable: start from the questions you will need answered at 3am, choose a metric, a span or a log per question, instrument with OpenTelemetry and the semantic conventions, keep high-cardinality identity off metric labels and on spans, propagate trace context across queues, batch jobs and thread pools, and set sampling and retention that keep the interesting traces. Use this skill whenever someone is adding metrics, spans, structured logging or OpenTelemetry to a service at design time, or asks what a new service should emit or what to add after an incident showed a gap, such as \"we could not tell which customer was affected\" or \"add a metric for this\". Not for paging rules, live incidents, profiling a slow function (profiling), vendor choice, a live cardinality explosion or bill (cardinality-incident-response, log-volume-reduction) or a trace that breaks (broken-trace-hunt)."
+allowed-tools: Read, Grep, Glob, Edit, Write, Bash(promtool check rules:*), Bash(promtool check config:*)
 ---
 
 # Instrumentation
@@ -12,9 +12,9 @@ Instrumentation is almost never added calmly. It is added the week after the inc
 
 ## Scope
 
-Use for: deciding what a new service should emit before it ships; adding the signals an incident proved missing; choosing between a metric, a span and a log for a given question; adopting OpenTelemetry, its SDK, collector and semantic conventions; fixing a cardinality explosion or an observability bill; getting trace context through a queue, a batch job or a thread pool; putting trace ids into log lines; designing sampling and retention.
+Use for: deciding what a new service should emit before it ships; adding the signals an incident proved missing; choosing between a metric, a span and a log for a given question; adopting OpenTelemetry, its SDK, collector and semantic conventions; getting trace context through a queue, a batch job or a thread pool; putting trace ids into log lines; designing sampling and retention.
 
-Do not use for: deciding what should page a human or writing the alerting rule (that is `alert-design`), diagnosing an incident happening right now (that is `incident-response`, or `k8s-triage` for a Kubernetes workload), profiling a slow function or hunting an allocation, or choosing between observability vendors (that is `vendor-evaluation`).
+Do not use for: deciding what should page a human or writing the alerting rule (that is `alert-design`), diagnosing an incident happening right now (that is `incident-response`, or `k8s-triage` for a Kubernetes workload), profiling a slow function or hunting an allocation, choosing between observability vendors (that is `vendor-evaluation`), cutting the cost of a cardinality explosion or log volume already in production (that is `cardinality-incident-response` or `log-volume-reduction`), or finding where an existing trace breaks (that is `broken-trace-hunt`).
 
 ## The gate
 
@@ -256,6 +256,8 @@ volume, and the retention tier per signal.]
 **Sampling errors away.** A flat head-based rate discards the rare, slow, failing traces at exactly the ratio it discards the boring ones, so the trace you go looking for during an incident is statistically the one that was dropped. Tail-based sampling with keep-all-errors and keep-all-slow costs collector memory and buys the entire value of having traces.
 
 **Dashboards nobody opens instead of questions somebody asks.** Forty panels of everything the exporter offers looks like coverage and functions as camouflage: the responder scrolls, sees no anomaly they can interpret, and goes back to reading logs. Build the panel that answers a written question, put the query for it in the runbook, and delete panels nobody looked at during the last three incidents.
+
+`promtool check rules` and `promtool check config` are pre-approved for validating rule and configuration files. Other `promtool` subcommands, `otelcol` and `curl` ask first, because they can query or push to a server, run service discovery, write blocks or start a pipeline.
 
 ## Reference files
 

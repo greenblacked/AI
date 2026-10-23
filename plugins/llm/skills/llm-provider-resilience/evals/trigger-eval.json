@@ -1,0 +1,22 @@
+[
+  {"query": "the provider had an outage last night and our whole support assistant went down with it, how do we stop that happening", "should_trigger": true},
+  {"query": "we keep getting 429s from the model api during our morning peak, what should the client do", "should_trigger": true},
+  {"query": "add a fallback model so the feature keeps working when the main one is overloaded", "should_trigger": true},
+  {"query": "our retries against the llm provider made the incident worse, the provider was struggling and we hammered it harder", "should_trigger": true},
+  {"query": "which llm errors are worth retrying and which will just fail again at full price", "should_trigger": true},
+  {"query": "a nightly batch job eats our rate limit and interactive users get errors, how do we separate them", "should_trigger": true},
+  {"query": "what should happen when the stream drops halfway through a streamed answer", "should_trigger": true},
+  {"query": "should we respect the retry-after header and how do we add jitter to our backoff for model calls", "should_trigger": true},
+  {"query": "set up a circuit breaker for our model calls and tell me how to test it with injected failures", "should_trigger": true},
+  {"query": "we switch to a backup provider on errors but nobody has checked whether tool calls still work there", "should_trigger": true},
+  {"query": "our model bill doubled because retries and the fallback use the pricier model, set spend ceilings", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "design deadlines and retry budgets for a chain of internal microservice calls", "should_trigger": false, "expected": "timeout-and-retry-budget"},
+  {"query": "our queue consumers redeliver messages and process duplicates after a crash", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "the vendor is retiring our model next quarter, plan the move to its replacement", "should_trigger": false, "expected": "model-migration"},
+  {"query": "we are in the middle of a live outage right now, who does what", "should_trigger": false, "expected": "incident-response"},
+  {"query": "rate limit our own public api per customer with a token bucket", "should_trigger": false, "expected": "rate-limiter-design"},
+  {"query": "run a game day where we kill a database replica and watch the failover", "should_trigger": false, "expected": "game-day"},
+  {"query": "make the model reply with json that always validates against our schema", "should_trigger": false, "expected": "structured-output"},
+  {"query": "how many replicas and how much headroom do we need for next year's traffic", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "shed load when our own service is overloaded so it recovers instead of collapsing", "should_trigger": false, "expected": "overload-protection"}
+]

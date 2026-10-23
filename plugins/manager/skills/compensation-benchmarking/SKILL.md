@@ -1,6 +1,6 @@
 ---
 name: compensation-benchmarking
-description: "Build or repair the pay structure a team is managed against — benchmark sources matched to stage and market, the level matched before the price, bands with a midpoint and a spread, compa-ratio and range placement, compression between new hires and tenured staff, a pay-equity check by cohort, offer construction, and a merit budget against a written matrix. Use this skill whenever someone is setting, checking or defending pay: refreshing salary bands, benchmarking a role, pricing an offer, reviewing for pay equity or compression, allocating a raise budget, or asking whether someone is paid fairly or a hire is affordable — including phrasings like \"we keep losing people on comp\" or \"what should we offer her\". Do not use it for the review or rating (growth-review), the interview loop and hire decision (hiring-loop), or the conversation where the number disappoints (difficult-conversation)."
+description: "Build or repair the pay structure a team is managed against — level fixed before price, sources matched to stage and market, bands with a midpoint and a spread, compa-ratio and range placement, compression, a pay-equity check by cohort, offer construction, and a merit budget against a written matrix. Use this skill whenever someone is setting, checking or defending pay: refreshing salary bands, benchmarking a role, pricing an offer, reviewing for pay equity or compression, allocating a raise budget, or asking whether a report is paid fairly or a hire is affordable — including phrasings like \"we keep losing people on comp\" or \"what should we offer her\". Do not use it for the review or rating (growth-review), the interview loop and hire decision (hiring-loop), the conversation where the number disappoints (difficult-conversation), or an employee checking their own pay to ask for a raise (raise-negotiation)."
 allowed-tools: Read, Write, Grep, Glob
 ---
 
@@ -14,7 +14,7 @@ The job is hard because pay is the most opaque decision a manager makes and the 
 
 Use for: building or refreshing salary bands; benchmarking a role, a level or a market; placing a person in a band; pricing an offer or a counter-offer; checking for pay equity, compression or inversion; allocating a merit or promotion budget; deciding whether a hire is affordable within the structure.
 
-Do not use for: the written review, the rating or the promotion case itself (that is `growth-review`); designing the interview loop or making the hire/no-hire decision (that is `hiring-loop`); or holding the conversation in which the number lands as a disappointment or a surprise (that is `difficult-conversation`).
+Do not use for: the written review, the rating or the promotion case itself (that is `growth-review`); designing the interview loop or making the hire/no-hire decision (that is `hiring-loop`); holding the conversation in which the number lands as a disappointment or a surprise (that is `difficult-conversation`); or an employee asking whether they themselves are underpaid in order to ask for a raise (that is `raise-negotiation`).
 
 ## The order of operations
 

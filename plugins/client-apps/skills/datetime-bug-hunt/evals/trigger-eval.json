@@ -1,0 +1,22 @@
+[
+  {"query": "users in California say their birthday shows up one day early in the profile screen", "should_trigger": true},
+  {"query": "our daily reminder fired at 10am instead of 9am the morning after the clocks went forward", "should_trigger": true},
+  {"query": "should a meeting time in the future be stored as UTC or as local time with a zone", "should_trigger": true},
+  {"query": "the due date is correct for us in London but customers in Auckland see the next day", "should_trigger": true},
+  {"query": "new Date('2026-03-29') gives me the 28th in the browser, what is going on", "should_trigger": true},
+  {"query": "recurring weekly class is an hour off for half the year on Android, iOS is fine", "should_trigger": true},
+  {"query": "the overdue badge flips at 5pm for some users instead of at midnight", "should_trigger": true},
+  {"query": "what test cases do we need so timezone and daylight saving bugs stop coming back", "should_trigger": true},
+  {"query": "a 2:30am alarm on the night the clocks change either never rings or rings twice", "should_trigger": true},
+  {"query": "our invoice dates printed as 2025 for the last few days of December 2024", "should_trigger": true},
+  {"query": "design the REST endpoint for creating and listing calendar events, including pagination", "should_trigger": false, "expected": "api-design"},
+  {"query": "how should we model the bookings tables before we write the first migration", "should_trigger": false, "expected": "schema-design"},
+  {"query": "the Arabic build shows month names in English and the Thai users want their own calendar", "should_trigger": false, "expected": "locale-edge-sweep"},
+  {"query": "we need to change the created_at column type on a 400 million row table without downtime", "should_trigger": false, "expected": "db-migration"},
+  {"query": "the totals come out one cent off for some orders and I cannot see why", "should_trigger": false, "expected": "debugging"},
+  {"query": "the room database migration from version 6 to 7 crashes for users who skipped a release", "should_trigger": false, "expected": "on-device-migration-safety"},
+  {"query": "the reminder push arrives hours late on some Xiaomi phones", "should_trigger": false, "expected": "push-notification-delivery"},
+  {"query": "reword the date picker labels so people understand which field is the check-out day", "should_trigger": false, "expected": "content-design"},
+  {"query": "players lose their daily login streak after the patch changed the save format", "should_trigger": false, "expected": "game-save-system"},
+  {"query": "this report query filtering by created_at takes 9 seconds on the big table", "should_trigger": false, "expected": "sql-performance"}
+]

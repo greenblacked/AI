@@ -1,0 +1,22 @@
+[
+  {"query": "our turborepo remote cache hit rate is around twenty percent even on unchanged packages", "should_trigger": true},
+  {"query": "turbo rebuilds everything on every ci run and I cannot see why", "should_trigger": true},
+  {"query": "gradle build cache never hits in CI but works on my laptop", "should_trigger": true},
+  {"query": "bazel remote cache hits locally but every action misses on the ci runners", "should_trigger": true},
+  {"query": "the cache only hits when the same machine built it, a colleague always misses", "should_trigger": true},
+  {"query": "how do I diff the inputs of a single task between two builds of the same commit to see why it missed", "should_trigger": true},
+  {"query": "nx says cache miss for a package nobody touched, find out what changed in its hash", "should_trigger": true},
+  {"query": "a generated version file with a timestamp keeps invalidating our build cache", "should_trigger": true},
+  {"query": "we want to know the achievable cache hit ceiling and where we lose it", "should_trigger": true},
+  {"query": "jobs on forks should read the shared build cache but not write it, check we set that up while fixing the misses", "should_trigger": true},
+  {"query": "cache node_modules and the pnpm store between github actions runs with a good key", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "fork pull requests could poison our shared cache with a malicious artefact", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "incremental builds take ninety seconds even when everything is cached", "should_trigger": false, "expected": "slow-build-profile"},
+  {"query": "only build and test the packages affected by this change", "should_trigger": false, "expected": "affected-build-selection"},
+  {"query": "cache user profile reads in redis with safe invalidation", "should_trigger": false, "expected": "application-caching"},
+  {"query": "the docker layer cache is invalidated by copying the whole source before installing dependencies", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "my cargo build recompiles everything after touching one file, show where the time goes", "should_trigger": false, "expected": "slow-build-profile"},
+  {"query": "imports work in my checkout but fail in a clean container", "should_trigger": false, "expected": "phantom-dependency-audit"},
+  {"query": "the release job published to the registry but failed before tagging", "should_trigger": false, "expected": "partial-release-recovery"},
+  {"query": "add timeouts and a concurrency group to our workflows", "should_trigger": false, "expected": "pipeline-hardening"}
+]

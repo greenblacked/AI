@@ -1,0 +1,22 @@
+[
+  {"query": "someone committed a 400 MB video to the repo last year and now every clone takes ten minutes", "should_trigger": true},
+  {"query": "purge this api key from the entire git history", "should_trigger": true},
+  {"query": "how do I remove a file from every commit on every branch", "should_trigger": true},
+  {"query": "we want to move our design assets into Git LFS and rewrite history so old clones shrink", "should_trigger": true},
+  {"query": "a customer database dump got pushed to a public repo, how do we scrub it from the commits", "should_trigger": true},
+  {"query": "our .git directory is 6 GB and nobody knows why, find what is bloating it", "should_trigger": true},
+  {"query": "we ran filter-repo but the old commits are still visible through pull request refs on the host", "should_trigger": true},
+  {"query": "is it safe to use git filter-branch to delete a folder from history", "should_trigger": true},
+  {"query": "after rewriting history what do my teammates have to do with their local clones", "should_trigger": true},
+  {"query": "strip every blob larger than 20 MB out of the repository history", "should_trigger": true},
+  {"query": "an AWS key was leaked in a commit, revoke it and issue a new one", "should_trigger": false, "expected": "secret-rotation"},
+  {"query": "I rewrote history by mistake and need my old commits back", "should_trigger": false, "expected": "git-history-recovery"},
+  {"query": "my rebase has sixty conflicts after the parent PR was squash merged", "should_trigger": false, "expected": "branch-rebase-repair"},
+  {"query": "triage the dependency vulnerability alerts that came in this week", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "scan the repository for hardcoded secrets as part of a security review of this change", "should_trigger": false, "expected": "security-review"},
+  {"query": "add a pre-commit hook that blocks large files from being committed", "should_trigger": false},
+  {"query": "set up a branch protection rule requiring two reviewers", "should_trigger": false},
+  {"query": "squash the last three commits before merging", "should_trigger": false},
+  {"query": "design a retention policy for our build artifacts to cut storage cost", "should_trigger": false},
+  {"query": "decide how often to rotate service account keys across the company", "should_trigger": false, "expected": "secret-rotation"}
+]

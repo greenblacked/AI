@@ -1,0 +1,22 @@
+[
+  {"query": "does my code scale? I want to know how it behaves from 1 to 128 cores", "should_trigger": true},
+  {"query": "what is the difference between strong scaling and weak scaling and which should I measure", "should_trigger": true},
+  {"query": "why is 64 cores barely faster than 16 for my simulation", "should_trigger": true},
+  {"query": "I need a scaling study for a compute allocation proposal", "should_trigger": true},
+  {"query": "how do I calculate parallel efficiency and Amdahl's serial fraction from my timings", "should_trigger": true},
+  {"query": "what efficiency threshold should I use to decide how many cores to run production on", "should_trigger": true},
+  {"query": "my mpi code stops speeding up after one node, how do I find which part grows", "should_trigger": true},
+  {"query": "how many repeats and what pinning should I use when timing runs on a shared node", "should_trigger": true},
+  {"query": "set up a weak scaling test where each core keeps the same number of grid cells", "should_trigger": true},
+  {"query": "is it worth moving from 4 nodes to 8 nodes for this solver", "should_trigger": true},
+  {"query": "which function in my code uses the most cpu time", "should_trigger": false, "expected": "profiling"},
+  {"query": "how much memory and walltime should I request so my jobs start sooner", "should_trigger": false, "expected": "hpc-resource-sizing"},
+  {"query": "compare my new implementation against the old one fairly, A versus B", "should_trigger": false, "expected": "benchmark-methodology"},
+  {"query": "how many servers will our web service need for next year's traffic", "should_trigger": false, "expected": "capacity-planning"},
+  {"query": "my slurm job was killed with out of memory, why", "should_trigger": false, "expected": "slurm-job-failure-triage"},
+  {"query": "many small output files are making the filesystem slow for my runs", "should_trigger": false, "expected": "parallel-filesystem-hygiene"},
+  {"query": "make my long running job restartable after preemption", "should_trigger": false, "expected": "checkpoint-restart-design"},
+  {"query": "does the answer change when I refine the mesh", "should_trigger": false, "expected": "convergence-study"},
+  {"query": "run ten thousand parameter sweep tasks and rerun only the failed ones", "should_trigger": false, "expected": "sweep-campaign-management"},
+  {"query": "choose chunking for a large netcdf file", "should_trigger": false, "expected": "array-chunking-layout"}
+]

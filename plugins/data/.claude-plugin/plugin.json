@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "data",
+  "description": "Skills for analytics data and classical machine learning: find why a number is wrong or a query costs too much, reconcile and decompose metrics, keep history, defend against upstream change, resolve duplicate entities, retire shadow spreadsheets, design and read experiments, and take models from leakage checks to production monitoring.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "data",
+    "analytics",
+    "warehouse",
+    "metrics",
+    "experiments",
+    "machine-learning"
+  ]
+}

@@ -1,0 +1,22 @@
+[
+  {"query": "is this angle in degrees or radians, the rotation looks wrong by a factor of fifty seven", "should_trigger": true},
+  {"query": "my model output is off by a factor of 1000 and I cannot find where", "should_trigger": true},
+  {"query": "I am merging measurements from two labs and the values disagree, could the units differ", "should_trigger": true},
+  {"query": "check the units in this simulation code before we publish the numbers", "should_trigger": true},
+  {"query": "how do I stop unit errors from creeping into our physics library, should we use pint", "should_trigger": true},
+  {"query": "the pressure column might be gauge or absolute, how do I tell and make the code safe", "should_trigger": true},
+  {"query": "I divided by temperature in Celsius in a ratio and the results look strange", "should_trigger": true},
+  {"query": "the decibel values in this signal code look wrong, power or amplitude", "should_trigger": true},
+  {"query": "we have rates in percent in one file and fractions in another, audit the pipeline for scale mistakes", "should_trigger": true},
+  {"query": "write tests that prove our solver gives a textbook answer in both SI and CGS inputs", "should_trigger": true},
+  {"query": "design the database columns to store measurements with their types and constraints", "should_trigger": false, "expected": "schema-design"},
+  {"query": "the sum of a million doubles differs from the exact answer in the last digits", "should_trigger": false, "expected": "floating-point-error-hunt"},
+  {"query": "same code and seed gave a different answer on a second run", "should_trigger": false, "expected": "nondeterminism-bisect"},
+  {"query": "my training loss turned into NaN at step 300", "should_trigger": false, "expected": "nan-origin-trace"},
+  {"query": "pin library versions so the analysis can be rerun in a year", "should_trigger": false, "expected": "reproducible-analysis-environment"},
+  {"query": "do technical batches rather than treatment explain the clustering in my samples", "should_trigger": false, "expected": "batch-effect-audit"},
+  {"query": "how many simulation runs do I need for a tight interval", "should_trigger": false, "expected": "monte-carlo-run-length"},
+  {"query": "does the result change when I refine the mesh", "should_trigger": false, "expected": "convergence-study"},
+  {"query": "check the statistical claims in this manuscript", "should_trigger": false, "expected": "paper-statistics-review"},
+  {"query": "run all 8000 parameter combinations on the cluster and track failures", "should_trigger": false, "expected": "sweep-campaign-management"}
+]

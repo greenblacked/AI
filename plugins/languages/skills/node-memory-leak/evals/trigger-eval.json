@@ -1,0 +1,22 @@
+[
+  {"query": "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory", "should_trigger": true},
+  {"query": "our node api grows in memory until kubernetes kills it", "should_trigger": true},
+  {"query": "how do I take a heap snapshot from a production node process without a debugger", "should_trigger": true},
+  {"query": "RSS is huge but process.memoryUsage heapUsed is small, what is using the memory", "should_trigger": true},
+  {"query": "memory climbs after every deploy and never comes back down", "should_trigger": true},
+  {"query": "I think we are leaking event listeners per request in express", "should_trigger": true},
+  {"query": "what does the comparison view in a heap snapshot tell me and how many snapshots do I need", "should_trigger": true},
+  {"query": "fetch responses we never read, could that leak memory in node", "should_trigger": true},
+  {"query": "does max-old-space-size need to match the container limit", "should_trigger": true},
+  {"query": "how do I confirm a node memory leak is really fixed after the patch", "should_trigger": true},
+  {"query": "a leak in a web page, the browser tab grows each time I open the modal", "should_trigger": false, "expected": "browser-memory-leak-hunt"},
+  {"query": "the node server has high p99 latency and event loop delay, profile it", "should_trigger": false, "expected": "profiling"},
+  {"query": "pod shows OOMKilled and I need to read the events and decide on a rollback", "should_trigger": false, "expected": "k8s-triage"},
+  {"query": "ERR_REQUIRE_ESM when importing an ESM-only package", "should_trigger": false, "expected": "node-module-format-errors"},
+  {"query": "java service OutOfMemoryError Java heap space", "should_trigger": false, "expected": "jvm-oom-triage"},
+  {"query": "python process memory keeps growing under gunicorn", "should_trigger": false, "expected": "python-memory-growth"},
+  {"query": "go program with growing goroutine count", "should_trigger": false, "expected": "go-goroutine-leak"},
+  {"query": "the function returns the wrong result when the array is empty", "should_trigger": false, "expected": "debugging"},
+  {"query": "reorganise this express app into feature modules", "should_trigger": false, "expected": "refactoring"},
+  {"query": "cpu is pegged at 100 percent in the node worker, find the hot function", "should_trigger": false, "expected": "profiling"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "our switch build runs out of memory in the third level and we do not know which system to cut", "should_trigger": true},
+  {"query": "the phone kills the game after about twenty minutes of play, how do we find out why", "should_trigger": true},
+  {"query": "memory goes up a bit every time we load a level and never comes back down, is that a leak", "should_trigger": true},
+  {"query": "the console certification has a memory limit for the title and we are over it, how do we plan the cuts", "should_trigger": true},
+  {"query": "we think the heap is fragmented after a long session, plenty of free memory in total but allocations fail", "should_trigger": true},
+  {"query": "set a memory budget per system for the lowest iphone we support and fail the build when a level exceeds it", "should_trigger": true},
+  {"query": "how do I tell a cache filling up from a real leak across repeated level loads", "should_trigger": true},
+  {"query": "diff two memory snapshots from unity to see what grew between the first and the twentieth load", "should_trigger": true},
+  {"query": "peak memory spikes during the level transition when old and new assets are both loaded", "should_trigger": true},
+  {"query": "android lowmemorykiller closes our game when the player switches apps, what should the memory target be", "should_trigger": true},
+  {"query": "our game's first install is too big for the phone store limit because of huge textures, which compression settings should I use", "should_trigger": false, "expected": "game-assets"},
+  {"query": "the game stutters every few seconds in the market scene, is it the garbage collector or the gpu", "should_trigger": false, "expected": "game-performance"},
+  {"query": "a one line fix produced a thirty gigabyte patch on steam", "should_trigger": false, "expected": "game-patch-size"},
+  {"query": "build a bot that plays the first level overnight and reports crashes", "should_trigger": false, "expected": "automated-playthrough"},
+  {"query": "find the hot function in this slow python service with a profiler", "should_trigger": false, "expected": "profiling"},
+  {"query": "shader compilation hitches the first time each effect appears", "should_trigger": false, "expected": "shader-compile-stutter"},
+  {"query": "prepare the platform certification checklist and the submission build", "should_trigger": false, "expected": "game-certification"},
+  {"query": "reduce the first launch download size of our mobile game below the cellular limit", "should_trigger": false, "expected": "game-assets"},
+  {"query": "players on cloud saves lose progress when two devices sync", "should_trigger": false, "expected": "game-save-system"},
+  {"query": "our shopping app gets killed in the background after the user switches away and leaves no crash report, how do we find out why", "should_trigger": false, "expected": "anr-watchdog-triage"}
+]

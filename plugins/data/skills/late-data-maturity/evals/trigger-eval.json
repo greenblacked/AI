@@ -1,0 +1,23 @@
+[
+  {"query": "yesterday's revenue number keeps changing every time I refresh the dashboard over the next few days, when can we actually call it final", "should_trigger": true},
+  {"query": "Every Monday the dashboard shows Sunday down 5% and by Thursday it has caught up. How do we stop people panicking about it?", "should_trigger": true},
+  {"query": "Our mobile app sends events in batches when the phone comes back online, so some arrive days late. How do we decide what time to publish the daily active users figure?", "should_trigger": true},
+  {"query": "How far back should our incremental dbt model look so it doesn't miss late-arriving rows?", "should_trigger": true},
+  {"query": "We want to label figures as provisional until they're complete. How do we work out how long that takes?", "should_trigger": true},
+  {"query": "finance wants last month's numbers frozen but partner files keep trickling in a week after month end, what policy should we set", "should_trigger": true},
+  {"query": "Is it fair to compare today's partial order count with last Tuesday's full day?", "should_trigger": true},
+  {"query": "We only store event_time on the orders table. Do we need load time too, and what would we use it for?", "should_trigger": true},
+  {"query": "How complete is a day's data 6 hours after midnight versus 24 hours, and how would I measure that from the warehouse?", "should_trigger": true},
+  {"query": "the morning report goes out at 7am but the payment processor settlement feed lands at 11am, so the 7am number is always wrong", "should_trigger": true},
+  {"query": "We need to reprocess three months of corrupted customer records in production without overwriting live edits.", "should_trigger": false, "expected": "safe-backfill"},
+  {"query": "Our Kafka consumer processes some messages twice after a restart; how do we make it idempotent?", "should_trigger": false, "expected": "event-driven-reliability"},
+  {"query": "What freshness SLO should our data pipeline service promise to the downstream teams?", "should_trigger": false, "expected": "slo-design"},
+  {"query": "Which data quality checks should the orders table get before it is published?", "should_trigger": false, "expected": "data-quality-checks"},
+  {"query": "The finance dashboard and the product dashboard show different revenue for the same day, which one is right?", "should_trigger": false, "expected": "metric-reconciliation"},
+  {"query": "Conversion rate fell 8% week on week, break down how much is mix and how much is rate.", "should_trigger": false, "expected": "metric-movement-decomposition"},
+  {"query": "What plan was this customer on as of 1 March, as we knew it at the time?", "should_trigger": false, "expected": "as-of-history"},
+  {"query": "The source team renamed a status code and our pipeline started miscounting cancelled orders.", "should_trigger": false, "expected": "upstream-change-defense"},
+  {"query": "Our warehouse bill doubled since the new dashboards went live, which queries are scanning the most?", "should_trigger": false, "expected": "scan-cost-forensics"},
+  {"query": "The pipeline job is paging at 3am whenever it runs a few minutes late; should that alert page someone?", "should_trigger": false, "expected": "alert-design"},
+  {"query": "weekly signups fell 25% on thursday and nothing shipped, did the metric really move", "should_trigger": false, "expected": "metric-anomaly-triage"}
+]

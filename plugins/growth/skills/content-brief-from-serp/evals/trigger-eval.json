@@ -1,0 +1,22 @@
+[
+  {"query": "write a brief for the keyword project management software for agencies", "should_trigger": true},
+  {"query": "what should this post cover to rank for postgres connection pooling", "should_trigger": true},
+  {"query": "which keywords should we target next for our blog", "should_trigger": true},
+  {"query": "look at what is ranking for this query and tell me what our page needs", "should_trigger": true},
+  {"query": "is it worth writing a page for this keyword or are the results out of reach", "should_trigger": true},
+  {"query": "make a content brief our freelance writer can follow for a comparison page", "should_trigger": true},
+  {"query": "do we already have a page that covers this search intent before we write another", "should_trigger": true},
+  {"query": "the top results for this query are all calculators, should we still write an article", "should_trigger": true},
+  {"query": "plan a post that can rank and also get demo requests", "should_trigger": true},
+  {"query": "what do the top ten results for this query have in common and what is missing", "should_trigger": true},
+  {"query": "draft the engineering blog post about our outage", "should_trigger": false, "expected": "write-technical-article"},
+  {"query": "traffic to our old guide fell, which posts should we refresh", "should_trigger": false, "expected": "content-refresh-triage"},
+  {"query": "should we generate thousands of location pages from a template", "should_trigger": false, "expected": "programmatic-seo-gate"},
+  {"query": "this ad landing page does not match the ad copy", "should_trigger": false, "expected": "message-match-audit"},
+  {"query": "make our docs search return the right pages for synonyms", "should_trigger": false, "expected": "docs-search-vocabulary"},
+  {"query": "write the microcopy for our onboarding screens", "should_trigger": false, "expected": "content-design"},
+  {"query": "build a marketing website for our new product", "should_trigger": false, "expected": "website-builder"},
+  {"query": "turn our best customer into a published case study", "should_trigger": false, "expected": "customer-story-production"},
+  {"query": "audit paid search for wasted spend", "should_trigger": false, "expected": "paid-search-waste-audit"},
+  {"query": "explain our conference talk outline for next month", "should_trigger": false, "expected": "conference-talk"}
+]
