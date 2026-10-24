@@ -8,6 +8,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Fixed
+
+- Two prose typos in skill text: a stray comma in the `architecture-diagrams` D2 reference's install sentence, and a sentence fragment in `k8s-triage`'s rollout-timing check.
+
 ## [0.2.1] - 2026-10-23
 
 ### Changed
