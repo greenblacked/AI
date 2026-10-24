@@ -59,7 +59,7 @@ kubectl get rs -n "$NS" -l app="$NAME" --sort-by=.metadata.creationTimestamp
 kubectl get deploy "$NAME" -n "$NS" -o jsonpath='{.metadata.annotations.kubernetes\.io/change-cause}{"\n"}'
 ```
 
-The newest ReplicaSet's `creationTimestamp` is the rollout time. Compare it against the timestamp of the *first* alert, not the loudest one. Within a few minutes, and the deploy is the cause until proven otherwise. Also check anything else that ships: Helm (`helm history <release> -n <ns>`), a config or Secret change, an operator upgrade, a feature flag.
+The newest ReplicaSet's `creationTimestamp` is the rollout time. Compare it against the timestamp of the *first* alert, not the loudest one. If the rollout landed in the few minutes before that alert, the deploy is the cause until proven otherwise. Also check anything else that ships: Helm (`helm history <release> -n <ns>`), a config or Secret change, an operator upgrade, a feature flag.
 
 If the answer is yes, or probably yes, roll back now:
 
