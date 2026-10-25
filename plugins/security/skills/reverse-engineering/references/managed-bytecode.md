@@ -1,12 +1,12 @@
-# Managed bytecode (JVM, and briefly .NET)
+# Managed bytecode (JVM, and briefly other managed runtimes)
 
-Read this once you have identified a `.class` file or a JAR (see
-[packaged and mobile artifacts](packaged-and-mobile-artifacts.md) for the container step).
-Managed bytecode is not machine code: a JVM `.class` file runs on the Java Virtual Machine,
-not the processor directly, so a native disassembler has nothing to read it with, and the
-right tool is one built for the runtime instead. The commands below are verified against a
-small `.class` file built for this file: a private `checkLicense` method comparing its
-argument against a fixed string with `String.equals`, compiled with `javac`.
+Read this once you have identified a `.class` file or a JAR (see [packaged and mobile
+artifacts](packaged-and-mobile-artifacts.md) for the container step). Managed bytecode is
+not machine code: a `.class` file runs on the JVM, not on the processor directly, so a
+native disassembler has nothing to read it with, and the right tool is one built for the
+runtime instead. The commands below are verified against a small `.class` file built for
+this file: a private `checkLicense` method comparing its argument against a fixed string
+with `String.equals`, compiled with `javac`.
 
 ## Identify, then read the public shape before the bytecode
 
@@ -16,7 +16,7 @@ javap License.class
 ```
 
 On the test file, `file` reported `compiled Java class data, version 65.0` — the version
-number is the class file format version, not the Java language version, and a decompiler or
+number is the class file format version, not the language version, and a decompiler or
 JVM too old for that version will refuse to load it. `javap` with no flags lists the public
 and package-private members: on the test class, the constructor and `main`, but not the
 private `checkLicense`, because plain `javap`'s default visibility (effectively
@@ -46,14 +46,15 @@ file demo.jar
 unzip -l demo.jar
 ```
 
-A JAR built with the `jar` tool was identified specifically — `file` reported
-`Java archive data (JAR)`, even tried against a version holding only a manifest and no
-class file at all. A plain `zip`, given the identical class file and manifest, reported the
-generic `Zip archive data` instead. So in these tests it was which tool built the archive
-that decided the label, not whether a class file was present; exactly what `file` keys on
-inside the archive to tell the two apart was not traced further than that. Either way,
-`unzip -l` lists every `.class` file inside, and each one is read the same way as the bare
-`.class` file above.
+An archive built with the `jar` tool was labelled `Java archive data (JAR)` in every case
+tried, with `file` 5.45: with a class and a manifest, with only a manifest, and with only a
+text file and no manifest. The `jar` tool marks the archive's first entry with an extra field
+whose header ID is 0xCAFE, which `file` recognises; the bytes `fe ca 00 00` sit right after
+the first entry's name. A plain `zip` got the JAR label only for some layouts: a manifest
+first followed by a class file did, while the manifest alone, the class alone, the class
+first, and the manifest with a text file did not. So the label is a hint about how the
+archive was built, not proof of what is inside. `unzip -l` is what tells you: it lists every
+`.class` file inside, and each one is read the same way as the bare `.class` file above.
 
 ## Running the class, within gate 3
 
@@ -67,11 +68,11 @@ gets from a breakpoint or a trace, and the same gate 5 rule applies: only ever r
 an input you expect to fail, or with your own test binary's or a CTF's own answer, never with
 a value recovered from someone else's software to show that it succeeds.
 
-## .NET and other managed runtimes
+## Other managed runtimes
 
-A .NET assembly (a `.dll` or `.exe` containing Common Intermediate Language) is the same idea
-— bytecode for a managed runtime, not machine code — but no .NET toolchain (`dotnet`,
-`mono`), disassembler (`ildasm`, `monodis`) or decompiler (ILSpy, dnSpy) was available to
+A Common Intermediate Language (CIL, ECMA-335) assembly (a `.dll` or `.exe`) is the same idea
+— bytecode for a managed runtime, not machine code — but no toolchain (`dotnet`, `mono`),
+disassembler (`ildasm`, `monodis`) or decompiler (ILSpy, dnSpy) was available to
 verify anything against for this skill, including what `file` reports for one; take any
 specific label as unverified until you check it yourself. CIL is packaged inside an ordinary
 PE container either way, so do not read the assembly with the tools in
