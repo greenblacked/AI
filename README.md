@@ -7,7 +7,7 @@
 
 # Agent skills
 
-498 agent skills, 30 subagents and ten slash commands, in twenty-eight
+499 agent skills, 30 subagents and ten slash commands, in twenty-eight
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-498-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-499-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -59,7 +59,7 @@ and what the runtime does or does not enforce.
 | [`manager`](#manager) | Engineering leadership | 22 skills, 2 subagents, 2 commands |
 | [`personal`](#personal) | Money, travel, admin, habits and health | 7 skills, 2 subagents |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 11 skills |
-| [`design`](#design) | Usability, accessibility and design systems | 13 skills, 1 subagent, 1 command |
+| [`design`](#design) | Usability, accessibility and design systems | 14 skills, 1 subagent, 1 command |
 | [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction, model migration, agents, latency, batch processing and resilience | 14 skills |
 | [`data`](#data) | Analytics data and classical ML: wrong numbers, warehouse cost, metrics, history, experiments and models in production | 22 skills |
 | [`techdocs`](#techdocs) | Developer documentation: tested tutorials and samples, drift, stable URLs, API and CLI reference | 11 skills |
@@ -582,6 +582,7 @@ Usability, accessibility and design systems, and the words, structure and handof
 | [`design-handoff`](plugins/design/skills/design-handoff/SKILL.md) | Turn an approved design into a buildable spec: every state and edge case, content extremes, responsive behaviour, token and component mapping, accessibility annotations and acceptance criteria an engineer can check against. |
 | [`design-system`](plugins/design/skills/design-system/SKILL.md) | Set up design tokens named by role, themes that redefine the same roles, and component states derived from them, with a contrast check of every role pair in every theme and a rule for where glass materials belong. |
 | [`information-architecture`](plugins/design/skills/information-architecture/SKILL.md) | Structure a site or app so people can find things: sitemap, navigation, taxonomy and labels, and browse versus search, grouped by the user's mental model and tested with a card sort or tree test before build. |
+| [`motion-showcase`](plugins/design/skills/motion-showcase/SKILL.md) | Turn a finished static design into motion, either a seamless looping showcase delivered as MP4 and GIF or entrance and ambient animation in a site's own code, with the backdrop untouched, the still proven first, and overflow, seam and silent-beat checks before anything is encoded. |
 | [`problem-validation`](plugins/design/skills/problem-validation/SKILL.md) | Test a problem before proposing a solution: prewritten disconfirming criteria, evidence of past behaviour, deidentified interviews and an honest insufficient-evidence decision. |
 | [`ui-ux-review`](plugins/design/skills/ui-ux-review/SKILL.md) | Review one screen or flow against usability heuristics: evidence first, the primary task before polish, every interaction state walked, and each finding written as a problem, a consequence, the smallest fix and a severity from 0 to 4. |
 | [`usability-test-plan`](plugins/design/skills/usability-test-plan/SKILL.md) | Plan and run a small test with real people: a question tied to a decision, about five participants a round, neutral tasks, think-aloud, task success and SUS, and severity-rated fixes before the next round. |
