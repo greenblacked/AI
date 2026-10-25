@@ -10,6 +10,7 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- `motion-showcase` skill in the design plugin: turn a finished static design into a looping showcase (MP4 and GIFs, captured frame by frame on a fake clock) or into scroll-triggered animation in a site's own code, with the background untouched, a still-fidelity gate before any motion, and overflow, seam and silent-beat checks before encoding.
 - `feature-recreation` skill in the coding plugin: build an original implementation of a feature observed in another product, with a behaviour spec written before the reference is opened, the two-role clean-room split for showing independent creation, a licence check on anything actually carried across, and a shipped result that never names the product it was modelled on.
 - `reverse-engineering` skill in the security plugin: lawful reverse engineering of native binaries, APKs, JARs, JVM class files, live web apps' shipped bundles and smart TV and streaming platforms, with a static-before-dynamic workflow and an isolated-environment gate for untrusted targets.
 
