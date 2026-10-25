@@ -8,6 +8,13 @@ or the third-party apps on it. Under gate 1, write down which permission covers 
 itself: the set's own settings, which you are entitled to use; an app you built and loaded
 through the platform's developer mode; or an interoperability right you actually hold.
 
+## Contents
+
+- [Identify the platform before picking a tool](#identify-the-platform-before-picking-a-tool)
+- [Where ad injection and tracking actually live](#where-ad-injection-and-tracking-actually-live)
+- [What is, and is not, in scope here](#what-is-and-is-not-in-scope-here)
+- [Building a replacement UI is a different skill](#building-a-replacement-ui-is-a-different-skill)
+
 ## Identify the platform before picking a tool
 
 The app package format decides the tool, so identify the format before anything else.
