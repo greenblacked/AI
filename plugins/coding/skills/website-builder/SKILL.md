@@ -47,6 +47,8 @@ Ask about:
 - **Hosting and constraints.** Where will it live, what already exists, what is the budget and the traffic shape, and why. Also: domain, analytics, compliance obligations.
 - **Anything fixed.** Existing brand, colours, fonts, a design system, or a site being replaced. Fixed constraints always win over this skill's preferences.
 
+When the brief is a single page whose whole job is to get one kind of visitor to take one action, read `references/landing-pages.md` before asking: it adds intake questions and the page structure to settle first.
+
 When the user has already answered most of this in their request, do not re-ask it. Confirm the gaps only, and state assumptions for anything minor.
 
 ### Step A2: Classify the tier
