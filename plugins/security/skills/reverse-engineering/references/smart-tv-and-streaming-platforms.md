@@ -73,13 +73,16 @@ router or mirror-port capture, which shows destination addresses and timing eith
 the view to trust. Most of the traffic is encrypted, so this shows which addresses the set
 contacts and when (for example right after the picture changes), and usually which host
 names from the part of the TLS handshake that is not encrypted, unless the connection uses
-Encrypted Client Hello, which hides that too; it never shows what was sent. That pattern is
-the dynamic confirmation gate 4 asks for. This was not independently verified against a real
-set for this skill. Nothing here involves intercepting or decrypting the traffic, and this
-file does not describe how. For gate 3, the set is not run on your machine: it is an
-appliance already on your network, so the isolation that matters is the network's. Put it on
-its own segment or guest network, so the capture sees only its traffic and it cannot reach
-your other devices.
+Encrypted Client Hello, which hides the real host name and leaves only the provider's. For
+an encrypted connection it never shows what was sent; anything the set sends in the clear,
+such as plain DNS queries or plain HTTP, is readable in the capture as it is. That pattern
+is the dynamic confirmation gate 4 asks for. This was not independently verified against a
+real set for this skill. Nothing here involves intercepting or decrypting the traffic, and
+this file does not describe how. For gate 3, the set is not run on your machine: it is an
+appliance already on your network, so the isolation that matters is the network's, and gate
+3's disposable, snapshotted environment has no equivalent for it. Put it on its own segment
+or guest network, so the capture sees only its traffic and it cannot reach your other
+devices.
 
 ## What is, and is not, in scope here
 
