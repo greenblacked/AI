@@ -18,5 +18,9 @@
   {"query": "we found a security bug in a third-party library, how do we coordinate disclosure with the maintainers", "should_trigger": false, "expected": "vulnerability-disclosure"},
   {"query": "gdb shows nothing but question marks, I have a core file from a production crash but no symbols for it", "should_trigger": false, "expected": "native-core-dump-analysis"},
   {"query": "we think this host is compromised and a sample is running on it right now, how do I preserve evidence before anyone touches it", "should_trigger": false, "expected": "compromise-evidence-preservation"},
-  {"query": "we keep seeing the same attack pattern in our logs, help me write a detection rule for it", "should_trigger": false, "expected": "detection-engineering"}
+  {"query": "we keep seeing the same attack pattern in our logs, help me write a detection rule for it", "should_trigger": false, "expected": "detection-engineering"},
+  {"query": "my TV keeps showing ads on the home screen and I think it's tracking what I watch, how do I find out what it's actually doing", "should_trigger": true},
+  {"query": "I pulled a .ipk app package off my smart TV and want to see what's inside it", "should_trigger": true},
+  {"query": "I want to build my own TV home screen that feels like another streaming box's interface without copying it", "should_trigger": false, "expected": "feature-recreation"},
+  {"query": "we're designing what our own TV firmware reports home about viewing, within a data budget, how should that telemetry work", "should_trigger": false, "expected": "device-telemetry-design"}
 ]

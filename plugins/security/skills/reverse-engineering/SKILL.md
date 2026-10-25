@@ -1,6 +1,6 @@
 ---
 name: reverse-engineering
-description: "Reverse engineer a binary, a packaged mobile app, a JVM class file, or a live web app's shipped bundle you are authorised to examine: identify the format first, read its static structure — strings, symbols, bytecode or a source map — before running it, then confirm a hypothesis dynamically in an isolated environment. Covers native ELF, PE and Mach-O binaries, zip-backed packages (APK, JAR) and web apps, for malware triage, vulnerability research, CTFs, coursework and interoperability work. Use for \"I have a binary and no source, where do I start\", \"find the license check in this program\", or \"this minified JS, can I get back something readable\". Not for a system diagram (architecture-diagrams), a source repo you already have (codebase-orientation), a diff review (security-review), a live cloud audit (access-review), or a logic error in your own code (debugging)."
+description: "Reverse engineer a binary, a packaged mobile app, a JVM class file, a smart TV app, or a live web app's shipped bundle you are authorised to examine: identify the format first, read its static structure — strings, symbols, bytecode or a source map — before running it, then confirm a hypothesis dynamically in an isolated environment. Covers native ELF, PE and Mach-O binaries, zip-backed packages (APK, JAR) and web apps, for malware triage, vulnerability research, CTFs, coursework and interoperability work. Use for \"I have a binary and no source, where do I start\", \"find the license check in this program\", or \"this minified JS, can I get back something readable\". Not for a system diagram (architecture-diagrams), a source repo you already have (codebase-orientation), a diff review (security-review), a live cloud audit (access-review), or a logic error in your own code (debugging)."
 allowed-tools: "Read, Glob, Grep"
 ---
 
@@ -94,6 +94,10 @@ Android APK, a JAR, or another zip-backed package goes to
 also says where that reference's own coverage stops — an Electron app's `app.asar` is not a
 zip, and an iOS IPA's layout was not independently verified for this skill — and a JAR's own
 `.class` files are then read with the managed-bytecode reference, not a native disassembler.
+A smart TV's or streaming device's own platform — an `.apk`, `.wgt`, `.ipk` or sideloaded-zip
+app package — goes to
+[smart TV and streaming platforms](references/smart-tv-and-streaming-platforms.md), which sends
+`.apk` packages on to the packaged-artifacts reference.
 Each path ends the same way: a list of candidate functions or files worth reading, not yet a
 finding.
 
