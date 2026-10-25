@@ -10,7 +10,7 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
-- `feature-recreation` skill in the coding plugin: build an original implementation of a feature observed in another product, with a behaviour spec written before the reference is opened, the two-role clean-room split for showing independent creation, and a licence check on anything actually carried across.
+- `feature-recreation` skill in the coding plugin: build an original implementation of a feature observed in another product, with a behaviour spec written before the reference is opened, the two-role clean-room split for showing independent creation, a licence check on anything actually carried across, and a shipped result that never names the product it was modelled on.
 
 ## [0.2.2] - 2026-10-24
 
