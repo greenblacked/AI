@@ -533,6 +533,15 @@ class _Renderer:
         self.source_dir = source_dir
         self.offset = offset
         self.slugs = slugs
+        # The text of the last heading rendered, which a table scroll region is named by.
+        self.heading = ""
+        # The heading each table sat under, in order, so that two tables under one heading
+        # can be told apart once the whole page is known.
+        self.table_headings: list[str] = []
+        # Which heading occurrence each table sat under, so that two different headings with
+        # the same text are not mistaken for one.
+        self.heading_serial = 0
+        self.table_groups: list[int] = []
 
     def inline(self, text: str) -> str:
         return render_inline(text, self.source_dir)
@@ -571,7 +580,9 @@ class _Renderer:
             if heading is not None:
                 level = min(6, len(heading.group(1)) + self.offset)
                 content = self.inline((heading.group(2) or "").strip())
-                slug = self.slugs.take(plain_text(content))
+                self.heading = plain_text(content)
+                self.heading_serial += 1
+                slug = self.slugs.take(self.heading)
                 emit("h", f'<h{level} id="{_escape(slug)}">{content}</h{level}>')
                 i += 1
                 continue
@@ -702,8 +713,15 @@ class _Renderer:
             body.append(
                 "<tr>" + "".join(cell("td", text, n) for n, text in enumerate(row)) + "</tr>"
             )
+        # A region that scrolls sideways has to be reachable and named, or a keyboard
+        # user cannot read its far columns and a screen reader announces nothing.
+        label = _escape(html.unescape(self.heading) or "Table").replace("\x00", "")
+        # Replaced in render() once it is known how many tables share this heading.
+        self.table_headings.append(label)
+        self.table_groups.append(self.heading_serial)
+        label = f"\x00T{len(self.table_headings) - 1}\x00"
         markup = (
-            '<div class="table-wrap"><table>\n'
+            f'<div class="table-wrap" tabindex="0" role="region" aria-label="{label}"><table>\n'
             f"<thead><tr>{head}</tr></thead>\n"
             f"<tbody>\n{chr(10).join(body)}\n</tbody>\n</table></div>"
         )
@@ -821,9 +839,25 @@ def render(
     levels (capped at ``h6``). Pass one :class:`Slugs` for every call on a page so that
     ids stay unique across them.
     """
+    # U+0000 is the table-name placeholder's delimiter; input cannot be allowed to forge one.
+    text = text.replace("\x00", "\ufffd")
     renderer = _Renderer(source_dir.strip("/"), offset, slugs or Slugs())
     lines = [
         line.expandtabs(4) for line in text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
     ]
     blocks, _ = renderer.blocks(lines)
-    return "\n".join(markup for _, markup, _ in blocks)
+    out = "\n".join(markup for _, markup, _ in blocks)
+    groups = renderer.table_groups
+    totals = {g: groups.count(g) for g in groups}
+    seen: dict[int, int] = {}
+
+    def name(match: re.Match[str]) -> str:
+        index = int(match.group(1))
+        heading, group = renderer.table_headings[index], groups[index]
+        seen[group] = seen.get(group, 0) + 1
+        if totals[group] == 1:
+            return heading
+        # Two regions under one heading would be announced identically.
+        return f"{heading}, table {seen[group]} of {totals[group]}"
+
+    return re.sub(r"\x00T(\d+)\x00", name, out)

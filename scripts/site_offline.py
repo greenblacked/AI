@@ -294,7 +294,8 @@ OFFLINE_SCRIPT_TEMPLATE = r"""
       // Every title ends in the site's name, which the heading above already says; the
       // front page's is that name alone.
       found = found.replace(/ · AI$/, "");
-      return found && found !== "AI" ? found : path === "/" ? "Home" : path;
+      if (path === "/") return "Home";
+      return found && found !== "AI" ? found : path;
     }, function () { return path; });
   }
   function show(items) {

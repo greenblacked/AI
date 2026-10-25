@@ -310,3 +310,18 @@ def test_one_pass_label_matching_agrees_with_the_bracket_scan():
             opens, ends = md._label_ends(text)
             for begin in opens:
                 assert ends.get(begin) == md._skip_label(text, begin), (text, begin)
+
+
+def test_a_nul_in_the_input_cannot_forge_a_table_name_placeholder():
+    out = md.render("# H\n\n\x00T0\x00 \x00T99\x00\n\na | b\n--|--\n1 | 2\n")
+    assert "\x00" not in out
+    assert "\ufffdT0\ufffd" in out
+    assert 'aria-label="H"' in out
+
+
+def test_two_headings_with_the_same_text_each_name_their_table_plainly():
+    table = "a | b\n--|--\n1 | 2\n"
+    out = md.render(f"# Same\n\n{table}\n# Same\n\n{table}")
+    assert out.count('aria-label="Same"') == 2 and "table 1 of" not in out
+    both = md.render(f"# Same\n\n{table}\n{table.replace('1', '3')}")
+    assert 'aria-label="Same, table 1 of 2"' in both and 'aria-label="Same, table 2 of 2"' in both
