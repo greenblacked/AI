@@ -7,7 +7,7 @@
 
 # Agent skills
 
-499 agent skills, 30 subagents and ten slash commands, in twenty-eight
+500 agent skills, 30 subagents and ten slash commands, in twenty-eight
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-499-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-500-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -57,7 +57,7 @@ and what the runtime does or does not enforce.
 | [`delivery`](#delivery) | Getting a change into production | 12 skills, 1 subagent |
 | [`security`](#security) | The defensive side of shipping software | 22 skills, 5 subagents, 2 commands |
 | [`manager`](#manager) | Engineering leadership | 22 skills, 2 subagents, 2 commands |
-| [`personal`](#personal) | Money, travel, admin, habits and health | 7 skills, 2 subagents |
+| [`personal`](#personal) | Money, travel, admin, habits, health and family history | 8 skills, 2 subagents |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 11 skills |
 | [`design`](#design) | Usability, accessibility and design systems | 14 skills, 1 subagent, 1 command |
 | [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction, model migration, agents, latency, batch processing and resilience | 14 skills |
@@ -195,7 +195,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.47 }
+{ "skillListingBudgetFraction": 0.48 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -544,6 +544,7 @@ The parts of life that are nobody's job.
 
 | Skill | What it does |
 | --- | --- |
+| [`family-history-research`](plugins/personal/skills/family-history-research/SKILL.md) | Trace a family through records rather than stories: one question about named people, a place and a period, jurisdictions and calendars fixed per event, a search plan and log with a coverage list, every item classed as original, derivative or authored, conflicts resolved in writing, and a label for relatives never stronger than the evidence. |
 | [`habit-change`](plugins/personal/skills/habit-change/SKILL.md) | Change one behaviour so it survives a bad week: small enough that a bad day cannot stop it, anchored to a cue rather than a clock, with the environment redesigned and a recovery rule written before it breaks. |
 | [`health-coach`](plugins/personal/skills/health-coach/SKILL.md) | Estimate calories and macros from a photo or a description, as a range with the uncertainty named, then suggest one thing worth changing. |
 | [`life-admin`](plugins/personal/skills/life-admin/SKILL.md) | Get through a renewal, claim, registration or dispute in one attempt: the authoritative requirement first, the documents that need other documents, a record of every submission, and the escalation path for when it stalls. |
