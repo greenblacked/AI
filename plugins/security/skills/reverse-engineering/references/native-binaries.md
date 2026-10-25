@@ -15,10 +15,10 @@ On the test binary this printed `ELF 64-bit LSB pie executable, x86-64, ... dyna
 linked, ... with debug_info, not stripped`. That one line already answers four questions:
 architecture, whether it is stripped (symbol names survive or not), whether it is
 dynamically or statically linked (which other libraries matter), and whether debug
-information is present (source-level debugging is possible). A PE binary reports
-`PE32+ executable` and a Mach-O one `Mach-O 64-bit executable`; the tools below are
-ELF-first, so a PE or Mach-O target is better read with a disassembler built for that
-format (Ghidra and radare2 both read all three) rather than with `objdump`/`nm`/`readelf`.
+information is present (source-level debugging is possible). A 64-bit PE binary reports
+`PE32+ executable` and a 64-bit Mach-O one `Mach-O 64-bit executable`; the tools below are
+ELF-first, so a PE or Mach-O target is better read with a disassembler built for that format
+(Ghidra and radare2 both read all three) rather than with `objdump`/`nm`/`readelf`.
 
 ## Strings: the cheapest signal
 
@@ -67,10 +67,17 @@ fork rizin, or a commercial one) for a higher-level read; treat its output as a 
 ## Linked libraries and what they imply
 
 ```bash
-readelf -d ./target | head
+readelf -d ./target | grep NEEDED
 ```
 
-The `Dynamic section` lists `NEEDED` entries — on the test binary, `libc.so.6` — which is
-every shared library the loader pulls in before `main` runs. A binary linking a network
-library when the task description says "offline" is itself a finding worth confirming
-dynamically (next file).
+The `Dynamic section`'s `NEEDED` entries name the shared libraries the binary asks for
+directly — on the test binary, `libc.so.6`. `grep` keeps every one of them, where `head`
+would cut a long list short. That list is direct dependencies only: a library those
+libraries need in turn does not appear in it, and neither does anything loaded at runtime.
+On this machine `curl` named three libraries directly, while its own `libcurl.so.4` named
+fourteen, twelve of them missing from `curl`'s list and several of them network or TLS
+libraries (`libssh.so.4`, `libnghttp2.so.14`, `libssl.so.3`). To follow the chain without
+running anything, read each named library's own `NEEDED` entries the same way. A binary
+linking a network library when the task description says "offline" is itself a finding worth
+confirming dynamically (next file), and the absence of one from the direct list proves
+nothing.
