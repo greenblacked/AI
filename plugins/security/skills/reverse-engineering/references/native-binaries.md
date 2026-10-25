@@ -74,10 +74,12 @@ The `Dynamic section`'s `NEEDED` entries name the shared libraries the binary as
 directly — on the test binary, `libc.so.6`. `grep` keeps every one of them, where `head`
 would cut a long list short. That list is direct dependencies only: a library those
 libraries need in turn does not appear in it, and neither does anything loaded at runtime.
-On this machine `curl` named three libraries directly, while its own `libcurl.so.4` named
-fourteen, twelve of them missing from `curl`'s list and several of them network or TLS
-libraries (`libssh.so.4`, `libnghttp2.so.14`, `libssl.so.3`). To follow the chain without
-running anything, read each named library's own `NEEDED` entries the same way. A binary
-linking a network library when the task description says "offline" is itself a finding worth
-confirming dynamically (next file), and the absence of one from the direct list proves
-nothing.
+On the system this file was checked against, `curl` named three libraries directly, while
+its own `libcurl.so.4` named fourteen, twelve of them missing from `curl`'s list and several
+of them network or TLS libraries (`libssh.so.4`, `libnghttp2.so.14`, `libssl.so.3`). To
+follow the chain without running anything, read each named library's own `NEEDED` entries
+the same way, finding its file with `ldconfig -p` or on the library search path. Do not
+reach for `ldd` on the target: its own manual says never to use it on an untrusted
+executable, because some versions run the program to answer. A binary linking a network
+library when the task description says "offline" is itself a finding worth confirming
+dynamically (next file), and the absence of one from the direct list proves nothing.
