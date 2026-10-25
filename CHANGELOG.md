@@ -11,7 +11,7 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 ### Added
 
 - `feature-recreation` skill in the coding plugin: build an original implementation of a feature observed in another product, with a behaviour spec written before the reference is opened, the two-role clean-room split for showing independent creation, a licence check on anything actually carried across, and a shipped result that never names the product it was modelled on.
-- `reverse-engineering` skill in the security plugin: lawful reverse engineering of native binaries, APKs, JARs, JVM class files and live web apps' shipped bundles, with a static-before-dynamic workflow and an isolated-environment gate for untrusted targets.
+- `reverse-engineering` skill in the security plugin: lawful reverse engineering of native binaries, APKs, JARs, JVM class files, live web apps' shipped bundles and smart TV and streaming platforms, with a static-before-dynamic workflow and an isolated-environment gate for untrusted targets.
 
 ## [0.2.2] - 2026-10-24
 
