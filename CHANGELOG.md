@@ -8,6 +8,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- `reverse-engineering` skill in the security plugin: lawful reverse engineering of native binaries, Android APKs, JARs, JVM class files and live web apps' shipped bundles, with a static-before-dynamic workflow and an isolated-environment gate for untrusted targets.
+
 ## [0.2.2] - 2026-10-24
 
 ### Fixed

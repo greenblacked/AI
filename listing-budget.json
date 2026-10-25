@@ -28,7 +28,7 @@
     "platform": 19500,
     "product": 19500,
     "research": 17000,
-    "security": 19000,
+    "security": 20000,
     "smallbiz": 17500,
     "techdocs": 10000
   },
@@ -414,6 +414,7 @@
     "retainer-design": 846,
     "retention-review": 885,
     "retrieval-evaluation": 877,
+    "reverse-engineering": 874,
     "rfp-response": 891,
     "risk-acceptance-register": 889,
     "roadmap-disruption-triage": 848,
