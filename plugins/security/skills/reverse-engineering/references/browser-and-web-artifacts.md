@@ -3,9 +3,12 @@
 Read this when the target is a live web application, or a JavaScript bundle served by one,
 rather than a file you were handed. Gate 1 still applies first: have the authorisation and
 scope written down before the first request. A one-time read of a page you are allowed to
-use is different from running an automated collector against someone's production service,
-which is a terms-of-service question this file does not clear — see that scope, not just the
-technical one, before anything below.
+use is different from running an automated collector against someone's production service —
+that is a terms-of-service question this file does not clear, so check it too, separately
+from the technical authorisation, before anything below. If what you actually want is a
+feature idea from a competitor's app rather than its code, `feature-recreation` covers
+building your own version without copying; this file is for reading the shipped artifact
+itself.
 
 The commands below are verified against a small HTTP server built for this file (Python's
 own `http.server`), serving an `index.html`, a minified `app.min.js` with a `checkLicense`
@@ -40,17 +43,19 @@ itself, unless you are in that gate's stated exception.
 
 ```bash
 curl -s https://example.test/app.min.js | grep -o 'sourceMappingURL=.*'
-curl -s https://example.test/app.min.js.map
+curl -sf https://example.test/app.min.js.map
 ```
 
 The comment at the end of a minified file names where its source map lives, if one was
 shipped; fetching it is a second request to the same read-only path. On the test server this
-returned the map's JSON, naming the original source file and the fixed compression format
-`mappings` uses to connect minified positions back to it. A real build often does not deploy
-a map to production on purpose — it can be the one thing standing between "minified" and
-"as readable as the source", which is itself worth noting as a finding if a target you
-expected to protect this way shipped one anyway. A missing map (a 404 on the path the comment
-names) is a normal, confirming result, not an error to work around.
+returned the map's JSON, naming the original source file and the Base64 VLQ encoding its
+`mappings` field uses to connect minified positions back to it. A real build often does not
+deploy a map to production on purpose — it can be the one thing standing between "minified"
+and "as readable as the source", which is itself worth noting as a finding if a target you
+expected to protect this way shipped one anyway. `-f` turns a missing map into a nonzero exit
+instead of printing the host's error page as if it were map content — a 404 there is a
+normal, confirming result, not an error to work around, but it should be read as a 404 rather
+than as empty output.
 
 ## What this does not cover
 
