@@ -188,14 +188,71 @@ def _esc(text: str) -> str:
     return html.escape(text, quote=True)
 
 
+# A full stop that ends a sentence: followed by a capital or an opening quote, and not the
+# end of an abbreviation a description is likely to use.
+_SENTENCE_END = re.compile(r"(?<!\be\.g)(?<!\bi\.e)(?<!\bvs)(?<!\betc)[.!?](?=\s+[A-Z\u201c\"(])")
+
+
+def _first_sentence(text: str) -> tuple[str, str]:
+    """A description split into its first sentence and the rest."""
+    text = " ".join(text.split())
+    match = _SENTENCE_END.search(text)
+    if match is None:
+        return text, ""
+    return text[: match.end()], text[match.end() :].strip()
+
+
+# Past this a skill page's lead pushes the install block off a 375 by 812 screen.
+LEAD_LIMIT = 200
+LEAD_CLAUSE_MIN = 20
+
+
+def _lead(text: str) -> tuple[str, str]:
+    """A skill description as a short lead and the rest, which loses no character.
+
+    The first sentence when it is short enough; otherwise it is cut at its first colon or
+    semicolon inside the limit, or failing that at a word boundary, and what was cut goes
+    to the front of the rest.
+    """
+    text = " ".join(text.split())
+    sentence, rest = _first_sentence(text)
+    if len(sentence) <= LEAD_LIMIT:
+        return sentence, rest
+    window = sentence[:LEAD_LIMIT]
+    marks = [i for i, ch in enumerate(window) if ch in ":;" and i >= LEAD_CLAUSE_MIN]
+    if marks:
+        cut = marks[0] + 1
+        return sentence[:cut], text[cut:].strip()
+    summary = _summary(sentence)
+    cut = len(summary.rstrip("…"))
+    # A cut mid-sentence says so; the ellipsis is the only character not in the description.
+    return summary if summary.endswith("…") else sentence[:cut], text[cut:].strip()
+
+
+SUMMARY_LIMIT = 160
+
+
+def _summary(text: str) -> str:
+    """A page's text as a meta description: one line, ended at a sentence or a word."""
+    text = " ".join(text.split())
+    if len(text) <= SUMMARY_LIMIT:
+        return text
+    cut = text[:SUMMARY_LIMIT]
+    ends = [m.end() for m in _SENTENCE_END.finditer(cut + " A")]
+    if ends and ends[-1] >= SUMMARY_LIMIT // 2:
+        return cut[: ends[-1]]
+    return cut.rsplit(" ", 1)[0].rstrip(",;:") + "…"
+
+
 # Root-relative, so a link works from a nested page as well as from the index.
+SITE_ORIGIN = "https://ai.szolotov.com"  # deploy/wrangler.json's route; a test keeps them equal
 PAGES = (
     ("FAMILY", "/family/"),
     ("Start", "/start/"),
     ("Workflows", "/workflows/"),
     ("Examples", "/examples/"),
     ("Quality", "/quality/"),
-    ("AI Pricing", "/pricing/"),
+    ("Pricing", "/pricing/"),
 )
 ELSEWHERE = (
     ("Repository", SOURCE_URL),
@@ -214,9 +271,35 @@ def _link(label: str, href: str, current: str = "") -> str:
     return f'<a href="{_esc(href)}"{extra}>{_esc(label)}</a>'
 
 
-def _nav(label: str, links: tuple[tuple[str, str], ...], current: str = "") -> str:
+def _nav(
+    label: str, links: tuple[tuple[str, str], ...], current: str = "", *, cls: str = ""
+) -> str:
     inner = "".join(_link(text, href, current) for text, href in links)
-    return f'<nav aria-label="{label}">{inner}</nav>'
+    attr = f' class="{cls}"' if cls else ""
+    return f'<nav aria-label="{label}"{attr}>{inner}</nav>'
+
+
+MENU_ICON = (
+    '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" '
+    'stroke-width="1.4" stroke-linecap="round" d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/></svg>'
+)
+
+
+def _menu(current: str) -> str:
+    """The section links behind a disclosure, for a header too narrow to show them.
+
+    A details element opens and closes with Enter or Space and needs no script, so the
+    menu works when the page script has not run. Hidden from 64rem up, where the same
+    links are in the bar itself.
+    """
+    sections = "".join(_link(text, href, current) for text, href in PAGES)
+    elsewhere = "".join(_link(text, href, current) for text, href in ELSEWHERE)
+    return (
+        '<details class="menu">'
+        f"<summary>{MENU_ICON}<span>Menu</span></summary>"
+        f'<nav aria-label="Menu">{sections}<div class="menu-else">{elsewhere}</div></nav>'
+        "</details>"
+    )
 
 
 CONSOLE_ICON = (
@@ -304,6 +387,8 @@ def _page(
     style: str = "",
     script: str = "",
     noindex: bool = False,
+    description: str = "",
+    path: str | None = None,
 ) -> str:
     """One document. ``main`` is already escaped HTML for the page body.
 
@@ -312,13 +397,25 @@ def _page(
     and ``script`` are a page's own CSS and script, written after the shared ones; only
     the 404 and the offline page have any. ``noindex`` keeps a page out of search results.
     Every page registers the service worker, which the standalone ``/errors/`` pages
-    deliberately do not.
+    deliberately do not. ``description`` is the page's own summary, for search results and
+    link previews. ``path`` is the page's root-relative address, which makes its canonical
+    and ``og:url`` on the production origin; the 404 and offline pages have none, because
+    no one address is theirs.
     """
     source = _esc(SOURCE_URL)
     dock = _dock(parent)
     extra_style = f"<style>\n{style}</style>\n" if style else ""
     extra_script = f"<script>\n{script}</script>\n" if script else ""
     robots = '<meta name="robots" content="noindex">\n' if noindex else ""
+    summary = _summary(description)
+    about = f'<meta name="description" content="{_esc(summary)}">\n' if summary else ""
+    share = f'<meta property="og:title" content="{_esc(title)}">\n'
+    if summary:
+        share += f'<meta property="og:description" content="{_esc(summary)}">\n'
+    if path is not None:
+        url = _esc(SITE_ORIGIN + path)
+        about += f'<link rel="canonical" href="{url}">\n'
+        share += f'<meta property="og:url" content="{url}">\n'
     return (
         "<!DOCTYPE html>\n"
         '<html lang="en">\n'
@@ -329,6 +426,7 @@ def _page(
         f"{robots}"
         '<meta name="theme-color" content="#f4f1ea">\n'
         f"<title>{html.escape(title)}</title>\n"
+        f"{about}{share}"
         f'<link rel="icon" href="/{FAVICON}" type="image/png" sizes="64x64">\n'
         f'<link rel="apple-touch-icon" href="/{TOUCH_ICON}">\n'
         f"{_font_preloads(main)}"
@@ -340,11 +438,13 @@ def _page(
         '<a class="sr-only skip" href="#content">Skip to content</a>\n'
         '<header class="site-header" id="banner">\n'
         '<div class="bar">\n'
-        f"{_nav('Primary', ELSEWHERE)}\n"
+        f"{_menu(current)}\n"
+        f"{_nav('Sections', PAGES, current)}\n"
         '<a id="home" href="/" aria-label="Home">AI</a>\n'
+        f"{_nav('Primary', ELSEWHERE, cls='elsewhere')}\n"
         '<div class="tools">\n'
         '<button type="button" id="console-theme" class="tool" aria-pressed="false" '
-        f'aria-label="Console theme">{CONSOLE_ICON}</button>\n'
+        f'aria-label="Console theme" title="Console theme">{CONSOLE_ICON}</button>\n'
         '<button type="button" id="dark-switch" class="tool" role="switch" '
         'aria-checked="false" aria-label="Dark theme">'
         f'<span class="track"><span class="knob">{MOON_ICON}{SUN_ICON}</span></span>'
@@ -354,8 +454,7 @@ def _page(
         f'<main id="content">\n{main}\n</main>\n'
         '<footer class="site-footer">\n<div class="foot">\n'
         '<div>\n<p class="mark">AI</p>\n'
-        '<p class="tag">Agent skills, subagents and slash commands. '
-        "Install only the plugins you want.</p>\n"
+        '<p class="tag">Agent skills, subagents and slash commands.</p>\n'
         '<p class="credit">Made by Serhii Zolotov, '
         f'<a href="{source}" target="_blank" rel="noopener noreferrer">greenblacked</a></p>\n'
         "</div>\n"
@@ -604,12 +703,23 @@ def _finder(label: str, count: str) -> str:
     )
 
 
+# The site keeps its name and says what it is; the bare name told a search result nothing.
+INDEX_TITLE = "AI · Agent skills and subagents, installed one plugin at a time"
+
+
+# The headline says to install only the ones you want, so the lede under it says what the
+# catalogue covers and never the headline again. It is fixed rather than read from the manifest:
+# the manifest's text is free-form, and a rule for keeping its sentences out of the hero is a
+# rule that fails on the next description anyone writes.
+HOME_LEDE = (
+    "Agent skills, subagents and slash commands for engineering, design, games, leadership "
+    "and life outside work."
+)
+
+
 def render_index(catalogue: Catalogue, version: str) -> str:
     """The front page: one section per plugin. Every value from the repository is escaped."""
-    description = catalogue.manifest.get("description")
-    intro = ""
-    if isinstance(description, str) and description.strip():
-        intro = f'<p class="lede">{_esc(description.strip())}</p>\n'
+    intro = f'<p class="lede">{_esc(HOME_LEDE)}</p>\n'
     sections = []
     for plugin, archives in catalogue.groups:
         names = [skill.name for skill in catalogue.skills if skill.plugin == plugin]
@@ -636,20 +746,28 @@ def render_index(catalogue: Catalogue, version: str) -> str:
         f"{intro}"
         f'<p class="small counts">{_esc(_plural(plugin_count, "plugin"))}'
         f" · {_esc(_plural(skill_count, 'skill'))}</p>\n"
-        f'<a class="pill" href="{_esc(SOURCE_URL)}" target="_blank" '
+        '<div class="hero-actions">\n'
+        '<a class="pill" href="/start/">Install</a>\n'
+        f'<a class="hero-more" href="{_esc(SOURCE_URL)}" target="_blank" '
         'rel="noopener noreferrer">View source</a>\n'
+        "</div>\n"
         "</div>\n"
         "</section>\n"
         '<section class="wrap listing">\n'
-        '<div class="card"><p>One skill each, plus the portable bundle. '
-        "The manifest points at the repository, so this copy is not "
-        "a marketplace you add.</p></div>\n"
+        '<p class="lede after">Once a plugin is installed, its skills load themselves '
+        "when a request matches.</p>\n"
         f"{_finder('Find a plugin', _plural(plugin_count, 'plugin'))}"
         '<p class="none" id="none" hidden>Nothing matches that name.</p>\n'
         f'<div id="list">\n{"".join(sections)}\n</div>\n'
         "</section>\n"
     )
-    return _page("AI", main, version)
+    return _page(
+        INDEX_TITLE,
+        main,
+        version,
+        description=HOME_LEDE,
+        path="/",
+    )
 
 
 # ------------------------------------------------------------------ a plugin's page
@@ -712,7 +830,14 @@ def render_plugin(plugin: str, catalogue: Catalogue, version: str) -> str:
         f"{site_graph.render(plugin, catalogue.edges, _skill_href)}"
         "</div>"
     )
-    return _page(f"{plugin} · AI", main, version, parent="/")
+    return _page(
+        f"{plugin} · AI",
+        main,
+        version,
+        parent="/",
+        description=blurb or f"The {plugin} plugin: {_plural(len(skills), 'skill')}.",
+        path=_plugin_href(plugin),
+    )
 
 
 # -------------------------------------------------------------------- a skill's page
@@ -743,9 +868,17 @@ def render_skill(skill: Skill, catalogue: Catalogue, version: str) -> str:
         'rel="noopener noreferrer">On GitHub</a>'
         "</nav>"
     )
+    # A routing description is written for the model, up to nine hundred characters. The
+    # first sentence says what the skill is for; the rest waits behind the install block.
+    lead, rest = _lead(skill.description)
+    routing = (
+        f'<details class="routing"><summary>When it fires</summary><p>{_esc(rest)}</p></details>'
+        if rest
+        else ""
+    )
     parts = [
         f"<h1>{_esc(skill.name)}</h1>",
-        f'<p class="lead">{_esc(skill.description)}</p>' if skill.description else "",
+        f'<p class="lead">{_esc(lead)}</p>' if lead else "",
         '<div class="actions">'
         f'<a class="pill" href="{_esc(archive)}">Download</a>'
         f'<a class="pill" href="{_esc(_tree(skill.directory))}" target="_blank" '
@@ -753,6 +886,7 @@ def render_skill(skill: Skill, catalogue: Catalogue, version: str) -> str:
         "</div>",
         f'<h2 id="{slugs.take("Install")}">Install</h2>',
         _code_block(_install_line(skill.plugin, catalogue.marketplace)),
+        routing,
     ]
     if skill.allowed_tools:
         parts.append(f"<p>Allowed tools: <code>{_esc(skill.allowed_tools)}</code></p>")
@@ -788,18 +922,33 @@ def render_skill(skill: Skill, catalogue: Catalogue, version: str) -> str:
         + "\n</article>"
     )
     main = _narrow(inner)
-    return _page(f"{skill.name} · AI", main, version, parent=_plugin_href(skill.plugin))
+    return _page(
+        f"{skill.name} · AI",
+        main,
+        version,
+        parent=_plugin_href(skill.plugin),
+        description=lead or f"The {skill.name} skill, in the {skill.plugin} plugin.",
+        path=_skill_href(skill.plugin, skill.name),
+    )
 
 
 # ------------------------------------------------------------------------ /start/
 
 
+START_LEDE = "Install one plugin, or the lot. The skills load themselves when a request matches."
+
+
 def render_start(catalogue: Catalogue, version: str) -> str:
     slugs = site_markdown.Slugs()
     repo = SOURCE_URL.removeprefix("https://github.com/")
-    lines = [f"/plugin marketplace add {repo}"]
+    add = f"/plugin marketplace add {repo}"
+    lines = [add]
     lines += [_install_line(plugin, catalogue.marketplace) for plugin, _ in catalogue.groups]
     lines.append("/reload-plugins")
+    # One plugin first, because the page promises "one plugin, or the lot" and a reader
+    # who sees only the lot has to work out how to take less.
+    first = catalogue.groups[0][0] if catalogue.groups else ""
+    one = "\n".join([add, _install_line(first, catalogue.marketplace), "/reload-plugins"])
     items = []
     for plugin, archives in catalogue.groups:
         blurb = catalogue.blurbs.get(plugin, "")
@@ -813,6 +962,8 @@ def render_start(catalogue: Catalogue, version: str) -> str:
         "<p>Register the marketplace once, install the plugins you will use, and reload. "
         "Every plugin installs on its own; each description a plugin ships sits in context "
         "for the whole session, so install only what you need.</p>",
+        _code_block(one) if first else "",
+        "<p>To install every plugin, add one line for each, then reload once:</p>",
         _code_block("\n".join(lines)),
         f"<ul>\n{chr(10).join(items)}\n</ul>",
         f'<h2 id="{slugs.take("Install in other tools")}">Install in other tools</h2>',
@@ -834,12 +985,20 @@ def render_start(catalogue: Catalogue, version: str) -> str:
         + "\n"
         + _title(
             "Getting started",
-            "Install one plugin, or the lot. The skills load themselves when a request matches.",
+            START_LEDE,
         )
         + "\n"
         + _prose("\n".join(parts))
     )
-    return _page("Getting started · AI", main, version, current="/start/", parent="/")
+    return _page(
+        "Getting started · AI",
+        main,
+        version,
+        current="/start/",
+        parent="/",
+        description=START_LEDE,
+        path="/start/",
+    )
 
 
 # --------------------------------------------------------------------- /workflows/
@@ -889,16 +1048,21 @@ def render_workflows(catalogue: Catalogue, version: str) -> str:
     if not catalogue.agents and not catalogue.commands:
         parts.append("<p>No subagents or slash commands ship in this build.</p>")
     main = _narrow(
-        _back("/")
-        + "\n"
-        + _title(
-            "Workflows", "The subagents and slash commands that ship beside the skills, by plugin."
-        )
-        + "\n"
-        + _prose("\n".join(parts))
+        _back("/") + "\n" + _title("Workflows", WORKFLOWS_LEDE) + "\n" + _prose("\n".join(parts))
     )
-    return _page("Workflows · AI", main, version, current="/workflows/", parent="/")
+    return _page(
+        "Workflows · AI",
+        main,
+        version,
+        current="/workflows/",
+        parent="/",
+        description=WORKFLOWS_LEDE,
+        path="/workflows/",
+    )
 
+
+WORKFLOWS_LEDE = "The subagents and slash commands that ship beside the skills, by plugin."
+EXAMPLES_LEDE = "What you type, and the skill it reaches. Nobody types a skill name."
 
 # ---------------------------------------------------------------------- /examples/
 
@@ -955,14 +1119,23 @@ def render_examples(catalogue: Catalogue, version: str) -> str:
             parts.append("<ul>\n" + "\n".join(rows) + "\n</ul>")
     if not parts:
         parts.append("<p>No examples are available in this build.</p>")
-    main = _narrow(
-        _back("/")
-        + "\n"
-        + _title("Examples", "What you type, and the skill it reaches. Nobody types a skill name.")
-        + "\n"
-        + _prose("\n".join(parts))
+    body = "\n".join(parts)
+    # The page runs to a hundred and seventy thousand pixels on a phone, so the way to a
+    # plugin's examples is a link at the top rather than a long scroll.
+    jumps = re.findall(r'<h2 id="([^"]+)">(.*?)</h2>', body)
+    if jumps:
+        items = "\n".join(f'<li><a href="#{anchor}">{label}</a></li>' for anchor, label in jumps)
+        body = f'<nav class="contents" aria-label="Contents">\n<ul>\n{items}\n</ul>\n</nav>\n{body}'
+    main = _narrow(_back("/") + "\n" + _title("Examples", EXAMPLES_LEDE) + "\n" + _prose(body))
+    return _page(
+        "Examples · AI",
+        main,
+        version,
+        current="/examples/",
+        parent="/",
+        description=EXAMPLES_LEDE,
+        path="/examples/",
     )
-    return _page("Examples · AI", main, version, current="/examples/", parent="/")
 
 
 # ----------------------------------------------------------------------- /quality/
@@ -973,14 +1146,19 @@ def _count_row(label: str, value: object) -> str:
 
 
 def _table(
-    head: list[str], rows: list[str], *, numeric: frozenset[int] | set[int] = frozenset()
+    head: list[str],
+    rows: list[str],
+    *,
+    label: str,
+    numeric: frozenset[int] | set[int] = frozenset(),
 ) -> str:
     cells = "".join(
         f'<th class="num">{_esc(label)}</th>' if n in numeric else f"<th>{_esc(label)}</th>"
         for n, label in enumerate(head)
     )
     return (
-        '<div class="table-wrap"><table>\n'
+        f'<div class="table-wrap" tabindex="0" role="region" aria-label="{_esc(label)}">'
+        "<table>\n"
         f"<thead><tr>{cells}</tr></thead>\n<tbody>\n{chr(10).join(rows)}\n</tbody>\n"
         "</table></div>"
     )
@@ -1038,6 +1216,9 @@ def _lesson_titles(root: Path) -> list[str]:
     return titles
 
 
+QUALITY_LEDE = "Figures worked out from the repository when this site was built."
+
+
 def render_quality(catalogue: Catalogue, version: str) -> str:
     slugs = site_markdown.Slugs()
     root = catalogue.root
@@ -1053,6 +1234,7 @@ def render_quality(catalogue: Catalogue, version: str) -> str:
             _count_row("Subagents", len(catalogue.agents)),
             _count_row("Slash commands", len(catalogue.commands)),
         ],
+        label="What is in the catalogue",
         numeric={1},
     )
     totals = eval_totals(catalogue.eval_sets)
@@ -1065,6 +1247,7 @@ def render_quality(catalogue: Catalogue, version: str) -> str:
             _count_row("Should not fire", totals["negatives"]),
             _count_row("Not firing, with a named owner", totals["routed"]),
         ],
+        label="Trigger evals",
         numeric={1},
     )
     parts = [
@@ -1100,7 +1283,12 @@ def render_quality(catalogue: Catalogue, version: str) -> str:
             "<p>Every description a plugin ships sits in context for the whole session, so each "
             "plugin has a ceiling, in characters, that a new skill has to be a decision to "
             "raise.</p>",
-            _table(["Plugin", "Characters", "Ceiling"], rows, numeric={1, 2}),
+            _table(
+                ["Plugin", "Characters", "Ceiling"],
+                rows,
+                label="Description listing",
+                numeric={1, 2},
+            ),
         ]
     checks = []
     floor = _coverage_floor(root)
@@ -1110,7 +1298,7 @@ def render_quality(catalogue: Catalogue, version: str) -> str:
     if cases is not None:
         checks.append(_count_row("Reviewer benchmark cases", cases))
     if checks:
-        parts += [heading("Gates"), _table(["Gate", "Value"], checks, numeric={1})]
+        parts += [heading("Gates"), _table(["Gate", "Value"], checks, label="Gates", numeric={1})]
     titles = _lesson_titles(root)
     if titles:
         items = "\n".join(f"<li>{_esc(title)}</li>" for title in titles)
@@ -1135,13 +1323,19 @@ def render_quality(catalogue: Catalogue, version: str) -> str:
     main = _narrow(
         _back("/")
         + "\n"
-        + _title(
-            "Quality evidence", "Figures worked out from the repository when this site was built."
-        )
+        + _title("Quality evidence", QUALITY_LEDE)
         + "\n"
         + _prose("\n".join(parts))
     )
-    return _page("Quality evidence · AI", main, version, current="/quality/", parent="/")
+    return _page(
+        "Quality evidence · AI",
+        main,
+        version,
+        current="/quality/",
+        parent="/",
+        description=QUALITY_LEDE,
+        path="/quality/",
+    )
 
 
 # ------------------------------------------------------------------------ /pricing/
@@ -1155,12 +1349,19 @@ def render_pricing(version: str) -> str:
         version,
         current="/pricing/",
         parent="/",
+        description=site_pricing.LEDE,
+        path="/pricing/",
         style=site_pricing.STYLE,
         script=site_pricing.SCRIPT,
     )
 
 
 # ------------------------------------------------------------------------ /family/
+
+FAMILY_LEDE = (
+    "Frame · Architect · Make · Inspect · Launch · Yield — one "
+    "workflow from a vague request to a measured outcome."
+)
 
 # The pages this file draws by hand rather than from a plugin's own files. The workflow
 # is the product here, so it gets a stage timeline, a profile picker and a checklist
@@ -1432,8 +1633,7 @@ def render_family(catalogue: Catalogue, version: str) -> str:
         '<div class="page narrow family-page">\n'
         f"{_back('/')}\n"
         f"{_family_word('The FAMILY workflow')}\n"
-        '<p class="lede">Frame · Architect · Make · Inspect · Launch · Yield — one '
-        "workflow from a vague request to a measured outcome.</p>\n"
+        f'<p class="lede">{FAMILY_LEDE}</p>\n'
         '<p class="family-link"><a href="/family/example/">See one slice end to end</a> →</p>\n'
         '<section class="family-section">\n<h2>Install it</h2>\n'
         f"<p>The family plugin ships the {guide} skill, a skill per profile and a "
@@ -1468,7 +1668,15 @@ def render_family(catalogue: Catalogue, version: str) -> str:
         "</div>\n"
         f"<script>\n{site_style.FAMILY_SCRIPT}</script>"
     )
-    return _page("FAMILY · AI", main, version, current="/family/", parent="/")
+    return _page(
+        "FAMILY · AI",
+        main,
+        version,
+        current="/family/",
+        parent="/",
+        description=FAMILY_LEDE,
+        path="/family/",
+    )
 
 
 # What the example page walks through: one real slice, the change that gave the family
@@ -1576,7 +1784,14 @@ def render_family_example(version: str) -> str:
         + "\n".join(sections)
         + "\n</div>"
     )
-    return _page("One slice, end to end · AI", main, version, parent="/family/")
+    return _page(
+        "One slice, end to end · AI",
+        main,
+        version,
+        parent="/family/",
+        description="Six stages, one small change, and what each one left behind.",
+        path="/family/example/",
+    )
 
 
 def _redirects() -> str:
@@ -1585,7 +1800,12 @@ def _redirects() -> str:
     Cloudflare's static assets read this file at upload and do not serve it. Both spellings
     are listed because a rule matches the path as written.
     """
-    return f"/plugins/{FAMILY_PLUGIN}/ /family/ 301\n/plugins/{FAMILY_PLUGIN} /family/ 301\n"
+    return (
+        f"/plugins/{FAMILY_PLUGIN}/ /family/ 301\n/plugins/{FAMILY_PLUGIN} /family/ 301\n"
+        # The two directories have no index, so a visitor who trims a plugin or skill
+        # address would otherwise land on the 404 rather than on the catalogue.
+        "/plugins/ / 301\n/plugins / 301\n/skills/ / 301\n/skills / 301\n"
+    )
 
 
 def _headers() -> str:
@@ -1639,6 +1859,7 @@ def render_missing(suggestions: list[list[str]], version: str) -> str:
         main,
         version,
         parent="/",
+        description="There is nothing at this address. Start from the catalogue instead.",
         style=site_errors.LOST_CSS,
         script=site_errors.LOST_SCRIPT,
     )
@@ -1651,6 +1872,7 @@ def render_offline(version: str) -> str:
         site_offline.offline_main(_back("/")),
         version,
         parent="/",
+        description="This page is not saved on this device, and there is no connection.",
         style=site_offline.OFFLINE_CSS,
         script=site_offline.render_offline_script(),
         noindex=True,
@@ -1660,7 +1882,23 @@ def render_offline(version: str) -> str:
 def _robots(noindex: bool) -> str:
     if noindex:
         return "User-agent: *\nDisallow: /\n"
-    return "User-agent: *\nAllow: /\n"
+    return f"User-agent: *\nAllow: /\n\nSitemap: {SITE_ORIGIN}/sitemap.xml\n"
+
+
+def _page_path(key: str) -> str:
+    """The root-relative address of the page built under ``key`` ("" is the front page)."""
+    return "/".join(["", *(quote(part, safe="") for part in key.split("/") if part), ""])
+
+
+def _sitemap(pages: list[str]) -> str:
+    """Every indexable page on the production origin, in the order they were built."""
+    urls = "".join(
+        f"<url><loc>{_esc(SITE_ORIGIN + _page_path(key))}</loc></url>\n" for key in pages
+    )
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{urls}</urlset>\n'
+    )
 
 
 def _write_archives(root: Path, skills_dir: Path) -> dict[str, list[str]]:
@@ -1759,6 +1997,7 @@ def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> N
         target = output / directory
         target.mkdir(parents=True, exist_ok=True)
         (target / "index.html").write_text(content, encoding="utf-8")
+    (output / "sitemap.xml").write_text(_sitemap(list(pages)), encoding="utf-8")
     (output / "404.html").write_text(
         render_missing(_suggestions(catalogue, pages), version), encoding="utf-8"
     )

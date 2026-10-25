@@ -255,12 +255,24 @@ def test_both_typefaces_load_from_the_site_with_every_outside_request_refused(
     served, refused = [], []
     page.on("response", lambda r: served.append(r.url) if "/fonts/" in r.url else None)
     page.on("requestfailed", lambda r: refused.append(r.url))
+    # The front page sets everything in the sans, so it loads one face; a skill page also
+    # sets its text in the serif, and with it both are loaded and served.
     page.goto(base_url + "/")
+    assert _loaded_faces(page) == {"Instrument Sans"}
+    assert served == [base_url + site.site_style.SANS_URL]
+    # A fresh context for the second page, so a font served twice on it still shows.
+    context.close()
+    context = new_context(browser, base_url)
+    page = context.new_page()
+    served.clear()
+    page.on("response", lambda r: served.append(r.url) if "/fonts/" in r.url else None)
+    page.on("requestfailed", lambda r: refused.append(r.url))
+    page.goto(base_url + SKILL_PATH)
     assert _loaded_faces(page) == {"Instrument Sans", "Newsreader"}
     # Served by this host, from the hashed names, and nothing went out for one: a refused
     # request here would be a request to a font host, which the build no longer makes.
     assert sorted(served) == sorted(
-        {base_url + site.site_style.SANS_URL, base_url + site.site_style.SERIF_URL}
+        [base_url + site.site_style.SANS_URL, base_url + site.site_style.SERIF_URL]
     )
     assert refused == []
     # The weights the page asks for come out of the one variable file each.
@@ -269,7 +281,7 @@ def test_both_typefaces_load_from_the_site_with_every_outside_request_refused(
             '([w, f]) => document.fonts.check(`${w} 16px "${f}"`)', [weight, family]
         )
     used = page.evaluate(
-        "() => getComputedStyle(document.querySelector('.card p')).fontFamily.split(',')[0]"
+        "() => getComputedStyle(document.querySelector('.prose-lab h1')).fontFamily.split(',')[0]"
     )
     assert used.strip('"') == "Newsreader"
     context.close()
@@ -1926,9 +1938,11 @@ def test_a_visited_page_still_loads_offline_with_its_fonts(worker_context, base_
     assert response is not None and response.status == 200
     assert page.title().startswith("Getting started")
     assert page.get_by_role("heading", level=1).count() == 1
-    # The home page names both faces; both come out of the cache with no network.
-    page.goto(base_url + "/")
+    # Both faces come out of the cache with no network: the sans for the page, and the
+    # serif the Markdown on this page is set in.
     assert _loaded_faces(page) == {"Instrument Sans", "Newsreader"}
+    page.goto(base_url + "/")
+    assert _loaded_faces(page) == {"Instrument Sans"}
     # And the same page without its trailing slash, which the Worker would redirect.
     assert page.goto(base_url + "/start") is not None
     assert page.title().startswith("Getting started")
@@ -2087,3 +2101,332 @@ def test_a_new_version_deletes_only_the_caches_an_older_worker_made(
     listing = page.evaluate(PAGE_CACHE_LISTING)
     assert all(name.startswith("ai-site-v1-") for name, _ in listing if name.startswith("ai-"))
     assert {path for name, path in listing if name == "ai-site-v1-pages"} <= {"/start/"}
+
+
+# --- The design review ------------------------------------------------------------------
+
+
+def _phone(browser, base_url, width=375):
+    return new_context(browser, base_url, width)
+
+
+def _tab_to(page, selector: str, limit: int = 80) -> bool:
+    """Press Tab from the top of the page until the element has focus."""
+    page.evaluate("() => { document.activeElement.blur(); window.scrollTo(0, 0); }")
+    for _ in range(limit):
+        page.keyboard.press("Tab")
+        if page.evaluate("s => document.activeElement.matches(s)", selector):
+            return True
+    return False
+
+
+@pytest.mark.parametrize("width", [375, 768, 1440])
+def test_the_home_page_offers_install_first_and_it_is_on_the_first_screen(browser, base_url, width):
+    context = _phone(browser, base_url, width)
+    try:
+        page = context.new_page()
+        page.goto(base_url + "/")
+        actions = page.evaluate(
+            "() => [...document.querySelectorAll('.hero-actions a')].map(a => ({"
+            "text: a.textContent, href: a.getAttribute('href'), cls: a.className,"
+            " bottom: a.getBoundingClientRect().bottom, height: a.getBoundingClientRect().height}))"
+        )
+        assert [(a["text"], a["href"], a["cls"]) for a in actions] == [
+            ("Install", "/start/", "pill"),
+            ("View source", site.SOURCE_URL, "hero-more"),
+        ]
+        assert all(a["bottom"] < page.evaluate("() => innerHeight") for a in actions)
+        assert all(a["height"] >= TARGET for a in actions)
+        page.click(".hero-actions .pill")
+        page.wait_for_url(base_url + "/start/")
+    finally:
+        context.close()
+
+
+@pytest.mark.parametrize("width", [375, 768, 1023])
+def test_below_64rem_the_sections_are_behind_a_menu_that_opens_from_the_keyboard(
+    browser, base_url, width
+):
+    context = _phone(browser, base_url, width)
+    try:
+        page = context.new_page()
+        page.goto(base_url + "/")
+        assert not page.is_visible("#banner nav[aria-label=Sections]")
+        assert page.is_visible(".menu summary") and page.inner_text(".menu summary") == "Menu"
+        assert box(page, ".menu summary")["height"] >= TARGET
+        assert not page.is_visible(".menu nav")
+        assert _tab_to(page, ".menu summary")
+        ring = page.evaluate(
+            "() => { const c = getComputedStyle(document.activeElement);"
+            " return [c.outlineStyle, c.outlineWidth]; }"
+        )
+        assert ring == ["solid", "2px"]
+        page.keyboard.press("Enter")
+        assert page.evaluate("() => document.querySelector('.menu').open")
+        shown_links = page.evaluate(
+            "() => [...document.querySelectorAll('.menu nav a')]"
+            ".filter(a => a.getBoundingClientRect().height > 0).map(a => a.textContent)"
+        )
+        assert shown_links == [label for label, _ in site.PAGES + site.ELSEWHERE]
+        panel = box(page, ".menu nav")
+        assert panel["left"] >= 0 and panel["right"] <= width
+        assert page.evaluate("() => document.documentElement.scrollWidth") <= width
+        # Reduced motion is on in this context, so the panel appears without animating.
+        assert (
+            page.evaluate(
+                "() => getComputedStyle(document.querySelector('.menu nav')).animationName"
+            )
+            == "none"
+        )
+        page.keyboard.press("Tab")
+        assert page.evaluate("() => document.activeElement.textContent") == "FAMILY"
+        page.keyboard.press("Shift+Tab")
+        page.keyboard.press("Space")
+        assert not page.evaluate("() => document.querySelector('.menu').open")
+    finally:
+        context.close()
+
+
+@pytest.mark.parametrize("width", [375, 768])
+def test_the_menu_opens_with_a_fade_only_when_motion_is_allowed(browser, base_url, width):
+    context = browser.new_context(viewport={"width": width, "height": 800})
+    context.route(re.compile("^(?!" + re.escape(base_url) + "/)"), lambda route: route.abort())
+    try:
+        page = context.new_page()
+        page.goto(base_url + "/")
+        page.click(".menu summary")
+        assert (
+            page.evaluate(
+                "() => getComputedStyle(document.querySelector('.menu nav')).animationName"
+            )
+            == "menu-in"
+        )
+    finally:
+        context.close()
+
+
+@pytest.mark.parametrize("width", [1024, 1280, 1440])
+def test_from_64rem_the_sections_and_outside_links_sit_in_the_bar_without_touching(
+    browser, base_url, width
+):
+    context = _phone(browser, base_url, width)
+    try:
+        page = context.new_page()
+        page.goto(base_url + "/examples/")
+        assert not page.is_visible(".menu summary")
+        links = page.evaluate(
+            "() => [...document.querySelectorAll('#banner > .bar > nav a')]"
+            ".filter(a => a.getBoundingClientRect().height > 0).map(a => a.textContent)"
+        )
+        assert links == [label for label, _ in site.PAGES + site.ELSEWHERE]
+        current = page.evaluate(
+            "() => [...document.querySelectorAll('#banner > .bar > nav a[aria-current]')]"
+            ".map(a => a.textContent)"
+        )
+        assert current == ["Examples"]
+        parts = [
+            box(page, s)
+            for s in (
+                "#banner nav[aria-label=Sections]",
+                "#home",
+                "#banner nav.elsewhere",
+                ".tools",
+            )
+        ]
+        for left, right in zip(parts, parts[1:], strict=False):
+            assert left["right"] <= right["left"], (left, right)
+        assert page.evaluate("() => document.documentElement.scrollWidth") <= width
+    finally:
+        context.close()
+
+
+def test_a_long_command_wraps_on_a_phone_and_copies_byte_for_byte(browser, base_url):
+    context = _phone(browser, base_url, 375)
+    try:
+        page = context.new_page()
+        page.goto(base_url + "/start/")
+        blocks = page.evaluate(
+            "() => [...document.querySelectorAll('main pre')].map(p => ({"
+            "whiteSpace: getComputedStyle(p).whiteSpace, wide: p.scrollWidth - p.clientWidth,"
+            " length: p.textContent.length}))"
+        )
+        assert blocks and all(b["whiteSpace"] == "pre-wrap" for b in blocks)
+        assert all(b["wide"] <= 0 for b in blocks), blocks
+        assert max(b["length"] for b in blocks) > 1000
+        assert page.evaluate("() => document.documentElement.scrollWidth") <= 375
+        # What a visitor selects and copies is the source text: wrapping inserted nothing.
+        same = page.evaluate(
+            "() => [...document.querySelectorAll('main pre')].every(p => {"
+            " const range = document.createRange(); range.selectNodeContents(p);"
+            " const selection = getSelection(); selection.removeAllRanges();"
+            " selection.addRange(range);"
+            " return selection.toString().replace(/\\n$/, '') === p.textContent.replace(/\\n$/, '')"
+            " && !p.textContent.includes('\\u200b'); })"
+        )
+        assert same
+        page.goto(base_url + "/plugins/design/")
+        wide = page.evaluate(
+            "() => { const p = document.querySelector('.install pre');"
+            " return p.scrollWidth - p.clientWidth; }"
+        )
+        assert wide <= 0
+    finally:
+        context.close()
+
+
+def test_a_block_keeps_its_lines_and_scrolls_from_40rem(browser, base_url):
+    context = _phone(browser, base_url, 768)
+    try:
+        page = context.new_page()
+        page.goto(base_url + "/start/")
+        assert (
+            page.evaluate("() => getComputedStyle(document.querySelector('main pre')).whiteSpace")
+            == "pre"
+        )
+    finally:
+        context.close()
+
+
+NAMED_LEAD_PAGES = (
+    "assurance/audit-trail-design",
+    "assurance/licence-compliance",
+    "assurance/property-based-testing",
+    "career/interview-retrospective",
+    "client-apps/bfcache-eligibility",
+    "design/design-system",
+)
+
+
+def _longest_lead_page(built) -> str:
+    longest, where = 0, ""
+    for page in (built / "plugins").glob("*/*/index.html"):
+        found = re.search(r'<p class="lead">(.*?)</p>', page.read_text(encoding="utf-8"))
+        if found and len(found.group(1)) > longest:
+            longest, where = len(found.group(1)), "/".join(page.parts[-3:-1])
+    return where
+
+
+def test_a_skill_page_shows_its_install_block_on_the_first_phone_screen(browser, base_url, built):
+    context = browser.new_context(viewport={"width": 375, "height": 812}, reduced_motion="reduce")
+    context.route(re.compile("^(?!" + re.escape(base_url) + "/)"), lambda route: route.abort())
+    try:
+        page = context.new_page()
+        for where in dict.fromkeys((_longest_lead_page(built), *NAMED_LEAD_PAGES)):
+            page.goto(f"{base_url}/plugins/{where}/")
+            install = box(page, "article pre")
+            assert install["top"] > 0 and install["bottom"] <= 812, (where, install)
+        page.goto(base_url + "/plugins/design/design-system/")
+        lead = page.inner_text(".lead")
+        assert len(lead) <= site.LEAD_LIMIT + 1
+        details = page.locator("details.routing")
+        assert details.count() == 1 and not details.evaluate("e => e.open")
+        assert not page.is_visible("details.routing p")
+        # The rest of the description is one keypress away, and is the text that was cut.
+        assert _tab_to(page, "details.routing summary")
+        page.keyboard.press("Enter")
+        assert page.is_visible("details.routing p")
+        assert len(page.inner_text("details.routing p")) > 100
+    finally:
+        context.close()
+
+
+def test_the_examples_contents_list_jumps_to_each_section(browser, base_url):
+    context = _phone(browser, base_url, 375)
+    try:
+        page = context.new_page()
+        page.goto(base_url + "/examples/")
+        anchors = page.evaluate(
+            "() => [...document.querySelectorAll('.contents a')].map(a => a.getAttribute('href'))"
+        )
+        headings = page.evaluate(
+            "() => [...document.querySelectorAll('main h2')].map(h => '#' + h.id)"
+        )
+        assert anchors == headings and len(anchors) > 20
+        small = page.evaluate(
+            "() => [...document.querySelectorAll('.contents a')]"
+            ".filter(a => a.getBoundingClientRect().height < 44).length"
+        )
+        assert small == 0
+        assert box(page, ".contents")["height"] < 800
+        last = anchors[-1]
+        page.click(f'.contents a[href="{last}"]')
+        settle(page)
+        assert page.evaluate("() => location.hash") == last
+        top = page.evaluate("h => document.querySelector(h).getBoundingClientRect().top", last)
+        assert 0 <= top < 400, top
+    finally:
+        context.close()
+
+
+@pytest.mark.parametrize("width", [375, 768])
+def test_a_skill_name_in_a_table_stays_whole_and_the_table_scrolls_by_keyboard(
+    browser, base_url, width
+):
+    context = _phone(browser, base_url, width)
+    try:
+        page = context.new_page()
+        page.goto(base_url + "/examples/")
+        chips = page.evaluate(
+            "() => [...document.querySelectorAll('td code')].map(c => c.getClientRects().length)"
+        )
+        assert chips and set(chips) == {1}
+        regions = page.evaluate(
+            "() => [...document.querySelectorAll('.table-wrap')].map(w => ({"
+            "tab: w.tabIndex, role: w.getAttribute('role'), name: w.getAttribute('aria-label'),"
+            " wider: w.scrollWidth > w.clientWidth}))"
+        )
+        assert regions and all(
+            r["tab"] == 0 and r["role"] == "region" and r["name"] for r in regions
+        )
+        scrolling = [i for i, r in enumerate(regions) if r["wider"]]
+        if width == 375:
+            assert scrolling, regions
+        for index in scrolling:
+            wrap = page.locator(".table-wrap").nth(index)
+            wrap.focus()
+            assert page.evaluate("() => document.activeElement.classList.contains('table-wrap')")
+            page.keyboard.press("ArrowRight")
+            settle(page)
+            assert wrap.evaluate("w => w.scrollLeft") > 0
+        assert page.evaluate("() => document.documentElement.scrollWidth") <= width
+    finally:
+        context.close()
+
+
+@pytest.mark.parametrize("width", [375, 1440])
+def test_the_finder_shows_where_focus_is_when_it_is_reached_by_keyboard(browser, base_url, width):
+    context = _phone(browser, base_url, width)
+    try:
+        page = context.new_page()
+        page.goto(base_url + "/")
+        assert _tab_to(page, "#find")
+        style = page.evaluate(
+            "() => { const c = getComputedStyle(document.getElementById('find'));"
+            " return {style: c.outlineStyle, width: c.outlineWidth, colour: c.outlineColor,"
+            " offset: c.outlineOffset, bg: getComputedStyle(document.body).backgroundColor}; }"
+        )
+        assert style["style"] == "solid" and style["width"] == "2px"
+        assert int(style["offset"].removesuffix("px")) >= 3
+
+        def rgb(text):
+            return [int(n) for n in re.findall(r"\d+", text)[:3]]
+
+        # A focus indicator has to reach 3:1 against what it sits on (WCAG 1.4.11).
+        assert _ratio(rgb(style["colour"]), rgb(style["bg"])) >= 3
+    finally:
+        context.close()
+
+
+def test_the_pricing_presets_are_a_named_group_and_the_theme_buttons_have_names(browser, base_url):
+    context = _phone(browser, base_url, 1280)
+    try:
+        page = context.new_page()
+        page.goto(base_url + "/pricing/")
+        group = page.locator(".pricing-presets")
+        assert group.get_attribute("role") == "group"
+        assert group.get_attribute("aria-label") == "Example combinations"
+        assert page.get_by_role("group", name="Example combinations").count() == 1
+        assert page.get_by_role("button", name="Console theme").count() == 1
+        assert page.locator("#console-theme").get_attribute("title") == "Console theme"
+    finally:
+        context.close()
