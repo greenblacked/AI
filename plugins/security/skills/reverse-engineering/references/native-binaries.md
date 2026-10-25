@@ -17,9 +17,8 @@ architecture, whether it is stripped (symbol names survive or not), whether it i
 dynamically or statically linked (which other libraries matter), and whether debug
 information is present (source-level debugging is possible). A PE binary reports
 `PE32+ executable` and a Mach-O one `Mach-O 64-bit executable`; the tools below are
-Linux-native, so a PE or Mach-O target is better read with a disassembler built for that
-format (Ghidra and radare2 both read all three) rather than with `objdump`/`nm`/`readelf`,
-which are ELF-first.
+ELF-first, so a PE or Mach-O target is better read with a disassembler built for that
+format (Ghidra and radare2 both read all three) rather than with `objdump`/`nm`/`readelf`.
 
 ## Strings: the cheapest signal
 

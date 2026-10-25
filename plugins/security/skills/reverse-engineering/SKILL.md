@@ -23,7 +23,7 @@ question comes up later when it is expensive to answer.
 
 ## Scope
 
-Use for: analysing a native binary, a zip-backed package such as an Android APK or a JAR, a
+Use for: analysing a native binary, a zip-backed package such as an APK or a JAR, a
 JVM class file, or a live web application's shipped bundle, when you are authorised to
 examine it and there is no source or the source does not match what ships; confirming what a
 shipped artifact actually does rather than what its documentation claims; malware triage,
@@ -89,10 +89,10 @@ file ./target
 
 A native ELF, PE or Mach-O binary goes to [native binaries](references/native-binaries.md).
 A `.class` file goes straight to [managed bytecode](references/managed-bytecode.md); an
-Android APK, a JAR, or another zip-backed package goes to
+APK, a JAR, or another zip-backed package goes to
 [packaged and mobile artifacts](references/packaged-and-mobile-artifacts.md) first, which
-also says where that reference's own coverage stops — an Electron app's `app.asar` is not a
-zip, and an iOS IPA's layout was not independently verified for this skill — and a JAR's own
+also says where that reference's own coverage stops — a desktop app's bundled `app.asar` is not a
+zip, and the layout of a phone app package (an IPA) was not independently verified for this skill — and a JAR's own
 `.class` files are then read with the managed-bytecode reference, not a native disassembler.
 Each path ends the same way: a list of candidate functions or files worth reading, not yet a
 finding.

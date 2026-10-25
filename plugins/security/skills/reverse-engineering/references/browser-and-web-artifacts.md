@@ -10,9 +10,10 @@ feature idea from a competitor's app rather than its code, `feature-recreation` 
 building your own version without copying; this file is for reading the shipped artifact
 itself.
 
-The commands below are verified against a small HTTP server built for this file (Python's
-own `http.server`), serving an `index.html`, a minified `app.min.js` with a `checkLicense`
-function compared against a fixed string, and its source map.
+The commands below are verified against a small HTTP server built for this file (the standard
+library's `http.server`, run with `python3 -m http.server`), serving an `index.html`, a
+minified `app.min.js` with a `checkLicense` function compared against a fixed string, and
+its source map.
 
 ## Response headers are the cheapest signal, same role as a linked library
 
@@ -43,19 +44,23 @@ itself, unless you are in that gate's stated exception.
 
 ```bash
 curl -s https://example.test/app.min.js | grep -o 'sourceMappingURL=.*'
-curl -sf https://example.test/app.min.js.map
+curl -sSf https://example.test/app.min.js.map
 ```
 
 The comment at the end of a minified file names where its source map lives, if one was
 shipped; fetching it is a second request to the same read-only path. On the test server this
-returned the map's JSON, naming the original source file and the Base64 VLQ encoding its
-`mappings` field uses to connect minified positions back to it. A real build often does not
-deploy a map to production on purpose — it can be the one thing standing between "minified"
-and "as readable as the source", which is itself worth noting as a finding if a target you
-expected to protect this way shipped one anyway. `-f` turns a missing map into a nonzero exit
-instead of printing the host's error page as if it were map content — a 404 there is a
-normal, confirming result, not an error to work around, but it should be read as a 404 rather
-than as empty output.
+returned the map's JSON, which names the original source file and has a `mappings` field,
+Base64 VLQ-encoded under the version 3 source map format, that connects minified positions
+back to it. A real build often does not deploy a map to production on purpose — it can be
+the one thing standing between "minified" and "as readable as the source", which is itself
+worth noting as a finding if a target you expected to protect this way shipped one anyway.
+With `-sSf` a missing map prints `curl: (22) The requested URL returned error: 404` on
+stderr and exits 22, instead of printing the host's error page as if it were map content.
+Exit 22 covers any HTTP status of 400 or above, though curl's own manual warns that `-f` is
+not fail-safe and that a 401 or 407 can slip through, so an authentication-protected map URL
+may still print a body; that caveat comes from the manual, not from a test here. Read the
+exit status and that message rather than the body; a 404 there is a normal, confirming
+result, not an error to work around.
 
 ## What this does not cover
 
