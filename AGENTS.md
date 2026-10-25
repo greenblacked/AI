@@ -64,7 +64,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `plugins/gamedev/skills/` | Making games, and shipping them |
 | `plugins/security/skills/` | The defensive side of shipping software |
 | `plugins/manager/skills/` | Engineering leadership |
-| `plugins/personal/skills/` | Money, travel, admin, habits and health |
+| `plugins/personal/skills/` | Money, travel, admin, habits, health and family history |
 | `plugins/career/skills/` | Applications, negotiation, speaking and writing |
 | `plugins/design/skills/` | Usability, accessibility and design systems |
 | `plugins/llm/skills/` | Building features on language models: retrieval, structured output, MCP servers, document extraction and model migration |
