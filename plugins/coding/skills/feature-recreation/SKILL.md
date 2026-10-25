@@ -52,8 +52,10 @@ it; or reviewing a diff someone else wrote, which is `code-review`.
    source was read, or the feature is a core differentiator or a direct competitor's).
 3. **No verbatim text, assets, icons, exact visual layout or code.** Error messages, help
    text, variable and function names that leak the reference's internal structure, regexes,
-   algorithms copied rather than independently derived, logos and icons — none of it, however
-   small the piece.
+   algorithms copied rather than independently derived, logos and icons — none of it,
+   however small the piece. The shipped result also leaves out the name of the product it
+   was modelled on, apart from a notice a licence requires under gate 4; step 3 says what
+   that reaches and what stays in your private record.
 4. **Licence checked before anything is reused, not after.** Even a single constant, sample
    value or icon carries whatever licence its source carries; `licence-compliance` covers
    compatibility once you know what you are looking at.
@@ -109,13 +111,33 @@ that satisfies the same spec is the point, not an accident to be minimised. If a
 spec turns out to be ambiguous only once you are implementing it, resolve it from the spec's
 intent or by observing the reference again as a user — not by reopening its code.
 
+The shipped result — code, identifiers, comments, commit messages, pull request text, docs,
+changelog and UI copy — describes what your feature does, not what it was modelled on. In a
+fully original build nothing was carried across, so there is nothing to credit and no notice
+to add: the product that inspired it gets no mention. Leaving the name out matters for two
+reasons of its own. In code and commits, the name can be read as a record that whoever
+implemented the feature had the reference in front of them — the access half of how copying
+gets inferred — which undercuts the clean room. In user-facing copy, docs or marketing, it
+can suggest an affiliation or endorsement that does not exist, which is the trademark
+question gate 5 sends to legal review.
+
+Two things stay regardless. In the less common case where something was actually carried
+across under a licence, that licence's notice or attribution stays: it is an obligation,
+decided in step 4 with `licence-compliance`, not a courtesy you can drop. And the step 1
+spec and the clean-room record of who read what and when are kept, privately and outside the
+shipped code, because that record is the evidence of independent creation; leaving the
+reference's name out of the product is not the same as destroying the paper trail.
+
 ### 4. Verify against your own spec and licence-check what you kept
 
-Write acceptance tests from the spec, with your own fixtures (gate 6). Before merging, list
-anything that came from the reference at all — a constant, an icon, a sample value — and
-route each through `licence-compliance`, using
-[observation and licence boundaries](references/observation-and-licence-boundaries.md) to
-decide what counts as "came from the reference" in the first place; anything that is not
+Write acceptance tests from the spec, with your own fixtures (gate 6). Before merging,
+search your own diff, commit messages and pull request text for the reference product's name
+and remove every mention that is not a licence notice this step requires; once gate 5 has
+sent the feature to legal review, or a dispute looks foreseeable, rewrite history that names
+the reference only as counsel directs. Then list anything that came from the reference at
+all — a constant, an icon, a sample value — and route each through `licence-compliance`,
+using [observation and licence boundaries](references/observation-and-licence-boundaries.md)
+to decide what counts as "came from the reference" in the first place; anything that is not
 clearly cleared does not ship until it is.
 
 ## Anti-patterns
