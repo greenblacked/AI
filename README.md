@@ -50,7 +50,7 @@ and what the runtime does or does not enforce.
 
 | Plugin | Focus | Contents |
 | --- | --- | --- |
-| [`coding`](#coding) | Reading, reviewing, testing and changing code | 26 skills, 5 subagents, 1 command |
+| [`coding`](#coding) | Reading, reviewing, testing and changing code | 27 skills, 5 subagents, 1 command |
 | [`family`](#family) | One development workflow, from a vague request to a measured outcome | 11 skills, 6 subagents, 1 command |
 | [`gamedev`](#gamedev) | Making games, and shipping them | 33 skills, 1 subagent, 1 command |
 | [`operations`](#operations) | Keeping a running system alive | 19 skills, 7 subagents, 2 commands |
@@ -364,6 +364,7 @@ Reading, reviewing, testing and changing code.
 | [`debugging`](plugins/coding/skills/debugging/SKILL.md) | Drive a failure down to a proven cause before changing any code: reproduce it, reduce it, one falsifiable hypothesis at a time, and prove the fix by turning the failure off and on again. |
 | [`dependency-upgrade`](plugins/coding/skills/dependency-upgrade/SKILL.md) | Move onto a new major version without a branch that never lands: deprecation warnings first, one dependency per change, and the uncovered surface named. |
 | [`e2e-testing`](plugins/coding/skills/e2e-testing/SKILL.md) | Keep a browser suite trustworthy instead of rerun until green: measure each test's real flake rate first, locate by role and accessible name, wait on state rather than a sleep or network idle, authenticate once, and prove a repaired test can still fail. |
+| [`feature-recreation`](plugins/coding/skills/feature-recreation/SKILL.md) | Build your own version of a feature seen in another app without copying its code, text or assets: a behaviour spec written before the reference is opened, reading and implementing kept as separate sessions, and a licence check on anything actually carried across. |
 | [`feature-spec`](plugins/coding/skills/feature-spec/SKILL.md) | Turn a loose feature request into a written spec and a checkpointed task plan before any code exists: one question at a time, explicit non-goals, acceptance criteria phrased as checks, two or three approaches compared, and tasks small enough to verify with the riskiest first. |
 | [`new-skill`](plugins/coding/skills/new-skill/SKILL.md) | Author a skill that actually fires: decide whether it deserves to exist, write the body before the description, and build the eval set from the neighbouring skills it has to beat. |
 | [`profiling`](plugins/coding/skills/profiling/SKILL.md) | Make slow application code fast or prove it cannot be: rule out the database and the network first, sample the real process under load, read self time and call paths rather than the function that feels slow, and prove each change against measured variance. |
