@@ -1,0 +1,22 @@
+[
+  {"query": "I have a binary with no source and I need to find where it checks the license key", "should_trigger": true},
+  {"query": "how do I reverse engineer this APK to see what network calls it actually makes", "should_trigger": true},
+  {"query": "someone handed me a malware sample to triage, where do I even start without infecting my own machine", "should_trigger": true},
+  {"query": "this CTF challenge is a stripped ELF binary, how do I find the function that checks the flag", "should_trigger": true},
+  {"query": "I want to see what this packaged mobile app actually does at runtime, not just what its manifest claims", "should_trigger": true},
+  {"query": "I have a .class file with no source and no idea what it does, how do I read it", "should_trigger": true},
+  {"query": "a vendor claims their shipped binary doesn't phone home, how do I confirm that from the binary itself", "should_trigger": true},
+  {"query": "how do I set up a safe environment to run an executable someone sent me when I don't know what it does", "should_trigger": true},
+  {"query": "I decompiled this function but don't trust the variable names the decompiler guessed, how do I confirm what it really does", "should_trigger": true},
+  {"query": "this competitor's minified JS bundle, can I get back something more readable to see how it works", "should_trigger": true},
+  {"query": "draw me a C4 container diagram of our order service for the architecture review", "should_trigger": false, "expected": "architecture-diagrams"},
+  {"query": "I just inherited this repo and have no idea where to start reading the code", "should_trigger": false, "expected": "codebase-orientation"},
+  {"query": "review this pull request for sql injection and auth bugs before we merge it", "should_trigger": false, "expected": "security-review"},
+  {"query": "I want our own version of a competitor's onboarding flow, built from scratch, not their code", "should_trigger": false, "expected": "feature-recreation"},
+  {"query": "my function is returning the wrong value and I can't figure out why, help me step through it", "should_trigger": false, "expected": "debugging"},
+  {"query": "we found a security bug in a third-party library, how do we coordinate disclosure with the maintainers", "should_trigger": false, "expected": "vulnerability-disclosure"},
+  {"query": "gdb shows nothing but question marks, I have a core file from a production crash but no symbols for it", "should_trigger": false, "expected": "native-core-dump-analysis"},
+  {"query": "we think this host is compromised and a sample is running on it right now, how do I preserve evidence before anyone touches it", "should_trigger": false, "expected": "compromise-evidence-preservation"},
+  {"query": "we keep seeing the same attack pattern in our logs, help me write a detection rule for it", "should_trigger": false, "expected": "detection-engineering"},
+  {"query": "audit who actually has admin access across all our cloud accounts right now", "should_trigger": false, "expected": "access-review"}
+]
