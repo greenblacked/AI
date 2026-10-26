@@ -10,7 +10,7 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
-- Security skills adapted from official REA (morluto/rea) agent skills: `reverse-engineer-anything` for authorized binary/package investigation with REA, and `rea-analysis-efficiency` for cutting redundant analysis cost while preserving Evidence.
+- Security skills adapted from official REA (morluto/rea): `reverse-engineer-anything` for authorized binary/package investigation with REA, and `rea-analysis-efficiency` for cutting redundant analysis cost while preserving Evidence.
 
 ## [0.2.2] - 2026-10-24
 
