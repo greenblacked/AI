@@ -1,0 +1,92 @@
+[
+  {
+    "query": "REA keeps returning huge MCP payloads and the agent context fills up mid-investigation",
+    "should_trigger": true
+  },
+  {
+    "query": "Ghidra via REA is re-analysing the same binary every question; how do we reuse Evidence",
+    "should_trigger": true
+  },
+  {
+    "query": "our reverse-engineering session is slow and memory heavy; cut redundant analysis without losing proof",
+    "should_trigger": true
+  },
+  {
+    "query": "should we use detail summary and parent_evidence_id instead of complete dossiers every time",
+    "should_trigger": true
+  },
+  {
+    "query": "transport resource_constraint on analyze_javascript_application; how to page without re-running",
+    "should_trigger": true
+  },
+  {
+    "query": "compare before and after timings for the same REA investigation after we changed request shape",
+    "should_trigger": true
+  },
+  {
+    "query": "native analysis floods tokens; prefer retained views over complete inline Evidence",
+    "should_trigger": true
+  },
+  {
+    "query": "REA provider_timeout on a large target; budget and reuse partial Evidence efficiently",
+    "should_trigger": true
+  },
+  {
+    "query": "stop reopening Hopper for every follow-up on the same authorized binary",
+    "should_trigger": true
+  },
+  {
+    "query": "investigation quality is fine but latency is bad; find earliest unnecessary REA work",
+    "should_trigger": true
+  },
+  {
+    "query": "decompile login in this ELF and explain with evidence",
+    "should_trigger": false,
+    "expected": "reverse-engineer-anything"
+  },
+  {
+    "query": "how does clipboard work in this Electron app without source",
+    "should_trigger": false,
+    "expected": "reverse-engineer-anything"
+  },
+  {
+    "query": "this Python function is CPU hot in production; profile it",
+    "should_trigger": false,
+    "expected": "profiling"
+  },
+  {
+    "query": "unit test fails and I need the root cause in our source tree",
+    "should_trigger": false,
+    "expected": "debugging"
+  },
+  {
+    "query": "review the PR for authz bugs",
+    "should_trigger": false,
+    "expected": "security-review"
+  },
+  {
+    "query": "is this MCP plugin safe to install",
+    "should_trigger": false,
+    "expected": "agent-extension-audit"
+  },
+  {
+    "query": "design the HTTP API error model",
+    "should_trigger": false,
+    "expected": "api-design"
+  },
+  {
+    "query": "triage dependency CVEs in the lockfile",
+    "should_trigger": false,
+    "expected": "dependency-triage"
+  },
+  {
+    "query": "orient me in this repository's package layout",
+    "should_trigger": false,
+    "expected": "codebase-orientation"
+  },
+  {
+    "query": "write detection rules for credential stuffing",
+    "should_trigger": false,
+    "expected": "detection-engineering"
+  }
+]
