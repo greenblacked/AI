@@ -7,7 +7,7 @@
 
 # Agent skills
 
-498 agent skills, 30 subagents and ten slash commands, in twenty-eight
+501 agent skills, 30 subagents and ten slash commands, in twenty-eight
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-498-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-501-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -55,7 +55,7 @@ and what the runtime does or does not enforce.
 | [`gamedev`](#gamedev) | Making games, and shipping them | 33 skills, 1 subagent, 1 command |
 | [`operations`](#operations) | Keeping a running system alive | 19 skills, 7 subagents, 2 commands |
 | [`delivery`](#delivery) | Getting a change into production | 12 skills, 1 subagent |
-| [`security`](#security) | The defensive side of shipping software | 23 skills, 5 subagents, 2 commands |
+| [`security`](#security) | The defensive side of shipping software | 26 skills, 5 subagents, 2 commands |
 | [`manager`](#manager) | Engineering leadership | 22 skills, 2 subagents, 2 commands |
 | [`personal`](#personal) | Money, travel, admin, habits and health | 7 skills, 2 subagents |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 11 skills |
@@ -195,7 +195,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.47 }
+{ "skillListingBudgetFraction": 0.48 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -488,11 +488,14 @@ The defensive side of shipping software.
 | [`access-review`](plugins/security/skills/access-review/SKILL.md) | Reduce who and what can do what toward least privilege without breaking production: evidence over intent, and an audit-only window before enforcement. |
 | [`agent-extension-audit`](plugins/security/skills/agent-extension-audit/SKILL.md) | Vet a third-party skill, plugin, hook, MCP server or slash command before installing it: fetch to quarantine without running anything, read every executable file, list declared and effective permissions, then install, restrict or reject and record the pinned commit and hash. |
 | [`agent-security-review`](plugins/security/skills/agent-security-review/SKILL.md) | Review an agent from untrusted content to privileged effect: trace provenance into tool arguments, enforce authorization and tenant scope at execution, bind approval to the exact action, constrain capabilities and prove deny paths with inert tests. |
+| [`android-apk-analysis`](plugins/security/skills/android-apk-analysis/SKILL.md) | Analyse an authorized APK, AAB or split set: target digest, signing identity before code, manifest and exported components, summary-first dex overview, and the method path behind the answer, with Evidence IDs. |
 | [`auth-design`](plugins/security/skills/auth-design/SKILL.md) | Design or review how a system proves who a caller is and keeps that proof safe: whether to build identity at all, the flow that fits each client type, session rotation on every privilege change, and where a token's claims can be trusted. |
 | [`authorization-design`](plugins/security/skills/authorization-design/SKILL.md) | Design application permissions around trusted subject, tenant and resource facts, with default-deny policy, server-side enforcement on every path, bounded revocation latency and tests for allowed actions and tenant boundaries. |
+| [`authorized-device-debloat`](plugins/security/skills/authorized-device-debloat/SKILL.md) | De-bloat or cut ads on an Android TV or similar device you own or are authorized to modify: Evidence-based package identification, disable before uninstall, rollback and factory-reset recovery — never DRM, anti-theft or other people's devices. |
 | [`certificate-automation`](plugins/security/skills/certificate-automation/SKILL.md) | Move a certificate estate onto automated ACME issuance and renewal ahead of the CA/Browser Forum's shrinking maximum lifetimes: inventory from outside first, classify every endpoint by ACME capability, schedule by ACME Renewal Information with a lifetime-fraction backstop, and alert on renewal failure. |
 | [`data-privacy`](plugins/security/skills/data-privacy/SKILL.md) | Handle personal data end to end: settle controller or processor before anything else, classify what is held, enforce retention with a job rather than a document, and make deletion reach the search index, the caches and the restore path instead of only the primary row. |
 | [`dependency-triage`](plugins/security/skills/dependency-triage/SKILL.md) | Work a queue of vulnerability alerts into a decision each — reachability before severity, the two signals that mean today rather than this quarter, safe patches batched and risky ones isolated, and suppression that expires. |
+| [`firmware-image-inspection`](plugins/security/skills/firmware-image-inspection/SKILL.md) | Inspect an authorized firmware, flash or disk image: region inventory with offsets, extraction into quarantine with notes, extracted blobs treated as hostile, and nothing claimed without Evidence. |
 | [`host-hardening`](plugins/security/skills/host-hardening/SKILL.md) | Harden a Linux or Unix host against a named baseline without locking yourself out: preserve a second way in before touching sshd or sudo, export the config either side, change one class at a time on a canary, and verify over a path you did not edit — across SSH, sudo, auditd, sysctl, services and permissions. |
 | [`iac-review`](plugins/security/skills/iac-review/SKILL.md) | Review a Terraform change against the plan JSON rather than the plan text, so replacements and destroys surface first instead of being skimmed past. |
 | [`image-hardening`](plugins/security/skills/image-hardening/SKILL.md) | Build or audit a container image: minimal base, digest pinning, numeric non-root UID, no secrets in layers, SBOM, a scan gate that will not get bypassed, signing that is actually verified. |
