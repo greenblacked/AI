@@ -12,8 +12,8 @@ authorized to examine.
 
 Not supported: DRM / license / anti-cheat circumvention; game cheats or online
 service tampering; bypassing authentication or access controls without
-authorization; copying proprietary software or protected assets; evading model
-provider policies; reselling or sharing AI accounts.
+authorization; copying proprietary software or protected assets; evading provider
+policies; reselling or sharing provider accounts.
 
 You are responsible for authorization, applicable law, contracts, IP, privacy,
 and third-party tool licenses. Possession of a file does not by itself authorize
@@ -30,8 +30,8 @@ first; use disposable environments for dynamic work.
 
 - Official sources only: `github.com/morluto/rea`, `rea.tools`, npm `rea-agents`.
 - Pin exact package versions in durable MCP config.
-- REA analyzes locally; the coding agent may still send tool results to a cloud
-  model — use local/offline agents for sensitive targets when required.
+- REA analyzes locally; the host session may still send tool results to a cloud
+  provider — use a local/offline host for sensitive targets when required.
 - Bridges authenticate with per-session tokens over private IPC. That is not a
   sandbox against same-user malware.
 - Opening an untrusted binary delegates parsing to Ghidra/Hopper/IDA/JADX with

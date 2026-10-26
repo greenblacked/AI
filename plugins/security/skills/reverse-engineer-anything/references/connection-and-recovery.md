@@ -38,7 +38,7 @@ only REA output supplies REA Evidence.
    Show proposed paths, backups, and skill replacement; obtain approval.
 3. Apply the same scope with `--yes`. Add `--install-hopper` only if that
    separate install was needed and approved.
-4. Restart/reconnect the agent. Verify REA tools appear, then resume.
+4. Restart/reconnect the host session. Verify REA tools appear, then resume.
 
 REA setup does not install Node, Java, Ghidra, IDA, JADX, Binwalk, or Unblob.
 For unsupported clients, use manual stdio registration with a version-pinned
