@@ -1,0 +1,22 @@
+[
+  {"query": "this GraphQL query takes eight seconds, how do I find which resolver is slow", "should_trigger": true},
+  {"query": "our posts query issues one database call per post, how do I batch the author resolver", "should_trigger": true},
+  {"query": "can a client send a deeply nested GraphQL query and take our API down", "should_trigger": true},
+  {"query": "review this schema and tell me which list fields have no pagination limit", "should_trigger": true},
+  {"query": "we return a user's orders through the graph but the resolver never checks who is asking", "should_trigger": true},
+  {"query": "should introspection and the playground stay enabled on our production GraphQL endpoint", "should_trigger": true},
+  {"query": "how do I add a field to this GraphQL type without breaking the mobile app that already queries it", "should_trigger": true},
+  {"query": "someone can read another tenant's email through the node(id:) field, is that a resolver bug", "should_trigger": true},
+  {"query": "set a query cost or complexity limit on our Apollo gateway", "should_trigger": true},
+  {"query": "our GraphQL server accepts aliases that repeat the same expensive field many times", "should_trigger": true},
+  {"query": "design cursor pagination for our REST orders endpoint", "should_trigger": false, "expected": "api-design"},
+  {"query": "this SQL query does a sequential scan and takes two seconds", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "we need to model orders, refunds and line items in the database", "should_trigger": false, "expected": "schema-design"},
+  {"query": "decide which roles may call the admin endpoints in our service", "should_trigger": false, "expected": "authorization-design"},
+  {"query": "review this pull request for injection and broken access control", "should_trigger": false, "expected": "security-review"},
+  {"query": "our OpenAPI document has drifted from what the service actually returns", "should_trigger": false, "expected": "openapi-diff-gate"},
+  {"query": "our gRPC client keeps returning DEADLINE_EXCEEDED on one method", "should_trigger": false, "expected": "grpc-runtime-debugging"},
+  {"query": "the database throws serialization failures under concurrent writes", "should_trigger": false, "expected": "transaction-race-hunt"},
+  {"query": "the trace shows one span dominating the p99 but I do not know which service owns it", "should_trigger": false, "expected": "trace-latency-analysis"},
+  {"query": "load test the API to find the point where it falls over", "should_trigger": false, "expected": "load-testing"}
+]

@@ -1,0 +1,22 @@
+[
+  {"query": "here is a pcap, why did this connection keep timing out", "should_trigger": true},
+  {"query": "the TLS handshake to our API hangs and I captured the traffic, what happened", "should_trigger": true},
+  {"query": "requests are slow but the application logs look clean, is it the network", "should_trigger": true},
+  {"query": "how do I read retransmissions and zero window in this capture", "should_trigger": true},
+  {"query": "capture the traffic on eth0 and tell me which side sent the reset", "should_trigger": true},
+  {"query": "the connection works from one host and fails from another, I have a tshark capture of both", "should_trigger": true},
+  {"query": "what does this tcpdump file show for the handshake timing", "should_trigger": true},
+  {"query": "I need a display filter for TLS alert records in this capture", "should_trigger": true},
+  {"query": "is the delay the client, the server or the path, based on this pcap", "should_trigger": true},
+  {"query": "the server logs show the request arrived late, I want to compare with the packet timing", "should_trigger": true},
+  {"query": "write the iptables rule that allows this port and drops the rest", "should_trigger": false, "expected": "firewall-rule-tracing"},
+  {"query": "small packets work but large ones hang, I think it is an MTU problem", "should_trigger": false, "expected": "mtu-blackhole-hunt"},
+  {"query": "the client reports certificate expired against our endpoint", "should_trigger": false, "expected": "tls-handshake-debugging"},
+  {"query": "DNS returns NXDOMAIN for our internal name from this host", "should_trigger": false, "expected": "dns-resolution-debugging"},
+  {"query": "the machine's load average is 40 and everything is slow", "should_trigger": false, "expected": "high-load-triage"},
+  {"query": "a load balancer returns 502 intermittently and I have no capture", "should_trigger": false, "expected": "intermittent-502-hunt"},
+  {"query": "our BLE peripheral disconnects after a few seconds", "should_trigger": false, "expected": "ble-connection-debug"},
+  {"query": "a serial device stops responding mid-frame", "should_trigger": false, "expected": "serial-bus-debug"},
+  {"query": "our gRPC client returns UNAVAILABLE from one pod", "should_trigger": false, "expected": "grpc-runtime-debugging"},
+  {"query": "a container cannot reach the host and I think a rule is dropping the packets", "should_trigger": false, "expected": "firewall-rule-tracing"}
+]
