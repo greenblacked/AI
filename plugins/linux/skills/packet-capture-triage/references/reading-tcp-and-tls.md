@@ -14,7 +14,7 @@ a frame, so the report cites frames rather than impressions.
 
 ## The handshake
 
-```
+```text
 client ──SYN──────────────►  server
 client ◄─────────SYN,ACK────  server
 client ──ACK──────────────►  server
@@ -63,7 +63,7 @@ tshark -r cap.pcap -Y 'tcp.analysis.window_full'         # receiver window exhau
 
 ## Teardown: who ended it
 
-```
+```text
 FIN,ACK ──►     graceful close by the sender
 RST ──────►     abrupt close
 ```

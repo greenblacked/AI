@@ -7,7 +7,7 @@ capabilities actually live.
 
 A macOS `.app` is a directory, not a file:
 
-```
+```text
 Example.app/
   Contents/
     Info.plist
@@ -20,7 +20,7 @@ Example.app/
 
 An IPA is a zip with one top-level directory:
 
-```
+```text
 Payload/Example.app/              the same bundle layout
 Payload/Example.app/Frameworks/
 Payload/Example.app/Info.plist

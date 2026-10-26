@@ -23,7 +23,7 @@ whole difference between `regex`/RE2/Go and `re`/`java.util.regex`/PCRE.
 | --- | --- | --- |
 | Nested quantifier | `(a+)+$` | `'a'*n + '!'` |
 | Nested quantifier, digits | `(\d+)+$` | `'1'*n + 'x'` |
-| Overlapping alternation | `(a|a)+$`, `(ab|a)+b` | `'a'*n` |
+| Overlapping alternation | `(a\|a)+$`, `(ab\|a)+b` | `'a'*n` |
 | Adjacent ambiguous repeats | `a*a*$` | `'a'*n + '!'` |
 | Repetition then required suffix | `(.*)*,` | a long line with no comma |
 | Nested groups | `((a)*)*$` | `'a'*n + '!'` |
@@ -69,8 +69,8 @@ the absolute time, is the evidence.
 | --- | --- | --- |
 | `(a+)+` | `a+` | The outer quantifier is redundant; `a+` matches the same language |
 | `(\d+)+` | `\d+` | same |
-| `(a|a)+` | `a+` | The branches are identical |
-| `(ab|a)+b` | `(ab|a)*b` or `a+b` | Make the alternation's branches disjoint, or drop the redundant one |
+| `(a\|a)+` | `a+` | The branches are identical |
+| `(ab\|a)+b` | `(ab\|a)*b` or `a+b` | Make the alternation's branches disjoint, or drop the redundant one |
 | `a*a*` | `a*` | Two adjacent identical quantifiers are one |
 | `(.*)*` | `.*` | same |
 | `(x+x+)+y` | `x+y` | The inner pattern is just `x+` |
