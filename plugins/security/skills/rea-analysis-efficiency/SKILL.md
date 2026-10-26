@@ -7,7 +7,7 @@ allowed-tools: "Read, Grep, Glob, Bash"
 # REA analysis efficiency
 
 Good looks like the same investigation answers, with less repeated engine work
-and smaller agent context — measured against an explicit oracle, not a feeling
+and smaller session context — measured against an explicit oracle, not a feeling
 that JSON got shorter.
 
 Adapted from the official REA skill
@@ -17,7 +17,7 @@ rewritten for operators using REA rather than for changing REA's own code.
 ## Scope
 
 Use for: an authorized REA or provider-backed investigation that is slow,
-memory-heavy, flooding the model context, or clearly redoing the same analysis.
+memory-heavy, flooding the session context, or clearly redoing the same analysis.
 
 Do not use for: starting the investigation (use `reverse-engineer-anything`);
 ordinary application debugging without REA; tuning REA's CI or implementing REA
@@ -65,7 +65,7 @@ invalidation, and lifetime (target bytes, engine, options, architecture).
 Re-run the same public workflow before and after with equivalent inputs,
 coverage, and Evidence semantics. Report outcome, elapsed time, whether warm
 caches were involved, and remaining limits. Smaller JSON alone does not prove
-fewer model tokens or better investigation quality.
+fewer tokens or better investigation quality.
 
 ## Anti-patterns
 
