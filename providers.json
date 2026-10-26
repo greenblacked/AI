@@ -47,10 +47,10 @@
       "skills": "Yes — `.github/skills`, `.claude/skills`, `.agents/skills`, `~/.copilot/skills`, `~/.agents/skills`",
       "use": "`CLAUDE_SKILLS_DIR=~/.agents/skills make install`",
       "sources": [
-        "https://github.com/github/docs/blob/main/content/copilot/concepts/agents/about-agent-skills.md",
+        "https://github.com/github/docs/blob/main/content/copilot/concepts/customizations/agent-skills.md",
         "https://github.com/github/docs/blob/main/content/copilot/how-tos/copilot-in-your-ide/customize-copilot/configure-custom-instructions/add-repository-instructions-in-your-ide.md"
       ],
-      "verified": "2026-10-01"
+      "verified": "2026-10-26"
     },
     {
       "provider": "Mistral",
