@@ -28,7 +28,7 @@
     "platform": 19500,
     "product": 19500,
     "research": 17000,
-    "security": 19000,
+    "security": 20500,
     "smallbiz": 17500,
     "techdocs": 10000
   },
@@ -528,6 +528,8 @@
     "write-technical-article": 880,
     "xid-wraparound-defense": 840,
     "year-end-tax-pack": 869,
-    "yield-to-lesson": 796
+    "yield-to-lesson": 796,
+    "reverse-engineer-anything": 743,
+    "rea-analysis-efficiency": 619
   }
 }
