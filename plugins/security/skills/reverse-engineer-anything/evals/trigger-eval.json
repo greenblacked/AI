@@ -1,0 +1,92 @@
+[
+  {
+    "query": "reverse engineer how search works in this shipped macOS app binary",
+    "should_trigger": true
+  },
+  {
+    "query": "decompile the authentication routine in this ELF and show the evidence",
+    "should_trigger": true
+  },
+  {
+    "query": "use REA to inspect this Electron ASAR and map the clipboard IPC path",
+    "should_trigger": true
+  },
+  {
+    "query": "triage this authorized malware sample with Ghidra through the agent",
+    "should_trigger": true
+  },
+  {
+    "query": "how does this feature work in the installed Notes app without source",
+    "should_trigger": true
+  },
+  {
+    "query": "inspect this APK's classes and method references with JADX via REA",
+    "should_trigger": true
+  },
+  {
+    "query": "REA MCP tools disappeared after an update; recover and continue the binary investigation",
+    "should_trigger": true
+  },
+  {
+    "query": "reconstruct the pan calculation from this game binary for interoperability research we own",
+    "should_trigger": true
+  },
+  {
+    "query": "compare two versions of this firmware blob and explain what changed in the boot path",
+    "should_trigger": true
+  },
+  {
+    "query": "open this PE, find the import table and certificate identity, then decompile the TLS callback",
+    "should_trigger": true
+  },
+  {
+    "query": "review this pull request for injection and broken object-level authorisation",
+    "should_trigger": false,
+    "expected": "security-review"
+  },
+  {
+    "query": "is this third-party MCP server safe to install before we add it to the team",
+    "should_trigger": false,
+    "expected": "agent-extension-audit"
+  },
+  {
+    "query": "walk me through the modules in this git repo and how requests flow",
+    "should_trigger": false,
+    "expected": "codebase-orientation"
+  },
+  {
+    "query": "design the login and session model for our new API",
+    "should_trigger": false,
+    "expected": "auth-design"
+  },
+  {
+    "query": "rotate the leaked AWS key and contain blast radius",
+    "should_trigger": false,
+    "expected": "secret-rotation"
+  },
+  {
+    "query": "the unit test fails locally but I cannot see why the assertion is wrong",
+    "should_trigger": false,
+    "expected": "debugging"
+  },
+  {
+    "query": "build a harness that proves tenant A cannot read tenant B's rows",
+    "should_trigger": false,
+    "expected": "tenant-isolation-testing"
+  },
+  {
+    "query": "write a detection rule for impossible travel logins and test it",
+    "should_trigger": false,
+    "expected": "detection-engineering"
+  },
+  {
+    "query": "commission an authorised pentest scope and rules of engagement",
+    "should_trigger": false,
+    "expected": "security-test-engagement"
+  },
+  {
+    "query": "preserve volatile evidence after we suspect a host compromise",
+    "should_trigger": false,
+    "expected": "compromise-evidence-preservation"
+  }
+]
