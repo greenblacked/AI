@@ -1,9 +1,9 @@
 [
   {"query": "I have a binary with no source and I need to find where it checks the license key", "should_trigger": true},
-  {"query": "how do I reverse engineer this APK to see what network calls it actually makes", "should_trigger": true},
+  {"query": "how do I reverse engineer this stripped shared library to see what network calls it actually makes", "should_trigger": true},
   {"query": "someone handed me a malware sample to triage, where do I even start without infecting my own machine", "should_trigger": true},
   {"query": "this CTF challenge is a stripped ELF binary, how do I find the function that checks the flag", "should_trigger": true},
-  {"query": "I want to see what this packaged mobile app actually does at runtime, not just what its manifest claims", "should_trigger": true},
+  {"query": "I want to see what this shipped vendor binary actually does at runtime, not just what its documentation claims", "should_trigger": true},
   {"query": "I have a .class file with no source and no idea what it does, how do I read it", "should_trigger": true},
   {"query": "a vendor claims their shipped binary doesn't phone home, how do I confirm that from the binary itself", "should_trigger": true},
   {"query": "how do I set up a safe environment to run an executable someone sent me when I don't know what it does", "should_trigger": true},
@@ -22,5 +22,17 @@
   {"query": "my TV keeps showing ads on the home screen and I think it's tracking what I watch, how do I find out what it's actually doing", "should_trigger": true},
   {"query": "I pulled a .ipk app package off my smart TV and want to see what's inside it", "should_trigger": true},
   {"query": "I want to build my own TV home screen that feels like another streaming box's interface without copying it", "should_trigger": false, "expected": "feature-recreation"},
-  {"query": "we're designing what our own TV firmware reports home about viewing, within a data budget, how should that telemetry work", "should_trigger": false, "expected": "device-telemetry-design"}
+  {"query": "we're designing what our own TV firmware reports home about viewing, within a data budget, how should that telemetry work", "should_trigger": false, "expected": "device-telemetry-design"},
+  {"query": "REA is already connected on this machine, how do I get it to decompile just one function instead of the whole binary", "should_trigger": true},
+  {"query": "the decompiler MCP server keeps timing out on this large binary, what should I check before I retry the same call", "should_trigger": true},
+  {"query": "which REA tool should I point at an Electron app.asar when I want the JavaScript tree rather than the native framework", "should_trigger": true},
+  {"query": "how do I put the evidence ids the analysis server returned into a finding report so the claim is traceable", "should_trigger": true},
+  {"query": "our router's firmware image, what is inside it and does the update verify its signature before flashing", "should_trigger": false, "expected": "firmware-analysis"},
+  {"query": "this .wasm module shipped with the site, what does it export and what does it import, without running it", "should_trigger": false, "expected": "wasm-analysis"},
+  {"query": "compare function level differences between 1.2 and 1.3 of this closed source service binary", "should_trigger": false, "expected": "native-function-matching"},
+  {"query": "I have an Electron app's app.asar and want the JavaScript source tree back out of it", "should_trigger": false, "expected": "packaged-desktop-app-analysis"},
+  {"query": "what frameworks and entitlements are inside the macOS app bundle I just downloaded", "should_trigger": false, "expected": "apple-app-analysis"},
+  {"query": "my REA session burns forty minutes re-running the same scans, how do I cut the analysis cost without losing evidence", "should_trigger": false, "expected": "rea-analysis-efficiency"},
+  {"query": "read this APK's signing certificate lineage and list its exported receivers", "should_trigger": false, "expected": "android-apk-analysis"},
+  {"query": "which class in this Android package sends the analytics request", "should_trigger": false, "expected": "android-apk-analysis"}
 ]

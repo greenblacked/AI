@@ -1,7 +1,7 @@
 ---
 name: reverse-engineering
-description: "Reverse engineer a binary, a packaged mobile app, a JVM class file, a smart TV app, or a live web app's shipped bundle you are authorised to examine: identify the format first, read its static structure — strings, symbols, bytecode or a source map — before running it, then confirm a hypothesis dynamically in an isolated environment. Covers native ELF, PE and Mach-O binaries, zip-backed packages (APK, JAR) and web apps, for malware triage, vulnerability research, CTFs, coursework and interoperability work. Use for \"I have a binary and no source, where do I start\", \"find the license check in this program\", or \"this minified JS, can I get back something readable\". Not for a system diagram (architecture-diagrams), a source repo you already have (codebase-orientation), a diff review (security-review), a live cloud audit (access-review), or a logic error in your own code (debugging)."
-allowed-tools: "Read, Glob, Grep"
+description: "Reverse engineer a binary, packaged mobile app, JVM class file, or a web bundle you are authorised to examine: identify the format, read its static structure — strings, symbols or bytecode — before running it, then confirm a hypothesis dynamically in an isolated environment. Use for \"I have a binary and no source, where do I start\" or \"find the license check\". With REA connected, route the target and cite its Evidence IDs. Not for an Android APK deep-dive (android-apk-analysis), firmware (firmware-analysis), a packaged desktop app (packaged-desktop-app-analysis), WebAssembly (wasm-analysis), an Apple app bundle (apple-app-analysis), comparing two builds (native-function-matching), a slow REA session (rea-analysis-efficiency), a system diagram (architecture-diagrams), a repo you already have (codebase-orientation), a diff review (security-review), or a bug in your own code (debugging)."
+allowed-tools: "Read, Glob, Grep, Bash(npx:*), Bash(rea:*)"
 ---
 
 # Reverse engineering
@@ -101,21 +101,43 @@ app package — goes to
 Each path ends the same way: a list of candidate functions or files worth reading, not yet a
 finding.
 
-### 2. Read the static structure
+### 2. Choose the engine, and connect REA only when it is missing
+
+A claim needs two independent sorts of evidence, and a format this machine cannot read needs
+a tool it does not have. REA (the `rea-agents` bridge) drives an installed provider —
+Ghidra, Hopper, IDA, JADX, WABT — with your own permissions. If its MCP tools already
+answer, go to step 3 — do not run setup again — and if the target is a format this skill
+does not cover, take the sibling skill before opening a decompiler:
+
+- a firmware image, which is not a file system you mount on the host — `firmware-analysis`
+- an Android package (APK, AAB or split set) as a full investigation — `android-apk-analysis`
+- an Electron, ASAR, Node SEA or PyInstaller desktop package — `packaged-desktop-app-analysis`
+- a `.wasm` module — `wasm-analysis`
+- an Apple `.app`, IPA or DMG — `apple-app-analysis`
+- two builds of the same native target — `native-function-matching`
+
+Before the first REA call, read [REA tooling](references/rea-tooling.md): it covers the
+read-only `doctor`, the pinned `setup` preview, the routing table (which tool takes which
+artifact), the Evidence-id discipline, and what a `provider_timeout` does and does not
+mean. Record the REA version, client id, target digest and provider in the notes beside
+the first call, because a projection can change shape between releases without the target
+bytes changing.
+
+### 3. Read the static structure
 
 Before running the target, read what it is made of: embedded strings, exported and local
 symbols, and — once you have a specific function — its disassembly. The two reference files
 above each give the commands for their format. Static reading narrows "somewhere in this
 binary" down to a short list of named functions or files.
 
-### 3. Confirm dynamically, in the right environment
+### 4. Confirm dynamically, in the right environment
 
 A static read is a hypothesis. Confirm it by watching the target run: a breakpoint on the
 function you found, a trace of the system calls it makes, or — for a packaged app — reading
 its network or file activity. [Dynamic analysis and safety](references/dynamic-analysis-and-safety.md)
 covers the tools and, first, which environment this step is allowed to happen in (gate 3).
 
-### 4. Report with evidence attached
+### 5. Report with evidence attached
 
 Write the finding as: what you looked at (file, function, address), what you did (read it
 statically, hit a breakpoint, traced a call), and what you observed — not what you concluded
@@ -141,3 +163,11 @@ variable counts attempts; confirm with a breakpoint on the value before trusting
 **Treating "I found the comparison" as "I can bypass it".** Naming the mechanism is the
 deliverable (gate 5); the patched binary, the keygen, or the recovered key itself is what
 that same gate exists to keep out of the report.
+
+**Running REA setup before every investigation.** Registration repair is for a missing or
+stale tool, not a ritual. If a call answers, the server is connected; run `doctor` when a
+call reports something missing, and read the preview before letting `setup` write anything.
+
+**Repeating a call the client stopped waiting for.** A client deadline expiring proves
+nothing about the server. Read the retained Evidence by id, or narrow the request; resending
+the same call costs the same analysis twice.

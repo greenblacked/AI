@@ -1,0 +1,22 @@
+[
+  {"query": "this desktop app is Electron, where is its actual JavaScript source inside the package", "should_trigger": true},
+  {"query": "what is inside this PyInstaller exe, can I get the bundled modules out without running it", "should_trigger": true},
+  {"query": "why does this Electron app ignore --inspect when I attach the debugger", "should_trigger": true},
+  {"query": "an app.asar file turned up in a vendor package, how do I list the files in it", "should_trigger": true},
+  {"query": "does this packaged app validate its app.asar integrity at launch", "should_trigger": true},
+  {"query": "I have a Node single executable and want to see which modules it bundled", "should_trigger": true},
+  {"query": "the MSI we were sent installs a desktop client, how do I read what it puts on disk first", "should_trigger": true},
+  {"query": "there's an app in a DMG and I want the framework list and Electron fuses before I open it", "should_trigger": true},
+  {"query": "a candidate wrote this app for a take-home and I need to see how it stores the token, it is an Electron bundle", "should_trigger": true},
+  {"query": "our own installer for Windows bundles a JVM, how do I check what jars ended up inside", "should_trigger": true},
+  {"query": "find the license check inside this stripped ELF binary and confirm it with a breakpoint", "should_trigger": false, "expected": "reverse-engineering"},
+  {"query": "what entitlements and signature does this macOS app bundle carry", "should_trigger": false, "expected": "apple-app-analysis"},
+  {"query": "how do I read an APK's manifest and classes without installing it", "should_trigger": false, "expected": "reverse-engineering"},
+  {"query": "this minified JavaScript bundle served by a website, can I map it back to readable modules", "should_trigger": false, "expected": "reverse-engineering"},
+  {"query": "build our own version of the competitor's onboarding flow from scratch", "should_trigger": false, "expected": "feature-recreation"},
+  {"query": "our Electron app leaks memory the longer the window stays open, how do I find the leak", "should_trigger": false, "expected": "browser-memory-leak-hunt"},
+  {"query": "the desktop client takes eight seconds to open on a cold start, how do we make it faster", "should_trigger": false, "expected": "mobile-startup-and-jank"},
+  {"query": "the app crashes on launch for a subset of Windows users, how do I triage the reports", "should_trigger": false, "expected": "crash-triage"},
+  {"query": "review this patch to our Electron IPC bridge for a privilege escalation bug", "should_trigger": false, "expected": "security-review"},
+  {"query": "what does this .wasm module import and export, without executing it", "should_trigger": false, "expected": "wasm-analysis"}
+]

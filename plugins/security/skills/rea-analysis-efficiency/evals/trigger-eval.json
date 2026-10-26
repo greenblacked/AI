@@ -1,0 +1,22 @@
+[
+  {"query": "our REA session takes four minutes on a 90 MB binary and I need it under one", "should_trigger": true},
+  {"query": "the decompiler tool keeps re-running the same native scan on an unchanged target", "should_trigger": true},
+  {"query": "our reverse-engineering agent fills the context window before we get the answer", "should_trigger": true},
+  {"query": "how do I measure an analysis speedup so a smaller transcript is not mistaken for less work", "should_trigger": true},
+  {"query": "the tool returns a huge JSON report when the analyst only needed three fields", "should_trigger": true},
+  {"query": "which calls in our REA workflow redo work that retained Evidence already holds", "should_trigger": true},
+  {"query": "the reverse-engineering session is memory heavy and I want to know where the cost is", "should_trigger": true},
+  {"query": "we keep reopening the same binary cold because the evidence id did not survive, how do I fix that", "should_trigger": true},
+  {"query": "what is the right cache key and invalidation for retained analysis results", "should_trigger": true},
+  {"query": "I want a before and after comparison of an REA workflow on the same artifact with the same oracle", "should_trigger": true},
+  {"query": "I am starting a reverse-engineering investigation of a closed binary and have no idea where to begin", "should_trigger": false, "expected": "reverse-engineering"},
+  {"query": "our CI suite takes 40 minutes on every push, how do we shorten the critical path", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "the production service is slow under load, help me profile where the time goes", "should_trigger": false, "expected": "profiling"},
+  {"query": "we want to cut our monthly LLM bill without hurting answer quality", "should_trigger": false, "expected": "llm-cost"},
+  {"query": "the agent session keeps losing earlier turns, how should we compact the context", "should_trigger": false, "expected": "context-compaction"},
+  {"query": "our builds keep missing the remote cache, why does the same target rebuild", "should_trigger": false, "expected": "build-cache-miss-hunt"},
+  {"query": "set a proper request timeout and retry budget for the analysis service's HTTP client", "should_trigger": false, "expected": "timeout-and-retry-budget"},
+  {"query": "match the functions between these two builds to see what the vendor changed", "should_trigger": false, "expected": "native-function-matching"},
+  {"query": "the binary crashed in production and I have the core dump, help me read the backtrace", "should_trigger": false, "expected": "native-core-dump-analysis"},
+  {"query": "we need a p50 and p95 latency budget for the analysis endpoint before launch", "should_trigger": false, "expected": "llm-latency-budget"}
+]

@@ -285,6 +285,43 @@ whether a description actually fires, against whichever CLI you have signed in:
 python scripts/run_trigger_eval.py --skill plugins/coding/skills/refactoring --backend codex
 ```
 
+## REA, for the analysis skills
+
+Eight skills in `security` — `reverse-engineering`, six artifact-specific siblings beside it,
+and `rea-analysis-efficiency` — can drive REA (`rea-agents`, from `github.com/morluto/rea`),
+an MIT-licensed MCP bridge in front of Ghidra, Hopper, IDA, JADX, WABT and its own static
+inspectors. `authorized-device-debloat` reaches for it only when a package's role is unclear.
+It is optional: each of those skills also works with the tools you invoke by hand, and REA is
+a bridge, not a decompiler of its own. When a REA server is connected, the skill routes the
+target to it and cites the returned Evidence IDs.
+
+```bash
+npx rea-agents@6.8.0 doctor --client claude_code --skill --json   # read-only readiness
+npx rea-agents@6.8.0 setup --client claude_code --dry-run --json  # read the plan
+npx rea-agents@6.8.0 setup --client claude_code --skill=false     # apply, without its skill
+```
+
+- Pin the version. `@latest` belongs to a deliberate update, not to a registration written
+  once and forgotten; these instructions were written against **6.8.0**.
+- `--client` names the assistant actually running (`claude_code`, `codex`, `opencode`,
+  `cursor`, among others); a registration for a client you are not running is written and
+  never loaded.
+- `--skill=false` keeps REA from installing its own `reverse-engineer-anything` instructions
+  beside this library's; the procedures here are the ones you want, and a second copy
+  drifts.
+- `setup --dry-run` prints the exact paths and changes and writes nothing. Read the plan
+  before applying: it edits agent configuration outside this repository and may offer to
+  install Hopper, which is a paid licence you may not hold and which static JavaScript,
+  .NET and archive work does not need.
+- `doctor` is read-only, and its scoped forms (`--client`, `--provider`, `--skill`) answer
+  one question instead of auditing everything. Run `--yes` with an explicit scope only in
+  automation; without one it is limited to registrations REA already owns.
+- Node.js must be 22.x (>=22.23.4), 24.x (>=24.22.1) or 26.12.1+; 23, 25 and earlier 26.x
+  are refused, and a version error is the runtime rather than the analysis.
+- REA runs with your user's permissions and reads the target locally. It is not a sandbox
+  and it grants no licence: IDA Pro, Hopper and JEB each keep their own terms, and the
+  authorisation rule every analysis skill states still applies to whatever you point it at.
+
 ## No assistant at all
 
 They are procedures. `plugins/*/skills/*/SKILL.md` reads fine on its own, and several of
