@@ -3046,3 +3046,71 @@ def test_a_sitemap_lists_every_page_on_the_production_origin(mini_repo, tmp_path
 def test_a_page_key_becomes_an_escaped_root_relative_path():
     assert site._page_path("") == "/"
     assert site._page_path("plugins/a b/c") == "/plugins/a%20b/c/"
+
+
+SHA = "0123456789abcdef0123456789abcdef01234567"
+
+
+def _github_links(output):
+    found = set()
+    for page in output.rglob("*.html"):
+        found.update(
+            re.findall(
+                r"https://github\.com/greenblacked/AI/(?:blob|tree)/[^\"#]*", page.read_text()
+            )
+        )
+    return found
+
+
+def test_source_links_name_the_ref_the_site_was_built_from(mini_repo, tmp_path):
+    # A stage or release build shows files main may not have yet; a link to main 404s.
+    output = tmp_path / "site"
+    site.build(mini_repo, output, "v9", source_ref=SHA)
+    links = _github_links(output)
+    skill_page = (output / "plugins" / "engineering" / "alpha" / "index.html").read_text()
+    assert f"/tree/{SHA}/plugins/engineering/skills/alpha" in skill_page
+    assert f"/blob/{SHA}/plugins/engineering/skills/alpha/SKILL.md" in skill_page
+    assert links and all(f"/{SHA}/" in link for link in links), sorted(links)[:5]
+    # The ref lasts only as long as the build that set it.
+    assert site.site_markdown.BLOB_URL.endswith("/blob/main")
+    again = _github_links(_build(mini_repo, tmp_path / "again"))
+    assert again and all("/main/" in link for link in again)
+
+
+def test_the_cli_takes_the_source_ref_from_github_sha(mini_repo, tmp_path, monkeypatch):
+    monkeypatch.setenv("GITHUB_SHA", SHA)
+    output = tmp_path / "out"
+    assert site.main(["--version", "dev", "--out", str(output), str(mini_repo)]) == 0
+    links = _github_links(output)
+    assert links and all(f"/{SHA}/" in link for link in links)
+    assert (
+        site.main(
+            ["--version", "dev", "--out", str(output), "--source-ref", "v1.2.3", str(mini_repo)]
+        )
+        == 0
+    )
+    links = _github_links(output)
+    assert links and all("/v1.2.3/" in link for link in links)
+    monkeypatch.delenv("GITHUB_SHA")
+    assert site.main(["--version", "dev", "--out", str(output), str(mini_repo)]) == 0
+    links = _github_links(output)
+    assert links and all("/main/" in link for link in links)
+
+
+@pytest.mark.parametrize(
+    "ref", ["", "../main", "main/../x", "a b", "-x", "a//b", "a?b", "a#b", "%2e%2e", "main/"]
+)
+def test_a_source_ref_that_is_not_a_plain_name_is_refused(mini_repo, tmp_path, ref):
+    with pytest.raises(SystemExit, match="refusing source ref"):
+        site.build(mini_repo, tmp_path / "site", "v9", source_ref=ref)
+    assert not (tmp_path / "site").exists()
+
+
+def test_a_build_that_fails_part_way_still_restores_the_source_ref(tmp_path):
+    root = tmp_path / "empty"
+    (root / ".claude-plugin").mkdir(parents=True)
+    (root / ".claude-plugin" / "marketplace.json").write_text('{"name": "x"}\n', encoding="utf-8")
+    with pytest.raises(SystemExit, match="no skills"):
+        site.build(root, tmp_path / "site", "v1", source_ref=SHA)
+    assert site._source_ref == "main"
+    assert site.site_markdown.BLOB_URL.endswith("/blob/main")
