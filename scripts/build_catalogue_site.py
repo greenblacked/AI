@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import os
 import re
 import shutil
 import sys
@@ -42,6 +43,12 @@ import site_style  # noqa: E402
 from skillcheck.frontmatter import FrontmatterError, parse  # noqa: E402
 
 SOURCE_URL = "https://github.com/greenblacked/AI"
+# The ref every "view on GitHub" link names. A site built from stage or a release tag shows
+# files that main may not have yet, so a build names the commit it was made from; main is
+# only the fallback for a local build outside CI. build() sets it for the length of a build.
+DEFAULT_SOURCE_REF = "main"
+SOURCE_REF_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*(?:/[A-Za-z0-9][A-Za-z0-9._-]*)*")
+_source_ref = DEFAULT_SOURCE_REF
 SENTINEL = ".catalogue-site"
 SENTINEL_TEXT = (
     "This directory was produced by scripts/build_catalogue_site.py. "
@@ -516,11 +523,18 @@ def _plugin_href(plugin: str) -> str:
 
 
 def _blob(path: str) -> str:
-    return f"{SOURCE_URL}/blob/main/{quote(path, safe='/-_.~')}"
+    return f"{SOURCE_URL}/blob/{_source_ref}/{quote(path, safe='/-_.~')}"
 
 
 def _tree(path: str) -> str:
-    return f"{SOURCE_URL}/tree/main/{quote(path, safe='/-_.~')}"
+    return f"{SOURCE_URL}/tree/{_source_ref}/{quote(path, safe='/-_.~')}"
+
+
+def check_source_ref(ref: str) -> str:
+    """``ref`` if it can sit in a GitHub URL path as it is; a refusal otherwise."""
+    if not SOURCE_REF_PATTERN.fullmatch(ref) or ".." in ref:
+        raise SystemExit(f"refusing source ref {ref!r}: not a plain branch, tag or commit")
+    return ref
 
 
 # --------------------------------------------------------------------- the catalogue
@@ -1924,8 +1938,26 @@ def _write_portable(root: Path, output: Path) -> None:
                     bundle.write(path, path.relative_to(exported).as_posix())
 
 
-def build(root: Path, output: Path, version: str, *, noindex: bool = False) -> None:
-    """Replace ``output`` with the site for ``version``."""
+def build(
+    root: Path,
+    output: Path,
+    version: str,
+    *,
+    noindex: bool = False,
+    source_ref: str = DEFAULT_SOURCE_REF,
+) -> None:
+    """Replace ``output`` with the site for ``version``, linking source files at ``source_ref``."""
+    global _source_ref
+    ref = check_source_ref(source_ref)
+    saved = _source_ref, site_markdown.BLOB_URL
+    _source_ref, site_markdown.BLOB_URL = ref, f"{SOURCE_URL}/blob/{ref}"
+    try:
+        _build(root, output, version, noindex=noindex)
+    finally:
+        _source_ref, site_markdown.BLOB_URL = saved
+
+
+def _build(root: Path, output: Path, version: str, *, noindex: bool) -> None:
     version = normalise_version(version)
     manifest = _manifest(root)
     reason = unsafe_output(root, output)
@@ -2031,11 +2063,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--noindex", action="store_true", help="tell crawlers not to index this build"
     )
+    parser.add_argument(
+        "--source-ref",
+        default=os.environ.get("GITHUB_SHA") or DEFAULT_SOURCE_REF,
+        help="branch, tag or commit the GitHub links name (default: $GITHUB_SHA, else main)",
+    )
     parser.add_argument("root", nargs="?", default=".", type=Path, help="repository root")
     args = parser.parse_args(argv)
     root = args.root.resolve()
     output = args.out if args.out is not None else root / "dist" / "site"
-    build(root, output, args.version, noindex=args.noindex)
+    build(root, output, args.version, noindex=args.noindex, source_ref=args.source_ref)
     return 0
 
 

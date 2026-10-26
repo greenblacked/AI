@@ -451,6 +451,12 @@ has required `WRANGLER_VERSION` to be the version both `deploy/package.json` and
 lockfile name. There is no package cache: a restored store is not what the lockfile
 hashed.
 
+Every build in `deploy.yml` and `release.yml` links each skill's source on GitHub at the
+commit it was built from, which the script reads from `GITHUB_SHA`. A Preview of `stage`
+shows skills `main` does not have yet, so a link to `main` would be a 404 there until the
+next release; a commit link stays right after later releases too. A local build outside
+Actions links to `main`, and `--source-ref` overrides either.
+
 `preview` runs on a push to `stage`, and on Run workflow from that branch only. It
 runs `wrangler preview --name stage`, which uploads this commit as a Preview of the one
 Worker `ai`, with `robots.txt` set to `Disallow: /`. A Preview is a separate version
