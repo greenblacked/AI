@@ -7,6 +7,7 @@
   {"query": "list the exports of this wasm module and which functions the page calls first", "should_trigger": true},
   {"query": "we got a wasm plugin from a vendor, what does it import from the runtime before we instantiate it", "should_trigger": true},
   {"query": "disassemble just the verify export of this WebAssembly module, not the whole thing", "should_trigger": true},
+  {"query": "read a function body in this .wasm and explain the indirect calls and data segments in it", "should_trigger": true},
   {"query": "wasm-validate says this module is malformed, which section is broken", "should_trigger": true},
   {"query": "does this wasm module embed source file names or a producers section that names its compiler", "should_trigger": true},
   {"query": "find the license check inside this stripped native binary", "should_trigger": false, "expected": "reverse-engineering"},

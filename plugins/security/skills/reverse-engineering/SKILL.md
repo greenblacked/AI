@@ -1,6 +1,6 @@
 ---
 name: reverse-engineering
-description: "Reverse engineer a binary, packaged mobile app, JVM class file, or a web bundle you are authorised to examine: identify the format, read its static structure — strings, symbols or bytecode — before running it, then confirm a hypothesis dynamically in an isolated environment. Use for \"I have a binary and no source, where do I start\" or \"find the license check\". With REA connected, route the target and cite its Evidence IDs. Not for an Android APK deep-dive (android-apk-analysis), firmware (firmware-analysis), a packaged desktop app (packaged-desktop-app-analysis), WebAssembly (wasm-analysis), an Apple app bundle (apple-app-analysis), comparing two builds (native-function-matching), a slow REA session (rea-analysis-efficiency), a system diagram (architecture-diagrams), a repo you already have (codebase-orientation), a diff review (security-review), or a bug in your own code (debugging)."
+description: "Reverse engineer a binary or Unity IL2CPP build, a packaged mobile app, a JVM class file, or a web bundle you are authorised to examine: identify the format, read its static structure — strings, symbols or bytecode — before running it. Use for \"I have a binary with no source\", \"where are the IL2CPP method bodies\", or \"find the license check\". With REA connected, route the target and cite its Evidence IDs. Not for an Android APK deep-dive (android-apk-analysis), firmware (firmware-analysis), a packaged desktop app (packaged-desktop-app-analysis), a managed .NET assembly (dotnet-assembly-analysis), WebAssembly (wasm-analysis), an Apple app bundle (apple-app-analysis), comparing two native builds (native-function-matching), a slow REA session (rea-analysis-efficiency), a repo you already have (codebase-orientation), a diff review (security-review), or a bug in your own code (debugging)."
 allowed-tools: "Read, Glob, Grep, Bash(npx:*), Bash(rea:*)"
 ---
 
@@ -112,9 +112,14 @@ does not cover, take the sibling skill before opening a decompiler:
 - a firmware image, which is not a file system you mount on the host — `firmware-analysis`
 - an Android package (APK, AAB or split set) as a full investigation — `android-apk-analysis`
 - an Electron, ASAR, Node SEA or PyInstaller desktop package — `packaged-desktop-app-analysis`
+- a managed .NET assembly (DLL or EXE), including a Unity Mono build — `dotnet-assembly-analysis`
 - a `.wasm` module — `wasm-analysis`
-- an Apple `.app`, IPA or DMG — `apple-app-analysis`
+- an Apple `.app`, IPA or DMG, for bundle identity rather than native method bodies — `apple-app-analysis`
 - two builds of the same native target — `native-function-matching`
+
+A Unity IL2CPP build (`global-metadata.dat` plus `libil2cpp` or `UnityFramework`) is native
+code and stays here, on any platform. If that build sits inside an Apple `.app`, IPA or DMG,
+`apple-app-analysis` identifies the bundle first and hands the method bodies back here.
 
 Before the first REA call, read [REA tooling](references/rea-tooling.md): it covers the
 read-only `doctor`, the pinned `setup` preview, the routing table (which tool takes which

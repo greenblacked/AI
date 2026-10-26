@@ -14,7 +14,7 @@ An API is a promise, and the cost of a design mistake is paid by everyone who in
 
 Use for: designing a new HTTP or RPC interface; reviewing one before it ships or after it has; resource modelling and endpoint naming; error taxonomies and status code mapping; pagination, filtering and sorting; idempotency and retry semantics; deciding whether a change is breaking; choosing a versioning strategy; planning a deprecation.
 
-Do not use for: writing the implementation or scaffolding a service (`code-scaffold`), recording the decision between two competing designs for posterity (`decision-record`), rolling a change out gradually behind a flag (`release-strategy`), designing the underlying table schema before any migration exists (`schema-design`), changing the database schema underneath it once it is live (`db-migration`), wiring a CI check that diffs the OpenAPI document against the last release (`openapi-diff-gate`), or retiring a customer-facing feature or product rather than an API version (`feature-sunset`).
+Do not use for: writing the implementation or scaffolding a service (`code-scaffold`), recording the decision between two competing designs for posterity (`decision-record`), rolling a change out gradually behind a flag (`release-strategy`), designing the underlying table schema before any migration exists (`schema-design`), changing the database schema underneath it once it is live (`db-migration`), wiring a CI check that diffs the OpenAPI document against the last release (`openapi-diff-gate`), or retiring a customer-facing feature or product rather than an API version (`feature-sunset`). A GraphQL schema and its resolvers are `graphql-review`, and a gRPC call that fails at run time is `grpc-runtime-debugging`.
 
 ## Workflow
 

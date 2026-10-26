@@ -1,6 +1,6 @@
 ---
 name: packaged-desktop-app-analysis
-description: "Open up a packaged desktop application you are authorised to examine when its source is missing: identify the packaging first — Electron with an ASAR bundle, a Node single executable, PyInstaller, or a bundled JVM or .NET app — read the application's own JavaScript or bytecode out of the container, check which runtime switches the package exposes, and confirm behaviour without running it on a machine that holds your credentials. Use for \"this app is Electron, where is its source\", \"what is inside this PyInstaller exe\", or \"why does the app ignore --inspect\". Not for a native binary's disassembly (reverse-engineering), an Apple bundle's structure or entitlements (apple-app-analysis), a phone package (reverse-engineering), a web app's shipped bundle (reverse-engineering), or rebuilding a feature you are licensed to copy (feature-recreation)."
+description: "Open up a packaged desktop application you are authorised to examine when its source is missing: identify the packaging first — Electron with an ASAR bundle, a Node single executable, PyInstaller, or a bundled JVM or .NET app — read the application's own JavaScript or bytecode out of the container, check which runtime switches the package exposes, and confirm behaviour without running it on a machine that holds your credentials. Use for \"this app is Electron, where is its source\", \"what is inside this PyInstaller exe\", or \"why does the app ignore --inspect\". Not for a native binary's disassembly (reverse-engineering), an Apple bundle's structure or entitlements (apple-app-analysis), a phone package (android-apk-analysis), a web app's shipped bundle (reverse-engineering), or rebuilding a feature you are licensed to copy (feature-recreation)."
 allowed-tools: "Read, Glob, Grep, Bash(file:*), Bash(shasum:*), Bash(sha256sum:*), Bash(xxd:*), Bash(strings:*), Bash(unzip:*), Bash(find:*), Bash(otool:*), Bash(rea:*), Bash(npx:*)"
 ---
 
@@ -27,9 +27,10 @@ there is no source; confirming whether a package can be attached to a debugger a
 triage of a suspicious installer before it is deployed.
 
 Do not use for: disassembling the native framework or runtime inside the package, which is
-`reverse-engineering` with its native reference; the structure, signature and entitlements of
+`reverse-engineering` with its native reference; reading the managed code once a .NET bundle
+is unpacked, which is `dotnet-assembly-analysis`; the structure, signature and entitlements of
 an Apple `.app` or IPA, which is `apple-app-analysis`; a phone package, which
-`reverse-engineering` covers; a web application's served bundle, which the same skill covers
+`android-apk-analysis` covers; a web application's served bundle, which the same skill covers
 in its browser reference; or building your own implementation of a feature, which is
 `feature-recreation`.
 

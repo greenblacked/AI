@@ -66,7 +66,7 @@ attached to, and the packaging pipeline is not what it claims.
 | --- | --- | --- |
 | `Electron Framework.framework`, `Resources/app.asar` | Electron | The ASAR, not the Mach-O |
 | `Flutter.framework`, `App.framework/App` | Flutter | Dart AOT snapshot in `App.framework` |
-| `UnityFramework.framework`, `Data/Managed`, `global-metadata.dat` | Unity IL2CPP | Metadata plus AOT code |
+| `UnityFramework.framework`, `Data/Managed`, `global-metadata.dat` | Unity IL2CPP | Metadata plus native code; method bodies are `reverse-engineering` |
 | `hermes.framework`, `main.jsbundle` | React Native | The JS bundle, Hermes bytecode |
 | none of the above | Native | The Mach-O itself |
 

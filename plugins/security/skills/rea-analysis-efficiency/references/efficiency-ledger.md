@@ -5,6 +5,17 @@ ledger is that a before-and-after comparison is only meaningful when both rows w
 the same way. Copy the tables into the task, not into the session transcript, so the numbers
 outlive the process that produced them.
 
+## Contents
+
+- [Identity and question](#identity-and-question)
+- [Baseline](#baseline)
+- [Oracle](#oracle)
+- [Reuse register](#reuse-register)
+- [Reading the result](#reading-the-result)
+- [When the engine pushes back](#when-the-engine-pushes-back)
+- [Close and settle](#close-and-settle)
+- [What the ledger cannot show](#what-the-ledger-cannot-show)
+
 ## Identity and question
 
 | Field | Why it is needed |
@@ -70,6 +81,20 @@ omits the options serves the answer to a different question.
 - **Output fell, elapsed did not.** Projection, not an optimization. Say so.
 - **Elapsed fell only with a warm cache.** The cache is part of the change; report it as such
   and measure the cold path too.
+
+## When the engine pushes back
+
+A failed call is not a reason to repeat it unchanged.
+
+- **Transport `resource_constraint`.** The view was too large for the channel. Ask for
+  summary detail, a narrower range or one section, or export the bundle and read it
+  outside the session. Repeating the same producer call after a constraint spends the same
+  cost for the same failure.
+- **JavaScript graphs.** Resolve a module's `node_id` before any broad trace; a trace keyed
+  on a path re-resolves the graph and duplicates work the session already paid for.
+- **Before reopening a target.** List the calls already made and their Evidence IDs, and
+  reuse them. The reuse register above is what makes "already made" checkable rather than
+  remembered.
 
 ## Close and settle
 

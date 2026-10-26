@@ -62,7 +62,7 @@ decompiler's inference. Say that in the report, and never present it as the vend
   the reading procedure.
 - A .NET single-file bundle is the host executable plus a bundle marker and compressed
   assemblies. Use a managed-artifact reader rather than a native disassembler; the bundle is
-  not the IL that matters.
+  not the IL that matters, and `dotnet-assembly-analysis` reads what comes out.
 
 ## Installers and images
 

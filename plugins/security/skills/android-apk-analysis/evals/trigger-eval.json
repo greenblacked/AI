@@ -9,6 +9,8 @@
   {"query": "what strings and hosts does this APK reference, and which methods use them", "should_trigger": true},
   {"query": "pulled an APK from my own phone, what native libraries and SDKs does it bundle", "should_trigger": true},
   {"query": "compare two versions of our APK to see which permissions and components changed", "should_trigger": true},
+  {"query": "our release is an AAB, how do I generate the split APKs a device receives and verify each signature", "should_trigger": true},
+  {"query": "which dex or feature split contains the ad SDK, and is it loaded reflectively at runtime", "should_trigger": true},
   {"query": "review this Kotlin pull request in our Android repo", "should_trigger": false, "expected": "code-review"},
   {"query": "decompile this iOS IPA and explain the login flow", "should_trigger": false, "expected": "apple-app-analysis"},
   {"query": "I have an unknown binary and want to start reverse engineering it with REA", "should_trigger": false, "expected": "reverse-engineering"},

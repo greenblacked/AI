@@ -26,6 +26,7 @@
   {"query": "REA is already connected on this machine, how do I get it to decompile just one function instead of the whole binary", "should_trigger": true},
   {"query": "the decompiler MCP server keeps timing out on this large binary, what should I check before I retry the same call", "should_trigger": true},
   {"query": "which REA tool should I point at an Electron app.asar when I want the JavaScript tree rather than the native framework", "should_trigger": true},
+  {"query": "this Unity game uses IL2CPP and global-metadata.dat, where are the method bodies", "should_trigger": true},
   {"query": "how do I put the evidence ids the analysis server returned into a finding report so the claim is traceable", "should_trigger": true},
   {"query": "our router's firmware image, what is inside it and does the update verify its signature before flashing", "should_trigger": false, "expected": "firmware-analysis"},
   {"query": "this .wasm module shipped with the site, what does it export and what does it import, without running it", "should_trigger": false, "expected": "wasm-analysis"},

@@ -14,7 +14,7 @@ The job is hard because the queue is designed to be uniform and your exposure is
 
 Use for: a backlog of Dependabot, Renovate, Snyk, `npm audit`, `pip-audit`, `govulncheck` or `osv-scanner` findings; deciding whether a specific CVE or GHSA matters here; fixing a vulnerable transitive dependency; setting up a weekly cadence; judging whether a dev-only finding needs work; responding to a package that turns out to be malicious.
 
-Do not use for: moving onto a new major version of a framework or runtime, whether or not an advisory prompted it — that is `dependency-upgrade`, and this skill hands over the moment the answer is "we need to be on the next major". Choosing a base image, setting a scanner severity gate, or triaging OS-package CVEs inside a built container is `image-hardening`. Reviewing a diff for vulnerability classes is `security-review`. A credential that has leaked is `secret-rotation`.
+Do not use for: moving onto a new major version of a framework or runtime, whether or not an advisory prompted it — that is `dependency-upgrade`, and this skill hands over the moment the answer is "we need to be on the next major". Choosing a base image, setting a scanner severity gate, or triaging OS-package CVEs inside a built container is `image-hardening`. Reviewing a diff for vulnerability classes is `security-review`. A credential that has leaked is `secret-rotation`. The pattern behind a ReDoS advisory, rather than the queue decision, is `regex-safety-review`.
 
 ## Workflow
 

@@ -1,6 +1,6 @@
 ---
 name: apple-app-analysis
-description: "Read an Apple application you are authorised to examine — a macOS .app bundle, an IPA, or an app inside a DMG — when the source is missing or does not match what ships: identify the bundle from its Info.plist, read the signature and entitlements, follow the frameworks to the runtime family (native, React Native, Flutter, Unity, Hermes), and check whether the payload is encrypted before planning any deeper read. Use for \"what does this Mac app have access to\", \"what is inside this IPA\", or \"is this app's binary readable at all\". Not for ranking live crash reports (crash-triage), native disassembly of the Mach-O (reverse-engineering), an Android package (reverse-engineering), shipping an iOS build (mobile-release), or extracting a DRM-protected store binary."
+description: "Read an Apple application you are authorised to examine — a macOS .app bundle, an IPA, or an app inside a DMG — when the source is missing or does not match what ships: identify the bundle from its Info.plist, read the signature and entitlements, follow the frameworks to the runtime family (native, React Native, Flutter, Unity, Hermes), and check whether the payload is encrypted before planning any deeper read. Use for \"what does this Mac app have access to\", \"what is inside this IPA\", or \"is this app's binary readable at all\". Not for ranking live crash reports (crash-triage), native disassembly of the Mach-O (reverse-engineering), an Android package (android-apk-analysis), shipping an iOS build (mobile-release), or extracting a DRM-protected store binary."
 allowed-tools: "Read, Glob, Grep, Bash(file:*), Bash(shasum:*), Bash(sha256sum:*), Bash(plutil:*), Bash(codesign:*), Bash(otool:*), Bash(unzip:*), Bash(find:*), Bash(strings:*), Bash(xxd:*), Bash(rea:*), Bash(npx:*)"
 ---
 
@@ -26,7 +26,7 @@ runtime its logic actually lives in; and triage of an app before it is deployed 
 
 Do not use for: ranking and fixing live crashes, which is `crash-triage`; disassembling the
 native Mach-O beyond the identification steps here, which is `reverse-engineering`; an Android
-package, which the same skill covers; building, signing or shipping an iOS release, which is
+package, which is `android-apk-analysis`; building, signing or shipping an iOS release, which is
 `mobile-release`; or extracting code from a DRM-protected store download.
 
 ## Hard gates
@@ -79,7 +79,8 @@ the app links directly — the cheapest signal for what it depends on.
 Look at `Contents/Frameworks` and the linked libraries: `Electron Framework` or `app.asar` is
 a packaged desktop app (`packaged-desktop-app-analysis`); `Flutter.framework` plus
 `App.framework` means Dart AOT code in `App.framework/App`; `UnityFramework` plus
-`Data/Managed` or `global-metadata.dat` means IL2CPP; `hermes.framework` plus an
+`Data/Managed` or `global-metadata.dat` means IL2CPP, whose method bodies are
+`reverse-engineering` once the bundle is identified; `hermes.framework` plus an
 `index.android.bundle`-style file means React Native. Each family moves the analysis to a
 different payload, and [Apple bundle anatomy](references/apple-bundle-anatomy.md) says which
 path holds it, alongside the entitlement table, the encryption check and the IPS layout.
@@ -93,13 +94,22 @@ otool -l ./Example.app/Contents/MacOS/Example | grep -A5 LC_ENCRYPTION_INFO
 No output means no encryption load command. A `cryptid` of 1 with a non-zero `cryptoff` means
 the text is encrypted; stop here and say so rather than reading the decrypted-looking noise.
 
-### 5. Inventory the payload
+### 5. Read the symbols, then the payload the family uses
+
+For a native app, `nm -m` and the Objective-C and Swift metadata are where names survive
+stripping; demangle Swift symbols before reporting. For Flutter, React Native, Unity and
+Electron, the names in the launcher are not where the logic is: identify the payload by
+its own header and hand it to the right reader. [Reading symbols and
+payloads](references/reading-symbols-and-payloads.md) has the sections, the per-family
+payload and the rule that a symbol is a name rather than a finding.
+
+### 6. Inventory the payload
 
 For an IPA, the outer artifact is a zip: `Payload/Example.app` is the bundle inside. List it
 before extracting, then read the bundle as in step 1. For a DMG, read the image read-only and
 treat the `.app` inside as the artifact.
 
-### 6. Report
+### 7. Report
 
 For each finding: the path inside the bundle, the digest of the binary, the entitlement or
 framework it came from, and whether it is a declaration, an observation or an unknown. State

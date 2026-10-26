@@ -91,6 +91,9 @@ None of these is guaranteed, and their absence says only that the compiler strip
 Disassemble only the functions the question needs (`wasm-objdump -d` with a function name or
 index), and read calls outward from the export the host actually invokes. Imported host
 functions in that trace are the points where the module's behaviour leaves its own memory.
+[Reading WASM code](references/wasm-bytecode-reading.md) covers the stack-machine shapes,
+indirect calls, data segments and the difference between `wasm2wat` and a decompiler's
+pseudocode.
 
 ### 5. Compare with the claim, then report
 

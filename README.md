@@ -7,7 +7,7 @@
 
 # Agent skills
 
-508 agent skills, 30 subagents and ten slash commands, in twenty-eight
+513 agent skills, 30 subagents and ten slash commands, in twenty-eight
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-508-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-513-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -50,12 +50,12 @@ and what the runtime does or does not enforce.
 
 | Plugin | Focus | Contents |
 | --- | --- | --- |
-| [`coding`](#coding) | Reading, reviewing, testing and changing code | 27 skills, 5 subagents, 1 command |
+| [`coding`](#coding) | Reading, reviewing, testing and changing code | 28 skills, 5 subagents, 1 command |
 | [`family`](#family) | One development workflow, from a vague request to a measured outcome | 11 skills, 6 subagents, 1 command |
 | [`gamedev`](#gamedev) | Making games, and shipping them | 33 skills, 1 subagent, 1 command |
 | [`operations`](#operations) | Keeping a running system alive | 19 skills, 7 subagents, 2 commands |
 | [`delivery`](#delivery) | Getting a change into production | 12 skills, 1 subagent |
-| [`security`](#security) | The defensive side of shipping software | 30 skills, 5 subagents, 2 commands |
+| [`security`](#security) | The defensive side of shipping software | 31 skills, 5 subagents, 2 commands |
 | [`manager`](#manager) | Engineering leadership | 22 skills, 2 subagents, 2 commands |
 | [`personal`](#personal) | Money, travel, admin, habits, health and family history | 8 skills, 2 subagents |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 11 skills |
@@ -69,9 +69,9 @@ and what the runtime does or does not enforce.
 | [`platform`](#platform) | Cloud and platform engineering: Kubernetes control plane, networking and storage, Terraform estates, cloud networks, identity, databases, the edge, commitments | 22 skills |
 | [`devtools`](#devtools) | Developer tooling and build systems: git recovery and rebases, monorepos, build caching, dependency conflicts, benchmarks | 10 skills |
 | [`smallbiz`](#smallbiz) | Freelancing and small-business operations: rates, quotes, scope, invoicing, late payment, contracts, bookkeeping, tax preparation | 20 skills |
-| [`backend`](#backend) | Backend and distributed-systems correctness: webhooks, races, retries, overload, rate limits, locks, sagas, events, queues, jobs | 12 skills |
+| [`backend`](#backend) | Backend and distributed-systems correctness: webhooks, races, retries, overload, rate limits, locks, sagas, events, queues, jobs | 14 skills |
 | [`languages`](#languages) | Language runtimes and toolchains: Python, Node, TypeScript, Go, the JVM, .NET, C and C++, Rust | 20 skills |
-| [`linux`](#linux) | Linux and systems administration: systemd, boot, kernel, disks, OOM, load, DNS, firewalls, MTU, TLS, SSH, time sync | 20 skills |
+| [`linux`](#linux) | Linux and systems administration: systemd, boot, kernel, disks, OOM, load, DNS, firewalls, MTU, TLS, SSH, time sync | 21 skills |
 | [`databases`](#databases) | Database engineering: PostgreSQL and MySQL internals, locks, vacuum, failover, partitioning, search, vectors, ClickHouse, Redis, SQLite | 20 skills |
 | [`observability`](#observability) | Observability engineering: tracing and sampling, metrics and cardinality, log cost, collector pipelines, profiling, alerting, dashboards | 20 skills |
 | [`embedded`](#embedded) | Embedded and IoT: firmware updates, fleet rollouts, provisioning, faults, watchdogs, power, memory, flash, buses, BLE, MQTT | 20 skills |
@@ -195,7 +195,7 @@ current totals with `scripts/check_listing_budget.py`; either install only what 
 or raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.48 }
+{ "skillListingBudgetFraction": 0.49 }
 ```
 
 That figure covers the whole marketplace, with a little headroom. Anything smaller
@@ -369,6 +369,7 @@ Reading, reviewing, testing and changing code.
 | [`new-skill`](plugins/coding/skills/new-skill/SKILL.md) | Author a skill that actually fires: decide whether it deserves to exist, write the body before the description, and build the eval set from the neighbouring skills it has to beat. |
 | [`profiling`](plugins/coding/skills/profiling/SKILL.md) | Make slow application code fast or prove it cannot be: rule out the database and the network first, sample the real process under load, read self time and call paths rather than the function that feels slow, and prove each change against measured variance. |
 | [`refactoring`](plugins/coding/skills/refactoring/SKILL.md) | Restructure without changing behaviour, in steps each provably safe: a characterisation test before touching code nobody understands, one kind of change per commit, and a proof at the end. |
+| [`regex-safety-review`](plugins/coding/skills/regex-safety-review/SKILL.md) | Review a regular expression that runs on untrusted input for catastrophic backtracking and other denial-of-service shapes. Identify the engine and whether it backtracks, spot nested quantifiers, overlapping alternations and unbounded repetition, measure the worst case with a long non-matching input instead of trusting a small test, and rewrite the pattern as a linear-time expression, an anchored one, or a parser. Use for "is this regex safe", "one request body hangs the service", "a regex pinned the CPU at 100 percent", or a ReDoS advisory in a dependency. Not for authoring a new pattern from scratch (code-scaffold), a broad input-validation review (security-review), a slow query (sql-performance), or a CPU profile of a running service (profiling). |
 | [`retrieval-evaluation`](plugins/coding/skills/retrieval-evaluation/SKILL.md) | Compare retrievers on frozen, access-scoped queries with paired recall and ranking metrics, a sealed holdout and an independent access-leak veto. |
 | [`schema-design`](plugins/coding/skills/schema-design/SKILL.md) | Design the tables for a new feature before any migration exists: the query list first, keys and constraints chosen deliberately, and every type decision — money, time, soft delete — made on purpose rather than inherited from an ORM default. |
 | [`sql-performance`](plugins/coding/skills/sql-performance/SKILL.md) | Make a slow query fast or prove it cannot be: start from the statement with the most total time rather than the one someone complained about, read the plan from the deepest node out to the first place estimates and reality diverge, and decide between an index, a rewrite and accepting it. |
@@ -496,6 +497,7 @@ The defensive side of shipping software.
 | [`certificate-automation`](plugins/security/skills/certificate-automation/SKILL.md) | Move a certificate estate onto automated ACME issuance and renewal ahead of the CA/Browser Forum's shrinking maximum lifetimes: inventory from outside first, classify every endpoint by ACME capability, schedule by ACME Renewal Information with a lifetime-fraction backstop, and alert on renewal failure. |
 | [`data-privacy`](plugins/security/skills/data-privacy/SKILL.md) | Handle personal data end to end: settle controller or processor before anything else, classify what is held, enforce retention with a job rather than a document, and make deletion reach the search index, the caches and the restore path instead of only the primary row. |
 | [`dependency-triage`](plugins/security/skills/dependency-triage/SKILL.md) | Work a queue of vulnerability alerts into a decision each — reachability before severity, the two signals that mean today rather than this quarter, safe patches batched and risky ones isolated, and suppression that expires. |
+| [`dotnet-assembly-analysis`](plugins/security/skills/dotnet-assembly-analysis/SKILL.md) | Analyse a .NET assembly you are authorised to examine — a Windows DLL or EXE, a Mono or Unity Managed assembly, or a library in a NuGet package — from the CLI header and target framework through the type list to the decompiled method and its IL, so a call path is evidence rather than a plausible C# line. |
 | [`host-hardening`](plugins/security/skills/host-hardening/SKILL.md) | Harden a Linux or Unix host against a named baseline without locking yourself out: preserve a second way in before touching sshd or sudo, export the config either side, change one class at a time on a canary, and verify over a path you did not edit — across SSH, sudo, auditd, sysctl, services and permissions. |
 | [`iac-review`](plugins/security/skills/iac-review/SKILL.md) | Review a Terraform change against the plan JSON rather than the plan text, so replacements and destroys surface first instead of being skimmed past. |
 | [`image-hardening`](plugins/security/skills/image-hardening/SKILL.md) | Build or audit a container image: minimal base, digest pinning, numeric non-root UID, no secrets in layers, SBOM, a scan gate that will not get bypassed, signing that is actually verified. |
@@ -819,13 +821,15 @@ Running a freelance practice or a small services business: pricing and quoting, 
 
 ### Backend
 
-Correctness in services that talk to each other: webhooks, transaction races, timeout and retry budgets, overload, rate limits, distributed locks, sagas, evolving event schemas, consumer lag, hot partitions, scheduled jobs and keeping a search index in step with its source.
+Correctness in services that talk to each other: webhooks, transaction races, timeout and retry budgets, overload, rate limits, distributed locks, sagas, evolving event schemas, consumer lag, hot partitions, scheduled jobs, GraphQL query cost and gRPC runtime failures, and keeping a search index in step with its source.
 
 | Skill | What it does |
 | --- | --- |
 | [`consumer-lag-triage`](plugins/backend/skills/consumer-lag-triage/SKILL.md) | Diagnose a Kafka or similar partitioned-log consumer group that is lagging, rebalancing or stuck. Take two per-partition snapshots a minute apart using kafka-consumer-groups.sh --describe, compare offset and lag deltas, then read the pattern: lag growing everywhere while offsets advance (throughput deficit), one partition frozen (poison record), one slow (hot key or slow member), oscillating lag with rebalances (max.poll.interval.ms or session timeout), zero lag with missing data (offset reset after expiry). |
 | [`distributed-lock-audit`](plugins/backend/skills/distributed-lock-audit/SKILL.md) | Review every lock, lease and leader election in a service. For each, decide whether it exists for efficiency (a duplicate only wastes work) or correctness (a duplicate corrupts data); a TTL lock alone never protects correctness because a holder can pause past its lease and still write, so the resource must reject stale holders with a fencing token, or the lock should be replaced by a constraint or compare-and-swap. Covers Redis SET NX, Redlock, etcd, ZooKeeper, Consul, Kubernetes Lease and Postgres advisory locks. |
 | [`event-schema-evolution`](plugins/backend/skills/event-schema-evolution/SKILL.md) | Change an event, message, protobuf or Avro schema without breaking consumers or replay. Choose the registry compatibility mode from deploy order and retention (BACKWARD means upgrade consumers first, FORWARD producers first, FULL when order is uncontrolled, TRANSITIVE when history spans versions), allow only additive changes with defaults, treat a changed meaning as the real breaking change, and release a breaking change as a new type dual-published until every consumer has migrated. |
+| [`graphql-review`](plugins/backend/skills/graphql-review/SKILL.md) | Review or design a GraphQL schema and its resolvers when you are authorised to examine the service: read the schema from its SDL or an introspection result, find the N+1 resolver behind a slow query and fix it with a batched loader, bound what a client can ask for with depth and complexity limits and by turning introspection off in production, enforce authorization inside each resolver rather than trusting the client, and evolve the schema additively with deprecations. Use for "why is this GraphQL query so slow", "one query took the API down", "can a client enumerate our whole schema", or "change a field without breaking the apps". Not for a REST or RPC contract (api-design), tuning the SQL a resolver issues (sql-performance), modelling tables (schema-design), or authorization architecture across services (authorization-design). |
+| [`grpc-runtime-debugging`](plugins/backend/skills/grpc-runtime-debugging/SKILL.md) | Diagnose a gRPC call that fails, stalls or is slow at run time. Read the status code for what the failure class actually is — DEADLINE_EXCEEDED is a deadline, UNAVAILABLE is often a connection, RESOURCE_EXHAUSTED is flow control — then check that the deadline propagates, that keepalive and connection reuse are configured, that the client resolver and load balancing see every backend, and that the retry policy is not amplifying the failure. Use for "our gRPC client returns UNAVAILABLE", "the stream stalls after a few messages", "calls hang until the deadline", or "gRPC is slow but the server metrics are fine". Not for designing the proto contract (api-design), a general timeout and retry budget (timeout-and-retry-budget), a server at overload (overload-protection), or reading a packet capture (packet-capture-triage). |
 | [`hot-partition-hunt`](plugins/backend/skills/hot-partition-hunt/SKILL.md) | Diagnose throttling or lag on a sharded store while aggregate utilisation looks fine. Get the per-partition or per-key distribution first, compute max over mean and the top-1-percent traffic share, then classify the cause (single hot entity, monotonic key, low-cardinality key, whale tenant) because each has a different fix, and validate the new key design against the measured Zipf-shaped distribution rather than a uniform one. Covers DynamoDB, Kafka, Redis, Cassandra and MongoDB. |
 | [`overload-protection`](plugins/backend/skills/overload-protection/SKILL.md) | Keep a service producing useful work at twice its capacity instead of collapsing. Find the first resource to saturate, cap in-flight work at the entrance with Little's law (throughput times latency, not a default pool of 200 threads), bound queues by waiting time and drop requests older than the caller's deadline, reject fast with 503 and Retry-After, shed by priority class, and plan for metastable failure where backlog keeps the system down. Proven by an open-loop step test at 1x, 1.5x, 2x and 5x. Use whenever someone says "latency spikes and never recovers after the burst", "the queue grows and everything times out", "add load shedding" or "falls over when traffic doubles". |
 | [`rate-limiter-design`](plugins/backend/skills/rate-limiter-design/SKILL.md) | Design the limiter itself, not only its headers. Start from the failure being prevented (abuse, cost, fairness, downstream protection), key on the authenticated tenant plus an endpoint cost class, pick the algorithm (a fixed window admits up to 2x across a boundary; use a sliding-window counter or GCRA, a token bucket for legitimate bursts, a concurrency limit for a slow downstream), make check-and-decrement atomic using the store's clock, decide fail-open or closed, and roll out in shadow mode before enforcing. Use whenever someone says "add rate limiting to our API", "one customer is hammering us", "per-user limit across 12 pods" or "is our Redis rate limiter racy". |
@@ -865,7 +869,7 @@ The failures that belong to one runtime or toolchain: Python imports, wheels, me
 
 ### Linux
 
-Keeping a Linux host up and reachable: units that will not start, boots that fail, kernel updates and crashes, full or failing disks, the OOM killer, load and resource limits, DNS, firewalls, MTU black holes, TLS handshakes, private CAs, SSH lockouts and clocks that drift.
+Keeping a Linux host up and reachable: units that will not start, boots that fail, kernel updates and crashes, full or failing disks, the OOM killer, load and resource limits, DNS, firewalls, MTU black holes, packet captures, TLS handshakes, private CAs, SSH lockouts and clocks that drift.
 
 | Skill | What it does |
 | --- | --- |
@@ -880,6 +884,7 @@ Keeping a Linux host up and reachable: units that will not start, boots that fai
 | [`linux-lockout-recovery`](plugins/linux/skills/linux-lockout-recovery/SKILL.md) | Regain access to a Linux server you are locked out of: "broke sudoers and cannot get root", "changed sshd config and now cannot log in", "lost the only SSH key", "firewall rule cut my own connection". Take the least destructive door in order: a session still open (keep it), serial or hypervisor console, the cloud provider's agent or run-command, then rescue boot or detaching the root volume onto a helper instance. Repair with the safe checkers (visudo -c, sshd -t, nft -c, iptables-restore --test, chroot), fix ownership and SELinux labels after offline edits, keep an untouched copy, and do not reset the root password first. Then add the guard: a second admin, a timed rollback, a test login before closing. |
 | [`mtu-blackhole-hunt`](plugins/linux/skills/mtu-blackhole-hunt/SKILL.md) | Find a path MTU problem: "small requests work but large ones hang", "connection stalls after the TLS ClientHello", "only breaks over the VPN or in the overlay network", "ssh logs in but hangs on ls". The signature is a completed handshake and then large packets vanishing because ICMP fragmentation-needed is filtered, so path MTU discovery fails. Prove it with ping -M do -s N binary-searched to the largest payload that passes, tracepath, and a capture showing full-size segments retransmitted and never acknowledged. Compute tunnel overhead (WireGuard, IPsec, GRE, VXLAN, PPPoE) to match a cause. |
 | [`oom-kill-forensics`](plugins/linux/skills/oom-kill-forensics/SKILL.md) | Work out why the Linux kernel OOM killer fired and what to change: read the kernel's own report, not top (journalctl -k gives constraint= such as CONSTRAINT_MEMCG for a cgroup limit versus system-wide exhaustion, the victim's oom_score_adj and the task table with RSS), classify cgroup limit versus host exhaustion with memory.max and memory.events, account for RAM with MemAvailable, shmem, slab and PSS rather than free, then decide if the victim was the hog or just the largest. Covers oom_score_adj, OOMPolicy, swap or zram for spikes, systemd-oomd and earlyoom; lower demand before raising the limit. |
+| [`packet-capture-triage`](plugins/linux/skills/packet-capture-triage/SKILL.md) | Read a network capture you are authorised to examine — a pcap from tcpdump, tshark or Wireshark, or a cloud flow log — to answer why a connection failed or was slow. Filter to the one conversation first, then read the TCP handshake, retransmissions, resets, window and MSS, TLS alerts and DNS timing, and attribute the delay to the network, the peer or the application. Use for "why does this connection time out", "the handshake fails only from one host", "requests are slow but the app logs look clean", or "what did the packet capture actually show". Not for a firewall rule that blocks the path (firewall-rule-tracing), an MTU black hole (mtu-blackhole-hunt), a certificate error (tls-handshake-debugging), name resolution that fails outright (dns-resolution-debugging), or a Bluetooth link (ble-connection-debug). |
 | [`permission-denied-triage`](plugins/linux/skills/permission-denied-triage/SKILL.md) | Explain "Permission denied" when the mode bits look right by walking the layers in order and stopping at the first that denies: namei -l on the whole path (every parent needs x), the real uid, gid and supplementary groups of the running PID, ACLs, file attributes (immutable, append-only), mount options (noexec, nosuid, ro), capabilities and no_new_privs, systemd sandbox directives, then SELinux or AppArmor. SELinux via ausearch and audit2why, fixed with restorecon, semanage fcontext or a boolean, never setenforce 0; AppArmor via complain mode and aa-logprof. |
 | [`private-ca-trust-distribution`](plugins/linux/skills/private-ca-trust-distribution/SKILL.md) | Get an internal or corporate CA trusted in every runtime. |
 | [`resource-limit-exhaustion`](plugins/linux/skills/resource-limit-exhaustion/SKILL.md) | Fix "Too many open files", "fork: retry: Resource temporarily unavailable", "inotify watch limit reached" and "cannot create thread" errors. Read the limits of the running process in /proc/PID/limits, never your shell's ulimit, because systemd units ignore limits.conf and PAM. Separate the layers: per-process nofile (LimitNOFILE), system-wide fs.file-max and fs.nr_open (ENFILE versus EMFILE), nproc and TasksMax from the cgroup, kernel.pid_max and threads-max, inotify max_user_watches and max_user_instances. Count use, decide leak versus legitimate growth by whether it plateaus, then raise the limit in a unit drop-in or sysctl.d and re-read the limits after restart. |
@@ -1152,12 +1157,20 @@ dependency, including skipped jobs. See the [execution flow](docs/ci.md#executio
 make validate     # frontmatter contract, dangling references, marketplace cross-check
 make catalogue    # listing ceilings, the README and CI docs, workflows, shell, the hook, providers
 make test         # the validator's own test suite
+make docker-test  # validate, catalogue and the tests in a pinned Python container
 make coverage     # the same, with the coverage floor CI enforces
 make test-browser # drive the built site in Chromium (needs playwright)
 make package      # a .skill archive per skill
 make attribution  # commits and branch name against the attribution rules
 make naming       # branch, commit and file-naming conventions
 ```
+
+`make docker-test` builds [`docker/test.Dockerfile`](docker/test.Dockerfile) on a
+digest-pinned Python 3.13 and installs the exact pytest and coverage versions the `test`
+job pins in `ci.yml`, then runs the three checks with no network and a read-only
+filesystem. It is the second opinion for a macOS or other host whose toolchain differs
+from the runner's; it is not a replacement for `make coverage`, which writes into the
+working tree.
 
 The check that earns its place is the dangling-pointer one. Two of these skills shipped
 for months naming `references/*.md` files nobody had written — the model loaded nothing

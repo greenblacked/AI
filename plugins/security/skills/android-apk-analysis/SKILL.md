@@ -29,10 +29,10 @@ permission or network call to the components and methods that implement it; comp
 builds of the same package.
 
 Do not use for: reviewing Java or Kotlin source you already have, which is `code-review`;
-a non-Android native binary or an IPA, which is `reverse-engineering`; de-bloating a device
-you own, which is `authorized-device-debloat`; or licence, DRM, anti-cheat or integrity-check
-bypass, repackaging someone else's app, or account or server access the package was not meant
-to grant you.
+a non-Android native binary or an IPA, which is `reverse-engineering` or
+`apple-app-analysis`; de-bloating a device you own, which is `authorized-device-debloat`; or
+licence, DRM, anti-cheat or integrity-check bypass, repackaging someone else's app, or account
+or server access the package was not meant to grant you.
 
 ## Hard gates
 
@@ -62,21 +62,28 @@ Write the question as the facts needed, not "analyse it".
 Run `inspect_apk_signature` through REA, or `apksigner verify --print-certs -v` directly.
 Record the schemes present (v1, v2, v3, v3.1, v4), the signer certificate SHA-256 and the
 rotation lineage. A mismatch against the expected publisher answers provenance questions
-before any decompilation, and flags a repackaged build.
+before any decompilation, and flags a repackaged build. An AAB is a publishing format, not
+an installable APK: generate the artifacts with `bundletool` and record which split set a
+device actually receives. [Signing and package
+facts](references/signing-and-package-facts.md) has the scheme table, the bundletool
+commands and the split-pull procedure.
 
 ### 3. Package metadata
 
 From `inspect_android_package` (or `apktool d` for the decoded manifest): package name,
 version code and name, min and target SDK, requested and declared permissions, and every
-exported activity, service, receiver and provider with its intent filters. Exported
-components and `BOOT_COMPLETED` or `PACKAGE_ADDED` receivers are where background behaviour
-usually starts.
+exported activity, service, receiver and provider with its intent filters. The manifest is
+binary XML — decode it rather than reading it with `strings`. Exported components and
+`BOOT_COMPLETED` or `PACKAGE_ADDED` receivers are where background behaviour usually starts.
 
 ### 4. Classes and dex overview, summary-first
 
 Take the summary: dex count, package tree, obfuscation signals, native libraries per ABI and
 the notable SDKs. Page retained Evidence with `inspect_analysis_view` instead of requesting a
 full dump, and read classes with a DEX-aware tool (`jadx`) rather than a native disassembler.
+[Reading dex without fooling
+yourself](references/code-reading-and-obfuscation.md) covers multi-dex, reflective and
+dynamically loaded code, JNI and WebView bridges, and what a packer does to the read.
 
 ### 5. Strings and references to the answer
 
