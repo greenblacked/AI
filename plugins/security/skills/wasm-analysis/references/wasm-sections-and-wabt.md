@@ -38,7 +38,7 @@ list alone.
 
 ## WABT commands and what each answers
 
-WABT is caller-supplied. REA's `inspect_wasm_artifact` requires an installation
+WABT is caller-supplied. The analysis bridge's `inspect_wasm_artifact` requires an installation
 (1.0.42 at the time of writing) and reports the same facts as Evidence; the binaries work
 directly too.
 

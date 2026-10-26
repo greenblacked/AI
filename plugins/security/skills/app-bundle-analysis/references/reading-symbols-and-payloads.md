@@ -35,7 +35,7 @@ answer, not a failed command.
 ## Swift symbols
 
 Swift mangles type and function names into symbols beginning with `_$s` (or `_T` on older
-toolchains). Demangle them before reporting; Xcode ships the tool as `swift-demangle`, and
+toolchains). Demangle them before reporting; the platform's IDE ships the tool as `swift-demangle`, and
 `xcrun swift-demangle` invokes it:
 
 ```bash
@@ -59,7 +59,7 @@ disassembly has read two different things.
 
 ## Payload per runtime family
 
-**Flutter.** `App.framework/App` on iOS and `libapp.so` on Android carry the Dart AOT
+**Flutter.** `App.framework/App` in a mobile IPA and `libapp.so` in an APK carry the Dart AOT
 snapshot. Run `file` on it first: the symbols are few and the snapshot is not a Mach-O
 class layout you can read with `nm`. Dart-specific tooling is outside this skill; say the
 payload was identified and not decompiled.

@@ -1,11 +1,11 @@
-# Apple bundle anatomy
+# App bundle anatomy
 
 Read this once the bundle is confirmed and the question is where its logic and its
 capabilities actually live.
 
 ## The layouts
 
-A macOS `.app` is a directory, not a file:
+A desktop `.app` bundle is a directory, not a file:
 
 ```text
 Example.app/
@@ -40,7 +40,7 @@ from.
 ## Encryption state
 
 `LC_ENCRYPTION_INFO` carries `cryptid` and `cryptoff`/`cryptsize`. `cryptid` 0 means the code is
-readable. `cryptid` 1 means the pages are encrypted at rest — an App Store download on an iOS
+readable. `cryptid` 1 means the pages are encrypted at rest — a store download on a mobile
 device is the common case — and the binary you hold may be decrypted only if it was extracted
 in a way the store permits. Do not attempt decryption; ask the owner for a build they are
 entitled to share.
@@ -91,5 +91,5 @@ covers the artifact's shape when it turns up inside a bundle under analysis.
 ## What the bundle cannot prove
 
 The bundle shows what ships and what the signer claimed. What the app does at run time, what
-the server does with its data, and whether the App Store build matches the copy in hand are
+the server does with its data, and whether the store build matches the copy in hand are
 separate claims, each with its own evidence.

@@ -8,14 +8,14 @@ the extraction yields, and what it still cannot prove.
 
 An Electron app is a native framework binary plus one ASAR archive of application code.
 
-- macOS: `Example.app/Contents/Frameworks/Electron Framework.framework`, application code at
+- Bundle-style desktop OS: `Example.app/Contents/Frameworks/Electron Framework.framework`, application code at
   `Example.app/Contents/Resources/app.asar`, with `app.asar.unpacked` beside it for native
   modules that cannot live inside the archive.
-- Windows and Linux: the application sits under `resources/` next to the executable.
+- PE and ELF desktop builds: the application sits under `resources/` next to the executable.
 
 An ASAR is not a zip: it begins with a small binary header that carries a JSON index of every
 member, then the concatenated file bytes. `unzip -l` on it fails and that failure is not
-evidence of corruption. Extract with an ASAR-aware reader, through REA's
+evidence of corruption. Extract with an ASAR-aware reader, through the analysis bridge's
 `analyze_javascript_application` or an equivalent, and keep the index: it preserves the
 original paths, which the zip reading loses.
 
@@ -30,7 +30,7 @@ The runtime switches live in the Electron binary as a fuse wire, not in the ASAR
 | `OnlyLoadAppFromAsar` | Whether code outside the ASAR can be loaded |
 | `GrantFileProtocolExtraPrivileges` | Whether `file://` keeps the privileges it once had |
 
-Read them with `inspect_electron_fuses` through REA before attaching anything. A disabled
+Read them with `inspect_electron_fuses` through the analysis bridge before attaching anything. A disabled
 `EnableNodeCliInspectArguments` explains an empty target list without a tooling problem, and
 an enabled `RunAsNode` is itself a finding about the shipped attack surface.
 
@@ -50,19 +50,19 @@ themselves into a temporary directory at run time; one-directory builds ship the
 a separate `.pkg`-like file beside the executable. The CArchive begins with the `MEI` cookie
 magic followed by the archive version and offsets.
 
-REA's `inspect_artifact` inventories the CArchive without launching it, and `extract_artifact`
+The analysis bridge's `inspect_artifact` inventories the CArchive without launching it, and `extract_artifact`
 publishes accepted members. Bytecode decompilation is outside that capability: a recovered
 `.pyc` is derived bytes whose 16-byte header was reconstructed, and its source is a
 decompiler's inference. Say that in the report, and never present it as the vendor's source.
 
-## Bundled JVM and .NET
+## Bundled JVM and managed CIL runtimes
 
 - A JVM desktop app ships a runtime directory with `libjvm` and jars or modules. Treat each jar
   as a zip and read classes with `javap`; `managed-bytecode` under `reverse-engineering` has
   the reading procedure.
-- A .NET single-file bundle is the host executable plus a bundle marker and compressed
+- A managed single-file bundle is the host executable plus a bundle marker and compressed
   assemblies. Use a managed-artifact reader rather than a native disassembler; the bundle is
-  not the IL that matters, and `dotnet-assembly-analysis` reads what comes out.
+  not the IL that matters, and `cil-assembly-analysis` reads what comes out.
 
 ## Installers and images
 

@@ -19,7 +19,7 @@ Read before planning any change.
 
 ## Out of bounds
 
-- DRM, Widevine, PlayReady or HDCP bypass, spoofing or key extraction.
+- DRM (any scheme) or HDCP bypass, spoofing or key extraction.
 - Enabling piracy, unlicensed streams, stream ripping or region-lock evasion.
 - Defeating anti-theft, activation, parental or account locks.
 - Account takeover, or using credentials or tokens found on the device.

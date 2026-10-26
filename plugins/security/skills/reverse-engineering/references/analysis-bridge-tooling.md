@@ -1,13 +1,13 @@
-# REA tooling: connect, route and cite
+# Analysis bridge tooling: connect, route and cite
 
-Read this when REA (the `rea-agents` reverse-engineering bridge) is installed, when the
-target needs a decompiler or a provider this machine does not have on `PATH`, or when an
-REA call fails. Read it before the first REA call in a session, not on every task: an
+Read this when the analysis bridge (the `rea-agents` package and its `rea` command) is installed, when the
+target needs a decompiler or a provider this machine does not have on `PATH`, or when a
+bridge call fails. Read it before the first bridge call in a session, not on every task: an
 already-connected server that answers is not a reason to run setup again.
 
-REA is a bridge with the caller's own permissions, not a sandbox and not a decompiler of
+The bridge runs with the caller's own permissions, not a sandbox and not a decompiler of
 its own. It drives Ghidra, Hopper, IDA, JADX, WABT and built-in static inspectors, and it
-grants no licence to any of them. It is MIT-licensed (`github.com/morluto/rea`); the
+grants no licence to any of them. It is MIT-licensed; the
 version these instructions were written against is **6.8.0**, and the supported runtimes
 are Node.js `>=22.23.4`, `>=24.22.1` and `>=26.12.1` — 23, 25 and earlier 26.x are
 refused, so check `node --version` before blaming the tool for not starting.
@@ -30,7 +30,7 @@ npx -y rea-agents@6.8.0 doctor --client claude_code --skill --json
 ```
 
 `--client` takes the client id this agent runs as (`claude_code`, `codex`, `opencode`,
-`cursor`, among others); `--skill` also verifies the REA skill copies. To register the MCP
+`cursor`, among others); `--skill` also verifies the bridge's own skill copies. To register the MCP
 server, preview the exact writes first and read the plan before applying it:
 
 ```bash
@@ -45,8 +45,8 @@ this morning. A global install runs the same commands as `rea doctor`, `rea setu
 server is running, so its version is the one to record.
 
 The setup names every path and change it will make, and applies nothing until approved.
-Read it for the three things that go wrong quietly: it may offer to install Hopper, which
-is a paid licence you may not hold; it edits agent configuration outside this repository;
+Read it for the three things that go wrong quietly: it may offer to install the paid-licence provider (Hopper), which
+is a licence you may not hold; it edits agent configuration outside this repository;
 and a client id that is not the agent you are actually using produces a registration that
 works and is never loaded.
 
@@ -60,12 +60,12 @@ the released tool set, the server is the authority on what is installed.
 | --- | --- |
 | Extracted JavaScript or Electron tree, `app.asar` | `analyze_javascript_application` |
 | ZIP, APK, IPA, MSIX, DMG, or a PyInstaller executable as an inventory | `open_binary`, then `inspect_artifact` |
-| Android code, manifest, resources | `inspect_android_package` |
+| APK code, manifest, resources | `inspect_android_package` |
 | APK signing block only | `inspect_apk_signature` |
-| Managed PE or .NET assembly | `inspect_managed_artifact` |
+| Managed PE (CIL) assembly | `inspect_managed_artifact` |
 | Native executable, library or analysis database | `open_binary`, then overview, strings, symbols, decompile |
 | Firmware image | `inspect_firmware_regions`; extraction is caller-supplied Binwalk or Unblob |
-| Apple `.app`, IPA or DMG inventory | `inspect_artifact`, then the Apple projection |
+| Desktop `.app`, mobile IPA or DMG inventory | `inspect_artifact`, then the app-bundle projection |
 | WebAssembly bytes | `inspect_wasm_artifact`, which needs caller-supplied WABT |
 | Two builds of the same native target | `list_procedures` on each, then `match_native_functions` |
 
@@ -110,7 +110,7 @@ writing.
 
 ## Record what the finding rests on
 
-In the session notes, before the first call, write down the REA version, the client id,
+In the session notes, before the first call, write down the bridge version, the client id,
 the target path and SHA-256, the provider and its version, and the route chosen. A finding
-that cannot be tied to those cannot be reproduced, and an REA upgrade can change a
+that cannot be tied to those cannot be reproduced, and a bridge upgrade can change a
 projection's shape without changing the bytes it read.

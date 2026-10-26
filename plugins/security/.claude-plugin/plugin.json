@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "security",
-  "description": "Skills for the defensive side of shipping software: review a change for the vulnerability classes that actually get exploited, reduce who can do what toward least privilege without breaking production, rotate or contain a credential, harden a container image and keep checking it, read a Terraform plan for what it destroys, preserve evidence and build an intrusion timeline after a compromise, respond to credential stuffing, write and test detection rules, prove tenant isolation, handle vulnerability reports from outside researchers, and reverse engineer the binaries, .NET assemblies, Android packages, packaged apps, firmware and WebAssembly you are authorised to examine — including de-bloating an Android device you own.",
+  "description": "Skills for the defensive side of shipping software: review a change for the vulnerability classes that actually get exploited, reduce who can do what toward least privilege without breaking production, rotate or contain a credential, harden a container image and keep checking it, read a Terraform plan for what it destroys, preserve evidence and build an intrusion timeline after a compromise, respond to credential stuffing, write and test detection rules, prove tenant isolation, handle vulnerability reports from outside researchers, and reverse engineer the binaries, managed CIL assemblies, APK packages, packaged apps, firmware and WebAssembly you are authorised to examine — including de-bloating a smart-TV or streaming device you own.",
   "author": {
     "name": "Serhii Zolotov",
     "url": "https://github.com/greenblacked"
@@ -19,13 +19,13 @@
     "supply-chain",
     "detection",
     "reverse-engineering",
-    "rea",
+    "analysis-bridge",
     "binary-analysis",
     "firmware",
     "malware-analysis",
-    "android",
+    "mobile-packages",
     "apk",
-    "dotnet",
+    "cil",
     "debloat"
   ]
 }

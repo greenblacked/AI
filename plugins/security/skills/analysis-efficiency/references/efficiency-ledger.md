@@ -20,7 +20,7 @@ outlive the process that produced them.
 
 | Field | Why it is needed |
 | --- | --- |
-| REA version | The engine's behaviour changes between releases; a result without one cannot be reproduced |
+| Bridge version | The engine's behaviour changes between releases; a result without one cannot be reproduced |
 | Client id | Which client's policy, timeouts and provider set were in play |
 | Target path | What was analysed |
 | Target SHA-256 | The bytes, not the path — a path is reused and a digest is not |
@@ -101,7 +101,7 @@ A failed call is not a reason to repeat it unchanged.
 - Close native sessions with `close_binary` once the investigation is done, so the provider
   releases its engine; export the bundle first if the Evidence is needed later.
 - Write down which unknowns the oracle settled, so a later pass does not re-litigate them.
-- Before any expensive call, confirm the question still needs REA at all: an artifact that
+- Before any expensive call, confirm the question still needs the analysis bridge at all: an artifact that
   ships no binary and has source is a job for ordinary source tools, where none of this
   applies.
 

@@ -14,7 +14,7 @@ Read after `file` confirms a managed assembly and before choosing how deep to re
 
 ## What the container actually is
 
-A .NET assembly is a PE file with a CLI header. The PE part carries the sections; the CLI
+A managed assembly is a PE file with a CLI header. The PE part carries the sections; the CLI
 header (the `COR20` data directory) points at the metadata root and the entry point. The
 metadata root begins with the `BSJB` signature and names the streams:
 
@@ -35,7 +35,7 @@ obfuscated build can carry a name table that does not match the code.
 - **Assembly identity** — simple name, version, culture and public key token. Two files with
   the same simple name are not the same assembly.
 - **Target framework** — `TargetFrameworkAttribute`, or the framework name in the metadata.
-  A .NET Framework 4.x assembly and a .NET 8 assembly fail differently under the same tool.
+  A 4.x full-framework assembly and a runtime 8 assembly fail differently under the same tool.
 - **Entry point** — `Main`, a module initializer, or a library export. An assembly with no
   entry point is a library even if it is named `.exe`.
 - **Debug build markers** — `DebuggableAttribute` and a PDB path in the debug directory.
@@ -63,7 +63,7 @@ name the original in the report.
 ## Tool flags
 
 `ilspycmd` is the command-line decompiler used here; the flags below were exercised against a
-small .NET 9 console assembly.
+small runtime 9 console assembly.
 
 | Question | Command |
 | --- | --- |
@@ -74,7 +74,7 @@ small .NET 9 console assembly.
 | Whole project | `ilspycmd -p -o ./out ./App.dll` |
 | Resolve dependencies | `ilspycmd -r ./deps -t Namespace.Type ./App.dll` |
 
-The tool runs on a specific .NET runtime; a version mismatch prints the framework it wants
+The tool runs on a specific managed runtime; a version mismatch prints the framework it wants
 and exits. Install a matching runtime or set `DOTNET_ROLL_FORWARD=Major` for the read, and
 record which one you used if the output matters.
 
@@ -88,7 +88,7 @@ formatting, not in what the CLI header contains.
 
 ## Obfuscation and packing
 
-Common managed obfuscators (ConfuserEx, .NET Reactor, SmartAssembly) rename types to
+Common managed obfuscators, commercial and open-source, rename types to
 single characters, encrypt user strings, inject invalid metadata and add a module initializer
 that decrypts at run time. Signals in the type list:
 
@@ -105,8 +105,8 @@ read is the outer layer. Do not describe decrypted code you did not actually rea
 A Mono Unity build ships `Assembly-CSharp.dll` (and friends) under `Managed`, and those are
 ordinary managed assemblies read exactly as above. An IL2CPP build ships
 `global-metadata.dat` plus native `libil2cpp`, and its method bodies are native code. That
-read belongs to `reverse-engineering` on every platform. An Apple `.app`, IPA or DMG is
-identified first by `apple-app-analysis`, which then hands the method bodies back. The
+read belongs to `reverse-engineering` on every platform. A desktop or mobile app package is
+identified first by `app-bundle-analysis`, which then hands the method bodies back. The
 presence of `global-metadata.dat` is the signal to change skills, not a different way to run
 `ilspycmd`.
 

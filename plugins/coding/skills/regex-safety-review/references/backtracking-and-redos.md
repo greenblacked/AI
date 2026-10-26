@@ -36,7 +36,7 @@ that ultimately fails, forcing the engine to try every partition.
 
 - `^(\w+\s?)*$` — the `\s?` overlaps `\w` on nothing and the outer `*` nests over `+`.
 - `([a-zA-Z]+)*` — an inner `+` under an outer `*`; on a long non-letter run the splits explode.
-- `^(([a-z])+.)+[A-Z]([a-z])+$` — the classic Stack Overflow ReDoS; a long lowercase run with no
+- `^(([a-z])+.)+[A-Z]([a-z])+$` — a class-name validator and a widely used evil-regex example; a long lowercase run with no
   capital is exponential.
 - `(.*),(.*),(.*)` applied to a line with no commas — each `.*` tries every split of every
   prefix.
@@ -82,10 +82,10 @@ branch, so there is one parse.
 (`{1,64}`) so the engine never sees a megabyte. Reject the over-long input before the regex.
 
 **Use a linear engine.** In Go and Rust the standard `regex` package is linear; in Python, the
-`re2` bindings replace `re`; in .NET, `RegexOptions.NonBacktracking` (with the caveat that it
+`re2` bindings replace `re`; in the managed regex library (`System.Text.RegularExpressions`) in runtime version 7 and later, `RegexOptions.NonBacktracking` (with the caveat that it
 rejects some constructs, like lookbehind and backreferences, which it cannot do linearly).
 
-**Atomic groups and possessive quantifiers.** `(?>a+)` and `a++` (PCRE, Java, .NET, Perl, not
+**Atomic groups and possessive quantifiers.** `(?>a+)` and `a++` (PCRE, Java, the managed regex library, Perl, not
 JavaScript or Python's `re`) tell the engine not to backtrack into a group once matched. They
 convert an exponential pattern to a linear one when the group is truly unambiguous — but they
 change the language the pattern matches in edge cases, so verify the matches did not change.

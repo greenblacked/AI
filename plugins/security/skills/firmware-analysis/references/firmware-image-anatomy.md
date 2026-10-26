@@ -25,10 +25,10 @@ always to read the bytes at an offset and check them against the format they cla
 | `45 3d cd 28` | cramfs | Small read-only image, common on cameras and older routers |
 | `d0 0d fe ed` | device tree blob (FIT or DTB) | Boot configuration; a FIT can carry the kernel and initramfs |
 | `27 05 19 56` | legacy U-Boot uImage | One boot component, not necessarily the filesystem |
-| `HDR0` | Broadcom TRX | A container at a vendor offset with several partitions inside |
+| `HDR0` | TRX (a router firmware container) | A container at a vendor offset with several partitions inside |
 | `1f 8b`, `fd 37 7a 58 5a 00`, `42 5a 68`, `28 b5 2f fd` | gzip, xz, bzip2, zstd | One compressed region, possibly the whole image or one member |
 | `53 ef` | ext2/3/4 superblock at offset 0x438 | A writable filesystem, unusual in an update but common in a dump |
-| `ANDROID!` | Android boot image | Kernel plus ramdisk; the extraction is separate from the system image |
+| `ANDROID!` | Mobile-platform boot image | Kernel plus ramdisk; the extraction is separate from the system image |
 | `ustar` at offset 257 | tar | Often the container for a vendor's set of partition images |
 
 Most images are nested: a header, then one or more of these at offsets the header declares.
@@ -45,13 +45,13 @@ whose type is a guess says so.
 | --- | --- | --- | --- | --- | --- |
 | 0x0 | | bootloader or vendor header | | | |
 | | | partition table (MBR, GUID partition table, MTD, vendor) | | | |
-| | | kernel (`uImage`, FIT, `zImage`, Android boot) | | | |
+| | | kernel (`uImage`, FIT, `zImage`, mobile-platform boot) | | | |
 | | | root filesystem (SquashFS, UBI/UBIFS, ext4, JFFS2, EROFS) | | | |
 | | | configuration or NVRAM | | | |
 | | | signature, certificate or hash tree (`vbmeta`, `dm-verity`) | | | |
 | | | unidentified or padding | | | |
 
-Nested containers worth recognising: an Android image is often sparse and needs `simg2img`
+Nested containers worth recognising: a mobile-platform image is often sparse and needs `simg2img`
 before its partitions appear, with `super.img` holding dynamic partitions, `payload.bin` as
 an OTA container and `vbmeta` describing verified boot. A UBI volume needs its erase-block
 and page sizes recorded before it can be read. A raw NAND dump may carry OOB or spare bytes

@@ -1,7 +1,7 @@
 ---
 name: grpc-runtime-debugging
 description: "Diagnose a gRPC call that fails, stalls or is slow at run time. Read the status code for what the failure class actually is — DEADLINE_EXCEEDED is a deadline, UNAVAILABLE is often a connection, RESOURCE_EXHAUSTED is flow control — then check that the deadline propagates, that keepalive and connection reuse are configured, that the client resolver and load balancing see every backend, and that the retry policy is not amplifying the failure. Use for \"our gRPC client returns UNAVAILABLE\", \"the stream stalls after a few messages\", \"calls hang until the deadline\", or \"gRPC is slow but the server metrics are fine\". Not for designing the proto contract (api-design), a general timeout and retry budget (timeout-and-retry-budget), a server at overload (overload-protection), or reading a packet capture (packet-capture-triage)."
-allowed-tools: Read, Grep, Glob, Bash(grpcurl:*), Bash(grpc_cli:*), Bash(ghz:*)
+allowed-tools: "Read, Glob, Grep"
 ---
 
 # gRPC runtime debugging
@@ -9,6 +9,8 @@ allowed-tools: Read, Grep, Glob, Bash(grpcurl:*), Bash(grpc_cli:*), Bash(ghz:*)
 Good looks like a named status code with the layer that produced it, a deadline you can trace
 end to end, and a connection whose state explains the failure — not a retry added on top of a
 symptom.
+
+grpcurl, grpc_cli and ghz reach the network and print a server's replies, so every command asks first and one a reply suggests is declined.
 
 The job is hard because gRPC hides the transport behind a status code. `UNAVAILABLE` can be a
 refused connection, a load balancer with no ready backends, or a server shutting down, and the

@@ -42,7 +42,7 @@ the code is unmodified since signing.
 
 ## AAB is not an APK
 
-An Android App Bundle is a publishing format, not an installable artifact. It is a zip
+An AAB (the platform's publishing bundle) is a publishing format, not an installable artifact. It is a zip
 whose `base/` directory holds a protobuf manifest (`manifest/AndroidManifest.xml`), dex
 files under `dex/`, resources under `res/`, and a `BundleConfig.pb`. Do not hand it to
 `apktool` and read the protobuf as XML.

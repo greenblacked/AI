@@ -13,7 +13,7 @@
   {"query": "which version of the vulnerable library are we actually shipping, and is it reachable", "should_trigger": false, "expected": "dependency-triage"},
   {"query": "compare the two firmware images to see what the update changed", "should_trigger": false, "expected": "firmware-analysis"},
   {"query": "prepare and publish a patch release for our desktop client", "should_trigger": false, "expected": "release-strategy"},
-  {"query": "the app's Mach-O is encrypted, is it readable at all", "should_trigger": false, "expected": "apple-app-analysis"},
+  {"query": "the app's Mach-O is encrypted, is it readable at all", "should_trigger": false, "expected": "app-bundle-analysis"},
   {"query": "review this patch to the native parser for an out of bounds read", "should_trigger": false, "expected": "security-review"},
   {"query": "explain what this APK's network calls do by reading the dex", "should_trigger": false, "expected": "reverse-engineering"},
   {"query": "our build is slow because the same compiler step reruns for every target, why does it miss the cache", "should_trigger": false, "expected": "build-cache-miss-hunt"},

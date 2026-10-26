@@ -50,12 +50,12 @@ a large file is a different risk from one run per request.
 | --- | --- | --- |
 | Python `re` | backtracking | yes |
 | Java `java.util.regex` | backtracking | yes |
-| JavaScript (without `l` flag) | backtracking | yes |
-| .NET | backtracking | yes (non-backtracking with `RegexOptions.NonBacktracking`) |
+| JavaScript (default engine; a linear engine is experimental and behind a V8 flag only, with no standard flag) | backtracking | yes |
+| The managed regex library (`System.Text.RegularExpressions`) | backtracking | yes (non-backtracking with `RegexOptions.NonBacktracking`, runtime version 7 and later) |
 | Perl, PCRE/PCRE2 | backtracking | yes |
-| Go `regexp`, RE2 | DFA/NFA hybrid | no — linear time |
+| Go `regexp` | finite automata | no — linear time |
 | Rust `regex` | finite automata | no — linear time |
-| RE2, Hyperscan, `re2` bindings | DFA | no — linear time |
+| RE2, Hyperscan, `re2` bindings | finite automata | no — linear time |
 
 A pattern in Go or Rust `regex` is linear by construction and cannot ReDoS; the review is then
 about correctness, not safety. Confirm the engine rather than assuming it from the language.
