@@ -1,0 +1,92 @@
+[
+  {
+    "query": "check who signed this APK and whether the certificate matches the vendor's published one",
+    "should_trigger": true
+  },
+  {
+    "query": "open this APK in JADX and find which class sends the analytics request",
+    "should_trigger": true
+  },
+  {
+    "query": "list exported receivers and permissions in our release AAB before launch",
+    "should_trigger": true
+  },
+  {
+    "query": "authorized malware sample is an Android APK; triage what it does with Evidence IDs",
+    "should_trigger": true
+  },
+  {
+    "query": "use inspect_android_package to get a dex overview of this split APK set",
+    "should_trigger": true
+  },
+  {
+    "query": "is this APK a repackaged build of our app? compare signing lineage",
+    "should_trigger": true
+  },
+  {
+    "query": "trace the method references from the boot receiver in this package to the network call",
+    "should_trigger": true
+  },
+  {
+    "query": "what strings and hosts does this APK reference, and which methods use them",
+    "should_trigger": true
+  },
+  {
+    "query": "pulled an APK from my own phone; what native libraries and SDKs does it bundle",
+    "should_trigger": true
+  },
+  {
+    "query": "compare two versions of our APK to see which permissions and components changed",
+    "should_trigger": true
+  },
+  {
+    "query": "review this Kotlin pull request in our Android repo",
+    "should_trigger": false,
+    "expected": "code-review"
+  },
+  {
+    "query": "decompile this iOS IPA and explain the login flow",
+    "should_trigger": false,
+    "expected": "reverse-engineer-anything"
+  },
+  {
+    "query": "I have an unknown binary and want to start reverse engineering it with REA",
+    "should_trigger": false,
+    "expected": "reverse-engineer-anything"
+  },
+  {
+    "query": "REA keeps re-analysing the same APK and flooding the session; cut the cost",
+    "should_trigger": false,
+    "expected": "rea-analysis-efficiency"
+  },
+  {
+    "query": "remove the ad packages from the Android TV box I own",
+    "should_trigger": false,
+    "expected": "authorized-device-debloat"
+  },
+  {
+    "query": "is this MCP server safe to install",
+    "should_trigger": false,
+    "expected": "agent-extension-audit"
+  },
+  {
+    "query": "our Android app takes four seconds to start; find the jank",
+    "should_trigger": false,
+    "expected": "mobile-startup-and-jank"
+  },
+  {
+    "query": "triage Android crash reports from the last release",
+    "should_trigger": false,
+    "expected": "crash-triage"
+  },
+  {
+    "query": "review this pull request for injection and authz bugs",
+    "should_trigger": false,
+    "expected": "security-review"
+  },
+  {
+    "query": "inspect the flash dump from this router for its filesystem regions",
+    "should_trigger": false,
+    "expected": "firmware-image-inspection"
+  }
+]
