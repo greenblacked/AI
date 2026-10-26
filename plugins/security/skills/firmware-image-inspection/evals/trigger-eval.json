@@ -1,0 +1,91 @@
+[
+  {
+    "query": "map the regions and partitions in this router flash dump with offsets",
+    "should_trigger": true
+  },
+  {
+    "query": "run inspect_firmware_regions on the vendor firmware for the camera we own",
+    "should_trigger": true
+  },
+  {
+    "query": "extract the squashfs from this firmware image with binwalk and keep extraction notes",
+    "should_trigger": true
+  },
+  {
+    "query": "what's inside this Android TV system image and super.img",
+    "should_trigger": true
+  },
+  {
+    "query": "compare two firmware versions from our vendor to see which regions changed",
+    "should_trigger": true
+  },
+  {
+    "query": "find where the configuration and NVRAM live in this SPI flash dump",
+    "should_trigger": true
+  },
+  {
+    "query": "authorized assessment: unblob this firmware and list services found, with evidence",
+    "should_trigger": true
+  },
+  {
+    "query": "is this high-entropy region encrypted or just compressed in the image",
+    "should_trigger": true
+  },
+  {
+    "query": "inventory a raw NAND dump including UBI volumes before extraction",
+    "should_trigger": true
+  },
+  {
+    "query": "document what we can and cannot claim from the extracted root filesystem",
+    "should_trigger": true
+  },
+  {
+    "query": "review our firmware C code for interrupt safety",
+    "should_trigger": false,
+    "expected": "firmware-code-review"
+  },
+  {
+    "query": "the board no longer boots after a bad flash; recover it",
+    "should_trigger": false,
+    "expected": "brick-recovery"
+  },
+  {
+    "query": "decompile this single ELF daemon and explain its auth check",
+    "should_trigger": false,
+    "expected": "reverse-engineer-anything"
+  },
+  {
+    "query": "design a safe A/B OTA update scheme for our devices",
+    "should_trigger": false,
+    "expected": "ota-update-safety"
+  },
+  {
+    "query": "check the signing certificate of this APK",
+    "should_trigger": false,
+    "expected": "android-apk-analysis"
+  },
+  {
+    "query": "disable the ad packages on the smart TV I own",
+    "should_trigger": false,
+    "expected": "authorized-device-debloat"
+  },
+  {
+    "query": "harden our Linux servers against the CIS baseline",
+    "should_trigger": false,
+    "expected": "host-hardening"
+  },
+  {
+    "query": "report a vulnerability we found to the vendor responsibly",
+    "should_trigger": false,
+    "expected": "vulnerability-disclosure"
+  },
+  {
+    "query": "bypass the activation lock on a phone I found",
+    "should_trigger": false
+  },
+  {
+    "query": "audit our container image for secrets in layers",
+    "should_trigger": false,
+    "expected": "image-hardening"
+  }
+]
