@@ -28,7 +28,7 @@
     "platform": 19500,
     "product": 19500,
     "research": 17000,
-    "security": 20500,
+    "security": 23000,
     "smallbiz": 17500,
     "techdocs": 10000
   },
@@ -530,6 +530,9 @@
     "year-end-tax-pack": 869,
     "yield-to-lesson": 796,
     "reverse-engineer-anything": 783,
-    "rea-analysis-efficiency": 659
+    "rea-analysis-efficiency": 659,
+    "android-apk-analysis": 852,
+    "firmware-image-inspection": 872,
+    "authorized-device-debloat": 843
   }
 }
