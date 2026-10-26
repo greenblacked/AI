@@ -1,0 +1,22 @@
+[
+  {"query": "I want a feature like the export screen in another app, not copied, just something similar in ours", "should_trigger": true},
+  {"query": "how do I build our own version of a competitor's onboarding flow without ripping off their code", "should_trigger": true},
+  {"query": "I saw this UI pattern in another app and want to recreate the idea in ours, how do I avoid just copying it", "should_trigger": true},
+  {"query": "we want feature parity with a rival product's search filters but built completely independently", "should_trigger": true},
+  {"query": "I read an open-source project's algorithm for this, how do I reimplement it cleanly without just copying their code", "should_trigger": true},
+  {"query": "our designer wants to clone this app's drag-and-drop interaction, what's the safe way to actually do that", "should_trigger": true},
+  {"query": "I want to recreate a feature I found described in a SaaS tool's docs, is it okay to just copy their approach", "should_trigger": true},
+  {"query": "how do I make sure my reimplementation of this third-party feature doesn't accidentally carry over their code or assets", "should_trigger": true},
+  {"query": "we're building a competitor to this product and want similar functionality without legal risk down the line", "should_trigger": true},
+  {"query": "help me build something like this app's offline sync, but our own design, not a port of theirs", "should_trigger": true},
+  {"query": "can we actually use this MIT-licensed library's function directly in our code", "should_trigger": false, "expected": "licence-compliance"},
+  {"query": "write a spec for our new checkout feature, there's no reference product, just our own requirements", "should_trigger": false, "expected": "feature-spec"},
+  {"query": "our checkout feature has gotten slow and I need to find out why before we ship anything new", "should_trigger": false, "expected": "profiling"},
+  {"query": "review this pull request that implements the new feature before we merge it", "should_trigger": false, "expected": "code-review"},
+  {"query": "draw an architecture diagram of how our own services talk to each other", "should_trigger": false, "expected": "architecture-diagrams"},
+  {"query": "what are competitors doing with their pricing pages this quarter", "should_trigger": false, "expected": "competitor-signal-watch"},
+  {"query": "my function returns the wrong value and I can't figure out why", "should_trigger": false, "expected": "debugging"},
+  {"query": "verify our getting-started tutorial actually works for a brand new user", "should_trigger": false, "expected": "tutorial-clean-room"},
+  {"query": "design the database schema for this new feature we're building from scratch", "should_trigger": false, "expected": "schema-design"},
+  {"query": "set up end to end tests for our checkout flow", "should_trigger": false, "expected": "e2e-testing"}
+]

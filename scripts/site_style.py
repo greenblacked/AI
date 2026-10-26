@@ -250,15 +250,56 @@ html[data-theme="reactor"]::before {
   margin: 0 auto;
   padding: 0 1.25rem;
 }
-.bar nav {
+/* The section links sit in the bar from 64rem up: the sections left of the mark, the links
+   off the site right of it. Below that they are behind the Menu disclosure, which is a
+   details element so it opens by Enter or Space with no script. */
+.bar > nav {
   display: none;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
   font-size: 0.875rem;
   line-height: 1.4286;
 }
+.menu summary {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding-right: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.4286;
+  cursor: pointer;
+  list-style: none;
+}
+.menu summary::-webkit-details-marker { display: none; }
+.menu summary svg { width: 1rem; height: 1rem; }
+.menu summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.menu nav {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  padding: 0.5rem 1.25rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  font-size: 0.875rem;
+  line-height: 1.4286;
+}
+.menu-else { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--line); }
+.bar .menu nav a { display: flex; }
+.tools { margin-left: auto; }
 @media (min-width: 64rem) {
-  .bar nav { display: flex; }
+  .bar > nav { display: flex; }
+  .bar > nav.elsewhere { margin-left: auto; }
+  .tools { margin-left: 1rem; }
+  .menu { display: none; }
+}
+@media (min-width: 80rem) {
+  .bar > nav { gap: 1.5rem; }
 }
 .bar nav a, .foot nav a {
   display: inline-flex;
@@ -281,7 +322,7 @@ a[aria-current="page"] { text-decoration: underline; text-underline-offset: 4px;
   font-weight: 500;
   letter-spacing: 0.1em;
 }
-.tools { margin-left: auto; display: flex; align-items: center; }
+.tools { display: flex; align-items: center; }
 .tool {
   display: inline-flex;
   min-width: 2.75rem;
@@ -420,6 +461,25 @@ html[data-theme="night"] .moon { display: block; }
   white-space: nowrap;
 }
 .pill:hover { opacity: 0.8; }
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+  margin-top: 2rem;
+}
+.hero-actions .pill { margin-top: 0; }
+.hero-more {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  font-size: 0.875rem;
+  line-height: 1.4286;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.hero-more:hover { color: var(--muted); }
+.listing > .lede.after { max-width: 42rem; }
 @media (min-width: 40rem) {
   .hero { padding-top: 6rem; }
   .hero h1 { font-size: 3.75rem; }
@@ -462,6 +522,9 @@ html[data-theme="night"] .moon { display: block; }
   line-height: 1.5;
   outline: none;
 }
+/* The field has no box, so the ring is what shows it has focus; the ink colour is the
+   page's text colour, which reads at AA against the background in every theme. */
+.finder input:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
 @media (min-width: 40rem) {
   .finder { flex-direction: row; align-items: flex-end; justify-content: space-between; }
 }
@@ -672,6 +735,11 @@ html[data-theme="night"] .moon { display: block; }
   border-radius: 1rem;
   font-size: 0.875rem;
 }
+/* On a phone a command is read whole or not at all, so a block wraps rather than scrolls.
+   Presentation only: the text in the element, and so what Copy takes, is unchanged. */
+@media (max-width: 39.999rem) {
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+}
 .skills { display: grid; margin-top: 1.5rem; }
 .skills li { border-bottom: 1px solid var(--line); }
 .skills a { display: flex; width: 100%; min-height: 2.75rem; align-items: center; }
@@ -802,6 +870,31 @@ html[data-theme="night"] .moon { display: block; }
   line-height: 1.5;
   color: var(--muted);
 }
+.routing { margin: 0 0 1.5rem; font-family: var(--font-sans); }
+.routing summary {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.routing summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.routing p { margin: 0.5rem 0 0; color: var(--muted); font-size: 1.0625rem; line-height: 1.5; }
+.contents { margin: 0 0 2rem; font-family: var(--font-sans); }
+.contents ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.contents li { margin: 0; }
+.contents a { display: inline-flex; min-height: 2.75rem; align-items: center; }
+/* A skill name in a table cell stays whole; the scroll region carries what does not fit. */
+.prose-lab .table-wrap td code { white-space: nowrap; overflow-wrap: normal; }
 .prose-lab .al-r { text-align: right; }
 .prose-lab .al-c { text-align: center; }
 .prose-lab td.num, .prose-lab th.num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -1254,6 +1347,7 @@ MOTION_CSS = """
       transform 200ms var(--ease), box-shadow 200ms var(--ease), outline-offset 160ms ease;
   }
   :focus-visible { outline-offset: 3px; }
+  .menu[open] nav { animation: menu-in 160ms var(--ease) both; }
   .skills a { transition: color 160ms ease, padding-left 240ms var(--ease); }
   .skills a::after {
     transform: translateX(-0.5rem);
@@ -1308,6 +1402,7 @@ MOTION_CSS = """
   }
 }
 @keyframes page-out { to { opacity: 0; } }
+@keyframes menu-in { from { opacity: 0; transform: translateY(-0.5rem); } }
 @keyframes page-in { from { opacity: 0; transform: translateY(0.75rem); } }
 @keyframes rise-in { from { opacity: 0; transform: translateY(1.5rem); } }
 @keyframes tick {
