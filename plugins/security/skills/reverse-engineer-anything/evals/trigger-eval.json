@@ -12,7 +12,7 @@
     "should_trigger": true
   },
   {
-    "query": "triage this authorized malware sample with Ghidra through the agent",
+    "query": "triage this authorized malware sample with Ghidra through REA",
     "should_trigger": true
   },
   {

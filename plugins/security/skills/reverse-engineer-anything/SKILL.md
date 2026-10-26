@@ -75,10 +75,9 @@ npx -y rea-agents@latest setup --client <client_id> --dry-run --json
 npx -y rea-agents@latest setup --client <client_id> --yes
 ```
 
-Supported client ids include `claude_code`, `codex`, `cursor`, `gemini_cli`,
-`grok_build`, and others listed upstream. Pin an exact `rea-agents` version in
-durable MCP registrations. Node.js requirements follow the published package
-(22.x / 24.x / 26.x floors).
+Pass a client id from the upstream `rea-agents` client list to `--client`.
+Pin an exact `rea-agents` version in durable MCP registrations. Node.js
+requirements follow the published package (22.x / 24.x / 26.x floors).
 
 CLI fallback without MCP (JavaScript/Electron tree or ASAR):
 
