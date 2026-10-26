@@ -1,0 +1,22 @@
+[
+  {"query": "i have the finished mockup of our dashboard as an image export, turn it into a looping video i can post", "should_trigger": true},
+  {"query": "make a looping demo of this settings screen where every card shows what it does, then give me a gif for the readme", "should_trigger": true},
+  {"query": "animate the feature cards on our landing page so they load in and show their charts moving when you scroll to them", "should_trigger": true},
+  {"query": "i want a loading intro for this design where everything starts empty and builds in, then loops seamlessly", "should_trigger": true},
+  {"query": "render the animated version of this screen to mp4 at a fixed frame rate, capture it frame by frame so it's the same every time", "should_trigger": true},
+  {"query": "my gif loop jumps at the end, the last frame doesn't match the first. how do i make it seamless", "should_trigger": true},
+  {"query": "bring this static bento grid to life for the marketing site, only the cards with a visual should move", "should_trigger": true},
+  {"query": "i need a small gif of the finished design animating, cropped to the content, at exact pixel dimensions i'll give you", "should_trigger": true},
+  {"query": "record the design as a looping showcase but keep the photo background exactly as it is", "should_trigger": true},
+  {"query": "pull the layers out of the design file and rebuild it in html so each part can animate separately", "should_trigger": true},
+  {"query": "define the duration and easing tokens for our product so every animation uses the same set", "should_trigger": false, "expected": "design-system"},
+  {"query": "screenshot diffs keep failing after the css change, set up visual regression for the pricing page", "should_trigger": false, "expected": "visual-review"},
+  {"query": "audit the site for prefers-reduced-motion support and flashing content against wcag", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "write the engineering spec for how the dropdown opens and closes, with every state and timing for the developers", "should_trigger": false, "expected": "design-handoff"},
+  {"query": "build the whole marketing site from scratch, pick a stack and get it hosted", "should_trigger": false, "expected": "website-builder"},
+  {"query": "i'm giving a talk next month and want the live demo to survive a bad venue network", "should_trigger": false, "expected": "conference-talk"},
+  {"query": "which chart type should i use for monthly revenue by region, and how do i label it", "should_trigger": false, "expected": "data-visualisation"},
+  {"query": "the page hierarchy feels flat, review the type and spacing and tell me what to change", "should_trigger": false, "expected": "visual-design"},
+  {"query": "choose breakpoints for the dashboard and decide how the sidebar collapses on a phone", "should_trigger": false, "expected": "responsive-design"},
+  {"query": "review the signup flow against usability heuristics and list the problems by severity", "should_trigger": false, "expected": "ui-ux-review"}
+]

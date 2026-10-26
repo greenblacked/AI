@@ -8,6 +8,23 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- `family-history-research` skill in the personal plugin: trace a family through records with a research question, a coverage list and log, source and information classes, five proof levels with a matching plain-language label, and a read-only audit of the registers that rejects a conclusion stronger than its evidence.
+- `motion-showcase` skill in the design plugin: turn a finished static design into a looping showcase (MP4 and GIFs, captured frame by frame on a fake clock) or into scroll-triggered animation in a site's own code, with the background untouched, a still-fidelity gate before any motion, and overflow, seam and silent-beat checks before encoding.
+- `feature-recreation` skill in the coding plugin: build an original implementation of a feature observed in another product, with a behaviour spec written before the reference is opened, the two-role clean-room split for showing independent creation, a licence check on anything actually carried across, and a shipped result that never names the product it was modelled on.
+- `reverse-engineering` skill in the security plugin: lawful reverse engineering of native binaries, APKs, JARs, JVM class files, live web apps' shipped bundles and smart TV and streaming platforms, with a static-before-dynamic workflow and an isolated-environment gate for untrusted targets.
+
+### Changed
+
+- `website-builder` gains a landing-page reference: extra intake, page structure, layout patterns, conversion copy, content realism, a ship list and the indexing decision.
+
+## [0.2.2] - 2026-10-24
+
+### Fixed
+
+- Two prose typos in skill text: a stray comma in the `architecture-diagrams` D2 reference's install sentence, and a sentence fragment in `k8s-triage`'s rollout-timing check.
+
 ## [0.2.1] - 2026-10-23
 
 ### Changed
@@ -984,7 +1001,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/greenblacked/AI/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/greenblacked/AI/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/greenblacked/AI/compare/v0.1.13...v0.2.0
 [0.1.13]: https://github.com/greenblacked/AI/compare/v0.1.12...v0.1.13
