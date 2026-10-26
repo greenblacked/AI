@@ -12,6 +12,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 - Security skills adapted from official REA (morluto/rea): `reverse-engineer-anything` for authorized binary/package investigation with REA, and `rea-analysis-efficiency` for cutting redundant analysis cost while preserving Evidence.
 
+- Add three skills to the `security` plugin: `android-apk-analysis` for authorized APK signing, manifest and code-path analysis with Evidence IDs, `firmware-image-inspection` for region inventory and quarantined extraction of authorized firmware and flash images, and `authorized-device-debloat` for reversible ad and bloat removal on Android TV and similar devices the operator owns or is authorized to modify.
+
 ## [0.2.2] - 2026-10-24
 
 ### Fixed

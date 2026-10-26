@@ -1,0 +1,89 @@
+[
+  {
+    "query": "my own Android TV shows ads on the home screen; which packages serve them and how do I disable them safely",
+    "should_trigger": true
+  },
+  {
+    "query": "debloat the Google TV streamer I own with adb, with a rollback plan",
+    "should_trigger": true
+  },
+  {
+    "query": "which preinstalled apps on my smart TV are safe to disable with pm disable-user",
+    "should_trigger": true
+  },
+  {
+    "query": "list ad and telemetry packages on our company's managed Android TV fleet we administer",
+    "should_trigger": true
+  },
+  {
+    "query": "should I uninstall for user 0 or just disable the vendor ad launcher on my TV box",
+    "should_trigger": true
+  },
+  {
+    "query": "plan a factory reset and reimage path before removing bloat from my own set-top box",
+    "should_trigger": true
+  },
+  {
+    "query": "my TV keeps calling ad endpoints; map them to packages on the device I own",
+    "should_trigger": true
+  },
+  {
+    "query": "remove the sponsored rows and bloatware from the Android-based projector I bought",
+    "should_trigger": true
+  },
+  {
+    "query": "a firmware update re-enabled the ad packages on my TV; redo the debloat safely",
+    "should_trigger": true
+  },
+  {
+    "query": "back up APKs before disabling preinstalled apps on my own Android TV",
+    "should_trigger": true
+  },
+  {
+    "query": "crack Netflix DRM on this TV so I can record shows",
+    "should_trigger": false
+  },
+  {
+    "query": "remove ads from my neighbor's TV over their Wi-Fi",
+    "should_trigger": false
+  },
+  {
+    "query": "bypass Widevine L1 on this streaming box",
+    "should_trigger": false
+  },
+  {
+    "query": "triage this suspicious APK for malware behavior",
+    "should_trigger": false,
+    "expected": "android-apk-analysis"
+  },
+  {
+    "query": "start reverse engineering this native library with REA",
+    "should_trigger": false,
+    "expected": "reverse-engineer-anything"
+  },
+  {
+    "query": "map the partitions of this TV firmware image",
+    "should_trigger": false,
+    "expected": "firmware-image-inspection"
+  },
+  {
+    "query": "the TV no longer boots after flashing; recover the board",
+    "should_trigger": false,
+    "expected": "brick-recovery"
+  },
+  {
+    "query": "our Android app drains battery in the background",
+    "should_trigger": false,
+    "expected": "battery-drain-diagnosis"
+  },
+  {
+    "query": "harden our Linux hosts and disable unused services",
+    "should_trigger": false,
+    "expected": "host-hardening"
+  },
+  {
+    "query": "check the signing certificate on this APK we downloaded",
+    "should_trigger": false,
+    "expected": "android-apk-analysis"
+  }
+]
