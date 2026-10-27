@@ -940,6 +940,9 @@ def test_a_quoted_or_escaped_hash_is_not_a_shell_comment(tmp_path, line):
         '(cd "${CLAUDE_SKILL_DIR}" && true); python3 scripts/run.py',
         'cd "${CLAUDE_SKILL_DIR}"\ncd -\npython3 scripts/run.py',
         'cd "${CLAUDE_SKILL_DIR}" && cd /tmp && python3 scripts/run.py',
+        '(cd "${CLAUDE_SKILL_DIR}"\ntrue\n)\npython3 scripts/run.py',
+        'cd "${CLAUDE_SKILL_DIR}"; cd; python3 scripts/run.py',
+        'cd "${CLAUDE_SKILL_DIR}" || { cd /tmp && python3 scripts/run.py; }',
     ],
 )
 def test_a_cd_holds_only_in_its_own_shell_scope(tmp_path, body):
@@ -954,6 +957,11 @@ def test_a_cd_holds_only_in_its_own_shell_scope(tmp_path, body):
         'cd "${CLAUDE_SKILL_DIR}" && (python3 scripts/run.py)',
         'echo "(" && cd "${CLAUDE_SKILL_DIR}"\npython3 scripts/run.py',
         'cd "${CLAUDE_SKILL_DIR}" && echo "cd /tmp" && python3 scripts/run.py',
+        '(cd "${CLAUDE_SKILL_DIR}"\npython3 scripts/run.py\n)',
+        '(\ncd "${CLAUDE_SKILL_DIR}"\n./scripts/run.sh\n)',
+        'cd "${CLAUDE_SKILL_DIR}" && printf "%s" cd && python3 scripts/run.py',
+        'cd "${CLAUDE_SKILL_DIR}" && cat docs/cd.md && python3 scripts/run.py',
+        'cd "${CLAUDE_SKILL_DIR}"\nls cd\npython3 scripts/run.py',
     ],
 )
 def test_a_cd_still_covers_commands_inside_its_scope(tmp_path, body):
