@@ -319,7 +319,7 @@ secret that job needs before the first tag.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
-| `release` | `release` | The ref is not a `vX.Y.Z` tag, the tagged commit is not on `main`, the strict validator failed, [`scripts/release.py notes`](../scripts/release.py) found no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md) for the tag, [`scripts/package_skills.py`](../scripts/package_skills.py) or [`scripts/verify_archives.py`](../scripts/verify_archives.py) failed, [`scripts/export_portable.py`](../scripts/export_portable.py) failed, the skills bundle could not be zipped, `gh release create` or `gh release upload` could not create the release or upload one of its two assets, or the release is still a draft after the publish step. |
+| `release` | `release` | The ref is not a `vX.Y.Z` tag, the tagged commit is not on `main`, the strict validator failed, [`scripts/release.py notes`](../scripts/release.py) found no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md) for the tag, [`scripts/package_skills.py`](../scripts/package_skills.py) or [`scripts/verify_archives.py`](../scripts/verify_archives.py) failed, [`scripts/export_portable.py`](../scripts/export_portable.py) failed, the skills bundle could not be zipped, `gh release delete`, `gh release create` or `gh release upload` could not discard a found draft, create the release or upload one of its two assets, or after the publish step the release is still a draft or does not hold exactly its two assets. |
 | `cloudflare` | `cloudflare` | The ref is not a `vX.Y.Z` tag, the tagged commit is not on `main`, [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py) or [`scripts/check_wrangler_pin.py`](../scripts/check_wrangler_pin.py) failed, `npm ci` failed, the `production` environment has no `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID`, `wrangler deployments status` could not read the version production is serving or found traffic split between versions, `wrangler deploy` failed, Wrangler reported no `workers.dev` address or did not report `https://ai.szolotov.com` for the deploy, the smoke test did not see this version answer on `workers.dev`, `wrangler deployments status` does not show this version serving all traffic, or the automatic rollback failed. A 403 from `ai.szolotov.com` is logged as a notice and never fails the job. |
 
 Not a required check — nothing merges against it, and it only ever runs after a `vX.Y.Z` tag
@@ -341,8 +341,8 @@ zip one at a time and hit `HTTP 403: You have exceeded a secondary rate limit` p
 and GitHub documents a limit on content-creating requests per minute and per hour.
 
 The last step is written to be safe to re-run, and never to publish a draft it did not
-just create. It reads `gh release view "$TAG" --json isDraft` once. If there is no
-release, `gh release create "$TAG" --verify-tag` makes it, attaching the notes file the
+just create. It decides from one read of `gh release view "$TAG" --json isDraft`. If that
+read fails, which includes there being no release, `gh release create "$TAG" --verify-tag` makes it, attaching the notes file the
 earlier step wrote and refused to proceed on empty, along with the two zips. If the
 release is published, `gh release upload "$TAG" --clobber` replaces the two assets. If it
 is a draft, `gh release delete "$TAG" --yes` discards it, without `--cleanup-tag` so the
