@@ -1,0 +1,22 @@
+[
+  {"query": "design a landing page for our new ceramics studio that doesn't look generic or ai-made", "should_trigger": true},
+  {"query": "i keep getting the same centred hero with three icon cards from the model, make this marketing page actually distinctive", "should_trigger": true},
+  {"query": "pick a layout and visual direction for our product launch page, we have a few screenshots and one customer number", "should_trigger": true},
+  {"query": "lint my landing page for generic design tells before i send it to the client", "should_trigger": true},
+  {"query": "we're launching a record label's tour page next week, decide what the page should look like before anyone builds it", "should_trigger": true},
+  {"query": "this page looks like every other saas site, redesign it so it has a point of view", "should_trigger": true},
+  {"query": "choose a page structure and a colour and type direction for a bakery's opening-week page, and write down why", "should_trigger": true},
+  {"query": "check whether my built page still has the purple gradient, the icon-card row and the email band at the bottom", "should_trigger": true},
+  {"query": "make the launch page for our open source tool feel designed rather than templated, we have a live demo and benchmarks", "should_trigger": true},
+  {"query": "i need a design decision record for the new campaign page, shape, palette, fonts and the one hero element", "should_trigger": true},
+  {"query": "build me a landing page for my bakery", "should_trigger": false, "expected": "website-builder"},
+  {"query": "set up colour, spacing and type tokens and a button component for our design system", "should_trigger": false, "expected": "design-system"},
+  {"query": "the heading sizes and spacing on this settings screen feel off, fix the hierarchy and type scale", "should_trigger": false, "expected": "visual-design"},
+  {"query": "animate the hero so the cards stagger in as the page loads", "should_trigger": false, "expected": "motion-showcase"},
+  {"query": "review the checkout flow for usability problems and confusing labels", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "audit the page against wcag for keyboard access, contrast and screen reader support", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "our ad promises a free trial but the landing page says book a demo, does the page match what the ad said", "should_trigger": false, "expected": "message-match-audit"},
+  {"query": "this page gets about two hundred visits a month, how do i test a new headline on it", "should_trigger": false, "expected": "low-traffic-page-testing"},
+  {"query": "take screenshots of the rendered page at phone and desktop widths and flag overflow and low contrast", "should_trigger": false, "expected": "visual-review"},
+  {"query": "reorganise the navigation and page hierarchy of our documentation site so people find things", "should_trigger": false, "expected": "information-architecture"}
+]
