@@ -451,6 +451,12 @@ has required `WRANGLER_VERSION` to be the version both `deploy/package.json` and
 lockfile name. There is no package cache: a restored store is not what the lockfile
 hashed.
 
+Every build in `deploy.yml` and `release.yml` links each skill's source on GitHub at the
+commit it was built from, which the script reads from `GITHUB_SHA`. A Preview of `stage`
+shows skills `main` does not have yet, so a link to `main` would be a 404 there until the
+next release; a commit link stays right after later releases too. A local build outside
+Actions links to `main`, and `--source-ref` overrides either.
+
 `preview` runs on a push to `stage`, and on Run workflow from that branch only. It
 runs `wrangler preview --name stage`, which uploads this commit as a Preview of the one
 Worker `ai`, with `robots.txt` set to `Disallow: /`. A Preview is a separate version
@@ -547,7 +553,7 @@ the release job is safe to repeat.
 `make site` builds `dist/site` locally. `VERSION` defaults to `dev`.
 
 What the build writes, besides the `.skill` archives, `portable-skills.zip`, the manifest,
-`version.txt`, `robots.txt`, `_redirects`, `_headers` (a year-long `immutable` cache for `/fonts/*`, and `no-cache` for `/sw.js` so a deploy's new worker is picked up promptly), `sw.js` (the service worker, named for the version so each deploy gets fresh caches and offline reading of pages already opened), the tab and home-screen icons `favicon.png` and `apple-touch-icon.png`, and `fonts/` (the two typefaces under hashed names, each beside its SIL Open Font License text): an `index.html` for the catalogue, one page per plugin under
+`version.txt`, `robots.txt`, `sitemap.xml`, `_redirects`, `_headers` (a year-long `immutable` cache for `/fonts/*`, and `no-cache` for `/sw.js` so a deploy's new worker is picked up promptly), `sw.js` (the service worker, named for the version so each deploy gets fresh caches and offline reading of pages already opened), the tab and home-screen icons `favicon.png` and `apple-touch-icon.png`, and `fonts/` (the two typefaces under hashed names, each beside its SIL Open Font License text): an `index.html` for the catalogue, one page per plugin under
 `plugins/<plugin>/`, one per skill under `plugins/<plugin>/<skill>/`, and `start/`,
 `workflows/`, `examples/` and `quality/`, plus `offline/`, the page the worker shows when a
 visitor is offline and has not opened the address asked for. It is a directory index because the Worker redirects
@@ -671,7 +677,11 @@ the one subagent whose output quality the repository depends on most — whether
 defect from [`docs/review-lessons.md`](review-lessons.md) is actually caught, and whether
 an honest clean change is shipped rather than stalled on an invented objection.
 
-Each case under [`.claude/agents/benchmarks/reviewer/`](../.claude/agents/benchmarks/reviewer)
+The harness takes `--agent NAME`, default `reviewer`, and reads the cases for that agent
+from `.claude/agents/benchmarks/<NAME>/`; a name with no such directory exits 2. The job
+runs the default only, so the `security-reviewer` cases are run by hand with `--agent
+security-reviewer`. Each case under
+[`.claude/agents/benchmarks/reviewer/`](../.claude/agents/benchmarks/reviewer)
 is a small unified diff and a `case.json` describing it: a `"defect"` case passes when
 `reviewer` returns `FIX` or `STOP` and every `must_mention` regex matches its report, and
 a `"clean"` case passes on `SHIP`. The harness runs each case in an isolated `git
@@ -1201,6 +1211,7 @@ make validate   # skills, subagents, commands, rules and the manifest — the va
 make catalogue  # listing ceilings, README and CI drift, workflows, the Makefile, shell, providers — the catalogue job
 make portable   # flatten every skill for ChatGPT, Grok and other assistants
 make test       # pytest -n auto — the test job
+make docker-test  # validate, catalogue and test in a pinned Python container
 make coverage   # the same run under pytest-cov, failing below the floor
 make test-browser  # the built site in Chromium — the site-browser job
 make lint       # ruff, markdownlint, yamllint, actionlint, codespell — the lint jobs
@@ -1212,6 +1223,11 @@ make naming     # file names, branch and commits against naming conventions — 
 
 `make validate` passes `--strict`, exactly as the job does, so a warning fails locally
 before it fails in CI.
+
+`make docker-test` is the same three commands in a digest-pinned Python 3.13 image, with
+the pytest and coverage versions read from `ci.yml`, no network and a read-only
+filesystem. Reach for it when the host's interpreter or toolchain is what you suspect,
+not instead of `make coverage`, which writes its `.coverage` file into the tree.
 
 `make test` needs `pytest-xdist` installed alongside `pytest`, and `make coverage` also
 needs `pytest-cov` and `coverage`; the floor is enforced by the `coverage report` that

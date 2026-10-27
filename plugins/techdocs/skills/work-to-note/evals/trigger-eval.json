@@ -1,0 +1,22 @@
+[
+  {"query": "write up what we just did migrating the queue consumers as a pattern note in my vault", "should_trigger": true},
+  {"query": "turn this debugging session into a note in my notes repo so I can find it next time", "should_trigger": true},
+  {"query": "record this as a lesson: the retry loop duplicated orders and we only caught it in review", "should_trigger": true},
+  {"query": "make this note pass the vault's evidence checks, the checker says Not verified is empty", "should_trigger": true},
+  {"query": "write an ADR note in my vault for the decision we just made to deploy by digest", "should_trigger": true},
+  {"query": "capture the fix we shipped for the certificate expiry as a runbook note with the right frontmatter", "should_trigger": true},
+  {"query": "I compared two ingress controllers this week, put the evaluation in my notes vault as a tool note", "should_trigger": true},
+  {"query": "the bug we just fixed will come back, record it as a lesson in the ledger next to the fix", "should_trigger": true},
+  {"query": "which tags and folder should this new note go in and what do I add to the index", "should_trigger": true},
+  {"query": "distil this session's action log into one durable engineering note with a source-reviewed evidence section", "should_trigger": true},
+  {"query": "summarise this article I just read into an atomic note in my vault", "should_trigger": false, "expected": "learning-notes"},
+  {"query": "I watched a conference talk on tracing, help me take notes on it", "should_trigger": false, "expected": "learning-notes"},
+  {"query": "we need to choose between two queues, weigh the options and draft the decision record", "should_trigger": false, "expected": "decision-record"},
+  {"query": "design the on-call procedure for a database failover from scratch", "should_trigger": false, "expected": "runbook"},
+  {"query": "write the incident postmortem for last night's outage with a timeline and action items", "should_trigger": false, "expected": "postmortem"},
+  {"query": "write the README and onboarding guide for our new API", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "interview our departing senior engineer and write down what only she knows", "should_trigger": false, "expected": "tacit-knowledge-elicitation"},
+  {"query": "turn our retro's change items into checks and a benchmark case", "should_trigger": false, "expected": "yield-to-lesson"},
+  {"query": "write a long technical article for our blog explaining how we built the queue migration", "should_trigger": false, "expected": "write-technical-article"},
+  {"query": "the retro says this defect class recurred across three slices, turn its change items into lessons-file entries and a benchmark case", "should_trigger": false, "expected": "yield-to-lesson"}
+]

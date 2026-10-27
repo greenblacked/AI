@@ -1,0 +1,589 @@
+{
+  "version": 1,
+  "shared": {
+    "token_selector": "^(?::root|:host|\\[data-theme[^\\]]*\\]|html\\[data-theme[^\\]]*\\])$"
+  },
+  "rules": [
+    {
+      "id": "floor-lang",
+      "tier": "floor",
+      "kind": "html",
+      "check": "required-element",
+      "params": {
+        "tag": "html",
+        "need_attr": "lang"
+      },
+      "message": "The document declares no language, so screen readers and translation tools have to guess it."
+    },
+    {
+      "id": "floor-title",
+      "tier": "floor",
+      "kind": "html",
+      "check": "required-element",
+      "params": {
+        "tag": "title",
+        "need_text": true
+      },
+      "message": "The page has no title, which every tab, history entry and search result shows."
+    },
+    {
+      "id": "floor-meta-description",
+      "tier": "floor",
+      "kind": "html",
+      "check": "required-element",
+      "params": {
+        "tag": "meta",
+        "attrs": {
+          "name": "description"
+        },
+        "need_attr": "content"
+      },
+      "message": "The page has no meta description, so a search result quotes whatever text comes first."
+    },
+    {
+      "id": "floor-heading-order",
+      "tier": "floor",
+      "kind": "html",
+      "check": "heading-order",
+      "params": {},
+      "message": "A heading level is skipped, which breaks the outline that assistive technology navigates by."
+    },
+    {
+      "id": "floor-body-size",
+      "tier": "floor",
+      "kind": "css",
+      "check": "number-below",
+      "params": {
+        "property": "font-size",
+        "selector": "^(?::root|html|body|p|main|article|li|\\.prose)$",
+        "unit": "px",
+        "minimum": 16
+      },
+      "stricter": {
+        "minimum": "higher"
+      },
+      "message": "Body text is smaller than the minimum size; the decision record may set a stricter minimum."
+    },
+    {
+      "id": "floor-body-leading",
+      "tier": "floor",
+      "kind": "css",
+      "check": "number-below",
+      "params": {
+        "property": "line-height",
+        "selector": "^(?::root|html|body|p|main|article|li|\\.prose)$",
+        "unit": "",
+        "minimum": 1.3
+      },
+      "stricter": {
+        "minimum": "higher"
+      },
+      "message": "Body line height is under the minimum; tight lines are hard to follow across a measure."
+    },
+    {
+      "id": "floor-focus-visible",
+      "tier": "floor",
+      "kind": "css",
+      "check": "css-requires",
+      "params": {
+        "when": "\\S",
+        "when_html": "<(?:a|button|input|select|textarea|summary)\\b",
+        "require": ":focus-visible"
+      },
+      "message": "Interactive elements exist but no :focus-visible style does, so a keyboard user cannot see where they are."
+    },
+    {
+      "id": "floor-focus-border-width",
+      "tier": "floor",
+      "kind": "css",
+      "check": "declaration",
+      "params": {
+        "property": "border(?:-(?:top|right|bottom|left))?(?:-width)?",
+        "selector": ":focus"
+      },
+      "message": "A focus style changes border width, which moves the layout on every focus change; draw the ring with outline."
+    },
+    {
+      "id": "floor-reveal-hidden",
+      "tier": "floor",
+      "kind": "css",
+      "check": "declaration",
+      "params": {
+        "property": "opacity",
+        "value": "^[+-]?(?:0+\\.?0*|\\.0+)%?$",
+        "selector": "\\.(?:reveal|fade-?in|fade-?up|animate-on-scroll|animate-in|scroll-reveal|appear)(?![\\w-])|\\[data-(?:reveal|aos|animate)",
+        "selector_not": "\\.js(?![\\w-])|\\.has-js(?![\\w-])|\\.js-enabled(?![\\w-])",
+        "context_not": "@media\\s+(?:(?:only\\s+)?(?:screen|all)\\s+and\\s+)?(?:\\([^()]*\\)\\s+and\\s+)*\\(\\s*scripting\\s*:\\s*enabled\\s*\\)(?:\\s+and\\s+\\([^()]*\\))*"
+      },
+      "message": "Content is hidden with opacity 0 behind a reveal class that only a script removes, so it never appears when scripts are off."
+    },
+    {
+      "id": "floor-reduced-motion",
+      "tier": "floor",
+      "kind": "css",
+      "check": "css-requires",
+      "params": {
+        "when": "@keyframes|(?:^|[;{\\s])(?:-(?:webkit|moz|o|ms)-)?(?:animation|transition)(?:-[a-z-]+)?\\s*:",
+        "require": "prefers-reduced-motion"
+      },
+      "message": "The styles animate or transition but nothing answers prefers-reduced-motion."
+    },
+    {
+      "id": "floor-autoplay-muted",
+      "tier": "floor",
+      "kind": "html",
+      "check": "attr-requires",
+      "params": {
+        "tag": "video",
+        "when_attr": "autoplay",
+        "require_attr": "muted"
+      },
+      "message": "A video autoplays without muted; browsers block it or it plays sound nobody asked for."
+    },
+    {
+      "id": "floor-lazy-largest",
+      "tier": "floor",
+      "kind": "html",
+      "check": "lazy-largest",
+      "params": {},
+      "message": "The largest image is lazy-loaded, which delays the main content of the first screen."
+    },
+    {
+      "id": "floor-hidden-overflow",
+      "tier": "floor",
+      "kind": "css",
+      "check": "declaration",
+      "params": {
+        "property": "overflow(?:-x)?",
+        "value": "^(?:hidden|clip)(?:\\s.*)?$",
+        "selector": "^(?::root|html|body)$"
+      },
+      "message": "Horizontal overflow is hidden on html or body, which conceals a layout fault instead of fixing it."
+    },
+    {
+      "id": "floor-viewport-width",
+      "tier": "floor",
+      "kind": "css",
+      "check": "declaration",
+      "params": {
+        "property": "(?:min-|max-)?width",
+        "value": "\\b100(?:[dsl]?vw)\\b"
+      },
+      "message": "A 100vw width includes the scrollbar and makes the page scroll sideways; use 100% instead."
+    },
+    {
+      "id": "floor-placeholder-block",
+      "tier": "floor",
+      "kind": "html",
+      "check": "placeholder",
+      "params": {
+        "src_pattern": "placeholder|dummy|lorem|picsum|your-image|image-here",
+        "class_pattern": "^(?:placeholder|img-placeholder|image-placeholder|todo-image)$"
+      },
+      "message": "A placeholder shows nothing or points at a stand-in image; show the real material or remove the block."
+    },
+    {
+      "id": "floor-placeholder-copy",
+      "tier": "floor",
+      "kind": "copy",
+      "check": "text-regex",
+      "params": {
+        "pattern": "lorem ipsum|dolor sit amet|\\byour (?:company|name|brand|text|headline|logo) here\\b|\\[(?:insert|todo|tbd)[^\\]]*\\]"
+      },
+      "message": "Filler copy is still on the page."
+    },
+    {
+      "id": "floor-invented-proof",
+      "tier": "floor",
+      "kind": "judged",
+      "message": "Every figure, quote, customer, logo and testimonial comes from the user's own material; none was written to fill a slot."
+    },
+    {
+      "id": "floor-image-urls-from-memory",
+      "tier": "floor",
+      "kind": "judged",
+      "message": "Every image address was supplied by the user or exists in the project; none was written from memory."
+    },
+    {
+      "id": "floor-reflow-200",
+      "tier": "floor",
+      "kind": "judged",
+      "message": "The page reflows at 200 percent zoom and at a 320 px wide viewport without sideways scrolling; check it rendered, with accessibility-audit."
+    },
+    {
+      "id": "floor-forced-colors",
+      "tier": "floor",
+      "kind": "judged",
+      "message": "The page stays usable under forced-colors, with borders and focus rings still visible; check it rendered, with accessibility-audit."
+    },
+    {
+      "id": "floor-contrast-preference",
+      "tier": "floor",
+      "kind": "judged",
+      "message": "The page honours prefers-contrast and keeps its contrast against real backgrounds, including text over photographs; check it rendered."
+    },
+    {
+      "id": "floor-chart-alternatives",
+      "tier": "floor",
+      "kind": "judged",
+      "message": "Every chart or diagram has a text alternative that carries what the picture shows."
+    },
+    {
+      "id": "taste-gradient-hue",
+      "tier": "taste",
+      "kind": "css",
+      "check": "gradient-hue",
+      "params": {
+        "hue_min": 215,
+        "hue_max": 345,
+        "min_saturation": 0.25,
+        "oklch_hue_min": 245,
+        "oklch_hue_max": 355,
+        "min_chroma": 0.08,
+        "names": [
+          "purple",
+          "violet",
+          "indigo",
+          "blue",
+          "magenta",
+          "fuchsia",
+          "pink",
+          "hotpink",
+          "deeppink",
+          "dodgerblue",
+          "royalblue",
+          "slateblue",
+          "mediumpurple",
+          "rebeccapurple",
+          "blueviolet",
+          "orchid"
+        ]
+      },
+      "message": "A purple, blue or pink gradient: the colour a generated page reaches for first."
+    },
+    {
+      "id": "taste-gradient-clip-text",
+      "tier": "taste",
+      "kind": "css",
+      "check": "declaration",
+      "params": {
+        "property": "(?:-webkit-)?background-clip",
+        "value": "\\btext\\b"
+      },
+      "message": "Text is filled by clipping a gradient to it, a familiar generated-page headline."
+    },
+    {
+      "id": "taste-gradient-stops",
+      "tier": "taste",
+      "kind": "css",
+      "check": "gradient-stops",
+      "params": {
+        "max": 3
+      },
+      "message": "A gradient with more than three stops reads as a rainbow, not a decision."
+    },
+    {
+      "id": "taste-glow-halo",
+      "tier": "taste",
+      "kind": "css",
+      "check": "declaration",
+      "params": {
+        "property": "filter",
+        "value": "blur\\(\\s*(?:[4-9]\\d|\\d{3,})px"
+      },
+      "message": "A heavily blurred shape: the glow or blob that sits behind text for interest."
+    },
+    {
+      "id": "taste-pure-black-white",
+      "tier": "taste",
+      "kind": "css",
+      "check": "declaration",
+      "params": {
+        "property": "(?!--)(?:color|background(?:-color|-image)?|border(?:-[a-z]+)?(?:-color)?|outline(?:-color)?|fill|stroke|box-shadow|text-shadow|caret-color|accent-color)",
+        "value": "#(?:000|fff)(?:000|fff)?\\b|\\b(?:black|white)\\b",
+        "selector_not": "$token_selector"
+      },
+      "message": "Pure black or white outside the token block; a token tinted to the palette sits better."
+    },
+    {
+      "id": "taste-literal-colours",
+      "tier": "taste",
+      "kind": "css",
+      "check": "declaration",
+      "params": {
+        "property": "(?!--)(?:color|background(?:-color|-image)?|border(?:-[a-z]+)?(?:-color)?|outline(?:-color)?|fill|stroke|box-shadow|text-shadow|caret-color|accent-color)",
+        "value": "#(?!(?:000|fff)(?:000|fff)?\\b)[0-9a-f]{3,8}\\b|\\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\\(",
+        "selector_not": "$token_selector"
+      },
+      "message": "A colour literal outside the declared tokens, so the palette lives in two places."
+    },
+    {
+      "id": "taste-literal-fonts",
+      "tier": "taste",
+      "kind": "css",
+      "check": "declaration",
+      "params": {
+        "property": "font-family",
+        "value": "^(?!.*(?:var\\(|\\binherit\\b|\\binitial\\b|\\bunset\\b))",
+        "selector_not": "$token_selector"
+      },
+      "message": "A font-family literal outside the declared tokens, so the type lives in two places."
+    },
+    {
+      "id": "taste-system-display-face",
+      "tier": "taste",
+      "kind": "css",
+      "check": "declaration",
+      "params": {
+        "property": "font-family",
+        "selector": "^h[1-3]$|display|headline|hero-title",
+        "value": "^\\s*[\\\"']?(?:system-ui|ui-sans-serif|-apple-system|sans-serif|arial|helvetica)\\b"
+      },
+      "message": "A default system sans sets the display type, which gives the page no voice of its own."
+    },
+    {
+      "id": "taste-family-count",
+      "tier": "taste",
+      "kind": "css",
+      "check": "distinct-values",
+      "params": {
+        "property": "font-family|--font-(?:family|display|body|sans|serif|mono|heading|text)[\\w-]*|--(?:display|body|heading|mono|text)-font[\\w-]*",
+        "normalise": "family",
+        "max": 3
+      },
+      "message": "More than three type families on one page."
+    },
+    {
+      "id": "taste-weight-count",
+      "tier": "taste",
+      "kind": "css",
+      "check": "distinct-values",
+      "params": {
+        "property": "font-weight",
+        "normalise": "weight",
+        "max": 3
+      },
+      "message": "More than three font weights on one page."
+    },
+    {
+      "id": "taste-card-trio",
+      "tier": "taste",
+      "kind": "html",
+      "check": "repeated-cards",
+      "params": {
+        "min_count": 3,
+        "icon_tags": [
+          "svg",
+          "i"
+        ],
+        "icon_class": "icon",
+        "heading_tags": [
+          "h1",
+          "h2",
+          "h3",
+          "h4",
+          "h5",
+          "h6"
+        ]
+      },
+      "message": "Three or more equal cards, each an icon over a heading over a sentence: the default feature row."
+    },
+    {
+      "id": "taste-nested-card",
+      "tier": "taste",
+      "kind": "html",
+      "check": "nested-class",
+      "params": {
+        "class_token": "^(?:card|tile)$"
+      },
+      "message": "A card sits inside another card, which doubles the borders and shadows around one idea."
+    },
+    {
+      "id": "taste-eyebrow-heading",
+      "tier": "taste",
+      "kind": "html",
+      "check": "eyebrow-headings",
+      "params": {
+        "headings": [
+          "h2"
+        ],
+        "class_pattern": "eyebrow|kicker|overline|pretitle",
+        "min_count": 3,
+        "ratio": 0.75
+      },
+      "message": "A small label sits above nearly every section heading; keep one only where it adds information."
+    },
+    {
+      "id": "taste-emoji-icon",
+      "tier": "taste",
+      "kind": "copy",
+      "check": "text-regex",
+      "params": {
+        "pattern": "^\\s*(?:[\\U0001F1E6-\\U0001F1FF\\U0001F300-\\U0001FAFF\\u2614\\u2615\\u2648-\\u2653\\u267F\\u2693\\u26A1\\u26AA\\u26AB\\u26BD\\u26BE\\u26C4\\u26C5\\u26CE\\u26D4\\u26EA\\u26F2\\u26F3\\u26F5\\u26FA\\u26FD\\u2705\\u270A\\u270B\\u2728\\u274C\\u274E\\u2753-\\u2755\\u2757\\u2795-\\u2797\\u27B0\\u27BF\\u2B1B\\u2B1C\\u2B50\\u2B55]|[\\u2600-\\u27BF\\u2B05-\\u2B07]\\uFE0F)",
+        "tags": [
+          "h1",
+          "h2",
+          "h3",
+          "h4",
+          "h5",
+          "h6",
+          "li",
+          "button",
+          "a",
+          "summary"
+        ],
+        "class_pattern": "icon"
+      },
+      "message": "An emoji stands in for an icon, so it renders differently on every system."
+    },
+    {
+      "id": "taste-icon-sets",
+      "tier": "taste",
+      "kind": "html",
+      "check": "attr-values",
+      "params": {
+        "sources": [
+          {
+            "tag": "link",
+            "attr": "href",
+            "rel": "stylesheet"
+          },
+          {
+            "tag": "script",
+            "attr": "src"
+          }
+        ],
+        "pattern": "icon|fontawesome|lucide",
+        "min_distinct": 2
+      },
+      "message": "Two icon libraries load on one page, so strokes and corners disagree."
+    },
+    {
+      "id": "taste-transition-all",
+      "tier": "taste",
+      "kind": "css",
+      "check": "declaration",
+      "params": {
+        "property": "transition(?:-property)?",
+        "value": "\\ball\\b"
+      },
+      "message": "transition: all animates properties nobody chose; name the ones that change."
+    },
+    {
+      "id": "taste-transition-layout",
+      "tier": "taste",
+      "kind": "css",
+      "check": "declaration",
+      "params": {
+        "property": "transition(?:-property)?",
+        "value": "\\b(?:width|height|top|left|right|bottom|inset|gap|flex-basis|margin(?:-[a-z]+)?|padding(?:-[a-z]+)?)\\b"
+      },
+      "message": "A transition on a layout property reflows the page on every frame; move transform or opacity instead."
+    },
+    {
+      "id": "taste-bounce-easing",
+      "tier": "taste",
+      "kind": "css",
+      "check": "declaration",
+      "params": {
+        "property": "(?:animation|transition)(?:-timing-function|-name)?",
+        "value": "\\b(?:bounce|elastic|spring|wobble|jello|rubber)\\b|cubic-bezier\\(\\s*-?[\\d.]+\\s*,\\s*(?:-[\\d.]+|1\\.\\d*[1-9]\\d*|[2-9][\\d.]*)\\s*,|cubic-bezier\\(\\s*-?[\\d.]+\\s*,\\s*-?[\\d.]+\\s*,\\s*-?[\\d.]+\\s*,\\s*(?:-[\\d.]+|1\\.\\d*[1-9]\\d*|[2-9][\\d.]*)\\s*\\)"
+      },
+      "message": "Overshooting easing on interface state makes a control feel toy-like; reserve it for a moment that earns it."
+    },
+    {
+      "id": "taste-hover-lift",
+      "tier": "taste",
+      "kind": "css",
+      "check": "declaration",
+      "params": {
+        "property": "transform",
+        "selector": "(?:card|tile)[^,]*:hover",
+        "value": "translate(?:y|3d)?\\(\\s*-|translate\\(\\s*[^,)]+,\\s*-|scale\\(\\s*1\\.0\\d"
+      },
+      "message": "A card lifts on hover, the default affordance on every generated grid."
+    },
+    {
+      "id": "taste-repeated-sections",
+      "tier": "taste",
+      "kind": "html",
+      "check": "adjacent-same-structure",
+      "params": {
+        "container_tag": "section",
+        "min_nodes": 5
+      },
+      "message": "Two neighbouring sections have the same structure; vary the composition between them."
+    },
+    {
+      "id": "taste-email-close",
+      "tier": "taste",
+      "kind": "html",
+      "check": "closing-email",
+      "params": {
+        "input_type": "email",
+        "regions": [
+          "section",
+          "footer"
+        ]
+      },
+      "message": "An email sign-up closes the page; keep it only when the page's job is the mailing list."
+    },
+    {
+      "id": "taste-hero-vh",
+      "tier": "taste",
+      "kind": "css",
+      "check": "declaration",
+      "params": {
+        "property": "(?:min-|max-)?height",
+        "selector": "hero|banner|masthead|splash|cover",
+        "value": "\\b\\d+(?:\\.\\d+)?vh\\b",
+        "unless_sibling_value": "\\b\\d+(?:\\.\\d+)?[sdl]vh\\b"
+      },
+      "message": "A hero sized in vh jumps when a phone's address bar moves; use svh or dvh."
+    },
+    {
+      "id": "taste-vague-copy",
+      "tier": "taste",
+      "kind": "copy",
+      "check": "phrase-list",
+      "params": {
+        "phrases": [
+          "seamless",
+          "seamlessly",
+          "cutting-edge",
+          "next-generation",
+          "next generation",
+          "state-of-the-art",
+          "world-class",
+          "best-in-class",
+          "game-changing",
+          "game-changer",
+          "revolutionary",
+          "revolutionize",
+          "unlock the power",
+          "to the next level",
+          "supercharge",
+          "all-in-one",
+          "effortless",
+          "effortlessly",
+          "empower",
+          "empowering",
+          "elevate your",
+          "reimagine",
+          "reimagined",
+          "one-stop shop",
+          "innovative solutions",
+          "streamline your",
+          "leverage"
+        ]
+      },
+      "message": "Vague superlative copy; say the specific thing instead. The phrase list is data, edit it per project."
+    },
+    {
+      "id": "taste-neighbour-test",
+      "tier": "taste",
+      "kind": "judged",
+      "message": "A different request in the same category would not land on the same shape and material; if it would, change at least two fingerprint axes."
+    }
+  ]
+}

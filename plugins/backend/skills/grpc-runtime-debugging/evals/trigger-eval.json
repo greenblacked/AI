@@ -1,0 +1,22 @@
+[
+  {"query": "our gRPC client keeps returning UNAVAILABLE on one method but the server looks healthy", "should_trigger": true},
+  {"query": "a gRPC stream stalls after about fifty messages and never finishes", "should_trigger": true},
+  {"query": "gRPC calls hang until the deadline even though the server spans look fast", "should_trigger": true},
+  {"query": "how do I tell whether DEADLINE_EXCEEDED is our timeout or a slow dependency", "should_trigger": true},
+  {"query": "the client sends every request to one pod and the others are idle", "should_trigger": true},
+  {"query": "we get RESOURCE_EXHAUSTED on a large unary message, is it flow control", "should_trigger": true},
+  {"query": "the gRPC client retries and the backend sees three times the traffic during an incident", "should_trigger": true},
+  {"query": "the server drains for a deploy and the client keeps hitting the dead connection", "should_trigger": true},
+  {"query": "grpcurl shows the method is UNIMPLEMENTED against this server", "should_trigger": true},
+  {"query": "what keepalive settings stop a load balancer from closing our gRPC channel", "should_trigger": true},
+  {"query": "design the proto messages and service boundaries for the new API", "should_trigger": false, "expected": "api-design"},
+  {"query": "set the overall timeout and retry budget across our five-hop call chain", "should_trigger": false, "expected": "timeout-and-retry-budget"},
+  {"query": "the service collapses when traffic doubles and we need load shedding", "should_trigger": false, "expected": "overload-protection"},
+  {"query": "read this packet capture to see why the connection was reset", "should_trigger": false, "expected": "packet-capture-triage"},
+  {"query": "our GraphQL resolver issues one query per item and the API is slow", "should_trigger": false, "expected": "graphql-review"},
+  {"query": "the trace shows one span dominating the p99 but I do not know which service owns it", "should_trigger": false, "expected": "trace-latency-analysis"},
+  {"query": "two concurrent transactions booked the same seat", "should_trigger": false, "expected": "transaction-race-hunt"},
+  {"query": "the database throws serialization failures when we raise concurrency", "should_trigger": false, "expected": "transaction-race-hunt"},
+  {"query": "our Kafka consumer group is lagging and rebalancing", "should_trigger": false, "expected": "consumer-lag-triage"},
+  {"query": "set up a gRPC or Envoy retry and I want the whole budget designed", "should_trigger": false, "expected": "timeout-and-retry-budget"}
+]

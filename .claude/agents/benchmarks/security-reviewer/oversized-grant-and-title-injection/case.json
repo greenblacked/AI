@@ -1,0 +1,11 @@
+{
+  "kind": "defect",
+  "intent": "Print the pull request title in the lint spelling job's log so a failing run is easier to match to its pull request.",
+  "lesson": "A permission narrowed on documentation alone breaks the one path that used it",
+  "must_mention": [
+    "contents: ?write|write (access|permission|grant|token)",
+    "pull_request\\.title|title",
+    "inject|untrusted|attacker|shell",
+    "env:?|environment variable"
+  ]
+}

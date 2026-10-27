@@ -1,0 +1,21 @@
+[
+  {"query": "what does this .wasm file in our web bundle actually do, I only have the compiled module", "should_trigger": true},
+  {"query": "which host functions does this WebAssembly module import, I want the capability list before we ship it", "should_trigger": true},
+  {"query": "can I read this compiled WASM without running it in node", "should_trigger": true},
+  {"query": "the wasm module declares a memory with no maximum, what does that mean for the host", "should_trigger": true},
+  {"query": "is there a source map or name section left in this wasm build", "should_trigger": true},
+  {"query": "list the exports of this wasm module and which functions the page calls first", "should_trigger": true},
+  {"query": "we got a wasm plugin from a vendor, what does it import from the runtime before we instantiate it", "should_trigger": true},
+  {"query": "disassemble just the verify export of this WebAssembly module, not the whole thing", "should_trigger": true},
+  {"query": "read a function body in this .wasm and explain the indirect calls and data segments in it", "should_trigger": true},
+  {"query": "wasm-validate says this module is malformed, which section is broken", "should_trigger": true},
+  {"query": "does this wasm module embed source file names or a producers section that names its compiler", "should_trigger": true},
+  {"query": "find the license check inside this stripped native binary", "should_trigger": false, "expected": "reverse-engineering"},
+  {"query": "this minified JavaScript bundle on the site, can I get readable modules back out", "should_trigger": false, "expected": "reverse-engineering"},
+  {"query": "our wasm artifact adds 3 MB to first load, how do we cut its download size", "should_trigger": false, "expected": "app-size-budget"},
+  {"query": "the browser game drops frames when the wasm physics runs, how do I profile it", "should_trigger": false, "expected": "game-performance"},
+  {"query": "what is inside this router firmware image and does it verify its update signature", "should_trigger": false, "expected": "firmware-analysis"},
+  {"query": "read this Electron app's app.asar and tell me what it does on startup", "should_trigger": false, "expected": "packaged-desktop-app-analysis"},
+  {"query": "review this wasm loader for a path traversal in the files it passes to the module", "should_trigger": false, "expected": "security-review"},
+  {"query": "the contract's bytecode on chain looks like it has an owner-only withdraw, can I read it", "should_trigger": false}
+]

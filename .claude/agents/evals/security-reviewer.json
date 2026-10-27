@@ -1,0 +1,110 @@
+[
+  {
+    "query": "security-review this workflow change before i commit it: it adds a permissions block and a new action",
+    "should_trigger": true
+  },
+  {
+    "query": "the diff touches a workflow_run trigger, check whether a fork can reach a write token",
+    "should_trigger": true
+  },
+  {
+    "query": "i added a new third-party action to ci.yml, check the pin and what it can reach",
+    "should_trigger": true
+  },
+  {
+    "query": "does this change to .claude/settings.json or the hook script open anything up",
+    "should_trigger": true
+  },
+  {
+    "query": "i added a new script that posts to the github api, review its grant and failure path before merge",
+    "should_trigger": true
+  },
+  {
+    "query": "check this diff for a secret or token reaching a log line or a step that installs packages",
+    "should_trigger": true
+  },
+  {
+    "query": "this skill now reads scanned documents and i gave it Bash(python3:*), security-review it",
+    "should_trigger": true
+  },
+  {
+    "query": "a pull_request_target trigger was added to a workflow, is it safe to merge",
+    "should_trigger": true
+  },
+  {
+    "query": "look at this change for credential-shaped strings or personal data before i commit",
+    "should_trigger": true
+  },
+  {
+    "query": "is any github expression interpolated straight into a run block in this diff, and what is the impact",
+    "should_trigger": true
+  },
+  {
+    "query": "review the permissions change in release.yml for what a mistake would let someone do",
+    "should_trigger": true
+  },
+  {
+    "query": "security gate on the working tree: new tool download in a workflow, check it is pinned with a digest",
+    "should_trigger": true
+  },
+  {
+    "query": "the working tree has the change in it, review it against AGENTS.md before i commit",
+    "should_trigger": false,
+    "expected": "reviewer"
+  },
+  {
+    "query": "did this diff weaken a validator rule or loosen a test to make itself pass?",
+    "should_trigger": false,
+    "expected": "reviewer"
+  },
+  {
+    "query": "verify the figures this skill cites against the primary sources",
+    "should_trigger": false,
+    "expected": "investigator"
+  },
+  {
+    "query": "is it true that this gh flag skips the confirmation prompt, check the source",
+    "should_trigger": false,
+    "expected": "investigator"
+  },
+  {
+    "query": "find out where the permissions audit is implemented in this repo",
+    "should_trigger": false,
+    "expected": "explorer"
+  },
+  {
+    "query": "write the fixes for the findings you just listed",
+    "should_trigger": false,
+    "expected": "implementer"
+  },
+  {
+    "query": "review pull request 412 on our payments service for sql injection and broken access control",
+    "should_trigger": false,
+    "expected": "security-review"
+  },
+  {
+    "query": "threat model the new auth flow before we build it",
+    "should_trigger": false,
+    "expected": "threat-model"
+  },
+  {
+    "query": "who holds admin on our cloud accounts and should they",
+    "should_trigger": false,
+    "expected": "access-review"
+  },
+  {
+    "query": "review this terraform plan json for what the apply destroys",
+    "should_trigger": false,
+    "expected": "plan-reviewer"
+  },
+  {
+    "query": "read this candidate SKILL.md and tell me whether its description will trigger",
+    "should_trigger": false,
+    "expected": "skill-reviewer"
+  },
+  {
+    "query": "classify why the ci run failed from this log",
+    "should_trigger": false,
+    "expected": "ci-log-reader"
+  }
+]

@@ -18,6 +18,8 @@ make attribution
 
 These are what CI runs. `make lint` runs ruff, markdownlint, yamllint, actionlint and
 codespell when they are installed and tells you the install command when they are not.
+`make docker-test` runs `validate`, `catalogue` and `test` in a pinned Python 3.13
+container with no network, for a host whose toolchain differs from the runner's.
 `make naming` and `make attribution` diff against `origin/dev`, the base a feature pull
 request targets, to check the branch name and commit subjects, and commits for tool
 attribution; on a promotion branch pass the base it targets, as in

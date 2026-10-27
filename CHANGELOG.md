@@ -8,6 +8,47 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-27
+
+### Added
+
+- `security-reviewer` subagent in `.claude/agents/`, run by `/ship` beside `reviewer` when a diff touches a workflow, a `permissions:` block, a token or secret, a new third-party action or tool, a new API write in a shipped script, a `workflow_run`, `schedule` or `pull_request_target` trigger, `.claude/settings.json` or a hook, the `allowed-tools` of a skill that reads third-party input, or anything credential-shaped or personal. It walks the `security-review` skill's classes against `AGENTS.md`'s Security considerations, states a reachable path, the impact and the smallest fix for each finding, holds no editing tools, and both verdicts must be `SHIP` before merge. Fable at medium effort, with an eval set at `.claude/agents/evals/security-reviewer.json`.
+- `change-discipline` skill in the coding plugin: size a change into one of four tiers before the first edit, make it work test-first with the smallest edit, then make it right with per-function CRAP, new structural duplication and diff-scoped mutation gates on the changed code only, keep a ledger of each action with its evidence, and stop after two failed fixes that rest on the same assumption.
+- `work-to-note` skill in the techdocs plugin: turn finished work into one durable note in a Markdown vault, choosing the note type or declining, following the vault's own standard and taxonomy, marking each claim as checked against a source, checked on a running system or not checked, never claiming an evidence level the work did not reach, registering the note in its folder index, and recording a recurring defect as a lesson-ledger entry. Ships `scripts/check_note.py`, a read-only standard-library checker for the frontmatter, evidence section and link rules.
+- `source-grounded-prompts` skill in the llm plugin: write, check and revise the prompt that makes a source-grounded notebook assistant produce a deck, memo, study guide, audio-overview script or mind map, with a structured style spec, nine style families, a grounding block, a read-only checker (`check_grounding.py`) that lists figures and quotations found in no uploaded source, and a one-variable-per-run revision loop.
+- `distinctive-page-design` skill in the design plugin: design a new marketing or landing page from its real content instead of the default a code model converges on, with a shape chosen by a six-axis fingerprint, a visual material chosen by visible scoring, a decision record written before building, and a read-only stdlib lint whose floor rules cannot be waived and whose taste rules need a reviewed reason.
+- `family-history-research` skill in the personal plugin: trace a family through records with a research question, a coverage list and log, source and information classes, five proof levels with a matching plain-language label, and a read-only audit of the registers that rejects a conclusion stronger than its evidence.
+- `motion-showcase` skill in the design plugin: turn a finished static design into a looping showcase (MP4 and GIFs, captured frame by frame on a fake clock) or into scroll-triggered animation in a site's own code, with the background untouched, a still-fidelity gate before any motion, and overflow, seam and silent-beat checks before encoding.
+- `feature-recreation` skill in the coding plugin: build an original implementation of a feature observed in another product, with a behaviour spec written before the reference is opened, the two-role clean-room split for showing independent creation, a licence check on anything actually carried across, and a shipped result that never names the product it was modelled on.
+- `reverse-engineering` skill in the security plugin: lawful reverse engineering of native binaries, APKs, JARs, JVM class files, live web apps' shipped bundles and smart TV and streaming platforms, with a static-before-dynamic workflow and an isolated-environment gate for untrusted targets.
+- An analysis-bridge layer for the analysis skills: `reverse-engineering` gains `references/analysis-bridge-tooling.md` (connect, route a target, keep Evidence IDs, recover a stalled provider), and `docs/using.md` documents pinning `rea-agents@6.8.0`, reading `setup --dry-run` first, the Node version floors and the licence boundary.
+- Six artifact-specific siblings beside `reverse-engineering`: `firmware-analysis` (containers, region inventory and update verification), `packaged-desktop-app-analysis` (Electron/ASAR, Node single executable, PyInstaller, bundled JVM and managed CIL), `wasm-analysis`, `app-bundle-analysis` (bundle layout, signing, entitlements, runtime family), `native-function-matching` (two-build diffing) and `analysis-efficiency` (cut engine cost without losing evidence).
+- `apk-analysis` skill in the security plugin: an authorised APK, AAB or split set from signing identity and certificate lineage through manifest components to the method that answers the question, with an evidence checklist and summary-first dex reads.
+- `cil-assembly-analysis` skill in the security plugin: read an authorised managed CIL (ECMA-335) DLL, EXE or Mono/Unity Managed assembly from the CLI header and target framework through the type list to the decompiled method and its IL, including async and iterator lowering, obfuscation signals and the boundary where IL2CPP is no longer managed code.
+- `authorized-device-debloat` skill in the security plugin: identify ad and bloat packages on a smart TV or streaming box the operator owns, and remove them as reversible, logged steps with a backup, rollback commands and a factory-reset or reimage recovery path — with DRM and other people's devices explicitly out of bounds.
+- `graphql-review` skill in the backend plugin: read a GraphQL schema and the operation that is slow, find the N+1 resolver and batch it, bound query depth, cost and list sizes, disable production introspection, authorize each field against the object rather than the root, and evolve the schema additively.
+- `grpc-runtime-debugging` skill in the backend plugin: read a gRPC status code as a failure class, separate the client's view from the server's, trace deadline propagation, check keepalive, connection reuse and load balancing, and confirm the retry policy is not amplifying the failure.
+- `packet-capture-triage` skill in the linux plugin: read a pcap or flow log as the subject — filter to one conversation, then read the handshake, retransmissions, resets, window and MSS, TLS alerts and DNS timing, and attribute the delay to the client, the network, the server or the application.
+- `regex-safety-review` skill in the coding plugin: identify the regex engine and whether it backtracks, spot nested quantifiers, overlapping alternations and adjacent ambiguous repetition, demonstrate the worst case with a long near-miss input, and rewrite the pattern as a linear-time expression or a parser.
+- `skillcheck` gains the `relative-bundled-script` error for a command that runs a script the skill ships by a path relative to the working directory, in `SKILL.md` and `references/*.md` (a path in command position counts only in a shell-tagged fence, and a command after `cd` into `${CLAUDE_SKILL_DIR}`, on the same line or a later line of the same fence, is left alone), and checks `${CLAUDE_SKILL_DIR}/…` pointers, fenced or not, for existence under `dangling-reference`. A directory named like a reference is skipped, and a symlink that does not resolve to a file (missing, looping or a directory) is reported as `dangling-reference`, instead of crashing the run.
+
+### Changed
+
+- Retiered the repository's own subagents in `.claude/agents/`: `explorer` to Haiku at high effort, `investigator` to Opus at medium effort, `implementer` to Sonnet at medium effort, and `reviewer` to Opus at medium effort (it had Fable and no effort line). `CLAUDE.md`, `AGENTS.md`, `/ship`, the README and `docs/writing-agents.md`'s tier tables follow.
+- `scripts/run_review_benchmark.py` takes `--agent NAME` (default `reviewer`) and reads cases from `.claude/agents/benchmarks/<NAME>/`; `security-reviewer` gets the read-only subset of the allowlist and a brief without the invitation to run the gates, plus two cases (an oversized grant with a `${{ }}` title injection, and a clean timeout bump).
+- `/ship` re-evaluates its security triggers against the final diff after any stage 6 fix and runs a fresh `security-reviewer` beside `reviewer` when one matches; merge needs every applicable verdict `SHIP` on the final head.
+- `website-builder` gains a landing-page reference: extra intake, page structure, layout patterns, conversion copy, content realism, a ship list and the indexing decision.
+
+### Fixed
+
+- `relative-bundled-script` reads an unprompted line in a `console` or `shell-session` fence as output, and reads `$ cd "${CLAUDE_SKILL_DIR}"` there as a directory change, so an accurate transcript is no longer rejected.
+- `relative-bundled-script` scopes a `cd` into `${CLAUDE_SKILL_DIR}` to its own subshell and ends it at the next `cd`, and reads a `#` inside quotes as text rather than a comment, so a relative run after either no longer passes unreported.
+- `skillcheck` reads a quoted frontmatter value strictly, as a YAML parser does: the first unescaped closing quote ends it, and a quote that does not close on its line, text after the closing quote (a non-breaking space included), or `#` with no space before it, or a double-quoted escape outside `\\`, `\"`, `\n`, `\t` and `\u` plus four hex digits, is `ambiguous-yaml`. `"a "quoted" word"` and `'it's here'` used to validate clean and fail on upload, and a trailing `# comment` after a quoted value was kept as part of it.
+
+### Security
+
+- `work-to-note`, `family-history-research` and `ci-triage` run their bundled scripts from `${CLAUDE_SKILL_DIR}` rather than a path relative to the working directory, where a file the project or a bisected commit holds at the same path would run in their place.
+
 ## [0.2.2] - 2026-10-24
 
 ### Fixed
@@ -990,7 +1031,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/greenblacked/AI/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/greenblacked/AI/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/greenblacked/AI/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/greenblacked/AI/compare/v0.1.13...v0.2.0

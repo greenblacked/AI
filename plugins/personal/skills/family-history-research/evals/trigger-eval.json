@@ -1,0 +1,22 @@
+[
+  {"query": "my grandmother always said her family came from a village near the old border and I'd like to check that against actual records, where do I start", "should_trigger": true},
+  {"query": "I found two men with the same name in the same parish in 1880 and I can't tell which one is my great-great-grandfather", "should_trigger": true},
+  {"query": "I have a shoebox of my grandfather's papers, letters and photos and want to turn it into a properly sourced family tree", "should_trigger": true},
+  {"query": "an online tree says my ancestor's father was a miller but there's no source attached, how do I find out whether it's true", "should_trigger": true},
+  {"query": "the parish register gives a date that doesn't match the family story and I think it's an old-style calendar thing", "should_trigger": true},
+  {"query": "help me plan what to ask my great-aunt about her childhood before she forgets it, I'd like to record it", "should_trigger": true},
+  {"query": "how do I search for church books and revision lists for a family from a region that changed hands after the war", "should_trigger": true},
+  {"query": "I've got a DNA match who says we share a great-grandparent but I can't see how, what should I do before telling the family", "should_trigger": true},
+  {"query": "write up what I've found about my family's origins so my cousins can read it without all the footnotes", "should_trigger": true},
+  {"query": "I think my ancestor was deported in the 1940s because his name is on a list, how do I say that carefully in the family history", "should_trigger": true},
+  {"query": "I need a certified copy of my birth certificate and the office keeps rejecting my application", "should_trigger": false, "expected": "life-admin"},
+  {"query": "find me recent papers on how consumer genetic testing affects ethnic identity and summarise the field", "should_trigger": false, "expected": "literature-scan"},
+  {"query": "we're building a genealogy app and need to work out how to handle users' personal data and deletion requests", "should_trigger": false, "expected": "data-privacy"},
+  {"query": "do we need a DPIA before launching a feature that stores relatives' health histories", "should_trigger": false, "expected": "dpia"},
+  {"query": "break this long essay into the claims it makes and what each one rests on", "should_trigger": false, "expected": "frame-claim-ledger"},
+  {"query": "walk me through this journal article's methods section, I can't follow the statistics", "should_trigger": false, "expected": "paper-reading"},
+  {"query": "keep an eye on what our competitors announce this month and tell me what changed", "should_trigger": false, "expected": "competitor-signal-watch"},
+  {"query": "plan a week in the countryside, trains and a couple of hotels, no heritage hunting involved", "should_trigger": false, "expected": "travel-planning"},
+  {"query": "estimate the calories in this plate of pierogi from the photo", "should_trigger": false, "expected": "health-coach"},
+  {"query": "I need to renew my passport before the trip and the form asks for my parents' details, what proof do they want", "should_trigger": false, "expected": "life-admin"}
+]

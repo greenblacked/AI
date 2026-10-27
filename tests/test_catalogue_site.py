@@ -35,6 +35,9 @@ def test_a_mini_repository_builds_a_site(mini_repo, tmp_path):
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     manifest["description"] = "A <b>catalogue</b>"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    plugin_json = mini_repo / "plugins" / "engineering" / ".claude-plugin" / "plugin.json"
+    plugin_json.parent.mkdir(parents=True, exist_ok=True)
+    plugin_json.write_text(json.dumps({"description": "A <b>catalogue</b>"}), encoding="utf-8")
     output = tmp_path / "site"
     site.build(mini_repo, output, "  v1.2.3  ")
     assert (output / "version.txt").read_text(encoding="utf-8") == "v1.2.3\n"
@@ -49,8 +52,11 @@ def test_a_mini_repository_builds_a_site(mini_repo, tmp_path):
     assert 'role="switch"' in page and 'aria-label="Dark theme"' in page
     assert 'aria-label="Console theme"' in page
     assert "Release <code>" not in page
-    assert html.escape("A <b>catalogue</b>") in page
-    assert "<b>" not in page
+    # Free-form repository text is escaped where it is rendered: a plugin's own description
+    # still reaches the pages, which the home page no longer takes from the manifest.
+    plugin_page = (output / "plugins" / "engineering" / "index.html").read_text(encoding="utf-8")
+    assert html.escape("A <b>catalogue</b>") in plugin_page
+    assert "<b>" not in plugin_page and "<b>" not in page
     manifest = json.loads((output / "marketplace.json").read_text(encoding="utf-8"))
     assert manifest["name"] == "mini"
     assert (output / "robots.txt").read_text(encoding="utf-8").startswith("User-agent: *\nAllow:")
@@ -352,7 +358,8 @@ def test_the_card_and_prose_pages_preload_the_serif_and_others_do_not(mini_repo,
     index = re.findall(
         r'<link rel="preload" href="([^"]+)"', (output / "index.html").read_text("utf-8")
     )
-    assert index == [sans, serif]
+    # The front page no longer carries the serif card, so it paints no serif to preload.
+    assert index == [sans]
     skill = (output / "plugins" / "engineering" / "alpha" / "index.html").read_text("utf-8")
     assert re.findall(r'<link rel="preload" href="([^"]+)"', skill) == [sans, serif]
     assert site._font_preloads("<p>plain</p>").count("<link") == 1
@@ -462,8 +469,10 @@ def test_the_family_plugin_has_no_page_of_its_own_and_its_address_redirects(mini
     assert not (output / "plugins" / "family" / "index.html").exists()
     assert (output / "plugins" / "family" / "qa-workflow" / "index.html").is_file()
     # Both spellings, because a rule matches the path as written; permanent.
+    # The two directories with no index of their own go to the catalogue the same way.
     assert (output / "_redirects").read_text(encoding="utf-8") == (
         "/plugins/family/ /family/ 301\n/plugins/family /family/ 301\n"
+        "/plugins/ / 301\n/plugins / 301\n/skills/ / 301\n/skills / 301\n"
     )
     # One rule sends every link there: the card, the plugin list, a skill's Back and crumbs.
     assert site._plugin_href("family") == "/family/"
@@ -673,11 +682,14 @@ def test_navigation_is_root_relative_and_marks_the_current_page(mini_repo, tmp_p
         assert f'href="{href}"' in footer
     assert 'href="/marketplace.json"' in footer
     assert 'href="portable-skills.zip"' not in start and 'href="marketplace.json"' not in start
-    # The header carries the four outside links and nothing else; the pages are in the footer.
-    header = start.split("</header>", 1)[0]
+    # The header carries the site's own sections as well as the four outside links.
+    header = "<header" + start.split("<header", 1)[1].split("</header>", 1)[0]
     assert "Repository" in header and "Manifest" in header
-    assert "/start/" not in header and "Workflows" not in header
-    assert start.count('aria-current="page">') == 1
+    sections = re.search(r'<nav aria-label="Sections">(.*?)</nav>', header, re.S).group(1)
+    for label, href in site.PAGES:
+        assert f'<a href="{href}"' in sections and f">{label}</a>" in sections
+    # Marked once in the bar, once in the menu behind the disclosure and once in the footer.
+    assert start.count('aria-current="page">') == 3
     assert 'href="/start/" aria-current="page"' in start
     assert 'href="/quality/" aria-current="page"' not in start
     index = (output / "index.html").read_text(encoding="utf-8")
@@ -2687,3 +2699,418 @@ def test_pricing_calculator_has_selectable_plans_and_unambiguous_defaults(mini_r
         assert f'href="{url}"' in page
     assert sum(site.site_pricing.DEFAULT.values()) == 200
     assert site.site_pricing.BASELINE == 120
+
+
+# ----------------------------------------------------- the catalogue's design review
+
+
+def _head(page: str, pattern: str) -> str:
+    found = re.search(pattern, page)
+    assert found is not None, pattern
+    return html.unescape(found.group(1))
+
+
+def _built_pages(mini_repo, tmp_path):
+    output = _build(mini_repo, tmp_path)
+    return output, {
+        "/": output / "index.html",
+        "/start/": output / "start" / "index.html",
+        "/workflows/": output / "workflows" / "index.html",
+        "/examples/": output / "examples" / "index.html",
+        "/quality/": output / "quality" / "index.html",
+        "/pricing/": output / "pricing" / "index.html",
+        "/family/": output / "family" / "index.html",
+        "/family/example/": output / "family" / "example" / "index.html",
+        "/plugins/engineering/": output / "plugins" / "engineering" / "index.html",
+        "/plugins/engineering/alpha/": output / "plugins" / "engineering" / "alpha" / "index.html",
+        "/plugins/engineering/beta/": output / "plugins" / "engineering" / "beta" / "index.html",
+    }
+
+
+def test_the_production_origin_is_the_one_the_deploy_route_names():
+    config = json.loads((REPO / "deploy" / "wrangler.json").read_text(encoding="utf-8"))
+    hosts = [route["pattern"] for route in config["routes"] if route.get("custom_domain")]
+    assert [f"https://{host}" for host in hosts] == [site.SITE_ORIGIN]
+
+
+def test_every_page_has_a_description_a_canonical_and_share_tags(mini_repo, tmp_path):
+    output, pages = _built_pages(mini_repo, tmp_path)
+    for path, file in pages.items():
+        page = file.read_text(encoding="utf-8")
+        title = _head(page, r"<title>(.*?)</title>")
+        description = _head(page, r'<meta name="description" content="([^"]+)">')
+        url = site.SITE_ORIGIN + path
+        assert 0 < len(description) <= site.SUMMARY_LIMIT + 1, path
+        assert _head(page, r'<link rel="canonical" href="([^"]+)">') == url, path
+        assert _head(page, r'<meta property="og:url" content="([^"]+)">') == url, path
+        assert _head(page, r'<meta property="og:title" content="([^"]+)">') == title, path
+        assert _head(page, r'<meta property="og:description" content="([^"]+)">') == description
+        assert page.count('rel="canonical"') == 1, path
+    # The 404 and the offline page are not at any one address, so they have no canonical.
+    for name in ("404.html", "offline/index.html"):
+        page = (output / name).read_text(encoding="utf-8")
+        assert 'name="description"' in page and 'rel="canonical"' not in page, name
+        assert 'property="og:url"' not in page, name
+
+
+def test_the_home_title_says_what_the_site_is_and_keeps_its_name(mini_repo, tmp_path):
+    _, pages = _built_pages(mini_repo, tmp_path)
+    title = _head(pages["/"].read_text(encoding="utf-8"), r"<title>(.*?)</title>")
+    assert title != "AI" and title.startswith("AI · ")
+    assert "plugin" in title.lower()
+
+
+def test_a_long_summary_ends_at_a_sentence_or_a_word_and_never_mid_word():
+    short = "One sentence."
+    assert site._summary(short) == short
+    long = "First, here is a thing. " + "word " * 80
+    cut = site._summary(long)
+    assert len(cut) <= site.SUMMARY_LIMIT + 1 and cut.endswith("…")
+    assert " wor…" not in cut
+    sentences = "A short opening sentence that stands alone here. " + "Then more words. " * 20
+    assert site._summary(sentences).endswith(".")
+    assert site._summary("  spaced\n out  ") == "spaced out"
+
+
+def test_the_first_sentence_is_not_cut_at_an_abbreviation():
+    first, rest = site._first_sentence("Use it, e.g. for tests. Then do more. And more.")
+    assert first == "Use it, e.g. for tests." and rest == "Then do more. And more."
+    assert site._first_sentence("Only one sentence here") == ("Only one sentence here", "")
+    assert site._first_sentence("Ends. lowercase follows") == ("Ends. lowercase follows", "")
+
+
+def test_the_home_page_leads_with_install_and_says_what_follows(mini_repo, tmp_path):
+    _, pages = _built_pages(mini_repo, tmp_path)
+    page = pages["/"].read_text(encoding="utf-8")
+    hero = page.split('<div class="hero-actions">', 1)[1].split("</div>", 1)[0]
+    assert re.search(r'<a class="pill" href="/start/">Install</a>', hero)
+    # View source is still there, demoted to a text link that leaves the site safely.
+    assert re.search(
+        r'<a class="hero-more" href="https://github.com/greenblacked/AI" target="_blank" '
+        r'rel="noopener noreferrer">View source</a>',
+        hero,
+    )
+    assert hero.index("Install") < hero.index("View source")
+    # The old implementation note is replaced by one line on what happens after installing.
+    assert 'class="card"' not in page and "not a marketplace you add" not in page
+    assert re.search(r'<p class="lede after">Once a plugin is installed, [^<]+</p>', page)
+
+
+# The words of the home headline, which the hero must not repeat in the lede beneath it.
+HEADLINE_SENTENCE = "Install only the ones you want"
+
+
+def _hero(page: str) -> str:
+    return re.search(r'<section class="wrap hero">.*?</section>', page, flags=re.S).group(0)
+
+
+def test_the_home_hero_does_not_depend_on_the_manifest_description(mini_repo, tmp_path):
+    manifest_path = mini_repo / ".claude-plugin" / "marketplace.json"
+    heroes = []
+    for n, description in enumerate(
+        ["28 plugins. Install only the ones you want. Skills for work.", "<i>x</i>; a b c."]
+    ):
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["description"] = description
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        output = tmp_path / f"out{n}"
+        site.build(mini_repo, output, "v9")
+        page = (output / "index.html").read_text(encoding="utf-8")
+        heroes.append(_hero(page))
+        # The headline underlines "only the ones", so the phrase is only whole once tags go.
+        body = re.sub(r"<[^>]+>", "", page.split("<body>", 1)[1])
+        assert len(re.findall(HEADLINE_SENTENCE, body, flags=re.I)) == 1
+    assert heroes[0] == heroes[1]
+    assert html.escape(site.HOME_LEDE) in heroes[0]
+
+
+def test_the_pricing_link_is_labelled_pricing_at_its_unchanged_address():
+    assert ("Pricing", "/pricing/") in site.PAGES
+    assert all("AI Pricing" not in label for label, _ in site.PAGES)
+
+
+def test_the_header_shows_the_sections_and_a_menu_that_needs_no_script(mini_repo, tmp_path):
+    _, pages = _built_pages(mini_repo, tmp_path)
+    page = pages["/examples/"].read_text(encoding="utf-8")
+    header = "<header" + page.split("<header", 1)[1].split("</header>", 1)[0]
+    # The disclosure is a details element, so Enter and Space work with no script running.
+    menu = re.search(r'<details class="menu"><summary>(.*?)</summary>(.*?)</details>', header, re.S)
+    assert menu is not None and ">Menu<" in menu.group(1)
+    assert "<script" not in menu.group(0) and "onclick" not in menu.group(0)
+    menu_links = re.findall(r'<a href="([^"]+)"', menu.group(2))
+    assert menu_links == [href for _, href in site.PAGES + site.ELSEWHERE]
+    assert 'aria-label="Sections"' in header and 'class="elsewhere"' in header
+    for label, href in site.PAGES:
+        assert f'<a href="{href}"' in header and f">{label}</a>" in header
+    # The outside links keep opening in a new tab without a referrer.
+    outside = [href for _, href in site.ELSEWHERE if href.startswith("https://")]
+    assert header.count('target="_blank" rel="noopener noreferrer"') == 2 * len(outside) > 0
+    assert header.count('aria-current="page"') == 2  # the bar and the menu
+
+
+def test_the_header_css_shows_the_menu_below_64rem_and_the_sections_from_it():
+    css = site.site_style.CSS
+    assert re.search(r"\.bar > nav \{\s*display: none;", css)
+    wide = css.split("@media (min-width: 64rem) {\n  .bar > nav { display: flex; }", 1)[1]
+    assert ".menu { display: none; }" in wide.split("\n}\n", 1)[0]
+    assert ".menu summary:focus-visible { outline: 2px solid var(--ink)" in css
+    # The panel opens with a fade only for a visitor who has not asked for less motion.
+    motion = css.split("@media (prefers-reduced-motion: no-preference) {", 1)[1]
+    assert ".menu[open] nav { animation: menu-in" in motion
+    assert ".menu[open] nav" not in css.split("@media (prefers-reduced-motion: no-preference)")[0]
+
+
+def test_a_block_wraps_on_a_phone_without_changing_its_text():
+    css = site.site_style.CSS
+    assert re.search(
+        r"@media \(max-width: 39\.999rem\) \{\s*pre \{ white-space: pre-wrap; "
+        r"overflow-wrap: anywhere; \}\s*\}",
+        css,
+    )
+    # Presentation only: the block's text is the escaped command, with no break inserted.
+    command = "/plugin install " + "very-long-plugin-name-" * 12 + "@market"
+    assert site._code_block(command) == f'<pre tabindex="0"><code>{command}\n</code></pre>'
+    assert "<wbr" not in site._code_block(command) and "​" not in site._code_block(command)
+
+
+def test_a_skill_page_leads_with_one_sentence_and_folds_the_rest_after_install(mini_repo, tmp_path):
+    _, pages = _built_pages(mini_repo, tmp_path)
+    page = pages["/plugins/engineering/alpha/"].read_text(encoding="utf-8")
+    lead = _head(page, r'<p class="lead">(.*?)</p>')
+    assert lead == (
+        "Do the alpha thing end to end, from the first command through the check that says it "
+        "worked."
+    )
+    folded = re.search(
+        r'<details class="routing"><summary>(.*?)</summary><p>(.*?)</p></details>', page
+    )
+    assert folded is not None and not re.search(r"<details[^>]* open", page)
+    assert "Use this skill whenever the user asks for alpha" in folded.group(2)
+    assert "Use this skill whenever" not in lead
+    # After the install block, and the sentence taken out of the lead is not lost.
+    assert page.index("/plugin install engineering@mini") < page.index('<details class="routing">')
+    assert page.index('<details class="routing">') < page.index("Fires on")
+    assert (
+        html.unescape(lead + " " + folded.group(2)).split()
+        == (
+            "Do the alpha thing end to end, from the first command through the check that says it "
+            "worked. " + html.unescape(folded.group(2))
+        ).split()
+    )
+
+
+def _norm(text: str) -> str:
+    """Words only: the lead's ellipsis is the one character a description does not hold."""
+    return "".join(html.unescape(text).replace("…", "").split())
+
+
+def test_a_long_first_sentence_is_cut_at_a_clause_or_a_word_and_loses_nothing():
+    clause = "Audit a thing end to end across every system: " + "and then keep going " * 20 + "now."
+    lead, rest = site._lead(clause + " Second sentence here.")
+    assert lead == "Audit a thing end to end across every system:" and rest.startswith("and then")
+    words = "word " * 80 + "end. Second sentence."
+    lead, rest = site._lead(words)
+    assert len(lead) <= site.LEAD_LIMIT and lead.endswith("…") and "Second" in rest
+    assert _norm(lead + rest) == _norm(words)
+    # A colon too early in the sentence is a label, not a clause.
+    early = "Note: " + "word " * 80 + "end."
+    assert not site._lead(early)[0].endswith(":")
+    assert site._lead("Short one. Another one.") == ("Short one.", "Another one.")
+
+
+def test_every_skill_page_lead_is_short_and_lead_plus_folded_text_is_the_description(tmp_path):
+    output = tmp_path / "site"
+    site.build(REPO, output, "v0")
+    count = 0
+    for page_path in (output / "plugins").glob("*/*/index.html"):
+        page = page_path.read_text(encoding="utf-8")
+        lead = re.search(r'<p class="lead">(.*?)</p>', page)
+        if lead is None:
+            continue
+        count += 1
+        assert len(html.unescape(lead.group(1))) <= site.LEAD_LIMIT + 1, page_path
+        folded = re.search(r'<details class="routing">.*?<p>(.*?)</p></details>', page)
+        shown = lead.group(1) + (folded.group(1) if folded else "")
+        plugin, name = page_path.parts[-3:-1]
+        source = REPO / "plugins" / plugin / "skills" / name / "SKILL.md"
+        description = site._front(source)[0].get("description", "")
+        assert _norm(shown) == _norm(site._esc(description)), page_path
+    assert count > 100
+
+
+def test_a_one_sentence_description_has_no_folded_part(mini_repo, tmp_path):
+    write_skill(
+        mini_repo,
+        "engineering",
+        "beta",
+        evals=eval_set("beta", expected="alpha"),
+        description="Only one sentence here, and it is the whole description of the skill.",
+    )
+    _, pages = _built_pages(mini_repo, tmp_path)
+    page = pages["/plugins/engineering/beta/"].read_text(encoding="utf-8")
+    assert 'class="lead"' in page and '<details class="routing">' not in page
+
+
+def test_start_shows_one_plugin_before_the_block_that_installs_every_plugin(mini_repo, tmp_path):
+    _, pages = _built_pages(mini_repo, tmp_path)
+    page = pages["/start/"].read_text(encoding="utf-8")
+    blocks = list(re.finditer(r"<pre tabindex=\"0\"><code>(.*?)</code></pre>", page, re.S))
+    one, every = blocks[0], blocks[1]
+    assert one.group(1).count("/plugin install") == 1
+    assert "/plugin install engineering@mini" in one.group(1)
+    assert "/plugin marketplace add" in one.group(1) and "/reload-plugins" in one.group(1)
+    assert every.group(1).count("/plugin install") == 1  # the fixture ships one plugin
+    # The sentence that introduces the full list sits between the two blocks.
+    assert one.end() < page.index("To install every plugin") < every.start()
+
+
+def test_examples_open_with_a_contents_list_of_its_sections(mini_repo, tmp_path):
+    _, pages = _built_pages(mini_repo, tmp_path)
+    page = pages["/examples/"].read_text(encoding="utf-8")
+    contents = re.search(r'<nav class="contents" aria-label="Contents">(.*?)</nav>', page, re.S)
+    assert contents is not None
+    anchors = re.findall(r'<a href="#([^"]+)">(.*?)</a>', contents.group(1))
+    headings = re.findall(r'<h2 id="([^"]+)">(.*?)</h2>', page)
+    assert anchors == headings and anchors
+    assert ("engineering", "engineering") in anchors
+    # Before the first section, so a reader reaches it without scrolling past anything.
+    assert page.index('class="contents"') < page.index("<h2")
+
+
+def test_a_table_that_scrolls_sideways_can_be_reached_and_is_named(mini_repo, tmp_path):
+    _, pages = _built_pages(mini_repo, tmp_path)
+    quality = pages["/quality/"].read_text(encoding="utf-8")
+    regions = re.findall(r'<div class="table-wrap"([^>]*)>', quality)
+    assert len(regions) >= 2
+    for attrs in regions:
+        assert 'tabindex="0"' in attrs and 'role="region"' in attrs
+    labels = [re.search(r'aria-label="([^"]+)"', attrs).group(1) for attrs in regions]
+    assert labels[:2] == ["What is in the catalogue", "Trigger evals"]
+    # A table in rendered Markdown is named by the heading above it.
+    markdown = site.site_markdown.render(
+        "## A &amp; B\n\ntext\n\n| a | b |\n|---|---|\n| 1 | 2 |\n\n"
+        "### Next\n\n| c |\n|---|\n| 3 |\n"
+    )
+    assert re.findall(r'<div class="table-wrap"([^>]*)>', markdown) == [
+        ' tabindex="0" role="region" aria-label="A &amp; B"',
+        ' tabindex="0" role="region" aria-label="Next"',
+    ]
+    assert 'aria-label="Table"' in site.site_markdown.render("| a |\n|---|\n| 1 |\n")
+
+
+def test_tables_under_one_heading_get_distinct_names_by_position():
+    table = "| a |\n|---|\n| 1 |\n"
+    rendered = site.site_markdown.render(
+        f"## Same\n\n{table}\n{table}\n{table}\n## Alone\n\n{table}"
+    )
+    assert re.findall(r'aria-label="([^"]+)"', rendered) == [
+        "Same, table 1 of 3",
+        "Same, table 2 of 3",
+        "Same, table 3 of 3",
+        "Alone",
+    ]
+
+
+def test_a_code_chip_in_a_table_cell_stays_whole_and_the_wrapper_still_scrolls():
+    css = site.site_style.CSS
+    assert ".prose-lab .table-wrap td code { white-space: nowrap; overflow-wrap: normal; }" in css
+    assert re.search(r"\.prose-lab \.table-wrap \{[^}]*overflow-x: auto;", css)
+
+
+def test_the_finder_shows_its_focus_and_the_presets_are_a_labelled_group(mini_repo, tmp_path):
+    css = site.site_style.CSS
+    assert (
+        ".finder input:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }" in css
+    )
+    assert css.index(".finder input:focus-visible") > css.index(".finder input {")
+    _, pages = _built_pages(mini_repo, tmp_path)
+    pricing = pages["/pricing/"].read_text(encoding="utf-8")
+    assert '<div class="pricing-presets" role="group" aria-label="Example combinations">' in pricing
+    assert 'aria-label="Console theme" title="Console theme"' in pricing
+
+
+def test_a_sitemap_lists_every_page_on_the_production_origin(mini_repo, tmp_path):
+    output, pages = _built_pages(mini_repo, tmp_path)
+    sitemap = (output / "sitemap.xml").read_text(encoding="utf-8")
+    assert sitemap.startswith('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns=')
+    listed = re.findall(r"<loc>([^<]+)</loc>", sitemap)
+    assert sorted(listed) == sorted(site.SITE_ORIGIN + path for path in pages)
+    assert "404" not in sitemap and "offline" not in sitemap
+    robots = (output / "robots.txt").read_text(encoding="utf-8")
+    assert robots.endswith(f"Sitemap: {site.SITE_ORIGIN}/sitemap.xml\n")
+    # A build that asks not to be indexed does not advertise its pages either.
+    site.build(mini_repo, output, "v1", noindex=True)
+    assert "Sitemap" not in (output / "robots.txt").read_text(encoding="utf-8")
+
+
+def test_a_page_key_becomes_an_escaped_root_relative_path():
+    assert site._page_path("") == "/"
+    assert site._page_path("plugins/a b/c") == "/plugins/a%20b/c/"
+
+
+SHA = "0123456789abcdef0123456789abcdef01234567"
+
+
+def _github_links(output):
+    found = set()
+    for page in output.rglob("*.html"):
+        found.update(
+            re.findall(
+                r"https://github\.com/greenblacked/AI/(?:blob|tree)/[^\"#]*", page.read_text()
+            )
+        )
+    return found
+
+
+def test_source_links_name_the_ref_the_site_was_built_from(mini_repo, tmp_path):
+    # A stage or release build shows files main may not have yet; a link to main 404s.
+    output = tmp_path / "site"
+    site.build(mini_repo, output, "v9", source_ref=SHA)
+    links = _github_links(output)
+    skill_page = (output / "plugins" / "engineering" / "alpha" / "index.html").read_text()
+    assert f"/tree/{SHA}/plugins/engineering/skills/alpha" in skill_page
+    assert f"/blob/{SHA}/plugins/engineering/skills/alpha/SKILL.md" in skill_page
+    assert links and all(f"/{SHA}/" in link for link in links), sorted(links)[:5]
+    # The ref lasts only as long as the build that set it.
+    assert site.site_markdown.BLOB_URL.endswith("/blob/main")
+    again = _github_links(_build(mini_repo, tmp_path / "again"))
+    assert again and all("/main/" in link for link in again)
+
+
+def test_the_cli_takes_the_source_ref_from_github_sha(mini_repo, tmp_path, monkeypatch):
+    monkeypatch.setenv("GITHUB_SHA", SHA)
+    output = tmp_path / "out"
+    assert site.main(["--version", "dev", "--out", str(output), str(mini_repo)]) == 0
+    links = _github_links(output)
+    assert links and all(f"/{SHA}/" in link for link in links)
+    assert (
+        site.main(
+            ["--version", "dev", "--out", str(output), "--source-ref", "v1.2.3", str(mini_repo)]
+        )
+        == 0
+    )
+    links = _github_links(output)
+    assert links and all("/v1.2.3/" in link for link in links)
+    monkeypatch.delenv("GITHUB_SHA")
+    assert site.main(["--version", "dev", "--out", str(output), str(mini_repo)]) == 0
+    links = _github_links(output)
+    assert links and all("/main/" in link for link in links)
+
+
+@pytest.mark.parametrize(
+    "ref", ["", "../main", "main/../x", "a b", "-x", "a//b", "a?b", "a#b", "%2e%2e", "main/"]
+)
+def test_a_source_ref_that_is_not_a_plain_name_is_refused(mini_repo, tmp_path, ref):
+    with pytest.raises(SystemExit, match="refusing source ref"):
+        site.build(mini_repo, tmp_path / "site", "v9", source_ref=ref)
+    assert not (tmp_path / "site").exists()
+
+
+def test_a_build_that_fails_part_way_still_restores_the_source_ref(tmp_path):
+    root = tmp_path / "empty"
+    (root / ".claude-plugin").mkdir(parents=True)
+    (root / ".claude-plugin" / "marketplace.json").write_text('{"name": "x"}\n', encoding="utf-8")
+    with pytest.raises(SystemExit, match="no skills"):
+        site.build(root, tmp_path / "site", "v1", source_ref=SHA)
+    assert site._source_ref == "main"
+    assert site.site_markdown.BLOB_URL.endswith("/blob/main")

@@ -25,7 +25,7 @@ different set. Honour an explicit per-task assignment over either default split 
   coordinator and role prompts, with explicit limits for manual passes and actual
   delegation.
 - **Claude Code:** use the tier each agent in `.claude/agents/` declares, which
-  `CLAUDE.md` spells out. Its two loops hand off through a written brief going in and a
+  `CLAUDE.md` spells out (`security-reviewer` runs beside `reviewer` on the security triggers). Its two loops hand off through a written brief going in and a
   report's `Handoff` section coming back, never a paraphrase of the whole thing; whichever
   stage writes or judges the change reads this file first and `docs/review-lessons.md`
   next.
@@ -64,7 +64,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `plugins/gamedev/skills/` | Making games, and shipping them |
 | `plugins/security/skills/` | The defensive side of shipping software |
 | `plugins/manager/skills/` | Engineering leadership |
-| `plugins/personal/skills/` | Money, travel, admin, habits and health |
+| `plugins/personal/skills/` | Money, travel, admin, habits, health and family history |
 | `plugins/career/skills/` | Applications, negotiation, speaking and writing |
 | `plugins/design/skills/` | Usability, accessibility and design systems |
 | `plugins/llm/skills/` | Building features on language models: retrieval, structured output, MCP servers, document extraction and model migration |
@@ -89,7 +89,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `plugins/*/agents/` | Subagent definitions, validated on the same run as the skills |
 | `plugins/*/commands/` | Slash commands the plugin ships, validated on the same run |
 | `.claude/commands/` | Slash commands for working on this repository, not shipped to installers |
-| `.claude/agents/` | Two loops — `explorer`, `investigator`, `implementer` and `reviewer` to build; `investigator` and `reviewer` to verify — for working on this repository, validated on the same run |
+| `.claude/agents/` | Two loops — `explorer`, `investigator`, `implementer` and `reviewer` to build, with `security-reviewer` beside `reviewer` when the diff touches a security trigger; `investigator` and `reviewer` to verify — for working on this repository, validated on the same run |
 | `.claude/agents/benchmarks/` | Cases for `scripts/run_review_benchmark.py`: a `change.patch` seeding a known defect or an honest clean change, and a `case.json` naming what `reviewer` should say about it. Deliberately defective patches, not something to review as a change in its own right |
 | `src/skillcheck/` | The validator: `frontmatter.py` parses, `rules.py` decides, `cli.py` reports |
 | `tests/` | pytest over the validator, including a check that this repository validates clean |
