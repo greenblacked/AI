@@ -38,7 +38,7 @@ If the sentence takes more than one clause, there are two premises. Split them a
 A probe is a check that would come out false if the premise were wrong. It observes the system, or changes exactly one input on purpose and observes the effect; it never edits the code under suspicion.
 
 - Print, log or assert the value the premise is about, at the exact point it matters, in the failing run.
-- Run the failing case with the premise forced true and see whether the failure goes away. If it does not, the premise was never the cause.
+- Say the expected outcome before you intervene, then remove the suspected fault on purpose (force the premise false: bypass the cache, pin the value, serialise the two writers) and rerun the failing case. If it still fails, the premise was never the cause; if it passes, force the premise back to true and the failure should return.
 - Find a case where the premise holds and the failure still occurs, or where it fails and the program works.
 
 A good probe takes minutes and has two clearly different outcomes. If both outcomes would leave you doing the same next thing, it is not a probe yet.

@@ -84,7 +84,7 @@ The request: orders may carry a per-customer discount cap, so a stack of promoti
 | 4 | Split `apply_promotions` into a table of promotion functions and `total_discount` | The restructure the sketch needs, done under the existing tests before adding the cap | Existing suite green, no test edited |
 | 5 | Added the cap clamp in `total_discount` only | One decision, one place | Failing test from step 2 now passes |
 | 6 | Ran the three gates on the diff | Required at T2 | See gates |
-| 7 | Mutation run found one survivor: the clamp's `<` changed to `<=` | A cap equal to the discount is a boundary no test pinned | Added a test with discount equal to cap; mutant killed |
+| 7 | Mutation run found one survivor: the clamp's `<` changed to `<=` | At equality both branches return the same amount, so no test can tell them apart: an equivalent mutant, not a missing test | Checked by hand that the two forms agree for every discount and cap; recorded under Exceptions |
 
 ## Gates
 
@@ -94,11 +94,13 @@ The request: orders may carry a per-customer discount cap, so a stack of promoti
 | `pricing.py:total_discount` CRAP | - | 3.0 | 10 |
 | Promotion functions, highest CRAP | - | 4.1 | 10 |
 | Duplication, new clones | - | 0 | 0 |
-| Mutation, survivors and no-coverage mutants on changed lines | - | 0 after step 7 | 0 |
+| Mutation, survivors and no-coverage mutants on changed lines | - | 0 after step 7 (one equivalent mutant excepted) | 0 |
 
 ## Exceptions accepted
 
-None.
+| What | Reason | Who accepted |
+| --- | --- | --- |
+| Equivalent mutant: clamp `<` to `<=` in `total_discount` | Returns the same amount at equality, so it cannot be killed | Reviewer, in the PR |
 
 ## Mitigations standing (cause still open)
 
