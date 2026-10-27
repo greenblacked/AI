@@ -78,9 +78,19 @@ pathspec = [
 ]
 # git does not diff a file it does not track, so a new module would pass unscored.
 untracked = subprocess.run(
-    ["git", "-c", "core.quotePath=false", "ls-files", "--others",
-     "--exclude-standard", "--", *pathspec],
-    check=True, capture_output=True, text=True,
+    [
+        "git",
+        "-c",
+        "core.quotePath=false",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "--",
+        *pathspec,
+    ],
+    check=True,
+    capture_output=True,
+    text=True,
 ).stdout.split("\n")
 untracked = [u for u in untracked if u]
 if untracked:
@@ -88,9 +98,22 @@ if untracked:
     print("\n".join(untracked))
     sys.exit(2)
 diff = subprocess.run(
-    ["git", "-c", "core.quotePath=false", "diff", "--unified=0", "--diff-filter=ACMR",
-     "--src-prefix=a/", "--dst-prefix=b/", base, "--", *pathspec],
-    check=True, capture_output=True, text=True,
+    [
+        "git",
+        "-c",
+        "core.quotePath=false",
+        "diff",
+        "--unified=0",
+        "--diff-filter=ACMR",
+        "--src-prefix=a/",
+        "--dst-prefix=b/",
+        base,
+        "--",
+        *pathspec,
+    ],
+    check=True,
+    capture_output=True,
+    text=True,
 ).stdout
 changed, path = {}, None
 for line in diff.splitlines():
