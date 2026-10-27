@@ -1,0 +1,22 @@
+[
+  {"query": "make this change properly: the invoice rounding should use banker's rounding, with a test and without making the function worse", "should_trigger": true},
+  {"query": "add a bulk-export endpoint with tests and quality gates, i want the numbers on complexity and duplication when you're done", "should_trigger": true},
+  {"query": "i only touch a few functions per pr, keep complexity down on what i change and not the whole legacy repo", "should_trigger": true},
+  {"query": "check the CRAP score of my diff before i open the pull request", "should_trigger": true},
+  {"query": "fix the off-by-one in the pagination helper, test first, and tell me what proved it", "should_trigger": true},
+  {"query": "this is a one-word typo in a config comment, what's the minimum process for it", "should_trigger": true},
+  {"query": "my second fix for the retry helper failed on the same assumption as the first, apply the premise reset before i touch it a third time", "should_trigger": true},
+  {"query": "add a discount rule to the checkout total with tests, and show me the gate numbers for the functions you changed", "should_trigger": true},
+  {"query": "before you change the order service, tell me how big this change is and what checks it needs", "should_trigger": true},
+  {"query": "keep a ledger of what you do on this feature and show gates before and after for every function you touched", "should_trigger": true},
+  {"query": "which inputs should i cover for this shipping-cost function, i keep missing the edges", "should_trigger": false, "expected": "test-design"},
+  {"query": "this 1800 line module needs splitting into three, behaviour must not change", "should_trigger": false, "expected": "refactoring"},
+  {"query": "the nightly export loses the last rows and i cannot find out why", "should_trigger": false, "expected": "debugging"},
+  {"query": "set up mutmut for our service and tell me how to judge the survivors that look equivalent", "should_trigger": false, "expected": "mutation-testing"},
+  {"query": "review the pull request that rewrites our session handling and list what is wrong with it", "should_trigger": false, "expected": "code-review"},
+  {"query": "turn our rule that migrations need a rollback into a pre-commit hook that blocks the commit", "should_trigger": false, "expected": "agent-guardrails"},
+  {"query": "write properties for our serialiser round trip using hypothesis", "should_trigger": false, "expected": "property-based-testing"},
+  {"query": "turn this vague idea for team dashboards into a written spec with acceptance criteria", "should_trigger": false, "expected": "feature-spec"},
+  {"query": "write up where we are so another session can pick this task up tomorrow", "should_trigger": false, "expected": "agent-handoff"},
+  {"query": "write a new cron script that archives old logs to object storage with proper exit codes", "should_trigger": false, "expected": "code-scaffold"}
+]
