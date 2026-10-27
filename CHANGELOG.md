@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-27
+
 ### Added
 
 - `security-reviewer` subagent in `.claude/agents/`, run by `/ship` beside `reviewer` when a diff touches a workflow, a `permissions:` block, a token or secret, a new third-party action or tool, a new API write in a shipped script, a `workflow_run`, `schedule` or `pull_request_target` trigger, `.claude/settings.json` or a hook, the `allowed-tools` of a skill that reads third-party input, or anything credential-shaped or personal. It walks the `security-review` skill's classes against `AGENTS.md`'s Security considerations, states a reachable path, the impact and the smallest fix for each finding, holds no editing tools, and both verdicts must be `SHIP` before merge. Fable at medium effort, with an eval set at `.claude/agents/evals/security-reviewer.json`.
@@ -1029,7 +1031,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/greenblacked/AI/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/greenblacked/AI/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/greenblacked/AI/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/greenblacked/AI/compare/v0.1.13...v0.2.0
