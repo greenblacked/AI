@@ -1056,8 +1056,9 @@ it worse: every bisected commit supplies its own version of the path, or none.
 `scripts/`, the path starts at `${CLAUDE_SKILL_DIR}`, which Claude Code substitutes with
 the directory holding the skill's `SKILL.md`, and the body says to use the skill's own
 copy by full path where a tool does not substitute it. A script the user's own project
-provides, such as a migration or drift script in a runbook, stays relative. No validator
-rule covers this yet, so review holds it from this entry.
+provides, such as a migration or drift script in a runbook, stays relative. The
+`relative-bundled-script` rule catches the interpreter, `./` and shell-fenced command-position forms
+when the skill ships that file; review holds the rest from this entry.
 
 **First caught:** #328, the automated security reviewer, on `source-grounded-prompts`;
 the same pattern was then fixed in `work-to-note`, `family-history-research` and

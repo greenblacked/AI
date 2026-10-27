@@ -62,16 +62,114 @@ class Frontmatter:
         return self.lines.get(key, 1)
 
 
-def _strip_comment(value: str) -> str:
-    """Drop a trailing ``# comment`` from an unquoted scalar, as YAML does.
+def _check_escape(value: str, index: int, line: int) -> None:
+    """Refuse a backslash escape this reader does not decode exactly as PyYAML does.
+
+    Left verbatim, ``\\x41`` or ``\\a`` loaded a different value than PyYAML, and
+    ``\\'`` or a short ``\\u12`` validated here while PyYAML raises on upload.
+    """
+    following = value[index + 1 : index + 2]
+    if following in _SIMPLE_ESCAPES:
+        return
+    if following == "u" and re.fullmatch(r"[0-9a-fA-F]{4}", value[index + 2 : index + 6]):
+        return
+    if not following:
+        raise FrontmatterError(
+            "the value ends in a lone backslash, so the closing quote is missing or "
+            "escaped. Close the quote, write the backslash as `\\\\`, or use a '>' block.",
+            line,
+            code="ambiguous-yaml",
+        )
+    shown = value[index : index + 6] if following == "u" else value[index : index + 2]
+    # A short \u escape would otherwise drag the closing quote into what is displayed.
+    shown = shown.split(value[0])[0] if following == "u" else shown
+    raise FrontmatterError(
+        f"the escape '{shown}' in a double-quoted value is not one this validator supports "
+        '(only \\\\, \\", \\n, \\t and \\u with four hex digits), and a real YAML parser '
+        "rejects it or reads it differently. Drop the backslash, use one of the supported "
+        "escapes, or use single quotes.",
+        line,
+        code="ambiguous-yaml",
+    )
+
+
+def _split_quoted(value: str, line: int) -> tuple[str, str]:
+    """Split a quoted scalar from whatever follows its closing quote.
+
+    The first unescaped matching quote closes the scalar: in ``"..."`` a backslash
+    consumes the next character, in ``'...'`` a doubled ``''`` is the only escape.
+    Matching the last quote on the line instead, as this reader once did, accepted
+    ``"a "quoted" word"`` and ``'it's here'`` as one string, and both are parse errors
+    to a real YAML parser, so a description that validated clean failed on upload.
+
+    Anything after the closing quote other than a comment is refused for the same reason
+    (``"a" trailing``). A ``#`` needs whitespace before it: PyYAML tolerates ``"a"#x``,
+    but the grammar does not allow it, so this reader is stricter on purpose.
+    """
+    quote = value[0]
+    index = 1
+    while index < len(value):
+        char = value[index]
+        if quote == '"' and char == "\\":
+            _check_escape(value, index, line)
+            index += 2
+            continue
+        if char == quote:
+            if quote == "'" and value[index + 1 : index + 2] == "'":
+                index += 2
+                continue
+            break
+        index += 1
+    else:
+        body = value[:-1]
+        if quote == '"' and value.endswith('"') and (len(body) - len(body.rstrip("\\"))) % 2:
+            raise FrontmatterError(
+                "the closing quote is escaped by the backslash before it, so the value "
+                "never closes. Write `\\\\` for a literal backslash, or use single quotes.",
+                line,
+                code="ambiguous-yaml",
+            )
+        raise FrontmatterError(
+            "a quoted value has to close on the same line; this reader does not join a "
+            "quoted value that wraps. Close the quote on this line, or use a '>' block.",
+            line,
+            code="ambiguous-yaml",
+        )
+    quoted, rest = value[: index + 1], value[index + 1 :]
+    # YAML whitespace is a space or a tab; str.isspace() also takes a non-breaking space,
+    # which PyYAML refuses before a comment. Tabs are already refused by this reader.
+    if rest.startswith("#"):
+        # PyYAML loads this, but YAML's grammar wants whitespace before a comment, so a
+        # stricter parser may not; the fix is the space, not an escape.
+        raise FrontmatterError(
+            "a comment after the closing quote needs a space before the `#`. Add the "
+            "space, or drop the comment.",
+            line,
+            code="ambiguous-yaml",
+        )
+    if rest.strip(" ") and not (rest[0] == " " and rest.lstrip(" ").startswith("#")):
+        raise FrontmatterError(
+            "text after the closing quote; a real YAML parser rejects it, usually because "
+            'a quote inside the value was not escaped. Escape it (`\\"` in double quotes, '
+            "`''` in single quotes) or use a '>' block.",
+            line,
+            code="ambiguous-yaml",
+        )
+    return quoted, rest
+
+
+def _strip_comment(value: str, line: int) -> str:
+    """Drop a trailing ``# comment`` from a scalar, as YAML does.
 
     Keeping it meant the length and angle-bracket checks measured a string the runtime
-    never sees, and a comment after ``name:`` produced a bogus name-mismatch.
+    never sees, and a comment after ``name:`` produced a bogus name-mismatch. A quoted
+    value is cut at its closing quote rather than at the first `` #``, because a ``#``
+    inside the quotes is content.
     """
-    if value[:1] in "\"'":
-        return value
+    if value.startswith(('"', "'")):
+        return _split_quoted(value, line)[0]
     cut = value.find(" #")
-    return value[:cut].rstrip() if cut >= 0 else value
+    return value[:cut].rstrip(" ") if cut >= 0 else value
 
 
 # The plain-scalar indicator characters a real YAML parser treats specially at the
@@ -177,8 +275,8 @@ def _reject_unquotable(key: str, value: str, line: int) -> None:
 
 # The double-quoted escapes this reader decodes. YAML defines many more (\0, \a, \e,
 # \xXX, \UXXXXXXXX and several named Unicode spaces among them), but these five are the
-# ones a skill description plausibly contains; an escape outside this set is left in the
-# string verbatim rather than guessed at.
+# ones a skill description plausibly contains; `_check_escape` refuses any other while the
+# value is split, so the decoder below only ever sees these.
 _SIMPLE_ESCAPES = {"\\": "\\", '"': '"', "n": "\n", "t": "\t"}
 
 
@@ -416,7 +514,8 @@ def parse(text: str) -> Frontmatter:
 
     index = 1
     while index < closing:
-        raw = lines[index]
+        # A CRLF file reaches here unconverted from the archive check, which parses raw bytes.
+        raw = lines[index].rstrip("\r")
         number = index + 1
 
         if "\t" in raw:
@@ -435,8 +534,8 @@ def parse(text: str) -> Frontmatter:
         if not match:
             raise FrontmatterError(f"cannot read frontmatter line: {raw!r}", number)
 
-        key, rest = match.group(1), (match.group(2) or "").strip()
-        rest = _strip_comment(rest)
+        key, rest = match.group(1), (match.group(2) or "").strip(" ")
+        rest = _strip_comment(rest, number)
         _reject_unquotable(key, rest, number)
         if key in values:
             raise FrontmatterError(f"duplicate frontmatter key {key!r}", number)
