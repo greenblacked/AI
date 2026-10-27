@@ -133,7 +133,9 @@ because that is the form a command uses and a typo in it fails only when it runs
 **Bundled scripts run by a relative path (`relative-bundled-script`).** A command that
 starts a script the skill ships by a relative path is an error, in `SKILL.md` and in each
 `references/*.md`: after an interpreter (`python3 scripts/x.py`, `python3.11 -W ignore
-"scripts/x.py"`, `bash`, `source`, `uv run`), after `./` (`./scripts/x.sh`), or, in a
+"scripts/x.py"`, `bash`, `source`, `uv run`), after an execution wrapper (`sudo`, `exec`, `time`, `env`, `nohup`,
+`xargs`, `git bisect run`), after a `./` that opens a line or an inline code span
+(`./scripts/x.sh`), or, in a
 shell-tagged fence (`bash`, `sh`, `shell`, `zsh`, `console`, `shell-session`), in command position: at the
 start of a line (after a dollar-sign prompt in the last two, which also hold output) or after `&&`, `||`, `;`, `|` or a `VAR=value` prefix. The working
 directory is the user's project, so a file there at the same path runs in place of the
@@ -141,9 +143,12 @@ bundled one, under the name of the skill's own checker. Start the command at
 `${CLAUDE_SKILL_DIR}/scripts/x.py` instead. The rule fires only when the skill ships that
 file, so a runbook naming its project's own `./scripts/migrate.sh` is left alone. A bare
 path in prose, or in an untagged or `text` fence, is a mention or a layout listing, not a
-command, so fence a layout as `text`. A command after `cd "${CLAUDE_SKILL_DIR}"` on the
-same line, or on a later line of the same fence, is accepted, because the `cd` has moved
-it into the skill; the next fence starts back in the project.
+command, so fence a layout as `text`. A `./` path that is only an argument, as in `git diff -- ./scripts/x.py`,
+reads a file rather than running it and is left alone. A command after
+`cd "${CLAUDE_SKILL_DIR}"` on the same line, or on a later line of the same fence, is
+accepted, because the `cd` has moved it into the skill; the operand has to be the skill
+directory itself, so `cd "${CLAUDE_SKILL_DIR}/.."` exempts nothing. The next fence starts
+back in the project.
 
 **Shell scripts (`no-shebang`, `not-executable`).** Every `*.sh` under `scripts/` must
 start with `#!` and have the executable bit set. A script the model is told to run and

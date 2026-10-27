@@ -92,27 +92,36 @@ BUNDLED_PATH_RE = re.compile(
 # working directory is the user's project, not the skill, so a file there at the same
 # path runs in place of the bundled one. Three command positions are recognised: after an
 # interpreter (a versioned one, `source` or `uv run`; flags and their values; an optional
-# quote and `./`), after a `./` that is not the tail of a longer path or a variable
-# expansion, and - separately, because in prose a line that merely begins with a path is a
-# mention rather than a command - in command position inside a shell fence: at the start
-# of a line, or after `&&`, `||`, `;`, `|`, a `VAR=value` prefix, `.` or `source`.
+# quote and `./`), after an execution wrapper such as `sudo`, `exec` or `git bisect run`,
+# after a `./` that opens a line or an inline code span, and - separately, because in
+# prose a line that merely begins with a path is a mention rather than a command - in
+# command position inside a shell fence: at the start of a line, or after `&&`, `||`, `;`,
+# `|`, a `VAR=value` prefix, `.` or `source`.
 _SCRIPT_PATH = r"(scripts/[A-Za-z0-9_./-]*[A-Za-z0-9_-])"
 _QUOTE = r"[\"']?"
 SKILL_SCRIPT_CMD_RE = re.compile(
     r"(?:\b(?:python[\d.]*|bash|sh|zsh|node|ruby|perl|deno|bun|source|uv\s+run)"
     r"(?:\s+-{1,2}[A-Za-z][\w=-]*(?:\s+[\w.=][\w.=-]*)?)*\s+" + _QUOTE + r"(?:\./)?"
-    r"|(?<![\w./$}-])\./)" + _SCRIPT_PATH
+    # A `./` path elsewhere on a line is usually an argument (`git diff -- ./scripts/x`),
+    # which reads a project file rather than running the bundled one.
+    r"|\b(?:git\s+bisect\s+run|exec|sudo|nohup|time|env|xargs)\s+(?:\./)?"
+    r"|(?:^|(?<=`))\s*\./)" + _SCRIPT_PATH
 )
 SKILL_SCRIPT_LINE_START_RE = re.compile(
     r"(?:^|&&|\|\||[;|(])\s*(?:\$\s+)?(?:[A-Za-z_]\w*=\S*\s+)*(?:(?:\.|source)\s+)?"
     + _QUOTE
+    + r"(?:\./)?"
     + _SCRIPT_PATH
 )
 # A `#` at the start of a line or after whitespace begins a shell comment.
 _SHELL_COMMENT_RE = re.compile(r"(?:^|(?<=\s))#.*")
 # `cd` into the skill directory on the same line moves the later commands there, so a
-# relative path after it names the bundled copy.
-_CD_SKILL_DIR_RE = re.compile(r"\bcd\s+[\"']?\$\{?CLAUDE_SKILL_DIR\}?")
+# relative path after it names the bundled copy. The whole operand has to be the skill
+# directory: `cd "${CLAUDE_SKILL_DIR}/.."` or `cd $CLAUDE_SKILL_DIR_OTHER` lands elsewhere.
+_CD_SKILL_DIR_RE = re.compile(
+    r"\bcd\s+([\"']?)\$(?:\{CLAUDE_SKILL_DIR\}|CLAUDE_SKILL_DIR(?!\w))/?\1"
+    r"(?=\s*(?:$|&&|\|\||;|\)|#))"
+)
 # The sanctioned way to name a bundled file. The existing lookbehind in BUNDLED_PATH_RE
 # refuses a path preceded by `/`, so these were never checked for existence.
 SKILL_DIR_PATH_RE = re.compile(

@@ -877,3 +877,44 @@ def test_a_cd_into_the_skill_directory_holds_in_any_fence(tmp_path, info):
     body = f'```{info}\ncd "${{CLAUDE_SKILL_DIR}}"\npython3 scripts/run.py\n```\n'
     directory = _with_scripts(tmp_path, body)
     assert "relative-bundled-script" not in codes(check_skill(directory, tmp_path), ERROR)
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        'cd "${CLAUDE_SKILL_DIR}/.." && python3 scripts/run.py',
+        "cd ${CLAUDE_SKILL_DIR}/scripts && python3 scripts/run.py",
+        "cd $CLAUDE_SKILL_DIR_OTHER && python3 scripts/run.py",
+    ],
+)
+def test_a_cd_that_does_not_land_in_the_skill_dir_is_no_exemption(tmp_path, line):
+    directory = _with_scripts(tmp_path, f"```bash\n{line}\n```\n")
+    assert "relative-bundled-script" in codes(check_skill(directory, tmp_path), ERROR)
+
+
+@pytest.mark.parametrize(
+    "line",
+    ['cd "${CLAUDE_SKILL_DIR}/" && ./scripts/run.sh', "cd ${CLAUDE_SKILL_DIR}; ./scripts/run.sh"],
+)
+def test_a_cd_to_exactly_the_skill_dir_is_still_an_exemption(tmp_path, line):
+    directory = _with_scripts(tmp_path, f"```bash\n{line}\n```\n")
+    assert check_skill(directory, tmp_path) == []
+
+
+@pytest.mark.parametrize(
+    "line",
+    ["git diff -- ./scripts/run.py", "cat ./scripts/run.sh", "chmod +x ./scripts/run.sh"],
+)
+def test_a_dot_slash_path_that_is_only_an_argument_is_not_a_run(tmp_path, line):
+    # Reading or diffing a project file does not execute the bundled script, and the
+    # suggested fix would change which file the command inspects.
+    directory = _with_scripts(tmp_path, f"```bash\n{line}\n```\n")
+    assert "relative-bundled-script" not in codes(check_skill(directory, tmp_path))
+
+
+@pytest.mark.parametrize(
+    "line", ["sudo ./scripts/run.sh", "exec scripts/run.sh", "time ./scripts/run.sh --all"]
+)
+def test_a_script_after_an_execution_wrapper_is_an_error(tmp_path, line):
+    directory = _with_scripts(tmp_path, f"```bash\n{line}\n```\n")
+    assert "relative-bundled-script" in codes(check_skill(directory, tmp_path), ERROR)
