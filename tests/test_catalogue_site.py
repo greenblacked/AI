@@ -1909,73 +1909,89 @@ _EXPORT_STUB = (
 
 
 def _fake_gh(tmp_path):
-    """A gh that logs argv and answers `release view` from STUB_RELEASE and STUB_DRAFT.
+    """A gh that logs argv and keeps one release in files: its state and its asset names.
 
-    STUB_RELEASE is none, draft or published. `edit --draft=false` flips a draft to
-    published unless STUB_EDIT_STICKS is 0, which models a publish that did not take.
+    STUB_RELEASE is none, draft or published; STUB_ASSETS seeds the asset names (one per
+    line). `create` leaves STUB_CREATE_RESULT (default published) and attaches the zips it
+    is given, `upload` adds them, and `delete` removes the release and its assets.
     """
     state = tmp_path / "gh-state"
+    assets = tmp_path / "gh-assets"
     _write_stub(
         tmp_path / "bin" / "gh",
         'echo "gh $*" >> "$STUB_LOG"\n'
-        f'state="{state}"\n'
-        '[ -e "$state" ] || printf "%s" "$STUB_RELEASE" > "$state"\n'
+        f'state="{state}"; assets="{assets}"\n'
+        'if [ ! -e "$state" ]; then\n'
+        '  printf "%s" "$STUB_RELEASE" > "$state"; printf "%s\\n" "${STUB_ASSETS:-}" > "$assets"\n'
+        "fi\n"
         'cur=$(cat "$state")\n'
         'case "$1 $2" in\n'
         '  "release view")\n'
         '    [ "$cur" != none ] || exit 1\n'
-        '    case "$*" in *isDraft*) [ "$cur" = draft ] && echo true || echo false ;; esac ;;\n'
-        '  "release create") printf published > "$state" ;;\n'
-        '  "release edit")\n'
-        '    [ "${STUB_EDIT_STICKS:-1}" = 1 ] && printf published > "$state" || true ;;\n'
+        '    case "$*" in\n'
+        '      *isDraft*) [ "$cur" = draft ] && echo true || echo false ;;\n'
+        '      *assets*) grep -v "^$" "$assets" || true ;;\n'
+        "    esac ;;\n"
+        '  "release delete") printf none > "$state"; : > "$assets" ;;\n'
+        '  "release create")\n'
+        '    printf "%s" "${STUB_CREATE_RESULT:-published}" > "$state"\n'
+        '    for a in "$@"; do case "$a" in\n'
+        '      dist/*.zip) basename "$a" >> "$assets" ;; esac; done ;;\n'
+        '  "release upload")\n'
+        '    for a in "$@"; do case "$a" in dist/*.zip)\n'
+        '      grep -qx "$(basename "$a")" "$assets" ||\n'
+        '        basename "$a" >> "$assets" ;; esac; done ;;\n'
         "esac\n",
     )
 
 
 PUBLISH_ENV = {"TAG": "v0.3.1", "NOTES_FILE": "/notes.md", "GH_REPO": "o/r"}
+ZIPS = ["skills-v0.3.1.zip", "portable-skills-v0.3.1.zip"]
 BUNDLES = "dist/skills-v0.3.1.zip dist/portable-skills-v0.3.1.zip"
+CREATE = "gh release create v0.3.1 --verify-tag --title v0.3.1 --notes-file /notes.md " + BUNDLES
 
 
-def _publish(tmp_path, release, **extra):
+def _publish(tmp_path, release, assets=ZIPS, **extra):
     _fake_gh(tmp_path)
-    env = {**PUBLISH_ENV, "STUB_RELEASE": release, **extra}
+    env = {**PUBLISH_ENV, "STUB_RELEASE": release, "STUB_ASSETS": "\n".join(assets), **extra}
     return _run_step(tmp_path, "release.yml", PUBLISH, env)
 
 
+def _verbs(calls):
+    return [c for c in calls if c.startswith("gh release") and " view " not in c]
+
+
 def test_release_with_no_release_yet_creates_it_with_the_two_bundles_only(tmp_path):
-    result, calls = _publish(tmp_path, "none")
+    result, calls = _publish(tmp_path, "none", assets=[])
     assert result.returncode == 0, result.stderr
-    creates = [c for c in calls if c.startswith("gh release create")]
-    assert creates == [
-        "gh release create v0.3.1 --verify-tag --title v0.3.1 --notes-file /notes.md " + BUNDLES
-    ]
+    assert _verbs(calls) == [CREATE]
     assert not any(".skill" in c for c in calls)
-    assert not any(c.startswith("gh release upload") for c in calls)
 
 
-def test_release_rerun_on_a_leftover_draft_uploads_then_publishes_it(tmp_path):
-    result, calls = _publish(tmp_path, "draft")
+def test_release_discards_a_found_draft_and_recreates_it_never_publishing_it(tmp_path):
+    result, calls = _publish(tmp_path, "draft", assets=["planted.bin", "skills-v0.3.1.zip"])
     assert result.returncode == 0, result.stderr
-    verbs = [c for c in calls if c.startswith(("gh release upload", "gh release edit"))]
-    assert verbs == [
-        "gh release upload v0.3.1 --clobber " + BUNDLES,
-        "gh release edit v0.3.1 --draft=false",
-    ]
-    assert not any(c.startswith("gh release create") for c in calls)
+    assert _verbs(calls) == ["gh release delete v0.3.1 --yes", CREATE]
+    assert not any("cleanup-tag" in c or " edit " in c for c in calls)
 
 
-def test_release_rerun_on_a_published_release_uploads_without_editing(tmp_path):
+def test_release_rerun_on_a_published_release_uploads_only(tmp_path):
     result, calls = _publish(tmp_path, "published")
     assert result.returncode == 0, result.stderr
-    assert "gh release upload v0.3.1 --clobber " + BUNDLES in calls
-    assert not any(c.startswith(("gh release edit", "gh release create")) for c in calls)
+    assert _verbs(calls) == ["gh release upload v0.3.1 --clobber " + BUNDLES]
 
 
-def test_release_fails_when_it_is_still_a_draft_after_publishing(tmp_path):
-    result, calls = _publish(tmp_path, "draft", STUB_EDIT_STICKS="0")
+def test_release_fails_when_a_published_release_holds_an_extra_asset(tmp_path):
+    result, calls = _publish(tmp_path, "published", assets=[*ZIPS, "planted.bin"])
     assert result.returncode != 0
     assert "::error::" in result.stdout + result.stderr
-    assert "gh release edit v0.3.1 --draft=false" in calls
+    assert not any(" edit " in c or "delete" in c for c in calls)
+
+
+def test_release_fails_when_creating_it_leaves_a_draft(tmp_path):
+    result, _calls = _publish(tmp_path, "none", assets=[], STUB_CREATE_RESULT="draft")
+    assert result.returncode != 0
+    assert "::error::" in result.stdout + result.stderr
 
 
 def test_release_flatten_step_zips_every_skill_archive_into_one_bundle(tmp_path):

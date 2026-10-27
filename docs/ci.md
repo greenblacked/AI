@@ -340,18 +340,22 @@ assets rather than one per skill: the v0.3.0 run uploaded 517 archives and the p
 zip one at a time and hit `HTTP 403: You have exceeded a secondary rate limit` part way,
 and GitHub documents a limit on content-creating requests per minute and per hour.
 
-The last step is written to be safe to re-run. `gh release view "$TAG"` decides which of
-two things happens, and it finds a draft as readily as a published release. If nothing
-exists yet, `gh release create "$TAG" --verify-tag` makes the release, attaching the
-notes file the earlier step wrote and refused to proceed on empty, along with the two
-zips. If a release exists, published or a draft left by a failed run, `gh release upload
-"$TAG" --clobber` replaces the two assets instead of erroring on "already exists". An
-upload exits 0 on a draft and leaves it unpublished, so the step then reads `isDraft`,
-runs `gh release edit "$TAG" --draft=false` when it is `true`, reads it again and fails
-with an error unless it is `false`. Re-running the workflow on the same tag is therefore
-the recovery procedure for a failed run, and a green run means the release is public;
-nothing about it is destructive to a release that already succeeded, since the assets it
-rebuilds are deterministic from the tagged commit.
+The last step is written to be safe to re-run, and never to publish a draft it did not
+just create. It reads `gh release view "$TAG" --json isDraft` once. If there is no
+release, `gh release create "$TAG" --verify-tag` makes it, attaching the notes file the
+earlier step wrote and refused to proceed on empty, along with the two zips. If the
+release is published, `gh release upload "$TAG" --clobber` replaces the two assets. If it
+is a draft, `gh release delete "$TAG" --yes` discards it, without `--cleanup-tag` so the
+tag stays, and the release is created again from the tagged commit. A draft needs no
+tag, so one left by a failed run and one planted by anyone with write access look the
+same; discarding rather than publishing it keeps foreign notes and assets from going
+out under a trusted tag. The step then fails with an error unless `isDraft` is `false`
+and the release holds exactly `skills-<tag>.zip` and `portable-skills-<tag>.zip`. A
+re-run uses the `release.yml` at the tagged commit, so this recovery applies only to
+tags cut after the change that introduced it. Re-running the workflow on the same tag is
+otherwise the recovery procedure for a failed run, and a green run means the release is
+public with those two assets; nothing about it is destructive to a release that already
+succeeded, since the assets it rebuilds are deterministic from the tagged commit.
 
 No dependency caching: `setup-python`'s `cache:` key would restore whatever an earlier,
 less trusted run wrote, on the one workflow with write access to the repository and about

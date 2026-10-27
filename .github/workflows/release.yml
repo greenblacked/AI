@@ -119,31 +119,45 @@ jobs:
           (cd dist && python -m zipfile -c "skills-$TAG.zip" *.skill)
 
       - name: Create or update the GitHub release
-        # Safe to re-run. Two assets only, so a run stays far below GitHub's documented
-        # limit on content-creating requests; the v0.3.0 run uploaded one asset per
-        # skill, hit a secondary rate limit part way, and left a draft behind. `gh`
-        # resolves a draft by tag, so a re-run finds that draft through `view`: it
-        # replaces the assets with `--clobber`, then the draft is published here, since
-        # an upload alone exits 0 and would leave the release unpublished. The last
-        # check fails the step unless the release really is public.
+        # Safe to re-run, and never publishes a draft it did not just create. Two assets
+        # only, so a run stays far below GitHub's documented limit on content-creating
+        # requests; the v0.3.0 run uploaded one asset per skill, hit a secondary rate
+        # limit part way, and left a draft behind. `gh` resolves a draft by tag, and a
+        # draft needs no tag, so anyone with write access can plant one named for the
+        # next version with their own notes and assets. A draft found here is therefore
+        # deleted (without --cleanup-tag: the tag must stay) and the release created
+        # again from the tagged commit's notes. A published release only has its two
+        # assets replaced. The checks at the end fail the step unless the release is
+        # public and holds exactly those two assets.
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -Eeuo pipefail
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" --clobber \
-              "dist/skills-$TAG.zip" "dist/portable-skills-$TAG.zip"
+          if state=$(gh release view "$TAG" --json isDraft --jq .isDraft 2>/dev/null); then
+            if [ "$state" = true ]; then
+              gh release delete "$TAG" --yes
+              state=none
+            fi
           else
+            state=none
+          fi
+          if [ "$state" = none ]; then
             gh release create "$TAG" --verify-tag --title "$TAG" \
               --notes-file "$NOTES_FILE" \
               "dist/skills-$TAG.zip" "dist/portable-skills-$TAG.zip"
-          fi
-          if [ "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = true ]; then
-            gh release edit "$TAG" --draft=false
+          else
+            gh release upload "$TAG" --clobber \
+              "dist/skills-$TAG.zip" "dist/portable-skills-$TAG.zip"
           fi
           if [ "$(gh release view "$TAG" --json isDraft --jq .isDraft)" != false ]; then
             echo "::error::release $TAG is still a draft or could not be read" >&2
+            exit 1
+          fi
+          expected=$(printf '%s\n' "portable-skills-$TAG.zip" "skills-$TAG.zip")
+          actual=$(gh release view "$TAG" --json assets --jq '.assets[].name' | sort)
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::release $TAG holds unexpected assets: $actual" >&2
             exit 1
           fi
 
