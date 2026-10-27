@@ -27,10 +27,16 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 - `grpc-runtime-debugging` skill in the backend plugin: read a gRPC status code as a failure class, separate the client's view from the server's, trace deadline propagation, check keepalive, connection reuse and load balancing, and confirm the retry policy is not amplifying the failure.
 - `packet-capture-triage` skill in the linux plugin: read a pcap or flow log as the subject — filter to one conversation, then read the handshake, retransmissions, resets, window and MSS, TLS alerts and DNS timing, and attribute the delay to the client, the network, the server or the application.
 - `regex-safety-review` skill in the coding plugin: identify the regex engine and whether it backtracks, spot nested quantifiers, overlapping alternations and adjacent ambiguous repetition, demonstrate the worst case with a long near-miss input, and rewrite the pattern as a linear-time expression or a parser.
+- `skillcheck` gains the `relative-bundled-script` error for a command that runs a script the skill ships by a path relative to the working directory, in `SKILL.md` and `references/*.md` (a path in command position counts only in a shell-tagged fence, and a command after `cd` into `${CLAUDE_SKILL_DIR}`, on the same line or a later line of the same fence, is left alone), and checks `${CLAUDE_SKILL_DIR}/…` pointers, fenced or not, for existence under `dangling-reference`. A directory named like a reference is skipped, and a symlink that does not resolve to a file (missing, looping or a directory) is reported as `dangling-reference`, instead of crashing the run.
 
 ### Changed
 
 - `website-builder` gains a landing-page reference: extra intake, page structure, layout patterns, conversion copy, content realism, a ship list and the indexing decision.
+
+### Fixed
+
+- `relative-bundled-script` scopes a `cd` into `${CLAUDE_SKILL_DIR}` to its own subshell and ends it at the next `cd`, and reads a `#` inside quotes as text rather than a comment, so a relative run after either no longer passes unreported.
+- `skillcheck` reads a quoted frontmatter value strictly, as a YAML parser does: the first unescaped closing quote ends it, and a quote that does not close on its line, text after the closing quote (a non-breaking space included), or `#` with no space before it, or a double-quoted escape outside `\\`, `\"`, `\n`, `\t` and `\u` plus four hex digits, is `ambiguous-yaml`. `"a "quoted" word"` and `'it's here'` used to validate clean and fail on upload, and a trailing `# comment` after a quoted value was kept as part of it.
 
 ### Security
 

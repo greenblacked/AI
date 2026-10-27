@@ -629,3 +629,341 @@ def test_a_description_under_the_floor_warns(tmp_path):
 def test_a_description_on_the_floor_does_not_warn(tmp_path):
     directory = write_skill(tmp_path, "demo", description=_description_of_length(500))
     assert check_skill(directory, tmp_path, KNOWN) == []
+
+
+def _with_scripts(tmp_path, body, *, reference=None):
+    """A skill shipping scripts/run.py and scripts/run.sh, with the given body."""
+    directory = write_skill(tmp_path, "demo", body=body)
+    scripts = directory / "scripts"
+    scripts.mkdir()
+    (scripts / "run.py").write_text("print('x')\n", encoding="utf-8")
+    shell = scripts / "run.sh"
+    shell.write_text("#!/usr/bin/env bash\ntrue\n", encoding="utf-8")
+    shell.chmod(0o755)
+    if reference is not None:
+        (directory / "references").mkdir()
+        (directory / "references" / "deep.md").write_text(reference, encoding="utf-8")
+    return directory
+
+
+# A relative path resolves against the user's project, so a file there at the same path
+# runs in place of the bundled one. Every form below was in a skill before #328-#330.
+@pytest.mark.parametrize(
+    "line",
+    [
+        "Run `python3 scripts/run.py` first.",
+        "Run `python scripts/run.py --flag`.",
+        "Run `python3 -I scripts/run.py`.",
+        "Run `python3 -I -X utf8 ./scripts/run.py`.",
+        "Run `bash scripts/run.sh`.",
+        "Run `./scripts/run.sh`.",
+        "Run `git bisect run ./scripts/run.sh`.",
+        'Run `python "scripts/run.py"`.',
+        "Run `bash 'scripts/run.sh'`.",
+        "Run `python3.11 scripts/run.py`.",
+        "Run `python -W ignore scripts/run.py`.",
+        "Run `python3 -X dev scripts/run.py`.",
+        "Run `uv run scripts/run.py`.",
+        "Run `source scripts/run.sh`.",
+        'Run `bash -c "scripts/run.sh"`.',
+    ],
+)
+def test_a_bundled_script_run_by_a_relative_path_is_an_error(tmp_path, line):
+    directory = _with_scripts(tmp_path, f"# Demo\n\n{line}\n")
+    found = [f for f in check_skill(directory, tmp_path) if f.code == "relative-bundled-script"]
+    assert [f.level for f in found] == [ERROR]
+    assert "${CLAUDE_SKILL_DIR}/scripts/run." in found[0].message
+    lines = (directory / "SKILL.md").read_text().split("\n")
+    assert "scripts/run." in lines[found[0].line - 1]
+
+
+@pytest.mark.parametrize("prefix", ["", "$ "])
+def test_a_command_at_the_start_of_a_fenced_line_is_an_error(tmp_path, prefix):
+    directory = _with_scripts(tmp_path, f"```bash\n{prefix}scripts/run.sh --all\n```\n")
+    assert "relative-bundled-script" in codes(check_skill(directory, tmp_path), ERROR)
+
+
+@pytest.mark.parametrize(
+    ("info", "fires"),
+    [
+        ("text", False),
+        ("tree", False),
+        ("plaintext", False),
+        ("markdown", False),
+        ("bash", True),
+        ("sh", True),
+        ("", False),
+    ],
+)
+def test_a_line_start_script_is_only_an_invocation_in_a_shell_fence(tmp_path, info, fires):
+    # A layout tree in a text fence lists scripts/run.py with a trailing comment; that is
+    # an illustration, and telling its author to add ${CLAUDE_SKILL_DIR} would be wrong.
+    body = f"```{info}\nscripts/run.py   # the checker\n```\n"
+    directory = _with_scripts(tmp_path, body)
+    found = "relative-bundled-script" in codes(check_skill(directory, tmp_path), ERROR)
+    assert found is fires
+
+
+def test_a_directory_named_like_a_reference_does_not_crash(tmp_path):
+    directory = _with_scripts(tmp_path, "# Demo\n", reference="# Deep\n")
+    (directory / "references" / "odd.md").mkdir()
+    assert check_skill(directory, tmp_path) == []
+
+
+@pytest.mark.parametrize("name", ["dang.md", "loop.md"])
+def test_a_broken_symlink_reference_is_reported_once_not_a_crash(tmp_path, name):
+    directory = _with_scripts(tmp_path, "# Demo\n", reference="# Deep\n")
+    link = directory / "references" / name
+    link.symlink_to("gone.md" if name == "dang.md" else name)
+    found = [f for f in check_skill(directory, tmp_path) if f.code == "dangling-reference"]
+    assert [f.level for f in found] == [ERROR]
+    assert name in found[0].message
+
+
+def test_a_relative_script_in_a_reference_file_is_an_error(tmp_path):
+    directory = _with_scripts(
+        tmp_path,
+        "Read `references/deep.md`.\n",
+        reference="# Deep\n\nRun `python3 scripts/run.py`.\n",
+    )
+    found = [f for f in check_skill(directory, tmp_path) if f.code == "relative-bundled-script"]
+    assert len(found) == 1
+    assert str(found[0].path).endswith("references/deep.md")
+    assert found[0].line == 3
+    assert "references/deep.md" in found[0].message
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "`scripts/run.py` reads only the config.\n",
+        "The helper lives in scripts/run.py and is small.\n",
+        "Run `python3 ${CLAUDE_SKILL_DIR}/scripts/run.py`.\n",
+        "Run `bash $CLAUDE_SKILL_DIR/scripts/run.sh`.\n",
+        "Run `${CLAUDE_SKILL_DIR}/scripts/run.sh`.\n",
+        # Outside a fence, a line that merely begins with the path is prose.
+        "scripts/run.py is the helper.\n",
+        "```bash\npython3 ${CLAUDE_SKILL_DIR}/scripts/run.py\n```\n",
+    ],
+)
+def test_other_mentions_of_a_script_are_not_relative_invocations(tmp_path, body):
+    directory = _with_scripts(tmp_path, f"# Demo\n\n{body}")
+    assert "relative-bundled-script" not in codes(check_skill(directory, tmp_path))
+    assert check_skill(directory, tmp_path) == []
+
+
+@pytest.mark.parametrize("line", ["Run `python3 scripts/other.py`.", "Run `./scripts/other.sh`."])
+def test_a_script_the_skill_does_not_ship_is_not_a_relative_invocation(tmp_path, line):
+    # A runbook may name its own project's script; only a file the skill bundles is the
+    # one a same-named project file would shadow.
+    directory = write_skill(tmp_path, "demo", body=f"# Demo\n\n```bash\n{line}\n```\n")
+    assert check_skill(directory, tmp_path) == []
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "Run `python3 ${CLAUDE_SKILL_DIR}/scripts/missing.py`.\n",
+        "```bash\npython3 ${CLAUDE_SKILL_DIR}/scripts/missing.py\n```\n",
+        "Read `$CLAUDE_SKILL_DIR/references/missing.md`.\n",
+    ],
+)
+def test_a_dangling_skill_dir_pointer_is_an_error_fenced_or_not(tmp_path, body):
+    directory = _with_scripts(tmp_path, f"# Demo\n\n{body}")
+    assert "dangling-reference" in codes(check_skill(directory, tmp_path), ERROR)
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "Run `${CLAUDE_SKILL_DIR}/scripts/x.{py,sh}`.\n",
+        "Run `${CLAUDE_SKILL_DIR}/scripts/x-$V.sh`.\n",
+        "Run `${CLAUDE_SKILL_DIR}/scripts/*.sh`.\n",
+        "Run `${CLAUDE_SKILL_DIR}/scripts/<name>.sh`.\n",
+        "Run `${CLAUDE_SKILL_DIR}/scripts/x.py*`.\n",
+        "Read `${CLAUDE_SKILL_DIR}/references/api.v2-<topic>.md`.\n",
+        "Read `${CLAUDE_SKILL_DIR}/references/v1.2-*.md`.\n",
+        "Helpers live under `${CLAUDE_SKILL_DIR}/scripts`.\n",
+    ],
+)
+def test_a_skill_dir_pattern_or_directory_is_not_a_dangling_pointer(tmp_path, body):
+    # The relative form of each of these is already skipped by the prose check.
+    directory = _with_scripts(tmp_path, f"# Demo\n\n{body}")
+    assert "dangling-reference" not in codes(check_skill(directory, tmp_path))
+
+
+def test_a_dangling_skill_dir_pointer_in_a_reference_file_is_an_error(tmp_path):
+    directory = _with_scripts(
+        tmp_path,
+        "Read `references/deep.md`.\n",
+        reference="Run `python3 ${CLAUDE_SKILL_DIR}/scripts/missing.py`.\n",
+    )
+    found = [f for f in check_skill(directory, tmp_path) if f.code == "dangling-reference"]
+    assert len(found) == 1
+    assert str(found[0].path).endswith("references/deep.md")
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "cd /tmp && scripts/run.sh",
+        "FOO=1 scripts/run.sh",
+        "true || scripts/run.sh",
+        "true; scripts/run.sh",
+        "echo x | scripts/run.sh",
+        ". scripts/run.sh",
+    ],
+)
+def test_a_script_after_a_shell_operator_in_a_shell_fence_is_an_error(tmp_path, line):
+    directory = _with_scripts(tmp_path, f"```bash\n{line}\n```\n")
+    assert "relative-bundled-script" in codes(check_skill(directory, tmp_path), ERROR)
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        'cd "${CLAUDE_SKILL_DIR}" && ./scripts/run.sh',
+        "cd ${CLAUDE_SKILL_DIR} && python3 scripts/run.py",
+        "cd $CLAUDE_SKILL_DIR && bash scripts/run.sh",
+    ],
+)
+def test_a_command_after_cd_into_the_skill_dir_on_the_same_line_is_not_relative(tmp_path, line):
+    directory = _with_scripts(tmp_path, f"```bash\n{line}\n```\n")
+    assert check_skill(directory, tmp_path) == []
+
+
+@pytest.mark.parametrize("info", ["console", "shell-session"])
+def test_a_console_fence_line_is_a_command_only_after_a_prompt(tmp_path, info):
+    # These fences hold command output too; a listing of the skill's own script is output.
+    output = _with_scripts(tmp_path, f"```{info}\n$ git diff --name-only\nscripts/run.sh\n```\n")
+    assert "relative-bundled-script" not in codes(check_skill(output, tmp_path))
+
+
+@pytest.mark.parametrize("info", ["console", "shell-session"])
+def test_a_prompted_script_in_a_console_fence_is_an_error(tmp_path, info):
+    directory = _with_scripts(tmp_path, f"```{info}\n$ scripts/run.sh --all\n```\n")
+    assert "relative-bundled-script" in codes(check_skill(directory, tmp_path), ERROR)
+
+
+@pytest.mark.parametrize("line", ["python3 scripts/run.py", "./scripts/run.sh", "scripts/run.sh"])
+def test_a_command_after_a_cd_on_an_earlier_line_of_the_fence_is_not_relative(tmp_path, line):
+    directory = _with_scripts(tmp_path, f"```bash\ncd ${{CLAUDE_SKILL_DIR}}\n{line}\n```\n")
+    assert check_skill(directory, tmp_path) == []
+
+
+def test_a_cd_into_the_skill_dir_does_not_carry_into_the_next_fence(tmp_path):
+    body = "```bash\ncd ${CLAUDE_SKILL_DIR}\n```\n\n```bash\npython3 scripts/run.py\n```\n"
+    directory = _with_scripts(tmp_path, body)
+    assert "relative-bundled-script" in codes(check_skill(directory, tmp_path), ERROR)
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "# Runs the bundled checker (scripts/check.py) against the project",
+        "cmd  # see also; scripts/check.py docs",
+        "grep x | sort  # the pipe | scripts/check.py is not used",
+    ],
+)
+def test_a_shell_comment_that_mentions_a_script_is_not_an_invocation(tmp_path, line):
+    body = f"```bash\n{line}\n```\n"
+    directory = _with_scripts(tmp_path, body)
+    (directory / "scripts" / "check.py").write_text("print('x')\n", encoding="utf-8")
+    assert "relative-bundled-script" not in codes(check_skill(directory, tmp_path), ERROR)
+
+
+@pytest.mark.parametrize("info", ["", "bash"])
+def test_a_cd_into_the_skill_directory_holds_in_any_fence(tmp_path, info):
+    body = f'```{info}\ncd "${{CLAUDE_SKILL_DIR}}"\npython3 scripts/run.py\n```\n'
+    directory = _with_scripts(tmp_path, body)
+    assert "relative-bundled-script" not in codes(check_skill(directory, tmp_path), ERROR)
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        'cd "${CLAUDE_SKILL_DIR}/.." && python3 scripts/run.py',
+        "cd ${CLAUDE_SKILL_DIR}/scripts && python3 scripts/run.py",
+        "cd $CLAUDE_SKILL_DIR_OTHER && python3 scripts/run.py",
+    ],
+)
+def test_a_cd_that_does_not_land_in_the_skill_dir_is_no_exemption(tmp_path, line):
+    directory = _with_scripts(tmp_path, f"```bash\n{line}\n```\n")
+    assert "relative-bundled-script" in codes(check_skill(directory, tmp_path), ERROR)
+
+
+@pytest.mark.parametrize(
+    "line",
+    ['cd "${CLAUDE_SKILL_DIR}/" && ./scripts/run.sh', "cd ${CLAUDE_SKILL_DIR}; ./scripts/run.sh"],
+)
+def test_a_cd_to_exactly_the_skill_dir_is_still_an_exemption(tmp_path, line):
+    directory = _with_scripts(tmp_path, f"```bash\n{line}\n```\n")
+    assert check_skill(directory, tmp_path) == []
+
+
+@pytest.mark.parametrize(
+    "line",
+    ["git diff -- ./scripts/run.py", "cat ./scripts/run.sh", "chmod +x ./scripts/run.sh"],
+)
+def test_a_dot_slash_path_that_is_only_an_argument_is_not_a_run(tmp_path, line):
+    # Reading or diffing a project file does not execute the bundled script, and the
+    # suggested fix would change which file the command inspects.
+    directory = _with_scripts(tmp_path, f"```bash\n{line}\n```\n")
+    assert "relative-bundled-script" not in codes(check_skill(directory, tmp_path))
+
+
+@pytest.mark.parametrize(
+    "line", ["sudo ./scripts/run.sh", "exec scripts/run.sh", "time ./scripts/run.sh --all"]
+)
+def test_a_script_after_an_execution_wrapper_is_an_error(tmp_path, line):
+    directory = _with_scripts(tmp_path, f"```bash\n{line}\n```\n")
+    assert "relative-bundled-script" in codes(check_skill(directory, tmp_path), ERROR)
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        'printf "%s" " # " && python3 scripts/run.py',
+        "echo 'a # b'; ./scripts/run.sh",
+        "echo \\# && python3 scripts/run.py",
+    ],
+)
+def test_a_quoted_or_escaped_hash_is_not_a_shell_comment(tmp_path, line):
+    directory = _with_scripts(tmp_path, f"```bash\n{line}\n```\n")
+    assert "relative-bundled-script" in codes(check_skill(directory, tmp_path), ERROR)
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        '(cd "${CLAUDE_SKILL_DIR}" && python3 scripts/run.py)\npython3 scripts/run.py',
+        '(cd "${CLAUDE_SKILL_DIR}" && true); python3 scripts/run.py',
+        'cd "${CLAUDE_SKILL_DIR}"\ncd -\npython3 scripts/run.py',
+        'cd "${CLAUDE_SKILL_DIR}" && cd /tmp && python3 scripts/run.py',
+        '(cd "${CLAUDE_SKILL_DIR}"\ntrue\n)\npython3 scripts/run.py',
+        'cd "${CLAUDE_SKILL_DIR}"; cd; python3 scripts/run.py',
+        'cd "${CLAUDE_SKILL_DIR}" || { cd /tmp && python3 scripts/run.py; }',
+    ],
+)
+def test_a_cd_holds_only_in_its_own_shell_scope(tmp_path, body):
+    directory = _with_scripts(tmp_path, f"```bash\n{body}\n```\n")
+    assert "relative-bundled-script" in codes(check_skill(directory, tmp_path), ERROR)
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        '(cd "${CLAUDE_SKILL_DIR}" && python3 scripts/run.py)',
+        'cd "${CLAUDE_SKILL_DIR}" && (python3 scripts/run.py)',
+        'echo "(" && cd "${CLAUDE_SKILL_DIR}"\npython3 scripts/run.py',
+        'cd "${CLAUDE_SKILL_DIR}" && echo "cd /tmp" && python3 scripts/run.py',
+        '(cd "${CLAUDE_SKILL_DIR}"\npython3 scripts/run.py\n)',
+        '(\ncd "${CLAUDE_SKILL_DIR}"\n./scripts/run.sh\n)',
+        'cd "${CLAUDE_SKILL_DIR}" && printf "%s" cd && python3 scripts/run.py',
+        'cd "${CLAUDE_SKILL_DIR}" && cat docs/cd.md && python3 scripts/run.py',
+        'cd "${CLAUDE_SKILL_DIR}"\nls cd\npython3 scripts/run.py',
+    ],
+)
+def test_a_cd_still_covers_commands_inside_its_scope(tmp_path, body):
+    directory = _with_scripts(tmp_path, f"```bash\n{body}\n```\n")
+    assert check_skill(directory, tmp_path) == []
