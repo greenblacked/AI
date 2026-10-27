@@ -1037,3 +1037,28 @@ The class also reaches a skill whose own input is trusted once it starts handing
 
 **First caught:** #255, the automated security reviewer, on `agent-extension-audit`,
 `document-extraction` and `data-visualisation`.
+
+### A skill runs its bundled script by a path relative to the working directory
+
+**Class.** A skill tells the agent to run a script it ships, as `python3 scripts/x.py` or
+`./scripts/x.sh`. The working directory is the user's project, not the skill, so the
+command runs whatever that project holds at the same relative path. A repository, vault,
+download or bisected commit that contains `scripts/x.py` has its own code run under the
+name of the skill's read-only checker, and the approval prompt shows a command that looks
+exactly like the one the skill advertised.
+
+**How it shows up.** A fenced command or a usage line naming `scripts/...` with no
+directory in front of it. It reads as correct because `scripts/x.py` is also how the
+skill's own prose and the validator's pointer check name the file. `git bisect run` makes
+it worse: every bisected commit supplies its own version of the path, or none.
+
+**The check that catches it.** For each command that runs a file under the skill's own
+`scripts/`, the path starts at `${CLAUDE_SKILL_DIR}`, which Claude Code substitutes with
+the directory holding the skill's `SKILL.md`, and the body says to use the skill's own
+copy by full path where a tool does not substitute it. A script the user's own project
+provides, such as a migration or drift script in a runbook, stays relative. No validator
+rule covers this yet, so review holds it from this entry.
+
+**First caught:** #328, the automated security reviewer, on `source-grounded-prompts`;
+the same pattern was then fixed in `work-to-note`, `family-history-research` and
+`ci-triage`, and before merge in `distinctive-page-design`.

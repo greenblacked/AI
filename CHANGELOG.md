@@ -30,6 +30,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 - `website-builder` gains a landing-page reference: extra intake, page structure, layout patterns, conversion copy, content realism, a ship list and the indexing decision.
 
+### Security
+
+- `work-to-note`, `family-history-research` and `ci-triage` run their bundled scripts from `${CLAUDE_SKILL_DIR}` rather than a path relative to the working directory, where a file the project or a bisected commit holds at the same path would run in their place.
+
 ## [0.2.2] - 2026-10-24
 
 ### Fixed
