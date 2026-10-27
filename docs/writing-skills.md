@@ -147,8 +147,10 @@ command, so fence a layout as `text`. A `./` path that is only an argument, as i
 reads a file rather than running it and is left alone. A command after
 `cd "${CLAUDE_SKILL_DIR}"` on the same line, or on a later line of the same fence, is
 accepted, because the `cd` has moved it into the skill; the operand has to be the skill
-directory itself, so `cd "${CLAUDE_SKILL_DIR}/.."` exempts nothing. The next fence starts
-back in the project.
+directory itself, so `cd "${CLAUDE_SKILL_DIR}/.."` exempts nothing. The `cd` holds only
+in its own shell scope: one inside `( … )` ends with the subshell, and any later `cd`,
+including `cd -`, replaces it. A `#` inside quotes is text, not a comment, so a command
+after it is still read. The next fence starts back in the project.
 
 **Shell scripts (`no-shebang`, `not-executable`).** Every `*.sh` under `scripts/` must
 start with `#!` and have the executable bit set. A script the model is told to run and

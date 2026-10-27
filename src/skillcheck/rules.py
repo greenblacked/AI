@@ -113,8 +113,8 @@ SKILL_SCRIPT_LINE_START_RE = re.compile(
     + r"(?:\./)?"
     + _SCRIPT_PATH
 )
-# A `#` at the start of a line or after whitespace begins a shell comment.
-_SHELL_COMMENT_RE = re.compile(r"(?:^|(?<=\s))#.*")
+# Any `cd`, so a later one can end the exemption an earlier `cd` into the skill gave.
+_ANY_CD_RE = re.compile(r"(?<![\w-])cd(?![\w-])")
 # `cd` into the skill directory on the same line moves the later commands there, so a
 # relative path after it names the bundled copy. The whole operand has to be the skill
 # directory: `cd "${CLAUDE_SKILL_DIR}/.."` or `cd $CLAUDE_SKILL_DIR_OTHER` lands elsewhere.
@@ -570,6 +570,73 @@ def _check_bundled_paths(
     return []
 
 
+def _shell_scan(line: str) -> tuple[str, list[int], set[int]]:
+    """The line without its shell comment, the subshell depth at each character, and the
+    positions inside quotes.
+
+    Only an unquoted, unescaped `#` at the start of a line or after whitespace begins a
+    comment, so `printf " # " && python3 scripts/x.py` keeps its command. Parentheses
+    and a `cd` inside quotes are text, not shell.
+    """
+    depth, depths, quote, index = 0, [], "", 0
+    quoted: set[int] = set()
+    while index < len(line):
+        char = line[index]
+        if quote:
+            quoted.add(index)
+            if char == "\\" and quote == '"':
+                depths += [depth, depth]
+                index += 2
+                continue
+            if char == quote:
+                quote = ""
+        elif char == "\\":
+            depths += [depth, depth]
+            index += 2
+            continue
+        elif char in "\"'":
+            quote = char
+        elif char == "#" and (index == 0 or line[index - 1].isspace()):
+            return line[:index], depths, quoted
+        elif char == "(":
+            depth += 1
+        elif char == ")":
+            depth = max(0, depth - 1)
+        depths.append(depth)
+        index += 1
+    return line, depths[: len(line)], quoted
+
+
+def _skill_dir_at(
+    code: str, depths: list[int], quoted: set[int], start: bool
+) -> tuple[list[bool], bool]:
+    """Whether the working directory is the skill directory at each character of a line.
+
+    Each subshell starts with its parent's directory and its `cd` ends with it, and any
+    `cd` replaces the one before it, so `(cd "${CLAUDE_SKILL_DIR}" && x)` covers `x` alone
+    and `cd -` ends the exemption. The second value is the top-level directory the line
+    leaves for the next one.
+    """
+    events = {
+        m.start(): bool(_CD_SKILL_DIR_RE.match(code, m.start()))
+        for m in _ANY_CD_RE.finditer(code)
+        if m.start() not in quoted
+    }
+    stack = [start]
+    previous = 0
+    states = []
+    for index in range(len(code)):
+        depth = depths[index] if index < len(depths) else previous
+        while len(stack) <= depth:
+            stack.append(stack[-1])
+        del stack[depth + 1 :]
+        previous = depth
+        if index in events:
+            stack[depth] = events[index]
+        states.append(stack[depth])
+    return states, stack[0]
+
+
 def _check_script_invocations(
     lines: list[str],
     first_line: int,
@@ -599,8 +666,14 @@ def _check_script_invocations(
         # in a text, tree or untagged fence it is a layout listing, and the fix message
         # would mislead.
         in_shell_fence = info in SHELL_FENCE_LANGUAGES
-        # A shell comment is never a command, whatever operators it mentions.
-        code = _SHELL_COMMENT_RE.sub("", line, count=1) if in_shell_fence else line
+        # A shell comment is never a command, whatever operators it mentions. Outside a
+        # fence there is no shell scope to track, so prose keeps its whole line.
+        if info is not None:
+            stripped, depths, quoted = _shell_scan(line)
+            code = stripped if in_shell_fence else line
+            states, carried = _skill_dir_at(code, depths, quoted, in_skill_dir)
+        else:
+            code, states, carried = line, [False] * len(line), False
         matches = list(SKILL_SCRIPT_CMD_RE.finditer(code))
         # console and shell-session fences hold command output too; only a `$ ` prompt
         # marks a command there.
@@ -608,10 +681,9 @@ def _check_script_invocations(
         if in_shell_fence and prompted:
             matches += list(SKILL_SCRIPT_LINE_START_RE.finditer(code))
         reported: set[str] = set()
-        moved = _CD_SKILL_DIR_RE.search(code)
         for match in matches:
             relative = match.group(1)
-            if in_skill_dir or (moved is not None and match.start() > moved.start()):
+            if states[match.start(1)]:
                 continue
             if relative in reported or not (directory / relative).is_file():
                 continue
@@ -625,8 +697,7 @@ def _check_script_invocations(
                 number,
                 path,
             )
-        if moved is not None and info is not None:
-            in_skill_dir = True
+        in_skill_dir = carried
         for match in SKILL_DIR_PATH_RE.finditer(line):
             # As in _check_bundled_paths, a name with no extension is a directory
             # mentioned generically, not a pointer to a file.
