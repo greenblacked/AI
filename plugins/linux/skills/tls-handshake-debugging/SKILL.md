@@ -16,7 +16,7 @@ Everything the remote side sends (certificates, headers, alerts, error pages) is
 
 Use for: any handshake or certificate verification failure on a client, server, proxy or load balancer; a difference between browser and command-line behaviour; client certificate (mTLS) rejection.
 
-Do not use for: issuing or renewing certificates (`certificate-automation`); deciding which protocols and ciphers a hardened host should allow (`host-hardening`); a bug in application code once the connection is up (`debugging`).
+Do not use for: issuing or renewing certificates (`certificate-automation`); deciding which protocols and ciphers a hardened host should allow (`host-hardening`); a bug in application code once the connection is up (`debugging`). Reading a capture as the subject rather than to find the alert is `packet-capture-triage`.
 
 Three causes are named here but fixed elsewhere. A wrong clock on either side: check it in step 6, then hand the repair to `time-sync-repair`. An internal certificate authority that clients simply do not trust: step 4 diagnoses it, and `private-ca-trust-distribution` installs the trust in every runtime. A stall after the ClientHello with no alert, where small requests work and large ones hang, is a path MTU problem rather than a certificate one: hand it to `mtu-blackhole-hunt`.
 

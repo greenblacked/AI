@@ -14,7 +14,7 @@ The usual failure is lowering MTU everywhere until the symptom goes away. That h
 
 Use for: handshakes that complete and transfers that stall, a service that works from the office and hangs over a VPN or inside an overlay, and sessions that hang when output grows.
 
-Do not use for: a firewall rule that drops all traffic to a port (`firewall-rule-tracing`); a TLS handshake that itself fails with an alert or certificate error (`tls-handshake-debugging`).
+Do not use for: a firewall rule that drops all traffic to a port (`firewall-rule-tracing`); a TLS handshake that itself fails with an alert or certificate error (`tls-handshake-debugging`). Reading a capture as the subject rather than for the MTU signature is `packet-capture-triage`.
 
 ## Workflow
 

@@ -19,8 +19,15 @@ RUFF_PIN := $(strip $(shell sed -En "s/^ *RUFF_VERSION: *[\"']?([^\"'\#]+)[\"']?
 MARKDOWNLINT_PIN := 0.23.2
 CODESPELL_PIN := $(strip $(shell sed -En "s/^ *CODESPELL_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml))
 ACTIONLINT_PIN := $(strip $(shell sed -En "s/^ *ACTIONLINT_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml))
+# The same pins the test job installs, for the container that reruns the suite elsewhere.
+PYTEST_PIN := $(strip $(shell sed -En "s/^ *PYTEST_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml))
+PYTEST_XDIST_PIN := $(strip $(shell sed -En "s/^ *PYTEST_XDIST_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml))
+PYTEST_COV_PIN := $(strip $(shell sed -En "s/^ *PYTEST_COV_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml))
+COVERAGE_PIN := $(strip $(shell sed -En "s/^ *COVERAGE_VERSION: *[\"']?([^\"'\#]+)[\"']?.*/\1/p" .github/workflows/ci.yml))
+DOCKER ?= docker
+DOCKER_TEST_IMAGE ?= ai-skills-test:local
 
-.PHONY: help validate catalogue providers test test-browser coverage lint lint-strict _lint package attribution naming portable install clean release-prepare release site
+.PHONY: help validate catalogue providers test docker-test test-browser coverage lint lint-strict _lint package attribution naming portable install clean release-prepare release site
 
 help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-17s\033[0m %s\n", $$1, $$2}'
@@ -43,6 +50,17 @@ providers: ## Regenerate the README's AI tools table from providers.json
 
 test: ## Run the validator's own test suite, one worker per core
 	PYTHONPATH=src $(PYTHON) -m pytest -n auto -m "not browser"
+
+docker-test: ## Run validate, catalogue and the test suite in a pinned Python container
+	$(DOCKER) build -f docker/test.Dockerfile \
+		--build-arg PYTEST_VERSION=$(PYTEST_PIN) \
+		--build-arg PYTEST_XDIST_VERSION=$(PYTEST_XDIST_PIN) \
+		--build-arg PYTEST_COV_VERSION=$(PYTEST_COV_PIN) \
+		--build-arg COVERAGE_VERSION=$(COVERAGE_PIN) \
+		-t $(DOCKER_TEST_IMAGE) .
+	$(DOCKER) run --rm --network none --read-only \
+		--tmpfs /tmp:rw,exec,nosuid,nodev \
+		$(DOCKER_TEST_IMAGE)
 
 test-browser: ## Drive the built site in Chromium (playwright; BROWSER_EXECUTABLE=...)
 	PYTHONPATH=src BROWSER_EXECUTABLE="$(BROWSER_EXECUTABLE)" BROWSER_CHANNEL="$(BROWSER_CHANNEL)" \

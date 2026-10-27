@@ -1207,6 +1207,7 @@ make validate   # skills, subagents, commands, rules and the manifest — the va
 make catalogue  # listing ceilings, README and CI drift, workflows, the Makefile, shell, providers — the catalogue job
 make portable   # flatten every skill for ChatGPT, Grok and other assistants
 make test       # pytest -n auto — the test job
+make docker-test  # validate, catalogue and test in a pinned Python container
 make coverage   # the same run under pytest-cov, failing below the floor
 make test-browser  # the built site in Chromium — the site-browser job
 make lint       # ruff, markdownlint, yamllint, actionlint, codespell — the lint jobs
@@ -1218,6 +1219,11 @@ make naming     # file names, branch and commits against naming conventions — 
 
 `make validate` passes `--strict`, exactly as the job does, so a warning fails locally
 before it fails in CI.
+
+`make docker-test` is the same three commands in a digest-pinned Python 3.13 image, with
+the pytest and coverage versions read from `ci.yml`, no network and a read-only
+filesystem. Reach for it when the host's interpreter or toolchain is what you suspect,
+not instead of `make coverage`, which writes its `.coverage` file into the tree.
 
 `make test` needs `pytest-xdist` installed alongside `pytest`, and `make coverage` also
 needs `pytest-cov` and `coverage`; the floor is enforced by the `coverage report` that

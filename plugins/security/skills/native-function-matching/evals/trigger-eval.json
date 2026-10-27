@@ -1,0 +1,22 @@
+[
+  {"query": "what changed between version 1.2.0 and 1.2.1 of this closed source service binary", "should_trigger": true},
+  {"query": "did the license check function survive the vendor's update, compare the two builds", "should_trigger": true},
+  {"query": "I have the patched and unpatched versions of this driver, which functions did the patch touch", "should_trigger": true},
+  {"query": "match the stripped symbols between these two ELF binaries so I can diff them", "should_trigger": true},
+  {"query": "the vendor says they fixed the auth bug, how do I confirm the function changed in the new binary", "should_trigger": true},
+  {"query": "compare the arm64 slices of these two Mach-O builds by function, not by whole file hash", "should_trigger": true},
+  {"query": "one build has symbols and the older one is stripped, can I still pair the functions", "should_trigger": true},
+  {"query": "which functions are new in this release and which disappeared, from the two binaries", "should_trigger": true},
+  {"query": "I need a function level diff of our own binaries before and after the compiler upgrade", "should_trigger": true},
+  {"query": "how do I keep both procedure inventories so the comparison can be reviewed later", "should_trigger": true},
+  {"query": "I have one binary and no source and want to understand the config parser", "should_trigger": false, "expected": "reverse-engineering"},
+  {"query": "which version of the vulnerable library are we actually shipping, and is it reachable", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "compare the two firmware images to see what the update changed", "should_trigger": false, "expected": "firmware-analysis"},
+  {"query": "prepare and publish a patch release for our desktop client", "should_trigger": false, "expected": "release-strategy"},
+  {"query": "the app's Mach-O is encrypted, is it readable at all", "should_trigger": false, "expected": "app-bundle-analysis"},
+  {"query": "review this patch to the native parser for an out of bounds read", "should_trigger": false, "expected": "security-review"},
+  {"query": "explain what this APK's network calls do by reading the dex", "should_trigger": false, "expected": "reverse-engineering"},
+  {"query": "our build is slow because the same compiler step reruns for every target, why does it miss the cache", "should_trigger": false, "expected": "build-cache-miss-hunt"},
+  {"query": "the process crashed and all I have is the core dump, help me read the crashing thread", "should_trigger": false, "expected": "native-core-dump-analysis"},
+  {"query": "the service fails to start with a glibc symbol version error after the base image change", "should_trigger": false, "expected": "native-linking-errors"}
+]
