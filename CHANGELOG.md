@@ -35,6 +35,7 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
+- `relative-bundled-script` scopes a `cd` into `${CLAUDE_SKILL_DIR}` to its own subshell and ends it at the next `cd`, and reads a `#` inside quotes as text rather than a comment, so a relative run after either no longer passes unreported.
 - `skillcheck` reads a quoted frontmatter value strictly, as a YAML parser does: the first unescaped closing quote ends it, and a quote that does not close on its line, text after the closing quote (a non-breaking space included), or `#` with no space before it, or a double-quoted escape outside `\\`, `\"`, `\n`, `\t` and `\u` plus four hex digits, is `ambiguous-yaml`. `"a "quoted" word"` and `'it's here'` used to validate clean and fail on upload, and a trailing `# comment` after a quoted value was kept as part of it.
 
 ### Security
