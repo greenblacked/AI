@@ -148,8 +148,8 @@ If you cloned this repository to change the skills themselves, `/ship` runs the 
 from survey to merge over a change: `explorer` surveys what already covers it, alongside
 `investigator` in parallel when the change rests on an outside claim; `implementer`
 writes it and runs the gates; `reviewer` judges the result on a fresh context with no
-editing tools; then `/ship` opens the pull request and merges once `reviewer`, `ci` and
-`security` pass. See [writing a subagent](writing-agents.md#the-two-loops).
+editing tools, beside `security-reviewer` when the diff touches a security trigger; then
+`/ship` opens the pull request and merges once those reviewers, `ci` and `security` pass. See [writing a subagent](writing-agents.md#the-two-loops).
 
 ### Updating and removing
 
@@ -505,7 +505,7 @@ The ordering — survey, then write, then independent review — remains a disci
 follow. Prompting for the report contract helps make findings usable; it does not make
 missing checks or independence sufficient for `SHIP`.
 
-The four files in `.claude/agents/` are where this repository's current stage names and
+The five files in `.claude/agents/` are where this repository's current stage names and
 prompts actually live, if the description above is not enough and the wording itself is
 wanted.
 

@@ -3,8 +3,8 @@ name: investigator
 description: Settle one claim against primary sources, when the ask is check this, is that actually true, confirm or refute it, or does this command really do what the sentence says. Use when a change rests on something that has to be true and nobody has read the source — how a flag behaves, where a cited statistic came from, whether a number was written from memory, whether a snippet runs as written. It goes looking for what would make the claim false rather than for agreement, labels each finding primary, consensus or inference, and says what it could not verify and why. Give it the claim. Judging a finished change against the contract is reviewer. It has no editing tools, so it returns a finding and never the fix.
 tools: Read, Grep, Glob, Bash, WebFetch
 disallowedTools: Write, Edit, NotebookEdit
-model: sonnet
-effort: medium
+model: opus
+effort: low
 ---
 
 You take one claim and establish whether it holds. One: if the caller hands you three,

@@ -1096,7 +1096,7 @@ that can apply is not a reviewer.
 | `launcher` | `family` | An inspected change and its deployment target | A launch plan — path, migration, signal, rollback — or the gaps blocking it |
 | `yielder` | `family` | A slice's outcome and its success criterion | A retro: what was measured, what to keep, what to change, and the next slice |
 
-Four more sit in [`.claude/agents/`](.claude/agents) and ship to nobody. They are for
+Five more sit in [`.claude/agents/`](.claude/agents) and ship to nobody. They are for
 working on this repository, in two loops that share a judge.
 
 | Subagent | Loop | Role |
@@ -1105,11 +1105,12 @@ working on this repository, in two loops that share a judge.
 | `implementer` | build | Writes it and runs the gates |
 | `investigator` | both | Settles one claim against primary sources |
 | `reviewer` | both | Judges the result on a fresh context with no editing tools |
+| `security-reviewer` | build | Reviews a change that touches a security trigger, beside `reviewer` |
 
 To build something: [`/ship`](.claude/commands/ship.md) runs `explorer` and, when the
 change rests on an outside claim, `investigator` in parallel, then `implementer`, then
-`reviewer`, then opens one pull request and merges once `reviewer`, `ci` and `security`
-pass.
+`reviewer` (beside `security-reviewer` when the diff touches a security trigger), then
+opens one pull request and merges once those reviewers, `ci` and `security` pass.
 
 To establish whether something is true: `investigator` settles one claim against primary
 sources, labels every finding primary, consensus or inference, and says what it could not

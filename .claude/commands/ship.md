@@ -1,7 +1,7 @@
 ---
-description: Run a change to this repository from survey to merge — two research agents in parallel, implementer writes it and runs the gates, reviewer judges it, then one pull request merged only once reviewer, ci and security pass.
+description: Run a change to this repository from survey to merge — two research agents in parallel, implementer writes it and runs the gates, reviewer judges it, then one pull request merged only once reviewer (and security-reviewer, when the diff touches a security trigger), ci and security pass.
 argument-hint: '[what to change, for example "add a skill for reading flamegraphs"]'
-allowed-tools: Agent(explorer), Agent(investigator), Agent(implementer), Agent(reviewer), Read, Grep, Glob, Bash(make:*), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git fetch:*), Bash(git switch:*), Bash(git worktree:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*)
+allowed-tools: Agent(explorer), Agent(investigator), Agent(implementer), Agent(reviewer), Agent(security-reviewer), Read, Grep, Glob, Bash(make:*), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git fetch:*), Bash(git switch:*), Bash(git worktree:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*)
 disable-model-invocation: true
 ---
 
@@ -215,6 +215,14 @@ back to `implementer`, and repeat from stage 3 (keep the "Author: repository own
 recommendation rather than applying anything yourself; the split is what keeps the
 reviewer's verdict independent of the hand that wrote the change.
 
+When the diff touches a workflow, a `permissions:` block, a token or secret, a new
+third-party action or tool, a new API write in a shipped script, a `workflow_run`,
+`schedule` or `pull_request_target` trigger, `.claude/settings.json` or a hook, the
+`allowed-tools` of a skill that reads third-party input, or anything credential-shaped or
+personal, delegate to a fresh `security-reviewer` in parallel with `reviewer`, with the
+same inputs. Both verdicts must be `SHIP` before stage 5; a `FIX` or `STOP` from either
+is handled as above.
+
 ## 5. Land
 
 Once `reviewer` returns `SHIP`: in the default case, this conversation's own checkout is
@@ -263,7 +271,7 @@ earlier quote describes code that is no longer on the branch.
 
 ## 7. Merge
 
-Merge only once the latest `reviewer` verdict is `SHIP`, `ci` and `security` are both
+Merge only once the latest `reviewer` verdict is `SHIP` (and the latest `security-reviewer` verdict too, when stage 4 ran one), `ci` and `security` are both
 green on the commit that verdict actually judged, and no blocking finding from any
 reviewer — human or automated — is left unaddressed. When the live check is a pre-merge
 run or the PR's own CI run, that `SHIP` has to come from a round that saw and quoted the
