@@ -8,6 +8,18 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-27
+
+### Changed
+
+- The release attaches one `skills-vX.Y.Z.zip` holding every `.skill` archive, beside the portable bundle, instead of one asset per skill. The v0.3.0 run uploaded 517 archives plus the bundle, one request per asset, and was stopped by `HTTP 403: You have exceeded a secondary rate limit` after about 457, leaving a draft; two assets stay far below GitHub's documented limit on content-creating requests. The per-skill archives are still built, verified and served from the catalogue site.
+
+### Fixed
+
+- A `release.yml` re-run after a failed run no longer passes green with the release left as an unpublished draft. `gh release view` finds a draft by tag, so the re-run took the upload branch, which exits 0 and leaves the draft as it was. A found draft is now deleted (the tag stays) and the release created again from the tagged commit, never published as found, because a draft needs no tag and anyone with write access could plant one; the step also fails unless the release is public and holds exactly the two expected assets. A re-run uses the tagged commit's `release.yml`, so this recovery applies only to tags cut after this change.
+
+## [0.3.0] - 2026-10-27
+
 ### Added
 
 - `security-reviewer` subagent in `.claude/agents/`, run by `/ship` beside `reviewer` when a diff touches a workflow, a `permissions:` block, a token or secret, a new third-party action or tool, a new API write in a shipped script, a `workflow_run`, `schedule` or `pull_request_target` trigger, `.claude/settings.json` or a hook, the `allowed-tools` of a skill that reads third-party input, or anything credential-shaped or personal. It walks the `security-review` skill's classes against `AGENTS.md`'s Security considerations, states a reachable path, the impact and the smallest fix for each finding, holds no editing tools, and both verdicts must be `SHIP` before merge. Fable at medium effort, with an eval set at `.claude/agents/evals/security-reviewer.json`.
@@ -32,7 +44,6 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
-- The release attaches one `skills-vX.Y.Z.zip` holding every `.skill` archive, beside the portable bundle, instead of one asset per skill. The v0.3.0 run uploaded 517 archives plus the bundle one request at a time and was stopped by `HTTP 403: You have exceeded a secondary rate limit` after about 457, leaving a draft; two assets stay far below GitHub's documented limit on content-creating requests. The per-skill archives are still built, verified and served from the catalogue site.
 - Retiered the repository's own subagents in `.claude/agents/`: `explorer` to Haiku at high effort, `investigator` to Opus at medium effort, `implementer` to Sonnet at medium effort, and `reviewer` to Opus at medium effort (it had Fable and no effort line). `CLAUDE.md`, `AGENTS.md`, `/ship`, the README and `docs/writing-agents.md`'s tier tables follow.
 - `scripts/run_review_benchmark.py` takes `--agent NAME` (default `reviewer`) and reads cases from `.claude/agents/benchmarks/<NAME>/`; `security-reviewer` gets the read-only subset of the allowlist and a brief without the invitation to run the gates, plus two cases (an oversized grant with a `${{ }}` title injection, and a clean timeout bump).
 - `/ship` re-evaluates its security triggers against the final diff after any stage 6 fix and runs a fresh `security-reviewer` beside `reviewer` when one matches; merge needs every applicable verdict `SHIP` on the final head.
@@ -40,7 +51,6 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Fixed
 
-- A `release.yml` re-run after a failed run no longer passes green with the release left as an unpublished draft. `gh release view` finds a draft by tag, so the re-run took the upload branch, which exits 0 and leaves the draft as it was. A found draft is now deleted (the tag stays) and the release created again from the tagged commit, never published as found, because a draft needs no tag and anyone with write access could plant one; the step also fails unless the release is public and holds exactly the two expected assets. A re-run uses the tagged commit's `release.yml`, so this recovery applies only to tags cut after this change.
 - `relative-bundled-script` reads an unprompted line in a `console` or `shell-session` fence as output, and reads `$ cd "${CLAUDE_SKILL_DIR}"` there as a directory change, so an accurate transcript is no longer rejected.
 - `relative-bundled-script` scopes a `cd` into `${CLAUDE_SKILL_DIR}` to its own subshell and ends it at the next `cd`, and reads a `#` inside quotes as text rather than a comment, so a relative run after either no longer passes unreported.
 - `skillcheck` reads a quoted frontmatter value strictly, as a YAML parser does: the first unescaped closing quote ends it, and a quote that does not close on its line, text after the closing quote (a non-breaking space included), or `#` with no space before it, or a double-quoted escape outside `\\`, `\"`, `\n`, `\t` and `\u` plus four hex digits, is `ambiguous-yaml`. `"a "quoted" word"` and `'it's here'` used to validate clean and fail on upload, and a trailing `# comment` after a quoted value was kept as part of it.
@@ -1031,7 +1041,9 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/greenblacked/AI/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/greenblacked/AI/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/greenblacked/AI/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/greenblacked/AI/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/greenblacked/AI/compare/v0.1.13...v0.2.0
