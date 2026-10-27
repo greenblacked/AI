@@ -134,7 +134,7 @@ repository's contributor and shipped commands. Keep the flag on commands, not po
 | --- | --- | --- | --- |
 | `not-utf8` | error | The file is not valid UTF-8. | Re-save it as UTF-8. Reported rather than raised, because one mis-encoded file used to abort validation for every other command. |
 | `frontmatter` | error | The block is missing, unterminated, or not a flat mapping. | Fix the syntax at the reported line. |
-| `ambiguous-yaml` | error | A value parses here but a real YAML parser reads it differently, as in [writing a skill](writing-skills.md#frontmatter-and-body); an unquoted `argument-hint: [name]` is the usual cause here — it reads as a list, not a string. | Quote the value: `argument-hint: '[name]'`. |
+| `ambiguous-yaml` | error | A value parses here but a real YAML parser reads it differently, as in [writing a skill](writing-skills.md#frontmatter-and-body); an unquoted `argument-hint: [name]` is the usual cause here — it reads as a list, not a string. A quoted value with an unescaped quote inside it, an unclosed quote, text after the closing quote, or a double-quoted escape other than `\\`, `\"`, `\n`, `\t` and `\u` with four hex digits is the same error. | Quote the value: `argument-hint: '[name]'`, escaping any quote inside it; for an unsupported escape, drop the backslash or use single quotes. |
 | `unknown-key` | error | A key outside the five above. `name` is the usual cause. | Delete it; the filename is the name. |
 | `bad-command-name` | error | The filename is not a lowercase hyphenated slug. | Rename the file. |
 | `missing-description` | error | No usable `description`, so the picker shows nothing. | Write one line. |

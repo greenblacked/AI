@@ -276,22 +276,28 @@ def test_a_unicode_escape_is_decoded():
     assert front.values["description"] == "smile " + chr(0x263A)
 
 
-def test_an_unrecognised_or_truncated_escape_is_left_verbatim():
-    # A backslash followed by something that is not one of the escapes this reader
-    # decodes is passed through rather than guessed at: better an unchanged `\z` or a
-    # truncated `\u12` than a wrong character silently substituted for it.
-    backslash = chr(92)
-    not_hex = '"' + backslash + "u12zz" + '"'
-    front = parse("---\nname: demo\ndescription: " + not_hex + "\n---\n")
-    assert front.values["description"] == backslash + "u12zz"
+_BS = chr(92)
 
-    truncated = '"' + backslash + "u12" + '"'
-    front = parse("---\nname: demo\ndescription: " + truncated + "\n---\n")
-    assert front.values["description"] == backslash + "u12"
 
-    unknown = '"' + backslash + "z" + '"'
-    front = parse("---\nname: demo\ndescription: " + unknown + "\n---\n")
-    assert front.values["description"] == backslash + "z"
+@pytest.mark.parametrize(
+    "escape",
+    ["'", "q", "#", "u12", "uZZZZ", "x41", "a", " ", "/", "0", "u12zz"],
+)
+def test_an_unsupported_double_quoted_escape_is_ambiguous_yaml(escape):
+    # PyYAML rejects some of these and loads a different value for the rest; this reader
+    # decodes only five escapes, so anything else is refused with the line number.
+    with pytest.raises(FrontmatterError) as caught:
+        _description('"a' + _BS + escape + 'b"')
+    assert caught.value.code == "ambiguous-yaml"
+    assert caught.value.line == 3
+    assert "single quotes" in str(caught.value)
+
+
+def test_a_non_breaking_space_before_a_comment_is_not_whitespace():
+    # PyYAML raises ParserError; YAML whitespace is a space or a tab only.
+    with pytest.raises(FrontmatterError) as caught:
+        _description('"a"' + chr(0xA0) + "# c")
+    assert caught.value.code == "ambiguous-yaml"
 
 
 def test_an_inline_comment_is_dropped_as_yaml_drops_it():
@@ -316,3 +322,118 @@ def test_every_recorded_block_scalar_resolves_as_pyyaml_resolves_it(indicator, l
     # cases replay here so the guarantee holds without PyYAML installed.
     text = "---\nname: demo\ndescription: " + indicator + "\n" + "\n".join(lines) + "\n---\n"
     assert parse(text).values["description"] == expected
+
+
+def _description(value):
+    return parse(f"---\nname: demo\ndescription: {value}\n---\n").values["description"]
+
+
+# Each row was checked against PyYAML 6 when written: the first group is what it rejects,
+# the second what it loads. A reader that accepts the first group validates clean here
+# and then fails on upload, which is the whole reason the reader is strict.
+@pytest.mark.parametrize(
+    "value",
+    [
+        '"a "quoted" word"',
+        "'it's here'",
+        '"unclosed',
+        "'unclosed",
+        '"a" trailing',
+        '"a\\"',
+    ],
+)
+def test_a_malformed_quoted_scalar_is_ambiguous_yaml(value):
+    with pytest.raises(FrontmatterError) as caught:
+        _description(value)
+    assert caught.value.code == "ambiguous-yaml"
+    assert caught.value.line == 3
+
+
+@pytest.mark.parametrize("value", ['"a"#x', "'a'#x"])
+def test_a_comment_with_no_space_after_a_closing_quote_says_to_add_the_space(value):
+    # PyYAML tolerates this and loads 'a'; this reader does not, because YAML's grammar
+    # requires the space and other parsers hold to it. The message must name that cause,
+    # not claim a rejection that does not happen or blame an unescaped quote.
+    with pytest.raises(FrontmatterError) as caught:
+        _description(value)
+    assert caught.value.code == "ambiguous-yaml"
+    assert caught.value.line == 3
+    assert "space" in str(caught.value)
+    assert "Escape it" not in str(caught.value)
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ('"a" # comment', "a"),
+        ("'a' # comment", "a"),
+        ('"a"   # comment', "a"),
+        ('"a\\" b"', 'a" b'),
+        ("'it''s fine'", "it's fine"),
+        ('"a\\\\"', "a\\"),
+        ('"a\\\\" # c', "a\\"),
+        ('""', ""),
+        ("''", ""),
+        ('"a # not a comment"', "a # not a comment"),
+        ('plain "inner" quotes', 'plain "inner" quotes'),
+    ],
+)
+def test_a_well_formed_quoted_scalar_loads_like_yaml(value, expected):
+    assert _description(value) == expected
+
+
+def test_a_quoted_value_wrapped_onto_a_second_line_is_not_called_a_yaml_error():
+    # PyYAML folds this into 'first second'; this reader wants one line, and must not
+    # claim a real parser rejects a value that it accepts.
+    with pytest.raises(FrontmatterError) as caught:
+        parse('---\nname: demo\ndescription: "first\n  second"\n---\n')
+    assert caught.value.code == "ambiguous-yaml"
+    assert "rejects" not in str(caught.value)
+    assert "same line" in str(caught.value)
+    assert "'>' block" in str(caught.value)
+
+
+def test_a_lone_trailing_backslash_is_described_as_such():
+    with pytest.raises(FrontmatterError) as caught:
+        _description('"a' + _BS)
+    assert caught.value.code == "ambiguous-yaml"
+    assert "lone backslash" in str(caught.value)
+    assert "not one this validator supports" not in str(caught.value)
+
+
+def test_a_short_unicode_escape_is_shown_without_the_closing_quote():
+    with pytest.raises(FrontmatterError) as caught:
+        _description('"a' + _BS + 'u12"')
+    assert '"' not in str(caught.value).split("escape", 1)[1].split("in a double")[0]
+
+
+@pytest.mark.parametrize("value", ['"a"' + chr(0xA0), '"a"' + chr(0xA0) * 2, '""' + chr(0xA0)])
+def test_a_non_breaking_space_after_the_closing_quote_is_refused(value):
+    # PyYAML raises ParserError; str.strip() would have removed the character first.
+    with pytest.raises(FrontmatterError) as caught:
+        _description(value)
+    assert caught.value.code == "ambiguous-yaml"
+
+
+@pytest.mark.parametrize("value", ['"a\\"', '"C:\\\\temp\\"'])
+def test_an_escaped_closing_quote_is_named_as_such(value):
+    with pytest.raises(FrontmatterError) as caught:
+        _description(value)
+    assert caught.value.code == "ambiguous-yaml"
+    assert "escape" in str(caught.value)
+    assert "wraps" not in str(caught.value)
+
+
+def test_a_non_breaking_space_before_a_comment_survives_the_comment_strip():
+    # PyYAML loads the first as a non-breaking space and rejects the second; stripping the
+    # NBSP along with the spaces turned the value into an empty wrapped block.
+    assert _description("\xa0 #x") != ""
+    with pytest.raises(FrontmatterError):
+        parse("---\nname: demo\ndescription: \xa0 #x\n  foo bar\n---\n")
+
+
+def test_crlf_line_endings_load_the_same_values_as_lf():
+    # package_skills zips the raw bytes and verify_archives parses them without the
+    # newline translation Path.read_text applies, so a trailing \r must not reach a value.
+    text = '---\nname: demo\ndescription: "a b"  # note\ntitle: plain\n---\n'
+    assert parse(text.replace("\n", "\r\n")).values == parse(text).values
