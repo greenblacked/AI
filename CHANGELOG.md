@@ -32,7 +32,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
-- Retiered the repository's own subagents in `.claude/agents/`: `explorer` to Haiku at high effort, `investigator` to Opus at low effort, `implementer` to Sonnet at medium effort, and `reviewer` to Opus at medium effort (it had Fable and no effort line). `CLAUDE.md`, `AGENTS.md`, `/ship`, the README and `docs/writing-agents.md`'s tier tables follow.
+- Retiered the repository's own subagents in `.claude/agents/`: `explorer` to Haiku at high effort, `investigator` to Opus at medium effort, `implementer` to Sonnet at medium effort, and `reviewer` to Opus at medium effort (it had Fable and no effort line). `CLAUDE.md`, `AGENTS.md`, `/ship`, the README and `docs/writing-agents.md`'s tier tables follow.
+- `scripts/run_review_benchmark.py` takes `--agent NAME` (default `reviewer`) and reads cases from `.claude/agents/benchmarks/<NAME>/`; `security-reviewer` gets the read-only subset of the allowlist and a brief without the invitation to run the gates, plus two cases (an oversized grant with a `${{ }}` title injection, and a clean timeout bump).
+- `/ship` re-evaluates its security triggers against the final diff after any stage 6 fix and runs a fresh `security-reviewer` beside `reviewer` when one matches; merge needs every applicable verdict `SHIP` on the final head.
 - `website-builder` gains a landing-page reference: extra intake, page structure, layout patterns, conversion copy, content realism, a ship list and the indexing decision.
 
 ### Fixed

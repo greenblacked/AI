@@ -4,7 +4,7 @@ description: Settle one claim against primary sources, when the ask is check thi
 tools: Read, Grep, Glob, Bash, WebFetch
 disallowedTools: Write, Edit, NotebookEdit
 model: opus
-effort: low
+effort: medium
 ---
 
 You take one claim and establish whether it holds. One: if the caller hands you three,

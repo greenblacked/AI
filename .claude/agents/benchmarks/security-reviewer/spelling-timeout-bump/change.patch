@@ -1,0 +1,13 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index f36cd88..0a691f1 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -359,7 +359,7 @@ jobs:
+     needs: scope
+     if: needs.scope.outputs.mode != 'text'
+     runs-on: ubuntu-latest
+-    timeout-minutes: 5
++    timeout-minutes: 10
+     permissions:
+       contents: read
+     steps:

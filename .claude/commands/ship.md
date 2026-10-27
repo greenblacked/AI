@@ -261,7 +261,13 @@ them goes to `implementer` with that finding alone (keep the "Author: repository
 run, the fix changes the code it describes, so re-make it and get the new quote before
 the fix goes to `reviewer` — one fresh round has to see the current quote, not a stale
 one, so re-quoting after that round would only buy a second round for no reason. Then
-send the fix to a fresh `reviewer` (again with "Author: repository owner"); once it returns `SHIP`, the fix lands as a new commit
+send the fix to a fresh `reviewer` (again with "Author: repository owner"). A fix can
+introduce a security trigger the first diff never had, or change one `security-reviewer`
+already cleared, so before delegating re-read stage 4's trigger list against the final
+diff, the whole change against base and not only the fix. When any trigger matches, run a
+fresh `security-reviewer` in parallel with that `reviewer`, with the same inputs; an
+earlier verdict from it describes code that is no longer on the branch. Once every
+verdict that applies returns `SHIP`, the fix lands as a new commit
 on the same branch — never a rewrite of the one already pushed. Push it, and wait for
 `ci`, `security` and the automated review again; a fix is not proven until the same three
 have run on the commit that made it. When the live check is the PR's own CI run instead,
@@ -271,7 +277,9 @@ earlier quote describes code that is no longer on the branch.
 
 ## 7. Merge
 
-Merge only once the latest `reviewer` verdict is `SHIP` (and the latest `security-reviewer` verdict too, when stage 4 ran one), `ci` and `security` are both
+Merge only once the latest `reviewer` verdict is `SHIP` and, whenever the final diff
+touches a stage 4 security trigger (including one a stage 6 fix introduced), the latest
+`security-reviewer` verdict is `SHIP` too, both given on the head being merged; `ci` and `security` are both
 green on the commit that verdict actually judged, and no blocking finding from any
 reviewer — human or automated — is left unaddressed. When the live check is a pre-merge
 run or the PR's own CI run, that `SHIP` has to come from a round that saw and quoted the

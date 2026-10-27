@@ -1,0 +1,24 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index f36cd88..fb5db02 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -361,7 +361,7 @@ jobs:
+     runs-on: ubuntu-latest
+     timeout-minutes: 5
+     permissions:
+-      contents: read
++      contents: write
+     steps:
+       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+         with:
+@@ -376,6 +376,10 @@ jobs:
+       - run: |
+           set -Eeuo pipefail
+           python -m pip install "codespell==${CODESPELL_VERSION}"
++      - name: Label the run with the pull request title
++        run: |
++          set -Eeuo pipefail
++          echo "Spelling check for: ${{ github.event.pull_request.title }}"
+       - name: Check spelling
+         # This ran weekly with only_warn set, which is the shape of check this
+         # repository rejects everywhere else: nobody had to clear it, so nobody read

@@ -28,7 +28,7 @@ Claude-specific notes:
   which costs no editing, since neither agent holds an editing tool to lose — though a
   non-read-only command such as `make validate` may still prompt.
 - The models follow `.claude/agents/`, not the Codex split in `AGENTS.md`: Haiku at high
-  effort surveys (`explorer`), Opus at low effort settles a claim (`investigator`; `/ship`
+  effort surveys (`explorer`), Opus at medium effort settles a claim (`investigator`; `/ship`
   runs it beside `explorer` when the change rests on an outside claim, otherwise two
   `explorer`s on disjoint questions), Sonnet at medium effort implements (`implementer`),
   Opus at medium effort reviews (`reviewer`) and Fable at medium effort reviews security

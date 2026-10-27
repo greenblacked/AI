@@ -29,12 +29,23 @@ benchmark = load_script("run_review_benchmark.py")
 GIT = benchmark._git()
 
 REPO = Path(__file__).resolve().parent.parent
-CASES_DIR = REPO / ".claude" / "agents" / "benchmarks" / "reviewer"
+BENCHMARKS_DIR = REPO / ".claude" / "agents" / "benchmarks"
+CASES_DIR = BENCHMARKS_DIR / "reviewer"
+# Every agent that has a benchmark directory is held to the same drift guard.
+BENCHMARKED_AGENTS = ("reviewer", "security-reviewer")
 LESSON_HEADING_RE = re.compile(r"^### (.+)$", re.M)
 
 
 def real_cases() -> list[Path]:
-    return sorted(p.parent for p in CASES_DIR.glob("*/case.json"))
+    return sorted(
+        p.parent
+        for agent in BENCHMARKED_AGENTS
+        for p in (BENCHMARKS_DIR / agent).glob("*/case.json")
+    )
+
+
+def case_id(path: Path) -> str:
+    return f"{path.parent.name}/{path.name}"
 
 
 def real_lessons() -> set[str]:
@@ -45,14 +56,18 @@ def real_lessons() -> set[str]:
 # --- drift guard: the committed cases against the repository they are drawn from ----
 
 
-def test_at_least_one_case_of_each_kind_exists():
-    cases = [json.loads((c / "case.json").read_text(encoding="utf-8")) for c in real_cases()]
+@pytest.mark.parametrize("agent", BENCHMARKED_AGENTS)
+def test_at_least_one_case_of_each_kind_exists(agent):
+    cases = [
+        json.loads(p.read_text(encoding="utf-8"))
+        for p in (BENCHMARKS_DIR / agent).glob("*/case.json")
+    ]
     kinds = [c["kind"] for c in cases]
     assert kinds.count("defect") >= 1
     assert kinds.count("clean") >= 1
 
 
-@pytest.mark.parametrize("case_dir", real_cases(), ids=lambda p: p.name)
+@pytest.mark.parametrize("case_dir", real_cases(), ids=case_id)
 def test_case_json_matches_the_schema(case_dir):
     data = json.loads((case_dir / "case.json").read_text(encoding="utf-8"))
     assert data["kind"] in ("defect", "clean")
@@ -67,7 +82,7 @@ def test_case_json_matches_the_schema(case_dir):
         assert "must_mention" not in data
 
 
-@pytest.mark.parametrize("case_dir", real_cases(), ids=lambda p: p.name)
+@pytest.mark.parametrize("case_dir", real_cases(), ids=case_id)
 def test_case_patch_applies_to_the_current_tree(case_dir):
     result = subprocess.run(  # noqa: S603
         [GIT, "apply", "--check", str(case_dir / "change.patch")],
@@ -82,14 +97,14 @@ def test_case_patch_applies_to_the_current_tree(case_dir):
 @pytest.mark.parametrize(
     "case_dir",
     [c for c in real_cases() if json.loads((c / "case.json").read_text())["kind"] == "defect"],
-    ids=lambda p: p.name,
+    ids=case_id,
 )
 def test_defect_lesson_names_a_real_heading(case_dir):
     data = json.loads((case_dir / "case.json").read_text(encoding="utf-8"))
     assert data["lesson"] in real_lessons()
 
 
-@pytest.mark.parametrize("case_dir", real_cases(), ids=lambda p: p.name)
+@pytest.mark.parametrize("case_dir", real_cases(), ids=case_id)
 def test_case_directory_holds_exactly_the_patch_and_the_case_file(case_dir):
     # A stray third file in a case directory is either dead weight or something the
     # runner silently ignores; either way it is not part of the committed contract.
@@ -104,11 +119,12 @@ def test_case_directory_holds_exactly_the_patch_and_the_case_file(case_dir):
 PROTECTED_PATCH_PREFIXES = (
     ".claude/settings.json",
     ".claude/agents/reviewer.md",
+    ".claude/agents/security-reviewer.md",
     "scripts/hooks/",
 )
 
 
-@pytest.mark.parametrize("case_dir", real_cases(), ids=lambda p: p.name)
+@pytest.mark.parametrize("case_dir", real_cases(), ids=case_id)
 def test_case_patch_never_touches_the_reviewer_or_its_hook(case_dir):
     text = (case_dir / "change.patch").read_text(encoding="utf-8")
     touched = set(re.findall(r"^diff --git a/(\S+) b/\S+$", text, re.M))
@@ -154,8 +170,9 @@ def write_case(
     patch_text: str,
     must_mention: list[str] | None = None,
     lesson: str = "A count in prose goes stale",
+    agent: str = "reviewer",
 ) -> Path:
-    case_dir = root / ".claude" / "agents" / "benchmarks" / "reviewer" / name
+    case_dir = root / ".claude" / "agents" / "benchmarks" / agent / name
     case_dir.mkdir(parents=True)
     (case_dir / "change.patch").write_text(patch_text, encoding="utf-8")
     payload = {"kind": kind, "intent": intent}
@@ -166,13 +183,13 @@ def write_case(
     return case_dir
 
 
-def fake_query(intent: str) -> str:
+def fake_query(intent: str, agent: str = "reviewer") -> str:
     """The text the fake CLI extracts as its lookup key, from the runner's own prompt.
 
     The commit named earlier in the prompt does not affect this: the extraction is
     everything between "User message:\\n" and "\\n\\nReply", which is the intent alone.
     """
-    prompt = benchmark.build_prompt(intent, "0" * 40)
+    prompt = benchmark.build_prompt(intent, "0" * 40, agent)
     return prompt.split("User message:\n", 1)[1].split("\n\nReply", 1)[0].strip()
 
 
@@ -191,6 +208,7 @@ class Args:
     def __init__(self, **overrides):
         self.root = None
         self.case = None
+        self.agent = "reviewer"
         self.runs = 1
         self.jobs = 1
         self.max_turns = 40
@@ -1126,3 +1144,93 @@ def test_run_case_reports_every_model_with_its_cost(tmp_path, fake_claude):
     )
     assert any("claude-fable-5-1" in m and "1.0103" in m for m in result["models"])
     assert any("claude-haiku-4-5" in m and "0.0011" in m for m in result["models"])
+
+
+# --- --agent: one harness, a benchmark directory and a brief per agent --------------
+
+
+def test_build_command_names_the_reviewer_by_default_and_any_other_agent_on_request():
+    default = benchmark.build_command(None, None, 40, 2.00)
+    assert default[default.index("--agent") + 1] == "reviewer"
+    other = benchmark.build_command(None, None, 40, 2.00, "security-reviewer")
+    assert other[other.index("--agent") + 1] == "security-reviewer"
+
+
+def test_load_cases_reads_the_named_agents_directory(tmp_path):
+    root = make_repo(tmp_path)
+    write_case(root, "mine", kind="clean", intent="x", patch_text="", agent="security-reviewer")
+    write_case(root, "theirs", kind="clean", intent="y", patch_text="")
+    assert [c.name for c in benchmark.load_cases(root, None, "security-reviewer")] == ["mine"]
+    assert [c.name for c in benchmark.load_cases(root, None)] == ["theirs"]
+    with pytest.raises(SystemExit, match="no case named"):
+        benchmark.load_cases(root, "theirs", "security-reviewer")
+
+
+def test_security_reviewer_gets_no_gate_or_interpreter_permission():
+    # reviewer.md runs the gates; security-reviewer.md reads the diff and runs nothing
+    # else, so its allowlist is the read-only subset rather than the reviewer's.
+    reviewer = benchmark.allowed_tools("reviewer")
+    security = benchmark.allowed_tools("security-reviewer")
+    assert reviewer == benchmark.ALLOWED_TOOLS
+    assert "Bash(make test)" in reviewer
+    assert set(security) < set(reviewer)
+    assert not [t for t in security if t.startswith(("Bash(make", "Bash(python3"))]
+    assert "Bash(git diff *)" in security
+    assert not set(security) & set(benchmark.DISALLOWED_TOOLS)
+
+
+def test_the_security_brief_does_not_invite_running_the_gates():
+    reviewer = benchmark.build_prompt("Do a thing.", "a" * 40, "reviewer")
+    security = benchmark.build_prompt("Do a thing.", "a" * 40, "security-reviewer")
+    assert "running the gates is expected" in reviewer
+    assert "running the gates is expected" not in security
+    assert "Author: repository owner" in security
+    assert "git diff HEAD" in security
+    assert "Do a thing." in security
+    assert benchmark.build_prompt("Do a thing.", "a" * 40) == reviewer
+
+
+def test_main_with_agent_runs_that_agents_cases_through_that_agent(
+    tmp_path, fake_claude, monkeypatch, capsys
+):
+    root = make_repo(tmp_path)
+    patch = make_patch(root, "one\ntwo\nthree\nfour\n")
+    write_case(
+        root,
+        "sec-one",
+        kind="clean",
+        intent="Raise a timeout.",
+        patch_text=patch,
+        agent="security-reviewer",
+    )
+    argv_file = tmp_path / "argv.json"
+    monkeypatch.setenv("FAKE_ARGV_FILE", str(argv_file))
+    fake_claude(
+        {fake_query("Raise a timeout.", "security-reviewer"): cli_answer("Verdict: SHIP\n\nOK.")}
+    )
+    code = run_main(monkeypatch, "--root", str(root), "--agent", "security-reviewer")
+    assert code == 0
+    assert "false-alarm rate: 0%" in capsys.readouterr().out
+    argv = json.loads(argv_file.read_text())
+    assert argv[argv.index("--agent") + 1] == "security-reviewer"
+
+
+def test_main_without_agent_still_means_the_reviewer(tmp_path, fake_claude, monkeypatch):
+    root = make_repo(tmp_path)
+    patch = make_patch(root, "one\ntwo\nthree\nfour\n")
+    write_case(root, "only-one", kind="clean", intent="Add a line.", patch_text=patch)
+    argv_file = tmp_path / "argv.json"
+    monkeypatch.setenv("FAKE_ARGV_FILE", str(argv_file))
+    fake_claude({fake_query("Add a line."): cli_answer("Verdict: SHIP")})
+    assert run_main(monkeypatch, "--root", str(root)) == 0
+    argv = json.loads(argv_file.read_text())
+    assert argv[argv.index("--agent") + 1] == "reviewer"
+
+
+@pytest.mark.parametrize("name", ["no-such-agent", "../reviewer", "Reviewer", ""])
+def test_main_rejects_an_unknown_agent_with_exit_two(tmp_path, monkeypatch, capsys, name):
+    root = make_repo(tmp_path)
+    write_case(root, "only-one", kind="clean", intent="x", patch_text="")
+    code = run_main(monkeypatch, "--root", str(root), "--agent", name)
+    assert code == 2
+    assert "unknown agent" in capsys.readouterr().err

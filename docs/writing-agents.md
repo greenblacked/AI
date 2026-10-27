@@ -153,8 +153,10 @@ job is judgement rather than a read — `reviewer` is the one this repository sh
 routing is necessary and not sufficient, and something has to measure the verdict itself
 against a known answer.
 
-`scripts/run_review_benchmark.py` does that for `reviewer`. Cases live at
-`.claude/agents/benchmarks/reviewer/<case>/`: a `change.patch` — an uncommitted unified
+`scripts/run_review_benchmark.py` does that for `reviewer`, and for any other judging
+subagent with `--agent NAME` (default `reviewer`; `security-reviewer` has cases too, and
+an unknown name exits 2). Cases live at
+`.claude/agents/benchmarks/<NAME>/<case>/`, for `reviewer` `.claude/agents/benchmarks/reviewer/<case>/`: a `change.patch` — an uncommitted unified
 diff against today's tree — and a `case.json` naming the case `"defect"` or `"clean"`,
 the intent a caller would honestly pass, and, for a defect, which entry in
 [`docs/review-lessons.md`](review-lessons.md) it reproduces and the regexes its report
@@ -391,7 +393,7 @@ Building something, run by [`/ship`](../.claude/commands/ship.md):
 | Stage | Subagent | Runs on | Editing tools |
 | --- | --- | --- | --- |
 | Survey | [`explorer`](../.claude/agents/explorer.md) | Haiku, high effort | none |
-| Survey (parallel) | [`investigator`](../.claude/agents/investigator.md) | Opus, low effort | none |
+| Survey (parallel) | [`investigator`](../.claude/agents/investigator.md) | Opus, medium effort | none |
 | Write | [`implementer`](../.claude/agents/implementer.md) | Sonnet, medium effort | `Write`, `Edit` |
 | Judge | [`reviewer`](../.claude/agents/reviewer.md) | Opus, medium effort | none |
 | Judge security (parallel, when the diff touches a security trigger) | [`security-reviewer`](../.claude/agents/security-reviewer.md) | Fable, medium effort | none |
@@ -400,7 +402,7 @@ Establishing whether something is true, run by [`/verify`](../.claude/commands/v
 
 | Stage | Subagent | Runs on | Editing tools |
 | --- | --- | --- | --- |
-| Establish | [`investigator`](../.claude/agents/investigator.md) | Opus, low effort | none |
+| Establish | [`investigator`](../.claude/agents/investigator.md) | Opus, medium effort | none |
 | Judge | [`reviewer`](../.claude/agents/reviewer.md) | Opus, medium effort | none |
 
 The second loop exists because prose in this repository has twice asserted something that
