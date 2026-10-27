@@ -1,0 +1,4 @@
+{
+  "kind": "clean",
+  "intent": "Raise the lint spelling job's timeout-minutes from 5 to 10 in ci.yml; the job installs codespell on a cold cache and has been timing out on slow runners. Nothing else in the job changes."
+}

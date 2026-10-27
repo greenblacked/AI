@@ -677,7 +677,11 @@ the one subagent whose output quality the repository depends on most — whether
 defect from [`docs/review-lessons.md`](review-lessons.md) is actually caught, and whether
 an honest clean change is shipped rather than stalled on an invented objection.
 
-Each case under [`.claude/agents/benchmarks/reviewer/`](../.claude/agents/benchmarks/reviewer)
+The harness takes `--agent NAME`, default `reviewer`, and reads the cases for that agent
+from `.claude/agents/benchmarks/<NAME>/`; a name with no such directory exits 2. The job
+runs the default only, so the `security-reviewer` cases are run by hand with `--agent
+security-reviewer`. Each case under
+[`.claude/agents/benchmarks/reviewer/`](../.claude/agents/benchmarks/reviewer)
 is a small unified diff and a `case.json` describing it: a `"defect"` case passes when
 `reviewer` returns `FIX` or `STOP` and every `must_mention` regex matches its report, and
 a `"clean"` case passes on `SHIP`. The harness runs each case in an isolated `git

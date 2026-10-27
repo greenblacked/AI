@@ -103,7 +103,7 @@ true of Claude Code: that the subagents under `plugins/*/agents/` are the intend
 do heavy reading here, that `/ship` runs the loop from survey to merge in
 `.claude/agents/` over a change to this repository, that plan mode is wanted for anything
 touching `src/skillcheck/` or `.github/workflows/`, since those two decide whether every
-other change is allowed to merge, which Claude model each agent in `.claude/agents/` runs
+other change is allowed to merge, which Claude model and effort each agent in `.claude/agents/` runs
 on, since the model names in `AGENTS.md` belong to Codex and ChatGPT and mean nothing to
 Claude Code, and where review guidance lives — `AGENTS.md`'s Review guidelines and, for
 the managed GitHub code review, `REVIEW.md` — since the local `/code-review` command

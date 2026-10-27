@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Measure the output quality of the `reviewer` subagent, not just whether it is picked.
+"""Measure the output quality of a judging subagent, not just whether it is picked.
 
 A trigger eval (`run_trigger_eval.py`) only asks whether a description gets `reviewer`
 chosen. It says nothing about what comes back once it is: whether a seeded defect from
@@ -7,6 +7,10 @@ chosen. It says nothing about what comes back once it is: whether a seeded defec
 through rather than stalled on an invented objection. This measures that instead, the
 same way the trigger harness measures routing: against a committed set of cases, through
 the real CLI, reported as a rate.
+
+`--agent NAME` (default `reviewer`) picks the subagent and, with it, the directory the
+cases come from: `.claude/agents/benchmarks/<NAME>/<case>/`. Everything below says
+`reviewer` and holds for any agent whose verdicts are SHIP, FIX or STOP.
 
 Each case under `.claude/agents/benchmarks/reviewer/<case>/` is a small unified diff
 (`change.patch`) and a `case.json` describing it — `"kind": "defect"` seeds one class
@@ -23,6 +27,7 @@ applied there and nowhere else — the repository's own tree is never touched. T
 worktree is always removed afterwards, whether the case passed, failed or errored.
 
     python scripts/run_review_benchmark.py
+    python scripts/run_review_benchmark.py --agent security-reviewer
     python scripts/run_review_benchmark.py --case stale-count-in-prose
     python scripts/run_review_benchmark.py --json /tmp/reviewer-benchmark.json
 """
@@ -41,7 +46,11 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-BENCHMARK_DIR = "benchmarks/reviewer"
+BENCHMARK_ROOT = "benchmarks"
+DEFAULT_AGENT = "reviewer"
+# An agent name becomes a directory name and an argv element, so it is held to the
+# shape the agent files themselves use; `../x` or an empty string never reaches a path.
+AGENT_NAME_RE = re.compile(r"^[a-z][a-z0-9-]*$")
 # Line-anchored, so "no verdict: FIX yet" buried in a sentence never matches — the
 # line has to *lead* with "Verdict:", optionally behind Markdown decoration a model
 # reaches for on its own: a heading (#), a blockquote (>), a bullet (- or *), bold or
@@ -87,7 +96,7 @@ class PatchFailureError(RuntimeError):
     """A case's patch does not apply to the current tree; the case is unusable."""
 
 
-def build_prompt(intent: str, head_sha: str) -> str:
+def build_prompt(intent: str, head_sha: str, agent: str = DEFAULT_AGENT) -> str:
     """The brief `reviewer` is handed, following reviewer.md's "What the caller passes".
 
     The base is resolved by the runner itself and stated as a commit, not left for
@@ -101,14 +110,29 @@ def build_prompt(intent: str, head_sha: str) -> str:
     caller's, verbatim, and what to look hardest at is deliberately omitted, because
     telling the harness what the defect is would be scoring whether it can read a hint
     rather than whether it finds the thing itself.
+
+    `security-reviewer` gets the same brief minus the invitation to run the gates: its
+    agent file reads the diff and runs nothing else, so telling it gates are expected
+    would measure obedience to the brief rather than its own contract. It also states
+    the live check as none, since security-reviewer.md returns STOP for a permissions
+    change that has no run quoted, and the brief is where that field would sit.
     """
+    if agent == "reviewer":
+        owner = (
+            "Author: repository owner. The change is owner-authored and runs in a "
+            "throwaway worktree, so running the gates is expected."
+        )
+    else:
+        owner = (
+            "Author: repository owner. The change is owner-authored and runs in a "
+            "throwaway worktree. Live check: none."
+        )
     return (
         f"The change is the uncommitted working tree against HEAD, commit {head_sha}. "
         "The base is HEAD; diff with `git diff HEAD` and `git status`. Run each command "
         "on its own, without shell variables or command substitution. This is the loop "
         "it is in: /ship, meaning a finished change built by implementer. "
-        "Author: repository owner. The change is owner-authored and runs in a "
-        "throwaway worktree, so running the gates is expected.\n\n"
+        f"{owner}\n\n"
         "User message:\n" + intent.strip() + "\n\n"
         "Reply exactly as your system prompt specifies: Verdict first, then Findings, "
         "Evidence, Not assessed and Handoff."
@@ -161,6 +185,19 @@ ALLOWED_TOOLS = (
     "Bash(python3 -m pytest *)",
 )
 
+# Prefixes that only the gate-running agent needs. `security-reviewer` reads the diff and
+# runs nothing else, so it gets `ALLOWED_TOOLS` without them.
+GATE_PREFIXES = ("Bash(make ", "Bash(python3 ")
+
+
+def allowed_tools(agent: str = DEFAULT_AGENT) -> tuple[str, ...]:
+    """The allowlist for `agent`: the full set for `reviewer`, the read-only subset for
+    any other, since least privilege is the point of the list."""
+    if agent == DEFAULT_AGENT:
+        return ALLOWED_TOOLS
+    return tuple(t for t in ALLOWED_TOOLS if not t.startswith(GATE_PREFIXES))
+
+
 # Deny rules are evaluated before allow rules and win, including inside a substitution
 # or a subshell, so this is the actual backstop rather than the allowlist above: write,
 # history-rewriting and network-reaching git subcommands, the plain network and file-
@@ -195,10 +232,11 @@ def build_command(
     model: str | None,
     max_turns: int,
     max_budget_usd: float,
+    agent: str = DEFAULT_AGENT,
 ) -> list[str]:
     """Return the argv to run per case, with `{prompt}` still to be substituted.
 
-    Not `--bare`: that skips loading `.claude/agents/`, and `reviewer` lives there.
+    Not `--bare`: that skips loading `.claude/agents/`, and the agent lives there.
     """
     if command_template:
         argv = shlex.split(command_template)
@@ -218,13 +256,13 @@ def build_command(
         "-p",
         "{prompt}",
         "--agent",
-        "reviewer",
+        agent,
         "--output-format",
         "json",
         "--permission-mode",
         "dontAsk",
         "--allowedTools",
-        *ALLOWED_TOOLS,
+        *allowed_tools(agent),
         "--disallowedTools",
         *DISALLOWED_TOOLS,
         "--max-turns",
@@ -237,8 +275,12 @@ def build_command(
     return argv
 
 
-def load_cases(root: Path, name: str | None) -> list[Path]:
-    base = root / ".claude" / "agents" / BENCHMARK_DIR
+def benchmark_dir(root: Path, agent: str) -> Path:
+    return root / ".claude" / "agents" / BENCHMARK_ROOT / agent
+
+
+def load_cases(root: Path, name: str | None, agent: str = DEFAULT_AGENT) -> list[Path]:
+    base = benchmark_dir(root, agent)
     if name:
         case_dir = base / name
         if not (case_dir / "case.json").is_file():
@@ -530,7 +572,7 @@ def run_case(case_dir: Path, repo_root: Path, argv: list[str], args) -> dict:
         # below cleans anything up.
         worktree = make_worktree(repo_root)
         apply_patch(worktree, patch_path, name)
-        prompt = build_prompt(case["intent"], head_sha(worktree))
+        prompt = build_prompt(case["intent"], head_sha(worktree), args.agent)
         runs = []
         for _ in range(args.runs):
             data = ask(argv, prompt, worktree, args.timeout)
@@ -614,6 +656,13 @@ def run_case(case_dir: Path, repo_root: Path, argv: list[str], args) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parent.parent)
+    parser.add_argument(
+        "--agent",
+        default=DEFAULT_AGENT,
+        metavar="NAME",
+        help="the subagent to benchmark; its cases live under "
+        ".claude/agents/benchmarks/NAME/ (default: %(default)s)",
+    )
     parser.add_argument("--case", default=None, help="run a single named case")
     parser.add_argument(
         "--runs",
@@ -644,13 +693,27 @@ def main() -> int:
         parser.error("--jobs must be at least 1")
 
     try:
-        argv = build_command(args.command, args.model, args.max_turns, args.max_budget_usd)
+        argv = build_command(
+            args.command, args.model, args.max_turns, args.max_budget_usd, args.agent
+        )
     except ValueError as error:
         parser.error(str(error))
 
     root = args.root.resolve()
+    # Exit 2 is "the harness could not run", the same as a missing case directory; a name
+    # with no benchmark directory is a typo or an agent nobody has written cases for.
+    # The default agent with no directory keeps its older "no benchmark cases found"
+    # message below, so a checkout without cases reads the same as it always did.
+    missing = args.agent != DEFAULT_AGENT and not benchmark_dir(root, args.agent).is_dir()
+    if not AGENT_NAME_RE.match(args.agent) or missing:
+        print(
+            f"unknown agent {args.agent!r}: no directory "
+            f".claude/agents/{BENCHMARK_ROOT}/{args.agent}",
+            file=sys.stderr,
+        )
+        return 2
     try:
-        case_dirs = load_cases(root, args.case)
+        case_dirs = load_cases(root, args.case, args.agent)
     except SystemExit as error:
         print(str(error), file=sys.stderr)
         return 2

@@ -137,7 +137,7 @@ starts a script the skill ships by a relative path is an error, in `SKILL.md` an
 `xargs`, `git bisect run`), after a `./` that opens a line or an inline code span
 (`./scripts/x.sh`), or, in a
 shell-tagged fence (`bash`, `sh`, `shell`, `zsh`, `console`, `shell-session`), in command position: at the
-start of a line (after a dollar-sign prompt in the last two, which also hold output) or after `&&`, `||`, `;`, `|` or a `VAR=value` prefix. The working
+start of a line (after a dollar-sign prompt in the last two, which also hold output: an unprompted line there is output and runs nothing, and the prompt is ignored when reading a `cd`) or after `&&`, `||`, `;`, `|` or a `VAR=value` prefix. The working
 directory is the user's project, so a file there at the same path runs in place of the
 bundled one, under the name of the skill's own checker. Start the command at
 `${CLAUDE_SKILL_DIR}/scripts/x.py` instead. The rule fires only when the skill ships that

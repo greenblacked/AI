@@ -668,19 +668,30 @@ def _check_script_invocations(
         # in a text, tree or untagged fence it is a layout listing, and the fix message
         # would mislead.
         in_shell_fence = info in SHELL_FENCE_LANGUAGES
+        # console and shell-session fences hold command output too; only a `$ ` prompt
+        # marks a command there. An unprompted line is output: it runs nothing and moves
+        # no directory, so it is not scanned as shell, though a pointer in it is still
+        # checked below. The prompt itself is blanked rather than cut, so `$ cd ...` reads
+        # as a `cd` and offsets stay true.
+        output = False
+        code = line
+        if info in CONSOLE_FENCE_LANGUAGES:
+            prompt = re.match(r"\s*\$ ", line)
+            output = prompt is None
+            if prompt is not None:
+                code = " " * prompt.end() + line[prompt.end() :]
         # A shell comment is never a command, whatever operators it mentions. Outside a
         # fence there is no shell scope to track, so prose keeps its whole line.
-        if info is not None:
-            stripped, depths, quoted = _shell_scan(line, len(stack) - 1)
-            code = stripped if in_shell_fence else line
+        if output:
+            code, states = "", []
+        elif info is not None:
+            stripped, depths, quoted = _shell_scan(code, len(stack) - 1)
+            code = stripped if in_shell_fence else code
             states = _skill_dir_at(code, depths, quoted, stack)
         else:
             code, states = line, [False] * len(line)
         matches = list(SKILL_SCRIPT_CMD_RE.finditer(code))
-        # console and shell-session fences hold command output too; only a `$ ` prompt
-        # marks a command there.
-        prompted = info not in CONSOLE_FENCE_LANGUAGES or line.lstrip().startswith("$ ")
-        if in_shell_fence and prompted:
+        if in_shell_fence:
             matches += list(SKILL_SCRIPT_LINE_START_RE.finditer(code))
         reported: set[str] = set()
         for match in matches:

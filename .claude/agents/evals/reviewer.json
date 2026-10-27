@@ -88,5 +88,10 @@
     "query": "review how delivery went this quarter and what to change",
     "should_trigger": false,
     "expected": "delivery-review"
+  },
+  {
+    "query": "security gate on this workflow diff: the permissions block, the new action pin and the secrets it reaches",
+    "should_trigger": false,
+    "expected": "security-reviewer"
   }
 ]
