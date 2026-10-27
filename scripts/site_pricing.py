@@ -188,6 +188,12 @@ def _escape(value: str) -> str:
     return html.escape(value, quote=True)
 
 
+LEDE = (
+    "Choose plans, compare combinations and see their total cost. "
+    "No account connection, no tracking and no API fees hidden in the estimate."
+)
+
+
 def render_main(back_html: str) -> str:
     """Markup contains a useful default estimate even if scripting is disabled."""
     rows = []
@@ -215,8 +221,7 @@ def render_main(back_html: str) -> str:
         + back_html
         + '<div class="pricing-head"><p class="pricing-eyebrow">AI subscription explorer</p>'
         "<h1>Compare your AI stack.</h1>"
-        '<p class="lede">Choose plans, compare combinations and see their total cost. '
-        "No account connection, no tracking and no API fees hidden in the estimate.</p></div>"
+        f'<p class="lede">{LEDE}</p></div>'
         '<div class="pricing-layout"><div class="pricing-options">'
         + "\n".join(rows)
         + '</div><section class="pricing-summary" aria-labelledby="price-summary-heading">'
@@ -228,7 +233,7 @@ def render_main(back_html: str) -> str:
         "$80 more per month vs ChatGPT Plus + Claude Max 5x ($120).</p>"
         '<noscript><p class="pricing-difference">Changing a plan needs JavaScript. '
         "The totals show the default selection.</p></noscript>"
-        '<div class="pricing-presets" aria-label="Example combinations">'
+        '<div class="pricing-presets" role="group" aria-label="Example combinations">'
         '<button type="button" data-price-preset="lean" disabled>Lean · $30</button>'
         '<button type="button" data-price-preset="balanced" disabled>Balanced · $120</button>'
         '<button type="button" data-price-preset="power" disabled>Power · $200</button>'

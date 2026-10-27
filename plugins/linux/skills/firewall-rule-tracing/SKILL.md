@@ -14,7 +14,7 @@ The usual failure is reading rules instead of watching a packet. A Linux host ca
 
 Use for: a connection that times out or is refused although the service listens, a rule that never seems to match, published container ports that ignore host rules, and two firewall managers fighting.
 
-Do not use for: choosing what a hardened baseline contains (`host-hardening`); a rule that has already locked you out (`linux-lockout-recovery`); a MikroTik device (`routeros-config`); a path where only large packets fail (`mtu-blackhole-hunt`).
+Do not use for: choosing what a hardened baseline contains (`host-hardening`); a rule that has already locked you out (`linux-lockout-recovery`); a MikroTik device (`routeros-config`); a path where only large packets fail (`mtu-blackhole-hunt`). Reading a capture as the subject is `packet-capture-triage`.
 
 ## Workflow
 

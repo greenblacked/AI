@@ -110,8 +110,15 @@ Bisect assumes a deterministic good/bad predicate. If step 3 showed nondetermini
 
 ```bash
 git bisect start <known-bad-sha> <known-good-sha>
-git bisect run ./scripts/bisect-probe.sh
+git bisect run "${CLAUDE_SKILL_DIR}/scripts/bisect-probe.sh"
 ```
+
+Run the probe from outside the work tree: this skill's own copy, adapted through its
+`BISECT_*` variables, or an edited copy in a temporary directory. A probe under the
+repository's `scripts/` is whatever each bisected commit holds at that path, missing on
+some and different on others, so the bisect would judge each commit with that commit's
+own script. `${CLAUDE_SKILL_DIR}` is this skill's own directory where the tool substitutes
+it; elsewhere use the directory this file was loaded from.
 
 The probe's exit code is the contract: `0` = good, `1`-`127` except `125` = bad, `125` = skip this commit as untestable (broken build, missing dependency). Anything else aborts the bisect. Guard against residual flakiness by requiring the test to fail on all three attempts before calling a commit bad:
 

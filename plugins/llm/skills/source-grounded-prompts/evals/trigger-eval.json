@@ -1,0 +1,22 @@
+[
+  {"query": "write me a prompt so the notebook assistant makes a better slide deck from the three papers I uploaded", "should_trigger": true},
+  {"query": "I need a style spec I can paste in so the decks it generates from my sources all look the same and stay readable", "should_trigger": true},
+  {"query": "the deck my notebook assistant generated has statistics that aren't in any of my uploaded documents, how do I stop that", "should_trigger": true},
+  {"query": "every slide the assistant made from my notes is a wall of text, how should I change the prompt", "should_trigger": true},
+  {"query": "turn these uploaded lecture notes into a study guide with questions, a glossary and worked examples, only from what is in the notes", "should_trigger": true},
+  {"query": "I want an audio-overview script from my uploaded interview transcripts, short turns, no invented quotes", "should_trigger": true},
+  {"query": "adapt the slides the assistant generated from my report to our brand colours and fonts without making the text unreadable", "should_trigger": true},
+  {"query": "how do I check that every quote and number in the generated briefing memo really comes from my uploaded sources", "should_trigger": true},
+  {"query": "the generated mind map from my sources is four levels deep and full of full-sentence nodes, fix the prompt", "should_trigger": true},
+  {"query": "I changed the colour palette, the slide count and the tone all at once and the output got worse, how do I revise the prompt properly", "should_trigger": true},
+  {"query": "build a pipeline that answers questions over our own docs with citations back to the page", "should_trigger": false, "expected": "rag-design"},
+  {"query": "force the model in our service to return JSON that matches a schema and retry when it does not parse", "should_trigger": false, "expected": "structured-output"},
+  {"query": "extract invoice numbers and totals from scanned PDFs into a table with the page each came from", "should_trigger": false, "expected": "document-extraction"},
+  {"query": "I'm giving a conference talk next month, help me structure the deck and rehearse the delivery", "should_trigger": false, "expected": "conference-talk"},
+  {"query": "design a type scale and a colour system for our product with accessible contrast", "should_trigger": false, "expected": "visual-design"},
+  {"query": "set up design tokens and a component library so our teams share one visual language", "should_trigger": false, "expected": "design-system"},
+  {"query": "which chart type should I use to show these quarterly numbers and how do I label it", "should_trigger": false, "expected": "data-visualisation"},
+  {"query": "take notes on this book chapter so I remember it, what method should I use", "should_trigger": false, "expected": "learning-notes"},
+  {"query": "write this week's status update for the executives from our project tracker", "should_trigger": false, "expected": "status-update"},
+  {"query": "our retrieval returns the wrong passages, how do I measure recall and tune chunk size", "should_trigger": false, "expected": "rag-design"}
+]

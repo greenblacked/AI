@@ -1,0 +1,22 @@
+[
+  {"query": "I downloaded the router's firmware update file, what's actually inside it and is it squashfs", "should_trigger": true},
+  {"query": "does this camera firmware verify the signature of the update before it installs it", "should_trigger": true},
+  {"query": "what endpoints does this NAS firmware phone home to, I only have the image", "should_trigger": true},
+  {"query": "I dumped the flash off an old access point, how do I get at the filesystem inside", "should_trigger": true},
+  {"query": "this .bin has a vendor header and then something at offset 0x40000, how do I map the regions", "should_trigger": true},
+  {"query": "there's a UBI volume in this NAND dump, how do I list what's inside without mounting it", "should_trigger": true},
+  {"query": "the update package has a manifest and a signature blob but I can't tell whether the device checks either", "should_trigger": true},
+  {"query": "find the hardcoded credentials the vendor left in this camera firmware, without using them anywhere", "should_trigger": true},
+  {"query": "which init scripts in this firmware image start the remote access service", "should_trigger": true},
+  {"query": "a region of this image has entropy close to random, how do I tell whether it's compressed or encrypted", "should_trigger": true},
+  {"query": "the board doesn't boot after a failed flash and I need to bring it back", "should_trigger": false, "expected": "brick-recovery"},
+  {"query": "review this C change for an ISR that calls printf and a wait with no timeout", "should_trigger": false, "expected": "firmware-code-review"},
+  {"query": "our OTA rollout is bricking one percent of devices after the update, how do we stage the next one", "should_trigger": false, "expected": "ota-update-safety"},
+  {"query": "one camera in the field reboots every few hours and I need to work out why from its logs", "should_trigger": false, "expected": "field-failure-triage"},
+  {"query": "decide what our devices should report home about resets and errors within a data budget", "should_trigger": false, "expected": "device-telemetry-design"},
+  {"query": "design the signing and key custody for our device update pipeline", "should_trigger": false, "expected": "ota-update-safety"},
+  {"query": "I have an ELF binary with no source and want to find the license check function", "should_trigger": false, "expected": "reverse-engineering"},
+  {"query": "review this patch to the router's admin handler for a command injection bug", "should_trigger": false, "expected": "security-review"},
+  {"query": "a camera on our network is beaconing out and we need to preserve evidence before anyone reboots it", "should_trigger": false, "expected": "compromise-evidence-preservation"},
+  {"query": "what secure boot fuses and trust anchors should our own board use for verified boot", "should_trigger": false, "expected": "device-trust-anchors"}
+]
