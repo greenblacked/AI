@@ -7,7 +7,7 @@
 
 # Agent skills
 
-515 agent skills, 30 subagents and ten slash commands, in twenty-eight
+516 agent skills, 30 subagents and ten slash commands, in twenty-eight
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-515-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-516-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -60,7 +60,7 @@ and what the runtime does or does not enforce.
 | [`personal`](#personal) | Money, travel, admin, habits, health and family history | 8 skills, 2 subagents |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 11 skills |
 | [`design`](#design) | Usability, accessibility and design systems | 14 skills, 1 subagent, 1 command |
-| [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction, model migration, agents, latency, batch processing and resilience | 14 skills |
+| [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction, model migration, agents, latency, batch processing and resilience | 15 skills |
 | [`data`](#data) | Analytics data and classical ML: wrong numbers, warehouse cost, metrics, history, experiments and models in production | 22 skills |
 | [`techdocs`](#techdocs) | Developer documentation: tested tutorials and samples, drift, stable URLs, API and CLI reference | 12 skills |
 | [`assurance`](#assurance) | Quality engineering and compliance: order-dependent, mutation, property and fuzz testing, replay and load, DPIAs, licences, audit evidence | 11 skills |
@@ -622,6 +622,7 @@ Building features on language models, and the checks that keep them honest.
 | [`llm-latency-budget`](plugins/llm/skills/llm-latency-budget/SKILL.md) | Decompose and cut the wait on an LLM-backed request: measure per stage (queueing, prompt processing, time to first token, inter-token rate, output length, tool and retrieval time) at p50 and p95 split cached versus uncached, set a budget per stage against the user-visible target of first visible progress, then apply levers in order of measured payoff: shrink output, stabilise the cached prefix, parallelise independent calls, start retrieval speculatively, use a smaller model where a quality bar holds, stream with perceived-latency design, hedge only idempotent reads. |
 | [`llm-provider-resilience`](plugins/llm/skills/llm-provider-resilience/SKILL.md) | Keep an LLM feature up when the provider rate-limits, overloads, times out or has an outage: classify errors as retryable (429 rate limit, overloaded, 5xx, timeout, truncated stream) or deterministic (schema, refusal, context length, spend-cap 429) and retry only the first, honour Retry-After with full-jitter backoff under one global retry budget of about 10% of first attempts, cap concurrency per tenant, break the circuit per model, admit a fallback only after the same eval, and prove it with fault injection. |
 | [`output-filter-calibration`](plugins/llm/skills/output-filter-calibration/SKILL.md) | Design and tune input and output checks on an end-user-facing LLM feature (policy, topic, PII, brand, unsafe content) against measured false-block and miss rates: define each class with examples and severity, build a labelled violating set and real benign traffic, measure miss rate and benign false-block rate per layer, order layers cheap to expensive (patterns, classifier, judge), set thresholds per class by severity, decide the streaming interaction, measure p95 latency added, and rerun both sets on every change. |
+| [`source-grounded-prompts`](plugins/llm/skills/source-grounded-prompts/SKILL.md) | Write, check and revise the prompt that makes a source-grounded notebook assistant produce a slide deck, memo, study guide, audio script or mind map from uploaded sources: a structured style spec, a grounding block, a checker that lists figures and quotes found in no source, and a one-variable revision loop. |
 | [`tool-result-shaping`](plugins/llm/skills/tool-result-shaping/SKILL.md) | Reshape what tools return to a model so results are small, decisive and recoverable: measure token size per result from real traces and cap each tool, return only the fields the next decision needs with readable ids, a count and total so the model knows what it did not see, and a continuation handle instead of silent truncation, rank before cutting, write errors as instructions, put bulky payloads behind a handle the model can slice, and verify by replaying tasks on old and new shapes. |
 
 ### Data
