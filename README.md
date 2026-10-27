@@ -7,7 +7,7 @@
 
 # Agent skills
 
-513 agent skills, 30 subagents and ten slash commands, in twenty-eight
+514 agent skills, 30 subagents and ten slash commands, in twenty-eight
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-513-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-514-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -62,7 +62,7 @@ and what the runtime does or does not enforce.
 | [`design`](#design) | Usability, accessibility and design systems | 14 skills, 1 subagent, 1 command |
 | [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction, model migration, agents, latency, batch processing and resilience | 14 skills |
 | [`data`](#data) | Analytics data and classical ML: wrong numbers, warehouse cost, metrics, history, experiments and models in production | 22 skills |
-| [`techdocs`](#techdocs) | Developer documentation: tested tutorials and samples, drift, stable URLs, API and CLI reference | 11 skills |
+| [`techdocs`](#techdocs) | Developer documentation: tested tutorials and samples, drift, stable URLs, API and CLI reference | 12 skills |
 | [`assurance`](#assurance) | Quality engineering and compliance: order-dependent, mutation, property and fuzz testing, replay and load, DPIAs, licences, audit evidence | 11 skills |
 | [`client-apps`](#client-apps) | Browser and mobile clients: field performance, hydration, memory, version skew, service workers, crashes, hangs, startup, battery, networks | 22 skills |
 | [`product`](#product) | Product and go-to-market: interviews, demand tests, design partners, premortems, pricing, metric diagnosis, activation, churn, win-loss, RFPs | 22 skills |
@@ -669,6 +669,7 @@ Documentation as something that can be tested: tutorials run from a clean machin
 | [`screenshot-rot`](plugins/techdocs/skills/screenshot-rot/SKILL.md) | Stop documentation screenshots and diagrams going stale. Inventory every image in the docs and decide per image whether text, a code block or a table would serve instead; replace the hand-taken screenshots that remain with scripted captures (browser automation, seeded demo data, fixed viewport, clock, locale and fonts) regenerated in CI, where a changed image opens a pull request for review; keep diagrams as text sources beside the page; and write alt text that states the image's point. Use whenever someone says "our screenshots are out of date", "the docs still show the old UI", "who re-shoots the images after a redesign" or "can we generate docs screenshots automatically". |
 | [`terminology-lock`](plugins/techdocs/skills/terminology-lock/SKILL.md) | Make one word mean one thing across the product UI, docs, API and support. Inventory the competing terms and where each appears, choose the canonical one, and keep a glossary in the repository giving each term's definition, its banned synonyms and the reason for each ban; generate Vale substitution rules and a UI string check from that one glossary, so docs and interface strings are linted by the same list; run any rename as one tracked change sweeping code, UI, docs, translations and the search synonym list. Use whenever someone says "we call it three different things", "is it a workspace or a project", "lint our docs for product terms" or "we're renaming this feature everywhere". |
 | [`tutorial-clean-room`](plugins/techdocs/skills/tutorial-clean-room/SKILL.md) | Prove a tutorial, quickstart or getting-started guide works for a stranger before it ships: run it in a brand-new container or VM with no cached credentials, dotfiles or warm caches, stopwatch running, executing only what the page literally says; log every stumble as a defect with the minutes it cost; state a time-to-first-result target on the page; then watch one outsider follow it with no questions allowed, and ship only after a zero-stumble run. Use whenever someone says "write our getting-started guide", "verify the quickstart still works", "new users keep getting stuck on install" or "how long does it really take to get going with our SDK". |
+| [`work-to-note`](plugins/techdocs/skills/work-to-note/SKILL.md) | Turn finished work (a debugging session, decision, migration, review finding, tool evaluation or incident fix) into one durable note in a Markdown vault of wikilinks and frontmatter, written to pass the vault's checks first time. Picks the note type or declines when nothing is reusable, follows the vault's own standard and tag taxonomy, marks each claim as source-checked, run-checked or not checked, never claims an evidence level the work did not reach, links the note into its index, and records a recurring defect as a lesson-ledger entry. Use whenever someone says "write this up as a note", "turn this fix into a pattern" or "record this as a lesson". Not for notes on something read (learning-notes), weighing a decision (decision-record), designing a procedure (runbook), incident write-ups (postmortem), product docs (technical-docs) or a retro's change items (yield-to-lesson). |
 
 ### Assurance
 
