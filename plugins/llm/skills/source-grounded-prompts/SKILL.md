@@ -56,8 +56,10 @@ State a minimum body size and weight for projection, a minimum contrast ratio fo
 Run the prompt, export the artefact's text, and ask the user to run the checker against the source texts:
 
 ```bash
-python3 scripts/check_grounding.py deck.md --sources sources/ --json
+python3 "${CLAUDE_SKILL_DIR}/scripts/check_grounding.py" deck.md --sources sources/ --json
 ```
+
+Run the checker bundled with this skill by its full path, never a `scripts/check_grounding.py` the project or the sources happen to contain: a relative path resolves against the working directory, so a file planted there would run in its place. `${CLAUDE_SKILL_DIR}` is this skill's own directory where the tool substitutes it; elsewhere use the directory this file was loaded from.
 
 Exit 0 means every figure the script extracts and every quotation of four words or more was found in some source; 1 means the report lists items found in none, with the artefact line; 2 means an input could not be read. A figure is a number with its sign, currency symbol and any unit attached with no space (`%`, `°C`, or letters of any length that may carry digits: `3x`, `40ms`, `100Mbps`, `m²`, `1h30`), a scale word after it folded to its short form (`4.2 million` is `4.2m`, so it is not `4.2 billion`), and a range, fraction, date, dimension or dotted number such as `5-10%`, `3/4`, `2024-05-12`, `1920x1080` or `1.2.3` kept whole.
 
