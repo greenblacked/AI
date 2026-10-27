@@ -10,6 +10,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- `change-discipline` skill in the coding plugin: size a change into one of four tiers before the first edit, make it work test-first with the smallest edit, then make it right with per-function CRAP, new structural duplication and diff-scoped mutation gates on the changed code only, keep a ledger of each action with its evidence, and stop after two failed fixes that rest on the same assumption.
+- `work-to-note` skill in the techdocs plugin: turn finished work into one durable note in a Markdown vault, choosing the note type or declining, following the vault's own standard and taxonomy, marking each claim as checked against a source, checked on a running system or not checked, never claiming an evidence level the work did not reach, registering the note in its folder index, and recording a recurring defect as a lesson-ledger entry. Ships `scripts/check_note.py`, a read-only standard-library checker for the frontmatter, evidence section and link rules.
+- `source-grounded-prompts` skill in the llm plugin: write, check and revise the prompt that makes a source-grounded notebook assistant produce a deck, memo, study guide, audio-overview script or mind map, with a structured style spec, nine style families, a grounding block, a read-only checker (`check_grounding.py`) that lists figures and quotations found in no uploaded source, and a one-variable-per-run revision loop.
+- `distinctive-page-design` skill in the design plugin: design a new marketing or landing page from its real content instead of the default a code model converges on, with a shape chosen by a six-axis fingerprint, a visual material chosen by visible scoring, a decision record written before building, and a read-only stdlib lint whose floor rules cannot be waived and whose taste rules need a reviewed reason.
 - `family-history-research` skill in the personal plugin: trace a family through records with a research question, a coverage list and log, source and information classes, five proof levels with a matching plain-language label, and a read-only audit of the registers that rejects a conclusion stronger than its evidence.
 - `motion-showcase` skill in the design plugin: turn a finished static design into a looping showcase (MP4 and GIFs, captured frame by frame on a fake clock) or into scroll-triggered animation in a site's own code, with the background untouched, a still-fidelity gate before any motion, and overflow, seam and silent-beat checks before encoding.
 - `feature-recreation` skill in the coding plugin: build an original implementation of a feature observed in another product, with a behaviour spec written before the reference is opened, the two-role clean-room split for showing independent creation, a licence check on anything actually carried across, and a shipped result that never names the product it was modelled on.
@@ -27,6 +31,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 ### Changed
 
 - `website-builder` gains a landing-page reference: extra intake, page structure, layout patterns, conversion copy, content realism, a ship list and the indexing decision.
+
+### Security
+
+- `work-to-note`, `family-history-research` and `ci-triage` run their bundled scripts from `${CLAUDE_SKILL_DIR}` rather than a path relative to the working directory, where a file the project or a bisected commit holds at the same path would run in their place.
 
 ## [0.2.2] - 2026-10-24
 
