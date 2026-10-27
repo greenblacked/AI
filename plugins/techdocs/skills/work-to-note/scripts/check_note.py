@@ -561,6 +561,18 @@ def resolve(target: str, known: frozenset[str]) -> list[str]:
     return hits
 
 
+def is_self_link(target: str, note_rel: str, vault: VaultView | None) -> bool:
+    """A link that names the note itself, judged by path so a namesake in another folder
+    still counts as a link to a different note."""
+    if vault is not None:
+        hits = resolve(target, vault.known)
+        if hits:
+            return hits == [note_rel]
+    wanted = target.strip("/").removesuffix(".md")
+    own = note_rel.removesuffix(".md")
+    return wanted in (own, Path(own).name) or own.endswith("/" + wanted)
+
+
 def index_required(note_rel: str) -> bool:
     return Path(note_rel).parent != Path(".")
 
@@ -572,9 +584,8 @@ def check_links(
     # Tag pages are generated at build time, so they are neither a file to resolve nor a
     # related note to link to.
     links = [(n, t) for n, t in wikilink_targets(scanned) if t and not t.startswith("tags/")]
-    stem = Path(note_rel).stem
     out: list[Finding] = []
-    if not any(Path(t).stem != stem for _, t in links):
+    if all(is_self_link(t, note_rel, vault) for _, t in links):
         out.append(finding("no-wikilink", 1))
     if vault is None:
         return out
@@ -702,7 +713,7 @@ def load_inputs(args: argparse.Namespace):
         if not vault.is_dir():
             raise InputError(f"--vault {str(args.vault)!r} is not a directory")
         known = vault_files(vault)
-    notes = []  # (path, text, vault-relative name, view)
+    notes = []  # (path, text, vault-relative path or, with no vault, full path, view)
     for path in args.notes:
         if path.is_dir():
             raise InputError(f"{str(path)!r} is a directory, not a note")
@@ -715,7 +726,9 @@ def load_inputs(args: argparse.Namespace):
                 raise InputError(f"{str(path)!r} is outside the vault {str(vault)!r}") from None
         # Read the folder index here, with every other input, so an unreadable one exits 2.
         view = vault_view(vault, known, rel) if vault else None
-        notes.append((path, text, rel or path.name, view))
+        # Without a vault the full path stands in, so a folder-qualified self-link such
+        # as [[patterns/note]] is still matched against the folders the note sits in.
+        notes.append((path, text, rel or path.resolve().as_posix(), view))
     return today, taxonomy, notes
 
 
