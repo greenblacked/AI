@@ -108,8 +108,10 @@ In order of preference:
    library; a parser is linear and reads the grammar once.
 2. **Use a linear engine.** Move the pattern to RE2/Go/Rust `regex`, or a runtime's
    non-backtracking mode, if the language allows.
-3. **Remove the ambiguity.** `(a+)+` becomes `a+`; `(ab|a)+b` becomes `(ab|a)*b` with an anchor,
-   or `a+b` if the branches are redundant; `a*a*` becomes `a*`.
+3. **Remove the ambiguity without changing the language.** `(a+)+` becomes `a+`; `(ab|a)+b`
+   becomes `a(?:b?a)*b?b`; `a*a*` becomes `a*`. Prove the rewrite accepts exactly what the
+   original did by comparing both on every short input before it ships; a rewrite that
+   accepts or rejects one string more is a validation change, not a fix.
 4. **Anchor and bound.** `^...$` and a length limit (`{1,64}`) reduce the input the engine can
    explore and reject an over-long body before matching.
 5. **Atomic groups / possessive quantifiers** (where the engine has them) — `(?>a+)`, `a++` —
