@@ -26,17 +26,24 @@ refused, so check `node --version` before blaming the tool for not starting.
 a missing tool, not before every investigation:
 
 ```bash
-npx -y rea-agents@6.8.0 doctor --client claude_code --skill --json
+npx -y rea-agents@6.8.0 doctor --client claude_code --json
 ```
 
 `--client` takes the client id this agent runs as (`claude_code`, `codex`, `opencode`,
-`cursor`, among others); `--skill` also verifies the bridge's own skill copies. To register the MCP
-server, preview the exact writes first and read the plan before applying it:
+`cursor`, among others). Leave out `--skill`: it requires the bridge's own bundled skill,
+which this setup does not install. To register the MCP server, preview the exact writes
+first and read the plan before applying it:
 
 ```bash
-npx -y rea-agents@6.8.0 setup --client claude_code --dry-run --json
-npx -y rea-agents@6.8.0 setup --client claude_code
+npx -y rea-agents@6.8.0 setup --client claude_code --skill=false --dry-run --json
+npx -y rea-agents@6.8.0 setup --client claude_code --skill=false --yes
 ```
+
+`--skill=false` registers the server without the bridge's bundled skill, which `setup`
+installs by default and which would compete with these skills for the same requests.
+`--yes` is what lets `setup` apply with no terminal prompt, as an agent runs it; without it
+the command stops and asks to be rerun interactively. Pass it only after the dry-run plan
+has been read.
 
 Pin the version. `@latest` belongs to a deliberate update, not to a registration written
 into a config file that outlives this session; an unpinned entry is whatever npm published

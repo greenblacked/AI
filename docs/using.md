@@ -296,9 +296,9 @@ not a decompiler of its own. When a bridge server is connected, the skill routes
 target to it and cites the returned Evidence IDs.
 
 ```bash
-npx -y rea-agents@6.8.0 doctor --client claude_code --skill --json   # read-only readiness
-npx -y rea-agents@6.8.0 setup --client claude_code --dry-run --json  # read the plan
-npx -y rea-agents@6.8.0 setup --client claude_code                  # apply
+npx -y rea-agents@6.8.0 doctor --client claude_code --json                         # read-only readiness
+npx -y rea-agents@6.8.0 setup --client claude_code --skill=false --dry-run --json  # read the plan
+npx -y rea-agents@6.8.0 setup --client claude_code --skill=false --yes            # apply
 ```
 
 - Pin the version. `@latest` belongs to a deliberate update, not to a registration written
@@ -310,9 +310,16 @@ npx -y rea-agents@6.8.0 setup --client claude_code                  # apply
   before applying: it edits agent configuration outside this repository and may offer to
   install a paid-licence provider you may not hold, which static JavaScript,
   managed-assembly and archive work does not need.
-- `doctor` is read-only, and its scoped forms (`--client`, `--provider`, `--skill`) answer
-  one question instead of auditing everything. Run `--yes` with an explicit scope only in
-  automation; without one it is limited to registrations the bridge already owns.
+- `--skill=false` registers the MCP server without installing the bridge's own bundled
+  skill, which `setup` adds by default: the skills here already carry the procedure, and a
+  second copy would compete with them for the same requests. For the same reason `doctor`
+  runs without `--skill`, which would require that bundled skill to be installed.
+- `setup` applies without asking only with `--yes`; in a session with no terminal prompt,
+  which is how an agent runs it, it otherwise stops and asks to be rerun interactively or
+  with `--yes`. Pass `--yes` only after reading the dry-run plan, and always with an
+  explicit `--client`.
+- `doctor` is read-only, and its scoped forms (`--client`, `--provider`) answer one question
+  instead of auditing everything.
 - Node.js must be 22.x (>=22.23.4), 24.x (>=24.22.1) or 26.12.1+; 23, 25 and earlier 26.x
   are refused, and a version error is the runtime rather than the analysis.
 - The bridge runs with your user's permissions and reads the target locally. It is not a sandbox
