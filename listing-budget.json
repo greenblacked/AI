@@ -30,7 +30,7 @@
     "research": 17000,
     "security": 27000,
     "smallbiz": 17500,
-    "techdocs": 10000
+    "techdocs": 10500
   },
   "skills": {
     "access-review": 945,
@@ -540,6 +540,7 @@
     "website-builder": 944,
     "weekly-review": 959,
     "win-loss-review": 864,
+    "work-to-note": 889,
     "workload-identity": 896,
     "workshop-design": 927,
     "write-technical-article": 880,

@@ -817,6 +817,15 @@ block and an indented fence marker are not handled.
 **First caught:** #112, the automated PR reviewer, and the review stage for the mirror
 image and the paragraph boundaries.
 
+**Recurrence:** in #326, the note checker's body scan opened an HTML comment
+whenever a line held `<!--` with no `-->` after it, including a marker inside a code span, so
+every later heading and link in the note was treated as commented out and a real H1 or
+wikilink went unseen. The vault's own checker does not skip comments at all, so the guess
+also diverged from the rule it was meant to mirror. The fix was to drop comment handling
+rather than patch the guess, with a test that puts `<!--` in a code span ahead of a real H1
+and wikilink. When a checker mirrors another checker, copy what that checker does before
+modelling the format it reads.
+
 ### A substring match stands in for an attribute name
 
 **Class.** A pattern meant to find an HTML attribute matches the same letters inside
