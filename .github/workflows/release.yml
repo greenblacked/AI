@@ -1,6 +1,6 @@
 ---
-# Cuts a GitHub Release from a `vX.Y.Z` tag: notes from CHANGELOG.md, the .skill
-# archives and the portable bundle attached. The cloudflare job then uploads that
+# Cuts a GitHub Release from a `vX.Y.Z` tag: notes from CHANGELOG.md, with two assets
+# attached, one zip of every .skill archive and the portable bundle. The cloudflare job then uploads that
 # same catalogue to the production Worker. It runs only after the release job has
 # succeeded, holds contents: read, and takes its Cloudflare token from the
 # production environment. Cutting the tag itself is a maintainer step, either
@@ -107,14 +107,25 @@ jobs:
           set -Eeuo pipefail
           PYTHONPATH=src python scripts/export_portable.py .
           (cd dist && python -m zipfile -c "portable-skills-$TAG.zip" portable)
+          # One asset for every archive, not one per skill: hundreds of uploads in a
+          # minute run into GitHub's documented limit on content-creating requests. The
+          # glob must match, or zipfile would be handed the literal `*.skill`.
+          shopt -s nullglob
+          archives=(dist/*.skill)
+          if [ "${#archives[@]}" -eq 0 ]; then
+            echo "::error::no .skill archive in dist/ to bundle" >&2
+            exit 1
+          fi
+          (cd dist && python -m zipfile -c "skills-$TAG.zip" *.skill)
 
       - name: Create or update the GitHub release
-        # A re-run after a partial failure — the release created but an asset upload
-        # failing partway through, say — has to be safe to repeat rather than erroring
-        # on "release already exists" or leaving a stale asset from the failed attempt
-        # behind. If the release already exists, this only replaces its assets, with
-        # `--clobber` overwriting anything the earlier attempt managed to upload;
-        # otherwise it creates the release fresh.
+        # Safe to re-run. Two assets only, so a run stays far below GitHub's documented
+        # limit on content-creating requests; the v0.3.0 run uploaded one asset per
+        # skill, hit a secondary rate limit part way, and left a draft behind. `gh`
+        # resolves a draft by tag, so a re-run finds that draft through `view`: it
+        # replaces the assets with `--clobber`, then the draft is published here, since
+        # an upload alone exits 0 and would leave the release unpublished. The last
+        # check fails the step unless the release really is public.
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
@@ -122,11 +133,18 @@ jobs:
           set -Eeuo pipefail
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" --clobber \
-              dist/*.skill "dist/portable-skills-$TAG.zip"
+              "dist/skills-$TAG.zip" "dist/portable-skills-$TAG.zip"
           else
             gh release create "$TAG" --verify-tag --title "$TAG" \
               --notes-file "$NOTES_FILE" \
-              dist/*.skill "dist/portable-skills-$TAG.zip"
+              "dist/skills-$TAG.zip" "dist/portable-skills-$TAG.zip"
+          fi
+          if [ "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = true ]; then
+            gh release edit "$TAG" --draft=false
+          fi
+          if [ "$(gh release view "$TAG" --json isDraft --jq .isDraft)" != false ]; then
+            echo "::error::release $TAG is still a draft or could not be read" >&2
+            exit 1
           fi
 
   cloudflare:
