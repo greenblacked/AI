@@ -561,6 +561,18 @@ def resolve(target: str, known: frozenset[str]) -> list[str]:
     return hits
 
 
+def is_self_link(target: str, note_rel: str, vault: VaultView | None) -> bool:
+    """A link that names the note itself, judged by path so a namesake in another folder
+    still counts as a link to a different note."""
+    if vault is not None:
+        hits = resolve(target, vault.known)
+        if hits:
+            return hits == [note_rel]
+    wanted = target.strip("/").removesuffix(".md")
+    own = note_rel.removesuffix(".md")
+    return wanted in (own, Path(own).name) or own.endswith("/" + wanted)
+
+
 def index_required(note_rel: str) -> bool:
     return Path(note_rel).parent != Path(".")
 
@@ -572,9 +584,8 @@ def check_links(
     # Tag pages are generated at build time, so they are neither a file to resolve nor a
     # related note to link to.
     links = [(n, t) for n, t in wikilink_targets(scanned) if t and not t.startswith("tags/")]
-    stem = Path(note_rel).stem
     out: list[Finding] = []
-    if not any(Path(t).stem != stem for _, t in links):
+    if all(is_self_link(t, note_rel, vault) for _, t in links):
         out.append(finding("no-wikilink", 1))
     if vault is None:
         return out
