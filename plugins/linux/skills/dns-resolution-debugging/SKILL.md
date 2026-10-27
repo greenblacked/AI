@@ -14,7 +14,7 @@ The usual failure is testing with the wrong tool. `dig` and `nslookup` talk stra
 
 Use for: a Linux host or container that cannot resolve names that should resolve, resolves them slowly or intermittently, resolves to the wrong address, or loses its resolver settings; split DNS for a VPN; differences between distributions or C libraries.
 
-Do not use for: editing zones, records and registrar settings, which is the authoritative side and not this host; the Kubernetes pattern of 5-second lookups caused by connection tracking races, which is a kernel and cluster problem to treat separately once step 5 shows the servers answer quickly; a certificate failure after the name resolves (`tls-handshake-debugging`); a login failure once connected (`ssh-access-debugging`).
+Do not use for: editing zones, records and registrar settings, which is the authoritative side and not this host; the Kubernetes pattern of 5-second lookups caused by connection tracking races, which is a kernel and cluster problem to treat separately once step 5 shows the servers answer quickly; a certificate failure after the name resolves (`tls-handshake-debugging`); a login failure once connected (`ssh-access-debugging`). Reading a capture as the subject is `packet-capture-triage`.
 
 ## Workflow
 

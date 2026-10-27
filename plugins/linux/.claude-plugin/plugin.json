@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "linux",
-  "description": "Skills for Linux and systems administration: systemd units, boot failures, kernel updates and crashes, disks and volumes, the OOM killer, load and resource limits, permissions (SELinux, AppArmor), cron and timers, DNS, firewalls, MTU, TLS and private CAs, SSH and lockout recovery, and time sync.",
+  "description": "Skills for Linux and systems administration: systemd units, boot failures, kernel updates and crashes, disks and volumes, the OOM killer, load and resource limits, permissions (SELinux, AppArmor), cron and timers, DNS, firewalls, MTU, packet captures, TLS and private CAs, SSH and lockout recovery, and time sync.",
   "author": {
     "name": "Serhii Zolotov",
     "url": "https://github.com/greenblacked"
@@ -10,13 +10,14 @@
   "repository": "https://github.com/greenblacked/AI",
   "license": "MIT",
   "keywords": [
-    "linux",
-    "systemd",
-    "networking",
     "dns",
-    "tls",
-    "ssh",
+    "firewall",
+    "linux",
+    "networking",
+    "packet-capture",
     "selinux",
-    "firewall"
+    "ssh",
+    "systemd",
+    "tls"
   ]
 }

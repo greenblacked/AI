@@ -102,7 +102,7 @@ install any of the other twenty-seven, or more than one plugin, raise it in
 `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.48 }
+{ "skillListingBudgetFraction": 0.49 }
 ```
 
 ### How a skill fires
@@ -284,6 +284,47 @@ whether a description actually fires, against whichever CLI you have signed in:
 ```bash
 python scripts/run_trigger_eval.py --skill plugins/coding/skills/refactoring --backend codex
 ```
+
+## The analysis bridge, for the analysis skills
+
+Eight skills in `security` — `reverse-engineering`, six artifact-specific siblings beside it,
+and `analysis-efficiency` — can drive the analysis bridge (the npm package `rea-agents`),
+an MIT-licensed MCP bridge in front of Ghidra, Hopper (paid licence), IDA, JADX, WABT and its own static
+inspectors. `authorized-device-debloat` reaches for it only when a package's role is unclear.
+It is optional: each of those skills also works with the tools you invoke by hand, and the bridge is
+not a decompiler of its own. When a bridge server is connected, the skill routes the
+target to it and cites the returned Evidence IDs.
+
+```bash
+npx -y rea-agents@6.8.0 doctor --client claude_code --json                         # read-only readiness
+npx -y rea-agents@6.8.0 setup --client claude_code --skill=false --dry-run --json  # read the plan
+npx -y rea-agents@6.8.0 setup --client claude_code --skill=false --yes            # apply
+```
+
+- Pin the version. `@latest` belongs to a deliberate update, not to a registration written
+  once and forgotten; these instructions were written against **6.8.0**.
+- `--client` names the assistant actually running (`claude_code`, `codex`, `opencode`,
+  `cursor`, among others); a registration for a client you are not running is written and
+  never loaded.
+- `setup --dry-run` prints the exact paths and changes and writes nothing. Read the plan
+  before applying: it edits agent configuration outside this repository and may offer to
+  install a paid-licence provider you may not hold, which static JavaScript,
+  managed-assembly and archive work does not need.
+- `--skill=false` registers the MCP server without installing the bridge's own bundled
+  skill, which `setup` adds by default: the skills here already carry the procedure, and a
+  second copy would compete with them for the same requests. For the same reason `doctor`
+  runs without `--skill`, which would require that bundled skill to be installed.
+- `setup` applies without asking only with `--yes`; in a session with no terminal prompt,
+  which is how an agent runs it, it otherwise stops and asks to be rerun interactively or
+  with `--yes`. Pass `--yes` only after reading the dry-run plan, and always with an
+  explicit `--client`.
+- `doctor` is read-only, and its scoped forms (`--client`, `--provider`) answer one question
+  instead of auditing everything.
+- Node.js must be 22.x (>=22.23.4), 24.x (>=24.22.1) or 26.12.1+; 23, 25 and earlier 26.x
+  are refused, and a version error is the runtime rather than the analysis.
+- The bridge runs with your user's permissions and reads the target locally. It is not a sandbox
+  and it grants no licence: each commercial provider keeps its own terms, and the
+  authorisation rule every analysis skill states still applies to whatever you point it at.
 
 ## No assistant at all
 

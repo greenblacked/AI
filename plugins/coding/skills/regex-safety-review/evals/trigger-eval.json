@@ -1,0 +1,22 @@
+[
+  {"query": "is this regex safe to run on user input", "should_trigger": true},
+  {"query": "one request body makes our service hang and I suspect a regex", "should_trigger": true},
+  {"query": "a regex pinned a CPU core at 100 percent, how do I prove it is catastrophic backtracking", "should_trigger": true},
+  {"query": "there is a ReDoS advisory in one of our dependencies, how do I check our exposure", "should_trigger": true},
+  {"query": "review this pattern (a+)+ for nested quantifiers before we ship it", "should_trigger": true},
+  {"query": "our validator slows down as the input grows, is the pattern exponential", "should_trigger": true},
+  {"query": "we use Python re on a request field, how do I know if it can blow up", "should_trigger": true},
+  {"query": "this email regex times out on a long string with no at sign", "should_trigger": true},
+  {"query": "should we move this pattern to a non-backtracking engine", "should_trigger": true},
+  {"query": "find the input that triggers worst-case time in this regular expression", "should_trigger": true},
+  {"query": "write me a regex that matches ISO dates", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "review this pull request for injection and broken authz", "should_trigger": false, "expected": "security-review"},
+  {"query": "this SQL query is slow because of a leading wildcard LIKE", "should_trigger": false, "expected": "sql-performance"},
+  {"query": "profile the service to find which function burns the CPU", "should_trigger": false, "expected": "profiling"},
+  {"query": "a dependency vulnerability alert arrived, is the vulnerable function reachable", "should_trigger": false, "expected": "dependency-triage"},
+  {"query": "the API is slow under load and I need to find the saturation point", "should_trigger": false, "expected": "load-testing"},
+  {"query": "our test suite hangs and I want the case that reproduces it", "should_trigger": false, "expected": "debugging"},
+  {"query": "harden the input validation layer against many classes of bad input", "should_trigger": false, "expected": "security-review"},
+  {"query": "a fuzz target keeps crashing, help me shrink the input", "should_trigger": false, "expected": "fuzz-harness"},
+  {"query": "the JSON parser is slow on large documents", "should_trigger": false, "expected": "profiling"}
+]
