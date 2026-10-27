@@ -1048,3 +1048,24 @@ def test_no_js_under_not_counts_only_on_the_root_element(tmp_path, capsys):
     # .no-js sits on <html>; on the revealed element itself it says nothing about scripts
     text = ".reveal:not(.no-js) { opacity: 0 }"
     assert "floor-reveal-hidden" in found_ids(tmp_path, capsys, css(text))
+
+
+@pytest.mark.parametrize("quote", ['"6\\" wide"', "'it\\'s'", '"a\\\\"'])
+def test_an_escaped_quote_in_a_css_string_does_not_hide_later_rules(tmp_path, capsys, quote):
+    text = f".label::after {{ content: {quote}; }}\nbody {{ font-size: 12px; overflow-x: hidden; }}"
+    found = found_ids(tmp_path, capsys, css(text))
+    assert {"floor-body-size", "floor-hidden-overflow"} <= found
+
+
+def test_an_svg_title_is_not_the_document_title(tmp_path, capsys):
+    html = (
+        '<!doctype html><html lang="en"><head>'
+        '<meta name="description" content="A studio."></head>'
+        "<body><h1>A</h1><svg><title>Close icon</title></svg></body></html>"
+    )
+    assert "floor-title" in found_ids(tmp_path, capsys, {"index.html": html})
+
+
+def test_a_comment_opener_inside_a_css_string_is_not_a_comment(tmp_path, capsys):
+    text = '.a::before { content: "/*"; }\nbody { font-size: 12px; }\n.b::after { content: "*/"; }'
+    assert "floor-body-size" in found_ids(tmp_path, capsys, css(text))

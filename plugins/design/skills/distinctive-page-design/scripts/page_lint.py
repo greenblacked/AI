@@ -113,14 +113,15 @@ class Page:
 
 # --- parsing: css -------------------------------------------------------------------
 
-COMMENT = re.compile(r"/\*.*?\*/", re.S)
+# A quoted string is matched first so a "/*" inside one never opens a comment.
+COMMENT = re.compile(r"""("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|/\*.*?\*/""", re.S)
 IMPORTANT = re.compile(r"\s*!\s*important\s*$", re.I)
 DECLARATION_ONLY_AT_RULES = ("@font-face", "@property", "@page")
 
 
 def strip_comments(css: str) -> str:
     """Blank comments out but keep their newlines, so line numbers stay true."""
-    return COMMENT.sub(lambda m: re.sub(r"[^\n]", " ", m.group(0)), css)
+    return COMMENT.sub(lambda m: m.group(1) or re.sub(r"[^\n]", " ", m.group(0)), css)
 
 
 def resolve_nesting(stack: list[str]) -> tuple[str, tuple[str, ...]]:
@@ -163,6 +164,7 @@ def parse_css(css: str, file: str, first_line: int = 1) -> list[Decl]:
     line = first_line
     depth = 0
     quote = ""
+    escaped = False
 
     def flush() -> None:
         text = "".join(buf).strip()
@@ -180,7 +182,13 @@ def parse_css(css: str, file: str, first_line: int = 1) -> list[Decl]:
             line += 1
         if quote:
             buf.append(ch)
-            quote = "" if ch == quote else quote
+            # a backslash escapes the next character, so "6\" wide" stays one string
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == quote:
+                quote = ""
             continue
         if ch in "\"'":
             quote = ch
@@ -410,6 +418,16 @@ def has_ancestor(node: Node, ancestor: Node) -> bool:
     return False
 
 
+def in_foreign_content(node: Node) -> bool:
+    """Inside <svg> or <math>, where <title> names a graphic rather than the page."""
+    parent = node.parent
+    while parent is not None:
+        if parent.tag in ("svg", "math"):
+            return True
+        parent = parent.parent
+    return False
+
+
 def text_within(doc: Doc, node: Node) -> str:
     return " ".join(
         t.text.strip() for t in doc.texts if t.parent is node or has_ancestor(t.parent, node)
@@ -425,6 +443,7 @@ def check_required_element(page: Page, params: dict) -> list[Hit]:
             n
             for n in doc.nodes
             if n.tag == params["tag"]
+            and not in_foreign_content(n)
             and all(n.attrs.get(k, "").lower() == v for k, v in wanted.items())
         ]
         if not found:
