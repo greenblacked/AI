@@ -8,6 +8,16 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-27
+
+### Changed
+
+- The release attaches one `skills-vX.Y.Z.zip` holding every `.skill` archive, beside the portable bundle, instead of one asset per skill. The v0.3.0 run uploaded 517 archives plus the bundle, one request per asset, and was stopped by `HTTP 403: You have exceeded a secondary rate limit` after about 457, leaving a draft; two assets stay far below GitHub's documented limit on content-creating requests. The per-skill archives are still built, verified and served from the catalogue site.
+
+### Fixed
+
+- A `release.yml` re-run after a failed run no longer passes green with the release left as an unpublished draft. `gh release view` finds a draft by tag, so the re-run took the upload branch, which exits 0 and leaves the draft as it was. A found draft is now deleted (the tag stays) and the release created again from the tagged commit, never published as found, because a draft needs no tag and anyone with write access could plant one; the step also fails unless the release is public and holds exactly the two expected assets. A re-run uses the tagged commit's `release.yml`, so this recovery applies only to tags cut after this change.
+
 ## [0.3.0] - 2026-10-27
 
 ### Added
@@ -1031,7 +1041,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/greenblacked/AI/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/greenblacked/AI/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/greenblacked/AI/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/greenblacked/AI/compare/v0.2.0...v0.2.1

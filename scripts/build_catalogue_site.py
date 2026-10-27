@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Build the static catalogue a Cloudflare Worker serves for one release.
 
-The GitHub Release already attaches one ``.skill`` archive per skill and the portable
-bundle. This writes the same two things, plus the marketplace manifest and a page for the
-catalogue, each plugin, each skill and a few guides, into a directory Wrangler can upload
-as static assets. It is a download of that
+The GitHub Release already attaches a zip of every ``.skill`` archive and the portable
+bundle. This writes the per-skill archives and the portable bundle, plus the
+marketplace manifest and a page for the catalogue, each plugin, each skill and a few
+guides, into a directory Wrangler can upload as static assets. It is a download of that
 release, not a marketplace Claude Code can install from: the manifest's plugin sources
 are paths inside the git repository, and they only resolve there.
 
