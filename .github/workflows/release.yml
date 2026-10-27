@@ -109,14 +109,14 @@ jobs:
           (cd dist && python -m zipfile -c "portable-skills-$TAG.zip" portable)
           # One asset for every archive, not one per skill: hundreds of uploads in a
           # minute run into GitHub's documented limit on content-creating requests. The
-          # glob must match, or zipfile would be handed the literal `*.skill`.
+          # glob must match, or zipfile would be handed the literal `./*.skill`.
           shopt -s nullglob
           archives=(dist/*.skill)
           if [ "${#archives[@]}" -eq 0 ]; then
             echo "::error::no .skill archive in dist/ to bundle" >&2
             exit 1
           fi
-          (cd dist && python -m zipfile -c "skills-$TAG.zip" *.skill)
+          (cd dist && python -m zipfile -c "skills-$TAG.zip" ./*.skill)
 
       - name: Create or update the GitHub release
         # Safe to re-run, and never publishes a draft it did not just create. Two assets
