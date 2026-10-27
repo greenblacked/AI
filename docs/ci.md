@@ -319,7 +319,7 @@ secret that job needs before the first tag.
 
 | Job | Check name | Failing means |
 | --- | --- | --- |
-| `release` | `release` | The ref is not a `vX.Y.Z` tag, the tagged commit is not on `main`, the strict validator failed, [`scripts/release.py notes`](../scripts/release.py) found no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md) for the tag, [`scripts/package_skills.py`](../scripts/package_skills.py) or [`scripts/verify_archives.py`](../scripts/verify_archives.py) failed, [`scripts/export_portable.py`](../scripts/export_portable.py) failed, or `gh release create` or `gh release upload` could not create the release or upload an asset. |
+| `release` | `release` | The ref is not a `vX.Y.Z` tag, the tagged commit is not on `main`, the strict validator failed, [`scripts/release.py notes`](../scripts/release.py) found no non-empty section in [`CHANGELOG.md`](../CHANGELOG.md) for the tag, [`scripts/package_skills.py`](../scripts/package_skills.py) or [`scripts/verify_archives.py`](../scripts/verify_archives.py) failed, [`scripts/export_portable.py`](../scripts/export_portable.py) failed, the skills bundle could not be zipped, `gh release delete`, `gh release create` or `gh release upload` could not discard a found draft, create the release or upload one of its two assets, or after the publish step the release is still a draft or does not hold exactly its two assets. |
 | `cloudflare` | `cloudflare` | The ref is not a `vX.Y.Z` tag, the tagged commit is not on `main`, [`scripts/build_catalogue_site.py`](../scripts/build_catalogue_site.py) or [`scripts/check_wrangler_pin.py`](../scripts/check_wrangler_pin.py) failed, `npm ci` failed, the `production` environment has no `CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID`, `wrangler deployments status` could not read the version production is serving or found traffic split between versions, `wrangler deploy` failed, Wrangler reported no `workers.dev` address or did not report `https://ai.szolotov.com` for the deploy, the smoke test did not see this version answer on `workers.dev`, `wrangler deployments status` does not show this version serving all traffic, or the automatic rollback failed. A 403 from `ai.szolotov.com` is logged as a notice and never fails the job. |
 
 Not a required check — nothing merges against it, and it only ever runs after a `vX.Y.Z` tag
@@ -334,19 +334,28 @@ The archives and the portable export are built exactly as `ci.yml`'s `package` j
 them, calling the same two scripts, so the two paths that ship a `.skill` archive cannot
 drift against each other. `python -m zipfile -c` zips `dist/portable` into
 `dist/portable-skills-<tag>.zip` from inside `dist/`, so the archive's own top-level entry
-reads `portable/…` rather than `dist/portable/…`.
+reads `portable/…` rather than `dist/portable/…`. The same step zips every `dist/*.skill`
+into `dist/skills-<tag>.zip` and fails if there is none, so the release carries two
+assets rather than one per skill: the v0.3.0 run uploaded 517 archives and the portable
+zip one at a time and hit `HTTP 403: You have exceeded a secondary rate limit` part way,
+and GitHub documents a limit on content-creating requests per minute and per hour.
 
-The last step is written to be safe to re-run. `gh release view "$TAG"` decides which of
-two things happens: if the release does not exist yet, `gh release create "$TAG"
---verify-tag` makes it, attaching the notes file the earlier step wrote and refused to
-proceed on empty, along with every `.skill` archive and the portable zip. If the release
-already exists — the shape a re-run after a partial failure takes, such as the release
-having been created but an asset upload failing partway through — `gh release upload
-"$TAG" --clobber` replaces its assets instead, overwriting anything a failed earlier
-attempt managed to upload rather than erroring on "already exists" or leaving a stale one
-behind. Re-running the workflow on the same tag is therefore the recovery procedure for a
-failed run; nothing about it is destructive to a release that already succeeded, since
-the assets it rebuilds are deterministic from the tagged commit.
+The last step is written to be safe to re-run, and never to publish a draft it did not
+just create. It decides from one read of `gh release view "$TAG" --json isDraft`. If that
+read fails, which includes there being no release, `gh release create "$TAG" --verify-tag` makes it, attaching the notes file the
+earlier step wrote and refused to proceed on empty, along with the two zips. If the
+release is published, `gh release upload "$TAG" --clobber` replaces the two assets. If it
+is a draft, `gh release delete "$TAG" --yes` discards it, without `--cleanup-tag` so the
+tag stays, and the release is created again from the tagged commit. A draft needs no
+tag, so one left by a failed run and one planted by anyone with write access look the
+same; discarding rather than publishing it keeps foreign notes and assets from going
+out under a trusted tag. The step then fails with an error unless `isDraft` is `false`
+and the release holds exactly `skills-<tag>.zip` and `portable-skills-<tag>.zip`. A
+re-run uses the `release.yml` at the tagged commit, so this recovery applies only to
+tags cut after the change that introduced it. Re-running the workflow on the same tag is
+otherwise the recovery procedure for a failed run, and a green run means the release is
+public with those two assets; nothing about it is destructive to a release that already
+succeeded, since the assets it rebuilds are deterministic from the tagged commit.
 
 No dependency caching: `setup-python`'s `cache:` key would restore whatever an earlier,
 less trusted run wrote, on the one workflow with write access to the repository and about
@@ -820,7 +829,8 @@ second has two routes, and the Actions one is the usual path.
    command to publish, which is what triggers `release.yml` above. That run creates the
    GitHub Release and, when the `production` environment has the Cloudflare credential
    from [the deploy section](#what-you-set-in-github-and-cloudflare), uploads the same
-   catalogue to the `ai` Worker. The release is created first. A missing
+   catalogue to the `ai` Worker. The release is created and published first, and the
+   deploy job runs only once it is. A missing
    credential fails the deploy job and leaves the GitHub Release in place; fix the
    environment and re-run the workflow.
 

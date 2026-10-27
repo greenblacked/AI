@@ -676,7 +676,7 @@ jobs:
         # needs is a SKILL.md at the archive root whose `name` matches the archive, and
         # a broken layout would ship silently: the build is green and the install is
         # what fails, for someone else, later. `release.yml` runs this same script
-        # before attaching these archives to a GitHub Release, so the two paths that
+        # before zipping them into the release's skills bundle, so the two paths that
         # ship an archive share one check rather than two that can drift.
         run: |
           set -Eeuo pipefail

@@ -1899,6 +1899,125 @@ def test_the_preview_check_fails_without_the_stage_host(tmp_path, custom_url):
     assert calls == []
 
 
+FLATTEN = "Flatten every skill and zip the portable bundle"
+PUBLISH = "Create or update the GitHub release"
+_EXPORT_STUB = (
+    "from pathlib import Path\n"
+    "Path('dist/portable').mkdir(parents=True, exist_ok=True)\n"
+    "Path('dist/portable/a.md').write_text('a')\n"
+)
+
+
+def _fake_gh(tmp_path):
+    """A gh that logs argv and keeps one release in files: its state and its asset names.
+
+    STUB_RELEASE is none, draft or published; STUB_ASSETS seeds the asset names (one per
+    line). `create` leaves STUB_CREATE_RESULT (default published) and attaches the zips it
+    is given, `upload` adds them, and `delete` removes the release and its assets.
+    """
+    state = tmp_path / "gh-state"
+    assets = tmp_path / "gh-assets"
+    _write_stub(
+        tmp_path / "bin" / "gh",
+        'echo "gh $*" >> "$STUB_LOG"\n'
+        f'state="{state}"; assets="{assets}"\n'
+        'if [ ! -e "$state" ]; then\n'
+        '  printf "%s" "$STUB_RELEASE" > "$state"; printf "%s\\n" "${STUB_ASSETS:-}" > "$assets"\n'
+        "fi\n"
+        'cur=$(cat "$state")\n'
+        'case "$1 $2" in\n'
+        '  "release view")\n'
+        '    [ "$cur" != none ] || exit 1\n'
+        '    case "$*" in\n'
+        '      *isDraft*) [ "$cur" = draft ] && echo true || echo false ;;\n'
+        '      *assets*) grep -v "^$" "$assets" || true ;;\n'
+        "    esac ;;\n"
+        '  "release delete") printf none > "$state"; : > "$assets" ;;\n'
+        '  "release create")\n'
+        '    printf "%s" "${STUB_CREATE_RESULT:-published}" > "$state"\n'
+        '    for a in "$@"; do case "$a" in\n'
+        '      dist/*.zip) basename "$a" >> "$assets" ;; esac; done ;;\n'
+        '  "release upload")\n'
+        '    for a in "$@"; do case "$a" in dist/*.zip)\n'
+        '      grep -qx "$(basename "$a")" "$assets" ||\n'
+        '        basename "$a" >> "$assets" ;; esac; done ;;\n'
+        "esac\n",
+    )
+
+
+PUBLISH_ENV = {"TAG": "v0.3.1", "NOTES_FILE": "/notes.md", "GH_REPO": "o/r"}
+ZIPS = ["skills-v0.3.1.zip", "portable-skills-v0.3.1.zip"]
+BUNDLES = "dist/skills-v0.3.1.zip dist/portable-skills-v0.3.1.zip"
+CREATE = "gh release create v0.3.1 --verify-tag --title v0.3.1 --notes-file /notes.md " + BUNDLES
+
+
+def _publish(tmp_path, release, assets=ZIPS, **extra):
+    _fake_gh(tmp_path)
+    env = {**PUBLISH_ENV, "STUB_RELEASE": release, "STUB_ASSETS": "\n".join(assets), **extra}
+    return _run_step(tmp_path, "release.yml", PUBLISH, env)
+
+
+def _verbs(calls):
+    return [c for c in calls if c.startswith("gh release") and " view " not in c]
+
+
+def test_release_with_no_release_yet_creates_it_with_the_two_bundles_only(tmp_path):
+    result, calls = _publish(tmp_path, "none", assets=[])
+    assert result.returncode == 0, result.stderr
+    assert _verbs(calls) == [CREATE]
+    assert not any(".skill" in c for c in calls)
+
+
+def test_release_discards_a_found_draft_and_recreates_it_never_publishing_it(tmp_path):
+    result, calls = _publish(tmp_path, "draft", assets=["planted.bin", "skills-v0.3.1.zip"])
+    assert result.returncode == 0, result.stderr
+    assert _verbs(calls) == ["gh release delete v0.3.1 --yes", CREATE]
+    assert not any("cleanup-tag" in c or " edit " in c for c in calls)
+
+
+def test_release_rerun_on_a_published_release_uploads_only(tmp_path):
+    result, calls = _publish(tmp_path, "published")
+    assert result.returncode == 0, result.stderr
+    assert _verbs(calls) == ["gh release upload v0.3.1 --clobber " + BUNDLES]
+
+
+def test_release_fails_when_a_published_release_holds_an_extra_asset(tmp_path):
+    result, calls = _publish(tmp_path, "published", assets=[*ZIPS, "planted.bin"])
+    assert result.returncode != 0
+    assert "::error::" in result.stdout + result.stderr
+    assert not any(" edit " in c or "delete" in c for c in calls)
+
+
+def test_release_fails_when_creating_it_leaves_a_draft(tmp_path):
+    result, _calls = _publish(tmp_path, "none", assets=[], STUB_CREATE_RESULT="draft")
+    assert result.returncode != 0
+    assert "::error::" in result.stdout + result.stderr
+
+
+def test_release_flatten_step_zips_every_skill_archive_into_one_bundle(tmp_path):
+    work = tmp_path / "work"
+    (work / "dist").mkdir(parents=True)
+    for name in ("alpha", "beta"):
+        (work / "dist" / f"{name}.skill").write_bytes(b"x")
+    (work / "scripts").mkdir()
+    (work / "scripts" / "export_portable.py").write_text(_EXPORT_STUB, encoding="utf-8")
+    result, _calls = _run_step(tmp_path, "release.yml", FLATTEN, {"TAG": "v0.3.1"})
+    assert result.returncode == 0, result.stderr
+    with zipfile.ZipFile(work / "dist" / "skills-v0.3.1.zip") as bundle:
+        assert sorted(bundle.namelist()) == ["alpha.skill", "beta.skill"]
+    assert (work / "dist" / "portable-skills-v0.3.1.zip").is_file()
+
+
+def test_release_flatten_step_fails_when_no_skill_archive_exists(tmp_path):
+    work = tmp_path / "work"
+    (work / "dist").mkdir(parents=True)
+    (work / "scripts").mkdir()
+    (work / "scripts" / "export_portable.py").write_text(_EXPORT_STUB, encoding="utf-8")
+    result, _calls = _run_step(tmp_path, "release.yml", FLATTEN, {"TAG": "v0.3.1"})
+    assert result.returncode != 0
+    assert not (work / "dist" / "skills-v0.3.1.zip").exists()
+
+
 def test_production_deploys_are_serialized_across_release_tags():
     workflow = (REPO / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
     assert "  group: release-${{ github.ref }}" in workflow

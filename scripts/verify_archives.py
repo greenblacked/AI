@@ -7,9 +7,9 @@ file name, and a broken layout would ship green here and fail at install, for so
 else, later.
 
 `ci.yml`'s `package` job runs `package_skills.py` and then this, on every push and pull
-request. `release.yml` runs the same two scripts again before attaching the archives to
-a GitHub Release, so the two paths that ship an archive share one check rather than two
-that can drift against each other.
+request. `release.yml` runs the same two scripts again before zipping the archives into
+the one bundle a GitHub Release attaches, so the two paths that ship an archive share
+one check rather than two that can drift against each other.
 
 Standard library only, like the packager it verifies.
 """
