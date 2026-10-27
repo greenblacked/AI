@@ -785,6 +785,14 @@ def test_without_a_vault_a_folder_qualified_namesake_counts_as_another_note(
     assert "no-wikilink" not in rules_of(lines), lines
 
 
+def test_without_a_vault_a_folder_qualified_link_to_itself_is_still_a_self_link(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    text = frontmatter() + "\n[[patterns/note]]\n"
+    code, lines = check(tmp_path, text, capsys, name="patterns/note.md")
+    assert "no-wikilink" in rules_of(lines), lines
+
+
 def test_taxonomy_tags_must_be_listed(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     taxonomy = write(
         tmp_path / "taxonomy.md",
