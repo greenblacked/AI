@@ -87,6 +87,42 @@ REFERENCE_MAX_LINES_WITHOUT_TOC = 100
 BUNDLED_PATH_RE = re.compile(
     r"(?<![A-Za-z0-9_./-])(?:\./)?(?:references|scripts|assets)/[A-Za-z0-9_./-]*[A-Za-z0-9_-]"
 )
+
+# A command that starts a bundled script by a path relative to the working directory. The
+# working directory is the user's project, not the skill, so a file there at the same
+# path runs in place of the bundled one. Three command positions are recognised: after an
+# interpreter (a versioned one, `source` or `uv run`; flags and their values; an optional
+# quote and `./`), after a `./` that is not the tail of a longer path or a variable
+# expansion, and - separately, because in prose a line that merely begins with a path is a
+# mention rather than a command - in command position inside a shell fence: at the start
+# of a line, or after `&&`, `||`, `;`, `|`, a `VAR=value` prefix, `.` or `source`.
+_SCRIPT_PATH = r"(scripts/[A-Za-z0-9_./-]*[A-Za-z0-9_-])"
+_QUOTE = r"[\"']?"
+SKILL_SCRIPT_CMD_RE = re.compile(
+    r"(?:\b(?:python[\d.]*|bash|sh|zsh|node|ruby|perl|deno|bun|source|uv\s+run)"
+    r"(?:\s+-{1,2}[A-Za-z][\w=-]*(?:\s+[\w.=][\w.=-]*)?)*\s+" + _QUOTE + r"(?:\./)?"
+    r"|(?<![\w./$}-])\./)" + _SCRIPT_PATH
+)
+SKILL_SCRIPT_LINE_START_RE = re.compile(
+    r"(?:^|&&|\|\||[;|(])\s*(?:\$\s+)?(?:[A-Za-z_]\w*=\S*\s+)*(?:(?:\.|source)\s+)?"
+    + _QUOTE
+    + _SCRIPT_PATH
+)
+# A `#` at the start of a line or after whitespace begins a shell comment.
+_SHELL_COMMENT_RE = re.compile(r"(?:^|(?<=\s))#.*")
+# `cd` into the skill directory on the same line moves the later commands there, so a
+# relative path after it names the bundled copy.
+_CD_SKILL_DIR_RE = re.compile(r"\bcd\s+[\"']?\$\{?CLAUDE_SKILL_DIR\}?")
+# The sanctioned way to name a bundled file. The existing lookbehind in BUNDLED_PATH_RE
+# refuses a path preceded by `/`, so these were never checked for existence.
+SKILL_DIR_PATH_RE = re.compile(
+    r"\$\{?CLAUDE_SKILL_DIR\}?/((?:references|scripts|assets)/[A-Za-z0-9_./-]*[A-Za-z0-9_-])"
+    # A following brace, dollar, glob or angle bracket makes the capture a prefix of a
+    # pattern or a placeholder, not a file name. Path characters are refused too, so
+    # backtracking cannot shorten the capture until the lookahead passes; a dot counts
+    # only when more path follows it, so a sentence-ending full stop still matches.
+    r"(?![{$*<A-Za-z0-9_/-]|\.[A-Za-z0-9_])"
+)
 TRIGGER_RE = re.compile(r"\buse (?:this skill |it )?(?:when|whenever|for|any time)\b", re.I)
 
 # A description's closing cede clause is the one place it names its neighbours, and the
@@ -213,6 +249,20 @@ def check_skill(
 
     body_lines = text.split("\n")[front.end_line :]
     findings.extend(_check_bundled_paths(body_lines, front.end_line + 1, directory, add))
+    findings.extend(_check_script_invocations(body_lines, front.end_line + 1, directory, add))
+    for reference in sorted((directory / "references").glob("*.md")):
+        if not reference.is_file():
+            # A directory, or a broken symlink, which _check_length reports.
+            continue
+        try:
+            reference_lines = reference.read_text(encoding="utf-8").split("\n")
+        except UnicodeDecodeError:
+            # Reported as not-utf8 by the rglob loop in _check_length, so not repeated here.
+            continue
+        label = reference.relative_to(directory).as_posix()
+        findings.extend(
+            _check_script_invocations(reference_lines, 1, directory, add, label, reference)
+        )
     findings.extend(_check_scripts(directory, repo_root, add))
     findings.extend(_check_length(text, directory, repo_root, add))
     findings.extend(_check_tone(front, body_lines, front.end_line + 1, add))
@@ -450,6 +500,36 @@ def _mask_fenced_blocks(lines: list[str]) -> list[str]:
     return masked
 
 
+CONSOLE_FENCE_LANGUAGES = frozenset({"console", "shell-session"})
+SHELL_FENCE_LANGUAGES = frozenset({"bash", "sh", "shell", "zsh"}) | CONSOLE_FENCE_LANGUAGES
+
+
+def _fence_info_strings(lines: list[str]) -> list[str | None]:
+    """Each line's enclosing closed fence's info string, or None outside any fence.
+
+    Uses the same closed-fence rule as ``_mask_fenced_blocks``. The info string is the
+    language word after the opening marker, lower-cased; an untagged fence gives "".
+    """
+    infos: list[str | None] = [None] * len(lines)
+    opened: tuple[int, str, str] | None = None
+    for number, line in enumerate(lines):
+        stripped = line.lstrip()
+        match = FENCE_RE.match(stripped)
+        if match is None:
+            continue
+        marker = match.group(1)
+        if opened is None:
+            words = stripped[len(marker) :].split()
+            opened = (number, marker, words[0].lower() if words else "")
+            continue
+        start_line, opening, info = opened
+        if marker[0] == opening[0] and len(marker) >= len(opening):
+            for inside in range(start_line, number + 1):
+                infos[inside] = info
+            opened = None
+    return infos
+
+
 def _check_bundled_paths(
     body_lines: list[str], first_line: int, directory: Path, add, label: str = "SKILL.md"
 ):
@@ -481,6 +561,79 @@ def _check_bundled_paths(
     return []
 
 
+def _check_script_invocations(
+    lines: list[str],
+    first_line: int,
+    directory: Path,
+    add,
+    label: str = "SKILL.md",
+    path: Path | None = None,
+):
+    """A bundled script must be started from ${CLAUDE_SKILL_DIR}, not a relative path.
+
+    Fences are deliberately not masked: a command lives in one. A relative path is only
+    reported when the skill itself ships that file, which is what separates a script the
+    working directory could shadow from a project script a runbook names, such as
+    `./scripts/reconcile.sh` in a cutover procedure. The same lines are checked for
+    ${CLAUDE_SKILL_DIR} pointers that resolve to nothing, which the prose check cannot
+    see because its lookbehind refuses a path preceded by `/`.
+    """
+    infos = _fence_info_strings(lines)
+    in_skill_dir = False
+    for offset, line in enumerate(lines):
+        number = first_line + offset
+        info = infos[offset]
+        if info is None or FENCE_RE.match(line.lstrip()):
+            # A `cd` holds for the rest of its fence, not into the next one.
+            in_skill_dir = False
+        # A line that merely starts with the path is a command only in a shell-tagged fence;
+        # in a text, tree or untagged fence it is a layout listing, and the fix message
+        # would mislead.
+        in_shell_fence = info in SHELL_FENCE_LANGUAGES
+        # A shell comment is never a command, whatever operators it mentions.
+        code = _SHELL_COMMENT_RE.sub("", line, count=1) if in_shell_fence else line
+        matches = list(SKILL_SCRIPT_CMD_RE.finditer(code))
+        # console and shell-session fences hold command output too; only a `$ ` prompt
+        # marks a command there.
+        prompted = info not in CONSOLE_FENCE_LANGUAGES or line.lstrip().startswith("$ ")
+        if in_shell_fence and prompted:
+            matches += list(SKILL_SCRIPT_LINE_START_RE.finditer(code))
+        reported: set[str] = set()
+        moved = _CD_SKILL_DIR_RE.search(code)
+        for match in matches:
+            relative = match.group(1)
+            if in_skill_dir or (moved is not None and match.start() > moved.start()):
+                continue
+            if relative in reported or not (directory / relative).is_file():
+                continue
+            reported.add(relative)
+            add(
+                ERROR,
+                "relative-bundled-script",
+                f"{label} runs {relative!r} relative to the working directory, which is the "
+                "user's project; a file there at the same path would run instead. Start it "
+                f"at '${{CLAUDE_SKILL_DIR}}/{relative}'.",
+                number,
+                path,
+            )
+        if moved is not None and info is not None:
+            in_skill_dir = True
+        for match in SKILL_DIR_PATH_RE.finditer(line):
+            # As in _check_bundled_paths, a name with no extension is a directory
+            # mentioned generically, not a pointer to a file.
+            if "." not in match.group(1).rsplit("/", 1)[-1]:
+                continue
+            if not (directory / match.group(1)).exists():
+                add(
+                    ERROR,
+                    "dangling-reference",
+                    f"{label} points at {match.group(0)!r}, which does not exist",
+                    number,
+                    path,
+                )
+    return []
+
+
 def _check_scripts(directory: Path, repo_root: Path, add) -> list[Finding]:
     for script in sorted((directory / "scripts").rglob("*.sh")):
         try:
@@ -508,6 +661,19 @@ def _check_length(text: str, directory: Path, repo_root: Path, add) -> list[Find
             "push depth into references/ instead",
         )
     for reference in sorted((directory / "references").rglob("*.md")):
+        if not reference.is_file():
+            if reference.is_symlink():
+                # is_symlink() is true for a link whose target is missing or loops;
+                # one pointing at a directory has no readable target either.
+                add(
+                    ERROR,
+                    "dangling-reference",
+                    f"{reference.relative_to(directory).as_posix()} is a symlink that "
+                    "does not resolve to a file",
+                    1,
+                    reference,
+                )
+            continue
         try:
             content = reference.read_text(encoding="utf-8")
         except UnicodeDecodeError as error:

@@ -126,7 +126,24 @@ For an author that means: a path in prose is a promise that the file exists, and
 includes one in inline backticks — `references/x.md` in a sentence is checked. A path in a
 fence is a picture, and nothing is checked. If you are showing a layout, fence it; if you
 are telling the model to read something, do not. Only fenced blocks are exempt, so a
-four-space-indented code block is still scanned.
+four-space-indented code block is still scanned. The one exception is a pointer written
+as `${CLAUDE_SKILL_DIR}/scripts/x.py`, which is checked for existence fenced or not,
+because that is the form a command uses and a typo in it fails only when it runs.
+
+**Bundled scripts run by a relative path (`relative-bundled-script`).** A command that
+starts a script the skill ships by a relative path is an error, in `SKILL.md` and in each
+`references/*.md`: after an interpreter (`python3 scripts/x.py`, `python3.11 -W ignore
+"scripts/x.py"`, `bash`, `source`, `uv run`), after `./` (`./scripts/x.sh`), or, in a
+shell-tagged fence (`bash`, `sh`, `shell`, `zsh`, `console`, `shell-session`), in command position: at the
+start of a line (after a dollar-sign prompt in the last two, which also hold output) or after `&&`, `||`, `;`, `|` or a `VAR=value` prefix. The working
+directory is the user's project, so a file there at the same path runs in place of the
+bundled one, under the name of the skill's own checker. Start the command at
+`${CLAUDE_SKILL_DIR}/scripts/x.py` instead. The rule fires only when the skill ships that
+file, so a runbook naming its project's own `./scripts/migrate.sh` is left alone. A bare
+path in prose, or in an untagged or `text` fence, is a mention or a layout listing, not a
+command, so fence a layout as `text`. A command after `cd "${CLAUDE_SKILL_DIR}"` on the
+same line, or on a later line of the same fence, is accepted, because the `cd` has moved
+it into the skill; the next fence starts back in the project.
 
 **Shell scripts (`no-shebang`, `not-executable`).** Every `*.sh` under `scripts/` must
 start with `#!` and have the executable bit set. A script the model is told to run and
@@ -549,7 +566,7 @@ Every code the validator can emit is below, grouped by what it is looking at.
 | `duplicate-skill-name` | error | Two skill directories share a name. | Rename one. `name` equals the directory name, so a duplicate directory is a duplicate skill: the second silently replaces the first on install and in `dist/`, and every counter still reports success. |
 | `nested-skill` | error | A second `SKILL.md` below the skill directory. | Move it to its own directory under `plugins/<plugin>/skills/`. |
 | `frontmatter` | error | The block could not be parsed at all: missing or unclosed `---`, a tab, a byte-order mark, indentation, a duplicate key, an unreadable line. | Follow the message; it carries the line. |
-| `ambiguous-yaml` | error | A value parses here but a real YAML parser reads it differently: a value starting with `[`, `{`, `&`, `*`, `!`, `%`, `@`, `#` or a backtick; one starting with a hyphen and a space; a bare `>` or a bare pipe that is not one of the six block-scalar headers; or a wrapped value with no block-scalar header whose body has a line that reads as `key: value`. The first content line of a wrapped, indicator-less value gets the same leading-character checks as a single-line value — `description:` followed by an indented `- foo` is a list to a real parser for the same reason `description: - foo` is. A comment line there is called out on its own rather than filed under the others: it is not read as any kind of node, it is simply dropped. | Quote the value, or start it with `>` or a pipe if it is meant to wrap. |
+| `ambiguous-yaml` | error | A value parses here but a real YAML parser reads it differently: a value starting with `[`, `{`, `&`, `*`, `!`, `%`, `@`, `#` or a backtick; one starting with a hyphen and a space; a bare `>` or a bare pipe that is not one of the six block-scalar headers; or a wrapped value with no block-scalar header whose body has a line that reads as `key: value`. The first content line of a wrapped, indicator-less value gets the same leading-character checks as a single-line value — `description:` followed by an indented `- foo` is a list to a real parser for the same reason `description: - foo` is. A comment line there is called out on its own rather than filed under the others: it is not read as any kind of node, it is simply dropped. Inside quotes, the first unescaped closing quote ends the value, so an unescaped quote in the middle (`"a "quoted" word"`, `'it's here'`), an unclosed quote, text after the closing quote, or a `#` with no space before it all fail the same way. So does a backslash escape in double quotes other than `\\`, `\"`, `\n`, `\t` and `\u` with four hex digits: a real parser rejects some (`\'`, `\q`, `\#`, a short `\u12`) and reads others (`\x41`, `\a`, `\/`) as something this validator does not decode. | Quote the value, escaping any quote inside it (`\"` or `''`), or start it with `>` or a pipe if it is meant to wrap. For an unsupported escape, drop the backslash, use a supported escape, or switch to single quotes. |
 | `unknown-key` | error | A key outside the allowed six. | Rename it, or delete it. The message names the likely intended key. |
 | `missing-name` | error | No `name`. | Add it. |
 | `empty-name` | error | `name` present but blank. | Fill it in. |
@@ -567,7 +584,8 @@ Every code the validator can emit is below, grouped by what it is looking at.
 | `no-trigger` | warning | No explicit "use when…" clause. | Add one naming the situations. |
 | `copied-trigger-clause` | warning | This description's trigger clause is character-for-character the same as another skill's or subagent's, once case and whitespace are folded. The clause runs from `Use when…` to the cede clause or the end, and only a match over forty characters counts. | Rewrite the clause around what this skill does rather than what the other one does. A copied clause makes the two fire on the same requests, and the eval that would show it never runs here. |
 | `long-compatibility` | error | `compatibility` over 500 characters. | Shorten it. |
-| `dangling-reference` | error | A `references/`, `scripts/` or `assets/` path named in prose does not exist. | Write the file, remove the pointer, or fence it if it was only an illustration. |
+| `dangling-reference` | error | A `references/`, `scripts/` or `assets/` path named in prose does not exist, or a `${CLAUDE_SKILL_DIR}/…` pointer in `SKILL.md` or a reference file, fenced or not, names a file that does not exist. | Write the file, remove the pointer, or fence it if it was only an illustration. A `${CLAUDE_SKILL_DIR}/…` pointer is checked even inside a fence, so an illustration should use a placeholder such as `<name>.py`. A symlink in `references/` that does not resolve to a file is reported here too. |
+| `relative-bundled-script` | error | A command runs a script the skill ships by a path relative to the working directory: after an interpreter, after `./`, or in command position inside a shell-tagged fence. | Start it at `${CLAUDE_SKILL_DIR}/scripts/…`. |
 | `no-shebang` | error | A `scripts/*.sh` file has no `#!` line. | Add `#!/usr/bin/env bash`. |
 | `not-executable` | error | A `scripts/*.sh` file is not executable. | `chmod +x` it. |
 | `long-skill` | warning | `SKILL.md` over 500 lines. | Push depth into `references/`. |
@@ -599,7 +617,7 @@ subagent](writing-agents.md) for why.
 | --- | --- | --- | --- |
 | `not-utf8` | error | The file is not valid UTF-8. | Re-save it as UTF-8. Reported rather than raised, because one mis-encoded file used to abort validation for every other subagent. |
 | `frontmatter` | error | The block could not be parsed, as above. | Follow the message. |
-| `ambiguous-yaml` | error | A value parses here but a real YAML parser reads it differently, as above. | Quote the value, or start it with `>` or a pipe if it is meant to wrap. |
+| `ambiguous-yaml` | error | A value parses here but a real YAML parser reads it differently, as above, including a malformed quoted value or an unsupported double-quoted escape. | Quote the value, escaping any quote inside it, or start it with `>` or a pipe if it is meant to wrap. |
 | `unknown-key` | error | A key outside the set in [writing a subagent](writing-agents.md#frontmatter). | Rename or delete it. `allowed-tools` here is the usual cause; the subagent key is `tools`. |
 | `missing-name` | error | No `name`, or blank. | Add it. |
 | `bad-name` | error | Not lowercase letters, digits and single hyphens, or over 64 characters. | Rewrite it in kebab-case. |
