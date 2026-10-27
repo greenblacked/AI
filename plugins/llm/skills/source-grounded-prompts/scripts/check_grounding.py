@@ -70,7 +70,7 @@ NUMBER = re.compile(
 # The shape of a figure that is a single range, whose two ends count as supplied. Chains
 # of three or more parts (a date) and fractions are kept whole.
 TOKEN = re.compile(
-    rf"(?P<prefix>[-+±]?[{CURRENCY}]?)(?P<low>{FIRST})(?P<lunit>{UNIT})?"
+    rf"(?P<sign>[-+±]?)(?P<currency>[{CURRENCY}]?)(?P<low>{FIRST})(?P<lunit>{UNIT})?"
     rf"(?:-(?P<hprefix>[{CURRENCY}]?)(?P<high>{DIGITS})(?P<hunit>{UNIT})?)?"
 )
 NEXT_WORD = re.compile(r"\s+([^\W\d_][\w'-]*)")
@@ -203,14 +203,17 @@ def extract_quotes(text: str, min_words: int) -> list[QuoteHit]:
 def number_forms(value: str) -> set[str]:
     """A source number, plus the two ends of a source range, count as supplied.
 
-    A unit written once at the end of a range ("5-10%", "$4-6m") belongs to both ends.
+    A unit written once at the end of a range ("5-10%", "$4-6m") belongs to both ends, and
+    so does a currency mark written once at the start; a sign does not, because "-5-10°c"
+    ends at 10°c, not -10°c.
     """
     parts = TOKEN.fullmatch(value)
     if parts is None or parts["high"] is None:
         return {value}
-    prefix, low_unit, high_unit = parts["prefix"], parts["lunit"] or "", parts["hunit"] or ""
-    low = f"{prefix}{parts['low']}{low_unit or high_unit}"
-    high = f"{parts['hprefix'] or prefix}{parts['high']}{high_unit}"
+    currency = parts["currency"]
+    low_unit, high_unit = parts["lunit"] or "", parts["hunit"] or ""
+    low = f"{parts['sign']}{currency}{parts['low']}{low_unit or high_unit}"
+    high = f"{parts['hprefix'] or currency}{parts['high']}{high_unit}"
     return {value, low, high}
 
 

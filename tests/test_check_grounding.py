@@ -375,6 +375,17 @@ def test_the_ends_of_a_source_range_count_as_supplied(
     assert code == 0, out
 
 
+@pytest.mark.parametrize(
+    ("claim", "expected"),
+    [("It reached 10°C.", 0), ("It reached -10°C.", 1), ("It cost $10.", 0)],
+)
+def test_a_range_end_takes_the_currency_but_not_the_sign_of_the_start(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], claim: str, expected: int
+) -> None:
+    code, out, _ = check(tmp_path, claim, "Overnight -5–10°C; tickets $5–10.", capsys)
+    assert code == expected, out
+
+
 def test_extract_numbers_reports_context_and_line() -> None:
     found = grounding.extract_numbers("a\nGrew 45 percent in 2020\n")
     assert [(n.value, n.line, n.context) for n in found] == [
