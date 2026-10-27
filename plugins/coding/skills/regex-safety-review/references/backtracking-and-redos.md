@@ -3,6 +3,15 @@
 Read this when the pattern is dangerous and you need the mechanics, the shapes with the input
 that triggers each, or the rewrite that removes the ambiguity.
 
+## Contents
+
+- [How backtracking blows up](#how-backtracking-blows-up)
+- [The shapes, with the trigger](#the-shapes-with-the-trigger)
+- [Safe-looking patterns that are not](#safe-looking-patterns-that-are-not)
+- [Measuring, safely](#measuring-safely)
+- [The rewrites](#the-rewrites)
+- [When a parser is the answer](#when-a-parser-is-the-answer)
+
 ## How backtracking blows up
 
 A backtracking engine walks the pattern left to right and, at each choice point — a quantifier
@@ -70,10 +79,15 @@ the absolute time, is the evidence.
 | `(a+)+` | `a+` | The outer quantifier is redundant; `a+` matches the same language |
 | `(\d+)+` | `\d+` | same |
 | `(a\|a)+` | `a+` | The branches are identical |
-| `(ab\|a)+b` | `(ab\|a)*b` or `a+b` | Make the alternation's branches disjoint, or drop the redundant one |
+| `(ab\|a)+b` | `a(?:b?a)*b?b` | Each repetition now starts with a different character, so only one path matches; the accepted strings are unchanged |
 | `a*a*` | `a*` | Two adjacent identical quantifiers are one |
 | `(.*)*` | `.*` | same |
-| `(x+x+)+y` | `x+y` | The inner pattern is just `x+` |
+| `(x+x+)+y` | `xx+y` | One pass of the loop needs at least two `x`, so the language is two or more `x` then `y`; `x+y` would also accept `xy` |
+
+A rewrite must accept exactly the strings the original accepted, or the performance fix
+becomes a validation change. Before shipping one, compare the two patterns on every short
+input over the pattern's alphabet (a few lines with `itertools.product` and `re.fullmatch`
+reaching length 10 or so) and on the inputs the old tests used.
 
 **Make the branches disjoint.** `(a|ab)` becomes `a(b)?`; each character is now consumed by one
 branch, so there is one parse.

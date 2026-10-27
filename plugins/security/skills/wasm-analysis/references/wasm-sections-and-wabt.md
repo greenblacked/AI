@@ -16,8 +16,12 @@ matters to an investigation is one of three kinds:
    `sourceMappingURL` are the ones a reader cares about; an unfamiliar name is a lead, not
    noise.
 
-A module with no start section does nothing when instantiated; it acts only when the host
-calls an export. That distinction is the first question to settle.
+A module with no start section runs no function of its own when instantiated, but
+instantiation is not inert: active data and element segments are written into memory and
+tables at that moment, and when the memory or table is imported, the write lands in state
+the host shares. Settle two questions first: is there a start function, and do any active
+segments target an imported memory or table? Only a module with neither does nothing until
+the host calls an export.
 
 ## The import list is the capability list
 
