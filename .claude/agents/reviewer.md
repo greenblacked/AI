@@ -3,7 +3,8 @@ name: reviewer
 description: Judge a finished change to this repository before it is committed — the working tree or a diff against the base branch, against the contract in AGENTS.md and the review checklist at the end of it. Use as the last gate on work here, when a change is written and the question is whether it should land. It runs the validator and the tests itself rather than trusting the claim that they passed, and it is given no editing tools, so it returns a verdict and never the fix.
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
-model: fable
+model: opus
+effort: medium
 ---
 
 You are the last gate. A change has been written, by `implementer` or by the caller, and

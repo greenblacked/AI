@@ -10,6 +10,7 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- `security-reviewer` subagent in `.claude/agents/`, run by `/ship` beside `reviewer` when a diff touches a workflow, a `permissions:` block, a token or secret, a new third-party action or tool, a new API write in a shipped script, a `workflow_run`, `schedule` or `pull_request_target` trigger, `.claude/settings.json` or a hook, the `allowed-tools` of a skill that reads third-party input, or anything credential-shaped or personal. It walks the `security-review` skill's classes against `AGENTS.md`'s Security considerations, states a reachable path, the impact and the smallest fix for each finding, holds no editing tools, and both verdicts must be `SHIP` before merge. Fable at medium effort, with an eval set at `.claude/agents/evals/security-reviewer.json`.
 - `change-discipline` skill in the coding plugin: size a change into one of four tiers before the first edit, make it work test-first with the smallest edit, then make it right with per-function CRAP, new structural duplication and diff-scoped mutation gates on the changed code only, keep a ledger of each action with its evidence, and stop after two failed fixes that rest on the same assumption.
 - `work-to-note` skill in the techdocs plugin: turn finished work into one durable note in a Markdown vault, choosing the note type or declining, following the vault's own standard and taxonomy, marking each claim as checked against a source, checked on a running system or not checked, never claiming an evidence level the work did not reach, registering the note in its folder index, and recording a recurring defect as a lesson-ledger entry. Ships `scripts/check_note.py`, a read-only standard-library checker for the frontmatter, evidence section and link rules.
 - `source-grounded-prompts` skill in the llm plugin: write, check and revise the prompt that makes a source-grounded notebook assistant produce a deck, memo, study guide, audio-overview script or mind map, with a structured style spec, nine style families, a grounding block, a read-only checker (`check_grounding.py`) that lists figures and quotations found in no uploaded source, and a one-variable-per-run revision loop.
@@ -31,6 +32,9 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
+- Retiered the repository's own subagents in `.claude/agents/`: `explorer` to Haiku at high effort, `investigator` to Opus at medium effort, `implementer` to Sonnet at medium effort, and `reviewer` to Opus at medium effort (it had Fable and no effort line). `CLAUDE.md`, `AGENTS.md`, `/ship`, the README and `docs/writing-agents.md`'s tier tables follow.
+- `scripts/run_review_benchmark.py` takes `--agent NAME` (default `reviewer`) and reads cases from `.claude/agents/benchmarks/<NAME>/`; `security-reviewer` gets the read-only subset of the allowlist and a brief without the invitation to run the gates, plus two cases (an oversized grant with a `${{ }}` title injection, and a clean timeout bump).
+- `/ship` re-evaluates its security triggers against the final diff after any stage 6 fix and runs a fresh `security-reviewer` beside `reviewer` when one matches; merge needs every applicable verdict `SHIP` on the final head.
 - `website-builder` gains a landing-page reference: extra intake, page structure, layout patterns, conversion copy, content realism, a ship list and the indexing decision.
 
 ### Fixed

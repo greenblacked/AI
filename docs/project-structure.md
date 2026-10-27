@@ -185,7 +185,7 @@ in exchange for nothing.
 marketplace can ship them. A project-level skill would be one installers never get.
 
 The two loops in `.claude/agents/` — `explorer`, `investigator`, `implementer` and
-`reviewer` to build; `investigator` and `reviewer` to verify — and the commands in
+`reviewer` to build, with `security-reviewer` beside `reviewer` on the security triggers; `investigator` and `reviewer` to verify — and the commands in
 `.claude/commands/` go the other way: they exist to work *on* this repository and are not
 shipped, which is exactly the split the `.claude/` directory is for.
 

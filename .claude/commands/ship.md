@@ -1,7 +1,7 @@
 ---
-description: Run a change to this repository from survey to merge — two research agents in parallel, implementer writes it and runs the gates, reviewer judges it, then one pull request merged only once reviewer, ci and security pass.
+description: Run a change to this repository from survey to merge — two research agents in parallel, implementer writes it and runs the gates, reviewer judges it, then one pull request merged only once reviewer (and security-reviewer, when the diff touches a security trigger), ci and security pass.
 argument-hint: '[what to change, for example "add a skill for reading flamegraphs"]'
-allowed-tools: Agent(explorer), Agent(investigator), Agent(implementer), Agent(reviewer), Read, Grep, Glob, Bash(make:*), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git fetch:*), Bash(git switch:*), Bash(git worktree:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*)
+allowed-tools: Agent(explorer), Agent(investigator), Agent(implementer), Agent(reviewer), Agent(security-reviewer), Read, Grep, Glob, Bash(make:*), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git fetch:*), Bash(git switch:*), Bash(git worktree:*), Bash(git add:*), Bash(git commit:*), Bash(git push:*)
 disable-model-invocation: true
 ---
 
@@ -215,6 +215,14 @@ back to `implementer`, and repeat from stage 3 (keep the "Author: repository own
 recommendation rather than applying anything yourself; the split is what keeps the
 reviewer's verdict independent of the hand that wrote the change.
 
+When the diff touches a workflow, a `permissions:` block, a token or secret, a new
+third-party action or tool, a new API write in a shipped script, a `workflow_run`,
+`schedule` or `pull_request_target` trigger, `.claude/settings.json` or a hook, the
+`allowed-tools` of a skill that reads third-party input, or anything credential-shaped or
+personal, delegate to a fresh `security-reviewer` in parallel with `reviewer`, with the
+same inputs. Both verdicts must be `SHIP` before stage 5; a `FIX` or `STOP` from either
+is handled as above.
+
 ## 5. Land
 
 Once `reviewer` returns `SHIP`: in the default case, this conversation's own checkout is
@@ -253,7 +261,13 @@ them goes to `implementer` with that finding alone (keep the "Author: repository
 run, the fix changes the code it describes, so re-make it and get the new quote before
 the fix goes to `reviewer` — one fresh round has to see the current quote, not a stale
 one, so re-quoting after that round would only buy a second round for no reason. Then
-send the fix to a fresh `reviewer` (again with "Author: repository owner"); once it returns `SHIP`, the fix lands as a new commit
+send the fix to a fresh `reviewer` (again with "Author: repository owner"). A fix can
+introduce a security trigger the first diff never had, or change one `security-reviewer`
+already cleared, so before delegating re-read stage 4's trigger list against the final
+diff, the whole change against base and not only the fix. When any trigger matches, run a
+fresh `security-reviewer` in parallel with that `reviewer`, with the same inputs; an
+earlier verdict from it describes code that is no longer on the branch. Once every
+verdict that applies returns `SHIP`, the fix lands as a new commit
 on the same branch — never a rewrite of the one already pushed. Push it, and wait for
 `ci`, `security` and the automated review again; a fix is not proven until the same three
 have run on the commit that made it. When the live check is the PR's own CI run instead,
@@ -263,7 +277,9 @@ earlier quote describes code that is no longer on the branch.
 
 ## 7. Merge
 
-Merge only once the latest `reviewer` verdict is `SHIP`, `ci` and `security` are both
+Merge only once the latest `reviewer` verdict is `SHIP` and, whenever the final diff
+touches a stage 4 security trigger (including one a stage 6 fix introduced), the latest
+`security-reviewer` verdict is `SHIP` too, both given on the head being merged; `ci` and `security` are both
 green on the commit that verdict actually judged, and no blocking finding from any
 reviewer — human or automated — is left unaddressed. When the live check is a pre-merge
 run or the PR's own CI run, that `SHIP` has to come from a round that saw and quoted the

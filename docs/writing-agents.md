@@ -153,8 +153,10 @@ job is judgement rather than a read — `reviewer` is the one this repository sh
 routing is necessary and not sufficient, and something has to measure the verdict itself
 against a known answer.
 
-`scripts/run_review_benchmark.py` does that for `reviewer`. Cases live at
-`.claude/agents/benchmarks/reviewer/<case>/`: a `change.patch` — an uncommitted unified
+`scripts/run_review_benchmark.py` does that for `reviewer`, and for any other judging
+subagent with `--agent NAME` (default `reviewer`; `security-reviewer` has cases too, and
+an unknown name exits 2). Cases live at
+`.claude/agents/benchmarks/<NAME>/<case>/`, for `reviewer` `.claude/agents/benchmarks/reviewer/<case>/`: a `change.patch` — an uncommitted unified
 diff against today's tree — and a `case.json` naming the case `"defect"` or `"clean"`,
 the intent a caller would honestly pass, and, for a defect, which entry in
 [`docs/review-lessons.md`](review-lessons.md) it reproduces and the regexes its report
@@ -375,7 +377,7 @@ subagent no plugin ships installs for nobody and there is no symptom to notice. 
 
 ## The two loops
 
-Four more subagents live in [`.claude/agents/`](../.claude/agents), and they ship to
+Five more subagents live in [`.claude/agents/`](../.claude/agents), and they ship to
 nobody. They are for working on this repository, the same way `.claude/commands/` holds
 commands for contributors here rather than for installers. The validator scans that
 directory on the same run, so they are held to the contract above — including the key set
@@ -383,24 +385,25 @@ a plugin-shipped subagent is limited to, which is stricter than Claude Code allo
 project-level agent. That is deliberate: it means one of them can move into a plugin
 later without a surprise.
 
-They form two loops that share a judge. Each stage is a context the next one does not
+They form two loops that share a judge, and the build loop adds a second judge, `security-reviewer`, whenever the diff touches a security trigger from `AGENTS.md`'s Review guidelines. It runs beside `reviewer`, does not replace it, and reviews nothing but security. Each stage is a context the next one does not
 inherit, and each runs on the tier its work actually needs.
 
 Building something, run by [`/ship`](../.claude/commands/ship.md):
 
 | Stage | Subagent | Runs on | Editing tools |
 | --- | --- | --- | --- |
-| Survey | [`explorer`](../.claude/agents/explorer.md) | Sonnet, medium effort | none |
-| Survey (parallel) | [`investigator`](../.claude/agents/investigator.md) | Sonnet, medium effort | none |
-| Write | [`implementer`](../.claude/agents/implementer.md) | Sonnet, high effort | `Write`, `Edit` |
-| Judge | [`reviewer`](../.claude/agents/reviewer.md) | Fable | none |
+| Survey | [`explorer`](../.claude/agents/explorer.md) | Haiku, high effort | none |
+| Survey (parallel) | [`investigator`](../.claude/agents/investigator.md) | Opus, medium effort | none |
+| Write | [`implementer`](../.claude/agents/implementer.md) | Sonnet, medium effort | `Write`, `Edit` |
+| Judge | [`reviewer`](../.claude/agents/reviewer.md) | Opus, medium effort | none |
+| Judge security (parallel, when the diff touches a security trigger) | [`security-reviewer`](../.claude/agents/security-reviewer.md) | Fable, medium effort | none |
 
 Establishing whether something is true, run by [`/verify`](../.claude/commands/verify.md):
 
 | Stage | Subagent | Runs on | Editing tools |
 | --- | --- | --- | --- |
-| Establish | [`investigator`](../.claude/agents/investigator.md) | Sonnet, medium effort | none |
-| Judge | [`reviewer`](../.claude/agents/reviewer.md) | Fable | none |
+| Establish | [`investigator`](../.claude/agents/investigator.md) | Opus, medium effort | none |
+| Judge | [`reviewer`](../.claude/agents/reviewer.md) | Opus, medium effort | none |
 
 The second loop exists because prose in this repository has twice asserted something that
 the source contradicted — a `kubectl drain` flag said to skip graceful shutdown when it
@@ -481,12 +484,12 @@ do it. **Judgement has to be independent of the hand that wrote the change.** A 
 that can edit will fix what it was asked to assess, so `reviewer` is given no editing tools
 and returns findings rather than patches; carrying them back to `implementer` is what keeps
 the verdict worth having. Reviewing is also the stage where being wrong is most expensive,
-which is why it gets the capable model and the survey does not.
+which is why it gets a capable model and the survey does not.
 
 [`/ship`](../.claude/commands/ship.md) runs `explorer` — beside `investigator` in
 parallel when the change rests on an outside claim — then `implementer`, then
-`reviewer`, then opens and merges one pull request once review, `ci` and `security`
-pass. The middle decision — which plugin owns the change, what it must not collide
+`reviewer` (beside `security-reviewer` when the diff touches a security trigger), then
+opens and merges one pull request once review, `ci` and `security` pass. The middle decision — which plugin owns the change, what it must not collide
 with — stays in the main conversation, because that is the one part that depends on
 judgement built up over the session and travels badly through a cold prompt.
 
