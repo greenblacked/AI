@@ -967,3 +967,32 @@ def test_a_cd_holds_only_in_its_own_shell_scope(tmp_path, body):
 def test_a_cd_still_covers_commands_inside_its_scope(tmp_path, body):
     directory = _with_scripts(tmp_path, f"```bash\n{body}\n```\n")
     assert check_skill(directory, tmp_path) == []
+
+
+@pytest.mark.parametrize("info", ["console", "shell-session"])
+@pytest.mark.parametrize(
+    "output", ["python3 scripts/run.py", "./scripts/run.sh --all", "bash scripts/run.sh"]
+)
+def test_unprompted_output_in_a_transcript_is_not_a_command(tmp_path, info, output):
+    body = f"```{info}\n$ cat history.txt\n{output}\n```\n"
+    directory = _with_scripts(tmp_path, body)
+    assert "relative-bundled-script" not in codes(check_skill(directory, tmp_path))
+
+
+@pytest.mark.parametrize("info", ["console", "shell-session"])
+def test_a_prompted_cd_into_the_skill_covers_the_next_prompted_command(tmp_path, info):
+    body = f'```{info}\n$ cd "${{CLAUDE_SKILL_DIR}}"\n$ python3 scripts/run.py\n```\n'
+    directory = _with_scripts(tmp_path, body)
+    assert check_skill(directory, tmp_path) == []
+
+
+@pytest.mark.parametrize("info", ["console", "shell-session"])
+def test_a_prompted_relative_run_in_a_transcript_is_still_an_error(tmp_path, info):
+    directory = _with_scripts(tmp_path, f"```{info}\n$ python3 scripts/run.py\n```\n")
+    assert "relative-bundled-script" in codes(check_skill(directory, tmp_path), ERROR)
+
+
+def test_a_dangling_skill_dir_pointer_in_transcript_output_is_still_reported(tmp_path):
+    body = "```console\n$ ls\n${CLAUDE_SKILL_DIR}/scripts/missing.py\n```\n"
+    directory = _with_scripts(tmp_path, body)
+    assert "dangling-reference" in codes(check_skill(directory, tmp_path), ERROR)

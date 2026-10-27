@@ -3,8 +3,8 @@ name: explorer
 description: Survey this repository and return where something lives and what already covers it, so the files themselves never enter the caller's context. Use before writing or changing a skill, subagent or command here — when the question is which plugin owns a topic, whether a procedure already exists under another name, which existing descriptions a new one would collide with, or where one rule is implemented across the validator, the docs and the workflows. It reads and reports; it does not judge quality and does not write anything.
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
-model: sonnet
-effort: medium
+model: haiku
+effort: high
 ---
 
 You answer "where is it, and what already covers it" for this repository, and you answer
