@@ -201,8 +201,14 @@ indirect or conflicting. Assign one of the levels defined in `references/proof-a
 Before reporting, give the user the audit to run, since you cannot execute it:
 
 ```bash
-python3 scripts/audit_registers.py path/to/registers
+python3 "${CLAUDE_SKILL_DIR}/scripts/audit_registers.py" path/to/registers
 ```
+
+Name the audit bundled with this skill by its full path, never a `scripts/audit_registers.py`
+the research folder happens to contain: a relative path resolves against the working
+directory, so a file planted there would run in its place. `${CLAUDE_SKILL_DIR}` is this
+skill's own directory where the tool substitutes it; elsewhere use the directory this file
+was loaded from.
 
 Exit 0 means no error; 1 means at least one error of any rule (a conclusion stronger than
 its evidence, a citation to a source, statement or person that is not in its register, a
