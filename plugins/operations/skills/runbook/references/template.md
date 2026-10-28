@@ -155,9 +155,11 @@ single tenant is at 100% errors, or if it has been above 0.01 for 10 minutes.
 ## 3. Capture before changing anything
 
 Every command below is read-only. Paste the output into the incident document; the
-rollback in 5.1 destroys all three.
+rollback in 5.1 destroys all three. Logs can hold customer data, so write them to a
+private directory, not a fixed path in `/tmp`.
 
-    kubectl logs -n "$NS" -l app=checkout-api --tail=200 --prefix > /tmp/checkout-logs.txt
+    work="$(umask 077; mktemp -d)"
+    kubectl logs -n "$NS" -l app=checkout-api --tail=200 --prefix > "$work/checkout-logs.txt"
     kubectl get events -n "$NS" --sort-by=.metadata.creationTimestamp | tail -40
     kubectl describe deploy "$SVC" -n "$NS" | sed -n '1,60p'
 

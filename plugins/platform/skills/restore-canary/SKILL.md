@@ -1,7 +1,7 @@
 ---
 name: restore-canary
 description: "Build a scheduled, unattended restore of the newest database backup into a throwaway instance, verified and torn down daily, so \"we have backups\" becomes a measurement rather than a belief. Fails first when the newest backup is older than its interval, restores into an isolated scratch target, compares row counts and checksums on key tables over a closed watermark range, runs a canary query suite, records restore duration against the RTO, tears down on every exit path, and alerts on a missed run as loudly as a failed one. Use when someone wants an automated or nightly restore test, asks how to know backups really restore, or says \"nobody has restored a backup in a year\". Not for a human restore rehearsal with business sign-off (disaster-recovery-exercise), backup topology or RPO targets (backup-recovery-design), failover drills (game-day) or replica lag (db-replication)."
-allowed-tools: Read, Write, Edit, Grep, Glob
+allowed-tools: Read, Grep, Glob
 ---
 
 # Restore Canary
@@ -33,6 +33,8 @@ failover or fault injection, which is `game-day`; replica lag, replication slots
 promotion, which is `db-replication`; rehearsing a major version upgrade from a restored
 snapshot, which is `db-major-upgrade`; finding which recovery tooling depends on the thing
 it repairs, which is `bootstrap-dependency-audit`.
+
+Only Read, Grep and Glob are pre-approved. The job skeleton and the evidence file ask before they are written, and so does every `aws`, `gcloud`, `az` and database command, because a restore creates and deletes real resources.
 
 ## Gates
 

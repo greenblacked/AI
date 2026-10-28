@@ -38,7 +38,7 @@ Dynamic mapping makes every string a `text` field with a `.keyword` sub-field li
 
 ### 3. Make the template strict
 
-Put the mapping in a composable index template so every new index gets it, and set `dynamic` to `strict` so a document with an unknown field is rejected loudly rather than adding a field silently:
+Set `ES` to the cluster URL and keep the credential off the command line: use a curl config file passed with `-K`, a `--netrc` entry or an environment-held header, and never quote it in the hand-back. Put the mapping in a composable index template so every new index gets it, and set `dynamic` to `strict` so a document with an unknown field is rejected loudly rather than adding a field silently:
 
 ```bash
 curl -s -X PUT "$ES/_index_template/orders" -H 'Content-Type: application/json' -d '{

@@ -26,7 +26,7 @@ Before opening the docs, write one sentence naming the hardest thing the real us
 
 ### 1. Run the official minimal example unmodified
 
-Use the project's own quick start, on the version you will actually deploy. Record the exact version and the environment. If it does not run as written, that is the first data point on documentation quality, and the fix you needed is a note for step 3.
+Use the project's own quick start, on the version you will actually deploy. Record the exact version and the environment. Run it in a disposable sandbox (a container or throwaway machine) holding no credentials and no private data, installing from a pinned version, because it is third-party code. If it does not run as written, that is the first data point on documentation quality, and the fix you needed is a note for step 3.
 
 Then break it on purpose: give it bad configuration, kill a dependency mid-run, pass the wrong type, remove a required field. Read each error message in full. Tools differ most in how they fail, and an error you have already seen is cheaper at 3 a.m. than one you meet for the first time in production.
 
@@ -51,6 +51,8 @@ Then read open issues sorted by number of comments. On GitHub, the issue search 
 Pick the path your hardest requirement exercises (a write to disk, a retry, a rebalance, a query plan) and read its source from entry point to the place it touches the outside world. One path is enough. You are not learning the code base; you are checking that the documented behaviour is the real one and learning the vocabulary of the internals so the logs make sense. Note any place where the code contradicts the docs.
 
 ### 5. Build a throwaway around the hardest requirement
+
+Run it in the same kind of sandbox as step 1, and point it at test data, not at a real system.
 
 About 100 lines. Not hello-world: the smallest program that exercises the hard thing under conditions that look like production. Examples: a producer and consumer that survives a broker restart without loss; a query against realistic row counts with the index you plan to use; a parser fed the ugliest real input you have. Measure what the requirement cares about and record the numbers with the setup.
 

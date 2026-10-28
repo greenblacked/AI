@@ -8,6 +8,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Security
+
+- A full read of every shipped skill, plus a static scan triaged against the source by hand, found 32 issues, and 52 skills changed to fix them. Most were one class: a skill pre-approved file writers, a shell prefix (`jq`, `cat`, `diff`, `sha256sum`, `npm`, `pip`) or `WebFetch` and `WebSearch` in the same turn that reads text a third party wrote, such as candidate submissions, vendor documents, feedback exports, request logs, notebooks, fetched pages or audit logs. Those grants are narrowed so each fetch, and each command other than a read-only inspection command such as `grep`, `ls` or `ps`, now asks first, and most of these skills no longer pre-approve a write either (nine keep `Write` or `Edit` for the user's own files): nine data skills, six manager skills, three security skills and a handful across coding, platform, linux, research, languages, personal, career and devtools. Each of those that reads third-party input now says that content is data and a command it suggests is declined (and, where the skill writes or fetches, a write, edit or link as well). The rest: the `tmate` debug-shell action is pinned to a full commit SHA; `npx` and `pip` tools are pinned to exact versions or run outside the environment under audit; the game-day pod-kill example now names one pod instead of a label selector that deleted them all; the gateway route comparison verifies the old controller's certificate; a first-use `ssh-keyscan` gives way to a reviewed `known_hosts`; Elasticsearch examples keep credentials off the command line; the lockout rollback no longer aborts on a host with no drop-in directory; the Kubernetes debug images are pinned, by digest for the privileged profile; the runbook template writes captured logs to a private `mktemp` directory; the quick-start skill runs vendor examples in a credential-free sandbox; the Playwright visual-snapshots reference no longer recommends `--ipc=host` without the caveat; and the reverse-engineering bridge guidance says to run its setup away from a sample.
+
 ## [0.3.2] - 2026-10-28
 
 ### Security

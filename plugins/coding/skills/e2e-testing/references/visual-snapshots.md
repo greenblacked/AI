@@ -36,7 +36,7 @@ jobs:
 
 Every shard of a sharded run uses the same image, or two shards render the same page two ways and the failures follow the shard rather than the change.
 
-A developer on macOS or Windows then cannot produce a baseline natively, and that is the point: a baseline made there is the one that fails in CI. Give them one command that runs the update inside the same image (see [Updating baselines](#updating-baselines-and-reviewing-the-diff)). The Docker guide recommends `--ipc=host` when running Chromium, because without it Chromium can run out of memory and crash, and `--init` to avoid zombie processes.
+A developer on macOS or Windows then cannot produce a baseline natively, and that is the point: a baseline made there is the one that fails in CI. Give them one command that runs the update inside the same image (see [Updating baselines](#updating-baselines-and-reviewing-the-diff)). The Docker guide recommends `--ipc=host` when running Chromium, because without it Chromium can run out of memory and crash; this skill uses `--shm-size=1g` instead, because `--ipc=host` shares the host's IPC namespace with a contributor's test code (see [Updating baselines](#updating-baselines-and-reviewing-the-diff)). The guide also recommends `--init` to avoid zombie processes.
 
 For contributors who cannot run the container at all, `ignoreSnapshots: !process.env.CI` in the config skips snapshot expectations locally and keeps them in CI; the documentation shows that exact line. Use it only if CI really runs the assertions, otherwise it switches visual coverage off while looking green.
 
