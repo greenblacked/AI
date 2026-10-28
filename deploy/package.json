@@ -4,5 +4,8 @@
   "description": "Pinned Wrangler for the catalogue deploy. Not a published package.",
   "dependencies": {
     "wrangler": "4.149.0"
+  },
+  "overrides": {
+    "undici": "7.30.1"
   }
 }
