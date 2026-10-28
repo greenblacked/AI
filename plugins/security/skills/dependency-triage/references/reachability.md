@@ -96,20 +96,24 @@ Tools worth naming, with what each actually provides:
 
 The weakest of the three, and it is better to say that than to imply a call graph exists. Dynamic imports, `getattr` dispatch, entry-point plugin registries and monkey-patching all sever static edges, and there is no widely used open-source symbol-level reachability tool for Python advisories.
 
+Install the tools in a separate environment of their own, pinned (and hashed, where you use the `--require-hashes` route), not into the environment under audit, so they cannot change the answer they give: `pipx install pip-audit==<version>`, or `pip install --require-hashes -r` a committed file in a scratch virtual environment. Point `--path` at the audited environment's `site-packages`.
+
+Every environment audit carries the `--path`; without it `pip-audit` audits the environment it runs in, which is now the tool's own, so its report says nothing about the application.
+
 ```bash
-pip install pip-audit
-pip-audit                              # audits the active environment
-pip-audit -r requirements.txt          # audit a requirements file without installing
-pip-audit --desc                       # include advisory descriptions, which name the affected API
-pip-audit -f json -o audit.json        # machine-readable
-pip-audit --ignore-vuln GHSA-xxxx-xxxx-xxxx   # no expiry field; carry the date yourself
+AUDITED=/path/to/audited-venv   # the environment under audit, not the tool's own
+SITE="$AUDITED/lib/python3.12/site-packages"   # match its Python version
+pip-audit --path "$SITE"                         # audit that environment, not the tool's own
+pip-audit -r requirements.txt                    # audit a requirements file without installing
+pip-audit --path "$SITE" --desc                  # include advisory descriptions, which name the affected API
+pip-audit --path "$SITE" -f json -o audit.json   # machine-readable
+pip-audit --path "$SITE" --ignore-vuln GHSA-xxxx-xxxx-xxxx   # no expiry field; carry the date yourself
 ```
 
-Then establish what you can:
+Then establish what you can, with `pipdeptree` installed the same pinned way and run with `--python` pointed at the audited environment's interpreter:
 
 ```bash
-pip install pipdeptree
-pipdeptree --reverse --packages urllib3     # which of your packages depend on it
+pipdeptree --python "$AUDITED/bin/python" --reverse --packages urllib3   # which of your packages depend on it
 rg -n "^\s*(import|from)\s+jinja2" --glob '!.venv' .
 ```
 

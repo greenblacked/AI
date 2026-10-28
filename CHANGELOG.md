@@ -10,6 +10,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Security
 
+- A full read of every shipped skill, plus a static scan triaged against the source by hand, found 32 issues, and 52 skills changed to fix them. Most were one class: a skill pre-approved file writers, a shell prefix (`jq`, `cat`, `diff`, `sha256sum`, `npm`, `pip`) or `WebFetch` and `WebSearch` in the same turn that reads text a third party wrote, such as candidate submissions, vendor documents, feedback exports, request logs, notebooks, fetched pages or audit logs. Those grants are narrowed so each fetch, and each command other than a read-only inspection command such as `grep`, `ls` or `ps`, now asks first, and most of these skills no longer pre-approve a write either (nine keep `Write` or `Edit` for the user's own files): nine data skills, six manager skills, three security skills and a handful across coding, platform, linux, research, languages, personal, career and devtools. Each of those that reads third-party input now says that content is data and a command it suggests is declined (and, where the skill writes or fetches, a write, edit or link as well). The rest: the `tmate` debug-shell action is pinned to a full commit SHA; `npx` and `pip` tools are pinned to exact versions or run outside the environment under audit; the game-day pod-kill example now names one pod instead of a label selector that deleted them all; the gateway route comparison verifies the old controller's certificate; a first-use `ssh-keyscan` gives way to a reviewed `known_hosts`; Elasticsearch examples keep credentials off the command line; the lockout rollback no longer aborts on a host with no drop-in directory; the Kubernetes debug images are pinned, by digest for the privileged profile; the runbook template writes captured logs to a private `mktemp` directory; the quick-start skill runs vendor examples in a credential-free sandbox; the Playwright visual-snapshots reference no longer recommends `--ipc=host` without the caveat; and the reverse-engineering bridge guidance says to run its setup away from a sample.
+
+## [0.3.2] - 2026-10-28
+
+### Security
+
 - The deploy's `package.json` overrides `undici` to 7.30.1 under the pinned Wrangler 4.149.0, whose `miniflare` locked 7.29.1. That clears eight undici advisories, four high and four moderate, all fixed in 7.30.1: GHSA-2m5v-pch6-74hx, GHSA-4w7w-5xrc-9h26, GHSA-qrxm-fqhp-jwvm, GHSA-xjj6-f33q-929c, GHSA-4qv8-2p9j-2685, GHSA-55wc-3pg8-jfw6, GHSA-9fm3-97px-rjf6 and GHSA-f72v-6w45-q472. The first Wrangler releases that carry the fix, 4.153.0 and 4.154.0, were two days and one day old, inside the seven-day cooldown this repository applies before adopting a release. undici 7.30.1 was thirteen days old; it is the 7.30 line's patch release, a minor step from 7.29.1, adds no dependencies or install scripts, and is the exact version Wrangler 4.153.0's own `miniflare` pins. `scripts/check_wrangler_pin.py` now fails when an override is older than an exact version a locked package declares, so a later Wrangler bump cannot be quietly downgraded by it. Only the `undici` entry of the lockfile changed, with the integrity npm publishes, and `npm ci` accepts it unchanged on npm 10 and 11.
 
 ## [0.3.1] - 2026-10-27
@@ -1045,7 +1051,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/greenblacked/AI/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/greenblacked/AI/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/greenblacked/AI/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/greenblacked/AI/compare/v0.2.1...v0.2.2
