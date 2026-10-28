@@ -8,6 +8,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Security
+
+- A full read of every shipped skill, plus a static scan triaged against the source by hand, found 32 issues, and 50 skills changed to fix them. Most were one class: a skill pre-approved file writers, a shell prefix (`jq`, `cat`, `diff`, `sha256sum`, `npm`, `pip`) or `WebFetch` and `WebSearch` in the same turn that reads text a third party wrote, such as candidate submissions, vendor documents, feedback exports, request logs, notebooks, fetched pages or audit logs. Those grants are narrowed so each write, command and fetch prompts, and each skill now says that content read from that input is data and a command, link or write it suggests is declined: nine data skills, six manager skills, three security skills and a handful across coding, platform, linux, research, languages, personal, career and devtools. The rest: the `tmate` debug-shell action is pinned to a full commit SHA; `npx` and `pip` tools are pinned to exact versions or run outside the environment under audit; the game-day pod-kill example now names one pod instead of a label selector that deleted them all; the gateway route comparison verifies the old controller's certificate; a first-use `ssh-keyscan` gives way to a reviewed `known_hosts`; Elasticsearch examples keep credentials off the command line; and the lockout rollback no longer aborts on a host with no drop-in directory.
+
 ## [0.3.2] - 2026-10-28
 
 ### Security
