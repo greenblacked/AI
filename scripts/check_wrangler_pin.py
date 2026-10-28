@@ -50,6 +50,45 @@ def problems(root: Path, version: str) -> list[str]:
         found.append(f"{LOCK} installs wrangler {locked!r}, not {version}")
     if not isinstance(integrity, str) or not integrity.startswith("sha512-"):
         found.append(f"{LOCK} has no sha512 integrity for wrangler")
+    found.extend(_stale_overrides(package, lock))
+    return found
+
+
+def _exact(version: object) -> tuple[int, ...] | None:
+    """``1.2.3`` as a tuple; ``None`` for a range, a tag or anything not plain."""
+    if not isinstance(version, str):
+        return None
+    parts = version.split(".")
+    if len(parts) != 3 or not all(part.isdigit() for part in parts):
+        return None
+    return tuple(int(part) for part in parts)
+
+
+def _stale_overrides(package: object, lock: object) -> list[str]:
+    """An override older than an exact version the lock's packages declare.
+
+    An override is written for the Wrangler of the day. Once a bump brings a package
+    that pins a newer version, the override silently forces the older one back onto
+    the production deploy, so it has to go rather than stay.
+    """
+    overrides = package.get("overrides") if isinstance(package, dict) else None
+    packages = lock.get("packages") if isinstance(lock, dict) else None
+    if not isinstance(overrides, dict) or not isinstance(packages, dict):
+        return []
+    found = []
+    for name, forced in overrides.items():
+        pinned = _exact(forced)
+        if pinned is None:
+            continue
+        for path, entry in packages.items():
+            needs = entry.get("dependencies") if isinstance(entry, dict) else None
+            declared = needs.get(name) if isinstance(needs, dict) else None
+            wanted = _exact(declared)
+            if wanted is not None and wanted > pinned:
+                found.append(
+                    f"{PACKAGE} overrides {name} to {forced}, older than the {declared} "
+                    f"that {path} in {LOCK} declares; drop the override"
+                )
     return found
 
 

@@ -457,8 +457,10 @@ and asks Wrangler to compile the Worker without uploading it. `--no-autoconfig` 
 framework and can install agent skills into the checkout. The install is
 `npm ci --ignore-scripts` from the lockfile, after [`scripts/check_wrangler_pin.py`](../scripts/check_wrangler_pin.py)
 has required `WRANGLER_VERSION` to be the version both `deploy/package.json` and the
-lockfile name. There is no package cache: a restored store is not what the lockfile
-hashed.
+lockfile name, and that no exact `overrides` version in `deploy/package.json` is older than an
+exact version a locked package declares in its `dependencies`, so an override written for one Wrangler cannot
+quietly downgrade a later one. There is no package cache: a restored store is not what
+the lockfile hashed.
 
 Every build in `deploy.yml` and `release.yml` links each skill's source on GitHub at the
 commit it was built from, which the script reads from `GITHUB_SHA`. A Preview of `stage`
