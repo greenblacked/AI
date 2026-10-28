@@ -23,9 +23,12 @@ OLD_IP="${1:?old controller address}"
 NEW_IP="${2:?new controller address}"
 
 probe() {
-  local ip="$1" scheme="$2" host="$3" path="$4" port
+  # insecure=yes skips certificate verification; pass it for the new side only
+  local ip="$1" scheme="$2" host="$3" path="$4" insecure="${5:-}" port
+  local opts=(-s)
   port=443; [[ "$scheme" == http ]] && port=80
-  curl -sk -o /dev/null --max-time 10 \
+  if [[ "$insecure" == yes ]]; then opts+=(-k); fi
+  curl "${opts[@]}" -o /dev/null --max-time 10 \
     --resolve "${host}:${port}:${ip}" \
     -w '%{http_code} %{redirect_url} %{size_download}' \
     "${scheme}://${host}${path}" || printf 'ERR'
@@ -39,7 +42,7 @@ while IFS=$'\t' read -r host path || [[ -n "$host" ]]; do
   rows=$((rows + 1))
   for scheme in http https; do
     old="$(probe "$OLD_IP" "$scheme" "$host" "$path")"
-    new="$(probe "$NEW_IP" "$scheme" "$host" "$path")"
+    new="$(probe "$NEW_IP" "$scheme" "$host" "$path" yes)"
     case "$old" in
       000*|ERR*|*ERR) unreachable=$((unreachable + 1)) ;;
       [23][0-9][0-9]\ *) healthy=$((healthy + 1)) ;;
@@ -65,9 +68,10 @@ guard covers the other way to a false pass: if both addresses are unreachable, o
 return the same error for every row, nothing differs, so the script fails unless at least
 one old-side probe returned a 2xx or 3xx.
 
-`-k` is there because the new Gateway's certificate may not be issued for the name yet
-during early testing; drop it once the Gateway holds the real certificate, and add a check
-that the presented certificate matches.
+`-k` is applied to the new Gateway only, because its certificate may not be issued for the
+name yet during early testing; the old controller holds a valid certificate, so it is
+verified. Drop `-k` once the Gateway holds the real certificate, and add a check that the
+presented certificate matches.
 
 Response size is a cheap proxy for "same page"; for routes where content matters, compare a
 hash of the body or a specific header instead.
@@ -78,7 +82,9 @@ Each of these is decided by a default rather than by anything in the Ingress obj
 loop above reads only host and path and sends only GETs, so the first five rows can go in
 `routes.tsv`; send the rest as separate one-off `curl --resolve` requests against both
 addresses (with `--data-binary @file`, credentials or a source address as the row says) and
-compare the results by hand.
+compare the results by hand. Run the credentialed requests without `-k` on the old side,
+and on the new side once it holds the real certificate, so a credential is never sent over
+a connection that skips verification.
 
 | Request | What it catches |
 | --- | --- |
