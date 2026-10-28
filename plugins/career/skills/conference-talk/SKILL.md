@@ -1,7 +1,7 @@
 ---
 name: conference-talk
 description: "Take a conference talk from an idea to a proposal that gets accepted and a delivery that lands — the single takeaway, an abstract and outline a committee can say yes to, a structure that survives being heard once, slides that serve the spoken word, rehearsal, timing, delivery and Q and A. Use this skill whenever the user is submitting to a CFP or preparing to speak: drafting an abstract, choosing between talk ideas, building the outline or the deck, handling a rejection, cutting a talk to its slot, rehearsing, planning a live demo, or preparing for questions — including phrasings like \"the CFP closes friday\", \"i have 60 minutes of material and a 40 minute slot\", or \"how do i not fall apart on stage\". Do not use it for an article or blog post (that is write-technical-article), internal or executive updates (status-update), interview preparation (job-search), or notes on a talk you attended (learning-notes)."
-allowed-tools: Read, Write, Edit, Glob, Grep, WebFetch
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # Conference Talk
