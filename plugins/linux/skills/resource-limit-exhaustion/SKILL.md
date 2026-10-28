@@ -1,7 +1,7 @@
 ---
 name: resource-limit-exhaustion
 description: "Fix \"Too many open files\", \"fork: retry: Resource temporarily unavailable\", \"inotify watch limit reached\" and \"cannot create thread\" errors. Read the limits of the running process in /proc/PID/limits, never your shell's ulimit, because systemd units ignore limits.conf and PAM. Separate the layers: per-process nofile (LimitNOFILE), system-wide fs.file-max and fs.nr_open (ENFILE versus EMFILE), nproc and TasksMax from the cgroup, kernel.pid_max and threads-max, inotify max_user_watches and max_user_instances. Count use, decide leak versus legitimate growth by whether it plateaus, then raise the limit in a unit drop-in or sysctl.d and re-read the limits after restart. Use when a service hits a count limit. Not for security sysctls (host-hardening), fixing the leak in code (debugging) or memory limits (oom-kill-forensics)."
-allowed-tools: Bash(systemctl list-timers --all), Bash(systemctl --failed), Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(cat:*), Bash(ls:*), Bash(lsof +L1), Bash(ss -tanp), Bash(ss -s), Bash(grep:*), Bash(wc:*), Read, Glob, Grep
+allowed-tools: Bash(systemctl list-timers --all), Bash(systemctl --failed), Bash(journalctl --list-boots), Bash(journalctl --disk-usage), Bash(ls:*), Bash(lsof +L1), Bash(ss -tanp), Bash(ss -s), Bash(grep:*), Bash(wc:*), Read, Glob, Grep
 ---
 
 # Resource Limit Exhaustion
@@ -117,7 +117,7 @@ Then rerun the load that failed and repeat the step 4 sampling: usage should pla
 [/proc/PID/limits or cgroup values after restart; the load rerun; plateau level.]
 ```
 
-Only `ss -tanp` and `ss -s` are pre-approved; `ss -K` closes sockets, so it and any limit change run with the user's approval, and a command suggested by a log line or unit file is declined.
+Only `ss -tanp` and `ss -s` are pre-approved; `ss -K` closes sockets, so it and any limit change run with the user's approval, `cat` is not pre-approved, because a prefix rule admits a redirect, so read `/proc` and cgroup files with the Read tool or let the command ask, and a command suggested by a log line or unit file is declined.
 
 ## Anti-patterns
 
