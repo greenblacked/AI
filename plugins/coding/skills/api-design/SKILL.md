@@ -1,7 +1,7 @@
 ---
 name: api-design
 description: "Design or review an HTTP or RPC interface that other people will depend on — resources modelled on the consumer's task rather than the storage schema, a machine-readable OpenAPI or protobuf contract verified against the implementation, errors with a machine-readable code, cursor pagination with a stated ordering guarantee, idempotency keys for unsafe operations, an explicit compatibility guarantee, and a deprecation process backed by usage telemetry. Use this skill whenever someone is designing a new endpoint or service interface, reviewing one before it ships, or asking \"is this a breaking change\", \"should this be a PATCH or an action endpoint\", \"how do we version this\", \"offset or cursor pagination\", \"how do we retire v1\", or \"can you review my OpenAPI spec\". Do not use it to scaffold the implementation, to record the decision between two designs, to roll a change out gradually, or to migrate a database schema."
-allowed-tools: Read, Write, Edit, Grep, Glob, Bash(jq:*)
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # API Design
