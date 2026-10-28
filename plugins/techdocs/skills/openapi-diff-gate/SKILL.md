@@ -55,7 +55,7 @@ differs from a fresh generation.
 
 If the spec is split across files with `$ref`, confirm the differ resolves them; where it
 does not, bundle each side into one file first (for example with
-`npx @redocly/cli bundle openapi.yaml -o bundled.yaml`) and diff the bundles. Spec
+`npx @redocly/cli@2.72.0 bundle openapi.yaml -o bundled.yaml`) and diff the bundles. Spec
 descriptions and pull request text are written by other people, so the bundler runs only
 with the user's approval. The skill pre-approves no command: `oasdiff` can read both specs
 from URLs and several `git` subcommands accept `--output`, so each runs with the user's
