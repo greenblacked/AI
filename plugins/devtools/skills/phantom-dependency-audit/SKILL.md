@@ -51,7 +51,7 @@ Run the ecosystem's tool and treat every line as a candidate, never a verdict. P
 
 | Ecosystem | Command | Reports |
 | --- | --- | --- |
-| JavaScript | `npx --package=knip@6.43.0 knip` or `npx --package=depcheck@1.4.7 depcheck` | unlisted (phantom) and unused dependencies |
+| JavaScript | `npx --package=knip@6.42.1 knip` or `npx --package=depcheck@1.4.7 depcheck` | unlisted (phantom) and unused dependencies |
 | Python | `deptry .` | missing, unused, transitive-only (DEP003) and dev-only-used-in-source (DEP004) |
 | Go | `go mod tidy -diff` | what `go mod tidy` would add or remove, without writing |
 | Rust | `cargo machete` | declared crates no source file names |
