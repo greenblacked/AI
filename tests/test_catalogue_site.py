@@ -1312,6 +1312,17 @@ def test_an_override_at_or_above_what_the_lock_declares_passes(tmp_path, declare
     assert pin.problems(tmp_path, "1.2.3") == []
 
 
+def test_a_lock_entry_with_malformed_dependencies_is_skipped(tmp_path):
+    pin = load_script("check_wrangler_pin.py")
+    _deploy_with_override(tmp_path, "7.30.1", "7.31.0")
+    lock_path = tmp_path / "deploy" / "package-lock.json"
+    lock = json.loads(lock_path.read_text(encoding="utf-8"))
+    lock["packages"]["node_modules/miniflare"]["dependencies"] = None
+    lock["packages"]["node_modules/other"] = "not an entry"
+    lock_path.write_text(json.dumps(lock), encoding="utf-8")
+    assert pin.problems(tmp_path, "1.2.3") == []
+
+
 def test_an_override_that_is_a_range_is_not_compared(tmp_path):
     pin = load_script("check_wrangler_pin.py")
     _deploy_with_override(tmp_path, "^7.30.0", "7.31.0")

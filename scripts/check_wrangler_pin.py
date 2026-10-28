@@ -81,7 +81,8 @@ def _stale_overrides(package: object, lock: object) -> list[str]:
         if pinned is None:
             continue
         for path, entry in packages.items():
-            declared = entry.get("dependencies", {}).get(name) if isinstance(entry, dict) else None
+            needs = entry.get("dependencies") if isinstance(entry, dict) else None
+            declared = needs.get(name) if isinstance(needs, dict) else None
             wanted = _exact(declared)
             if wanted is not None and wanted > pinned:
                 found.append(
