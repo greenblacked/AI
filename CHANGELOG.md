@@ -8,6 +8,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Security
+
+- The deploy's `package.json` overrides `undici` to 7.30.1 under the pinned Wrangler 4.149.0, whose `miniflare` locked 7.29.1. That clears eight undici advisories, four high and four moderate, all fixed in 7.30.1: GHSA-2m5v-pch6-74hx, GHSA-4w7w-5xrc-9h26, GHSA-qrxm-fqhp-jwvm, GHSA-xjj6-f33q-929c, GHSA-4qv8-2p9j-2685, GHSA-55wc-3pg8-jfw6, GHSA-9fm3-97px-rjf6 and GHSA-f72v-6w45-q472. The first Wrangler releases that carry the fix, 4.153.0 and 4.154.0, were one and two days old, inside the seven-day cooldown `.github/dependabot.yml` sets before adopting a release; undici 7.30.1 was thirteen days old and a patch on the same minor. Only the `undici` entry of the lockfile changed, with the integrity npm publishes, and `npm ci` accepts it unchanged on npm 10 and 11.
+
 ## [0.3.1] - 2026-10-27
 
 ### Changed
