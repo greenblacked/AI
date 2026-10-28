@@ -30,8 +30,8 @@ Kill a single pod. The cheapest experiment and the least informative; useful onl
 warm-up that proves the observer's tooling works.
 
 ```bash
-kubectl delete pod -n checkout -l app=checkout --field-selector status.phase=Running \
-  --grace-period=30 $(: pick exactly one by name in practice)
+# Name exactly one pod. A label selector here would delete every matching pod at once.
+kubectl delete pod "$POD" -n "$NS" --grace-period=30
 ```
 
 Remove a whole deployment's capacity, which tests dependents rather than the deployment:

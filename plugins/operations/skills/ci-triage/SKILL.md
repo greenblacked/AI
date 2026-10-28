@@ -207,11 +207,13 @@ For a failure that only exists on the runner, add a temporary interactive shell 
 ```yaml
 - name: Debug shell on failure
   if: ${{ failure() }}
-  uses: mxschmitt/action-tmate@v3
+  uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3.24
   timeout-minutes: 15
   with:
     limit-access-to-actor: true
 ```
+
+Pin the action to a full commit SHA with its exact release tag in a comment, as above: the step opens a shell on the runner, so a floating tag is the worst place to trust whatever its publisher moved it to.
 
 Remove it in the same PR that fixes the bug. An ungated or unlimited tmate step is a remote shell on a machine holding your secrets.
 

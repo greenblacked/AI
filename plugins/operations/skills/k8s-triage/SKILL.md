@@ -132,13 +132,13 @@ kubectl --context="$CTX" debug -it "$POD" -n "$NS" --image=busybox:1.28 --target
 kubectl --context="$CTX" debug "$POD" -n "$NS" -it --copy-to="$POD"-dbg --set-image='*=busybox:1.28' -- sh
 
 # Copy with process namespace sharing, to inspect the real process from a debug image
-kubectl --context="$CTX" debug "$POD" -n "$NS" -it --image=ubuntu --share-processes --copy-to="$POD"-dbg
+kubectl --context="$CTX" debug "$POD" -n "$NS" -it --image=ubuntu:24.04 --share-processes --copy-to="$POD"-dbg
 
 # Node-level: host filesystem under /host, host namespaces
-kubectl --context="$CTX" debug node/"$NODE" -it --image=ubuntu --profile=sysadmin
+kubectl --context="$CTX" debug node/"$NODE" -it --image=ubuntu:24.04 --profile=sysadmin
 ```
 
-`--profile` values are `legacy`, `general`, `baseline`, `restricted`, `netadmin` and `sysadmin`. `legacy` is the default and is on its way out — pass `general` explicitly. Use `netadmin` for packet capture and `NET_RAW` work, `sysadmin` for privileged host access, and `restricted` where Pod Security admission enforces the restricted policy. Delete the copied pod when finished; it counts against quota and confuses the next responder.
+`--profile` values are `legacy`, `general`, `baseline`, `restricted`, `netadmin` and `sysadmin`. `legacy` is the default and is on its way out — pass `general` explicitly. Use `netadmin` for packet capture and `NET_RAW` work, `sysadmin` for privileged host access, and `restricted` where Pod Security admission enforces the restricted policy. Pin the debug image to a tag, or to a digest from your own registry, as the commands above do: `sysadmin` mounts the host's filesystem and namespaces with privilege, and a floating `latest` is whatever was pushed this morning. Delete the copied pod when finished; it counts against quota and confuses the next responder.
 
 ### 4. Pattern-match
 
