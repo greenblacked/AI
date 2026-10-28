@@ -1280,6 +1280,44 @@ def test_a_lockfile_without_an_integrity_is_refused(tmp_path):
     assert pin.problems(tmp_path / "missing", "1.2.3")
 
 
+def _deploy_with_override(root, override, declared):
+    deploy = root / "deploy"
+    deploy.mkdir()
+    (deploy / "package.json").write_text(
+        json.dumps({"dependencies": {"wrangler": "1.2.3"}, "overrides": {"undici": override}}),
+        encoding="utf-8",
+    )
+    lock = {
+        "packages": {
+            "node_modules/wrangler": {"version": "1.2.3", "integrity": "sha512-x"},
+            "node_modules/miniflare": {"version": "5.0.0", "dependencies": {"undici": declared}},
+        }
+    }
+    (deploy / "package-lock.json").write_text(json.dumps(lock), encoding="utf-8")
+
+
+def test_an_override_older_than_what_the_lock_declares_is_refused(tmp_path):
+    # A Wrangler bump whose miniflare pins a newer undici would otherwise be quietly
+    # downgraded by an override nobody remembered to drop.
+    pin = load_script("check_wrangler_pin.py")
+    _deploy_with_override(tmp_path, "7.30.1", "7.31.0")
+    found = pin.problems(tmp_path, "1.2.3")
+    assert any("overrides undici to 7.30.1" in item and "7.31.0" in item for item in found)
+
+
+@pytest.mark.parametrize("declared", ["7.29.1", "7.30.1", "^7.0.0", "latest"])
+def test_an_override_at_or_above_what_the_lock_declares_passes(tmp_path, declared):
+    pin = load_script("check_wrangler_pin.py")
+    _deploy_with_override(tmp_path, "7.30.1", declared)
+    assert pin.problems(tmp_path, "1.2.3") == []
+
+
+def test_an_override_that_is_a_range_is_not_compared(tmp_path):
+    pin = load_script("check_wrangler_pin.py")
+    _deploy_with_override(tmp_path, "^7.30.0", "7.31.0")
+    assert pin.problems(tmp_path, "1.2.3") == []
+
+
 def test_a_pin_that_is_not_json_is_refused(tmp_path, capsys):
     pin = load_script("check_wrangler_pin.py")
     deploy = tmp_path / "deploy"
