@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-10-28
+
 ### Security
 
 - The deploy's `package.json` overrides `undici` to 7.30.1 under the pinned Wrangler 4.149.0, whose `miniflare` locked 7.29.1. That clears eight undici advisories, four high and four moderate, all fixed in 7.30.1: GHSA-2m5v-pch6-74hx, GHSA-4w7w-5xrc-9h26, GHSA-qrxm-fqhp-jwvm, GHSA-xjj6-f33q-929c, GHSA-4qv8-2p9j-2685, GHSA-55wc-3pg8-jfw6, GHSA-9fm3-97px-rjf6 and GHSA-f72v-6w45-q472. The first Wrangler releases that carry the fix, 4.153.0 and 4.154.0, were two days and one day old, inside the seven-day cooldown this repository applies before adopting a release. undici 7.30.1 was thirteen days old; it is the 7.30 line's patch release, a minor step from 7.29.1, adds no dependencies or install scripts, and is the exact version Wrangler 4.153.0's own `miniflare` pins. `scripts/check_wrangler_pin.py` now fails when an override is older than an exact version a locked package declares, so a later Wrangler bump cannot be quietly downgraded by it. Only the `undici` entry of the lockfile changed, with the integrity npm publishes, and `npm ci` accepts it unchanged on npm 10 and 11.
@@ -1045,7 +1047,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/greenblacked/AI/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/greenblacked/AI/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/greenblacked/AI/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/greenblacked/AI/compare/v0.2.1...v0.2.2
