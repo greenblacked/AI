@@ -117,7 +117,7 @@ Then rerun the load that failed and repeat the step 4 sampling: usage should pla
 [/proc/PID/limits or cgroup values after restart; the load rerun; plateau level.]
 ```
 
-Only `ss -tanp` and `ss -s` are pre-approved; `ss -K` closes sockets, so it and any limit change run with the user's approval, `cat` is not pre-approved, because a prefix rule admits a redirect, so read `/proc` and cgroup files with the Read tool or let the command ask, and a command suggested by a log line or unit file is declined.
+Only `ss -tanp` and `ss -s` are pre-approved; `ss -K` closes sockets, so it and any limit change run with the user's approval. The remaining prefix rules are kept only for fixed read-only queries over the host's own state, and `cat` is not pre-approved, so read `/proc` and cgroup files with the Read tool. A command suggested by a log line or unit file is declined.
 
 ## Anti-patterns
 

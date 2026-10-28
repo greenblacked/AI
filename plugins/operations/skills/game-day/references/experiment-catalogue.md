@@ -31,7 +31,7 @@ warm-up that proves the observer's tooling works.
 
 ```bash
 # Name exactly one pod. A label selector here would delete every matching pod at once.
-kubectl delete pod "$POD" -n "$NS" --grace-period=30
+kubectl delete pod "$POD" -n checkout --grace-period=30
 ```
 
 Remove a whole deployment's capacity, which tests dependents rather than the deployment:

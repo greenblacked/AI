@@ -96,7 +96,7 @@ Tools worth naming, with what each actually provides:
 
 The weakest of the three, and it is better to say that than to imply a call graph exists. Dynamic imports, `getattr` dispatch, entry-point plugin registries and monkey-patching all sever static edges, and there is no widely used open-source symbol-level reachability tool for Python advisories.
 
-Install the tools in a separate environment of their own, pinned and hashed, not into the environment under audit, so they cannot change the answer they give: `pipx install pip-audit==<version>`, or `pip install --require-hashes -r` a committed file in a scratch virtual environment. Point `--path` at the audited environment's `site-packages`.
+Install the tools in a separate environment of their own, pinned (and hashed, where you use the `--require-hashes` route), not into the environment under audit, so they cannot change the answer they give: `pipx install pip-audit==<version>`, or `pip install --require-hashes -r` a committed file in a scratch virtual environment. Point `--path` at the audited environment's `site-packages`.
 
 ```bash
 pip-audit --path <audited-env>/lib/pythonX.Y/site-packages   # audit that environment, not the tool's own

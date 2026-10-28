@@ -138,7 +138,7 @@ kubectl --context="$CTX" debug "$POD" -n "$NS" -it --image=ubuntu:24.04 --share-
 kubectl --context="$CTX" debug node/"$NODE" -it --image=ubuntu:24.04 --profile=sysadmin
 ```
 
-`--profile` values are `legacy`, `general`, `baseline`, `restricted`, `netadmin` and `sysadmin`. `legacy` is the default and is on its way out — pass `general` explicitly. Use `netadmin` for packet capture and `NET_RAW` work, `sysadmin` for privileged host access, and `restricted` where Pod Security admission enforces the restricted policy. Pin the debug image to a tag, or to a digest from your own registry, as the commands above do: `sysadmin` mounts the host's filesystem and namespaces with privilege, and a floating `latest` is whatever was pushed this morning. Delete the copied pod when finished; it counts against quota and confuses the next responder.
+`--profile` values are `legacy`, `general`, `baseline`, `restricted`, `netadmin` and `sysadmin`. `legacy` is the default and is on its way out — pass `general` explicitly. Use `netadmin` for packet capture and `NET_RAW` work, `sysadmin` for privileged host access, and `restricted` where Pod Security admission enforces the restricted policy. Pin the debug image, as the commands above do. For the privileged `sysadmin` profile, which mounts the host's filesystem and namespaces, pin by digest (`ubuntu@sha256:<digest>` from your own registry), because a tag such as `ubuntu:24.04` can be re-pushed and the example's tag is only a placeholder for that digest. Delete the copied pod when finished; it counts against quota and confuses the next responder.
 
 ### 4. Pattern-match
 
