@@ -1,0 +1,92 @@
+[
+  {
+    "query": "Add native .tftest.hcl coverage for the defaults and optional branches of this existing module.",
+    "should_trigger": true
+  },
+  {
+    "query": "Our terraform test unexpectedly created real infrastructure; separate mock tests from integration runs.",
+    "should_trigger": true
+  },
+  {
+    "query": "Write Terraform mock-provider tests that need no AWS credentials for our current module.",
+    "should_trigger": true
+  },
+  {
+    "query": "Test that an invalid module variable is rejected with expect_failures and a plan run.",
+    "should_trigger": true
+  },
+  {
+    "query": "Prove the existing Terraform module tests fail if we remove its required encryption setting.",
+    "should_trigger": true
+  },
+  {
+    "query": "Our Terraform test assertions pass but cleanup leaves resources behind; fix the test execution boundary.",
+    "should_trigger": true
+  },
+  {
+    "query": "How should this Terraform test suite supply deterministic computed values from a mocked provider?",
+    "should_trigger": true
+  },
+  {
+    "query": "Add .tftest.hcl checks for the public outputs of this module without calling the cloud API.",
+    "should_trigger": true
+  },
+  {
+    "query": "We have real and mocked provider aliases in Terraform tests; make sure the offline suite reaches no real providers.",
+    "should_trigger": true
+  },
+  {
+    "query": "Add a plan-mode negative case and a controlled regression check to this module test suite.",
+    "should_trigger": true
+  },
+  {
+    "query": "Decide which consumers break if we remove a shared module output in its next release.",
+    "should_trigger": false,
+    "expected": "terraform-module-contracts"
+  },
+  {
+    "query": "Scaffold a first Terraform module for a VPC and subnets.",
+    "should_trigger": false,
+    "expected": "code-scaffold"
+  },
+  {
+    "query": "Review this proposed production Terraform plan for security and blast radius.",
+    "should_trigger": false,
+    "expected": "iac-review"
+  },
+  {
+    "query": "Design tests for a distributed job queue, including retries and concurrency.",
+    "should_trigger": false,
+    "expected": "test-design"
+  },
+  {
+    "query": "Move a resource between Terraform addresses after the migration was approved.",
+    "should_trigger": false,
+    "expected": "terraform-state"
+  },
+  {
+    "query": "Upgrade Terraform core and the AzureRM provider across all environments.",
+    "should_trigger": false,
+    "expected": "iac-version-upgrade"
+  },
+  {
+    "query": "Build the saved-plan approval and concurrency rules for our Terraform deployment pipeline.",
+    "should_trigger": false,
+    "expected": "iac-apply-pipeline"
+  },
+  {
+    "query": "Our GitHub Actions check is red after yesterday's merge; diagnose the job failure.",
+    "should_trigger": false,
+    "expected": "ci-triage"
+  },
+  {
+    "query": "Measure which hand-created cloud resources are still unmanaged by Terraform.",
+    "should_trigger": false,
+    "expected": "brownfield-iac-adoption"
+  },
+  {
+    "query": "Restructure our CI stage graph and caches to reduce its critical path.",
+    "should_trigger": false,
+    "expected": "ci-pipeline-design"
+  }
+]

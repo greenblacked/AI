@@ -97,7 +97,7 @@ Install the plugins you will actually use. Every description a plugin ships sits
 context for the whole session, and the runtime caps that listing at about 1% of the
 context window. Past the cap it drops the descriptions of the skills you invoke least,
 which leaves them invocable by name and stops them being chosen on their own — silently.
-Only `personal` fits the default budget by itself. If you
+`personal` and `iac` fit the default budget by themselves. If you
 install any of the other twenty-seven, or more than one plugin, raise it in
 `~/.claude/settings.json`:
 

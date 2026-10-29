@@ -2,12 +2,12 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
-  <img alt="The twenty-eight plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data, techdocs, assurance, client-apps, product, platform, devtools, smallbiz, backend, languages, linux, databases, observability, embedded, learning, research and growth" src="docs/assets/banner-light.svg" width="100%">
+  <img alt="The twenty-nine plugins: coding, family, gamedev, operations, delivery, security, manager, personal, career, design, llm, data, techdocs, assurance, client-apps, product, platform, devtools, smallbiz, backend, languages, linux, databases, observability, embedded, learning, research, growth and iac" src="docs/assets/banner-light.svg" width="100%">
 </picture>
 
 # Agent skills
 
-517 agent skills, 30 subagents and ten slash commands, in twenty-eight
+520 agent skills, 30 subagents and ten slash commands, in twenty-nine
 plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ plugins you install separately.
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-517-7c3aed)](#skills)
+[![Skills](https://img.shields.io/badge/skills-520-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
 [Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
@@ -67,6 +67,7 @@ and what the runtime does or does not enforce.
 | [`client-apps`](#client-apps) | Browser and mobile clients: field performance, hydration, memory, version skew, service workers, crashes, hangs, startup, battery, networks | 22 skills |
 | [`product`](#product) | Product and go-to-market: interviews, demand tests, design partners, premortems, pricing, metric diagnosis, activation, churn, win-loss, RFPs | 22 skills |
 | [`platform`](#platform) | Cloud and platform engineering: Kubernetes control plane, networking and storage, Terraform estates, cloud networks, identity, databases, the edge, commitments | 22 skills |
+| [`iac`](#iac) | Infrastructure as code: shared module contracts, regression tests and reviewed-plan delivery | 3 skills |
 | [`devtools`](#devtools) | Developer tooling and build systems: git recovery and rebases, monorepos, build caching, dependency conflicts, benchmarks | 10 skills |
 | [`smallbiz`](#smallbiz) | Freelancing and small-business operations: rates, quotes, scope, invoicing, late payment, contracts, bookkeeping, tax preparation | 20 skills |
 | [`backend`](#backend) | Backend and distributed-systems correctness: webhooks, races, retries, overload, rate limits, locks, sagas, events, queues, jobs | 14 skills |
@@ -79,13 +80,13 @@ and what the runtime does or does not enforce.
 | [`research`](#research) | Research engineering: reproducibility, numerical error, convergence, statistics review, HPC and Slurm, scaling, large datasets | 19 skills |
 | [`growth`](#growth) | Marketing and growth: content SEO, email deliverability, lifecycle, campaigns, attribution, paid search, community, devrel | 20 skills |
 
-Install one plugin or all twenty-eight. Each is a self-contained directory under `plugins/` with
+Install one plugin or all twenty-nine. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
 
 Install what you will use, though, rather than everything by reflex. Every description you
 install stays resident in context, and Claude Code's default listing budget is about 8,000
 characters against this library's total — `make validate` prints the current figure — so
-installing all twenty-eight at the default drops most of them, silently. The Install section
+installing all twenty-nine at the default drops most of them, silently. The Install section
 below says what to set instead.
 
 ## The FAMILY workflow
@@ -129,7 +130,7 @@ if a deploy fails its check and rolls back, the previous one keeps serving.
 
 | Page | What it shows |
 | --- | --- |
-| [Home](https://ai.szolotov.com) | The twenty-eight plugins with their skill counts, and a search across plugins and skill names |
+| [Home](https://ai.szolotov.com) | The twenty-nine plugins with their skill counts, and a search across plugins and skill names |
 | `/plugins/<plugin>/` | One page per plugin: what it covers, its install line and its skills |
 | `/plugins/<plugin>/<skill>/` | One page per skill: its description, install line and allowed tools when it declares them, the full procedure, its reference files, and the requests it fires on and hands elsewhere |
 | [FAMILY](https://ai.szolotov.com/family/) | The one page that is not generated from a plugin's own files: the Frame–Architect–Make–Inspect–Launch–Yield workflow, drawn as a stage-by-stage guide with the four profiles |
@@ -172,6 +173,7 @@ has the steps.
 /plugin marketplace add greenblacked/AI
 /plugin install coding@greenblacked-ai
 /plugin install gamedev@greenblacked-ai
+/plugin install iac@greenblacked-ai
 /reload-plugins
 ```
 
@@ -184,7 +186,7 @@ Install the plugins you will use rather than all of them. Every description a pl
 stays in context for the whole session, and the runtime caps that listing at about 1% of
 the context window; past the cap it silently drops the descriptions of the skills you use
 least, which leaves them invocable by name and stops them being chosen on their own. Only
-`personal` fits the default budget on its own. The other twenty-seven are over it —
+`personal` and `iac` fit the default budget on their own. The other twenty-seven are over it —
 each by enough that installed alone at least one of its descriptions is dropped — and the
 split exists to keep that number as small as it can be.
 
@@ -778,6 +780,18 @@ Cloud and platform engineering for the situations that recur and hurt: an overlo
 | [`restore-canary`](plugins/platform/skills/restore-canary/SKILL.md) | Build a scheduled, unattended restore of the newest database backup into a throwaway instance, verified and torn down daily, so "we have backups" becomes a measurement rather than a belief. Fails first when the newest backup is older than its interval, restores into an isolated scratch target, compares row counts and checksums on key tables over a closed watermark range, runs a canary query suite, records restore duration against the RTO, tears down on every exit path, and alerts on a missed run as loudly as a failed one. |
 | [`spot-readiness`](plugins/platform/skills/spot-readiness/SKILL.md) | Make workloads survive spot or preemptible capacity being reclaimed, and decide which must not run there: classify each workload by its recovery time against the interruption notice (two minutes on AWS, 30 seconds on GCP and Azure), diversify across many instance types and every zone, run exactly one interruption handler that cordons and drains, enforce an on-demand floor at the pod level rather than the node group, and prove it by interrupting a spot node under load while the SLO holds. |
 | [`workload-identity`](plugins/platform/skills/workload-identity/SKILL.md) | Replace static cloud keys with federated identity for pods and CI: IRSA or EKS Pod Identity, GKE and Azure workload identity, GitHub Actions OIDC. The trust policy pins issuer, audience and the exact subject (repository plus branch or environment; namespace plus service account), never a wildcard; one role per workload, short sessions; gate: a deliberate failed assumption from an unlisted repository or service account, and only then disable and delete the old keys. |
+
+### IaC
+
+Build and change infrastructure as code with explicit contracts and reviewable evidence.
+The [IaC usage guide](docs/iac.md) maps everyday tasks to these skills and to existing
+state, adoption, upgrade and security workflows.
+
+| Skill | What it does |
+| --- | --- |
+| [`terraform-module-contracts`](plugins/iac/skills/terraform-module-contracts/SKILL.md) | Evolve an existing shared module without silently breaking its consumers or resource addresses. |
+| [`terraform-module-tests`](plugins/iac/skills/terraform-module-tests/SKILL.md) | Add regression coverage that distinguishes plan assertions, mocks and real infrastructure tests. |
+| [`iac-apply-pipeline`](plugins/iac/skills/iac-apply-pipeline/SKILL.md) | Bind approval to the exact saved plan and target, serialize applies and recover safely from partial failure. |
 
 ### Devtools
 

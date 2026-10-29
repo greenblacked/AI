@@ -776,6 +776,21 @@ def test_every_plugin_but_family_has_a_look_and_every_look_has_a_plugin():
     assert set(site.site_style.PLUGIN_LOOKS) == plugins
 
 
+def test_iac_topic_exposes_installation_and_each_shipped_skill():
+    manifest = site._manifest(REPO)
+    skills = site._collect_skills(REPO)
+    catalogue = site.collect(REPO, manifest, [], skills)
+    page = _content(site.render_plugin("iac", catalogue, "dev"))
+    assert "/plugin install iac@greenblacked-ai" in page
+    assert 'class="page plugin-page plugin-iac"' in page
+    for name in (
+        "terraform-module-contracts",
+        "terraform-module-tests",
+        "iac-apply-pipeline",
+    ):
+        assert f'href="/plugins/iac/{name}/"' in page
+
+
 @pytest.mark.parametrize("name", sorted(site.site_style.PLUGIN_LOOKS))
 def test_a_plugin_page_carries_its_signature_and_its_plain_name(mini_repo, name):
     look = site.site_style.PLUGIN_LOOKS[name]

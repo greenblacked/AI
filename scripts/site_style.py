@@ -1445,6 +1445,18 @@ class PluginLook(NamedTuple):
 
 
 PLUGIN_LOOKS: dict[str, PluginLook] = {
+    "iac": PluginLook(
+        day=("#1d4ed8", "#4338ca", "#0f766e"),
+        night=("#8ab4ff", "#a5a0ff", "#4fd1c5"),
+        width=0.66,
+        still="%P .plugin-word { font-family: var(--font-mono); font-weight: 700; }",
+        rules="%P .pl { animation: pw-iac-build 0.4s ease-out calc(var(--i) * 0.1s) backwards; }",
+        keyframes="""\
+@keyframes pw-iac-build {
+  from { opacity: 0; transform: translateY(0.25em); }
+  to { opacity: 1; transform: none; }
+}""",
+    ),
     # Typed one key at a time, the caret trailing the last letter.
     "coding": PluginLook(
         day=("#1d4ed8", "#4338ca", "#0f766e"),

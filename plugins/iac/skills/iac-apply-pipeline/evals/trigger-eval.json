@@ -1,0 +1,22 @@
+[
+  {"query": "Our Terraform apply job replans after approval; design a handoff that applies the exact reviewed artifact instead", "should_trigger": true},
+  {"query": "Two infrastructure pipelines on different branches write the same Terraform backend key; how should we serialize their approvals and applies?", "should_trigger": true},
+  {"query": "What evidence should our Terraform deployment gate bind to the saved plan before letting the next job apply it?", "should_trigger": true},
+  {"query": "We download the latest tfplan artifact in the apply job and sometimes deploy a different commit; redesign that connection", "should_trigger": true},
+  {"query": "Design expiry and reapproval rules for Terraform plans that wait overnight for a production approver", "should_trigger": true},
+  {"query": "Our Terraform pipeline retries a stale plan by replanning and applying automatically; what should the approval workflow do instead?", "should_trigger": true},
+  {"query": "Specify how Terraform plan and apply jobs on separate runners prove they have identical dependencies and the same cloud target", "should_trigger": true},
+  {"query": "We need a Terraform deployment process where untrusted PR plans cannot become production apply artifacts", "should_trigger": true},
+  {"query": "Help us define the saved-plan artifact contract and rejection tests for our Terraform apply pipeline", "should_trigger": true},
+  {"query": "Terraform detailed-exitcode 2 breaks our plan stage; design correct no-change, changed-plan and failed-plan routes through approval", "should_trigger": true},
+  {"query": "Review this Terraform plan JSON and tell me whether replacing our database is safe", "should_trigger": false, "expected": "iac-review"},
+  {"query": "Our general CI takes forty minutes; redesign its job dependency graph and cache keys", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "Audit this GitHub Actions workflow for fork-controlled artifact poisoning and secret theft", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "Recover this Terraform state lock after the old runner disappeared", "should_trigger": false, "expected": "terraform-state"},
+  {"query": "Implement this already approved workflow specification as a GitHub Actions YAML file", "should_trigger": false, "expected": "code-scaffold"},
+  {"query": "Replace the static AWS keys in our CI with GitHub OIDC and an exact subject trust policy", "should_trigger": false, "expected": "workload-identity"},
+  {"query": "Change the public input contract of an existing Terraform module without breaking callers", "should_trigger": false, "expected": "terraform-module-contracts"},
+  {"query": "Write Terraform module tests that reject incompatible inputs and assert output behavior", "should_trigger": false, "expected": "terraform-module-tests"},
+  {"query": "Upgrade our Terraform core and provider pins across staging and production", "should_trigger": false, "expected": "iac-version-upgrade"},
+  {"query": "Bring the cloud resources we created manually under IaC with a measured adoption plan", "should_trigger": false, "expected": "brownfield-iac-adoption"}
+]
