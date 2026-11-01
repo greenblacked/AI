@@ -93,6 +93,9 @@ Installing `gamedev`: [`docs/gamedev.md`](gamedev.md) picks a production scale a
 type and routes through the plugin's thirteen skills from there, rather than leaving you to
 read all thirteen cold.
 
+Installing `iac`: [`docs/iac.md`](iac.md) maps everyday Terraform tasks to the plugin's three
+skills and to the review, state and platform skills they sit beside.
+
 Install the plugins you will actually use. Every description a plugin ships sits in
 context for the whole session, and the runtime caps that listing at about 1% of the
 context window. Past the cap it drops the descriptions of the skills you invoke least,

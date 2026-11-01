@@ -1446,8 +1446,8 @@ class PluginLook(NamedTuple):
 
 PLUGIN_LOOKS: dict[str, PluginLook] = {
     "iac": PluginLook(
-        day=("#1d4ed8", "#4338ca", "#0f766e"),
-        night=("#8ab4ff", "#a5a0ff", "#4fd1c5"),
+        day=("#155e75", "#854d0e", "#6d28d9"),
+        night=("#67e8f9", "#fcd34d", "#c4b5fd"),
         width=0.66,
         still="%P .plugin-word { font-family: var(--font-mono); font-weight: 700; }",
         rules="%P .pl { animation: pw-iac-build 0.4s ease-out calc(var(--i) * 0.1s) backwards; }",

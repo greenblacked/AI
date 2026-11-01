@@ -119,7 +119,7 @@ to clean resources that belong to test state.
 
 ## Anti-patterns
 
-**An apply run hidden among “unit tests.”** A bare run defaults to apply; reviewing the
+**An apply run hidden among "unit tests."** A bare run defaults to apply; reviewing the
 filename alone does not establish its effects.
 
 **Treating mocks as a cloud acceptance test.** They do not validate real IAM permissions,

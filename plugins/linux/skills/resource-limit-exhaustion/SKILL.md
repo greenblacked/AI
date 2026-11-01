@@ -53,9 +53,9 @@ Workers are separate processes with their own entries. Read one of the children 
 ls /proc/$PID/fd | wc -l
 ls -l /proc/$PID/fd | awk '{print $NF}' | sed -E 's/[0-9]+/N/g' | sort | uniq -c | sort -rn | head
 lsof -p $PID -nP | awk '{print $5}' | sort | uniq -c | sort -rn
-cat /proc/sys/fs/file-nr
-cat /sys/fs/cgroup/system.slice/UNIT/pids.current /sys/fs/cgroup/system.slice/UNIT/pids.max
 ```
+
+Read `/proc/sys/fs/file-nr`, and `pids.current` and `pids.max` under `/sys/fs/cgroup/system.slice/UNIT/`, with the Read tool.
 
 The first group classifies descriptors: sockets, pipes, regular files, `anon_inode:inotify`, deleted files. `/proc/sys/fs/file-nr` prints allocated, unused and the maximum for the whole system; allocated near the maximum is ENFILE. The cgroup path above assumes cgroup v2 and a system service; read `systemctl show UNIT -p ControlGroup` for the real path. `TasksCurrent` and `TasksMax` from systemctl show are the same pair.
 

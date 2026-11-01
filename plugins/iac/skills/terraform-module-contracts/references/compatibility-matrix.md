@@ -37,6 +37,7 @@ terraform {
   required_providers {
     aws = {
       source                = "hashicorp/aws"
+      version               = ">= 5.0"
       configuration_aliases = [aws.replica]
     }
   }
@@ -62,7 +63,7 @@ supplies the alias.
 Formatting and validation are necessary but do not exercise API permissions, remote
 service behavior, or upgrades from old state. Mocked tests cover expressions and interface
 branches; an isolated integration rehearsal covers provider behavior and cleanup. Record
-these as separate results, not one green “module works” claim.
+these as separate results, not one green "module works" claim.
 
 Official sources, checked 2026-10-29:
 
