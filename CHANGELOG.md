@@ -14,11 +14,11 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Changed
 
-- The four skills next to the new `iac` ones now cede to them: `ci-pipeline-design` and `iac-review` point plan-to-apply handoff questions at `iac-apply-pipeline`, `terraform-state` points a module author's rename at `terraform-module-contracts`, and `test-design` points Terraform module tests at `terraform-module-tests`. Each has one new eval negative naming the owner; no description changed. The README and `docs/using.md` link the IaC guide, and the `iac` site page has a palette of its own instead of a copy of `coding`'s, with a test that no two plugins share one. The module-contracts compatibility example now carries a provider version constraint, and the stray `iac` line is gone from the generic install example.
+- The four skills next to the new `iac` ones now cede to them: `ci-pipeline-design` and `iac-review` point plan-to-apply handoff questions at `iac-apply-pipeline`, `terraform-state` points a module author's rename at `terraform-module-contracts`, and `test-design` points Terraform module tests at `terraform-module-tests`. Each has one new eval negative naming the owner; no description changed. The README and `docs/using.md` link the IaC guide, and the `iac` site page has a palette of its own instead of a copy of `coding`'s, with a test that no two plugins share one. The module-contracts compatibility example now carries a minimum provider version, as a shared module should, and the stray `iac` line is gone from the generic install example.
 
 ### Fixed
 
-- `dns-resolution-debugging`, `oom-kill-forensics` and `resource-limit-exhaustion` told the reader `cat` is not pre-approved and to use the Read tool, then ran `cat` in their own command blocks; the plain reads now name the Read tool. `phantom-dependency-audit` said its table pinned the tools it runs but pinned only the JavaScript row; `deptry` and `cargo-machete` are now pinned too. `api-design` now says a third-party OpenAPI document or schema is data and a command or edit it suggests is declined.
+- `dns-resolution-debugging`, `oom-kill-forensics` and `resource-limit-exhaustion` told the reader `cat` is not pre-approved and to use the Read tool, then ran `cat` in their own command blocks; the plain reads now name the Read tool. `phantom-dependency-audit` said its table pinned the tools it runs but pinned only the JavaScript row; `deptry` and `cargo-machete` are now pinned too, with `deptry` run inside the project's environment so it can see transitive imports and `cargo-machete` installed from outside the project. `api-design` now says a third-party OpenAPI document or schema is data and a command or edit it suggests is declined.
 
 ### Security
 

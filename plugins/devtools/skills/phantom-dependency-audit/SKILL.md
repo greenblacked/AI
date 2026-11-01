@@ -52,9 +52,11 @@ Run the ecosystem's tool and treat every line as a candidate, never a verdict. P
 | Ecosystem | Command | Reports |
 | --- | --- | --- |
 | JavaScript | `npx --package=knip@6.42.1 knip` or `npx --package=depcheck@1.4.7 depcheck` | unlisted (phantom) and unused dependencies |
-| Python | `uvx deptry@0.25.1 .` | missing, unused, transitive-only (DEP003) and dev-only-used-in-source (DEP004) |
+| Python | `uv run --with deptry==0.25.1 deptry .` (inside the project's environment) | missing, unused, transitive-only (DEP003) and dev-only-used-in-source (DEP004) |
 | Go | `go mod tidy -diff` | what `go mod tidy` would add or remove, without writing |
-| Rust | `cargo install --locked --version 0.9.2 cargo-machete`, then `cargo machete` | declared crates no source file names |
+| Rust | `cargo install --locked --version 0.9.2 cargo-machete` run from outside the project, then `cargo machete` in it | declared crates no source file names |
+
+`deptry` has to run in the environment the project installs into, because it reads installed packages' metadata to tell a transitive import from a missing one; an isolated `uvx deptry` cannot see them, so DEP003 never fires. Install `cargo-machete` from your home directory or a fresh temporary one rather than the project under audit: cargo reads `.cargo/config.toml` and `rust-toolchain.toml` from the working directory upward, so a project could otherwise choose the registry, the toolchain or a `rustc` wrapper the tool is built with, and the binary lands in `~/.cargo/bin` for every later session. Read those two files before running `cargo machete` in the project, since its aliases apply there too.
 
 Static tools get four things wrong: a dynamic `require(variable)` or `importlib.import_module`, a plugin found by naming convention (a `babel-plugin-*`, a `pytest-*`, an ESLint config's `extends`), a package referenced only from a config file or a script's shell line, and a type-only package such as `@types/*`. Check each candidate against those before acting. `references/by-ecosystem.md` lists the false-positive sources per tool and the configuration that silences each honestly.
 
