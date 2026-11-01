@@ -14,7 +14,7 @@ The job is hard because the artefact most people review is designed for reading,
 
 Use for: reviewing a Terraform/OpenTofu plan or PR, assessing the risk of an apply, explaining why a resource is being replaced, auditing state-moving operations (`moved`, `import`, `state mv`, `state rm`), checking pinning and policy gates, reviewing an Ansible change.
 
-Do not use for: writing new modules, debugging provider errors, or greenfield architecture design.
+Do not use for: writing new modules, debugging provider errors, greenfield architecture design, or wiring the approval into a pipeline so that CI applies exactly the plan that was approved (`iac-apply-pipeline`).
 
 ## Workflow
 

@@ -776,6 +776,21 @@ def test_every_plugin_but_family_has_a_look_and_every_look_has_a_plugin():
     assert set(site.site_style.PLUGIN_LOOKS) == plugins
 
 
+def test_iac_topic_exposes_installation_and_each_shipped_skill():
+    manifest = site._manifest(REPO)
+    skills = site._collect_skills(REPO)
+    catalogue = site.collect(REPO, manifest, [], skills)
+    page = _content(site.render_plugin("iac", catalogue, "dev"))
+    assert "/plugin install iac@greenblacked-ai" in page
+    assert 'class="page plugin-page plugin-iac"' in page
+    for name in (
+        "terraform-module-contracts",
+        "terraform-module-tests",
+        "iac-apply-pipeline",
+    ):
+        assert f'href="/plugins/iac/{name}/"' in page
+
+
 @pytest.mark.parametrize("name", sorted(site.site_style.PLUGIN_LOOKS))
 def test_a_plugin_page_carries_its_signature_and_its_plain_name(mini_repo, name):
     look = site.site_style.PLUGIN_LOOKS[name]
@@ -831,6 +846,17 @@ def test_a_plugin_palette_holds_4_5_to_1_in_day_and_night(name):
         assert _contrast(colour, DAY_BG) >= 4.5, (name, colour)
     for colour in look.night:
         assert _contrast(colour, NIGHT_BG_HEX) >= 4.5, (name, colour)
+
+
+def test_no_two_plugins_share_a_palette():
+    # A copied look (iac once repeated coding's) makes two plugin pages indistinguishable.
+    looks = site.site_style.PLUGIN_LOOKS
+    for field in ("day", "night"):
+        seen: dict[tuple, str] = {}
+        for name, look in looks.items():
+            palette = getattr(look, field)
+            assert palette not in seen, (field, name, seen[palette])
+            seen[palette] = name
 
 
 def test_the_page_backgrounds_the_palettes_are_held_to_are_the_stylesheets():

@@ -1,0 +1,92 @@
+[
+  {
+    "query": "Our shared Terraform module is used by six teams; classify whether changing its input defaults needs a breaking release.",
+    "should_trigger": true
+  },
+  {
+    "query": "We want to remove an output from our published Terraform module without surprising older callers.",
+    "should_trigger": true
+  },
+  {
+    "query": "How do we add a replica provider alias to an existing shared module while keeping consumer compatibility explicit?",
+    "should_trigger": true
+  },
+  {
+    "query": "Plan a backwards-compatible transition from a string variable to an object in our reusable Terraform module.",
+    "should_trigger": true
+  },
+  {
+    "query": "Our published module uses count and we want stable for_each keys; different consumers supplied different list orders.",
+    "should_trigger": true
+  },
+  {
+    "query": "Can we delete old moved blocks from a module now that our own production stack has upgraded?",
+    "should_trigger": true
+  },
+  {
+    "query": "Build a consumer compatibility matrix before releasing version two of this existing Terraform module.",
+    "should_trigger": true
+  },
+  {
+    "query": "We tightened validation in a shared module and need to identify which previously valid callers would break.",
+    "should_trigger": true
+  },
+  {
+    "query": "The module refactor passes a fresh install test, but how do we prove an upgrade preserves resource identities?",
+    "should_trigger": true
+  },
+  {
+    "query": "Review the public input, output and provider contract for a proposed change to our existing cross-team Terraform module.",
+    "should_trigger": true
+  },
+  {
+    "query": "Write a brand new Terraform module for a private artifact bucket.",
+    "should_trigger": false,
+    "expected": "code-scaffold"
+  },
+  {
+    "query": "Add native .tftest.hcl tests to this existing module with mocked providers.",
+    "should_trigger": false,
+    "expected": "terraform-module-tests"
+  },
+  {
+    "query": "Import this existing bucket at the address we have already agreed on.",
+    "should_trigger": false,
+    "expected": "terraform-state"
+  },
+  {
+    "query": "Review the destroys and replacements in this production Terraform plan JSON.",
+    "should_trigger": false,
+    "expected": "iac-review"
+  },
+  {
+    "query": "Upgrade all roots from the AWS provider 5.x to 6.x safely.",
+    "should_trigger": false,
+    "expected": "iac-version-upgrade"
+  },
+  {
+    "query": "Split our 5000-resource Terraform state into separate team states.",
+    "should_trigger": false,
+    "expected": "monolith-state-split"
+  },
+  {
+    "query": "Bring this hand-built cloud estate under Terraform management.",
+    "should_trigger": false,
+    "expected": "brownfield-iac-adoption"
+  },
+  {
+    "query": "Design the approval and artifact binding between Terraform plan and apply in CI.",
+    "should_trigger": false,
+    "expected": "iac-apply-pipeline"
+  },
+  {
+    "query": "Design a general unit and integration test strategy for this Python service.",
+    "should_trigger": false,
+    "expected": "test-design"
+  },
+  {
+    "query": "Terraform is locked after a cancelled runner; clear the stale state lock safely.",
+    "should_trigger": false,
+    "expected": "terraform-state"
+  }
+]

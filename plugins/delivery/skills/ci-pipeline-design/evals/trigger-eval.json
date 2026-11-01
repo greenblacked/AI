@@ -18,5 +18,6 @@
   {"query": "we're moving off jenkins onto github actions across 40 repos, how do we sequence that without a code freeze", "should_trigger": false, "expected": "plan-platform-migration"},
   {"query": "our github actions bill doubled last month, where is the money actually going", "should_trigger": false, "expected": "cost-review"},
   {"query": "cargo build takes eleven minutes on one crate, find which compile step dominates", "should_trigger": false, "expected": "slow-build-profile"},
-  {"query": "in our monorepo every PR rebuilds all packages, make CI build only the projects a change can affect", "should_trigger": false, "expected": "affected-build-selection"}
+  {"query": "in our monorepo every PR rebuilds all packages, make CI build only the projects a change can affect", "should_trigger": false, "expected": "affected-build-selection"},
+  {"query": "we approve a terraform plan in review but the apply job re-plans, how do we make CI apply exactly the saved plan and keep the apply credential away from PR jobs", "should_trigger": false, "expected": "iac-apply-pipeline"}
 ]

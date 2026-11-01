@@ -36,6 +36,7 @@ Do not use for:
   as findings. The boundary is the decision: `iac-review` judges whether the move is
   right, this skill carries it out afterwards. If nobody has reviewed the plan yet, stop
   and hand it there first.
+- **Changing a shared module without breaking its callers.** A module author deciding how to rename a resource inside a module, replace `count` with `for_each` or ship the `moved` blocks for consumers is `terraform-module-contracts`; this skill fixes one live state.
 - **Writing a new module or a first configuration.** That is `code-scaffold`. This skill
   edits the live configuration only to add a `moved`, `import` or `removed` block; its
   isolated, disposable provider-identity diagnostic is the sole exception.

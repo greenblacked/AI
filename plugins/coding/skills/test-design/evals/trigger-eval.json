@@ -18,5 +18,6 @@
   {"query": "bumping django from 4.2 to 5.1, what order do i do the dependencies in", "should_trigger": false, "expected": "dependency-upgrade"},
   {"query": "set up a game day exercise for the payments team next month", "should_trigger": false, "expected": "game-day"},
   {"query": "how many replicas will we need for black friday given last year's traffic", "should_trigger": false, "expected": "capacity-planning"},
-  {"query": "what alerts should we page on for the ingest pipeline", "should_trigger": false, "expected": "alert-design"}
+  {"query": "what alerts should we page on for the ingest pipeline", "should_trigger": false, "expected": "alert-design"},
+  {"query": "how do I test my Terraform module with terraform test and mock providers", "should_trigger": false, "expected": "terraform-module-tests"}
 ]
