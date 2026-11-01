@@ -93,11 +93,14 @@ Installing `gamedev`: [`docs/gamedev.md`](gamedev.md) picks a production scale a
 type and routes through the plugin's thirteen skills from there, rather than leaving you to
 read all thirteen cold.
 
+Installing `iac`: [`docs/iac.md`](iac.md) maps everyday Terraform tasks to the plugin's three
+skills and to the review, state and platform skills they sit beside.
+
 Install the plugins you will actually use. Every description a plugin ships sits in
 context for the whole session, and the runtime caps that listing at about 1% of the
 context window. Past the cap it drops the descriptions of the skills you invoke least,
 which leaves them invocable by name and stops them being chosen on their own — silently.
-Only `personal` fits the default budget by itself. If you
+`personal` and `iac` fit the default budget by themselves. If you
 install any of the other twenty-seven, or more than one plugin, raise it in
 `~/.claude/settings.json`:
 

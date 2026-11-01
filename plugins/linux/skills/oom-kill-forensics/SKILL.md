@@ -43,10 +43,9 @@ Find the limit and how close the working set sits to it:
 
 ```bash
 systemctl show UNIT -p MemoryMax,MemoryHigh,MemoryCurrent,MemorySwapMax,OOMPolicy,OOMScoreAdjust
-cat /sys/fs/cgroup/system.slice/UNIT/memory.max
-cat /sys/fs/cgroup/system.slice/UNIT/memory.events
-cat /sys/fs/cgroup/system.slice/UNIT/memory.stat | head -20
 ```
+
+Read `memory.max`, `memory.events` and `memory.stat` under `/sys/fs/cgroup/system.slice/UNIT/` with the Read tool; `memory.stat` is long, so read only its first lines.
 
 `memory.events` counts `high`, `max`, `oom` and `oom_kill`; a rising `max` before any kill means the group was repeatedly pressed against its limit. In `memory.stat`, `anon` is memory that cannot be dropped, `file` is page cache that usually can, and `shmem` counts tmpfs and shared memory that cannot be dropped without swap. A limit smaller than the legitimate anon plus shmem is a configuration error, not a leak. This path assumes cgroup v2; on v1 the files are named `memory.limit_in_bytes` and `memory.usage_in_bytes`.
 

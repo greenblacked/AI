@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "iac",
+  "description": "Infrastructure as code usage: evolve shared Terraform module contracts, build meaningful module regression tests, and promote reviewed plans through a controlled apply pipeline. Existing state repair, adoption, upgrades and security review stay with their specialist skills.",
+  "author": {
+    "name": "Serhii Zolotov",
+    "url": "https://github.com/greenblacked"
+  },
+  "homepage": "https://github.com/greenblacked/AI",
+  "repository": "https://github.com/greenblacked/AI",
+  "license": "MIT",
+  "keywords": [
+    "iac",
+    "terraform",
+    "modules",
+    "testing",
+    "ci-cd"
+  ]
+}
