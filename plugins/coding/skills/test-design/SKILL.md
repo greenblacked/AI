@@ -14,7 +14,7 @@ Test selection goes wrong in five specific ways. The happy path gets three tests
 
 Use for: deciding which cases a change needs, reviewing whether an existing suite tests anything, choosing the unit/integration/end-to-end level for a case, designing around time, randomness, concurrency and I/O, reading what a coverage number does and does not cover, and writing the reproduction test for a reported bug.
 
-Do not use for: a test that is already failing in CI and may be a flake, which is `ci-triage` and owns the quarantine policy; locating the cause of a defect, which is `debugging`; restructuring code under an existing suite, which is `refactoring`; judging a colleague's diff, which is `code-review`. Whether a suite would notice a fault, measured by injecting faults and triaging the survivors, or a coverage figure that is high while bugs still ship, is `mutation-testing`.
+Do not use for: a test that is already failing in CI and may be a flake, which is `ci-triage` and owns the quarantine policy; locating the cause of a defect, which is `debugging`; restructuring code under an existing suite, which is `refactoring`; judging a colleague's diff, which is `code-review`. Whether a suite would notice a fault, measured by injecting faults and triaging the survivors, or a coverage figure that is high while bugs still ship, is `mutation-testing`. Adding native `.tftest.hcl` tests to a Terraform module is `terraform-module-tests`.
 
 ## Workflow
 
