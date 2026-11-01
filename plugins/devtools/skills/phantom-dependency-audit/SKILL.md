@@ -47,14 +47,14 @@ Pick the ecosystem and let the failures name the phantoms. Do not fix them one a
 
 ### 3. Cross-check with a static tool
 
-Run the ecosystem's tool and treat every line as a candidate, never a verdict. Pin the version in the command you run, as the table does, or run a copy the project already locks, and write the version down with the result: an unpinned `npx` runs whatever the registry serves today, with the user's privileges, in the project.
+Run the ecosystem's tool and treat every line as a candidate, never a verdict. Pin the version in the command you run, as the table does for the tools it can pin (`go mod tidy` is part of the Go toolchain), or run a copy the project already locks, and write the version down with the result: an unpinned `npx` runs whatever the registry serves today, with the user's privileges, in the project.
 
 | Ecosystem | Command | Reports |
 | --- | --- | --- |
 | JavaScript | `npx --package=knip@6.42.1 knip` or `npx --package=depcheck@1.4.7 depcheck` | unlisted (phantom) and unused dependencies |
-| Python | `deptry .` | missing, unused, transitive-only (DEP003) and dev-only-used-in-source (DEP004) |
+| Python | `uvx deptry@0.25.1 .` | missing, unused, transitive-only (DEP003) and dev-only-used-in-source (DEP004) |
 | Go | `go mod tidy -diff` | what `go mod tidy` would add or remove, without writing |
-| Rust | `cargo machete` | declared crates no source file names |
+| Rust | `cargo install --locked --version 0.9.2 cargo-machete`, then `cargo machete` | declared crates no source file names |
 
 Static tools get four things wrong: a dynamic `require(variable)` or `importlib.import_module`, a plugin found by naming convention (a `babel-plugin-*`, a `pytest-*`, an ESLint config's `extends`), a package referenced only from a config file or a script's shell line, and a type-only package such as `@types/*`. Check each candidate against those before acting. `references/by-ecosystem.md` lists the false-positive sources per tool and the configuration that silences each honestly.
 
