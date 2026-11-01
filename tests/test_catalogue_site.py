@@ -848,6 +848,17 @@ def test_a_plugin_palette_holds_4_5_to_1_in_day_and_night(name):
         assert _contrast(colour, NIGHT_BG_HEX) >= 4.5, (name, colour)
 
 
+def test_no_two_plugins_share_a_palette():
+    # A copied look (iac once repeated coding's) makes two plugin pages indistinguishable.
+    looks = site.site_style.PLUGIN_LOOKS
+    for field in ("day", "night"):
+        seen: dict[tuple, str] = {}
+        for name, look in looks.items():
+            palette = getattr(look, field)
+            assert palette not in seen, (field, name, seen[palette])
+            seen[palette] = name
+
+
 def test_the_page_backgrounds_the_palettes_are_held_to_are_the_stylesheets():
     css = site.site_style.CSS
     assert f"--bg: {DAY_BG};" in css.split('html[data-theme="night"]', 1)[0]
