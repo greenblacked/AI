@@ -18,5 +18,5 @@
   {"query": "audit the marketing site against wcag 2.2 including image alt text", "should_trigger": false, "expected": "accessibility-audit"},
   {"query": "put a coming soon button for the new export feature on the site to see if anyone actually wants it", "should_trigger": false, "expected": "fake-door-test"},
   {"query": "the dashboard screen feels cluttered and flat, fix the hierarchy and type scale", "should_trigger": false, "expected": "visual-design"},
-  {"query": "which chart should show signups by channel over the quarter, and how should the axes be labelled", "should_trigger": false, "expected": "data-visualisation"}
+  {"query": "do a product design pass on our checkout flow and tell me what to fix before launch", "should_trigger": false, "expected": "ui-ux-review"}
 ]
