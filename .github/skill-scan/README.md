@@ -1,8 +1,13 @@
 # Skill scan baselines
 
-Two jobs in [`security.yml`](../workflows/security.yml) scan every shipped skill under
+Two jobs in [`security.yml`](../workflows/security.yml) scan the shipped skills under
 `plugins/*/skills/*/` with a third-party agent-skill scanner and fail only on a high or
-critical finding nobody has reviewed. This directory holds what they were reviewed against.
+critical finding nobody has reviewed. Cisco's scans every skill on every run;
+SkillSpector scans the skills a pull request changes (every skill when the pull request
+changes the scan configuration) and every skill on other events. The scan configuration
+is `security.yml` itself, anything in this directory,
+`.github/requirements/skillspector.txt` and `scripts/skill_scan_gate.py`: a change to any
+of them can change the verdict on a skill the diff never touches, so it re-scans them all. This directory holds what they were reviewed against.
 [`docs/ci.md`](../../docs/ci.md#the-security-jobs-in-detail) explains the jobs.
 
 | File | Read by | What it holds |
@@ -34,6 +39,12 @@ the SkillSpector key leaves the line out so that an edit above a reviewed findin
 reopen it. The cost is the same in both: a new finding of the same rule in the same file,
 with the same matched text for SkillSpector, is hidden too. Review a change to a flagged
 file with that in mind.
+
+A short accepted match widens that further. A handful of SkillSpector entries match only
+a few characters — `rm -rf /`, `&& rm -`, `| sudo`, `--privileged`, `.env`, `keychain`,
+`access token` — which recur in almost any text about the same subject, so each acts close
+to a suppression of its rule for the whole file. They stand as triaged today; tighten each
+to the longer span around it at the next refresh rather than carrying it forward.
 
 ## When a scan fails
 

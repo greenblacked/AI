@@ -27,8 +27,10 @@ tool access, so a malicious change here is a supply-chain change. The controls a
   check in `security.yml` fails the build if one is not.
 - **Static analysis** with CodeQL, run from `security.yml` with the `security-extended`
   query suite, and with ruff's flake8-bandit rules.
-- **Skill scanning** of every shipped skill with two third-party agent-skill scanners,
-  Cisco's skill-scanner and NVIDIA's SkillSpector, on every pull request. Each fails on
+- **Skill scanning** with two third-party agent-skill scanners. Cisco's skill-scanner
+  scans every skill on every run; NVIDIA's SkillSpector scans the skills a pull request
+  changes (every skill when the pull request changes the scan configuration) and every
+  skill on other events. Each fails on
   a high or critical finding that is not in a baseline reviewed by hand under
   `.github/skill-scan/`, and keeps its full SARIF report as a run artifact. Both match
   patterns rather than read intent, and neither reads subagent or command files, so a

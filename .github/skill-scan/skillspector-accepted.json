@@ -21,7 +21,7 @@
       "path": "plugins/assurance/skills/test-order-bisect/references/shared-state-catalogue.md",
       "match": "for k, v in os.environ.items()",
       "class": "ACCEPTED-by-design",
-      "reason": "The state guard snapshots os.environ to compare before and after each test; since #356 it reports only the names of changed variables, never their values."
+      "reason": "The state guard snapshots os.environ to compare before and after each test; since #356 it reports only the names of changed variables, never their values. The scanner cannot tell a names-only report from an assert over the whole mapping, so a regression back to printing values would not be caught by this key."
     },
     {
       "rule_id": "AE1",

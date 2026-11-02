@@ -138,7 +138,7 @@ upgrade would fail the build on skill prose that was green the day before.
 | `codeql` | `codeql` | CodeQL's `security-extended` query suite found something in the Python source. |
 | `permissions-audit` | `permissions audit` | A workflow has no top-level `permissions:` block, or one that is `write-all`, `read-all`, or grants `write` on any scope; an action is not pinned to a SHA; a job sets no `timeout-minutes`; or an `actions/checkout` does not set `persist-credentials: false`. |
 | `skill-scanner` | `cisco skill scan` | cisco-ai-skill-scanner found a high or critical finding in a skill that `.github/skill-scan/cisco-policy.yaml` does not suppress, or scanned fewer skills than the tree holds. |
-| `skillspector` | `skillspector skill scan` | SkillSpector found a high or critical finding not in `.github/skill-scan/skillspector-accepted.json`, a scan errored or left no report, or an accepted entry has no reason. |
+| `skillspector` | `skillspector skill scan` | SkillSpector found a high or critical finding not in `.github/skill-scan/skillspector-accepted.json`, a scan errored, left no report or left a file entirely uninspected, or an accepted entry has no reason. |
 | `security` | `security` | Any of its seven dependencies did not report exactly `success`, or the result payload did not match the expected jobs. |
 
 ### The security jobs in detail
@@ -169,10 +169,12 @@ only ever sees Python. `tests/*` ignores `S101`, because asserting is what tests
 **CodeQL** runs `github/codeql-action` init and analyze with `languages: python` and
 `queries: security-extended`. It is the only job that needs `security-events: write`.
 
-**Two agent-skill scanners read every shipped skill.** `skill-scanner` runs Cisco's
+**Two agent-skill scanners read the shipped skills.** `skill-scanner` runs Cisco's
 [cisco-ai-skill-scanner](https://pypi.org/project/cisco-ai-skill-scanner/) and
 `skillspector` runs NVIDIA's [SkillSpector](https://github.com/NVIDIA/SkillSpector), both
-Apache-2.0, over `plugins/*/skills/*/`. Each fails only on a high or critical finding
+Apache-2.0, over `plugins/*/skills/*/`. Cisco's scans every skill on every run;
+SkillSpector scans the skills a pull request changes (every skill when the pull request
+changes the scan configuration) and every skill on other events. Each fails only on a high or critical finding
 that is not in a baseline reviewed by hand; medium and low findings never fail, and every
 finding stays in the SARIF and JSON reports each job uploads as an artifact
 (`skill-scanner-report`, `skillspector-report`, kept 14 days) whether it passes or not.
@@ -198,14 +200,19 @@ and how to refresh a baseline after a scanner bump.
 - SkillSpector scans one skill per process, four at a time, because `scan -r` stops at 32
   skills, reads one level deep and refuses a baseline. On a pull request it scans only the
   skill directories the diff from the merge base touches, listed with `--no-renames` so a
-  moved skill is scanned at its new path; on every other event it scans all of them,
-  which takes about fifteen minutes. `scripts/skill_scan_gate.py` then judges the
+  moved skill is scanned at its new path, unless the same diff touches the scan's own
+  configuration — `.github/workflows/security.yml`, anything under `.github/skill-scan/`,
+  `.github/requirements/skillspector.txt` or `scripts/skill_scan_gate.py` — which can
+  change the verdict on a skill the diff never touches, so then it scans every skill and
+  says why in the log. On every other event it scans all of them, which takes about
+  fifteen minutes. `scripts/skill_scan_gate.py` then judges the
   reports. It does not use SkillSpector's own baseline, whose fingerprint hashes the whole
   file and the scanner version, so any edit to a flagged file would reopen every finding
   in it. It keys each finding on its rule, its path and the matched text with whitespace
   collapsed, and fails on a key not in the accepted list, on a scan that exited 2 or left
-  no readable report, on a report count that differs from the skills scanned, and on an
-  accepted entry with no reason or with a class other than a false positive or
+  no readable report, on a report whose `analysisCompleteness` says it left a file
+  entirely uninspected, on a report count that differs from the skills scanned, and on
+  an accepted entry with no reason or with a class other than a false positive or
   accepted-by-design. An accepted entry that no longer matches anything is printed as a
   notice so the list can be pruned.
 - Neither tool reads subagent or command files, so `plugins/*/agents/` and
