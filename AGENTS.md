@@ -169,7 +169,10 @@ each is a judgement call rather than a rule, but a warning nobody has to clear i
 that accumulates until the whole category stops being read.
 
 CI additionally runs markdownlint, yamllint, actionlint, codespell, an offline link
-check, gitleaks, zizmor, ruff (with the flake8-bandit rules) and CodeQL. `make lint` runs
+check, gitleaks, zizmor, ruff (with the flake8-bandit rules), CodeQL, and two agent-skill
+scanners: Cisco's skill-scanner, which scans every skill on every run, and NVIDIA's
+SkillSpector, which scans the skills a pull request changes (every skill when the pull
+request changes the scan configuration) and every skill on other events. `make lint` runs
 the first four locally when they are installed and tells you the command when they are
 not. codespell's false positives live in `pyproject.toml` with the reason each is one;
 add to that list rather than silencing the check, and only for a word that is genuinely
@@ -357,7 +360,9 @@ what they already enforce.
 **Before reviewing.** Read this file, then `docs/review-lessons.md` — the defect classes
 review here has already caught once. Do not re-report what CI already checks: `ci.yml`
 runs the validator, the catalogue checks, the test suite and coverage on every pull
-request; `security.yml` runs gitleaks, zizmor, ruff's flake8-bandit rules and CodeQL. A
+request; `security.yml` runs gitleaks, zizmor, ruff's flake8-bandit rules, CodeQL and the
+two skill scanners, which fail only on a high or critical finding missing from the
+reviewed baselines in `.github/skill-scan/`. A
 finding that only restates a failing gate wastes the comment; a finding about what a
 gate cannot see is the job.
 
@@ -371,6 +376,7 @@ alongside them; the rest are extra triggers this section adds.
 | `.github/workflows/**` (`.claude/rules/workflows.md`) | Line by line, plan mode first, plus a security review (permissions, pinning, injection through `${{ }}`, secrets) | Same reason, and a workflow runs with real credentials |
 | A workflow `permissions:` change, a new API write in a shipped script, or a `workflow_run`/`schedule`/`pull_request_target` trigger | A live run against the real API before merge, or immediately after merge for a default-branch-only trigger, a push trigger filtered to `main`, or a tag trigger, quoted in the PR | No offline gate reads a grant against what the API enforces (#79) |
 | `scripts/**` | A matching case in `tests/` and a check of the failure path | A script with no test is a claim, not a guarantee |
+| `.github/skill-scan/**`, `.github/requirements/**` | A security review, with each new suppression or accepted entry judged against the flagged lines as `.github/skill-scan/README.md` sets out | The scanners read these from the pull request's own checkout, so a change that suppresses its own finding turns the gate into advice |
 | `SKILL.md` `description` (`.claude/rules/skills.md`) | The trigger eval and the listing budget; never edited only to make a check pass | The description decides whether the skill ever fires |
 | Agent frontmatter (`.claude/rules/agents.md`) | Routing against its paired skill, and its declared tier | A collision loses queries silently; the wrong tier is a cost nobody notices until it recurs |
 | `tests/**` | Whether a test was deleted or an assertion loosened rather than a case added | A weaker suite is a silent way to make a broken change look green |

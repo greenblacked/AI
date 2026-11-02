@@ -1,0 +1,1273 @@
+{
+  "tool": "skillspector",
+  "tool_version": "2.13.1",
+  "entries": [
+    {
+      "rule_id": "PE3",
+      "path": "plugins/assurance/skills/audit-trail-design/references/event-schema.md",
+      "match": "Access tokens",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/assurance/skills/load-testing/SKILL.md",
+      "match": "references/workload-and-script.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "E2",
+      "path": "plugins/assurance/skills/test-order-bisect/references/shared-state-catalogue.md",
+      "match": "for k, v in os.environ.items()",
+      "class": "ACCEPTED-by-design",
+      "reason": "The state guard snapshots os.environ to compare before and after each test; since #356 it reports only the names of changed variables, never their values. The scanner cannot tell a names-only report from an assert over the whole mapping, so a regression back to printing values would not be caught by this key."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/backend/skills/saga-design/SKILL.md",
+      "match": "references/step-classification.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/backend/skills/timeout-and-retry-budget/SKILL.md",
+      "match": "references/configuration.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/career/skills/managing-up/SKILL.md",
+      "match": "without judgement",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/client-apps/skills/anr-watchdog-triage/references/reading-anr-traces.md",
+      "match": "keychain",
+      "class": "FP-scanner-limitation",
+      "reason": "'keychain' named as a source of slow launch-time reads or an entitlement to inspect; no keychain is accessed."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/client-apps/skills/async-ui-races/SKILL.md",
+      "match": "references/race-fixes.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/client-apps/skills/async-ui-races/SKILL.md",
+      "match": "references/race-tests.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/client-apps/skills/mobile-startup-and-jank/references/launch-measurement.md",
+      "match": "keychain",
+      "class": "FP-scanner-limitation",
+      "reason": "'keychain' named as a source of slow launch-time reads or an entitlement to inspect; no keychain is accessed."
+    },
+    {
+      "rule_id": "YR4",
+      "path": "plugins/client-apps/skills/push-notification-delivery/SKILL.md",
+      "match": "system prompt; show the system prompt",
+      "class": "FP-scanner-limitation",
+      "reason": "YR4 matched 'system prompt' meaning the iOS/Android notification permission dialog, not an LLM system prompt."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/client-apps/skills/push-notification-delivery/references/provider-responses.md",
+      "match": "access token",
+      "class": "FP-scanner-limitation",
+      "reason": "Term ('access token', 'kubeconfig', '.env') appears in protocol/design explanation or a heading; no credential file or value is accessed."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/coding/skills/agent-guardrails/SKILL.md",
+      "match": "references/enforcement-ladder.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/coding/skills/agent-handoff/SKILL.md",
+      "match": "git reset --hard",
+      "class": "FP-defensive",
+      "reason": "Line forbids running git reset --hard / git clean / plain --force as a first move, to preserve evidence and user changes."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/coding/skills/api-design/SKILL.md",
+      "match": "without warning",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/coding/skills/architecture-diagrams/references/graphviz.md",
+      "match": "no warning",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/coding/skills/change-discipline/SKILL.md",
+      "match": "references/gate-tools.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/coding/skills/code-review/evals/trigger-eval.json",
+      "match": "without judging",
+      "class": "FP-eval/data",
+      "reason": "Line is a trigger-eval query string used to test routing; it is never executed or followed by the agent."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/coding/skills/code-scaffold/SKILL.md",
+      "match": "rm -rf ./*`",
+      "class": "FP-defensive",
+      "reason": "`cd /some/path && rm -rf ./*` is quoted as the canonical anti-pattern that set -e with a checked cd prevents."
+    },
+    {
+      "rule_id": "TM2",
+      "path": "plugins/coding/skills/code-scaffold/SKILL.md",
+      "match": "&& rm -",
+      "class": "FP-defensive",
+      "reason": "`cd /some/path && rm -rf ./*` is quoted as the canonical anti-pattern that set -e with a checked cd prevents."
+    },
+    {
+      "rule_id": "YR1",
+      "path": "plugins/coding/skills/code-scaffold/SKILL.md",
+      "match": "rm -rf ./; silently; silently; silently",
+      "class": "FP-defensive",
+      "reason": "code-scaffold names silent failure and rm -rf on an unchecked cd as anti-patterns that strict error handling prevents."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/coding/skills/code-scaffold/references/bash.md",
+      "match": "rm -rf \"$PREFIX/\"",
+      "class": "FP-defensive",
+      "reason": "Explains that set -u turns `rm -rf \"$PREFIX/\"` with an empty variable into an error instead of deleting /."
+    },
+    {
+      "rule_id": "TM2",
+      "path": "plugins/coding/skills/code-scaffold/references/bash.md",
+      "match": "&& rm -",
+      "class": "ACCEPTED-by-design",
+      "reason": "Cleanup trap removes the script's own mktemp directory; guarded by [[ -n ... && -d ... ]] / [[ -d ${TMPDIR_RUN:-} ]] so an unset or empty variable deletes nothing."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/coding/skills/e2e-testing/SKILL.md",
+      "match": "references/playwright-config.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "PE5",
+      "path": "plugins/coding/skills/e2e-testing/references/visual-snapshots.md",
+      "match": "--ipc=host",
+      "class": "FP-defensive",
+      "reason": "Line explains that --ipc=host from Playwright's docs is NOT used because it shares the host IPC namespace with contributor code; --shm-size=1g is used instead."
+    },
+    {
+      "rule_id": "P5",
+      "path": "plugins/coding/skills/new-skill/SKILL.md",
+      "match": "kill someone",
+      "class": "FP-scanner-limitation",
+      "reason": "P5 matched 'kill someone' across unrelated words of the frontmatter description / 'Do not use for' line; no harmful content is present."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/coding/skills/new-skill/SKILL.md",
+      "match": "kubeconfig",
+      "class": "FP-scanner-limitation",
+      "reason": "Term ('access token', 'kubeconfig', '.env') appears in protocol/design explanation or a heading; no credential file or value is accessed."
+    },
+    {
+      "rule_id": "MP3",
+      "path": "plugins/coding/skills/refactoring/references/operations.md",
+      "match": "new name is",
+      "class": "FP-scanner-limitation",
+      "reason": "MP3 matched ordinary phrases ('new name is', 'reset state', 'clear state', 'corrupt state', 'Delete stateful things') with no memory-poisoning instruction."
+    },
+    {
+      "rule_id": "MP3",
+      "path": "plugins/coding/skills/test-design/SKILL.md",
+      "match": "Reset state",
+      "class": "FP-scanner-limitation",
+      "reason": "MP3 matched ordinary phrases ('new name is', 'reset state', 'clear state', 'corrupt state', 'Delete stateful things') with no memory-poisoning instruction."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/coding/skills/website-builder/references/audit.md",
+      "match": ".npmrc",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/data/skills/notebook-to-production/SKILL.md",
+      "match": "references/hidden-state-inventory.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/databases/skills/search-mapping-design/SKILL.md",
+      "match": "curl config file passed with `-K",
+      "class": "FP-defensive",
+      "reason": "Line tells the agent to keep the Elasticsearch credential off the command line (curl -K config file, --netrc or env header) and never quote it in the hand-back."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/databases/skills/search-relevance-tuning/SKILL.md",
+      "match": "curl config file passed with `-K",
+      "class": "FP-defensive",
+      "reason": "Line tells the agent to keep the Elasticsearch credential off the command line (curl -K config file, --netrc or env header) and never quote it in the hand-back."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/databases/skills/shard-allocation-triage/SKILL.md",
+      "match": "curl config file passed with `-K",
+      "class": "FP-defensive",
+      "reason": "Line tells the agent to keep the Elasticsearch credential off the command line (curl -K config file, --netrc or env header) and never quote it in the hand-back."
+    },
+    {
+      "rule_id": "AR3",
+      "path": "plugins/delivery/skills/ai-review-integration/references/trust-boundary.md",
+      "match": "ignore policy",
+      "class": "FP-defensive",
+      "reason": "Line states that repository/tool text asking to ignore or override policy is untrusted data, not a command - the anti-injection rule itself."
+    },
+    {
+      "rule_id": "P6",
+      "path": "plugins/delivery/skills/ai-review-integration/references/trust-boundary.md",
+      "match": "reveal prompt",
+      "class": "FP-defensive",
+      "reason": "Line lists 'reveal prompts' among instructions from untrusted repository text that must be treated as data, not obeyed."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/delivery/skills/db-migration/SKILL.md",
+      "match": "references/postgres-locks.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "SC2",
+      "path": "plugins/delivery/skills/pipeline-hardening/SKILL.md",
+      "match": "curl ... | bash",
+      "class": "FP-defensive",
+      "reason": "Line names `curl ... | bash` as an anti-pattern to remove (no pinning, checksum or signature); it does not instruct running it."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/delivery/skills/pipeline-hardening/references/credentials-and-provenance.md",
+      "match": "~/.aws/credentials",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/delivery/skills/pipeline-hardening/references/triggers-and-injection.md",
+      "match": "access token",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/design/skills/accessibility-audit/SKILL.md",
+      "match": ".npmrc",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/design/skills/distinctive-page-design/SKILL.md",
+      "match": "scripts/page_lint.py (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "P6",
+      "path": "plugins/design/skills/distinctive-page-design/references/rules.md",
+      "match": "reveal rule",
+      "class": "FP-scanner-limitation",
+      "reason": "P6 matched 'reveal rule', a CSS scroll-reveal rule in a page-design lint description, not a prompt-leak request."
+    },
+    {
+      "rule_id": "P6",
+      "path": "plugins/design/skills/distinctive-page-design/scripts/page_lint.py",
+      "match": "return Rule",
+      "class": "FP-scanner-limitation",
+      "reason": "P6 matched 'return Rule'/'return rules' identifiers in the bundled page_lint.py rule-table parser; ordinary code."
+    },
+    {
+      "rule_id": "P6",
+      "path": "plugins/design/skills/distinctive-page-design/scripts/page_lint.py",
+      "match": "return rules",
+      "class": "FP-scanner-limitation",
+      "reason": "P6 matched 'return Rule'/'return rules' identifiers in the bundled page_lint.py rule-table parser; ordinary code."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/design/skills/motion-showcase/SKILL.md",
+      "match": "references/fidelity-checks.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/design/skills/motion-showcase/SKILL.md",
+      "match": "access token",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "PE5",
+      "path": "plugins/design/skills/visual-review/references/playwright-snapshots.md",
+      "match": "--ipc=host",
+      "class": "FP-defensive",
+      "reason": "Line explains that --ipc=host from Playwright's docs is NOT used because it shares the host IPC namespace with contributor code; --shm-size=1g is used instead."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/devtools/skills/branch-rebase-repair/SKILL.md",
+      "match": "git push --force-with-lease=<branch>:<sha-you-inspected> origin <branch> ``` Never plain `--force",
+      "class": "ACCEPTED-by-design",
+      "reason": "Rebased branch publish uses --force-with-lease pinned to the inspected SHA after a range-diff check; plain --force is forbidden."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/devtools/skills/dependency-resolution-conflict/SKILL.md",
+      "match": ".npmrc",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/devtools/skills/dependency-resolution-conflict/references/tools-by-ecosystem.md",
+      "match": ".npmrc",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/devtools/skills/git-history-purge/SKILL.md",
+      "match": "git push --atomic \"${branch_leases[@]}\" origin --all git push --atomic \"${tag_leases[@]}\" origin --tags ``` Each lease names the SHA the host held when you cloned, so the push is refused if any branc",
+      "class": "ACCEPTED-by-design",
+      "reason": "Post-filter-repo push rewrites shared history by design; guarded by per-ref --force-with-lease from pre-purge-refs.txt, --atomic, a mirror backup bundle, and explicit user confirmation before approving the push."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/devtools/skills/git-history-recovery/SKILL.md",
+      "match": "git clean -fdx",
+      "class": "FP-defensive",
+      "reason": "Line lists git clean -fdx among commands NOT to run until lost commits are recovered."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/devtools/skills/git-history-recovery/SKILL.md",
+      "match": "git push --force",
+      "class": "FP-defensive",
+      "reason": "Line forbids running git reset --hard / git clean / plain --force as a first move, to preserve evidence and user changes."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/devtools/skills/git-history-recovery/SKILL.md",
+      "match": "git reset --hard",
+      "class": "FP-defensive",
+      "reason": "Line forbids running git reset --hard / git clean / plain --force as a first move, to preserve evidence and user changes."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/devtools/skills/git-history-recovery/evals/trigger-eval.json",
+      "match": "git reset --hard",
+      "class": "FP-eval/data",
+      "reason": "Line is a trigger-eval query string used to test routing; it is never executed or followed by the agent."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/devtools/skills/phantom-dependency-audit/references/by-ecosystem.md",
+      "match": ".npmrc",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/gamedev/skills/game-assets/references/texture-compression.md",
+      "match": "no warning",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/gamedev/skills/game-certification/references/store-listing-and-signing.md",
+      "match": "keychain",
+      "class": "FP-legitimate-procedure",
+      "reason": "notarytool --keychain-profile references a stored notarisation profile by name, the documented Apple signing step; the credential never appears."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/gamedev/skills/game-input-mapping/references/rebind-and-focus-checklists.md",
+      "match": "no warning",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "TM2",
+      "path": "plugins/gamedev/skills/game-netcode/references/cheating-and-testing.md",
+      "match": "| sudo",
+      "class": "ACCEPTED-by-design",
+      "reason": "sudo pfctl/dnctl latency simulation on a developer Mac for netcode testing; set -Eeuo pipefail, explicit teardown (pfctl -d, dnctl flush) and a warning to use an anchor on machines with an existing ruleset."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/gamedev/skills/game-save-system/references/durability-and-corruption.md",
+      "match": "without warning",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/gamedev/skills/game-save-system/references/formats-and-layout.md",
+      "match": "without warning",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/gamedev/skills/game-server-rollout/SKILL.md",
+      "match": "without warning",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/gamedev/skills/shader-compile-stutter/SKILL.md",
+      "match": "no warning",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/growth/skills/deliverability-triage/SKILL.md",
+      "match": "Never judge",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/linux/skills/disk-failure-replacement/SKILL.md",
+      "match": "remove /dev/sdX1",
+      "class": "ACCEPTED-by-design",
+      "reason": "mdadm --remove of the failed member in a disk-replacement procedure; guarded by matching serial to slot (second person on production) and --fail first."
+    },
+    {
+      "rule_id": "TM2",
+      "path": "plugins/linux/skills/disk-failure-replacement/SKILL.md",
+      "match": "| sudo",
+      "class": "FP-legitimate-procedure",
+      "reason": "`echo ... | sudo tee /sys/...` is the standard md consistency-check / SCSI rescan step in a disk-replacement or volume-resize procedure."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/linux/skills/disk-full-triage/SKILL.md",
+      "match": "rm DIR/*`",
+      "class": "FP-defensive",
+      "reason": "Explains why `rm DIR/*` fails with 'argument list too long' on millions of files and steers to a safer method."
+    },
+    {
+      "rule_id": "YR4",
+      "path": "plugins/linux/skills/disk-full-triage/SKILL.md",
+      "match": "tools:; description:; description: \"Find and free space on a full Linux filesystem:",
+      "class": "FP-scanner-limitation",
+      "reason": "YR4 matched the frontmatter keys (description/allowed-tools) of the skill's own metadata; no injection content."
+    },
+    {
+      "rule_id": "TM2",
+      "path": "plugins/linux/skills/linux-lockout-recovery/SKILL.md",
+      "match": "; sudo",
+      "class": "FP-scanner-limitation",
+      "reason": "TM2 matched '; sudo' in a hand-back template line '[Fresh login by the original method; sudo check.]' - prose, not a command."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/linux/skills/linux-lockout-recovery/references/doors.md",
+      "match": "rm -rf /",
+      "class": "ACCEPTED-by-design",
+      "reason": "Armed SSH/sudoers rollback script and snapshot step; guarded by set -Eeuo pipefail, test -f/-d on the known-good snapshot before any rm -rf, and visudo -c plus sshd -t before reload."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/linux/skills/linux-lockout-recovery/references/doors.md",
+      "match": "rm -rf /etc/ssh/sshd_config.d",
+      "class": "ACCEPTED-by-design",
+      "reason": "Armed SSH/sudoers rollback script and snapshot step; guarded by set -Eeuo pipefail, test -f/-d on the known-good snapshot before any rm -rf, and visudo -c plus sshd -t before reload."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/linux/skills/linux-lockout-recovery/references/doors.md",
+      "match": "rm -rf /etc/sudoers.d",
+      "class": "ACCEPTED-by-design",
+      "reason": "Armed SSH/sudoers rollback script and snapshot step; guarded by set -Eeuo pipefail, test -f/-d on the known-good snapshot before any rm -rf, and visudo -c plus sshd -t before reload."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/linux/skills/linux-lockout-recovery/references/doors.md",
+      "match": "rm -rf /root/ssh.good",
+      "class": "ACCEPTED-by-design",
+      "reason": "Armed SSH/sudoers rollback script and snapshot step; guarded by set -Eeuo pipefail, test -f/-d on the known-good snapshot before any rm -rf, and visudo -c plus sshd -t before reload."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/linux/skills/linux-lockout-recovery/references/doors.md",
+      "match": "rm -rf /root/ssh.good /root/sudoers.good",
+      "class": "ACCEPTED-by-design",
+      "reason": "Armed SSH/sudoers rollback script and snapshot step; guarded by set -Eeuo pipefail, test -f/-d on the known-good snapshot before any rm -rf, and visudo -c plus sshd -t before reload."
+    },
+    {
+      "rule_id": "PE5",
+      "path": "plugins/linux/skills/mtu-blackhole-hunt/references/measuring.md",
+      "match": "nsenter",
+      "class": "FP-legitimate-procedure",
+      "reason": "nsenter -t PID -n ip link reads a container's MTU inside its network namespace during MTU black-hole diagnosis; read-only."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/linux/skills/permission-denied-triage/SKILL.md",
+      "match": "chmod 777",
+      "class": "FP-defensive",
+      "reason": "Line names chmod 777 as the wrong broad fix that hides the real denial layer and opens the file to everyone."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/linux/skills/permission-denied-triage/evals/trigger-eval.json",
+      "match": "chmod 777",
+      "class": "FP-eval/data",
+      "reason": "Line is a trigger-eval query string used to test routing; it is never executed or followed by the agent."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/linux/skills/private-ca-trust-distribution/SKILL.md",
+      "match": "without warning",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/linux/skills/private-ca-trust-distribution/SKILL.md",
+      "match": "curl works, and the next day Python, Java, Node, Go and the build container each fail separately, because each runtime reads its own store. The second failure is the shortcut: `verify=False`, `curl -k",
+      "class": "FP-scanner-limitation",
+      "reason": "TM1 matched the word 'curl' in descriptive prose / the frontmatter description of a TLS or CA-trust skill; no command is run."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/linux/skills/private-ca-trust-distribution/references/trust-stores.md",
+      "match": "curl -sS https://host/` without `-k",
+      "class": "FP-legitimate-procedure",
+      "reason": "Verification command `curl -sS https://host/` explicitly without -k, to prove the private CA is trusted."
+    },
+    {
+      "rule_id": "YR1",
+      "path": "plugins/linux/skills/scheduled-job-debugging/SKILL.md",
+      "match": "crontab -l), Bash(ls:*), Bash; crontab or use absolute paths, and do not use `source`, arrays or other shell-specific syntax unless `SHELL=/bin/bash",
+      "class": "FP-scanner-limitation",
+      "reason": "YR1 matched the allowed-tools list (crontab -l, ls, stat) of a read-only cron-debugging skill; read-only listing commands only."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/linux/skills/ssh-access-debugging/SKILL.md",
+      "match": "/.ssh/authorized_keys",
+      "class": "FP-legitimate-procedure",
+      "reason": "SSH-access debugging inspects the user's own key and authorized_keys path, ownership and SELinux context (ssh -i, namei, stat, ls -Z); no key material is read or copied."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/linux/skills/ssh-access-debugging/SKILL.md",
+      "match": "home/USER/.ssh/",
+      "class": "FP-legitimate-procedure",
+      "reason": "SSH-access debugging inspects the user's own key and authorized_keys path, ownership and SELinux context (ssh -i, namei, stat, ls -Z); no key material is read or copied."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/linux/skills/ssh-access-debugging/SKILL.md",
+      "match": "~/.ssh/authorized_keys",
+      "class": "FP-legitimate-procedure",
+      "reason": "SSH-access debugging inspects the user's own key and authorized_keys path, ownership and SELinux context (ssh -i, namei, stat, ls -Z); no key material is read or copied."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/linux/skills/ssh-access-debugging/SKILL.md",
+      "match": "~/.ssh/id_ed25519",
+      "class": "FP-legitimate-procedure",
+      "reason": "SSH-access debugging inspects the user's own key and authorized_keys path, ownership and SELinux context (ssh -i, namei, stat, ls -Z); no key material is read or copied."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/linux/skills/ssh-access-debugging/SKILL.md",
+      "match": "Chmod 777",
+      "class": "FP-defensive",
+      "reason": "Line names chmod 777 as the wrong broad fix that hides the real denial layer and opens the file to everyone."
+    },
+    {
+      "rule_id": "TM2",
+      "path": "plugins/linux/skills/ssh-access-debugging/SKILL.md",
+      "match": "&& sudo",
+      "class": "FP-legitimate-procedure",
+      "reason": "sudo snapshot of /etc/ssh before editing and a daemon-reload/socket restart in an SSH-access debugging skill; the snapshot is the rollback guard."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/linux/skills/ssh-access-debugging/references/sshd-log-lines.md",
+      "match": "/.ssh/authorized_keys",
+      "class": "FP-legitimate-procedure",
+      "reason": "SSH-access debugging inspects the user's own key and authorized_keys path, ownership and SELinux context (ssh -i, namei, stat, ls -Z); no key material is read or copied."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/linux/skills/ssh-access-debugging/references/sshd-log-lines.md",
+      "match": "home/USER/.ssh/",
+      "class": "FP-legitimate-procedure",
+      "reason": "SSH-access debugging inspects the user's own key and authorized_keys path, ownership and SELinux context (ssh -i, namei, stat, ls -Z); no key material is read or copied."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/linux/skills/tls-handshake-debugging/SKILL.md",
+      "match": "curl -sv --cacert /path/to/ca.pem https://host/ -o /dev/null ``` `--resolve` pins the address, bypassing DNS and any split-horizon difference so you test one specific backend. If the same endpoint ve",
+      "class": "FP-legitimate-procedure",
+      "reason": "curl -sv with --cacert / client cert against a placeholder host to diagnose a TLS handshake; output discarded to /dev/null."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/linux/skills/tls-handshake-debugging/SKILL.md",
+      "match": "curl -sv --cert client.pem --key client.key https://host/ -o /dev/null ``` Check that the client certificate is issued by one of the listed CAs, carries the Extended Key Usage `clientAuth` (`openssl",
+      "class": "FP-legitimate-procedure",
+      "reason": "curl -sv with --cacert / client cert against a placeholder host to diagnose a TLS handshake; output discarded to /dev/null."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/linux/skills/tls-handshake-debugging/SKILL.md",
+      "match": "curl and Java do not), hostname against SAN not CN, validity dates and client clock, protocol and cipher overlap, ALPN, and for mTLS the CertificateRequest and CA list. Separate server faults from cli",
+      "class": "FP-scanner-limitation",
+      "reason": "TM1 matched the word 'curl' in descriptive prose / the frontmatter description of a TLS or CA-trust skill; no command is run."
+    },
+    {
+      "rule_id": "TM2",
+      "path": "plugins/linux/skills/volume-resize/SKILL.md",
+      "match": "| sudo",
+      "class": "FP-legitimate-procedure",
+      "reason": "`echo ... | sudo tee /sys/...` is the standard md consistency-check / SCSI rescan step in a disk-replacement or volume-resize procedure."
+    },
+    {
+      "rule_id": "YR4",
+      "path": "plugins/linux/skills/volume-resize/SKILL.md",
+      "match": "tools:; description:; description: \"Grow, or carefully shrink, a disk, partition, LVM volume or filesystem:",
+      "class": "FP-scanner-limitation",
+      "reason": "YR4 matched the frontmatter keys (description/allowed-tools) of the skill's own metadata; no injection content."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/llm/skills/document-extraction/references/verification.md",
+      "match": "Do not judge",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/llm/skills/mcp-server-design/SKILL.md",
+      "match": "access token",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "YR4",
+      "path": "plugins/llm/skills/mcp-server-design/SKILL.md",
+      "match": "tools:; description:; description for a reader who has not seen your system:",
+      "class": "FP-scanner-limitation",
+      "reason": "YR4 matched the frontmatter keys (description/allowed-tools) of the skill's own metadata; no injection content."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/llm/skills/mcp-server-design/evals/trigger-eval.json",
+      "match": "access token",
+      "class": "FP-eval/data",
+      "reason": "Line is a trigger-eval query string used to test routing; it is never executed or followed by the agent."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/llm/skills/mcp-server-design/references/transports-and-auth.md",
+      "match": "Access tokens",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/llm/skills/mcp-server-design/references/transports-and-auth.md",
+      "match": "access token",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/llm/skills/model-migration/SKILL.md",
+      "match": "references/decision-record.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "MP3",
+      "path": "plugins/manager/skills/incident-comms/SKILL.md",
+      "match": "clear state",
+      "class": "FP-scanner-limitation",
+      "reason": "MP3 matched ordinary phrases ('new name is', 'reset state', 'clear state', 'corrupt state', 'Delete stateful things') with no memory-poisoning instruction."
+    },
+    {
+      "rule_id": "AR3",
+      "path": "plugins/manager/skills/okr-planning/SKILL.md",
+      "match": "Without guardrails",
+      "class": "FP-scanner-limitation",
+      "reason": "AR3 matched 'Without guardrails' in OKR guidance about health metrics; not an instruction to bypass safety."
+    },
+    {
+      "rule_id": "AR1",
+      "path": "plugins/manager/skills/postmortem/SKILL.md",
+      "match": "Always answer",
+      "class": "FP-scanner-limitation",
+      "reason": "AR1 matched 'always answer' in a postmortem/game-day checklist question, not an anti-refusal instruction to the model."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/manager/skills/reorg-design/references/announcement-template.md",
+      "match": "Do not apologise",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/operations/skills/capacity-planning/SKILL.md",
+      "match": "no warning",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/operations/skills/docker-compose/references/config-and-reproducibility.md",
+      "match": ".env",
+      "class": "FP-scanner-limitation",
+      "reason": "Term ('access token', 'kubeconfig', '.env') appears in protocol/design explanation or a heading; no credential file or value is accessed."
+    },
+    {
+      "rule_id": "AR1",
+      "path": "plugins/operations/skills/game-day/SKILL.md",
+      "match": "always answer",
+      "class": "FP-scanner-limitation",
+      "reason": "AR1 matched 'always answer' in a postmortem/game-day checklist question, not an anti-refusal instruction to the model."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/operations/skills/game-day/references/experiment-catalogue.md",
+      "match": "rm /var/lib/ballast.bin",
+      "class": "FP-legitimate-procedure",
+      "reason": "Game-day disk-fill experiment's abort step deletes the ballast file the experiment itself created."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/operations/skills/k8s-workloads/references/disruption-and-rollout.md",
+      "match": "no warning",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "MP3",
+      "path": "plugins/operations/skills/terraform-state/references/state-recovery.md",
+      "match": "corrupt state",
+      "class": "FP-scanner-limitation",
+      "reason": "MP3 matched ordinary phrases ('new name is', 'reset state', 'clear state', 'corrupt state', 'Delete stateful things') with no memory-poisoning instruction."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/personal/skills/health-coach/SKILL.md",
+      "match": "Do not lecture",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/personal/skills/health-coach/SKILL.md",
+      "match": "don't judge",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "P6",
+      "path": "plugins/personal/skills/travel-planning/references/booking-mechanics.md",
+      "match": "show rule",
+      "class": "FP-scanner-limitation",
+      "reason": "P6 matched 'No-show rule', an airline ticketing rule in travel-planning booking notes."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/personal/skills/weekly-review/references/facilitation.md",
+      "match": "Do not moralise",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/platform/skills/bootstrap-dependency-audit/references/hidden-edges.md",
+      "match": "kubeconfig",
+      "class": "FP-scanner-limitation",
+      "reason": "Term ('access token', 'kubeconfig', '.env') appears in protocol/design explanation or a heading; no credential file or value is accessed."
+    },
+    {
+      "rule_id": "YR1",
+      "path": "plugins/platform/skills/cdn-configuration/SKILL.md",
+      "match": "cookies), make fingerprinted assets immutable and HTML short-lived with stale-while-revalidate, shield the origin, purge by surrogate key rather than wildcard, keep authenticated responses out of shar",
+      "class": "FP-scanner-limitation",
+      "reason": "YR1 matched the CDN skill's description text about cache keys and cookies; the skill grants only Read, Grep, Glob."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/platform/skills/gateway-api-migration/SKILL.md",
+      "match": "no warning",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/platform/skills/gateway-api-migration/references/route-comparison.md",
+      "match": "curl --resolve` pins a hostname to an address for one request, so DNS is out of the picture and the `Host` header and SNI are still correct. ```bash #!/usr/bin/env bash set -Eeuo pipefail # routes.ts",
+      "class": "FP-legitimate-procedure",
+      "reason": "curl --resolve pins a hostname to old and new gateway addresses to compare routes during a Gateway API migration."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/platform/skills/gateway-api-migration/references/route-comparison.md",
+      "match": "curl --resolve` requests against both addresses (with `--data-binary @file`, credentials or a source address as the row says) and compare the results by hand. Run the credentialed requests without `-k",
+      "class": "FP-legitimate-procedure",
+      "reason": "curl --resolve pins a hostname to old and new gateway addresses to compare routes during a Gateway API migration."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/platform/skills/k8s-network-policy/evals/trigger-eval.json",
+      "match": "kubeconfig",
+      "class": "FP-eval/data",
+      "reason": "Line is a trigger-eval query string used to test routing; it is never executed or followed by the agent."
+    },
+    {
+      "rule_id": "MP3",
+      "path": "plugins/platform/skills/k8s-storage/SKILL.md",
+      "match": "Delete state",
+      "class": "FP-scanner-limitation",
+      "reason": "MP3 matched ordinary phrases ('new name is', 'reset state', 'clear state', 'corrupt state', 'Delete stateful things') with no memory-poisoning instruction."
+    },
+    {
+      "rule_id": "MP3",
+      "path": "plugins/platform/skills/k8s-storage/SKILL.md",
+      "match": "delete state",
+      "class": "ACCEPTED-by-design",
+      "reason": "kubectl delete statefulset is the documented PVC-resize procedure; guarded by --cascade=orphan so pods and volumes keep running, after each PVC is patched and confirmed."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/platform/skills/monolith-state-split/SKILL.md",
+      "match": "references/move-mechanics.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/platform/skills/monolith-state-split/references/move-mechanics.md",
+      "match": "rm -f \"$scratch/new.tfstate\"",
+      "class": "FP-legitimate-procedure",
+      "reason": "Removes the scratch new.tfstate only when it is empty ([[ -s ]] check) for a brand-new stack in a state-split procedure."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/research/skills/nonindependence-audit/SKILL.md",
+      "match": "without warning",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/research/skills/slurm-job-failure-triage/SKILL.md",
+      "match": "references/state-table.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/research/skills/sweep-campaign-management/SKILL.md",
+      "match": "references/campaign-recipes.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "AR2",
+      "path": "plugins/security/skills/access-review/SKILL.md",
+      "match": "Never judge",
+      "class": "FP-scanner-limitation",
+      "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/access-review/SKILL.md",
+      "match": "access tokens",
+      "class": "FP-legitimate-procedure",
+      "reason": "Access review / offboarding / rotation inventory lists personal access tokens, SSH keys and ~/.aws/credentials as items to find, revoke or rotate."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/access-review/references/evidence-queries.md",
+      "match": "access tokens",
+      "class": "FP-legitimate-procedure",
+      "reason": "Access review / offboarding / rotation inventory lists personal access tokens, SSH keys and ~/.aws/credentials as items to find, revoke or rotate."
+    },
+    {
+      "rule_id": "AS2",
+      "path": "plugins/security/skills/agent-extension-audit/references/extension-surfaces.md",
+      "match": "mcp.json` or inline in the manifest | A stdio server is a process started on the machine; a remote entry names a URL",
+      "class": "FP-defensive",
+      "reason": "Table row in agent-extension-audit listing where MCP servers are declared so an auditor knows which surfaces start processes; defensive inventory."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/agent-extension-audit/references/red-flags.md",
+      "match": ".git-credentials",
+      "class": "FP-defensive",
+      "reason": "Quarantined-extension audit greps the extension's source for credential-path references (.npmrc, .netrc, .git-credentials, keychain) to detect credential theft."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/agent-extension-audit/references/red-flags.md",
+      "match": ".netrc",
+      "class": "FP-defensive",
+      "reason": "Quarantined-extension audit greps the extension's source for credential-path references (.npmrc, .netrc, .git-credentials, keychain) to detect credential theft."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/agent-extension-audit/references/red-flags.md",
+      "match": ".npmrc",
+      "class": "FP-defensive",
+      "reason": "Quarantined-extension audit greps the extension's source for credential-path references (.npmrc, .netrc, .git-credentials, keychain) to detect credential theft."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/agent-extension-audit/references/red-flags.md",
+      "match": "keychain",
+      "class": "FP-defensive",
+      "reason": "Quarantined-extension audit greps the extension's source for credential-path references (.npmrc, .netrc, .git-credentials, keychain) to detect credential theft."
+    },
+    {
+      "rule_id": "AR3",
+      "path": "plugins/security/skills/agent-security-review/SKILL.md",
+      "match": "override policy",
+      "class": "FP-defensive",
+      "reason": "Line states that repository/tool text asking to ignore or override policy is untrusted data, not a command - the anti-injection rule itself."
+    },
+    {
+      "rule_id": "YR4",
+      "path": "plugins/security/skills/agent-security-review/SKILL.md",
+      "match": "LLM; override policy",
+      "class": "FP-defensive",
+      "reason": "Description of agent-security-review, a skill that reviews agents for untrusted content overriding policy; it describes the attack in order to detect it."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/app-bundle-analysis/SKILL.md",
+      "match": "keychain",
+      "class": "FP-scanner-limitation",
+      "reason": "'keychain' named as a source of slow launch-time reads or an entitlement to inspect; no keychain is accessed."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/app-bundle-analysis/evals/trigger-eval.json",
+      "match": "keychain",
+      "class": "FP-eval/data",
+      "reason": "Line is a trigger-eval query string used to test routing; it is never executed or followed by the agent."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/auth-design/SKILL.md",
+      "match": "Access token",
+      "class": "FP-scanner-limitation",
+      "reason": "Term ('access token', 'kubeconfig', '.env') appears in protocol/design explanation or a heading; no credential file or value is accessed."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/auth-design/SKILL.md",
+      "match": "access token",
+      "class": "FP-scanner-limitation",
+      "reason": "Term ('access token', 'kubeconfig', '.env') appears in protocol/design explanation or a heading; no credential file or value is accessed. Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/auth-design/SKILL.md",
+      "match": "access tokens",
+      "class": "FP-scanner-limitation",
+      "reason": "Term ('access token', 'kubeconfig', '.env') appears in protocol/design explanation or a heading; no credential file or value is accessed."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/auth-design/evals/trigger-eval.json",
+      "match": "access token",
+      "class": "FP-eval/data",
+      "reason": "Line is a trigger-eval query string used to test routing; it is never executed or followed by the agent."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/auth-design/references/flows-and-tokens.md",
+      "match": "Access Tokens",
+      "class": "FP-scanner-limitation",
+      "reason": "Term ('access token', 'kubeconfig', '.env') appears in protocol/design explanation or a heading; no credential file or value is accessed."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/auth-design/references/flows-and-tokens.md",
+      "match": "Access tokens",
+      "class": "FP-scanner-limitation",
+      "reason": "Term ('access token', 'kubeconfig', '.env') appears in protocol/design explanation or a heading; no credential file or value is accessed."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/auth-design/references/flows-and-tokens.md",
+      "match": "access token",
+      "class": "FP-scanner-limitation",
+      "reason": "Term ('access token', 'kubeconfig', '.env') appears in protocol/design explanation or a heading; no credential file or value is accessed."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/auth-design/references/flows-and-tokens.md",
+      "match": "access tokens",
+      "class": "FP-scanner-limitation",
+      "reason": "Term ('access token', 'kubeconfig', '.env') appears in protocol/design explanation or a heading; no credential file or value is accessed."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/auth-design/references/sessions-and-cookies.md",
+      "match": "access token",
+      "class": "FP-scanner-limitation",
+      "reason": "Term ('access token', 'kubeconfig', '.env') appears in protocol/design explanation or a heading; no credential file or value is accessed."
+    },
+    {
+      "rule_id": "YR4",
+      "path": "plugins/security/skills/certificate-automation/SKILL.md",
+      "match": "nmap -p",
+      "class": "FP-legitimate-procedure",
+      "reason": "nmap TLS port sweep in a certificate-inventory skill, explicitly scoped to 'a range you operate' to find forgotten TLS endpoints."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/dependency-triage/SKILL.md",
+      "match": ".npmrc",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/host-hardening/references/audit-and-detection.md",
+      "match": "/etc/passwd",
+      "class": "FP-legitimate-procedure",
+      "reason": "Host-hardening audit rules (auditd -w ... -p wa) and checks for uid-0 or empty-password accounts on /etc/passwd and /etc/shadow; sanctioned admin procedure."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/host-hardening/references/audit-and-detection.md",
+      "match": "/etc/shadow",
+      "class": "FP-legitimate-procedure",
+      "reason": "Host-hardening audit rules (auditd -w ... -p wa) and checks for uid-0 or empty-password accounts on /etc/passwd and /etc/shadow; sanctioned admin procedure."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/host-hardening/references/linux-baseline.md",
+      "match": "/etc/passwd",
+      "class": "FP-legitimate-procedure",
+      "reason": "Host-hardening audit rules (auditd -w ... -p wa) and checks for uid-0 or empty-password accounts on /etc/passwd and /etc/shadow; sanctioned admin procedure."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/host-hardening/references/linux-baseline.md",
+      "match": "/etc/shadow",
+      "class": "FP-legitimate-procedure",
+      "reason": "Host-hardening audit rules (auditd -w ... -p wa) and checks for uid-0 or empty-password accounts on /etc/passwd and /etc/shadow; sanctioned admin procedure."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/host-hardening/references/ssh-and-access.md",
+      "match": "/etc/passwd",
+      "class": "FP-legitimate-procedure",
+      "reason": "Host-hardening audit rules (auditd -w ... -p wa) and checks for uid-0 or empty-password accounts on /etc/passwd and /etc/shadow; sanctioned admin procedure."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/security/skills/iac-review/SKILL.md",
+      "match": "references/plan-json.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/security/skills/iac-review/references/policy-as-code.md",
+      "match": "--skip-check",
+      "class": "FP-legitimate-procedure",
+      "reason": "checkov --skip-check example in policy-as-code reference, followed by advice to prefer commented inline skips. Warns that an uncommented repo-level --skip-check list buries real findings."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/image-hardening/SKILL.md",
+      "match": ".env",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/image-hardening/SKILL.md",
+      "match": ".npmrc",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/image-hardening/SKILL.md",
+      "match": "/.npmrc",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/image-hardening/SKILL.md",
+      "match": "/etc/passwd",
+      "class": "FP-scanner-limitation",
+      "reason": "Mentions /etc/passwd and /etc/shadow as facts (kubelet does not parse /etc/passwd; hadolint rule IDs); no file is read."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/image-hardening/SKILL.md",
+      "match": "/etc/shadow",
+      "class": "FP-scanner-limitation",
+      "reason": "Mentions /etc/passwd and /etc/shadow as facts (kubelet does not parse /etc/passwd; hadolint rule IDs); no file is read."
+    },
+    {
+      "rule_id": "SC2",
+      "path": "plugins/security/skills/image-hardening/SKILL.md",
+      "match": "curl ... | bash",
+      "class": "FP-defensive",
+      "reason": "Line names `curl ... | bash` as an anti-pattern to remove (no pinning, checksum or signature); it does not instruct running it."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/security/skills/image-hardening/SKILL.md",
+      "match": "rm /tmp/token`",
+      "class": "FP-defensive",
+      "reason": "Explains that `RUN rm /tmp/token` does not remove a secret from earlier image layers; argues for build secrets instead."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/image-hardening/references/dockerfile-patterns.md",
+      "match": "/.npmrc",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/image-hardening/references/dockerfile-patterns.md",
+      "match": "/.ssh/known_hosts",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/security/skills/image-hardening/references/dockerfile-patterns.md",
+      "match": "rm -f /etc/apt/apt.conf.d/docker-clean",
+      "class": "FP-legitimate-procedure",
+      "reason": "Removing apt's docker-clean hook is the documented prerequisite for a BuildKit apt cache mount."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/secret-rotation/SKILL.md",
+      "match": "~/.aws/credentials",
+      "class": "FP-legitimate-procedure",
+      "reason": "Access review / offboarding / rotation inventory lists personal access tokens, SSH keys and ~/.aws/credentials as items to find, revoke or rotate."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/security/skills/secret-rotation/evals/trigger-eval.json",
+      "match": ".env",
+      "class": "FP-eval/data",
+      "reason": "Line is a trigger-eval query string used to test routing; it is never executed or followed by the agent."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/smallbiz/skills/client-offboarding/SKILL.md",
+      "match": "access tokens",
+      "class": "FP-legitimate-procedure",
+      "reason": "Access review / offboarding / rotation inventory lists personal access tokens, SSH keys and ~/.aws/credentials as items to find, revoke or rotate."
+    },
+    {
+      "rule_id": "MP3",
+      "path": "plugins/smallbiz/skills/stalled-project-recovery/SKILL.md",
+      "match": "clear state",
+      "class": "FP-scanner-limitation",
+      "reason": "MP3 matched ordinary phrases ('new name is', 'reset state', 'clear state', 'corrupt state', 'Delete stateful things') with no memory-poisoning instruction."
+    },
+    {
+      "rule_id": "TM1",
+      "path": "plugins/techdocs/skills/cli-reference/SKILL.md",
+      "match": "rm -rf docs/cli",
+      "class": "FP-legitimate-procedure",
+      "reason": "CI drift check regenerates docs/cli and fails on any diff; rm -rf targets only the generated directory."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/techdocs/skills/docs-search-vocabulary/evals/trigger-eval.json",
+      "match": "access token",
+      "class": "FP-eval/data",
+      "reason": "Line is a trigger-eval query string used to test routing; it is never executed or followed by the agent."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/techdocs/skills/docs-url-permanence/evals/trigger-eval.json",
+      "match": "access credentials",
+      "class": "FP-eval/data",
+      "reason": "Line is a trigger-eval query string used to test routing; it is never executed or followed by the agent."
+    },
+    {
+      "rule_id": "AE1",
+      "path": "plugins/techdocs/skills/screenshot-rot/SKILL.md",
+      "match": "references/capture-recipe.md (partial)",
+      "class": "FP-scanner-limitation",
+      "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/techdocs/skills/terminology-lock/evals/trigger-eval.json",
+      "match": "access token",
+      "class": "FP-eval/data",
+      "reason": "Line is a trigger-eval query string used to test routing; it is never executed or followed by the agent."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/techdocs/skills/tutorial-clean-room/SKILL.md",
+      "match": "~/.npmrc",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "PE5",
+      "path": "plugins/techdocs/skills/tutorial-clean-room/SKILL.md",
+      "match": "--privileged",
+      "class": "FP-defensive",
+      "reason": "Line states the clean-room tutorial run pre-approves no docker command and never mounts host paths, passes --privileged or joins the host network."
+    }
+  ]
+}
