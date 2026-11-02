@@ -334,3 +334,40 @@ def test_a_location_with_no_uri_is_keyed_on_the_skill_at_its_line(tmp_path):
 def test_an_annotation_needs_no_properties(capsys):
     gate.annotate("notice", "plain")
     assert capsys.readouterr().out == "::notice::plain\n"
+
+
+def with_completeness(report, value):
+    """Set `analysisCompleteness` where SkillSpector 2.13.1 writes it: on the invocation."""
+    invocation = report["runs"][0]["invocations"][0]
+    invocation["properties"] = {"analysisCompleteness": value}
+    return report
+
+
+def test_a_scan_that_left_a_file_entirely_uninspected_fails(tmp_path, capsys):
+    report = with_completeness(sarif(), {"entirelyUninspectedFiles": 2})
+    assert gate.main(lay_out(tmp_path, {SKILL: report})) == 1
+    out = capsys.readouterr().out
+    assert f"::error file={SKILL}/SKILL.md,title=SkillSpector scan incomplete::" in out
+    assert "left 2 file(s) entirely uninspected" in out
+
+
+def test_a_scan_with_every_file_inspected_passes(tmp_path):
+    complete = {"entirelyUninspectedFiles": 0, "partiallyInspectedFiles": 1}
+    report = with_completeness(sarif(), complete)
+    assert gate.main(lay_out(tmp_path, {SKILL: report})) == 0
+
+
+def test_a_report_without_the_completeness_field_passes(tmp_path):
+    report = with_completeness(sarif(), {"isComplete": True})
+    other = sarif()
+    other["runs"][0]["invocations"][0]["properties"] = {}
+    assert gate.main(lay_out(tmp_path, {SKILL: report, OTHER: other})) == 0
+
+
+def test_an_uninspected_count_that_is_not_a_count_fails(tmp_path, capsys):
+    reports = {
+        SKILL: with_completeness(sarif(), {"entirelyUninspectedFiles": "2"}),
+        OTHER: with_completeness(sarif(), "complete"),
+    }
+    assert gate.main(lay_out(tmp_path, reports)) == 1
+    assert "2 other failure(s)" in capsys.readouterr().out

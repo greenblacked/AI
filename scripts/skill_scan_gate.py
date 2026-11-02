@@ -21,9 +21,10 @@ same text in the same file, the same file-wide trade the Cisco policy makes.
 The gate fails closed. A skill whose scan exited with anything but 0 or 1 (2 is the
 scanner's own error code; 1 is only a risk score over its threshold), whose exit code or
 SARIF is missing or unreadable, a results directory holding a different number of
-reports than the manifest names skills, and an accepted entry without a reason or with a
-class outside the reviewed set are all failures: a scan that did not happen must not read
-as a scan that found nothing. An accepted entry that no longer matches anything in a
+reports than the manifest names skills, a report whose `analysisCompleteness` says a file
+was left entirely uninspected, and an accepted entry without a reason or with a class
+outside the reviewed set are all failures: a scan that did not happen must not read as a
+scan that found nothing. An accepted entry that no longer matches anything in a
 skill that was scanned is reported as a notice, not a failure, so the list can be pruned
 without a stale entry blocking an unrelated change.
 
@@ -171,6 +172,32 @@ def severity_of(result: dict) -> str | None:
     return "HIGH" if result.get("level") == "error" else None
 
 
+class IncompleteScanError(ValueError):
+    """The scanner ran, but said it never looked at some of the skill's files."""
+
+
+def check_completeness(invocation: dict) -> None:
+    """Raise when the invocation reports a file it did not inspect at all.
+
+    SkillSpector 2.13.1 writes `analysisCompleteness` on each invocation's properties. A
+    report without it, from an older or newer scanner, is read as complete rather than
+    failed; one that carries it in a shape this cannot read is not.
+    """
+    props = invocation.get("properties")
+    completeness = props.get("analysisCompleteness") if isinstance(props, dict) else None
+    if completeness is None:
+        return
+    if not isinstance(completeness, dict):
+        raise ValueError("analysisCompleteness is not an object")
+    count = completeness.get("entirelyUninspectedFiles")
+    if count is None:
+        return
+    if not isinstance(count, int) or isinstance(count, bool) or count < 0:
+        raise ValueError("entirelyUninspectedFiles is not a count")
+    if count > 0:
+        raise IncompleteScanError(f"SkillSpector left {count} file(s) entirely uninspected")
+
+
 def findings_in(skill: str, sarif_path: Path) -> list[tuple[tuple[str, str, str], int, str]]:
     """Every gating result in one report, as (key, line, severity). Raises on a bad file."""
     data = json.loads(sarif_path.read_text(encoding="utf-8"))
@@ -182,8 +209,11 @@ def findings_in(skill: str, sarif_path: Path) -> list[tuple[tuple[str, str, str]
         if not isinstance(run, dict) or not isinstance(run.get("results", []), list):
             raise ValueError("a run is not an object with a results list")
         for invocation in run.get("invocations") or []:
-            if isinstance(invocation, dict) and invocation.get("executionSuccessful") is False:
+            if not isinstance(invocation, dict):
+                continue
+            if invocation.get("executionSuccessful") is False:
                 raise ValueError("the scanner reported an unsuccessful execution")
+            check_completeness(invocation)
         for result in run.get("results", []):
             if not isinstance(result, dict):
                 raise ValueError("a result is not an object")
@@ -270,6 +300,16 @@ def gate(manifest: Path, results: Path, accepted_path: Path) -> int:
             continue
         try:
             found = findings_in(skill, results / f"{name}.sarif")
+        except IncompleteScanError as err:
+            annotate(
+                "error",
+                f"{err} in {skill}, so a clean result there means nothing; see "
+                f"{name}.sarif in the artifact",
+                file=f"{skill}/SKILL.md",
+                title="SkillSpector scan incomplete",
+            )
+            failures += 1
+            continue
         except (OSError, ValueError) as err:
             annotate(
                 "error",
