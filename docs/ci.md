@@ -1421,6 +1421,10 @@ python3 scripts/skill_scan_gate.py --manifest /tmp/ss/skills.txt --results /tmp/
   --accepted .github/skill-scan/skillspector-accepted.json
 ```
 
+The recipe is the job's final pass, so a time-limited scan fails as incomplete; rescan that
+skill alone and run the gate again, or pass `--incomplete-out FILE` to get the list the
+job rescans.
+
 ## Reproducing a failure
 
 1. **Read the annotations before the log.** The validator emits

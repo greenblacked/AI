@@ -63,9 +63,9 @@ text if it came back.
 
 An AE1 finding (`<file> (partial)`) whose SARIF evidence gives the reason code
 `runtime_limit` is not about the skill: SkillSpector ran out of one of its time budgets,
-which a slow runner can cause on a skill nobody changed. The gate rescans such a skill on
-its own, once, and fails it as an incomplete scan only if it runs out of time again; then
-re-run the job. Never add a time-limited AE1 to `skillspector-accepted.json`. The gate
+which a slow runner can cause on a skill nobody changed. The gate lists such a skill and
+the workflow step rescans it on its own, once; the final pass fails it as an incomplete
+scan only if it runs out of time again; then re-run the job. Never add a time-limited AE1 to `skillspector-accepted.json`. The gate
 would not match it anyway, and the scan behind it may have missed a real finding. The
 accepted AE1 entries are the content-driven ones, `static_parse_limit` and
 `obfuscated_instruction_text`.

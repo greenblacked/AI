@@ -504,3 +504,20 @@ def test_an_unwritable_rescan_list_fails(tmp_path, capsys):
     missing = tmp_path / "no-such-directory" / "rescan.txt"
     assert gate.main([*args, "--incomplete-out", str(missing)]) == 1
     assert "cannot write the rescan list" in capsys.readouterr().out
+
+
+def test_runtime_limit_evidence_of_the_wrong_shape_fails_closed(tmp_path, capsys):
+    # A reasons field that is not a list, or an entry that is not an object, cannot be
+    # read for a runtime limit. Skipping it would let a time-limited AE1 reach the
+    # accepted list, so the report is refused as unreadable instead.
+    not_a_list = sarif(coverage())
+    not_a_list["runs"][0]["results"][0]["properties"]["evidence"]["reasons"] = "runtime_limit"
+    not_an_object = sarif(coverage())
+    not_an_object["runs"][0]["results"][0]["properties"]["evidence"]["reasons"] = ["runtime_limit"]
+    for number, report in enumerate((not_a_list, not_an_object)):
+        (tmp_path / str(number)).mkdir()
+        args = lay_out(tmp_path / str(number), {SKILL: report}, [coverage_entry()])
+        assert gate.main(args) == 1
+        printed = capsys.readouterr().out
+        assert "title=SkillSpector scan failed" in printed
+        assert "reasons" in printed

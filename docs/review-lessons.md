@@ -1082,7 +1082,8 @@ entries carry content reasons, `static_parse_limit` or `obfuscated_instruction_t
 `runtime_limit` in a result's evidence or an invocation's notifications, and never matches
 it against the accepted list. The job rescans such a skill on its own, and the final pass
 fails it as incomplete. `tests/test_skill_scan_gate.py` covers a runtime-limited,
-content-driven and mixed AE1, and a new finding elsewhere during a rescan.
+content-driven and mixed AE1, and a new finding on the first pass, which fails without a
+rescan.
 `tests/test_skill_scan_workflow.py` runs the real gate step with a rescan that passes, one
 that times out again, and a rescan list the step must refuse.
 

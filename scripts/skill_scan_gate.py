@@ -201,15 +201,23 @@ def ran_out_of_time(run: dict) -> bool:
     Read from each result's `properties.evidence.reasons[].reason_code`, where AE1 says
     why a file was only partly inspected, and from each invocation's
     `toolExecutionNotifications[].properties.reasonCode`, which also records a budget that
-    ran out without raising a finding. Anything of another shape is skipped here; the
-    stricter reading that follows rejects it.
+    ran out without raising a finding. A `reasons` field that is present but not a list, or
+    an entry in it that is not an object, raises ValueError: skipping it could let a
+    time-limited finding be matched against the accepted list. Anything else of another
+    shape is skipped here; the stricter reading that follows rejects it.
     """
     for result in run.get("results") or []:
         props = result.get("properties") if isinstance(result, dict) else None
         evidence = props.get("evidence") if isinstance(props, dict) else None
         reasons = evidence.get("reasons") if isinstance(evidence, dict) else None
-        for reason in reasons if isinstance(reasons, list) else []:
-            if isinstance(reason, dict) and reason.get("reason_code") == RUNTIME_LIMIT:
+        if reasons is None:
+            continue
+        if not isinstance(reasons, list):
+            raise ValueError("a result's evidence reasons is not a list")
+        for reason in reasons:
+            if not isinstance(reason, dict):
+                raise ValueError("an entry in a result's evidence reasons is not an object")
+            if reason.get("reason_code") == RUNTIME_LIMIT:
                 return True
     for invocation in run.get("invocations") or []:
         notes = (
