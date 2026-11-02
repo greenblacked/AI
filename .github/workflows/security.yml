@@ -473,6 +473,13 @@ jobs:
           results="$RUNNER_TEMP/skillspector"
           mkdir -p "$results"
           manifest="$results/skills.txt"
+          # A link inside a skill can point outside plugins/, so editing its target would
+          # change what is scanned without selecting the skill. Counted, never listed.
+          links=$(git ls-files -s -z -- plugins | tr '\0' '\n' | grep -c '^120000 ' || true)
+          if [ "$links" -gt 0 ]; then
+            echo "::error title=skill scan::a symbolic link under plugins/ ($links found); commit the file itself"
+            exit 1
+          fi
           scan_all=1
           if [ "$EVENT_NAME" = pull_request ]; then
             if ! [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then

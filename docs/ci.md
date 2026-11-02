@@ -205,7 +205,9 @@ and how to refresh a baseline after a scanner bump.
   `.github/requirements/skillspector.txt` or `scripts/skill_scan_gate.py` — which can
   change the verdict on a skill the diff never touches, so then it scans every skill and
   says why in the log. On every other event it scans all of them, which takes about
-  fifteen minutes. `scripts/skill_scan_gate.py` then judges the
+  fifteen minutes. Before choosing, it fails on any symbolic link under `plugins/`: a link
+  can point outside the skill, so editing its target would change what is scanned without
+  selecting the skill. `scripts/skill_scan_gate.py` then judges the
   reports. It does not use SkillSpector's own baseline, whose fingerprint hashes the whole
   file and the scanner version, so any edit to a flagged file would reopen every finding
   in it. It keys each finding on its rule, its path and the matched text with whitespace

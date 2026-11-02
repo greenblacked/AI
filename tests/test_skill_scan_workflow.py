@@ -159,6 +159,17 @@ def test_another_event_scans_every_skill(tmp_path, scratch):
     assert manifest == [ALPHA, BETA]
 
 
+@pytest.mark.parametrize("event", ["pull_request", "push"])
+def test_a_symlink_under_plugins_fails_the_step(tmp_path, scratch, event):
+    # A link inside a skill can point outside plugins/, so a later edit to its target
+    # would change what is scanned without selecting the skill.
+    repo, env, base = scratch
+    (repo / ALPHA / "references" / "linked.md").symlink_to("../../../../../README.md")
+    result, _ = choose(tmp_path, repo, env, event=event, base_sha=base)
+    assert result.returncode == 1
+    assert "::error title=skill scan::a symbolic link under plugins/" in result.stdout
+
+
 @pytest.mark.parametrize("base_sha", ["", "HEAD", "main", "g" * 40, "A" * 40, "0" * 39])
 def test_a_base_commit_that_is_not_forty_hex_digits_fails(tmp_path, scratch, base_sha):
     repo, env, _ = scratch
