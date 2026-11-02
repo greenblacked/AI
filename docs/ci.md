@@ -138,7 +138,7 @@ upgrade would fail the build on skill prose that was green the day before.
 | `codeql` | `codeql` | CodeQL's `security-extended` query suite found something in the Python source. |
 | `permissions-audit` | `permissions audit` | A workflow has no top-level `permissions:` block, or one that is `write-all`, `read-all`, or grants `write` on any scope; an action is not pinned to a SHA; a job sets no `timeout-minutes`; or an `actions/checkout` does not set `persist-credentials: false`. |
 | `skill-scanner` | `cisco skill scan` | cisco-ai-skill-scanner found a high or critical finding in a skill that `.github/skill-scan/cisco-policy.yaml` does not suppress, or scanned fewer skills than the tree holds. |
-| `skillspector` | `skillspector skill scan` | SkillSpector found a high or critical finding not in `.github/skill-scan/skillspector-accepted.json`, a scan errored, left no report or left a file entirely uninspected, or an accepted entry has no reason. |
+| `skillspector` | `skillspector skill scan` | SkillSpector found a high or critical finding not in `.github/skill-scan/skillspector-accepted.json`, a scan errored, left no report or left a file entirely uninspected, a scan ran out of SkillSpector's time budgets again when rescanned on its own, or an accepted entry has no reason. |
 | `security` | `security` | Any of its seven dependencies did not report exactly `success`, or the result payload did not match the expected jobs. |
 
 ### The security jobs in detail
@@ -217,6 +217,16 @@ and how to refresh a baseline after a scanner bump.
   an accepted entry with no reason or with a class other than a false positive or
   accepted-by-design. An accepted entry that no longer matches anything is printed as a
   notice so the list can be pruned.
+- A scan SkillSpector cut short on one of its wall-clock budgets — a 0.25-second regular
+  expression timeout, the per-artifact or the per-workflow deadline — is incomplete, not
+  a finding, and a stalled runner can trip one on a skill nobody changed. The scanner
+  records it as reason code `runtime_limit`, on the AE1 coverage finding it raises for
+  each file it stopped reading and on the run's notifications. The gate never matches
+  such a scan against the accepted list, which holds only content-driven AE1 findings
+  (`static_parse_limit`, `obfuscated_instruction_text`). Its first pass lists those
+  skills and exits 3; the gate step rescans each one on its own, one at a time, and the
+  final pass fails any that ran out of time again as an incomplete scan. Re-run the job
+  when that happens.
 - Neither tool reads subagent or command files, so `plugins/*/agents/` and
   `plugins/*/commands/` are not scanned. And neither is proof of safety: Cisco's README
   reports its rules alone catch about 8% of held-out malicious skills. The scanners are one
@@ -1410,6 +1420,10 @@ done < /tmp/ss/skills.txt
 python3 scripts/skill_scan_gate.py --manifest /tmp/ss/skills.txt --results /tmp/ss \
   --accepted .github/skill-scan/skillspector-accepted.json
 ```
+
+The recipe is the job's final pass, so a time-limited scan fails as incomplete; rescan that
+skill alone and run the gate again, or pass `--incomplete-out FILE` to get the list the
+job rescans.
 
 ## Reproducing a failure
 

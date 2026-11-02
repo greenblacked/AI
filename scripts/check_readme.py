@@ -29,11 +29,10 @@ sentence. It was caught by a reviewer, which is the outcome named two paragraphs
 
 The check is narrow enough to be safe rather than clever. It reads only lines outside
 tables and fenced blocks, only a number immediately followed by one of six nouns, and
-only where the number is a digit or a number word. Measured against this README it
-matches six phrases and every one is a real count. `plugins` is deliberately not one of
-the nouns: the prose uses it for two different true values, all eight of them in one
-sentence and the five that ship a subagent in another, so a single expected total would
-be wrong somewhere.
+only where the number is a digit or a number word, and every phrase it matches in this
+README is a real count. `plugins` is deliberately not one of the nouns: the prose uses
+it for two different true values, every plugin in one sentence and only those that ship
+a subagent in another, so a single expected total would be wrong somewhere.
 
 The two badges that state what CI enforces are floors, not live figures. A coverage
 badge showing the real percentage would have to be typed by hand, and a typed number
