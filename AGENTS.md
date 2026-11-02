@@ -169,7 +169,8 @@ each is a judgement call rather than a rule, but a warning nobody has to clear i
 that accumulates until the whole category stops being read.
 
 CI additionally runs markdownlint, yamllint, actionlint, codespell, an offline link
-check, gitleaks, zizmor, ruff (with the flake8-bandit rules) and CodeQL. `make lint` runs
+check, gitleaks, zizmor, ruff (with the flake8-bandit rules), CodeQL, and two agent-skill
+scanners (Cisco's skill-scanner and NVIDIA's SkillSpector) over every shipped skill. `make lint` runs
 the first four locally when they are installed and tells you the command when they are
 not. codespell's false positives live in `pyproject.toml` with the reason each is one;
 add to that list rather than silencing the check, and only for a word that is genuinely
@@ -357,7 +358,9 @@ what they already enforce.
 **Before reviewing.** Read this file, then `docs/review-lessons.md` — the defect classes
 review here has already caught once. Do not re-report what CI already checks: `ci.yml`
 runs the validator, the catalogue checks, the test suite and coverage on every pull
-request; `security.yml` runs gitleaks, zizmor, ruff's flake8-bandit rules and CodeQL. A
+request; `security.yml` runs gitleaks, zizmor, ruff's flake8-bandit rules, CodeQL and the
+two skill scanners, which fail only on a high or critical finding missing from the
+reviewed baselines in `.github/skill-scan/`. A
 finding that only restates a failing gate wastes the comment; a finding about what a
 gate cannot see is the job.
 

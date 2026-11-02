@@ -27,6 +27,12 @@ tool access, so a malicious change here is a supply-chain change. The controls a
   check in `security.yml` fails the build if one is not.
 - **Static analysis** with CodeQL, run from `security.yml` with the `security-extended`
   query suite, and with ruff's flake8-bandit rules.
+- **Skill scanning** of every shipped skill with two third-party agent-skill scanners,
+  Cisco's skill-scanner and NVIDIA's SkillSpector, on every pull request. Each fails on
+  a high or critical finding that is not in a baseline reviewed by hand under
+  `.github/skill-scan/`, and keeps its full SARIF report as a run artifact. Both match
+  patterns rather than read intent, and neither reads subagent or command files, so a
+  clean scan is one layer of review, not proof that a skill is safe.
 - **GitHub's own controls**, alongside the checks above rather than in place of them:
   private vulnerability reporting, which is what the form under Reporting depends on;
   secret scanning with push protection, which stops a credential as it is pushed rather

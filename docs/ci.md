@@ -123,7 +123,8 @@ answer costs is time.
 ## `.github/workflows/security.yml` — Security
 
 Same triggers, same empty top-level `permissions`. Tool versions are pinned in `env`
-(`GITLEAKS_VERSION`, `GITLEAKS_SHA256`, `ZIZMOR_VERSION`, `RUFF_VERSION`) rather than
+(`GITLEAKS_VERSION`, `GITLEAKS_SHA256`, `ZIZMOR_VERSION`, `RUFF_VERSION`,
+`SKILL_SCANNER_VERSION`, `SKILLSPECTOR_VERSION`, `SKILLSPECTOR_COMMIT`) rather than
 floated: a scanner that changes its rule set between runs turns a green build into a
 statement about the scanner rather than about the code. ruff is in that list for a
 concrete reason — 0.16 began formatting Python blocks inside Markdown, so an unpinned
@@ -136,7 +137,9 @@ upgrade would fail the build on skill prose that was green the day before.
 | `python` | `python security lint` | `ruff check` or `ruff format --check` failed. |
 | `codeql` | `codeql` | CodeQL's `security-extended` query suite found something in the Python source. |
 | `permissions-audit` | `permissions audit` | A workflow has no top-level `permissions:` block, or one that is `write-all`, `read-all`, or grants `write` on any scope; an action is not pinned to a SHA; a job sets no `timeout-minutes`; or an `actions/checkout` does not set `persist-credentials: false`. |
-| `security` | `security` | Any of its five dependencies did not report exactly `success`, or the result payload did not match the expected jobs. |
+| `skill-scanner` | `cisco skill scan` | cisco-ai-skill-scanner found a high or critical finding in a skill that `.github/skill-scan/cisco-policy.yaml` does not suppress, or scanned fewer skills than the tree holds. |
+| `skillspector` | `skillspector skill scan` | SkillSpector found a high or critical finding not in `.github/skill-scan/skillspector-accepted.json`, a scan errored or left no report, or an accepted entry has no reason. |
+| `security` | `security` | Any of its seven dependencies did not report exactly `success`, or the result payload did not match the expected jobs. |
 
 ### The security jobs in detail
 
@@ -165,6 +168,50 @@ only ever sees Python. `tests/*` ignores `S101`, because asserting is what tests
 
 **CodeQL** runs `github/codeql-action` init and analyze with `languages: python` and
 `queries: security-extended`. It is the only job that needs `security-events: write`.
+
+**Two agent-skill scanners read every shipped skill.** `skill-scanner` runs Cisco's
+[cisco-ai-skill-scanner](https://pypi.org/project/cisco-ai-skill-scanner/) and
+`skillspector` runs NVIDIA's [SkillSpector](https://github.com/NVIDIA/SkillSpector), both
+Apache-2.0, over `plugins/*/skills/*/`. Each fails only on a high or critical finding
+that is not in a baseline reviewed by hand; medium and low findings never fail, and every
+finding stays in the SARIF and JSON reports each job uploads as an artifact
+(`skill-scanner-report`, `skillspector-report`, kept 14 days) whether it passes or not.
+Nothing is uploaded to code scanning, so both jobs hold `contents: read` and nothing else.
+[`.github/skill-scan/README.md`](../.github/skill-scan/README.md) holds the triage rule
+and how to refresh a baseline after a scanner bump.
+
+- Both install into a virtual environment of their own from a lock in
+  `.github/requirements/`, with `--require-hashes --only-binary=:all:`. Cisco's package is
+  on PyPI; SkillSpector is not, so its source is fetched by commit,
+  `SKILLSPECTOR_COMMIT`, and the commit id is checked before it is built, with the hashed
+  `hatchling` and no build isolation. That commit is tag `v2.13.1`, which sits on a
+  release branch rather than on upstream's `main`. A GitHub tarball is not used because
+  its bytes are not guaranteed stable, so no digest could be recorded for one.
+- Only static analysers run. Cisco's `--use-llm`, `--use-virustotal`, `--use-aidefense`,
+  `--use-osv`, `--enable-meta` and `--adjudicate` are never passed, and SkillSpector runs
+  with `--no-llm`. SkillSpector's SC4 check still asks `api.osv.dev` about any declared
+  dependency file in a skill; this tree has none today.
+- Cisco scans everything in about a minute and is gated by its own policy file: each
+  suppression names a rule, the skills and the one file it was reviewed for, with a reason,
+  and expires on 2027-05-02. A second step fails the job if the report counts fewer
+  skills than there are `SKILL.md` files.
+- SkillSpector scans one skill per process, four at a time, because `scan -r` stops at 32
+  skills, reads one level deep and refuses a baseline. On a pull request it scans only the
+  skill directories the diff from the merge base touches, listed with `--no-renames` so a
+  moved skill is scanned at its new path; on every other event it scans all of them,
+  which takes about fifteen minutes. `scripts/skill_scan_gate.py` then judges the
+  reports. It does not use SkillSpector's own baseline, whose fingerprint hashes the whole
+  file and the scanner version, so any edit to a flagged file would reopen every finding
+  in it. It keys each finding on its rule, its path and the matched text with whitespace
+  collapsed, and fails on a key not in the accepted list, on a scan that exited 2 or left
+  no readable report, on a report count that differs from the skills scanned, and on an
+  accepted entry with no reason or with a class other than a false positive or
+  accepted-by-design. An accepted entry that no longer matches anything is printed as a
+  notice so the list can be pruned.
+- Neither tool reads subagent or command files, so `plugins/*/agents/` and
+  `plugins/*/commands/` are not scanned. And neither is proof of safety: Cisco's README
+  reports its rules alone catch about 8% of held-out malicious skills. The scanners are one
+  layer beside review, not a replacement for it.
 
 **Four shell invariants.** `permissions-audit` is four `grep` and `awk` loops,
 deliberately not a tool. Each is one of the workflow conventions `AGENTS.md` states, and
@@ -1305,10 +1352,47 @@ in the workflow rather than in the repository. Reproduce it directly, matching t
 versions in `security.yml`:
 
 ```bash
-python -m pip install "zizmor==1.30.1" "ruff==0.16.9"
+python -m pip install "zizmor==1.30.1" "ruff==0.16.10"
 zizmor --persona=regular --min-severity=medium .
 ruff check .
 ruff format --check .
+```
+
+The two skill scans install into virtual environments of their own, from the same hashed
+locks the jobs use. Cisco's scans the whole tree:
+
+```bash
+set -Eeuo pipefail
+python3.13 -m venv /tmp/skill-scanner
+/tmp/skill-scanner/bin/python -m pip install --require-hashes --only-binary=:all: \
+  -r .github/requirements/skill-scanner.txt
+/tmp/skill-scanner/bin/skill-scanner scan-all plugins --recursive \
+  --policy .github/skill-scan/cisco-policy.yaml --fail-on-severity high
+```
+
+SkillSpector is built from the pinned commit, then run per skill into a results
+directory the gate reads; list in `skills.txt` the skill directories you scanned:
+
+```bash
+set -Eeuo pipefail
+commit=f3b25697d76256998ca9d42c198d256258d4c035  # SKILLSPECTOR_COMMIT in security.yml
+git init --quiet /tmp/skillspector-src
+git -C /tmp/skillspector-src fetch --quiet --depth 1 https://github.com/NVIDIA/SkillSpector.git "$commit"
+git -C /tmp/skillspector-src checkout --quiet --detach FETCH_HEAD
+python3.13 -m venv /tmp/skillspector
+/tmp/skillspector/bin/python -m pip install --require-hashes --only-binary=:all: \
+  -r .github/requirements/skillspector.txt
+/tmp/skillspector/bin/python -m pip install --no-deps --no-build-isolation /tmp/skillspector-src
+mkdir -p /tmp/ss && printf '%s\n' plugins/coding/skills/new-skill > /tmp/ss/skills.txt
+while IFS= read -r skill; do
+  name="$(basename "$(dirname "$(dirname "$skill")")")__$(basename "$skill")"
+  rc=0
+  /tmp/skillspector/bin/skillspector scan "$skill" --no-llm --format sarif \
+    -o "/tmp/ss/$name.sarif" > "/tmp/ss/$name.log" 2>&1 || rc=$?
+  echo "$rc" > "/tmp/ss/$name.rc"
+done < /tmp/ss/skills.txt
+python3 scripts/skill_scan_gate.py --manifest /tmp/ss/skills.txt --results /tmp/ss \
+  --accepted .github/skill-scan/skillspector-accepted.json
 ```
 
 ## Reproducing a failure

@@ -8,6 +8,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Security
+
+- `security.yml` scans every shipped skill with two third-party agent-skill scanners, Cisco's cisco-ai-skill-scanner 2.3.1 and NVIDIA's SkillSpector 2.13.1, in two new jobs the `security` gate requires. Each fails only on a high or critical finding that is not in a baseline reviewed by hand: a policy of file-scoped suppressions for Cisco that expire on 2027-05-02, and for SkillSpector a list of accepted findings keyed on rule, path and matched text, judged by the new `scripts/skill_scan_gate.py` rather than by SkillSpector's own baseline, which any edit to a flagged file would reopen. The triage of the current tree found 17 Cisco and 222 SkillSpector high or critical findings; all but one were false positives or deliberate procedure, and the one real finding, the state guard in `test-order-bisect` printing environment values, was fixed separately rather than accepted. Both jobs hold `contents: read` only, install hashed wheels into virtual environments of their own (SkillSpector from a checked commit, since it is not on PyPI), run no LLM or cloud analyser, and keep their full SARIF and JSON reports as run artifacts. On a pull request SkillSpector scans only the skills the change touches. Neither tool reads subagent or command files, and pattern scanners are one layer of review rather than proof that a skill is safe; `.github/skill-scan/README.md` sets out the triage rule and how to refresh a baseline. `docs/ci.md`'s local `ruff` pin now matches the workflow's 0.16.10.
+
 ## [0.4.0] - 2026-11-02
 
 ### Added
