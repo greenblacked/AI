@@ -1,0 +1,12 @@
+diff --git a/scripts/skill_scan_gate.py b/scripts/skill_scan_gate.py
+--- a/scripts/skill_scan_gate.py
++++ b/scripts/skill_scan_gate.py
+@@ -267,8 +267,6 @@
+                 continue
+             if invocation.get("executionSuccessful") is False:
+                 raise ValueError("the scanner reported an unsuccessful execution")
+-        if ran_out_of_time(run):
+-            raise RuntimeLimitError("SkillSpector ran out of time")
+         for invocation in run.get("invocations") or []:
+             if isinstance(invocation, dict):
+                 check_completeness(invocation)

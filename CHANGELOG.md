@@ -12,6 +12,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 - `product-design` skill in the design plugin: builds a simplified, believable rendering of the user's own product for a hero, feature card, docs page, changelog or social card, as a still or a one-action scene handed to `motion-showcase` for capture. Written from scratch; the idea of a skill for faux product UI was prompted by Benji Taylor's Stageshow.
 
+### Fixed
+
+- The SkillSpector gate no longer fails on a scan that ran out of time. #365's dev → stage promotion failed `skillspector skill scan` with five new AE1 findings in `website-builder`, which had not changed, and a re-run passed. SkillSpector 2.13.1 raises AE1 for any referenced file whose inspection ended partial, including when one of its wall-clock budgets runs out on a stalled runner, and `scripts/skill_scan_gate.py` keyed AE1 without its reason. The gate now treats a report that records reason code `runtime_limit` as incomplete rather than as findings, and never matches it against the accepted list. Its first pass lists such skills and exits 3. The gate step in `security.yml` rescans each of them on its own, one at a time, and its final pass fails any that runs out of time again as an incomplete scan. Content-driven AE1 findings (`static_parse_limit`, `obfuscated_instruction_text`) still go through the accepted list unchanged.
+
 ### Security
 
 - `distinctive-page-design` no longer pre-approves `Edit` or `Write`: writing the decision record and the page files now asks first. The skill reads briefs, captures and brand material it did not write, and now hands the product visual to `product-design`, which reads third-party design files and screenshots, so a planted instruction in that input could otherwise reach a pre-approved write.
