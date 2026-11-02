@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-02
+
 ### Added
 
 - An independently installable `iac` topic with Terraform module contract, module regression test and reviewed-plan apply pipeline skills. The usage guide connects them to existing scaffolding, state repair, adoption, upgrades and security review without moving those skills. Each new skill includes balanced trigger cases and references. The catalogue, portable exports and site discover the new plugin; its separate listing budget keeps this focused installation below the default limit.
@@ -1063,7 +1065,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/greenblacked/AI/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/greenblacked/AI/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/greenblacked/AI/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/greenblacked/AI/compare/v0.2.2...v0.3.0
