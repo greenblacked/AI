@@ -1,0 +1,22 @@
+[
+  {"query": "i need a product shot of our invoicing app for the landing page hero, but a real screenshot is way too busy", "should_trigger": true},
+  {"query": "make a fake dashboard for the analytics feature card, simplified, using our actual colours and font", "should_trigger": true},
+  {"query": "build a little scene where the cursor clicks approve and the status badge flips to approved, i'll animate it later", "should_trigger": true},
+  {"query": "draw our app inside a browser window frame for the homepage, cropped so it looks like there's more off to the right", "should_trigger": true},
+  {"query": "can you do a phone screen showing our push notification for the reminders feature section", "should_trigger": true},
+  {"query": "we need a bento grid of feature cards, each one a tiny piece of our UI showing what it does", "should_trigger": true},
+  {"query": "what fake names and numbers should go in the table on our marketing illustration so it doesn't look like lorem ipsum", "should_trigger": true},
+  {"query": "make a terminal mockup of our cli running a deploy for the docs intro page", "should_trigger": true},
+  {"query": "an og image for the changelog post that shows the new filter dropdown in our product", "should_trigger": true},
+  {"query": "turn our settings page into a clean faux UI illustration in react with our components, no real customer data", "should_trigger": true},
+  {"query": "here's the finished hero mock, record it as a seamless looping mp4 and a gif for the readme", "should_trigger": false, "expected": "motion-showcase"},
+  {"query": "design our launch page so it doesn't look like every other ai generated landing page", "should_trigger": false, "expected": "distinctive-page-design"},
+  {"query": "the screenshots in our docs still show the old navigation, how do we keep them current automatically", "should_trigger": false, "expected": "screenshot-rot"},
+  {"query": "build the actual admin dashboard web app for our customers and deploy it", "should_trigger": false, "expected": "website-builder"},
+  {"query": "check the rendered pricing page screenshots for overflow and dark mode regressions", "should_trigger": false, "expected": "visual-review"},
+  {"query": "set up colour and spacing tokens with a dark theme for the product", "should_trigger": false, "expected": "design-system"},
+  {"query": "audit the marketing site against wcag 2.2 including image alt text", "should_trigger": false, "expected": "accessibility-audit"},
+  {"query": "put a coming soon button for the new export feature on the site to see if anyone actually wants it", "should_trigger": false, "expected": "fake-door-test"},
+  {"query": "the dashboard screen feels cluttered and flat, fix the hierarchy and type scale", "should_trigger": false, "expected": "visual-design"},
+  {"query": "which chart should show signups by channel over the quarter, and how should the axes be labelled", "should_trigger": false, "expected": "data-visualisation"}
+]
