@@ -35,6 +35,14 @@ env:
   # Markdown, so an unpinned upgrade would fail the build on skill prose that was
   # green the day before.
   RUFF_VERSION: '0.16.10'
+  # The two agent-skill scanners. Each one's whole dependency tree is hashed in
+  # .github/requirements/, and each version has to match the file that installs it.
+  SKILL_SCANNER_VERSION: '2.3.1'
+  # SkillSpector is not on PyPI, so it is installed from source at this commit, which is
+  # what tag v2.13.1 names; that tag sits on a release branch, not on upstream's main.
+  # The commit is checked after the fetch, so the tag moving cannot change what runs.
+  SKILLSPECTOR_VERSION: '2.13.1'
+  SKILLSPECTOR_COMMIT: 'f3b25697d76256998ca9d42c198d256258d4c035'
 
 jobs:
   secrets:
@@ -313,6 +321,254 @@ jobs:
           done
           exit "$persisted"
 
+  skill-scanner:
+    name: cisco skill scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.13'
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: ~/.cache/pip
+          key: >-
+            pip-skill-scanner-${{ runner.os }}-${{
+            hashFiles('.github/requirements/skill-scanner.txt') }}
+      # Into a virtual environment of its own, so the scanner's dependencies never share
+      # an interpreter with anything else the job runs. Wheels only, every one hashed.
+      - name: Install the Cisco AI skill scanner
+        run: |
+          set -Eeuo pipefail
+          python -m venv "$RUNNER_TEMP/skill-scanner-venv"
+          "$RUNNER_TEMP/skill-scanner-venv/bin/python" -m pip install --quiet \
+            --require-hashes --only-binary=:all: -r .github/requirements/skill-scanner.txt
+          "$RUNNER_TEMP/skill-scanner-venv/bin/python" -I -c '
+          import importlib.metadata, os, sys
+          found = importlib.metadata.version("cisco-ai-skill-scanner")
+          want = os.environ["SKILL_SCANNER_VERSION"]
+          sys.exit(0 if found == want else f"installed {found}, pinned {want}")
+          '
+      # Static analysers only. --use-llm, --use-virustotal, --use-aidefense, --use-osv,
+      # --enable-meta and --adjudicate would each send skill text or hashes to a third
+      # party or need a key, and none is passed. The reviewed policy suppresses each
+      # finding triaged as a false positive by rule, skill and file; anything else at
+      # high or critical fails the job.
+      - name: Scan every skill
+        run: |
+          set -Eeuo pipefail
+          out="$RUNNER_TEMP/skill-scanner"
+          mkdir -p "$out"
+          # The scanner echoes skill text, which a pull request controls, so its output
+          # goes to the artifact rather than the job log, where a line starting with
+          # `::` would be read as a workflow command.
+          rc=0
+          "$RUNNER_TEMP/skill-scanner-venv/bin/skill-scanner" scan-all plugins --recursive \
+            --policy .github/skill-scan/cisco-policy.yaml \
+            --format sarif --output "$out/skill-scanner.sarif" \
+            --format json --output-json "$out/skill-scanner.json" \
+            --fail-on-severity high >"$out/skill-scanner.log" 2>&1 || rc=$?
+          # Every field comes from the report verbatim, so each line is made inert the
+          # way scripts/skill_scan_gate.py makes its text inert: a carriage return or
+          # newline becomes a space, so a path cannot start a line of its own, `##[`
+          # becomes `## [`, and a line that would still open with `::` is broken.
+          if [ -f "$out/skill-scanner.json" ]; then
+            jq -r '.results[] | .skill_path as $skill | .findings[]?
+              | select(.severity == "HIGH" or .severity == "CRITICAL")
+              | "  \(.severity) \(.rule_id) \($skill)/\(.file_path):\(.line_number)"
+              | gsub("[\r\n]"; " ") | gsub("##\\["; "## [")
+              | sub("^(?<lead>\\s*)::"; "\(.lead): :")' \
+              "$out/skill-scanner.json"
+          fi
+          if [ "$rc" -ne 0 ]; then
+            msg="skill-scanner exited $rc; findings above, full output in the skill-scanner artifact"
+            echo "::error title=cisco skill scan::$msg"
+            exit "$rc"
+          fi
+      # A scan that found fewer skills than the tree holds is a scan that skipped some,
+      # and would otherwise read as a clean one.
+      - name: Check every skill was scanned
+        run: |
+          set -Eeuo pipefail
+          expected=$(find plugins -mindepth 4 -maxdepth 4 -path 'plugins/*/skills/*/SKILL.md' -type f | wc -l)
+          scanned=$(jq -er '.summary.total_skills_scanned' "$RUNNER_TEMP/skill-scanner/skill-scanner.json")
+          if ! [[ "$scanned" =~ ^[0-9]+$ ]]; then
+            echo "::error title=skill scan incomplete::the report gave no skill count"
+            exit 1
+          fi
+          if [ "$scanned" -ne "$expected" ]; then
+            echo "::error title=skill scan incomplete::scanned $scanned skill(s) of $expected"
+            exit 1
+          fi
+          echo "scanned $scanned of $expected skills"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        if: always()
+        with:
+          name: skill-scanner-report
+          path: ${{ runner.temp }}/skill-scanner
+          if-no-files-found: warn
+          retention-days: 14
+
+  skillspector:
+    name: skillspector skill scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          # A pull request scans only the skills it changes, which needs its base commit.
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.13'
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: ~/.cache/pip
+          key: >-
+            pip-skillspector-${{ runner.os }}-${{
+            hashFiles('.github/requirements/skillspector.txt') }}
+      # Fetched by commit rather than as a GitHub tarball: an archive's bytes are not
+      # guaranteed stable, so there is no digest to record for one, while a commit id
+      # names its content. Dependencies are hashed wheels; SkillSpector itself is built
+      # with the hashed hatchling and no network, into a virtual environment of its own.
+      - name: Install SkillSpector at its pinned commit
+        run: |
+          set -Eeuo pipefail
+          src="$RUNNER_TEMP/skillspector-src"
+          git init --quiet "$src"
+          git -C "$src" fetch --quiet --depth 1 https://github.com/NVIDIA/SkillSpector.git "$SKILLSPECTOR_COMMIT"
+          git -C "$src" checkout --quiet --detach FETCH_HEAD
+          test "$(git -C "$src" rev-parse HEAD)" = "$SKILLSPECTOR_COMMIT"
+          venv="$RUNNER_TEMP/skillspector-venv"
+          python -m venv "$venv"
+          "$venv/bin/python" -m pip install --quiet \
+            --require-hashes --only-binary=:all: -r .github/requirements/skillspector.txt
+          "$venv/bin/python" -m pip install --quiet --no-deps --no-build-isolation "$src"
+          "$venv/bin/python" -I -c '
+          import importlib.metadata, os, sys
+          found = importlib.metadata.version("skillspector")
+          want = os.environ["SKILLSPECTOR_VERSION"]
+          sys.exit(0 if found == want else f"installed {found}, pinned {want}")
+          '
+      # A pull request scans the skills it adds or changes; every other event scans all
+      # of them, and so does a pull request that changes the scan's own configuration
+      # (this workflow, the accepted list, the scanner's lock or the gate), since that
+      # can change the verdict on a skill the diff never touches. --no-renames makes a
+      # moved skill count as added at its new path, and the base commit arrives through
+      # env:, never through an expression in the script.
+      - name: Choose the skills to scan
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -Eeuo pipefail
+          results="$RUNNER_TEMP/skillspector"
+          mkdir -p "$results"
+          manifest="$results/skills.txt"
+          # A link inside a skill can point outside plugins/, so editing its target would
+          # change what is scanned without selecting the skill. Counted, never listed.
+          links=$(git ls-files -s -z -- plugins | tr '\0' '\n' | grep -c '^120000 ' || true)
+          if [ "$links" -gt 0 ]; then
+            echo "::error title=skill scan::a symbolic link under plugins/ ($links found); commit the file itself"
+            exit 1
+          fi
+          scan_all=1
+          if [ "$EVENT_NAME" = pull_request ]; then
+            if ! [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "::error title=skill scan::no usable base commit for this pull request"
+              exit 1
+            fi
+            base=$(git merge-base "$BASE_SHA" HEAD)
+            # Counted rather than listed, so no file name a pull request chose reaches the log.
+            config=$(git diff --no-renames -z --name-only "$base" HEAD -- \
+              .github/workflows/security.yml .github/skill-scan \
+              .github/requirements/skillspector.txt scripts/skill_scan_gate.py | tr -cd '\0' | wc -c)
+            if [ "$config" -gt 0 ]; then
+              echo "this pull request changes the skill scan configuration, so every skill is scanned"
+            else
+              scan_all=0
+              git diff --no-renames -z --name-only "$base" HEAD -- plugins |
+                while IFS= read -r -d '' path; do
+                  if [[ "$path" =~ ^(plugins/[^/]+/skills/[^/]+)/ ]] && [ -f "${BASH_REMATCH[1]}/SKILL.md" ]; then
+                    printf '%s\n' "${BASH_REMATCH[1]}"
+                  fi
+                done | sort -u > "$manifest"
+            fi
+          fi
+          if [ "$scan_all" -eq 1 ]; then
+            find plugins -mindepth 4 -maxdepth 4 -path 'plugins/*/skills/*/SKILL.md' -type f -print0 |
+              while IFS= read -r -d '' path; do
+                printf '%s\n' "${path%/SKILL.md}"
+              done | sort > "$manifest"
+            if ! [ -s "$manifest" ]; then
+              echo "::error title=skill scan::found no skill to scan"
+              exit 1
+            fi
+          fi
+          # Every name has to be a plain skill directory before it reaches a file name or
+          # a command line; one that is not fails here rather than going unscanned.
+          while IFS= read -r skill; do
+            if ! [[ "$skill" =~ ^plugins/[A-Za-z0-9][A-Za-z0-9._-]*/skills/[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+              echo "::error title=skill scan::refusing to scan a directory with an unexpected name"
+              exit 1
+            fi
+          done < "$manifest"
+          if ! [ -s "$manifest" ]; then
+            echo "::notice title=skill scan::this pull request changes no skill, so there is nothing to scan"
+          fi
+          echo "$(wc -l < "$manifest") skill(s) to scan"
+      # One process per skill, four at a time: `scan -r` stops at 32 skills, reads one
+      # level deep and refuses a baseline. --no-llm keeps skill text on the runner; the
+      # one network call left is SC4's dependency lookup at api.osv.dev, made only for
+      # a declared dependency file, of which this tree has none. Exit 1 is a risk score
+      # and is judged by the gate below; the exit code of each scan is kept for it.
+      - name: Scan the chosen skills
+        run: |
+          set -Eeuo pipefail
+          results="$RUNNER_TEMP/skillspector"
+          scanner="$RUNNER_TEMP/skillspector-venv/bin/skillspector"
+          running=0
+          while IFS= read -r skill; do
+            rest="${skill#plugins/}"
+            name="${rest%%/*}__${skill##*/}"
+            (
+              rc=0
+              "$scanner" scan "$skill" --no-llm --format sarif -o "$results/$name.sarif" \
+                > "$results/$name.log" 2>&1 || rc=$?
+              printf '%s\n' "$rc" > "$results/$name.rc"
+            ) &
+            running=$((running + 1))
+            if [ "$running" -ge 4 ]; then
+              wait -n || true
+              running=$((running - 1))
+            fi
+          done < "$results/skills.txt"
+          wait
+      # Fails on any high or critical finding not in the reviewed list, on a scan that
+      # errored or left no report, and on a reviewed entry with no reason.
+      - name: Gate on new high and critical findings
+        run: |
+          set -Eeuo pipefail
+          python3 scripts/skill_scan_gate.py \
+            --manifest "$RUNNER_TEMP/skillspector/skills.txt" \
+            --results "$RUNNER_TEMP/skillspector" \
+            --accepted .github/skill-scan/skillspector-accepted.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        if: always()
+        with:
+          name: skillspector-report
+          path: ${{ runner.temp }}/skillspector
+          if-no-files-found: warn
+          retention-days: 14
+
   security:
     # The required status check for this workflow. `ci` in ci.yml is the other one;
     # between them they cover every job, and neither name changes when the jobs
@@ -325,6 +581,8 @@ jobs:
       - python
       - codeql
       - permissions-audit
+      - skill-scanner
+      - skillspector
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -339,4 +597,4 @@ jobs:
         run: |
           set -Eeuo pipefail
           python3 scripts/check_job_results.py \
-            secrets workflows python codeql permissions-audit
+            secrets workflows python codeql permissions-audit skill-scanner skillspector

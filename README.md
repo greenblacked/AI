@@ -1195,7 +1195,11 @@ for months naming `references/*.md` files nobody had written — the model loade
 where it expected depth, and no error was ever raised. CI now fails on it.
 
 Alongside `ci`, a `security` gate runs gitleaks over the working tree and history, zizmor
-over the workflows themselves, ruff's flake8-bandit rules, CodeQL, and four invariants:
+over the workflows themselves, ruff's flake8-bandit rules, CodeQL, two agent-skill scanners
+that fail only on a high or critical finding missing from a reviewed baseline — Cisco's
+scans every skill on every run; SkillSpector scans the skills a pull request changes
+(every skill when the pull request changes the scan configuration) and every skill on
+other events — and four invariants:
 every workflow declares a top-level `permissions:` block that is not `write-all` or
 `read-all` and grants `write` on no scope, every action is pinned to a commit SHA, every
 job sets `timeout-minutes`, and every checkout sets `persist-credentials: false`.
