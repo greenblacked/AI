@@ -105,6 +105,8 @@ job.
 Find the strongest real thing the content has, and show it large on the first screen: a
 photograph, a figure with its source, a capture, a sentence that is specific. If there is
 nothing, say that, and ask for it at the close.
+When the signature element is a picture of the product itself, build it with
+`product-design`.
 
 ### 8. Write the decision record
 

@@ -18,5 +18,6 @@
   {"query": "which chart type should i use for monthly revenue by region, and how do i label it", "should_trigger": false, "expected": "data-visualisation"},
   {"query": "the page hierarchy feels flat, review the type and spacing and tell me what to change", "should_trigger": false, "expected": "visual-design"},
   {"query": "choose breakpoints for the dashboard and decide how the sidebar collapses on a phone", "should_trigger": false, "expected": "responsive-design"},
-  {"query": "review the signup flow against usability heuristics and list the problems by severity", "should_trigger": false, "expected": "ui-ux-review"}
+  {"query": "review the signup flow against usability heuristics and list the problems by severity", "should_trigger": false, "expected": "ui-ux-review"},
+  {"query": "build a simplified fake version of our dashboard for the hero, with invented data and our own fonts", "should_trigger": false, "expected": "product-design"}
 ]
