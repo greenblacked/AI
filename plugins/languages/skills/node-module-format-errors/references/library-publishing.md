@@ -54,8 +54,8 @@ Under `node16` and `nodenext`, relative imports in ESM files need the `.js` exte
 ## Publish checks
 
 1. `npm pack` produces the tarball consumers get; inspect its file list for missing `dist` files.
-2. `npx publint` checks the manifest against what the files are.
-3. `npx @arethetypeswrong/cli --pack .` checks each resolution mode. Cells show whether types and runtime resolve, whether a CommonJS consumer sees an ESM-only file, and whether the masquerading format problem exists (a declaration claiming one format for a file of another).
+2. `npx publint@0.3.25` checks the manifest against what the files are.
+3. `npx --package=@arethetypeswrong/cli@0.18.5 attw --pack .` checks each resolution mode. Cells show whether types and runtime resolve, whether a CommonJS consumer sees an ESM-only file, and whether the masquerading format problem exists (a declaration claiming one format for a file of another).
 4. Install the tarball in an empty directory and import it from a CommonJS file, an ESM file and a TypeScript file under both resolution modes.
 
 ## Jest and bundler notes

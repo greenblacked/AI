@@ -193,10 +193,15 @@ RUN --mount=type=secret,id=pypi_token \
     pip install -r requirements.txt
 
 # Private Git dependencies over SSH.
+# known_hosts is a reviewed file in the build context, not a scan taken during the build.
 RUN --mount=type=ssh \
-    mkdir -p -m 0700 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts && \
+    --mount=type=bind,source=known_hosts,target=/root/.ssh/known_hosts \
     go mod download
 ```
+
+Fill `known_hosts` from the host keys the Git host publishes and check each fingerprint
+against that list. A `ssh-keyscan` run during the build trusts whatever answers on first
+use, in the same step that forwards the SSH agent.
 
 ```bash
 docker buildx build \

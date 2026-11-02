@@ -66,6 +66,9 @@ set -Eeuo pipefail
 # restore the known-good snapshots (see below), never the broken-state evidence from SKILL.md step 4
 test -f /root/ssh.good/sshd_config
 test -f /root/sudoers.good/sudoers
+# the snapshot step creates both drop-in directories, empty when the host has none
+test -d /root/ssh.good/sshd_config.d
+test -d /root/sudoers.good/sudoers.d
 # replace the drop-ins wholesale so files the edit created disappear too
 cp -a /root/ssh.good/sshd_config /etc/ssh/sshd_config
 rm -rf /etc/ssh/sshd_config.d
@@ -98,9 +101,13 @@ systemctl stop revert-ssh.timer
 Take the known-good snapshots right before each risky edit, once the repair is done and a fresh login has been tested, and only after `visudo -c` and `sshd -t` both pass on the live files:
 
 ```bash
-rm -rf /root/ssh.good /root/sudoers.good; mkdir -p /root/ssh.good/include /root/sudoers.good/include
-cp -a /etc/ssh/sshd_config /etc/ssh/sshd_config.d /root/ssh.good/
-cp -a /etc/sudoers /etc/sudoers.d /root/sudoers.good/
+rm -rf /root/ssh.good /root/sudoers.good
+mkdir -p /root/ssh.good/include /root/ssh.good/sshd_config.d /root/sudoers.good/include /root/sudoers.good/sudoers.d
+cp -a /etc/ssh/sshd_config /root/ssh.good/
+cp -a /etc/sudoers /root/sudoers.good/
+# older images have no sshd_config.d; the snapshot keeps an empty directory so the rollback's cp cannot abort
+if [ -d /etc/ssh/sshd_config.d ]; then cp -a /etc/ssh/sshd_config.d/. /root/ssh.good/sshd_config.d/; fi
+if [ -d /etc/sudoers.d ]; then cp -a /etc/sudoers.d/. /root/sudoers.good/sudoers.d/; fi
 # every Include target that step 4 of SKILL.md lists and that sits outside those paths,
 # saved under include/ with its full path so the rollback can copy it straight back:
 cp -a --parents /PATH/FROM/INCLUDE /root/ssh.good/include/       # sshd Include targets

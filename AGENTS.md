@@ -75,6 +75,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `plugins/client-apps/skills/` | Code on the user's browser or phone: field performance, memory, version skew, crashes, hangs, startup, battery, networks |
 | `plugins/product/skills/` | Evidence-led product management and go-to-market: discovery, pricing, metrics, churn, deals and support load |
 | `plugins/platform/skills/` | Cloud and platform engineering: Kubernetes, Terraform estates, cloud networks, identity, databases, the edge and commitments |
+| `plugins/iac/skills/` | Infrastructure as code: shared module contracts, module regression tests and reviewed-plan delivery |
 | `plugins/devtools/skills/` | Developer tooling and build systems: git recovery, monorepos, build caching, dependencies and benchmarks |
 | `plugins/smallbiz/skills/` | Freelancing and small-business operations: pricing, scope, invoicing, contracts, bookkeeping and tax preparation |
 | `plugins/backend/skills/` | Backend and distributed-systems correctness: webhooks, races, retry budgets, overload, locks, sagas, events and jobs |
@@ -98,7 +99,7 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `docs/` | How to write skills, subagents, commands, `AGENTS.md`, what the project layout loads, and what CI checks |
 | `docs/review-lessons.md` | Defect classes review on this repository has actually caught, each with how it shows up, the check that catches it and the PR that found it first; `implementer` and `reviewer` read it before writing or judging anything |
 | `template/SKILL.md` | Starting point for a new skill |
-| `.claude-plugin/marketplace.json` | Lists the twenty-eight plugins; each discovers its own skills |
+| `.claude-plugin/marketplace.json` | Lists the twenty-nine plugins; each discovers its own skills |
 | `.github/workflows/` | `ci.yml`, `security.yml`, `scheduled.yml`, `evals.yml`, `dependabot-auto-merge.yml`, `cut-release.yml`, `release.yml`, `deploy.yml`, `ci-triage.yml` |
 | `listing-budget.json` | Per-plugin ceilings for the skill listing and a per-skill description ratchet; `scripts/check_listing_budget.py` enforces both |
 | `providers.json` | Which AI tools read `AGENTS.md` and load skills, with sources and a checked date; `scripts/providers_table.py` renders it into the README |

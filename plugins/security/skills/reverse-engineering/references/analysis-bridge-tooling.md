@@ -51,6 +51,13 @@ this morning. A global install runs the same commands as `rea doctor`, `rea setu
 `rea analyze-javascript-application`; when in doubt, the global binary is the one the MCP
 server is running, so its version is the one to record.
 
+Run `doctor` and `setup` in a session that holds no target, before any artifact is
+opened: the package runs with the caller's permissions and executes its own install
+scripts, so nothing from the sample should be in reach when it does. Prefer a reviewed
+copy of the package, installed from a lockfile with `npm ci --ignore-scripts`, over
+`npx -y`, which fetches transitive dependencies that the version pin does not cover.
+Keep the configuration diff `setup` produced with the case notes.
+
 The setup names every path and change it will make, and applies nothing until approved.
 Read it for the three things that go wrong quietly: it may offer to install the paid-licence provider (Hopper), which
 is a licence you may not hold; it edits agent configuration outside this repository;

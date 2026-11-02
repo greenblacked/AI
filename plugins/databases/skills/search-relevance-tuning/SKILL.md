@@ -20,6 +20,8 @@ Do not use for: designing a benchmark with a sealed holdout, paired comparison a
 
 ## Workflow
 
+Set `ES` to the cluster URL and keep the credential off the command line: use a curl config file passed with `-K`, a `--netrc` entry or an environment-held header, and never quote it in the hand-back. The references use `$ES` the same way.
+
 ### 1. Build the judged set before changing anything
 
 Assemble three groups: the top 100 queries by volume from the search log, 50 queries that returned zero results, and the complaint list (every query a person has reported as wrong). Have someone who knows the product grade the results each query should surface, 0 (irrelevant) to 3 (the ideal answer). Keep the file in the repository with a stable id per query and a category label (head, tail, zero-result, complaint, short, navigational). Categories matter because step 7 rejects a change that wins overall and loses a category.
