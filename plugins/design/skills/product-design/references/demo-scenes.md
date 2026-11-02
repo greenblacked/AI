@@ -100,5 +100,5 @@ step; a real-time recording cannot be repeated or checked against itself.
 A scene that loops on a page for more than five seconds beside other content needs a
 control that lets the user pause, stop or hide it (WCAG 2.2.2, Level A). A GIF has no
 such control, so a looping embed ships as video with controls or as a still. Honouring
-`prefers-reduced-motion` is good practice, the technique for 2.3.3 at Level AAA, but it
+`prefers-reduced-motion` is good practice, a technique for 2.3.3 at Level AAA, but it
 does not satisfy 2.2.2.
