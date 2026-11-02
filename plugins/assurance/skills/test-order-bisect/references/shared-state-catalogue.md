@@ -77,7 +77,12 @@ def _no_leaked_process_state():
     env_before = _env()
     cwd_before = os.getcwd()
     yield
-    assert _env() == env_before, "test changed os.environ without restoring it"
+    env_after = _env()
+    # Report names only: a failed comparison of the whole mapping prints every
+    # value, tokens included, into the CI log at -vv.
+    changed = sorted(k for k in env_before.keys() | env_after.keys()
+                     if env_before.get(k) != env_after.get(k))
+    assert not changed, f"test changed os.environ without restoring: {changed}"
     assert os.getcwd() == cwd_before, "test changed the working directory without restoring it"
 ```
 
