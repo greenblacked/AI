@@ -1,0 +1,86 @@
+---
+# The reviewed policy for cisco-ai-skill-scanner 2.3.1 over this repository's plugins/
+# tree, read by the `skill-scanner` job in security.yml. It inherits the scanner's
+# balanced preset and adds only scoped suppressions. Each entry names the rule, the exact
+# skill and the exact file it was reviewed for, so the rule stays live everywhere else.
+# The policy schema has no line selector, so an entry covers the whole file: a new finding
+# of the same rule in the same file is hidden too until the entry expires. Every entry
+# expires on 2027-05-02 and has to be re-read against the flagged lines then, not renewed
+# by changing the date. README.md beside this file holds the triage rule.
+# Triage basis: the flagged lines on dev at a9df037a, read by hand.
+policy_name: skills-repo
+policy_version: "1.0"
+
+suppressions:
+  # Defensive descriptions of fetch-and-run risk (FP class: defensive description of an attack)
+  - rule_id: ACTIVE_REMOTE_ACQUIRE_EXECUTE
+    skills: ["iac-version-upgrade", "monolith-state-split", "brownfield-iac-adoption"]
+    paths: ["SKILL.md"]
+    reason: >-
+      Shared caution paragraph: 'terraform init downloads and runs providers' and planning is not read-only; it warns,
+      it does not instruct fetch-and-execute.
+    expires: 2027-05-02
+
+  - rule_id: ACTIVE_REMOTE_ACQUIRE_EXECUTE
+    skills: ["ai-review-integration"]
+    paths: ["SKILL.md"]
+    reason: >-
+      Line 78 fetches a GitLab merge request version and records its SHAs for review; nothing fetched is executed.
+    expires: 2027-05-02
+
+  - rule_id: ACTIVE_REMOTE_ACQUIRE_EXECUTE
+    skills: ["pipeline-hardening"]
+    paths: ["SKILL.md"]
+    reason: "Line 57 describes the pull_request_target + head checkout anti-pattern as the finding to look for."
+    expires: 2027-05-02
+
+  - rule_id: ACTIVE_REMOTE_ACQUIRE_EXECUTE
+    skills: ["ci-triage", "async-ui-races", "phantom-dependency-audit", "dependency-resolution-conflict"]
+    paths: ["SKILL.md"]
+    reason: >-
+      Each flagged line explains why npx/npm/pnpm/go mod are NOT pre-approved or not used (they can download and run
+      code); defensive guidance.
+    expires: 2027-05-02
+
+  - rule_id: PIPELINE_TAINT_FLOW
+    skills: ["pipeline-hardening", "image-hardening"]
+    paths: ["SKILL.md"]
+    reason: >-
+      `curl ... | bash` appears only as the named anti-pattern ('is a finding on its own' / 'inside a RUN' pitfall),
+      not as a command to run.
+    expires: 2027-05-02
+
+  # Prompt-injection vocabulary quoted as an example of what to detect
+  - rule_id: PROMPT_INJECTION_CONCEALMENT
+    skills: ["mcp-server-design"]
+    paths: ["references/tool-design.md"]
+    reason: >-
+      Line 91 quotes 'do not tell the user' as the shape of a poisoned MCP tool description that clients should
+      reject.
+    expires: 2027-05-02
+
+  # Generic YARA matches on ordinary text
+  - rule_id: YARA_jailbreak_generic
+    skills: ["data-transfer-forensics"]
+    paths: ["references/flow-log-queries.md"]
+    reason: >-
+      Matches on the word 'example' in an S3 ARN, a jq select() and prose about zero-row queries; no jailbreak
+      content.
+    expires: 2027-05-02
+
+  - rule_id: ACTIVE_OS_PERSISTENCE_DIRECTIVE
+    skills: ["dns-resolution-debugging"]
+    paths: ["SKILL.md"]
+    reason: >-
+      Line 9 says the DNS fix must 'survive a reconnect or reboot' (configure the network manager, not resolv.conf);
+      no startup or scheduler persistence.
+    expires: 2027-05-02
+
+  # Manifest semantics the scanner reads differently from Claude Code
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["ci-triage"]
+    paths: ["SKILL.md"]
+    reason: >-
+      allowed-tools pre-approves Read/Grep/Glob only by design; the gh/git/bisect commands still run, each behind a
+      user permission prompt. Withholding Bash is the safer posture, not a mismatch.
+    expires: 2027-05-02
