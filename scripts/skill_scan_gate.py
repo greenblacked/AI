@@ -28,6 +28,16 @@ scan that found nothing. An accepted entry that no longer matches anything in a
 skill that was scanned is reported as a notice, not a failure, so the list can be pruned
 without a stale entry blocking an unrelated change.
 
+A scan SkillSpector cut short on one of its wall-clock budgets is incomplete, not a
+finding. The scanner records that as `runtime_limit`, on the AE1 coverage finding it
+raises for each file it stopped reading and on the invocation's notifications, and a
+stalled runner trips it on a skill that has not changed. Its results are never matched
+against the accepted list: a reviewed AE1 is about the file's content, and a scan that
+stopped early may have missed a real finding. With `--incomplete-out`, such a skill is
+written to that file and the gate exits 3 so the job can rescan it on its own, unless
+something else failed; without it, which is the job's final pass, it fails as
+incomplete.
+
 Standard library only, like the checks it sits beside. Everything printed that came out
 of a SARIF report is text a pull request controls, so it is escaped before it can reach
 the runner as a workflow command.
@@ -58,6 +68,11 @@ ENTRY_FIELDS = ("rule_id", "path", "match", "class", "reason")
 SKILL_DIR_RE = re.compile(r"plugins/[A-Za-z0-9][A-Za-z0-9._-]*/skills/[A-Za-z0-9][A-Za-z0-9._-]*")
 OK_EXIT_CODES = {0, 1}
 MATCH_LIMIT = 200
+# SkillSpector 2.13.1's reason code for a time budget running out. Every other reason
+# (`static_parse_limit`, `obfuscated_instruction_text`, ...) comes from the content.
+RUNTIME_LIMIT = "runtime_limit"
+# The exit code that asks the job to rescan the skills in --incomplete-out.
+RESCAN = 3
 
 
 def normalise(text: str) -> str:
@@ -176,6 +191,37 @@ class IncompleteScanError(ValueError):
     """The scanner ran, but said it never looked at some of the skill's files."""
 
 
+class RuntimeLimitError(IncompleteScanError):
+    """The scanner ran out of time, so the report says nothing about the skill."""
+
+
+def ran_out_of_time(run: dict) -> bool:
+    """Whether a run records a time budget cutting its inspection short.
+
+    Read from each result's `properties.evidence.reasons[].reason_code`, where AE1 says
+    why a file was only partly inspected, and from each invocation's
+    `toolExecutionNotifications[].properties.reasonCode`, which also records a budget that
+    ran out without raising a finding. Anything of another shape is skipped here; the
+    stricter reading that follows rejects it.
+    """
+    for result in run.get("results") or []:
+        props = result.get("properties") if isinstance(result, dict) else None
+        evidence = props.get("evidence") if isinstance(props, dict) else None
+        reasons = evidence.get("reasons") if isinstance(evidence, dict) else None
+        for reason in reasons if isinstance(reasons, list) else []:
+            if isinstance(reason, dict) and reason.get("reason_code") == RUNTIME_LIMIT:
+                return True
+    for invocation in run.get("invocations") or []:
+        notes = (
+            invocation.get("toolExecutionNotifications") if isinstance(invocation, dict) else None
+        )
+        for note in notes if isinstance(notes, list) else []:
+            props = note.get("properties") if isinstance(note, dict) else None
+            if isinstance(props, dict) and props.get("reasonCode") == RUNTIME_LIMIT:
+                return True
+    return False
+
+
 def check_completeness(invocation: dict) -> None:
     """Raise when the invocation reports a file it did not inspect at all.
 
@@ -213,7 +259,11 @@ def findings_in(skill: str, sarif_path: Path) -> list[tuple[tuple[str, str, str]
                 continue
             if invocation.get("executionSuccessful") is False:
                 raise ValueError("the scanner reported an unsuccessful execution")
-            check_completeness(invocation)
+        if ran_out_of_time(run):
+            raise RuntimeLimitError("SkillSpector ran out of time")
+        for invocation in run.get("invocations") or []:
+            if isinstance(invocation, dict):
+                check_completeness(invocation)
         for result in run.get("results", []):
             if not isinstance(result, dict):
                 raise ValueError("a result is not an object")
@@ -262,7 +312,9 @@ def exit_code(rc_path: Path) -> int | None:
         return None
 
 
-def gate(manifest: Path, results: Path, accepted_path: Path) -> int:
+def gate(
+    manifest: Path, results: Path, accepted_path: Path, incomplete_out: Path | None = None
+) -> int:
     failures = 0
     skills, problems = read_manifest(manifest)
     accepted, accepted_problems = read_accepted(accepted_path)
@@ -284,6 +336,8 @@ def gate(manifest: Path, results: Path, accepted_path: Path) -> int:
         failures += 1
 
     seen: set[tuple[str, str, str]] = set()
+    judged: list[str] = []
+    rescan: list[str] = []
     new = 0
     for skill in skills:
         name = stem(skill)
@@ -300,6 +354,27 @@ def gate(manifest: Path, results: Path, accepted_path: Path) -> int:
             continue
         try:
             found = findings_in(skill, results / f"{name}.sarif")
+        except RuntimeLimitError:
+            if incomplete_out is not None:
+                annotate(
+                    "notice",
+                    f"SkillSpector ran out of time scanning {skill}; its results are set "
+                    f"aside, and it is rescanned on its own unless something else failed",
+                    file=f"{skill}/SKILL.md",
+                    title="SkillSpector scan incomplete",
+                )
+                rescan.append(skill)
+                continue
+            annotate(
+                "error",
+                f"SkillSpector ran out of time scanning {skill}, so neither a clean result "
+                f"nor a coverage finding there says anything about the skill; re-run the "
+                f"job, and see {name}.sarif in the artifact",
+                file=f"{skill}/SKILL.md",
+                title="SkillSpector scan incomplete",
+            )
+            failures += 1
+            continue
         except IncompleteScanError as err:
             annotate(
                 "error",
@@ -319,6 +394,7 @@ def gate(manifest: Path, results: Path, accepted_path: Path) -> int:
             )
             failures += 1
             continue
+        judged.append(skill)
         reported: set[tuple[str, str, str]] = set()
         for key, line, severity in found:
             seen.add(key)
@@ -336,7 +412,8 @@ def gate(manifest: Path, results: Path, accepted_path: Path) -> int:
             )
             new += 1
 
-    scanned = tuple(skill + "/" for skill in skills)
+    # Only a skill whose report was read can show that an entry no longer matches.
+    scanned = tuple(skill + "/" for skill in judged)
     stale = sorted(key for key in accepted if key[1].startswith(scanned) and key not in seen)
     for rule, path, text in stale:
         annotate(
@@ -346,14 +423,29 @@ def gate(manifest: Path, results: Path, accepted_path: Path) -> int:
             title="Stale SkillSpector entry",
         )
 
+    if incomplete_out is not None:
+        # Written even when empty, so a list left from an earlier run is never rescanned.
+        try:
+            incomplete_out.write_text("".join(f"{skill}\n" for skill in rescan), encoding="utf-8")
+        except OSError as err:
+            annotate(
+                "error",
+                f"cannot write the rescan list {incomplete_out}: {err.strerror}",
+                title="SkillSpector gate",
+            )
+            failures += 1
+
     print(
         f"skillspector gate: {len(skills)} skill(s) scanned, {len(seen)} high or critical "
         f"key(s) seen, {new} new, {len(stale)} stale accepted entr"
-        f"{'y' if len(stale) == 1 else 'ies'}, {failures} other failure(s)"
+        f"{'y' if len(stale) == 1 else 'ies'}, {failures} other failure(s), "
+        f"{len(rescan)} to rescan"
     )
     if not skills:
         annotate("notice", "no skill to scan", title="SkillSpector gate")
-    return 1 if failures or new else 0
+    if failures or new:
+        return 1
+    return RESCAN if rescan else 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -373,8 +465,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--accepted", type=Path, required=True, help="the reviewed list of accepted findings"
     )
+    parser.add_argument(
+        "--incomplete-out",
+        type=Path,
+        help="write each skill whose scan ran out of time here and exit 3 rather than "
+        "failing it; leave out on the final pass, which fails such a skill",
+    )
     args = parser.parse_args(argv)
-    return gate(args.manifest, args.results, args.accepted)
+    return gate(args.manifest, args.results, args.accepted, args.incomplete_out)
 
 
 if __name__ == "__main__":

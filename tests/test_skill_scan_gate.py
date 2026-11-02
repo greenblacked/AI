@@ -371,3 +371,136 @@ def test_an_uninspected_count_that_is_not_a_count_fails(tmp_path, capsys):
     }
     assert gate.main(lay_out(tmp_path, reports)) == 1
     assert "2 other failure(s)" in capsys.readouterr().out
+
+
+# SkillSpector's AE1 is a coverage finding: a referenced file whose inspection ended
+# `partial`. The reason sits in `properties.evidence.reasons[].reason_code`, and the same
+# ledger outcome is echoed in the invocation's `toolExecutionNotifications`. These shapes
+# are trimmed from real 2.13.1 reports: `runtime_limit` is a wall-clock budget running
+# out, which depends on the runner rather than the skill; `static_parse_limit` and
+# `obfuscated_instruction_text` are the content itself, the kind the accepted list holds.
+def coverage(target="references/guide.md", reasons=("runtime_limit",)):
+    finding = result(rule="AE1", line=21, finding=f"{target} (partial)")
+    finding["message"] = {"text": "Referenced artifact was not completely inspected"}
+    finding["properties"]["evidence"] = {
+        "target_path": target,
+        "target_disposition": "partial",
+        "reasons": [{"reason_code": code, "phase": "artifact"} for code in reasons],
+    }
+    return finding
+
+
+def coverage_entry(target="references/guide.md"):
+    return entry(
+        rule="AE1",
+        match=f"{target} (partial)",
+        cls="FP-scanner-limitation",
+        reason="The file is long; the parser stops before its end.",
+    )
+
+
+def with_notification(report, reason_code, phase="artifact"):
+    invocation = report["runs"][0]["invocations"][0]
+    invocation.setdefault("toolExecutionNotifications", []).append(
+        {
+            "message": {"text": "Inspection reached its configured runtime limit."},
+            "level": "warning",
+            "properties": {"outcome": "partial", "phase": phase, "reasonCode": reason_code},
+        }
+    )
+    return report
+
+
+def first_pass(tmp_path, reports, entries=()):
+    """The job's first gate run: incomplete skills go to a file instead of failing."""
+    out = tmp_path / "rescan.txt"
+    return [*lay_out(tmp_path, reports, entries), "--incomplete-out", str(out)], out
+
+
+def test_a_runtime_limited_finding_is_set_aside_for_a_rescan(tmp_path, capsys):
+    # Even an accepted entry with the very same key must not let a scan that ran out of
+    # time count as reviewed: what it missed was never looked at.
+    args, out = first_pass(tmp_path, {SKILL: sarif(coverage())}, [coverage_entry()])
+    assert gate.main(args) == gate.RESCAN
+    assert out.read_text(encoding="utf-8") == f"{SKILL}\n"
+    printed = capsys.readouterr().out
+    assert f"::notice file={SKILL}/SKILL.md,title=SkillSpector scan incomplete::" in printed
+    assert "rescan" in printed
+    # The accepted entry was not consumed, and is not stale either: the skill was not judged.
+    assert "Stale" not in printed
+
+
+def test_a_runtime_limited_finding_on_the_final_pass_fails_as_incomplete(tmp_path, capsys):
+    args = lay_out(tmp_path, {SKILL: sarif(coverage())}, [coverage_entry()])
+    assert gate.main(args) == 1
+    printed = capsys.readouterr().out
+    assert f"::error file={SKILL}/SKILL.md,title=SkillSpector scan incomplete::" in printed
+    assert "ran out of time" in printed
+    assert "re-run the job" in printed
+
+
+def test_a_content_coverage_finding_still_uses_the_accepted_list(tmp_path, capsys):
+    report = with_notification(
+        sarif(coverage(reasons=("static_parse_limit",))), "static_parse_limit", "static"
+    )
+    args, out = first_pass(tmp_path, {SKILL: report}, [coverage_entry()])
+    assert gate.main(args) == 0
+    assert out.read_text(encoding="utf-8") == ""
+
+
+def test_an_unaccepted_content_coverage_finding_is_new(tmp_path, capsys):
+    report = sarif(coverage(reasons=("obfuscated_instruction_text",)))
+    args, out = first_pass(tmp_path, {SKILL: report})
+    assert gate.main(args) == 1
+    assert "HIGH AE1 finding not in" in capsys.readouterr().out
+    assert out.read_text(encoding="utf-8") == ""
+
+
+def test_a_new_finding_elsewhere_fails_the_first_pass_despite_a_rescan(tmp_path, capsys):
+    args, out = first_pass(tmp_path, {SKILL: sarif(coverage()), OTHER: sarif(result())})
+    assert gate.main(args) == 1
+    assert out.read_text(encoding="utf-8") == f"{SKILL}\n"
+    printed = capsys.readouterr().out
+    assert f"::error file={OTHER}/SKILL.md,line=7,title=SkillSpector PE3::HIGH PE3" in printed
+    assert "1 new" in printed
+
+
+def test_a_finding_with_a_runtime_and_a_content_reason_is_incomplete(tmp_path):
+    mixed = coverage(reasons=("static_parse_limit", "runtime_limit"))
+    args, out = first_pass(tmp_path, {SKILL: sarif(mixed)}, [coverage_entry()])
+    assert gate.main(args) == gate.RESCAN
+    assert out.read_text(encoding="utf-8") == f"{SKILL}\n"
+
+
+def test_a_runtime_limit_with_no_finding_is_incomplete_too(tmp_path):
+    # A budget can run out where no AE1 follows, as SkillSpector's structured-skill pass
+    # does: the report is clean only because it stopped looking.
+    report = with_notification(sarif(), "runtime_limit", "structured_skill")
+    args, out = first_pass(tmp_path, {SKILL: report, OTHER: sarif()})
+    assert gate.main(args) == gate.RESCAN
+    assert out.read_text(encoding="utf-8") == f"{SKILL}\n"
+    final = tmp_path / "final"
+    final.mkdir()
+    assert gate.main(lay_out(final, {SKILL: report})) == 1
+
+
+def test_a_runtime_limit_takes_precedence_over_an_uninspected_count(tmp_path):
+    report = with_completeness(
+        with_notification(sarif(), "runtime_limit", "cache"), {"entirelyUninspectedFiles": 7}
+    )
+    args, _ = first_pass(tmp_path, {SKILL: report})
+    assert gate.main(args) == gate.RESCAN
+
+
+def test_a_clean_first_pass_writes_an_empty_rescan_list(tmp_path):
+    args, out = first_pass(tmp_path, {SKILL: sarif(result())}, [entry()])
+    out.write_text("stale\n", encoding="utf-8")
+    assert gate.main(args) == 0
+    assert out.read_text(encoding="utf-8") == ""
+
+
+def test_an_unwritable_rescan_list_fails(tmp_path, capsys):
+    args = lay_out(tmp_path, {SKILL: sarif(coverage())})
+    missing = tmp_path / "no-such-directory" / "rescan.txt"
+    assert gate.main([*args, "--incomplete-out", str(missing)]) == 1
+    assert "cannot write the rescan list" in capsys.readouterr().out
