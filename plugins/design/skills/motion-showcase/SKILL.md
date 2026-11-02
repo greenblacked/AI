@@ -38,6 +38,8 @@ regression on a built page (`visual-review`); checking reduced-motion support
 building the site (`website-builder`); a live demo inside a talk (`conference-talk`). Hover,
 menu and toast motion in a shipping product is interaction design, not a showcase, and so
 is any change to the design itself.
+Building the product mock or staging its scene in the first place belongs to
+`product-design`; this skill takes the finished mock from there.
 
 ## Stop conditions
 

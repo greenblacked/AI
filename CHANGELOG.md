@@ -8,6 +8,18 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- `product-design` skill in the design plugin: builds a simplified, believable rendering of the user's own product for a hero, feature card, docs page, changelog or social card, as a still or a one-action scene handed to `motion-showcase` for capture. Written from scratch; the idea of a skill for faux product UI was prompted by Benji Taylor's Stageshow.
+
+### Security
+
+- `distinctive-page-design` no longer pre-approves `Edit` or `Write`: writing the decision record and the page files now asks first. The skill reads briefs, captures and brand material it did not write, and now hands the product visual to `product-design`, which reads third-party design files and screenshots, so a planted instruction in that input could otherwise reach a pre-approved write.
+
+- The two hashed scanner installs in `.github/requirements/` are regenerated through uv's resolver with the fixed versions of the dependencies that had advisories against them, instead of the hand-edited pins of Dependabot's #362, which broke both installs. `skill-scanner.txt` (Cisco skill-scanner 2.3.1) moves certifi to 2026.10.18 (GHSA-6q48-6c7w-9gw2), filelock to 4.2.1 (GHSA-v4x8-3wr5-3wq8) and litellm to 1.100.4 (GHSA-g5ff-637f-6q2m, fixed in 1.95.0; 1.100.4 is the first release past it without GHSA-7hp6-4w63-5g45), which brings in boto3, botocore, s3transfer, jmespath, python-dateutil, six and pydantic-settings; its anyio was already at 4.14.2. `skillspector.txt` (SkillSpector f3b25697) moves certifi to 2026.10.18, urllib3 to 2.8.0 (GHSA-8988-9cw3-xx77, GHSA-vxq7-64xx-v4gw, GHSA-gh4c-6fx4-qh6g), anyio to 4.14.2 (GHSA-82r6-8w77-94w6, GHSA-5p39-cfhj-2xmp, GHSA-3w57-8xmc-8v26), langgraph-sdk to 0.4.6 (GHSA-fvww-7h3r-vfhp, GHSA-3fx2-cqw9-xr3c), and langgraph to 1.2.14, the first release that requires that sdk. No advisory was reachable from either job, which runs static analysers only and no LLM. Every newly chosen release is at least seven days old, and each file's header now records the `--upgrade-package` pins so its documented regeneration reproduces it. `.github/dependabot.yml` ignores every dependency in that directory, because a line edited into a hash-pinned file breaks the install (for `site-browser.txt`, whose playwright and pytest pins must also match `ci.yml`, as much as for the two generated scanner locks); advisories still raise alerts, and `.github/skill-scan/README.md` says how to clear one.
+
+## [0.4.1] - 2026-11-02
+
 ### Security
 
 - `security.yml` scans the shipped skills with two third-party agent-skill scanners, Cisco's cisco-ai-skill-scanner 2.3.1 and NVIDIA's SkillSpector 2.13.1, in two new jobs the `security` gate requires. Each fails only on a high or critical finding that is not in a baseline reviewed by hand: a policy of file-scoped suppressions for Cisco that expire on 2027-05-02, and for SkillSpector a list of accepted findings keyed on rule, path and matched text, judged by the new `scripts/skill_scan_gate.py` rather than by SkillSpector's own baseline, which any edit to a flagged file would reopen. The triage of the current tree found 17 Cisco and 222 SkillSpector high or critical findings; all but one were false positives or deliberate procedure, and the one real finding, the state guard in `test-order-bisect` printing environment values, was fixed in #356 so that it reports only the names of changed variables. The guard's remaining snapshot line still matches SkillSpector's E2 rule and is accepted by design. Both jobs hold `contents: read` only, install hashed wheels into virtual environments of their own (SkillSpector from a checked commit, since it is not on PyPI), run no LLM or cloud analyser, and keep their full SARIF and JSON reports as run artifacts. Cisco scans every skill on every run; SkillSpector scans the skills a pull request changes (every skill when the pull request changes the scan configuration) and every skill on other events, and the gate also fails a report that says it left a file entirely uninspected. Neither tool reads subagent or command files, and pattern scanners are one layer of review rather than proof that a skill is safe; `.github/skill-scan/README.md` sets out the triage rule and how to refresh a baseline. `docs/ci.md`'s local `ruff` pin now matches the workflow's 0.16.10.
@@ -1069,7 +1081,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/greenblacked/AI/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/greenblacked/AI/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/greenblacked/AI/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/greenblacked/AI/compare/v0.3.0...v0.3.1
