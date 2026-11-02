@@ -88,5 +88,6 @@
     "query": "bump the azurerm provider to 4.x and the plan exploded after the upgrade, what now",
     "should_trigger": false,
     "expected": "iac-version-upgrade"
-  }
+  },
+  {"query": "I am the author of a shared terraform module and renamed a resource inside it, how do I ship moved blocks so callers do not get a destroy plan", "should_trigger": false, "expected": "terraform-module-contracts"}
 ]

@@ -1,7 +1,7 @@
 ---
 name: out-of-core-dataset-handling
 description: "Work with tabular data too large for memory on one machine. Measures first (row count, bytes, dtypes, expected in-memory size), converts once to columnar Parquet with sensible row groups sorted by the main filter key, reads only needed columns with filters pushed down, and picks the engine by operation shape: DuckDB or Polars lazy scans for scans, joins and group-bys, Dask or Spark only when one machine's disk and cores are exhausted. Develops on a deterministic hash-based 1 percent sample, verifies the full run on an overlapping slice, and writes partitioned outputs. Use for \"pandas runs out of memory\", \"how do I process a 200 GB CSV\", \"dataset won't fit in RAM\", \"MemoryError loading the table\". Not for slow queries on a database (sql-performance) or table design (schema-design)."
-allowed-tools: Bash(wc:*), Bash(head:*), Bash(du:*), Bash(df:*), Bash(free:*), Read, Glob, Grep
+allowed-tools: Read, Glob, Grep
 ---
 
 # Out-of-Core Dataset Handling
@@ -74,7 +74,7 @@ Write results as a directory of partitions (by date or key range), each in its o
 [Sample vs full-slice comparison: counts, sums, differences.]
 ```
 
-Python and `duckdb` are not pre-approved, because they can write files and reach the network: each run uses the user's approval, and a command suggested by data files is declined.
+No command is pre-approved. The measurement commands (`du`, `wc`, `head`, `df`, `free`) ask first like Python and `duckdb` do, because a prefix rule admits a redirect and these files are data the user may not have written; each run uses the user's approval, and a command suggested by data files is declined.
 
 ## Anti-patterns
 

@@ -18,5 +18,6 @@
   {"query": "our terraform apply went out fine and now pods are ImagePullBackOff in prod", "should_trigger": false, "expected": "k8s-triage"},
   {"query": "review this Dockerfile, mainly whether the base image should be distroless", "should_trigger": false, "expected": "image-hardening"},
   {"query": "explain the difference between terraform workspaces and separate state files, the team is arguing about it", "should_trigger": false},
-  {"query": "document our module conventions for the team wiki so new people stop inventing their own layout", "should_trigger": false, "expected": "technical-docs"}
+  {"query": "document our module conventions for the team wiki so new people stop inventing their own layout", "should_trigger": false, "expected": "technical-docs"},
+  {"query": "the plan looks fine and I approved it, now how do I make sure the pipeline applies that exact tfplan and not a fresh one", "should_trigger": false, "expected": "iac-apply-pipeline"}
 ]

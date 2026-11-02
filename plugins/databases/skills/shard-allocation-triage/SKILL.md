@@ -20,7 +20,7 @@ Do not use for: the Kubernetes or VM platform the nodes run on, which is `k8s-tr
 
 ## Workflow
 
-Set `ES=https://host:9200` and add your authentication to every call. Steps 1 to 3 are reads; steps 4 and 5 change settings or can lose data, so each such call needs its own confirmation.
+Set `ES=https://host:9200`. Keep the credential off the command line, where it lands in shell history, the agent transcript and the hand-back: put it in a curl config file passed with `-K`, a `--netrc` entry or an environment-held header, and never quote it in the hand-back. Steps 1 to 3 are reads; steps 4 and 5 change settings or can lose data, so each such call needs its own confirmation.
 
 ### 1. Read health
 
