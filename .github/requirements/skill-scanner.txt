@@ -12,12 +12,13 @@
 #   (cd skill-scanner && uv lock --no-config --exclude-newer 2026-10-26T00:00:00Z \
 #     --upgrade-package certifi==2026.10.18 --upgrade-package filelock==4.2.1 \
 #     --upgrade-package litellm==1.100.4 --upgrade-package anyio==4.14.2)
-#   (cd skill-scanner && uv export --locked --exclude-newer 2026-10-26T00:00:00Z \
+#   (cd skill-scanner && uv export --no-config --locked --exclude-newer 2026-10-26T00:00:00Z \
 #     --no-dev --no-emit-project --format requirements-txt) > skill-scanner.txt
 #
 # Each --upgrade-package clears a security advisory against the version upstream locked:
-# certifi GHSA-6q48-6c7w-9gw2; filelock GHSA-v4x8-3wr5-3wq8 (every 3.x affected);
-# litellm GHSA-g5ff-637f-6q2m and GHSA-7hp6-4w63-5g45; anyio GHSA-82r6-8w77-94w6,
+# certifi GHSA-6q48-6c7w-9gw2; filelock GHSA-v4x8-3wr5-3wq8 and the other advisories
+# PyPI lists for 3.29.0 (every 3.x affected); litellm GHSA-g5ff-637f-6q2m, fixed in
+# 1.95.0, at 1.100.4 because 1.95.0 through 1.100.3 carry GHSA-7hp6-4w63-5g45; anyio GHSA-82r6-8w77-94w6,
 # GHSA-5p39-cfhj-2xmp and GHSA-3w57-8xmc-8v26 (upstream already locks the fixed anyio;
 # the pin keeps it there). litellm 1.100.4 adds boto3 and pydantic-settings, which uv
 # resolves with their own dependencies. --exclude-newer bounds what uv may newly choose

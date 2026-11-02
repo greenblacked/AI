@@ -16,15 +16,16 @@
 #     --upgrade-package certifi==2026.10.18 --upgrade-package urllib3==2.8.0 \
 #     --upgrade-package anyio==4.14.2 --upgrade-package langgraph==1.2.14 \
 #     --upgrade-package langgraph-sdk==0.4.6)
-#   (cd SkillSpector && uv export --locked --exclude-newer 2026-10-26T00:00:00Z \
+#   (cd SkillSpector && uv export --no-config --locked --exclude-newer 2026-10-26T00:00:00Z \
 #     --no-dev --no-emit-project --format requirements-txt) > skillspector.txt
 #
 # Each --upgrade-package clears a security advisory against the version upstream locked:
 # certifi GHSA-6q48-6c7w-9gw2; urllib3 GHSA-8988-9cw3-xx77, GHSA-vxq7-64xx-v4gw and
 # GHSA-gh4c-6fx4-qh6g; anyio GHSA-82r6-8w77-94w6, GHSA-5p39-cfhj-2xmp and
-# GHSA-3w57-8xmc-8v26; langgraph-sdk GHSA-fvww-7h3r-vfhp and GHSA-3fx2-cqw9-xr3c;
-# langgraph GHSA-3fx2-cqw9-xr3c. langgraph stays on 1.2.14, the newest release that
-# still accepts the locked langgraph-checkpoint 4.1.1 (later ones need 4.3 or newer).
+# GHSA-3w57-8xmc-8v26; langgraph-sdk GHSA-fvww-7h3r-vfhp and GHSA-3fx2-cqw9-xr3c.
+# langgraph moves to 1.2.14, the first release that requires the fixed langgraph-sdk
+# (>=0.4.6), and stays there as the newest that still accepts the locked
+# langgraph-checkpoint 4.1.1 (later ones need 4.3 or newer).
 # --exclude-newer bounds what uv may newly choose to releases at least seven days old
 # on the day of the run; it sits on both commands because uv records it in the lock and
 # refuses --locked when the two differ. None of these advisories is reachable from the
