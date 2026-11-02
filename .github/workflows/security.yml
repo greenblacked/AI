@@ -373,15 +373,21 @@ jobs:
             --format sarif --output "$out/skill-scanner.sarif" \
             --format json --output-json "$out/skill-scanner.json" \
             --fail-on-severity high >"$out/skill-scanner.log" 2>&1 || rc=$?
-          # Indented, so no listed path or rule can start a workflow command.
+          # Every field comes from the report verbatim, so each line is made inert the
+          # way scripts/skill_scan_gate.py makes its text inert: a carriage return or
+          # newline becomes a space, so a path cannot start a line of its own, `##[`
+          # becomes `## [`, and a line that would still open with `::` is broken.
           if [ -f "$out/skill-scanner.json" ]; then
             jq -r '.results[] | .skill_path as $skill | .findings[]?
               | select(.severity == "HIGH" or .severity == "CRITICAL")
-              | "  \(.severity) \(.rule_id) \($skill)/\(.file_path):\(.line_number)"' \
+              | "  \(.severity) \(.rule_id) \($skill)/\(.file_path):\(.line_number)"
+              | gsub("[\r\n]"; " ") | gsub("##\\["; "## [")
+              | sub("^(?<lead>\\s*)::"; "\(.lead): :")' \
               "$out/skill-scanner.json"
           fi
           if [ "$rc" -ne 0 ]; then
-            echo "::error title=cisco skill scan::skill-scanner exited $rc; findings above, full output in the skill-scanner artifact"
+            msg="skill-scanner exited $rc; findings above, full output in the skill-scanner artifact"
+            echo "::error title=cisco skill scan::$msg"
             exit "$rc"
           fi
       # A scan that found fewer skills than the tree holds is a scan that skipped some,
@@ -453,8 +459,11 @@ jobs:
           sys.exit(0 if found == want else f"installed {found}, pinned {want}")
           '
       # A pull request scans the skills it adds or changes; every other event scans all
-      # of them. --no-renames makes a moved skill count as added at its new path, and
-      # the base commit arrives through env:, never through an expression in the script.
+      # of them, and so does a pull request that changes the scan's own configuration
+      # (this workflow, the accepted list, the scanner's lock or the gate), since that
+      # can change the verdict on a skill the diff never touches. --no-renames makes a
+      # moved skill count as added at its new path, and the base commit arrives through
+      # env:, never through an expression in the script.
       - name: Choose the skills to scan
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -464,19 +473,30 @@ jobs:
           results="$RUNNER_TEMP/skillspector"
           mkdir -p "$results"
           manifest="$results/skills.txt"
+          scan_all=1
           if [ "$EVENT_NAME" = pull_request ]; then
             if ! [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
               echo "::error title=skill scan::no usable base commit for this pull request"
               exit 1
             fi
             base=$(git merge-base "$BASE_SHA" HEAD)
-            git diff --no-renames -z --name-only "$base" HEAD -- plugins |
-              while IFS= read -r -d '' path; do
-                if [[ "$path" =~ ^(plugins/[^/]+/skills/[^/]+)/ ]] && [ -f "${BASH_REMATCH[1]}/SKILL.md" ]; then
-                  printf '%s\n' "${BASH_REMATCH[1]}"
-                fi
-              done | sort -u > "$manifest"
-          else
+            # Counted rather than listed, so no file name a pull request chose reaches the log.
+            config=$(git diff --no-renames -z --name-only "$base" HEAD -- \
+              .github/workflows/security.yml .github/skill-scan \
+              .github/requirements/skillspector.txt scripts/skill_scan_gate.py | tr -cd '\0' | wc -c)
+            if [ "$config" -gt 0 ]; then
+              echo "this pull request changes the skill scan configuration, so every skill is scanned"
+            else
+              scan_all=0
+              git diff --no-renames -z --name-only "$base" HEAD -- plugins |
+                while IFS= read -r -d '' path; do
+                  if [[ "$path" =~ ^(plugins/[^/]+/skills/[^/]+)/ ]] && [ -f "${BASH_REMATCH[1]}/SKILL.md" ]; then
+                    printf '%s\n' "${BASH_REMATCH[1]}"
+                  fi
+                done | sort -u > "$manifest"
+            fi
+          fi
+          if [ "$scan_all" -eq 1 ]; then
             find plugins -mindepth 4 -maxdepth 4 -path 'plugins/*/skills/*/SKILL.md' -type f -print0 |
               while IFS= read -r -d '' path; do
                 printf '%s\n' "${path%/SKILL.md}"
