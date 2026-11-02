@@ -839,3 +839,115 @@ def test_the_browser_lock_hashes_every_package_and_matches_the_ci_pins():
         expected = re.search(rf"^  {pin}: '([^']+)'$", ci, re.MULTILINE).group(1)
         assert names[package] == expected, (package, names[package], expected)
     assert "--require-hashes -r .github/requirements/site-browser.txt" in ci
+
+
+SECURITY_WORKFLOW = REPO / ".github" / "workflows" / "security.yml"
+SKILL_SCAN_JOBS = {
+    "skill-scanner": ".github/requirements/skill-scanner.txt",
+    "skillspector": ".github/requirements/skillspector.txt",
+}
+
+
+def security_job(name: str) -> str:
+    text = SECURITY_WORKFLOW.read_text(encoding="utf-8")
+    jobs, _ = workflows.jobs_in(text)
+    return workflows.job_body(text, jobs, next(job for job in jobs if job.name == name))
+
+
+def run_blocks(body: str) -> list[str]:
+    """The literal text of every `run: |` block in one job body."""
+    blocks = []
+    for match in re.finditer(r"^( +)run: \|\n((?:\1  .*\n|\n)+)", body, re.MULTILINE):
+        blocks.append(match.group(2))
+    return blocks
+
+
+def locked(path: str) -> dict[str, str]:
+    # An entry may carry an environment marker, `name==1.0 ; sys_platform == 'win32'`.
+    text = (REPO / path).read_text(encoding="utf-8")
+    entries = re.findall(
+        r"^([A-Za-z0-9_.-]+)==([^\s\\;]+)(?: ;[^\\\n]*)? \\\n"
+        r"((?:    --hash=sha256:[0-9a-f]{64}(?: \\\n|\n))+)",
+        text,
+        re.MULTILINE,
+    )
+    assert entries
+    assert len(entries) == len(re.findall(r"^[A-Za-z0-9_.-]+==", text, re.MULTILINE))
+    return {name.lower(): version for name, version, _ in entries}
+
+
+@pytest.mark.parametrize(("job", "requirements"), sorted(SKILL_SCAN_JOBS.items()))
+def test_each_skill_scanner_installs_only_hashed_wheels(job, requirements):
+    # Every requirement needs an exact version and a digest, or --require-hashes refuses
+    # the whole file; --only-binary keeps a missing wheel from turning into a source build.
+    locked(requirements)
+    body = security_job(job)
+    assert f"--require-hashes --only-binary=:all: -r {requirements}" in body
+    assert f"hashFiles('{requirements}')" in body
+
+
+def test_the_cisco_pin_is_the_version_its_lock_installs():
+    text = SECURITY_WORKFLOW.read_text(encoding="utf-8")
+    pinned = re.search(r"^  SKILL_SCANNER_VERSION: '([^']+)'$", text, re.MULTILINE).group(1)
+    assert locked(SKILL_SCAN_JOBS["skill-scanner"])["cisco-ai-skill-scanner"] == pinned
+
+
+def test_skillspector_is_installed_from_the_checked_commit_not_a_tarball():
+    text = SECURITY_WORKFLOW.read_text(encoding="utf-8")
+    commit = re.search(r"^  SKILLSPECTOR_COMMIT: '([0-9a-f]{40})'$", text, re.MULTILINE)
+    assert commit
+    body = security_job("skillspector")
+    assert 'test "$(git -C "$src" rev-parse HEAD)" = "$SKILLSPECTOR_COMMIT"' in body
+    assert "--no-deps --no-build-isolation" in body
+    assert "/archive/" not in body and "tar.gz" not in body and "codeload" not in body
+    # The build backend is part of the hashed lock, since the build runs without isolation.
+    assert "hatchling" in locked(SKILL_SCAN_JOBS["skillspector"])
+    assert commit.group(1) in (REPO / SKILL_SCAN_JOBS["skillspector"]).read_text()
+
+
+@pytest.mark.parametrize("job", sorted(SKILL_SCAN_JOBS))
+def test_each_skill_scanner_reads_the_tree_and_nothing_more(job):
+    body = security_job(job)
+    grant = re.search(r"^    permissions:\n((?:      .*\n)+)", body, re.MULTILINE).group(1)
+    assert grant.strip() == "contents: read"
+    assert "secrets." not in body
+    assert "upload-sarif" not in body
+    for block in run_blocks(body):
+        assert block.lstrip().startswith("set -Eeuo pipefail")
+        assert "${{" not in block
+
+
+@pytest.mark.parametrize("job", sorted(SKILL_SCAN_JOBS))
+def test_each_skill_scanner_is_in_the_security_aggregate(job):
+    aggregate = security_job("security")
+    assert re.search(rf"^      - {re.escape(job)}$", aggregate, re.MULTILINE)
+    assert re.search(rf"check_job_results\.py \\\n\s+.*\b{re.escape(job)}\b", aggregate)
+
+
+def test_each_skill_scanner_keeps_its_reports_when_it_fails():
+    for job in SKILL_SCAN_JOBS:
+        body = security_job(job)
+        assert "actions/upload-artifact@" in body
+        upload = body[body.index("actions/upload-artifact@") :]
+        assert "if: always()" in upload
+
+
+def test_no_llm_or_cloud_analyser_is_switched_on():
+    for job in SKILL_SCAN_JOBS:
+        body = security_job(job)
+        for flag in (
+            "--use-llm",
+            "--use-virustotal",
+            "--use-aidefense",
+            "--use-osv",
+            "--enable-meta",
+            "--adjudicate",
+        ):
+            assert flag not in "".join(run_blocks(body)), (job, flag)
+    assert "--no-llm" in security_job("skillspector")
+
+
+def test_the_skillspector_base_commit_arrives_through_env():
+    body = security_job("skillspector")
+    assert "BASE_SHA: ${{ github.event.pull_request.base.sha }}" in body
+    assert "--no-renames -z --name-only" in body
