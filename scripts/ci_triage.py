@@ -157,6 +157,16 @@ CAUSES: dict[str, tuple[str, str]] = {
         "no local reproduction - read the alert under the repository's Security tab",
         "security.yml",
     ),
+    "cisco skill scan": (
+        "skill-scanner scan-all plugins --recursive --policy .github/skill-scan/cisco-policy.yaml "
+        "--fail-on-severity high (docs/ci.md has the install)",
+        "security.yml",
+    ),
+    "skillspector skill scan": (
+        "skillspector scan <skill> --no-llm per skill, then scripts/skill_scan_gate.py "
+        "(docs/ci.md has the steps)",
+        "security.yml",
+    ),
     "permissions audit": (
         "review docs/ci.md's four shell invariants by eye; no script reproduces this locally yet",
         "security.yml",
