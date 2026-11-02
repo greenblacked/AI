@@ -63,26 +63,42 @@ pauses when out of view.
 
 ## The time hook
 
-Script every animated value as a function of one time parameter, in milliseconds from the
-start of the scene. No `setTimeout`, no `setInterval`, no reading of the wall clock and no
-random numbers, because the capture steps that parameter frame by frame and must get the
-same frame for the same time on every run.
+Script every animated value inside one pure function, `render(t)`, where `t` is
+milliseconds from the start of the scene. Nothing inside `render` reads a clock: no
+`Date.now()`, no `performance.now()`, no `setTimeout`, no `setInterval` and no random
+numbers, because the capture steps time frame by frame and must get the same frame for the
+same time on every run.
 
-Expose three things on the page for the handoff:
+Expose, on the page, the hooks `motion-showcase`'s capture mode calls, in the shape its
+tested capture page uses:
 
-- A function that sets the scene to a given time and renders it synchronously.
+- `window.__start`, which records the start time and calls `render(0)`.
+- `window.__tick`, which reads `Date.now()`, subtracts the start time, calls `render` with
+  the result and returns it. This is the only clock read in the scene: under the
+  recorder's fake clock `Date.now()` is the time the recorder controls, which is what ties
+  each frame to its step.
 - The scene's total duration in milliseconds.
 - A still mode that renders the end state with no cursor, for the reduced-motion version
   and for the comparison `motion-showcase` makes before recording.
 
-Check the hook yourself before handing off: setting the same time twice gives the same
-render, and setting the times out of order gives the same frames as in order.
+Outside capture mode, drive `render` from animation-frame timestamps for review in the
+browser, so the same function serves both.
+
+Check the function yourself before handing off: calling `render` with the same time twice
+gives the same result, and calling it with times out of order gives the same frames as in
+order.
 
 ## Handing off to motion-showcase
 
 Pass, in one note: the claim sentence, the action sentence, the beat table with the final
 timings, the stage size and each deliverable size, whether it should loop, the still for
-reduced motion, and the name of the time hook. `motion-showcase` owns everything from
-there: the capture clock, the loop seam, overflow checks and encoding. Do not record the
-screen in real time to save the step; a real-time recording cannot be repeated or checked
-against itself.
+reduced motion, and the names of the hooks: `render`, `window.__start` and
+`window.__tick`. `motion-showcase` owns everything from there: the capture clock, the loop
+seam, overflow checks and encoding. Do not record the screen in real time to save the
+step; a real-time recording cannot be repeated or checked against itself.
+
+A scene that loops on a page for more than five seconds beside other content needs a
+control that lets the user pause, stop or hide it (WCAG 2.2.2, Level A). A GIF has no
+such control, so a looping embed ships as video with controls or as a still. Honouring
+`prefers-reduced-motion` is good practice, the technique for 2.3.3 at Level AAA, but it
+does not satisfy 2.2.2.

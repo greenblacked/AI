@@ -165,9 +165,10 @@ or a highlight ring, and only when the claim would not read without it.
 
 Read [references/demo-scenes.md](references/demo-scenes.md). A scene shows one causal
 action: a trigger and its visible effect, and nothing else moves except ambient state the
-product genuinely has. Script it so every value is a function of one time parameter, with
-no wall-clock timers and no randomness, because the capture in `motion-showcase` steps that
-parameter frame by frame. Under the reduced-motion preference, show the end state as a
+product genuinely has. Script every value in a pure `render(t)` that reads no clock and no
+randomness, and expose the `window.__start` and `window.__tick` hooks `motion-showcase`'s
+capture mode calls, whose tick holds the only clock read, so the recorder steps time frame
+by frame. Under the reduced-motion preference, show the end state as a
 still, since the result carries the claim.
 
 When the scene is approved in the browser, hand it to `motion-showcase` for capture, loop

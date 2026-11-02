@@ -23,6 +23,7 @@ plausible, so the product looks used.
 | Avatars | Initials on the product's avatar colours, or illustrations the user owns | Photographs of real people, unless licensed for this use with the person's consent |
 | Money | The product's real currency formatting for one locale, with amounts that are not round | Mixed currencies, figures that look like a real customer's invoice |
 | Dates and times | A window close to the present with weekday names that match the dates | A visible year when the visual should last; dates in an order the product would never show |
+| Payment cards, bank accounts and national identifiers | Only the product's own masked form, such as the last four digits | A full number of any kind, and the test card numbers a payment brand publishes, in a public visual |
 | IDs and keys | The product's real format with obviously invented contents | Anything copied from a real account, and anything shaped like a live secret, even a revoked one |
 
 ## Writing the data set
