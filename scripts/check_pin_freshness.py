@@ -89,8 +89,12 @@ SOURCES = {
     "PYTEST_XDIST_VERSION": ("pypi", "pytest-xdist"),
     "PYTEST_COV_VERSION": ("pypi", "pytest-cov"),
     "PLAYWRIGHT_VERSION": ("pypi", "playwright"),
+    "SKILL_SCANNER_VERSION": ("pypi", "cisco-ai-skill-scanner"),
     "GITLEAKS_VERSION": ("github", "gitleaks/gitleaks"),
     "ACTIONLINT_VERSION": ("github", "rhysd/actionlint"),
+    # Read from releases/latest like the two above. SKILLSPECTOR_COMMIT beside it is not
+    # a `*_VERSION`, so it is not looked up; it moves with the version, by hand.
+    "SKILLSPECTOR_VERSION": ("github", "NVIDIA/SkillSpector"),
     "CLAUDE_CODE_VERSION": ("npm", "@anthropic-ai/claude-code"),
     "CODEX_VERSION": ("npm", "@openai/codex"),
     "GEMINI_CLI_VERSION": ("npm", "@google/gemini-cli"),
