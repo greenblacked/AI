@@ -364,11 +364,26 @@ jobs:
           set -Eeuo pipefail
           out="$RUNNER_TEMP/skill-scanner"
           mkdir -p "$out"
+          # The scanner echoes skill text, which a pull request controls, so its output
+          # goes to the artifact rather than the job log, where a line starting with
+          # `::` would be read as a workflow command.
+          rc=0
           "$RUNNER_TEMP/skill-scanner-venv/bin/skill-scanner" scan-all plugins --recursive \
             --policy .github/skill-scan/cisco-policy.yaml \
             --format sarif --output "$out/skill-scanner.sarif" \
             --format json --output-json "$out/skill-scanner.json" \
-            --fail-on-severity high
+            --fail-on-severity high >"$out/skill-scanner.log" 2>&1 || rc=$?
+          # Indented, so no listed path or rule can start a workflow command.
+          if [ -f "$out/skill-scanner.json" ]; then
+            jq -r '.results[] | .skill_path as $skill | .findings[]?
+              | select(.severity == "HIGH" or .severity == "CRITICAL")
+              | "  \(.severity) \(.rule_id) \($skill)/\(.file_path):\(.line_number)"' \
+              "$out/skill-scanner.json"
+          fi
+          if [ "$rc" -ne 0 ]; then
+            echo "::error title=cisco skill scan::skill-scanner exited $rc; findings above, full output in the skill-scanner artifact"
+            exit "$rc"
+          fi
       # A scan that found fewer skills than the tree holds is a scan that skipped some,
       # and would otherwise read as a clean one.
       - name: Check every skill was scanned
@@ -376,6 +391,10 @@ jobs:
           set -Eeuo pipefail
           expected=$(find plugins -mindepth 4 -maxdepth 4 -path 'plugins/*/skills/*/SKILL.md' -type f | wc -l)
           scanned=$(jq -er '.summary.total_skills_scanned' "$RUNNER_TEMP/skill-scanner/skill-scanner.json")
+          if ! [[ "$scanned" =~ ^[0-9]+$ ]]; then
+            echo "::error title=skill scan incomplete::the report gave no skill count"
+            exit 1
+          fi
           if [ "$scanned" -ne "$expected" ]; then
             echo "::error title=skill scan incomplete::scanned $scanned skill(s) of $expected"
             exit 1
