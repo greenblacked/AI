@@ -29,3 +29,19 @@ updates:
         update-types:
           - minor
           - patch
+  # The hashed requirements under .github/requirements/ are regenerated, never edited:
+  # the two scanner files from upstream lock files, site-browser.txt as a whole with its
+  # digests, each as its own header describes. A bump edited into one line breaks the
+  # --require-hashes install whenever the new version needs a dependency the file does
+  # not carry, and the next regeneration reverts it anyway. Ignoring every dependency is
+  # what stops both version and security update pull requests here;
+  # `open-pull-requests-limit: 0` alone would still let security updates through. An
+  # advisory against one of these packages still raises an alert in the Security tab,
+  # and is cleared by regenerating the file as its header shows, with an
+  # --upgrade-package pin for a scanner file, not by bumping the line.
+  - package-ecosystem: pip
+    directory: /.github/requirements
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: '*'

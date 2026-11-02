@@ -68,11 +68,22 @@ a bump is a re-review, not a version edit:
 
 1. Regenerate the matching file in `.github/requirements/` as its header describes, and
    move `SKILL_SCANNER_VERSION`, or `SKILLSPECTOR_VERSION` together with
-   `SKILLSPECTOR_COMMIT`, in `security.yml`.
+   `SKILLSPECTOR_COMMIT`, in `security.yml`. The header's `uv lock` step carries an
+   `--upgrade-package` pin for each dependency moved past upstream's lock to clear an
+   advisory: drop a pin the new upstream lock already meets or passes, keep the rest, and
+   set `--exclude-newer` to seven days before the run.
 2. Run the new version over the whole tree (`docs/ci.md` has the commands) and triage every
    high and critical finding under the rule above.
 3. Rewrite the accepted list or policy from that triage rather than carrying old entries
    forward, and prune what no longer matches.
+
+A security advisory against a dependency between scanner bumps is fixed the way step 1
+regenerates the file: add an `--upgrade-package` pin at the fixed version to the header,
+with the advisory id, and regenerate. Never edit a version line by hand. A new version can need a dependency the
+file does not carry, which the `--require-hashes` install refuses, and the next
+regeneration would revert it. `.github/dependabot.yml` ignores every dependency in that
+directory for this reason, so an advisory shows up as an alert in the Security tab rather
+than as a pull request.
 
 The Cisco suppressions all expire on 2027-05-02. When they lapse, the findings they cover
 fail the job again; re-read each one against the flagged lines and set a new date only for
