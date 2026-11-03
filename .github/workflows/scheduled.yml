@@ -67,3 +67,33 @@ jobs:
           # Unauthenticated api.github.com allows sixty requests an hour per IP, which
           # a shared runner exhausts without this repository doing anything wrong.
           GH_TOKEN: ${{ github.token }}
+
+  dependency-advisories:
+    name: dependency advisories
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: '3.13'
+      - name: Look the hashed requirement locks up in OSV
+        # `.github/dependabot.yml` ignores `.github/requirements/`, because a version
+        # edited into a hash-pinned lock breaks the install (#362), so nothing else
+        # watches those locks for new advisories. This asks api.osv.dev about every
+        # pinned package and version, markers included.
+        #
+        # A red run is the intended signal: regenerate the lock as its header describes,
+        # or add a reviewed entry with a reason and an expiry to
+        # `.github/requirements/advisories-accepted.json`. It fails closed, so an OSV
+        # outage is a red run too rather than a silent pass; that is why it lives here
+        # and not in ci.yml, where an outage would block merges.
+        #
+        # No token and no secret: the only outbound host is api.osv.dev.
+        run: |
+          set -Eeuo pipefail
+          python scripts/check_lock_advisories.py . | tee -a "$GITHUB_STEP_SUMMARY"
