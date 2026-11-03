@@ -1063,3 +1063,28 @@ when the skill ships that file; review holds the rest from this entry.
 **First caught:** #328, the automated security reviewer, on `source-grounded-prompts`;
 the same pattern was then fixed in `work-to-note`, `family-history-research` and
 `ci-triage`, and before merge in `distinctive-page-design`.
+
+### A scanner coverage finding keyed without its reason flips a gate on unchanged content
+
+**Class.** A gate keys a scanner's "this was not fully inspected" finding the way it keys
+a content finding, without reading why inspection stopped. A coverage finding caused by
+the runner, such as a time budget running out, then reads as a new finding in content
+nobody changed. Accepting it would hide whatever the shortened scan missed.
+
+**How it shows up.** SkillSpector 2.13.1 raises AE1, `<file> (partial)`, for any
+referenced file whose inspection ended partial. `scripts/skill_scan_gate.py` keyed it on
+rule, path and matched text alone, so a scan cut short by a wall-clock budget
+(`evidence.reasons[].reason_code == "runtime_limit"`) produced five new HIGH findings in
+an unchanged `website-builder`, and a re-run on the same commit passed. The accepted AE1
+entries carry content reasons, `static_parse_limit` or `obfuscated_instruction_text`.
+
+**The check that catches it.** The gate sets aside any report that records
+`runtime_limit` in a result's evidence or an invocation's notifications, and never matches
+it against the accepted list. The job rescans such a skill on its own, and the final pass
+fails it as incomplete. `tests/test_skill_scan_gate.py` covers a runtime-limited,
+content-driven and mixed AE1, and a new finding on the first pass, which fails without a
+rescan.
+`tests/test_skill_scan_workflow.py` runs the real gate step with a rescan that passes, one
+that times out again, and a rescan list the step must refuse.
+
+**First caught:** #365, a live run of the dev → stage promotion.

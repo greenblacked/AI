@@ -1,0 +1,9 @@
+{
+  "kind": "defect",
+  "intent": "Simplify the SkillSpector gate by dropping its separate time-budget check.",
+  "lesson": "A scanner coverage finding keyed without its reason flips a gate on unchanged content",
+  "must_mention": [
+    "runtime_limit|ran out of time|time budget",
+    "accepted|incomplete|rescan"
+  ]
+}

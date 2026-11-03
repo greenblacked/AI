@@ -553,14 +553,42 @@ jobs:
           done < "$results/skills.txt"
           wait
       # Fails on any high or critical finding not in the reviewed list, on a scan that
-      # errored or left no report, and on a reviewed entry with no reason.
+      # errored or left no report, and on a reviewed entry with no reason. A scan that
+      # ran out of one of SkillSpector's time budgets is neither clean nor a finding:
+      # the first pass lists it and exits 3, each listed skill is rescanned on its own,
+      # one at a time, and the final pass fails one that runs out of time again.
       - name: Gate on new high and critical findings
         run: |
           set -Eeuo pipefail
-          python3 scripts/skill_scan_gate.py \
-            --manifest "$RUNNER_TEMP/skillspector/skills.txt" \
-            --results "$RUNNER_TEMP/skillspector" \
-            --accepted .github/skill-scan/skillspector-accepted.json
+          results="$RUNNER_TEMP/skillspector"
+          run_gate() {
+            python3 scripts/skill_scan_gate.py \
+              --manifest "$results/skills.txt" \
+              --results "$results" \
+              --accepted .github/skill-scan/skillspector-accepted.json "$@"
+          }
+          first=0
+          run_gate --incomplete-out "$results/rescan.txt" || first=$?
+          if [ "$first" -ne 3 ]; then
+            exit "$first"
+          fi
+          scanner="$RUNNER_TEMP/skillspector-venv/bin/skillspector"
+          while IFS= read -r skill; do
+            # The same check the selection step makes, and the skill has to be one it chose.
+            if ! [[ "$skill" =~ ^plugins/[A-Za-z0-9][A-Za-z0-9._-]*/skills/[A-Za-z0-9][A-Za-z0-9._-]*$ ]] ||
+              ! grep -qxF -- "$skill" "$results/skills.txt"; then
+              echo "::error title=skill scan::refusing to rescan a directory with an unexpected name"
+              exit 1
+            fi
+            rest="${skill#plugins/}"
+            name="${rest%%/*}__${skill##*/}"
+            echo "rescanning $skill after SkillSpector ran out of time"
+            rc=0
+            "$scanner" scan "$skill" --no-llm --format sarif -o "$results/$name.sarif" \
+              > "$results/$name.log" 2>&1 || rc=$?
+            printf '%s\n' "$rc" > "$results/$name.rc"
+          done < "$results/rescan.txt"
+          run_gate
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         if: always()
         with:
