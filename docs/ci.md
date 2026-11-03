@@ -238,8 +238,8 @@ and how to refresh a baseline after a scanner bump.
   `<out>/map.tsv` (`<id>`, a tab, the source path, a tab, how many lines the shim adds above
   the source's own). `agents/evals/` and
   `.claude/agents/benchmarks/` are not wrapped, an agent in a folder is not an agent, and a
-  `README.md` or `readme.md` directly in an `agents/` folder is skipped, since an agent
-  needs frontmatter to load. A `README.md` or `readme.md` in a `commands/` folder is wrapped
+  `README.md` or `readme.md` directly in an `agents/` folder is skipped only while it has no
+  frontmatter, which an agent needs to load; one that opens with frontmatter fails the run. A `README.md` or `readme.md` in a `commands/` folder is wrapped
   like any command, with the id from its lowercased stem (`command--<plugin>--readme`),
   because Claude Code loads every `.md` there as a slash command even though the validator
   ignores it: the scan deliberately covers what the validator does not, so a planted one

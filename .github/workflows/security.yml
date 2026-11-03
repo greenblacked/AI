@@ -545,8 +545,8 @@ jobs:
           mkdir -p "$results"
           manifest="$results/skills.txt"
           # Agents one level deep and commands at any depth, as the validator finds them;
-          # an agents/ README.md has no frontmatter to load and is not counted; a commands/ one
-          # is loaded as a command, so it is.
+          # an agents/ README.md is not counted because the script fails the run if it opens with
+          # frontmatter; a commands/ one is loaded as a command, so it is.
           globs=(':(glob)plugins/*/agents/*.md' ':(glob)plugins/*/commands/**/*.md'
             ':(glob).claude/agents/*.md' ':(glob).claude/commands/**/*.md')
           # A link inside a skill can point outside plugins/, so editing its target would

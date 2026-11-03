@@ -24,8 +24,8 @@ only. `scripts/definition_shims.py` wraps every `*.md` directly inside
 and `.claude/commands/`, as a one-file skill, `<out>/<id>/SKILL.md`, so both scanners can
 read it; that is where the validator looks for each. `agents/evals/`,
 `.claude/agents/benchmarks/` and an agent in a folder are not wrapped, and a `README.md`
-or `readme.md` directly in an `agents/` folder is skipped, since an agent needs frontmatter
-to load. One in a `commands/` folder is wrapped like any command, with the id from its
+or `readme.md` directly in an `agents/` folder is skipped only while it has no frontmatter, which an
+agent needs to load; one that opens with frontmatter fails the run. One in a `commands/` folder is wrapped like any command, with the id from its
 lowercased stem (`command--<plugin>--readme`), because Claude Code loads every `.md` there
 as a slash command; the validator ignores it, and the scan deliberately does not, so a
 planted one cannot ship unscanned. It also writes `<out>/map.tsv`, one `<id>`, a tab, the

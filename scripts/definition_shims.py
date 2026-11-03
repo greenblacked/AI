@@ -35,8 +35,9 @@ Only `*.md` files count: directly inside `agents/`, and at any depth inside `com
 which is how the validator finds them. A README.md in `commands/` is a command to Claude
 Code, which loads every .md there, so it is wrapped even though the validator ignores it,
 with its id from the lowercased stem; one without frontmatter is given `name` and
-`description` lines so both scanners load it. A README.md in `agents/` is skipped, as an
-agent needs frontmatter to load. `agents/evals/*.json` and `.claude/agents/benchmarks/**`
+`description` lines so both scanners load it. A README.md in `agents/` is
+skipped only while it does not open with frontmatter, which an agent needs to load; one that
+does fails the run. `agents/evals/*.json` and `.claude/agents/benchmarks/**`
 sit below `agents/` and are not definitions. A file in a covered place whose name breaks
 the pattern, a symbolic link, a file that is not regular on disk, or an id used twice fails
 the run: a definition that is skipped is a definition nobody scanned.
@@ -68,10 +69,13 @@ AGENT_RE = re.compile(rf"{OWNER}/agents/(?P<stem>{PART})\.md")
 # Claude Code loads every .md in a commands/ folder as a command, a README.md too, so the
 # upper-case spelling is accepted there and the id uses the lowercased stem.
 COMMAND_RE = re.compile(rf"{OWNER}/commands/(?P<dirs>(?:{PART}/)*)(?P<stem>{PART}|README)\.md")
-# A readme in agents/ is documentation: an agent needs frontmatter to load, and has none.
+# A readme in agents/ is documentation while it has no frontmatter, which list_definitions
+# checks rather than assumes: one that opens with frontmatter is refused.
 # The validator skips a commands/ readme too; the scan deliberately does not.
 README_NAMES = frozenset({"README.md", "readme.md"})
 AGENT_LOCATION_RE = re.compile(r"(?:plugins/[^/]+|\.claude)/agents/[^/]+\.md")
+# A byte-order mark and blank space may precede the opening line and a loader still reads it.
+OPENS_FRONTMATTER_RE = re.compile(rb"(?:\xef\xbb\xbf|\s)*---")
 BASE_RE = re.compile(r"[0-9a-f]{40}")
 # The mode `git ls-files -s` gives a symbolic link.
 SYMLINK_MODE = "120000"
@@ -159,18 +163,29 @@ def tracked(repo: Path) -> dict[str, str]:
     return found
 
 
+def is_agents_readme(path: str) -> bool:
+    return bool(AGENT_LOCATION_RE.fullmatch(path)) and path.rsplit("/", 1)[-1] in README_NAMES
+
+
 def list_definitions(repo: Path) -> list[str]:
     """Every tracked subagent and command file, sorted. Raises on one that cannot be read."""
     modes = tracked(repo)
-    paths = sorted(
-        path
-        for path in modes
-        if LOCATION_RE.fullmatch(path)
-        and not (AGENT_LOCATION_RE.fullmatch(path) and path.rsplit("/", 1)[-1] in README_NAMES)
-    )
-    for path in paths:
+    located = sorted(path for path in modes if LOCATION_RE.fullmatch(path))
+    paths = []
+    for path in located:
         if modes[path] == SYMLINK_MODE:
             raise DefinitionError(f"{safe(path)} is a symbolic link; commit the file itself")
+        if is_agents_readme(path):
+            # Skipped only while it is plainly documentation: one that opens with
+            # frontmatter could load as a subagent that neither the validator nor the
+            # workflow's count would ever look at.
+            if OPENS_FRONTMATTER_RE.match(read_regular(repo, path)):
+                raise DefinitionError(
+                    f"{safe(path)} opens with frontmatter, so it could load as a subagent; "
+                    f"remove the frontmatter or rename the file to a plain agent name"
+                )
+            continue
+        paths.append(path)
     assign_ids(paths, plugin_names(repo))
     return paths
 
@@ -225,7 +240,7 @@ def shim_text(ident: str, path: str, data: bytes) -> bytes:
             f"needs exactly one, which the shim replaces with its id"
         )
     match = names[0]
-    # A CRLF file was refused above; a stray carriage return on this one line is dropped.
+    # Only a CRLF opening line was refused above; a stray carriage return on this line goes.
     return data[: match.start()] + line + data[match.end() :]
 
 

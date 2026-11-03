@@ -257,6 +257,18 @@ def test_a_definition_with_a_name_the_script_refuses_fails_the_step(tmp_path, sc
     assert "definition_shims" in result.stderr
 
 
+@pytest.mark.parametrize("event", ["pull_request", "push"])
+@pytest.mark.parametrize("path", ["plugins/demo/agents/README.md", ".claude/agents/readme.md"])
+def test_an_agents_readme_with_frontmatter_fails_the_step(tmp_path, scratch, event, path):
+    # The count leaves an agents/ README out by name, so only the script can notice that
+    # this one is loadable; the run has to fail rather than agree with the count.
+    repo, env, base = scratch
+    (repo / path).write_text(agent_text(name="sneaky"), encoding="utf-8")
+    result, _ = choose(tmp_path, repo, env, event=event, base_sha=base)
+    assert result.returncode == 1
+    assert "frontmatter" in result.stderr
+
+
 LYING_SCRIPT = """#!/usr/bin/env python3
 import sys
 out = sys.argv[sys.argv.index("--out") + 1]
@@ -870,9 +882,9 @@ def test_the_wrap_step_still_skips_an_agents_readme(tmp_path, scratch):
 def skipping_readmes_script() -> str:
     """The real script, altered to skip every README, as a bug in it would."""
     real = (REPO / SHIMS_SCRIPT).read_text(encoding="utf-8")
-    marker = "not (AGENT_LOCATION_RE.fullmatch(path) and"
+    marker = "return bool(AGENT_LOCATION_RE.fullmatch(path)) and"
     assert marker in real
-    return real.replace(marker, "not (True and")
+    return real.replace(marker, "return bool(LOCATION_RE.fullmatch(path)) and")
 
 
 def test_the_wrap_step_catches_a_script_that_skips_a_command_readme(tmp_path, scratch):
