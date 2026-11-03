@@ -360,8 +360,8 @@ what they already enforce.
 **Before reviewing.** Read this file, then `docs/review-lessons.md` — the defect classes
 review here has already caught once. Do not re-report what CI already checks: `ci.yml`
 runs the validator, the catalogue checks, the test suite and coverage on every pull
-request; `security.yml` runs gitleaks, zizmor, ruff's flake8-bandit rules, CodeQL and the
-two skill scanners, which fail only on a high or critical finding missing from the
+request; `security.yml` runs gitleaks, zizmor, ruff's flake8-bandit rules, CodeQL, the
+permissions audit and the two skill scanners, which fail only on a high or critical finding missing from the
 reviewed baselines in `.github/skill-scan/`. A
 finding that only restates a failing gate wastes the comment; a finding about what a
 gate cannot see is the job.

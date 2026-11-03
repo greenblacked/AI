@@ -138,7 +138,7 @@ upgrade would fail the build on skill prose that was green the day before.
 | `codeql` | `codeql` | CodeQL's `security-extended` query suite found something in the Python source. |
 | `permissions-audit` | `permissions audit` | A workflow has no top-level `permissions:` block, or one that is `write-all`, `read-all`, or grants `write` on any scope; an action is not pinned to a SHA; a job sets no `timeout-minutes`; or an `actions/checkout` does not set `persist-credentials: false`. |
 | `skill-scanner` | `cisco skill scan` | cisco-ai-skill-scanner found a high or critical finding in a skill that `.github/skill-scan/cisco-policy.yaml` does not suppress, or scanned fewer skills than the tree holds. |
-| `skillspector` | `skillspector skill scan` | SkillSpector found a high or critical finding not in `.github/skill-scan/skillspector-accepted.json`, a scan errored, left no report or left a file entirely uninspected, or an accepted entry has no reason. |
+| `skillspector` | `skillspector skill scan` | SkillSpector found a high or critical finding not in `.github/skill-scan/skillspector-accepted.json`, a scan errored, left no report or left a file entirely uninspected, a scan ran out of SkillSpector's time budgets again when rescanned on its own, or an accepted entry has no reason. |
 | `security` | `security` | Any of its seven dependencies did not report exactly `success`, or the result payload did not match the expected jobs. |
 
 ### The security jobs in detail
@@ -217,6 +217,16 @@ and how to refresh a baseline after a scanner bump.
   an accepted entry with no reason or with a class other than a false positive or
   accepted-by-design. An accepted entry that no longer matches anything is printed as a
   notice so the list can be pruned.
+- A scan SkillSpector cut short on one of its wall-clock budgets — a 0.25-second regular
+  expression timeout, the per-artifact or the per-workflow deadline — is incomplete, not
+  a finding, and a stalled runner can trip one on a skill nobody changed. The scanner
+  records it as reason code `runtime_limit`, on the AE1 coverage finding it raises for
+  each file it stopped reading and on the run's notifications. The gate never matches
+  such a scan against the accepted list, which holds only content-driven AE1 findings
+  (`static_parse_limit`, `obfuscated_instruction_text`). Its first pass lists those
+  skills and exits 3; the gate step rescans each one on its own, one at a time, and the
+  final pass fails any that ran out of time again as an incomplete scan. Re-run the job
+  when that happens.
 - Neither tool reads subagent or command files, so `plugins/*/agents/` and
   `plugins/*/commands/` are not scanned. And neither is proof of safety: Cisco's README
   reports its rules alone catch about 8% of held-out malicious skills. The scanners are one
@@ -1171,7 +1181,7 @@ stops working without it.
 | --- | --- | --- |
 | The branch ruleset above | Whether `ci` and `security` are required, and whether `main` takes direct pushes | Every gate in this repository is advisory and a red build can merge |
 | Private vulnerability reporting | Whether the advisory form `SECURITY.md` tells people to use exists | A reporter follows that instruction, finds nothing, and falls back to a public issue — which for a leaked credential is the outcome the document exists to prevent |
-| Dependabot alerts, and security updates | Whether a published advisory against a dependency GitHub can read is surfaced, and a fix proposed. That excludes nearly everything this repository depends on today: GitHub raises an alert for an action only when it is referenced by a semantic version, not a commit SHA, and every action here is pinned by SHA; the tools CI installs are pinned in workflow variables, and GitHub parses only a workflow's `uses:` references as dependencies; `pyproject.toml` declares no runtime dependencies, and its one third-party package, the unpinned `hatchling` build backend, is fetched only when the validator is built or installed as a package, which CI never does, with no version update covering it | Nothing would flag a manifest dependency added later. For actions the outcome is the same either way: no alert reaches a SHA pin, so `.github/dependabot.yml`'s version updates — a different feature, which does follow a SHA pin through its version comment — are what keep a vulnerable action from staying in place |
+| Dependabot alerts, and security updates | Whether a published advisory against a dependency GitHub can read is surfaced, and a fix proposed. That excludes nearly everything this repository depends on today: GitHub raises an alert for an action only when it is referenced by a semantic version, not a commit SHA, and every action here is pinned by SHA; the tools CI installs are pinned in workflow variables, and GitHub parses only a workflow's `uses:` references as dependencies; the hash-pinned locks in `.github/requirements/` raise alerts, but `.github/dependabot.yml` ignores that directory, so an alert there is cleared by regenerating the file (with `PLAYWRIGHT_VERSION` and `PYTEST_VERSION` for `site-browser.txt`) rather than by a security pull request; `pyproject.toml` declares no runtime dependencies, and its one third-party package, the unpinned `hatchling` build backend, is fetched only when the validator is built or installed as a package, which CI never does, with no version update covering it | Nothing would flag a manifest dependency added later. For actions the outcome is the same either way: no alert reaches a SHA pin, so `.github/dependabot.yml`'s version updates — a different feature, which does follow a SHA pin through its version comment — are what keep a vulnerable action from staying in place |
 | Required SHA pinning for actions | Whether the platform refuses a workflow referencing an action by tag | Only the `grep` in `permissions-audit` stands between a floating tag and a build, and it runs after the fact rather than instead of |
 | Secret scanning, and push protection | Whether a credential is caught as it is pushed | gitleaks still catches it in CI, one step later and after it has left the machine |
 | Default workflow token permissions | The floor every job's `permissions:` block narrows from | An absent block inherits write access rather than read |
@@ -1212,13 +1222,20 @@ page still matches what GitHub reports.
 None of the settings confirmed above replace a check already documented in this file;
 each sits alongside it. Push protection stops a credential at push time, and
 gitleaks still scans the tree and history in CI exactly as before, one step later.
-Dependabot alerts and security updates watch for a dependency GitHub can read, which
-today is close to none: they skip an action pinned by SHA, as every action here is, and
-the tools CI installs by pinned version in workflow variables. `pyproject.toml` declares
-no runtime dependencies; its build backend, `hatchling`, is unpinned and outside every
-update, but nothing here builds the package. `.github/dependabot.yml`'s version updates,
-covered in the row above, remain the separate feature they always were, and for actions
-the only one of the two that does anything.
+Dependabot alerts and security updates watch for a dependency GitHub can read. They skip
+an action pinned by SHA, as every action here is, and the tools CI installs by pinned
+version in workflow variables. `pyproject.toml` declares no runtime dependencies; its
+build backend, `hatchling`, is unpinned and outside every update, but nothing here builds
+the package. The one place they do read is `.github/requirements/`, the hash-pinned locks
+CI installs. Alerts there are raised as usual, but `.github/dependabot.yml` ignores that
+directory, so no security pull request edits it: the two scanner locks are exported from
+upstream locks, and a bumped pin that needs a new transitive dependency breaks the
+hash-pinned install, while `site-browser.txt`'s playwright and pytest pins must move with
+`PLAYWRIGHT_VERSION` and `PYTEST_VERSION` in `ci.yml`. An alert there is cleared by
+regenerating the file as its header describes, whole with its digests, moving those two
+variables together for `site-browser.txt`.
+`.github/dependabot.yml`'s version updates, covered in the row above, remain the separate
+feature they always were, and for actions the only one of the two that does anything.
 
 Read the current state of all of them:
 
@@ -1403,6 +1420,10 @@ done < /tmp/ss/skills.txt
 python3 scripts/skill_scan_gate.py --manifest /tmp/ss/skills.txt --results /tmp/ss \
   --accepted .github/skill-scan/skillspector-accepted.json
 ```
+
+The recipe is the job's final pass, so a time-limited scan fails as incomplete; rescan that
+skill alone and run the gate again, or pass `--incomplete-out FILE` to get the list the
+job rescans.
 
 ## Reproducing a failure
 
