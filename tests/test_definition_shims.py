@@ -606,3 +606,47 @@ def test_a_name_spelled_as_a_complex_or_quoted_key_is_refused(repo, tmp_path, ex
     out = tmp_path / "out"
     assert run(repo, out, "--all") == 1
     assert not out.exists()
+
+
+@pytest.mark.parametrize(
+    "char",
+    ["\r", "\x85", " ", " ", "\x00", "\x0b", "\x0c", "\x1b", "\x1f"],
+)
+@pytest.mark.parametrize(
+    "path,base",
+    [
+        ("plugins/demo/agents/helper.md", "---\nname: helper\ndescription: a{c}b\n---\n"),
+        ("plugins/demo/commands/run-it.md", "---\ndescription: a{c}b\n---\n"),
+    ],
+)
+def test_a_line_break_or_control_character_in_frontmatter_is_refused(
+    repo, tmp_path, char, path, base
+):
+    # YAML breaks lines on these where the repository's own parser does not, so a second
+    # `name` could be read by Cisco but not here and borrow another shim's suppression.
+    repo.write(path, base.replace("{c}", char))
+    out = tmp_path / "out"
+    assert run(repo, out, "--all") == 1
+    assert not out.exists()
+
+
+def test_a_carriage_return_in_the_body_is_still_allowed(repo, tmp_path):
+    repo.write("plugins/demo/agents/helper.md", "---\nname: helper\ndescription: x\n---\nBody\r\n")
+    assert run(repo, tmp_path / "out", "--all") == 0
+
+
+@pytest.mark.parametrize("prefix", ["!", "&", "*", "{", "["])
+@pytest.mark.parametrize(
+    "path,base",
+    [
+        ("plugins/demo/agents/helper.md", "---\nname: helper\n{extra}description: x\n---\n"),
+        ("plugins/demo/commands/run-it.md", "---\n{extra}description: x\n---\n"),
+    ],
+)
+def test_a_frontmatter_line_opening_with_a_yaml_indicator_is_refused(
+    repo, tmp_path, prefix, path, base
+):
+    repo.write(path, base.replace("{extra}", f"{prefix}name: spoofed\n"))
+    out = tmp_path / "out"
+    assert run(repo, out, "--all") == 1
+    assert not out.exists()

@@ -210,6 +210,11 @@ def shim_text(ident: str, path: str, data: bytes) -> bytes:
     return shim
 
 
+# Characters YAML treats as line breaks (or that no loader should see in a header) but that
+# the repository's parser does not split on. Tab and LF are the ordinary whitespace.
+CONTROL_RE = re.compile("[\x00-\x08\x0b-\x1f\x85\u2028\u2029]")
+
+
 def confirm_name(ident: str, path: str, shim: bytes) -> None:
     """Refuse a shim whose loaded `name` is not its id.
 
@@ -221,9 +226,15 @@ def confirm_name(ident: str, path: str, shim: bytes) -> None:
     """
     text = shim.decode("utf-8", "replace")
     block = text.split("\n---", 1)[0]
-    if re.search(r"(?m)^[?'\"]", block):
+    if CONTROL_RE.search(block):
         raise DefinitionError(
-            f"{safe(path)} has a frontmatter key written as a complex or quoted key, "
+            f"{safe(path)} has a line separator or control character in its frontmatter, "
+            f"which YAML reads as a line break the repository's parser does not"
+        )
+    if re.search(r"(?m)^[?'\"!&*{\[]", block):
+        raise DefinitionError(
+            f"{safe(path)} has a frontmatter key written as a complex, quoted or "
+            f"indicator-led key, "
             f"which could set `name` to something other than its shim id"
         )
     try:
