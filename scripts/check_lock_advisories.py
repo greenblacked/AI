@@ -8,7 +8,9 @@ Dependabot alerts still appear, but only on a Security tab nobody reads on a sch
 This is that look. It runs weekly from `scheduled.yml`, where a red run is the intended
 signal: a lock needs regenerating, or an advisory needs a reviewed acceptance.
 
-Every `name==version` line in every `.github/requirements/*.txt` is audited, including a
+A requirement line that is not a `name==version` pin (a VCS URL, `~=`, `===`) fails the run
+rather than being skipped, since a skipped line is a package never audited. Every
+`name==version` line in every `.github/requirements/*.txt` is audited, including a
 line with an environment marker. The marker decides where a package installs, not whether
 its version is vulnerable, and pip-audit drops win32-marker lines, which is why this
 script exists rather than pip-audit.
@@ -33,7 +35,9 @@ lookup, 2 for a usage error.
 
 OSV summaries are third-party text and go into the step log, where the runner reads a
 line starting with `::` as a command. They pass through `inert` and `annotate` below, the
-same handling `check_pin_freshness.py` gives a registry's answer.
+same handling `check_pin_freshness.py` gives a registry's answer. In the step-summary table
+the advisory id and summary go in code spans, so Markdown or HTML in them stays literal, and
+an advisory id that is not plain (it is appended to a URL) fails the run.
 
 Standard library only. The network calls are injected so the tests never reach the
 network.
@@ -44,6 +48,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -119,23 +124,39 @@ def cell(value: object) -> str:
     return clean(value).replace("|", "\\|")
 
 
+def code_cell(value: object) -> str:
+    """Third-party text as an inline code span, so Markdown and HTML in it stay literal."""
+    text = clean(value).replace("`", "").replace("|", "\\|")
+    return f"`{text}`" if text else ""
+
+
 def normalise(name: str) -> str:
     """PEP 503 normalisation, used only to compare names in the accepted list."""
-    return "".join("-" if ch in "._" else ch for ch in name.lower()).replace("--", "-")
+    return re.sub(r"[-_.]+", "-", name).lower()
 
 
-def parse_lock(text: str) -> list[tuple[str, str, str]]:
-    """`(name, version, marker)` for each requirement line; hashes and comments skipped."""
+REQUIREMENT = re.compile(
+    r"([A-Za-z0-9][A-Za-z0-9._-]*)\s*(?:\[[^\]]*\])?\s*==\s*([A-Za-z0-9][A-Za-z0-9.!+_-]*)"
+)
+ADVISORY_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,99}")
+
+
+def parse_lock(text: str, source: str = "lock") -> list[tuple[str, str, str]]:
+    """`(name, version, marker)` per requirement line; hashes and comments are skipped.
+
+    Any other line raises, because a line skipped silently is a package never audited.
+    """
     found = []
-    for raw in text.splitlines():
-        if not raw or raw[0] in " \t#-":
+    for number, raw in enumerate(text.splitlines(), 1):
+        stripped = raw.strip()
+        if not stripped or stripped[0] == "#" or stripped.startswith("--hash"):
             continue
         line = raw.rstrip("\\").split(" #", 1)[0].strip()
         requirement, _, marker = line.partition(";")
-        name, sep, version = requirement.partition("==")
-        if not sep or not name.strip() or not version.strip():
-            continue
-        found.append((name.strip(), version.strip(), marker.strip()))
+        match = REQUIREMENT.fullmatch(requirement.strip())
+        if not match:
+            raise ValueError(f"{source} line {number} is not a name==version pin: {clean(raw)!r}")
+        found.append((match.group(1), match.group(2), marker.strip()))
     return found
 
 
@@ -143,8 +164,9 @@ def collect(directory: Path) -> list[tuple[str, str, str, str]]:
     """`(lock file, name, version, marker)` for every lock in the directory."""
     entries = []
     for path in sorted(directory.glob("*.txt")):
-        for name, version, marker in parse_lock(path.read_text(encoding="utf-8")):
-            entries.append((f"{REQUIREMENTS_DIR.as_posix()}/{path.name}", name, version, marker))
+        label = f"{REQUIREMENTS_DIR.as_posix()}/{path.name}"
+        for name, version, marker in parse_lock(path.read_text(encoding="utf-8"), label):
+            entries.append((label, name, version, marker))
     return entries
 
 
@@ -176,7 +198,10 @@ def query_ids(entries, post_fn) -> list[list[str]]:
                 if not isinstance(result, dict):
                     raise ValueError("OSV returned a result that is not an object")
                 for vuln in result.get("vulns", []):
-                    ids[i].append(vuln["id"])
+                    vid = vuln["id"] if isinstance(vuln, dict) else None
+                    if not isinstance(vid, str) or not ADVISORY_ID.fullmatch(vid):
+                        raise ValueError(f"OSV returned an unusable advisory id: {clean(vid)!r}")
+                    ids[i].append(vid)
                 token = result.get("next_page_token")
                 if token:
                     pending[i] = token
@@ -254,7 +279,12 @@ def check(root: Path, get=None, post=None, today: dt.date | None = None) -> int:
     post = send if post is None else post
     today = dt.date.today() if today is None else today
     directory = root / REQUIREMENTS_DIR
-    entries = collect(directory) if directory.is_dir() else []
+    try:
+        entries = collect(directory) if directory.is_dir() else []
+    except ValueError as err:
+        annotate("error", "Unreadable lock", str(err))
+        print("The audit could not run, so no result is claimed.")
+        return 1
     if not entries:
         print(f"no requirement locks found under {REQUIREMENTS_DIR}", file=sys.stderr)
         return 2
@@ -318,7 +348,9 @@ def check(root: Path, get=None, post=None, today: dt.date | None = None) -> int:
         print("| Lock | Package | Version | Advisory | Summary | State |")
         print("| --- | --- | --- | --- | --- | --- |")
         for row in rows:
-            print("| " + " | ".join(cell(c) for c in row) + " |")
+            lock, name, version, vid, summary, state = row
+            cells = [cell(lock), cell(name), cell(version), code_cell(vid), code_cell(summary)]
+            print("| " + " | ".join([*cells, cell(state)]) + " |")
         print()
     if new:
         print(

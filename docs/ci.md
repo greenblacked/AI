@@ -691,7 +691,7 @@ add an entry to `advisories-accepted.json`:
 ```
 
 An entry needs a reason and an `expires` date no more than 180 days ahead, so an
-acceptance is re-read twice a year at most. An expired entry fails the run, and one that
+acceptance is re-read at least every 180 days. An expired entry fails the run, and one that
 matches nothing is a warning to remove it. The id may be any alias of the advisory.
 
 ## `.github/workflows/evals.yml` — Trigger evals

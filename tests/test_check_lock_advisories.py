@@ -119,6 +119,54 @@ def test_a_win32_only_package_is_still_queried(tmp_path, capsys):
     assert ("Some_Pkg", "1.0") in queried
 
 
+@pytest.mark.parametrize(
+    "line",
+    [
+        "name @ git+https://example.invalid/x.git",
+        "name===1.0",
+        "name~=1.0",
+        "name>=1.0",
+        "name",
+        "name==",
+        "-e .",
+        "--index-url https://example.invalid/simple",
+    ],
+)
+def test_an_unparseable_requirement_line_fails_closed_naming_file_and_line(tmp_path, capsys, line):
+    root = make_root(tmp_path, {"bad.txt": f"# c\ncertifi==1.0\n{line}\n"})
+    osv = Osv()
+    assert run(root, osv) == 1
+    err = capsys.readouterr().err
+    assert "::error" in err and "bad.txt" in err and "line 3" in err
+    assert osv.posts == []
+
+
+def test_parse_lock_raises_on_an_unparseable_line():
+    with pytest.raises(ValueError, match="line 2"):
+        advisories.parse_lock("a==1\nb~=2\n")
+
+
+def test_extras_are_stripped_from_the_name():
+    assert advisories.parse_lock("httpx[http2,cli]==0.1 \\\n    --hash=sha256:aa\n") == [
+        ("httpx", "0.1", "")
+    ]
+
+
+def test_normalise_is_pep_503():
+    assert advisories.normalise("Some_Pkg.x") == "some-pkg-x"
+    assert advisories.normalise("a-_.b") == "a-b"
+
+
+def test_a_name_with_dots_and_underscores_matches_its_accepted_entry(tmp_path):
+    osv = Osv({("Some_Pkg.x", "1.0"): ["GHSA-x"]}, {"GHSA-x": record("GHSA-x")})
+    root = make_root(
+        tmp_path,
+        {"a.txt": "Some_Pkg.x==1.0 \\\n    --hash=sha256:aa\n"},
+        accepted=[entry(id="GHSA-x", package="some-pkg-x")],
+    )
+    assert run(root, osv) == 0
+
+
 # --- findings ----------------------------------------------------------------------
 
 
@@ -146,6 +194,27 @@ def test_summary_text_cannot_start_a_command_or_break_the_table(tmp_path, capsys
     table_rows = [ln for ln in captured.out.splitlines() if "GHSA-x" in ln]
     assert len(table_rows) == 1
     assert "col" in table_rows[0] and "\\|" in table_rows[0]
+
+
+def test_third_party_markdown_is_rendered_inside_a_code_span(tmp_path, capsys):
+    nasty = "[x](https://evil.example) <b> `tick` ![i](https://evil.example/i.png)"
+    osv = Osv({("certifi", "2026.10.18"): ["GHSA-x"]}, {"GHSA-x": record("GHSA-x", nasty)})
+    assert run(make_root(tmp_path), osv) == 1
+    row = next(ln for ln in capsys.readouterr().out.splitlines() if "GHSA-x" in ln)
+    assert "`[x](https://evil.example) <b> tick ![i](https://evil.example/i.png)`" in row
+    assert "`GHSA-x`" in row
+
+
+@pytest.mark.parametrize(
+    "bad", ["", "../etc", "GHSA x", "-leading", "a/b", "a?b", "x" * 101, 5, None, ["GHSA-x"]]
+)
+def test_an_advisory_id_that_is_not_plain_fails_closed(tmp_path, bad):
+    osv = Osv()
+    osv.post = lambda url, body: json.dumps(
+        {"results": [{"vulns": [{"id": bad}]} for _ in body["queries"]]}
+    )
+    assert run(make_root(tmp_path), osv) == 1
+    assert osv.gets == []
 
 
 def test_a_clean_audit_exits_zero(tmp_path, capsys):
