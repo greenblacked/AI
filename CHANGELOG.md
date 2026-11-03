@@ -8,6 +8,8 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-03
+
 ### Added
 
 - `product-design` skill in the design plugin: builds a simplified, believable rendering of the user's own product for a hero, feature card, docs page, changelog or social card, as a still or a one-action scene handed to `motion-showcase` for capture. Written from scratch; the idea of a skill for faux product UI was prompted by Benji Taylor's Stageshow.
@@ -1085,7 +1087,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/greenblacked/AI/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/greenblacked/AI/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/greenblacked/AI/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/greenblacked/AI/compare/v0.3.1...v0.3.2
