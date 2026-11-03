@@ -1,13 +1,14 @@
 # Skill scan baselines
 
 Two jobs in [`security.yml`](../workflows/security.yml) scan the shipped skills under
-`plugins/*/skills/*/` with a third-party agent-skill scanner and fail only on a high or
-critical finding nobody has reviewed. Cisco's scans every skill on every run;
-SkillSpector scans the skills a pull request changes (every skill when the pull request
-changes the scan configuration) and every skill on other events. The scan configuration
-is `security.yml` itself, anything in this directory,
-`.github/requirements/skillspector.txt` and `scripts/skill_scan_gate.py`: a change to any
-of them can change the verdict on a skill the diff never touches, so it re-scans them all. This directory holds what they were reviewed against.
+`plugins/*/skills/*/`, and the subagent and command definitions, with a third-party
+agent-skill scanner and fail only on a high or critical finding nobody has reviewed.
+Cisco's scans every skill and definition on every run; SkillSpector scans the skills and
+definitions a pull request changes (all of them when the pull request changes the scan
+configuration) and all of them on other events. The scan configuration is `security.yml`
+itself, anything in this directory, `.github/requirements/skillspector.txt`,
+`scripts/skill_scan_gate.py` and `scripts/definition_shims.py`: a change to any of them can
+change the verdict on a skill or definition the diff never touches, so it re-scans them all. This directory holds what they were reviewed against.
 [`docs/ci.md`](../../docs/ci.md#the-security-jobs-in-detail) explains the jobs.
 
 | File | Read by | What it holds |
@@ -15,10 +16,41 @@ of them can change the verdict on a skill the diff never touches, so it re-scans
 | `cisco-policy.yaml` | `skill-scanner` (`cisco skill scan`) | Suppressions for cisco-ai-skill-scanner, each scoped to one rule, the named skills and one file |
 | `skillspector-accepted.json` | `skillspector` (`skillspector skill scan`), through `scripts/skill_scan_gate.py` | Accepted SkillSpector findings, each keyed on rule, path and matched text |
 
-Neither scanner reads subagent or command files (`plugins/*/agents/`,
-`plugins/*/commands/`), so those get no scan here. A clean scan is one layer, not proof that
-a skill is safe: Cisco's own README reports its rules alone catch only about 8% of held-out
-malicious skills, and both tools match patterns rather than read intent.
+## Definitions
+
+Neither scanner has an agent or command type; each reads a skill directory's `SKILL.md`
+only. `scripts/definition_shims.py` wraps every `*.md` directly inside
+`plugins/*/agents/`, `plugins/*/commands/`, `.claude/agents/` and `.claude/commands/` as a
+one-file skill, `<out>/<id>/SKILL.md`, so both scanners can read it. `agents/evals/` and
+`.claude/agents/benchmarks/` are not wrapped. It also writes `<out>/map.tsv`, one
+`<id>`, a tab, then the source path per line; the SkillSpector gate reads it to report and
+match a finding against the real file.
+
+The id is part of the contract, because a Cisco suppression names it:
+
+| Source | Id |
+| --- | --- |
+| `plugins/<plugin>/agents/<stem>.md` | `agent--<plugin>--<stem>` |
+| `plugins/<plugin>/commands/<stem>.md` | `command--<plugin>--<stem>` |
+| `.claude/agents/<stem>.md` | `agent--claude--<stem>` |
+| `.claude/commands/<stem>.md` | `command--claude--<stem>` |
+
+No plugin may be named `claude`, and a duplicate id fails the script. A shim is a byte
+copy of the source except for its `name`. An agent's `name:` line is replaced in place with
+`name: <id>`, so line numbers are unchanged. A command has no `name`, so `name: <id>` is
+inserted as the first frontmatter line: Cisco's strict load needs one, and without it
+discards the command's `allowed-tools`. A finding on a command is mapped back one line.
+Cisco matches a suppression's `skills:` against that name, so a Cisco suppression for a
+definition names the shim id, while a SkillSpector accepted entry names the source path.
+
+What this covers is the scanners' prompt-injection, exfiltration and obfuscation rules
+over each definition's instructions and frontmatter. It does not analyse tool grants:
+both scanners' permission checks compare declared tools against executable code, and
+these files have none, so an agent's `tools:` is text-scanned only. Review owns the grant.
+
+A clean scan is one layer, not proof that a skill or definition is safe: Cisco's own README
+reports its rules alone catch only about 8% of held-out malicious skills, and both tools
+match patterns rather than read intent.
 
 ## The triage rule
 
@@ -51,11 +83,14 @@ to the longer span around it at the next refresh rather than carrying it forward
 1. Download the job's report artifact (`skill-scanner-report` or `skillspector-report`)
    and read the finding in the SARIF, not only the annotation.
 2. Read the flagged lines in the skill. If the finding is real, fix the skill.
+   A definition is triaged by the same rule: a real issue is fixed in the agent or command
+   file itself, never in the shim.
 3. If it is not, add an entry: for Cisco, a suppression in `cisco-policy.yaml` with the
-   rule, skill, file, reason and the same `expires` date as the rest; for SkillSpector, an
+   rule, skill (for a definition, the shim id from the table above), file, reason and the same `expires` date as the rest; for SkillSpector, an
    entry in `skillspector-accepted.json` with `rule_id`, `path`, `match` (the SARIF
    result's `properties.finding`, whitespace collapsed to single spaces), `class` and
-   `reason`. Say in the commit why it is not real.
+   `reason`. For a definition, `path` is the source path, such as
+   `plugins/<plugin>/agents/<stem>.md`, not the shim. Say in the commit why it is not real.
 
 The SkillSpector gate prints a notice for each accepted entry that no longer matches
 anything in a skill it scanned. Remove those entries; they would otherwise hide the same

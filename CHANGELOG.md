@@ -8,6 +8,10 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- The two skill scanners now read the subagent and command definitions as well as the skills: every `*.md` directly inside `plugins/*/agents/`, `plugins/*/commands/`, `.claude/agents/` and `.claude/commands/`. Neither scanner has an agent or command type, so `scripts/definition_shims.py` wraps each file as a one-file skill and writes a `map.tsv` from shim id to source path. Cisco scans every definition on every run and the job counts them itself; SkillSpector scans the definitions a pull request changes, or all of them when the scan configuration, now including that script, changes, and the gate reports and matches findings against the real file. This covers the prompt-injection, exfiltration and obfuscation rules over a definition's instructions and frontmatter. It is not tool-grant analysis, which both scanners reserve for executable code. The earlier statements that neither scanner reads these files are corrected in `docs/ci.md`, `.github/skill-scan/README.md`, `SECURITY.md` and `docs/best-practices.md`.
+
 ## [0.5.1] - 2026-11-03
 
 ### Added

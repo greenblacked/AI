@@ -137,8 +137,8 @@ upgrade would fail the build on skill prose that was green the day before.
 | `python` | `python security lint` | `ruff check` or `ruff format --check` failed. |
 | `codeql` | `codeql` | CodeQL's `security-extended` query suite found something in the Python source. |
 | `permissions-audit` | `permissions audit` | A workflow has no top-level `permissions:` block, or one that is `write-all`, `read-all`, or grants `write` on any scope; an action is not pinned to a SHA; a job sets no `timeout-minutes`; or an `actions/checkout` does not set `persist-credentials: false`. |
-| `skill-scanner` | `cisco skill scan` | cisco-ai-skill-scanner found a high or critical finding in a skill that `.github/skill-scan/cisco-policy.yaml` does not suppress, or scanned fewer skills than the tree holds. |
-| `skillspector` | `skillspector skill scan` | SkillSpector found a high or critical finding not in `.github/skill-scan/skillspector-accepted.json`, a scan errored, left no report or left a file entirely uninspected, a scan ran out of SkillSpector's time budgets again when rescanned on its own, or an accepted entry has no reason. |
+| `skill-scanner` | `cisco skill scan` | cisco-ai-skill-scanner found a high or critical finding in a skill or in a subagent or command definition that `.github/skill-scan/cisco-policy.yaml` does not suppress, or scanned fewer skills or definitions than the tree holds. |
+| `skillspector` | `skillspector skill scan` | SkillSpector found a high or critical finding, in a skill or in a subagent or command definition, not in `.github/skill-scan/skillspector-accepted.json`, a scan errored, left no report or left a file entirely uninspected, a scan ran out of SkillSpector's time budgets again when rescanned on its own, or an accepted entry has no reason. |
 | `security` | `security` | Any of its seven dependencies did not report exactly `success`, or the result payload did not match the expected jobs. |
 
 ### The security jobs in detail
@@ -169,12 +169,14 @@ only ever sees Python. `tests/*` ignores `S101`, because asserting is what tests
 **CodeQL** runs `github/codeql-action` init and analyze with `languages: python` and
 `queries: security-extended`. It is the only job that needs `security-events: write`.
 
-**Two agent-skill scanners read the shipped skills.** `skill-scanner` runs Cisco's
+**Two agent-skill scanners read the shipped skills and definitions.** `skill-scanner` runs Cisco's
 [cisco-ai-skill-scanner](https://pypi.org/project/cisco-ai-skill-scanner/) and
 `skillspector` runs NVIDIA's [SkillSpector](https://github.com/NVIDIA/SkillSpector), both
-Apache-2.0, over `plugins/*/skills/*/`. Cisco's scans every skill on every run;
-SkillSpector scans the skills a pull request changes (every skill when the pull request
-changes the scan configuration) and every skill on other events. Each fails only on a high or critical finding
+Apache-2.0, over `plugins/*/skills/*/` and over the subagent and command definitions
+(`*.md` directly inside `plugins/*/agents/`, `plugins/*/commands/`, `.claude/agents/` and
+`.claude/commands/`). Cisco's scans every skill and every definition on every run;
+SkillSpector scans the skills and definitions a pull request changes (all of them when the
+pull request changes the scan configuration) and all of them on other events. Each fails only on a high or critical finding
 that is not in a baseline reviewed by hand; medium and low findings never fail, and every
 finding stays in the SARIF and JSON reports each job uploads as an artifact
 (`skill-scanner-report`, `skillspector-report`, kept 14 days) whether it passes or not.
@@ -202,7 +204,8 @@ and how to refresh a baseline after a scanner bump.
   skill directories the diff from the merge base touches, listed with `--no-renames` so a
   moved skill is scanned at its new path, unless the same diff touches the scan's own
   configuration — `.github/workflows/security.yml`, anything under `.github/skill-scan/`,
-  `.github/requirements/skillspector.txt` or `scripts/skill_scan_gate.py` — which can
+  `.github/requirements/skillspector.txt`, `scripts/skill_scan_gate.py` or
+  `scripts/definition_shims.py` — which can
   change the verdict on a skill the diff never touches, so then it scans every skill and
   says why in the log. On every other event it scans all of them, which takes about
   fifteen minutes. Before choosing, it fails on any symbolic link under `plugins/`: a link
@@ -227,8 +230,30 @@ and how to refresh a baseline after a scanner bump.
   skills and exits 3; the gate step rescans each one on its own, one at a time, and the
   final pass fails any that ran out of time again as an incomplete scan. Re-run the job
   when that happens.
-- Neither tool reads subagent or command files, so `plugins/*/agents/` and
-  `plugins/*/commands/` are not scanned. And neither is proof of safety: Cisco's README
+- Neither scanner has an agent or command type; each reads a skill directory's `SKILL.md`
+  only. `scripts/definition_shims.py` (standard library) therefore wraps every `*.md`
+  directly inside `plugins/*/agents/`, `plugins/*/commands/`, `.claude/agents/` and
+  `.claude/commands/` as a one-file skill, `<out>/<id>/SKILL.md`, and writes
+  `<out>/map.tsv` (`<id>`, a tab, the source path). `agents/evals/` and
+  `.claude/agents/benchmarks/` are not wrapped. The id is `agent--<plugin>--<stem>` or
+  `command--<plugin>--<stem>`, and `agent--claude--<stem>` or `command--claude--<stem>`
+  for `.claude/`; no plugin may be named `claude`, and a duplicate id fails. Everything
+  in the shim is a byte copy except the `name`: an agent's `name:` line is replaced in
+  place with `name: <id>` (line numbers unchanged), and a command, which has none, gets
+  `name: <id>` inserted as the first frontmatter line so Cisco keeps its `allowed-tools`,
+  with a finding on a command mapped back one line. Cisco matches a suppression's
+  `skills:` against that name, which is why suppressions name the shim id. The Cisco job runs a second `scan-all` over the shims with the same
+  policy and `--fail-on-severity high`, on every definition on every run, and counts the
+  definitions itself with `git ls-files`, failing if fewer were scanned. The SkillSpector
+  job runs `skillspector scan <shim> --no-llm` per shim, and the gate maps each shim back
+  to its source path, so an accepted entry names the real file; Cisco suppressions name
+  the shim id.
+- What the definition scan covers is the scanners' prompt-injection, exfiltration and
+  obfuscation rules over each definition's instructions and frontmatter. It is not
+  tool-grant or least-privilege analysis: both scanners' permission checks compare
+  declared tools against executable code, and these files have none, so an agent's
+  `tools:` is text-scanned only. Review still owns the tool grant. Neither scanner is
+  proof of safety: Cisco's README
   reports its rules alone catch about 8% of held-out malicious skills. The scanners are one
   layer beside review, not a replacement for it.
 

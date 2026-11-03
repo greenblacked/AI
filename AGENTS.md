@@ -170,9 +170,10 @@ that accumulates until the whole category stops being read.
 
 CI additionally runs markdownlint, yamllint, actionlint, codespell, an offline link
 check, gitleaks, zizmor, ruff (with the flake8-bandit rules), CodeQL, and two agent-skill
-scanners: Cisco's skill-scanner, which scans every skill on every run, and NVIDIA's
-SkillSpector, which scans the skills a pull request changes (every skill when the pull
-request changes the scan configuration) and every skill on other events. `make lint` runs
+scanners: Cisco's skill-scanner, which scans every skill and every subagent and command
+definition on every run, and NVIDIA's SkillSpector, which scans the skills and definitions
+a pull request changes (all of them when the pull request changes the scan configuration)
+and all of them on other events. `make lint` runs
 the first four locally when they are installed and tells you the command when they are
 not. codespell's false positives live in `pyproject.toml` with the reason each is one;
 add to that list rather than silencing the check, and only for a word that is genuinely
