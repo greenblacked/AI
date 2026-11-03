@@ -173,8 +173,8 @@ only ever sees Python. `tests/*` ignores `S101`, because asserting is what tests
 [cisco-ai-skill-scanner](https://pypi.org/project/cisco-ai-skill-scanner/) and
 `skillspector` runs NVIDIA's [SkillSpector](https://github.com/NVIDIA/SkillSpector), both
 Apache-2.0, over `plugins/*/skills/*/` and over the subagent and command definitions
-(`*.md` directly inside `plugins/*/agents/`, `plugins/*/commands/`, `.claude/agents/` and
-`.claude/commands/`). Cisco's scans every skill and every definition on every run;
+(`*.md` directly inside `plugins/*/agents/` and `.claude/agents/`, and at any depth inside
+`plugins/*/commands/` and `.claude/commands/`, which is how the validator finds them). Cisco's scans every skill and every definition on every run;
 SkillSpector scans the skills and definitions a pull request changes (all of them when the
 pull request changes the scan configuration) and all of them on other events. Each fails only on a high or critical finding
 that is not in a baseline reviewed by hand; medium and low findings never fail, and every
@@ -208,7 +208,7 @@ and how to refresh a baseline after a scanner bump.
   `scripts/definition_shims.py` — which can
   change the verdict on a skill the diff never touches, so then it scans every skill and
   says why in the log. On every other event it scans all of them, which takes about
-  fifteen minutes. Before choosing, it fails on any symbolic link under `plugins/`: a link
+  fifteen minutes. Before choosing, it fails on any symbolic link under `plugins/` or `.claude/`: a link
   can point outside the skill, so editing its target would change what is scanned without
   selecting the skill. `scripts/skill_scan_gate.py` then judges the
   reports. It does not use SkillSpector's own baseline, whose fingerprint hashes the whole
@@ -232,12 +232,16 @@ and how to refresh a baseline after a scanner bump.
   when that happens.
 - Neither scanner has an agent or command type; each reads a skill directory's `SKILL.md`
   only. `scripts/definition_shims.py` (standard library) therefore wraps every `*.md`
-  directly inside `plugins/*/agents/`, `plugins/*/commands/`, `.claude/agents/` and
-  `.claude/commands/` as a one-file skill, `<out>/<id>/SKILL.md`, and writes
+  directly inside `plugins/*/agents/` and `.claude/agents/`, and at any depth inside
+  `plugins/*/commands/` and `.claude/commands/` (a folder namespaces a command), as a
+  one-file skill, `<out>/<id>/SKILL.md`, and writes
   `<out>/map.tsv` (`<id>`, a tab, the source path). `agents/evals/` and
-  `.claude/agents/benchmarks/` are not wrapped. The id is `agent--<plugin>--<stem>` or
-  `command--<plugin>--<stem>`, and `agent--claude--<stem>` or `command--claude--<stem>`
-  for `.claude/`; no plugin may be named `claude`, and a duplicate id fails. Everything
+  `.claude/agents/benchmarks/` are not wrapped, an agent in a folder is not an agent, and a
+  `README.md` or `readme.md` is skipped, as the validator skips it. The id is
+  `agent--<plugin>--<stem>` or `command--<plugin>--<folder>--...--<stem>`, and
+  `agent--claude--<stem>` or `command--claude--<folder>--...--<stem>` for `.claude/`;
+  every part is lowercase letters, digits and single hyphens, no plugin may be named
+  `claude`, and a duplicate id fails. Everything
   in the shim is a byte copy except the `name`: an agent's `name:` line is replaced in
   place with `name: <id>` (line numbers unchanged), and a command, which has none, gets
   `name: <id>` inserted as the first frontmatter line so Cisco keeps its `allowed-tools`,

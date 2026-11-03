@@ -20,9 +20,11 @@ change the verdict on a skill or definition the diff never touches, so it re-sca
 
 Neither scanner has an agent or command type; each reads a skill directory's `SKILL.md`
 only. `scripts/definition_shims.py` wraps every `*.md` directly inside
-`plugins/*/agents/`, `plugins/*/commands/`, `.claude/agents/` and `.claude/commands/` as a
-one-file skill, `<out>/<id>/SKILL.md`, so both scanners can read it. `agents/evals/` and
-`.claude/agents/benchmarks/` are not wrapped. It also writes `<out>/map.tsv`, one
+`plugins/*/agents/` and `.claude/agents/`, and at any depth inside `plugins/*/commands/`
+and `.claude/commands/`, as a one-file skill, `<out>/<id>/SKILL.md`, so both scanners can
+read it; that is where the validator looks for each. `agents/evals/`,
+`.claude/agents/benchmarks/` and an agent in a folder are not wrapped, and a `README.md`
+is skipped as it is there. It also writes `<out>/map.tsv`, one
 `<id>`, a tab, then the source path per line; the SkillSpector gate reads it to report and
 match a finding against the real file.
 
@@ -32,10 +34,12 @@ The id is part of the contract, because a Cisco suppression names it:
 | --- | --- |
 | `plugins/<plugin>/agents/<stem>.md` | `agent--<plugin>--<stem>` |
 | `plugins/<plugin>/commands/<stem>.md` | `command--<plugin>--<stem>` |
+| `plugins/<plugin>/commands/<folder>/<stem>.md` | `command--<plugin>--<folder>--<stem>` |
 | `.claude/agents/<stem>.md` | `agent--claude--<stem>` |
 | `.claude/commands/<stem>.md` | `command--claude--<stem>` |
+| `.claude/commands/<folder>/<stem>.md` | `command--claude--<folder>--<stem>` |
 
-No plugin may be named `claude`, and a duplicate id fails the script. A shim is a byte
+Every part is lowercase letters, digits and single hyphens, so `--` is always a separator, and deeper folders add one part each. No plugin may be named `claude`, and a duplicate id fails the script. A shim is a byte
 copy of the source except for its `name`. An agent's `name:` line is replaced in place with
 `name: <id>`, so line numbers are unchanged. A command has no `name`, so `name: <id>` is
 inserted as the first frontmatter line: Cisco's strict load needs one, and without it

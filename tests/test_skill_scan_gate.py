@@ -647,6 +647,42 @@ def test_a_shim_whose_scan_ran_out_of_time_is_listed_by_its_manifest_line(tmp_pa
     )
 
 
+NESTED_SRC = "plugins/demo/commands/release/notes.md"
+NESTED_LINE = f"command--demo--release--notes\t{NESTED_SRC}"
+DEEP_SRC = ".claude/commands/team/review/pr.md"
+DEEP_LINE = f"command--claude--team--review--pr\t{DEEP_SRC}"
+
+
+def test_a_nested_command_shim_maps_back_to_its_source_and_line(tmp_path, capsys):
+    args = lay_out(tmp_path, {NESTED_LINE: sarif(result(line=9)), DEEP_LINE: sarif(result(line=3))})
+    assert gate.main(args) == 1
+    out = capsys.readouterr().out
+    assert f"file={NESTED_SRC},line=8," in out
+    assert f"file={DEEP_SRC},line=2," in out
+
+
+def test_an_accepted_entry_on_a_nested_commands_source_matches(tmp_path):
+    args = lay_out(tmp_path, {NESTED_LINE: sarif(result())}, [entry(path=NESTED_SRC)])
+    assert gate.main(args) == 0
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        f"command--demo--notes\t{NESTED_SRC}",  # the folder is missing from the id
+        "command--demo--release--notes\tplugins/demo/commands/notes.md",
+        "agent--demo--nested--deep\tplugins/demo/agents/nested/deep.md",  # agents stay flat
+        "command--demo--Release--notes\tplugins/demo/commands/Release/notes.md",
+        "command--demo--release--notes\tplugins/demo/commands/release//notes.md",
+    ],
+)
+def test_a_nested_manifest_line_that_does_not_fit_its_source_fails(tmp_path, capsys, line):
+    args = lay_out(tmp_path, {SKILL: sarif()})
+    (tmp_path / "skills.txt").write_text(f"{line}\n", encoding="utf-8")
+    assert gate.main(args) == 1
+    assert "manifest names" in capsys.readouterr().out
+
+
 @pytest.mark.parametrize(
     "line",
     [

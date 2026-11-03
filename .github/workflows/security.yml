@@ -417,8 +417,10 @@ jobs:
           set -Eeuo pipefail
           shims="$RUNNER_TEMP/definition-shims"
           python3 scripts/definition_shims.py --out "$shims" --all
-          expected=$(git ls-files -z -- ':(glob)plugins/*/agents/*.md' ':(glob)plugins/*/commands/*.md' \
-            ':(glob).claude/agents/*.md' ':(glob).claude/commands/*.md' | tr -cd '\0' | wc -c)
+          globs=(':(glob)plugins/*/agents/*.md' ':(glob)plugins/*/commands/**/*.md'
+            ':(glob).claude/agents/*.md' ':(glob).claude/commands/**/*.md')
+          expected=$(git ls-files -z -- "${globs[@]}" |
+            { grep -zvE '(^|/)(README|readme)\.md$' || true; } | tr -cd '\0' | wc -c)
           wrapped=$(wc -l < "$shims/map.tsv")
           if [ "$wrapped" -ne "$expected" ]; then
             echo "::error title=definition scan::wrapped $wrapped definition(s) where git lists $expected"
@@ -456,8 +458,10 @@ jobs:
       - name: Check every subagent and command was scanned
         run: |
           set -Eeuo pipefail
-          expected=$(git ls-files -z -- ':(glob)plugins/*/agents/*.md' ':(glob)plugins/*/commands/*.md' \
-            ':(glob).claude/agents/*.md' ':(glob).claude/commands/*.md' | tr -cd '\0' | wc -c)
+          globs=(':(glob)plugins/*/agents/*.md' ':(glob)plugins/*/commands/**/*.md'
+            ':(glob).claude/agents/*.md' ':(glob).claude/commands/**/*.md')
+          expected=$(git ls-files -z -- "${globs[@]}" |
+            { grep -zvE '(^|/)(README|readme)\.md$' || true; } | tr -cd '\0' | wc -c)
           scanned=$(jq -er '.summary.total_skills_scanned' "$RUNNER_TEMP/skill-scanner/definitions.json")
           if ! [[ "$scanned" =~ ^[0-9]+$ ]]; then
             echo "::error title=definition scan incomplete::the report gave no count"
@@ -540,8 +544,10 @@ jobs:
           shims="$RUNNER_TEMP/definition-shims"
           mkdir -p "$results"
           manifest="$results/skills.txt"
-          globs=(':(glob)plugins/*/agents/*.md' ':(glob)plugins/*/commands/*.md'
-            ':(glob).claude/agents/*.md' ':(glob).claude/commands/*.md')
+          # Agents one level deep and commands at any depth, as the validator finds them;
+          # a README.md is documentation there too, and is not counted.
+          globs=(':(glob)plugins/*/agents/*.md' ':(glob)plugins/*/commands/**/*.md'
+            ':(glob).claude/agents/*.md' ':(glob).claude/commands/**/*.md')
           # A link inside a skill can point outside plugins/, so editing its target would
           # change what is scanned without selecting the skill; the same goes for a link
           # standing in for a definition. Counted, never listed.
@@ -595,12 +601,13 @@ jobs:
           done < "$manifest"
           if [ "$scan_all" -eq 1 ]; then
             python3 scripts/definition_shims.py --out "$shims" --all
-            expected=$(git ls-files -z -- "${globs[@]}" | tr -cd '\0' | wc -c)
+            expected=$(git ls-files -z -- "${globs[@]}" |
+              { grep -zvE '(^|/)(README|readme)\.md$' || true; } | tr -cd '\0' | wc -c)
           else
             python3 scripts/definition_shims.py --out "$shims" --changed="$BASE_SHA"
             expected=0
             while IFS= read -r -d '' path; do
-              if [ -e "$path" ]; then
+              if [ -e "$path" ] && ! [[ "${path##*/}" =~ ^(README|readme)\.md$ ]]; then
                 expected=$((expected + 1))
               fi
             done < <(git diff --no-renames -z --name-only "$base" HEAD -- "${globs[@]}")
@@ -612,7 +619,8 @@ jobs:
           fi
           tab=$'\t'
           part='[a-z0-9]+(-[a-z0-9]+)*'
-          def_re="^(agent|command)--${part}--${part}${tab}(plugins/${part}|\.claude)/(agents|commands)/${part}\.md\$"
+          def_re="^(agent--${part}--${part}${tab}(plugins/${part}|\.claude)/agents/${part}\.md"
+          def_re+="|command--${part}--${part}(--${part})*${tab}(plugins/${part}|\.claude)/commands/(${part}/)*${part}\.md)\$"
           while IFS= read -r line; do
             if ! [[ "$line" =~ $def_re ]]; then
               echo "::error title=skill scan::refusing to scan a definition with an unexpected name"
@@ -685,7 +693,8 @@ jobs:
           tab=$'\t'
           part='[a-z0-9]+(-[a-z0-9]+)*'
           skill_re='^plugins/[A-Za-z0-9][A-Za-z0-9._-]*/skills/[A-Za-z0-9][A-Za-z0-9._-]*$'
-          def_re="^(agent|command)--${part}--${part}${tab}(plugins/${part}|\.claude)/(agents|commands)/${part}\.md\$"
+          def_re="^(agent--${part}--${part}${tab}(plugins/${part}|\.claude)/agents/${part}\.md"
+          def_re+="|command--${part}--${part}(--${part})*${tab}(plugins/${part}|\.claude)/commands/(${part}/)*${part}\.md)\$"
           while IFS= read -r entry; do
             # The same checks the selection step makes, and the entry has to be one it chose.
             if [[ "$entry" =~ $skill_re ]]; then

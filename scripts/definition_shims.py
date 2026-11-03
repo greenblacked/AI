@@ -22,18 +22,21 @@ The id scheme is a contract, because the Cisco policy suppresses by id:
 
     agent--<plugin>--<stem>      plugins/<plugin>/agents/<stem>.md
     command--<plugin>--<stem>    plugins/<plugin>/commands/<stem>.md
+    command--<plugin>--<folder>--<stem>
+                                 plugins/<plugin>/commands/<folder>/<stem>.md
     agent--claude--<stem>        .claude/agents/<stem>.md
-    command--claude--<stem>      .claude/commands/<stem>.md
+    command--claude--<stem>      .claude/commands/<stem>.md (folders as above)
 
 `claude` stands for the repository's own `.claude/` directory, so no plugin may be called
 that, and every part is lowercase letters and digits joined by single hyphens, which is
 why a double hyphen can only be a separator.
 
-Only `*.md` files directly inside the four directories count. `agents/evals/*.json` and
-`.claude/agents/benchmarks/**` sit below them and are not definitions. A file inside one
-of the four directories whose name breaks the pattern, a symbolic link, a file that is not
-regular on disk, or an id used twice fails the run: a definition that is skipped is a
-definition nobody scanned.
+Only `*.md` files count: directly inside `agents/`, and at any depth inside `commands/`,
+which is how the validator finds them (a README.md is documentation and is skipped, as
+there). `agents/evals/*.json` and `.claude/agents/benchmarks/**` sit below `agents/` and
+are not definitions. A file in a covered place whose name breaks the pattern, a symbolic
+link, a file that is not regular on disk, or an id used twice fails the run: a definition
+that is skipped is a definition nobody scanned.
 
 Standard library only, like the checks it sits beside.
 """
@@ -52,12 +55,17 @@ PART = r"[a-z0-9]+(?:-[a-z0-9]+)*"
 REPO_PREFIX = "claude"
 # Where a definition can be at all, whatever it is called. A file matching this that fails
 # DEFINITION_RE is refused rather than skipped.
-LOCATION_RE = re.compile(r"(?:plugins/[^/]+|\.claude)/(?:agents|commands)/[^/]+\.md")
-DEFINITION_RE = re.compile(
-    rf"(?:plugins/(?P<plugin>{PART})|(?P<repo>\.claude))/(?P<kind>agents|commands)/(?P<stem>{PART})\.md"
+# Agents are found one level deep, as the validator's `find_agents` does; commands at any
+# depth, as `find_commands` does, because Claude Code namespaces a command by its folder.
+LOCATION_RE = re.compile(
+    r"(?:plugins/[^/]+|\.claude)/(?:agents/[^/]+|commands/(?:[^/]+/)*[^/]+)\.md"
 )
+OWNER = rf"(?:plugins/(?P<plugin>{PART})|(?P<repo>\.claude))"
+AGENT_RE = re.compile(rf"{OWNER}/agents/(?P<stem>{PART})\.md")
+COMMAND_RE = re.compile(rf"{OWNER}/commands/(?P<dirs>(?:{PART}/)*)(?P<stem>{PART})\.md")
+# The validator's own list of readmes that are documentation, not definitions.
+NON_DEFINITIONS = frozenset({"README.md", "readme.md"})
 BASE_RE = re.compile(r"[0-9a-f]{40}")
-SINGULAR = {"agents": "agent", "commands": "command"}
 # The mode `git ls-files -s` gives a symbolic link.
 SYMLINK_MODE = "120000"
 
@@ -97,12 +105,15 @@ def plugin_names(repo: Path) -> set[str]:
 
 def definition_id(path: str, plugins: set[str]) -> str:
     """The shim id for a repository-relative path, or DefinitionError if it is not one."""
-    match = DEFINITION_RE.fullmatch(path)
+    agent = AGENT_RE.fullmatch(path)
+    command = None if agent else COMMAND_RE.fullmatch(path)
+    match = agent or command
     if not match:
         raise DefinitionError(
             f"{safe(path)} is not a subagent or command file: expected "
-            f"plugins/<plugin>/(agents|commands)/<name>.md or .claude/(agents|commands)/<name>.md "
-            f"with lowercase hyphenated names"
+            f"plugins/<plugin>/agents/<name>.md, .claude/agents/<name>.md, "
+            f"plugins/<plugin>/commands/[<folder>/...]<name>.md or "
+            f".claude/commands/[<folder>/...]<name>.md with lowercase hyphenated names"
         )
     if REPO_PREFIX in plugins:
         raise DefinitionError(
@@ -110,7 +121,10 @@ def definition_id(path: str, plugins: set[str]) -> str:
             f"as their prefix, so the two could not be told apart"
         )
     owner = match["plugin"] or REPO_PREFIX
-    return f"{SINGULAR[match['kind']]}--{owner}--{match['stem']}"
+    if agent:
+        return f"agent--{owner}--{match['stem']}"
+    folders = match["dirs"].rstrip("/").split("/") if match["dirs"] else []
+    return "--".join(["command", owner, *folders, match["stem"]])
 
 
 def assign_ids(paths: list[str], plugins: set[str]) -> dict[str, str]:
@@ -141,7 +155,11 @@ def tracked(repo: Path) -> dict[str, str]:
 def list_definitions(repo: Path) -> list[str]:
     """Every tracked subagent and command file, sorted. Raises on one that cannot be read."""
     modes = tracked(repo)
-    paths = sorted(path for path in modes if LOCATION_RE.fullmatch(path))
+    paths = sorted(
+        path
+        for path in modes
+        if LOCATION_RE.fullmatch(path) and path.rsplit("/", 1)[-1] not in NON_DEFINITIONS
+    )
     for path in paths:
         if modes[path] == SYMLINK_MODE:
             raise DefinitionError(f"{safe(path)} is a symbolic link; commit the file itself")

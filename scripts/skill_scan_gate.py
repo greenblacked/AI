@@ -77,12 +77,13 @@ SKILL_DIR_RE = re.compile(r"plugins/[A-Za-z0-9][A-Za-z0-9._-]*/skills/[A-Za-z0-9
 # also keys on; `expected_id` recomputes it from the source so a line cannot pair a shim
 # with a file it was not made from.
 PART = r"[a-z0-9]+(?:-[a-z0-9]+)*"
-DEFINITION_SOURCE_RE = re.compile(
-    rf"(?:plugins/(?P<plugin>{PART})|(?P<repo>\.claude))/(?P<kind>agents|commands)/(?P<stem>{PART})\.md"
-)
+OWNER = rf"(?:plugins/(?P<plugin>{PART})|(?P<repo>\.claude))"
+AGENT_SOURCE_RE = re.compile(rf"{OWNER}/agents/(?P<stem>{PART})\.md")
+COMMAND_SOURCE_RE = re.compile(rf"{OWNER}/commands/(?P<dirs>(?:{PART}/)*)(?P<stem>{PART})\.md")
 SHIM_LINE_RE = re.compile(
-    rf"(?P<id>(?:agent|command)--{PART}--{PART})\t"
-    rf"(?P<source>(?:plugins/{PART}|\.claude)/(?:agents|commands)/{PART}\.md)"
+    rf"(?P<id>(?:agent--{PART}--{PART}|command--{PART}--{PART}(?:--{PART})*))\t"
+    rf"(?P<source>(?:plugins/{PART}|\.claude)/"
+    rf"(?:agents/{PART}|commands/(?:{PART}/)*{PART})\.md)"
 )
 SHIM_FILE = "SKILL.md"
 OK_EXIT_CODES = {0, 1}
@@ -107,11 +108,16 @@ def stem(skill_dir: str) -> str:
 
 def expected_id(source: str) -> str | None:
     """The shim id for a definition's source path, or None if it is not a definition path."""
-    match = DEFINITION_SOURCE_RE.fullmatch(source)
+    agent = AGENT_SOURCE_RE.fullmatch(source)
+    command = None if agent else COMMAND_SOURCE_RE.fullmatch(source)
+    match = agent or command
     if not match:
         return None
-    kind = "agent" if match["kind"] == "agents" else "command"
-    return f"{kind}--{match['plugin'] or 'claude'}--{match['stem']}"
+    owner = match["plugin"] or "claude"
+    if agent:
+        return f"agent--{owner}--{match['stem']}"
+    folders = match["dirs"].rstrip("/").split("/") if match["dirs"] else []
+    return "--".join(["command", owner, *folders, match["stem"]])
 
 
 @dataclass(frozen=True)

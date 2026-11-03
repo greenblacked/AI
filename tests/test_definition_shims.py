@@ -39,6 +39,14 @@ EXCLUDED = {
     "plugins/demo/skills/alpha/SKILL.md": "---\nname: alpha\n---\n",
     "plugins/demo/skills/alpha/agents/inner.md": "# nested\n",
     "docs/agents/guide.md": "# docs\n",
+    # An agent is found one level deep only, as the validator's find_agents does.
+    "plugins/demo/agents/nested/deep.md": AGENT,
+    ".claude/agents/nested/deep.md": AGENT,
+    # A readme is documentation in agents/ and commands/, as it is to the validator.
+    "plugins/demo/agents/README.md": "# Agents\n",
+    "plugins/demo/commands/README.md": "# Commands\n",
+    ".claude/commands/readme.md": "# Commands\n",
+    ".claude/commands/team/README.md": "# Team commands\n",
 }
 
 
@@ -105,16 +113,20 @@ def test_all_four_locations_are_enumerated_and_nothing_near_them(repo):
 
 
 def test_the_real_repository_enumerates_what_an_independent_glob_finds():
-    # Path.glob's `*` never crosses a slash, so this is a second opinion on the exact
-    # depth-one rule, not a copy of the script's regex.
+    # Path.glob's `*` never crosses a slash and `**` does, so this is a second opinion on
+    # the depth rule (agents one level, commands any depth), not a copy of the regex.
     expected = set()
     for pattern in (
         "plugins/*/agents/*.md",
-        "plugins/*/commands/*.md",
+        "plugins/*/commands/**/*.md",
         ".claude/agents/*.md",
-        ".claude/commands/*.md",
+        ".claude/commands/**/*.md",
     ):
-        expected |= {p.relative_to(REPO).as_posix() for p in REPO.glob(pattern)}
+        expected |= {
+            p.relative_to(REPO).as_posix()
+            for p in REPO.glob(pattern)
+            if p.name not in ("README.md", "readme.md")
+        }
     found = shims.list_definitions(REPO)
     assert set(found) == expected
     assert expected
@@ -128,6 +140,8 @@ def test_the_real_repository_enumerates_what_an_independent_glob_finds():
         ("plugins/delivery/commands/changelog.md", "command--delivery--changelog"),
         (".claude/agents/reviewer.md", "agent--claude--reviewer"),
         (".claude/commands/ship.md", "command--claude--ship"),
+        ("plugins/delivery/commands/release/notes.md", "command--delivery--release--notes"),
+        (".claude/commands/team/review/pr.md", "command--claude--team--review--pr"),
     ],
 )
 def test_the_id_scheme_is_pinned(path, ident):
@@ -144,11 +158,28 @@ def test_the_id_scheme_is_pinned(path, ident):
         "plugins/demo/skills/alpha/SKILL.md",
         ".claude/agents/benchmarks/reviewer/case/README.md",
         "plugins/demo/agents/nested/deep.md",
+        ".claude/agents/nested/deep.md",
         "plugins/demo/agents/helper.json",
         "agents/helper.md",
     ],
 )
-def test_a_path_outside_the_four_locations_is_refused(path):
+def test_definition_id_refuses_a_path_that_is_not_a_definition(path):
+    with pytest.raises(shims.DefinitionError):
+        shims.definition_id(path, {"demo"})
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "plugins/demo/commands/Group/run.md",
+        "plugins/demo/commands/two--hyphens/run.md",
+        "plugins/demo/commands/group/under_score.md",
+        "plugins/demo/commands/-lead/run.md",
+        "plugins/demo/commands/group//run.md",
+        "plugins/demo/commands/group/README.md",
+    ],
+)
+def test_a_nested_command_name_that_fails_the_strict_pattern_is_refused(path):
     with pytest.raises(shims.DefinitionError):
         shims.definition_id(path, {"demo"})
 
@@ -399,3 +430,64 @@ def test_a_mode_is_required():
 def test_the_summary_line_counts_what_was_written(repo, tmp_path, capsys):
     assert run(repo, tmp_path / "out", "--all") == 0
     assert capsys.readouterr().out.strip() == "4 definition(s) wrapped as shims"
+
+
+NESTED = "plugins/demo/commands/release/notes.md"
+NESTED_ID = "command--demo--release--notes"
+DEEP = ".claude/commands/team/review/pr.md"
+DEEP_ID = "command--claude--team--review--pr"
+
+
+def test_a_nested_command_is_wrapped_with_its_folders_in_the_id(repo, tmp_path):
+    repo.write(NESTED, COMMAND)
+    repo.write(DEEP, COMMAND)
+    repo.commit()
+    out = tmp_path / "out"
+    assert run(repo, out, "--all") == 0
+    lines = (out / "map.tsv").read_text(encoding="utf-8").splitlines()
+    assert f"{NESTED_ID}\t{NESTED}" in lines
+    assert f"{DEEP_ID}\t{DEEP}" in lines
+    assert len(lines) == 6
+    shim = (out / NESTED_ID / "SKILL.md").read_text(encoding="utf-8")
+    assert shim.replace(f"name: {NESTED_ID}\n", "", 1) == COMMAND
+    assert shim.splitlines()[1] == f"name: {NESTED_ID}"
+
+
+def test_a_nested_command_is_selected_when_a_pull_request_changes_it(repo, tmp_path):
+    repo.write(NESTED, COMMAND)
+    base = repo.commit("with nested")
+    repo.write(NESTED, COMMAND + "more\n")
+    repo.commit()
+    out = tmp_path / "out"
+    assert run(repo, out, "--changed", base) == 0
+    assert (out / "map.tsv").read_text(encoding="utf-8") == f"{NESTED_ID}\t{NESTED}\n"
+
+
+def test_a_nested_command_with_a_bad_folder_name_fails_the_run(repo, tmp_path):
+    repo.write("plugins/demo/commands/Bad_Folder/run.md", COMMAND)
+    repo.commit()
+    assert run(repo, tmp_path / "out", "--all") == 1
+
+
+def test_a_readme_in_agents_or_commands_is_skipped_not_refused(repo, tmp_path):
+    # EXCLUDED already holds READMEs in agents/, commands/ and a commands/ subfolder.
+    out = tmp_path / "out"
+    assert run(repo, out, "--all") == 0
+    assert "README" not in (out / "map.tsv").read_text(encoding="utf-8")
+
+
+def test_an_odd_file_name_next_to_a_readme_is_still_refused(repo, tmp_path):
+    repo.write("plugins/demo/commands/README.MD.md", COMMAND)
+    repo.write("plugins/demo/commands/Readme.md", COMMAND)
+    repo.commit()
+    assert run(repo, tmp_path / "out", "--all") == 1
+
+
+def test_two_commands_cannot_share_an_id(tmp_path):
+    # `a/b-c.md` and `a-b/c.md` give different ids; the same path twice is what repeats one.
+    ids = shims.assign_ids(
+        ["plugins/demo/commands/a/b-c.md", "plugins/demo/commands/a-b/c.md"], {"demo"}
+    )
+    assert sorted(ids) == ["command--demo--a--b-c", "command--demo--a-b--c"]
+    with pytest.raises(shims.DefinitionError, match="more than one"):
+        shims.assign_ids(["plugins/demo/commands/a/b.md"] * 2, {"demo"})

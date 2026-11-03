@@ -755,3 +755,78 @@ def test_a_cisco_report_with_no_count_fails_the_definition_check(tmp_path, scrat
     out.mkdir(parents=True)
     (out / "definitions.json").write_text('{"summary": {}}', encoding="utf-8")
     assert run_step(tmp_path, repo, env, COUNT_DEFINITIONS).returncode != 0
+
+
+# A command in a folder is a definition (the validator finds commands at any depth and
+# Claude Code namespaces them), so every count in the workflow has to see it too. An agent
+# in a folder is not one, and a README is documentation in both places.
+NESTED = "plugins/demo/commands/release/notes.md"
+NESTED_LINE = f"command--demo--release--notes\t{NESTED}"
+DEEP = ".claude/commands/team/review/pr.md"
+DEEP_LINE = f"command--claude--team--review--pr\t{DEEP}"
+IGNORED = (
+    "plugins/demo/agents/README.md",
+    "plugins/demo/commands/README.md",
+    ".claude/commands/readme.md",
+    ".claude/commands/team/README.md",
+    "plugins/demo/agents/nested/deep.md",
+    ".claude/agents/nested/deep.md",
+    "plugins/demo/commands/notes.txt",
+)
+
+
+def add_nested(repo):
+    for rel in (NESTED, DEEP):
+        (repo / rel).parent.mkdir(parents=True, exist_ok=True)
+        (repo / rel).write_text(FRONTMATTER, encoding="utf-8")
+    for rel in IGNORED:
+        (repo / rel).parent.mkdir(parents=True, exist_ok=True)
+        (repo / rel).write_text("# not a definition\n", encoding="utf-8")
+
+
+def test_every_event_wraps_and_counts_a_nested_command(tmp_path, scratch):
+    repo, env, _ = scratch
+    add_nested(repo)
+    result, manifest = choose(tmp_path, repo, env, event="push")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert manifest == [ALPHA, BETA, *sorted([*DEFINITION_LINES, NESTED_LINE, DEEP_LINE])]
+
+
+def test_a_pull_request_that_changes_a_nested_command_selects_it(tmp_path, scratch):
+    repo, env, _ = scratch
+    add_nested(repo)
+    git(repo, env, "add", "-A")
+    git(repo, env, "commit", "--quiet", "-m", "nested")
+    base = git(repo, env, "rev-parse", "HEAD")
+    (repo / NESTED).write_text(FRONTMATTER + "more\n", encoding="utf-8")
+    (repo / "plugins/demo/commands/README.md").write_text("# edited\n", encoding="utf-8")
+    (repo / "plugins/demo/agents/nested/deep.md").write_text("# edited\n", encoding="utf-8")
+    result, manifest = choose(tmp_path, repo, env, base_sha=base)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert manifest == [NESTED_LINE]
+
+
+def test_the_cisco_steps_wrap_and_count_a_nested_command(tmp_path, scratch):
+    repo, env, _ = scratch
+    add_nested(repo)
+    git(repo, env, "add", "-A")
+    result = run_step(tmp_path, repo, env, WRAP)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "6 subagent and command file(s) wrapped" in result.stdout
+    shims = tmp_path / "runner" / "definition-shims"
+    assert (shims / "command--demo--release--notes" / "SKILL.md").is_file()
+    if shutil.which("jq"):
+        cisco_count_report(tmp_path / "runner", 6)
+        counted = run_step(tmp_path, repo, env, COUNT_DEFINITIONS)
+        assert counted.returncode == 0, counted.stdout
+        assert "scanned 6 of 6 subagents and commands" in counted.stdout
+
+
+def test_a_script_that_skips_a_nested_command_is_caught_by_the_count(tmp_path, scratch):
+    repo, env, _ = scratch
+    add_nested(repo)
+    git(repo, env, "add", "-A")
+    (repo / SHIMS_SCRIPT).write_text(LYING_SCRIPT, encoding="utf-8")
+    result, _ = choose(tmp_path, repo, env, event="push")
+    assert result.returncode == 1
+    assert "wrapped 1 definition(s) where git lists 6" in result.stdout
