@@ -645,7 +645,7 @@ written under `skills/` except archives: the tests assert that directory holds o
 
 ## `.github/workflows/scheduled.yml` — Scheduled checks
 
-Runs weekly (`cron: '0 6 * * 1'`) and on `workflow_dispatch`. Neither job gates
+Runs weekly (`cron: '0 6 * * 1'`) and on `workflow_dispatch`. None of the three jobs gates
 anything, and neither this workflow nor `evals.yml` has an aggregator, because an
 aggregator exists to give branch protection a stable name to require and nothing
 requires either of them.
@@ -654,6 +654,7 @@ requires either of them.
 | --- | --- | --- |
 | `external-links` | `external links` | lychee could not reach an external URL. Hosts in `.lycheeignore` (example.com and friends, which appear inside skill instructions) are excluded. |
 | `pin-freshness` | `pin freshness` | A `*_VERSION` in a workflow has no registry registered for it in [`scripts/check_pin_freshness.py`](../scripts/check_pin_freshness.py). A pinned tool version behind upstream, a registry that could not be asked, or `MARKDOWNLINT_PIN` in the [`Makefile`](../Makefile) no longer matching the markdownlint-cli2 the pinned action bundles is a warning annotation on a green run, not a failure. It reports and never bumps: adopting a version is the judgement the pinning exists to preserve. |
+| `dependency-advisories` | `dependency advisories` | [`scripts/check_lock_advisories.py`](../scripts/check_lock_advisories.py) found an OSV advisory against a package pinned in `.github/requirements/*.txt` that [`advisories-accepted.json`](../.github/requirements/advisories-accepted.json) does not cover, found an accepted entry that is expired, has no reason or expires more than 180 days ahead, or could not complete the lookup (any non-2xx response, timeout or unparseable body). It fails closed: an audit that did not run is not a pass. An accepted entry that matches nothing is a warning annotation. |
 
 These are here because they depend on the network or a wordlist. A gate that fails
 because someone else's site was briefly down is a gate people learn to override, and once
@@ -670,6 +671,28 @@ prints a table into the job summary, and stops there. Each pin that needs a look
 a `::warning` annotation on the run, but the run stays green: Claude Code and Codex
 publish nearly every week, and a weekly run that went red for each release was red
 nearly every week, which teaches people to stop reading it.
+
+`dependency-advisories` covers the three hashed locks in `.github/requirements/`, which
+`.github/dependabot.yml` ignores because a version edited into a hash-pinned file breaks
+the install. Dependabot alerts still appear on the Security tab, but nothing read them on
+a schedule. The check sends one `querybatch` request per thousand (package, version)
+pairs to `api.osv.dev`, follows any `next_page_token` until none is left, and audits
+every pinned line, including one with an environment marker such as
+`sys_platform == 'win32'`: the marker decides where a package installs, not whether its
+version is vulnerable. It needs no token, and `api.osv.dev` is the only host it contacts.
+
+A red run means one of two things, and the fix is never to loosen the check. Regenerate
+the lock with the `uv` recipe in its header, adding an `--upgrade-package` pin at the
+fixed version, or, when the advisory cannot be reached from the job or has no fix yet,
+add an entry to `advisories-accepted.json`:
+
+```json
+[{"id": "GHSA-xxxx-xxxx-xxxx", "package": "certifi", "reason": "why it is not reachable", "expires": "2027-01-31"}]
+```
+
+An entry needs a reason and an `expires` date no more than 180 days ahead, so an
+acceptance is re-read twice a year at most. An expired entry fails the run, and one that
+matches nothing is a warning to remove it. The id may be any alias of the advisory.
 
 ## `.github/workflows/evals.yml` — Trigger evals
 
@@ -1017,7 +1040,7 @@ build script pulls in — can read it and push with it. None of these jobs push,
 them need the credential to survive the checkout step.
 
 Every job sets `timeout-minutes` — five for most, ten for `validate-plugin`, `test`,
-`package`, `cut-release.yml`'s job and the two `scheduled.yml` jobs, fifteen for the release job, twenty for
+`package`, `cut-release.yml`'s job and the three `scheduled.yml` jobs, fifteen for the release job, twenty for
 CodeQL, two hours for the monthly eval job, and forty-five for the pull request eval
 job. The default is six hours, which is long enough that a hung step looks like a slow
 one for most of a working day, and it holds a runner the whole time. A timeout turns
@@ -1357,13 +1380,15 @@ because a claim about someone else's tool ages whether or not anything here chan
 `.claude/settings.json` is read by the runtime and by nothing else here, which is why
 the path in `command` needed a check of its own rather than a habit.
 
-`check_pin_freshness.py` is not part of `make catalogue` either, for the same reason it
-is not a gate: it needs PyPI, the npm registry and the GitHub releases API to answer. Run
-it directly when you want to know what has moved, and give it a token if you are asking
-more than a few times an hour:
+`check_pin_freshness.py` and `check_lock_advisories.py` are not part of `make catalogue`
+either, for the same reason neither is a gate: they need PyPI, the npm registry, the
+GitHub releases API and `api.osv.dev` to answer. Run them directly when you want to know
+what has moved, and give the first a token if you are asking more than a few times an
+hour:
 
 ```bash
 GH_TOKEN=$(gh auth token) python scripts/check_pin_freshness.py .
+python scripts/check_lock_advisories.py .
 ```
 
 The trigger evals are not part of `make`, because they need a model and a key. Run them
