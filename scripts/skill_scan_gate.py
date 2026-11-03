@@ -2,7 +2,12 @@
 """Fail on a high or critical SkillSpector finding nobody has reviewed yet.
 
 The `skillspector` job in `security.yml` scans one skill per process and leaves, for each
-skill named in its manifest, a SARIF report and the scanner's exit code. This reads them
+skill named in its manifest, a SARIF report and the scanner's exit code. A subagent or
+command is scanned the same way through a one-file skill, a shim that
+`scripts/definition_shims.py` writes, and its manifest line is `<id>\\t<source path>`
+instead of a directory. A finding in a shim is reported and accepted against the source
+path, so an accepted entry names the file a reviewer opens, and a command's line number is
+mapped back past the one line its shim adds. This reads them
 and fails the job on any HIGH or CRITICAL result whose key is not in the reviewed list,
 `.github/skill-scan/skillspector-accepted.json`. Medium and low findings never gate; they
 stay in the SARIF the job uploads.
@@ -50,6 +55,7 @@ import json
 import posixpath
 import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 GATED = {"HIGH", "CRITICAL"}
@@ -66,6 +72,19 @@ ENTRY_FIELDS = ("rule_id", "path", "match", "class", "reason")
 # The shape every skill directory in this repository has. The manifest is written by a
 # shell step, so anything else in it is a selection bug rather than a skill to scan.
 SKILL_DIR_RE = re.compile(r"plugins/[A-Za-z0-9][A-Za-z0-9._-]*/skills/[A-Za-z0-9][A-Za-z0-9._-]*")
+# The manifest line for a subagent or command: the shim id, a tab and the source file. The
+# id scheme is the one `scripts/definition_shims.py` documents, which the Cisco policy
+# also keys on; `expected_id` recomputes it from the source so a line cannot pair a shim
+# with a file it was not made from.
+PART = r"[a-z0-9]+(?:-[a-z0-9]+)*"
+DEFINITION_SOURCE_RE = re.compile(
+    rf"(?:plugins/(?P<plugin>{PART})|(?P<repo>\.claude))/(?P<kind>agents|commands)/(?P<stem>{PART})\.md"
+)
+SHIM_LINE_RE = re.compile(
+    rf"(?P<id>(?:agent|command)--{PART}--{PART})\t"
+    rf"(?P<source>(?:plugins/{PART}|\.claude)/(?:agents|commands)/{PART}\.md)"
+)
+SHIM_FILE = "SKILL.md"
 OK_EXIT_CODES = {0, 1}
 MATCH_LIMIT = 200
 # SkillSpector 2.13.1's reason code for a time budget running out. Every other reason
@@ -84,6 +103,31 @@ def stem(skill_dir: str) -> str:
     """`plugins/<plugin>/skills/<skill>` -> `<plugin>__<skill>`, the per-skill file stem."""
     parts = skill_dir.split("/")
     return f"{parts[1]}__{parts[3]}"
+
+
+def expected_id(source: str) -> str | None:
+    """The shim id for a definition's source path, or None if it is not a definition path."""
+    match = DEFINITION_SOURCE_RE.fullmatch(source)
+    if not match:
+        return None
+    kind = "agent" if match["kind"] == "agents" else "command"
+    return f"{kind}--{match['plugin'] or 'claude'}--{match['stem']}"
+
+
+@dataclass(frozen=True)
+class Target:
+    """One scan: a skill directory, or a subagent or command read through its shim."""
+
+    line: str  # exactly as the manifest (and the rescan list) writes it
+    stem: str  # the stem of its <stem>.sarif and <stem>.rc
+    label: str  # the skill directory or the definition's source path, for messages
+    source: str | None = None  # a definition's repository path; None for a skill
+    command: bool = False  # a command shim has one line inserted after its first
+
+    @property
+    def file(self) -> str:
+        """The file an annotation without a finding location points at."""
+        return self.source or f"{self.label}/SKILL.md"
 
 
 def inert(text: str) -> str:
@@ -122,20 +166,36 @@ def shorten(text: str) -> str:
     return text if len(text) <= MATCH_LIMIT else text[: MATCH_LIMIT - 3] + "..."
 
 
-def read_manifest(path: Path) -> tuple[list[str], list[str]]:
-    """The skill directories the job scanned, and any problems with the list itself."""
+def read_manifest(path: Path) -> tuple[list[Target], list[str]]:
+    """What the job scanned, and any problems with the list itself.
+
+    A line is a skill directory, or `<id>\\t<source path>` for a subagent or command.
+    """
     problems = []
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
     except OSError as err:
         return [], [f"cannot read the manifest {path}: {err.strerror}"]
-    skills = [line for line in lines if line]
-    for skill in skills:
-        if not SKILL_DIR_RE.fullmatch(skill):
-            problems.append(f"manifest names {skill!r}, which is not a skill directory")
-    if len(skills) != len(set(skills)):
-        problems.append("manifest names a skill more than once")
-    return skills, problems
+    targets = []
+    for line in (line for line in lines if line):
+        shim = SHIM_LINE_RE.fullmatch(line) if "\t" in line else None
+        if shim:
+            ident, source = shim["id"], shim["source"]
+            if expected_id(source) != ident:
+                problems.append(f"manifest names {line!r}, whose id does not belong to its file")
+                continue
+            targets.append(Target(line, ident, source, source, ident.startswith("command--")))
+        elif SKILL_DIR_RE.fullmatch(line):
+            targets.append(Target(line, stem(line), line))
+        elif "\t" in line:
+            problems.append(f"manifest names {line!r}, which is not a subagent or command line")
+        else:
+            problems.append(f"manifest names {line!r}, which is not a skill directory")
+    if len({t.line for t in targets}) != len(targets) or len({t.stem for t in targets}) != len(
+        targets
+    ):
+        problems.append("manifest names a skill or definition more than once")
+    return targets, problems
 
 
 def read_accepted(path: Path) -> tuple[dict[tuple[str, str, str], dict], list[str]]:
@@ -252,7 +312,7 @@ def check_completeness(invocation: dict) -> None:
         raise IncompleteScanError(f"SkillSpector left {count} file(s) entirely uninspected")
 
 
-def findings_in(skill: str, sarif_path: Path) -> list[tuple[tuple[str, str, str], int, str]]:
+def findings_in(target: Target, sarif_path: Path) -> list[tuple[tuple[str, str, str], int, str]]:
     """Every gating result in one report, as (key, line, severity). Raises on a bad file."""
     data = json.loads(sarif_path.read_text(encoding="utf-8"))
     runs = data.get("runs") if isinstance(data, dict) else None
@@ -281,7 +341,7 @@ def findings_in(skill: str, sarif_path: Path) -> list[tuple[tuple[str, str, str]
             rule = result.get("ruleId")
             if not isinstance(rule, str) or not rule:
                 raise ValueError("a gating result has no ruleId")
-            path, line = location(skill, result)
+            path, line = location(target, result)
             props = result.get("properties") or {}
             text = props.get("finding") if isinstance(props, dict) else None
             if not isinstance(text, str) or not text.strip():
@@ -291,12 +351,17 @@ def findings_in(skill: str, sarif_path: Path) -> list[tuple[tuple[str, str, str]
     return found
 
 
-def location(skill: str, result: dict) -> tuple[str, int]:
+def location(target: Target, result: dict) -> tuple[str, int]:
     """The repository-relative path and line of a result; the skill itself if it has none.
 
     SkillSpector writes each URI relative to the skill it scanned. One that is absolute,
     or that climbs out of the skill, is refused: the key would not mean the file it names.
+    A shim holds one file, so any URI but its `SKILL.md` is refused too, and the result is
+    reported against the definition's source, one line up for a command.
     """
+    if target.source is not None:
+        return shim_location(target, result)
+    skill = target.label
     try:
         physical = result["locations"][0]["physicalLocation"]
     except (KeyError, IndexError, TypeError):
@@ -313,6 +378,25 @@ def location(skill: str, result: dict) -> tuple[str, int]:
     return joined, line
 
 
+def shim_location(target: Target, result: dict) -> tuple[str, int]:
+    source = target.source or target.label
+    try:
+        physical = result["locations"][0]["physicalLocation"]
+    except (KeyError, IndexError, TypeError):
+        return source, 1
+    uri = (physical.get("artifactLocation") or {}).get("uri")
+    region = physical.get("region") or {}
+    line = region.get("startLine")
+    line = line if isinstance(line, int) and line > 0 else 1
+    if isinstance(uri, str) and uri:
+        if uri.startswith("/") or ":" in uri or posixpath.normpath(uri) != SHIM_FILE:
+            raise ValueError(f"a result's location {uri!r} is outside the skill")
+        if target.command:
+            # The shim's second line is the inserted `name:`, so the source is one above.
+            line = max(1, line - 1)
+    return source, line
+
+
 def exit_code(rc_path: Path) -> int | None:
     try:
         return int(rc_path.read_text(encoding="utf-8").strip())
@@ -320,11 +404,19 @@ def exit_code(rc_path: Path) -> int | None:
         return None
 
 
+def describe(targets: list[Target]) -> str:
+    skills = sum(1 for t in targets if t.source is None)
+    text = f"{skills} skill(s)"
+    if len(targets) > skills:
+        text += f" and {len(targets) - skills} definition(s)"
+    return text
+
+
 def gate(
     manifest: Path, results: Path, accepted_path: Path, incomplete_out: Path | None = None
 ) -> int:
     failures = 0
-    skills, problems = read_manifest(manifest)
+    targets, problems = read_manifest(manifest)
     accepted, accepted_problems = read_accepted(accepted_path)
     for problem in problems + accepted_problems:
         annotate("error", problem, title="SkillSpector gate")
@@ -333,10 +425,10 @@ def gate(
         return 1
 
     reports = sorted(results.glob("*.sarif"))
-    if len(reports) != len(skills):
+    if len(reports) != len(targets):
         annotate(
             "error",
-            f"found {len(reports)} SARIF report(s) for {len(skills)} skill(s) scanned; "
+            f"found {len(reports)} SARIF report(s) for {describe(targets)} scanned; "
             f"a skill without a report was not scanned, and a report without a skill "
             f"came from somewhere else",
             title="SkillSpector gate",
@@ -347,38 +439,38 @@ def gate(
     judged: list[str] = []
     rescan: list[str] = []
     new = 0
-    for skill in skills:
-        name = stem(skill)
+    for target in targets:
+        name, skill = target.stem, target.label
         rc = exit_code(results / f"{name}.rc")
         if rc not in OK_EXIT_CODES:
             reason = "left no exit code" if rc is None else f"exited {rc}"
             annotate(
                 "error",
                 f"SkillSpector {reason} scanning {skill}; see {name}.log in the artifact",
-                file=f"{skill}/SKILL.md",
+                file=target.file,
                 title="SkillSpector scan failed",
             )
             failures += 1
             continue
         try:
-            found = findings_in(skill, results / f"{name}.sarif")
+            found = findings_in(target, results / f"{name}.sarif")
         except RuntimeLimitError:
             if incomplete_out is not None:
                 annotate(
                     "notice",
                     f"SkillSpector ran out of time scanning {skill}; its results are set "
                     f"aside, and it is rescanned on its own unless something else failed",
-                    file=f"{skill}/SKILL.md",
+                    file=target.file,
                     title="SkillSpector scan incomplete",
                 )
-                rescan.append(skill)
+                rescan.append(target.line)
                 continue
             annotate(
                 "error",
                 f"SkillSpector ran out of time scanning {skill}, so neither a clean result "
                 f"nor a coverage finding there says anything about the skill; re-run the "
                 f"job, and see {name}.sarif in the artifact",
-                file=f"{skill}/SKILL.md",
+                file=target.file,
                 title="SkillSpector scan incomplete",
             )
             failures += 1
@@ -388,7 +480,7 @@ def gate(
                 "error",
                 f"{err} in {skill}, so a clean result there means nothing; see "
                 f"{name}.sarif in the artifact",
-                file=f"{skill}/SKILL.md",
+                file=target.file,
                 title="SkillSpector scan incomplete",
             )
             failures += 1
@@ -397,12 +489,12 @@ def gate(
             annotate(
                 "error",
                 f"no readable SARIF for {skill}: {err}",
-                file=f"{skill}/SKILL.md",
+                file=target.file,
                 title="SkillSpector scan failed",
             )
             failures += 1
             continue
-        judged.append(skill)
+        judged.append(target)
         reported: set[tuple[str, str, str]] = set()
         for key, line, severity in found:
             seen.add(key)
@@ -421,8 +513,13 @@ def gate(
             new += 1
 
     # Only a skill whose report was read can show that an entry no longer matches.
-    scanned = tuple(skill + "/" for skill in judged)
-    stale = sorted(key for key in accepted if key[1].startswith(scanned) and key not in seen)
+    skill_dirs = tuple(t.label + "/" for t in judged if t.source is None)
+    sources = {t.source for t in judged if t.source is not None}
+    stale = sorted(
+        key
+        for key in accepted
+        if (key[1].startswith(skill_dirs) or key[1] in sources) and key not in seen
+    )
     for rule, path, text in stale:
         annotate(
             "notice",
@@ -444,12 +541,12 @@ def gate(
             failures += 1
 
     print(
-        f"skillspector gate: {len(skills)} skill(s) scanned, {len(seen)} high or critical "
+        f"skillspector gate: {describe(targets)} scanned, {len(seen)} high or critical "
         f"key(s) seen, {new} new, {len(stale)} stale accepted entr"
         f"{'y' if len(stale) == 1 else 'ies'}, {failures} other failure(s), "
         f"{len(rescan)} to rescan"
     )
-    if not skills:
+    if not targets:
         annotate("notice", "no skill to scan", title="SkillSpector gate")
     if failures or new:
         return 1
@@ -462,13 +559,14 @@ def main(argv: list[str] | None = None) -> int:
         "--manifest",
         type=Path,
         required=True,
-        help="newline-separated skill directories that were scanned",
+        help="newline-separated skill directories, and <id><TAB><source> lines for "
+        "subagents and commands, that were scanned",
     )
     parser.add_argument(
         "--results",
         type=Path,
         required=True,
-        help="directory of <plugin>__<skill>.sarif and .rc files",
+        help="directory of <plugin>__<skill>.sarif and .rc files, and <id>.sarif for a shim",
     )
     parser.add_argument(
         "--accepted", type=Path, required=True, help="the reviewed list of accepted findings"
@@ -476,8 +574,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--incomplete-out",
         type=Path,
-        help="write each skill whose scan ran out of time here and exit 3 rather than "
-        "failing it; leave out on the final pass, which fails such a skill",
+        help="write the manifest line of each scan that ran out of time here and exit 3 "
+        "rather than failing it; leave out on the final pass, which fails such a scan",
     )
     args = parser.parse_args(argv)
     return gate(args.manifest, args.results, args.accepted, args.incomplete_out)

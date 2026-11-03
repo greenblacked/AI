@@ -9,6 +9,9 @@ not only a finding that did.
 from __future__ import annotations
 
 import json
+import re
+
+import pytest
 
 from tests.conftest import REPO, load_script
 
@@ -68,7 +71,7 @@ def lay_out(tmp_path, reports, entries=(), rc=None):
     manifest = tmp_path / "skills.txt"
     manifest.write_text("".join(f"{skill}\n" for skill in reports), encoding="utf-8")
     for skill, report in reports.items():
-        name = gate.stem(skill)
+        name = skill.split("\t")[0] if "\t" in skill else gate.stem(skill)
         if report is not None:
             text = report if isinstance(report, str) else json.dumps(report)
             (results / f"{name}.sarif").write_text(text, encoding="utf-8")
@@ -312,7 +315,10 @@ def test_the_committed_accepted_list_is_well_formed():
     assert problems == []
     assert accepted
     for _, entry_path, match in accepted:
-        assert entry_path.startswith("plugins/")
+        # A skill file, or the source of a subagent or command read through its shim.
+        assert entry_path.startswith("plugins/") or re.fullmatch(
+            r"\.claude/(agents|commands)/[a-z0-9-]+\.md", entry_path
+        ), entry_path
         assert match == gate.normalise(match)
 
 
@@ -521,3 +527,164 @@ def test_runtime_limit_evidence_of_the_wrong_shape_fails_closed(tmp_path, capsys
         printed = capsys.readouterr().out
         assert "title=SkillSpector scan failed" in printed
         assert "reasons" in printed
+
+
+# A subagent or command is scanned as a one-file skill, a "shim", and its manifest line
+# is `<id>\t<source path>`. The gate reports and accepts against the source path, so an
+# accepted entry names the file a reviewer opens, not a directory that exists only on the
+# runner.
+AGENT_SRC = "plugins/demo/agents/helper.md"
+AGENT_LINE = f"agent--demo--helper\t{AGENT_SRC}"
+COMMAND_SRC = "plugins/demo/commands/run-it.md"
+COMMAND_LINE = f"command--demo--run-it\t{COMMAND_SRC}"
+REPO_AGENT_SRC = ".claude/agents/builder.md"
+REPO_AGENT_LINE = f"agent--claude--builder\t{REPO_AGENT_SRC}"
+
+
+def test_a_shim_finding_is_reported_on_its_source_path_and_line(tmp_path, capsys):
+    args = lay_out(tmp_path, {AGENT_LINE: sarif(result(line=7))})
+    assert gate.main(args) == 1
+    out = capsys.readouterr().out
+    assert f"::error file={AGENT_SRC},line=7,title=SkillSpector PE3::HIGH PE3" in out
+    assert "agent--demo--helper" not in out.replace(AGENT_LINE, "")
+
+
+def test_an_accepted_entry_on_the_source_path_matches_a_shim_finding(tmp_path, capsys):
+    args = lay_out(tmp_path, {AGENT_LINE: sarif(result())}, [entry(path=AGENT_SRC)])
+    assert gate.main(args) == 0
+    assert "0 new" in capsys.readouterr().out
+
+
+def test_an_entry_on_the_shim_directory_does_not_match(tmp_path):
+    args = lay_out(
+        tmp_path,
+        {AGENT_LINE: sarif(result())},
+        [entry(path="agent--demo--helper/SKILL.md")],
+    )
+    assert gate.main(args) == 1
+
+
+def test_a_repository_level_definition_is_keyed_on_its_claude_path(tmp_path):
+    args = lay_out(tmp_path, {REPO_AGENT_LINE: sarif(result())}, [entry(path=REPO_AGENT_SRC)])
+    assert gate.main(args) == 0
+
+
+def test_a_command_shim_line_is_mapped_back_past_the_inserted_name(tmp_path, capsys):
+    # The shim has `name: <id>` as its second line, so shim line N is source line N - 1.
+    report = sarif(result(line=9), result(rule="TM1", line=2), result(rule="E2", line=1))
+    assert gate.main(lay_out(tmp_path, {COMMAND_LINE: report})) == 1
+    out = capsys.readouterr().out
+    assert f"file={COMMAND_SRC},line=8,title=SkillSpector PE3" in out
+    assert f"file={COMMAND_SRC},line=1,title=SkillSpector TM1" in out
+    assert f"file={COMMAND_SRC},line=1,title=SkillSpector E2" in out
+
+
+def test_an_agent_shim_line_is_not_shifted(tmp_path, capsys):
+    assert gate.main(lay_out(tmp_path, {AGENT_LINE: sarif(result(line=9))})) == 1
+    assert f"file={AGENT_SRC},line=9," in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("uri", ["references/notes.md", "../other/SKILL.md", "/etc/passwd", "a:b"])
+def test_a_foreign_uri_in_a_shim_fails_closed(tmp_path, capsys, uri):
+    args = lay_out(tmp_path, {AGENT_LINE: sarif(result(uri=uri))}, [entry(path=AGENT_SRC)])
+    assert gate.main(args) == 1
+    assert "outside the skill" in capsys.readouterr().out
+
+
+def test_a_shim_result_with_no_location_is_keyed_on_its_source(tmp_path):
+    bare = result()
+    del bare["locations"]
+    args = lay_out(tmp_path, {AGENT_LINE: sarif(bare)}, [entry(path=AGENT_SRC)])
+    assert gate.main(args) == 0
+
+
+def test_skills_and_shims_are_judged_together(tmp_path, capsys):
+    args = lay_out(
+        tmp_path,
+        {SKILL: sarif(), AGENT_LINE: sarif(), COMMAND_LINE: sarif(result(rule="P5"))},
+    )
+    assert gate.main(args) == 1
+    out = capsys.readouterr().out
+    assert "1 new" in out
+
+
+def test_the_count_check_includes_shims(tmp_path, capsys):
+    args = lay_out(tmp_path, {SKILL: sarif(), AGENT_LINE: None, COMMAND_LINE: sarif()})
+    assert gate.main(args) == 1
+    out = capsys.readouterr().out
+    assert "found 2 SARIF report(s) for 1 skill(s) and 2 definition(s) scanned" in out
+    assert "no readable SARIF for plugins/demo/agents/helper.md" in out
+
+
+def test_a_shim_scan_that_exited_2_fails(tmp_path, capsys):
+    args = lay_out(tmp_path, {AGENT_LINE: sarif()}, rc={AGENT_LINE: "2"})
+    assert gate.main(args) == 1
+    out = capsys.readouterr().out
+    assert f"SkillSpector exited 2 scanning {AGENT_SRC}" in out
+
+
+def test_a_stale_entry_on_a_scanned_shim_source_is_reported(tmp_path, capsys):
+    args = lay_out(tmp_path, {AGENT_LINE: sarif()}, [entry(path=AGENT_SRC)])
+    assert gate.main(args) == 0
+    assert "::notice file=plugins/demo/agents/helper.md,title=Stale SkillSpector entry" in (
+        capsys.readouterr().out
+    )
+
+
+def test_an_entry_for_a_definition_this_run_did_not_scan_is_not_stale(tmp_path, capsys):
+    args = lay_out(tmp_path, {AGENT_LINE: sarif()}, [entry(path=COMMAND_SRC)])
+    assert gate.main(args) == 0
+    assert "Stale" not in capsys.readouterr().out
+
+
+def test_a_shim_whose_scan_ran_out_of_time_is_listed_by_its_manifest_line(tmp_path, capsys):
+    reports = {AGENT_LINE: with_notification(sarif(), "runtime_limit"), SKILL: sarif()}
+    args, out = first_pass(tmp_path, reports)
+    assert gate.main(args) == 3
+    assert out.read_text(encoding="utf-8") == f"{AGENT_LINE}\n"
+    assert f"::notice file={AGENT_SRC},title=SkillSpector scan incomplete::" in (
+        capsys.readouterr().out
+    )
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "agent--demo--helper",  # an id with no source
+        f"agent--demo--helper\t{AGENT_SRC}\textra",
+        f"agent--demo--other\t{AGENT_SRC}",  # id does not belong to the source
+        f"command--demo--helper\t{AGENT_SRC}",  # kind does not match the directory
+        f"agent--claude--helper\t{AGENT_SRC}",
+        f"agent--demo--helper\t../{AGENT_SRC}",
+        "agent--demo--helper\tplugins/demo/agents/evals/helper.md",
+        "agent--demo--helper\tplugins/demo/skills/x/SKILL.md",
+        "agent--Demo--Helper\tplugins/Demo/agents/Helper.md",
+        f" agent--demo--helper\t{AGENT_SRC}",
+        f"agent--demo--helper\t{AGENT_SRC} ",
+    ],
+)
+def test_a_malformed_shim_manifest_line_fails(tmp_path, capsys, line):
+    args = lay_out(tmp_path, {SKILL: sarif()})
+    (tmp_path / "skills.txt").write_text(f"{line}\n", encoding="utf-8")
+    assert gate.main(args) == 1
+    assert "manifest names" in capsys.readouterr().out
+
+
+def test_a_shim_listed_twice_or_by_a_clashing_id_fails(tmp_path, capsys):
+    args = lay_out(tmp_path, {AGENT_LINE: sarif()})
+    (tmp_path / "skills.txt").write_text(f"{AGENT_LINE}\n{AGENT_LINE}\n", encoding="utf-8")
+    assert gate.main(args) == 1
+    assert "more than once" in capsys.readouterr().out
+
+
+def test_the_shim_id_scheme_matches_the_script_that_writes_it():
+    # Two implementations of one scheme, in a script and in the gate that cross-checks the
+    # manifest: they must agree on every definition the repository has today.
+    shims = load_script("definition_shims.py")
+    found = shims.list_definitions(REPO)
+    plugins = shims.plugin_names(REPO)
+    assert found
+    for path in found:
+        line = f"{shims.definition_id(path, plugins)}\t{path}"
+        assert gate.SHIM_LINE_RE.fullmatch(line), line
+        assert gate.expected_id(path) == line.split("\t")[0]
