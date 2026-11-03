@@ -10,6 +10,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- A weekly `dependency-advisories` job in `scheduled.yml` checks every package pinned in `.github/requirements/*.txt` against OSV through `scripts/check_lock_advisories.py`. Dependabot ignores that directory because a version edited into a hash-pinned lock breaks the install, so nothing else watched those locks for new advisories. A new advisory, an expired or invalid acceptance, or a lookup that could not complete turns the run red, naming the package and the advisory; a reviewed advisory is accepted in `.github/requirements/advisories-accepted.json` with a reason and an expiry no more than 180 days ahead. Packages behind an environment marker are audited too, which pip-audit does not do. A requirement line that is not a `name==version` pin fails the run instead of being skipped, an advisory id from OSV that is not plain fails closed, and the summary table renders third-party text in code spans.
+
+## [0.5.0] - 2026-11-03
+
+### Added
+
 - `product-design` skill in the design plugin: builds a simplified, believable rendering of the user's own product for a hero, feature card, docs page, changelog or social card, as a still or a one-action scene handed to `motion-showcase` for capture. Written from scratch; the idea of a skill for faux product UI was prompted by Benji Taylor's Stageshow.
 
 ### Fixed
@@ -1085,7 +1091,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/greenblacked/AI/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/greenblacked/AI/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/greenblacked/AI/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/greenblacked/AI/compare/v0.3.1...v0.3.2

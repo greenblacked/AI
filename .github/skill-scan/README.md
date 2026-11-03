@@ -92,7 +92,10 @@ with the advisory id, and regenerate. Never edit a version line by hand. A new v
 file does not carry, which the `--require-hashes` install refuses, and the next
 regeneration would revert it. `.github/dependabot.yml` ignores every dependency in that
 directory for this reason, so an advisory shows up as an alert in the Security tab rather
-than as a pull request.
+than as a pull request. The weekly `dependency-advisories` job in
+[`scheduled.yml`](../workflows/scheduled.yml) looks the locks up in OSV and goes red on a
+new advisory; `docs/ci.md` says how to clear it, and `.github/requirements/advisories-accepted.json`
+holds a reviewed acceptance, with a reason and an expiry.
 
 The Cisco suppressions all expire on 2027-05-02. When they lapse, the findings they cover
 fail the job again; re-read each one against the flagged lines and set a new date only for
