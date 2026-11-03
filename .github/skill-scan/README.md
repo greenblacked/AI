@@ -24,9 +24,13 @@ only. `scripts/definition_shims.py` wraps every `*.md` directly inside
 and `.claude/commands/`, as a one-file skill, `<out>/<id>/SKILL.md`, so both scanners can
 read it; that is where the validator looks for each. `agents/evals/`,
 `.claude/agents/benchmarks/` and an agent in a folder are not wrapped, and a `README.md`
-is skipped as it is there. It also writes `<out>/map.tsv`, one
-`<id>`, a tab, then the source path per line; the SkillSpector gate reads it to report and
-match a finding against the real file.
+or `readme.md` directly in an `agents/` folder is skipped, since an agent needs frontmatter
+to load. One in a `commands/` folder is wrapped like any command, with the id from its
+lowercased stem (`command--<plugin>--readme`), because Claude Code loads every `.md` there
+as a slash command; the validator ignores it, and the scan deliberately does not, so a
+planted one cannot ship unscanned. It also writes `<out>/map.tsv`, one `<id>`, a tab, the
+source path, a tab and the number of lines the shim adds above the source's own, per line;
+the SkillSpector gate reads it to report and match a finding against the real file.
 
 The id is part of the contract, because a Cisco suppression names it:
 
@@ -43,7 +47,9 @@ Every part is lowercase letters, digits and single hyphens, so `--` is always a 
 copy of the source except for its `name`. An agent's `name:` line is replaced in place with
 `name: <id>`, so line numbers are unchanged. A command has no `name`, so `name: <id>` is
 inserted as the first frontmatter line: Cisco's strict load needs one, and without it
-discards the command's `allowed-tools`. A finding on a command is mapped back one line.
+discards the command's `allowed-tools`. A command README with no frontmatter is given a minimal block, `name: <id>` and
+`description: <id>`, so both scanners load it; its findings map back four lines. A finding
+on any other command is mapped back one line.
 Cisco matches a suppression's `skills:` against that name, so a Cisco suppression for a
 definition names the shim id, while a SkillSpector accepted entry names the source path.
 

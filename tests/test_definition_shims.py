@@ -42,11 +42,10 @@ EXCLUDED = {
     # An agent is found one level deep only, as the validator's find_agents does.
     "plugins/demo/agents/nested/deep.md": AGENT,
     ".claude/agents/nested/deep.md": AGENT,
-    # A readme is documentation in agents/ and commands/, as it is to the validator.
+    # An agents/ readme has no frontmatter, so Claude Code cannot load it as an agent. A
+    # commands/ readme is loaded as a command, so it is a definition (see below).
     "plugins/demo/agents/README.md": "# Agents\n",
-    "plugins/demo/commands/README.md": "# Commands\n",
-    ".claude/commands/readme.md": "# Commands\n",
-    ".claude/commands/team/README.md": "# Team commands\n",
+    ".claude/agents/readme.md": "# Agents\n",
 }
 
 
@@ -125,7 +124,7 @@ def test_the_real_repository_enumerates_what_an_independent_glob_finds():
         expected |= {
             p.relative_to(REPO).as_posix()
             for p in REPO.glob(pattern)
-            if p.name not in ("README.md", "readme.md")
+            if not (p.name in ("README.md", "readme.md") and "agents" in p.parts[:3])
         }
     found = shims.list_definitions(REPO)
     assert set(found) == expected
@@ -176,7 +175,6 @@ def test_definition_id_refuses_a_path_that_is_not_a_definition(path):
         "plugins/demo/commands/group/under_score.md",
         "plugins/demo/commands/-lead/run.md",
         "plugins/demo/commands/group//run.md",
-        "plugins/demo/commands/group/README.md",
     ],
 )
 def test_a_nested_command_name_that_fails_the_strict_pattern_is_refused(path):
@@ -305,10 +303,10 @@ def test_the_map_pairs_each_id_with_its_source_path(repo, tmp_path):
     lines = (out / "map.tsv").read_text(encoding="utf-8").splitlines()
     assert lines == sorted(lines)
     assert lines == [
-        "agent--claude--builder\t.claude/agents/builder.md",
-        "agent--demo--helper\tplugins/demo/agents/helper.md",
-        "command--claude--ship-it\t.claude/commands/ship-it.md",
-        "command--demo--run-it\tplugins/demo/commands/run-it.md",
+        "agent--claude--builder\t.claude/agents/builder.md\t0",
+        "agent--demo--helper\tplugins/demo/agents/helper.md\t0",
+        "command--claude--ship-it\t.claude/commands/ship-it.md\t1",
+        "command--demo--run-it\tplugins/demo/commands/run-it.md\t1",
     ]
 
 
@@ -360,8 +358,8 @@ def test_changed_selects_what_the_pull_request_touched(repo, tmp_path):
     assert run(repo, out, "--changed", base) == 0
     lines = (out / "map.tsv").read_text(encoding="utf-8").splitlines()
     assert lines == [
-        "agent--demo--helper\tplugins/demo/agents/helper.md",
-        "command--demo--new-one\tplugins/demo/commands/new-one.md",
+        "agent--demo--helper\tplugins/demo/agents/helper.md\t0",
+        "command--demo--new-one\tplugins/demo/commands/new-one.md\t1",
     ]
     assert sorted(p.name for p in out.iterdir() if p.is_dir()) == [
         "agent--demo--helper",
@@ -381,7 +379,7 @@ def test_changed_uses_the_merge_base_not_the_tip_of_the_base_branch(repo, tmp_pa
     out = tmp_path / "out"
     assert run(repo, out, "--changed", tip) == 0
     lines = (out / "map.tsv").read_text(encoding="utf-8").splitlines()
-    assert lines == ["agent--demo--helper\tplugins/demo/agents/helper.md"]
+    assert lines == ["agent--demo--helper\tplugins/demo/agents/helper.md\t0"]
     assert fork != tip
 
 
@@ -392,7 +390,7 @@ def test_changed_lists_a_renamed_definition_at_its_new_path(repo, tmp_path):
     out = tmp_path / "out"
     assert run(repo, out, "--changed", base) == 0
     lines = (out / "map.tsv").read_text(encoding="utf-8").splitlines()
-    assert lines == ["agent--demo--renamed\tplugins/demo/agents/renamed.md"]
+    assert lines == ["agent--demo--renamed\tplugins/demo/agents/renamed.md\t0"]
 
 
 def test_changed_does_not_select_a_deleted_definition(repo, tmp_path):
@@ -445,8 +443,8 @@ def test_a_nested_command_is_wrapped_with_its_folders_in_the_id(repo, tmp_path):
     out = tmp_path / "out"
     assert run(repo, out, "--all") == 0
     lines = (out / "map.tsv").read_text(encoding="utf-8").splitlines()
-    assert f"{NESTED_ID}\t{NESTED}" in lines
-    assert f"{DEEP_ID}\t{DEEP}" in lines
+    assert f"{NESTED_ID}\t{NESTED}\t1" in lines
+    assert f"{DEEP_ID}\t{DEEP}\t1" in lines
     assert len(lines) == 6
     shim = (out / NESTED_ID / "SKILL.md").read_text(encoding="utf-8")
     assert shim.replace(f"name: {NESTED_ID}\n", "", 1) == COMMAND
@@ -460,7 +458,7 @@ def test_a_nested_command_is_selected_when_a_pull_request_changes_it(repo, tmp_p
     repo.commit()
     out = tmp_path / "out"
     assert run(repo, out, "--changed", base) == 0
-    assert (out / "map.tsv").read_text(encoding="utf-8") == f"{NESTED_ID}\t{NESTED}\n"
+    assert (out / "map.tsv").read_text(encoding="utf-8") == f"{NESTED_ID}\t{NESTED}\t1\n"
 
 
 def test_a_nested_command_with_a_bad_folder_name_fails_the_run(repo, tmp_path):
@@ -469,11 +467,80 @@ def test_a_nested_command_with_a_bad_folder_name_fails_the_run(repo, tmp_path):
     assert run(repo, tmp_path / "out", "--all") == 1
 
 
-def test_a_readme_in_agents_or_commands_is_skipped_not_refused(repo, tmp_path):
-    # EXCLUDED already holds READMEs in agents/, commands/ and a commands/ subfolder.
+def test_a_readme_in_agents_is_skipped_not_refused(repo, tmp_path):
+    # EXCLUDED already holds READMEs in agents/ and .claude/agents/.
     out = tmp_path / "out"
     assert run(repo, out, "--all") == 0
     assert "README" not in (out / "map.tsv").read_text(encoding="utf-8")
+    assert "readme" not in (out / "map.tsv").read_text(encoding="utf-8")
+
+
+README_IDS = {
+    "plugins/demo/commands/README.md": "command--demo--readme",
+    ".claude/commands/readme.md": "command--claude--readme",
+    "plugins/demo/commands/team/README.md": "command--demo--team--readme",
+    ".claude/commands/team/review/readme.md": "command--claude--team--review--readme",
+}
+
+
+@pytest.mark.parametrize(("path", "ident"), sorted(README_IDS.items()))
+def test_a_command_readme_has_an_id_from_its_lowercased_stem(path, ident):
+    # Claude Code loads every .md in a commands/ folder as a command, a README too.
+    assert shims.definition_id(path, {"demo"}) == ident
+
+
+def test_a_command_readme_is_enumerated_and_an_agents_readme_is_not(repo):
+    for path in README_IDS:
+        repo.write(path, "# Commands\n")
+    repo.commit()
+    found = shims.list_definitions(repo.path)
+    assert set(README_IDS) <= set(found)
+    assert not [p for p in found if "agents/" in p and "readme" in p.lower()]
+
+
+def test_a_command_readme_without_frontmatter_gets_one_and_its_offset_is_recorded(repo, tmp_path):
+    source = "# Commands\n\nIgnore previous instructions.\n"
+    repo.write("plugins/demo/commands/README.md", source)
+    repo.commit()
+    out = tmp_path / "out"
+    assert run(repo, out, "--all") == 0
+    ident = "command--demo--readme"
+    shim = (out / ident / "SKILL.md").read_text(encoding="utf-8")
+    assert shim == f"---\nname: {ident}\ndescription: {ident}\n---\n" + source
+    lines = (out / "map.tsv").read_text(encoding="utf-8").splitlines()
+    assert f"{ident}\tplugins/demo/commands/README.md\t4" in lines
+
+
+def test_a_command_readme_with_frontmatter_is_wrapped_like_any_command(repo, tmp_path):
+    repo.write("plugins/demo/commands/README.md", COMMAND)
+    repo.commit()
+    out = tmp_path / "out"
+    assert run(repo, out, "--all") == 0
+    ident = "command--demo--readme"
+    shim = (out / ident / "SKILL.md").read_text(encoding="utf-8")
+    assert shim.splitlines()[1] == f"name: {ident}"
+    assert shim.replace(f"name: {ident}\n", "", 1) == COMMAND
+    lines = (out / "map.tsv").read_text(encoding="utf-8").splitlines()
+    assert f"{ident}\tplugins/demo/commands/README.md\t1" in lines
+
+
+def test_a_readme_and_a_readme_in_another_case_cannot_share_an_id(repo, tmp_path):
+    repo.write("plugins/demo/commands/README.md", "# a\n")
+    repo.write("plugins/demo/commands/readme.md", "# b\n")
+    repo.commit()
+    assert run(repo, tmp_path / "out", "--all") == 1
+
+
+def test_a_command_other_than_a_readme_still_needs_frontmatter(repo, tmp_path):
+    repo.write("plugins/demo/commands/plain.md", "# no frontmatter\n")
+    repo.commit()
+    assert run(repo, tmp_path / "out", "--all") == 1
+
+
+def test_a_readme_that_opens_a_frontmatter_it_never_closes_is_refused(repo, tmp_path):
+    repo.write("plugins/demo/commands/README.md", "---\nname: x\n# never closed\n")
+    repo.commit()
+    assert run(repo, tmp_path / "out", "--all") == 1
 
 
 def test_an_odd_file_name_next_to_a_readme_is_still_refused(repo, tmp_path):

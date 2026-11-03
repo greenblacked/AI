@@ -724,3 +724,74 @@ def test_the_shim_id_scheme_matches_the_script_that_writes_it():
         line = f"{shims.definition_id(path, plugins)}\t{path}"
         assert gate.SHIM_LINE_RE.fullmatch(line), line
         assert gate.expected_id(path) == line.split("\t")[0]
+
+
+# Claude Code loads a commands/ README.md as a command, so it is scanned like one. One
+# with no frontmatter is given four lines by its shim, and map.tsv records that as a
+# third column the manifest carries through.
+README_SRC = "plugins/demo/commands/README.md"
+README_ID = "command--demo--readme"
+README_BARE = f"{README_ID}\t{README_SRC}\t4"
+README_FM = f"{README_ID}\t{README_SRC}\t1"
+
+
+def test_a_frontmatterless_readme_is_mapped_back_past_the_four_synthesised_lines(tmp_path, capsys):
+    report = sarif(result(line=9), result(rule="TM1", line=3), result(rule="E2", line=5))
+    assert gate.main(lay_out(tmp_path, {README_BARE: report})) == 1
+    out = capsys.readouterr().out
+    assert f"file={README_SRC},line=5,title=SkillSpector PE3" in out
+    assert f"file={README_SRC},line=1,title=SkillSpector TM1" in out
+    assert f"file={README_SRC},line=1,title=SkillSpector E2" in out
+
+
+def test_a_readme_with_frontmatter_is_shifted_by_one_like_any_command(tmp_path, capsys):
+    assert gate.main(lay_out(tmp_path, {README_FM: sarif(result(line=9))})) == 1
+    assert f"file={README_SRC},line=8," in capsys.readouterr().out
+
+
+def test_an_accepted_entry_on_a_command_readme_matches(tmp_path):
+    args = lay_out(tmp_path, {README_BARE: sarif(result())}, [entry(path=README_SRC)])
+    assert gate.main(args) == 0
+
+
+def test_an_unaccepted_finding_in_a_command_readme_fails_the_gate(tmp_path, capsys):
+    assert gate.main(lay_out(tmp_path, {README_BARE: sarif(result())})) == 1
+    assert f"file={README_SRC}," in capsys.readouterr().out
+
+
+def test_a_manifest_line_without_the_offset_column_gets_the_commands_default(tmp_path, capsys):
+    bare = f"{README_ID}\t{README_SRC}"
+    assert gate.main(lay_out(tmp_path, {bare: sarif(result(line=9))})) == 1
+    assert f"file={README_SRC},line=8," in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        f"{README_ID}\t{README_SRC}\t2",  # only 1 or 4 is something the script writes
+        f"{README_ID}\t{README_SRC}\t-1",
+        f"{README_ID}\t{README_SRC}\t04",
+        f"{README_ID}\t{README_SRC}\t",
+        f"{README_ID}\t{README_SRC}\t1\t1",
+        f"command--demo--run-it\t{COMMAND_SRC}\t4",  # only a readme is given frontmatter
+        f"{AGENT_LINE}\t1",  # an agent's shim adds nothing
+        "command--demo--readme\tplugins/demo/commands/Readme.md\t1",
+        f"command--demo--README\t{README_SRC}\t1",  # the id is lowercase
+    ],
+)
+def test_a_manifest_offset_the_script_would_not_write_fails(tmp_path, capsys, line):
+    args = lay_out(tmp_path, {SKILL: sarif()})
+    (tmp_path / "skills.txt").write_text(f"{line}\n", encoding="utf-8")
+    assert gate.main(args) == 1
+    assert "manifest names" in capsys.readouterr().out
+
+
+def test_an_agents_readme_is_not_a_definition_to_the_gate():
+    assert gate.expected_id("plugins/demo/agents/README.md") is None
+    assert gate.expected_id(README_SRC) == README_ID
+
+
+def test_the_gate_and_the_script_agree_on_what_a_readme_is(tmp_path):
+    shims = load_script("definition_shims.py")
+    for source in (README_SRC, ".claude/commands/team/readme.md", ".claude/commands/README.md"):
+        assert gate.expected_id(source) == shims.definition_id(source, {"demo"})

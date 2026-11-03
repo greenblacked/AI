@@ -4,10 +4,11 @@
 The `skillspector` job in `security.yml` scans one skill per process and leaves, for each
 skill named in its manifest, a SARIF report and the scanner's exit code. A subagent or
 command is scanned the same way through a one-file skill, a shim that
-`scripts/definition_shims.py` writes, and its manifest line is `<id>\\t<source path>`
-instead of a directory. A finding in a shim is reported and accepted against the source
-path, so an accepted entry names the file a reviewer opens, and a command's line number is
-mapped back past the one line its shim adds. This reads them
+`scripts/definition_shims.py` writes, and its manifest line is
+`<id>\\t<source path>[\\t<added lines>]` instead of a directory. A finding in a shim is
+reported and accepted against the source path, so an accepted entry names the file a
+reviewer opens, and a command's line number is mapped back past the lines its shim adds
+(the third column of the line). This reads them
 and fails the job on any HIGH or CRITICAL result whose key is not in the reviewed list,
 `.github/skill-scan/skillspector-accepted.json`. Medium and low findings never gate; they
 stay in the SARIF the job uploads.
@@ -79,12 +80,22 @@ SKILL_DIR_RE = re.compile(r"plugins/[A-Za-z0-9][A-Za-z0-9._-]*/skills/[A-Za-z0-9
 PART = r"[a-z0-9]+(?:-[a-z0-9]+)*"
 OWNER = rf"(?:plugins/(?P<plugin>{PART})|(?P<repo>\.claude))"
 AGENT_SOURCE_RE = re.compile(rf"{OWNER}/agents/(?P<stem>{PART})\.md")
-COMMAND_SOURCE_RE = re.compile(rf"{OWNER}/commands/(?P<dirs>(?:{PART}/)*)(?P<stem>{PART})\.md")
+# A commands/ README.md is a command to Claude Code, so it is one here, with a lowercase id.
+COMMAND_SOURCE_RE = re.compile(
+    rf"{OWNER}/commands/(?P<dirs>(?:{PART}/)*)(?P<stem>{PART}|README)\.md"
+)
+# `added` is how many lines the shim puts above the source's own, third column of map.tsv.
 SHIM_LINE_RE = re.compile(
     rf"(?P<id>(?:agent--{PART}--{PART}|command--{PART}--{PART}(?:--{PART})*))\t"
     rf"(?P<source>(?:plugins/{PART}|\.claude)/"
-    rf"(?:agents/{PART}|commands/(?:{PART}/)*{PART})\.md)"
+    rf"(?:agents/{PART}|commands/(?:{PART}/)*(?:{PART}|README))\.md)"
+    r"(?:\t(?P<added>0|[1-9][0-9]*))?"
 )
+# What the script writes: nothing for an agent, a `name:` line for a command, and a whole
+# four-line frontmatter block for a command README that had none.
+NAME_LINE = 1
+SYNTHESISED_BLOCK = 4
+README_FILES = frozenset({"README.md", "readme.md"})
 SHIM_FILE = "SKILL.md"
 OK_EXIT_CODES = {0, 1}
 MATCH_LIMIT = 200
@@ -117,7 +128,7 @@ def expected_id(source: str) -> str | None:
     if agent:
         return f"agent--{owner}--{match['stem']}"
     folders = match["dirs"].rstrip("/").split("/") if match["dirs"] else []
-    return "--".join(["command", owner, *folders, match["stem"]])
+    return "--".join(["command", owner, *folders, match["stem"].lower()])
 
 
 @dataclass(frozen=True)
@@ -128,7 +139,9 @@ class Target:
     stem: str  # the stem of its <stem>.sarif and <stem>.rc
     label: str  # the skill directory or the definition's source path, for messages
     source: str | None = None  # a definition's repository path; None for a skill
-    command: bool = False  # a command shim has one line inserted after its first
+    added: int = (
+        0  # lines the shim puts above the source's own: 1 for a command, 4 for a bare readme
+    )
 
     @property
     def file(self) -> str:
@@ -172,6 +185,20 @@ def shorten(text: str) -> str:
     return text if len(text) <= MATCH_LIMIT else text[: MATCH_LIMIT - 3] + "..."
 
 
+def shim_lines_added(ident: str, source: str, column: str | None) -> int | None:
+    """The offset a manifest line may carry, or None if the script would not write it."""
+    if ident.startswith("agent--"):
+        allowed = {0}
+        default = 0
+    else:
+        allowed = {NAME_LINE}
+        if source.rsplit("/", 1)[-1] in README_FILES:
+            allowed.add(SYNTHESISED_BLOCK)
+        default = NAME_LINE
+    added = default if column is None else int(column)
+    return added if added in allowed else None
+
+
 def read_manifest(path: Path) -> tuple[list[Target], list[str]]:
     """What the job scanned, and any problems with the list itself.
 
@@ -190,7 +217,13 @@ def read_manifest(path: Path) -> tuple[list[Target], list[str]]:
             if expected_id(source) != ident:
                 problems.append(f"manifest names {line!r}, whose id does not belong to its file")
                 continue
-            targets.append(Target(line, ident, source, source, ident.startswith("command--")))
+            added = shim_lines_added(ident, source, shim["added"])
+            if added is None:
+                problems.append(
+                    f"manifest names {line!r}, whose line offset is not one the script writes"
+                )
+                continue
+            targets.append(Target(line, ident, source, source, added))
         elif SKILL_DIR_RE.fullmatch(line):
             targets.append(Target(line, stem(line), line))
         elif "\t" in line:
@@ -397,9 +430,9 @@ def shim_location(target: Target, result: dict) -> tuple[str, int]:
     if isinstance(uri, str) and uri:
         if uri.startswith("/") or ":" in uri or posixpath.normpath(uri) != SHIM_FILE:
             raise ValueError(f"a result's location {uri!r} is outside the skill")
-        if target.command:
-            # The shim's second line is the inserted `name:`, so the source is one above.
-            line = max(1, line - 1)
+        # A command's shim has `name:` inserted, and a bare README's a whole frontmatter
+        # block, so the source line is that many above; a finding in the block is line 1.
+        line = max(1, line - target.added)
     return source, line
 
 

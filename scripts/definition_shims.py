@@ -13,10 +13,10 @@ the globally unique id. Both scanners then run their prompt-injection, exfiltrat
 and obfuscation rules over the definition's instructions and frontmatter. They do not
 analyse the tool grant itself, which is only text to them.
 
-`$OUT/map.tsv` holds one `<id>\\t<source path>` line per shim. The SkillSpector job
+`$OUT/map.tsv` holds one `<id>\\t<source path>\\t<added lines>` line per shim. The SkillSpector job
 appends those lines to its manifest, and `skill_scan_gate.py` maps a finding in a shim
-back to the real file (a command's line number is one lower than the shim's, for the
-inserted line).
+back to the real file; the third column says how many lines the shim added above the
+source's own (0 for an agent, 1 for a command, 4 for a README given a frontmatter block).
 
 The id scheme is a contract, because the Cisco policy suppresses by id:
 
@@ -32,11 +32,14 @@ that, and every part is lowercase letters and digits joined by single hyphens, w
 why a double hyphen can only be a separator.
 
 Only `*.md` files count: directly inside `agents/`, and at any depth inside `commands/`,
-which is how the validator finds them (a README.md is documentation and is skipped, as
-there). `agents/evals/*.json` and `.claude/agents/benchmarks/**` sit below `agents/` and
-are not definitions. A file in a covered place whose name breaks the pattern, a symbolic
-link, a file that is not regular on disk, or an id used twice fails the run: a definition
-that is skipped is a definition nobody scanned.
+which is how the validator finds them. A README.md in `commands/` is a command to Claude
+Code, which loads every .md there, so it is wrapped even though the validator ignores it,
+with its id from the lowercased stem; one without frontmatter is given `name` and
+`description` lines so both scanners load it. A README.md in `agents/` is skipped, as an
+agent needs frontmatter to load. `agents/evals/*.json` and `.claude/agents/benchmarks/**`
+sit below `agents/` and are not definitions. A file in a covered place whose name breaks
+the pattern, a symbolic link, a file that is not regular on disk, or an id used twice fails
+the run: a definition that is skipped is a definition nobody scanned.
 
 Standard library only, like the checks it sits beside.
 """
@@ -62,9 +65,13 @@ LOCATION_RE = re.compile(
 )
 OWNER = rf"(?:plugins/(?P<plugin>{PART})|(?P<repo>\.claude))"
 AGENT_RE = re.compile(rf"{OWNER}/agents/(?P<stem>{PART})\.md")
-COMMAND_RE = re.compile(rf"{OWNER}/commands/(?P<dirs>(?:{PART}/)*)(?P<stem>{PART})\.md")
-# The validator's own list of readmes that are documentation, not definitions.
-NON_DEFINITIONS = frozenset({"README.md", "readme.md"})
+# Claude Code loads every .md in a commands/ folder as a command, a README.md too, so the
+# upper-case spelling is accepted there and the id uses the lowercased stem.
+COMMAND_RE = re.compile(rf"{OWNER}/commands/(?P<dirs>(?:{PART}/)*)(?P<stem>{PART}|README)\.md")
+# A readme in agents/ is documentation: an agent needs frontmatter to load, and has none.
+# The validator skips a commands/ readme too; the scan deliberately does not.
+README_NAMES = frozenset({"README.md", "readme.md"})
+AGENT_LOCATION_RE = re.compile(r"(?:plugins/[^/]+|\.claude)/agents/[^/]+\.md")
 BASE_RE = re.compile(r"[0-9a-f]{40}")
 # The mode `git ls-files -s` gives a symbolic link.
 SYMLINK_MODE = "120000"
@@ -124,7 +131,7 @@ def definition_id(path: str, plugins: set[str]) -> str:
     if agent:
         return f"agent--{owner}--{match['stem']}"
     folders = match["dirs"].rstrip("/").split("/") if match["dirs"] else []
-    return "--".join(["command", owner, *folders, match["stem"]])
+    return "--".join(["command", owner, *folders, match["stem"].lower()])
 
 
 def assign_ids(paths: list[str], plugins: set[str]) -> dict[str, str]:
@@ -158,7 +165,8 @@ def list_definitions(repo: Path) -> list[str]:
     paths = sorted(
         path
         for path in modes
-        if LOCATION_RE.fullmatch(path) and path.rsplit("/", 1)[-1] not in NON_DEFINITIONS
+        if LOCATION_RE.fullmatch(path)
+        and not (AGENT_LOCATION_RE.fullmatch(path) and path.rsplit("/", 1)[-1] in README_NAMES)
     )
     for path in paths:
         if modes[path] == SYMLINK_MODE:
@@ -185,6 +193,15 @@ def shim_text(ident: str, path: str, data: bytes) -> bytes:
     replaced in place (same line count), and a command, which has none, gets `name: <id>`
     inserted as the first frontmatter line. Everything else is copied byte for byte.
     """
+    if (
+        not data.startswith(b"---")
+        and path.rsplit("/", 1)[-1] in README_NAMES
+        and (ident.startswith("command--"))
+    ):
+        # A command readme is documentation and may have no frontmatter; both scanners
+        # need one to load it, so it is given a minimal block. The gate subtracts the four
+        # lines this adds, which build() records in map.tsv.
+        return f"---\nname: {ident}\ndescription: {ident}\n---\n".encode("ascii") + data
     if not data.startswith(b"---\n"):
         raise DefinitionError(
             f"{safe(path)} does not open with a `---` frontmatter line (LF), so the name "
@@ -208,8 +225,8 @@ def shim_text(ident: str, path: str, data: bytes) -> bytes:
             f"needs exactly one, which the shim replaces with its id"
         )
     match = names[0]
-    carriage = b"\r" if match.group(0).endswith(b"\r") else b""
-    return data[: match.start()] + line + carriage + data[match.end() :]
+    # A CRLF file was refused above; a stray carriage return on this one line is dropped.
+    return data[: match.start()] + line + data[match.end() :]
 
 
 def read_regular(repo: Path, path: str) -> bytes:
@@ -228,6 +245,9 @@ def read_regular(repo: Path, path: str) -> bytes:
 def build(repo: Path, out: Path, paths: list[str]) -> list[tuple[str, str]]:
     """Write every shim and map.tsv under `out`; return (id, path) pairs sorted by id.
 
+    A map.tsv line is `<id>\\t<path>\\t<lines>`: how many lines the shim adds above the
+    source's own, which is how the gate maps a finding back to the right source line.
+
     Everything is read and checked before anything is written, and `out` has to be new or
     empty, so a refused definition leaves no half-built directory and a shim from an
     earlier run is never scanned as though it were current.
@@ -235,16 +255,19 @@ def build(repo: Path, out: Path, paths: list[str]) -> list[tuple[str, str]]:
     ids = assign_ids(paths, plugin_names(repo))
     if out.exists() and (not out.is_dir() or any(out.iterdir())):
         raise DefinitionError(f"{safe(str(out))} exists and is not an empty directory")
-    contents = {
-        ident: shim_text(ident, path, read_regular(repo, path)) for ident, path in ids.items()
-    }
+    sources = {ident: read_regular(repo, path) for ident, path in ids.items()}
+    contents = {ident: shim_text(ident, ids[ident], data) for ident, data in sources.items()}
     pairs = sorted(ids.items())
     out.mkdir(parents=True, exist_ok=True)
     try:
         for ident, data in contents.items():
             (out / ident).mkdir()
             (out / ident / "SKILL.md").write_bytes(data)
-        lines = "".join(f"{ident}\t{path}\n" for ident, path in pairs)
+        added = {
+            ident: data.count(b"\n") - sources[ident].count(b"\n")
+            for ident, data in contents.items()
+        }
+        lines = "".join(f"{ident}\t{path}\t{added[ident]}\n" for ident, path in pairs)
         (out / "map.tsv").write_text(lines, encoding="utf-8")
     except OSError:
         shutil.rmtree(out, ignore_errors=True)

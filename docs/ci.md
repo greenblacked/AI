@@ -137,7 +137,7 @@ upgrade would fail the build on skill prose that was green the day before.
 | `python` | `python security lint` | `ruff check` or `ruff format --check` failed. |
 | `codeql` | `codeql` | CodeQL's `security-extended` query suite found something in the Python source. |
 | `permissions-audit` | `permissions audit` | A workflow has no top-level `permissions:` block, or one that is `write-all`, `read-all`, or grants `write` on any scope; an action is not pinned to a SHA; a job sets no `timeout-minutes`; or an `actions/checkout` does not set `persist-credentials: false`. |
-| `skill-scanner` | `cisco skill scan` | cisco-ai-skill-scanner found a high or critical finding in a skill or in a subagent or command definition that `.github/skill-scan/cisco-policy.yaml` does not suppress, or scanned fewer skills or definitions than the tree holds. |
+| `skill-scanner` | `cisco skill scan` | cisco-ai-skill-scanner found a high or critical finding in a skill or in a subagent or command definition that `.github/skill-scan/cisco-policy.yaml` does not suppress, or scanned a number of skills or definitions that differs from what the tree holds. |
 | `skillspector` | `skillspector skill scan` | SkillSpector found a high or critical finding, in a skill or in a subagent or command definition, not in `.github/skill-scan/skillspector-accepted.json`, a scan errored, left no report or left a file entirely uninspected, a scan ran out of SkillSpector's time budgets again when rescanned on its own, or an accepted entry has no reason. |
 | `security` | `security` | Any of its seven dependencies did not report exactly `success`, or the result payload did not match the expected jobs. |
 
@@ -197,8 +197,8 @@ and how to refresh a baseline after a scanner bump.
   dependency file in a skill; this tree has none today.
 - Cisco scans everything in about a minute and is gated by its own policy file: each
   suppression names a rule, the skills and the one file it was reviewed for, with a reason,
-  and expires on 2027-05-02. A second step fails the job if the report counts fewer
-  skills than there are `SKILL.md` files.
+  and expires on 2027-05-02. A second step fails the job if the report counts a
+  different number of skills than there are `SKILL.md` files.
 - SkillSpector scans one skill per process, four at a time, because `scan -r` stops at 32
   skills, reads one level deep and refuses a baseline. On a pull request it scans only the
   skill directories the diff from the merge base touches, listed with `--no-renames` so a
@@ -235,9 +235,16 @@ and how to refresh a baseline after a scanner bump.
   directly inside `plugins/*/agents/` and `.claude/agents/`, and at any depth inside
   `plugins/*/commands/` and `.claude/commands/` (a folder namespaces a command), as a
   one-file skill, `<out>/<id>/SKILL.md`, and writes
-  `<out>/map.tsv` (`<id>`, a tab, the source path). `agents/evals/` and
+  `<out>/map.tsv` (`<id>`, a tab, the source path, a tab, how many lines the shim adds above
+  the source's own). `agents/evals/` and
   `.claude/agents/benchmarks/` are not wrapped, an agent in a folder is not an agent, and a
-  `README.md` or `readme.md` is skipped, as the validator skips it. The id is
+  `README.md` or `readme.md` directly in an `agents/` folder is skipped, since an agent
+  needs frontmatter to load. A `README.md` or `readme.md` in a `commands/` folder is wrapped
+  like any command, with the id from its lowercased stem (`command--<plugin>--readme`),
+  because Claude Code loads every `.md` there as a slash command even though the validator
+  ignores it: the scan deliberately covers what the validator does not, so a planted one
+  cannot ship unscanned. One with no frontmatter is given a minimal block
+  (`name: <id>` and `description: <id>`) so both scanners load it. The id is
   `agent--<plugin>--<stem>` or `command--<plugin>--<folder>--...--<stem>`, and
   `agent--claude--<stem>` or `command--claude--<folder>--...--<stem>` for `.claude/`;
   every part is lowercase letters, digits and single hyphens, no plugin may be named
@@ -245,10 +252,10 @@ and how to refresh a baseline after a scanner bump.
   in the shim is a byte copy except the `name`: an agent's `name:` line is replaced in
   place with `name: <id>` (line numbers unchanged), and a command, which has none, gets
   `name: <id>` inserted as the first frontmatter line so Cisco keeps its `allowed-tools`,
-  with a finding on a command mapped back one line. Cisco matches a suppression's
+  with a finding on a command mapped back one line (four for a README given a block). Cisco matches a suppression's
   `skills:` against that name, which is why suppressions name the shim id. The Cisco job runs a second `scan-all` over the shims with the same
   policy and `--fail-on-severity high`, on every definition on every run, and counts the
-  definitions itself with `git ls-files`, failing if fewer were scanned. The SkillSpector
+  definitions itself with `git ls-files`, failing on any mismatch, fewer or more. The SkillSpector
   job runs `skillspector scan <shim> --no-llm` per shim, and the gate maps each shim back
   to its source path, so an accepted entry names the real file; Cisco suppressions name
   the shim id.
