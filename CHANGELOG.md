@@ -8,6 +8,22 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-03
+
+### Added
+
+- `product-design` skill in the design plugin: builds a simplified, believable rendering of the user's own product for a hero, feature card, docs page, changelog or social card, as a still or a one-action scene handed to `motion-showcase` for capture. Written from scratch; the idea of a skill for faux product UI was prompted by Benji Taylor's Stageshow.
+
+### Fixed
+
+- The SkillSpector gate no longer fails on a scan that ran out of time. #365's dev → stage promotion failed `skillspector skill scan` with five new AE1 findings in `website-builder`, which had not changed, and a re-run passed. SkillSpector 2.13.1 raises AE1 for any referenced file whose inspection ended partial, including when one of its wall-clock budgets runs out on a stalled runner, and `scripts/skill_scan_gate.py` keyed AE1 without its reason. The gate now treats a report that records reason code `runtime_limit` as incomplete rather than as findings, and never matches it against the accepted list. Its first pass lists such skills and exits 3. The gate step in `security.yml` rescans each of them on its own, one at a time, and its final pass fails any that runs out of time again as an incomplete scan. Content-driven AE1 findings (`static_parse_limit`, `obfuscated_instruction_text`) still go through the accepted list unchanged.
+
+### Security
+
+- `distinctive-page-design` no longer pre-approves `Edit` or `Write`: writing the decision record and the page files now asks first. The skill reads briefs, captures and brand material it did not write, and now hands the product visual to `product-design`, which reads third-party design files and screenshots, so a planted instruction in that input could otherwise reach a pre-approved write.
+
+- The two hashed scanner installs in `.github/requirements/` are regenerated through uv's resolver with the fixed versions of the dependencies that had advisories against them, instead of the hand-edited pins of Dependabot's #362, which broke both installs. `skill-scanner.txt` (Cisco skill-scanner 2.3.1) moves certifi to 2026.10.18 (GHSA-6q48-6c7w-9gw2), filelock to 4.2.1 (GHSA-v4x8-3wr5-3wq8) and litellm to 1.100.4 (GHSA-g5ff-637f-6q2m, fixed in 1.95.0; 1.100.4 is the first release past it without GHSA-7hp6-4w63-5g45), which brings in boto3, botocore, s3transfer, jmespath, python-dateutil, six and pydantic-settings; its anyio was already at 4.14.2. `skillspector.txt` (SkillSpector f3b25697) moves certifi to 2026.10.18, urllib3 to 2.8.0 (GHSA-8988-9cw3-xx77, GHSA-vxq7-64xx-v4gw, GHSA-gh4c-6fx4-qh6g), anyio to 4.14.2 (GHSA-82r6-8w77-94w6, GHSA-5p39-cfhj-2xmp, GHSA-3w57-8xmc-8v26), langgraph-sdk to 0.4.6 (GHSA-fvww-7h3r-vfhp, GHSA-3fx2-cqw9-xr3c), and langgraph to 1.2.14, the first release that requires that sdk. No advisory was reachable from either job, which runs static analysers only and no LLM. Every newly chosen release is at least seven days old, and each file's header now records the `--upgrade-package` pins so its documented regeneration reproduces it. `.github/dependabot.yml` ignores every dependency in that directory, because a line edited into a hash-pinned file breaks the install (for `site-browser.txt`, whose playwright and pytest pins must also match `ci.yml`, as much as for the two generated scanner locks); advisories still raise alerts, and `.github/skill-scan/README.md` says how to clear one.
+
 ## [0.4.1] - 2026-11-02
 
 ### Security
@@ -1071,7 +1087,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/greenblacked/AI/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/greenblacked/AI/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/greenblacked/AI/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/greenblacked/AI/compare/v0.3.1...v0.3.2
