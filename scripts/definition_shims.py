@@ -55,6 +55,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+from skillcheck.frontmatter import FrontmatterError, parse  # noqa: E402
+
 PART = r"[a-z0-9]+(?:-[a-z0-9]+)*"
 REPO_PREFIX = "claude"
 # Where a definition can be at all, whatever it is called. A file matching this that fails
@@ -201,6 +205,36 @@ def changed_definitions(repo: Path, base: str) -> list[str]:
 
 
 def shim_text(ident: str, path: str, data: bytes) -> bytes:
+    shim = wrap_text(ident, path, data)
+    confirm_name(ident, path, shim)
+    return shim
+
+
+def confirm_name(ident: str, path: str, shim: bytes) -> None:
+    """Refuse a shim whose loaded `name` is not its id.
+
+    The rewrite above only sees a plain `name:` line. YAML has other spellings of the
+    key (a complex `? name` key, a quoted key) that a loader reads after it and lets win,
+    which would let a pull request borrow another shim's Cisco suppression. So the
+    result is read back with the repository's own parser, and a quoted or complex key at
+    the start of a line is refused outright because that parser may not model them.
+    """
+    text = shim.decode("utf-8", "replace")
+    block = text.split("\n---", 1)[0]
+    if re.search(r"(?m)^[?'\"]", block):
+        raise DefinitionError(
+            f"{safe(path)} has a frontmatter key written as a complex or quoted key, "
+            f"which could set `name` to something other than its shim id"
+        )
+    try:
+        name = parse(text).get("name")
+    except FrontmatterError as err:
+        raise DefinitionError(f"{safe(path)} frontmatter does not parse: {err.message}") from err
+    if name != ident:
+        raise DefinitionError(f"{safe(path)} would load with a `name` other than its shim id")
+
+
+def wrap_text(ident: str, path: str, data: bytes) -> bytes:
     """The shim's bytes: the source, with its frontmatter name made the shim id.
 
     Cisco's policy matches a suppression's `skills` against the frontmatter `name`, not

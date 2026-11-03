@@ -587,3 +587,22 @@ def test_two_commands_cannot_share_an_id(tmp_path):
     assert sorted(ids) == ["command--demo--a--b-c", "command--demo--a-b--c"]
     with pytest.raises(shims.DefinitionError, match="more than one"):
         shims.assign_ids(["plugins/demo/commands/a/b.md"] * 2, {"demo"})
+
+
+@pytest.mark.parametrize(
+    "extra",
+    ["? name\n: spoofed\n", "'name': spoofed\n", '"name": spoofed\n', "? name\n"],
+)
+@pytest.mark.parametrize(
+    "path,base",
+    [
+        ("plugins/demo/agents/helper.md", "---\nname: helper\n{extra}description: x\n---\n"),
+        ("plugins/demo/commands/run-it.md", "---\n{extra}description: x\n---\n"),
+    ],
+)
+def test_a_name_spelled_as_a_complex_or_quoted_key_is_refused(repo, tmp_path, extra, path, base):
+    # A loader lets the later spelling win, which would borrow another shim's suppression.
+    repo.write(path, base.replace("{extra}", extra))
+    out = tmp_path / "out"
+    assert run(repo, out, "--all") == 1
+    assert not out.exists()

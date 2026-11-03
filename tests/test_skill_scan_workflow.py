@@ -48,6 +48,7 @@ SCAN_CONFIG = (
     "scripts/skill_scan_gate.py",
     SHIMS_SCRIPT,
 )
+SKILLCHECK_FILES = tuple(f"src/skillcheck/{n}.py" for n in ("__init__", "frontmatter", "rules"))
 BASE_FILES = (
     f"{ALPHA}/SKILL.md",
     f"{ALPHA}/references/notes.md",
@@ -59,6 +60,8 @@ BASE_FILES = (
     "plugins/demo/agents/evals/helper.json",
     ".claude/agents/benchmarks/reviewer/case/case.json",
     *SCAN_CONFIG,
+    # The shim script reads each shim back with the validator's own frontmatter parser.
+    *SKILLCHECK_FILES,
 )
 # A command needs frontmatter for the shim to take its name line, and the script the step
 # runs has to be the real one.
@@ -70,8 +73,8 @@ def agent_text(name="helper", body="Body.\n"):
 
 
 def content_of(rel: str) -> str:
-    if rel == SHIMS_SCRIPT:
-        return (REPO / SHIMS_SCRIPT).read_text(encoding="utf-8")
+    if rel == SHIMS_SCRIPT or rel in SKILLCHECK_FILES:
+        return (REPO / rel).read_text(encoding="utf-8")
     if "/commands/" in rel:
         return FRONTMATTER
     if "/agents/" in rel and rel.endswith(".md") and "/evals/" not in rel:
