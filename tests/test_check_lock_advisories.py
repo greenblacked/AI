@@ -501,9 +501,15 @@ def test_the_job_is_least_privilege_and_bounded():
 
 
 def test_the_job_pins_its_actions_to_the_shas_the_file_already_uses():
+    # Read from the file rather than written here, so a Dependabot bump that moves
+    # every job together keeps passing and one that leaves this job behind fails.
+    text = (REPO / ".github" / "workflows" / "scheduled.yml").read_text(encoding="utf-8")
     job = _job()
-    assert "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1" in job
-    assert "actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0" in job
+    others = text.replace(job, "")
+    pins = re.findall(r"uses: (\S+@[0-9a-f]{40}  # v\S+)", job)
+    assert {pin.split("@")[0] for pin in pins} == {"actions/checkout", "actions/setup-python"}
+    for pin in pins:
+        assert f"uses: {pin}" in others, pin
 
 
 def test_the_job_has_no_expression_inside_run():
