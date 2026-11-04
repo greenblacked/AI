@@ -253,3 +253,23 @@ Ask which findings to act on. Work in batches by dimension, so each can be playe
 - `references/feel.md` — read at A5 and during any feel review: the feel floor, the starting numbers for jumps, hit-stop and cameras, and the self-playtest protocol.
 - `references/engines.md` — read for tier 2 and above before writing project files, and for netcode, export and publishing.
 - `references/review.md` — read in Mode B: the checklists per dimension and the symptom-to-cause tables for performance and architecture.
+
+## Project kit
+
+Three opt-in files for a project built with this skill. Nothing here is active until you copy it in, and the hook runs with your permissions on every matching write, so read it first.
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/gameplay-data.md` — loads when gameplay code is read: tuning from data files, delta-time scaling, no gameplay logic reading UI state.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/game-data-json.json` and `${CLAUDE_SKILL_DIR}/assets/hooks/game-data-json.sh` — after a write, rejects a `.json` file under a `data/` or `Data/` directory that does not parse.
+- `${CLAUDE_SKILL_DIR}/assets/templates/playtest-session-log.md` — one document per playtest session.
+
+Install from the root of the game project:
+
+```bash
+mkdir -p .claude/rules .claude/hooks docs
+cp "${CLAUDE_SKILL_DIR}/assets/rules/gameplay-data.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/game-data-json.sh" .claude/hooks/
+chmod +x .claude/hooks/game-data-json.sh
+cp "${CLAUDE_SKILL_DIR}/assets/templates/playtest-session-log.md" docs/
+```
+
+Then merge the `hooks` block of `${CLAUDE_SKILL_DIR}/assets/hooks/game-data-json.json` into `.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Edit the globs in the rule to match where your engine keeps gameplay code.
