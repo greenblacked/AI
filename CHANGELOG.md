@@ -8,6 +8,14 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- A common shape for every plugin: skills, at least one read-only reader subagent, and a project kit. The kit lives inside one skill's `assets/` and holds `rules/*.md` (a path-scoped rule copied into `.claude/rules/`), `hooks/<name>.json` with its `<name>.sh` (an opt-in hook template the user merges into their own settings) and `templates/*.md` (a document template). Plugins still never ship a hook that runs on install. The validator gains `plugin-auto-component` (an error for a plugin-root `hooks/`, `.mcp.json`, `.lsp.json`, `monitors/`, `bin/`, `settings.json` or `output-styles/`, which Claude Code would load without a prompt), `kit-rule` and `kit-hook` (errors for a kit rule whose `paths:` does not parse, or a kit hook that is not valid, names a command outside `$CLAUDE_PROJECT_DIR/.claude/hooks/` or has no script beside it), and a `plugin-incomplete` notice for a plugin with no subagent or no complete kit, which becomes a warning once every plugin has both. `template/` gains an agent template and a kit.
+
+### Changed
+
+- The README is one chapter per plugin. Each has `#### Skills`, `#### Subagents`, `#### Commands` (only where the plugin ships commands) and `#### Project kit`, and the global Subagents and Commands sections are gone; the repository's own agents and commands sit under "Working on this repository". `scripts/check_readme.py` enforces the shape: the sections and their order, each subagent and command row in its own plugin's chapter, the kit table against the files under `assets/`, and a project kits column and count in the contents table.
+
 ## [0.5.2] - 2026-11-04
 
 ### Added
