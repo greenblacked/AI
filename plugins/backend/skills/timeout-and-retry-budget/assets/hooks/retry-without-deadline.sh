@@ -43,12 +43,16 @@ fi
 # Neither parser present, or nothing readable: allow, because a hook that blocks everything
 # on a missing tool is worse than no hook.
 case "$path" in
-  *.go | *.py | *.ts | *.js | *.java | *.cs | *.yaml | *.yml) ;;
+  *.go | *.py | *.ts | *.tsx | *.js | *.jsx | *.mjs | *.cjs | *.java | *.kt | *.scala | *.cs | *.rb | *.php | *.rs | *.yaml | *.yml) ;;
   *) exit 0 ;;
 esac
 
-if printf '%s' "$text" | grep -Eq 'retry|retries|max_attempts|maxAttempts|MaxAttempts'; then
-  if ! printf '%s' "$text" | grep -Eq 'timeout|deadline|Timeout|Deadline|WithTimeout'; then
+# Case-insensitive, and a retry word has to start a word or an identifier part (so "entry"
+# or "geometry" do not count, while max_retries, maxRetries and RetryPolicy do). A timeout or
+# deadline anywhere in the text satisfies the check, in any casing.
+retry_re='(^|[^[:alpha:]])(retr(y|ies|ied|ying)|max_?(retr|attempts))'
+if printf '%s' "$text" | grep -Eqi "$retry_re"; then
+  if ! printf '%s' "$text" | grep -Eqi 'timeout|deadline'; then
     echo "blocked: this text sets a retry but no timeout or deadline. Set the timeout from the caller's remaining deadline in the same text, and see call-chain-budget.md." >&2
     exit 2
   fi
