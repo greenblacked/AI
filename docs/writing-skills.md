@@ -510,6 +510,51 @@ the content is a mapping, write it as a table.
 **Assume no conversation.** A skill loads with no memory of the discussion that produced
 it. "The approach we discussed" and unexplained internal names are dead weight.
 
+## Project kit
+
+A plugin cannot ship a rule, and it must not ship a hook: `.claude/rules/` exists only at
+project or user scope, and a plugin-root `hooks/` registers as soon as the plugin is
+enabled, with the installer's full permissions and no prompt. So a plugin carries both as
+opt-in templates inside one anchor skill's `assets/`, which is the documented home for a
+skill's supporting files, and the installer copies them in on purpose. The anchor skill is
+the one most central to the plugin, and its body gets a short "Project kit" section naming
+the three paths, when each is worth installing, and the install steps below.
+
+| Path under the skill | What it is for |
+| --- | --- |
+| `assets/rules/<name>.md` | A path-scoped rule (`paths:` frontmatter, at least one glob) that loads when a matching file is read in the installer's project. |
+| `assets/hooks/<name>.json` and `assets/hooks/<name>.sh` | A hook entry and the script it runs. The JSON is merged into the installer's settings; the script does one deterministic check or guard. |
+| `assets/templates/<name>.md` | A document template (a runbook, an ADR, a test plan) the installer copies and fills in. Needs no check beyond existing. |
+
+`template/kit/` holds a working example of each.
+
+**Install steps.** Run from the root of the project that wants the kit.
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/<name>.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/<name>.sh" .claude/hooks/
+chmod +x .claude/hooks/<name>.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/<name>.json` into `.claude/settings.json`,
+adding to an existing `hooks` block rather than replacing it. Read the script first; it
+runs with your permissions on every matching tool call.
+
+**Hook-script safety rules.** A kit script is code that runs unattended, so:
+
+- It is deterministic: the same input gives the same answer, and it guards or checks one
+  thing.
+- It starts with `#!/usr/bin/env bash` and `set -Eeuo pipefail`.
+- It uses standard tools only, with no network access and no secrets.
+- It reads the stdin JSON with `python3` or `jq` only if present, and degrades to
+  allowing when neither is, because a hook that blocks everything on a missing tool is
+  worse than none.
+- It exits 2 with the reason on stderr to block, and 0 otherwise.
+
+The command in the JSON must be exactly `"$CLAUDE_PROJECT_DIR"/.claude/hooks/<name>.sh`
+with nothing else on the line, and the script must sit beside the JSON.
+
 ## Adding a new skill
 
 ```bash
@@ -569,7 +614,7 @@ failures, which is how `make validate` and CI both run it), `--skip-marketplace`
 manifest cross-check), `--github` (emit annotations and a job summary; implied under
 Actions). Exit code 1 means findings, 2 means the repository layout was unusable.
 
-Every code the validator can emit is below, grouped by what it is looking at.
+Every code the validator can emit is below, grouped by what it is looking at. A `notice` is printed and annotated but is never counted as a warning and never fails a run.
 
 ### Frontmatter and body
 
@@ -639,6 +684,18 @@ subagent](writing-agents.md) for why.
 | `angle-brackets` | error | `<` or `>` in the description. | Remove them. |
 | `long-description` | error | Over 1024 characters. | Shorten it. |
 | `bad-tools` | error | `tools` is present but empty, or has a blank entry — a trailing comma is the usual cause. | Write it as a comma-separated list, or omit the key entirely. |
+
+### Plugin shape and project kit
+
+These run once per plugin, and `kit-rule` and `kit-hook` over each skill's `assets/`.
+See [the project kit](#project-kit).
+
+| Code | Level | Meaning | Fix |
+| --- | --- | --- | --- |
+| `plugin-auto-component` | error | A plugin root holds `hooks/`, `hooks.json`, `.mcp.json`, `.lsp.json`, `monitors/`, `bin/`, `settings.json` or `output-styles/`, which Claude Code loads or runs on enabling the plugin with no prompt. | Delete it. Ship a hook as an opt-in template under a skill's `assets/hooks/`. `scripts/definition_shims.py` refuses the same paths, so `security` fails too. |
+| `kit-rule` | error | A file in `assets/rules/` has no `paths:` frontmatter, an empty or unparsable one, or no body. | Add a `paths:` list with at least one glob, and a body. The glob is not matched against this repository, because it scopes the installer's project. |
+| `kit-hook` | error | A file in `assets/hooks/` is not valid JSON, is not shaped `{"hooks": {"<Event>": [{"matcher"?, "hooks": [{"type": "command", "command", "timeout"?}]}]}}`, uses an event outside PreToolUse, PostToolUse, UserPromptSubmit, Stop, SubagentStop, SessionStart, SessionEnd, Notification and PreCompact, has a command other than `"$CLAUDE_PROJECT_DIR"/.claude/hooks/<name>.sh`, names a script that is not beside it, or the script lacks `#!/usr/bin/env bash` or `set -Eeuo pipefail`. | Follow the message; the hook-script rules are in [the project kit](#project-kit). |
+| `plugin-incomplete` | notice, warning once `PLUGIN_SHAPE_ENFORCED` is set in `rules.py` | The plugin has no subagent under `agents/`, or no skill with a complete kit: a rule, a hook JSON with its script and a template. | Add a read-only reader subagent and a kit to the anchor skill. A notice is printed and never fails, strict or not. |
 
 ### Marketplace manifest
 

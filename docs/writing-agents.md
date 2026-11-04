@@ -58,6 +58,14 @@ project-level agent are refused here with the reason stated: `hooks`, `mcpServer
 `permissionMode`, because a plugin must not be able to register hooks, attach servers or
 change the permission mode for whoever installs it.
 
+Every plugin ships at least one read-only reader subagent, paired with a skill that hands
+the bulky read to it by name; `disallowedTools: Write, Edit, NotebookEdit` keeps it a
+reader. `template/agent.md` is the starting point. Plugins never ship hooks: a plugin
+hook runs with the installer's permissions the moment the plugin is enabled, so a hook
+reaches an installer only as an opt-in kit template under a skill's `assets/hooks/`
+([the project kit](writing-skills.md#project-kit)). Until every plugin has its reader,
+`plugin-incomplete` reports the gap as a notice.
+
 The allowlist key here is `tools`; in a `SKILL.md` it is `allowed-tools`, and each is
 rejected in the other file. That is not an inconsistency to work around — they are
 separate fields with separate meanings, so [the validator](../src/skillcheck/rules.py)

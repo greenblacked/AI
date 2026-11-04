@@ -171,6 +171,14 @@ it, `scripts/check_settings.py` resolves it on every `make catalogue`: a typo, o
 path left after the script moves, would otherwise turn the hook off with no error
 anywhere.
 
+**Plugin-root auto-run components.** Claude Code loads a plugin's `hooks/`, `hooks.json`,
+`.mcp.json`, `.lsp.json`, `monitors/`, `bin/`, `settings.json` and `output-styles/` as soon
+as the plugin is enabled, with no prompt. Plugins here never ship any of them: the
+validator refuses each (`plugin-auto-component`) and `scripts/definition_shims.py` refuses
+them again in the `security` workflow. A hook ships instead as an opt-in template in a
+skill's `assets/hooks/`, which the user copies into `.claude/hooks/` and merges into
+`.claude/settings.json` themselves; see [the project kit](writing-skills.md#project-kit).
+
 ## What this repository has, and what it leaves out
 
 Two entries in the map are deliberately absent here.
