@@ -24,7 +24,7 @@ Do not lower severity because few players reach the content. A late-game soft-lo
 
 ## Bugs that only appear after a long session
 
-Memory growth, handle leaks and state drift appear after hours. They are S1 if the build crashes or hangs within a play session a player would plausibly have, and S2 otherwise. Record the session length as part of the narrowing field.
+Memory growth, handle leaks and state drift appear after hours. They are S1 if the build crashes or hangs within a play session a player would plausibly have, and S2 otherwise. Put the session length in the narrowing field.
 
 ## Disputes
 

@@ -451,13 +451,6 @@
       "reason": "AR2 matched ordinary prose ('without warning', 'no warning', 'do not judge', 'do not moralise') that describes behaviour, not an instruction to suppress refusals."
     },
     {
-      "rule_id": "E4",
-      "path": "plugins/gamedev/skills/game-bug-triage/references/severity-calls.md",
-      "match": "Record the session",
-      "class": "FP-scanner-limitation",
-      "reason": "'Record the session' continues 'length as part of the narrowing field': it tells a tester to write down how long a play session lasted when filing a bug about memory growth. No agent conversation or prompt is read, stored or sent anywhere."
-    },
-    {
       "rule_id": "PE3",
       "path": "plugins/gamedev/skills/game-certification/references/store-listing-and-signing.md",
       "match": "keychain",
