@@ -1,6 +1,6 @@
 ---
 name: deadlock-log-reader
-description: Read the deadlock reports in a PostgreSQL server log or a MySQL error log (innodb_print_all_deadlocks output) and return the cycle class of each distinct pattern, with counts and the log line that decided it, so the log itself never enters the caller's context. Use when a log file holds many deadlock entries and someone needs to know which patterns repeat and how often before deciding on a change. It classifies and counts; it never proposes the code fix, which stays with the deadlock-analysis skill, or a blocking chain queueing on a live server right now (lock-queue-triage).
+description: Read the deadlock reports in a PostgreSQL server log or a MySQL error log (innodb_print_all_deadlocks output) and return the cycle class of each distinct pattern, with counts and the log line that decided it, so the log itself never enters the caller's context. Use when a log file holds many deadlock entries and someone needs to know which patterns repeat and how often before deciding on a change. It classifies and counts; it never proposes the code fix, which stays with the deadlock-analysis skill. Not for a blocking chain queueing on a live server right now (lock-queue-triage).
 tools: Read, Grep, Glob
 disallowedTools: Write, Edit, NotebookEdit
 ---
