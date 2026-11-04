@@ -161,8 +161,9 @@ Two checks are required to merge, `ci` and `security`. Each is an aggregate job 
 unless every job it depends on reported success, so a job cannot go green by being
 forgotten. `security` accepts nothing but success. `ci` makes one exception: its `scope`
 job names the jobs a run may skip, and a skipped job passes only if it is named there. That
-list is a few test, browser and lint jobs on a promotion into `main` whose content `stage`
-already proved, and the jobs that read code rather than the description on a pull request
+list is fixed in `scripts/ci_scope.py`: on a promotion into `main` whose content `stage`
+already proved, and on the push to `main` after that promotion merges, it holds the test,
+browser, manifest-check and lint jobs, and the jobs that read code rather than the description on a pull request
 whose only change since a passing run is its title or body. A failed or cancelled job fails
 `ci` whether or not it is named. [CI](docs/ci.md) explains each job and how to reproduce it locally.
 
@@ -177,7 +178,7 @@ whose only change since a passing run is its title or body. A failed or cancelle
 | zizmor and the permissions audit | A workflow vulnerability, a missing or broad `permissions:` block, an unpinned action, a job with no timeout, a checkout that persists credentials | `security` |
 | ruff with flake8-bandit, and CodeQL | Python security findings in the validator and the scripts | `security` |
 | Cisco skill-scanner | A high or critical finding in any skill, subagent or command definition that no reviewed baseline accepts | `security` |
-| NVIDIA SkillSpector | The same, on the skills a pull request changes, and on all of them for other events | `security` |
+| NVIDIA SkillSpector | The same, on the skills a pull request changes (every skill when the pull request changes the scan configuration), and on all of them for other events | `security` |
 
 The check that earns its place is the dangling-pointer one. Two of these skills shipped
 for months naming `references/*.md` files nobody had written: the model loaded nothing
@@ -206,7 +207,7 @@ flowchart LR
 
 A feature branch merges into `dev`. `stage` and `main` take only promotions, and a push to
 `stage` uploads a preview of the site to `https://stage.ai.szolotov.com`, the owner's
-private preview, which sits behind Cloudflare Access and does not open for other visitors. **Cut release**
+private preview, which sits behind Cloudflare Access. **Cut release**
 in the Actions tab then tags `main`, and the release workflow publishes the GitHub Release
 and deploys that version to `https://ai.szolotov.com`, checks it answers and rolls back
 if it does not. [Releasing a version](docs/ci.md#releasing-a-version) has the steps.
@@ -1628,7 +1629,7 @@ examples and quality figures computed from the repository. Beyond those it has
 pages, and serves each release's [`marketplace.json`](https://ai.szolotov.com/marketplace.json)
 and [`portable-skills.zip`](https://ai.szolotov.com/portable-skills.zip).
 `https://stage.ai.szolotov.com` previews what is on `stage`, but it is the owner's private
-preview behind Cloudflare Access and does not open for other visitors. The site is static
+preview behind Cloudflare Access. The site is static
 HTML with no analytics and no cookies, built with nothing but Python; a small service worker caches the
 pages you open in your own browser so they can be read offline, and nothing leaves it.
 
