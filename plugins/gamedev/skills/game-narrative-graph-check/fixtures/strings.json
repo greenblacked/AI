@@ -1,0 +1,10 @@
+{
+  "start.line": {"en": "Well met.", "de": "Sei gegruesst."},
+  "offer.line": {"en": "Will you help?", "de": "Willst du uns helfen, bevor die Dunkelheit hereinbricht und es zu spaet ist?"},
+  "accept.line": {"en": "Good.", "de": "Gut."},
+  "refuse.line": {"en": "Pity.", "de": "Schade."},
+  "reward.line": {"en": "Take this.", "de": "Nimm das."},
+  "orphan.line": {"en": "Hello?", "de": "Hallo?"},
+  "loop_a.line": {"en": "Again.", "de": "Nochmal."},
+  "loop_b.line": {"en": "And again.", "de": ""}
+}

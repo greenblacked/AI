@@ -1,0 +1,9 @@
+accept: never-true
+accept: read-before-set
+loop_a: cycle-no-exit
+loop_b: missing-locale
+offer: too-long
+orphan: unreachable
+refuse: dead-end
+silent: dead-end
+silent: missing-key
