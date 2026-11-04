@@ -4,16 +4,19 @@
 set -Eeuo pipefail
 
 input="$(cat)"
+file_path=""
 text=""
 # Either parser prints nothing, and the hook allows, for input it cannot read text from:
 # invalid JSON, a non-object, a missing tool_input, or neither content nor new_string.
 if command -v jq >/dev/null 2>&1; then
+  file_path="$(printf '%s' "$input" | jq -r \
+    'if type=="object" and (.tool_input|type)=="object" then (.tool_input.file_path | if type=="string" then . else empty end) else empty end' \
+    2>/dev/null || true)"
   text="$(printf '%s' "$input" | jq -r \
     'if type=="object" and (.tool_input|type)=="object" then (.tool_input.content // .tool_input.new_string | if . == null then empty elif type=="string" then . else empty end) else empty end' \
     2>/dev/null || true)"
 elif command -v python3 >/dev/null 2>&1; then
-  text="$(printf '%s' "$input" | python3 -c \
-    'import json, sys
+  parse='import json, sys
 try:
     data = json.load(sys.stdin)
 except ValueError:
@@ -21,15 +24,27 @@ except ValueError:
 tool = data.get("tool_input") if isinstance(data, dict) else None
 value = None
 if isinstance(tool, dict):
-    value = tool.get("content")
-    if value is None:
-        value = tool.get("new_string")
-print(value if isinstance(value, str) else "")' || true)"
+    if sys.argv[1] == "file_path":
+        value = tool.get("file_path")
+    else:
+        value = tool.get("content")
+        if value is None:
+            value = tool.get("new_string")
+print(value if isinstance(value, str) else "")'
+  file_path="$(printf '%s' "$input" | python3 -c "$parse" file_path || true)"
+  text="$(printf '%s' "$input" | python3 -c "$parse" text || true)"
 fi
 
 # Neither parser present, or nothing to judge: allow, because a hook that blocks everything
 # on a missing tool is worse than no hook.
 [ -n "$text" ] || exit 0
+
+# Only source code carries these markers; a README or a test report that quotes one is not a
+# suppression. No path means nothing to judge.
+case "$file_path" in
+  *.py | *.js | *.jsx | *.mjs | *.cjs | *.ts | *.tsx | *.rs | *.php | *.java | *.kt | *.scala | *.cs | *.rb | *.go | *.swift) ;;
+  *) exit 0 ;;
+esac
 
 # Judged on the written text alone, so for an Edit the reason must be in the same edit.
 # A reason is words in a comment on the same line or the line directly above, or text after
@@ -51,16 +66,24 @@ while IFS= read -r line || [ -n "$line" ]; do
       fi
       ;;
     *"pragma: no mutate"* | *"mutants::skip"* | *"infection-ignore"*)
-      marker="$line"
+      # The reason must come after the marker: code before it on the line is not one, and a
+      # marker suffix such as the "-all" in @infection-ignore-all is part of the marker.
+      after=""
       for m in "pragma: no mutate" "mutants::skip" "infection-ignore"; do
-        marker="${marker//"$m"/}"
+        case "$line" in
+          *"$m"*)
+            after="${line#*"$m"}"
+            break
+            ;;
+        esac
       done
-      # Words after the marker on the same line (outside the marker itself), or a comment
-      # line above carrying words.
-      same="$(printf '%s' "$marker" | sed -E 's/^[[:space:]#/*-]+//' | grep -Eo '[[:alpha:]]{2,}' | head -n 1 || true)"
+      same="$(printf '%s' "$after" | sed -E 's/^(-[[:alpha:]]+)*//' | grep -Eo '[[:alpha:]]{2,}' | head -n 1 || true)"
+      # Or a comment line directly above carrying words, that is not itself a marker.
       above=""
-      case "$prev" in
-        *"#"* | *"//"* | *"/*"* | *"*"*)
+      lead="${prev#"${prev%%[![:space:]]*}"}"
+      case "$lead" in
+        *"pragma: no mutate"* | *"mutants::skip"* | *"infection-ignore"*) ;;
+        "#"* | "//"* | "/*"* | "*"*)
           above="$(printf '%s' "$prev" | grep -Eo '[[:alpha:]]{2,}' | head -n 1 || true)"
           ;;
       esac
