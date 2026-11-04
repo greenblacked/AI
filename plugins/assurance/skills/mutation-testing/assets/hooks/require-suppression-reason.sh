@@ -83,7 +83,10 @@ while IFS= read -r line || [ -n "$line" ]; do
       lead="${prev#"${prev%%[![:space:]]*}"}"
       case "$lead" in
         *"pragma: no mutate"* | *"mutants::skip"* | *"infection-ignore"*) ;;
-        "#"* | "//"* | "/*"* | "*"*)
+        # A Rust attribute (#[inline]) or a shebang is not a comment, and a bare `*` leader counts
+        # only as a docblock line (` * reason`): `*count += 1;` is code.
+        "#["* | "#!"*) ;;
+        "#"* | "//"* | "/*"* | "* "* | "*"$'\t'* | "*")
           above="$(printf '%s' "$prev" | grep -Eo '[[:alpha:]]{2,}' | head -n 1 || true)"
           ;;
       esac
