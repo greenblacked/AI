@@ -14,7 +14,7 @@
   {"query": "how should i version my save files so old saves load after a patch", "should_trigger": false, "expected": "game-save-system"},
   {"query": "build a bot that plays my game overnight in ci and finds soft-locks", "should_trigger": false, "expected": "automated-playthrough"},
   {"query": "what do we need to pass console certification, suspend and resume and so on", "should_trigger": false, "expected": "game-certification"},
-  {"query": "fast bullets pass through thin walls in my physics, how do i fix tunnelling", "should_trigger": false, "expected": "physics-glitch-triage"},
+  {"query": "after our playtest the notes say players found the tutorial confusing and the crafting menu boring, how do we rank those", "should_trigger": false, "expected": "game-playtest"},
   {"query": "two peers diverge in our rollback game, find the first desynced frame", "should_trigger": false, "expected": "game-desync-forensics"},
   {"query": "players are duplicating currency in our online shop, how do we respond", "should_trigger": false, "expected": "economy-exploit-response"},
   {"query": "the shotgun feels overpowered, what do i change in the numbers", "should_trigger": false, "expected": "game-balance"},
