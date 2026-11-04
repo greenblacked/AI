@@ -52,8 +52,9 @@ if [ "$(printf '%s' "$command" | wc -c)" -gt 32768 ]; then
 fi
 
 # Only a deleting verb is refused; reading or copying a symbol file is fine. The verb may be
-# path-qualified (/bin/rm, /usr/bin/unlink) or escaped (\rm) to dodge an alias.
-if printf '%s' "$command" | grep -Eq '(^|[[:space:];&|(\\])([^[:space:];&|()]*/)?(rm|unlink)[[:space:]]|find[[:space:]].*-delete'; then
+# path-qualified (/bin/rm, /usr/bin/unlink) or escaped (\rm) to dodge an alias. It may also be
+# the last word (`... | xargs rm`, the names arriving on stdin) or followed by ${IFS}.
+if printf '%s' "$command" | grep -Eq '(^|[[:space:];&|(\\])([^[:space:];&|()]*/)?(rm|unlink)([[:space:]]|$|\$\{?IFS)|find[[:space:]].*-delete'; then
   echo "blocked: shipped-build symbols are needed to symbolicate crashes; archive or upload them instead of deleting" >&2
   exit 2
 fi
