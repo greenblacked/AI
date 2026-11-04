@@ -30,6 +30,14 @@ fi
 # missing tool is worse than no hook.
 [ -n "$command" ] || exit 0
 
+# The word scan below strips quotes with a replacement that is quadratic in a word's length,
+# so one enormous token can outlast the hook timeout, and a timed-out hook fails open. Refuse
+# an oversized command up front instead; no real terraform invocation is near this size.
+if [ "$(printf '%s' "$command" | wc -c)" -gt 32768 ]; then
+  echo "blocked: the command is larger than 32 KiB, which this hook will not scan. Put the commands in a script file or split them, and apply only a saved plan file: terraform apply <planfile>" >&2
+  exit 2
+fi
+
 refuse() {
   echo "blocked: $1. Apply only a saved plan file that a trusted run produced and an approval covered: terraform apply <planfile>" >&2
   exit 2
