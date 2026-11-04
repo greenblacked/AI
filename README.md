@@ -9,10 +9,10 @@
 
 Markdown procedures that an AI coding agent loads when your task matches, with the subagents, commands and project kits that go with them.
 
-521 agent skills, 30 subagents, ten slash commands and zero project kits, in
+527 agent skills, 31 subagents, eleven slash commands and one project kit, in
 twenty-nine plugins you install separately.
 
-[![Skills](https://img.shields.io/badge/skills-521-7c3aed)](#plugins)
+[![Skills](https://img.shields.io/badge/skills-527-7c3aed)](#plugins)
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
 [![Security](https://github.com/greenblacked/AI/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/security.yml)
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
@@ -54,7 +54,7 @@ each by enough that installed alone at least one of its descriptions is dropped.
 several, raise the budget in `~/.claude/settings.json`:
 
 ```json
-{ "skillListingBudgetFraction": 0.49 }
+{ "skillListingBudgetFraction": 0.5 }
 ```
 
 That figure covers the whole marketplace, with a little headroom; anything smaller
@@ -70,7 +70,7 @@ Using Codex, ChatGPT, Grok, Gemini CLI or another tool? See [Other tools](#other
 | --- | --- | --- | --- |
 | [`coding`](#coding) | Reading, reviewing, testing and changing code | 29 skills, 5 subagents, 1 command | 0 |
 | [`family`](#family) | One development workflow, from a vague request to a measured outcome | 11 skills, 6 subagents, 1 command | 0 |
-| [`gamedev`](#gamedev) | Making games, and shipping them | 33 skills, 1 subagent, 1 command | 0 |
+| [`gamedev`](#gamedev) | Making games, and shipping them | 39 skills, 2 subagents, 2 commands | 1 |
 | [`operations`](#operations) | Keeping a running system alive | 19 skills, 7 subagents, 2 commands | 0 |
 | [`delivery`](#delivery) | Getting a change into production | 12 skills, 1 subagent | 0 |
 | [`security`](#security) | The defensive side of shipping software | 31 skills, 5 subagents, 2 commands | 0 |
@@ -389,7 +389,7 @@ through this plugin's skills by production scale and game type.
 #### Skills
 
 <details>
-<summary>gamedev skills (33)</summary>
+<summary>gamedev skills (39)</summary>
 
 | Skill | What it does |
 | --- | --- |
@@ -425,6 +425,12 @@ through this plugin's skills by production scale and game type.
 | [`physics-glitch-triage`](plugins/gamedev/skills/physics-glitch-triage/SKILL.md) | Diagnose and fix physics glitches by classifying the symptom first: tunnelling (fast thin object, small collider, large step), jitter (mixed simulation and render timing, platform parenting), exploding or unstable stacks (spawn overlap, extreme mass ratios, solver iterations, scaled bodies), launch artefacts after teleport or load, and frame-rate dependence. |
 | [`procgen-seed-testing`](plugins/gamedev/skills/procgen-seed-testing/SKILL.md) | Validate procedurally generated levels, worlds or loot by treating the generator as a function from seed to content and sweeping many seeds. |
 | [`scene-merge-conflicts`](plugins/gamedev/skills/scene-merge-conflicts/SKILL.md) | Stop teams losing work to conflicts in scenes, prefabs, blueprints and other binary or structured assets. |
+| [`game-audio-event-spec`](plugins/gamedev/skills/game-audio-event-spec/SKILL.md) | Keep a game's sound events in one table that code, middleware and designers share, and check the code against it with a standard-library script. |
+| [`game-bug-triage`](plugins/gamedev/skills/game-bug-triage/SKILL.md) | Write game bugs down so they can be reproduced, rank them on a fixed S1 to S4 scale and apply a release gate that reads the severities. |
+| [`game-economy-flow`](plugins/gamedev/skills/game-economy-flow/SKILL.md) | Model a game's economy before launch as sources and sinks per hour for each player archetype, gated on a sink or ceiling, a stated inflow band and time-to-cap. |
+| [`game-hud-menu-spec`](plugins/gamedev/skills/game-hud-menu-spec/SKILL.md) | Spec each HUD and menu screen, check legibility at the extremes and prove a gamepad can reach, use and leave every control. |
+| [`game-narrative-graph-check`](plugins/gamedev/skills/game-narrative-graph-check/SKILL.md) | Check a branching dialogue or quest graph as data for unreachable nodes, dead ends, unset flags and overflowing or missing lines. |
+| [`game-pillars`](plugins/gamedev/skills/game-pillars/SKILL.md) | Set three to five design pillars that force a choice, then stress-test the next five candidate features against them. |
 | [`shader-compile-stutter`](plugins/gamedev/skills/shader-compile-stutter/SKILL.md) | Eliminate hitches caused by shaders, pipeline state objects and materials compiling the first time they appear. |
 
 </details>
@@ -434,16 +440,20 @@ through this plugin's skills by production scale and game type.
 | Subagent | Reads | Returns |
 | --- | --- | --- |
 | `frame-capture-reader` | A profiler capture or frame trace | CPU-bound or GPU-bound with the numbers, or what to capture instead |
+| `tuning-literal-reader` | Gameplay scripts | Numeric literals that behave like tuning values, classed move-to-data, structural or unsure, with file and line, and per-frame arithmetic missing a delta-time factor |
 
 #### Commands
 
 | Command | What it does |
 | --- | --- |
 | `/level` | Run a level or feature through spec, layout, grey-box, tuning, frame budget and build size, with a gate between each stage. |
+| `/game-data-check` | Check JSON and CSV game data under a path for undefined and duplicate ids and out-of-range values, read-only. |
 
 #### Project kit
 
-No kit yet.
+| Skill | Rules | Hooks | Templates |
+| --- | --- | --- | --- |
+| `game-builder` | `gameplay-data` | `game-data-json` | `playtest-session-log` |
 
 ### Operations
 
