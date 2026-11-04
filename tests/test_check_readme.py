@@ -521,6 +521,14 @@ def test_a_tier_table_inside_a_fenced_block_is_not_read(mini_repo, capsys):
     assert "no agent table" in out
 
 
+def test_a_fence_straight_after_the_tier_table_ends_it(mini_repo, capsys):
+    # A fence that follows the table with no blank line must end it, so a pipe line
+    # inside or after that fence is never read as another agent row.
+    after = "```text\nexample\n```\n| `ghost` | Opus | medium | none |\n"
+    code, out = run(mini_repo, tiered(mini_repo, TIERS.rstrip("\n") + "\n" + after), capsys)
+    assert "ghost" not in out
+
+
 def test_a_tier_row_with_fewer_cells_than_the_header_is_reported(mini_repo, capsys):
     short = TIERS.replace("| Haiku | high | none |", "| Haiku |")
     code, out = run(mini_repo, tiered(mini_repo, short), capsys)

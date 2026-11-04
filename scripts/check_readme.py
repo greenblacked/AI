@@ -253,6 +253,8 @@ def tier_table(text: str) -> list[dict[str, str]] | None:
     fenced = False
     for line in text.splitlines():
         if line.lstrip().startswith(("```", "~~~")):
+            if header is not None:
+                break  # a fence ends the table, as any other non-table line does
             fenced = not fenced
             continue
         if fenced:

@@ -163,7 +163,8 @@ forgotten. `security` accepts nothing but success. `ci` makes one exception: its
 job names the jobs a run may skip, and a skipped job passes only if it is named there. That
 list is fixed in `scripts/ci_scope.py`: on a promotion into `main` whose content `stage`
 already proved, and on the push to `main` after that promotion merges, it holds the test,
-browser, manifest-check and lint jobs, and the jobs that read code rather than the description on a pull request
+browser and manifest-check jobs and the YAML and workflow linters, while spelling and
+Markdown lint still run; and the jobs that read code rather than the description on a pull request
 whose only change since a passing run is its title or body. A failed or cancelled job fails
 `ci` whether or not it is named. [CI](docs/ci.md) explains each job and how to reproduce it locally.
 
