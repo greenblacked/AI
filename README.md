@@ -28,7 +28,7 @@ twenty-nine plugins you install separately.
 
 - **What it is:** a Claude Code plugin marketplace of procedures (skills), subagents with no editing tools, slash commands and project kits. An agent loads a skill when its description matches your task, and the skill supplies the ordering, the checks and the evidence to collect. It is a procedure library, not an application.
 - **Who it is for:** anyone who works with a coding agent and wants it to follow a specific order and gate rather than generic advice. The plugins cover engineering, operations, security, data, product, design, management, and personal and career work.
-- **How it is built:** every change is judged by a reviewer agent with no editing tools and by CI, and scanned by two skill scanners (Cisco's skill-scanner and NVIDIA's SkillSpector). Releases move through `dev`, `stage` and `main`. [How quality is enforced](#how-quality-is-enforced) has the detail.
+- **How it is built:** CI gates every pull request, and every change except a Dependabot patch or minor update is also judged by a reviewer agent with no editing tools. Skills are scanned by two skill scanners (Cisco's skill-scanner and NVIDIA's SkillSpector). Releases move through `dev`, `stage` and `main`. [How quality is enforced](#how-quality-is-enforced) has the detail.
 - **Where to start:** [install](#install) a plugin or two, or browse [ai.szolotov.com](https://ai.szolotov.com), which has a page for every plugin and skill. Using Codex, ChatGPT, Grok or another tool: [other tools](#other-tools).
 
 ## Install
@@ -103,10 +103,11 @@ installing one does not pull in another's files.
 
 ## How I work with agents
 
-This repository is built by the loop it documents. A change goes through two loops of
-subagents defined in [`.claude/agents/`](.claude/agents), one stage at a time, each on the
-model tier its work needs and each handing the next a written brief rather than a
-paraphrase. [`/ship`](.claude/commands/ship.md) runs the build loop and
+This repository is built by the loop it documents. A change goes through the build loop, a
+chain of subagents defined in [`.claude/agents/`](.claude/agents), one stage at a time, each
+on the model tier its work needs and each handing the next a written brief rather than a
+paraphrase. The verify loop is separate: it settles a single claim against primary sources.
+[`/ship`](.claude/commands/ship.md) runs the build loop and
 [`/verify`](.claude/commands/verify.md) the verify loop.
 
 ```mermaid
@@ -119,6 +120,7 @@ flowchart LR
     RV -->|"FIX"| IM
     RV -->|"SHIP"| PR["one pull request, merged once ci and security pass"]
     SR --> PR
+    SR -->|"FIX"| IM
   end
   subgraph verify["Verify loop: /verify"]
     IV2["investigator: settle one claim against primary sources"] --> RV2["reviewer: does the finding support the change"]
@@ -155,9 +157,14 @@ the [website](https://ai.szolotov.com/family/).
 
 ## How quality is enforced
 
-Two checks are required to merge, `ci` and `security`. Each rejects every dependency that
-did not report success, including skipped ones, so a job cannot go green by being
-forgotten. [CI](docs/ci.md) explains each job and how to reproduce it locally.
+Two checks are required to merge, `ci` and `security`. Each is an aggregate job that fails
+unless every job it depends on reported success, so a job cannot go green by being
+forgotten. `security` accepts nothing but success. `ci` makes one exception: its `scope`
+job names the jobs a run may skip, and a skipped job passes only if it is named there. That
+list is a few test, browser and lint jobs on a promotion into `main` whose content `stage`
+already proved, and the jobs that read code rather than the description on a pull request
+whose only change since a passing run is its title or body. A failed or cancelled job fails
+`ci` whether or not it is named. [CI](docs/ci.md) explains each job and how to reproduce it locally.
 
 | Gate | What it catches | Feeds |
 | --- | --- | --- |
@@ -198,7 +205,8 @@ flowchart LR
 ```
 
 A feature branch merges into `dev`. `stage` and `main` take only promotions, and a push to
-`stage` uploads a preview of the site to `https://stage.ai.szolotov.com`. **Cut release**
+`stage` uploads a preview of the site to `https://stage.ai.szolotov.com`, the owner's
+private preview, which sits behind Cloudflare Access and does not open for other visitors. **Cut release**
 in the Actions tab then tags `main`, and the release workflow publishes the GitHub Release
 and deploys that version to `https://ai.szolotov.com`, checks it answers and rolls back
 if it does not. [Releasing a version](docs/ci.md#releasing-a-version) has the steps.
@@ -1593,7 +1601,7 @@ explicitly. Each does the mechanical part and points at the skill holding the fu
 
 ### Local gates
 
-The same commands CI runs:
+The same commands CI runs. They need Python 3.10 or newer, Make, Git and Bash; only `make test` and `make coverage` also need pytest, pytest-xdist and pytest-cov.
 
 ```bash
 make validate     # frontmatter contract, dangling references, marketplace cross-check
@@ -1619,8 +1627,9 @@ examples and quality figures computed from the repository. Beyond those it has
 [Examples](https://ai.szolotov.com/examples/) and [Quality](https://ai.szolotov.com/quality/)
 pages, and serves each release's [`marketplace.json`](https://ai.szolotov.com/marketplace.json)
 and [`portable-skills.zip`](https://ai.szolotov.com/portable-skills.zip).
-`https://stage.ai.szolotov.com` previews what is on `stage`. It is static HTML with no
-analytics and no cookies, built with nothing but Python; a small service worker caches the
+`https://stage.ai.szolotov.com` previews what is on `stage`, but it is the owner's private
+preview behind Cloudflare Access and does not open for other visitors. The site is static
+HTML with no analytics and no cookies, built with nothing but Python; a small service worker caches the
 pages you open in your own browser so they can be read offline, and nothing leaves it.
 
 - [Using the skills](docs/using.md) — installing and using them in Claude Code, ChatGPT, Grok and terminal agents
