@@ -250,7 +250,13 @@ def tier_table(text: str) -> list[dict[str, str]] | None:
     """The rows of the agent table, keyed by lower-cased column name, or None without one."""
     rows: list[dict[str, str]] = []
     header: list[str] | None = None
+    fenced = False
     for line in text.splitlines():
+        if line.lstrip().startswith(("```", "~~~")):
+            fenced = not fenced
+            continue
+        if fenced:
+            continue  # a table shown as an example is not the table
         if not line.startswith("|"):
             if header is not None:
                 break
@@ -261,7 +267,10 @@ def tier_table(text: str) -> list[dict[str, str]] | None:
             if all(column in names for column in TIER_COLUMNS):
                 header = names
         elif not line.startswith("| ---"):
-            rows.append(dict(zip(header, cells, strict=False)))
+            row = dict(zip(header, cells, strict=False))
+            if len(cells) < len(header):
+                row["_short"] = f"{len(cells)} of {len(header)}"
+            rows.append(row)
     return rows if header is not None else None
 
 
@@ -497,14 +506,21 @@ def check(root: Path) -> int:
     # what runs, so a README that disagrees with it is telling a reader the wrong cost.
     tiers = agent_tiers(root)
     rows = tier_table(text)
+    table_found = rows is not None
     if rows is None:
         if tiers:
             fail("the README has no agent table (Agent, Model, Effort, Editing tools)")
         rows = []
     stated_agents = set()
     for row in rows:
+        if "_short" in row:
+            fail(f"an agent table row has {row['_short']} cells: {row.get('agent', '')!r}")
+            continue
         names = BACKTICKED_RE.findall(row["agent"])
         name = names[0] if names else row["agent"]
+        if name in stated_agents:
+            fail(f"the agent table has more than one row for {name}")
+            continue
         stated_agents.add(name)
         actual = tiers.get(name)
         if actual is None:
@@ -523,7 +539,7 @@ def check(root: Path) -> int:
                 f"the agent table says {name} has editing tools {cell!r}, and its "
                 f"frontmatter grants {sorted(actual['editing tools']) or 'none'}"
             )
-    for name in sorted(set(tiers) - stated_agents if rows else set()):
+    for name in sorted(set(tiers) - stated_agents if table_found else set()):
         fail(f"{name} is in .claude/agents and has no row in the agent table")
 
     # --- counts spelled out in the prose ----------------------------------------------

@@ -498,3 +498,31 @@ def test_agents_in_claude_with_no_tier_table_at_all_fail(mini_repo, capsys):
     code, out = run(mini_repo, text, capsys)
     assert code == 1
     assert "no agent table" in out
+
+
+def test_a_tier_table_with_a_header_and_no_rows_fails(mini_repo, capsys):
+    header_only = TIERS.split("| `scout`")[0]
+    code, out = run(mini_repo, tiered(mini_repo, header_only), capsys)
+    assert code == 1
+    assert "scout" in out and "no row in the agent table" in out
+
+
+def test_two_tier_rows_for_the_same_agent_fail(mini_repo, capsys):
+    row = "| `scout` | Survey again | Haiku | high | none |\n"
+    code, out = run(mini_repo, tiered(mini_repo, TIERS + row), capsys)
+    assert code == 1
+    assert "scout" in out and "more than one row" in out
+
+
+def test_a_tier_table_inside_a_fenced_block_is_not_read(mini_repo, capsys):
+    text = tiered(mini_repo, "```text\n" + TIERS + "```\n")
+    code, out = run(mini_repo, text, capsys)
+    assert code == 1
+    assert "no agent table" in out
+
+
+def test_a_tier_row_with_fewer_cells_than_the_header_is_reported(mini_repo, capsys):
+    short = TIERS.replace("| Haiku | high | none |", "| Haiku |")
+    code, out = run(mini_repo, tiered(mini_repo, short), capsys)
+    assert code == 1
+    assert "scout" in out and "cells" in out
