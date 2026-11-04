@@ -6,7 +6,8 @@ input="$(cat)"
 command=""
 # Either parser prints nothing, and the hook allows, for input it cannot read a command from:
 # invalid JSON, JSON that is not an object, a missing or non-object `tool_input`, or a null
-# `command`. A `false` command is kept by both parsers, so they agree. Erroring out instead would report a failure over a payload it never needed.
+# `command`. A `false` command is kept by both parsers, so they agree. Erroring out
+# instead would report a failure over a payload it never needed.
 if command -v jq >/dev/null 2>&1; then
   command="$(printf '%s' "$input" | jq -r \
     'if type=="object" and (.tool_input|type)=="object" then (.tool_input.command | if . == null then empty elif type=="string" then . else tojson end) else empty end' \
@@ -22,7 +23,8 @@ tool = data.get("tool_input") if isinstance(data, dict) else None
 value = tool.get("command") if isinstance(tool, dict) else None
 if value is None:
     value = ""
-# jq -r prints a string as is and anything else as JSON, so a list or number reads the same here.
+# jq -r prints a string as is and anything else as JSON; this follows it, so both branches
+# reach the same verdict (the whitespace inside a printed list can differ).
 print(value if isinstance(value, str) else json.dumps(value))' || true)"
 fi
 

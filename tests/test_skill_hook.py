@@ -140,6 +140,20 @@ def test_a_differently_cased_skill_file_still_makes_the_directory_a_skill(mini_r
     )
 
 
+# The case-insensitive match exists for `skill-file-case`, which only fires inside
+# plugins/<p>/skills/<s>/. Anywhere else a file named skill.md is just a file.
+
+
+def test_a_lowercase_skill_md_outside_a_skills_folder_is_not_a_skill(mini_repo, monkeypatch):
+    monkeypatch.setattr(hook, "ROOT", mini_repo)
+    rules = mini_repo / ".claude" / "rules"
+    rules.mkdir(parents=True, exist_ok=True)
+    (rules / "skill.md").write_text("rule\n", encoding="utf-8")
+    (rules / "other.md").write_text("rule\n", encoding="utf-8")
+    relative = ".claude/rules/other.md"
+    assert hook.edited_target(payload(mini_repo / relative)) == (relative, f"{relative}:")
+
+
 # The validator covers subagents, commands and rules too, and the hook said nothing
 # about any of them: `edited_skill` walked up looking for a `SKILL.md` and gave up.
 # Editing a subagent meant finding out in CI instead, which is the delay the hook

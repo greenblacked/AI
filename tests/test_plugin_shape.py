@@ -555,7 +555,17 @@ def test_the_example_hook_reads_a_non_string_command_the_same_on_both_branches(
     assert result.returncode == 0 and result.stderr == ""
 
 
-# SKILL.md case, and entries git ignores
+@pytest.mark.parametrize("tools", BRANCHES)
+def test_the_example_hook_blocks_a_list_command_naming_the_forbidden_one(tmp_path, tools):
+    # Both parsers print a non-string command as JSON, so a list naming the forbidden command
+    # still reaches the match and is blocked on either branch.
+    stdin = '{"tool_input": {"command": ["example-forbidden-command"]}}'
+    result = run_example_hook(tmp_path, stdin, tools)
+    assert result.returncode == 2
+    assert "blocked" in result.stderr
+
+
+# SKILL.md case
 
 
 @pytest.mark.parametrize("name", ["skill.md", "Skill.md", "SKILL.MD", "skill.MD"])

@@ -72,10 +72,20 @@ def _is_agent_eval(path: Path) -> bool:
     return len(prefix) == 2 and prefix[0] == "plugins"
 
 
-def _holds_skill_file(directory: Path) -> bool:
-    """A SKILL.md, or a file differing only in case, so `skill-file-case` reaches the writer."""
+def _holds_skill_file(directory: Path, relative: Path) -> bool:
+    """A SKILL.md, or inside plugins/<p>/skills/<s>/ a file differing only in case.
+
+    The looser match is there so `skill-file-case` reaches the writer; that rule only
+    applies at that depth, so anywhere else a `skill.md` is just a file.
+    """
+    parts = relative.parts
+    loose = len(parts) == 4 and parts[0] == "plugins" and parts[2] == "skills"
     try:
-        return any(e.name.lower() == "skill.md" for e in directory.iterdir() if e.is_file())
+        return any(
+            (e.name.lower() == "skill.md" if loose else e.name == "SKILL.md")
+            for e in directory.iterdir()
+            if e.is_file()
+        )
     except OSError:
         return False
 
@@ -99,7 +109,7 @@ def edited_target(payload: object) -> tuple[str, str] | None:
     except ValueError:
         return None  # outside the repository
     for parent in [path, *path.parents]:
-        if _holds_skill_file(ROOT / parent):
+        if _holds_skill_file(ROOT / parent, parent):
             return str(parent), f"{parent}/"
     if _is_file_target(path) or _is_agent_eval(path):
         return str(path), f"{path}:"

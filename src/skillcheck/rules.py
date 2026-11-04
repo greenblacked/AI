@@ -2002,6 +2002,7 @@ def check_plugin_shape(plugin: Path, repo_root: Path) -> list[Finding]:
             )
         )
     skills_dir = plugin / "skills"
+    # Symlinked skill folders are skipped on purpose: the shim refuses any tracked symlink.
     skill_dirs = (
         [d for d in sorted(skills_dir.iterdir()) if d.is_dir() and not d.is_symlink()]
         if skills_dir.is_dir()
