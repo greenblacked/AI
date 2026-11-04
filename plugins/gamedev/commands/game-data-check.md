@@ -37,7 +37,7 @@ If a range is not declared anywhere, do not invent one. List the field under "no
 range" in the report; a guessed bound produces failures nobody can act on.
 
 Where the tables are large, run a short Python script that does the passes below with the
-standard library (`json`, `csv`), passed to `python3` on standard input so that no file is
+standard library (`json`, `csv`), passed to `python3 -I -` on standard input so that no file is
 created, and read its output rather than loading every row into this context.
 
 ## 2. Run five checks, in this order

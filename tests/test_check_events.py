@@ -1,6 +1,8 @@
 """The audio event checker: table against code, each finding code, and how it exits."""
 
 import importlib.util
+import os
+import signal
 import sys
 from pathlib import Path
 
@@ -147,3 +149,55 @@ def test_header_missing_columns_exits_with_a_message(tmp_path: Path) -> None:
     with pytest.raises(SystemExit) as caught:
         events.read_table(str(csv_path))
     assert "header lacks columns" in str(caught.value)
+
+
+def test_table_with_a_bom_reads_its_first_column(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    csv_path = tmp_path / "events.csv"
+    csv_path.write_bytes(b"\xef\xbb\xbf" + (HEADER + row("sfx.player.step")).encode())
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "a.gd").write_text('"sfx.player.step"\n', encoding="utf-8")
+    assert events.main([str(csv_path), str(src)]) == 0
+    assert capsys.readouterr().out == ""
+
+
+def test_priority_must_be_a_whole_number(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    rc, out = run(
+        tmp_path,
+        HEADER + row("sfx.a.one", priority="high"),
+        {"a.gd": '"sfx.a.one"\n'},
+        capsys,
+    )
+    assert rc == 1
+    assert "sfx.a.one: bad-value: priority is not a whole number" in out
+
+
+def test_missing_code_directory_is_a_usage_error(tmp_path: Path) -> None:
+    csv_path = tmp_path / "events.csv"
+    csv_path.write_text(HEADER + row("sfx.a.one"), encoding="utf-8")
+    with pytest.raises(SystemExit) as caught:
+        events.main([str(csv_path), str(tmp_path / "no-such-dir")])
+    assert caught.value.code == 2
+
+
+def test_a_fifo_in_the_code_tree_does_not_hang_the_scan(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    if not hasattr(os, "mkfifo"):
+        pytest.skip("no named pipes on this platform")
+    csv_path = tmp_path / "events.csv"
+    csv_path.write_text(HEADER + row("sfx.a.one"), encoding="utf-8")
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "a.gd").write_text('"sfx.a.one"\n', encoding="utf-8")
+    os.mkfifo(src / "pipe.gd")
+    # A blocking open() would hang here; a timer turns that into a failure, not a stuck run.
+    signal.alarm(10)
+    try:
+        assert events.main([str(csv_path), str(src)]) == 0
+    finally:
+        signal.alarm(0)

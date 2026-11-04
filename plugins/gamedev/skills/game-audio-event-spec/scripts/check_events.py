@@ -57,7 +57,7 @@ DEFAULT_EXT = (
 
 def read_table(path):
     findings, rows = [], {}
-    with open(path, newline="", encoding="utf-8") as fh:
+    with open(path, newline="", encoding="utf-8-sig") as fh:
         reader = csv.DictReader(fh)
         missing = [c for c in REQUIRED if c not in (reader.fieldnames or [])]
         if missing:
@@ -75,8 +75,11 @@ def read_table(path):
             for col in REQUIRED:
                 if not (row[col] or "").strip():
                     findings.append((eid, "empty-field", f"{col} is empty"))
-            if not (row["max_instances"] or "").strip().isdigit():
-                findings.append((eid, "bad-value", "max_instances is not a whole number"))
+            for col in ("priority", "max_instances"):
+                value = (row[col] or "").strip()
+                # Empty is already an empty-field finding; do not report it twice.
+                if value and not (value.isascii() and value.isdigit()):
+                    findings.append((eid, "bad-value", f"{col} is not a whole number"))
             if (row["spatial"] or "").strip().lower() not in SPATIAL:
                 findings.append((eid, "bad-value", "spatial must be 2d or 3d"))
             if (row["steal"] or "").strip().lower() not in STEAL:
@@ -94,6 +97,9 @@ def scan(root, exts, prefixes):
             if not name.endswith(exts):
                 continue
             path = os.path.join(here, name)
+            # A named pipe or device opens by blocking, so only regular files are read.
+            if not os.path.isfile(path):
+                continue
             try:
                 with open(path, encoding="utf-8", errors="replace") as fh:
                     for n, line in enumerate(fh, 1):
@@ -115,6 +121,8 @@ def main(argv=None):
     ap.add_argument("--ext", nargs="*", default=list(DEFAULT_EXT), help="file extensions to scan")
     args = ap.parse_args(argv)
 
+    if not os.path.isdir(args.code_dir):
+        ap.error(f"{args.code_dir}: not a directory; every row would be reported unused")
     rows, findings = read_table(args.table)
     prefixes = {i.split(".")[0] for i in rows} | set(args.prefix)
     used = scan(args.code_dir, tuple(args.ext), prefixes)
