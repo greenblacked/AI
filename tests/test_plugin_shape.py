@@ -293,6 +293,17 @@ def test_a_malformed_hook_json_is_an_error(tmp_path, hook):
     assert all(f.level == ERROR for f in found)
 
 
+@pytest.mark.parametrize("text", ["null", "0", "true", '""', "[]"])
+def test_a_hook_json_that_parses_to_a_non_object_is_an_error(tmp_path, text):
+    # Valid JSON that is not an object must not slip past the shape check: a bare `null`
+    # once read as "could not parse" and skipped every check, completing the kit.
+    assets = tmp_path / "assets"
+    write_kit(assets, hook=text)
+    found = check_kit(assets, tmp_path)
+    assert found and set(codes(found)) == {"kit-hook"}
+    assert not rules._kit_complete(assets, tmp_path)
+
+
 def test_a_hook_json_naming_a_differently_named_script_is_an_error(tmp_path):
     # `guard.json` must name `guard.sh`: the README's kit count pairs them by stem.
     assets = tmp_path / "assets"

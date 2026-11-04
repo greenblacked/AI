@@ -1896,13 +1896,17 @@ def _check_hook_template(path: Path, repo_root: Path, findings: list[Finding]) -
     """Validate one ``assets/hooks/*.json``; return whether it is sound with its scripts."""
     relative = path.relative_to(repo_root)
     problems: list[str] = []
+    # A flag, not `data is None`: a file holding JSON `null` parses to None and must
+    # still go through the shape check rather than read as "could not parse".
+    parsed = True
+    data: object = None
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError, UnicodeDecodeError) as error:
         problems.append(f"not valid JSON or not readable: {error}")
-        data = None
-    scripts = _hook_entries(data, problems.append) if data is not None else []
-    if data is not None and not problems and not scripts:
+        parsed = False
+    scripts = _hook_entries(data, problems.append) if parsed else []
+    if parsed and not problems and not scripts:
         problems.append("registers no hook command")
     for name in dict.fromkeys(scripts):
         if name != path.with_suffix(".sh").name:
