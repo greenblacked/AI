@@ -28,6 +28,7 @@ This reads a failure folder and prints the mechanical part of the record. It ass
 ```python
 #!/usr/bin/env python3
 """Print the mechanical fields of a bug record from a failure folder."""
+
 import hashlib
 import json
 import sys
