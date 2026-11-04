@@ -270,6 +270,34 @@ def test_a_listed_plugin_must_exist(tmp_path):
     assert "unlisted-plugin" not in found
 
 
+@pytest.mark.parametrize("key", ["agents", "commands", "skills", "hooks"])
+def test_a_plugin_manifest_that_adds_components_is_an_error(tmp_path, key):
+    # `agents` and `commands` point Claude Code at files the definition scan never wraps.
+    write_plugin(tmp_path)
+    write_marketplace(tmp_path, [{"name": "engineering", "source": "./plugins/engineering"}])
+    manifest = tmp_path / "plugins" / "engineering" / ".claude-plugin" / "plugin.json"
+    manifest.write_text(json.dumps({"name": "engineering", key: ["./extra/x.md"]}), "utf-8")
+    assert "unscanned-component-path" in codes(check_marketplace(tmp_path), ERROR)
+
+
+@pytest.mark.parametrize("key", ["agents", "commands", "skills", "hooks"])
+def test_a_marketplace_entry_that_adds_components_is_an_error(tmp_path, key):
+    write_plugin(tmp_path)
+    entry = {"name": "engineering", "source": "./plugins/engineering", key: ["./extra/x.md"]}
+    write_marketplace(tmp_path, [entry])
+    assert "unscanned-component-path" in codes(check_marketplace(tmp_path), ERROR)
+
+
+@pytest.mark.parametrize(
+    "source", ["./tools/zz", "plugins/engineering", "./plugins/engineering/sub", "./plugins/Eng"]
+)
+def test_a_plugin_source_outside_plugins_is_an_error(tmp_path, source):
+    # A plugin elsewhere in the tree has agents and commands the scan never reaches.
+    write_plugin(tmp_path)
+    write_marketplace(tmp_path, [{"name": "engineering", "source": source}])
+    assert "unscanned-component-path" in codes(check_marketplace(tmp_path), ERROR)
+
+
 def test_a_skill_outside_every_plugin_is_reported(tmp_path):
     # A skill that no plugin ships installs for nobody, which is the same silent
     # failure as a skill missing from the old explicit list.

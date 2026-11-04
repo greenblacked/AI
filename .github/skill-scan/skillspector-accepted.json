@@ -3,6 +3,27 @@
   "tool_version": "2.13.1",
   "entries": [
     {
+      "rule_id": "AS1",
+      "path": ".claude/agents/explorer.md",
+      "match": "pathlib.Path(\".claude/",
+      "class": "FP-legitimate-procedure",
+      "reason": "The agent's read-only inspection script globs the repository's own .claude/agents directory to validate agent frontmatter; no agent configuration is read for another tool or modified."
+    },
+    {
+      "rule_id": "AS1",
+      "path": ".claude/agents/reviewer.md",
+      "match": "~/.codex/config.toml",
+      "class": "FP-defensive",
+      "reason": "Names ~/.codex/config.toml as the owner's trusted place to resolve project_doc_fallback_filenames from, to say the value must never come from the candidate change; the reviewer reads nothing from that path."
+    },
+    {
+      "rule_id": "TM1",
+      "path": ".claude/agents/reviewer.md",
+      "match": "git push access, and network disabled), never in the owner's normal environment or clone, because the gates import and run the change's own code; (b) that the owner confirms the PR's required `ci` and",
+      "class": "FP-defensive",
+      "reason": "Prose describing the disposable sandbox the owner must run the gates in (no credentials, no git push access, network disabled); it restricts access, it does not instruct a dangerous tool parameter."
+    },
+    {
       "rule_id": "PE3",
       "path": "plugins/assurance/skills/audit-trail-design/references/event-schema.md",
       "match": "Access tokens",
@@ -85,6 +106,13 @@
       "match": "access token",
       "class": "FP-scanner-limitation",
       "reason": "Term ('access token', 'kubeconfig', '.env') appears in protocol/design explanation or a heading; no credential file or value is accessed."
+    },
+    {
+      "rule_id": "PE3",
+      "path": "plugins/coding/commands/agent-diff-audit.md",
+      "match": ".npmrc",
+      "class": "FP-defensive",
+      "reason": "Credential path/term is named to warn about a registry= line planted in .npmrc that redirects dependencies to a private registry; nothing reads or exposes a credential."
     },
     {
       "rule_id": "AE1",
@@ -283,6 +311,13 @@
       "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
     },
     {
+      "rule_id": "E4",
+      "path": "plugins/design/agents/screenshot-reader.md",
+      "match": "Capture context",
+      "class": "FP-scanner-limitation",
+      "reason": "'Capture context' is the label for viewport width, pixel ratio and theme the agent asks the user for; it is not context leakage."
+    },
+    {
       "rule_id": "PE3",
       "path": "plugins/design/skills/accessibility-audit/SKILL.md",
       "match": ".npmrc",
@@ -400,6 +435,13 @@
       "match": ".npmrc",
       "class": "FP-defensive",
       "reason": "Credential path/term is named to keep it out of logs, images, caches or committed config, or to warn about a planted .npmrc/token misuse; nothing reads or exposes a credential."
+    },
+    {
+      "rule_id": "MP3",
+      "path": "plugins/family/agents/yielder.md",
+      "match": "clear state",
+      "class": "FP-scanner-limitation",
+      "reason": "'a clear statement that none was measured' is ordinary prose about outcome evidence, not an instruction to clear or poison agent memory."
     },
     {
       "rule_id": "AR2",
@@ -911,6 +953,13 @@
       "match": "references/campaign-recipes.md (partial)",
       "class": "FP-scanner-limitation",
       "reason": "AE1 reports that a bundled reference file named in prose was not fully inspected by the scanner (coverage cap); the line itself is only a pointer to a file that exists in the skill."
+    },
+    {
+      "rule_id": "P6",
+      "path": "plugins/security/agents/extension-reader.md",
+      "match": "copy the instruction into",
+      "class": "FP-defensive",
+      "reason": "Line is 'Never copy the instruction into the report': the agent is told to quote a stranger's instruction only as evidence and never to reproduce or reveal its own prompt."
     },
     {
       "rule_id": "AR2",

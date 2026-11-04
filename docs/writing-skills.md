@@ -159,12 +159,16 @@ start with `#!` and have the executable bit set. A script the model is told to r
 cannot is the same silent failure in a different costume.
 
 **Marketplace consistency (`unlisted-plugin`, `missing-listed-plugin`, `unowned-skill`,
-`unowned-agent`).** Each plugin owns its own directory and discovers its own `skills/`
+`unowned-agent`, `unscanned-component-path`).** Each plugin owns its own directory and discovers its own `skills/`
 and `agents/`, so [`marketplace.json`](../.claude-plugin/marketplace.json) lists plugins
 rather than individual skills. Two things still have to hold, and both are errors: every
 listed plugin must exist and carry a `.claude-plugin/plugin.json`, and nothing on disk
 may be stranded outside a plugin — a skill no plugin ships installs for nobody, which is
-the same silent failure the explicit list used to catch.
+the same silent failure the explicit list used to catch. A third is that no manifest may
+route around the default folders (`unscanned-component-path`): `agents`, `commands`,
+`skills` or `hooks` in a marketplace entry or `plugin.json`, or a `source` other than
+`./plugins/<plugin>`, would load a subagent or command that the `security` workflow's
+scan of them never wraps.
 
 ## The warnings, and why they are warnings
 
@@ -645,6 +649,7 @@ subagent](writing-agents.md) for why.
 | `bad-marketplace-shape` | error | The manifest is not an object, `plugins` is not a list, a plugin entry is not an object, or a `skills`/`agents` value is not a list of strings. | Fix the shape. This is reported rather than raised because reaching `.get` on a string used to abort the whole run with a traceback. |
 | `missing-listed-plugin` | error | A plugin listed in `marketplace.json` has no `.claude-plugin/plugin.json` at its `source`. | Write the plugin manifest, correct the `source` path, or remove the entry. |
 | `unlisted-plugin` | error | A plugin exists on disk but is absent from `marketplace.json`, so it installs for nobody. | Add an entry for it to the manifest's `plugins` array. |
+| `unscanned-component-path` | error | A marketplace entry or a plugin's `plugin.json` sets `agents`, `commands`, `skills` or `hooks`, or an entry's `source` is not `./plugins/<plugin>`. Claude Code would load components from paths the `security` workflow's scan of subagents and commands never wraps. | Use the default `agents/`, `commands/` and `skills/` folders and a `./plugins/<plugin>` source. |
 | `unowned-skill` | error | A skill is not inside any plugin's `skills/` directory, so no plugin ships it. | Move it under `plugins/<name>/skills/`. |
 | `unowned-agent` | error | A subagent is not inside any plugin's `agents/` directory. | Move it under `plugins/<name>/agents/`. |
 
