@@ -723,6 +723,19 @@ GOOD_MARKETPLACE = {"plugins": [{"name": "demo", "source": "./plugins/demo"}]}
 GOOD_PLUGIN = {"name": "demo", "description": "x"}
 
 
+KEYS = [
+    "agents",
+    "commands",
+    "skills",
+    "hooks",
+    "mcpServers",
+    "lspServers",
+    "outputStyles",
+    "settings",
+    "experimental",
+]
+
+
 def write_manifests(repo, marketplace=GOOD_MARKETPLACE, plugin=GOOD_PLUGIN):
     repo.write(".claude-plugin/marketplace.json", json.dumps(marketplace))
     repo.write("plugins/demo/.claude-plugin/plugin.json", json.dumps(plugin))
@@ -734,7 +747,7 @@ def test_ordinary_manifests_are_accepted(repo):
     assert shims.list_definitions(repo.path) == sorted(LOCATIONS)
 
 
-@pytest.mark.parametrize("key", ["agents", "commands", "skills", "hooks"])
+@pytest.mark.parametrize("key", KEYS)
 def test_a_plugin_manifest_that_adds_components_is_refused(repo, key):
     # `"agents": ["./extra/evil.md"]` loads a file the scan never enumerates.
     write_manifests(repo, plugin={**GOOD_PLUGIN, key: ["./extra/evil.md"]})
@@ -742,7 +755,7 @@ def test_a_plugin_manifest_that_adds_components_is_refused(repo, key):
         shims.list_definitions(repo.path)
 
 
-@pytest.mark.parametrize("key", ["agents", "commands", "skills", "hooks"])
+@pytest.mark.parametrize("key", KEYS)
 def test_a_marketplace_entry_that_adds_components_is_refused(repo, key):
     entry = {"name": "demo", "source": "./plugins/demo", key: {"inline": "content"}}
     write_manifests(repo, marketplace={"plugins": [entry]})
@@ -775,6 +788,9 @@ def test_a_marketplace_source_outside_plugins_is_refused(repo, source):
         "plugins/demo/nested/.claude-plugin/plugin.json",
         "plugins/demo/.claude-plugin/extra.json",
         "plugins/Bad_Name/.claude-plugin/plugin.json",
+        "plugins/demo/.Claude-Plugin/plugin.json",
+        "Plugins/demo/.claude-plugin/plugin.json",
+        ".Claude-Plugin/marketplace.json",
     ],
 )
 def test_a_manifest_in_an_unexpected_place_is_refused(repo, path):
@@ -864,6 +880,8 @@ def test_a_frontmatter_error_cannot_open_the_legacy_workflow_command_marker(repo
         "settings.json",
         "output-styles/terse.md",
         "Hooks/hooks.json",
+        "monitors",
+        "output-styles",
         ".MCP.json",
         "Settings.json",
         "bin",
@@ -892,3 +910,11 @@ def test_the_same_names_deeper_in_a_plugin_are_not_auto_components(repo, rel):
     repo.write(f"plugins/demo/{rel}", "{}\n")
     repo.commit("kit file")
     assert shims.list_definitions(repo.path) == sorted(LOCATIONS)
+
+
+def test_an_auto_component_under_a_differently_cased_plugins_folder_is_refused(repo):
+    write_manifests(repo)
+    repo.write("Plugins/demo/hooks/hooks.json", "{}\n")
+    repo.commit("auto component")
+    with pytest.raises(shims.DefinitionError, match=r"plugin-root.*assets/hooks"):
+        shims.list_definitions(repo.path)

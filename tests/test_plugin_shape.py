@@ -165,7 +165,30 @@ def test_a_kit_rule_without_usable_paths_is_an_error(tmp_path, rule):
     assert all(f.level == ERROR for f in found)
 
 
+def test_a_kit_rules_entry_that_cannot_be_read_is_an_error_not_a_traceback(tmp_path):
+    assets = tmp_path / "assets"
+    write_kit(assets)
+    (assets / "rules" / "dir.md").mkdir()
+    found = check_kit(assets, tmp_path)
+    assert any(f.code == "kit-rule" and f.level == ERROR for f in found)
+
+
+def test_a_plugin_root_monitors_or_output_styles_file_is_refused(tmp_path):
+    for name in ("monitors", "output-styles"):
+        plugin = make_plugin(tmp_path, name="p-" + name)
+        (plugin / name).write_text("x", encoding="utf-8")
+        found = codes(check_plugin_shape(plugin, tmp_path), ERROR)
+        assert "plugin-auto-component" in found
+
+
 # kit-hook
+
+
+def test_a_hook_template_that_is_a_directory_is_an_error_not_a_traceback(tmp_path):
+    write_kit(tmp_path / "assets", hook=None)
+    (tmp_path / "assets" / "hooks" / "x.json").mkdir()
+    found = check_kit(tmp_path / "assets", tmp_path)
+    assert any(f.code == "kit-hook" and f.level == ERROR for f in found)
 
 
 @pytest.mark.parametrize(
@@ -422,3 +445,25 @@ def test_the_template_agent_validates_apart_from_its_placeholder_name():
     # The file is called agent.md so it can sit in template/; the copy is renamed.
     found = rules.check_agent(ROOT / "template" / "agent.md", ROOT)
     assert codes(found) == ["name-mismatch"]
+
+
+@pytest.mark.parametrize("stdin", ["[]", "3", "null", '{"tool_input": null}', '{"tool_input": 3}'])
+def test_the_example_hook_allows_input_that_is_not_an_object_without_jq(tmp_path, stdin):
+    import os
+    import shutil
+    import subprocess
+
+    tools = tmp_path / "bin"
+    tools.mkdir()
+    for tool in ("bash", "cat", "python3"):
+        (tools / tool).symlink_to(shutil.which(tool))
+    result = subprocess.run(  # noqa: S603
+        [shutil.which("bash"), str(ROOT / "template" / "kit" / "hooks" / "example.sh")],
+        input=stdin,
+        capture_output=True,
+        text=True,
+        env={"PATH": str(tools), "HOME": os.environ.get("HOME", "/")},
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "Traceback" not in result.stderr

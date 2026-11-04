@@ -166,7 +166,8 @@ listed plugin must exist and carry a `.claude-plugin/plugin.json`, and nothing o
 may be stranded outside a plugin — a skill no plugin ships installs for nobody, which is
 the same silent failure the explicit list used to catch. A third is that no manifest may
 route around the default folders (`unscanned-component-path`): `agents`, `commands`,
-`skills` or `hooks` in a marketplace entry or `plugin.json`, or a `source` other than
+`skills` or `hooks`, or the inline auto-run forms `mcpServers`, `lspServers`,
+`outputStyles`, `settings` and `experimental`, in a marketplace entry or `plugin.json`, or a `source` other than
 `./plugins/<plugin>`, would load a subagent or command that the `security` workflow's
 scan of them never wraps.
 
@@ -552,6 +553,12 @@ runs with your permissions on every matching tool call.
   worse than none.
 - It exits 2 with the reason on stderr to block, and 0 otherwise.
 
+A kit's `.sh` makes both skill scanners flag its anchor skill: Cisco reports
+`ALLOWED_TOOLS_BASH_VIOLATION` and SkillSpector reports AE1 `static_parse_limit`. So each
+kit lands with a reviewed Cisco suppression scoped to that skill and rule, and a
+SkillSpector accepted entry, both judged under `.github/skill-scan/README.md`. Never use a
+broad suppression.
+
 The command in the JSON must be exactly `"$CLAUDE_PROJECT_DIR"/.claude/hooks/<name>.sh`
 with nothing else on the line, and the script must sit beside the JSON.
 
@@ -692,7 +699,7 @@ See [the project kit](#project-kit).
 
 | Code | Level | Meaning | Fix |
 | --- | --- | --- | --- |
-| `plugin-auto-component` | error | A plugin root holds `hooks/`, `hooks.json`, `.mcp.json`, `.lsp.json`, `monitors/`, `bin/`, `settings.json` or `output-styles/`, which Claude Code loads or runs on enabling the plugin with no prompt. | Delete it. Ship a hook as an opt-in template under a skill's `assets/hooks/`. `scripts/definition_shims.py` refuses the same paths, so `security` fails too. |
+| `plugin-auto-component` | error | A plugin root holds `hooks/`, `hooks.json`, `.mcp.json`, `.lsp.json`, `monitors/`, `bin/`, `settings.json` or `output-styles/`, in any letter case, which Claude Code loads or runs on enabling the plugin with no prompt. | Delete it. Ship a hook as an opt-in template under a skill's `assets/hooks/`. `scripts/definition_shims.py` refuses the same paths, so `security` fails too. |
 | `kit-rule` | error | A file in `assets/rules/` has no `paths:` frontmatter, an empty or unparsable one, or no body. | Add a `paths:` list with at least one glob, and a body. The glob is not matched against this repository, because it scopes the installer's project. Every finding the `.claude/rules` checker would raise becomes a `kit-rule` error here, so the check is stricter than for the repository's own rules. |
 | `kit-hook` | error | A file in `assets/hooks/` is not valid JSON, is not shaped `{"hooks": {"<Event>": [{"matcher"?, "hooks": [{"type": "command", "command", "timeout"?}]}]}}`, uses an event outside PreToolUse, PostToolUse, UserPromptSubmit, Stop, SubagentStop, SessionStart, SessionEnd, Notification and PreCompact, has a command other than `"$CLAUDE_PROJECT_DIR"/.claude/hooks/<name>.sh`, names a script that is not beside it or is not `<name>.sh` for `<name>.json`, has a key outside `hooks` (top level), `matcher` and `hooks` (group) or `type`, `command` and `timeout` (command), has a `timeout` that is not a positive integer, or the script lacks `#!/usr/bin/env bash` or `set -Eeuo pipefail`. | Follow the message; the hook-script rules are in [the project kit](#project-kit). |
 | `plugin-incomplete` | notice, warning once `PLUGIN_SHAPE_ENFORCED` is set in `rules.py` | The plugin has no subagent under `agents/`, or no skill with a complete kit: a rule, a hook JSON with its script and a template. | Add a read-only reader subagent and a kit to the anchor skill. A notice is printed and never fails, strict or not. |
@@ -706,7 +713,7 @@ See [the project kit](#project-kit).
 | `bad-marketplace-shape` | error | The manifest is not an object, `plugins` is not a list, a plugin entry is not an object, or a `skills`/`agents` value is not a list of strings. | Fix the shape. This is reported rather than raised because reaching `.get` on a string used to abort the whole run with a traceback. |
 | `missing-listed-plugin` | error | A plugin listed in `marketplace.json` has no `.claude-plugin/plugin.json` at its `source`. | Write the plugin manifest, correct the `source` path, or remove the entry. |
 | `unlisted-plugin` | error | A plugin exists on disk but is absent from `marketplace.json`, so it installs for nobody. | Add an entry for it to the manifest's `plugins` array. |
-| `unscanned-component-path` | error | A marketplace entry or a plugin's `plugin.json` sets `agents`, `commands`, `skills` or `hooks`, or an entry's `source` is not `./plugins/<plugin>`. Claude Code would load components from paths the `security` workflow's scan of subagents and commands never wraps. | Use the default `agents/`, `commands/` and `skills/` folders and a `./plugins/<plugin>` source. |
+| `unscanned-component-path` | error | A marketplace entry or a plugin's `plugin.json` sets `agents`, `commands`, `skills`, `hooks`, or an inline `mcpServers`, `lspServers`, `outputStyles`, `settings` or `experimental`, or an entry's `source` is not `./plugins/<plugin>`. Claude Code would load components from paths the `security` workflow's scan of subagents and commands never wraps. | Use the default `agents/`, `commands/` and `skills/` folders and a `./plugins/<plugin>` source. |
 | `unowned-skill` | error | A skill is not inside any plugin's `skills/` directory, so no plugin ships it. | Move it under `plugins/<name>/skills/`. |
 | `unowned-agent` | error | A subagent is not inside any plugin's `agents/` directory. | Move it under `plugins/<name>/agents/`. |
 

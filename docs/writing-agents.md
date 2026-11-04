@@ -58,7 +58,7 @@ project-level agent are refused here with the reason stated: `hooks`, `mcpServer
 `permissionMode`, because a plugin must not be able to register hooks, attach servers or
 change the permission mode for whoever installs it.
 
-Every plugin ships at least one read-only reader subagent, paired with a skill that hands
+Every plugin is to ship at least one read-only reader subagent, paired with a skill that hands
 the bulky read to it by name; `disallowedTools: Write, Edit, NotebookEdit` keeps it a
 reader. `template/agent.md` is the starting point. Plugins never ship hooks: a plugin
 hook runs with the installer's permissions the moment the plugin is enabled, so a hook

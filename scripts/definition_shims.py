@@ -184,14 +184,27 @@ def tracked(repo: Path) -> dict[str, str]:
 # Keys with which a manifest points Claude Code at components outside the default places.
 # Claude Code loads them for the plugin (and, on a marketplace entry, appends them to it), so
 # a file they name is a definition this script would never enumerate.
-COMPONENT_KEYS = ("agents", "commands", "skills", "hooks")
+# The last five are the inline forms (servers, output styles, settings, monitors and themes
+# under `experimental`), which run on enabling the plugin.
+COMPONENT_KEYS = (
+    "agents",
+    "commands",
+    "skills",
+    "hooks",
+    "mcpServers",
+    "lspServers",
+    "outputStyles",
+    "settings",
+    "experimental",
+)
 MARKETPLACE = ".claude-plugin/marketplace.json"
 # Plugin-root entries Claude Code loads or runs on enabling the plugin, with no prompt.
 # Mirrors PLUGIN_AUTO_COMPONENTS in the validator, so the security workflow fails closed
 # even when the validator is skipped.
 AUTO_COMPONENT_RE = re.compile(
     rf"(?i)plugins/{PART}/(?:hooks|monitors|bin|output-styles)/.+"
-    rf"|plugins/{PART}/(?:hooks\.json|\.mcp\.json|\.lsp\.json|settings\.json|bin|hooks)"
+    rf"|plugins/{PART}/(?:hooks\.json|\.mcp\.json|\.lsp\.json|settings\.json|bin|hooks"
+    rf"|monitors|output-styles)"
 )
 SOURCE_RE = re.compile(rf"\./plugins/{PART}")
 PLUGIN_MANIFEST_RE = re.compile(rf"plugins/{PART}/\.claude-plugin/plugin\.json")
@@ -216,14 +229,14 @@ def check_manifests(repo: Path) -> None:
     globs to follow them, the run fails on a manifest that uses either, so the default
     layout is the only layout there is to scan.
     """
-    for raw in git(repo, "ls-files", "-z", "--", ":(glob)plugins/**").split(b"\0"):
+    for raw in git(repo, "ls-files", "-z", "--", ":(glob,icase)plugins/**").split(b"\0"):
         path = raw.decode("utf-8", "surrogateescape")
         if path and AUTO_COMPONENT_RE.fullmatch(path):
             raise DefinitionError(
                 f"{safe(path)} is a plugin-root component Claude Code loads or runs without "
                 f"a prompt; hooks ship as opt-in kit templates under a skill's assets/hooks/"
             )
-    listing = git(repo, "ls-files", "-z", "--", ":(glob)**/.claude-plugin/**")
+    listing = git(repo, "ls-files", "-z", "--", ":(glob,icase)**/.claude-plugin/**")
     for raw in listing.split(b"\0"):
         path = raw.decode("utf-8", "surrogateescape")
         if path and path != MARKETPLACE and not PLUGIN_MANIFEST_RE.fullmatch(path):

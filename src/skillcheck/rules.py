@@ -820,7 +820,19 @@ def _check_tone(front: Frontmatter, body_lines: list[str], first_line: int, add)
 
 # Manifest keys that load components from paths other than the default folders, and the one
 # source layout the security scan of subagents and commands enumerates.
-_COMPONENT_KEYS = ("agents", "commands", "skills", "hooks")
+# The last five are inline forms: an MCP or LSP server, an output style, a settings block or
+# an `experimental` block (monitors, themes) written into the manifest runs on enabling.
+_COMPONENT_KEYS = (
+    "agents",
+    "commands",
+    "skills",
+    "hooks",
+    "mcpServers",
+    "lspServers",
+    "outputStyles",
+    "settings",
+    "experimental",
+)
 _PLUGIN_SOURCE = re.compile(r"\./plugins/[a-z0-9]+(?:-[a-z0-9]+)*")
 
 
@@ -888,6 +900,20 @@ def check_marketplace(repo_root: Path) -> list[Finding]:
     entries = data.get("plugins", [])
     if not isinstance(entries, list):
         return malformed(f"'plugins' must be a list, found {type(entries).__name__}")
+
+    # The shim lists plugin files by exact case; a `Plugins/` folder is the same folder to a
+    # case-insensitive filesystem and would hold components nothing scans.
+    for entry in sorted(repo_root.iterdir()):
+        if entry.name.lower() == "plugins" and entry.name != "plugins":
+            findings.append(
+                Finding(
+                    ERROR,
+                    Path(entry.name),
+                    1,
+                    "plugins-folder-case",
+                    f"{entry.name!r} differs from 'plugins' only in case; rename it",
+                )
+            )
 
     listed: set[Path] = set()
     for index, plugin in enumerate(entries):
@@ -1837,8 +1863,8 @@ def _check_hook_template(path: Path, repo_root: Path, findings: list[Finding]) -
     problems: list[str] = []
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-    except (ValueError, UnicodeDecodeError) as error:
-        problems.append(f"not valid JSON: {error}")
+    except (OSError, ValueError, UnicodeDecodeError) as error:
+        problems.append(f"not valid JSON or not readable: {error}")
         data = None
     scripts = _hook_entries(data, problems.append) if data is not None else []
     if data is not None and not problems and not scripts:
@@ -1853,7 +1879,11 @@ def _check_hook_template(path: Path, repo_root: Path, findings: list[Finding]) -
         if not script.is_file():
             problems.append(f"names {name}, which does not exist beside it in {path.parent.name}/")
             continue
-        text = script.read_text(encoding="utf-8", errors="replace")
+        try:
+            text = script.read_text(encoding="utf-8", errors="replace")
+        except OSError as error:
+            problems.append(f"{name} cannot be read: {error}")
+            continue
         if not text.startswith(HOOK_SHEBANG + "\n"):
             problems.append(f"{name} must start with {HOOK_SHEBANG}")
         if HOOK_STRICT_MODE not in text:
@@ -1873,9 +1903,19 @@ def check_kit(assets: Path, repo_root: Path) -> list[Finding]:
     """
     findings: list[Finding] = []
     for rule in sorted((assets / "rules").glob("*.md")):
-        for item in check_rule(rule, repo_root, match_globs=False):
+        # A directory named x.md, or an unreadable file, is a finding, not a traceback.
+        try:
+            items = check_rule(rule, repo_root, match_globs=False)
+            text = rule.read_text(encoding="utf-8", errors="replace")
+        except OSError as error:
+            findings.append(
+                Finding(
+                    ERROR, rule.relative_to(repo_root), 1, "kit-rule", f"cannot be read: {error}"
+                )
+            )
+            continue
+        for item in items:
             findings.append(Finding(ERROR, item.path, item.line, "kit-rule", item.message))
-        text = rule.read_text(encoding="utf-8", errors="replace")
         if not any(f.path == rule.relative_to(repo_root) for f in findings):
             front = parse(text) if text.startswith("---") else None
             if front is None or not _rule_globs(text, front.end_line - 1):

@@ -270,7 +270,20 @@ def test_a_listed_plugin_must_exist(tmp_path):
     assert "unlisted-plugin" not in found
 
 
-@pytest.mark.parametrize("key", ["agents", "commands", "skills", "hooks"])
+COMPONENT_KEYS = [
+    "agents",
+    "commands",
+    "skills",
+    "hooks",
+    "mcpServers",
+    "lspServers",
+    "outputStyles",
+    "settings",
+    "experimental",
+]
+
+
+@pytest.mark.parametrize("key", COMPONENT_KEYS)
 def test_a_plugin_manifest_that_adds_components_is_an_error(tmp_path, key):
     # `agents` and `commands` point Claude Code at files the definition scan never wraps.
     write_plugin(tmp_path)
@@ -280,12 +293,27 @@ def test_a_plugin_manifest_that_adds_components_is_an_error(tmp_path, key):
     assert "unscanned-component-path" in codes(check_marketplace(tmp_path), ERROR)
 
 
-@pytest.mark.parametrize("key", ["agents", "commands", "skills", "hooks"])
+@pytest.mark.parametrize("key", COMPONENT_KEYS)
 def test_a_marketplace_entry_that_adds_components_is_an_error(tmp_path, key):
     write_plugin(tmp_path)
     entry = {"name": "engineering", "source": "./plugins/engineering", key: ["./extra/x.md"]}
     write_marketplace(tmp_path, [entry])
     assert "unscanned-component-path" in codes(check_marketplace(tmp_path), ERROR)
+
+
+@pytest.mark.parametrize("name", ["Plugins", "PLUGINS"])
+def test_a_differently_cased_plugins_folder_is_an_error(tmp_path, name):
+    # On a case-insensitive filesystem it is the plugins folder, which the scan lists by case.
+    write_plugin(tmp_path)
+    write_marketplace(tmp_path, [{"name": "engineering", "source": "./plugins/engineering"}])
+    (tmp_path / name).mkdir()
+    assert "plugins-folder-case" in codes(check_marketplace(tmp_path), ERROR)
+
+
+def test_the_exact_plugins_folder_is_not_flagged_for_case(tmp_path):
+    write_plugin(tmp_path)
+    write_marketplace(tmp_path, [{"name": "engineering", "source": "./plugins/engineering"}])
+    assert "plugins-folder-case" not in codes(check_marketplace(tmp_path), ERROR)
 
 
 @pytest.mark.parametrize(

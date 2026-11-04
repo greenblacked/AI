@@ -351,8 +351,10 @@ blocking finding or a failing `ci` or `security` gate.
   `health-coach` were written by hand; new reference files match them rather than the
   other way round.
 - Do not ship an auto-run component from a plugin (`hooks/`, `.mcp.json`, `.lsp.json`,
-  `monitors/`, `bin/`, `settings.json`, `output-styles/`): Claude Code loads each without a
-  prompt and runs it with the installer's permissions. Hooks ship as opt-in templates in a
+  `monitors/`, `bin/`, `settings.json`, `output-styles/`), or the inline form of one in
+  `plugin.json` or a marketplace entry (`hooks`, `mcpServers`, `lspServers`, `outputStyles`,
+  `settings`, `experimental`): Claude Code loads each without a prompt and runs it with the
+  installer's permissions. Hooks ship as opt-in templates in a
   skill's `assets/hooks/`, which the user merges into their own settings.
 - Do not push to `main` directly.
 
