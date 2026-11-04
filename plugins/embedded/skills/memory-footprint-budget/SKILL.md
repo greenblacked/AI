@@ -29,6 +29,8 @@ bloaty firmware.elf -d sections,symbols   # where the bytes are, by section then
 bloaty firmware.elf -d compileunits       # by source file
 ```
 
+When the map is large, delegate the reading to the `linker-map-reader` subagent: it returns region totals, per-module growth against main and the per-task stack table without the map entering this context.
+
 Separate the numbers that matter: flash is `.text` plus `.rodata` plus the initial values of `.data`; RAM is `.data` plus `.bss` plus stacks plus heap. A `size` summary that adds `.data` to both is easy to misread, so compute each from the sections.
 
 ### 2. Set the budget and gate it in CI
