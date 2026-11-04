@@ -10,6 +10,12 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ### Added
 
+- The two skill scanners now read the subagent and command definitions as well as the skills: every `.md` below `agents/` or `commands/` in `plugins/*/` and `.claude/`, at any depth and in any case, following Claude Code's loader rather than the validator. Under `agents/`, anything other than a depth-one lowercase `<stem>.md` fails the run, a `README` included whatever its first line. Neither scanner has an agent or command type, so `scripts/definition_shims.py` wraps each file as a one-file skill and writes a `map.tsv` from shim id to source path. Cisco scans every definition on every run and the job counts them itself; SkillSpector scans the definitions a pull request changes, or all of them when the scan configuration, now including that script, changes, and the gate reports and matches findings against the real file. This covers the prompt-injection, exfiltration and obfuscation rules over a definition's instructions and frontmatter. It is not tool-grant analysis, which both scanners reserve for executable code. A `README.md` in a `commands/` folder is wrapped and counted like any command (Claude Code loads it as one, though the validator ignores it), with a minimal frontmatter added when it has none and its findings mapped back to the right line. A name outside the id pattern in those places fails the run, and so does a symbolic link or a submodule anywhere in the repository. The run also fails on a manifest that could load a definition from anywhere else: `agents`, `commands`, `skills` or `hooks` in a `plugin.json` or a marketplace entry, a marketplace `source` other than `./plugins/<plugin>`, or a manifest file in any other place. `make validate` fails on the first two (`unscanned-component-path`). The earlier statements that neither scanner reads these files are corrected in `docs/ci.md`, `.github/skill-scan/README.md`, `SECURITY.md` and `docs/best-practices.md`.
+
+## [0.5.1] - 2026-11-03
+
+### Added
+
 - A weekly `dependency-advisories` job in `scheduled.yml` checks every package pinned in `.github/requirements/*.txt` against OSV through `scripts/check_lock_advisories.py`. Dependabot ignores that directory because a version edited into a hash-pinned lock breaks the install, so nothing else watched those locks for new advisories. A new advisory, an expired or invalid acceptance, or a lookup that could not complete turns the run red, naming the package and the advisory; a reviewed advisory is accepted in `.github/requirements/advisories-accepted.json` with a reason and an expiry no more than 180 days ahead. Packages behind an environment marker are audited too, which pip-audit does not do. A requirement line that is not a `name==version` pin fails the run instead of being skipped, an advisory id from OSV that is not plain fails closed, and the summary table renders third-party text in code spans.
 
 ## [0.5.0] - 2026-11-03
@@ -1091,7 +1097,8 @@ Initial catalogue snapshot; no release tag has been published. The catalogue at 
   skill file and plugin bundle. The copyright notice names Serhii Zolotov (GitHub:
   greenblacked).
 
-[Unreleased]: https://github.com/greenblacked/AI/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/greenblacked/AI/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/greenblacked/AI/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/greenblacked/AI/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/greenblacked/AI/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/greenblacked/AI/compare/v0.3.2...v0.4.0
