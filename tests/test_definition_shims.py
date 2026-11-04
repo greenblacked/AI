@@ -994,3 +994,36 @@ def test_an_auto_component_under_a_differently_cased_plugins_folder_is_refused(r
     repo.commit("auto component")
     with pytest.raises(shims.DefinitionError, match=r"plugin-root.*assets/hooks"):
         shims.list_definitions(repo.path)
+
+
+@pytest.mark.parametrize(
+    "rel",
+    [
+        "Plugins/demo/skills/alpha/SKILL.md",
+        "Plugins/demo/agents/x.md",
+        "PLUGINS/demo/agents/x.md",
+        "Plugins/demo/.claude-plugin/plugin.json",
+    ],
+)
+def test_a_differently_cased_first_segment_is_refused_on_its_own(repo, rel):
+    write_manifests(repo)
+    repo.write(rel, "---\nname: x\n---\n")
+    repo.commit("case variant")
+    with pytest.raises(shims.DefinitionError, match="differs from 'plugins' only in case"):
+        shims.check_plugin_roots(repo.path)
+
+
+@pytest.mark.parametrize("name", ["skill.md", "Skill.md", "SKILL.MD"])
+def test_a_differently_cased_skill_file_is_refused(repo, name):
+    write_manifests(repo)
+    repo.write(f"plugins/demo/skills/alpha/{name}", "---\nname: alpha\n---\n")
+    repo.commit("skill case")
+    with pytest.raises(shims.DefinitionError, match="SKILL.md"):
+        shims.check_plugin_roots(repo.path)
+
+
+def test_a_nested_lower_case_skill_md_is_not_a_skill_file(repo):
+    write_manifests(repo)
+    repo.write("plugins/demo/skills/alpha/references/skill.md", "# notes\n")
+    repo.commit("reference")
+    shims.check_plugin_roots(repo.path)

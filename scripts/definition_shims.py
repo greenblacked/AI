@@ -221,9 +221,13 @@ ENTRY_KEYS = frozenset(
 )
 MARKETPLACE = ".claude-plugin/marketplace.json"
 PLUGIN_ROOT_ENTRIES = (".claude-plugin", "skills", "agents", "commands")
-# `plugins` is matched in any case, because a differently cased folder is the same folder on
-# a case-insensitive filesystem; what sits directly under a plugin is matched exactly.
-PLUGIN_ENTRY_RE = re.compile(r"(?i:plugins)/[^/]+/(?P<entry>[^/]+)(?:/.*)?", re.DOTALL)
+# `plugins` is matched in any case so a differently cased folder is found, and then refused
+# outright by `check_plugin_roots` (it is the same folder on a case-insensitive filesystem and
+# `find_plugins` never reads it); what sits directly under a plugin is matched exactly.
+PLUGIN_ENTRY_RE = re.compile(r"(?P<top>(?i:plugins))/[^/]+/(?P<entry>[^/]+)(?:/.*)?", re.DOTALL)
+# A skill file spelt other than `SKILL.md` is a skill on a case-insensitive filesystem and
+# not one on a case-sensitive one, so the same checkout means two things.
+SKILL_FILE_RE = re.compile(r"plugins/[^/]+/skills/[^/]+/(?P<file>[^/]+)", re.DOTALL)
 SOURCE_RE = re.compile(rf"\./plugins/{PART}")
 PLUGIN_MANIFEST_RE = re.compile(rf"plugins/{PART}/\.claude-plugin/plugin\.json")
 
@@ -239,7 +243,11 @@ def load_manifest(repo: Path, path: str) -> dict:
 
 
 def check_plugin_roots(repo: Path) -> None:
-    """Refuse a tracked path whose first segment under `plugins/<p>/` is not an allowed one."""
+    """Refuse a tracked path under a plugin root outside the allowed shape.
+
+    That is an entry that is not allowed, a first segment spelt `Plugins` or the like, or a skill
+    file whose name matches `SKILL.md` only in case.
+    """
     for raw in git(repo, "ls-files", "-z", "--", ":(glob,icase)plugins/**").split(b"\0"):
         path = raw.decode("utf-8", "surrogateescape")
         match = PLUGIN_ENTRY_RE.fullmatch(path) if path else None
@@ -249,6 +257,17 @@ def check_plugin_roots(repo: Path) -> None:
                 f"{', '.join(PLUGIN_ROOT_ENTRIES)}, in that case): Claude Code loads or runs "
                 f"entries it knows at a plugin root without a prompt, so the root is an "
                 f"allowlist; hooks ship as opt-in kit templates under a skill's assets/hooks/"
+            )
+        if match and match["top"] != "plugins":
+            raise DefinitionError(
+                f"{safe(path)} differs from 'plugins' only in case: it is the same folder on a "
+                f"case-insensitive filesystem, so the definitions in it are scanned by no one"
+            )
+        skill = SKILL_FILE_RE.fullmatch(path) if path else None
+        if skill and skill["file"].lower() == "skill.md" and skill["file"] != "SKILL.md":
+            raise DefinitionError(
+                f"{safe(path)} is a skill file not spelt exactly SKILL.md: a case-insensitive "
+                f"filesystem loads it as a skill and a case-sensitive one does not"
             )
 
 

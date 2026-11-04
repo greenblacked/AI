@@ -20,7 +20,10 @@ except ValueError:
     data = None
 tool = data.get("tool_input") if isinstance(data, dict) else None
 value = tool.get("command") if isinstance(tool, dict) else None
-print(value if isinstance(value, str) else "")' || true)"
+if value is None:
+    value = ""
+# jq -r prints a string as is and anything else as JSON, so a list or number reads the same here.
+print(value if isinstance(value, str) else json.dumps(value))' || true)"
 fi
 
 # Neither parser present: degrade by allowing, because a hook that blocks everything on a

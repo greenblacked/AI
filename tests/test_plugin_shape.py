@@ -543,3 +543,72 @@ def test_the_example_hook_still_blocks_its_one_command_on_both_branches(tmp_path
     result = run_example_hook(tmp_path, BLOCKED, tools)
     assert result.returncode == 2
     assert "blocked" in result.stderr
+
+
+# SKILL.md case, and entries git ignores
+
+
+@pytest.mark.parametrize("name", ["skill.md", "Skill.md", "SKILL.MD", "skill.MD"])
+def test_a_differently_cased_skill_file_is_an_error(tmp_path, name):
+    plugin = make_plugin(tmp_path)
+    skill = plugin / "skills" / "alpha"
+    skill.mkdir(parents=True)
+    (skill / name).write_text("---\nname: alpha\n---\n", encoding="utf-8")
+    found = [f for f in check_plugin_shape(plugin, tmp_path) if f.code == "skill-file-case"]
+    assert len(found) == 1 and found[0].level == ERROR
+    assert name in str(found[0].path)
+
+
+def test_an_exact_skill_file_is_not_a_case_error(tmp_path):
+    plugin = make_plugin(tmp_path)
+    skill = plugin / "skills" / "alpha"
+    skill.mkdir(parents=True)
+    (skill / "SKILL.md").write_text("---\nname: alpha\n---\n", encoding="utf-8")
+    assert "skill-file-case" not in codes(check_plugin_shape(plugin, tmp_path))
+
+
+def _init_git(tmp_path, ignore):
+    import subprocess
+
+    (tmp_path / ".gitignore").write_text(ignore, encoding="utf-8")
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)  # noqa: S603, S607
+
+
+@pytest.mark.parametrize("git_checkout", [True, False], ids=["git", "no-git"])
+def test_an_ignored_plugin_root_file_is_accepted_and_an_unignored_one_refused(
+    tmp_path, git_checkout
+):
+    if git_checkout:
+        _init_git(tmp_path, ".DS_Store\n")
+    else:
+        (tmp_path / ".gitignore").write_text(".DS_Store\n", encoding="utf-8")
+    plugin = make_plugin(tmp_path)
+    (plugin / ".DS_Store").write_text("x", encoding="utf-8")
+    (plugin / "notes.txt").write_text("x", encoding="utf-8")
+    found = [f for f in check_plugin_shape(plugin, tmp_path) if f.code == "plugin-root-entry"]
+    assert [f.path.name for f in found] == ["notes.txt"]
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        '["example-forbidden-command"]',
+        '{"a": "example-forbidden-command"}',
+        "3",
+        "true",
+    ],
+)
+def test_the_two_example_hook_branches_agree_on_a_non_string_command(tmp_path, command):
+    # jq -r prints a non-string value as JSON, so a list holding the forbidden word is blocked;
+    # the python branch has to print it too or the two branches give different verdicts.
+    if not _has("jq"):
+        pytest.skip("the comparison needs jq")
+    stdin = f'{{"tool_input": {{"command": {command}}}}}'
+    results = []
+    for index, tools in enumerate((("bash", "cat", "jq"), ("bash", "cat", "python3"))):
+        directory = tmp_path / str(index)
+        directory.mkdir()
+        results.append(run_example_hook(directory, stdin, tools))
+    assert results[0].returncode == results[1].returncode
+    assert results[0].stderr == results[1].stderr
+    assert results[0].returncode == (2 if "forbidden" in command else 0)
