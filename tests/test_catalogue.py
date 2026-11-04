@@ -240,18 +240,34 @@ README = """# Mini
 
 [![Skills](https://img.shields.io/badge/skills-2-7c3aed)](#skills)
 
-| Plugin | Focus | Contents |
-| --- | --- | --- |
-| `engineering` | Things | 2 skills, 1 subagent |
+| Plugin | Focus | Contents | Project kits |
+| --- | --- | --- | --- |
+| `engineering` | Things | 2 skills, 1 subagent | 0 |
+
+## Skills
+
+### Engineering
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
 | [`alpha`](plugins/engineering/skills/alpha/SKILL.md) | First. |
 | [`beta`](plugins/engineering/skills/beta/SKILL.md) | Second. |
 
+#### Subagents
+
 | Subagent | Reads |
 | --- | --- |
 | `reader` | Things |
+
+#### Project kit
+
+No kit yet.
+
+## Working on this repository
+
+Nothing here ships.
 """
 
 
@@ -293,22 +309,24 @@ def _plugin_command(root):
     )
 
 
+def with_commands(rows):
+    """The fixture README with a Commands section carrying `rows` in the engineering chapter."""
+    section = f"#### Commands\n\n| Command | What |\n| --- | --- |\n{rows}\n\n#### Project kit"
+    return README.replace("#### Project kit", section)
+
+
 def test_a_plugin_command_row_may_use_the_namespaced_name(mini_repo, capsys):
     # An installed plugin's command runs as /plugin:name, so a README that tells people
     # what to type writes it that way, and the row still has to count.
     _plugin_command(mini_repo)
-    write_readme(
-        mini_repo, README + "\n| Command | Plugin |\n| --- | --- |\n| `/engineering:sweep` | x |\n"
-    )
+    write_readme(mini_repo, with_commands("| `/engineering:sweep` | x |"))
     readme.check(mini_repo)
     assert "sweep ships with engineering and has no row" not in capsys.readouterr().out
 
 
 def test_a_plugin_command_namespaced_under_another_plugin_fails(mini_repo, capsys):
     _plugin_command(mini_repo)
-    write_readme(
-        mini_repo, README + "\n| Command | Plugin |\n| --- | --- |\n| `/other:sweep` | x |\n"
-    )
+    write_readme(mini_repo, with_commands("| `/other:sweep` | x |"))
     assert readme.check(mini_repo) == 1
     assert "command sweep ships with engineering and has no row" in capsys.readouterr().out
 
@@ -408,39 +426,40 @@ def test_a_plugin_subagent_named_only_in_prose_still_fails(mini_repo, capsys):
 
 
 def test_a_contents_row_linked_to_its_section_passes(mini_repo, capsys):
-    row = "| `engineering` | Things | 2 skills, 1 subagent |\n"
-    linked = "| [`engineering`](#engineering) | Things | 2 skills, 1 subagent |\n"
-    write_readme(mini_repo, README.replace(row, linked) + "\n### Engineering\n")
+    row = "| `engineering` | Things | 2 skills, 1 subagent | 0 |\n"
+    linked = "| [`engineering`](#engineering) | Things | 2 skills, 1 subagent | 0 |\n"
+    write_readme(mini_repo, README.replace(row, linked))
     assert readme.check(mini_repo) == 0
 
 
 def test_a_contents_row_linked_to_another_section_fails(mini_repo, capsys):
-    row = "| `engineering` | Things | 2 skills, 1 subagent |\n"
-    linked = "| [`engineering`](#career) | Things | 2 skills, 1 subagent |\n"
-    write_readme(mini_repo, README.replace(row, linked) + "\n### Engineering\n")
+    row = "| `engineering` | Things | 2 skills, 1 subagent | 0 |\n"
+    linked = "| [`engineering`](#career) | Things | 2 skills, 1 subagent | 0 |\n"
+    write_readme(mini_repo, README.replace(row, linked))
     assert readme.check(mini_repo) == 1
     assert "links engineering to #career; its section is #engineering" in capsys.readouterr().out
 
 
 def test_a_contents_row_linked_to_a_missing_heading_fails(mini_repo, capsys):
-    row = "| `engineering` | Things | 2 skills, 1 subagent |\n"
-    linked = "| [`engineering`](#engineering) | Things | 2 skills, 1 subagent |\n"
-    write_readme(mini_repo, README.replace(row, linked))
+    row = "| `engineering` | Things | 2 skills, 1 subagent | 0 |\n"
+    linked = "| [`engineering`](#engineering) | Things | 2 skills, 1 subagent | 0 |\n"
+    # The chapter heading is renamed away; the chapter checks fire too, which is fine.
+    write_readme(mini_repo, README.replace(row, linked).replace("### Engineering", "### Other"))
     assert readme.check(mini_repo) == 1
     assert "and no heading makes it" in capsys.readouterr().out
 
 
 def test_a_linked_contents_row_still_has_its_counts_checked(mini_repo, capsys):
-    row = "| `engineering` | Things | 2 skills, 1 subagent |\n"
-    linked = "| [`engineering`](#engineering) | Things | 7 skills, 1 subagent |\n"
-    write_readme(mini_repo, README.replace(row, linked) + "\n### Engineering\n")
+    row = "| `engineering` | Things | 2 skills, 1 subagent | 0 |\n"
+    linked = "| [`engineering`](#engineering) | Things | 7 skills, 1 subagent | 0 |\n"
+    write_readme(mini_repo, README.replace(row, linked))
     assert readme.check(mini_repo) == 1
     assert "says engineering has 7 skills, and it has 2" in capsys.readouterr().out
 
 
 def test_a_plugin_missing_from_the_contents_table_fails(mini_repo, capsys):
     write_readme(
-        mini_repo, README.replace("| `engineering` | Things | 2 skills, 1 subagent |\n", "")
+        mini_repo, README.replace("| `engineering` | Things | 2 skills, 1 subagent | 0 |\n", "")
     )
     assert readme.check(mini_repo) == 1
     assert "has no row in the contents table" in capsys.readouterr().out

@@ -7,8 +7,8 @@
 
 # Agent skills
 
-521 agent skills, 30 subagents and ten slash commands, in twenty-nine
-plugins you install separately.
+521 agent skills, 30 subagents, ten slash commands and 0 project kits, in
+twenty-nine plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
 [![Security](https://github.com/greenblacked/AI/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/security.yml)
@@ -18,7 +18,7 @@ plugins you install separately.
 [![Skills](https://img.shields.io/badge/skills-521-7c3aed)](#skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-[Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Subagents](#subagents) · [Commands](#commands) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
+[Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#skills) · [Working on this repository](#working-on-this-repository) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
 
 </div>
 
@@ -35,7 +35,7 @@ ordering, checks and evidence to collect. This is a procedure library, not an ap
 - **ChatGPT or another chat assistant:** use the [portable files](docs/using.md#chatgpt)
 - **Browse the website:** [ai.szolotov.com](https://ai.szolotov.com) has a page for every
   plugin and skill, with the install line, examples and quality evidence
-- **Browse before installing:** the [plugin overview](#what-is-included) links to the full [skills catalogue](#skills), with [subagents](#subagents) and [commands](#commands) below
+- **Browse before installing:** the [plugin overview](#what-is-included) links to the full [catalogue](#skills), one chapter per plugin with its subagents, commands and project kit
 
 **Prerequisites:** an installed assistant for its route. Local installation needs Git,
 Bash and standard Unix tools; local validation and packaging need Python 3.10 or newer,
@@ -48,37 +48,37 @@ and what the runtime does or does not enforce.
 
 ## What is included
 
-| Plugin | Focus | Contents |
-| --- | --- | --- |
-| [`coding`](#coding) | Reading, reviewing, testing and changing code | 29 skills, 5 subagents, 1 command |
-| [`family`](#family) | One development workflow, from a vague request to a measured outcome | 11 skills, 6 subagents, 1 command |
-| [`gamedev`](#gamedev) | Making games, and shipping them | 33 skills, 1 subagent, 1 command |
-| [`operations`](#operations) | Keeping a running system alive | 19 skills, 7 subagents, 2 commands |
-| [`delivery`](#delivery) | Getting a change into production | 12 skills, 1 subagent |
-| [`security`](#security) | The defensive side of shipping software | 31 skills, 5 subagents, 2 commands |
-| [`manager`](#manager) | Engineering leadership | 22 skills, 2 subagents, 2 commands |
-| [`personal`](#personal) | Money, travel, admin, habits, health and family history | 8 skills, 2 subagents |
-| [`career`](#career) | Applications, negotiation, speaking and writing | 11 skills |
-| [`design`](#design) | Usability, accessibility and design systems | 16 skills, 1 subagent, 1 command |
-| [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction, model migration, agents, latency, batch processing and resilience | 15 skills |
-| [`data`](#data) | Analytics data and classical ML: wrong numbers, warehouse cost, metrics, history, experiments and models in production | 22 skills |
-| [`techdocs`](#techdocs) | Developer documentation: tested tutorials and samples, drift, stable URLs, API and CLI reference | 12 skills |
-| [`assurance`](#assurance) | Quality engineering and compliance: order-dependent, mutation, property and fuzz testing, replay and load, DPIAs, licences, audit evidence | 11 skills |
-| [`client-apps`](#client-apps) | Browser and mobile clients: field performance, hydration, memory, version skew, service workers, crashes, hangs, startup, battery, networks | 22 skills |
-| [`product`](#product) | Product and go-to-market: interviews, demand tests, design partners, premortems, pricing, metric diagnosis, activation, churn, win-loss, RFPs | 22 skills |
-| [`platform`](#platform) | Cloud and platform engineering: Kubernetes control plane, networking and storage, Terraform estates, cloud networks, identity, databases, the edge, commitments | 22 skills |
-| [`iac`](#iac) | Infrastructure as code: shared module contracts, regression tests and reviewed-plan delivery | 3 skills |
-| [`devtools`](#devtools) | Developer tooling and build systems: git recovery and rebases, monorepos, build caching, dependency conflicts, benchmarks | 10 skills |
-| [`smallbiz`](#smallbiz) | Freelancing and small-business operations: rates, quotes, scope, invoicing, late payment, contracts, bookkeeping, tax preparation | 20 skills |
-| [`backend`](#backend) | Backend and distributed-systems correctness: webhooks, races, retries, overload, rate limits, locks, sagas, events, queues, jobs | 14 skills |
-| [`languages`](#languages) | Language runtimes and toolchains: Python, Node, TypeScript, Go, the JVM, .NET, C and C++, Rust | 20 skills |
-| [`linux`](#linux) | Linux and systems administration: systemd, boot, kernel, disks, OOM, load, DNS, firewalls, MTU, TLS, SSH, time sync | 21 skills |
-| [`databases`](#databases) | Database engineering: PostgreSQL and MySQL internals, locks, vacuum, failover, partitioning, search, vectors, ClickHouse, Redis, SQLite | 20 skills |
-| [`observability`](#observability) | Observability engineering: tracing and sampling, metrics and cardinality, log cost, collector pipelines, profiling, alerting, dashboards | 20 skills |
-| [`embedded`](#embedded) | Embedded and IoT: firmware updates, fleet rollouts, provisioning, faults, watchdogs, power, memory, flash, buses, BLE, MQTT | 20 skills |
-| [`learning`](#learning) | Learning and teaching: ramp-up, study plans, workshops, mentoring, tacit knowledge, training evaluation, reading research | 16 skills |
-| [`research`](#research) | Research engineering: reproducibility, numerical error, convergence, statistics review, HPC and Slurm, scaling, large datasets | 19 skills |
-| [`growth`](#growth) | Marketing and growth: content SEO, email deliverability, lifecycle, campaigns, attribution, paid search, community, devrel | 20 skills |
+| Plugin | Focus | Contents | Project kits |
+| --- | --- | --- | --- |
+| [`coding`](#coding) | Reading, reviewing, testing and changing code | 29 skills, 5 subagents, 1 command | 0 |
+| [`family`](#family) | One development workflow, from a vague request to a measured outcome | 11 skills, 6 subagents, 1 command | 0 |
+| [`gamedev`](#gamedev) | Making games, and shipping them | 33 skills, 1 subagent, 1 command | 0 |
+| [`operations`](#operations) | Keeping a running system alive | 19 skills, 7 subagents, 2 commands | 0 |
+| [`delivery`](#delivery) | Getting a change into production | 12 skills, 1 subagent | 0 |
+| [`security`](#security) | The defensive side of shipping software | 31 skills, 5 subagents, 2 commands | 0 |
+| [`manager`](#manager) | Engineering leadership | 22 skills, 2 subagents, 2 commands | 0 |
+| [`personal`](#personal) | Money, travel, admin, habits, health and family history | 8 skills, 2 subagents | 0 |
+| [`career`](#career) | Applications, negotiation, speaking and writing | 11 skills | 0 |
+| [`design`](#design) | Usability, accessibility and design systems | 16 skills, 1 subagent, 1 command | 0 |
+| [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction, model migration, agents, latency, batch processing and resilience | 15 skills | 0 |
+| [`data`](#data) | Analytics data and classical ML: wrong numbers, warehouse cost, metrics, history, experiments and models in production | 22 skills | 0 |
+| [`techdocs`](#techdocs) | Developer documentation: tested tutorials and samples, drift, stable URLs, API and CLI reference | 12 skills | 0 |
+| [`assurance`](#assurance) | Quality engineering and compliance: order-dependent, mutation, property and fuzz testing, replay and load, DPIAs, licences, audit evidence | 11 skills | 0 |
+| [`client-apps`](#client-apps) | Browser and mobile clients: field performance, hydration, memory, version skew, service workers, crashes, hangs, startup, battery, networks | 22 skills | 0 |
+| [`product`](#product) | Product and go-to-market: interviews, demand tests, design partners, premortems, pricing, metric diagnosis, activation, churn, win-loss, RFPs | 22 skills | 0 |
+| [`platform`](#platform) | Cloud and platform engineering: Kubernetes control plane, networking and storage, Terraform estates, cloud networks, identity, databases, the edge, commitments | 22 skills | 0 |
+| [`iac`](#iac) | Infrastructure as code: shared module contracts, regression tests and reviewed-plan delivery | 3 skills | 0 |
+| [`devtools`](#devtools) | Developer tooling and build systems: git recovery and rebases, monorepos, build caching, dependency conflicts, benchmarks | 10 skills | 0 |
+| [`smallbiz`](#smallbiz) | Freelancing and small-business operations: rates, quotes, scope, invoicing, late payment, contracts, bookkeeping, tax preparation | 20 skills | 0 |
+| [`backend`](#backend) | Backend and distributed-systems correctness: webhooks, races, retries, overload, rate limits, locks, sagas, events, queues, jobs | 14 skills | 0 |
+| [`languages`](#languages) | Language runtimes and toolchains: Python, Node, TypeScript, Go, the JVM, .NET, C and C++, Rust | 20 skills | 0 |
+| [`linux`](#linux) | Linux and systems administration: systemd, boot, kernel, disks, OOM, load, DNS, firewalls, MTU, TLS, SSH, time sync | 21 skills | 0 |
+| [`databases`](#databases) | Database engineering: PostgreSQL and MySQL internals, locks, vacuum, failover, partitioning, search, vectors, ClickHouse, Redis, SQLite | 20 skills | 0 |
+| [`observability`](#observability) | Observability engineering: tracing and sampling, metrics and cardinality, log cost, collector pipelines, profiling, alerting, dashboards | 20 skills | 0 |
+| [`embedded`](#embedded) | Embedded and IoT: firmware updates, fleet rollouts, provisioning, faults, watchdogs, power, memory, flash, buses, BLE, MQTT | 20 skills | 0 |
+| [`learning`](#learning) | Learning and teaching: ramp-up, study plans, workshops, mentoring, tacit knowledge, training evaluation, reading research | 16 skills | 0 |
+| [`research`](#research) | Research engineering: reproducibility, numerical error, convergence, statistics review, HPC and Slurm, scaling, large datasets | 19 skills | 0 |
+| [`growth`](#growth) | Marketing and growth: content SEO, email deliverability, lifecycle, campaigns, attribution, paid search, community, devrel | 20 skills | 0 |
 
 Install one plugin or all twenty-nine. Each is a self-contained directory under `plugins/` with
 its own manifest, so installing one does not pull in another's files.
@@ -343,9 +343,17 @@ healthy pods during someone else's outage. The gate is the skill.
 
 ## Skills
 
+Each plugin is a chapter: its skills, the subagents (no editing tools) that keep bulky evidence out of the
+main context, any slash commands, and its project kit. A subagent exists to keep bulk out of the
+main context and to be denied the tools it should not have; a reviewer that can apply is not a
+reviewer. Commands declare `disable-model-invocation: true`, so they run only when invoked
+explicitly, which makes them the right shape for work that takes an argument.
+
 ### Coding
 
 Reading, reviewing, testing and changing code.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -379,9 +387,31 @@ Reading, reviewing, testing and changing code.
 | [`test-design`](plugins/coding/skills/test-design/SKILL.md) | Choose what to test before writing tests: equivalence classes and their boundaries, the error paths nobody writes, pairwise selection when the inputs explode, and the seams that stop a suite going flaky. |
 | [`website-builder`](plugins/coding/skills/website-builder/SKILL.md) | Build a site that looks designed for its subject and can still be hosted and maintained afterwards — or audit one that already exists. |
 
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `skill-reviewer` | A candidate SKILL.md | What is wrong, why it costs something, the smallest fix |
+| `change-impact-reader` | A diff and matching repository snapshots | Up to five impact chains, their evidence and unresolved boundaries |
+| `agent-run-trace-reader` | Historical agent-run artifacts | A task-and-attempt evidence ledger with unanswered calls and verification gaps |
+| `test-history-reader` | Hundreds of JUnit, pytest or go test reports across many CI runs | A flake-rate ledger with a denominator, co-failure clusters and a quarantine order by CI time and retries burned |
+| `review-comment-miner` | A pile of exported PR review comments or postmortem action items | Recurring clusters with an independent-instance count, a quoted example and candidate destinations |
+
+#### Commands
+
+| Command | What it does |
+| --- | --- |
+| `/agent-diff-audit` | Run mechanical detectors for shrunk test counts, newly silenced checks and invented dependencies over an agent-written diff, then hand the flagged list to code-review. |
+
+#### Project kit
+
+No kit yet.
+
 ### Family
 
 One development workflow, from a vague request to a measured outcome, run by a solo developer, a developer, a QA engineer or a whole team, light or full per slice.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -397,10 +427,33 @@ One development workflow, from a vague request to a measured outcome, run by a s
 | [`yield-to-lesson`](plugins/family/skills/yield-to-lesson/SKILL.md) | Accept a retro's change item only as a lesson plus a seeded case the next inspection can fail on, and promote a lesson caught twice to a mechanical check. |
 | [`stage-tiering`](plugins/family/skills/stage-tiering/SKILL.md) | Run each stage agent on the model tier its cost of being wrong deserves, at most two in parallel on disjoint questions, then combine their results in a named step. |
 
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `framer` | A vague request and any known constraints | A frame: problem, users, success criterion, smallest slice, out of scope |
+| `architect` | A frame and the surrounding architecture | The approach, boundaries, interfaces, failure modes and the hard-to-reverse decision |
+| `maker` | A frame, an architecture note and the files a change touches | An ordered, file-level change plan with a proof per step, or the divergence from it |
+| `inspector` | A change, its frame and the commands to run | What holds and what fails against the frame, with evidence, and what was not assessed |
+| `launcher` | An inspected change and its deployment target | A launch plan — path, migration, signal, rollback — or the gaps blocking it |
+| `yielder` | A slice's outcome and its success criterion | A retro: what was measured, what to keep, what to change, and the next slice |
+
+#### Commands
+
+| Command | What it does |
+| --- | --- |
+| `/family:family` | Start a FAMILY slice: validate the slice name, have framer frame the request into `docs/slices/<name>/frame.md`, create the other five stage files as empty templates, and print the verdict and the next hop. |
+
+#### Project kit
+
+No kit yet.
+
 ### Gamedev
 
 Making games, and shipping them. [`docs/gamedev.md`](docs/gamedev.md) is the route
 through this plugin's skills by production scale and game type.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -438,9 +491,27 @@ through this plugin's skills by production scale and game type.
 | [`scene-merge-conflicts`](plugins/gamedev/skills/scene-merge-conflicts/SKILL.md) | Stop teams losing work to conflicts in scenes, prefabs, blueprints and other binary or structured assets. Classifies each asset type as mergeable text, structured but fragile (Unity YAML, Godot tscn) or opaque binary (Unreal uasset and umap), locks opaque binary from day one with read-only checkout, shrinks the surface two people share with sub-scenes and data files, registers the engine merge tool for fragile text, checks merges by opening them, and adds an ownership map and a CI check for conflict markers and missing meta files. Use whenever someone says "two people edited the same scene and one lost work", "unity merge conflict in prefab", "unreal blueprint can't be merged", "should we use file locking" or "Godot tscn conflicts". |
 | [`shader-compile-stutter`](plugins/gamedev/skills/shader-compile-stutter/SKILL.md) | Eliminate hitches caused by shaders, pipeline state objects and materials compiling the first time they appear. Confirms the pattern first (one-off spike per effect, render or driver thread, gone on a second pass with a warm cache), then clears caches and logs every frame over twice the budget with the pipeline created in it, builds a manifest from a real play session, cuts permutation explosion, precompiles during loading with the engine's own mechanism, judges by hitch count over a fixed route, and gates it on a clean-cache CI machine. |
 
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `frame-capture-reader` | A profiler capture or frame trace | CPU-bound or GPU-bound with the numbers, or what to capture instead |
+
+#### Commands
+
+| Command | What it does |
+| --- | --- |
+| `/level` | Run a level or feature through spec, layout, grey-box, tuning, frame budget and build size, with a gate between each stage. |
+
+#### Project kit
+
+No kit yet.
+
 ### Operations
 
 Keeping a running system alive.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -464,9 +535,34 @@ Keeping a running system alive.
 | [`slo-design`](plugins/operations/skills/slo-design/SKILL.md) | Define measurable user journey SLIs, targets, compliance windows and error budgets with an owner and evidence before alert rules are written. |
 | [`terraform-state`](plugins/operations/skills/terraform-state/SKILL.md) | Execute the state operation already decided — import, move, remove, reconcile drift, recover a lost file, clear a stuck lock — taking a backup first and preferring the block forms that show up in a plan over the imperative subcommands. |
 
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `ci-log-reader` | A failing run's logs | One of five triage classes and the line that decided it |
+| `telemetry-reader` | Traces and structured logs | The critical path, or why the data cannot answer |
+| `k8s-evidence-reader` | Captured Kubernetes evidence | Up to five capture-time evidence chains, with contradictions and missing evidence |
+| `cost-analyst` | A cloud billing export | The top movers period over period, not the top spenders |
+| `incident-scribe` | Raw triage notes and scrollback | A blameless postmortem draft |
+| `page-history-reader` | A quarter of pager or alert history | Per-rule fires, action rate, off-hours share and a suggested keep/tighten/demote/delete bucket |
+| `llm-trace-reader` | An LLM usage or trace export | Cost and latency hotspots by feature, prompt path, model and user, with spend-cap 429s kept apart from rate-limit 429s |
+
+#### Commands
+
+| Command | What it does |
+| --- | --- |
+| `/ci-fail` | Classify a failing run from annotations and failed-step logs, after checking whether the default branch is red too. |
+| `/oncall-handover` | Draft a handover from pages, deploys and anything left mid-flight, with the fragile mitigations first. |
+
+#### Project kit
+
+No kit yet.
+
 ### Delivery
 
 Getting a change into production without a bad night.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -483,9 +579,21 @@ Getting a change into production without a bad night.
 | [`release-strategy`](plugins/delivery/skills/release-strategy/SKILL.md) | Separate deploy from release: flags, rings and canaries chosen by how the change fails, with promotion gates, bake times and a flag removal date. |
 | [`safe-backfill`](plugins/delivery/skills/safe-backfill/SKILL.md) | Run a standalone data repair in bounded, restartable batches with guarded writes, scanned-key checkpoints and independent reconciliation. |
 
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `changelog-reader` | A release range of commits and PRs | Audience-sorted inventory, breaking changes flagged, noise collapsed |
+
+#### Project kit
+
+No kit yet.
+
 ### Security
 
 The defensive side of shipping software.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -521,9 +629,32 @@ The defensive side of shipping software.
 | [`packaged-desktop-app-analysis`](plugins/security/skills/packaged-desktop-app-analysis/SKILL.md) | Open a packaged desktop application you are authorised to examine when its source is missing — Electron with an ASAR bundle, a Node single executable, PyInstaller, or a bundled JVM or managed CIL app — read the application's own JavaScript or bytecode out of the container, check which runtime switches the package exposes, and confirm behaviour without running it on a machine that holds your credentials. |
 | [`wasm-analysis`](plugins/security/skills/wasm-analysis/SKILL.md) | Inspect a WebAssembly module you are authorised to examine when there is no source: confirm it is a WASM v1 module from its header rather than the filename, list imports, exports, memories, tables and custom sections with WABT, read the embedded names and strings, and decide what the module can reach through its host imports. |
 
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `plan-reviewer` | A Terraform plan JSON | The blast radius, destroys first |
+| `policy-auditor` | IAM policies and access logs | The gap between permitted and used, with the window stated |
+| `pii-reader` | A schema dump, a row sample or a log excerpt | Which fields carry personal data, their class and where they flow |
+| `extension-reader` | A third-party agent extension in a quarantine directory | What executes automatically, permissions, text aimed at the model quoted as data, and risk findings anchored to file and line |
+| `supply-chain-exposure-reader` | Lockfile git history and CI run logs across many repositories | Every repository and run that resolved or executed a bad package or action, with the secrets each could reach |
+
+#### Commands
+
+| Command | What it does |
+| --- | --- |
+| `/blast-radius` | Read a Terraform plan as JSON and report destroys first, with the attribute forcing each replacement. |
+| `/image-audit` | Audit a built image for secrets in layers, root execution, base currency and a gate that will not get bypassed. |
+
+#### Project kit
+
+No kit yet.
+
 ### Manager
 
 Engineering leadership.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -550,9 +681,29 @@ Engineering leadership.
 | [`team-skills-matrix`](plugins/manager/skills/team-skills-matrix/SKILL.md) | Find single points of knowledge on a team and plan cross-training. Rows are capabilities taken from the last six months of incidents and the next two quarters of roadmap, scores each person zero to three by observable behaviour, flags any capability with fewer than two people at level two or above, ranks flags by impact times likelihood of absence, and pairs the top three with a named learner, a date and shadow, reverse shadow and solo gates. Rescored quarterly; never an input to reviews or pay. |
 | [`tech-debt-case`](plugins/manager/skills/tech-debt-case/SKILL.md) | Turn technical debt into a prioritised, defensible investment that product and executives will fund. Prices each item as interest (recurring engineer-hours a month from ticket and incident history, plus probability times impact) against principal (the one-off effort to remove it), ranks by interest divided by principal, sorts items into four buckets (pays back within two quarters, blocks a named product goal, long payback for the capacity share, cosmetic), and asks for a fixed capacity share or a bounded project with a measured before and after. |
 
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `contract-reader` | A contract, DPA or SOC 2 report | The clauses that decide the deal, quoted and located |
+| `feedback-synthesiser` | Collected peer feedback | Themes with a source count and a quoted example |
+
+#### Commands
+
+| Command | What it does |
+| --- | --- |
+| `/weekly` | Draft a bottom-line-first status update from merged pull requests and commits, every number sourced. |
+| `/agent-ready` | Clone a repository and actually run its AGENTS.md, checking instruction-file size against a known agent tool cap and flagging dangling paths and exposed secrets. |
+
+#### Project kit
+
+No kit yet.
+
 ### Personal
 
 The parts of life that are nobody's job.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -565,9 +716,22 @@ The parts of life that are nobody's job.
 | [`travel-planning`](plugins/personal/skills/travel-planning/SKILL.md) | Plan around the constraints that actually break trips: entry rules verified at the official source, connection minimums, what a self-transfer costs you when the first leg is late, and change windows before booking. |
 | [`weekly-review`](plugins/personal/skills/weekly-review/SKILL.md) | Run a short weekly review whose only output is what you are doing next week and what you are consciously not doing, planned against the hours that are actually free. |
 
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `statement-reader` | Bank, credit-card and digital-wallet transaction exports | Spending by category bucket, recurring charges, fees, transfers and anomalies |
+| `terms-reader` | An insurance policy, tenancy, loan or subscription's terms | The renewal date, notice period, exit charges and exclusions, each quoted and located |
+
+#### Project kit
+
+No kit yet.
+
 ### Career
 
 Applications, negotiation, speaking and writing.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -583,9 +747,19 @@ Applications, negotiation, speaking and writing.
 | [`technical-interview-prep`](plugins/career/skills/technical-interview-prep/SKILL.md) | Plan weeks of preparation for algorithm and live-coding interview rounds: one interview language, about ten problem patterns with four or five problems each, a 25-minute timeboxed first attempt, a blank-file redo seven days later (only the redo counts), a failure log kept by cause, a spoken protocol, timed mock interviews with another person from week three, and a freeze on new problems three days before the loop. |
 | [`write-technical-article`](plugins/career/skills/write-technical-article/SKILL.md) | Turn real engineering experience and verifiable sources into a publishable technical article with a defensible thesis and no invented authority. |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Design
 
 Usability, accessibility and design systems, and the words, structure and handoff around them.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -606,9 +780,27 @@ Usability, accessibility and design systems, and the words, structure and handof
 | [`responsive-design`](plugins/design/skills/responsive-design/SKILL.md) | Make a layout work from 320 px up: breakpoints chosen from where the content breaks, reflow that changes arrangement and never availability, thumb-sized targets, and the widths to verify. |
 | [`form-design`](plugins/design/skills/form-design/SKILL.md) | Design a form people finish: cut the fields, label every one, validate after input rather than on every keystroke, put errors with the field and say how to fix them, and keep the form keyboard-operable. |
 
+#### Subagents
+
+| Subagent | Reads | Returns |
+| --- | --- | --- |
+| `screenshot-reader` | One or more screenshots of a UI | Findings by file and region, with what the image cannot show listed for measurement in code |
+
+#### Commands
+
+| Command | What it does |
+| --- | --- |
+| `/visual-review` | Review a rendered page from screenshots: pin the render, capture a viewport and theme matrix, diff against an optional baseline, run the code checks, then have `screenshot-reader` read crops and report measured and unverified findings separately. |
+
+#### Project kit
+
+No kit yet.
+
 ### LLM
 
 Building features on language models, and the checks that keep them honest.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -628,9 +820,19 @@ Building features on language models, and the checks that keep them honest.
 | [`source-grounded-prompts`](plugins/llm/skills/source-grounded-prompts/SKILL.md) | Write, check and revise the prompt that makes a source-grounded notebook assistant produce a slide deck, memo, study guide, audio script or mind map from uploaded sources: a structured style spec, a grounding block, a checker that lists figures and quotes found in no source, and a one-variable revision loop. |
 | [`tool-result-shaping`](plugins/llm/skills/tool-result-shaping/SKILL.md) | Reshape what tools return to a model so results are small, decisive and recoverable: measure token size per result from real traces and cap each tool, return only the fields the next decision needs with readable ids, a count and total so the model knows what it did not see, and a continuation handle instead of silent truncation, rank before cutting, write errors as instructions, put bulky payloads behind a handle the model can slice, and verify by replaying tasks on old and new shapes. |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Data
 
 Analytics engineering and classical machine learning: why a number is wrong, why a query costs what it does, what the data really shows, whether an experiment's result holds, and whether a model still works once it is in production.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -657,9 +859,19 @@ Analytics engineering and classical machine learning: why a number is wrong, why
 | [`srm-diagnosis`](plugins/data/skills/srm-diagnosis/SKILL.md) | Find why an experiment's traffic split differs from its design (sample ratio mismatch) and decide what to do with the result: confirm with a chi-square test at p below 0.001 on randomisation units, locate the stage where the arms diverge by counting at assignment, exposure, first event and the analysis table, slice by day, platform and browser, then test causes in a fixed order — bot filtering by arm, redirects or load time, cache or CDN serving, triggering logic, logging loss on one arm — and discard the result until fixed rather than reweighting. |
 | [`switchback-test-design`](plugins/data/skills/switchback-test-design/SKILL.md) | Design and analyse an experiment where units interact, so a user-level split is biased — marketplaces, dispatch, matching, pricing, shared inventory, ops queues: randomise time windows or regions instead of users, make each window longer than the effect's carryover after measuring it, balance arms within blocks of region and hour, drop a washout slice after each switch, size by simulating the schedule on history, and analyse at window level with block-clustered errors or randomisation inference, saying up front that units are fewer and noisier. |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Techdocs
 
 Documentation as something that can be tested: tutorials run from a clean machine, samples executed in CI, drift caught when the product changes, and URLs that keep working.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -676,9 +888,19 @@ Documentation as something that can be tested: tutorials run from a clean machin
 | [`tutorial-clean-room`](plugins/techdocs/skills/tutorial-clean-room/SKILL.md) | Prove a tutorial, quickstart or getting-started guide works for a stranger before it ships: run it in a brand-new container or VM with no cached credentials, dotfiles or warm caches, stopwatch running, executing only what the page literally says; log every stumble as a defect with the minutes it cost; state a time-to-first-result target on the page; then watch one outsider follow it with no questions allowed, and ship only after a zero-stumble run. Use whenever someone says "write our getting-started guide", "verify the quickstart still works", "new users keep getting stuck on install" or "how long does it really take to get going with our SDK". |
 | [`work-to-note`](plugins/techdocs/skills/work-to-note/SKILL.md) | Turn finished work (a debugging session, decision, migration, review finding, tool evaluation or incident fix) into one durable note in a Markdown vault of wikilinks and frontmatter, written to pass the vault's checks first time. Picks the note type or declines when nothing is reusable, follows the vault's own standard and tag taxonomy, marks each claim as source-checked, run-checked or not checked, never claims an evidence level the work did not reach, links the note into its index, and records a recurring defect as a lesson-ledger entry. Use whenever someone says "write this up as a note", "turn this fix into a pattern" or "record this as a lesson". Not for notes on something read (learning-notes), weighing a decision (decision-record), designing a procedure (runbook), incident write-ups (postmortem), product docs (technical-docs) or a retro's change items (yield-to-lesson). |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Assurance
 
 Evidence that software does what it should and that the organisation can show it: tests that find their own blind spots, load and replay before a change ships, and privacy, licence and audit work run as procedure rather than legal advice.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -694,9 +916,19 @@ Evidence that software does what it should and that the organisation can show it
 | [`test-order-bisect`](plugins/assurance/skills/test-order-bisect/SKILL.md) | Find the polluter behind a test that passes alone and fails in the full suite, then remove the leak rather than the symptom: replay the failing order from its recorded random seed, delta-debug the tests that ran before the victim by halving until one polluter and one victim remain, name the shared state it leaked (a global, env var, temp file, port, database row, clock or patch left in place), isolate that state instead of pinning the order, and add a randomised-order CI job so it cannot return. |
 | [`traffic-replay-diff`](plugins/assurance/skills/traffic-replay-diff/SKILL.md) | Prove a rewrite, port or migrated service answers the same as the old one by replaying captured production requests offline against both and diffing responses: capture sanitised read traffic, start both from one data snapshot with identical stubs, replay old against old first to measure noise, normalise timestamps, ids and unordered collections, bucket every diff by cause, and close each bucket as a bug or a signed-off intentional change. Done at zero unexplained buckets across a full weekly cycle. |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Client-apps
 
 Code that runs on someone else's device: field performance and memory in the browser, version skew and service workers, Safari-only bugs, and on phones the crashes, hangs, slow starts, battery drain, bad networks and migrations that only show up in the wild.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -723,9 +955,19 @@ Code that runs on someone else's device: field performance and memory in the bro
 | [`web-vitals-triage`](plugins/client-apps/skills/web-vitals-triage/SKILL.md) | Find why a Core Web Vital is poor for real users and fix the part that dominates: refuse lab scores until p75 field data is split by device and URL group, pull attribution (the LCP element and its four sub-parts, the slow interaction's target with its input delay, processing and presentation phases, the node that shifted), change only the dominant sub-part, and judge the fix on the 28-day field window rather than a Lighthouse re-run. |
 | [`webkit-only-bug-triage`](plugins/client-apps/skills/webkit-only-bug-triage/SKILL.md) | Triage a bug that only happens in Safari or on iPhone and iPad: reproduce it in real WebKit (a device, the iOS Simulator or Playwright's WebKit build) with Web Inspector attached before reading code, then check the usual causes in order: 100vh against dvh and the safe area, inputs under 16px zooming on focus, sticky and overflow clipping, date inputs and date parsing, ITP's seven-day cap on script-writable storage, IndexedDB eviction, and an API the user's iOS version lacks. Fix with feature queries, not user-agent checks. |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Product
 
 Product management and go-to-market run on evidence: interviews about what people actually switched from, cheap tests of demand before a build, pricing changed without a revolt, metrics diagnosed before anyone reacts, and churn, deals and support load read for their causes.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -752,9 +994,19 @@ Product management and go-to-market run on evidence: interviews about what peopl
 | [`spec-premortem`](plugins/product/skills/spec-premortem/SKILL.md) | Attack a spec, PRD, launch plan or big bet before committing to it, then score the forecast afterwards. Assume it failed six months out; have each reviewer write reasons alone before any discussion; sort them into real risks, paper tigers and unspoken elephants; turn each real risk into a tripwire with a metric, threshold, date and owner; record three numeric predictions and score them at day 30 and day 90 so the team learns how well it forecasts. |
 | [`win-loss-review`](plugins/product/skills/win-loss-review/SKILL.md) | Find out why deals are won, lost or stall, from the buyers rather than the CRM: separate no decision, often the biggest bucket, from lost to a competitor; sample every closed deal in the period rather than the ones reps pick; have someone outside the sales team interview buyers within 30 days of close; code answers against the buyer's own decision criteria; report a competitor-specific pattern only once five or more deals show it. |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Platform
 
 Cloud and platform engineering for the situations that recur and hurt: an overloaded Kubernetes control plane, network policy and storage, Terraform estates that grew by hand, cloud networks and identity, database upgrades and replicas, the edge, and commitments sized to real usage.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -781,11 +1033,21 @@ Cloud and platform engineering for the situations that recur and hurt: an overlo
 | [`spot-readiness`](plugins/platform/skills/spot-readiness/SKILL.md) | Make workloads survive spot or preemptible capacity being reclaimed, and decide which must not run there: classify each workload by its recovery time against the interruption notice (two minutes on AWS, 30 seconds on GCP and Azure), diversify across many instance types and every zone, run exactly one interruption handler that cordons and drains, enforce an on-demand floor at the pod level rather than the node group, and prove it by interrupting a spot node under load while the SLO holds. |
 | [`workload-identity`](plugins/platform/skills/workload-identity/SKILL.md) | Replace static cloud keys with federated identity for pods and CI: IRSA or EKS Pod Identity, GKE and Azure workload identity, GitHub Actions OIDC. The trust policy pins issuer, audience and the exact subject (repository plus branch or environment; namespace plus service account), never a wildcard; one role per workload, short sessions; gate: a deliberate failed assumption from an unlisted repository or service account, and only then disable and delete the old keys. |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### IaC
 
 Build and change infrastructure as code with explicit contracts and reviewable evidence.
 The [IaC usage guide](docs/iac.md) maps everyday tasks to these skills and to existing
 state, adoption, upgrade and security workflows.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -793,9 +1055,19 @@ state, adoption, upgrade and security workflows.
 | [`terraform-module-tests`](plugins/iac/skills/terraform-module-tests/SKILL.md) | Add regression coverage that distinguishes plan assertions, mocks and real infrastructure tests. |
 | [`iac-apply-pipeline`](plugins/iac/skills/iac-apply-pipeline/SKILL.md) | Bind approval to the exact saved plan and target, serialize applies and recover safely from partial failure. |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Devtools
 
 Developer tooling and build systems: recovering lost git history, untangling rebases and dependency conflicts, finding why a build cache misses, building only what changed in a monorepo, and measuring before claiming anything got faster.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -810,9 +1082,19 @@ Developer tooling and build systems: recovering lost git history, untangling reb
 | [`phantom-dependency-audit`](plugins/devtools/skills/phantom-dependency-audit/SKILL.md) | Finds imports that work only through hoisting or an accidental transitive install, and declared dependencies nothing uses. Makes the environment strict rather than reading code: install without hoisting (pnpm's isolated layout) or resolve in a fresh virtualenv holding only the declared set, let failures list the phantoms, then cross-check with knip, depcheck, deptry, go mod tidy -diff or cargo machete; treat their output as candidates. Declares phantoms at the range actually tested, removes unused ones in batches, and adds the strict install to CI. |
 | [`slow-build-profile`](plugins/devtools/skills/slow-build-profile/SKILL.md) | Profiles a slow compile or bundle and attacks the biggest cost first. Takes three numbers before any change (clean build, incremental build after a one-line edit, no-op build), treats a no-op that does real work as a broken up-to-date check, then uses the toolchain's own profile (cargo build --timings, tsc --extendedDiagnostics, clang -ftime-trace with ClangBuildAnalyzer, Gradle --profile, ninja -d explain) and ranks by total time times fan-out. Fixes generated-file rewrites first, then the widest fan-out, then parallelism, and reports before and after. |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Smallbiz
 
 Running a freelance practice or a small services business: pricing and quoting, keeping scope and payment under control, contracts, bookkeeping and tax preparation. Procedure, not professional advice.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -837,9 +1119,19 @@ Running a freelance practice or a small services business: pricing and quoting, 
 | [`tax-set-aside`](plugins/smallbiz/skills/tax-set-aside/SKILL.md) | Put aside the right share of every payment for tax: derive the rate from last year's return (tax plus social contributions over profit) plus 3 to 5 points, or a conservative provisional rate checked after the first quarter; sweep it to a separate account within 48 hours of each receipt, on the income-taxable amount only, with VAT or sales tax in its own bucket; list payment dates from the tax authority's pages with URL and date checked, a reminder 3 weeks ahead and an internal deadline 5 working days ahead; re-set the rate when the profit forecast moves over 15%. |
 | [`year-end-tax-pack`](plugins/smallbiz/skills/year-end-tax-pack/SKILL.md) | Assemble everything an accountant or tax return needs, in dependency order: reconcile every bank, card and payment-processor account to statements, reconcile total invoiced income to deposits and explain each difference, clear uncategorised and personal items, check receipts above your tax authority's substantiation threshold, then compile asset purchases and disposals, mileage and home-office logs, loans, owner contributions and draws, receivables and payables and the prior-year return. Ends in a one-page index plus a gap list naming who fixes each item. |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Backend
 
 Correctness in services that talk to each other: webhooks, transaction races, timeout and retry budgets, overload, rate limits, distributed locks, sagas, evolving event schemas, consumer lag, hot partitions, scheduled jobs, GraphQL query cost and gRPC runtime failures, and keeping a search index in step with its source.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -858,9 +1150,19 @@ Correctness in services that talk to each other: webhooks, transaction races, ti
 | [`transaction-race-hunt`](plugins/backend/skills/transaction-race-hunt/SKILL.md) | Find and fix check-then-act races in code that talks to a relational database. Name the anomaly first (lost update, write skew, check-then-insert phantom, double claim of work), establish the isolation level in force, then take the weakest fix that closes it: a constraint, one atomic conditional statement, an optimistic version column, SELECT FOR UPDATE in a global order with SKIP LOCKED for job claiming, or SERIALIZABLE with a retry on SQLSTATE 40001. Reproduce with a deterministic two-session interleaving, not a load test. Use whenever someone says "two requests booked the same seat", "balance went negative", "duplicate rows even though we check first" or "inventory oversold". |
 | [`webhook-integration`](plugins/backend/skills/webhook-integration/SKILL.md) | Receive third-party webhooks reliably, or send your own to customers. Receiving: verify the HMAC over the raw request bytes before parsing, compare in constant time, bound replay with a timestamp tolerance where the provider signs a timestamp, store the raw event and return 2xx fast, dedupe on an id or body hash inside the signed bytes, and re-fetch current state, since order is not guaranteed. Sending: stable event ids, signed headers, backoff over days, per-endpoint timeouts, auto-pause, secret rotation, a delivery log and SSRF defence. Use whenever someone says "our Stripe webhook handler times out", "the event was processed twice", "the webhook arrived before our write committed", "verify the signature" or "a customer endpoint is down". |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Languages
 
 The failures that belong to one runtime or toolchain: Python imports, wheels, memory and typing, Node module formats and leaks, TypeScript strictness, Go goroutines, races and the GC, JVM memory, threads and classpaths, .NET memory and thread-pool starvation, and native code — sanitizers, link errors, core dumps and unsafe Rust.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -885,9 +1187,19 @@ The failures that belong to one runtime or toolchain: Python imports, wheels, me
 | [`rust-unsafe-review`](plugins/languages/skills/rust-unsafe-review/SKILL.md) | Review, justify or remove unsafe code and FFI in Rust: require a written safety contract on every unsafe block (invariants relied on, who upholds them, why they hold here), shrink each block to one operation behind a safe API, ask first whether safe code or a vetted crate does the job, then test under Miri, loom and a sanitizer build, and check FFI boundaries for null and lifetime assumptions, ownership transfer, panics unwinding across extern "C" and manual Send and Sync impls. |
 | [`typescript-strictness-migration`](plugins/languages/skills/typescript-strictness-migration/SKILL.md) | Turn on TypeScript strict mode, or stricter flags, in a codebase that does not pass it, without a flag day. Enable one flag per branch and size it with tsc --noEmit error counts, ratchet the large strictNullChecks step per directory with a second tsconfig that lists only passing paths, forbid @ts-ignore in favour of @ts-expect-error with a reason, and fix input boundaries first by parsing JSON, env and network data with a schema validator. Typed lint rules come after the flag lands; the count of any and assertions is the health metric. Use whenever "enable strictNullChecks", "we have 2,000 errors when we set strict true", "stop any from spreading", "noUncheckedIndexedAccess", or "ban ts-ignore". |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Linux
 
 Keeping a Linux host up and reachable: units that will not start, boots that fail, kernel updates and crashes, full or failing disks, the OOM killer, load and resource limits, DNS, firewalls, MTU black holes, packet captures, TLS handshakes, private CAs, SSH lockouts and clocks that drift.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -913,9 +1225,19 @@ Keeping a Linux host up and reachable: units that will not start, boots that fai
 | [`tls-handshake-debugging`](plugins/linux/skills/tls-handshake-debugging/SKILL.md) | Diagnose a failing TLS connection: "SSL handshake failed", "tlsv1 alert", "unable to get local issuer certificate", "works in the browser but not curl", "certificate required" on mTLS. Establish TCP reachability, then run openssl s_client -connect host:443 -servername host -showcerts, because a missing SNI returns the wrong certificate. Read in order: certificate served, whether the chain includes the intermediate (browsers fetch it via AIA, curl and Java do not), hostname against SAN not CN, validity dates and client clock, protocol and cipher overlap, ALPN, and for mTLS the CertificateRequest and CA list. Separate server faults from client trust with --resolve from a clean client; capture the alert first. |
 | [`volume-resize`](plugins/linux/skills/volume-resize/SKILL.md) | Grow, or carefully shrink, a disk, partition, LVM volume or filesystem: "extend /var after the EBS resize", "lvextend but df shows the old size", "can I shrink this xfs". The ordering is the skill: capture lsblk and df first, confirm a snapshot or backup, then grow bottom-up (rescan the device, growpart, pvresize, lvextend -r, or resize2fs / xfs_growfs on the mounted path) and compare lsblk and df after. Know the asymmetries: xfs cannot shrink, ext4 shrinks only offline with the filesystem reduced before the volume, and shrinking is really a migration. Check thin-pool data and metadata percentages, LUKS layers and the cloud provider's resize cooldown. |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Databases
 
 Database engineering past the basics: PostgreSQL locks, vacuum, bloat and wraparound, MySQL purge lag, deadlocks, connection storms and failover, integer keys running out, partitioning and index pruning, search and vector indexes, ClickHouse parts, time-series retention, Redis memory and SQLite in production.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -940,9 +1262,19 @@ Database engineering past the basics: PostgreSQL locks, vacuum, bloat and wrapar
 | [`vector-index-tuning`](plugins/databases/skills/vector-index-tuning/SKILL.md) | Tune an approximate nearest-neighbour index against measured recall and latency: compute exact top-k by brute force for about 1,000 sampled real queries, score recall@k as overlap with the index's answers, tune to a stated target such as recall 0.95 at k=10 and a p95 rather than defaults. Covers pgvector HNSW (ef_search via SET LOCAL, maintenance_work_mem) and IVFFlat (lists, probes), OpenSearch k-NN, Elasticsearch knn, the filtered-search trap returning fewer than k rows, and memory cuts with halfvec or quantisation plus exact re-ranking. |
 | [`xid-wraparound-defense`](plugins/databases/skills/xid-wraparound-defense/SKILL.md) | Monitor and recover from PostgreSQL transaction ID and multixact wraparound risk: read age(datfrozenxid) per database and age(relfrozenxid) and mxid_age(relminmxid) per table oldest first, alert near 500 million of the roughly 2.1 billion ceiling so a page arrives with weeks of runway, and in an emergency end what blocks freezing before running a manual VACUUM (VERBOSE, INDEX_CLEANUP off) on the oldest tables, never VACUUM FULL and never killing the anti-wraparound worker. |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Observability
 
 Telemetry that answers the question during an incident and costs what it should: trace sampling and broken traces, latency histograms, cardinality and log volume, collector pipelines and back-pressure, semantic-convention upgrades and migrations, redaction, profiling, alerts that are backtested and dashboards that load.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -967,9 +1299,19 @@ Telemetry that answers the question during an incident and costs what it should:
 | [`telemetry-redaction-audit`](plugins/observability/skills/telemetry-redaction-audit/SKILL.md) | Find and stop personal data, credentials and tokens leaking into logs, spans and metric labels: sample stored telemetry rather than reading code, count patterns (emails, card numbers with a Luhn check, JWT prefixes, authorization headers, long hex or base64 strings) per signal and source, fix at the earliest cheap layer (stop capturing, parameterised statements, route templates), then a collector allow-list of attribute keys with value masking as a backstop, and prove it with canary values sent through every service. A live credential means rotate first, purge second. |
 | [`trace-latency-analysis`](plugins/observability/skills/trace-latency-analysis/SKILL.md) | Use traces to explain where a slow request or percentile spent its time: compare cohorts rather than reading one trace (slowest 1% against the median, split by version, region, tenant tier, payload size or cache hit), then budget one slow trace by hop - self time is parent duration minus the union of child intervals, gaps mean queueing or pool starvation, identical short siblings mean an N+1, fan-out tail compounds as 1-(1-p)^N, children before the parent mean clock skew - and end with a table of hop, share and next measurement. |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Embedded
 
 Software on devices you cannot walk up to: firmware updates that must not brick, staged fleet rollouts, provisioning and trust anchors, hard faults, watchdogs and RTOS races, sleep current and wake bugs, flash wear and memory budgets, clocks without a network, and serial, fieldbus, BLE and MQTT links that misbehave in the field.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -994,9 +1336,19 @@ Software on devices you cannot walk up to: firmware updates that must not brick,
 | [`sleep-wake-bug-hunt`](plugins/embedded/skills/sleep-wake-bug-hunt/SKILL.md) | Fix devices that miss wakeups, hang on wake, or lose state after deep sleep: classify first as a lost wakeup (event lands between the flag check and sleep; check with interrupts masked and sleep on WFI), a wake-source fault (wrong edge or level, flag not cleared, instant re-wake loop) or a retention fault (RAM, registers and clocks that did not survive that mode), allow oscillator, PLL and external chip start-up times, reproduce with the debugger detached using spare GPIOs and a logic analyser, and record reset reason and wake source first after wake. |
 | [`watchdog-design`](plugins/embedded/skills/watchdog-design/SKILL.md) | Design or fix a watchdog so it recovers real hangs without masking them: feed it from exactly one place, only after every monitored task has checked in with a progress token inside the window, never from an ISR or a lone idle hook, set the timeout from measured worst-case loop time with a 2x to 3x margin and longer than the slowest legitimate blocking operation, use a window watchdog when running too fast is also a fault, confirm it cannot be disabled in the release build, and on reset persist cause and last check-in to enter safe mode after repeated resets. |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Learning
 
 Getting good at something, and helping others do the same: ramping up on an unfamiliar domain or technology, study and exam plans, workshops and exercises that practise the real skill, mentoring and pairing, getting what experts know out of their heads, checking that training changed anything, and reading, reproducing and scanning research.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -1017,9 +1369,19 @@ Getting good at something, and helping others do the same: ramping up on an unfa
 | [`training-effectiveness-check`](plugins/learning/skills/training-effectiveness-check/SKILL.md) | Find out whether a workshop, course or training programme changed what people do, not how they rated it. Choose the measure before delivery; run the same practical task before and after (a lab, a review of a sample change), not a quiz; name one behaviour indicator seen in real work and read it at 30 and 90 days; use a later cohort as comparison when cohorts are staggered; cap the satisfaction survey at three questions as a delivery metric only; state the failure criterion in advance, then decide repeat, revise or stop. |
 | [`workshop-design`](plugins/learning/skills/workshop-design/SKILL.md) | Design a hands-on technical workshop of two to eight hours for colleagues or a public audience so it stays a workshop and does not turn into a lecture. Three outcomes written as observable tasks, each verified by a closing check; hands-on time of at least 60 per cent with no lecture segment over ten minutes; every segment a card with expected and slow-pair times; 20 per cent buffer with tiered stretch tasks; a cap of 25 participants with one helper per eight; pre-work sent a week early with a verification command; and a full dry run on a clean machine whose stall list gets fixed. |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Research
 
 Engineering for research code and data: environments that reproduce, NaNs and floating-point error traced to their source, convergence and Monte Carlo run lengths, fair comparisons and statistics that survive review, batch effects and non-independence, Slurm jobs that fail or are mis-sized, checkpoints, scaling studies, sweeps, chunked arrays and parallel filesystems that stay healthy.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -1043,9 +1405,19 @@ Engineering for research code and data: environments that reproduce, NaNs and fl
 | [`sweep-campaign-management`](plugins/research/skills/sweep-campaign-management/SKILL.md) | Run thousands of independent simulations or sweep tasks so finished work survives failures and only the missing part is rerun. Builds a manifest (one row per task: id, parameters, status) before anything is submitted, makes every task idempotent (write to a temp name, rename, drop a done-marker, skip if the marker exists), bundles short tasks into chunks, throttles the array (--array=0-499%50), reconciles manifest against done-markers and sacct afterwards, resubmits only missing ids, and aggregates in a job that refuses to run with gaps. |
 | [`unit-mismatch-audit`](plugins/research/skills/unit-mismatch-audit/SKILL.md) | Audit code and data for unit and dimension errors. Inventories every quantity crossing a boundary (column, argument, config value, constant) with its unit and frame, then enforces units there with a units library (pint, astropy.units, Unitful) or name suffixes (`_m`, `_s`, `_kPa`) and one conversion module. Hunts the hidden assumptions: degrees vs radians, CGS vs SI, gauge vs absolute pressure, Celsius vs Kelvin inside a ratio, per-capita vs total, log base. Validates with a known value in each unit system and range assertions on loaded columns. |
 
+#### Subagents
+
+None yet.
+
+#### Project kit
+
+No kit yet.
+
 ### Growth
 
 Marketing and content operations that hold up to measurement: content SEO and programmatic pages that earn their index, email that authenticates and lands, lifecycle sequences, campaign tags and preflight checks, attribution and paid-search waste, lead quality, landing pages that match the ad, tests on low-traffic pages, customer stories, and communities and developer programmes that stay healthy.
+
+#### Skills
 
 | Skill | What it does |
 | --- | --- |
@@ -1070,45 +1442,19 @@ Marketing and content operations that hold up to measurement: content SEO and pr
 | [`programmatic-seo-gate`](plugins/growth/skills/programmatic-seo-gate/SKILL.md) | Decide whether to ship, and how to roll out, thousands of templated pages (locations, integrations, comparisons, tool pages): prove each page type has distinct data a visitor wants and that the answer shows in the first screen, render fifty random pages and fail the template if more than five are thin or near-duplicate, then release in stages of about 5 to 10 percent per type with noindex below a data threshold, a sitemap per type, stop criteria set in advance and a 410 or noindex kill procedure. Use whenever someone says "generate pages from our database", "city pages for every market", "an integration page for every app" or "template pages got deindexed". |
 | [`sending-domain-warmup`](plugins/growth/skills/sending-domain-warmup/SKILL.md) | Bring a new sending domain, dedicated IP or migrated email provider up to full volume without burning reputation: separate streams by subdomain first, then ramp by engaged recipients rather than calendar, starting with the most recently active subscribers at a few hundred a day and doubling only while complaint rate stays under 0.1%, hard bounces stay under a house threshold and provider dashboards stay green, holding or stepping back on any breach. Moves the old provider in tranches, with written stop thresholds and a ramp table. Use whenever someone says "we are switching ESPs", "warm up a new IP", "how many emails can we send on day one" or "new subdomain for marketing". |
 
-## Subagents
+#### Subagents
 
-30 subagents ship across nine plugins. Each exists to keep bulk out of the main context
-— the input is a log, a plan, a billing export, a contract, a pile of feedback, a release
-range, and the answer is short — and to be denied the tools it should not have. A reviewer
-that can apply is not a reviewer.
+None yet.
 
-| Subagent | Plugin | Reads | Returns |
-| --- | --- | --- | --- |
-| `ci-log-reader` | `operations` | A failing run's logs | One of five triage classes and the line that decided it |
-| `telemetry-reader` | `operations` | Traces and structured logs | The critical path, or why the data cannot answer |
-| `k8s-evidence-reader` | `operations` | Captured Kubernetes evidence | Up to five capture-time evidence chains, with contradictions and missing evidence |
-| `frame-capture-reader` | `gamedev` | A profiler capture or frame trace | CPU-bound or GPU-bound with the numbers, or what to capture instead |
-| `screenshot-reader` | `design` | One or more screenshots of a UI | Findings by file and region, with what the image cannot show listed for measurement in code |
-| `cost-analyst` | `operations` | A cloud billing export | The top movers period over period, not the top spenders |
-| `incident-scribe` | `operations` | Raw triage notes and scrollback | A blameless postmortem draft |
-| `page-history-reader` | `operations` | A quarter of pager or alert history | Per-rule fires, action rate, off-hours share and a suggested keep/tighten/demote/delete bucket |
-| `llm-trace-reader` | `operations` | An LLM usage or trace export | Cost and latency hotspots by feature, prompt path, model and user, with spend-cap 429s kept apart from rate-limit 429s |
-| `plan-reviewer` | `security` | A Terraform plan JSON | The blast radius, destroys first |
-| `policy-auditor` | `security` | IAM policies and access logs | The gap between permitted and used, with the window stated |
-| `pii-reader` | `security` | A schema dump, a row sample or a log excerpt | Which fields carry personal data, their class and where they flow |
-| `extension-reader` | `security` | A third-party agent extension in a quarantine directory | What executes automatically, permissions, text aimed at the model quoted as data, and risk findings anchored to file and line |
-| `supply-chain-exposure-reader` | `security` | Lockfile git history and CI run logs across many repositories | Every repository and run that resolved or executed a bad package or action, with the secrets each could reach |
-| `skill-reviewer` | `coding` | A candidate SKILL.md | What is wrong, why it costs something, the smallest fix |
-| `change-impact-reader` | `coding` | A diff and matching repository snapshots | Up to five impact chains, their evidence and unresolved boundaries |
-| `agent-run-trace-reader` | `coding` | Historical agent-run artifacts | A task-and-attempt evidence ledger with unanswered calls and verification gaps |
-| `test-history-reader` | `coding` | Hundreds of JUnit, pytest or go test reports across many CI runs | A flake-rate ledger with a denominator, co-failure clusters and a quarantine order by CI time and retries burned |
-| `review-comment-miner` | `coding` | A pile of exported PR review comments or postmortem action items | Recurring clusters with an independent-instance count, a quoted example and candidate destinations |
-| `contract-reader` | `manager` | A contract, DPA or SOC 2 report | The clauses that decide the deal, quoted and located |
-| `feedback-synthesiser` | `manager` | Collected peer feedback | Themes with a source count and a quoted example |
-| `changelog-reader` | `delivery` | A release range of commits and PRs | Audience-sorted inventory, breaking changes flagged, noise collapsed |
-| `statement-reader` | `personal` | Bank, credit-card and digital-wallet transaction exports | Spending by category bucket, recurring charges, fees, transfers and anomalies |
-| `terms-reader` | `personal` | An insurance policy, tenancy, loan or subscription's terms | The renewal date, notice period, exit charges and exclusions, each quoted and located |
-| `framer` | `family` | A vague request and any known constraints | A frame: problem, users, success criterion, smallest slice, out of scope |
-| `architect` | `family` | A frame and the surrounding architecture | The approach, boundaries, interfaces, failure modes and the hard-to-reverse decision |
-| `maker` | `family` | A frame, an architecture note and the files a change touches | An ordered, file-level change plan with a proof per step, or the divergence from it |
-| `inspector` | `family` | A change, its frame and the commands to run | What holds and what fails against the frame, with evidence, and what was not assessed |
-| `launcher` | `family` | An inspected change and its deployment target | A launch plan — path, migration, signal, rollback — or the gaps blocking it |
-| `yielder` | `family` | A slice's outcome and its success criterion | A retro: what was measured, what to keep, what to change, and the next slice |
+#### Project kit
+
+No kit yet.
+
+## Working on this repository
+
+These ship to nobody. They are for working on this repository, and live in `.claude/`.
+
+### Subagents
 
 Five more sit in [`.claude/agents/`](.claude/agents) and ship to nobody. They are for
 working on this repository, in two loops that share a judge.
@@ -1137,31 +1483,21 @@ Each runs on the tier its stage needs.
 [Writing a subagent](docs/writing-agents.md#the-two-loops) explains why the splits earn
 their round trips.
 
-## Commands
+### Commands
 
 Commands here explicitly declare `disable-model-invocation: true`, so they run only
 when invoked explicitly. That makes them the right shape for work that takes an
 argument, or that should run when asked rather than when merely relevant.
 Each does the mechanical part and points at the skill holding the full procedure.
 
-| Command | Ships with | What it does |
-| --- | --- | --- |
-| `/ci-fail` | `operations` | Classify a failing run from annotations and failed-step logs, after checking whether the default branch is red too. |
-| `/oncall-handover` | `operations` | Draft a handover from pages, deploys and anything left mid-flight, with the fragile mitigations first. |
-| `/level` | `gamedev` | Run a level or feature through spec, layout, grey-box, tuning, frame budget and build size, with a gate between each stage. |
-| `/visual-review` | `design` | Review a rendered page from screenshots: pin the render, capture a viewport and theme matrix, diff against an optional baseline, run the code checks, then have `screenshot-reader` read crops and report measured and unverified findings separately. |
-| `/agent-diff-audit` | `coding` | Run mechanical detectors for shrunk test counts, newly silenced checks and invented dependencies over an agent-written diff, then hand the flagged list to code-review. |
-| `/blast-radius` | `security` | Read a Terraform plan as JSON and report destroys first, with the attribute forcing each replacement. |
-| `/image-audit` | `security` | Audit a built image for secrets in layers, root execution, base currency and a gate that will not get bypassed. |
-| `/weekly` | `manager` | Draft a bottom-line-first status update from merged pull requests and commits, every number sourced. |
-| `/agent-ready` | `manager` | Clone a repository and actually run its AGENTS.md, checking instruction-file size against a known agent tool cap and flagging dangling paths and exposed secrets. |
-| `/family:family` | `family` | Start a FAMILY slice: validate the slice name, have framer frame the request into `docs/slices/<name>/frame.md`, create the other five stage files as empty templates, and print the verdict and the next hop. |
-| `/scaffold-skill` | this repository | Create the directory, SKILL.md and eval stub for a new skill, in the right plugin, refusing a duplicate name. |
-| `/eval-skill` | this repository | Score whether one description actually triggers, and name the phrasing it is missing. |
-| `/skill-doctor` | this repository | Diagnose one skill: validator findings, description health, eval-set balance, and which siblings it collides with. |
-| `/skill-gap` | this repository | Survey the library for coverage it lacks, from its own dangling demand, and say which of skill, subagent, command or nothing the gap deserves. |
-| `/ship` | this repository | Take a change from survey to merge: research in parallel, write it and run the gates, judge it independently, then open one pull request and merge once review, `ci` and `security` pass. |
-| `/verify` | this repository | Take a claim through the verification loop: settle it against primary sources, labelling what is verified and what is not, then judge whether the finding supports the change. |
+| Command | What it does |
+| --- | --- |
+| `/scaffold-skill` | Create the directory, SKILL.md and eval stub for a new skill, in the right plugin, refusing a duplicate name. |
+| `/eval-skill` | Score whether one description actually triggers, and name the phrasing it is missing. |
+| `/skill-doctor` | Diagnose one skill: validator findings, description health, eval-set balance, and which siblings it collides with. |
+| `/skill-gap` | Survey the library for coverage it lacks, from its own dangling demand, and say which of skill, subagent, command or nothing the gap deserves. |
+| `/ship` | Take a change from survey to merge: research in parallel, write it and run the gates, judge it independently, then open one pull request and merge once review, `ci` and `security` pass. |
+| `/verify` | Take a claim through the verification loop: settle it against primary sources, labelling what is verified and what is not, then judge whether the finding supports the change. |
 
 ## CI is the source of truth
 
