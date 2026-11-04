@@ -15,7 +15,7 @@
   {"query": "plan the winter event calendar and the limited-time reward track", "should_trigger": false, "expected": "game-live-ops"},
   {"query": "what should we charge for the premium currency bundles and the battle pass", "should_trigger": false, "expected": "pricing-research"},
   {"query": "telemetry shows gold per hour rose 30% after the patch, how do we retune it", "should_trigger": false, "expected": "game-balance"},
-  {"query": "design the loadout screen layout for a console controller", "should_trigger": false, "expected": "game-input-mapping"},
+  {"query": "design the loadout screen layout for a console controller", "should_trigger": false, "expected": "game-hud-menu-spec"},
   {"query": "how do i price my saas annual plan against the monthly one", "should_trigger": false, "expected": "pricing-research"},
   {"query": "write the game design document for the crafting system", "should_trigger": false, "expected": "game-design-doc"},
   {"query": "tune queue times against match quality in ranked", "should_trigger": false, "expected": "matchmaking-tuning"}
