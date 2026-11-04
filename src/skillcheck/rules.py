@@ -815,6 +815,48 @@ def _check_tone(front: Frontmatter, body_lines: list[str], first_line: int, add)
     return []
 
 
+# Manifest keys that load components from paths other than the default folders, and the one
+# source layout the security scan of subagents and commands enumerates.
+_COMPONENT_KEYS = ("agents", "commands", "skills", "hooks")
+_PLUGIN_SOURCE = re.compile(r"\./plugins/[a-z0-9]+(?:-[a-z0-9]+)*")
+
+
+def _unscanned_component_paths(
+    entry: dict, source: str, directory: Path, relative: Path
+) -> list[Finding]:
+    """Findings for a manifest that can load a definition `definition_shims.py` never wraps.
+
+    A subagent or command listed through ``agents``/``commands`` (or sitting in a plugin
+    whose ``source`` is outside ``plugins/``) is loaded for installers but is in none of the
+    four places the scanners read, so both the marketplace entry and the plugin manifest
+    are refused when they do either.
+    """
+    label = entry.get("name", source)
+    found: list[Finding] = []
+
+    def refuse(where: Path, message: str) -> None:
+        found.append(Finding(ERROR, where, 1, "unscanned-component-path", message))
+
+    if not _PLUGIN_SOURCE.fullmatch(source):
+        refuse(relative, f"plugin {label!r} has source {source!r}; use ./plugins/<plugin>")
+    for key in _COMPONENT_KEYS:
+        if key in entry:
+            refuse(relative, f"plugin {label!r} sets {key!r}; use the default folders")
+    manifest = directory / ".claude-plugin" / "plugin.json"
+    try:
+        data = json.loads(manifest.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return found
+    if isinstance(data, dict):
+        for key in _COMPONENT_KEYS:
+            if key in data:
+                refuse(
+                    Path(source) / ".claude-plugin" / "plugin.json",
+                    f"plugin.json sets {key!r}; use the default folders",
+                )
+    return found
+
+
 def check_marketplace(repo_root: Path) -> list[Finding]:
     """Cross-check the marketplace manifest against the plugins on disk.
 
@@ -858,6 +900,7 @@ def check_marketplace(repo_root: Path) -> list[Finding]:
             continue
         directory = (repo_root / source).resolve()
         listed.add(directory)
+        findings.extend(_unscanned_component_paths(plugin, source, directory, relative))
         if not (directory / ".claude-plugin" / "plugin.json").is_file():
             findings.append(
                 Finding(

@@ -84,3 +84,23 @@ suppressions:
       allowed-tools pre-approves Read/Grep/Glob only by design; the gh/git/bisect commands still run, each behind a
       user permission prompt. Withholding Bash is the safer posture, not a mismatch.
     expires: 2027-05-02
+
+  # Subagent and slash-command definitions, scanned as one-file skills by scripts/definition_shims.py. Cisco matches
+  # `skills` on the shim's frontmatter name, which the wrapper sets to the shim id for agents and commands alike.
+  - rule_id: ACTIVE_REMOTE_ACQUIRE_EXECUTE
+    skills: ["agent--security--extension-reader"]
+    paths: ["SKILL.md"]
+    reason: >-
+      plugins/security/agents/extension-reader.md lines 109-115 tell the reader to treat 'a download that is then
+      executed' and 'a payload fetched at run time' as findings in a third-party extension; it warns, it does not
+      instruct fetch-and-execute, and the agent holds no Bash tool.
+    expires: 2027-05-02
+
+  - rule_id: ACTIVE_REMOTE_ACQUIRE_EXECUTE
+    skills: ["command--claude--ship"]
+    paths: ["SKILL.md"]
+    reason: >-
+      .claude/commands/ship.md line 29 onward is the owner-run review procedure: a git fetch of the base branch and
+      the contributor's head as a ref only, then a pinned detached worktree; nothing fetched is executed, and the
+      paragraph says the review must never run from the contributor's checkout.
+    expires: 2027-05-02

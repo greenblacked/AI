@@ -406,6 +406,72 @@ jobs:
             exit 1
           fi
           echo "scanned $scanned of $expected skills"
+      # Neither scanner has a subagent or command type, so each definition is copied into a
+      # one-file skill (a shim) and scanned as one: the prompt-injection, exfiltration and
+      # obfuscation rules then read its instructions and frontmatter. They do not analyse
+      # its tool grant. The shim script refuses a symbolic link, an odd file name and a
+      # repeated id. The count of what it wrapped comes from `git ls-files`, never from
+      # the script, so a script that quietly skips a file cannot also report its own total.
+      - name: Wrap every subagent and command as a one-file skill
+        run: |
+          set -Eeuo pipefail
+          shims="$RUNNER_TEMP/definition-shims"
+          python3 scripts/definition_shims.py --out "$shims" --all
+          globs=(':(glob,icase)plugins/*/agents/**/*.md' ':(glob,icase)plugins/*/commands/**/*.md'
+            ':(glob,icase).claude/agents/**/*.md' ':(glob,icase).claude/commands/**/*.md')
+          expected=$(git ls-files -z -- "${globs[@]}" |
+            tr -cd '\0' | wc -c)
+          wrapped=$(wc -l < "$shims/map.tsv")
+          if [ "$wrapped" -ne "$expected" ]; then
+            echo "::error title=definition scan::wrapped $wrapped definition(s) where git lists $expected"
+            exit 1
+          fi
+          echo "$wrapped subagent and command file(s) wrapped"
+      # The same policy, severity and offline analysers as the skills above. The summary
+      # names a finding by its shim id, `agent--<plugin>--<name>` or `command--<plugin>--<name>`
+      # (`claude` for .claude/), which is also how the policy names it.
+      - name: Scan every subagent and command
+        run: |
+          set -Eeuo pipefail
+          out="$RUNNER_TEMP/skill-scanner"
+          mkdir -p "$out"
+          rc=0
+          "$RUNNER_TEMP/skill-scanner-venv/bin/skill-scanner" scan-all "$RUNNER_TEMP/definition-shims" \
+            --policy .github/skill-scan/cisco-policy.yaml \
+            --format sarif --output "$out/definitions.sarif" \
+            --format json --output-json "$out/definitions.json" \
+            --fail-on-severity high >"$out/definitions.log" 2>&1 || rc=$?
+          # Made inert the way the skill summary above is.
+          if [ -f "$out/definitions.json" ]; then
+            jq -r '.results[] | (.skill_path | split("/") | last) as $id | .findings[]?
+              | select(.severity == "HIGH" or .severity == "CRITICAL")
+              | "  \(.severity) \(.rule_id) \($id)/\(.file_path):\(.line_number)"
+              | gsub("[\r\n]"; " ") | gsub("##\\["; "## [")
+              | sub("^(?<lead>\\s*)::"; "\(.lead): :")' \
+              "$out/definitions.json"
+          fi
+          if [ "$rc" -ne 0 ]; then
+            msg="skill-scanner exited $rc; findings above, full output in the skill-scanner artifact"
+            echo "::error title=cisco definition scan::$msg"
+            exit "$rc"
+          fi
+      - name: Check every subagent and command was scanned
+        run: |
+          set -Eeuo pipefail
+          globs=(':(glob,icase)plugins/*/agents/**/*.md' ':(glob,icase)plugins/*/commands/**/*.md'
+            ':(glob,icase).claude/agents/**/*.md' ':(glob,icase).claude/commands/**/*.md')
+          expected=$(git ls-files -z -- "${globs[@]}" |
+            tr -cd '\0' | wc -c)
+          scanned=$(jq -er '.summary.total_skills_scanned' "$RUNNER_TEMP/skill-scanner/definitions.json")
+          if ! [[ "$scanned" =~ ^[0-9]+$ ]]; then
+            echo "::error title=definition scan incomplete::the report gave no count"
+            exit 1
+          fi
+          if [ "$scanned" -ne "$expected" ]; then
+            echo "::error title=definition scan incomplete::scanned $scanned subagent and command file(s) of $expected"
+            exit 1
+          fi
+          echo "scanned $scanned of $expected subagents and commands"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         if: always()
         with:
@@ -458,26 +524,38 @@ jobs:
           want = os.environ["SKILLSPECTOR_VERSION"]
           sys.exit(0 if found == want else f"installed {found}, pinned {want}")
           '
-      # A pull request scans the skills it adds or changes; every other event scans all
-      # of them, and so does a pull request that changes the scan's own configuration
-      # (this workflow, the accepted list, the scanner's lock or the gate), since that
-      # can change the verdict on a skill the diff never touches. --no-renames makes a
-      # moved skill count as added at its new path, and the base commit arrives through
-      # env:, never through an expression in the script.
-      - name: Choose the skills to scan
+      # A pull request scans the skills and the subagent and command files it adds or
+      # changes; every other event scans all of them, and so does a pull request that
+      # changes the scan's own configuration (this workflow, the accepted list, the
+      # scanner's lock, the gate or the script that wraps definitions), since that can
+      # change the verdict on a file the diff never touches. --no-renames makes a moved
+      # file count as added at its new path, and the base commit arrives through env:,
+      # never through an expression in the script. A definition is scanned through a
+      # one-file skill that scripts/definition_shims.py writes; its manifest line is the
+      # shim id, a tab and the source path. How many it wrapped is checked against a
+      # count this step makes itself from git, not from the script's own output.
+      - name: Choose what to scan
         env:
           EVENT_NAME: ${{ github.event_name }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -Eeuo pipefail
           results="$RUNNER_TEMP/skillspector"
+          shims="$RUNNER_TEMP/definition-shims"
           mkdir -p "$results"
           manifest="$results/skills.txt"
+          # Every .md, in any case and at any depth, below agents/ and commands/, because Claude
+          # Code's loader reads them all (a README included); the script refuses any that is
+          # not a plain definition, so the count and the script cannot quietly disagree.
+          globs=(':(glob,icase)plugins/*/agents/**/*.md' ':(glob,icase)plugins/*/commands/**/*.md'
+            ':(glob,icase).claude/agents/**/*.md' ':(glob,icase).claude/commands/**/*.md')
           # A link inside a skill can point outside plugins/, so editing its target would
-          # change what is scanned without selecting the skill. Counted, never listed.
-          links=$(git ls-files -s -z -- plugins | tr '\0' '\n' | grep -c '^120000 ' || true)
+          # change what is scanned without selecting the skill; the same goes for a link
+          # standing in for a definition. Counted, never listed.
+          links=$(git ls-files -s -z -- plugins .claude | tr '\0' '\n' | grep -c '^120000 ' || true)
           if [ "$links" -gt 0 ]; then
-            echo "::error title=skill scan::a symbolic link under plugins/ ($links found); commit the file itself"
+            msg="a symbolic link under plugins/ or .claude/ ($links found); commit the file itself"
+            echo "::error title=skill scan::$msg"
             exit 1
           fi
           scan_all=1
@@ -490,7 +568,8 @@ jobs:
             # Counted rather than listed, so no file name a pull request chose reaches the log.
             config=$(git diff --no-renames -z --name-only "$base" HEAD -- \
               .github/workflows/security.yml .github/skill-scan \
-              .github/requirements/skillspector.txt scripts/skill_scan_gate.py | tr -cd '\0' | wc -c)
+              .github/requirements/skillspector.txt scripts/skill_scan_gate.py \
+              scripts/definition_shims.py | tr -cd '\0' | wc -c)
             if [ "$config" -gt 0 ]; then
               echo "this pull request changes the skill scan configuration, so every skill is scanned"
             else
@@ -521,27 +600,65 @@ jobs:
               exit 1
             fi
           done < "$manifest"
-          if ! [ -s "$manifest" ]; then
-            echo "::notice title=skill scan::this pull request changes no skill, so there is nothing to scan"
+          if [ "$scan_all" -eq 1 ]; then
+            python3 scripts/definition_shims.py --out "$shims" --all
+            expected=$(git ls-files -z -- "${globs[@]}" |
+              tr -cd '\0' | wc -c)
+          else
+            python3 scripts/definition_shims.py --out "$shims" --changed="$BASE_SHA"
+            expected=0
+            while IFS= read -r -d '' path; do
+              if [ -e "$path" ]; then
+                expected=$((expected + 1))
+              fi
+            done < <(git diff --no-renames -z --name-only "$base" HEAD -- "${globs[@]}")
           fi
-          echo "$(wc -l < "$manifest") skill(s) to scan"
-      # One process per skill, four at a time: `scan -r` stops at 32 skills, reads one
-      # level deep and refuses a baseline. --no-llm keeps skill text on the runner; the
+          wrapped=$(wc -l < "$shims/map.tsv")
+          if [ "$wrapped" -ne "$expected" ]; then
+            echo "::error title=skill scan::wrapped $wrapped definition(s) where git lists $expected"
+            exit 1
+          fi
+          tab=$'\t'
+          part='[a-z0-9]+(-[a-z0-9]+)*'
+          def_re="^(agent--${part}--${part}${tab}(plugins/${part}|\.claude)/agents/${part}\.md"
+          def_re+="|command--${part}--${part}(--${part})*${tab}(plugins/${part}|\.claude)/commands/(${part}/)*(${part}|README)\.md)(${tab}[0-9]+)?\$"
+          while IFS= read -r line; do
+            if ! [[ "$line" =~ $def_re ]]; then
+              echo "::error title=skill scan::refusing to scan a definition with an unexpected name"
+              exit 1
+            fi
+          done < "$shims/map.tsv"
+          cat "$shims/map.tsv" >> "$manifest"
+          if ! [ -s "$manifest" ]; then
+            msg="this pull request changes no skill or definition, so there is nothing to scan"
+            echo "::notice title=skill scan::$msg"
+          fi
+          echo "$(wc -l < "$manifest") skill(s) and definition(s) to scan"
+      # One process per skill or definition shim, four at a time: `scan -r` stops at 32
+      # skills, reads one level deep and refuses a baseline. --no-llm keeps skill text on the runner; the
       # one network call left is SC4's dependency lookup at api.osv.dev, made only for
       # a declared dependency file, of which this tree has none. Exit 1 is a risk score
       # and is judged by the gate below; the exit code of each scan is kept for it.
-      - name: Scan the chosen skills
+      - name: Scan the chosen skills and definitions
         run: |
           set -Eeuo pipefail
           results="$RUNNER_TEMP/skillspector"
+          shims="$RUNNER_TEMP/definition-shims"
           scanner="$RUNNER_TEMP/skillspector-venv/bin/skillspector"
           running=0
-          while IFS= read -r skill; do
-            rest="${skill#plugins/}"
-            name="${rest%%/*}__${skill##*/}"
+          while IFS= read -r entry; do
+            id="${entry%%$'\t'*}"
+            if [ "$id" = "$entry" ]; then
+              rest="${entry#plugins/}"
+              name="${rest%%/*}__${entry##*/}"
+              dir="$entry"
+            else
+              name="$id"
+              dir="$shims/$id"
+            fi
             (
               rc=0
-              "$scanner" scan "$skill" --no-llm --format sarif -o "$results/$name.sarif" \
+              "$scanner" scan "$dir" --no-llm --format sarif -o "$results/$name.sarif" \
                 > "$results/$name.log" 2>&1 || rc=$?
               printf '%s\n' "$rc" > "$results/$name.rc"
             ) &
@@ -555,12 +672,13 @@ jobs:
       # Fails on any high or critical finding not in the reviewed list, on a scan that
       # errored or left no report, and on a reviewed entry with no reason. A scan that
       # ran out of one of SkillSpector's time budgets is neither clean nor a finding:
-      # the first pass lists it and exits 3, each listed skill is rescanned on its own,
-      # one at a time, and the final pass fails one that runs out of time again.
+      # the first pass lists it and exits 3, each listed skill or definition is rescanned
+      # on its own, one at a time, and the final pass fails one that runs out of time again.
       - name: Gate on new high and critical findings
         run: |
           set -Eeuo pipefail
           results="$RUNNER_TEMP/skillspector"
+          shims="$RUNNER_TEMP/definition-shims"
           run_gate() {
             python3 scripts/skill_scan_gate.py \
               --manifest "$results/skills.txt" \
@@ -573,18 +691,31 @@ jobs:
             exit "$first"
           fi
           scanner="$RUNNER_TEMP/skillspector-venv/bin/skillspector"
-          while IFS= read -r skill; do
-            # The same check the selection step makes, and the skill has to be one it chose.
-            if ! [[ "$skill" =~ ^plugins/[A-Za-z0-9][A-Za-z0-9._-]*/skills/[A-Za-z0-9][A-Za-z0-9._-]*$ ]] ||
-              ! grep -qxF -- "$skill" "$results/skills.txt"; then
+          tab=$'\t'
+          part='[a-z0-9]+(-[a-z0-9]+)*'
+          skill_re='^plugins/[A-Za-z0-9][A-Za-z0-9._-]*/skills/[A-Za-z0-9][A-Za-z0-9._-]*$'
+          def_re="^(agent--${part}--${part}${tab}(plugins/${part}|\.claude)/agents/${part}\.md"
+          def_re+="|command--${part}--${part}(--${part})*${tab}(plugins/${part}|\.claude)/commands/(${part}/)*(${part}|README)\.md)(${tab}[0-9]+)?\$"
+          while IFS= read -r entry; do
+            # The same checks the selection step makes, and the entry has to be one it chose.
+            if [[ "$entry" =~ $skill_re ]]; then
+              rest="${entry#plugins/}"
+              name="${rest%%/*}__${entry##*/}"
+              dir="$entry"
+            elif [[ "$entry" =~ $def_re ]]; then
+              name="${entry%%$'\t'*}"
+              dir="$shims/$name"
+            else
               echo "::error title=skill scan::refusing to rescan a directory with an unexpected name"
               exit 1
             fi
-            rest="${skill#plugins/}"
-            name="${rest%%/*}__${skill##*/}"
-            echo "rescanning $skill after SkillSpector ran out of time"
+            if ! grep -qxF -- "$entry" "$results/skills.txt"; then
+              echo "::error title=skill scan::refusing to rescan a directory with an unexpected name"
+              exit 1
+            fi
+            echo "rescanning ${entry%%$'\t'*} after SkillSpector ran out of time"
             rc=0
-            "$scanner" scan "$skill" --no-llm --format sarif -o "$results/$name.sarif" \
+            "$scanner" scan "$dir" --no-llm --format sarif -o "$results/$name.sarif" \
               > "$results/$name.log" 2>&1 || rc=$?
             printf '%s\n' "$rc" > "$results/$name.rc"
           done < "$results/rescan.txt"
