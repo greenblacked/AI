@@ -34,6 +34,7 @@ as a slash command; the validator ignores it, and the scan deliberately does not
 planted one cannot ship unscanned. It also writes `<out>/map.tsv`, one `<id>`, a tab, the
 source path, a tab and the number of lines the shim adds above the source's own, per line;
 the SkillSpector gate reads it to report and match a finding against the real file.
+The run also fails on a symbolic link or a submodule (mode 160000) anywhere under `plugins/` or `.claude/`, in both modes, because neither is a file it can read.
 The run also fails on a manifest that could load a definition from anywhere else: `agents`,
 `commands`, `skills` or `hooks` in a `plugin.json` or a marketplace entry, a marketplace
 `source` other than `./plugins/<plugin>`, or a manifest file in any other place. `make validate` fails on the first two (`unscanned-component-path`).

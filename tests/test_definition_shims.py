@@ -226,7 +226,7 @@ def test_a_markdown_file_anywhere_under_agents_is_refused(repo, path, text):
     # that the scan would never wrap if it were skipped.
     repo.write(path, text)
     repo.commit()
-    with pytest.raises(shims.DefinitionError):
+    with pytest.raises(shims.DefinitionError, match="not a subagent or command file|readme"):
         shims.list_definitions(repo.path)
 
 
@@ -591,6 +591,42 @@ def test_a_readme_that_opens_a_frontmatter_it_never_closes_is_refused(repo, tmp_
 def test_only_the_exact_upper_case_readme_is_accepted_beside_the_strict_pattern(name):
     with pytest.raises(shims.DefinitionError):
         shims.definition_id(f"plugins/demo/commands/{name}", {"demo"})
+
+
+@pytest.mark.parametrize("name", ["Readme.md", "ReadMe.md", "Deploy.md"])
+def test_a_mis_cased_command_name_is_refused_on_its_own(name):
+    # One name per case, so accepting any single spelling fails exactly this case.
+    with pytest.raises(shims.DefinitionError, match="not a subagent or command file"):
+        shims.definition_id(f"plugins/demo/commands/{name}", {"demo"})
+
+
+@pytest.mark.parametrize("path", ["plugins/demo/agents/extra", "plugins/demo/commands/extra"])
+@pytest.mark.parametrize("mode", ["all", "changed"])
+def test_a_gitlink_under_agents_or_commands_is_refused(repo, tmp_path, capsys, path, mode):
+    base = repo.git("rev-parse", "HEAD")
+    repo.git("update-index", "--add", "--cacheinfo", f"160000,{base},{path}")
+    repo.git("commit", "--quiet", "-m", "submodule")
+    args = ["--all"] if mode == "all" else ["--changed", base]
+    out = tmp_path / "out"
+    assert run(repo, out, *args) == 1
+    assert "submodule" in capsys.readouterr().err
+    assert not out.exists()
+
+
+def test_a_gitlink_elsewhere_under_claude_is_refused(repo, tmp_path):
+    base = repo.git("rev-parse", "HEAD")
+    repo.git("update-index", "--add", "--cacheinfo", f"160000,{base},.claude/rules/extra")
+    repo.git("commit", "--quiet", "-m", "submodule")
+    assert run(repo, tmp_path / "out", "--all") == 1
+
+
+def test_a_path_cannot_open_the_legacy_workflow_command_marker(repo, tmp_path, capsys):
+    repo.write("plugins/demo/agents/Bad##[warning]x.md", AGENT)
+    repo.commit()
+    assert run(repo, tmp_path / "out", "--all") == 1
+    err = capsys.readouterr().err
+    assert "##[" not in err
+    assert "## [warning]" in err
 
 
 def test_two_commands_cannot_share_an_id(tmp_path):

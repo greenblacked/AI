@@ -41,8 +41,9 @@ does not matter). A README.md in `commands/` is a command, so it is wrapped even
 validator ignores it, with its id from the lowercased stem; one without frontmatter is
 given `name` and `description` lines so both scanners load it. `agents/evals/*.json` and
 `.claude/agents/benchmarks/**` hold no .md, so they are not definitions. A file in a covered
-place whose name breaks the pattern, a symbolic link, a file that is not regular on disk, or
-an id used twice fails the run: a definition that is skipped is a definition nobody scanned.
+place whose name breaks the pattern, a symbolic link, a submodule (mode 160000) anywhere
+under `plugins/` or `.claude/`, a file that is not regular on disk, or an id used twice
+fails the run: a definition that is skipped is a definition nobody scanned.
 
 The scan can only see the default folders, so the run also fails on a manifest that points
 Claude Code anywhere else (`check_manifests`): `agents`, `commands`, `skills` or `hooks` in a
@@ -87,6 +88,8 @@ README_NAMES = frozenset({"README.md", "readme.md"})
 BASE_RE = re.compile(r"[0-9a-f]{40}")
 # The mode `git ls-files -s` gives a symbolic link.
 SYMLINK_MODE = "120000"
+# A submodule entry: a commit, not a file, so there is nothing here to wrap or scan.
+GITLINK_MODE = "160000"
 
 
 class DefinitionError(ValueError):
@@ -95,7 +98,9 @@ class DefinitionError(ValueError):
 
 def safe(text: str) -> str:
     """A path or name as one inert line: control characters escaped, quotes added."""
-    return ascii(text)
+    # `##[` is the legacy workflow-command marker the runner honours anywhere in a line, and
+    # ascii() leaves it intact, so it is broken the way skill_scan_gate.py's inert() does.
+    return ascii(text).replace("##[", "## [")
 
 
 def git(repo: Path, *args: str) -> bytes:
@@ -248,6 +253,11 @@ def list_definitions(repo: Path) -> list[str]:
     """Every tracked subagent and command file, sorted. Raises on one that cannot be read."""
     check_manifests(repo)
     modes = tracked(repo)
+    for path in sorted(modes):
+        if modes[path] == GITLINK_MODE:
+            raise DefinitionError(
+                f"{safe(path)} is a submodule (gitlink); the scan cannot read what it points at"
+            )
     located = sorted(path for path in modes if LOCATION_RE.fullmatch(path))
     paths = []
     for path in located:
