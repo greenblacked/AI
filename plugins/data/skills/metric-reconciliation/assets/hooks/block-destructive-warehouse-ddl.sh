@@ -41,11 +41,15 @@ if [ -z "$command" ]; then
 fi
 
 # Word-bounded and SQL-shaped, so "truncated" and `truncate -s 0 file` pass while
-# `TRUNCATE TABLE t`, `truncate t` and `DROP MATERIALIZED VIEW v` block.
-drop_re='\<drop[[:space:]]+((external|materialized|temp|temporary)[[:space:]]+)?(table|view|schema|database|column)\>'
+# `TRUNCATE TABLE t`, `truncate t`, `DROP MATERIALIZED VIEW v`, `DROP SNAPSHOT TABLE t` and
+# `DROP DYNAMIC TABLE t` block.
+drop_re='\<drop[[:space:]]+((external|materialized|snapshot|dynamic|temp|temporary)[[:space:]]+)?(table|view|schema|database|column)\>'
 truncate_re='\<truncate[[:space:]]+(table[[:space:]]+)?[[:alpha:]_"`[\\]'
 bq_re='\<bq[[:space:]]+rm\>'
-if printf '%s' "$command" | grep -Eqi -e "$drop_re" -e "$truncate_re" -e "$bq_re"; then
+# Newlines become spaces first, so a heredoc with DROP or TRUNCATE on one line and the object
+# on the next is still one statement to the patterns.
+flat="$(printf '%s' "$command" | tr '\n' ' ')"
+if printf '%s' "$flat" | grep -Eqi -e "$drop_re" -e "$truncate_re" -e "$bq_re"; then
   echo "blocked: destructive warehouse DDL (DROP TABLE/VIEW/SCHEMA/DATABASE/COLUMN, TRUNCATE, bq rm). Rename the object, archive it, and run the drop yourself after the brownout." >&2
   exit 2
 fi
