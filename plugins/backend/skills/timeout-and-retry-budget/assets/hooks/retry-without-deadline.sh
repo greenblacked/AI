@@ -47,11 +47,15 @@ case "$path" in
   *) exit 0 ;;
 esac
 
-# Case-insensitive, and a retry word has to start a word or an identifier part (so "entry"
-# or "geometry" do not count, while max_retries, maxRetries and RetryPolicy do). A timeout or
-# deadline anywhere in the text satisfies the check, in any casing.
+# A retry word has to start a word or an identifier part. Case-insensitively that means
+# retry after a non-letter (retry_policy, RETRY_MAX, "retries") or a max_retries / maxAttempts
+# prefix; case-sensitively it means a capital R after any letter, the camelCase boundary in
+# WaitAndRetryAsync, withRetry and WithMaxRetries. A lowercase run such as "poetry" or
+# "geometry" has no capital and is not a boundary. A timeout or deadline anywhere in the text
+# satisfies the check, in any casing.
 retry_re='(^|[^[:alpha:]])(retr(y|ies|ied|ying)|max_?(retr|attempts))'
-if printf '%s' "$text" | grep -Eqi "$retry_re"; then
+camel_re='[[:alpha:]]Retr(y|ies|ied|ying)'
+if printf '%s' "$text" | grep -Eqi "$retry_re" || printf '%s' "$text" | grep -Eq "$camel_re"; then
   if ! printf '%s' "$text" | grep -Eqi 'timeout|deadline'; then
     echo "blocked: this text sets a retry but no timeout or deadline. Set the timeout from the caller's remaining deadline in the same text, and see call-chain-budget.md." >&2
     exit 2
