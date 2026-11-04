@@ -7,46 +7,64 @@
 
 # Agent skills
 
+Markdown procedures that an AI coding agent loads when your task matches, with the subagents, commands and project kits that go with them.
+
 521 agent skills, 30 subagents, ten slash commands and zero project kits, in
 twenty-nine plugins you install separately.
 
+[![Skills](https://img.shields.io/badge/skills-521-7c3aed)](#plugins)
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)
 [![Security](https://github.com/greenblacked/AI/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/security.yml)
 [![Scheduled checks](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/scheduled.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776ab)](pyproject.toml)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
-[![Skills](https://img.shields.io/badge/skills-521-7c3aed)](#plugins)
-[![License: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
+[![Licence: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-[Website](#website) · [Start here](#start-here) · [Install](#install) · [What is included](#what-is-included) · [Skills](#plugins) · [Working on this repository](#working-on-this-repository) · [CI](#ci-is-the-source-of-truth) · [Documentation](#documentation) · [Licence](#licence)
+[In one minute](#in-one-minute) · [Install](#install) · [At a glance](#at-a-glance) · [How I work with agents](#how-i-work-with-agents) · [Quality](#how-quality-is-enforced) · [Plugins](#plugins) · [Other tools](#other-tools) · [Working on this repository](#working-on-this-repository) · [Documentation](#documentation) · [Website](https://ai.szolotov.com)
 
 </div>
 
-A library of practical Markdown procedures for changing code, operating systems,
-shipping safely, reviewing design and usability, building on language models, making games, leading teams, and
-handling career and personal work.
-An agent loads a skill when its description matches your task; the skill supplies the
-ordering, checks and evidence to collect. This is a procedure library, not an application.
+## In one minute
 
-## Start here
+- **What it is:** a Claude Code plugin marketplace of procedures (skills), subagents with no editing tools, slash commands and project kits. An agent loads a skill when its description matches your task, and the skill supplies the ordering, the checks and the evidence to collect. It is a procedure library, not an application.
+- **Who it is for:** anyone who works with a coding agent and wants it to follow a specific order and gate rather than generic advice. The plugins cover engineering, operations, security, data, product, design, management, and personal and career work.
+- **How it is built:** every change is judged by a reviewer agent with no editing tools and by CI, and scanned by two skill scanners (Cisco's skill-scanner and NVIDIA's SkillSpector). Releases move through `dev`, `stage` and `main`. [How quality is enforced](#how-quality-is-enforced) has the detail.
+- **Where to start:** [install](#install) a plugin or two, or browse [ai.szolotov.com](https://ai.szolotov.com), which has a page for every plugin and skill. Using Codex, ChatGPT, Grok or another tool: [other tools](#other-tools).
 
-- **Claude Code:** install a plugin from the [marketplace](#claude-code), then reload it
-- **Codex or another terminal agent:** follow the [first-run walkthrough](docs/using.md#first-run-with-codex) or check the [supported tools](#chatgpt-grok-codex-and-everything-else)
-- **ChatGPT or another chat assistant:** use the [portable files](docs/using.md#chatgpt)
-- **Browse the website:** [ai.szolotov.com](https://ai.szolotov.com) has a page for every
-  plugin and skill, with the install line, examples and quality evidence
-- **Browse before installing:** the [plugin overview](#what-is-included) links to the full [catalogue](#plugins), one chapter per plugin with its subagents, commands and project kit
+## Install
 
-**Prerequisites:** an installed assistant for its route. Local installation needs Git,
-Bash and standard Unix tools; local validation and packaging need Python 3.10 or newer,
-and the `make` examples need Make. Only the test suite needs pytest, with pytest-xdist and pytest-cov. Downloading the
-portable CI artifact needs no local toolchain.
+```shell
+/plugin marketplace add greenblacked/AI
+/plugin install coding@greenblacked-ai
+/plugin install gamedev@greenblacked-ai
+/reload-plugins
+```
 
-Claude Code installs plugins with automatic triggering. Other tools can load native
-skills or read the portable export; [Using the skills](docs/using.md) explains each route
-and what the runtime does or does not enforce.
+The first line registers the marketplace and downloads nothing. Each `/plugin install`
+adds one plugin, and `/reload-plugins` makes it live in the session you are already in;
+skip it and nothing fires. After that you do not invoke a skill: you describe the
+situation, and the one whose description matches is loaded.
 
-## What is included
+Install the plugins you will use rather than all of them. Every description a plugin ships
+stays in context for the whole session, and the runtime caps that listing at about 1% of
+the context window. Past the cap it silently drops the descriptions of the skills you use
+least, which leaves them invocable by name and stops them being chosen on their own. Only
+`personal` and `iac` fit the default budget on their own. The other twenty-seven are over it,
+each by enough that installed alone at least one of its descriptions is dropped. To install
+several, raise the budget in `~/.claude/settings.json`:
+
+```json
+{ "skillListingBudgetFraction": 0.49 }
+```
+
+That figure covers the whole marketplace, with a little headroom; anything smaller
+silently drops the difference. `scripts/check_listing_budget.py` prints the fraction the
+listing currently needs and fails if this number falls below it, so the advice cannot go
+stale as skills are added. `/doctor` reports what the listing costs in your session.
+
+Using Codex, ChatGPT, Grok, Gemini CLI or another tool? See [Other tools](#other-tools).
+
+## At a glance
 
 | Plugin | Focus | Contents | Project kits |
 | --- | --- | --- | --- |
@@ -80,274 +98,122 @@ and what the runtime does or does not enforce.
 | [`research`](#research) | Research engineering: reproducibility, numerical error, convergence, statistics review, HPC and Slurm, scaling, large datasets | 19 skills | 0 |
 | [`growth`](#growth) | Marketing and growth: content SEO, email deliverability, lifecycle, campaigns, attribution, paid search, community, devrel | 20 skills | 0 |
 
-Install one plugin or all twenty-nine. Each is a self-contained directory under `plugins/` with
-its own manifest, so installing one does not pull in another's files.
+Each plugin is a self-contained directory under `plugins/` with its own manifest, so
+installing one does not pull in another's files.
 
-Install what you will use, though, rather than everything by reflex. Every description you
-install stays resident in context, and Claude Code's default listing budget is about 8,000
-characters against this library's total — `make validate` prints the current figure — so
-installing all twenty-nine at the default drops most of them, silently. The Install section
-below says what to set instead.
+## How I work with agents
 
-## The FAMILY workflow
+This repository is built by the loop it documents. A change goes through two loops of
+subagents defined in [`.claude/agents/`](.claude/agents), one stage at a time, each on the
+model tier its work needs and each handing the next a written brief rather than a
+paraphrase. [`/ship`](.claude/commands/ship.md) runs the build loop and
+[`/verify`](.claude/commands/verify.md) the verify loop.
 
-FAMILY is a development workflow that keeps its shape whether one person or a whole team
-is running it: Frame, Architect, Make, Inspect, Launch, Yield. It takes one slice of work
-from a vague request to a measured outcome, and each stage has one gate, one artifact and
-one handoff to the next.
-
-| Letter | Stage | The decision it owns | Artifact |
-| --- | --- | --- | --- |
-| F | Frame | What problem, for whom, what done means, and the smallest valuable slice | A one-page frame |
-| A | Architect | The approach, the boundaries, the interfaces, and the hardest decision to reverse | A design note and the ADR |
-| M | Make | The order the slice is built in, and the proof each step carries | An ordered, file-level change plan |
-| I | Inspect | Whether the change is correct, safe and accessible | Findings by severity, with evidence |
-| L | Launch | Whether it is ready to reach users, and how it comes back | A launch plan: migration, signal, rollback |
-| Y | Yield | What the outcome teaches the next slice | A short retro that feeds Frame |
-
-The stages never change. Four profiles say who runs them — **solo**, **developer**,
-**QA** and **team** — and each slice records whether it runs light or full, so a
-shortcut is a decision rather than an accident. A solo developer runs all six in an afternoon; a
-team of ten gives each stage a named owner and a handoff contract.
-
-The [`family`](#family) plugin ships the `family-workflow` skill, a skill for each of the
-four profiles — `solo-development`, `developer-workflow`, `qa-workflow` and `team-workflow`
-— and a subagent per stage with no editing tools, `framer`, `architect`, `maker`, `inspector`,
-`launcher` and `yielder`, so the main conversation keeps the conclusion of each stage and
-not the material it read. Six more skills run those agents together: `family-relay`
-routes each verdict to the next stage, `plan-drift-gate` holds a build to its plan before
-inspection, `fresh-inspector-rounds` keeps every review round independent,
-`frame-claim-ledger` settles the claims a decision rests on, `yield-to-lesson` turns a
-retro into a check that can fail, and `stage-tiering` sets the model tier per stage. It is also the one page on the
-[website](https://ai.szolotov.com/family/) drawn by hand rather than generated from a
-plugin's files.
-
-## Website
-
-[ai.szolotov.com](https://ai.szolotov.com) is this catalogue as a website, rebuilt from
-the repository for every release. It shows the latest release that deployed successfully:
-if a deploy fails its check and rolls back, the previous one keeps serving.
-
-| Page | What it shows |
-| --- | --- |
-| [Home](https://ai.szolotov.com) | The twenty-nine plugins with their skill counts, and a search across plugins and skill names |
-| `/plugins/<plugin>/` | One page per plugin: what it covers, its install line and its skills |
-| `/plugins/<plugin>/<skill>/` | One page per skill: its description, install line and allowed tools when it declares them, the full procedure, its reference files, and the requests it fires on and hands elsewhere |
-| [FAMILY](https://ai.szolotov.com/family/) | The one page that is not generated from a plugin's own files: the Frame–Architect–Make–Inspect–Launch–Yield workflow, drawn as a stage-by-stage guide with the four profiles |
-| [Start](https://ai.szolotov.com/start/) | Installing in Claude Code and in other tools, followed by [Using the skills](docs/using.md) |
-| [Workflows](https://ai.szolotov.com/workflows/) | The subagents and slash commands each plugin ships, and how they fit with the skills |
-| [Examples](https://ai.szolotov.com/examples/) | A week of real use, and sample requests for every skill |
-| [Quality](https://ai.szolotov.com/quality/) | Figures computed from the repository: trigger-eval coverage, listing budgets, the coverage floor, reviewer benchmark cases and review lessons |
-
-The same host serves each release's files: [`marketplace.json`](https://ai.szolotov.com/marketplace.json),
-[`portable-skills.zip`](https://ai.szolotov.com/portable-skills.zip), one
-`skills/<name>.skill` archive per skill, and `version.txt` naming the release it was built
-from.
-
-The site is light by day, dark from 20:00 to 06:00 by the visitor's clock, and has a
-switch for either plus a terminal-style console theme. It is static HTML with no analytics
-and no cookies, built with nothing but Python; its two fonts are served from the site itself.
-It does store pages on the visitor's own device: a small service worker keeps each page you
-open in your browser's cache, so a visitor who loses the connection can read those pages again
-and sees an offline page for any other. That cache never leaves the browser, holds at most
-sixty pages, and is emptied by clearing the site's data or dropped when a new release deploys. [`scripts/build_catalogue_site.py`](scripts/build_catalogue_site.py)
-writes every page, and [`scripts/site_markdown.py`](scripts/site_markdown.py) renders the
-Markdown with all source text escaped, raw HTML shown as text, and only `http`, `https`,
-`mailto`, fragment and in-repository links kept. To build and view it locally:
-
-```shell
-make site
-python -m http.server --directory dist/site 8000
+```mermaid
+flowchart LR
+  subgraph build["Build loop: /ship"]
+    EX["explorer: survey what exists"] --> IM["implementer: write it, run the gates"]
+    IV["investigator: only if the change rests on an outside claim"] --> IM
+    IM --> RV["reviewer: judge on a fresh context"]
+    IM -.->|"security trigger"| SR["security-reviewer"]
+    RV -->|"FIX"| IM
+    RV -->|"SHIP"| PR["one pull request, merged once ci and security pass"]
+    SR --> PR
+  end
+  subgraph verify["Verify loop: /verify"]
+    IV2["investigator: settle one claim against primary sources"] --> RV2["reviewer: does the finding support the change"]
+  end
 ```
 
-A release publishes it: **Cut release** in the Actions tab tags `main`, and the release
-workflow deploys that version to the Cloudflare Worker behind `ai.szolotov.com`, checks it
-answers, and rolls back automatically if it does not. [Releasing a version](docs/ci.md#releasing-a-version)
-has the steps.
+The reviewer holds no editing tools, because a reviewer that can apply is not a
+reviewer, and it reads on a fresh context so it does not inherit the author's reasoning.
+The verify loop exists because a skill here once asserted that a `kubectl drain` flag
+skipped graceful shutdown, and the source said otherwise.
 
-## Install
-
-### Claude Code
-
-```shell
-/plugin marketplace add greenblacked/AI
-/plugin install coding@greenblacked-ai
-/plugin install gamedev@greenblacked-ai
-/reload-plugins
-```
-
-The first line registers the marketplace and downloads nothing. Each `/plugin install`
-adds one plugin, and `/reload-plugins` makes them live in the session you are already in
-— skip it and you will wonder why nothing fires. After that you do not invoke a skill:
-you describe the situation, and the one whose description matches is loaded.
-
-Install the plugins you will use rather than all of them. Every description a plugin ships
-stays in context for the whole session, and the runtime caps that listing at about 1% of
-the context window; past the cap it silently drops the descriptions of the skills you use
-least, which leaves them invocable by name and stops them being chosen on their own. Only
-`personal` and `iac` fit the default budget on their own. The other twenty-seven are over it —
-each by enough that installed alone at least one of its descriptions is dropped — and the
-split exists to keep that number as small as it can be.
-
-The description budget is shared across installed plugins. Splitting a plugin does not
-reduce the total when both halves are installed, and shortening every description to a
-label sacrifices the trigger phrases that distinguish neighbouring skills. Check the
-current totals with `scripts/check_listing_budget.py`; either install only what you need
-or raise the budget in `~/.claude/settings.json`:
-
-```json
-{ "skillListingBudgetFraction": 0.49 }
-```
-
-That figure covers the whole marketplace, with a little headroom. Anything smaller
-silently drops the difference — 0.04 covers barely half of it, which reads like a fix and
-is not. `scripts/check_listing_budget.py` prints the fraction the listing currently needs
-and fails if this number falls below it, so the advice cannot go stale as skills are
-added.
-
-`/doctor` reports what the listing actually costs and its biggest contributors.
-
-### ChatGPT, Grok, Codex and everything else
-
-Several agent tools now load the same `SKILL.md` format natively and activate a skill when
-it is relevant; the table below says which, and where each one looks. Gemini CLI, Copilot
-and Mistral Vibe all read the shared `.agents/skills` location, and one command links every
-skill there:
-
-```bash
-git clone https://github.com/greenblacked/AI.git && cd AI
-CLAUDE_SKILLS_DIR=~/.agents/skills make install
-```
-
-This repository's subagents, both the ones shipped under `plugins/*/agents/` and the ones
-under `.claude/agents/`, and its slash commands are a Claude Code feature and do not
-travel. Grok Build and Mistral Vibe read the `allowed-tools` key, but whether they enforce
-it as a restriction is not verified here, so rely on it only in Claude Code.
-
-For adapted coordinator and role prompts, use the [ChatGPT workflow guide](docs/chatgpt-agents.md);
-whether a session can actually delegate to subagents depends on the tools it exposes.
-
-<details>
-<summary>Which tools read AGENTS.md and load skills</summary>
-
-<!-- providers-table:start -->
-<!-- Generated from providers.json by `python scripts/providers_table.py --write .`. Do not edit this table by hand: edit that file and regenerate. -->
-
-| Provider | Tool | Reads `AGENTS.md` | Loads skills | How to use this library | Checked |
-| --- | --- | --- | --- | --- | --- |
-| Anthropic | Claude Code | Yes when there is no `CLAUDE.md`; beside one, through an `@AGENTS.md` import | Yes — plugins, `~/.claude/skills`, `.claude/skills` | Install the plugins from this marketplace | [2026-09-23](https://code.claude.com/docs/en/memory), [2](https://code.claude.com/docs/en/skills) |
-| DeepSeek | DeepSeek API | Not applicable — a model API, not an agent tool | Through whichever agent tool calls it | Route Claude Code to DeepSeek through OpenRouter, unsupported by Anthropic; see docs/deepseek.md | [2026-09-23](https://github.com/deepseek-ai/DeepSeek-V3), [2](https://github.com/OpenRouterTeam/docs/blob/main/cookbook/coding-agents/claude-code-integration.mdx) |
-| GitHub | Copilot | Yes; in VS Code, files outside the workspace root are off by default | Yes — `.github/skills`, `.claude/skills`, `.agents/skills`, `~/.copilot/skills`, `~/.agents/skills` | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-10-26](https://github.com/github/docs/blob/main/content/copilot/concepts/customizations/agent-skills.md), [2](https://github.com/github/docs/blob/main/content/copilot/how-tos/copilot-in-your-ide/customize-copilot/configure-custom-instructions/add-repository-instructions-in-your-ide.md) |
-| Google | Gemini CLI | Opt-in — add `AGENTS.md` to `context.fileName` in `settings.json`; the default is `GEMINI.md` | Yes — `.agents/skills`, `.gemini/skills`, and both under `~` | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-09-23](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/skills.md), [2](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/gemini-md.md) |
-| Mistral | Mistral Vibe | Yes — `~/.vibe/AGENTS.md` and project directories; needs folder trust | Yes — `.agents/skills`, `.vibe/skills`, `~/.vibe/skills`, `~/.agents/skills` | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-09-23](https://github.com/mistralai/mistral-vibe/blob/main/README.md) |
-| OpenAI | Codex CLI | Yes — each `AGENTS.md` from the project root down to the working directory | Yes — `~/.agents/skills` (user), `.agents/skills` (repository); also `$CODEX_HOME/skills` (default `~/.codex/skills`, legacy compatibility) | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-09-30](https://github.com/openai/codex/blob/main/codex-rs/core/src/agents_md.rs), [2](https://github.com/openai/codex/blob/main/codex-rs/skills/src/lib.rs), [3](https://github.com/openai/codex/blob/main/codex-rs/utils/home-dir/src/lib.rs), [4](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills), [5](https://github.com/openai/codex/blob/rust-v0.144.0-alpha.4/codex-rs/core-skills/src/loader.rs) |
-| xAI | Grok Build | Yes, and `CLAUDE.md`; needs folder trust | Yes — `.grok/skills`, `.agents/skills`, and `~/.claude/skills` | `make install` already links every skill where it looks | [2026-09-23](https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/docs/user-guide/08-skills.md), [2](https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/docs/user-guide/12-project-rules.md) |
-
-<!-- providers-table:end -->
-
-</details>
-
-For a chat product with no skills loader, the portable export still applies. There is no
-marketplace to read there, so the skills are flattened into files that stand alone
-— frontmatter becomes a plain "Use this when" line and every reference file is inlined, so
-nothing is left pointing at a path the reader cannot open.
-
-You do not need a toolchain to get them. Every CI run builds them and attaches them as
-the **portable-skills** artifact: open the
-[latest run](https://github.com/greenblacked/AI/actions/workflows/ci.yml?query=branch%3Amain),
-scroll to Artifacts, and download. Inside are one file per skill, one bundle per plugin,
-an index of every description, a router sized to fit inside a terminal agent's own
-document budget, and a README explaining where each goes.
-
-If you do have a terminal, build them yourself instead:
-
-```bash
-git clone https://github.com/greenblacked/AI.git && cd AI
-make portable       # writes dist/portable/
-```
-
-Either way: upload the `plugins/*.md` bundles to a ChatGPT Project or a Custom GPT, paste
-a single `skills/<name>.md` into any chat, or paste `router.md` — or one narrower
-`router-<plugin>.md` — into the `AGENTS.md` of the repository a terminal agent is working
-in, with `skills/` copied in beside it. Once the catalogue outgrows the router's size
-budget, `router.md` is an index of the `router-<plugin>.md` files rather than the
-combined router, so paste the plugin files you want. [Using the skills](docs/using.md) has the
-instruction text that makes a Project reach for them, why a terminal agent gets the
-router rather than a bundle, and says plainly what does not survive the trip.
-
-### Running the skills on DeepSeek
-
-The one route this repository takes a position on is below, linked to its full
-configuration in [`docs/deepseek.md`](docs/deepseek.md).
-
-| Route | Tool | Gateway | Set this | Status |
+| Agent | Stage | Model | Effort | Editing tools |
 | --- | --- | --- | --- | --- |
-| [Claude Code → OpenRouter → DeepSeek](docs/deepseek.md#claude-code-through-openrouter-to-deepseek) | Claude Code | OpenRouter | `ANTHROPIC_BASE_URL=https://openrouter.ai/api`, `ANTHROPIC_API_KEY` empty, model = OpenRouter's DeepSeek id | OpenRouter only guarantees its Anthropic first-party provider; unsupported by Anthropic |
+| `explorer` | Survey | Haiku | high | none |
+| `investigator` | Survey in parallel, or establish a claim | Opus | medium | none |
+| `implementer` | Write | Sonnet | medium | `Write`, `Edit` |
+| `reviewer` | Judge | Opus | medium | none |
+| `security-reviewer` | Judge security, when the diff touches a security trigger | Fable | medium | none |
 
-### Working on the skills themselves
+The model and effort are the `model:` and `effort:` lines in each agent's frontmatter, and
+the tools are its `tools:` line. `Bash` stays on every agent, so "no editing tools" does not
+mean "cannot run commands". Codex and ChatGPT sessions use a different split, set out in
+[`AGENTS.md`](AGENTS.md).
+[Writing a subagent](docs/writing-agents.md#the-two-loops) explains why each split earns
+its round trip, and [review lessons](docs/review-lessons.md) records the defect classes
+review here has already caught, which the writing and judging stages read first.
 
-```bash
-git clone https://github.com/greenblacked/AI.git && cd AI
-./scripts/install.sh --plugin coding --dry-run   # preview one plugin
-./scripts/install.sh --plugin coding             # link it into ~/.claude/skills
+The same idea runs a whole development workflow in the [`family`](#family) plugin: FAMILY
+takes one slice of work through Frame, Architect, Make, Inspect, Launch and Yield, each
+stage with one gate, one artifact and one handoff, for a solo developer, a developer, a
+QA engineer or a team. It ships the `family-workflow` skill, a skill for each of the four
+profiles and a subagent per stage with no editing tools, and it is drawn stage by stage on
+the [website](https://ai.szolotov.com/family/).
+
+## How quality is enforced
+
+Two checks are required to merge, `ci` and `security`. Each rejects every dependency that
+did not report success, including skipped ones, so a job cannot go green by being
+forgotten. [CI](docs/ci.md) explains each job and how to reproduce it locally.
+
+| Gate | What it catches | Feeds |
+| --- | --- | --- |
+| Validator (`make validate`, strict) | Invalid frontmatter, a name that differs from its directory, a dangling `references/` pointer, a malformed eval set, anything on disk no plugin lists | `ci` |
+| Catalogue checks (`make catalogue`) | A plugin's listing over its ceiling, the README or `docs/ci.md` drifting from the tree, a workflow aggregate missing a job, a shell block that does not parse, a stale providers table | `ci` |
+| Tests and coverage floor (`make test`) | A validator or script regression on Python 3.10 to 3.13, and coverage below 95% | `ci` |
+| Lint set | Typos (codespell), Markdown (markdownlint), YAML (yamllint), workflows (actionlint) and broken local links (lychee, offline) | `ci` |
+| Attribution and naming | Tool attribution or co-author trailers, and branch, commit, pull request title and file names that break [the convention](CONTRIBUTING.md#naming-a-branch) | `ci` |
+| gitleaks | A credential in the tree or in history | `security` |
+| zizmor and the permissions audit | A workflow vulnerability, a missing or broad `permissions:` block, an unpinned action, a job with no timeout, a checkout that persists credentials | `security` |
+| ruff with flake8-bandit, and CodeQL | Python security findings in the validator and the scripts | `security` |
+| Cisco skill-scanner | A high or critical finding in any skill, subagent or command definition that no reviewed baseline accepts | `security` |
+| NVIDIA SkillSpector | The same, on the skills a pull request changes, and on all of them for other events | `security` |
+
+The check that earns its place is the dangling-pointer one. Two of these skills shipped
+for months naming `references/*.md` files nobody had written: the model loaded nothing
+where it expected depth, and no error was ever raised. CI now fails on it.
+
+Every skill and subagent carries a trigger eval set, twenty queries it should fire on and
+near-misses it should not, most of them naming the sibling that ought to win. The schema is
+checked on every run; scoring needs a model, so [`scripts/run_trigger_eval.py`](scripts/run_trigger_eval.py)
+runs it monthly and on the skills a pull request touches, against the whole catalogue, which
+is what catches a skill that fires on everything. See [trigger evals](docs/ci.md#githubworkflowsevalsyml--trigger-evals).
+
+A change reaches production through `dev`, `stage` and `main`, and the last two each land on a URL:
+
+```mermaid
+flowchart LR
+  B["branch"] -->|"pull request: ci, security, dry-run deploy"| D["dev"]
+  D -->|"promotion"| S["stage"]
+  S -->|"push to stage"| PV["Preview: stage.ai.szolotov.com"]
+  S -->|"promotion plus release-prepare"| M["main"]
+  M -->|"Cut release, run by hand"| T["tag vX.Y.Z"]
+  T --> RL["release.yml"]
+  RL --> GR["GitHub Release"]
+  RL --> CF["Cloudflare: ai.szolotov.com"]
+  CF -.->|"failed check"| RB["automatic rollback"]
 ```
 
-Omit `--plugin` to install every skill, or repeat it to select several plugins.
+A feature branch merges into `dev`. `stage` and `main` take only promotions, and a push to
+`stage` uploads a preview of the site to `https://stage.ai.szolotov.com`. **Cut release**
+in the Actions tab then tags `main`, and the release workflow publishes the GitHub Release
+and deploys that version to `https://ai.szolotov.com`, checks it answers and rolls back
+if it does not. [Releasing a version](docs/ci.md#releasing-a-version) has the steps.
 
-## What a real week looks like
-
-You never type a skill name. You describe the situation in the words you would use to a
-colleague, and the skill whose description matches that situation loads itself. This is
-one service going from nothing to running badly to running well, with the sentence that
-fired each step.
-
-**Monday — the service does not exist yet.**
-
-| You say | What loads | What it makes you do first |
-| --- | --- | --- |
-| "set up a pipeline for this repo" | `ci-pipeline-design` | Decide which checks may block a merge before drawing a single stage |
-| "what should I set for resource limits" | `k8s-workloads` | Measure the workload under load before writing any number |
-| "write me a script that prunes old snapshots" | `code-scaffold` | Ask the questions that change the shape of the code, in one batch, before writing |
-
-**Wednesday — it ships.**
-
-| You say | What loads | What it makes you do first |
-| --- | --- | --- |
-| "canary or blue-green for this one" | `release-strategy` | Separate deploy from release, then pick the mechanism from how the change fails |
-| "we need to move the DNS without dropping requests" | `cutover` | Name the roles and the point of no return before the window opens |
-| "this migration adds a column to a 40M-row table" | `db-migration` | Expand, backfill, migrate reads, migrate writes, contract — each revertible alone |
-
-**Thursday, 3am — it breaks.**
-
-| You say | What loads | What it makes you do first |
-| --- | --- | --- |
-| "pods are in CrashLoopBackOff and I am on call" | `k8s-triage` | Restore service first; diagnosis is the second job |
-| "the payment provider's status page just went red" | `incident-response` | Name an IC who will not debug, set severity once, and mitigate by symptom |
-| *(a 200MB CI log)* | `ci-log-reader` *(subagent)* | Returns which of five triage classes it is and the log line that decided it |
-| "what do we tell customers" | `incident-comms` | Acknowledge on impact, not on diagnosis, and promise a next update you keep |
-
-**Friday — you find out why, and stop it recurring.**
-
-| You say | What loads | What it makes you do first |
-| --- | --- | --- |
-| "write this up without blaming anyone" | `postmortem` | Separate the root causes from the trigger; every action item gets an owner and a date |
-| "our pager is out of control" | `alert-design` | Classify every signal as page, ticket or dashboard-only, and alert on SLO burn |
-| "I renamed a module and now it wants to destroy everything" | `terraform-state` | Back up state before touching it, and prefer the form that shows up in a plan |
-| "our bill went up 30% and nobody knows why" | `cost-review` | Attribute the spend before touching anything, then read top movers over top spenders |
-
-Two things in that week are worth naming. The subagent on Thursday exists so a
-200MB log never enters your context — you get the verdict, not the bytes. And every
-"what it makes you do first" column is the actual value: the model already knows what a
-liveness probe is, but it will happily write you one that checks a database and restarts
-healthy pods during someone else's outage. The gate is the skill.
+Some controls live in GitHub's settings and no file here can see whether they are on: the
+branch ruleset, private vulnerability reporting, secret scanning and push protection,
+Dependabot, and which CodeQL setup runs. [CI](docs/ci.md#recorded-state) names them,
+records which the owner has confirmed, and gives the command that reads each back.
 
 ## Plugins
 
-Each plugin is a chapter: its skills, the subagents (no editing tools) that keep bulky evidence out of the
-main context, any slash commands, and its project kit. A subagent exists to keep bulk out of the
-main context and to be denied the tools it should not have; a reviewer that can apply is not a
-reviewer. Commands declare `disable-model-invocation: true`, so they run only when invoked
-explicitly, which makes them the right shape for work that takes an argument.
+Each plugin is a chapter: its skills, the subagents (no editing tools) that keep bulky
+evidence out of the main context, any slash commands, and its project kit. Commands
+declare `disable-model-invocation: true`, so they run only when invoked explicitly, which
+makes them the right shape for work that takes an argument.
 
 ### Coding
 
@@ -1595,14 +1461,113 @@ None yet.
 
 No kit yet.
 
+## What a real week looks like
+
+You never type a skill name. You describe the situation in the words you would use to a
+colleague, and the skill whose description matches that situation loads itself. This is
+one service going from nothing to running badly to running well, with the sentence that
+fired each step.
+
+**Monday — the service does not exist yet.**
+
+| You say | What loads | What it makes you do first |
+| --- | --- | --- |
+| "set up a pipeline for this repo" | `ci-pipeline-design` | Decide which checks may block a merge before drawing a single stage |
+| "what should I set for resource limits" | `k8s-workloads` | Measure the workload under load before writing any number |
+| "write me a script that prunes old snapshots" | `code-scaffold` | Ask the questions that change the shape of the code, in one batch, before writing |
+
+**Wednesday — it ships.**
+
+| You say | What loads | What it makes you do first |
+| --- | --- | --- |
+| "canary or blue-green for this one" | `release-strategy` | Separate deploy from release, then pick the mechanism from how the change fails |
+| "we need to move the DNS without dropping requests" | `cutover` | Name the roles and the point of no return before the window opens |
+| "this migration adds a column to a 40M-row table" | `db-migration` | Expand, backfill, migrate reads, migrate writes, contract — each revertible alone |
+
+**Thursday, 3am — it breaks.**
+
+| You say | What loads | What it makes you do first |
+| --- | --- | --- |
+| "pods are in CrashLoopBackOff and I am on call" | `k8s-triage` | Restore service first; diagnosis is the second job |
+| "the payment provider's status page just went red" | `incident-response` | Name an IC who will not debug, set severity once, and mitigate by symptom |
+| *(a 200MB CI log)* | `ci-log-reader` *(subagent)* | Returns which of five triage classes it is and the log line that decided it |
+| "what do we tell customers" | `incident-comms` | Acknowledge on impact, not on diagnosis, and promise a next update you keep |
+
+**Friday — you find out why, and stop it recurring.**
+
+| You say | What loads | What it makes you do first |
+| --- | --- | --- |
+| "write this up without blaming anyone" | `postmortem` | Separate the root causes from the trigger; every action item gets an owner and a date |
+| "our pager is out of control" | `alert-design` | Classify every signal as page, ticket or dashboard-only, and alert on SLO burn |
+| "I renamed a module and now it wants to destroy everything" | `terraform-state` | Back up state before touching it, and prefer the form that shows up in a plan |
+| "our bill went up 30% and nobody knows why" | `cost-review` | Attribute the spend before touching anything, then read top movers over top spenders |
+
+Two things in that week are worth naming. The subagent on Thursday exists so a
+200MB log never enters your context — you get the verdict, not the bytes. And every
+"what it makes you do first" column is the actual value: the model already knows what a
+liveness probe is, but it will happily write you one that checks a database and restarts
+healthy pods during someone else's outage. The gate is the skill.
+
+## Other tools
+
+Several agent tools load the same `SKILL.md` format natively and activate a skill when it
+is relevant; the table below says which, and where each one looks. Gemini CLI, Copilot and
+Mistral Vibe all read the shared `.agents/skills` location, and one command links every
+skill there:
+
+```bash
+git clone https://github.com/greenblacked/AI.git && cd AI
+CLAUDE_SKILLS_DIR=~/.agents/skills make install
+```
+
+Subagents, both those under `plugins/*/agents/` and those under `.claude/agents/`, and slash
+commands are a Claude Code feature and do not travel. Grok Build and Mistral Vibe read the
+`allowed-tools` key, but whether they enforce it as a restriction is not verified here, so
+rely on it only in Claude Code.
+
+- **Codex or another terminal agent:** the [first-run walkthrough](docs/using.md#first-run-with-codex).
+- **ChatGPT or another chat assistant with no skills loader:** the portable export flattens
+  each skill into a file that stands alone. Every CI run attaches it as the
+  **portable-skills** artifact on the [latest run](https://github.com/greenblacked/AI/actions/workflows/ci.yml?query=branch%3Amain),
+  or `make portable` writes it to `dist/portable/`. [Using the skills](docs/using.md#chatgpt)
+  says where each file goes and what does not survive the trip; the
+  [ChatGPT workflow guide](docs/chatgpt-agents.md) has adapted coordinator and role prompts.
+- **DeepSeek:** the one route this repository takes a position on is Claude Code through
+  OpenRouter to DeepSeek. OpenRouter only guarantees its Anthropic first-party provider,
+  and Anthropic does not support it; [the configuration](docs/deepseek.md#claude-code-through-openrouter-to-deepseek)
+  is in `docs/deepseek.md`.
+- **One plugin from a checkout:** `./scripts/install.sh --plugin coding --dry-run` previews
+  it and `./scripts/install.sh --plugin coding` links it into `~/.claude/skills`. Omit
+  `--plugin` to link every skill, or repeat it to select several plugins.
+
+<details>
+<summary>Which tools read AGENTS.md and load skills</summary>
+
+<!-- providers-table:start -->
+<!-- Generated from providers.json by `python scripts/providers_table.py --write .`. Do not edit this table by hand: edit that file and regenerate. -->
+
+| Provider | Tool | Reads `AGENTS.md` | Loads skills | How to use this library | Checked |
+| --- | --- | --- | --- | --- | --- |
+| Anthropic | Claude Code | Yes when there is no `CLAUDE.md`; beside one, through an `@AGENTS.md` import | Yes — plugins, `~/.claude/skills`, `.claude/skills` | Install the plugins from this marketplace | [2026-09-23](https://code.claude.com/docs/en/memory), [2](https://code.claude.com/docs/en/skills) |
+| DeepSeek | DeepSeek API | Not applicable — a model API, not an agent tool | Through whichever agent tool calls it | Route Claude Code to DeepSeek through OpenRouter, unsupported by Anthropic; see docs/deepseek.md | [2026-09-23](https://github.com/deepseek-ai/DeepSeek-V3), [2](https://github.com/OpenRouterTeam/docs/blob/main/cookbook/coding-agents/claude-code-integration.mdx) |
+| GitHub | Copilot | Yes; in VS Code, files outside the workspace root are off by default | Yes — `.github/skills`, `.claude/skills`, `.agents/skills`, `~/.copilot/skills`, `~/.agents/skills` | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-10-26](https://github.com/github/docs/blob/main/content/copilot/concepts/customizations/agent-skills.md), [2](https://github.com/github/docs/blob/main/content/copilot/how-tos/copilot-in-your-ide/customize-copilot/configure-custom-instructions/add-repository-instructions-in-your-ide.md) |
+| Google | Gemini CLI | Opt-in — add `AGENTS.md` to `context.fileName` in `settings.json`; the default is `GEMINI.md` | Yes — `.agents/skills`, `.gemini/skills`, and both under `~` | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-09-23](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/skills.md), [2](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/gemini-md.md) |
+| Mistral | Mistral Vibe | Yes — `~/.vibe/AGENTS.md` and project directories; needs folder trust | Yes — `.agents/skills`, `.vibe/skills`, `~/.vibe/skills`, `~/.agents/skills` | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-09-23](https://github.com/mistralai/mistral-vibe/blob/main/README.md) |
+| OpenAI | Codex CLI | Yes — each `AGENTS.md` from the project root down to the working directory | Yes — `~/.agents/skills` (user), `.agents/skills` (repository); also `$CODEX_HOME/skills` (default `~/.codex/skills`, legacy compatibility) | `CLAUDE_SKILLS_DIR=~/.agents/skills make install` | [2026-09-30](https://github.com/openai/codex/blob/main/codex-rs/core/src/agents_md.rs), [2](https://github.com/openai/codex/blob/main/codex-rs/skills/src/lib.rs), [3](https://github.com/openai/codex/blob/main/codex-rs/utils/home-dir/src/lib.rs), [4](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills), [5](https://github.com/openai/codex/blob/rust-v0.144.0-alpha.4/codex-rs/core-skills/src/loader.rs) |
+| xAI | Grok Build | Yes, and `CLAUDE.md`; needs folder trust | Yes — `.grok/skills`, `.agents/skills`, and `~/.claude/skills` | `make install` already links every skill where it looks | [2026-09-23](https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/docs/user-guide/08-skills.md), [2](https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/docs/user-guide/12-project-rules.md) |
+
+<!-- providers-table:end -->
+
+</details>
+
 ## Working on this repository
 
 These ship to nobody. They are for working on this repository, and live in `.claude/`.
 
 ### Subagents
 
-Five more sit in [`.claude/agents/`](.claude/agents) and ship to nobody. They are for
-working on this repository, in two loops that share a judge.
+The five agents from [How I work with agents](#how-i-work-with-agents), in
+[`.claude/agents/`](.claude/agents):
 
 | Subagent | Loop | Role |
 | --- | --- | --- |
@@ -1612,28 +1577,10 @@ working on this repository, in two loops that share a judge.
 | `reviewer` | both | Judges the result on a fresh context with no editing tools |
 | `security-reviewer` | build | Reviews a change that touches a security trigger, beside `reviewer` |
 
-To build something: [`/ship`](.claude/commands/ship.md) runs `explorer` and, when the
-change rests on an outside claim, `investigator` in parallel, then `implementer`, then
-`reviewer` (beside `security-reviewer` when the diff touches a security trigger), then
-opens one pull request and merges once those reviewers, `ci` and `security` pass.
-
-To establish whether something is true: `investigator` settles one claim against primary
-sources, labels every finding primary, consensus or inference, and says what it could not
-verify and why; then `reviewer` judges whether the finding actually supports the change.
-[`/verify`](.claude/commands/verify.md) runs the two. It exists because a skill in this
-repository once asserted that a `kubectl drain` flag skipped graceful shutdown, and the
-source said otherwise.
-
-Each runs on the tier its stage needs.
-[Writing a subagent](docs/writing-agents.md#the-two-loops) explains why the splits earn
-their round trips.
-
 ### Commands
 
-Commands here explicitly declare `disable-model-invocation: true`, so they run only
-when invoked explicitly. That makes them the right shape for work that takes an
-argument, or that should run when asked rather than when merely relevant.
-Each does the mechanical part and points at the skill holding the full procedure.
+Commands here declare `disable-model-invocation: true`, so they run only when invoked
+explicitly. Each does the mechanical part and points at the skill holding the full procedure.
 
 | Command | What it does |
 | --- | --- |
@@ -1644,83 +1591,37 @@ Each does the mechanical part and points at the skill holding the full procedure
 | `/ship` | Take a change from survey to merge: research in parallel, write it and run the gates, judge it independently, then open one pull request and merge once review, `ci` and `security` pass. |
 | `/verify` | Take a claim through the verification loop: settle it against primary sources, labelling what is verified and what is not, then judge whether the finding supports the change. |
 
-## CI is the source of truth
+### Local gates
 
-Every skill is validated on pull requests, pushes to `main`, merge-group checks and
-manual CI runs. The validator is standard library only, and the test matrix runs on
-Python 3.10 through 3.13. Coverage is measured on 3.13; the full suite runs on all four.
-Independent checks run in parallel, then packaging builds the review artifacts only
-after the CI checks pass. The stable `ci` and `security` gates reject every non-success
-dependency, including skipped jobs. See the [execution flow](docs/ci.md#execution-flow).
+The same commands CI runs:
 
 ```bash
 make validate     # frontmatter contract, dangling references, marketplace cross-check
 make catalogue    # listing ceilings, the README and CI docs, workflows, shell, the hook, providers
 make test         # the validator's own test suite
-make docker-test  # validate, catalogue and the tests in a pinned Python container
 make coverage     # the same, with the coverage floor CI enforces
-make test-browser # drive the built site in Chromium (needs playwright)
+make docker-test  # validate, catalogue and the tests in a pinned Python container
 make package      # a .skill archive per skill
 make attribution  # commits and branch name against the attribution rules
 make naming       # branch, commit and file-naming conventions
+make site         # build the catalogue website into dist/site
 ```
 
-`make docker-test` builds [`docker/test.Dockerfile`](docker/test.Dockerfile) on a
-digest-pinned Python 3.13 and installs the exact pytest and coverage versions the `test`
-job pins in `ci.yml`, then runs the three checks with no network and a read-only
-filesystem. It is the second opinion for a host whose operating system or toolchain differs
-from the runner's; it is not a replacement for `make coverage`, which writes into the
-working tree.
-
-The check that earns its place is the dangling-pointer one. Two of these skills shipped
-for months naming `references/*.md` files nobody had written — the model loaded nothing
-where it expected depth, and no error was ever raised. CI now fails on it.
-
-Alongside `ci`, a `security` gate runs gitleaks over the working tree and history, zizmor
-over the workflows themselves, ruff's flake8-bandit rules, CodeQL, two agent-skill scanners
-that fail only on a high or critical finding missing from a reviewed baseline — Cisco's
-scans every skill and every subagent and command definition on every run; SkillSpector
-scans the skills and definitions a pull request changes (all of them when the pull request
-changes the scan configuration) and all of them on other events — and four invariants:
-every workflow declares a top-level `permissions:` block that is not `write-all` or
-`read-all` and grants `write` on no scope, every action is pinned to a commit SHA, every
-job sets `timeout-minutes`, and every checkout sets `persist-credentials: false`.
-actionlint and gitleaks, the two binaries CI downloads by hand rather than through an
-action or a package manager, are pinned to a version and checked against a recorded
-digest, with retries capped by a total deadline so a slow or rate-limiting server cannot
-run past a job's own timeout. A `naming` gate checks the same shape this repository holds
-contributors to — branch names, commit subjects, pull-request titles, and file and folder
-names — against [`CONTRIBUTING.md`](CONTRIBUTING.md#naming); `make naming` reproduces
-everything but the pull request title, which is checked only in CI, once the pull request
-exists.
-
-When `ci` or `security` goes red on a pull request,
-[`ci-triage.yml`](docs/ci.md#githubworkflowsci-triageyml--ci-triage) posts one comment
-naming each failed job, its first failed step, the likely cause, with the local command
-that reproduces it where one exists, and links to that job's docs section and log — plus
-a `ci-failed` label kept in step with it. Once both gates pass, it edits the same comment
-to say `Recovered` and drops the label; a pull request that never fails gets no comment
-at all. It runs only from the workflow file already on `main`, never a pull request's own
-head, and holds `actions: read`, `contents: read`, `issues: write` and `pull-requests:
-write` — enough to read runs and comment on and label the pull request, never to write to
-contents or push anything, and spent only on that one comment and that one label.
-
-Some repository controls live in GitHub's settings rather than in this tree — the branch
-ruleset, private vulnerability reporting, secret scanning and push protection, Dependabot
-alerts and security updates, and which CodeQL setup runs — and no file here can see
-whether they are switched on. [CI](docs/ci.md#recorded-state)
-names those controls, records which ones the owner has confirmed as on, and gives the
-commands to read each one's state back, since a repository can look rigorous while a
-control it describes is silently off.
-
-Subagents are held to the same contract, and every skill carries a trigger eval set —
-twenty queries it should fire on and near-misses it should not, with most near-misses
-naming the sibling that ought to win it. The schema is checked on every push because that is
-free; scoring the queries needs a model, so it runs on demand rather than gating anything.
-Each query is judged against the whole catalogue of descriptions, which is what catches a
-skill that fires on everything.
+`make site` followed by `python -m http.server --directory dist/site 8000` serves it
+locally. [Contributing](CONTRIBUTING.md) covers branches, commits and pull requests.
 
 ## Documentation
+
+[ai.szolotov.com](https://ai.szolotov.com) is this catalogue as a website, rebuilt from
+the repository for every release: a page per plugin and per skill, with its install line,
+examples and quality figures computed from the repository. Beyond those it has
+[Start](https://ai.szolotov.com/start/), [Workflows](https://ai.szolotov.com/workflows/),
+[Examples](https://ai.szolotov.com/examples/) and [Quality](https://ai.szolotov.com/quality/)
+pages, and serves each release's [`marketplace.json`](https://ai.szolotov.com/marketplace.json)
+and [`portable-skills.zip`](https://ai.szolotov.com/portable-skills.zip).
+`https://stage.ai.szolotov.com` previews what is on `stage`. It is static HTML with no
+analytics and no cookies, built with nothing but Python; a small service worker caches the
+pages you open in your own browser so they can be read offline, and nothing leaves it.
 
 - [Using the skills](docs/using.md) — installing and using them in Claude Code, ChatGPT, Grok and terminal agents
 - [The repository workflow in ChatGPT](docs/chatgpt-agents.md) — adapted coordinator and role prompts for the survey, write and review loop, and where actual delegation depends on the session's tools
@@ -1764,8 +1665,6 @@ not require is asking first, or sharing changes back.
 ### Independence and disclaimer
 
 This is an independent personal project. It is not affiliated with, endorsed by or made
-on behalf of any employer or any company named in it. The research, drafting and testing
-used AI models reached through the author's own personal subscriptions and accounts,
-paid for by the author, and nothing here is professional advice. [`NOTICE`](NOTICE) has
-the full statement, including the trademark note; it does not change the terms of the
-MIT licence above.
+on behalf of any employer or any company named in it, and nothing here is professional
+advice. [`NOTICE`](NOTICE) has the full statement, including the trademark note; it does
+not change the terms of the MIT licence above.
