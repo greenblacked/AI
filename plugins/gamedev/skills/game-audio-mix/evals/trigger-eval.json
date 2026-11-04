@@ -13,9 +13,9 @@
   {"query": "the Japanese voice lines run longer than the subtitles and the timing is off", "should_trigger": false, "expected": "game-localisation"},
   {"query": "the audio thread is eating 3 ms per frame, profile it", "should_trigger": false, "expected": "game-performance"},
   {"query": "add subtitles with size options and speaker names for deaf players", "should_trigger": false, "expected": "game-accessibility-pass"},
+  {"query": "add a max instances and steal rule column to the row for each sound event in our audio event table", "should_trigger": false, "expected": "game-audio-event-spec"},
   {"query": "reduce memory use by streaming textures and meshes on the console", "should_trigger": false, "expected": "game-memory-budget"},
   {"query": "record a podcast episode and clean up the background noise", "should_trigger": false},
-  {"query": "players can't rebind the push to talk key", "should_trigger": false, "expected": "game-input-mapping"},
   {"query": "our shader compile hitches the first time an effect plays", "should_trigger": false, "expected": "shader-compile-stutter"},
   {"query": "what must our audio pass for platform certification before submission", "should_trigger": false, "expected": "game-certification"},
   {"query": "balance weapon damage numbers so shotguns aren't dominant", "should_trigger": false, "expected": "game-balance"}

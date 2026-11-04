@@ -1,6 +1,6 @@
 ---
 name: game-audio-event-spec
-description: "Keep a game's sound events in one table that code, audio middleware and designers all read, so a trigger is never a guess. Writes the event table row by row — id, trigger, variants, bus, priority, max instances, voice-steal rule, ducking group, 2D or 3D — then runs a standard-library script that greps the code tree for event ids and reports ids used in code but missing from the table and rows nothing calls. Use for \"which sounds does this game need\", \"a footstep plays twice\", \"sound designer and programmer disagree on event names\", \"too many voices of one sound\", \"audit unused audio events\". Not for bus levels, ducking depth and loudness targets (game-audio-mix), per-sound import and compression (game-assets), or audio CPU cost (game-performance)."
+description: "Keep a game's sound events in one table that code, audio middleware and designers all read, so a trigger is never a guess. Writes the event table row by row — id, trigger, variants, bus, priority, max instances, voice-steal rule, ducking group, 2D or 3D — then runs a standard-library script that greps the code tree for event ids and reports ids used in code but missing from the table and rows nothing calls. Use for \"which sounds does this game need\", \"a footstep plays twice\", \"sound designer and programmer disagree on event names\", \"too many voices of one sound\", \"audit unused audio events\". Not for bus levels, ducking depth, loudness targets or voice limits per category and bus (game-audio-mix), per-sound import and compression (game-assets), or audio CPU cost (game-performance)."
 allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
@@ -14,7 +14,7 @@ Audio events drift because they live in three places. The programmer types a str
 
 Use for: listing the events a game needs, the table's columns and their allowed values, naming ids, deciding voice limits and steal rules per event, and auditing the code against the table.
 
-Do not use for: bus levels, how deep ducking goes, loudness targets and the intelligibility check, which are `game-audio-mix`; per-sound sample rate, codec and compression, which are `game-assets`; the CPU cost of the audio engine, which is `game-performance`. This skill names the bus and the ducking group an event belongs to; `game-audio-mix` decides what those buses and groups do.
+Do not use for: bus levels, how deep ducking goes, loudness targets and the intelligibility check, which are `game-audio-mix`, as are voice limits per category or bus and the stealing policy across a bus; per-sound sample rate, codec and compression, which are `game-assets`; the CPU cost of the audio engine, which is `game-performance`. This skill names the bus and the ducking group an event belongs to; `game-audio-mix` decides what those buses and groups do.
 
 ## Workflow
 
