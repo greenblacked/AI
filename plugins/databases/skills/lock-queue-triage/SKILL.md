@@ -105,3 +105,22 @@ Re-run the step 1 query: no waiters, and the pile of connections falls. Watch fo
 
 - `references/postgres-queries.md` — read at steps 1 to 3: the recursive blocking tree, the lock detail view, what each lock mode blocks, and long-transaction listing.
 - `references/mysql-queries.md` — read when the engine is MySQL: InnoDB row waits, metadata lock waits, the transactions that hold them, and the kill syntax.
+
+## Project kit
+
+Opt-in files under `${CLAUDE_SKILL_DIR}/assets/`, worth installing in a project that runs its own PostgreSQL or MySQL migrations or has had a stall:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/migration-lock-timeout.md` — a rule that loads when a migration file is read and asks for a lock timeout with bounded retry on every DDL statement.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/block-set-based-backend-kill.json` and `.sh` — a hook that blocks `pg_terminate_backend` or `pg_cancel_backend` unless the argument is a literal pid.
+- `${CLAUDE_SKILL_DIR}/assets/templates/stall-record.md` — the record to fill in per incident (step 4).
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/migration-lock-timeout.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/block-set-based-backend-kill.sh" .claude/hooks/
+chmod +x .claude/hooks/block-set-based-backend-kill.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/block-set-based-backend-kill.json` into `.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the script first; it runs with your permissions on every matching tool call.
