@@ -260,7 +260,7 @@ and how to refresh a baseline after a scanner bump.
   definitions itself with `git ls-files`, failing on any mismatch, fewer or more. The SkillSpector
   job runs `skillspector scan <shim> --no-llm` per shim, and the gate maps each shim back
   to its source path, so an accepted entry names the real file; Cisco suppressions name
-  the shim id.
+  the shim id. A symbolic link or a submodule anywhere in the repository fails the run.
   The run also fails on a manifest that could load a definition from anywhere else: `agents`,
   `commands`, `skills` or `hooks` in a `plugin.json` or a marketplace entry, a marketplace
   `source` other than `./plugins/<plugin>`, or a manifest file in any other place. `make validate` fails on the first two (`unscanned-component-path`).

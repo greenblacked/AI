@@ -41,8 +41,8 @@ does not matter). A README.md in `commands/` is a command, so it is wrapped even
 validator ignores it, with its id from the lowercased stem; one without frontmatter is
 given `name` and `description` lines so both scanners load it. `agents/evals/*.json` and
 `.claude/agents/benchmarks/**` hold no .md, so they are not definitions. A file in a covered
-place whose name breaks the pattern, a symbolic link, a submodule (mode 160000) anywhere
-under `plugins/` or `.claude/`, a file that is not regular on disk, or an id used twice
+place whose name breaks the pattern, a symbolic link or a submodule (mode 160000)
+anywhere in the repository, a file that is not regular on disk, or an id used twice
 fails the run: a definition that is skipped is a definition nobody scanned.
 
 The scan can only see the default folders, so the run also fails on a manifest that points
@@ -170,8 +170,8 @@ def assign_ids(paths: list[str], plugins: set[str]) -> dict[str, str]:
 
 
 def tracked(repo: Path) -> dict[str, str]:
-    """Every tracked path under `plugins/` and `.claude/` with its git mode."""
-    listing = git(repo, "ls-files", "-s", "-z", "--", "plugins", ".claude")
+    """Every tracked path in the repository with its git mode."""
+    listing = git(repo, "ls-files", "-s", "-z")
     found = {}
     for record in listing.split(b"\0"):
         if not record:
@@ -251,19 +251,19 @@ def check_manifests(repo: Path) -> None:
 
 def list_definitions(repo: Path) -> list[str]:
     """Every tracked subagent and command file, sorted. Raises on one that cannot be read."""
-    check_manifests(repo)
     modes = tracked(repo)
+    # Checked over the whole tree and before the manifests are read: a link or submodule
+    # standing in for a directory (`.claude-plugin`, an `agents/` subfolder) hides what it
+    # points at from every later check, which would then pass on an empty listing.
     for path in sorted(modes):
         if modes[path] == GITLINK_MODE:
             raise DefinitionError(
                 f"{safe(path)} is a submodule (gitlink); the scan cannot read what it points at"
             )
-    located = sorted(path for path in modes if LOCATION_RE.fullmatch(path))
-    paths = []
-    for path in located:
         if modes[path] == SYMLINK_MODE:
             raise DefinitionError(f"{safe(path)} is a symbolic link; commit the file itself")
-        paths.append(path)
+    check_manifests(repo)
+    paths = sorted(path for path in modes if LOCATION_RE.fullmatch(path))
     assign_ids(paths, plugin_names(repo))
     return paths
 
@@ -429,7 +429,9 @@ def main(argv: list[str] | None = None) -> int:
         )
         pairs = build(args.repo, args.out, paths)
     except DefinitionError as err:
-        print(f"definition_shims: {err}", file=sys.stderr)
+        # The one egress for error text: a FrontmatterError message quotes a frontmatter line
+        # with repr(), which leaves `##[` intact, so it is broken here as safe() does for paths.
+        print(f"definition_shims: {err}".replace("##[", "## ["), file=sys.stderr)
         return 1
     print(f"{len(pairs)} definition(s) wrapped as shims")
     return 0

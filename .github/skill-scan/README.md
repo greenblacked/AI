@@ -28,13 +28,13 @@ any case and loads one with no frontmatter too. So the run fails on any `.md` be
 `agents/` folder that is not a depth-one, lowercase `<stem>.md` (a nested agent, `X.MD`, a
 `README.md` whatever its first line), rather than skipping it; `agents/evals/` and
 `.claude/agents/benchmarks/` hold no `.md`, so nothing is left out. The same case-insensitive
-`.md` rule applies in `commands/`. One in a `commands/` folder is wrapped like any command, with the id from its
+`.md` rule applies in `commands/`. A README in a `commands/` folder is wrapped like any command, with the id from its
 lowercased stem (`command--<plugin>--readme`), because Claude Code loads every `.md` there
 as a slash command; the validator ignores it, and the scan deliberately does not, so a
 planted one cannot ship unscanned. It also writes `<out>/map.tsv`, one `<id>`, a tab, the
 source path, a tab and the number of lines the shim adds above the source's own, per line;
 the SkillSpector gate reads it to report and match a finding against the real file.
-The run also fails on a symbolic link or a submodule (mode 160000) anywhere under `plugins/` or `.claude/`, in both modes, because neither is a file it can read.
+The run also fails on a symbolic link or a submodule (mode 160000) anywhere in the repository, in both modes, because neither is a file it can read.
 The run also fails on a manifest that could load a definition from anywhere else: `agents`,
 `commands`, `skills` or `hooks` in a `plugin.json` or a marketplace entry, a marketplace
 `source` other than `./plugins/<plugin>`, or a manifest file in any other place. `make validate` fails on the first two (`unscanned-component-path`).

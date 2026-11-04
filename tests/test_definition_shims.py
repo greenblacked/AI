@@ -806,3 +806,44 @@ def test_a_refused_manifest_fails_the_run_and_writes_nothing(repo, tmp_path):
     out = tmp_path / "out"
     assert run(repo, out, "--all") == 1
     assert not out.exists()
+
+
+@pytest.mark.parametrize("mode", ["all", "changed"])
+@pytest.mark.parametrize(
+    "link",
+    ["plugins/demo/agents/sub", "plugins/demo/skills/notes.txt", "docs/pointer"],
+)
+def test_any_symlink_is_refused_wherever_it_sits(repo, tmp_path, capsys, link, mode):
+    # A directory link below agents/, a non-.md link under skills/ and one outside plugins/
+    # and .claude/ all fail: LOCATION_RE would let the first two through.
+    base = repo.git("rev-parse", "HEAD")
+    (repo.path / link).parent.mkdir(parents=True, exist_ok=True)
+    os.symlink("helper.md", repo.path / link)
+    repo.commit("link")
+    args = ["--all"] if mode == "all" else ["--changed", base]
+    out = tmp_path / "out"
+    assert run(repo, out, *args) == 1
+    assert "symbolic link" in capsys.readouterr().err
+    assert not out.exists()
+
+
+@pytest.mark.parametrize("mode", ["all", "changed"])
+def test_a_gitlink_standing_in_for_the_manifest_directory_is_refused(repo, tmp_path, capsys, mode):
+    base = repo.git("rev-parse", "HEAD")
+    repo.git("update-index", "--add", "--cacheinfo", f"160000,{base},.claude-plugin")
+    repo.git("commit", "--quiet", "-m", "submodule")
+    args = ["--all"] if mode == "all" else ["--changed", base]
+    out = tmp_path / "out"
+    assert run(repo, out, *args) == 1
+    assert "submodule" in capsys.readouterr().err
+    assert not out.exists()
+
+
+def test_a_frontmatter_error_cannot_open_the_legacy_workflow_command_marker(repo, tmp_path, capsys):
+    repo.write("plugins/demo/agents/odd.md", "---\nname: odd\nbad ##[warning] line\n---\nBody.\n")
+    repo.commit()
+    assert run(repo, tmp_path / "out", "--all") == 1
+    err = capsys.readouterr().err
+    assert "frontmatter does not parse" in err
+    assert "##[" not in err
+    assert "## [warning]" in err
