@@ -1,6 +1,6 @@
 ---
 name: linker-map-reader
-description: Read a firmware build's linker map, per-object -fstack-usage files and bloaty or size reports, and return flash and RAM use by region against budget, the per-module growth against the base revision, and the worst-case stack per task, so the map itself never enters the caller's context. Use when a firmware image is near full, a pull request grew the binary, or stack sizes need deriving from build output and the answer is a few numbers rather than a megabyte of symbols.
+description: Read a firmware build's linker map, per-object -fstack-usage files and bloaty or size reports, and return flash and RAM use by region against budget, the per-module growth against the base revision, and the worst-case stack per task, so the map itself never enters the caller's context. Use when a firmware image is near full, a pull request grew the binary, or stack sizes need deriving from build output and the answer is a few numbers rather than a megabyte of symbols. Not for shrinking the image or setting the CI size gate (memory-footprint-budget), a fault that has already happened (hard-fault-triage), or reviewing firmware source (firmware-code-review).
 tools: Bash, Read, Grep, Glob
 disallowedTools: Write, Edit, NotebookEdit
 ---
