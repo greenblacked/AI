@@ -1,0 +1,22 @@
+[
+  {"query": "i have a folder of 300 dmarc aggregate reports from the last three weeks, give me a list of every sender and whether it passes", "should_trigger": true},
+  {"query": "read the rua xml files in ./reports (some are .gz and .zip) and classify each source as working, fixable, forwarder or unknown", "should_trigger": true},
+  {"query": "which IPs in these dmarc reports are failing alignment? don't paste the xml, just the rows that matter", "should_trigger": true},
+  {"query": "we published p=none a month ago, here are the aggregate reports from google, yahoo and microsoft, inventory the senders", "should_trigger": true},
+  {"query": "go through these rua reports and tell me which sources look like forwarders or mailing lists rather than our own mail", "should_trigger": true},
+  {"query": "summarise the dmarc xml reports in this directory by source ip with spf and dkim alignment results", "should_trigger": true},
+  {"query": "there are unknown sources in our dmarc reports, find them and quote the rows that show their volume", "should_trigger": true},
+  {"query": "unzip and read the zipped dmarc reports in /data/rua and give me a short table of senders by volume and pass state", "should_trigger": true},
+  {"query": "parse four weeks of dmarc aggregate xml and say which legitimate-looking senders fail dkim alignment", "should_trigger": true},
+  {"query": "i dumped the report attachments from the dmarc mailbox into a folder, read them all and give me the inventory", "should_trigger": true},
+  {"query": "set up dmarc for our new domain starting at p=none", "should_trigger": false, "expected": "email-authentication-rollout"},
+  {"query": "dkim fails after we added a new tool, what record do i publish", "should_trigger": false, "expected": "email-authentication-rollout"},
+  {"query": "spf permerror too many lookups, how do i get under ten", "should_trigger": false, "expected": "email-authentication-rollout"},
+  {"query": "when can we move from p=quarantine pct 50 to p=reject", "should_trigger": false, "expected": "email-authentication-rollout"},
+  {"query": "gmail is putting our newsletter in spam even though authentication passes", "should_trigger": false, "expected": "deliverability-triage"},
+  {"query": "yahoo is deferring our sends with 421 codes, what do we do", "should_trigger": false, "expected": "deliverability-triage"},
+  {"query": "complaints keep creeping up on the marketing stream, how do we contain it", "should_trigger": false, "expected": "deliverability-triage"},
+  {"query": "read this month's billing export and tell me which services moved the most", "should_trigger": false, "expected": "cost-analyst"},
+  {"query": "read this trace bundle and give me the critical path for the slow checkout request", "should_trigger": false, "expected": "telemetry-reader"},
+  {"query": "check our zone for stale records and dangling cnames", "should_trigger": false}
+]

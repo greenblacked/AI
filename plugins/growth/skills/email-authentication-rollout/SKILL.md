@@ -48,7 +48,7 @@ If the rua address is in a different domain, that domain must publish an authori
 
 ### 3. Inventory senders from the reports
 
-Read the aggregate reports for two to four weeks. For each source IP or sending domain, record: the organisation behind it (reverse DNS, SPF include of the report row), the volume, whether SPF and DKIM passed, and whether each was aligned. Use `references/report-reading.md` for the grouping table and the questions that classify a row. Every row ends as one of: legitimate and fixed, legitimate and needs work, forwarder or mailing list, or unknown. Unknown stays unknown until someone owns it; do not whitelist it to make the report look clean.
+Read the aggregate reports for two to four weeks. For each source IP or sending domain, record: the organisation behind it (reverse DNS, SPF include of the report row), the volume, whether SPF and DKIM passed, and whether each was aligned. When the reports are more than a few files, delegate the bulky reading to the `dmarc-report-reader` subagent, which returns the classified sender inventory with the deciding rows, and make the fix decisions from that. Use `references/report-reading.md` for the grouping table and the questions that classify a row. Every row ends as one of: legitimate and fixed, legitimate and needs work, forwarder or mailing list, or unknown. Unknown stays unknown until someone owns it; do not whitelist it to make the report look clean.
 
 ### 4. Fix each legitimate sender
 
