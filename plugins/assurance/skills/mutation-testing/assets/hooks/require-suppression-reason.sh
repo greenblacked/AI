@@ -42,7 +42,7 @@ fi
 # Only source code carries these markers; a README or a test report that quotes one is not a
 # suppression. No path means nothing to judge.
 case "$file_path" in
-  *.py | *.js | *.jsx | *.mjs | *.cjs | *.ts | *.tsx | *.rs | *.php | *.java | *.kt | *.scala | *.cs | *.rb | *.go | *.swift) ;;
+  *.py | *.js | *.jsx | *.mjs | *.cjs | *.ts | *.tsx | *.rs | *.php | *.java | *.kt | *.scala | *.cs | *.rb | *.go | *.swift | *.mts | *.cts | *.vue | *.svelte) ;;
   *) exit 0 ;;
 esac
 
