@@ -61,6 +61,8 @@ The minimum set:
 
 Every event carries the patch version, a match identifier, a hashed player identifier, the skill band at the time, the option's identity, and the outcome. Patch version is the one people forget, and without it a before-and-after comparison is impossible — which is the entire job.
 
+When the numbers you are about to tune live in scripts rather than data files, delegate the inventory to `tuning-literal-reader` by name before choosing what to measure: it returns each tuning-like literal with `file:line`, classed move-to-data, structural constant or unsure, and flags per-frame arithmetic missing a delta-time factor. It reads and does not edit; deciding the values stays here.
+
 Read `references/telemetry.md` at this step for the event schema, the metric definitions, and the traps that make an honest-looking number wrong.
 
 ### 3. Read the data before forming an opinion
