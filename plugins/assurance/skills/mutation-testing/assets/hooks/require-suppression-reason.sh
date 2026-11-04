@@ -31,8 +31,8 @@ if isinstance(tool, dict):
         if value is None:
             value = tool.get("new_string")
 print(value if isinstance(value, str) else "")'
-  file_path="$(printf '%s' "$input" | python3 -c "$parse" file_path || true)"
-  text="$(printf '%s' "$input" | python3 -c "$parse" text || true)"
+  file_path="$(printf '%s' "$input" | python3 -I -c "$parse" file_path || true)"
+  text="$(printf '%s' "$input" | python3 -I -c "$parse" text || true)"
 fi
 
 # Neither parser present, or nothing to judge: allow, because a hook that blocks everything

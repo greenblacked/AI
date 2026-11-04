@@ -24,8 +24,8 @@ except ValueError:
 tool = data.get("tool_input") if isinstance(data, dict) else None
 value = tool.get(sys.argv[1]) if isinstance(tool, dict) else None
 print(value if isinstance(value, str) else "")'
-  file_path="$(printf '%s' "$input" | python3 -c "$parse" file_path || true)"
-  content="$(printf '%s' "$input" | python3 -c "$parse" content || true)"
+  file_path="$(printf '%s' "$input" | python3 -I -c "$parse" file_path || true)"
+  content="$(printf '%s' "$input" | python3 -I -c "$parse" content || true)"
 fi
 
 # Neither parser present, or nothing to judge: allow, because a hook that blocks everything

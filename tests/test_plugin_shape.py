@@ -11,6 +11,7 @@ mode does not fail until `PLUGIN_SHAPE_ENFORCED` is flipped.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -659,3 +660,29 @@ def test_the_two_example_hook_branches_agree_on_a_non_string_command(tmp_path, c
     assert results[0].returncode == results[1].returncode
     assert results[0].stderr == results[1].stderr
     assert results[0].returncode == (2 if "forbidden" in command else 0)
+
+
+def _python_calls_without_isolation(script: Path) -> list[str]:
+    """Lines that start a python interpreter in command position without -I."""
+    bad = []
+    for line in script.read_text(encoding="utf-8").splitlines():
+        code = line.split("#", 1)[0]
+        for match in re.finditer(r"(?:^|[|;&(]|\$\()\s*python[0-9.]*(?=\s)(.*)", code):
+            if not re.match(r"\s+-[A-Za-z]*I", match.group(1)):
+                bad.append(line.strip())
+    return bad
+
+
+def test_every_shipped_kit_hook_runs_python_isolated():
+    # A project directory can hold a json.py; without -I a bare `python3 -c` imports it
+    # and runs it as the hook, so the guard becomes whatever the repository planted.
+    root = Path(__file__).resolve().parent.parent
+    scripts = sorted(root.glob("plugins/*/skills/*/assets/hooks/*.sh"))
+    scripts.append(root / "template/kit/hooks/example.sh")
+    assert len(scripts) > 5
+    offenders = {
+        str(s.relative_to(root)): found
+        for s in scripts
+        if (found := _python_calls_without_isolation(s))
+    }
+    assert not offenders

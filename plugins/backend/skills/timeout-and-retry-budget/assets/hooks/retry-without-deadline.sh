@@ -16,7 +16,7 @@ if command -v jq >/dev/null 2>&1; then
     'if type=="object" and (.tool_input|type)=="object" then ((.tool_input.content // .tool_input.new_string) | if type=="string" then . else empty end) else empty end' \
     2>/dev/null || true)"
 elif command -v python3 >/dev/null 2>&1; then
-  path="$(printf '%s' "$input" | python3 -c \
+  path="$(printf '%s' "$input" | python3 -I -c \
     'import json, sys
 try:
     data = json.load(sys.stdin)
@@ -25,7 +25,7 @@ except ValueError:
 tool = data.get("tool_input") if isinstance(data, dict) else None
 value = tool.get("file_path") if isinstance(tool, dict) else None
 print(value if isinstance(value, str) else "")' || true)"
-  text="$(printf '%s' "$input" | python3 -c \
+  text="$(printf '%s' "$input" | python3 -I -c \
     'import json, sys
 try:
     data = json.load(sys.stdin)
