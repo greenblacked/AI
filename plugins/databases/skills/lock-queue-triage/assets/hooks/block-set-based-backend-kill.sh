@@ -30,12 +30,16 @@ fi
 
 # Neither parser present: degrade by allowing, because a hook that blocks everything on a
 # missing tool is worse than no hook.
+# Matched without regard to case, since SQL keywords and function names are not case-sensitive.
 # Each match runs from the opening parenthesis to the first closing one. Anything that is not
 # a digit string there (a column such as pid, a subquery, a bare word) could end every session
 # the query returns, so it is refused.
 while IFS= read -r call; do
   [ -n "$call" ] || continue
   arg="${call#*(}"
+  # pg_terminate_backend(pid, timeout) takes a literal timeout as its second argument; only
+  # the pid is judged, and a comma inside a subquery still leaves a non-digit first part.
+  arg="${arg%%,*}"
   arg="${arg#"${arg%%[![:space:]]*}"}"
   arg="${arg%"${arg##*[![:space:]]}"}"
   case "$arg" in
@@ -44,5 +48,5 @@ while IFS= read -r call; do
       exit 2
       ;;
   esac
-done < <(printf '%s\n' "$command" | grep -oE 'pg_(terminate|cancel)_backend[[:space:]]*\([^)]*' || true)
+done < <(printf '%s\n' "$command" | grep -oiE 'pg_(terminate|cancel)_backend[[:space:]]*\([^)]*' || true)
 exit 0
