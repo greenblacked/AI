@@ -72,7 +72,7 @@ At a milestone or ship decision, read the list as it stands:
 - Every open S2 has a named owner, who is a person, and a written decision: fix before release, ship with a known issue and a stated workaround, or defer to a named patch. An S2 with no owner or no decision blocks.
 - S3 and S4 do not gate. Review the S3 count by area; a cluster in one system is a signal the area is not ready.
 
-Waiving an S1 is not a triage decision. It is a release decision that belongs to whoever owns the release, written in the record with the reason, the player impact and the patch plan. If the S1 is a certification failure, it cannot be waived by the studio at all: the platform holder decides, so the choices are to fix or to move the date.
+Waiving an S1 is not a triage decision. It is a release decision that belongs to whoever owns the release, written in the record with the reason, the player impact and the patch plan. If the S1 is a certification failure, it cannot be waived by the studio at all: the platform holder decides, so the studio's choices are to fix it, to move the date, or to ask the platform holder for a waiver through its own process, which the platform holder may refuse.
 
 Check the gate against the candidate build, not the previous one. A bug marked fixed against a build that is not the release candidate is still open for this purpose.
 
