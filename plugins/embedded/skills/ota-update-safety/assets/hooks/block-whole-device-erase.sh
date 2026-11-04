@@ -30,8 +30,23 @@ fi
 
 # Neither parser present: degrade by allowing, because a hook that blocks everything on a
 # missing tool is worse than no hook.
-if printf '%s' "$command" | grep -Eiq \
-  'st-flash[[:space:]]+erase|nrfjprog[^|;&]*--(eraseall|recover)|esptool[^|;&]*[[:space:]_.-]erase[_-]flash|JLinkExe?[^|;&]*erase|pyocd[[:space:]]+erase[^|;&]*--chip|STM32_Programmer_CLI[^|;&]*-e[[:space:]]+all|openocd[^|;&]*(mass_erase|flash[[:space:]]+erase_sector[[:space:]]+0[[:space:]]+0[[:space:]]+last|stm32[a-z0-9]*x[[:space:]]+lock)'; then
+# Lower-cased once so every pattern below is case-insensitive without a grep flag. A J-Link
+# script argument is dropped first: its file name (erase_all.jlink, no_erase.txt) says nothing
+# about what the command line does, and the script's content is not visible here.
+scrubbed="$(printf '%s' "$command" | tr '[:upper:]' '[:lower:]' |
+  sed -E 's/-(commanderscript|commandfile)[[:space:]=]+[^[:space:];&|]+//g')"
+sp='[[:space:]]'
+word_end="(${sp}|\$|[;&|])"
+if printf '%s' "$scrubbed" | grep -Eq \
+  -e "st-flash[^|;&]*${sp}erase${word_end}" \
+  -e "nrfjprog[^|;&]*--(eraseall|recover|rbp|rdp)" \
+  -e "esptool[^|;&]*[[:space:]_.-]erase[_-]flash" \
+  -e "jlink(exe|\.exe)?[^|;&]*${sp}erase${word_end}" \
+  -e "(^|${sp})erase${sp}*(;|\|)[^;&]*jlink" \
+  -e "pyocd[^|;&]*${sp}erase(${sp}[^|;&]*)?${sp}(--chip|--mass|-c)(${sp}|\$|[;&|=])" \
+  -e "stm32_programmer_cli[^|;&]*(-e|--erase)${sp}+all" \
+  -e "stm32_programmer_cli[^|;&]*-ob[^|;&]*(rdp|wrp|optr)" \
+  -e "openocd[^|;&]*(mass_erase|flash${sp}+erase_sector${sp}+0${sp}+0${sp}+last|stm32[a-z0-9]*x${sp}+(lock|option_write|options_write))"; then
   echo "blocked: whole-device erase or readout-protection write. Dump flash and option bytes first (for example 'st-flash read dump.bin 0x08000000 <size>' or 'nrfjprog --readcode dump.hex'), keep the dump, then ask for the erase explicitly." >&2
   exit 2
 fi
