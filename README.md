@@ -20,7 +20,7 @@ twenty-nine plugins you install separately.
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A595%25-22c55e)](pyproject.toml)
 [![Licence: MIT](https://img.shields.io/badge/license-MIT-0ea5e9)](LICENSE)
 
-[In one minute](#in-one-minute) · [Install](#install) · [At a glance](#at-a-glance) · [How I work with agents](#how-i-work-with-agents) · [Quality](#how-quality-is-enforced) · [Plugins](#plugins) · [Other tools](#other-tools) · [Working on this repository](#working-on-this-repository) · [Documentation](#documentation) · [Website](https://ai.szolotov.com)
+[In one minute](#in-one-minute) · [Install](#install) · [At a glance](#at-a-glance) · [How I work with agents](#how-i-work-with-agents) · [Quality](#how-quality-is-enforced) · [A real week](#what-a-real-week-looks-like) · [Plugins](#plugins) · [Other tools](#other-tools) · [Working on this repository](#working-on-this-repository) · [Documentation](#documentation) · [Website](https://ai.szolotov.com)
 
 </div>
 
@@ -207,6 +207,53 @@ Some controls live in GitHub's settings and no file here can see whether they ar
 branch ruleset, private vulnerability reporting, secret scanning and push protection,
 Dependabot, and which CodeQL setup runs. [CI](docs/ci.md#recorded-state) names them,
 records which the owner has confirmed, and gives the command that reads each back.
+
+## What a real week looks like
+
+You never type a skill name. You describe the situation in the words you would use to a
+colleague, and the skill whose description matches that situation loads itself. This is
+one service going from nothing to running badly to running well, with the sentence that
+fired each step.
+
+**Monday — the service does not exist yet.**
+
+| You say | What loads | What it makes you do first |
+| --- | --- | --- |
+| "set up a pipeline for this repo" | `ci-pipeline-design` | Decide which checks may block a merge before drawing a single stage |
+| "what should I set for resource limits" | `k8s-workloads` | Measure the workload under load before writing any number |
+| "write me a script that prunes old snapshots" | `code-scaffold` | Ask the questions that change the shape of the code, in one batch, before writing |
+
+**Wednesday — it ships.**
+
+| You say | What loads | What it makes you do first |
+| --- | --- | --- |
+| "canary or blue-green for this one" | `release-strategy` | Separate deploy from release, then pick the mechanism from how the change fails |
+| "we need to move the DNS without dropping requests" | `cutover` | Name the roles and the point of no return before the window opens |
+| "this migration adds a column to a 40M-row table" | `db-migration` | Expand, backfill, migrate reads, migrate writes, contract — each revertible alone |
+
+**Thursday, 3am — it breaks.**
+
+| You say | What loads | What it makes you do first |
+| --- | --- | --- |
+| "pods are in CrashLoopBackOff and I am on call" | `k8s-triage` | Restore service first; diagnosis is the second job |
+| "the payment provider's status page just went red" | `incident-response` | Name an IC who will not debug, set severity once, and mitigate by symptom |
+| *(a 200MB CI log)* | `ci-log-reader` *(subagent)* | Returns which of five triage classes it is and the log line that decided it |
+| "what do we tell customers" | `incident-comms` | Acknowledge on impact, not on diagnosis, and promise a next update you keep |
+
+**Friday — you find out why, and stop it recurring.**
+
+| You say | What loads | What it makes you do first |
+| --- | --- | --- |
+| "write this up without blaming anyone" | `postmortem` | Separate the root causes from the trigger; every action item gets an owner and a date |
+| "our pager is out of control" | `alert-design` | Classify every signal as page, ticket or dashboard-only, and alert on SLO burn |
+| "I renamed a module and now it wants to destroy everything" | `terraform-state` | Back up state before touching it, and prefer the form that shows up in a plan |
+| "our bill went up 30% and nobody knows why" | `cost-review` | Attribute the spend before touching anything, then read top movers over top spenders |
+
+Two things in that week are worth naming. The subagent on Thursday exists so a
+200MB log never enters your context — you get the verdict, not the bytes. And every
+"what it makes you do first" column is the actual value: the model already knows what a
+liveness probe is, but it will happily write you one that checks a database and restarts
+healthy pods during someone else's outage. The gate is the skill.
 
 ## Plugins
 
@@ -1460,53 +1507,6 @@ None yet.
 #### Project kit
 
 No kit yet.
-
-## What a real week looks like
-
-You never type a skill name. You describe the situation in the words you would use to a
-colleague, and the skill whose description matches that situation loads itself. This is
-one service going from nothing to running badly to running well, with the sentence that
-fired each step.
-
-**Monday — the service does not exist yet.**
-
-| You say | What loads | What it makes you do first |
-| --- | --- | --- |
-| "set up a pipeline for this repo" | `ci-pipeline-design` | Decide which checks may block a merge before drawing a single stage |
-| "what should I set for resource limits" | `k8s-workloads` | Measure the workload under load before writing any number |
-| "write me a script that prunes old snapshots" | `code-scaffold` | Ask the questions that change the shape of the code, in one batch, before writing |
-
-**Wednesday — it ships.**
-
-| You say | What loads | What it makes you do first |
-| --- | --- | --- |
-| "canary or blue-green for this one" | `release-strategy` | Separate deploy from release, then pick the mechanism from how the change fails |
-| "we need to move the DNS without dropping requests" | `cutover` | Name the roles and the point of no return before the window opens |
-| "this migration adds a column to a 40M-row table" | `db-migration` | Expand, backfill, migrate reads, migrate writes, contract — each revertible alone |
-
-**Thursday, 3am — it breaks.**
-
-| You say | What loads | What it makes you do first |
-| --- | --- | --- |
-| "pods are in CrashLoopBackOff and I am on call" | `k8s-triage` | Restore service first; diagnosis is the second job |
-| "the payment provider's status page just went red" | `incident-response` | Name an IC who will not debug, set severity once, and mitigate by symptom |
-| *(a 200MB CI log)* | `ci-log-reader` *(subagent)* | Returns which of five triage classes it is and the log line that decided it |
-| "what do we tell customers" | `incident-comms` | Acknowledge on impact, not on diagnosis, and promise a next update you keep |
-
-**Friday — you find out why, and stop it recurring.**
-
-| You say | What loads | What it makes you do first |
-| --- | --- | --- |
-| "write this up without blaming anyone" | `postmortem` | Separate the root causes from the trigger; every action item gets an owner and a date |
-| "our pager is out of control" | `alert-design` | Classify every signal as page, ticket or dashboard-only, and alert on SLO burn |
-| "I renamed a module and now it wants to destroy everything" | `terraform-state` | Back up state before touching it, and prefer the form that shows up in a plan |
-| "our bill went up 30% and nobody knows why" | `cost-review` | Attribute the spend before touching anything, then read top movers over top spenders |
-
-Two things in that week are worth naming. The subagent on Thursday exists so a
-200MB log never enters your context — you get the verdict, not the bytes. And every
-"what it makes you do first" column is the actual value: the model already knows what a
-liveness probe is, but it will happily write you one that checks a database and restarts
-healthy pods during someone else's outage. The gate is the skill.
 
 ## Other tools
 
