@@ -129,6 +129,17 @@ def test_edited_target_walks_up_to_the_directory_holding_skill_md(mini_repo, mon
     assert hook.edited_target(payload(mini_repo / "AGENTS.md")) is None
 
 
+def test_a_differently_cased_skill_file_still_makes_the_directory_a_skill(mini_repo, monkeypatch):
+    monkeypatch.setattr(hook, "ROOT", mini_repo)
+    skill = mini_repo / "plugins" / "engineering" / "skills" / "casey"
+    skill.mkdir(parents=True)
+    (skill / "skill.md").write_text("---\nname: casey\n---\n", encoding="utf-8")
+    assert hook.edited_target(payload(skill / "skill.md")) == (
+        "plugins/engineering/skills/casey",
+        "plugins/engineering/skills/casey/",
+    )
+
+
 # The validator covers subagents, commands and rules too, and the hook said nothing
 # about any of them: `edited_skill` walked up looking for a `SKILL.md` and gave up.
 # Editing a subagent meant finding out in CI instead, which is the delay the hook

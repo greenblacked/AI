@@ -6,10 +6,10 @@ input="$(cat)"
 command=""
 # Either parser prints nothing, and the hook allows, for input it cannot read a command from:
 # invalid JSON, JSON that is not an object, a missing or non-object `tool_input`, or a null
-# `command`. Erroring out instead would report a failure over a payload it never needed.
+# `command`. A `false` command is kept by both parsers, so they agree. Erroring out instead would report a failure over a payload it never needed.
 if command -v jq >/dev/null 2>&1; then
   command="$(printf '%s' "$input" | jq -r \
-    'if type=="object" and (.tool_input|type)=="object" then (.tool_input.command // empty) else empty end' \
+    'if type=="object" and (.tool_input|type)=="object" then (.tool_input.command | if . == null then empty elif type=="string" then . else tojson end) else empty end' \
     2>/dev/null || true)"
 elif command -v python3 >/dev/null 2>&1; then
   command="$(printf '%s' "$input" | python3 -c \

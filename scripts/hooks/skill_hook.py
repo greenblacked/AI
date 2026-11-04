@@ -72,6 +72,14 @@ def _is_agent_eval(path: Path) -> bool:
     return len(prefix) == 2 and prefix[0] == "plugins"
 
 
+def _holds_skill_file(directory: Path) -> bool:
+    """A SKILL.md, or a file differing only in case, so `skill-file-case` reaches the writer."""
+    try:
+        return any(e.name.lower() == "skill.md" for e in directory.iterdir() if e.is_file())
+    except OSError:
+        return False
+
+
 def edited_target(payload: object) -> tuple[str, str] | None:
     """Return what the edit belongs to, and the prefix its findings start with.
 
@@ -91,7 +99,7 @@ def edited_target(payload: object) -> tuple[str, str] | None:
     except ValueError:
         return None  # outside the repository
     for parent in [path, *path.parents]:
-        if (ROOT / parent / "SKILL.md").is_file():
+        if _holds_skill_file(ROOT / parent):
             return str(parent), f"{parent}/"
     if _is_file_target(path) or _is_agent_eval(path):
         return str(path), f"{path}:"

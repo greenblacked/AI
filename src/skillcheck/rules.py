@@ -11,10 +11,8 @@ is the defect that motivated this validator in the first place.
 
 from __future__ import annotations
 
-import fnmatch
 import json
 import re
-import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -1815,6 +1813,10 @@ PLUGIN_SHAPE_ENFORCED = False
 # allowed rather than of what is known to be dangerous. Hooks reach installers only as opt-in
 # templates under a skill's `assets/hooks/`.
 PLUGIN_ROOT_ENTRIES = (".claude-plugin", "skills", "agents", "commands")
+# OS litter that can never be a plugin component. Only an exact name, and only as a regular
+# file, is skipped: git and `.gitignore` are deliberately not consulted, because an ignore
+# rule must not be able to hide a real `hooks/` or `.mcp.json` from the check.
+PLUGIN_ROOT_JUNK = (".DS_Store", "Thumbs.db", "desktop.ini")
 
 # The hook events a kit template may register.
 HOOK_EVENTS = frozenset(
@@ -1976,67 +1978,15 @@ def _kit_complete(assets: Path, repo_root: Path) -> bool:
     )
 
 
-def _git_ignored(paths: list[Path], repo_root: Path) -> set[Path] | None:
-    """The paths git ignores, from one `git check-ignore`, or None outside a git checkout."""
-    if not paths or not (repo_root / ".git").exists():
-        return None
-    try:
-        done = subprocess.run(  # noqa: S603
-            ["git", "-C", str(repo_root), "check-ignore", "-z", "--stdin"],  # noqa: S607
-            input="\0".join(str(p.relative_to(repo_root)) for p in paths) + "\0",
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=30,
-        )
-    except (OSError, subprocess.SubprocessError, ValueError):
-        return None
-    if done.returncode not in (0, 1):
-        return None
-    return {repo_root / name for name in done.stdout.split("\0") if name}
-
-
-def _gitignore_matches(path: Path, repo_root: Path) -> bool:
-    """Fallback outside git: does a plain `.gitignore` pattern match this entry's name?
-
-    Only simple patterns are honoured (no negation, no path-bearing pattern), which is enough
-    for the editor and OS litter this exists for and never hides a name it cannot be sure of.
-    """
-    try:
-        lines = (repo_root / ".gitignore").read_text(encoding="utf-8").splitlines()
-    except (OSError, UnicodeDecodeError):
-        return False
-    for line in lines:
-        pattern = line.strip()
-        if not pattern or pattern.startswith(("#", "!")):
-            continue
-        if pattern.endswith("/"):
-            if not path.is_dir():
-                continue
-            pattern = pattern[:-1]
-        if "/" in pattern:
-            continue
-        if fnmatch.fnmatchcase(path.name, pattern):
-            return True
-    return False
-
-
 def check_plugin_shape(plugin: Path, repo_root: Path) -> list[Finding]:
     """Check one plugin's shape: an allowlisted root, a validated kit, and completeness."""
     findings: list[Finding] = []
     entries = sorted(plugin.iterdir()) if plugin.is_dir() else []
-    # An untracked file git ignores (`.DS_Store`) cannot be committed, so it is not part of
-    # the shape; asking git once is exact, the `.gitignore` fallback keeps non-git use working.
-    candidates = [e for e in entries if e.name not in PLUGIN_ROOT_ENTRIES]
-    ignored = _git_ignored(candidates, repo_root)
     for entry in entries:
         name = entry.name
         if name in PLUGIN_ROOT_ENTRIES:
             continue
-        if ignored is not None:
-            if entry in ignored:
-                continue
-        elif _gitignore_matches(entry, repo_root):
+        if name in PLUGIN_ROOT_JUNK and entry.is_file() and not entry.is_symlink():
             continue
         findings.append(
             Finding(
@@ -2051,7 +2001,13 @@ def check_plugin_shape(plugin: Path, repo_root: Path) -> list[Finding]:
                 "under a skill's assets/hooks/ instead",
             )
         )
-    for directory in sorted((plugin / "skills").glob("*/")) if (plugin / "skills").is_dir() else []:
+    skills_dir = plugin / "skills"
+    skill_dirs = (
+        [d for d in sorted(skills_dir.iterdir()) if d.is_dir() and not d.is_symlink()]
+        if skills_dir.is_dir()
+        else []
+    )
+    for directory in skill_dirs:
         for item in sorted(directory.iterdir()):
             if item.name.lower() == "skill.md" and item.name != "SKILL.md":
                 findings.append(

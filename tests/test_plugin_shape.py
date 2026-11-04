@@ -545,6 +545,16 @@ def test_the_example_hook_still_blocks_its_one_command_on_both_branches(tmp_path
     assert "blocked" in result.stderr
 
 
+@pytest.mark.parametrize("tools", BRANCHES)
+@pytest.mark.parametrize("command", ["false", "true", "0", "[]"])
+def test_the_example_hook_reads_a_non_string_command_the_same_on_both_branches(
+    tmp_path, tools, command
+):
+    # jq's `// empty` once dropped `false` while python printed it; both now keep it.
+    result = run_example_hook(tmp_path, f'{{"tool_input": {{"command": {command}}}}}', tools)
+    assert result.returncode == 0 and result.stderr == ""
+
+
 # SKILL.md case, and entries git ignores
 
 
@@ -567,26 +577,42 @@ def test_an_exact_skill_file_is_not_a_case_error(tmp_path):
     assert "skill-file-case" not in codes(check_plugin_shape(plugin, tmp_path))
 
 
-def _init_git(tmp_path, ignore):
-    import subprocess
-
-    (tmp_path / ".gitignore").write_text(ignore, encoding="utf-8")
-    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)  # noqa: S603, S607
-
-
-@pytest.mark.parametrize("git_checkout", [True, False], ids=["git", "no-git"])
-def test_an_ignored_plugin_root_file_is_accepted_and_an_unignored_one_refused(
-    tmp_path, git_checkout
-):
-    if git_checkout:
-        _init_git(tmp_path, ".DS_Store\n")
-    else:
-        (tmp_path / ".gitignore").write_text(".DS_Store\n", encoding="utf-8")
+def test_an_untracked_os_junk_file_at_a_plugin_root_is_accepted(tmp_path):
     plugin = make_plugin(tmp_path)
-    (plugin / ".DS_Store").write_text("x", encoding="utf-8")
+    for name in rules.PLUGIN_ROOT_JUNK:
+        (plugin / name).write_text("x", encoding="utf-8")
+    assert "plugin-root-entry" not in codes(check_plugin_shape(plugin, tmp_path))
+
+
+def test_an_os_junk_name_that_is_a_directory_is_refused(tmp_path):
+    plugin = make_plugin(tmp_path)
+    (plugin / ".DS_Store").mkdir()
+    found = [f for f in check_plugin_shape(plugin, tmp_path) if f.code == "plugin-root-entry"]
+    assert [f.path.name for f in found] == [".DS_Store"]
+
+
+def test_a_plain_notes_file_at_a_plugin_root_is_refused(tmp_path):
+    plugin = make_plugin(tmp_path)
     (plugin / "notes.txt").write_text("x", encoding="utf-8")
     found = [f for f in check_plugin_shape(plugin, tmp_path) if f.code == "plugin-root-entry"]
     assert [f.path.name for f in found] == ["notes.txt"]
+
+
+def test_a_gitignore_naming_hooks_and_mcp_json_does_not_hide_them(tmp_path):
+    (tmp_path / ".gitignore").write_text("hooks/\n.mcp.json\n", encoding="utf-8")
+    plugin = make_plugin(tmp_path)
+    (plugin / "hooks").mkdir()
+    (plugin / "hooks" / "hooks.json").write_text("{}", encoding="utf-8")
+    (plugin / ".mcp.json").write_text("{}", encoding="utf-8")
+    found = [f for f in check_plugin_shape(plugin, tmp_path) if f.code == "plugin-root-entry"]
+    assert sorted(f.path.name for f in found) == [".mcp.json", "hooks"]
+
+
+def test_a_plain_file_under_a_plugins_skills_folder_is_not_a_traceback(tmp_path):
+    plugin = make_plugin(tmp_path)
+    (plugin / "skills").mkdir()
+    (plugin / "skills" / "notes.txt").write_text("x", encoding="utf-8")
+    assert "skill-file-case" not in codes(check_plugin_shape(plugin, tmp_path))
 
 
 @pytest.mark.parametrize(
