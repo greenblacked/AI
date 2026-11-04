@@ -286,7 +286,7 @@ def shim_text(ident: str, path: str, data: bytes) -> bytes:
 
 # Characters YAML treats as line breaks (or that no loader should see in a header) but that
 # the repository's parser does not split on. Tab and LF are the ordinary whitespace.
-CONTROL_RE = re.compile("[\x00-\x08\x0b-\x1f\x85\u2028\u2029]")
+CONTROL_RE = re.compile(r"[\x00-\x08\x0b-\x1f\x85\u2028\u2029]")
 
 
 def confirm_name(ident: str, path: str, shim: bytes) -> None:
