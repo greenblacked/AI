@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Reject a written .json file under a data directory that does not parse. It only parses the
+# Report a written .json file under a data directory that does not parse. It only parses the
 # file as data and never runs anything from it. Standard tools only, no network, no secrets.
 set -Eeuo pipefail
 
@@ -31,12 +31,15 @@ esac
 # Neither parser present: degrade by allowing, because a hook that blocks everything on a
 # missing tool is worse than no hook.
 if command -v python3 >/dev/null 2>&1; then
-  err="$(python3 -I -c 'import json,sys; json.load(open(sys.argv[1]))' "$file" 2>&1)" || {
+  err="$(python3 -I -c 'import json,sys; json.load(open(sys.argv[1], encoding="utf-8-sig"))' "$file" 2>&1)" || {
     echo "invalid JSON in $file: ${err##*$'\n'}" >&2
     exit 2
   }
 elif command -v jq >/dev/null 2>&1; then
-  err="$(jq empty "$file" 2>&1)" || {
+  # jq reads a leading BOM as a syntax error, but the engines and Python load such a file,
+  # so strip it here rather than report a file that works.
+  bom="$(printf '\357\273\277')"
+  err="$(LC_ALL=C sed "1s/^${bom}//" "$file" | jq empty 2>&1)" || {
     echo "invalid JSON in $file: $err" >&2
     exit 2
   }

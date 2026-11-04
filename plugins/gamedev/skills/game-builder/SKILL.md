@@ -259,7 +259,7 @@ Ask which findings to act on. Work in batches by dimension, so each can be playe
 Three opt-in files for a project built with this skill. Nothing here is active until you copy it in, and the hook runs with your permissions on every matching write, so read it first.
 
 - `${CLAUDE_SKILL_DIR}/assets/rules/gameplay-data.md` — loads when gameplay code is read: tuning from data files, delta-time scaling, no gameplay logic reading UI state.
-- `${CLAUDE_SKILL_DIR}/assets/hooks/game-data-json.json` and `${CLAUDE_SKILL_DIR}/assets/hooks/game-data-json.sh` — after a write, rejects a `.json` file under a `data/` or `Data/` directory that does not parse.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/game-data-json.json` and `${CLAUDE_SKILL_DIR}/assets/hooks/game-data-json.sh` — after a write, reports a `.json` file under a `data/` or `Data/` directory that does not parse.
 - `${CLAUDE_SKILL_DIR}/assets/templates/playtest-session-log.md` — one document per playtest session.
 
 Install from the root of the game project, by hand or by asking the user to run the copies, since this skill holds no tool that writes files: put the rule in `.claude/rules/`, put the hook script in `.claude/hooks/` and make it executable, and put the template in `docs/`.
