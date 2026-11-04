@@ -34,12 +34,27 @@ if [ -z "$command" ]; then
   exit 0
 fi
 
+# Byte-wise matching (LC_ALL=C): under a UTF-8 locale GNU grep takes quadratic time on the
+# verb pattern below, so a large command outlasts the hook timeout, and a timed-out hook
+# fails open. Nothing here needs more than ASCII to match.
+export LC_ALL=C
+
+# A command that names no protected artifact has nothing to protect; allow it at once.
+if ! printf '%s' "$command" | grep -Eq '\.dSYM|mapping\.txt|\.symbols'; then
+  exit 0
+fi
+
+# A command that names a protected artifact and is too large to scan is refused rather than
+# scanned slowly, because a scan that times out allows the deletion.
+if [ "$(printf '%s' "$command" | wc -c)" -gt 32768 ]; then
+  echo "blocked: the command names a symbol artifact and is larger than 32 KiB, which this hook will not scan. Put the commands in a script file or split them, and archive or upload the symbols instead of deleting them" >&2
+  exit 2
+fi
+
 # Only a deleting verb is refused; reading or copying a symbol file is fine. The verb may be
 # path-qualified (/bin/rm, /usr/bin/unlink) or escaped (\rm) to dodge an alias.
 if printf '%s' "$command" | grep -Eq '(^|[[:space:];&|(\\])([^[:space:];&|()]*/)?(rm|unlink)[[:space:]]|find[[:space:]].*-delete'; then
-  if printf '%s' "$command" | grep -Eq '\.dSYM|mapping\.txt|\.symbols'; then
-    echo "blocked: shipped-build symbols are needed to symbolicate crashes; archive or upload them instead of deleting" >&2
-    exit 2
-  fi
+  echo "blocked: shipped-build symbols are needed to symbolicate crashes; archive or upload them instead of deleting" >&2
+  exit 2
 fi
 exit 0
