@@ -39,6 +39,8 @@ Do not use for: coding-round preparation (`technical-interview-prep`), take-home
 
 4. **Map the user's history against the hard requirements only.** Where there is a genuine gap, say so plainly and decide whether the adjacent experience is honest to present. Do not paper over a gap with a wish-list match.
 
+When the postings are a saved set rather than one, too many to read in this context, delegate the reading to the `job-posting-reader` subagent. It returns the recurring requirements classed hard or wish-list with counts and a quoted line, the scoping signals, and how many postings state a band and a level; then continue from step 4 on the one the user chose.
+
 ## Workflow 2: Rewrite experience as outcome-first bullets
 
 Each bullet is action, mechanism, result — the outcome first when the outcome is strong, the mechanism first when the number is missing. Read `references/cv-patterns.md` for the full pattern set and worked examples.
@@ -142,6 +144,25 @@ Promoted: [bullets moved up and why] · Cut: [what was dropped and why]
 - **A dozen divergent CVs.** The opposite failure: master document plus per-application selection, or the achievements diverge and none of them stay current.
 - **Rehearsing to a script.** Memorised answers sound memorised, and they break as soon as the interviewer asks the second question. Rehearse the story and the tail, not the sentences.
 - **Writing in a voice the candidate cannot sustain.** If a bullet or a cover note uses vocabulary the user would not say aloud, rewrite it in theirs. The room is the reference check for the document.
+
+## Project kit
+
+Optional, opt-in files for a project that keeps its applications in `applications/` and `cv/`. Nothing is installed by the plugin; read the script before you copy it, because it runs with your permissions on every matching write.
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/application-evidence.md` - a path-scoped rule that keeps every claim traceable to the master CV.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/placeholder-list.json` and `${CLAUDE_SKILL_DIR}/assets/hooks/placeholder-list.sh` - a PostToolUse hook that asks for a `## Placeholders to fill` section when a file carries a `[TK:` marker.
+- `${CLAUDE_SKILL_DIR}/assets/templates/application-record.md` - one record per application.
+
+Run from the root of the project:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/application-evidence.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/placeholder-list.sh" .claude/hooks/
+chmod +x .claude/hooks/placeholder-list.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/placeholder-list.json` into `.claude/settings.json`, adding to an existing `hooks` block rather than replacing it.
 
 ## Reference files
 

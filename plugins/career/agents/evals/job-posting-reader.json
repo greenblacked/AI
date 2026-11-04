@@ -1,0 +1,22 @@
+[
+  {"query": "I saved 34 job postings from the last month into a folder, what do they keep asking for", "should_trigger": true},
+  {"query": "read the postings in ~/search/saved and tell me which requirements are hard and which are wish-list across them", "should_trigger": true},
+  {"query": "across these 25 saved JDs for platform roles, how many mention Terraform and how many state a salary band", "should_trigger": true},
+  {"query": "I have a folder of postings for staff SRE jobs, too many to read, give me the recurring requirements with a count and a quote each", "should_trigger": true},
+  {"query": "go through every posting in applications/postings and tell me what level and pay they state", "should_trigger": true},
+  {"query": "which scoping red flags show up most across the job ads I have saved, wear many hats, no band and so on", "should_trigger": true},
+  {"query": "pull the common skills out of these 40 saved infra engineer postings without pasting them all to me", "should_trigger": true},
+  {"query": "how many of the postings in my jobs folder name a level and how many give a pay range", "should_trigger": true},
+  {"query": "I want the pattern across all the roles I bookmarked and saved as markdown, hard requirements first", "should_trigger": true},
+  {"query": "summarise what these 18 saved job descriptions have in common before I rewrite my master CV", "should_trigger": true},
+  {"query": "read this one JD and tell me what it is really hiring for", "should_trigger": false, "expected": "job-search"},
+  {"query": "tailor my CV to this posting", "should_trigger": false, "expected": "job-search"},
+  {"query": "write a scorecard for our senior SRE role", "should_trigger": false, "expected": "hiring-loop"},
+  {"query": "what should our job ad ask for", "should_trigger": false, "expected": "hiring-loop"},
+  {"query": "what should we pay a staff platform engineer in Leeds", "should_trigger": false, "expected": "compensation-benchmarking"},
+  {"query": "they offered me 140k, is that fair", "should_trigger": false, "expected": "offer-negotiation"},
+  {"query": "what is competitor X hiring for and what does it mean", "should_trigger": false, "expected": "competitor-signal-watch"},
+  {"query": "cluster these 40 pull-request review comments", "should_trigger": false, "expected": "review-comment-miner"},
+  {"query": "what themes recur in the peer feedback about Priya", "should_trigger": false, "expected": "feedback-synthesiser"},
+  {"query": "summarise this year's bank exports", "should_trigger": false, "expected": "statement-reader"}
+]
