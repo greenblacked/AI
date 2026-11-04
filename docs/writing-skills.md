@@ -562,11 +562,15 @@ runs with your permissions on every matching tool call.
   file but cannot be undone by the hook. A kit that must stop a write registers on
   `PreToolUse`.
 
-A kit's `.sh` makes both skill scanners flag its anchor skill: Cisco reports
-`ALLOWED_TOOLS_BASH_VIOLATION` and SkillSpector reports AE1 `static_parse_limit`. So each
-kit lands with a reviewed Cisco suppression scoped to that skill and rule, and a
-SkillSpector accepted entry, both judged under `.github/skill-scan/README.md`. Never use a
-broad suppression.
+A kit's `.sh` makes Cisco flag its anchor skill with `ALLOWED_TOOLS_BASH_VIOLATION`, and
+may make SkillSpector report AE1 `static_parse_limit` there; in the first batch of ten kits
+it fired on one. So each kit lands with a reviewed Cisco suppression scoped to that skill
+and rule, judged under `.github/skill-scan/README.md`. When SkillSpector does report AE1 on
+a kit script, read its SARIF evidence first. A `runtime_limit` reason is a slow runner:
+re-run the job and add nothing. A `static_parse_limit` on the script is a scanner limit, so
+read the script by hand and, if it is a deterministic guard with no network, secret or
+eval, add one accepted entry scoped to that skill, path and match, with its reason. Never
+use a broad suppression.
 
 The command in the JSON must be exactly `"$CLAUDE_PROJECT_DIR"/.claude/hooks/<name>.sh`
 with nothing else on the line, and the script must sit beside the JSON.
