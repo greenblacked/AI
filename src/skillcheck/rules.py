@@ -154,6 +154,9 @@ TOC_RE = re.compile(r"^#{1,3}\s+(?:table of contents|contents|in this file)\b", 
 
 ERROR = "error"
 WARNING = "warning"
+# Printed, annotated and never failing, strict or not. It exists so a check can report
+# a gap the whole catalogue has today without turning every run red.
+NOTICE = "notice"
 
 
 @dataclass(frozen=True)
@@ -815,21 +818,52 @@ def _check_tone(front: Frontmatter, body_lines: list[str], first_line: int, add)
     return []
 
 
-# Manifest keys that load components from paths other than the default folders, and the one
-# source layout the security scan of subagents and commands enumerates.
-_COMPONENT_KEYS = ("agents", "commands", "skills", "hooks")
+# The only keys a manifest may carry. Claude Code keeps adding keys that load or run something
+# on enabling a plugin (`mcpServers`, `monitors`, `themes`, `workflows`, `dependencies`,
+# `userConfig`, a marketplace `metadata.pluginRoot`, ...), and a denylist is one release behind
+# them, so anything not named here is refused. Every key is plain description; none of them
+# loads a component. `scripts/definition_shims.py` holds the same three sets.
+PLUGIN_MANIFEST_KEYS = frozenset(
+    {
+        "$schema",
+        "name",
+        "description",
+        "version",
+        "author",
+        "homepage",
+        "repository",
+        "license",
+        "keywords",
+    }
+)
+MARKETPLACE_KEYS = frozenset({"$schema", "name", "description", "owner", "plugins"})
+MARKETPLACE_ENTRY_KEYS = frozenset(
+    {
+        "name",
+        "source",
+        "category",
+        "tags",
+        "description",
+        "version",
+        "author",
+        "homepage",
+        "repository",
+        "license",
+        "keywords",
+    }
+)
 _PLUGIN_SOURCE = re.compile(r"\./plugins/[a-z0-9]+(?:-[a-z0-9]+)*")
 
 
 def _unscanned_component_paths(
     entry: dict, source: str, directory: Path, relative: Path
 ) -> list[Finding]:
-    """Findings for a manifest that can load a definition `definition_shims.py` never wraps.
+    """Findings for a manifest that can load or run what `definition_shims.py` never wraps.
 
-    A subagent or command listed through ``agents``/``commands`` (or sitting in a plugin
-    whose ``source`` is outside ``plugins/``) is loaded for installers but is in none of the
-    four places the scanners read, so both the marketplace entry and the plugin manifest
-    are refused when they do either.
+    A key outside the allowlists above (``agents``, ``commands``, ``hooks``, an inline server,
+    ``monitors``, whatever Claude Code adds next) or a ``source`` outside ``plugins/`` is
+    loaded for installers but is in none of the four places the scanners read, so both the
+    marketplace entry and the plugin manifest are refused when they do either.
     """
     label = entry.get("name", source)
     found: list[Finding] = []
@@ -839,21 +873,24 @@ def _unscanned_component_paths(
 
     if not _PLUGIN_SOURCE.fullmatch(source):
         refuse(relative, f"plugin {label!r} has source {source!r}; use ./plugins/<plugin>")
-    for key in _COMPONENT_KEYS:
-        if key in entry:
-            refuse(relative, f"plugin {label!r} sets {key!r}; use the default folders")
+    for key in sorted(set(entry) - MARKETPLACE_ENTRY_KEYS):
+        refuse(
+            relative,
+            f"plugin {label!r} sets {key!r}, which is not an allowed marketplace entry key "
+            f"({', '.join(sorted(MARKETPLACE_ENTRY_KEYS))})",
+        )
     manifest = directory / ".claude-plugin" / "plugin.json"
     try:
         data = json.loads(manifest.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return found
     if isinstance(data, dict):
-        for key in _COMPONENT_KEYS:
-            if key in data:
-                refuse(
-                    Path(source) / ".claude-plugin" / "plugin.json",
-                    f"plugin.json sets {key!r}; use the default folders",
-                )
+        for key in sorted(set(data) - PLUGIN_MANIFEST_KEYS):
+            refuse(
+                Path(source) / ".claude-plugin" / "plugin.json",
+                f"plugin.json sets {key!r}, which is not an allowed plugin.json key "
+                f"({', '.join(sorted(PLUGIN_MANIFEST_KEYS))})",
+            )
     return found
 
 
@@ -885,6 +922,34 @@ def check_marketplace(repo_root: Path) -> list[Finding]:
     entries = data.get("plugins", [])
     if not isinstance(entries, list):
         return malformed(f"'plugins' must be a list, found {type(entries).__name__}")
+
+    # `metadata.pluginRoot` redirects where relative plugin sources resolve, so `metadata`
+    # is left out of the allowlist on purpose.
+    for key in sorted(set(data) - MARKETPLACE_KEYS):
+        findings.append(
+            Finding(
+                ERROR,
+                relative,
+                1,
+                "unscanned-component-path",
+                f"marketplace.json sets {key!r}, which is not an allowed top-level key "
+                f"({', '.join(sorted(MARKETPLACE_KEYS))})",
+            )
+        )
+
+    # `find_plugins` reads only `plugins/`; a `Plugins/` folder is the same folder to a
+    # case-insensitive filesystem and would hold plugins nothing here lists or scans.
+    for entry in sorted(repo_root.iterdir()):
+        if entry.name.lower() == "plugins" and entry.name != "plugins":
+            findings.append(
+                Finding(
+                    ERROR,
+                    Path(entry.name),
+                    1,
+                    "plugins-folder-case",
+                    f"{entry.name!r} differs from 'plugins' only in case; rename it",
+                )
+            )
 
     listed: set[Path] = set()
     for index, plugin in enumerate(entries):
@@ -1513,12 +1578,15 @@ def _unquote_glob(value: str) -> str:
     return value
 
 
-def check_rule(path: Path, repo_root: Path) -> list[Finding]:
+def check_rule(path: Path, repo_root: Path, *, match_globs: bool = True) -> list[Finding]:
     """Validate one file under `.claude/rules/`.
 
     Frontmatter is optional: a rule without it loads on every session, which is a
     choice rather than a defect. What is a defect is a `paths:` glob that matches
     nothing — the rule then never loads, and no error anywhere says so.
+
+    ``match_globs=False`` skips that last check for a rule template a skill ships: its
+    globs scope the installer's project, which this repository cannot answer for.
     """
     findings: list[Finding] = []
     relative = path.relative_to(repo_root)
@@ -1548,7 +1616,7 @@ def check_rule(path: Path, repo_root: Path) -> list[Finding]:
                 "and never loads",
                 front.line_of("paths"),
             )
-        for pattern, line in globs:
+        for pattern, line in globs if match_globs else []:
             if not _glob_matches(repo_root, pattern):
                 add(
                     ERROR,
@@ -1728,6 +1796,257 @@ def check_trigger_collisions(
                 f"({first[1].relative_to(repo_root)}); a description copied this way "
                 "fires on the other skill's requests, which is the collision the trigger "
                 "eval exists to catch and never runs here",
+            )
+        )
+    return findings
+
+
+# Whether a plugin that lacks the shape (a subagent and a complete project kit) is a
+# warning, which `--strict` fails, or only a notice. Flipped once every plugin has it.
+PLUGIN_SHAPE_ENFORCED = False
+
+# The only entries a plugin root may hold, compared case-sensitively (a case-insensitive
+# filesystem resolves `Agents/` to `agents/` on the installer's machine, where it is something
+# else here). Claude Code loads or runs further entries the moment a plugin is enabled, with
+# no prompt and with the installer's full permissions (`hooks/`, `.mcp.json`, `monitors/`,
+# `bin/`, `workflows/`, `themes/`, ...), and keeps adding them, so the list is of what is
+# allowed rather than of what is known to be dangerous. Hooks reach installers only as opt-in
+# templates under a skill's `assets/hooks/`.
+PLUGIN_ROOT_ENTRIES = (".claude-plugin", "skills", "agents", "commands")
+# OS litter that can never be a plugin component. Only an exact name, and only as a regular
+# file, is skipped: git and `.gitignore` are deliberately not consulted, because an ignore
+# rule must not be able to hide a real `hooks/` or `.mcp.json` from the check.
+PLUGIN_ROOT_JUNK = (".DS_Store", "Thumbs.db", "desktop.ini")
+
+# The hook events a kit template may register.
+HOOK_EVENTS = frozenset(
+    {
+        "PreToolUse",
+        "PostToolUse",
+        "UserPromptSubmit",
+        "Stop",
+        "SubagentStop",
+        "SessionStart",
+        "SessionEnd",
+        "Notification",
+        "PreCompact",
+    }
+)
+HOOK_COMMAND_RE = re.compile(
+    r'"\$CLAUDE_PROJECT_DIR"/\.claude/hooks/([A-Za-z0-9][A-Za-z0-9._-]*\.sh)'
+)
+HOOK_SHEBANG = "#!/usr/bin/env bash"
+HOOK_STRICT_MODE = "set -Eeuo pipefail"
+
+
+def _hook_entries(data, add) -> list[str]:
+    """Check the shape of a hook template and return the script names it points at."""
+    scripts: list[str] = []
+    if not isinstance(data, dict) or not isinstance(data.get("hooks"), dict):
+        add('expected {"hooks": {"<Event>": [...]}} at the top level')
+        return scripts
+    # An allowlist, because the installer merges this file into .claude/settings.json: a
+    # key such as statusLine or apiKeyHelper would run a command the hook rules never saw.
+    for key in sorted(set(data) - {"hooks"}):
+        add(f"unknown top-level key {key!r}; a hook template holds only 'hooks'")
+    for event, groups in data["hooks"].items():
+        if event not in HOOK_EVENTS:
+            add(f"unknown hook event {event!r}; known: {', '.join(sorted(HOOK_EVENTS))}")
+            continue
+        if not isinstance(groups, list) or not groups:
+            add(f"{event} must be a non-empty list of matcher groups")
+            continue
+        for group in groups:
+            if not isinstance(group, dict):
+                add(f"a {event} matcher group must be an object")
+                continue
+            for key in sorted(set(group) - {"matcher", "hooks"}):
+                add(f"a {event} matcher group has unknown key {key!r}")
+            if "matcher" in group and not isinstance(group["matcher"], str):
+                add(f"a {event} matcher must be a string")
+            commands = group.get("hooks")
+            if not isinstance(commands, list) or not commands:
+                add(f"a {event} matcher group needs a non-empty 'hooks' list")
+                continue
+            for command in commands:
+                if not isinstance(command, dict) or command.get("type") != "command":
+                    add(f"a {event} hook must be an object with type 'command'")
+                    continue
+                for key in sorted(set(command) - {"type", "command", "timeout"}):
+                    add(f"a {event} hook has unknown key {key!r}")
+                timeout = command.get("timeout")
+                if "timeout" in command and (
+                    not isinstance(timeout, int) or isinstance(timeout, bool) or timeout <= 0
+                ):
+                    add(f"a {event} hook timeout must be a positive integer")
+                text = command.get("command")
+                match = HOOK_COMMAND_RE.fullmatch(text) if isinstance(text, str) else None
+                if not match:
+                    add(
+                        f"a {event} hook command must be exactly "
+                        '"$CLAUDE_PROJECT_DIR"/.claude/hooks/<name>.sh, with nothing '
+                        f"else on the line, not {text!r}"
+                    )
+                    continue
+                scripts.append(match.group(1))
+    return scripts
+
+
+def _check_hook_template(path: Path, repo_root: Path, findings: list[Finding]) -> bool:
+    """Validate one ``assets/hooks/*.json``; return whether it is sound with its scripts."""
+    relative = path.relative_to(repo_root)
+    problems: list[str] = []
+    # A flag, not `data is None`: a file holding JSON `null` parses to None and must
+    # still go through the shape check rather than read as "could not parse".
+    parsed = True
+    data: object = None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, UnicodeDecodeError) as error:
+        problems.append(f"not valid JSON or not readable: {error}")
+        parsed = False
+    scripts = _hook_entries(data, problems.append) if parsed else []
+    if parsed and not problems and not scripts:
+        problems.append("registers no hook command")
+    for name in dict.fromkeys(scripts):
+        if name != path.with_suffix(".sh").name:
+            problems.append(
+                f"names {name}, but {path.name} must name exactly {path.with_suffix('.sh').name}"
+            )
+            continue
+        script = path.parent / name
+        if not script.is_file():
+            problems.append(f"names {name}, which does not exist beside it in {path.parent.name}/")
+            continue
+        try:
+            text = script.read_text(encoding="utf-8", errors="replace")
+        except OSError as error:
+            problems.append(f"{name} cannot be read: {error}")
+            continue
+        if not text.startswith(HOOK_SHEBANG + "\n"):
+            problems.append(f"{name} must start with {HOOK_SHEBANG}")
+        if HOOK_STRICT_MODE not in text:
+            problems.append(f"{name} must contain {HOOK_STRICT_MODE}")
+    for message in problems:
+        findings.append(Finding(ERROR, relative, 1, "kit-hook", message))
+    return not problems
+
+
+def check_kit(assets: Path, repo_root: Path) -> list[Finding]:
+    """Validate the project kit under one skill's ``assets/`` directory.
+
+    ``rules/*.md`` are rule templates the installer copies into ``.claude/rules/``, so
+    they get the checks the repository's own rules get minus the glob match; ``hooks/*.json``
+    are templates the installer merges into ``.claude/settings.json``, each naming scripts
+    that sit beside it. ``templates/*.md`` need nothing beyond existing.
+    """
+    findings: list[Finding] = []
+    for rule in sorted((assets / "rules").glob("*.md")):
+        # A directory named x.md, or an unreadable file, is a finding, not a traceback.
+        try:
+            items = check_rule(rule, repo_root, match_globs=False)
+            text = rule.read_text(encoding="utf-8", errors="replace")
+        except OSError as error:
+            findings.append(
+                Finding(
+                    ERROR, rule.relative_to(repo_root), 1, "kit-rule", f"cannot be read: {error}"
+                )
+            )
+            continue
+        for item in items:
+            findings.append(Finding(ERROR, item.path, item.line, "kit-rule", item.message))
+        if not any(f.path == rule.relative_to(repo_root) for f in findings):
+            front = parse(text) if text.startswith("---") else None
+            if front is None or not _rule_globs(text, front.end_line - 1):
+                findings.append(
+                    Finding(
+                        ERROR,
+                        rule.relative_to(repo_root),
+                        1,
+                        "kit-rule",
+                        "a rule template needs 'paths:' frontmatter with at least one "
+                        "glob, or it loads on every session in the installer's project",
+                    )
+                )
+    for hook in sorted((assets / "hooks").glob("*.json")):
+        _check_hook_template(hook, repo_root, findings)
+    return findings
+
+
+def _kit_complete(assets: Path, repo_root: Path) -> bool:
+    if not any((assets / "rules").glob("*.md")) or not any((assets / "templates").glob("*.md")):
+        return False
+    return any(
+        _check_hook_template(hook, repo_root, [])
+        for hook in sorted((assets / "hooks").glob("*.json"))
+    )
+
+
+def check_plugin_shape(plugin: Path, repo_root: Path) -> list[Finding]:
+    """Check one plugin's shape: an allowlisted root, a validated kit, and completeness."""
+    findings: list[Finding] = []
+    entries = sorted(plugin.iterdir()) if plugin.is_dir() else []
+    for entry in entries:
+        name = entry.name
+        if name in PLUGIN_ROOT_ENTRIES:
+            continue
+        if name in PLUGIN_ROOT_JUNK and entry.is_file() and not entry.is_symlink():
+            continue
+        findings.append(
+            Finding(
+                ERROR,
+                entry.relative_to(repo_root),
+                1,
+                "plugin-root-entry",
+                f"{name} is not an allowed plugin-root entry (only "
+                f"{', '.join(PLUGIN_ROOT_ENTRIES)}, in that case): Claude Code loads or "
+                "runs entries it knows at a plugin root as soon as the plugin is "
+                "enabled, with no prompt; a plugin ships hooks as opt-in kit templates "
+                "under a skill's assets/hooks/ instead",
+            )
+        )
+    skills_dir = plugin / "skills"
+    # Symlinked skill folders are skipped on purpose: the shim refuses any tracked symlink.
+    skill_dirs = (
+        [d for d in sorted(skills_dir.iterdir()) if d.is_dir() and not d.is_symlink()]
+        if skills_dir.is_dir()
+        else []
+    )
+    for directory in skill_dirs:
+        for item in sorted(directory.iterdir()):
+            if item.name.lower() == "skill.md" and item.name != "SKILL.md":
+                findings.append(
+                    Finding(
+                        ERROR,
+                        item.relative_to(repo_root),
+                        1,
+                        "skill-file-case",
+                        f"{item.name} is not spelt exactly SKILL.md: a case-insensitive "
+                        "filesystem loads it as a skill and a case-sensitive one does not",
+                    )
+                )
+    skills = find_skills(plugin / "skills") if (plugin / "skills").is_dir() else []
+    complete = False
+    for skill in skills:
+        assets = skill / "assets"
+        findings.extend(check_kit(assets, repo_root))
+        complete = complete or _kit_complete(assets, repo_root)
+    missing = []
+    if not find_agents(plugin / "agents"):
+        missing.append("a subagent under agents/")
+    if not complete:
+        missing.append(
+            "a complete project kit (a rule, a hook json with its script and a "
+            "template under one skill's assets/)"
+        )
+    if missing:
+        findings.append(
+            Finding(
+                WARNING if PLUGIN_SHAPE_ENFORCED else NOTICE,
+                (plugin / ".claude-plugin" / "plugin.json").relative_to(repo_root),
+                1,
+                "plugin-incomplete",
+                "plugin lacks " + " and ".join(missing),
             )
         )
     return findings

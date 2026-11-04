@@ -14,7 +14,12 @@ What is checked, all of it mechanical:
 - one row per skill, linking to a `SKILL.md` that exists
 - no row for a skill that is gone
 - the per-plugin contents table against what each plugin actually ships
-- one row per shipped subagent and per shipped command
+- one chapter per plugin, with `#### Skills`, `#### Subagents`, `#### Commands` (exactly
+  when the plugin ships commands) and `#### Project kit`, in that order
+- one row per shipped subagent and per shipped command, in its own plugin's chapter
+- the repository's own agents and commands, in "Working on this repository"
+- each plugin's project kit table against the `assets/rules`, `assets/hooks` and
+  `assets/templates` files on disk, and the count of complete kits
 
 - the Python badge against the interpreter matrix CI actually runs
 - the coverage badge against the floor `pyproject.toml` enforces
@@ -80,8 +85,14 @@ FAIL_UNDER_RE = re.compile(r"^fail_under\s*=\s*(\d+)", re.M)
 # A row in the "What is included" table: | `coding` | focus | 12 skills, 1 subagent |,
 # or with the name linked to that plugin's section: | [`coding`](#coding) | ... |
 CONTENTS_ROW_RE = re.compile(
-    r"^\|\s*\[?`([a-z0-9-]+)`(?:\]\(([^)\s]*)\))?\s*\|[^|]*\|([^|]*)\|", re.M
+    r"^\|\s*\[?`([a-z0-9-]+)`(?:\]\(([^)\s]*)\))?\s*\|[^|]*\|([^|]*)\|(?:([^|]*)\|)?", re.M
 )
+H_RE = re.compile(r"^(#{2,4})\s+(.+?)\s*$")
+BACKTICKED_RE = re.compile(r"`([^`]+)`")
+WORKING = "working on this repository"
+NO_KIT = "No kit yet."
+NO_AGENTS = "None yet."
+KIT_COLUMNS = (("rules", "md"), ("hooks", "json"), ("templates", "md"))
 # The skills section a linked contents row points at, e.g. "### Coding" for #coding.
 SECTION_HEADING_RE = re.compile(r"^#{2,3}\s+(.+?)\s*$", re.M)
 COUNT_RES = {
@@ -89,6 +100,7 @@ COUNT_RES = {
     "subagents": re.compile(r"(\d+)\s+subagents?\b"),
     "commands": re.compile(r"(\d+)\s+commands?\b"),
 }
+KIT_COUNT_RE = re.compile(r"\d+")
 
 # Counts in the prose are written in words as often as in digits. Twenty is well above
 # anything this repository will spell out rather than tabulate.
@@ -108,6 +120,8 @@ PROSE_NOUNS = {
     "agent skills": "skills",
     "read-only subagents": "subagents",
     "slash commands": "commands",
+    "project kits": "kits",
+    "project kit": "kits",
     "skills": "skills",
     "subagents": "subagents",
     "commands": "commands",
@@ -149,6 +163,76 @@ def on_disk(root: Path) -> dict[str, dict[str, set[str]]]:
     return contents
 
 
+def kits_on_disk(root: Path) -> dict[str, dict[str, dict[str, set[str]]]]:
+    """Per plugin, per skill that has any kit file: the stems under each assets folder."""
+    out: dict[str, dict[str, dict[str, set[str]]]] = {}
+    for plugin in find_plugins(root):
+        for skill in find_skills(plugin / "skills"):
+            kit = {
+                key: {f.stem for f in (skill / "assets" / key).glob(f"*.{ext}")}
+                for key, ext in KIT_COLUMNS
+            }
+            if any(kit.values()):
+                kit["scripts"] = {f.stem for f in (skill / "assets" / "hooks").glob("*.sh")}
+                out.setdefault(plugin.name, {})[skill.name] = kit
+    return out
+
+
+def complete_kits(kits: dict[str, dict[str, set[str]]]) -> int:
+    """Skills with a rule, a hook (json and script together) and a template."""
+    return sum(
+        1
+        for kit in kits.values()
+        if kit["rules"] and kit["templates"] and kit["hooks"] & kit["scripts"]
+    )
+
+
+def parse_sections(text: str) -> tuple[dict[str, dict[str, list[str]]], list[str]]:
+    """The README's plugin chapters and its "Working on this repository" body.
+
+    A chapter is a `###` heading under any `##`; its value maps each `####` heading to
+    the lines beneath it. The second value is every line under the working section.
+    """
+    chapters: dict[str, dict[str, list[str]]] = {}
+    working: list[str] = []
+    h2 = h3 = h4 = ""
+    fenced = False
+    for line in text.splitlines():
+        if line.lstrip().startswith("```"):
+            fenced = not fenced
+        match = None if fenced else H_RE.match(line)
+        if match:
+            level, title = len(match.group(1)), match.group(2)
+            if level == 2:
+                h2, h3, h4 = title.lower(), "", ""
+            elif level == 3:
+                h3, h4 = title.lower(), ""
+                if h2 != WORKING:
+                    chapters.setdefault(h3, {})
+            else:
+                h4 = title
+                if h3 and h2 != WORKING:
+                    chapters[h3].setdefault(h4, [])
+            continue
+        if h2 == WORKING:
+            working.append(line)
+        elif h3 and h4:
+            chapters[h3][h4].append(line)
+    return chapters, working
+
+
+def _h2_titles(text: str) -> list[str]:
+    return [
+        m.group(2).lower()
+        for line in text.splitlines()
+        if (m := H_RE.match(line)) and len(m.group(1)) == 2
+    ]
+
+
+def row_names(lines: list[str]) -> set[str]:
+    return {m.group(1) for line in lines if (m := AGENT_OR_COMMAND_ROW_RE.match(line))}
+
+
 def ci_python_matrix(root: Path) -> list[str] | None:
     """The interpreter versions CI's test matrix runs, or None when there is no matrix."""
     workflow = root / ".github" / "workflows" / "ci.yml"
@@ -178,7 +262,9 @@ def check(root: Path) -> int:
     text = readme.read_text(encoding="utf-8")
     contents = on_disk(root)
     problems: list[str] = []
-    row_names = set(AGENT_OR_COMMAND_ROW_RE.findall(text))
+    chapters, working = parse_sections(text)
+    working_rows = row_names(working)
+    kits = kits_on_disk(root)
 
     def fail(message: str) -> None:
         problems.append(message)
@@ -235,38 +321,120 @@ def check(root: Path) -> int:
                 f"fails below {floor}"
             )
 
-    # --- subagents and commands: every shipped one has a row --------------------------
-    # A row is the first cell of a table line, not a backticked name anywhere in the
-    # document: a mention in prose used to satisfy this check with no table row for the
-    # name it was actually about, the same gap `SKILL_ROW_RE` never had for a skill.
-    for kind, key, mark in (("subagent", "subagents", ""), ("command", "commands", "/")):
-        for plugin in sorted(contents):
+    # --- one chapter per plugin, in a fixed order --------------------------------------
+    # A row counts only inside the chapter of the plugin that ships it: a global table
+    # let a subagent be listed under the wrong plugin, or in a section no reader of that
+    # plugin would open, and a mention in prose used to satisfy the check on its own.
+    for plugin in sorted(contents):
+        chapter = chapters.get(plugin)
+        if chapter is None:
+            fail(f"{plugin} has no chapter: add a '### {plugin.title()}' heading")
+            continue
+        has_commands = bool(contents[plugin]["commands"])
+        expected = ["Skills", "Subagents", *(["Commands"] if has_commands else []), "Project kit"]
+        got = [h for h in chapter if h in {"Skills", "Subagents", "Commands", "Project kit"}]
+        for heading in expected:
+            if heading not in got:
+                fail(f"the {plugin} chapter has no '#### {heading}' section")
+        if "Commands" in got and not has_commands:
+            fail(f"the {plugin} chapter has a Commands section and the plugin ships no commands")
+        known = [h for h in got if h in expected]
+        if known != [h for h in expected if h in known]:
+            fail(f"the {plugin} chapter's sections are out of order: {', '.join(got)}")
+
+        for heading, kind, key, mark in (
+            ("Subagents", "subagent", "subagents", ""),
+            ("Commands", "command", "commands", "/"),
+        ):
+            if heading not in chapter:
+                continue
+            section = chapter[heading]
+            rows = row_names(section)
+            # Claude Code namespaces a plugin's commands, so `/plugin:name` is how an
+            # installer actually types one; either spelling counts as the row.
+            allowed = {f"{mark}{n}" for n in contents[plugin][key]}
+            if mark:
+                allowed |= {f"/{plugin}:{n}" for n in contents[plugin][key]}
+            for row in sorted(rows - allowed):
+                fail(f"the {plugin} chapter lists {kind} {row}, which {plugin} does not ship")
+            if not contents[plugin][key]:
+                if heading == "Subagents" and NO_AGENTS not in {s.strip() for s in section}:
+                    fail(
+                        f"{plugin} ships no subagents and its Subagents section "
+                        f"lacks the line '{NO_AGENTS}'"
+                    )
+            elif NO_AGENTS in {s.strip() for s in section}:
+                fail(f"the {plugin} chapter says '{NO_AGENTS}' and the plugin ships {key}")
+        for kind, key, mark in (("subagent", "subagents", ""), ("command", "commands", "/")):
+            heading = "Subagents" if key == "subagents" else "Commands"
+            rows = row_names(chapter.get(heading, []))
             for name in sorted(contents[plugin][key]):
-                # Claude Code namespaces a plugin's commands, so `/plugin:name` is how an
-                # installer actually types one; either spelling counts as the row.
                 spellings = {f"{mark}{name}"} | ({f"/{plugin}:{name}"} if mark else set())
-                if not spellings & row_names:
+                if not spellings & rows:
                     fail(f"{kind} {name} ships with {plugin} and has no row in the README")
 
+        # --- the project kit table against assets/ on disk ----------------------------
+        section = chapter.get("Project kit")
+        if section is None:
+            continue
+        on_disk_kit = kits.get(plugin, {})
+        table: dict[str, list[set[str]]] = {}
+        for line in section:
+            if not line.startswith("|") or line.startswith("| ---"):
+                continue
+            cells = [c for c in line.strip().strip("|").split("|")]
+            names = [BACKTICKED_RE.findall(c) for c in cells]
+            if not names[0] or cells[0].strip().lower() == "skill":
+                continue
+            table[names[0][0]] = [
+                {Path(n).stem for n in column} for column in (names + [[]] * 4)[1:4]
+            ]
+        says_none = NO_KIT in {s.strip() for s in section}
+        if not on_disk_kit and table:
+            fail(f"the {plugin} Project kit lists a kit and no skill ships kit files")
+        if on_disk_kit and says_none:
+            fail(f"the {plugin} Project kit says '{NO_KIT}' and skills ship kit files")
+        if not on_disk_kit and not table and not says_none:
+            fail(f"the {plugin} Project kit has neither a table nor the line '{NO_KIT}'")
+        for skill in sorted(set(on_disk_kit) - set(table)):
+            if not says_none:
+                fail(f"{skill} ships kit files in {plugin} and has no row in its Project kit")
+        for skill in sorted(set(table) - set(on_disk_kit)):
+            if on_disk_kit or not says_none:
+                fail(f"the {plugin} Project kit has a row for {skill}, which ships no kit files")
+        for skill in sorted(set(table) & set(on_disk_kit)):
+            for (key, _ext), stated in zip(KIT_COLUMNS, table[skill], strict=True):
+                actual = on_disk_kit[skill][key]
+                if stated != actual:
+                    fail(
+                        f"the {plugin} Project kit row for {skill} lists {key} "
+                        f"{sorted(stated)}, and assets/{key} holds {sorted(actual)}"
+                    )
+
     # --- the repository's own agents and commands -------------------------------------
-    # The loop above covers anything a plugin ships. Nothing covered `.claude/`, so a
-    # subagent or command written for work on this repository could exist with no row
-    # and no gate would say so — which is how the three-stage loop's own documentation
-    # went stale. These ship to nobody but they are listed in the README all the same.
+    # Nothing covered `.claude/`, so a subagent or command written for work on this
+    # repository could exist with no row and no gate would say so — which is how the
+    # three-stage loop's own documentation went stale. These ship to nobody but they are
+    # listed in the README all the same, in their own section and not a plugin's chapter.
+    local = []
     for directory, kind, mark in (
         (root / ".claude" / "agents", "subagent", ""),
         (root / ".claude" / "commands", "command", "/"),
     ):
         finder = find_agents if kind == "subagent" else find_commands
-        for path in finder(directory):
-            if f"{mark}{path.stem}" not in row_names:
-                fail(f"{kind} {mark}{path.stem} is in .claude/ and has no row in the README")
+        local += [(kind, mark, path.stem) for path in finder(directory)]
+    if local and not any(h == WORKING for h in _h2_titles(text)):
+        fail("the README has no '## Working on this repository' section for .claude/")
+    for kind, mark, stem in local:
+        if f"{mark}{stem}" not in working_rows:
+            fail(f"{kind} {mark}{stem} is in .claude/ and has no row in the README")
 
     # --- counts spelled out in the prose ----------------------------------------------
     totals = {
         "skills": len(every_skill),
         "subagents": len({n for p in contents.values() for n in p["subagents"]}),
         "commands": len({n for p in contents.values() for n in p["commands"]}),
+        "kits": sum(complete_kits(k) for k in kits.values()),
     }
     for number, line in prose_lines(text):
         for stated, noun in PROSE_COUNT_RE.findall(line):
@@ -286,11 +454,13 @@ def check(root: Path) -> int:
 
     # --- the per-plugin contents table ------------------------------------------------
     seen_in_table = set()
+    # Only the table above the chapters: a kit row can share a plugin's name with a skill.
+    table_text = text.split("\n#### ", 1)[0]
     # A linked name has to land on that plugin's own section: the link renders and
     # resolves whatever it points at, so a row copied from its neighbour would send the
     # reader to the wrong plugin with nothing else to notice.
     headings = {h.strip().lower() for h in SECTION_HEADING_RE.findall(text)}
-    for plugin, target, cell in CONTENTS_ROW_RE.findall(text):
+    for plugin, target, cell, kit_cell in CONTENTS_ROW_RE.findall(table_text):
         if plugin not in contents:
             continue  # a backticked name in some other table; the checks above own those
         seen_in_table.add(plugin)
@@ -307,6 +477,15 @@ def check(root: Path) -> int:
             actual = len(contents[plugin][key])
             if stated != actual:
                 fail(f"the contents table says {plugin} has {stated} {key}, and it has {actual}")
+        kit_count = KIT_COUNT_RE.search(kit_cell)
+        actual_kits = complete_kits(kits.get(plugin, {}))
+        if kit_count is None:
+            fail(f"the contents table has no project kit count for {plugin}")
+        elif int(kit_count.group()) != actual_kits:
+            fail(
+                f"the contents table says {plugin} has {kit_count.group()} project kits, "
+                f"and it has {actual_kits}"
+            )
     for plugin in sorted(set(contents) - seen_in_table):
         fail(f"{plugin} is a plugin and has no row in the contents table")
 

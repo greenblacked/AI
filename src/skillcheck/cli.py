@@ -15,6 +15,7 @@ from pathlib import Path
 
 from .frontmatter import FrontmatterError, parse
 from .rules import (
+    NOTICE,
     WARNING,
     Finding,
     check_agent,
@@ -23,6 +24,7 @@ from .rules import (
     check_duplicate_names,
     check_eval_conflicts,
     check_marketplace,
+    check_plugin_shape,
     check_rule,
     check_skill,
     check_trigger_collisions,
@@ -36,7 +38,7 @@ from .rules import (
 
 
 def _annotate(finding: Finding) -> str:
-    level = "error" if finding.failed else "warning"
+    level = "error" if finding.failed else "notice" if finding.level == NOTICE else "warning"
     return (
         f"::{level} file={finding.path},line={finding.line},title={finding.code}::{finding.message}"
     )
@@ -156,6 +158,8 @@ def main(argv: list[str] | None = None) -> int:
     findings.extend(check_duplicate_names(skills, root))
     findings.extend(check_eval_conflicts(skills, root, agents))
     findings.extend(check_trigger_collisions(skills, root, agents))
+    for plugin in plugins:
+        findings.extend(check_plugin_shape(plugin, root))
     for agent in agents:
         findings.extend(check_agent(agent, root, known))
         findings.extend(check_agent_evals(agent, root, known))
@@ -193,9 +197,10 @@ def main(argv: list[str] | None = None) -> int:
 
     errors = [item for item in findings if item.failed]
     warnings = [item for item in findings if item.level == WARNING]
+    notices = [item for item in findings if item.level == NOTICE]
 
     for item in sorted(findings, key=lambda f: (not f.failed, str(f.path), f.line)):
-        label = "ERROR  " if item.failed else "warning"
+        label = "ERROR  " if item.failed else item.level.ljust(7)
         print(f"{label} {item.path}:{item.line} [{item.code}] {item.message}")
         if github:
             print(_annotate(item))
@@ -204,6 +209,7 @@ def main(argv: list[str] | None = None) -> int:
         f"\n{len(plugins)} plugin(s), {len(skills)} skill(s), {len(agents)} subagent(s), "
         f"{len(commands)} command(s) and {len(rules)} rule(s) checked — "
         f"{len(errors)} error(s), {len(warnings)} warning(s)"
+        + (f", {len(notices)} notice(s)" if notices else "")
     )
     # Always reported, never a finding on its own: the number is the point. Every
     # description a plugin ships is resident in context for the whole session, and the

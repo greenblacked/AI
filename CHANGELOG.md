@@ -8,6 +8,14 @@ version](docs/ci.md#releasing-a-version) for how one is cut.
 
 ## [Unreleased]
 
+### Added
+
+- A common shape for every plugin: skills, at least one read-only reader subagent, and a project kit. The kit lives inside one skill's `assets/` and holds `rules/*.md` (a path-scoped rule copied into `.claude/rules/`), `hooks/<name>.json` with its `<name>.sh` (an opt-in hook template the user merges into their own settings) and `templates/*.md` (a document template). Plugins still never ship a hook that runs on install. The validator gains `plugin-root-entry` (an error for anything at a plugin root other than `.claude-plugin/`, `skills/`, `agents/` and `commands/`, compared case-sensitively, because Claude Code loads `hooks/`, `.mcp.json`, `monitors/` and whatever it adds next without a prompt) and widens `unscanned-component-path` from a list of component keys to allowlists: `plugin.json` may hold only `$schema`, `name`, `description`, `version`, `author`, `homepage`, `repository`, `license` and `keywords`, the marketplace top level only `$schema`, `name`, `description`, `owner` and `plugins` (`metadata.pluginRoot` redirects where plugins load, so `metadata` is out), and a marketplace entry only `name`, `source`, `category`, `tags`, `description`, `version`, `author`, `homepage`, `repository`, `license` and `keywords`. `scripts/definition_shims.py` enforces the same allowlists in the `security` workflow, so a new Claude Code component type fails closed. A `Plugins/` folder that differs from `plugins` only in case is `plugins-folder-case`. The validator also gains `kit-rule` and `kit-hook` (errors for a kit rule whose `paths:` does not parse, or a kit hook that is not valid, names a command outside `$CLAUDE_PROJECT_DIR/.claude/hooks/` or has no script beside it), and a `plugin-incomplete` notice for a plugin with no subagent or no complete kit, which becomes a warning once every plugin has both. `template/` gains an agent template and a kit.
+
+### Changed
+
+- The README is one chapter per plugin. Each has `#### Skills`, `#### Subagents`, `#### Commands` (only where the plugin ships commands) and `#### Project kit`, and the global Subagents and Commands sections are gone; the repository's own agents and commands sit under "Working on this repository". `scripts/check_readme.py` enforces the shape: the sections and their order, each subagent and command row in its own plugin's chapter, the kit table against the files under `assets/`, and a project kits column and count in the contents table.
+
 ## [0.5.2] - 2026-11-04
 
 ### Added
