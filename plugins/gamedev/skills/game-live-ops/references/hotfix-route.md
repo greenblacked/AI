@@ -1,6 +1,6 @@
 # Choosing the fix route for a live defect
 
-Read this at step 6, once the severity threshold says a defect is a hotfix and the question becomes which mechanism carries the fix. The threshold decides whether to break the calendar; the route decides how much of the calendar's cost the break has to pay.
+Read this at step 6a, once the severity threshold says a defect is a hotfix and the question becomes which mechanism carries the fix. The threshold decides whether to break the calendar; the route decides how much of the calendar's cost the break has to pay.
 
 ## Contents
 
