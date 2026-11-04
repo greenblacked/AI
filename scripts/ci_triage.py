@@ -159,12 +159,15 @@ CAUSES: dict[str, tuple[str, str]] = {
     ),
     "cisco skill scan": (
         "skill-scanner scan-all plugins --recursive --policy .github/skill-scan/cisco-policy.yaml "
-        "--fail-on-severity high (docs/ci.md has the install)",
+        "--fail-on-severity high, then the same scan-all over the shims "
+        "scripts/definition_shims.py --all writes for the subagent and command definitions "
+        "(docs/ci.md has the install)",
         "security.yml",
     ),
     "skillspector skill scan": (
-        "skillspector scan <skill> --no-llm per skill, then scripts/skill_scan_gate.py "
-        "(docs/ci.md has the steps)",
+        "skillspector scan <skill> --no-llm per skill, and per shim from "
+        "scripts/definition_shims.py for a subagent or command definition, then "
+        "scripts/skill_scan_gate.py (docs/ci.md has the steps)",
         "security.yml",
     ),
     "permissions audit": (

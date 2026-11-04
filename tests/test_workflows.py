@@ -951,3 +951,31 @@ def test_the_skillspector_base_commit_arrives_through_env():
     body = security_job("skillspector")
     assert "BASE_SHA: ${{ github.event.pull_request.base.sha }}" in body
     assert "--no-renames -z --name-only" in body
+
+
+def test_the_cisco_job_scans_definitions_through_shims_with_the_same_policy():
+    body = security_job("skill-scanner")
+    blocks = "".join(run_blocks(body))
+    assert "scripts/definition_shims.py" in blocks
+    scans = [b for b in run_blocks(body) if 'skill-scanner" scan-all' in b]
+    assert len(scans) == 2
+    for block in scans:
+        assert "--policy .github/skill-scan/cisco-policy.yaml" in block
+        assert "--fail-on-severity high" in block
+
+
+def test_the_skillspector_job_scans_shims_and_watches_the_script_as_scan_configuration():
+    body = security_job("skillspector")
+    assert "scripts/definition_shims.py" in "".join(run_blocks(body))
+    # Changing the script changes which files are wrapped and how, so it rescans everything.
+    config = re.search(r"git diff --no-renames -z --name-only .*?\| tr", body, re.DOTALL).group(0)
+    assert "scripts/definition_shims.py" in config
+    assert "scripts/skill_scan_gate.py" in config
+
+
+def test_the_definition_steps_keep_the_job_permissions_and_pins():
+    for name in SKILL_SCAN_JOBS:
+        body = security_job(name)
+        assert "persist-credentials: false" in body
+        for line in re.findall(r"uses: (\S+)", body):
+            assert re.fullmatch(r"[\w./-]+@[0-9a-f]{40}", line), line
