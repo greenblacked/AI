@@ -1,6 +1,6 @@
 ---
 name: game-pillars
-description: "Set three to five design pillars for a game and use them to decide what gets built. Writes each pillar as a sentence that forces a choice between two good things, ties it to a named feature it excludes, tests that a reasonable team could disagree with it, then stress-tests the next five candidate features against the set with a keep, cut or redesign verdict and the pillar each verdict rests on. Re-run at every milestone, and whenever a feature argument cannot be settled. Use whenever someone asks for design pillars, a vision statement, why a feature keeps being argued about, or whether a feature fits the game. Not for choosing which concept to make (game-greenlight), the full feature specification (game-design-doc), tuning numbers (game-balance), running a playtest (game-playtest), or scope slippage in general (scope-creep-response)."
+description: "Set three to five design pillars for a game and use them to decide what gets built. Writes each pillar as a sentence that forces a choice between two good things, ties it to a named feature it excludes, tests that a reasonable team could disagree with it, then stress-tests the next five candidate features against the set with a keep, cut or redesign verdict and the pillar each verdict rests on. Re-run at every milestone, and whenever a feature argument cannot be settled. Use whenever someone asks for design pillars, a vision statement, why a feature keeps being argued about, or whether a feature fits the game. Not for choosing which concept to make (game-greenlight), the full feature specification (game-design-doc), tuning numbers (game-balance), or running a playtest (game-playtest)."
 allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
@@ -14,7 +14,7 @@ Pillars fail by being agreeable. "Fun gameplay", "immersive world" and "polished
 
 Use for: writing or rewriting a game's pillars, checking an existing set for pillars that decide nothing, and running a candidate feature list through them at the start of a project and at each milestone.
 
-Do not use for: choosing which concept to make, which is `game-greenlight`; the pillars are written after a concept is chosen and feed back into it only if they expose that the concept cannot hold together. The full specification of a feature that survives is `game-design-doc`. Numbers are `game-balance`, evidence from players is `game-playtest`, and a project already over scope for reasons that are not about fit is `scope-creep-response`.
+Do not use for: choosing which concept to make, which is `game-greenlight`; the pillars are written after a concept is chosen and feed back into it only if they expose that the concept cannot hold together. The full specification of a feature that survives is `game-design-doc`. Numbers are `game-balance`, evidence from players is `game-playtest`, and a project over scope or behind schedule for reasons that are not about fit is a planning question this skill does not answer.
 
 ## Workflow
 
@@ -55,7 +55,7 @@ Give one verdict per feature:
 - **Cut**: it strains a pillar and serves none it could not serve cheaper. Name the pillar it breaks.
 - **Redesign**: the player need behind it is real but the proposed form strains a pillar. Say which part to change and what the pillar would accept instead.
 
-Every verdict names the pillar it rests on. "Cut, because it is expensive" is a scope verdict and belongs to `scope-creep-response`; a pillar verdict is about fit. A feature that serves no pillar and strains none is not a keep: either the pillars have a gap or the feature is filler, and the verdict says which.
+Every verdict names the pillar it rests on. "Cut, because it is expensive" is a scope verdict, not a pillar verdict, and is settled by the schedule and the budget; a pillar verdict is about fit. A feature that serves no pillar and strains none is not a keep: either the pillars have a gap or the feature is filler, and the verdict says which.
 
 Read `references/stress-test.md` for the worked table, how to handle a feature that serves one pillar and strains another, and when the right output is a new or revised pillar instead of a verdict.
 
