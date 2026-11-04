@@ -262,14 +262,6 @@ Three opt-in files for a project built with this skill. Nothing here is active u
 - `${CLAUDE_SKILL_DIR}/assets/hooks/game-data-json.json` and `${CLAUDE_SKILL_DIR}/assets/hooks/game-data-json.sh` — after a write, rejects a `.json` file under a `data/` or `Data/` directory that does not parse.
 - `${CLAUDE_SKILL_DIR}/assets/templates/playtest-session-log.md` — one document per playtest session.
 
-Install from the root of the game project:
-
-```bash
-mkdir -p .claude/rules .claude/hooks docs
-cp "${CLAUDE_SKILL_DIR}/assets/rules/gameplay-data.md" .claude/rules/
-cp "${CLAUDE_SKILL_DIR}/assets/hooks/game-data-json.sh" .claude/hooks/
-chmod +x .claude/hooks/game-data-json.sh
-cp "${CLAUDE_SKILL_DIR}/assets/templates/playtest-session-log.md" docs/
-```
+Install from the root of the game project, by hand or by asking the user to run the copies, since this skill holds no tool that writes files: put the rule in `.claude/rules/`, put the hook script in `.claude/hooks/` and make it executable, and put the template in `docs/`.
 
 Then merge the `hooks` block of `${CLAUDE_SKILL_DIR}/assets/hooks/game-data-json.json` into `.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Edit the globs in the rule to match where your engine keeps gameplay code.
