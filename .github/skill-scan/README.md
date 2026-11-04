@@ -31,6 +31,9 @@ as a slash command; the validator ignores it, and the scan deliberately does not
 planted one cannot ship unscanned. It also writes `<out>/map.tsv`, one `<id>`, a tab, the
 source path, a tab and the number of lines the shim adds above the source's own, per line;
 the SkillSpector gate reads it to report and match a finding against the real file.
+The run also fails on a manifest that could load a definition from anywhere else: `agents`,
+`commands`, `skills` or `hooks` in a `plugin.json` or a marketplace entry, a marketplace
+`source` other than `./plugins/<plugin>`, or a manifest file in any other place. `make validate` fails on the first two (`unscanned-component-path`).
 
 The id is part of the contract, because a Cisco suppression names it:
 

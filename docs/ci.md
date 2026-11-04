@@ -259,6 +259,9 @@ and how to refresh a baseline after a scanner bump.
   job runs `skillspector scan <shim> --no-llm` per shim, and the gate maps each shim back
   to its source path, so an accepted entry names the real file; Cisco suppressions name
   the shim id.
+  The run also fails on a manifest that could load a definition from anywhere else: `agents`,
+  `commands`, `skills` or `hooks` in a `plugin.json` or a marketplace entry, a marketplace
+  `source` other than `./plugins/<plugin>`, or a manifest file in any other place. `make validate` fails on the first two (`unscanned-component-path`).
 - What the definition scan covers is the scanners' prompt-injection, exfiltration and
   obfuscation rules over each definition's instructions and frontmatter. It is not
   tool-grant or least-privilege analysis: both scanners' permission checks compare

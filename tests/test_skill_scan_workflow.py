@@ -291,6 +291,41 @@ def test_a_script_that_wraps_fewer_definitions_than_git_lists_fails_the_step(tmp
     assert "::error title=skill scan::wrapped 1 definition(s) where git lists 4" in result.stdout
 
 
+def malformed_script(bad):
+    """A script that writes the right number of lines, one of them not a valid definition."""
+    good = ["agent--demo--helper\tplugins/demo/agents/helper.md\t0"] * 3
+    lines = [*good, bad]
+    return (
+        "#!/usr/bin/env python3\nimport os, sys\n"
+        'out = sys.argv[sys.argv.index("--out") + 1]\n'
+        "os.makedirs(out)\n"
+        f'open(out + "/map.tsv", "w").write("\\n".join({lines!r}) + "\\n")\n'
+    )
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "agent--demo--helper\t../../etc/x\t0",
+        "agent--demo--helper\tplugins/demo/agents/helper.md\tx",
+        "agent--demo--helper\tplugins/demo/agents/helper.md\t0\textra",
+        "agent--demo--helper\t.claude/../../x/agents/helper.md\t0",
+        "../escape\tplugins/demo/agents/helper.md\t0",
+        "agent--demo--helper\tplugins/demo/agents/helper.md\t0 ",
+    ],
+)
+@pytest.mark.parametrize("event", ["pull_request", "push"])
+def test_a_map_line_that_is_not_a_definition_fails_the_step(tmp_path, scratch, event, bad):
+    # The script's own map.tsv is the only thing between its ids and the scan step's
+    # `dir="$shims/$id"`, and on a pull request the script is the PR's own, so the step
+    # checks every line itself even when the count agrees.
+    repo, env, base = scratch
+    (repo / SHIMS_SCRIPT).write_text(malformed_script(bad), encoding="utf-8")
+    result, _ = choose(tmp_path, repo, env, event=event, base_sha=base)
+    assert result.returncode == 1
+    assert "refusing to scan a definition with an unexpected name" in result.stdout
+
+
 def test_a_pull_request_count_is_independent_of_the_script_too(tmp_path, scratch):
     repo, env, base = scratch
     (repo / AGENT).write_text(agent_text(body="changed\\n"), encoding="utf-8")
@@ -753,6 +788,18 @@ def test_the_cisco_definition_count_is_checked_against_git(tmp_path, scratch, to
         assert "scanned 4 of 4 subagents and commands" in result.stdout
     else:
         assert f"scanned {total} subagent and command file(s) of 4" in result.stdout
+
+
+@pytest.mark.skipif(shutil.which("jq") is None, reason="the count is read with jq")
+@pytest.mark.parametrize("total", ["many", "4abc", "", "-1", "4.0"])
+def test_a_cisco_count_that_is_not_an_integer_fails_the_definition_check(tmp_path, scratch, total):
+    # `[ x -ne 4 ]` exits 2, which `if` reads as false, so without the numeric guard the
+    # step would print the bad count and pass.
+    repo, env, _ = scratch
+    cisco_count_report(tmp_path / "runner", total)
+    result = run_step(tmp_path, repo, env, COUNT_DEFINITIONS)
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert "the report gave no count" in result.stdout
 
 
 @pytest.mark.skipif(shutil.which("jq") is None, reason="the count is read with jq")

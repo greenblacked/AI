@@ -42,12 +42,17 @@ sit below `agents/` and are not definitions. A file in a covered place whose nam
 the pattern, a symbolic link, a file that is not regular on disk, or an id used twice fails
 the run: a definition that is skipped is a definition nobody scanned.
 
+The scan can only see the default folders, so the run also fails on a manifest that points
+Claude Code anywhere else (`check_manifests`): `agents`, `commands`, `skills` or `hooks` in a
+plugin manifest or marketplace entry, or a `source` that is not `./plugins/<plugin>`.
+
 Standard library only, like the checks it sits beside.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import shutil
 import stat
@@ -171,8 +176,77 @@ def is_agents_readme(path: str) -> bool:
     return bool(AGENT_LOCATION_RE.fullmatch(path)) and path.rsplit("/", 1)[-1] in README_NAMES
 
 
+# Keys with which a manifest points Claude Code at components outside the default places.
+# Claude Code loads them for the plugin (and, on a marketplace entry, appends them to it), so
+# a file they name is a definition this script would never enumerate.
+COMPONENT_KEYS = ("agents", "commands", "skills", "hooks")
+MARKETPLACE = ".claude-plugin/marketplace.json"
+SOURCE_RE = re.compile(rf"\./plugins/{PART}")
+PLUGIN_MANIFEST_RE = re.compile(rf"plugins/{PART}/\.claude-plugin/plugin\.json")
+
+
+def load_manifest(repo: Path, path: str) -> dict:
+    try:
+        data = json.loads(read_regular(repo, path).decode("utf-8"))
+    except (ValueError, DefinitionError) as err:
+        raise DefinitionError(f"{safe(path)} cannot be read as a JSON manifest: {err}") from err
+    if not isinstance(data, dict):
+        raise DefinitionError(f"{safe(path)} is not a JSON object")
+    return data
+
+
+def check_manifests(repo: Path) -> None:
+    """Refuse every manifest shape that could load a definition the scan does not wrap.
+
+    The four default places are not the only ones Claude Code reads: `agents`, `commands`,
+    `skills` and `hooks` in a plugin manifest or a marketplace entry add paths (or inline
+    content), and a marketplace `source` can name any directory. Rather than widen the
+    globs to follow them, the run fails on a manifest that uses either, so the default
+    layout is the only layout there is to scan.
+    """
+    listing = git(repo, "ls-files", "-z", "--", ":(glob)**/.claude-plugin/**")
+    for raw in listing.split(b"\0"):
+        path = raw.decode("utf-8", "surrogateescape")
+        if path and path != MARKETPLACE and not PLUGIN_MANIFEST_RE.fullmatch(path):
+            raise DefinitionError(
+                f"{safe(path)} is a manifest in a place the scan does not follow: only "
+                f"{MARKETPLACE} and plugins/<plugin>/.claude-plugin/plugin.json are read"
+            )
+        if path and PLUGIN_MANIFEST_RE.fullmatch(path):
+            plugin = load_manifest(repo, path)
+            for key in COMPONENT_KEYS:
+                if key in plugin:
+                    raise DefinitionError(
+                        f"{safe(path)} sets `{key}`, which loads components from paths the "
+                        f"scan does not enumerate; use the default folders"
+                    )
+    if not any(
+        raw.decode("utf-8", "surrogateescape") == MARKETPLACE for raw in listing.split(b"\0")
+    ):
+        return
+    entries = load_manifest(repo, MARKETPLACE).get("plugins", [])
+    if not isinstance(entries, list):
+        raise DefinitionError(f"{MARKETPLACE} 'plugins' is not a list")
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise DefinitionError(f"{MARKETPLACE} has a plugin entry that is not an object")
+        source = entry.get("source")
+        if not isinstance(source, str) or not SOURCE_RE.fullmatch(source):
+            raise DefinitionError(
+                f"{MARKETPLACE} entry has source {safe(str(source))}; the scan only reads "
+                f"plugins listed as ./plugins/<plugin>"
+            )
+        for key in COMPONENT_KEYS:
+            if key in entry:
+                raise DefinitionError(
+                    f"{MARKETPLACE} entry sets `{key}`, which loads components from paths "
+                    f"the scan does not enumerate; use the default folders"
+                )
+
+
 def list_definitions(repo: Path) -> list[str]:
     """Every tracked subagent and command file, sorted. Raises on one that cannot be read."""
+    check_manifests(repo)
     modes = tracked(repo)
     located = sorted(path for path in modes if LOCATION_RE.fullmatch(path))
     paths = []

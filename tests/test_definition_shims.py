@@ -9,6 +9,7 @@ and that a refused file fails the run rather than going unscanned.
 
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 
@@ -249,12 +250,19 @@ def test_a_tracked_symlink_is_refused(repo, tmp_path):
     assert not (tmp_path / "out").exists() or not any((tmp_path / "out").iterdir())
 
 
-def test_a_definition_that_is_not_a_regular_file_on_disk_is_refused(repo, tmp_path):
+def test_a_definition_that_is_not_a_regular_file_on_disk_is_refused(repo, tmp_path, capsys):
     # Tracked as a regular file, replaced by a link in the working tree after checkout.
+    # The link points at a file with valid frontmatter, so only the regular-file check
+    # stands between it and being wrapped as though it were the definition.
     target = repo.path / "plugins/demo/agents/helper.md"
+    elsewhere = tmp_path / "elsewhere.md"
+    elsewhere.write_text(AGENT + "PLANTED\n", encoding="utf-8")
     target.unlink()
-    os.symlink("/etc/hostname", target)
-    assert run(repo, tmp_path / "out", "--all") == 1
+    os.symlink(elsewhere, target)
+    out = tmp_path / "out"
+    assert run(repo, out, "--all") == 1
+    assert "is not a regular file" in capsys.readouterr().err
+    assert not out.exists()
 
 
 def test_a_tracked_definition_missing_from_the_tree_is_refused(repo, tmp_path):
@@ -600,11 +608,16 @@ def test_two_commands_cannot_share_an_id(tmp_path):
         ("plugins/demo/commands/run-it.md", "---\n{extra}description: x\n---\n"),
     ],
 )
-def test_a_name_spelled_as_a_complex_or_quoted_key_is_refused(repo, tmp_path, extra, path, base):
+def test_a_name_spelled_as_a_complex_or_quoted_key_is_refused(
+    repo, tmp_path, extra, path, base, capsys
+):
     # A loader lets the later spelling win, which would borrow another shim's suppression.
+    # The repository parser refuses these lines too, so the message is what shows that the
+    # indicator check itself fired and would still hold the day the parser models the keys.
     repo.write(path, base.replace("{extra}", extra))
     out = tmp_path / "out"
     assert run(repo, out, "--all") == 1
+    assert "complex, quoted or indicator-led key" in capsys.readouterr().err
     assert not out.exists()
 
 
@@ -644,9 +657,110 @@ def test_a_carriage_return_in_the_body_is_still_allowed(repo, tmp_path):
     ],
 )
 def test_a_frontmatter_line_opening_with_a_yaml_indicator_is_refused(
-    repo, tmp_path, prefix, path, base
+    repo, tmp_path, prefix, path, base, capsys
 ):
     repo.write(path, base.replace("{extra}", f"{prefix}name: spoofed\n"))
+    out = tmp_path / "out"
+    assert run(repo, out, "--all") == 1
+    assert "complex, quoted or indicator-led key" in capsys.readouterr().err
+    assert not out.exists()
+
+
+def test_a_shim_whose_name_is_not_its_id_is_refused():
+    # Nothing the repository parser accepts can reach this today, so the check is called
+    # directly: it is the last guarantee that a shim loads under its own id.
+    text = b"---\nname: agent--demo--other\ndescription: x\n---\n"
+    with pytest.raises(shims.DefinitionError, match="other than its shim id"):
+        shims.confirm_name("agent--demo--helper", "p", text)
+    shims.confirm_name("agent--demo--other", "p", text)
+
+
+# Claude Code loads a definition from wherever a manifest points, not only from the four
+# default places, so the run fails closed on every manifest shape that could do that.
+GOOD_MARKETPLACE = {"plugins": [{"name": "demo", "source": "./plugins/demo"}]}
+GOOD_PLUGIN = {"name": "demo", "description": "x"}
+
+
+def write_manifests(repo, marketplace=GOOD_MARKETPLACE, plugin=GOOD_PLUGIN):
+    repo.write(".claude-plugin/marketplace.json", json.dumps(marketplace))
+    repo.write("plugins/demo/.claude-plugin/plugin.json", json.dumps(plugin))
+    repo.commit("manifests")
+
+
+def test_ordinary_manifests_are_accepted(repo):
+    write_manifests(repo)
+    assert shims.list_definitions(repo.path) == sorted(LOCATIONS)
+
+
+@pytest.mark.parametrize("key", ["agents", "commands", "skills", "hooks"])
+def test_a_plugin_manifest_that_adds_components_is_refused(repo, key):
+    # `"agents": ["./extra/evil.md"]` loads a file the scan never enumerates.
+    write_manifests(repo, plugin={**GOOD_PLUGIN, key: ["./extra/evil.md"]})
+    with pytest.raises(shims.DefinitionError, match=rf"plugin\.json.*`{key}`"):
+        shims.list_definitions(repo.path)
+
+
+@pytest.mark.parametrize("key", ["agents", "commands", "skills", "hooks"])
+def test_a_marketplace_entry_that_adds_components_is_refused(repo, key):
+    entry = {"name": "demo", "source": "./plugins/demo", key: {"inline": "content"}}
+    write_manifests(repo, marketplace={"plugins": [entry]})
+    with pytest.raises(shims.DefinitionError, match=rf"marketplace\.json.*`{key}`"):
+        shims.list_definitions(repo.path)
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "./tools/zz",
+        "plugins/demo",
+        "./plugins/demo/sub",
+        "./plugins/Demo",
+        "../plugins/demo",
+        7,
+        None,
+    ],
+)
+def test_a_marketplace_source_outside_plugins_is_refused(repo, source):
+    write_manifests(repo, marketplace={"plugins": [{"name": "zz", "source": source}]})
+    with pytest.raises(shims.DefinitionError, match=r"marketplace\.json.*source"):
+        shims.list_definitions(repo.path)
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "tools/zz/.claude-plugin/plugin.json",
+        "plugins/demo/nested/.claude-plugin/plugin.json",
+        "plugins/demo/.claude-plugin/extra.json",
+        "plugins/Bad_Name/.claude-plugin/plugin.json",
+    ],
+)
+def test_a_manifest_in_an_unexpected_place_is_refused(repo, path):
+    write_manifests(repo)
+    repo.write(path, json.dumps(GOOD_PLUGIN))
+    repo.commit("stray manifest")
+    with pytest.raises(shims.DefinitionError, match="manifest"):
+        shims.list_definitions(repo.path)
+
+
+@pytest.mark.parametrize("text", ["{", "[]", '{"plugins": 3}', '{"plugins": [3]}'])
+def test_a_marketplace_that_cannot_be_read_is_refused(repo, text):
+    repo.write(".claude-plugin/marketplace.json", text)
+    repo.commit("bad marketplace")
+    with pytest.raises(shims.DefinitionError, match="marketplace"):
+        shims.list_definitions(repo.path)
+
+
+@pytest.mark.parametrize("text", ["{", "[]"])
+def test_a_plugin_manifest_that_cannot_be_read_is_refused(repo, text):
+    repo.write("plugins/demo/.claude-plugin/plugin.json", text)
+    repo.commit("bad plugin manifest")
+    with pytest.raises(shims.DefinitionError, match="plugin.json"):
+        shims.list_definitions(repo.path)
+
+
+def test_a_refused_manifest_fails_the_run_and_writes_nothing(repo, tmp_path):
+    write_manifests(repo, plugin={**GOOD_PLUGIN, "agents": ["./extra/evil.md"]})
     out = tmp_path / "out"
     assert run(repo, out, "--all") == 1
     assert not out.exists()
