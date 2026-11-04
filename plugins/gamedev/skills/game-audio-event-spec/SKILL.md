@@ -1,7 +1,7 @@
 ---
 name: game-audio-event-spec
 description: "Keep a game's sound events in one table that code, audio middleware and designers all read, so a trigger is never a guess. Writes the event table row by row — id, trigger, variants, bus, priority, max instances, voice-steal rule, ducking group, 2D or 3D — then runs a standard-library script that greps the code tree for event ids and reports ids used in code but missing from the table and rows nothing calls. Use for \"which sounds does this game need\", \"a footstep plays twice\", \"sound designer and programmer disagree on event names\", \"too many voices of one sound\", \"audit unused audio events\". Not for bus levels, ducking depth and loudness targets (game-audio-mix), per-sound import and compression (game-assets), or audio CPU cost (game-performance)."
-allowed-tools: Read, Write, Edit, Grep, Glob, Bash(python3:*)
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # Game Audio Event Spec

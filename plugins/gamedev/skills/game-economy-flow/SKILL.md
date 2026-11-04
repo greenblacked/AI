@@ -1,7 +1,7 @@
 ---
 name: game-economy-flow
 description: "Model a game's economy before launch as data: every currency and tradeable item written as sources and sinks per hour for each player archetype (new, engaged, grinder or whale), kept in a flow sheet that a script reads rather than a spreadsheet nobody reruns. Gates the design on three checks: no currency ships without a sink or a stock ceiling, net inflow per archetype sits inside a band stated in advance, and time-to-cap is computed for every capped stock. Use when someone asks how much gold, gems or crafting material players will earn, whether a currency will inflate, how long a grind takes, or what the sinks should be. Not for tuning live numbers from telemetry (game-balance), drop-rate proof (loot-odds-verification), live events (game-live-ops), duplication exploits (economy-exploit-response) or real-money pricing (pricing-research)."
-allowed-tools: Read, Write, Edit, Grep, Glob, Bash(python3:*)
+allowed-tools: Read, Write, Edit, Grep, Glob
 ---
 
 # Game Economy Flow

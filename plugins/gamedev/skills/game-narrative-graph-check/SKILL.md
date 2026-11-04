@@ -1,7 +1,7 @@
 ---
 name: game-narrative-graph-check
 description: "Verify a branching dialogue or quest graph as data before content lock. Exports the graph to a plain node and edge list, then runs a standard-library checker that reports node id and reason for unreachable nodes, dead ends not marked as endings, flags read before any path sets them, conditions that can never be true, cycles with no exit, lines longer than the text box at the longest locale, and line keys missing from the string table. Use whenever someone asks to check a dialogue tree, quest chain or branching story for soft-locks, orphaned lines or broken flags, or wants a narrative pass before lock or a release candidate. Not for translating or managing strings (game-localisation), writing the story or quest design (game-design-doc), running a human playtest (game-playtest), or level layout (game-level-design)."
-allowed-tools: Read, Grep, Glob, Bash(python3:*)
+allowed-tools: Read, Grep, Glob
 ---
 
 # Game Narrative Graph Check
