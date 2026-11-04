@@ -4,14 +4,23 @@ set -Eeuo pipefail
 
 input="$(cat)"
 command=""
+# Either parser prints nothing, and the hook allows, for input it cannot read a command from:
+# invalid JSON, JSON that is not an object, a missing or non-object `tool_input`, or a null
+# `command`. Erroring out instead would report a failure over a payload it never needed.
 if command -v jq >/dev/null 2>&1; then
-  command="$(printf '%s' "$input" | jq -r '.tool_input.command // empty')"
+  command="$(printf '%s' "$input" | jq -r \
+    'if type=="object" and (.tool_input|type)=="object" then (.tool_input.command // empty) else empty end' \
+    2>/dev/null || true)"
 elif command -v python3 >/dev/null 2>&1; then
   command="$(printf '%s' "$input" | python3 -c \
     'import json, sys
-data = json.load(sys.stdin)
+try:
+    data = json.load(sys.stdin)
+except ValueError:
+    data = None
 tool = data.get("tool_input") if isinstance(data, dict) else None
-print(tool.get("command", "") if isinstance(tool, dict) else "")' || true)"
+value = tool.get("command") if isinstance(tool, dict) else None
+print(value if isinstance(value, str) else "")' || true)"
 fi
 
 # Neither parser present: degrade by allowing, because a hook that blocks everything on a

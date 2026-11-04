@@ -733,6 +733,13 @@ KEYS = [
     "outputStyles",
     "settings",
     "experimental",
+    # Added to Claude Code after the denylist this list began as; an allowlist refuses them
+    # without anyone having to name them first.
+    "monitors",
+    "workflows",
+    "themes",
+    "dependencies",
+    "userConfig",
 ]
 
 
@@ -760,6 +767,58 @@ def test_a_marketplace_entry_that_adds_components_is_refused(repo, key):
     entry = {"name": "demo", "source": "./plugins/demo", key: {"inline": "content"}}
     write_manifests(repo, marketplace={"plugins": [entry]})
     with pytest.raises(shims.DefinitionError, match=rf"marketplace\.json.*`{key}`"):
+        shims.list_definitions(repo.path)
+
+
+def test_a_plugin_manifest_may_carry_every_allowed_key(repo):
+    plugin = {
+        "$schema": "https://example.invalid/plugin.schema.json",
+        "name": "demo",
+        "description": "x",
+        "version": "1.0.0",
+        "author": {"name": "y"},
+        "homepage": "https://example.invalid",
+        "repository": "https://example.invalid/r",
+        "license": "MIT",
+        "keywords": ["a"],
+    }
+    entry = {
+        "name": "demo",
+        "source": "./plugins/demo",
+        "category": "coding",
+        "tags": ["a"],
+        "description": "x",
+        "version": "1.0.0",
+        "author": {"name": "y"},
+        "homepage": "https://example.invalid",
+        "repository": "https://example.invalid/r",
+        "license": "MIT",
+        "keywords": ["a"],
+    }
+    marketplace = {
+        "$schema": "https://example.invalid/m.json",
+        "name": "m",
+        "description": "d",
+        "owner": {"name": "o"},
+        "plugins": [entry],
+    }
+    write_manifests(repo, marketplace=marketplace, plugin=plugin)
+    assert shims.list_definitions(repo.path) == sorted(LOCATIONS)
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        {"metadata": {"pluginRoot": "./elsewhere"}},
+        {"metadata": {}},
+        {"allowCrossMarketplaceDependenciesOn": ["other"]},
+        {"hooks": {}},
+    ],
+)
+def test_a_marketplace_top_level_key_outside_the_allowlist_is_refused(repo, extra):
+    # `metadata.pluginRoot` redirects where relative plugin sources resolve.
+    write_manifests(repo, marketplace={**GOOD_MARKETPLACE, **extra})
+    with pytest.raises(shims.DefinitionError, match=rf"marketplace\.json.*`{next(iter(extra))}`"):
         shims.list_definitions(repo.path)
 
 
@@ -865,8 +924,9 @@ def test_a_frontmatter_error_cannot_open_the_legacy_workflow_command_marker(repo
     assert "## [warning]" in err
 
 
-# A plugin-root entry that Claude Code loads or runs without a prompt is refused here too,
-# so the security workflow fails closed even if the validator is bypassed.
+# A plugin root holds `.claude-plugin`, `skills`, `agents` and `commands` and nothing else, so
+# whatever Claude Code loads or runs on enabling a plugin and the repository never named is
+# refused here too, and the security workflow fails closed even if the validator is bypassed.
 @pytest.mark.parametrize(
     "rel",
     [
@@ -886,14 +946,30 @@ def test_a_frontmatter_error_cannot_open_the_legacy_workflow_command_marker(repo
         "Settings.json",
         "bin",
         "hooks",
+        "workflows/w.yml",
+        "workflows",
+        "themes/t.json",
+        "themes",
+        "Agents/helper.md",
+        "Commands/run-it.md",
+        "Skills/alpha/SKILL.md",
+        "README.md",
+        "LICENSE",
     ],
 )
-def test_a_plugin_root_auto_component_is_refused(repo, rel):
+def test_a_plugin_root_entry_outside_the_allowlist_is_refused(repo, rel):
     write_manifests(repo)
     repo.write(f"plugins/demo/{rel}", "{}\n")
-    repo.commit("auto component")
+    repo.commit("root entry")
     with pytest.raises(shims.DefinitionError, match=r"plugin-root.*assets/hooks"):
         shims.list_definitions(repo.path)
+
+
+def test_every_allowed_plugin_root_entry_is_accepted(repo):
+    write_manifests(repo)
+    repo.write("plugins/demo/skills/beta/SKILL.md", "---\nname: beta\n---\n")
+    repo.commit("more of the shape")
+    assert shims.list_definitions(repo.path) == sorted(LOCATIONS)
 
 
 @pytest.mark.parametrize(

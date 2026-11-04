@@ -171,13 +171,28 @@ it, `scripts/check_settings.py` resolves it on every `make catalogue`: a typo, o
 path left after the script moves, would otherwise turn the hook off with no error
 anywhere.
 
-**Plugin-root auto-run components.** Claude Code loads a plugin's `hooks/`, `hooks.json`,
-`.mcp.json`, `.lsp.json`, `monitors/`, `bin/`, `settings.json` and `output-styles/` as soon
-as the plugin is enabled, with no prompt. Plugins here never ship any of them: the
-validator refuses each (`plugin-auto-component`) and `scripts/definition_shims.py` refuses
-them again in the `security` workflow. A hook ships instead as an opt-in template in a
-skill's `assets/hooks/`, which the user copies into `.claude/hooks/` and merges into
-`.claude/settings.json` themselves; see [the project kit](writing-skills.md#project-kit).
+**The plugin shape is an allowlist.** Claude Code loads a plugin's `hooks/`, `hooks.json`,
+`.mcp.json`, `.lsp.json`, `monitors/`, `bin/`, `settings.json`, `output-styles/` and more
+besides as soon as the plugin is enabled, with no prompt, and it keeps adding component
+types. A list of the known ones is always a release behind, so the validator and
+`scripts/definition_shims.py` (which runs in the `security` workflow, so it fails closed
+even if the validator is skipped) check what is allowed and refuse everything else:
+
+- A plugin root holds exactly `.claude-plugin/`, `skills/`, `agents/` and `commands/`,
+  compared case-sensitively, so `Agents/` and `Hooks/` fail as well as `hooks/`, and so does
+  a `README.md` or `LICENSE` (`plugin-root-entry`).
+- `plugin.json` holds only `$schema`, `name`, `description`, `version`, `author`,
+  `homepage`, `repository`, `license` and `keywords`.
+- `marketplace.json` holds only `$schema`, `name`, `description`, `owner` and `plugins`;
+  `metadata` is left out on purpose, because `metadata.pluginRoot` redirects where plugins
+  load from. Each plugin entry holds only `name`, `source`, `category`, `tags`,
+  `description`, `version`, `author`, `homepage`, `repository`, `license` and `keywords`,
+  and its `source` is `./plugins/<plugin>`.
+- Any other manifest key is `unscanned-component-path`.
+
+A hook ships instead as an opt-in template in a skill's `assets/hooks/`, which the user
+copies into `.claude/hooks/` and merges into `.claude/settings.json` themselves; see
+[the project kit](writing-skills.md#project-kit).
 
 ## What this repository has, and what it leaves out
 

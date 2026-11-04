@@ -818,20 +818,39 @@ def _check_tone(front: Frontmatter, body_lines: list[str], first_line: int, add)
     return []
 
 
-# Manifest keys that load components from paths other than the default folders, and the one
-# source layout the security scan of subagents and commands enumerates.
-# The last five are inline forms: an MCP or LSP server, an output style, a settings block or
-# an `experimental` block (monitors, themes) written into the manifest runs on enabling.
-_COMPONENT_KEYS = (
-    "agents",
-    "commands",
-    "skills",
-    "hooks",
-    "mcpServers",
-    "lspServers",
-    "outputStyles",
-    "settings",
-    "experimental",
+# The only keys a manifest may carry. Claude Code keeps adding keys that load or run something
+# on enabling a plugin (`mcpServers`, `monitors`, `themes`, `workflows`, `dependencies`,
+# `userConfig`, a marketplace `metadata.pluginRoot`, ...), and a denylist is one release behind
+# them, so anything not named here is refused. Every key is plain description; none of them
+# loads a component. `scripts/definition_shims.py` holds the same three sets.
+PLUGIN_MANIFEST_KEYS = frozenset(
+    {
+        "$schema",
+        "name",
+        "description",
+        "version",
+        "author",
+        "homepage",
+        "repository",
+        "license",
+        "keywords",
+    }
+)
+MARKETPLACE_KEYS = frozenset({"$schema", "name", "description", "owner", "plugins"})
+MARKETPLACE_ENTRY_KEYS = frozenset(
+    {
+        "name",
+        "source",
+        "category",
+        "tags",
+        "description",
+        "version",
+        "author",
+        "homepage",
+        "repository",
+        "license",
+        "keywords",
+    }
 )
 _PLUGIN_SOURCE = re.compile(r"\./plugins/[a-z0-9]+(?:-[a-z0-9]+)*")
 
@@ -839,12 +858,12 @@ _PLUGIN_SOURCE = re.compile(r"\./plugins/[a-z0-9]+(?:-[a-z0-9]+)*")
 def _unscanned_component_paths(
     entry: dict, source: str, directory: Path, relative: Path
 ) -> list[Finding]:
-    """Findings for a manifest that can load a definition `definition_shims.py` never wraps.
+    """Findings for a manifest that can load or run what `definition_shims.py` never wraps.
 
-    A subagent or command listed through ``agents``/``commands`` (or sitting in a plugin
-    whose ``source`` is outside ``plugins/``) is loaded for installers but is in none of the
-    four places the scanners read, so both the marketplace entry and the plugin manifest
-    are refused when they do either.
+    A key outside the allowlists above (``agents``, ``commands``, ``hooks``, an inline server,
+    ``monitors``, whatever Claude Code adds next) or a ``source`` outside ``plugins/`` is
+    loaded for installers but is in none of the four places the scanners read, so both the
+    marketplace entry and the plugin manifest are refused when they do either.
     """
     label = entry.get("name", source)
     found: list[Finding] = []
@@ -854,21 +873,24 @@ def _unscanned_component_paths(
 
     if not _PLUGIN_SOURCE.fullmatch(source):
         refuse(relative, f"plugin {label!r} has source {source!r}; use ./plugins/<plugin>")
-    for key in _COMPONENT_KEYS:
-        if key in entry:
-            refuse(relative, f"plugin {label!r} sets {key!r}; use the default folders")
+    for key in sorted(set(entry) - MARKETPLACE_ENTRY_KEYS):
+        refuse(
+            relative,
+            f"plugin {label!r} sets {key!r}, which is not an allowed marketplace entry key "
+            f"({', '.join(sorted(MARKETPLACE_ENTRY_KEYS))})",
+        )
     manifest = directory / ".claude-plugin" / "plugin.json"
     try:
         data = json.loads(manifest.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return found
     if isinstance(data, dict):
-        for key in _COMPONENT_KEYS:
-            if key in data:
-                refuse(
-                    Path(source) / ".claude-plugin" / "plugin.json",
-                    f"plugin.json sets {key!r}; use the default folders",
-                )
+        for key in sorted(set(data) - PLUGIN_MANIFEST_KEYS):
+            refuse(
+                Path(source) / ".claude-plugin" / "plugin.json",
+                f"plugin.json sets {key!r}, which is not an allowed plugin.json key "
+                f"({', '.join(sorted(PLUGIN_MANIFEST_KEYS))})",
+            )
     return found
 
 
@@ -901,8 +923,22 @@ def check_marketplace(repo_root: Path) -> list[Finding]:
     if not isinstance(entries, list):
         return malformed(f"'plugins' must be a list, found {type(entries).__name__}")
 
-    # The shim lists plugin files by exact case; a `Plugins/` folder is the same folder to a
-    # case-insensitive filesystem and would hold components nothing scans.
+    # `metadata.pluginRoot` redirects where relative plugin sources resolve, so `metadata`
+    # is left out of the allowlist on purpose.
+    for key in sorted(set(data) - MARKETPLACE_KEYS):
+        findings.append(
+            Finding(
+                ERROR,
+                relative,
+                1,
+                "unscanned-component-path",
+                f"marketplace.json sets {key!r}, which is not an allowed top-level key "
+                f"({', '.join(sorted(MARKETPLACE_KEYS))})",
+            )
+        )
+
+    # `find_plugins` reads only `plugins/`; a `Plugins/` folder is the same folder to a
+    # case-insensitive filesystem and would hold plugins nothing here lists or scans.
     for entry in sorted(repo_root.iterdir()):
         if entry.name.lower() == "plugins" and entry.name != "plugins":
             findings.append(
@@ -1769,19 +1805,14 @@ def check_trigger_collisions(
 # warning, which `--strict` fails, or only a notice. Flipped once every plugin has it.
 PLUGIN_SHAPE_ENFORCED = False
 
-# Plugin-root entries Claude Code loads or runs the moment the plugin is enabled, with no
-# prompt and with the installer's full permissions. Hooks reach installers only as opt-in
+# The only entries a plugin root may hold, compared case-sensitively (a case-insensitive
+# filesystem resolves `Agents/` to `agents/` on the installer's machine, where it is something
+# else here). Claude Code loads or runs further entries the moment a plugin is enabled, with
+# no prompt and with the installer's full permissions (`hooks/`, `.mcp.json`, `monitors/`,
+# `bin/`, `workflows/`, `themes/`, ...), and keeps adding them, so the list is of what is
+# allowed rather than of what is known to be dangerous. Hooks reach installers only as opt-in
 # templates under a skill's `assets/hooks/`.
-PLUGIN_AUTO_COMPONENTS = (
-    "hooks",
-    "hooks.json",
-    ".mcp.json",
-    ".lsp.json",
-    "monitors",
-    "bin",
-    "settings.json",
-    "output-styles",
-)
+PLUGIN_ROOT_ENTRIES = (".claude-plugin", "skills", "agents", "commands")
 
 # The hook events a kit template may register.
 HOOK_EVENTS = frozenset(
@@ -1944,22 +1975,22 @@ def _kit_complete(assets: Path, repo_root: Path) -> bool:
 
 
 def check_plugin_shape(plugin: Path, repo_root: Path) -> list[Finding]:
-    """Check one plugin's shape: no auto-run component, a validated kit, and completeness."""
+    """Check one plugin's shape: an allowlisted root, a validated kit, and completeness."""
     findings: list[Finding] = []
-    # Case-insensitive: a case-insensitive filesystem resolves Hooks/ to hooks/ on the
-    # installer's machine.
     for entry in sorted(plugin.iterdir()) if plugin.is_dir() else []:
         name = entry.name
-        if name.lower() in PLUGIN_AUTO_COMPONENTS:
+        if name not in PLUGIN_ROOT_ENTRIES:
             findings.append(
                 Finding(
                     ERROR,
                     entry.relative_to(repo_root),
                     1,
-                    "plugin-auto-component",
-                    f"{name} at a plugin root is loaded or run by Claude Code as soon as "
-                    "the plugin is enabled, with no prompt; a plugin ships hooks as "
-                    "opt-in kit templates under a skill's assets/hooks/ instead",
+                    "plugin-root-entry",
+                    f"{name} is not an allowed plugin-root entry (only "
+                    f"{', '.join(PLUGIN_ROOT_ENTRIES)}, in that case): Claude Code loads or "
+                    "runs entries it knows at a plugin root as soon as the plugin is "
+                    "enabled, with no prompt; a plugin ships hooks as opt-in kit templates "
+                    "under a skill's assets/hooks/ instead",
                 )
             )
     skills = find_skills(plugin / "skills") if (plugin / "skills").is_dir() else []

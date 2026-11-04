@@ -35,9 +35,14 @@ planted one cannot ship unscanned. It also writes `<out>/map.tsv`, one `<id>`, a
 source path, a tab and the number of lines the shim adds above the source's own, per line;
 the SkillSpector gate reads it to report and match a finding against the real file.
 The run also fails on a symbolic link or a submodule (mode 160000) anywhere in the repository, in both modes, because neither is a file it can read.
-The run also fails on a manifest that could load a definition from anywhere else: `agents`,
-`commands`, `skills` or `hooks` in a `plugin.json` or a marketplace entry, a marketplace
-`source` other than `./plugins/<plugin>`, or a manifest file in any other place. `make validate` fails on the first two (`unscanned-component-path`).
+The run also fails closed on anything that could load a definition from anywhere else or
+run something on enabling a plugin: a key outside the allowlists in a `plugin.json`, a
+marketplace entry or the marketplace top level (`metadata` is out, because
+`metadata.pluginRoot` redirects where plugins load), a marketplace `source` other than
+`./plugins/<plugin>`, a manifest file in any other place, or a tracked path whose first
+segment under `plugins/<plugin>/` is not `.claude-plugin`, `skills`, `agents` or `commands`.
+`make validate` fails on the same keys and `source` (`unscanned-component-path`) and on the
+plugin-root entries (`plugin-root-entry`).
 
 The id is part of the contract, because a Cisco suppression names it:
 

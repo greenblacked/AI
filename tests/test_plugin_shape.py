@@ -1,7 +1,9 @@
-"""The plugin shape: no auto-run components, a validated project kit, a completeness notice.
+"""The plugin shape: an allowlisted root, a validated project kit, a completeness notice.
 
-Hooks reach an installer only as opt-in templates under a skill's `assets/hooks/`, so the
-validator refuses the plugin-root places Claude Code would load them from, validates the
+A plugin root holds `.claude-plugin`, `skills`, `agents` and `commands` and nothing else,
+because Claude Code keeps adding component types it loads on enabling a plugin. Hooks reach
+an installer only as opt-in templates under a skill's `assets/hooks/`, so the validator
+refuses every other plugin-root entry, validates the
 kit files themselves, and reports a plugin that lacks the shape as a notice that strict
 mode does not fail until `PLUGIN_SHAPE_ENFORCED` is flipped.
 """
@@ -83,7 +85,7 @@ def write_agent(plugin: Path):
     )
 
 
-# plugin-auto-component
+# plugin-root-entry
 
 
 @pytest.mark.parametrize(
@@ -97,32 +99,57 @@ def write_agent(plugin: Path):
         "bin/tool",
         "settings.json",
         "output-styles/s.md",
+        # Component types Claude Code gained after the denylist was written, and files
+        # that are merely not part of the shape.
+        "workflows/w.yml",
+        "themes/t.json",
+        "README.md",
+        "LICENSE",
+        "scripts/run.sh",
     ],
 )
-def test_a_plugin_root_auto_component_is_an_error(tmp_path, rel):
+def test_a_plugin_root_entry_outside_the_allowlist_is_an_error(tmp_path, rel):
     plugin = make_plugin(tmp_path)
     target = plugin / rel
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("{}", encoding="utf-8")
-    found = [f for f in check_plugin_shape(plugin, tmp_path) if f.code == "plugin-auto-component"]
+    found = [f for f in check_plugin_shape(plugin, tmp_path) if f.code == "plugin-root-entry"]
     assert len(found) == 1 and found[0].level == ERROR
     assert rel.split("/")[0] in str(found[0].path)
     assert "assets/hooks" in found[0].message
 
 
-@pytest.mark.parametrize("rel", ["Hooks/hooks.json", ".MCP.json", "Settings.json", "BIN/tool"])
-def test_an_auto_component_is_refused_whatever_its_case(tmp_path, rel):
+@pytest.mark.parametrize(
+    "rel",
+    [
+        "Hooks/hooks.json",
+        ".MCP.json",
+        "Settings.json",
+        "BIN/tool",
+        "Agents/reader.md",
+        "Commands/run.md",
+        "Skills/x/SKILL.md",
+        ".Claude-Plugin/plugin.json",
+        "Workflows/w.yml",
+        "Themes/t.json",
+    ],
+)
+def test_a_plugin_root_entry_is_compared_case_sensitively(tmp_path, rel):
     plugin = make_plugin(tmp_path)
     target = plugin / rel
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("{}", encoding="utf-8")
-    found = [f for f in check_plugin_shape(plugin, tmp_path) if f.code == "plugin-auto-component"]
+    found = [f for f in check_plugin_shape(plugin, tmp_path) if f.code == "plugin-root-entry"]
     assert len(found) == 1 and found[0].level == ERROR
+    assert rel.split("/")[0] in str(found[0].path)
 
 
-def test_a_plugin_without_auto_components_has_no_such_finding(tmp_path):
+def test_every_allowed_plugin_root_entry_is_accepted(tmp_path):
     plugin = make_plugin(tmp_path)
-    assert "plugin-auto-component" not in codes(check_plugin_shape(plugin, tmp_path))
+    for name in ("skills", "agents", "commands"):
+        (plugin / name).mkdir()
+    assert "plugin-root-entry" not in codes(check_plugin_shape(plugin, tmp_path))
+    assert rules.PLUGIN_ROOT_ENTRIES == (".claude-plugin", "skills", "agents", "commands")
 
 
 def test_the_cli_fails_on_a_plugin_root_hooks_folder(tmp_path, capsys):
@@ -131,7 +158,7 @@ def test_the_cli_fails_on_a_plugin_root_hooks_folder(tmp_path, capsys):
     (plugin / "hooks").mkdir()
     (plugin / "hooks" / "hooks.json").write_text("{}", encoding="utf-8")
     assert main([str(tmp_path), "--skip-marketplace"]) == 1
-    assert "plugin-auto-component" in capsys.readouterr().out
+    assert "plugin-root-entry" in capsys.readouterr().out
 
 
 # kit-rule
@@ -178,7 +205,7 @@ def test_a_plugin_root_monitors_or_output_styles_file_is_refused(tmp_path):
         plugin = make_plugin(tmp_path, name="p-" + name)
         (plugin / name).write_text("x", encoding="utf-8")
         found = codes(check_plugin_shape(plugin, tmp_path), ERROR)
-        assert "plugin-auto-component" in found
+        assert "plugin-root-entry" in found
 
 
 # kit-hook
@@ -447,23 +474,72 @@ def test_the_template_agent_validates_apart_from_its_placeholder_name():
     assert codes(found) == ["name-mismatch"]
 
 
-@pytest.mark.parametrize("stdin", ["[]", "3", "null", '{"tool_input": null}', '{"tool_input": 3}'])
-def test_the_example_hook_allows_input_that_is_not_an_object_without_jq(tmp_path, stdin):
+EXAMPLE_HOOK = ROOT / "template" / "kit" / "hooks" / "example.sh"
+NOT_AN_OBJECT = [
+    "[]",
+    "3",
+    '"text"',
+    "null",
+    "{not json",
+    "",
+    '{"tool_input": null}',
+    '{"tool_input": 3}',
+    '{"tool_input": []}',
+    '{"tool_input": {"command": null}}',
+    '{"tool_input": {"command": 3}}',
+    '{"tool_input": {}}',
+]
+BLOCKED = '{"tool_input": {"command": "run example-forbidden-command now"}}'
+
+
+def run_example_hook(tmp_path, stdin, tools):
+    """Run the template hook with only `tools` on PATH, so which parser it picks is known."""
     import os
     import shutil
     import subprocess
 
-    tools = tmp_path / "bin"
-    tools.mkdir()
-    for tool in ("bash", "cat", "python3"):
-        (tools / tool).symlink_to(shutil.which(tool))
-    result = subprocess.run(  # noqa: S603
-        [shutil.which("bash"), str(ROOT / "template" / "kit" / "hooks" / "example.sh")],
+    directory = tmp_path / "bin"
+    directory.mkdir()
+    for tool in tools:
+        (directory / tool).symlink_to(shutil.which(tool))
+    return subprocess.run(  # noqa: S603
+        [shutil.which("bash"), str(EXAMPLE_HOOK)],
         input=stdin,
         capture_output=True,
         text=True,
-        env={"PATH": str(tools), "HOME": os.environ.get("HOME", "/")},
+        env={"PATH": str(directory), "HOME": os.environ.get("HOME", "/")},
         check=False,
     )
+
+
+def _has(tool):
+    import shutil
+
+    return shutil.which(tool) is not None
+
+
+# The two branches: jq on PATH (python3 is also there, but jq is tried first), and jq stripped.
+BRANCHES = [
+    pytest.param(
+        ("bash", "cat", "jq"),
+        marks=pytest.mark.skipif(not _has("jq"), reason="the jq branch needs jq"),
+        id="jq",
+    ),
+    pytest.param(("bash", "cat", "python3"), id="python"),
+]
+
+
+@pytest.mark.parametrize("tools", BRANCHES)
+@pytest.mark.parametrize("stdin", NOT_AN_OBJECT)
+def test_the_example_hook_allows_input_it_cannot_read_a_command_from(tmp_path, stdin, tools):
+    result = run_example_hook(tmp_path, stdin, tools)
     assert result.returncode == 0, result.stderr
+    assert result.stderr == ""
     assert "Traceback" not in result.stderr
+
+
+@pytest.mark.parametrize("tools", BRANCHES)
+def test_the_example_hook_still_blocks_its_one_command_on_both_branches(tmp_path, tools):
+    result = run_example_hook(tmp_path, BLOCKED, tools)
+    assert result.returncode == 2
+    assert "blocked" in result.stderr

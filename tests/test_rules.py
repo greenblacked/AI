@@ -280,7 +280,101 @@ COMPONENT_KEYS = [
     "outputStyles",
     "settings",
     "experimental",
+    # Added to Claude Code after the denylist this list began as; an allowlist refuses them
+    # without anyone having to name them first.
+    "monitors",
+    "workflows",
+    "themes",
+    "dependencies",
+    "userConfig",
 ]
+
+# What the repository ships today, plus the optional keys the manifests may carry.
+PLUGIN_KEYS = {
+    "$schema": "https://example.invalid/plugin.schema.json",
+    "name": "engineering",
+    "description": "x",
+    "version": "1.0.0",
+    "author": {"name": "y"},
+    "homepage": "https://example.invalid",
+    "repository": "https://example.invalid/r",
+    "license": "MIT",
+    "keywords": ["a"],
+}
+MARKETPLACE_ENTRY_KEYS = {
+    "name": "engineering",
+    "source": "./plugins/engineering",
+    "category": "coding",
+    "tags": ["a"],
+    "description": "x",
+    "version": "1.0.0",
+    "author": {"name": "y"},
+    "homepage": "https://example.invalid",
+    "repository": "https://example.invalid/r",
+    "license": "MIT",
+    "keywords": ["a"],
+}
+
+
+def write_marketplace_file(root, data):
+    directory = root / ".claude-plugin"
+    directory.mkdir(exist_ok=True)
+    (directory / "marketplace.json").write_text(json.dumps(data), encoding="utf-8")
+
+
+def test_a_plugin_manifest_may_carry_every_allowed_key(tmp_path):
+    write_plugin(tmp_path)
+    write_marketplace(tmp_path, [{"name": "engineering", "source": "./plugins/engineering"}])
+    manifest = tmp_path / "plugins" / "engineering" / ".claude-plugin" / "plugin.json"
+    manifest.write_text(json.dumps(PLUGIN_KEYS), "utf-8")
+    assert "unscanned-component-path" not in codes(check_marketplace(tmp_path), ERROR)
+
+
+def test_a_marketplace_entry_may_carry_every_allowed_key(tmp_path):
+    write_plugin(tmp_path)
+    write_marketplace(tmp_path, [MARKETPLACE_ENTRY_KEYS])
+    assert "unscanned-component-path" not in codes(check_marketplace(tmp_path), ERROR)
+
+
+def test_a_marketplace_may_carry_every_allowed_top_level_key(tmp_path):
+    write_plugin(tmp_path)
+    write_marketplace_file(
+        tmp_path,
+        {
+            "$schema": "https://example.invalid/m.json",
+            "name": "x",
+            "description": "y",
+            "owner": {"name": "z"},
+            "plugins": [{"name": "engineering", "source": "./plugins/engineering"}],
+        },
+    )
+    assert "unscanned-component-path" not in codes(check_marketplace(tmp_path), ERROR)
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        {"metadata": {"pluginRoot": "./elsewhere"}},
+        {"metadata": {"description": "x"}},
+        {"allowCrossMarketplaceDependenciesOn": ["other"]},
+        {"hooks": {}},
+    ],
+)
+def test_a_marketplace_top_level_key_outside_the_allowlist_is_an_error(tmp_path, extra):
+    # `metadata.pluginRoot` redirects where relative plugin sources resolve.
+    write_plugin(tmp_path)
+    write_marketplace_file(
+        tmp_path,
+        {
+            "name": "x",
+            "owner": {"name": "y"},
+            "plugins": [{"name": "engineering", "source": "./plugins/engineering"}],
+            **extra,
+        },
+    )
+    found = [f for f in check_marketplace(tmp_path) if f.code == "unscanned-component-path"]
+    assert found and found[0].level == ERROR
+    assert next(iter(extra)) in found[0].message
 
 
 @pytest.mark.parametrize("key", COMPONENT_KEYS)

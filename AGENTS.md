@@ -350,12 +350,19 @@ blocking finding or a failing `ci` or `security` gate.
 - Do not rewrite the exported skills' voice. `code-scaffold`, `website-builder` and
   `health-coach` were written by hand; new reference files match them rather than the
   other way round.
-- Do not ship an auto-run component from a plugin (`hooks/`, `.mcp.json`, `.lsp.json`,
-  `monitors/`, `bin/`, `settings.json`, `output-styles/`), or the inline form of one in
-  `plugin.json` or a marketplace entry (`hooks`, `mcpServers`, `lspServers`, `outputStyles`,
-  `settings`, `experimental`): Claude Code loads each without a prompt and runs it with the
-  installer's permissions. Hooks ship as opt-in templates in a
-  skill's `assets/hooks/`, which the user merges into their own settings.
+- Keep a plugin to the shape the repository ships, which the validator and
+  `scripts/definition_shims.py` enforce as allowlists, not as a list of known-bad names:
+  Claude Code keeps adding component types that it loads without a prompt and runs with the
+  installer's permissions, so anything unlisted fails. A plugin root holds only
+  `.claude-plugin/`, `skills/`, `agents/` and `commands/`, compared case-sensitively. A
+  `plugin.json` holds only `$schema`, `name`, `description`, `version`, `author`, `homepage`,
+  `repository`, `license` and `keywords`. `marketplace.json` holds only `$schema`, `name`,
+  `description`, `owner` and `plugins` (never `metadata`, whose `pluginRoot` redirects where
+  plugins load), and each entry only `name`, `source`, `category`, `tags`, `description`,
+  `version`, `author`, `homepage`, `repository`, `license` and `keywords`. Widening an
+  allowlist is a decision for the owner and a change to both files and their tests. Hooks
+  ship as opt-in templates in a skill's `assets/hooks/`, which the user merges into their own
+  settings.
 - Do not push to `main` directly.
 
 ## Review guidelines

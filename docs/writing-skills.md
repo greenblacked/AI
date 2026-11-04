@@ -164,12 +164,17 @@ and `agents/`, so [`marketplace.json`](../.claude-plugin/marketplace.json) lists
 rather than individual skills. Two things still have to hold, and both are errors: every
 listed plugin must exist and carry a `.claude-plugin/plugin.json`, and nothing on disk
 may be stranded outside a plugin — a skill no plugin ships installs for nobody, which is
-the same silent failure the explicit list used to catch. A third is that no manifest may
-route around the default folders (`unscanned-component-path`): `agents`, `commands`,
-`skills` or `hooks`, or the inline auto-run forms `mcpServers`, `lspServers`,
-`outputStyles`, `settings` and `experimental`, in a marketplace entry or `plugin.json`, or a `source` other than
-`./plugins/<plugin>`, would load a subagent or command that the `security` workflow's
-scan of them never wraps.
+the same silent failure the explicit list used to catch. A third is that every manifest is an allowlist
+(`unscanned-component-path`): Claude Code keeps adding keys that load or run something on
+enabling a plugin (`agents`, `hooks`, `mcpServers`, `monitors`, `themes`, `workflows`,
+`dependencies`, `userConfig`, a marketplace `metadata.pluginRoot`, and more), so a key not
+named below is refused rather than a list of bad ones being kept. `plugin.json` may hold
+`$schema`, `name`, `description`, `version`, `author`, `homepage`, `repository`, `license`
+and `keywords`. The marketplace top level may hold `$schema`, `name`, `description`, `owner`
+and `plugins`, and each entry `name`, `source`, `category`, `tags`, `description`,
+`version`, `author`, `homepage`, `repository`, `license` and `keywords`. A `source` other
+than `./plugins/<plugin>` is refused too. Each of these would load or run something the
+`security` workflow's scan of subagents and commands never wraps.
 
 ## The warnings, and why they are warnings
 
@@ -699,7 +704,7 @@ See [the project kit](#project-kit).
 
 | Code | Level | Meaning | Fix |
 | --- | --- | --- | --- |
-| `plugin-auto-component` | error | A plugin root holds `hooks/`, `hooks.json`, `.mcp.json`, `.lsp.json`, `monitors/`, `bin/`, `settings.json` or `output-styles/`, in any letter case, which Claude Code loads or runs on enabling the plugin with no prompt. | Delete it. Ship a hook as an opt-in template under a skill's `assets/hooks/`. `scripts/definition_shims.py` refuses the same paths, so `security` fails too. |
+| `plugin-root-entry` | error | A plugin root holds anything other than `.claude-plugin`, `skills`, `agents` and `commands`, compared case-sensitively (`Agents/` fails; so do `hooks/`, `.mcp.json`, `monitors/`, `workflows/`, `themes/` and a `README.md`). Claude Code loads or runs the entries it knows at a plugin root on enabling the plugin with no prompt, and adds more, so the root is an allowlist rather than a list of known-bad names. | Delete it, or move it into the folder it belongs in. Ship a hook as an opt-in template under a skill's `assets/hooks/`. `scripts/definition_shims.py` refuses the same paths, so `security` fails too. |
 | `kit-rule` | error | A file in `assets/rules/` has no `paths:` frontmatter, an empty or unparsable one, or no body. | Add a `paths:` list with at least one glob, and a body. The glob is not matched against this repository, because it scopes the installer's project. Every finding the `.claude/rules` checker would raise becomes a `kit-rule` error here, so the check is stricter than for the repository's own rules. |
 | `kit-hook` | error | A file in `assets/hooks/` is not valid JSON, is not shaped `{"hooks": {"<Event>": [{"matcher"?, "hooks": [{"type": "command", "command", "timeout"?}]}]}}`, uses an event outside PreToolUse, PostToolUse, UserPromptSubmit, Stop, SubagentStop, SessionStart, SessionEnd, Notification and PreCompact, has a command other than `"$CLAUDE_PROJECT_DIR"/.claude/hooks/<name>.sh`, names a script that is not beside it or is not `<name>.sh` for `<name>.json`, has a key outside `hooks` (top level), `matcher` and `hooks` (group) or `type`, `command` and `timeout` (command), has a `timeout` that is not a positive integer, or the script lacks `#!/usr/bin/env bash` or `set -Eeuo pipefail`. | Follow the message; the hook-script rules are in [the project kit](#project-kit). |
 | `plugin-incomplete` | notice, warning once `PLUGIN_SHAPE_ENFORCED` is set in `rules.py` | The plugin has no subagent under `agents/`, or no skill with a complete kit: a rule, a hook JSON with its script and a template. | Add a read-only reader subagent and a kit to the anchor skill. A notice is printed and never fails, strict or not. |
@@ -713,9 +718,10 @@ See [the project kit](#project-kit).
 | `bad-marketplace-shape` | error | The manifest is not an object, `plugins` is not a list, a plugin entry is not an object, or a `skills`/`agents` value is not a list of strings. | Fix the shape. This is reported rather than raised because reaching `.get` on a string used to abort the whole run with a traceback. |
 | `missing-listed-plugin` | error | A plugin listed in `marketplace.json` has no `.claude-plugin/plugin.json` at its `source`. | Write the plugin manifest, correct the `source` path, or remove the entry. |
 | `unlisted-plugin` | error | A plugin exists on disk but is absent from `marketplace.json`, so it installs for nobody. | Add an entry for it to the manifest's `plugins` array. |
-| `unscanned-component-path` | error | A marketplace entry or a plugin's `plugin.json` sets `agents`, `commands`, `skills`, `hooks`, or an inline `mcpServers`, `lspServers`, `outputStyles`, `settings` or `experimental`, or an entry's `source` is not `./plugins/<plugin>`. Claude Code would load components from paths the `security` workflow's scan of subagents and commands never wraps. | Use the default `agents/`, `commands/` and `skills/` folders and a `./plugins/<plugin>` source. |
+| `unscanned-component-path` | error | A key outside the allowlists, or a `source` that is not `./plugins/<plugin>`. `plugin.json` may hold only `$schema`, `name`, `description`, `version`, `author`, `homepage`, `repository`, `license` and `keywords`. The marketplace top level may hold only `$schema`, `name`, `description`, `owner` and `plugins` (`metadata` is out, because `metadata.pluginRoot` redirects where plugins load from), and an entry only `name`, `source`, `category`, `tags`, `description`, `version`, `author`, `homepage`, `repository`, `license` and `keywords`. Anything else, from `agents`, `commands`, `skills` and `hooks` to inline servers, `monitors`, `themes`, `workflows`, `dependencies` and `userConfig`, loads or runs something on enabling the plugin that the `security` workflow's scan of subagents and commands never wraps. | Remove the key, and use the default `agents/`, `commands/` and `skills/` folders and a `./plugins/<plugin>` source. Widening an allowlist is a change to the validator and `scripts/definition_shims.py` together, with a case in each suite. |
 | `unowned-skill` | error | A skill is not inside any plugin's `skills/` directory, so no plugin ships it. | Move it under `plugins/<name>/skills/`. |
 | `unowned-agent` | error | A subagent is not inside any plugin's `agents/` directory. | Move it under `plugins/<name>/agents/`. |
+| `plugins-folder-case` | error | A top-level folder differs from `plugins` only in case (`Plugins/`). It is the same folder on a case-insensitive filesystem, but `find_plugins` reads only `plugins/`, so the plugins in it would be neither listed nor scanned. | Rename it to `plugins`. |
 
 CI runs the same validator on every push and pull request; see [what CI checks](ci.md).
 Subagents and slash commands are validated on the same run — see
