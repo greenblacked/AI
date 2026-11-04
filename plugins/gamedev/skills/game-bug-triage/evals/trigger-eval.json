@@ -1,0 +1,22 @@
+[
+  {"query": "a tester says the game froze in the market and quit, how do i turn that into a proper bug report", "should_trigger": true},
+  {"query": "what fields should a game bug report have so engineering can actually reproduce it", "should_trigger": true},
+  {"query": "is a soft-lock that happens one run in a thousand a release blocker or can we ship", "should_trigger": true},
+  {"query": "we have 40 open bugs a week before certification submission, how do we rank them and decide what blocks", "should_trigger": true},
+  {"query": "define a severity scale for our game, what counts as critical versus major", "should_trigger": true},
+  {"query": "my overnight bot run failed with a timeout on the bridge level, how do i file that so someone can fix it", "should_trigger": true},
+  {"query": "how do i record repro rate for a bug that only happens sometimes, and when can i call it fixed", "should_trigger": true},
+  {"query": "do we need a named owner for every major bug before we ship", "should_trigger": true},
+  {"query": "should the save file and rng seed be attached to every bug ticket", "should_trigger": true},
+  {"query": "producer wants to downgrade a progress-loss bug to ship on friday, what is the gate", "should_trigger": true},
+  {"query": "our mobile app crash reports are unsymbolicated and we need to rank signatures by affected users", "should_trigger": false, "expected": "crash-triage"},
+  {"query": "how do i run a playtest with ten strangers and decide what to ask them", "should_trigger": false, "expected": "game-playtest"},
+  {"query": "how should i version my save files so old saves load after a patch", "should_trigger": false, "expected": "game-save-system"},
+  {"query": "build a bot that plays my game overnight in ci and finds soft-locks", "should_trigger": false, "expected": "automated-playthrough"},
+  {"query": "what do we need to pass console certification, suspend and resume and so on", "should_trigger": false, "expected": "game-certification"},
+  {"query": "fast bullets pass through thin walls in my physics, how do i fix tunnelling", "should_trigger": false, "expected": "physics-glitch-triage"},
+  {"query": "two peers diverge in our rollback game, find the first desynced frame", "should_trigger": false, "expected": "game-desync-forensics"},
+  {"query": "players are duplicating currency in our online shop, how do we respond", "should_trigger": false, "expected": "economy-exploit-response"},
+  {"query": "the shotgun feels overpowered, what do i change in the numbers", "should_trigger": false, "expected": "game-balance"},
+  {"query": "write release notes for the patch going out on monday", "should_trigger": false, "expected": "release-notes"}
+]
