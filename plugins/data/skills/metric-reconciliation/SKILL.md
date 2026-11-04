@@ -99,6 +99,32 @@ Metric: [name]. Day: [date, time zone]. Segment: [value]. A: [figure, source, re
 
 **A write-up instead of a change.** Two dashboards with the same metric name and different rules will be compared again. One definition, one owner, and the other renamed or gone.
 
+## Project kit
+
+Three opt-in files under this skill's `assets/` keep each metric defined once in a project. Install
+them when the project defines metrics in `models/` or `metrics/`:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/metric-definitions.md` loads when a metric file is read or
+  edited and asks for one owned, versioned definition per metric.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/block-destructive-warehouse-ddl.json`, with its script
+  `${CLAUDE_SKILL_DIR}/assets/hooks/block-destructive-warehouse-ddl.sh`, blocks a Bash command
+  that drops, truncates or removes a warehouse object.
+- `${CLAUDE_SKILL_DIR}/assets/templates/metric-definition.md` is the definition card to fill in
+  once reconciliation has picked one definition.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/metric-definitions.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/block-destructive-warehouse-ddl.sh" .claude/hooks/
+chmod +x .claude/hooks/block-destructive-warehouse-ddl.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/block-destructive-warehouse-ddl.json` into
+`.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the
+script first; it runs with your permissions on every matching tool call.
+
 ## Reference files
 
 - `references/row-diff.md` — read at steps 4 and 5: the keyed full outer join, the bucket summary, and a test query for each cause, including time zone conversion per dialect.

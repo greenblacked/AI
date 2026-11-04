@@ -28,6 +28,8 @@ Take at least 90 days, and extend the window to cover the last quarter end and, 
 
 Group by user or service account, role, query tag or job label, first and last seen, and count of queries. The queries are in `references/usage-queries.md`.
 
+When the export is large, hand the gathered files to the `warehouse-access-reader` subagent with the object names; it returns the classified readers and the window's coverage without the raw log entering your context. It reads only the files you give it, so pull the history first, and the decision to proceed stays with you.
+
 ### 3. Resolve every principal to a person or an owned job
 
 A log row names a principal, not a consumer. Resolve each one:
