@@ -8,10 +8,13 @@ section, list a subagent under another plugin, or claim a kit its `assets/` does
 
 from __future__ import annotations
 
-from tests.conftest import load_script
+import re
+
+from tests.conftest import REPO, load_script
 from tests.test_catalogue import README, _plugin_command, with_commands, write_readme
 
 readme = load_script("check_readme.py")
+portable = load_script("export_portable.py")
 
 KIT_SECTION = """#### Project kit
 
@@ -348,3 +351,61 @@ def test_a_summary_count_written_as_a_prose_count_is_still_read_as_one(mini_repo
 def test_a_plugins_parent_heading_may_replace_skills(mini_repo, capsys):
     text = README.replace("\n## Skills\n", "\n## Plugins\n").replace("(#skills)", "(#plugins)")
     assert run(mini_repo, text, capsys)[0] == 0
+
+
+# --- anchors in the README that other files link to -----------------------------------
+
+# Renaming a README heading breaks every link to its old slug and nothing notices: the
+# page still opens, only at the top. The portable export once kept pointing at
+# `#chatgpt-grok-codex-and-everything-else` after the section became "Other tools".
+README_LINK = re.compile(
+    r"github\.com/greenblacked/AI(?:/blob/[\w.-]+/README\.md)?#([\w-]+)"
+    r"|\]\(((?:\.\./|\./)*)README\.md#([\w-]+)\)"
+)
+# History may name a slug that no longer exists, and tests build fixture links on purpose.
+UNCHECKED = {"CHANGELOG.md"}
+
+
+def readme_slugs(text):
+    """Every anchor GitHub gives the README: heading slugs, repeats numbered, plus ids."""
+    slugs, seen, fenced = set(), {}, False
+    for line in text.splitlines():
+        if re.match(r"\s*(```|~~~)", line):
+            fenced = not fenced
+        elif not fenced and (heading := re.match(r"#{1,6}\s+(.*?)\s*#*\s*$", line)):
+            slug = portable.source_slug(heading.group(1))
+            count = seen.get(slug, 0)
+            seen[slug] = count + 1
+            slugs.add(slug if count == 0 else f"{slug}-{count}")
+    slugs.update(re.findall(r'<a\s+(?:id|name)="([^"]+)"', text))
+    return slugs
+
+
+def readme_anchor_links():
+    """(path, anchor) for each link to the repository README found outside tests/."""
+    roots = [REPO / "scripts", REPO / "src", REPO / "docs", REPO / "plugins", REPO / ".claude"]
+    files = [*REPO.glob("*.md")] + [f for root in roots for f in root.rglob("*") if f.is_file()]
+    found = []
+    for path in files:
+        if path.name in UNCHECKED or path.suffix not in {".md", ".py", ".json"}:
+            continue
+        for match in README_LINK.finditer(path.read_text(encoding="utf-8")):
+            if match.group(1):
+                found.append((path, match.group(1)))
+            elif (path.parent / match.group(2) / "README.md").resolve() == REPO / "README.md":
+                found.append((path, match.group(3)))
+    return found
+
+
+def test_the_slug_rule_numbers_repeated_headings_and_skips_fenced_text():
+    slugs = readme_slugs('# A b\n\n```\n# Not one\n```\n\n## A b\n\n<a id="top"></a>\n')
+    assert slugs == {"a-b", "a-b-1", "top"}
+
+
+def test_every_link_into_the_readme_lands_on_a_heading_it_has():
+    slugs = readme_slugs((REPO / "README.md").read_text(encoding="utf-8"))
+    links = readme_anchor_links()
+    assert any(path.name == "export_portable.py" for path, _ in links)
+    assert any(path.name == "using.md" for path, _ in links)
+    broken = sorted(f"{p.relative_to(REPO)}#{a}" for p, a in links if a not in slugs)
+    assert not broken, f"README has no heading for: {broken}"
