@@ -34,8 +34,9 @@ if [ -z "$command" ]; then
   exit 0
 fi
 
-# Only a deleting verb is refused; reading or copying a symbol file is fine.
-if printf '%s' "$command" | grep -Eq '(^|[[:space:];&|(])(rm|unlink)[[:space:]]|find[[:space:]].*-delete'; then
+# Only a deleting verb is refused; reading or copying a symbol file is fine. The verb may be
+# path-qualified (/bin/rm, /usr/bin/unlink) or escaped (\rm) to dodge an alias.
+if printf '%s' "$command" | grep -Eq '(^|[[:space:];&|(\\])([^[:space:];&|()]*/)?(rm|unlink)[[:space:]]|find[[:space:]].*-delete'; then
   if printf '%s' "$command" | grep -Eq '\.dSYM|mapping\.txt|\.symbols'; then
     echo "blocked: shipped-build symbols are needed to symbolicate crashes; archive or upload them instead of deleting" >&2
     exit 2
