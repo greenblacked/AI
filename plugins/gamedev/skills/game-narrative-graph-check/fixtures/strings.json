@@ -1,6 +1,6 @@
 {
   "start.line": {"en": "Well met.", "de": "Sei gegruesst."},
-  "offer.line": {"en": "Will you help?", "de": "Willst du uns helfen, bevor die Dunkelheit hereinbricht und es zu spaet ist?"},
+  "offer.line": {"en": "Will you help?", "de": "Willst du uns helfen, bevor die Dunkelheit hereinbricht und es zu spaet wird?"},
   "accept.line": {"en": "Good.", "de": "Gut."},
   "refuse.line": {"en": "Pity.", "de": "Schade."},
   "reward.line": {"en": "Take this.", "de": "Nimm das."},
