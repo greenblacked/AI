@@ -44,7 +44,7 @@ And the archetypes:
 
 ## Worked sheet (CSV)
 
-```
+```text
 stock,flow,kind,archetype,band,per_hour,basis,note
 gold,quest_reward,source,engaged,all,420,designed,quests.json
 gold,vendor_sale,source,engaged,all,150,assumed,shop.py

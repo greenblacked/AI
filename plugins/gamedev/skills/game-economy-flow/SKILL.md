@@ -69,7 +69,7 @@ Move each largest source and sink by 20 per cent in the script and see which gat
 
 Write the result in the shape below and keep the sheet beside it in version control, so a change to a reward shows up as a diff of data.
 
-```
+```text
 ## Stocks
 [Each currency and item: capped, decaying, tradeable, convertible.]
 
