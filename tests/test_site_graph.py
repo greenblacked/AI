@@ -512,9 +512,12 @@ def test_building_the_real_repository_puts_a_graph_on_plugin_pages_with_edges(tm
     assert "coding" in drawn
     # Plugins with no stated edge get no empty heading. Which plugin that is changes as each
     # one gains a reader subagent, so the test takes whichever plugin has none rather than
-    # naming one; once every plugin has an edge there is nothing left to check.
+    # naming one. It must find at least one: an empty list would make the loop below check
+    # nothing, so a plugin set where every plugin has an edge fails here and needs the test
+    # rewritten rather than passing without testing anything.
     bare = sorted(p.parent.name for p in (output / "plugins").glob("*/index.html"))
     bare = [name for name in bare if name not in wanted and name != site.FAMILY_PLUGIN]
+    assert bare
     assert not set(bare) & drawn
     for name in bare:
         assert 'class="rg"' not in (output / "plugins" / name / "index.html").read_text(
