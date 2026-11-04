@@ -31,16 +31,18 @@ The id scheme is a contract, because the Cisco policy suppresses by id:
 that, and every part is lowercase letters and digits joined by single hyphens, which is
 why a double hyphen can only be a separator.
 
-Only `*.md` files count: directly inside `agents/`, and at any depth inside `commands/`,
-which is how the validator finds them. A README.md in `commands/` is a command to Claude
-Code, which loads every .md there, so it is wrapped even though the validator ignores it,
-with its id from the lowercased stem; one without frontmatter is given `name` and
-`description` lines so both scanners load it. A README.md in `agents/` is
-skipped only while it does not open with frontmatter, which an agent needs to load; one that
-does fails the run. `agents/evals/*.json` and `.claude/agents/benchmarks/**`
-sit below `agents/` and are not definitions. A file in a covered place whose name breaks
-the pattern, a symbolic link, a file that is not regular on disk, or an id used twice fails
-the run: a definition that is skipped is a definition nobody scanned.
+Every `*.md` counts, in any case and at any depth below `agents/` or `commands/`, because
+Claude Code's loader reads them all: it walks `agents/` recursively, names a nested agent
+after its folders, takes any name ending in `.md` whatever its case, and loads a file with
+no frontmatter too. The validator looks only one level deep in `agents/`, so it is not the
+authority here. Only a depth-one, lowercase `agents/<stem>.md` is a definition the scan can
+name, and any other .md below `agents/` fails the run, a README included (its first line
+does not matter). A README.md in `commands/` is a command, so it is wrapped even though the
+validator ignores it, with its id from the lowercased stem; one without frontmatter is
+given `name` and `description` lines so both scanners load it. `agents/evals/*.json` and
+`.claude/agents/benchmarks/**` hold no .md, so they are not definitions. A file in a covered
+place whose name breaks the pattern, a symbolic link, a file that is not regular on disk, or
+an id used twice fails the run: a definition that is skipped is a definition nobody scanned.
 
 The scan can only see the default folders, so the run also fails on a manifest that points
 Claude Code anywhere else (`check_manifests`): `agents`, `commands`, `skills` or `hooks` in a
@@ -68,23 +70,20 @@ PART = r"[a-z0-9]+(?:-[a-z0-9]+)*"
 REPO_PREFIX = "claude"
 # Where a definition can be at all, whatever it is called. A file matching this that fails
 # DEFINITION_RE is refused rather than skipped.
-# Agents are found one level deep, as the validator's `find_agents` does; commands at any
-# depth, as `find_commands` does, because Claude Code namespaces a command by its folder.
-LOCATION_RE = re.compile(
-    r"(?:plugins/[^/]+|\.claude)/(?:agents/[^/]+|commands/(?:[^/]+/)*[^/]+)\.md"
-)
+# Both kinds are matched at any depth and with `.md` in any case, because Claude Code's
+# loader is wider than the validator's `find_agents`: it walks `agents/` recursively (a
+# folder becomes part of the agent's name) and takes any file whose lowercased name ends in
+# `.md`, with or without frontmatter. A path this matches that is not a depth-one lowercase
+# `<stem>.md` is refused rather than skipped.
+LOCATION_RE = re.compile(r"(?:plugins/[^/]+|\.claude)/(?:agents|commands)/(?:.*/)?[^/]*(?i:\.md)")
 OWNER = rf"(?:plugins/(?P<plugin>{PART})|(?P<repo>\.claude))"
 AGENT_RE = re.compile(rf"{OWNER}/agents/(?P<stem>{PART})\.md")
 # Claude Code loads every .md in a commands/ folder as a command, a README.md too, so the
 # upper-case spelling is accepted there and the id uses the lowercased stem.
 COMMAND_RE = re.compile(rf"{OWNER}/commands/(?P<dirs>(?:{PART}/)*)(?P<stem>{PART}|README)\.md")
-# A readme in agents/ is documentation while it has no frontmatter, which list_definitions
-# checks rather than assumes: one that opens with frontmatter is refused.
-# The validator skips a commands/ readme too; the scan deliberately does not.
+# The validator skips a commands/ readme; the scan deliberately does not. An agents/ readme
+# is no exception: the loader takes it as a subagent whatever it opens with.
 README_NAMES = frozenset({"README.md", "readme.md"})
-AGENT_LOCATION_RE = re.compile(r"(?:plugins/[^/]+|\.claude)/agents/[^/]+\.md")
-# A byte-order mark and blank space may precede the opening line and a loader still reads it.
-OPENS_FRONTMATTER_RE = re.compile(rb"(?:\xef\xbb\xbf|\s)*---")
 BASE_RE = re.compile(r"[0-9a-f]{40}")
 # The mode `git ls-files -s` gives a symbolic link.
 SYMLINK_MODE = "120000"
@@ -141,6 +140,11 @@ def definition_id(path: str, plugins: set[str]) -> str:
             f"as their prefix, so the two could not be told apart"
         )
     owner = match["plugin"] or REPO_PREFIX
+    if agent and match["stem"] == "readme":
+        raise DefinitionError(
+            f"{safe(path)} is a readme in an agents/ folder, which Claude Code loads as a "
+            f"subagent whatever it contains; move the documentation out of agents/"
+        )
     if agent:
         return f"agent--{owner}--{match['stem']}"
     folders = match["dirs"].rstrip("/").split("/") if match["dirs"] else []
@@ -170,10 +174,6 @@ def tracked(repo: Path) -> dict[str, str]:
         meta, _, raw = record.partition(b"\t")
         found[raw.decode("utf-8", "surrogateescape")] = meta.split()[0].decode("ascii")
     return found
-
-
-def is_agents_readme(path: str) -> bool:
-    return bool(AGENT_LOCATION_RE.fullmatch(path)) and path.rsplit("/", 1)[-1] in README_NAMES
 
 
 # Keys with which a manifest points Claude Code at components outside the default places.
@@ -253,16 +253,6 @@ def list_definitions(repo: Path) -> list[str]:
     for path in located:
         if modes[path] == SYMLINK_MODE:
             raise DefinitionError(f"{safe(path)} is a symbolic link; commit the file itself")
-        if is_agents_readme(path):
-            # Skipped only while it is plainly documentation: one that opens with
-            # frontmatter could load as a subagent that neither the validator nor the
-            # workflow's count would ever look at.
-            if OPENS_FRONTMATTER_RE.match(read_regular(repo, path)):
-                raise DefinitionError(
-                    f"{safe(path)} opens with frontmatter, so it could load as a subagent; "
-                    f"remove the frontmatter or rename the file to a plain agent name"
-                )
-            continue
         paths.append(path)
     assign_ids(paths, plugin_names(repo))
     return paths

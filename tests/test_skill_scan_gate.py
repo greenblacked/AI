@@ -695,6 +695,9 @@ def test_a_nested_manifest_line_that_does_not_fit_its_source_fails(tmp_path, cap
         "agent--demo--helper\tplugins/demo/agents/evals/helper.md",
         "agent--demo--helper\tplugins/demo/skills/x/SKILL.md",
         "agent--Demo--Helper\tplugins/Demo/agents/Helper.md",
+        # `--` is the separator, so a part may not contain one.
+        "agent--demo--two--hyphens\tplugins/demo/agents/two--hyphens.md",
+        "agent--two--hy--x\tplugins/two--hy/agents/x.md",
         f" agent--demo--helper\t{AGENT_SRC}",
         f"agent--demo--helper\t{AGENT_SRC} ",
     ],
@@ -784,6 +787,13 @@ def test_a_manifest_offset_the_script_would_not_write_fails(tmp_path, capsys, li
     (tmp_path / "skills.txt").write_text(f"{line}\n", encoding="utf-8")
     assert gate.main(args) == 1
     assert "manifest names" in capsys.readouterr().out
+
+
+def test_a_lowercase_command_readme_with_the_four_line_offset_is_accepted(tmp_path, capsys):
+    src = ".claude/commands/team/readme.md"
+    line = f"command--claude--team--readme\t{src}\t4"
+    assert gate.main(lay_out(tmp_path, {line: sarif(result(line=9))})) == 1
+    assert f"file={src},line=5,title=SkillSpector PE3" in capsys.readouterr().out
 
 
 def test_an_agents_readme_is_not_a_definition_to_the_gate():

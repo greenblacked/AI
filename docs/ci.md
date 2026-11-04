@@ -173,8 +173,8 @@ only ever sees Python. `tests/*` ignores `S101`, because asserting is what tests
 [cisco-ai-skill-scanner](https://pypi.org/project/cisco-ai-skill-scanner/) and
 `skillspector` runs NVIDIA's [SkillSpector](https://github.com/NVIDIA/SkillSpector), both
 Apache-2.0, over `plugins/*/skills/*/` and over the subagent and command definitions
-(`*.md` directly inside `plugins/*/agents/` and `.claude/agents/`, and at any depth inside
-`plugins/*/commands/` and `.claude/commands/`, which is how the validator finds them). Cisco's scans every skill and every definition on every run;
+(`*.md` in any case inside `plugins/*/agents/` and `.claude/agents/`, and at any depth inside
+`plugins/*/commands/` and `.claude/commands/`, which is how Claude Code's loader finds them). Cisco's scans every skill and every definition on every run;
 SkillSpector scans the skills and definitions a pull request changes (all of them when the
 pull request changes the scan configuration) and all of them on other events. Each fails only on a high or critical finding
 that is not in a baseline reviewed by hand; medium and low findings never fail, and every
@@ -236,10 +236,12 @@ and how to refresh a baseline after a scanner bump.
   `plugins/*/commands/` and `.claude/commands/` (a folder namespaces a command), as a
   one-file skill, `<out>/<id>/SKILL.md`, and writes
   `<out>/map.tsv` (`<id>`, a tab, the source path, a tab, how many lines the shim adds above
-  the source's own). `agents/evals/` and
-  `.claude/agents/benchmarks/` are not wrapped, an agent in a folder is not an agent, and a
-  `README.md` or `readme.md` directly in an `agents/` folder is skipped only while it has no
-  frontmatter, which an agent needs to load; one that opens with frontmatter fails the run. A `README.md` or `readme.md` in a `commands/` folder is wrapped
+  the source's own). Claude Code's
+  loader walks `agents/` recursively, accepts any name ending in `.md` in any case and loads
+  a file with no frontmatter, so the run fails on any `.md` below an `agents/` folder that is
+  not a depth-one lowercase `<stem>.md` (a nested agent, `X.MD`, a `README.md` whatever its
+  first line) instead of skipping it; `agents/evals/` and `.claude/agents/benchmarks/` hold
+  no `.md`. The workflow's independent count uses the same case-insensitive pathspec. A `README.md` or `readme.md` in a `commands/` folder is wrapped
   like any command, with the id from its lowercased stem (`command--<plugin>--readme`),
   because Claude Code loads every `.md` there as a slash command even though the validator
   ignores it: the scan deliberately covers what the validator does not, so a planted one

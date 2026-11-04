@@ -22,10 +22,13 @@ Neither scanner has an agent or command type; each reads a skill directory's `SK
 only. `scripts/definition_shims.py` wraps every `*.md` directly inside
 `plugins/*/agents/` and `.claude/agents/`, and at any depth inside `plugins/*/commands/`
 and `.claude/commands/`, as a one-file skill, `<out>/<id>/SKILL.md`, so both scanners can
-read it; that is where the validator looks for each. `agents/evals/`,
-`.claude/agents/benchmarks/` and an agent in a folder are not wrapped, and a `README.md`
-or `readme.md` directly in an `agents/` folder is skipped only while it has no frontmatter, which an
-agent needs to load; one that opens with frontmatter fails the run. One in a `commands/` folder is wrapped like any command, with the id from its
+read it. The scan follows Claude Code's loader, not the validator: the loader walks `agents/`
+recursively, names a nested agent after its folders, takes any file name ending in `.md` in
+any case and loads one with no frontmatter too. So the run fails on any `.md` below an
+`agents/` folder that is not a depth-one, lowercase `<stem>.md` (a nested agent, `X.MD`, a
+`README.md` whatever its first line), rather than skipping it; `agents/evals/` and
+`.claude/agents/benchmarks/` hold no `.md`, so nothing is left out. The same case-insensitive
+`.md` rule applies in `commands/`. One in a `commands/` folder is wrapped like any command, with the id from its
 lowercased stem (`command--<plugin>--readme`), because Claude Code loads every `.md` there
 as a slash command; the validator ignores it, and the scan deliberately does not, so a
 planted one cannot ship unscanned. It also writes `<out>/map.tsv`, one `<id>`, a tab, the

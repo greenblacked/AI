@@ -417,10 +417,10 @@ jobs:
           set -Eeuo pipefail
           shims="$RUNNER_TEMP/definition-shims"
           python3 scripts/definition_shims.py --out "$shims" --all
-          globs=(':(glob)plugins/*/agents/*.md' ':(glob)plugins/*/commands/**/*.md'
-            ':(glob).claude/agents/*.md' ':(glob).claude/commands/**/*.md')
+          globs=(':(glob,icase)plugins/*/agents/**/*.md' ':(glob,icase)plugins/*/commands/**/*.md'
+            ':(glob,icase).claude/agents/**/*.md' ':(glob,icase).claude/commands/**/*.md')
           expected=$(git ls-files -z -- "${globs[@]}" |
-            { grep -zvE '^(plugins/[^/]+|\.claude)/agents/(README|readme)\.md$' || true; } | tr -cd '\0' | wc -c)
+            tr -cd '\0' | wc -c)
           wrapped=$(wc -l < "$shims/map.tsv")
           if [ "$wrapped" -ne "$expected" ]; then
             echo "::error title=definition scan::wrapped $wrapped definition(s) where git lists $expected"
@@ -458,10 +458,10 @@ jobs:
       - name: Check every subagent and command was scanned
         run: |
           set -Eeuo pipefail
-          globs=(':(glob)plugins/*/agents/*.md' ':(glob)plugins/*/commands/**/*.md'
-            ':(glob).claude/agents/*.md' ':(glob).claude/commands/**/*.md')
+          globs=(':(glob,icase)plugins/*/agents/**/*.md' ':(glob,icase)plugins/*/commands/**/*.md'
+            ':(glob,icase).claude/agents/**/*.md' ':(glob,icase).claude/commands/**/*.md')
           expected=$(git ls-files -z -- "${globs[@]}" |
-            { grep -zvE '^(plugins/[^/]+|\.claude)/agents/(README|readme)\.md$' || true; } | tr -cd '\0' | wc -c)
+            tr -cd '\0' | wc -c)
           scanned=$(jq -er '.summary.total_skills_scanned' "$RUNNER_TEMP/skill-scanner/definitions.json")
           if ! [[ "$scanned" =~ ^[0-9]+$ ]]; then
             echo "::error title=definition scan incomplete::the report gave no count"
@@ -544,11 +544,11 @@ jobs:
           shims="$RUNNER_TEMP/definition-shims"
           mkdir -p "$results"
           manifest="$results/skills.txt"
-          # Agents one level deep and commands at any depth, as the validator finds them;
-          # an agents/ README.md is not counted because the script fails the run if it opens with
-          # frontmatter; a commands/ one is loaded as a command, so it is.
-          globs=(':(glob)plugins/*/agents/*.md' ':(glob)plugins/*/commands/**/*.md'
-            ':(glob).claude/agents/*.md' ':(glob).claude/commands/**/*.md')
+          # Every .md, in any case and at any depth, below agents/ and commands/, because Claude
+          # Code's loader reads them all (a README included); the script refuses any that is
+          # not a plain definition, so the count and the script cannot quietly disagree.
+          globs=(':(glob,icase)plugins/*/agents/**/*.md' ':(glob,icase)plugins/*/commands/**/*.md'
+            ':(glob,icase).claude/agents/**/*.md' ':(glob,icase).claude/commands/**/*.md')
           # A link inside a skill can point outside plugins/, so editing its target would
           # change what is scanned without selecting the skill; the same goes for a link
           # standing in for a definition. Counted, never listed.
@@ -603,12 +603,12 @@ jobs:
           if [ "$scan_all" -eq 1 ]; then
             python3 scripts/definition_shims.py --out "$shims" --all
             expected=$(git ls-files -z -- "${globs[@]}" |
-              { grep -zvE '^(plugins/[^/]+|\.claude)/agents/(README|readme)\.md$' || true; } | tr -cd '\0' | wc -c)
+              tr -cd '\0' | wc -c)
           else
             python3 scripts/definition_shims.py --out "$shims" --changed="$BASE_SHA"
             expected=0
             while IFS= read -r -d '' path; do
-              if [ -e "$path" ] && ! [[ "$path" =~ ^(plugins/[^/]+|\.claude)/agents/(README|readme)\.md$ ]]; then
+              if [ -e "$path" ]; then
                 expected=$((expected + 1))
               fi
             done < <(git diff --no-renames -z --name-only "$base" HEAD -- "${globs[@]}")
