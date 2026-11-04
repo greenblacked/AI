@@ -87,8 +87,9 @@ them. Close the task with verified results, blockers and evidence-backed next pr
 | `plugins/learning/skills/` | Learning and teaching: ramp-up, study plans, workshops, mentoring, tacit knowledge and reading research |
 | `plugins/research/skills/` | Research engineering: reproducibility, numerical error, statistics review, HPC and Slurm, scaling and large datasets |
 | `plugins/growth/skills/` | Marketing and growth: content SEO, email deliverability, lifecycle, attribution, community and devrel |
-| `plugins/*/agents/` | Subagent definitions, validated on the same run as the skills |
+| `plugins/*/agents/` | Subagent definitions, validated on the same run as the skills; every plugin ships at least one read-only reader |
 | `plugins/*/commands/` | Slash commands the plugin ships, validated on the same run |
+| `plugins/*/skills/*/assets/{rules,hooks,templates}/` | A plugin's project kit, kept inside one skill's `assets/`: a rule template copied into `.claude/rules/`, an opt-in hook template (`<name>.json` plus `<name>.sh`) and a document template. Each plugin is a chapter of skills, at least one reader subagent and one kit; the README has a chapter per plugin to match |
 | `.claude/commands/` | Slash commands for working on this repository, not shipped to installers |
 | `.claude/agents/` | Two loops — `explorer`, `investigator`, `implementer` and `reviewer` to build, with `security-reviewer` beside `reviewer` when the diff touches a security trigger; `investigator` and `reviewer` to verify — for working on this repository, validated on the same run |
 | `.claude/agents/benchmarks/` | Cases for `scripts/run_review_benchmark.py`: a `change.patch` seeding a known defect or an honest clean change, and a `case.json` naming what `reviewer` should say about it. Deliberately defective patches, not something to review as a change in its own right |
@@ -349,6 +350,10 @@ blocking finding or a failing `ci` or `security` gate.
 - Do not rewrite the exported skills' voice. `code-scaffold`, `website-builder` and
   `health-coach` were written by hand; new reference files match them rather than the
   other way round.
+- Do not ship an auto-run component from a plugin (`hooks/`, `.mcp.json`, `.lsp.json`,
+  `monitors/`, `bin/`, `settings.json`, `output-styles/`): Claude Code loads each without a
+  prompt and runs it with the installer's permissions. Hooks ship as opt-in templates in a
+  skill's `assets/hooks/`, which the user merges into their own settings.
 - Do not push to `main` directly.
 
 ## Review guidelines
