@@ -32,6 +32,8 @@ Pick the single cheapest task that misses and diff its inputs between the two ru
 - **Gradle.** Run with `-Dorg.gradle.caching.debug=true` and `--build-cache` to log each cacheable task's input property hashes, or publish a build scan (`--scan`) from both runs and compare the task's inputs in the scan. Compare the property that differs, not the final key.
 - **Bazel.** Write an execution log from each machine (`--execution_log_json_file=path`) and compare the entry for one action: command line, environment and input digests. `bazel aquery` shows the action as defined, before execution.
 
+When the two dumps are whole-build files too large to read here, hand them to the `cache-key-diff-reader` subagent with the task name; it returns the one differing input and its class, and you carry on from step 3.
+
 `references/finding-the-input.md` has the commands side by side and how to read each tool's output.
 
 ### 3. Check the culprits in order of frequency

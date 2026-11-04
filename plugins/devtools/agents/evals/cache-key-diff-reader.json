@@ -1,0 +1,22 @@
+[
+  {"query": "here are the turbo dry-run json files from my laptop and CI for the web#build task, which input differs", "should_trigger": true},
+  {"query": "diff these two gradle build-cache debug logs for :app:compileKotlin and tell me which input property changed between machines", "should_trigger": true},
+  {"query": "two bazel execution logs, one from each runner, for the same action. which input made the cache keys diverge", "should_trigger": true},
+  {"query": "the dumps are 40MB each so don't paste them, just give me the one input that differs for the lint task", "should_trigger": true},
+  {"query": "I ran turbo run build --dry=json on both machines, find what differs in the hash for packages/ui and say what kind of thing it is", "should_trigger": true},
+  {"query": "compare these two execution_log_json_file outputs for //app:bundle and classify the difference as path, env var, stamp, version, ordering or glob", "should_trigger": true},
+  {"query": "here is the cache key dump from CI and from my mac for :core:test, is it an env var or an absolute path that differs", "should_trigger": true},
+  {"query": "read both hash dumps for the compile task and tell me if there is really no input difference", "should_trigger": true},
+  {"query": "gradle caching debug output from two runs of the same commit is attached, what is the first property whose hash differs", "should_trigger": true},
+  {"query": "these two turbo summaries come from the same commit on different machines, extract the single task entry that differs and name the culprit class", "should_trigger": true},
+  {"query": "the remote cache hit rate is 20% and turbo rebuilds everything every run, why", "should_trigger": false, "expected": "build-cache-miss-hunt"},
+  {"query": "how do I confirm the fix with the same commit built twice on different machines and write down the hit rate", "should_trigger": false, "expected": "build-cache-miss-hunt"},
+  {"query": "touching one header recompiles everything, why did this rebuild", "should_trigger": false, "expected": "slow-build-profile"},
+  {"query": "my incremental build is slow even when the cache hits, profile it", "should_trigger": false, "expected": "slow-build-profile"},
+  {"query": "the pipeline is red and the log mentions a cache miss, is this a flake", "should_trigger": false, "expected": "ci-triage"},
+  {"query": "read this failing CI run and classify it for me", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "how should I key the node_modules cache in our GitHub Actions workflow", "should_trigger": false, "expected": "ci-pipeline-design"},
+  {"query": "can fork pull requests write to our shared build cache and poison it", "should_trigger": false, "expected": "pipeline-hardening"},
+  {"query": "write a CMake target that builds the library and its tests", "should_trigger": false},
+  {"query": "which two commits changed this lockfile and why does the resolution differ", "should_trigger": false, "expected": "dependency-resolution-conflict"}
+]
