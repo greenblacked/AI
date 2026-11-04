@@ -37,4 +37,4 @@ Silence from `diff` means the checker still finds everything it should. Rerun it
 
 ## Limits
 
-The flag analysis over-approximates: it asks whether any path could supply a value, not whether the path is playable in order. It cannot see flags set by code outside the graph, so list those in `defaults` or the check will report them. A clean run means these mechanical defects are absent, not that the story reads well.
+The flag analysis over-approximates: it asks whether any path could supply a value, not whether the path is playable in order. It cannot see flags set by code outside the graph, so list those in `defaults` or the check will report them. `never-true` looks only at `==`: a `!=`, `>`, `>=`, `<` or `<=` condition that no value can satisfy (`x > 5` against a flag that only ever holds 3, or `x > 5` with `x < 2` on the same edge) is not detected, and neither are contradictions across different edges. A clean run means these mechanical defects are absent, not that the story reads well.

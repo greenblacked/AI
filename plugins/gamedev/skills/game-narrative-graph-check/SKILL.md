@@ -1,6 +1,6 @@
 ---
 name: game-narrative-graph-check
-description: "Verify a branching dialogue or quest graph as data before content lock. Exports the graph to a plain node and edge list, then runs a standard-library checker that reports node id and reason for unreachable nodes, dead ends not marked as endings, flags read before any path sets them, conditions that can never be true, cycles with no exit, lines longer than the text box at the longest locale, and line keys missing from the string table. Use whenever someone asks to check a dialogue tree, quest chain or branching story for soft-locks, orphaned lines or broken flags, or wants a narrative pass before lock or a release candidate. Not for translating or managing strings (game-localisation), writing the story or quest design (game-design-doc), running a human playtest (game-playtest), or level layout (game-level-design)."
+description: "Verify a branching dialogue or quest graph as data before content lock. Exports the graph to a plain node and edge list, then runs a standard-library checker that reports node id and reason for unreachable nodes, dead ends not marked as endings, flags read before any path sets them, equality conditions on a value nothing sets or that contradict each other, cycles with no exit, lines longer than the text box at the longest locale, and line keys missing from the string table. Use whenever someone asks to check a dialogue tree, quest chain or branching story for soft-locks, orphaned lines or broken flags, or wants a narrative pass before lock or a release candidate. Not for translating or managing strings (game-localisation), writing the story or quest design (game-design-doc), running a human playtest (game-playtest), or level layout (game-level-design)."
 allowed-tools: Read, Grep, Glob
 ---
 
@@ -36,7 +36,7 @@ Fix `duplicate-node` (the checker judges the first occurrence of an id), `unknow
 
 ### 4. Flags and conditions
 
-`read-before-set` means no path to that node can have set the flag and it has no default; the branch silently takes the wrong side, or the quest step never opens. `never-true` means the condition compares to a value nothing ever sets, or contradicts itself. Both are usually a typo in a flag name or a setter that was cut. Fix the name or the setter; do not add a default to quiet the check unless the flag truly starts with that value.
+`read-before-set` means no path to that node can have set the flag and it has no default; the branch silently takes the wrong side, or the quest step never opens. `never-true` means the condition compares to a value nothing ever sets, or contradicts itself with two `==` tests on one edge; other impossible conditions are not detected. Both are usually a typo in a flag name or a setter that was cut. Fix the name or the setter; do not add a default to quiet the check unless the flag truly starts with that value.
 
 ### 5. Cycles
 
