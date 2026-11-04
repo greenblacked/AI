@@ -186,6 +186,13 @@ def tracked(repo: Path) -> dict[str, str]:
 # a file they name is a definition this script would never enumerate.
 COMPONENT_KEYS = ("agents", "commands", "skills", "hooks")
 MARKETPLACE = ".claude-plugin/marketplace.json"
+# Plugin-root entries Claude Code loads or runs on enabling the plugin, with no prompt.
+# Mirrors PLUGIN_AUTO_COMPONENTS in the validator, so the security workflow fails closed
+# even when the validator is skipped.
+AUTO_COMPONENT_RE = re.compile(
+    rf"plugins/{PART}/(?:hooks|monitors|bin|output-styles)/.+"
+    rf"|plugins/{PART}/(?:hooks\.json|\.mcp\.json|\.lsp\.json|settings\.json)"
+)
 SOURCE_RE = re.compile(rf"\./plugins/{PART}")
 PLUGIN_MANIFEST_RE = re.compile(rf"plugins/{PART}/\.claude-plugin/plugin\.json")
 
@@ -209,6 +216,13 @@ def check_manifests(repo: Path) -> None:
     globs to follow them, the run fails on a manifest that uses either, so the default
     layout is the only layout there is to scan.
     """
+    for raw in git(repo, "ls-files", "-z", "--", ":(glob)plugins/**").split(b"\0"):
+        path = raw.decode("utf-8", "surrogateescape")
+        if path and AUTO_COMPONENT_RE.fullmatch(path):
+            raise DefinitionError(
+                f"{safe(path)} is a plugin-root component Claude Code loads or runs without "
+                f"a prompt; hooks ship as opt-in kit templates under a skill's assets/hooks/"
+            )
     listing = git(repo, "ls-files", "-z", "--", ":(glob)**/.claude-plugin/**")
     for raw in listing.split(b"\0"):
         path = raw.decode("utf-8", "surrogateescape")

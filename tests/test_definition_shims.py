@@ -847,3 +847,43 @@ def test_a_frontmatter_error_cannot_open_the_legacy_workflow_command_marker(repo
     assert "frontmatter does not parse" in err
     assert "##[" not in err
     assert "## [warning]" in err
+
+
+# A plugin-root entry that Claude Code loads or runs without a prompt is refused here too,
+# so the security workflow fails closed even if the validator is bypassed.
+@pytest.mark.parametrize(
+    "rel",
+    [
+        "hooks/hooks.json",
+        "hooks/anything.sh",
+        "hooks.json",
+        ".mcp.json",
+        ".lsp.json",
+        "monitors/monitors.json",
+        "bin/tool",
+        "settings.json",
+        "output-styles/terse.md",
+    ],
+)
+def test_a_plugin_root_auto_component_is_refused(repo, rel):
+    write_manifests(repo)
+    repo.write(f"plugins/demo/{rel}", "{}\n")
+    repo.commit("auto component")
+    with pytest.raises(shims.DefinitionError, match=r"plugin-root.*assets/hooks"):
+        shims.list_definitions(repo.path)
+
+
+@pytest.mark.parametrize(
+    "rel",
+    [
+        "skills/alpha/assets/hooks/guard.json",
+        "skills/alpha/assets/settings.json",
+        "skills/alpha/scripts/bin/tool",
+        "agents/hooks.json",
+    ],
+)
+def test_the_same_names_deeper_in_a_plugin_are_not_auto_components(repo, rel):
+    write_manifests(repo)
+    repo.write(f"plugins/demo/{rel}", "{}\n")
+    repo.commit("kit file")
+    assert shims.list_definitions(repo.path) == sorted(LOCATIONS)
