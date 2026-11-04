@@ -171,10 +171,19 @@ def test_a_repo_agent_in_the_working_section_passes(mini_repo, capsys):
     agents = mini_repo / ".claude" / "agents"
     agents.mkdir(parents=True)
     (agents / "searcher.md").write_text(
-        "---\nname: searcher\ndescription: " + "f" * 60 + "\ntools: Read\n---\n\nBody.\n",
+        "---\nname: searcher\ndescription: " + "f" * 60 + "\ntools: Read\nmodel: haiku\n"
+        "effort: high\n---\n\nBody.\n",
         encoding="utf-8",
     )
-    assert run(mini_repo, README + "\n| `searcher` | Finds |\n", capsys)[0] == 0
+    # The agent table is now required beside any agent in .claude/agents, so the fixture
+    # carries one; what this case checks is still the row in the working section.
+    tiers = (
+        "## Agents\n\n| Agent | Stage | Model | Effort | Editing tools |\n"
+        "| --- | --- | --- | --- | --- |\n"
+        "| `searcher` | Survey | Haiku | high | none |\n\n"
+    )
+    text = README.replace("## Working on", tiers + "## Working on", 1)
+    assert run(mini_repo, text + "\n| `searcher` | Finds |\n", capsys)[0] == 0
 
 
 def test_repo_agents_with_no_working_section_fail(mini_repo, capsys):
@@ -409,3 +418,83 @@ def test_every_link_into_the_readme_lands_on_a_heading_it_has():
     assert any(path.name == "using.md" for path, _ in links)
     broken = sorted(f"{p.relative_to(REPO)}#{a}" for p, a in links if a not in slugs)
     assert not broken, f"README has no heading for: {broken}"
+
+
+# --- the agent tier table against the agents' frontmatter ----------------------------
+
+TIERS = """## How I work with agents
+
+| Agent | Stage | Model | Effort | Editing tools |
+| --- | --- | --- | --- | --- |
+| `scout` | Survey | Haiku | high | none |
+| `maker` | Write | Sonnet | medium | `Write`, `Edit` |
+"""
+WORKING_ROWS = "| `scout` | Surveys |\n| `maker` | Writes |\n"
+
+
+def write_tier_agent(root, name, model, effort, tools, disallowed=""):
+    agents = root / ".claude" / "agents"
+    agents.mkdir(parents=True, exist_ok=True)
+    extra = f"disallowedTools: {disallowed}\n" if disallowed else ""
+    (agents / f"{name}.md").write_text(
+        f"---\nname: {name}\ndescription: {'f' * 60}\ntools: {tools}\n{extra}"
+        f"model: {model}\neffort: {effort}\n---\n\nBody.\n",
+        encoding="utf-8",
+    )
+
+
+def tiered(root, table=TIERS):
+    write_tier_agent(root, "scout", "haiku", "high", "Read, Grep, Bash", "Write, Edit")
+    write_tier_agent(root, "maker", "sonnet", "medium", "Read, Write, Edit, Bash")
+    return README.replace("## Skills", table + "\n## Skills", 1).replace(
+        "Nothing here ships.\n", WORKING_ROWS
+    )
+
+
+def test_a_tier_table_that_matches_the_frontmatter_passes(mini_repo, capsys):
+    code, out = run(mini_repo, tiered(mini_repo), capsys)
+    assert code == 0, out
+
+
+def test_a_tier_table_with_the_wrong_model_fails(mini_repo, capsys):
+    text = tiered(mini_repo, TIERS.replace("| Haiku |", "| Opus |"))
+    code, out = run(mini_repo, text, capsys)
+    assert code == 1
+    assert "scout" in out and "model" in out and "haiku" in out
+
+
+def test_a_tier_table_with_the_wrong_effort_fails(mini_repo, capsys):
+    text = tiered(mini_repo, TIERS.replace("| medium | `Write`", "| low | `Write`"))
+    code, out = run(mini_repo, text, capsys)
+    assert code == 1
+    assert "maker" in out and "effort" in out and "medium" in out
+
+
+def test_a_tier_table_naming_the_wrong_editing_tools_fails(mini_repo, capsys):
+    text = tiered(mini_repo, TIERS.replace("| none |", "| `Write` |"))
+    code, out = run(mini_repo, text, capsys)
+    assert code == 1
+    assert "scout" in out and "editing tools" in out
+
+
+def test_an_agent_the_tier_table_leaves_out_fails(mini_repo, capsys):
+    text = tiered(
+        mini_repo, TIERS.replace("| `maker` | Write | Sonnet | medium | `Write`, `Edit` |\n", "")
+    )
+    code, out = run(mini_repo, text, capsys)
+    assert code == 1
+    assert "maker" in out and "no row in the agent table" in out
+
+
+def test_a_tier_row_for_an_agent_that_does_not_exist_fails(mini_repo, capsys):
+    row = "| `ghost` | Haunt | Opus | medium | none |\n"
+    code, out = run(mini_repo, tiered(mini_repo, TIERS + row), capsys)
+    assert code == 1
+    assert "ghost" in out and "not an agent" in out
+
+
+def test_agents_in_claude_with_no_tier_table_at_all_fail(mini_repo, capsys):
+    text = tiered(mini_repo).replace("| Agent | Stage |", "| Role | Stage |")
+    code, out = run(mini_repo, text, capsys)
+    assert code == 1
+    assert "no agent table" in out
