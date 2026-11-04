@@ -9,7 +9,8 @@
     {"id": "orphan", "line_key": "orphan.line", "ending": true},
     {"id": "loop_a", "line_key": "loop_a.line"},
     {"id": "loop_b", "line_key": "loop_b.line"},
-    {"id": "silent", "line_key": "silent.line"}
+    {"id": "silent", "line_key": "silent.line"},
+    {"id": "reward", "line_key": "reward.line", "ending": true}
   ],
   "edges": [
     {"from": "start", "to": "offer"},
@@ -19,6 +20,8 @@
     {"from": "accept", "to": "reward", "when": [{"flag": "quest", "op": "==", "value": "done"}]},
     {"from": "accept", "to": "silent", "when": [{"flag": "bribed", "op": "==", "value": true}]},
     {"from": "loop_a", "to": "loop_b"},
-    {"from": "loop_b", "to": "loop_a"}
+    {"from": "loop_b", "to": "loop_a"},
+    {"from": "orphan", "to": "ghost"},
+    {"from": "orphan", "to": "reward", "when": [{"flag": "met_smith", "op": "~=", "value": true}]}
   ]
 }

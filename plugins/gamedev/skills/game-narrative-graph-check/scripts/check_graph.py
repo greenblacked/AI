@@ -79,7 +79,16 @@ def sccs(ids, out):
 
 def check_graph(graph):
     findings = []
-    nodes = {n["id"]: n for n in graph.get("nodes", [])}
+    nodes = {}
+    for n in graph.get("nodes", []):
+        if n["id"] in nodes:
+            # Judge the graph on the first occurrence: overwriting would let a stray
+            # copy silently change which edges, flags and endings the checker sees.
+            findings.append(
+                (n["id"], "duplicate-node", "id is defined more than once; the first is checked")
+            )
+        else:
+            nodes[n["id"]] = n
     edges = graph.get("edges", [])
     defaults = graph.get("defaults", {})
     out = {i: [] for i in nodes}

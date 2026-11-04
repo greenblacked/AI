@@ -20,7 +20,7 @@ Hub nodes that return to a menu are cycles with an exit through the menu's leave
 
 ## Fixture
 
-`fixtures/graph.json` and `fixtures/strings.json` contain one deliberate defect of each kind. Run:
+`fixtures/graph.json` and `fixtures/strings.json` contain one deliberate defect of every kind except `no-start`, which cannot coexist with the start node the other defects need; `tests/test_check_graph.py` covers it. Run:
 
 ```bash
 python3 -I "${CLAUDE_SKILL_DIR}/scripts/check_graph.py" "${CLAUDE_SKILL_DIR}/fixtures/graph.json" --strings "${CLAUDE_SKILL_DIR}/fixtures/strings.json" --max-chars 40

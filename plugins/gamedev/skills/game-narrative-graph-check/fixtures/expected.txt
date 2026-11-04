@@ -1,9 +1,12 @@
 accept: never-true
 accept: read-before-set
+ghost: unknown-node
 loop_a: cycle-no-exit
 loop_b: missing-locale
 offer: too-long
+orphan: bad-condition
 orphan: unreachable
 refuse: dead-end
+reward: duplicate-node
 silent: dead-end
 silent: missing-key

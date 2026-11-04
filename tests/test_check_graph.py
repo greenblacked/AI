@@ -140,3 +140,19 @@ def test_max_chars_zero_disables_the_length_check() -> None:
     nodes = {"a": {"line_key": "a.line"}}
     strings = {"a.line": {"en": "x" * 500}}
     assert graph_check.check_strings(nodes, strings, 0) == []
+
+
+def test_duplicate_node_id_is_reported_and_first_occurrence_is_judged() -> None:
+    graph = {
+        "nodes": [
+            {"id": "a", "start": True},
+            {"id": "b", "ending": True},
+            {"id": "b"},
+        ],
+        "edges": [{"from": "a", "to": "b"}],
+    }
+    findings, nodes = graph_check.check_graph(graph)
+    assert ("b", "duplicate-node") in {(n, c) for n, c, _ in findings}
+    # The later, non-ending "b" must not overwrite the first one and cause a dead-end.
+    assert ("b", "dead-end") not in {(n, c) for n, c, _ in findings}
+    assert nodes["b"].get("ending") is True

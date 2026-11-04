@@ -28,11 +28,11 @@ Produce the node and edge list described in `references/export-and-fixture.md`: 
 python3 -I "${CLAUDE_SKILL_DIR}/scripts/check_graph.py" graph.json --strings strings.json --max-chars N
 ```
 
-It prints `node: code: reason` per finding and exits 1 if there is any. The codes: `unreachable`, `dead-end`, `cycle-no-exit`, `read-before-set`, `never-true`, `bad-condition`, `unknown-node`, `no-start`, `missing-key`, `missing-locale`, `too-long`.
+It prints `node: code: reason` per finding and exits 1 if there is any. The codes: `unreachable`, `dead-end`, `cycle-no-exit`, `read-before-set`, `never-true`, `bad-condition`, `unknown-node`, `no-start`, `duplicate-node`, `missing-key`, `missing-locale`, `too-long`.
 
 ### 3. Structure first
 
-Fix `unknown-node`, `no-start`, `unreachable` and `dead-end` before anything else; they change which later findings are real. A dead end is a soft-lock for the player. An unreachable node is either cut content still costing localisation and voice money, or a missing edge. Decide which, in the content, not in the checker.
+Fix `duplicate-node` (the checker judges the first occurrence of an id), `unknown-node`, `no-start`, `unreachable` and `dead-end` before anything else; they change which later findings are real. A dead end is a soft-lock for the player. An unreachable node is either cut content still costing localisation and voice money, or a missing edge. Decide which, in the content, not in the checker.
 
 ### 4. Flags and conditions
 
