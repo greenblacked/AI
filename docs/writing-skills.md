@@ -556,7 +556,11 @@ runs with your permissions on every matching tool call.
 - It reads the stdin JSON with `python3` or `jq` only if present, and degrades to
   allowing when neither is, because a hook that blocks everything on a missing tool is
   worse than none.
-- It exits 2 with the reason on stderr to block, and 0 otherwise.
+- It exits 0 to allow and 2 to object, with the reason on stderr, and what 2 does depends
+  on the event. On `PreToolUse` it blocks the call before it runs. On `PostToolUse` the
+  write has already happened: exit 2 only feeds stderr back to the model, which can fix the
+  file but cannot be undone by the hook. A kit that must stop a write registers on
+  `PreToolUse`.
 
 A kit's `.sh` makes both skill scanners flag its anchor skill: Cisco reports
 `ALLOWED_TOOLS_BASH_VIOLATION` and SkillSpector reports AE1 `static_parse_limit`. So each
