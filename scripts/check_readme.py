@@ -24,6 +24,7 @@ What is checked, all of it mechanical:
 - the Python badge against the interpreter matrix CI actually runs
 - the coverage badge against the floor `pyproject.toml` enforces
 - a count spelled out in the prose, against the same totals
+- a count in the `<summary>` of a chapter's collapsed skills table, against that plugin
 
 That last one was left out on purpose once, on the reasoning that parsing prose would
 fail on a rewrite that was perfectly correct, and a gate that cries wolf is one people
@@ -80,6 +81,11 @@ BADGE_RE = re.compile(r"img\.shields\.io/badge/skills-(\d+)-")
 PYTHON_BADGE_RE = re.compile(r"img\.shields\.io/badge/python-(.+?)-[0-9a-f]{6}\)")
 # "≥" arrives as %E2%89%A5 and "%" as %25; the number between them is the floor.
 COVERAGE_BADGE_RE = re.compile(r"img\.shields\.io/badge/coverage-(?:%E2%89%A5)?(\d+)%25-")
+# The count in a chapter's collapsed skills table: `<summary>coding skills (29)</summary>`.
+# Written in parentheses on purpose. "29 skills" in a summary is a prose line to
+# `PROSE_COUNT_RE` and is compared with the whole repository, which is a true count of
+# something else; the parenthesised form is the one only this check reads, per plugin.
+SUMMARY_COUNT_RE = re.compile(r"<summary>[^<]*\((\d+)\)[^<]*</summary>")
 CI_MATRIX_RE = re.compile(r"python-version:\s*\[([^\]]*)\]")
 FAIL_UNDER_RE = re.compile(r"^fail_under\s*=\s*(\d+)", re.M)
 # A row in the "What is included" table: | `coding` | focus | 12 skills, 1 subagent |,
@@ -341,6 +347,14 @@ def check(root: Path) -> int:
         known = [h for h in got if h in expected]
         if known != [h for h in expected if h in known]:
             fail(f"the {plugin} chapter's sections are out of order: {', '.join(got)}")
+
+        for line in chapter.get("Skills", []):
+            summary = SUMMARY_COUNT_RE.search(line)
+            if summary and int(summary.group(1)) != len(contents[plugin]["skills"]):
+                fail(
+                    f"the {plugin} Skills summary says {summary.group(1)}, and the plugin "
+                    f"ships {len(contents[plugin]['skills'])} skills"
+                )
 
         for heading, kind, key, mark in (
             ("Subagents", "subagent", "subagents", ""),

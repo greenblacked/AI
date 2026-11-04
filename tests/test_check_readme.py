@@ -296,3 +296,55 @@ def test_prose_counting_project_kits_is_checked(mini_repo, capsys):
 def test_prose_counting_project_kits_correctly_passes(mini_repo, capsys):
     write_kit(mini_repo)
     assert run(mini_repo, with_kit() + "\nOne project kit ships.\n", capsys)[0] == 0
+
+
+# --- a chapter's skills table collapsed into <details> -------------------------------
+
+ROWS = (
+    "| Skill | What it does |\n| --- | --- |\n"
+    "| [`alpha`](plugins/engineering/skills/alpha/SKILL.md) | First. |\n"
+    "| [`beta`](plugins/engineering/skills/beta/SKILL.md) | Second. |\n"
+)
+
+
+def collapsed(summary):
+    """The fixture README with the engineering skills table inside `<details>`."""
+    return README.replace(ROWS, f"<details>\n<summary>{summary}</summary>\n\n{ROWS}\n</details>\n")
+
+
+def test_a_skills_table_inside_details_still_counts(mini_repo, capsys):
+    assert collapsed("engineering skills (2)") != README
+    assert run(mini_repo, collapsed("engineering skills (2)"), capsys)[0] == 0
+
+
+def test_a_skill_row_inside_details_is_still_required(mini_repo, capsys):
+    text = collapsed("engineering skills (2)").replace(
+        "| [`beta`](plugins/engineering/skills/beta/SKILL.md) | Second. |\n", ""
+    )
+    code, out = run(mini_repo, text, capsys)
+    assert code == 1
+    assert "beta is in the repository and has no row" in out
+
+
+def test_a_summary_count_that_disagrees_with_the_plugin_fails(mini_repo, capsys):
+    code, out = run(mini_repo, collapsed("engineering skills (3)"), capsys)
+    assert code == 1
+    assert "the engineering Skills summary says 3, and the plugin ships 2 skills" in out
+
+
+def test_a_summary_without_a_count_is_not_checked(mini_repo, capsys):
+    assert run(mini_repo, collapsed("Every engineering skill"), capsys)[0] == 0
+
+
+def test_a_summary_count_written_as_a_prose_count_is_still_read_as_one(mini_repo, capsys):
+    # The parenthesised form is the one this check owns. "2 skills" is a sentence like any
+    # other and is compared with the repository total, so it cannot be used to sidestep
+    # either check.
+    code, out = run(mini_repo, collapsed("all 7 skills"), capsys)
+    assert code == 1
+    assert "says 7 skills, and there are 2" in out
+
+
+def test_a_plugins_parent_heading_may_replace_skills(mini_repo, capsys):
+    text = README.replace("\n## Skills\n", "\n## Plugins\n").replace("(#skills)", "(#plugins)")
+    assert run(mini_repo, text, capsys)[0] == 0
