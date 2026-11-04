@@ -335,12 +335,21 @@ def test_a_repo_local_agent_named_in_the_readme_passes(mini_repo, capsys):
     agents = mini_repo / ".claude" / "agents"
     agents.mkdir(parents=True, exist_ok=True)
     (agents / "searcher.md").write_text(
-        "---\nname: searcher\ndescription: " + "f" * 60 + "\ntools: Read\n---\n\nBody.\n",
+        "---\nname: searcher\ndescription: " + "f" * 60 + "\ntools: Read\nmodel: haiku\n"
+        "effort: high\n---\n\nBody.\n",
         encoding="utf-8",
+    )
+    # The agent table is now required beside any agent in .claude/agents, so the fixture
+    # carries one; what this case checks is still the row in the working section.
+    tiers = (
+        "## Agents\n\n| Agent | Stage | Model | Effort | Editing tools |\n"
+        "| --- | --- | --- | --- | --- |\n"
+        "| `searcher` | Survey | Haiku | high | none |\n\n"
     )
     write_readme(
         mini_repo,
-        README + "\n\n| Local subagent | Role |\n| --- | --- |\n| `searcher` | Finds things |\n",
+        (README.replace("## Working on", tiers + "## Working on", 1))
+        + "\n\n| Local subagent | Role |\n| --- | --- |\n| `searcher` | Finds things |\n",
     )
     assert readme.check(mini_repo) == 0
 

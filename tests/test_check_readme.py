@@ -8,10 +8,13 @@ section, list a subagent under another plugin, or claim a kit its `assets/` does
 
 from __future__ import annotations
 
-from tests.conftest import load_script
+import re
+
+from tests.conftest import REPO, load_script
 from tests.test_catalogue import README, _plugin_command, with_commands, write_readme
 
 readme = load_script("check_readme.py")
+portable = load_script("export_portable.py")
 
 KIT_SECTION = """#### Project kit
 
@@ -168,10 +171,19 @@ def test_a_repo_agent_in_the_working_section_passes(mini_repo, capsys):
     agents = mini_repo / ".claude" / "agents"
     agents.mkdir(parents=True)
     (agents / "searcher.md").write_text(
-        "---\nname: searcher\ndescription: " + "f" * 60 + "\ntools: Read\n---\n\nBody.\n",
+        "---\nname: searcher\ndescription: " + "f" * 60 + "\ntools: Read\nmodel: haiku\n"
+        "effort: high\n---\n\nBody.\n",
         encoding="utf-8",
     )
-    assert run(mini_repo, README + "\n| `searcher` | Finds |\n", capsys)[0] == 0
+    # The agent table is now required beside any agent in .claude/agents, so the fixture
+    # carries one; what this case checks is still the row in the working section.
+    tiers = (
+        "## Agents\n\n| Agent | Stage | Model | Effort | Editing tools |\n"
+        "| --- | --- | --- | --- | --- |\n"
+        "| `searcher` | Survey | Haiku | high | none |\n\n"
+    )
+    text = README.replace("## Working on", tiers + "## Working on", 1)
+    assert run(mini_repo, text + "\n| `searcher` | Finds |\n", capsys)[0] == 0
 
 
 def test_repo_agents_with_no_working_section_fail(mini_repo, capsys):
@@ -296,3 +308,229 @@ def test_prose_counting_project_kits_is_checked(mini_repo, capsys):
 def test_prose_counting_project_kits_correctly_passes(mini_repo, capsys):
     write_kit(mini_repo)
     assert run(mini_repo, with_kit() + "\nOne project kit ships.\n", capsys)[0] == 0
+
+
+# --- a chapter's skills table collapsed into <details> -------------------------------
+
+ROWS = (
+    "| Skill | What it does |\n| --- | --- |\n"
+    "| [`alpha`](plugins/engineering/skills/alpha/SKILL.md) | First. |\n"
+    "| [`beta`](plugins/engineering/skills/beta/SKILL.md) | Second. |\n"
+)
+
+
+def collapsed(summary):
+    """The fixture README with the engineering skills table inside `<details>`."""
+    return README.replace(ROWS, f"<details>\n<summary>{summary}</summary>\n\n{ROWS}\n</details>\n")
+
+
+def test_a_skills_table_inside_details_still_counts(mini_repo, capsys):
+    assert collapsed("engineering skills (2)") != README
+    assert run(mini_repo, collapsed("engineering skills (2)"), capsys)[0] == 0
+
+
+def test_a_skill_row_inside_details_is_still_required(mini_repo, capsys):
+    text = collapsed("engineering skills (2)").replace(
+        "| [`beta`](plugins/engineering/skills/beta/SKILL.md) | Second. |\n", ""
+    )
+    code, out = run(mini_repo, text, capsys)
+    assert code == 1
+    assert "beta is in the repository and has no row" in out
+
+
+def test_a_summary_count_that_disagrees_with_the_plugin_fails(mini_repo, capsys):
+    code, out = run(mini_repo, collapsed("engineering skills (3)"), capsys)
+    assert code == 1
+    assert "the engineering Skills summary says 3, and the plugin ships 2 skills" in out
+
+
+def test_a_summary_without_a_count_is_not_checked(mini_repo, capsys):
+    assert run(mini_repo, collapsed("Every engineering skill"), capsys)[0] == 0
+
+
+def test_a_summary_count_written_as_a_prose_count_is_still_read_as_one(mini_repo, capsys):
+    # The parenthesised form is the one this check owns. "2 skills" is a sentence like any
+    # other and is compared with the repository total, so it cannot be used to sidestep
+    # either check.
+    code, out = run(mini_repo, collapsed("all 7 skills"), capsys)
+    assert code == 1
+    assert "says 7 skills, and there are 2" in out
+
+
+def test_a_plugins_parent_heading_may_replace_skills(mini_repo, capsys):
+    text = README.replace("\n## Skills\n", "\n## Plugins\n").replace("(#skills)", "(#plugins)")
+    assert run(mini_repo, text, capsys)[0] == 0
+
+
+# --- anchors in the README that other files link to -----------------------------------
+
+# Renaming a README heading breaks every link to its old slug and nothing notices: the
+# page still opens, only at the top. The portable export once kept pointing at
+# `#chatgpt-grok-codex-and-everything-else` after the section became "Other tools".
+README_LINK = re.compile(
+    r"github\.com/greenblacked/AI(?:/blob/[\w.-]+/README\.md)?#([\w-]+)"
+    r"|\]\(((?:\.\./|\./)*)README\.md#([\w-]+)\)"
+)
+# History may name a slug that no longer exists, and tests build fixture links on purpose.
+UNCHECKED = {"CHANGELOG.md"}
+
+
+def readme_slugs(text):
+    """Every anchor GitHub gives the README: heading slugs, repeats numbered, plus ids."""
+    slugs, seen, fenced = set(), {}, False
+    for line in text.splitlines():
+        if re.match(r"\s*(```|~~~)", line):
+            fenced = not fenced
+        elif not fenced and (heading := re.match(r"#{1,6}\s+(.*?)\s*#*\s*$", line)):
+            slug = portable.source_slug(heading.group(1))
+            count = seen.get(slug, 0)
+            seen[slug] = count + 1
+            slugs.add(slug if count == 0 else f"{slug}-{count}")
+    slugs.update(re.findall(r'<a\s+(?:id|name)="([^"]+)"', text))
+    return slugs
+
+
+def readme_anchor_links():
+    """(path, anchor) for each link to the repository README found outside tests/."""
+    roots = [REPO / "scripts", REPO / "src", REPO / "docs", REPO / "plugins", REPO / ".claude"]
+    files = [*REPO.glob("*.md")] + [f for root in roots for f in root.rglob("*") if f.is_file()]
+    found = []
+    for path in files:
+        if path.name in UNCHECKED or path.suffix not in {".md", ".py", ".json"}:
+            continue
+        for match in README_LINK.finditer(path.read_text(encoding="utf-8")):
+            if match.group(1):
+                found.append((path, match.group(1)))
+            elif (path.parent / match.group(2) / "README.md").resolve() == REPO / "README.md":
+                found.append((path, match.group(3)))
+    return found
+
+
+def test_the_slug_rule_numbers_repeated_headings_and_skips_fenced_text():
+    slugs = readme_slugs('# A b\n\n```\n# Not one\n```\n\n## A b\n\n<a id="top"></a>\n')
+    assert slugs == {"a-b", "a-b-1", "top"}
+
+
+def test_every_link_into_the_readme_lands_on_a_heading_it_has():
+    slugs = readme_slugs((REPO / "README.md").read_text(encoding="utf-8"))
+    links = readme_anchor_links()
+    assert any(path.name == "export_portable.py" for path, _ in links)
+    assert any(path.name == "using.md" for path, _ in links)
+    broken = sorted(f"{p.relative_to(REPO)}#{a}" for p, a in links if a not in slugs)
+    assert not broken, f"README has no heading for: {broken}"
+
+
+# --- the agent tier table against the agents' frontmatter ----------------------------
+
+TIERS = """## How I work with agents
+
+| Agent | Stage | Model | Effort | Editing tools |
+| --- | --- | --- | --- | --- |
+| `scout` | Survey | Haiku | high | none |
+| `maker` | Write | Sonnet | medium | `Write`, `Edit` |
+"""
+WORKING_ROWS = "| `scout` | Surveys |\n| `maker` | Writes |\n"
+
+
+def write_tier_agent(root, name, model, effort, tools, disallowed=""):
+    agents = root / ".claude" / "agents"
+    agents.mkdir(parents=True, exist_ok=True)
+    extra = f"disallowedTools: {disallowed}\n" if disallowed else ""
+    (agents / f"{name}.md").write_text(
+        f"---\nname: {name}\ndescription: {'f' * 60}\ntools: {tools}\n{extra}"
+        f"model: {model}\neffort: {effort}\n---\n\nBody.\n",
+        encoding="utf-8",
+    )
+
+
+def tiered(root, table=TIERS):
+    write_tier_agent(root, "scout", "haiku", "high", "Read, Grep, Bash", "Write, Edit")
+    write_tier_agent(root, "maker", "sonnet", "medium", "Read, Write, Edit, Bash")
+    return README.replace("## Skills", table + "\n## Skills", 1).replace(
+        "Nothing here ships.\n", WORKING_ROWS
+    )
+
+
+def test_a_tier_table_that_matches_the_frontmatter_passes(mini_repo, capsys):
+    code, out = run(mini_repo, tiered(mini_repo), capsys)
+    assert code == 0, out
+
+
+def test_a_tier_table_with_the_wrong_model_fails(mini_repo, capsys):
+    text = tiered(mini_repo, TIERS.replace("| Haiku |", "| Opus |"))
+    code, out = run(mini_repo, text, capsys)
+    assert code == 1
+    assert "scout" in out and "model" in out and "haiku" in out
+
+
+def test_a_tier_table_with_the_wrong_effort_fails(mini_repo, capsys):
+    text = tiered(mini_repo, TIERS.replace("| medium | `Write`", "| low | `Write`"))
+    code, out = run(mini_repo, text, capsys)
+    assert code == 1
+    assert "maker" in out and "effort" in out and "medium" in out
+
+
+def test_a_tier_table_naming_the_wrong_editing_tools_fails(mini_repo, capsys):
+    text = tiered(mini_repo, TIERS.replace("| none |", "| `Write` |"))
+    code, out = run(mini_repo, text, capsys)
+    assert code == 1
+    assert "scout" in out and "editing tools" in out
+
+
+def test_an_agent_the_tier_table_leaves_out_fails(mini_repo, capsys):
+    text = tiered(
+        mini_repo, TIERS.replace("| `maker` | Write | Sonnet | medium | `Write`, `Edit` |\n", "")
+    )
+    code, out = run(mini_repo, text, capsys)
+    assert code == 1
+    assert "maker" in out and "no row in the agent table" in out
+
+
+def test_a_tier_row_for_an_agent_that_does_not_exist_fails(mini_repo, capsys):
+    row = "| `ghost` | Haunt | Opus | medium | none |\n"
+    code, out = run(mini_repo, tiered(mini_repo, TIERS + row), capsys)
+    assert code == 1
+    assert "ghost" in out and "not an agent" in out
+
+
+def test_agents_in_claude_with_no_tier_table_at_all_fail(mini_repo, capsys):
+    text = tiered(mini_repo).replace("| Agent | Stage |", "| Role | Stage |")
+    code, out = run(mini_repo, text, capsys)
+    assert code == 1
+    assert "no agent table" in out
+
+
+def test_a_tier_table_with_a_header_and_no_rows_fails(mini_repo, capsys):
+    header_only = TIERS.split("| `scout`")[0]
+    code, out = run(mini_repo, tiered(mini_repo, header_only), capsys)
+    assert code == 1
+    assert "scout" in out and "no row in the agent table" in out
+
+
+def test_two_tier_rows_for_the_same_agent_fail(mini_repo, capsys):
+    row = "| `scout` | Survey again | Haiku | high | none |\n"
+    code, out = run(mini_repo, tiered(mini_repo, TIERS + row), capsys)
+    assert code == 1
+    assert "scout" in out and "more than one row" in out
+
+
+def test_a_tier_table_inside_a_fenced_block_is_not_read(mini_repo, capsys):
+    text = tiered(mini_repo, "```text\n" + TIERS + "```\n")
+    code, out = run(mini_repo, text, capsys)
+    assert code == 1
+    assert "no agent table" in out
+
+
+def test_a_fence_straight_after_the_tier_table_ends_it(mini_repo, capsys):
+    # A fence that follows the table with no blank line must end it, so a pipe line
+    # inside or after that fence is never read as another agent row.
+    after = "```text\nexample\n```\n| `ghost` | Opus | medium | none |\n"
+    code, out = run(mini_repo, tiered(mini_repo, TIERS.rstrip("\n") + "\n" + after), capsys)
+    assert "ghost" not in out
+
+
+def test_a_tier_row_with_fewer_cells_than_the_header_is_reported(mini_repo, capsys):
+    short = TIERS.replace("| Haiku | high | none |", "| Haiku |")
+    code, out = run(mini_repo, tiered(mini_repo, short), capsys)
+    assert code == 1
+    assert "scout" in out and "cells" in out

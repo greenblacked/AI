@@ -24,6 +24,9 @@ What is checked, all of it mechanical:
 - the Python badge against the interpreter matrix CI actually runs
 - the coverage badge against the floor `pyproject.toml` enforces
 - a count spelled out in the prose, against the same totals
+- a count in the `<summary>` of a chapter's collapsed skills table, against that plugin
+- the agent table's model, effort and editing-tools cells, against the `model:`, `effort:`
+  and `tools:` lines of each agent under `.claude/agents/`
 
 That last one was left out on purpose once, on the reasoning that parsing prose would
 fail on a rewrite that was perfectly correct, and a gate that cries wolf is one people
@@ -61,6 +64,7 @@ from urllib.parse import unquote
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
+from skillcheck.frontmatter import FrontmatterError, parse  # noqa: E402
 from skillcheck.rules import find_agents, find_commands, find_plugins, find_skills  # noqa: E402
 
 # `[`name`](plugins/<plugin>/skills/<name>/SKILL.md)` — the shape every skill row uses.
@@ -80,6 +84,11 @@ BADGE_RE = re.compile(r"img\.shields\.io/badge/skills-(\d+)-")
 PYTHON_BADGE_RE = re.compile(r"img\.shields\.io/badge/python-(.+?)-[0-9a-f]{6}\)")
 # "≥" arrives as %E2%89%A5 and "%" as %25; the number between them is the floor.
 COVERAGE_BADGE_RE = re.compile(r"img\.shields\.io/badge/coverage-(?:%E2%89%A5)?(\d+)%25-")
+# The count in a chapter's collapsed skills table: `<summary>coding skills (29)</summary>`.
+# Written in parentheses on purpose. "29 skills" in a summary is a prose line to
+# `PROSE_COUNT_RE` and is compared with the whole repository, which is a true count of
+# something else; the parenthesised form is the one only this check reads, per plugin.
+SUMMARY_COUNT_RE = re.compile(r"<summary>[^<]*\((\d+)\)[^<]*</summary>")
 CI_MATRIX_RE = re.compile(r"python-version:\s*\[([^\]]*)\]")
 FAIL_UNDER_RE = re.compile(r"^fail_under\s*=\s*(\d+)", re.M)
 # A row in the "What is included" table: | `coding` | focus | 12 skills, 1 subagent |,
@@ -88,6 +97,10 @@ CONTENTS_ROW_RE = re.compile(
     r"^\|\s*\[?`([a-z0-9-]+)`(?:\]\(([^)\s]*)\))?\s*\|[^|]*\|([^|]*)\|(?:([^|]*)\|)?", re.M
 )
 H_RE = re.compile(r"^(#{2,4})\s+(.+?)\s*$")
+# The agent table in "How I work with agents": | Agent | Stage | Model | Effort | Editing tools |
+TIER_COLUMNS = ("agent", "model", "effort", "editing tools")
+# The tools that let an agent change a file; `Bash` stays on every agent and is not one.
+EDITING_TOOLS = {"Write", "Edit", "NotebookEdit"}
 BACKTICKED_RE = re.compile(r"`([^`]+)`")
 WORKING = "working on this repository"
 NO_KIT = "No kit yet."
@@ -233,6 +246,58 @@ def row_names(lines: list[str]) -> set[str]:
     return {m.group(1) for line in lines if (m := AGENT_OR_COMMAND_ROW_RE.match(line))}
 
 
+def tier_table(text: str) -> list[dict[str, str]] | None:
+    """The rows of the agent table, keyed by lower-cased column name, or None without one."""
+    rows: list[dict[str, str]] = []
+    header: list[str] | None = None
+    fenced = False
+    for line in text.splitlines():
+        if line.lstrip().startswith(("```", "~~~")):
+            if header is not None:
+                break  # a fence ends the table, as any other non-table line does
+            fenced = not fenced
+            continue
+        if fenced:
+            continue  # a table shown as an example is not the table
+        if not line.startswith("|"):
+            if header is not None:
+                break
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if header is None:
+            names = [c.lower() for c in cells]
+            if all(column in names for column in TIER_COLUMNS):
+                header = names
+        elif not line.startswith("| ---"):
+            row = dict(zip(header, cells, strict=False))
+            if len(cells) < len(header):
+                row["_short"] = f"{len(cells)} of {len(header)}"
+            rows.append(row)
+    return rows if header is not None else None
+
+
+def _names(values: dict[str, str], key: str) -> set[str]:
+    return {n.strip() for n in values.get(key, "").split(",") if n.strip()}
+
+
+def agent_tiers(root: Path) -> dict[str, dict[str, object]]:
+    """Each `.claude/agents` agent's model, effort and editing tools, from its frontmatter."""
+    tiers: dict[str, dict[str, object]] = {}
+    for path in find_agents(root / ".claude" / "agents"):
+        try:
+            values = parse(path.read_text(encoding="utf-8")).values
+        except FrontmatterError:
+            continue  # the validator reports an unreadable agent; this check has nothing to compare
+        # No `tools:` line means the agent inherits every tool, so the denylist alone decides.
+        granted = _names(values, "tools") & EDITING_TOOLS if "tools" in values else EDITING_TOOLS
+        tiers[path.stem] = {
+            "model": values.get("model", "").lower(),
+            "effort": values.get("effort", "").lower(),
+            "editing tools": granted - _names(values, "disallowedTools"),
+        }
+    return tiers
+
+
 def ci_python_matrix(root: Path) -> list[str] | None:
     """The interpreter versions CI's test matrix runs, or None when there is no matrix."""
     workflow = root / ".github" / "workflows" / "ci.yml"
@@ -342,6 +407,14 @@ def check(root: Path) -> int:
         if known != [h for h in expected if h in known]:
             fail(f"the {plugin} chapter's sections are out of order: {', '.join(got)}")
 
+        for line in chapter.get("Skills", []):
+            summary = SUMMARY_COUNT_RE.search(line)
+            if summary and int(summary.group(1)) != len(contents[plugin]["skills"]):
+                fail(
+                    f"the {plugin} Skills summary says {summary.group(1)}, and the plugin "
+                    f"ships {len(contents[plugin]['skills'])} skills"
+                )
+
         for heading, kind, key, mark in (
             ("Subagents", "subagent", "subagents", ""),
             ("Commands", "command", "commands", "/"),
@@ -428,6 +501,48 @@ def check(root: Path) -> int:
     for kind, mark, stem in local:
         if f"{mark}{stem}" not in working_rows:
             fail(f"{kind} {mark}{stem} is in .claude/ and has no row in the README")
+
+    # --- the agent table against the agents' frontmatter -------------------------------
+    # The table states which model and effort each stage runs on, and CLAUDE.md,
+    # docs/writing-agents.md and each agent file say it too. Only the frontmatter is
+    # what runs, so a README that disagrees with it is telling a reader the wrong cost.
+    tiers = agent_tiers(root)
+    rows = tier_table(text)
+    table_found = rows is not None
+    if rows is None:
+        if tiers:
+            fail("the README has no agent table (Agent, Model, Effort, Editing tools)")
+        rows = []
+    stated_agents = set()
+    for row in rows:
+        if "_short" in row:
+            fail(f"an agent table row has {row['_short']} cells: {row.get('agent', '')!r}")
+            continue
+        names = BACKTICKED_RE.findall(row["agent"])
+        name = names[0] if names else row["agent"]
+        if name in stated_agents:
+            fail(f"the agent table has more than one row for {name}")
+            continue
+        stated_agents.add(name)
+        actual = tiers.get(name)
+        if actual is None:
+            fail(f"the agent table has a row for {name}, which is not an agent in .claude/agents")
+            continue
+        for column in ("model", "effort"):
+            if row.get(column, "").lower() != actual[column]:
+                fail(
+                    f"the agent table says {name} has {column} {row.get(column, '')!r}, "
+                    f"and its frontmatter says {actual[column]!r}"
+                )
+        cell = row.get("editing tools", "")
+        listed_tools = set(BACKTICKED_RE.findall(cell))
+        if listed_tools != actual["editing tools"] or (not listed_tools and cell.lower() != "none"):
+            fail(
+                f"the agent table says {name} has editing tools {cell!r}, and its "
+                f"frontmatter grants {sorted(actual['editing tools']) or 'none'}"
+            )
+    for name in sorted(set(tiers) - stated_agents if table_found else set()):
+        fail(f"{name} is in .claude/agents and has no row in the agent table")
 
     # --- counts spelled out in the prose ----------------------------------------------
     totals = {
