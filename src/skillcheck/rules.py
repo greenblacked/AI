@@ -154,6 +154,9 @@ TOC_RE = re.compile(r"^#{1,3}\s+(?:table of contents|contents|in this file)\b", 
 
 ERROR = "error"
 WARNING = "warning"
+# Printed, annotated and never failing, strict or not. It exists so a check can report
+# a gap the whole catalogue has today without turning every run red.
+NOTICE = "notice"
 
 
 @dataclass(frozen=True)
@@ -1513,12 +1516,15 @@ def _unquote_glob(value: str) -> str:
     return value
 
 
-def check_rule(path: Path, repo_root: Path) -> list[Finding]:
+def check_rule(path: Path, repo_root: Path, *, match_globs: bool = True) -> list[Finding]:
     """Validate one file under `.claude/rules/`.
 
     Frontmatter is optional: a rule without it loads on every session, which is a
     choice rather than a defect. What is a defect is a `paths:` glob that matches
     nothing — the rule then never loads, and no error anywhere says so.
+
+    ``match_globs=False`` skips that last check for a rule template a skill ships: its
+    globs scope the installer's project, which this repository cannot answer for.
     """
     findings: list[Finding] = []
     relative = path.relative_to(repo_root)
@@ -1548,7 +1554,7 @@ def check_rule(path: Path, repo_root: Path) -> list[Finding]:
                 "and never loads",
                 front.line_of("paths"),
             )
-        for pattern, line in globs:
+        for pattern, line in globs if match_globs else []:
             if not _glob_matches(repo_root, pattern):
                 add(
                     ERROR,
@@ -1728,6 +1734,201 @@ def check_trigger_collisions(
                 f"({first[1].relative_to(repo_root)}); a description copied this way "
                 "fires on the other skill's requests, which is the collision the trigger "
                 "eval exists to catch and never runs here",
+            )
+        )
+    return findings
+
+
+# Whether a plugin that lacks the shape (a subagent and a complete project kit) is a
+# warning, which `--strict` fails, or only a notice. Flipped once every plugin has it.
+PLUGIN_SHAPE_ENFORCED = False
+
+# Plugin-root entries Claude Code loads or runs the moment the plugin is enabled, with no
+# prompt and with the installer's full permissions. Hooks reach installers only as opt-in
+# templates under a skill's `assets/hooks/`.
+PLUGIN_AUTO_COMPONENTS = (
+    "hooks",
+    "hooks.json",
+    ".mcp.json",
+    ".lsp.json",
+    "monitors",
+    "bin",
+    "settings.json",
+    "output-styles",
+)
+
+# The hook events a kit template may register.
+HOOK_EVENTS = frozenset(
+    {
+        "PreToolUse",
+        "PostToolUse",
+        "UserPromptSubmit",
+        "Stop",
+        "SubagentStop",
+        "SessionStart",
+        "SessionEnd",
+        "Notification",
+        "PreCompact",
+    }
+)
+HOOK_COMMAND_RE = re.compile(
+    r'"\$CLAUDE_PROJECT_DIR"/\.claude/hooks/([A-Za-z0-9][A-Za-z0-9._-]*\.sh)'
+)
+HOOK_SHEBANG = "#!/usr/bin/env bash"
+HOOK_STRICT_MODE = "set -Eeuo pipefail"
+
+
+def _hook_entries(data, add) -> list[str]:
+    """Check the shape of a hook template and return the script names it points at."""
+    scripts: list[str] = []
+    if not isinstance(data, dict) or not isinstance(data.get("hooks"), dict):
+        add('expected {"hooks": {"<Event>": [...]}} at the top level')
+        return scripts
+    for event, groups in data["hooks"].items():
+        if event not in HOOK_EVENTS:
+            add(f"unknown hook event {event!r}; known: {', '.join(sorted(HOOK_EVENTS))}")
+            continue
+        if not isinstance(groups, list) or not groups:
+            add(f"{event} must be a non-empty list of matcher groups")
+            continue
+        for group in groups:
+            if not isinstance(group, dict):
+                add(f"a {event} matcher group must be an object")
+                continue
+            if "matcher" in group and not isinstance(group["matcher"], str):
+                add(f"a {event} matcher must be a string")
+            commands = group.get("hooks")
+            if not isinstance(commands, list) or not commands:
+                add(f"a {event} matcher group needs a non-empty 'hooks' list")
+                continue
+            for command in commands:
+                if not isinstance(command, dict) or command.get("type") != "command":
+                    add(f"a {event} hook must be an object with type 'command'")
+                    continue
+                timeout = command.get("timeout")
+                if "timeout" in command and (
+                    not isinstance(timeout, int) or isinstance(timeout, bool)
+                ):
+                    add(f"a {event} hook timeout must be an integer")
+                text = command.get("command")
+                match = HOOK_COMMAND_RE.fullmatch(text) if isinstance(text, str) else None
+                if not match:
+                    add(
+                        f"a {event} hook command must be exactly "
+                        '"$CLAUDE_PROJECT_DIR"/.claude/hooks/<name>.sh, with nothing '
+                        f"else on the line, not {text!r}"
+                    )
+                    continue
+                scripts.append(match.group(1))
+    return scripts
+
+
+def _check_hook_template(path: Path, repo_root: Path, findings: list[Finding]) -> bool:
+    """Validate one ``assets/hooks/*.json``; return whether it is sound with its scripts."""
+    relative = path.relative_to(repo_root)
+    problems: list[str] = []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (ValueError, UnicodeDecodeError) as error:
+        problems.append(f"not valid JSON: {error}")
+        data = None
+    scripts = _hook_entries(data, problems.append) if data is not None else []
+    if data is not None and not problems and not scripts:
+        problems.append("registers no hook command")
+    for name in dict.fromkeys(scripts):
+        script = path.parent / name
+        if not script.is_file():
+            problems.append(f"names {name}, which does not exist beside it in {path.parent.name}/")
+            continue
+        text = script.read_text(encoding="utf-8", errors="replace")
+        if not text.startswith(HOOK_SHEBANG + "\n"):
+            problems.append(f"{name} must start with {HOOK_SHEBANG}")
+        if HOOK_STRICT_MODE not in text:
+            problems.append(f"{name} must contain {HOOK_STRICT_MODE}")
+    for message in problems:
+        findings.append(Finding(ERROR, relative, 1, "kit-hook", message))
+    return not problems
+
+
+def check_kit(assets: Path, repo_root: Path) -> list[Finding]:
+    """Validate the project kit under one skill's ``assets/`` directory.
+
+    ``rules/*.md`` are rule templates the installer copies into ``.claude/rules/``, so
+    they get the checks the repository's own rules get minus the glob match; ``hooks/*.json``
+    are templates the installer merges into ``.claude/settings.json``, each naming scripts
+    that sit beside it. ``templates/*.md`` need nothing beyond existing.
+    """
+    findings: list[Finding] = []
+    for rule in sorted((assets / "rules").glob("*.md")):
+        for item in check_rule(rule, repo_root, match_globs=False):
+            findings.append(Finding(ERROR, item.path, item.line, "kit-rule", item.message))
+        text = rule.read_text(encoding="utf-8", errors="replace")
+        if not any(f.path == rule.relative_to(repo_root) for f in findings):
+            front = parse(text) if text.startswith("---") else None
+            if front is None or not _rule_globs(text, front.end_line - 1):
+                findings.append(
+                    Finding(
+                        ERROR,
+                        rule.relative_to(repo_root),
+                        1,
+                        "kit-rule",
+                        "a rule template needs 'paths:' frontmatter with at least one "
+                        "glob, or it loads on every session in the installer's project",
+                    )
+                )
+    for hook in sorted((assets / "hooks").glob("*.json")):
+        _check_hook_template(hook, repo_root, findings)
+    return findings
+
+
+def _kit_complete(assets: Path, repo_root: Path) -> bool:
+    if not any((assets / "rules").glob("*.md")) or not any((assets / "templates").glob("*.md")):
+        return False
+    return any(
+        _check_hook_template(hook, repo_root, [])
+        for hook in sorted((assets / "hooks").glob("*.json"))
+    )
+
+
+def check_plugin_shape(plugin: Path, repo_root: Path) -> list[Finding]:
+    """Check one plugin's shape: no auto-run component, a validated kit, and completeness."""
+    findings: list[Finding] = []
+    for name in PLUGIN_AUTO_COMPONENTS:
+        entry = plugin / name
+        if entry.exists() or entry.is_symlink():
+            findings.append(
+                Finding(
+                    ERROR,
+                    entry.relative_to(repo_root),
+                    1,
+                    "plugin-auto-component",
+                    f"{name} at a plugin root is loaded or run by Claude Code as soon as "
+                    "the plugin is enabled, with no prompt; a plugin ships hooks as "
+                    "opt-in kit templates under a skill's assets/hooks/ instead",
+                )
+            )
+    skills = find_skills(plugin / "skills") if (plugin / "skills").is_dir() else []
+    complete = False
+    for skill in skills:
+        assets = skill / "assets"
+        findings.extend(check_kit(assets, repo_root))
+        complete = complete or _kit_complete(assets, repo_root)
+    missing = []
+    if not find_agents(plugin / "agents"):
+        missing.append("a subagent under agents/")
+    if not complete:
+        missing.append(
+            "a complete project kit (a rule, a hook json with its script and a "
+            "template under one skill's assets/)"
+        )
+    if missing:
+        findings.append(
+            Finding(
+                WARNING if PLUGIN_SHAPE_ENFORCED else NOTICE,
+                (plugin / ".claude-plugin" / "plugin.json").relative_to(repo_root),
+                1,
+                "plugin-incomplete",
+                "plugin lacks " + " and ".join(missing),
             )
         )
     return findings
