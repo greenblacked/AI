@@ -7,7 +7,7 @@
 
 # Agent skills
 
-521 agent skills, 30 subagents, ten slash commands and 0 project kits, in
+521 agent skills, 30 subagents, ten slash commands and zero project kits, in
 twenty-nine plugins you install separately.
 
 [![CI](https://github.com/greenblacked/AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenblacked/AI/actions/workflows/ci.yml)

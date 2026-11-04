@@ -21,12 +21,12 @@ KIT_SECTION = """#### Project kit
 """
 
 
-def write_kit(root, rule=True, hook=True, script=True, template=True):
+def write_kit(root, rule=True, hook=True, script=True, template=True, script_name="guard.sh"):
     assets = root / "plugins" / "engineering" / "skills" / "alpha" / "assets"
     for flag, folder, name in (
         (rule, "rules", "style.md"),
         (hook, "hooks", "guard.json"),
-        (script, "hooks", "guard.sh"),
+        (script, "hooks", script_name),
         (template, "templates", "runbook.md"),
     ):
         if flag:
@@ -263,6 +263,12 @@ def test_the_contents_table_counts_a_complete_kit(mini_repo, capsys):
 
 def test_a_kit_without_its_hook_script_is_not_complete(mini_repo, capsys):
     write_kit(mini_repo, script=False)
+    assert run(mini_repo, with_kit(kits=0), capsys)[0] == 0
+
+
+def test_a_hook_json_and_a_script_with_different_stems_is_not_complete(mini_repo, capsys):
+    # guard.json beside check.sh: the same pair the validator's kit-hook refuses.
+    write_kit(mini_repo, script_name="check.sh")
     assert run(mini_repo, with_kit(kits=0), capsys)[0] == 0
 
 

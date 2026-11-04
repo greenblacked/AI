@@ -863,6 +863,11 @@ def test_a_frontmatter_error_cannot_open_the_legacy_workflow_command_marker(repo
         "bin/tool",
         "settings.json",
         "output-styles/terse.md",
+        "Hooks/hooks.json",
+        ".MCP.json",
+        "Settings.json",
+        "bin",
+        "hooks",
     ],
 )
 def test_a_plugin_root_auto_component_is_refused(repo, rel):

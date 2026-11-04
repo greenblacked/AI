@@ -190,8 +190,8 @@ MARKETPLACE = ".claude-plugin/marketplace.json"
 # Mirrors PLUGIN_AUTO_COMPONENTS in the validator, so the security workflow fails closed
 # even when the validator is skipped.
 AUTO_COMPONENT_RE = re.compile(
-    rf"plugins/{PART}/(?:hooks|monitors|bin|output-styles)/.+"
-    rf"|plugins/{PART}/(?:hooks\.json|\.mcp\.json|\.lsp\.json|settings\.json)"
+    rf"(?i)plugins/{PART}/(?:hooks|monitors|bin|output-styles)/.+"
+    rf"|plugins/{PART}/(?:hooks\.json|\.mcp\.json|\.lsp\.json|settings\.json|bin|hooks)"
 )
 SOURCE_RE = re.compile(rf"\./plugins/{PART}")
 PLUGIN_MANIFEST_RE = re.compile(rf"plugins/{PART}/\.claude-plugin/plugin\.json")

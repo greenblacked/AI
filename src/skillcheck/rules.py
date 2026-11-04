@@ -1784,6 +1784,10 @@ def _hook_entries(data, add) -> list[str]:
     if not isinstance(data, dict) or not isinstance(data.get("hooks"), dict):
         add('expected {"hooks": {"<Event>": [...]}} at the top level')
         return scripts
+    # An allowlist, because the installer merges this file into .claude/settings.json: a
+    # key such as statusLine or apiKeyHelper would run a command the hook rules never saw.
+    for key in sorted(set(data) - {"hooks"}):
+        add(f"unknown top-level key {key!r}; a hook template holds only 'hooks'")
     for event, groups in data["hooks"].items():
         if event not in HOOK_EVENTS:
             add(f"unknown hook event {event!r}; known: {', '.join(sorted(HOOK_EVENTS))}")
@@ -1795,6 +1799,8 @@ def _hook_entries(data, add) -> list[str]:
             if not isinstance(group, dict):
                 add(f"a {event} matcher group must be an object")
                 continue
+            for key in sorted(set(group) - {"matcher", "hooks"}):
+                add(f"a {event} matcher group has unknown key {key!r}")
             if "matcher" in group and not isinstance(group["matcher"], str):
                 add(f"a {event} matcher must be a string")
             commands = group.get("hooks")
@@ -1805,11 +1811,13 @@ def _hook_entries(data, add) -> list[str]:
                 if not isinstance(command, dict) or command.get("type") != "command":
                     add(f"a {event} hook must be an object with type 'command'")
                     continue
+                for key in sorted(set(command) - {"type", "command", "timeout"}):
+                    add(f"a {event} hook has unknown key {key!r}")
                 timeout = command.get("timeout")
                 if "timeout" in command and (
-                    not isinstance(timeout, int) or isinstance(timeout, bool)
+                    not isinstance(timeout, int) or isinstance(timeout, bool) or timeout <= 0
                 ):
-                    add(f"a {event} hook timeout must be an integer")
+                    add(f"a {event} hook timeout must be a positive integer")
                 text = command.get("command")
                 match = HOOK_COMMAND_RE.fullmatch(text) if isinstance(text, str) else None
                 if not match:
@@ -1836,6 +1844,11 @@ def _check_hook_template(path: Path, repo_root: Path, findings: list[Finding]) -
     if data is not None and not problems and not scripts:
         problems.append("registers no hook command")
     for name in dict.fromkeys(scripts):
+        if name != path.with_suffix(".sh").name:
+            problems.append(
+                f"names {name}, but {path.name} must name exactly {path.with_suffix('.sh').name}"
+            )
+            continue
         script = path.parent / name
         if not script.is_file():
             problems.append(f"names {name}, which does not exist beside it in {path.parent.name}/")
@@ -1893,9 +1906,11 @@ def _kit_complete(assets: Path, repo_root: Path) -> bool:
 def check_plugin_shape(plugin: Path, repo_root: Path) -> list[Finding]:
     """Check one plugin's shape: no auto-run component, a validated kit, and completeness."""
     findings: list[Finding] = []
-    for name in PLUGIN_AUTO_COMPONENTS:
-        entry = plugin / name
-        if entry.exists() or entry.is_symlink():
+    # Case-insensitive: a case-insensitive filesystem resolves Hooks/ to hooks/ on the
+    # installer's machine.
+    for entry in sorted(plugin.iterdir()) if plugin.is_dir() else []:
+        name = entry.name
+        if name.lower() in PLUGIN_AUTO_COMPONENTS:
             findings.append(
                 Finding(
                     ERROR,

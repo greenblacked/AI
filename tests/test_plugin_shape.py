@@ -110,6 +110,16 @@ def test_a_plugin_root_auto_component_is_an_error(tmp_path, rel):
     assert "assets/hooks" in found[0].message
 
 
+@pytest.mark.parametrize("rel", ["Hooks/hooks.json", ".MCP.json", "Settings.json", "BIN/tool"])
+def test_an_auto_component_is_refused_whatever_its_case(tmp_path, rel):
+    plugin = make_plugin(tmp_path)
+    target = plugin / rel
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("{}", encoding="utf-8")
+    found = [f for f in check_plugin_shape(plugin, tmp_path) if f.code == "plugin-auto-component"]
+    assert len(found) == 1 and found[0].level == ERROR
+
+
 def test_a_plugin_without_auto_components_has_no_such_finding(tmp_path):
     plugin = make_plugin(tmp_path)
     assert "plugin-auto-component" not in codes(check_plugin_shape(plugin, tmp_path))
@@ -231,6 +241,50 @@ def test_a_malformed_hook_json_is_an_error(tmp_path, hook):
     found = check_kit(tmp_path / "assets", tmp_path)
     assert found and set(codes(found)) == {"kit-hook"}
     assert all(f.level == ERROR for f in found)
+
+
+def test_a_hook_json_naming_a_differently_named_script_is_an_error(tmp_path):
+    # `guard.json` must name `guard.sh`: the README's kit count pairs them by stem.
+    assets = tmp_path / "assets"
+    hook = json.loads(json.dumps(GOOD_HOOK).replace("guard.sh", "check.sh"))
+    write_kit(assets, hook=hook)
+    (assets / "hooks" / "check.sh").write_text(GOOD_SCRIPT, encoding="utf-8")
+    found = check_kit(assets, tmp_path)
+    assert codes(found) == ["kit-hook"] and "guard.sh" in found[0].message
+    assert not rules._kit_complete(assets, tmp_path)
+
+
+def _with(path, **extra):
+    data = json.loads(json.dumps(GOOD_HOOK))
+    target = data
+    for step in path:
+        target = target[step]
+    target.update(extra)
+    return data
+
+
+@pytest.mark.parametrize(
+    ("hook", "key"),
+    [
+        (_with([], statusLine={"type": "command", "command": "x"}), "statusLine"),
+        (_with([], apiKeyHelper="x"), "apiKeyHelper"),
+        (_with([], permissions={"allow": ["Bash"]}), "permissions"),
+        (_with(["hooks", "PreToolUse", 0], extra=1), "extra"),
+        (_with(["hooks", "PreToolUse", 0, "hooks", 0], env={"A": "b"}), "env"),
+    ],
+)
+def test_an_unknown_hook_key_is_an_error_naming_it(tmp_path, hook, key):
+    write_kit(tmp_path / "assets", hook=hook)
+    found = check_kit(tmp_path / "assets", tmp_path)
+    assert found and set(codes(found)) == {"kit-hook"}
+    assert any(key in f.message for f in found)
+
+
+@pytest.mark.parametrize("timeout", [0, -5, True])
+def test_a_non_positive_timeout_is_an_error(tmp_path, timeout):
+    hook = _with(["hooks", "PreToolUse", 0, "hooks", 0], timeout=timeout)
+    write_kit(tmp_path / "assets", hook=hook)
+    assert set(codes(check_kit(tmp_path / "assets", tmp_path))) == {"kit-hook"}
 
 
 @pytest.mark.parametrize(
