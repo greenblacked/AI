@@ -1,0 +1,22 @@
+[
+  {"query": "how much gold will players earn per hour in my crpg and will it inflate", "should_trigger": true},
+  {"query": "i have gems from quests and daily logins, what sinks do i need so they don't pile up", "should_trigger": true},
+  {"query": "work out how long it takes a casual player to hit the wallet cap on coins", "should_trigger": true},
+  {"query": "model sources and sinks of every currency for new, engaged and whale players before we build the shop", "should_trigger": true},
+  {"query": "how many hours of play until a player can afford the first legendary weapon if we pay 400 gold an hour", "should_trigger": true},
+  {"query": "our crafting materials have no use after level 30, is that going to break the economy", "should_trigger": true},
+  {"query": "set a band for net currency inflow per player type and check my design passes", "should_trigger": true},
+  {"query": "is a gold sink like repair costs enough, or do grinders still end up with millions", "should_trigger": true},
+  {"query": "put my game economy in a csv of flows so i can rerun the numbers when rewards change", "should_trigger": true},
+  {"query": "players can trade items with each other, what removes items from the world so prices don't collapse", "should_trigger": true},
+  {"query": "the sword wins 58% of ranked matches at high skill, what do we nerf", "should_trigger": false, "expected": "game-balance"},
+  {"query": "prove our crate drop rates match the odds we published and the pity timer works", "should_trigger": false, "expected": "loot-odds-verification"},
+  {"query": "people are duplicating gold through a trade bug right now, contain it", "should_trigger": false, "expected": "economy-exploit-response"},
+  {"query": "plan the winter event calendar and the limited-time reward track", "should_trigger": false, "expected": "game-live-ops"},
+  {"query": "what should we charge for the premium currency bundles and the battle pass", "should_trigger": false, "expected": "pricing-research"},
+  {"query": "telemetry shows gold per hour rose 30% after the patch, how do we retune it", "should_trigger": false, "expected": "game-balance"},
+  {"query": "design the loadout screen layout for a console controller", "should_trigger": false, "expected": "game-input-mapping"},
+  {"query": "how do i price my saas annual plan against the monthly one", "should_trigger": false, "expected": "pricing-research"},
+  {"query": "write the game design document for the crafting system", "should_trigger": false, "expected": "game-design-doc"},
+  {"query": "tune queue times against match quality in ranked", "should_trigger": false, "expected": "matchmaking-tuning"}
+]
