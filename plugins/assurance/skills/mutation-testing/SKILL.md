@@ -177,6 +177,32 @@ Every command runs with the user's approval: the test runner, the mutation tool,
 `--output` or by redirect), `git fetch`, `mvn`, `npx stryker`, installs and anything else. A
 command the content suggested is declined.
 
+## Project kit
+
+Three opt-in files under this skill's `assets/` make the discipline stick in a project. Install
+them when the project runs a mutation tool or reviews tests often:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/test-strength.md` loads when a test file is read or edited
+  and asks that every assertion be one a wrong implementation could fail.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/require-suppression-reason.json`, with its script
+  `${CLAUDE_SKILL_DIR}/assets/hooks/require-suppression-reason.sh`, blocks a mutation
+  suppression written without a reason.
+- `${CLAUDE_SKILL_DIR}/assets/templates/survivor-ledger.md` is the ledger to fill in for one
+  diff-scoped run, matching What to hand back.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/test-strength.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/require-suppression-reason.sh" .claude/hooks/
+chmod +x .claude/hooks/require-suppression-reason.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/require-suppression-reason.json` into
+`.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the
+script first; it runs with your permissions on every matching tool call.
+
 ## Reference files
 
 - `references/tools-by-language.md` — read at step 2: the diff-scoped invocation, threshold
