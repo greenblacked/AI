@@ -21,22 +21,22 @@ What this session must find out, written before it starts. One question per line
 Record what the tester did and said, not what you think it meant. One row per event.
 
 | Time (mm:ss) | Tester | What happened | Quote or behaviour |
-| --- | --- | --- | --- |
-|  |  |  |  |
+| ------------ | ------ | ------------- | ------------------ |
+|              |        |               |                    |
 
 ## Issues
 
 Severity follows the S1 to S4 scale in `game-bug-triage`. Each issue needs enough to reproduce it: build id, save file or hash, seed where relevant, and the time in the recording.
 
-| Id | Time | Severity | Summary | Repro (save, seed, input log) | Repro rate |
-| --- | --- | --- | --- | --- | --- |
-|  |  |  |  |  |  |
+| Id  | Time | Severity | Summary | Repro (save, seed, input log) | Repro rate |
+| --- | ---- | -------- | ------- | ----------------------------- | ---------- |
+|     |      |          |         |                               |            |
 
 ## Decisions
 
 | Goal or issue | Decision | Owner | By when |
-| --- | --- | --- | --- |
-|  |  |  |  |
+| ------------- | -------- | ----- | ------- |
+|               |          |       |         |
 
 ## Not covered
 
