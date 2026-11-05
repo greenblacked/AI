@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Report each decision rule in a written interview file that gives no reason. A rule is a line
+# Report each decision rule in a written decision-rule sheet that gives no reason. A rule is a line
 # starting "If " (after any quote, bullet or number marker); it needs the word "because" on that
 # line or on the lines that continue it, up to the next blank line, heading, bullet or rule.
 # Acts only on a decision-rule sheet: a .md file whose name contains decision-rule, wherever it

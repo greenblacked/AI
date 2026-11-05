@@ -51,10 +51,10 @@ Open stderr and stdout (`scontrol show job` shows `StdErr=` while the job is kno
 ### 4. For arrays: find the first failing index
 
 ```bash
-sacct -j ARRAYJOBID --format=JobID,State,ExitCode,Elapsed,MaxRSS,NodeList -X > array.txt
+sacct -j ARRAYJOBID --format=JobID,State,ExitCode,Elapsed,MaxRSS,NodeList -X > ARRAYJOBID-array.txt
 ```
 
-Then search the saved rows with Grep for every state other than COMPLETED.
+Then search the saved rows with Grep for the failure states: `FAILED|OUT_OF_MEMORY|TIMEOUT|CANCELLED|NODE_FAIL|PREEMPTED|BOOT_FAIL|DEADLINE`. A file named for the job keeps one run from overwriting another.
 
 `-X` shows allocations only, one row per array task, named `ARRAYJOBID_INDEX`. Ask whether the failures share a node (a bad node), an input (a bad file), a size (memory) or a time (a shared filesystem fault at one moment). Fix the cause on the lowest failing index; do not treat each failure as separate. Resubmit only the failed indices with `sbatch --array=3,17,42 ...`, keeping the `%N` throttle if the original had one.
 
