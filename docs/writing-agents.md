@@ -2,10 +2,8 @@
 
 Subagents live in a plugin's `agents/` directory as single Markdown files with YAML
 frontmatter — see [`skill-reviewer.md`](../plugins/coding/agents/skill-reviewer.md) for
-one of the 30 this repository ships today, five with `coding`, seven with
-`operations`, five with `security`, six with `family`, two with `manager`, two with
-`personal`, and one each with `design`, `gamedev` and `delivery` — and in `.claude/agents/`
-for the four that serve work on this repository rather than shipping to anyone,
+one of the agents this repository ships — and in `.claude/agents/`
+for the ones that serve work on this repository rather than shipping to anyone,
 described in [the two loops](#the-two-loops) below. A subagent is a
 separate Claude instance with its own context window, its own system prompt, and its own
 tool allowlist, invoked by the main agent and returning a result to it.
