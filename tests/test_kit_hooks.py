@@ -44,8 +44,12 @@ HOOK_FILES = {
 
 # Everything a hook may call besides its parser. A tool a hook starts using that is not here
 # fails the whole table, which is the point: the hook has gained a dependency.
-# `tail` is for game-data-json in its jq mode, which skips a byte order mark with `tail -c +4`.
-BASE_TOOLS = ("bash", "cat", "grep", "sed", "tr", "wc", "head", "tail", "awk")
+BASE_TOOLS = ("bash", "cat", "grep", "sed", "tr", "wc", "head", "awk")
+
+# A tool only one hook may call, kept out of BASE_TOOLS so that another hook starting to use it
+# still fails. `tail` is for game-data-json in its jq mode, which skips a byte order mark with
+# `tail -c +4`.
+EXTRA_TOOLS = {"game": ("tail",)}
 
 MODES = {"jq": ("jq",), "python3": ("python3",)}
 
@@ -98,8 +102,9 @@ def _missing(tools):
     return [t for t in tools if _path_for(t) is None]
 
 
+_ALL_TOOLS = (*BASE_TOOLS, *(t for extra in EXTRA_TOOLS.values() for t in extra))
 pytestmark = pytest.mark.skipif(
-    bool(_missing(BASE_TOOLS)), reason=f"needs {', '.join(_missing(BASE_TOOLS))} on PATH"
+    bool(_missing(_ALL_TOOLS)), reason=f"needs {', '.join(_missing(_ALL_TOOLS))} on PATH"
 )
 
 
@@ -116,15 +121,18 @@ def scratch(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def bins(tmp_path_factory):
-    """One directory of symlinks per parser mode, holding exactly the tools a hook may use."""
+    """One directory of symlinks per parser mode and hook, holding exactly the tools that hook
+    may use: the base tools, its parser and whatever EXTRA_TOOLS grants it."""
     made = {}
     for mode, parser in MODES.items():
         if _missing(parser):
             continue
-        directory = tmp_path_factory.mktemp(f"bin-{mode}")
-        for tool in (*BASE_TOOLS, *parser):
-            (directory / tool).symlink_to(_path_for(tool))
-        made[mode] = directory
+        made[mode] = {}
+        for key in HOOK_FILES:
+            directory = tmp_path_factory.mktemp(f"bin-{mode}-{key}")
+            for tool in (*BASE_TOOLS, *EXTRA_TOOLS.get(key, ()), *parser):
+                (directory / tool).symlink_to(_path_for(tool))
+            made[mode][key] = directory
     return made
 
 
@@ -150,7 +158,7 @@ def run_hook(key, stdin, mode, bins, scratch, timeout):
         pytest.skip(f"the {mode} parser mode needs {' and '.join(MODES[mode])} on PATH")
     marker = scratch / "STUB_JSON_RAN"
     marker.unlink(missing_ok=True)
-    env = {"PATH": str(bins[mode]), "LANG": "C.UTF-8", "HOME": str(scratch)}
+    env = {"PATH": str(bins[mode][key]), "LANG": "C.UTF-8", "HOME": str(scratch)}
     try:
         done = subprocess.run(  # noqa: S603
             [_path_for("bash"), str(_hook_path(key))],
@@ -185,6 +193,15 @@ def test_the_table_covers_every_hook_and_names_are_unique():
     assert len({_case_id(c) for c in TABLE}) == len(TABLE)
     on_disk = {p.stem for p in ROOT.glob("plugins/*/skills/*/assets/hooks/*.sh")}
     assert on_disk == set(HOOK_FILES.values())
+
+
+def test_extra_tools_stay_with_the_hook_that_needs_them(bins):
+    assert set(EXTRA_TOOLS) <= set(HOOK_FILES)
+    for per_hook in bins.values():
+        for key, directory in per_hook.items():
+            for tool in {t for extra in EXTRA_TOOLS.values() for t in extra}:
+                granted = tool in EXTRA_TOOLS.get(key, ())
+                assert (directory / tool).exists() == granted, (key, tool)
 
 
 @pytest.mark.parametrize("mode", MODES)
@@ -558,7 +575,7 @@ def test_a_here_string_that_cannot_be_written_refuses(key, mode, bins, scratch):
     if mode not in bins:
         pytest.skip(f"the {mode} parser mode needs {' and '.join(MODES[mode])} on PATH")
     stdin = json.dumps({"tool_input": NO_SCAN[key]()}, ensure_ascii=False).encode("utf-8")
-    env = {"PATH": str(bins[mode]), "LANG": "C.UTF-8", "HOME": str(scratch)}
+    env = {"PATH": str(bins[mode][key]), "LANG": "C.UTF-8", "HOME": str(scratch)}
     # ulimit -f is in 1 KiB units; ignoring SIGXFSZ turns the over-limit write into an error
     # instead of killing bash, which is what a full disk gives.
     script = 'ulimit -f 1; trap "" XFSZ; exec "$0" "$1"'
