@@ -290,7 +290,7 @@ Hand a diff to `change-impact-reader`; it returns a bounded inventory of what th
 can affect, with file and line evidence. Hand a drafted `SKILL.md` to `skill-reviewer`; it
 returns a review against this repository's rules.
 
-Three more return a ledger instead of the files. Hand run artefacts to
+Three more read bulky history instead of the files. Hand run artefacts to
 `agent-run-trace-reader` for an evidence ledger by task and attempt, hundreds of CI test
 reports to `test-history-reader` for a flake-rate ledger, and exported review comments to
 `review-comment-miner` for recurring clusters.
@@ -628,9 +628,9 @@ Hand a third-party agent extension in a quarantine directory to `extension-reade
 returns what executes automatically, its permissions and risk findings anchored to
 file:line.
 
-Hand lockfile history and CI logs to `supply-chain-exposure-reader`; it returns the
-repositories, runs and jobs that resolved or executed a bad version, with the secrets
-each job could reach.
+Name a compromised package, action SHA or version window and hand lockfile history and CI
+logs to `supply-chain-exposure-reader`; it returns the repositories, runs and jobs that
+resolved or executed a bad version, with the secrets each job could reach.
 
 #### Subagents
 
