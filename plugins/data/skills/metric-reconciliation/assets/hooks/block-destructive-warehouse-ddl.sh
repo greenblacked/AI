@@ -31,6 +31,27 @@ if value is None:
 print(value if isinstance(value, str) else json.dumps(value))' || true)"
 fi
 
+# hits TEXT GREP-OPTION...: succeeds when grep finds a match in TEXT, fails when it finds none, and
+# refuses the command on any other outcome. TEXT reaches grep as a here-string, not through a pipe:
+# grep quits early under -q, and a writer piped into it would then die of SIGPIPE, which pipefail
+# turns into a failed pipeline that reads as "no match". Bash writes a large here-string to a
+# temporary file; when that write fails (a full disk, a file-size limit) the redirection fails with
+# status 1 and grep never runs, which `if grep ...` would also read as "no match" and allow.
+# grep -c prints a count even for no match, so no count means grep did not run. Only status 0 with
+# a count or status 1 with a count of 0 is an answer. Standalone like every hook here, so this
+# function is copied rather than sourced.
+hits() {
+  local text=$1 count rc=0
+  shift
+  count="$(grep -c "$@" <<<"$text")" || rc=$?
+  case "$rc:$count" in
+    0:[1-9]*) return 0 ;;
+    1:0) return 1 ;;
+  esac
+  echo "blocked: could not scan the text with grep (status $rc), so it was not judged. Retry; if it repeats, check free space in the temporary directory." >&2
+  exit 2
+}
+
 # Neither parser present: degrade by allowing, because a hook that blocks everything on a
 # missing tool is worse than none.
 if [ -z "$command" ]; then
@@ -49,7 +70,7 @@ bq_re='\<bq[[:space:]]+rm\>'
 # Newlines become spaces first, so a heredoc with DROP or TRUNCATE on one line and the object
 # on the next is still one statement to the patterns.
 flat="$(printf '%s' "$command" | tr '\n' ' ')"
-if printf '%s' "$flat" | grep -Eqi -e "$drop_re" -e "$truncate_re" -e "$bq_re"; then
+if hits "$flat" -Ei -e "$drop_re" -e "$truncate_re" -e "$bq_re"; then
   echo "blocked: destructive warehouse DDL (DROP TABLE/VIEW/SCHEMA/DATABASE/COLUMN, TRUNCATE, bq rm). Rename the object, archive it, and run the drop yourself after the brownout." >&2
   exit 2
 fi

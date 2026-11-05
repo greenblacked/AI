@@ -32,7 +32,17 @@ case "$file" in
 esac
 [ -f "$file" ] || exit 0
 
-if grep -qF '[TK:' -- "$file" && ! grep -q '## Placeholders to fill' -- "$file"; then
+# grep exits 0 for a match, 1 for none and 2 or more when it could not read the file; only the
+# first two are an answer, so an unreadable file is not taken for one without a marker.
+marker=0
+heading=0
+grep -qF '[TK:' -- "$file" || marker=$?
+grep -q '## Placeholders to fill' -- "$file" || heading=$?
+if [ "$marker" -gt 1 ] || [ "$heading" -gt 1 ]; then
+  echo "blocked: could not read $file to check it for a placeholder list. Check the file is readable, then retry." >&2
+  exit 2
+fi
+if [ "$marker" -eq 0 ] && [ "$heading" -eq 1 ]; then
   echo "The write already happened; this is a correction, not a block. $file contains a [TK: ...] placeholder but no '## Placeholders to fill' section. Add that section listing each placeholder with the question that fills it." >&2
   exit 2
 fi

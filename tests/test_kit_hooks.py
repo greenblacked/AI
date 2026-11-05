@@ -482,6 +482,53 @@ def test_a_large_bare_marker_is_judged_not_refused(name, mode, bins, scratch):
     assert b"larger than" not in done.stderr
 
 
+# A payload per hook that is innocent (or, for tf and sym, at least not decided before the first
+# grep) and larger than the 64 KiB bash keeps in a pipe for a here-string, so the here-string goes
+# through a temporary file. With the file-size limit at 1 KiB that write fails, the redirection
+# fails with status 1, and grep never runs. A hook that read that status as "no match" would allow
+# the command; each must refuse with exit 2 instead. placeholder-list reads a file and has no
+# here-string.
+HUGE = 100_000
+NO_SCAN = {
+    "tf": lambda: {"command": "terraform plan " + "x" * HUGE},
+    "kill": lambda: {"command": "echo " + "x" * HUGE},
+    "sup": lambda: {"file_path": "a.py", "content": "# pragma: no mutate ok\n" + "x = 1\n" * 20000},
+    "sym": lambda: {"command": "echo " + "x" * HUGE},
+    "erase": lambda: {"command": "echo " + "x" * HUGE},
+    "ddl": lambda: {"command": "echo " + "x" * HUGE},
+    "retry": lambda: {"file_path": "a.go", "content": "x = 1\n" * 20000},
+    "gen": lambda: {"file_path": "src/generated/v.c", "content": "x = 1\n" * 20000},
+    "mail": lambda: {"file_path": "emails/marketing/x.html", "content": "x = 1\n" * 20000},
+}
+
+
+def test_no_scan_case_for_every_hook_with_a_here_string():
+    assert set(NO_SCAN) == set(HOOK_FILES) - {"ph"}
+
+
+@pytest.mark.parametrize("mode", MODES)
+@pytest.mark.parametrize("key", sorted(NO_SCAN))
+def test_a_here_string_that_cannot_be_written_refuses(key, mode, bins, scratch):
+    if mode not in bins:
+        pytest.skip(f"the {mode} parser mode needs {' and '.join(MODES[mode])} on PATH")
+    stdin = json.dumps({"tool_input": NO_SCAN[key]()}, ensure_ascii=False).encode("utf-8")
+    env = {"PATH": str(bins[mode]), "LANG": "C.UTF-8", "HOME": str(scratch)}
+    # ulimit -f is in 1 KiB units; ignoring SIGXFSZ turns the over-limit write into an error
+    # instead of killing bash, which is what a full disk gives.
+    script = 'ulimit -f 1; trap "" XFSZ; exec "$0" "$1"'
+    done = subprocess.run(  # noqa: S603
+        [_path_for("bash"), "-c", script, _path_for("bash"), str(_hook_path(key))],
+        input=stdin,
+        capture_output=True,
+        cwd=scratch,
+        env=env,
+        timeout=30,
+        check=False,
+    )
+    assert done.returncode == 2, done.stderr.decode("utf-8", "replace")[-300:]
+    assert b"blocked: could not scan" in done.stderr
+
+
 def test_every_hook_has_a_timing_case():
     assert set(BIG) == set(HOOK_FILES)
 

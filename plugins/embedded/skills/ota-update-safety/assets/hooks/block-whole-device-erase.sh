@@ -28,6 +28,27 @@ if value is None:
 print(value if isinstance(value, str) else json.dumps(value))' || true)"
 fi
 
+# hits TEXT GREP-OPTION...: succeeds when grep finds a match in TEXT, fails when it finds none, and
+# refuses the command on any other outcome. TEXT reaches grep as a here-string, not through a pipe:
+# grep quits early under -q, and a writer piped into it would then die of SIGPIPE, which pipefail
+# turns into a failed pipeline that reads as "no match". Bash writes a large here-string to a
+# temporary file; when that write fails (a full disk, a file-size limit) the redirection fails with
+# status 1 and grep never runs, which `if grep ...` would also read as "no match" and allow.
+# grep -c prints a count even for no match, so no count means grep did not run. Only status 0 with
+# a count or status 1 with a count of 0 is an answer. Standalone like every hook here, so this
+# function is copied rather than sourced.
+hits() {
+  local text=$1 count rc=0
+  shift
+  count="$(grep -c "$@" <<<"$text")" || rc=$?
+  case "$rc:$count" in
+    0:[1-9]*) return 0 ;;
+    1:0) return 1 ;;
+  esac
+  echo "blocked: could not scan the text with grep (status $rc), so it was not judged. Retry; if it repeats, check free space in the temporary directory." >&2
+  exit 2
+}
+
 # Neither parser present: degrade by allowing, because a hook that blocks everything on a
 # missing tool is worse than no hook.
 # Lower-cased once so every pattern below is case-insensitive without a grep flag. A J-Link
@@ -60,10 +81,8 @@ stdin_erase_lit="(^|${sp}|${q}|${bs}n)erase${bs}n[^|;&]*(;|&+|\\|)[^;&]*jlink"
 stdin_erase="(^|${sp}|${q}|${bs}n)erase${q}?${sp}*\\)*${sp}*(>>?${sp}*[^[:space:];&|]+${sp}*)?(;|&+|\\|)[^;&]*jlink"
 stdin_erase_sq="'(([^'|;&]*${sp})?)erase(${sp}[^'|;&]*)?'${sp}*\\|[^;&]*jlink"
 stdin_erase_dq="\"(([^\"|;&]*${sp})?)erase(${sp}[^\"|;&]*)?\"${sp}*\\|[^;&]*jlink"
-# The text reaches grep as a here-string, not through a pipe: grep -q quits at its first match,
-# and under pipefail a printf still writing into it would fail the pipeline with SIGPIPE, which
-# reads as "no match" and would allow a large command.
-if grep -Eq \
+hit=0
+if hits "$scrubbed" -E \
   -e "st-flash[^|;&]*${sp}erase${word_end}" \
   -e "nrfjprog[^|;&]*--(eraseall|recover|rbp|rdp)" \
   -e "esptool[^|;&]*[[:space:]_.-]erase[_-]flash" \
@@ -72,12 +91,9 @@ if grep -Eq \
   -e "stm32_programmer_cli[^|;&]*(-e|--erase)${sp}+all" \
   -e "stm32_programmer_cli[^|;&]*-ob[^|;&]*(rdp|wrp|optr)" \
   -e "openocd[^|&]*(mass_erase|flash${sp}+erase_sector${sp}+0${sp}+0${sp}+last|stm32[a-z0-9]*x${sp}+(lock|option_write|options_write))" \
-  -e "$stdin_erase_lit" \
-  <<<"$scrubbed" ||
-  grep -Eq -e "$stdin_erase" -e "$stdin_erase_sq" -e "$stdin_erase_dq" <<<"$flat"; then
+  -e "$stdin_erase_lit" ||
+  hits "$flat" -E -e "$stdin_erase" -e "$stdin_erase_sq" -e "$stdin_erase_dq"; then
   hit=1
-else
-  hit=0
 fi
 # A J-Link heredoc (`JLinkExe <<EOF`, `cat <<EOF | JLinkExe`) or here-string (`JLinkExe <<< erase`)
 # is judged by its own lines: the body runs to the delimiter line, and an `erase` after it, or in
@@ -108,11 +124,12 @@ if [ "$hit" -eq 0 ]; then
     }
     END { print hit ? "hit" : "none" }
   ' <<<"$scrubbed")" || heredoc="failed"
+  # The awk prints hit or none; no answer means it did not run (the here-string failed to write).
   case "$heredoc" in
     hit) hit=1 ;;
     none) ;;
     *)
-      echo "blocked: could not scan the command for a J-Link heredoc, so it was not judged. Retry; if it repeats, check free space in the temporary directory." >&2
+      echo "blocked: could not scan the command for a J-Link heredoc (awk gave no answer), so it was not judged. Retry; if it repeats, check free space in the temporary directory." >&2
       exit 2
       ;;
   esac

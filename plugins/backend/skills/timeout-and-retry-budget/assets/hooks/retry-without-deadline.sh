@@ -40,6 +40,27 @@ if isinstance(tool, dict):
 print(value if isinstance(value, str) else "")' || true)"
 fi
 
+# hits TEXT GREP-OPTION...: succeeds when grep finds a match in TEXT, fails when it finds none, and
+# refuses the command on any other outcome. TEXT reaches grep as a here-string, not through a pipe:
+# grep quits early under -q, and a writer piped into it would then die of SIGPIPE, which pipefail
+# turns into a failed pipeline that reads as "no match". Bash writes a large here-string to a
+# temporary file; when that write fails (a full disk, a file-size limit) the redirection fails with
+# status 1 and grep never runs, which `if grep ...` would also read as "no match" and allow.
+# grep -c prints a count even for no match, so no count means grep did not run. Only status 0 with
+# a count or status 1 with a count of 0 is an answer. Standalone like every hook here, so this
+# function is copied rather than sourced.
+hits() {
+  local text=$1 count rc=0
+  shift
+  count="$(grep -c "$@" <<<"$text")" || rc=$?
+  case "$rc:$count" in
+    0:[1-9]*) return 0 ;;
+    1:0) return 1 ;;
+  esac
+  echo "blocked: could not scan the text with grep (status $rc), so it was not judged. Retry; if it repeats, check free space in the temporary directory." >&2
+  exit 2
+}
+
 # Neither parser present, or nothing readable: allow, because a hook that blocks everything
 # on a missing tool is worse than no hook.
 case "$path" in
@@ -55,11 +76,8 @@ esac
 # satisfies the check, in any casing.
 retry_re='(^|[^[:alpha:]])(retr(y|ies|ied|ying)|max_?(retr|attempts))'
 camel_re='[[:alpha:]]Retr(y|ies|ied|ying)'
-# The text reaches grep as a here-string, not through a pipe: grep -q quits at its first match,
-# and under pipefail a printf still writing into it would fail the pipeline with SIGPIPE, which
-# reads as "no match" and would allow a large text.
-if grep -Eqi "$retry_re" <<<"$text" || grep -Eq "$camel_re" <<<"$text"; then
-  if ! grep -Eqi 'timeout|deadline' <<<"$text"; then
+if hits "$text" -Ei "$retry_re" || hits "$text" -E "$camel_re"; then
+  if ! hits "$text" -Ei 'timeout|deadline'; then
     echo "blocked: this text sets a retry but no timeout or deadline. Set the timeout from the caller's remaining deadline in the same text, and see call-chain-budget.md." >&2
     exit 2
   fi
