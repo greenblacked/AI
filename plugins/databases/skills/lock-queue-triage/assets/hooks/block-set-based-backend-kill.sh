@@ -2,7 +2,8 @@
 # Refuse pg_terminate_backend or pg_cancel_backend with a non-literal pid. Deterministic: standard tools only, no network, no secrets.
 # It reads the command text and nothing else. It undoes shell quoting, backslashes and line
 # continuations before matching, and refuses a command that names a backend kill in a spelling it
-# cannot read ($'..' escapes, brace expansion, a variable or substitution as the command) rather
+# cannot read ($'..' escapes, brace expansion, a variable or substitution as the command, which is read right after a separator or after
+# sudo, exec, command and similar wrappers, not after other wrappers) rather
 # than guessing. A script file or .sql file the command runs is out of scope: the hook cannot see
 # what is in it.
 set -Eeuo pipefail
@@ -66,12 +67,12 @@ hits() {
 # ('123') is a non-literal pid to this hook as written. What cannot be normalised is refused
 # instead, when the command also names a kill function or a fragment of one: a $'..' string with
 # a backslash (hex and octal escapes), a brace expansion with a comma or `..` outside quotes, and
-# a variable, a command substitution or a backtick where the command word goes (c=psql; $c -c ...).
+# a variable, a command substitution or a backtick where the command word goes (right after a separator, a group opener, then, do or else, or one of the wrappers sudo, command, exec, xargs, nohup, time, busybox and builtin, with any NAME=value assignments between; a command run through another wrapper is not read) (c=psql; $c -c ...).
 # A variable that is only the start of a path ($HOME/bin/psql) is read as the path it ends in.
 # A script file the command runs is out of scope: this hook sees only the command text.
 # Standalone like every hook here, so these two functions are copied rather than sourced.
 normalise() {
-  awk '{ if (sub(/\\$/, "")) { buf = buf $0; next } print buf $0; buf = "" } END { if (buf != "") print buf }' |
+  LC_ALL=C awk '{ if (sub(/\\$/, "")) { buf = buf $0; next } print buf $0; buf = "" } END { if (buf != "") print buf }' |
     sed -E "s/[\$][\"']//g" | tr -d "\"'\\\\"
 }
 # unreadable ORIGINAL PLAIN: succeeds when the command uses a spelling that normalise cannot read.
@@ -83,6 +84,12 @@ unreadable() {
   cmdpos='(^|[;&|`]|[$][(]|[[:space:]](then|do|else))[[:space:]]*([({][[:space:]]*)*((sudo|command|exec|xargs|nohup|time|busybox|builtin|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*)[[:space:]]+)*([$][A-Za-z_][A-Za-z0-9_]*([^/A-Za-z0-9_]|$)|[$]\{[^}]*\}([^/]|$)|[$][(0-9@*]|`)'
   hits "$(printf '%s' "$2" | tr '\n\r' ';;')" -E "$cmdpos"
 }
+# normalise needs awk. Without it the pipeline below fails with status 127, which is not a block,
+# so the command would run unjudged; refuse instead, because a missing tool is not a reason to allow.
+if [ -n "$command" ] && ! command -v awk >/dev/null 2>&1; then
+  echo "blocked: awk is not installed, so this hook cannot read the command and did not judge it. Install awk (any POSIX awk), or run the command yourself." >&2
+  exit 2
+fi
 plain="$(printf '%s\n' "$command" | normalise)"
 plain_flat="$(printf '%s' "$plain" | tr '\n\r' '  ')"
 

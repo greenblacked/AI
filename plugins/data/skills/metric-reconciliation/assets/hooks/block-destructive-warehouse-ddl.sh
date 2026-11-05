@@ -5,7 +5,8 @@
 # It does not replace db-migration, which governs application-database schema changes.
 # It reads the command text and nothing else. It undoes quoting, backslashes and line continuations
 # before matching, and refuses a command that names a SQL client or a DROP or TRUNCATE in a spelling
-# it cannot read ($'..' escapes, brace expansion, a variable or substitution as the command) rather
+# it cannot read ($'..' escapes, brace expansion, a variable or substitution as the command, which is read right after a separator or after
+# sudo, exec, command and similar wrappers, not after other wrappers) rather
 # than guessing. A .sql or script file the command runs is out of scope: the hook cannot see what
 # is in it.
 set -Eeuo pipefail
@@ -80,13 +81,13 @@ bq_re='\<bq[[:space:]]+rm\>'
 # word can start a line); plain_flat turns them into spaces. What cannot be normalised is refused
 # instead, when the command also names a SQL client or a DDL word: a $'..' string with a backslash
 # (hex and octal escapes), a brace expansion with a comma or `..` outside quotes (DROP{,} TABLE), and a
-# variable, a command substitution or a backtick where the command word goes (c=psql; $c -c ...).
+# variable, a command substitution or a backtick where the command word goes (right after a separator, a group opener, then, do or else, or one of the wrappers sudo, command, exec, xargs, nohup, time, busybox and builtin, with any NAME=value assignments between; a command run through another wrapper is not read) (c=psql; $c -c ...).
 # A variable that is only the start of a path ($HOME/bin/psql) is read as the path it ends in.
 # Indirection through a script file or a .sql file the client runs is out of scope: this hook sees
 # only the command text.
 # Standalone like every hook here, so these two functions are copied rather than sourced.
 normalise() {
-  awk '{ if (sub(/\\$/, "")) { buf = buf $0; next } print buf $0; buf = "" } END { if (buf != "") print buf }' |
+  LC_ALL=C awk '{ if (sub(/\\$/, "")) { buf = buf $0; next } print buf $0; buf = "" } END { if (buf != "") print buf }' |
     sed -E "s/[\$][\"']//g" | tr -d "\"'\\\\"
 }
 # unreadable ORIGINAL PLAIN: succeeds when the command uses a spelling that normalise cannot read.
@@ -98,6 +99,12 @@ unreadable() {
   cmdpos='(^|[;&|`]|[$][(]|[[:space:]](then|do|else))[[:space:]]*([({][[:space:]]*)*((sudo|command|exec|xargs|nohup|time|busybox|builtin|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*)[[:space:]]+)*([$][A-Za-z_][A-Za-z0-9_]*([^/A-Za-z0-9_]|$)|[$]\{[^}]*\}([^/]|$)|[$][(0-9@*]|`)'
   hits "$(printf '%s' "$2" | tr '\n\r' ';;')" -E "$cmdpos"
 }
+# normalise needs awk. Without it the pipeline below fails with status 127, which is not a block,
+# so the command would run unjudged; refuse instead, because a missing tool is not a reason to allow.
+if [ -n "$command" ] && ! command -v awk >/dev/null 2>&1; then
+  echo "blocked: awk is not installed, so this hook cannot read the command and did not judge it. Install awk (any POSIX awk), or run the command yourself." >&2
+  exit 2
+fi
 plain="$(printf '%s\n' "$command" | normalise)"
 plain_flat="$(printf '%s' "$plain" | tr '\n\r' '  ')"
 client_re='(^|[^[:alnum:]_-])(psql|pgcli|mysql|mycli|mariadb|snowsql|bq|sqlcmd|sqlite3|duckdb|clickhouse-client|sqlplus|bteq|beeline|spark-sql|trino|presto|usql|databricks)([^[:alnum:]_-]|$)|drop|truncate'
