@@ -15,8 +15,8 @@
   {"query": "make the signup form on our website keyboard friendly with clear error messages", "should_trigger": false, "expected": "form-design"},
   {"query": "audit our web app's UI against WCAG success criteria for keyboard operation", "should_trigger": false, "expected": "accessibility-audit"},
   {"query": "set up ducking so the music drops under dialogue and measure loudness per output mode", "should_trigger": false, "expected": "game-audio-mix"},
+  {"query": "write the per-screen spec for our pause menu and check the focus graph for unreachable buttons and modals with no way out", "should_trigger": false, "expected": "game-hud-menu-spec"},
   {"query": "run a playtest session with five new players and write up what they struggled with", "should_trigger": false, "expected": "game-playtest"},
-  {"query": "the ball goes through the thin wall when the frame rate drops", "should_trigger": false, "expected": "physics-glitch-triage"},
   {"query": "translate all UI strings and make sure the layout fits German text", "should_trigger": false, "expected": "game-localisation"},
   {"query": "our game crashes on startup with a null pointer and I need to find the cause", "should_trigger": false, "expected": "debugging"}
 ]
