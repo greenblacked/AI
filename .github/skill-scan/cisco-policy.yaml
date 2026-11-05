@@ -323,6 +323,95 @@ suppressions:
       design. The script only parses a written .json file, makes no network call and reads no secret.
     expires: 2027-05-02
 
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["test-design"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/no-fixed-sleep-in-tests.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook reads a written test file from disk and
+      reports a fixed sleep call outside a comment, refuses a file over 1 MiB, uses standard tools only, reads one
+      stdin payload, and has no network access, secrets or eval. The skill itself does not run it and the
+      allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["pipeline-hardening"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/flag-untrusted-field-in-run.sh, which the scanner reads as bash
+      the skill runs. It is a template the installer copies on purpose: the hook reads a written workflow file under
+      .github/workflows/ from disk and reports a run or script block that expands a pull request, issue, comment,
+      review or commit field, refuses a file over 1 MiB, uses standard tools only, reads one stdin payload, and has no
+      network access, secrets or eval. The skill itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["distinctive-page-design"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/flag-viewport-width-css.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook reads a written .css file from disk and
+      reports one that sets width, min-width or max-width to a bare 100vw, refuses a file over 1 MiB, uses standard
+      tools only, reads one stdin payload, and has no network access, secrets or eval. The skill itself does not run
+      it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["family-workflow"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/slice-waiver-placement.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook reads a written docs/slices/<name>/
+      frame.md, plan.md, inspect.md or yield.md from disk and reports one that carries a "## Waiver" heading, refuses
+      a file over 1 MiB, uses standard tools only, reads one stdin payload, and has no network access, secrets or
+      eval. The skill itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["decision-record"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/require-considered-options.sh, which the scanner reads as bash
+      the skill runs. It is a template the installer copies on purpose: the hook reads a decision record written under
+      docs/decisions or docs/adr, refuses one over 1 MiB, counts the list items in its Considered Options section with
+      awk, and reports a record with fewer than two, using standard tools only, with no network access, secrets or
+      eval. The skill itself does not run it and its allowed-tools grant (Read, Write, Edit, Glob, Grep) is not
+      widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["runbook"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/runbook-stamp.sh, which the scanner reads as bash the skill
+      runs. It is a template the installer copies on purpose: after a Write or Edit of a runbook the hook reads that
+      file from disk and reports one with no owner or no valid last-verified date in its first 40 lines, refuses a
+      file over 1 MiB, uses standard tools only, reads one stdin payload, and has no network access, secrets or eval.
+      The skill itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["weekly-review"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/weekly-review-shape.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook reads a written weekly review under
+      reviews/ from disk and reports one with fewer than 3 or more than 5 commitments or no Consciously not doing
+      section, refuses a file over 1 MiB, uses standard tools only, reads one stdin payload, and has no network
+      access, secrets or eval. The skill itself does not run it and the allowed-tools grant is not widened.
+    expires: 2027-05-02
+
+  - rule_id: ALLOWED_TOOLS_BASH_VIOLATION
+    skills: ["security-review"]
+    paths: ["SKILL.md"]
+    reason: >-
+      The skill's opt-in Project kit ships assets/hooks/tls-verification-off.sh, which the scanner reads as bash the
+      skill runs. It is a template the installer copies on purpose: the hook reads a written yaml, json, toml, ini or
+      conf file from disk and reports one that switches off TLS certificate verification, refuses a file over 1 MiB,
+      uses standard tools only, reads one stdin payload, and has no network access, secrets or eval. The skill itself
+      does not run it and the allowed-tools grant (Read, Grep, Glob) is not widened.
+    expires: 2027-05-02
+
   # Subagent and slash-command definitions, scanned as one-file skills by scripts/definition_shims.py. Cisco matches
   # `skills` on the shim's frontmatter name, which the wrapper sets to the shim id for agents and commands alike.
   - rule_id: ACTIVE_REMOTE_ACQUIRE_EXECUTE

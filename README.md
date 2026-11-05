@@ -9,7 +9,7 @@
 
 Markdown procedures that an AI coding agent loads when your task matches, with the subagents, commands and project kits that go with them.
 
-527 agent skills, 51 subagents, eleven slash commands and 21 project kits, in
+527 agent skills, 51 subagents, eleven slash commands and 29 project kits, in
 twenty-nine plugins you install separately.
 
 [![Skills](https://img.shields.io/badge/skills-527-7c3aed)](#plugins)
@@ -68,16 +68,16 @@ Using Codex, ChatGPT, Grok, Gemini CLI or another tool? See [Other tools](#other
 
 | Plugin | Focus | Contents | Project kits |
 | --- | --- | --- | --- |
-| [`coding`](#coding) | Reading, reviewing, testing and changing code | 29 skills, 5 subagents, 1 command | 0 |
-| [`family`](#family) | One development workflow, from a vague request to a measured outcome | 11 skills, 6 subagents, 1 command | 0 |
+| [`coding`](#coding) | Reading, reviewing, testing and changing code | 29 skills, 5 subagents, 1 command | 1 |
+| [`family`](#family) | One development workflow, from a vague request to a measured outcome | 11 skills, 6 subagents, 1 command | 1 |
 | [`gamedev`](#gamedev) | Making games, and shipping them | 39 skills, 2 subagents, 2 commands | 1 |
-| [`operations`](#operations) | Keeping a running system alive | 19 skills, 7 subagents, 2 commands | 0 |
-| [`delivery`](#delivery) | Getting a change into production | 12 skills, 1 subagent | 0 |
-| [`security`](#security) | The defensive side of shipping software | 31 skills, 5 subagents, 2 commands | 0 |
-| [`manager`](#manager) | Engineering leadership | 22 skills, 2 subagents, 2 commands | 0 |
-| [`personal`](#personal) | Money, travel, admin, habits, health and family history | 8 skills, 2 subagents | 0 |
+| [`operations`](#operations) | Keeping a running system alive | 19 skills, 7 subagents, 2 commands | 1 |
+| [`delivery`](#delivery) | Getting a change into production | 12 skills, 1 subagent | 1 |
+| [`security`](#security) | The defensive side of shipping software | 31 skills, 5 subagents, 2 commands | 1 |
+| [`manager`](#manager) | Engineering leadership | 22 skills, 2 subagents, 2 commands | 1 |
+| [`personal`](#personal) | Money, travel, admin, habits, health and family history | 8 skills, 2 subagents | 1 |
 | [`career`](#career) | Applications, negotiation, speaking and writing | 11 skills, 1 subagent | 1 |
-| [`design`](#design) | Usability, accessibility and design systems | 16 skills, 1 subagent, 1 command | 0 |
+| [`design`](#design) | Usability, accessibility and design systems | 16 skills, 1 subagent, 1 command | 1 |
 | [`llm`](#llm) | Building features on language models: retrieval, structured output, MCP servers, extraction, model migration, agents, latency, batch processing and resilience | 15 skills, 1 subagent | 1 |
 | [`data`](#data) | Analytics data and classical ML: wrong numbers, warehouse cost, metrics, history, experiments and models in production | 22 skills, 1 subagent | 1 |
 | [`techdocs`](#techdocs) | Developer documentation: tested tutorials and samples, drift, stable URLs, API and CLI reference | 12 skills, 1 subagent | 1 |
@@ -333,7 +333,9 @@ Reading, reviewing, testing and changing code.
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `test-design` | `test-determinism` | `no-fixed-sleep-in-tests` | `test-plan` |
 
 ### Family
 
@@ -379,7 +381,9 @@ One development workflow, from a vague request to a measured outcome, run by a s
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `family-workflow` | `slice-stage-files` | `slice-waiver-placement` | `plan` |
 
 ### Gamedev
 
@@ -509,7 +513,9 @@ Keeping a running system alive.
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `runbook` | `runbook-documents` | `runbook-stamp` | `runbook-verification-record` |
 
 ### Delivery
 
@@ -545,7 +551,9 @@ Getting a change into production without a bad night.
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `pipeline-hardening` | `untrusted-workflow-input` | `flag-untrusted-field-in-run` | `pipeline-change-record` |
 
 ### Security
 
@@ -611,7 +619,9 @@ The defensive side of shipping software.
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `security-review` | `tls-verification` | `tls-verification-off` | `tls-verification-exception` |
 
 ### Manager
 
@@ -665,7 +675,9 @@ Engineering leadership.
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `decision-record` | `decision-records` | `require-considered-options` | `adr-template`, `adr-template-minimal` |
 
 ### Personal
 
@@ -698,7 +710,9 @@ The parts of life that are nobody's job.
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `weekly-review` | `weekly-review-records` | `weekly-review-shape` | `weekly-review-record` |
 
 ### Career
 
@@ -781,7 +795,9 @@ Usability, accessibility and design systems, and the words, structure and handof
 
 #### Project kit
 
-No kit yet.
+| Skill | Rule | Hook | Template |
+| --- | --- | --- | --- |
+| `distinctive-page-design` | `page-css-floors` | `flag-viewport-width-css` | `decisions-template` |
 
 ### LLM
 
