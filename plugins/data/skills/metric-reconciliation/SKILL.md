@@ -108,7 +108,9 @@ them when the project defines metrics in `models/` or `metrics/`:
   edited and asks for one owned, versioned definition per metric.
 - `${CLAUDE_SKILL_DIR}/assets/hooks/block-destructive-warehouse-ddl.json`, with its script
   `${CLAUDE_SKILL_DIR}/assets/hooks/block-destructive-warehouse-ddl.sh`, blocks a Bash command
-  that drops, truncates or removes a warehouse object.
+  that drops, truncates or removes a warehouse object, and one that names a SQL client or a DROP
+  in a spelling it cannot read (a `$'...'` escape, a brace list, a variable as the command). SQL in
+  a file the command runs is out of its reach.
 - `${CLAUDE_SKILL_DIR}/assets/templates/metric-definition.md` is the definition card to fill in
   once reconciliation has picked one definition.
 

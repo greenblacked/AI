@@ -3,6 +3,11 @@
 # only, no network, no secrets. One text match, not a SQL parser: DDL written to a file and run
 # later passes, and a prose mention in the command also blocks, which is the safe direction.
 # It does not replace db-migration, which governs application-database schema changes.
+# It reads the command text and nothing else. It undoes quoting, backslashes and line continuations
+# before matching, and refuses a command that names a SQL client or a DROP or TRUNCATE in a spelling
+# it cannot read ($'..' escapes, brace expansion, a variable or substitution as the command) rather
+# than guessing. A .sql or script file the command runs is out of scope: the hook cannot see what
+# is in it.
 set -Eeuo pipefail
 
 input="$(cat)"
@@ -67,10 +72,45 @@ fi
 drop_re='\<drop[[:space:]]+((external|materialized|snapshot|dynamic|temp|temporary)[[:space:]]+)?(table|view|schema|database|column)\>'
 truncate_re='\<truncate[[:space:]]+(table[[:space:]]+)?[[:alpha:]_"`[\\]'
 bq_re='\<bq[[:space:]]+rm\>'
+# A text match cannot read the shell's own spellings, so the command is normalised first: a
+# backslash-newline continuation is joined, the $ of $'..' and $".." is dropped, and quotes and
+# backslashes are deleted, which makes DR\OP\ TABLE\ t and "DR""OP TABLE t" the statement they
+# spell. The patterns run on the command as written and on the normalised one, because a quoted
+# identifier (truncate "t") is part of what truncate_re reads. Newlines stay in plain (a command
+# word can start a line); plain_flat turns them into spaces. What cannot be normalised is refused
+# instead, when the command also names a SQL client or a DDL word: a $'..' string with a backslash
+# (hex and octal escapes), a brace expansion with a comma or `..` outside quotes (DROP{,} TABLE), and a
+# variable, a command substitution or a backtick where the command word goes (c=psql; $c -c ...).
+# A variable that is only the start of a path ($HOME/bin/psql) is read as the path it ends in.
+# Indirection through a script file or a .sql file the client runs is out of scope: this hook sees
+# only the command text.
+# Standalone like every hook here, so these two functions are copied rather than sourced.
+normalise() {
+  awk '{ if (sub(/\\$/, "")) { buf = buf $0; next } print buf $0; buf = "" } END { if (buf != "") print buf }' |
+    sed -E "s/[\$][\"']//g" | tr -d "\"'\\\\"
+}
+# unreadable ORIGINAL PLAIN: succeeds when the command uses a spelling that normalise cannot read.
+unreadable() {
+  local outside cmdpos
+  if hits "$1" -E "[\$]'[^']*[\\\\]"; then return 0; fi
+  outside="$(printf '%s' "$1" | sed -E "s/'[^']*'|\"[^\"]*\"//g")"
+  if hits "$outside" -E '(^|[^$])\{[^{}[:space:]]*(,|\.\.)[^{}[:space:]]*\}'; then return 0; fi
+  cmdpos='(^|[;&|({]|[[:space:]](then|do|else))[[:space:]]*((sudo|command|exec|env|xargs|nohup|time|busybox|builtin)[[:space:]]+)*([$][A-Za-z_][A-Za-z0-9_]*([^/A-Za-z0-9_]|$)|[$]\{[^}]*\}([^/]|$)|[$][(0-9@*]|`)'
+  hits "$(printf '%s' "$2" | tr '\n\r' ';;')" -E "$cmdpos"
+}
+plain="$(printf '%s\n' "$command" | normalise)"
+plain_flat="$(printf '%s' "$plain" | tr '\n\r' '  ')"
+client_re='(^|[^[:alnum:]_-])(psql|pgcli|mysql|mycli|mariadb|snowsql|bq|sqlcmd|sqlite3|duckdb|clickhouse-client|sqlplus|bteq|beeline|spark-sql|trino|presto|usql|databricks)([^[:alnum:]_-]|$)|drop|truncate'
+if hits "$plain_flat" -iE "$client_re" && unreadable "$command" "$plain"; then
+  echo "blocked: this hook could not read the command (a \$'...' escape, a brace expansion, or a variable or substitution where the command goes) and it names a SQL client or a DROP or TRUNCATE. Write the statement plainly so it can be seen whether it is destructive DDL." >&2
+  exit 2
+fi
+
 # Newlines become spaces first, so a heredoc with DROP or TRUNCATE on one line and the object
 # on the next is still one statement to the patterns.
 flat="$(printf '%s' "$command" | tr '\n' ' ')"
-if hits "$flat" -Ei -e "$drop_re" -e "$truncate_re" -e "$bq_re"; then
+if hits "$flat" -Ei -e "$drop_re" -e "$truncate_re" -e "$bq_re" ||
+  { [ "$plain_flat" != "$flat" ] && hits "$plain_flat" -Ei -e "$drop_re" -e "$truncate_re" -e "$bq_re"; }; then
   echo "blocked: destructive warehouse DDL (DROP TABLE/VIEW/SCHEMA/DATABASE/COLUMN, TRUNCATE, bq rm). Rename the object, archive it, and run the drop yourself after the brownout." >&2
   exit 2
 fi
