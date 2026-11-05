@@ -17,7 +17,8 @@
 # does not matter. A finding prints file:line and a fixed message, never text from the file,
 # and the hook exits 2. README.md, index.md and _index.md are skipped: they list runbooks.
 # So is a verification record, which is evidence about a runbook and not one: a file whose name
-# contains "verification-record", or whose first heading is "# Runbook verification record".
+# contains "verification-record", or whose first heading is "# Runbook verification record"
+# (case and runs of spaces or tabs do not matter).
 #
 # Known limits.
 #   - PostToolUse: the write has already happened. Exit 2 only feeds stderr back to the
@@ -149,7 +150,8 @@ verdict="$(
       if (!headseen && s ~ /^#[ \t]/) {
         headseen = 1
         h = tolower(s)
-        sub(/[ \t]+$/, "", h)
+        gsub(/[ \t]+/, " ", h)
+        sub(/ $/, "", h)
         if (h == "# runbook verification record") record = 1
       }
       gsub(/\*/, "", raw)

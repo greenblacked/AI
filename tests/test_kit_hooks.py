@@ -684,6 +684,8 @@ SCRATCH_FILES = {
     "runbooks/2026-03-14-checkout.md": RBK_RECORD,
     "runbooks/db-verification-record.md": "# Notes\n",
     "runbooks/late-heading.md": "# Runbook\n\n# Runbook verification record\n",
+    "runbooks/spaced-heading.md": "#  Runbook verification record\n",
+    "runbooks/mixed-space-heading.md": "# \tRunbook   verification \t record  \n",
     # wkrev: weekly-review-shape
     "wk/reviews/two.md": (
         "# Week of 5 Jan\n\n## Commitments (3-5)\n1. a\n2. b\n\n"

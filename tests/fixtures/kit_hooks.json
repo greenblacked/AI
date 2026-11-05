@@ -1345,6 +1345,8 @@
   {"hook": "rbk", "name": "record-recognised-by-heading", "payload": {"tool_input": {"file_path": "runbooks/2026-03-14-checkout.md"}}, "exit": 0},
   {"hook": "rbk", "name": "record-recognised-by-name", "payload": {"tool_input": {"file_path": "runbooks/db-verification-record.md"}}, "exit": 0},
   {"hook": "rbk", "name": "record-heading-after-the-first-is-not-a-record", "payload": {"tool_input": {"file_path": "runbooks/late-heading.md"}}, "exit": 2},
+  {"hook": "rbk", "name": "record-heading-with-two-spaces", "payload": {"tool_input": {"file_path": "runbooks/spaced-heading.md"}}, "exit": 0},
+  {"hook": "rbk", "name": "record-heading-with-mixed-whitespace", "payload": {"tool_input": {"file_path": "runbooks/mixed-space-heading.md"}}, "exit": 0},
   {"hook": "wkrev", "name": "invalid-json", "raw": "not json", "exit": 0},
   {"hook": "wkrev", "name": "no-tool-input", "payload": {}, "exit": 0},
   {"hook": "wkrev", "name": "path-number", "payload": {"tool_input": {"file_path": 5}}, "exit": 0},
