@@ -65,6 +65,10 @@ def read_table(path):
         for row in reader:
             eid = (row["id"] or "").strip()
             if not eid:
+                # A row with other fields filled in is an unfinished event, not a blank line.
+                if any((v or "").strip() for k, v in row.items() if k != "id"):
+                    label = f"(no id, line {reader.line_num})"
+                    findings.append((label, "empty-field", "id is empty"))
                 continue
             if eid in rows:
                 findings.append((eid, "duplicate-id", "appears more than once in the table"))

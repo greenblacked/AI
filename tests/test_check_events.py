@@ -206,3 +206,15 @@ def test_a_fifo_in_the_code_tree_does_not_hang_the_scan(tmp_path: Path) -> None:
     except subprocess.TimeoutExpired:
         pytest.fail("the scan blocked on a named pipe")
     assert done.returncode == 0, done.stdout + done.stderr
+
+
+def test_a_populated_row_with_no_id_is_reported(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    table = HEADER + row("sfx.step") + row("  ") + ",,,,,,,,\n"
+    rc, out = run(tmp_path, table, {"a.gd": 'play("sfx.step")\n'}, capsys)
+    assert rc == 1
+    hits = [line for line in out if "empty-field" in line and "id is empty" in line]
+    # The populated row is reported once, by its line; the all-blank row is not a finding.
+    assert len(hits) == 1, out
+    assert "line 3" in hits[0], out
