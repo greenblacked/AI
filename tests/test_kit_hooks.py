@@ -285,6 +285,27 @@ def test_no_command_is_allowed_without_awk(key, payload, mode, noawk_bins, scrat
     assert done.returncode == 0, done.stderr.decode("utf-8", "replace")[:300]
 
 
+@pytest.mark.parametrize("mode", MODES)
+def test_a_missing_awk_is_named_by_the_suppression_hook(mode, tmp_path):
+    """require-suppression-reason runs awk on the text itself. Without awk that is status 127, which
+    is not a full disk; the message must say awk is missing and not send the reader to the
+    temporary directory."""
+    if _missing(MODES[mode]):
+        pytest.skip(f"the {mode} parser mode needs {' and '.join(MODES[mode])} on PATH")
+    directory = tmp_path / "bin"
+    directory.mkdir()
+    for tool in (*(t for t in BASE_TOOLS if t != "awk"), *MODES[mode]):
+        (directory / tool).symlink_to(_path_for(tool))
+    stdin = json.dumps(
+        {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate\n"}}
+    ).encode("utf-8")
+    done = run_hook("sup", stdin, mode, {mode: {"sup": directory}}, tmp_path, timeout=30)
+    assert done.returncode == 2, done.stderr.decode("utf-8", "replace")[:300]
+    # bash itself reports the missing command first, so the hook's own line is not the first.
+    assert b"blocked: awk is not installed" in done.stderr
+    assert b"free space" not in done.stderr
+
+
 def _function_body(path, name):
     text = path.read_text("utf-8")
     start = text.index(f"\n{name}() {{\n") + 1

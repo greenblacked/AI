@@ -149,6 +149,12 @@ verdict="$(
     END { print "@@done" }
   ' <<<"$text"
 )" || rc=$?
+# Status 127 is a missing awk, not a full disk; say so, because the advice below would send the
+# reader to the wrong place.
+if [ "$rc" -eq 127 ]; then
+  echo "blocked: awk is not installed, so this hook cannot read the text and did not judge it. Install awk (any POSIX awk), or write the suppression yourself." >&2
+  exit 2
+fi
 if [ "$rc" -ne 0 ] || [ "${verdict##*$'\n'}" != "@@done" ]; then
   echo "blocked: could not scan the text for mutation suppressions (awk status $rc), so it was not judged. Retry; if it repeats, check free space in the temporary directory." >&2
   exit 2
