@@ -38,6 +38,8 @@ Capture while the symptom is present, and note the time. Also record CPU for the
 
 ### 2. Keep only what stayed put
 
+When the dumps are large, or there are many of them, hand them to the `stack-dump-reader` subagent instead of reading them here: it returns the frames that stayed put across the captures, the decisive line and one named cause, and the dumps never enter this conversation; pick up at step 3 with its answer.
+
 Compare the three files. A thread whose stack is identical in all three is stuck or very slow. A thread whose stack differs is doing work. Discard the second kind first; what remains is usually a small set of repeated stacks.
 
 ### 3. Group by top frame and state
