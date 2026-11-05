@@ -67,6 +67,7 @@ STUB_JSON = (
 SCRATCH_FILES = {
     "json.py": STUB_JSON,
     "tfplan": "plan",
+    "apply.log": "log",
     "x/tfplan": "plan",
     "applications/bad.md": "Dear team\n[TK: company]\n",
     "applications/-n.md": "[TK: company]\n",

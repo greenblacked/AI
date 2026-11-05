@@ -853,5 +853,14 @@
   {"hook": "ddl", "name": "bq-truncate-with-block-comment", "payload": {"tool_input": {"command": "bq query \"TRUNCATE /*x*/ TABLE d.t\""}}, "exit": 2},
   {"hook": "ddl", "name": "drop-inside-a-line-comment-fails-closed", "payload": {"tool_input": {"command": "psql -c \"select 1 -- drop table later\""}}, "exit": 2},
   {"hook": "ddl", "name": "block-comment-literal-in-select-is-allowed", "payload": {"tool_input": {"command": "psql -c \"select '/* x */' as c\""}}, "exit": 0},
-  {"hook": "ddl", "name": "shell-truncate-size-flag-still-allowed-with-comment-words", "payload": {"tool_input": {"command": "truncate -s 0 log.txt"}}, "exit": 0}
+  {"hook": "ddl", "name": "shell-truncate-size-flag-still-allowed-with-comment-words", "payload": {"tool_input": {"command": "truncate -s 0 log.txt"}}, "exit": 0},
+  {"hook": "tf", "name": "redirect-target-is-not-the-plan", "payload": {"tool_input": {"command": "terraform apply > apply.log"}}, "exit": 2},
+  {"hook": "tf", "name": "attached-redirect-target-is-not-the-plan", "payload": {"tool_input": {"command": "terraform apply >apply.log"}}, "exit": 2},
+  {"hook": "tf", "name": "stderr-redirect-target-is-not-the-plan", "payload": {"tool_input": {"command": "terraform apply 2> tfplan"}}, "exit": 2},
+  {"hook": "tf", "name": "shell-comment-is-not-the-plan", "payload": {"tool_input": {"command": "terraform apply # tfplan"}}, "exit": 2},
+  {"hook": "tf", "name": "input-redirect-is-not-the-plan", "payload": {"tool_input": {"command": "terraform apply < tfplan"}}, "exit": 2},
+  {"hook": "tf", "name": "tofu-ampersand-redirect-is-not-the-plan", "payload": {"tool_input": {"command": "tofu apply &> tfplan"}}, "exit": 2},
+  {"hook": "tf", "name": "plan-then-redirect-is-allowed", "payload": {"tool_input": {"command": "terraform apply tfplan > apply.log"}}, "exit": 0},
+  {"hook": "tf", "name": "plan-then-fd-dup-and-tee-is-allowed", "payload": {"tool_input": {"command": "terraform apply tfplan 2>&1 | tee apply.log"}}, "exit": 0},
+  {"hook": "tf", "name": "plan-then-trailing-comment-is-allowed", "payload": {"tool_input": {"command": "terraform apply -input=false tfplan # nightly"}}, "exit": 0}
 ]
