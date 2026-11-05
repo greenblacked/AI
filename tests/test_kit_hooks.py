@@ -297,12 +297,16 @@ def test_openocd_erase_address_is_refused_as_a_range_not_a_whole_device(bins, sc
 MB = 1_000_000
 BIG = {
     "tf": [
+        # A command made of continuation lines is joined into one line; joining by appending to a
+        # buffer is quadratic in the number of lines.
+        ("continuation-lines", lambda: {"command": "terraform plan \\\n" * 100000}, 2, {}),
         ("one-huge-token", lambda: {"command": "terraform apply " + "x" * (2 * MB)}, 2, {}),
         ("quote-run", lambda: {"command": "terraform apply " + "'" * (2 * MB)}, 2, {}),
         ("many-terraformer-words", lambda: {"command": "terraformer " * 170000}, 0, {}),
         ("no-terraform", lambda: {"command": "echo " + "y" * (2 * MB)}, 0, {}),
     ],
     "kill": [
+        ("continuation-lines", lambda: {"command": "echo \\\n" * 300000}, 0, {}),
         (
             "huge-first-argument",
             lambda: {"command": "pg_terminate_backend(" + "x" * (2 * MB)},
@@ -376,6 +380,7 @@ BIG = {
         ("no-marker", lambda: {"file_path": "a.py", "content": "x = 1\n" * 330000}, 0, {}),
     ],
     "sym": [
+        ("continuation-lines", lambda: {"command": "echo App.dSYM \\\n" * 100000}, 2, {}),
         (
             "artifact-and-huge-token",
             lambda: {"command": "echo " + "x" * (2 * MB) + " App.dSYM"},
@@ -389,6 +394,7 @@ BIG = {
         ("escape-and-near-dsym-runs", lambda: {"command": "echo $'\\x41'dsy " * 100000}, 0, {}),
     ],
     "erase": [
+        ("continuation-lines", lambda: {"command": "st-flash read \\\n" * 100000}, 0, {}),
         ("openocd-words", lambda: {"command": "openocd é " * 200000}, 0, {}),
         ("st-flash-words", lambda: {"command": "st-flash é " * 200000}, 0, {}),
         ("commandfile-words", lambda: {"command": "-commandfile x " * 130000}, 0, {}),
@@ -462,6 +468,7 @@ BIG = {
         ),
     ],
     "ddl": [
+        ("continuation-lines", lambda: {"command": "echo \\\n" * 300000}, 0, {}),
         ("drop-words", lambda: {"command": "drop " * 400000}, 0, {}),
         ("multibyte-drop-words", lambda: {"command": "drop é " * 300000}, 0, {}),
         ("drop-at-the-end", lambda: {"command": "x " * MB + "DROP TABLE t"}, 2, {}),

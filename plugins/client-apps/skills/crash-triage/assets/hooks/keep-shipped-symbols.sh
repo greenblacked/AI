@@ -80,7 +80,7 @@ export LC_ALL=C
 # unlink, find -delete, shred -u, truncate to size zero).
 # Standalone like every hook here, so these two functions are copied rather than sourced.
 normalise() {
-  LC_ALL=C awk '{ if (sub(/\\$/, "")) { buf = buf $0; next } print buf $0; buf = "" } END { if (buf != "") print buf }' |
+  LC_ALL=C awk '{ if (sub(/\\$/, "")) { printf "%s", $0; cont = 1; next } print; cont = 0 } END { if (cont) print "" }' |
     sed -E "s/[\$][\"']//g" | tr -d "\"'\\\\"
 }
 # unreadable ORIGINAL PLAIN: succeeds when the command uses a spelling that normalise cannot read.

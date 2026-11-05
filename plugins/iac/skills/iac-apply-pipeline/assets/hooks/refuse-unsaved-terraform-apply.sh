@@ -71,7 +71,7 @@ hits() {
 # only the command text.
 # Standalone like every hook here, so these two functions are copied rather than sourced.
 normalise() {
-  LC_ALL=C awk '{ if (sub(/\\$/, "")) { buf = buf $0; next } print buf $0; buf = "" } END { if (buf != "") print buf }' |
+  LC_ALL=C awk '{ if (sub(/\\$/, "")) { printf "%s", $0; cont = 1; next } print; cont = 0 } END { if (cont) print "" }' |
     sed -E "s/[\$][\"']//g" | tr -d "\"'\\\\"
 }
 # join_lines: the first step of normalise on its own, for the segment split at the end. A
@@ -79,7 +79,7 @@ normalise() {
 # on the next line belongs to the same command; split on the raw text, `terraform destroy \` and
 # `-auto-approve` would be two segments and the second would never be read as an argument.
 join_lines() {
-  LC_ALL=C awk '{ if (sub(/\\$/, "")) { buf = buf $0; next } print buf $0; buf = "" } END { if (buf != "") print buf }'
+  LC_ALL=C awk '{ if (sub(/\\$/, "")) { printf "%s", $0; cont = 1; next } print; cont = 0 } END { if (cont) print "" }'
 }
 # unreadable ORIGINAL PLAIN: succeeds when the command uses a spelling that normalise cannot read.
 unreadable() {
