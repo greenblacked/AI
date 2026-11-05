@@ -209,19 +209,21 @@ BIG = {
         ("name-without-paren", lambda: {"command": "pg_terminate_backend " * 95000}, 2, {}),
         ("no-function", lambda: {"command": "echo " + "x" * (2 * MB)}, 0, {}),
     ],
+    # Each stays under the 1 MiB the hook refuses at, so the time is the awk pass over the text and
+    # not the refusal; test_the_sup_timing_rows_reach_the_awk_pass checks that.
     "sup": [
         (
             "many-reasoned-markers",
             lambda: {
                 "file_path": "a.py",
-                "content": "x = 1  # pragma: no mutate because ok\n" * 52000,
+                "content": "x = 1  # pragma: no mutate because ok\n" * 25000,
             },
-            2,
+            0,
             {},
         ),
         (
             "many-bare-markers",
-            lambda: {"file_path": "a.py", "content": "x = 1  # pragma: no mutate\n" * 75000},
+            lambda: {"file_path": "a.py", "content": "x = 1  # pragma: no mutate\n" * 36000},
             2,
             {},
         ),
@@ -229,7 +231,7 @@ BIG = {
             "one-long-marker-line",
             lambda: {
                 "file_path": "a.py",
-                "content": "x = 1 " + "y" * (2 * MB) + " # pragma: no mutate",
+                "content": "x = 1 " + "y" * 900000 + " # pragma: no mutate",
             },
             2,
             {},
@@ -238,7 +240,25 @@ BIG = {
             "many-stryker-markers",
             lambda: {
                 "file_path": "a.ts",
-                "content": "// Stryker disable next-line all: ok\n" * 55000,
+                "content": "// Stryker disable next-line all: ok\n" * 27000,
+            },
+            0,
+            {},
+        ),
+        (
+            "many-multibyte-reasons",
+            lambda: {
+                "file_path": "a.py",
+                "content": "x = 1  # pragma: no mutate \u7b49\u4fa1\u5909\u7570 \u2026\n" * 20000,
+            },
+            0,
+            {},
+        ),
+        (
+            "oversized-refusal",
+            lambda: {
+                "file_path": "a.py",
+                "content": "x = 1  # pragma: no mutate because ok\n" * 28000,
             },
             2,
             {},
@@ -435,6 +455,31 @@ BIG_CASES = [
     for key, items in BIG.items()
     for name, build, want, files in items
 ]
+
+
+SUP_LIMIT = 1024 * 1024
+
+
+def test_the_sup_timing_rows_reach_the_awk_pass():
+    """A timing row that hits the size refusal measures nothing about the scan. Every row that
+    holds a marker is below the limit, except the refusal row; the row without a marker never
+    reaches the refusal, whatever its size."""
+    for name, build, _, _ in BIG["sup"]:
+        if name == "no-marker":
+            continue
+        size = len(build()["content"].encode("utf-8"))
+        assert (size > SUP_LIMIT) == (name == "oversized-refusal"), (name, size)
+
+
+@pytest.mark.parametrize("mode", MODES)
+@pytest.mark.parametrize("name", ["many-bare-markers", "one-long-marker-line"])
+def test_a_large_bare_marker_is_judged_not_refused(name, mode, bins, scratch):
+    build = {n: b for n, b, _, _ in BIG["sup"]}[name]
+    stdin = json.dumps({"tool_input": build()}, ensure_ascii=False).encode("utf-8")
+    done = run_hook("sup", stdin, mode, bins, scratch, timeout=5)
+    assert done.returncode == 2
+    assert b"needs a reason" in done.stderr
+    assert b"larger than" not in done.stderr
 
 
 def test_every_hook_has_a_timing_case():

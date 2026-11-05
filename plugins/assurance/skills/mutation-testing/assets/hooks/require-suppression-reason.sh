@@ -46,14 +46,16 @@ case "$file_path" in
   *) exit 0 ;;
 esac
 
-# Text that holds a marker and is larger than 32 KiB is refused rather than judged: no real
-# edit is near that size, and a hook that outlasts its timeout fails open. The text reaches
-# grep as a here-string, not through a pipe: grep -q quits at its first match, and under
-# pipefail a printf still writing into it would fail the pipeline with SIGPIPE, which reads
-# as "no marker" and would allow a large write.
+# Text that holds a marker and is larger than 1 MiB is refused rather than judged: no real edit
+# is near that size, and a whole-file Write of generated code can be a few hundred KiB. The awk
+# pass below is linear, so the limit is a bound on the work and not a guard against a quadratic
+# case; a hook that outlasts its timeout fails open. The text reaches grep as a here-string, not
+# through a pipe: grep -q quits at its first match, and under pipefail a printf still writing
+# into it would fail the pipeline with SIGPIPE, which reads as "no marker" and would allow a
+# large write.
 if grep -Eq 'Stryker disable|pragma: no mutate|mutants::skip|infection-ignore' <<<"$text"; then
-  if [ "$(printf '%s' "$text" | wc -c)" -gt 32768 ]; then
-    echo "blocked: the text holds a mutation suppression marker and is larger than 32 KiB, which this hook will not judge. Write the suppression in a smaller edit, with its reason in the same edit." >&2
+  if [ "$(printf '%s' "$text" | wc -c)" -gt 1048576 ]; then
+    echo "blocked: the text holds a mutation suppression marker and is larger than 1 MiB, which this hook will not judge. Write the suppression in a smaller edit, with its reason in the same edit." >&2
     exit 2
   fi
 else
