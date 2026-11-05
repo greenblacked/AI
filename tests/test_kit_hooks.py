@@ -198,13 +198,20 @@ def run_hook(key, stdin, mode, bins, scratch, timeout):
     return done
 
 
-# The cost budget for one hook run, in CPU seconds. It is measured as CPU time rather than wall
-# time because the suite runs the timing cases on every core at once, and a run that waits for a
-# free core is slow without the hook doing more work. A regex that is quadratic in the input still
-# spends its time on the CPU, so it fails this budget wherever it runs. HOOK_TIMEOUT is Claude
-# Code's default hook timeout: a run past it fails open, so it is the wall-clock limit for a hang.
+# The cost budget for one hook run is measured in CPU time, not wall time: the suite runs the
+# timing cases on every core at once, and a run that waits for a free core is slow without the hook
+# doing more work. CPU speed still differs between machines (one CI runner spent 7.2 CPU s on a
+# case that costs 1.4 on a development machine), so the budget is the larger of CPU_BUDGET and
+# BASELINE_FACTOR times what the same hook spends, on the same machine, on a neutral payload of the
+# same size. Every linear timing case costs at most 2.4 times its baseline; the quadratic erase hook
+# of 08c7086 cost 79 times it on descriptor-copies-128k, so a factor of 8 separates the two on any
+# machine. HOOK_TIMEOUT is Claude Code's default hook timeout: a run past it fails open, so it is
+# the wall-clock limit for a hang.
 CPU_BUDGET = 5
+BASELINE_FACTOR = 8
 HOOK_TIMEOUT = 60
+NEUTRAL_LINE = "echo ok\n"
+NEUTRAL_KEYS = ("command", "content", "new_string")
 
 
 def run_hook_timed(key, stdin, mode, bins, scratch):
@@ -214,6 +221,29 @@ def run_hook_timed(key, stdin, mode, bins, scratch):
     after = resource.getrusage(resource.RUSAGE_CHILDREN)
     spent = (after.ru_utime - before.ru_utime) + (after.ru_stime - before.ru_stime)
     return done, spent
+
+
+def _neutral(tool_input):
+    """The same payload with each text field replaced by harmless lines of the same length."""
+    out = dict(tool_input)
+    for name in NEUTRAL_KEYS:
+        if isinstance(out.get(name), str):
+            size = len(out[name])
+            out[name] = (NEUTRAL_LINE * (size // len(NEUTRAL_LINE) + 1))[:size]
+    return out
+
+
+_BASELINES = {}
+
+
+def cpu_budget(key, tool_input, mode, bins, scratch):
+    """CPU seconds a hook may spend on tool_input on this machine."""
+    stdin = json.dumps({"tool_input": _neutral(tool_input)}, ensure_ascii=False).encode("utf-8")
+    # The long-run cases share one neutral payload per hook and mode, so it is measured once.
+    cache = (key, mode, stdin)
+    if cache not in _BASELINES:
+        _BASELINES[cache] = run_hook_timed(key, stdin, mode, bins, scratch)[1]
+    return max(CPU_BUDGET, BASELINE_FACTOR * _BASELINES[cache])
 
 
 def _stdin(case):
@@ -886,10 +916,12 @@ def test_a_large_payload_finishes_in_five_seconds(
 ):
     for rel, text in files.items():
         (scratch / rel).write_text(text, encoding="utf-8")
-    stdin = json.dumps({"tool_input": build()}, ensure_ascii=False).encode("utf-8")
+    tool_input = build()
+    stdin = json.dumps({"tool_input": tool_input}, ensure_ascii=False).encode("utf-8")
     done, spent = run_hook_timed(key, stdin, mode, bins, scratch)
     assert done.returncode == want, (spent, done.stderr.decode("utf-8", "replace")[:300])
-    assert spent < CPU_BUDGET, f"{HOOK_FILES[key]} ({mode}) spent {spent:.1f} CPU s"
+    budget = cpu_budget(key, tool_input, mode, bins, scratch)
+    assert spent < budget, f"{HOOK_FILES[key]} ({mode}) spent {spent:.1f} of {budget:.1f} CPU s"
 
 
 # One long run of a single kind of character, then a character nothing matches, in front of a
@@ -935,4 +967,5 @@ def test_a_long_run_of_one_character_finishes_in_five_seconds(
     stdin = json.dumps({"tool_input": {"command": command}}).encode("utf-8")
     done, spent = run_hook_timed(key, stdin, mode, bins, scratch)
     assert done.returncode in (0, 2), (spent, done.stderr.decode("utf-8", "replace")[:300])
-    assert spent < CPU_BUDGET, f"{HOOK_FILES[key]} ({mode}) spent {spent:.1f} CPU s"
+    budget = cpu_budget(key, {"command": command}, mode, bins, scratch)
+    assert spent < budget, f"{HOOK_FILES[key]} ({mode}) spent {spent:.1f} of {budget:.1f} CPU s"
