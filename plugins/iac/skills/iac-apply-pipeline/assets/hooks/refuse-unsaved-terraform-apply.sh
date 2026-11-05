@@ -5,7 +5,9 @@
 # before matching, and refuses a command that names terraform or tofu in a spelling it cannot read
 # ($'..' escapes, brace expansion, a variable or substitution as the command, which is read right
 # after a separator or after sudo, exec, command, env and similar wrappers, not after other wrappers) rather than guessing.
-# A redirect target and anything after a shell comment are not read as a saved plan.
+# A redirect target and anything after a word that starts with # are not read as a saved plan. That word
+# may be a comment or the inside of a quoted value (-backup="x #"), and the hook does not track quotes,
+# so the words after it are still scanned for -auto-approve.
 # A script file the command runs and an interpreter one-liner are out of scope: the hook cannot see
 # what they do.
 set -Eeuo pipefail
@@ -163,7 +165,7 @@ unq() {
 
 check_segment() {
   local -a words
-  local i=0 n w raw chdir="" seen=0 plan=0 skip=0
+  local i=0 n w raw chdir="" seen=0 plan=0 skip=0 cmt=0
   # A failed read leaves no words, which would read as "not an apply" and allow the segment.
   # $1 is a piece of the command, which is at most 32 KiB here (the cap above), so it is always
   # small enough for a here-string. Bash 5.1 and later write one that fits the pipe capacity (64 KiB
@@ -207,13 +209,18 @@ check_segment() {
       skip=0
       continue
     fi
-    # A word that starts with an unquoted # begins a shell comment, so nothing after it is an
-    # argument. A redirect operator and its target are not arguments either, so `> apply.log` or
-    # `2> tfplan` never names the saved plan; a lone operator takes the next word as its target, an
-    # attached one (`>file`, `2>file`) is a target in the same word. A plan file is a positional word.
-    [[ "$raw" == \#* ]] && break
+    # A word that starts with # is a comment, or the inside of a quoted value that holds a space and
+    # a # (-backup="x #"); the hook cannot tell which. Either way no later word is a plan file, but
+    # each is still scanned for -auto-approve, so the quoted case cannot hide it. A redirect operator
+    # and its target are not arguments, so `> apply.log` or `2> tfplan` never names the saved plan;
+    # a lone operator takes the next word as its target, an attached one (`>file`, `2>file`) is a
+    # target in the same word. A plan file is a positional word.
+    if [[ "$raw" == \#* ]]; then
+      cmt=1
+      continue
+    fi
     if [[ "$raw" =~ ^[0-9]*(\&?>>|\&?>\||\&?>|<<<|<<|<)(.*)$ ]]; then
-      [ -n "${BASH_REMATCH[2]}" ] || skip=1
+      [ -n "${BASH_REMATCH[2]}" ] || [ "$cmt" -eq 1 ] || skip=1
       continue
     fi
     case "$w" in
@@ -223,10 +230,10 @@ check_segment() {
         ;;
       -*=*) ;;
       -*)
-        if takes_value "${w#-}" || takes_value "$w"; then skip=1; fi
+        if [ "$cmt" -eq 0 ] && { takes_value "${w#-}" || takes_value "$w"; }; then skip=1; fi
         ;;
       *)
-        if [ -f "${chdir:+$chdir/}$w" ]; then plan=1; fi
+        if [ "$cmt" -eq 0 ] && [ -f "${chdir:+$chdir/}$w" ]; then plan=1; fi
         ;;
     esac
   done

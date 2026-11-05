@@ -862,5 +862,15 @@
   {"hook": "tf", "name": "tofu-ampersand-redirect-is-not-the-plan", "payload": {"tool_input": {"command": "tofu apply &> tfplan"}}, "exit": 2},
   {"hook": "tf", "name": "plan-then-redirect-is-allowed", "payload": {"tool_input": {"command": "terraform apply tfplan > apply.log"}}, "exit": 0},
   {"hook": "tf", "name": "plan-then-fd-dup-and-tee-is-allowed", "payload": {"tool_input": {"command": "terraform apply tfplan 2>&1 | tee apply.log"}}, "exit": 0},
-  {"hook": "tf", "name": "plan-then-trailing-comment-is-allowed", "payload": {"tool_input": {"command": "terraform apply -input=false tfplan # nightly"}}, "exit": 0}
+  {"hook": "tf", "name": "plan-then-trailing-comment-is-allowed", "payload": {"tool_input": {"command": "terraform apply -input=false tfplan # nightly"}}, "exit": 0},
+  {"hook": "tf", "name": "destroy-double-quoted-space-hash-then-auto-approve", "payload": {"tool_input": {"command": "terraform destroy -backup=\"x #\" -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "apply-double-quoted-space-hash-then-auto-approve", "payload": {"tool_input": {"command": "terraform apply -backup=\"x #\" -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "destroy-single-quoted-space-hash-then-auto-approve", "payload": {"tool_input": {"command": "terraform destroy -backup='x #' -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "apply-single-quoted-space-hash-then-auto-approve", "payload": {"tool_input": {"command": "terraform apply -backup='x #' -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "destroy-single-quoted-var-hash-then-auto-approve", "payload": {"tool_input": {"command": "tofu destroy -var='a=b #c' -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "apply-single-quoted-var-hash-then-auto-approve", "payload": {"tool_input": {"command": "tofu apply -var='a=b #c' -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "destroy-escaped-space-hash-then-auto-approve", "payload": {"tool_input": {"command": "terraform destroy -backup=x\\ #y -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "apply-escaped-space-hash-then-auto-approve", "payload": {"tool_input": {"command": "terraform apply -backup=x\\ #y -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "destroy-comment-naming-auto-approve-fails-closed", "payload": {"tool_input": {"command": "terraform destroy # note -auto-approve"}}, "exit": 2}
 ]
+
