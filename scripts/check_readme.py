@@ -14,7 +14,7 @@ What is checked, all of it mechanical:
 - one row per skill, linking to a `SKILL.md` that exists
 - no row for a skill that is gone
 - the per-plugin contents table against what each plugin actually ships
-- one chapter per plugin, with `#### Skills`, `#### Subagents`, `#### Commands` (exactly
+- one chapter per plugin, with `#### Subagents`, `#### Skills`, `#### Commands` (exactly
   when the plugin ships commands) and `#### Project kit`, in that order
 - one row per shipped subagent and per shipped command, in its own plugin's chapter
 - the repository's own agents and commands, in "Working on this repository"
@@ -396,7 +396,7 @@ def check(root: Path) -> int:
             fail(f"{plugin} has no chapter: add a '### {plugin.title()}' heading")
             continue
         has_commands = bool(contents[plugin]["commands"])
-        expected = ["Skills", "Subagents", *(["Commands"] if has_commands else []), "Project kit"]
+        expected = ["Subagents", "Skills", *(["Commands"] if has_commands else []), "Project kit"]
         got = [h for h in chapter if h in {"Skills", "Subagents", "Commands", "Project kit"}]
         for heading in expected:
             if heading not in got:

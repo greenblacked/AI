@@ -84,6 +84,20 @@ def test_sections_out_of_order_fail(mini_repo, capsys):
     assert "out of order" in out
 
 
+def test_skills_before_subagents_fail(mini_repo, capsys):
+    # The chapters lead with the agents; the older Skills-first order must not pass.
+    agents = README.split("#### Subagents\n")[1].split("#### Skills\n")[0]
+    skills = README.split("#### Skills\n")[1].split("#### Project kit\n")[0]
+    text = README.replace(
+        "#### Subagents\n" + agents + "#### Skills\n" + skills,
+        "#### Skills\n" + skills + "#### Subagents\n" + agents,
+    )
+    assert text != README
+    code, out = run(mini_repo, text, capsys)
+    assert code == 1
+    assert "out of order" in out
+
+
 def test_a_plugin_with_commands_needs_a_commands_section(mini_repo, capsys):
     _plugin_command(mini_repo)
     code, out = run(mini_repo, README, capsys)
