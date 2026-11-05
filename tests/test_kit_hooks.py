@@ -18,9 +18,9 @@ only its own case.
 """
 
 import json
+import resource
 import shutil
 import subprocess
-import time
 from pathlib import Path
 
 import pytest
@@ -195,6 +195,24 @@ def run_hook(key, stdin, mode, bins, scratch, timeout):
         )
     assert not marker.exists(), "the hook imported json.py from the working directory"
     return done
+
+
+# The cost budget for one hook run, in CPU seconds. It is measured as CPU time rather than wall
+# time because the suite runs the timing cases on every core at once, and a run that waits for a
+# free core is slow without the hook doing more work. A regex that is quadratic in the input still
+# spends its time on the CPU, so it fails this budget wherever it runs. HOOK_TIMEOUT is Claude
+# Code's default hook timeout: a run past it fails open, so it is the wall-clock limit for a hang.
+CPU_BUDGET = 5
+HOOK_TIMEOUT = 60
+
+
+def run_hook_timed(key, stdin, mode, bins, scratch):
+    """Run a hook and return it with the CPU seconds it and its children spent."""
+    before = resource.getrusage(resource.RUSAGE_CHILDREN)
+    done = run_hook(key, stdin, mode, bins, scratch, timeout=HOOK_TIMEOUT)
+    after = resource.getrusage(resource.RUSAGE_CHILDREN)
+    spent = (after.ru_utime - before.ru_utime) + (after.ru_stime - before.ru_stime)
+    return done, spent
 
 
 def _stdin(case):
@@ -868,11 +886,9 @@ def test_a_large_payload_finishes_in_five_seconds(
     for rel, text in files.items():
         (scratch / rel).write_text(text, encoding="utf-8")
     stdin = json.dumps({"tool_input": build()}, ensure_ascii=False).encode("utf-8")
-    started = time.monotonic()
-    done = run_hook(key, stdin, mode, bins, scratch, timeout=5)
-    elapsed = time.monotonic() - started
-    assert done.returncode == want, (elapsed, done.stderr.decode("utf-8", "replace")[:300])
-    assert elapsed < 5
+    done, spent = run_hook_timed(key, stdin, mode, bins, scratch)
+    assert done.returncode == want, (spent, done.stderr.decode("utf-8", "replace")[:300])
+    assert spent < CPU_BUDGET, f"{HOOK_FILES[key]} ({mode}) spent {spent:.1f} CPU s"
 
 
 # One long run of a single kind of character, then a character nothing matches, in front of a
@@ -914,8 +930,6 @@ def test_a_long_run_of_one_character_finishes_in_five_seconds(
 ):
     command = RUN_SHAPES[shape](RUN_UNITS[unit] * RUN_LENGTH, RUN_WORDS[key])
     stdin = json.dumps({"tool_input": {"command": command}}).encode("utf-8")
-    started = time.monotonic()
-    done = run_hook(key, stdin, mode, bins, scratch, timeout=5)
-    elapsed = time.monotonic() - started
-    assert done.returncode in (0, 2), (elapsed, done.stderr.decode("utf-8", "replace")[:300])
-    assert elapsed < 5
+    done, spent = run_hook_timed(key, stdin, mode, bins, scratch)
+    assert done.returncode in (0, 2), (spent, done.stderr.decode("utf-8", "replace")[:300])
+    assert spent < CPU_BUDGET, f"{HOOK_FILES[key]} ({mode}) spent {spent:.1f} CPU s"
