@@ -8,7 +8,7 @@
 # .conf, the file is read from disk at tool_input.file_path, so an Edit is judged on the whole
 # file and not on its fragment. A line that is not a comment (first non-blank character "#",
 # ";" or "//") and that sets one of insecure-skip-tls-verify, insecure-skip-verify,
-# skip-tls-verify or tls-skip-verify to true, yes, on or 1, or one of validate_certs,
+# skip-tls-verify, tls-skip-verify or skip-verify to true, yes, on or 1, or one of validate_certs,
 # verify_ssl, ssl_verify, strict-ssl or rejectunauthorized to false, no, off or 0, is a
 # finding. The words may be joined by a dash, an underscore or nothing, and case is ignored,
 # so insecureSkipVerify, tlsSkipVerify, sslverify (yum, git) and rejectUnauthorized (Node)
@@ -117,7 +117,7 @@ verdict="$(
       l = tolower($0)
       if (l ~ /^[ \t]*(#|;|\/\/)/) next
       if (index(l, "tls-exception") > 0) next
-      if (l ~ /(^|[^a-z0-9_-])(((insecure[-_]?skip[-_]?tls[-_]?verify|insecure[-_]?skip[-_]?verify|skip[-_]?tls[-_]?verify|tls[-_]?skip[-_]?verify)["\047]?[ \t]*[:=][ \t]*["\047]?(true|yes|on|1))|((validate[-_]?certs|verify[-_]?ssl|ssl[-_]?verify|strict[-_]?ssl|reject[-_]?unauthorized)["\047]?[ \t]*[:=][ \t]*["\047]?(false|no|off|0)))([^a-z0-9_]|$)/) {
+      if (l ~ /(^|[^a-z0-9_-])(((insecure[-_]?skip[-_]?tls[-_]?verify|insecure[-_]?skip[-_]?verify|skip[-_]?tls[-_]?verify|tls[-_]?skip[-_]?verify|skip[-_]?verify)["\047]?[ \t]*[:=][ \t]*["\047]?(true|yes|on|1))|((validate[-_]?certs|verify[-_]?ssl|ssl[-_]?verify|strict[-_]?ssl|reject[-_]?unauthorized)["\047]?[ \t]*[:=][ \t]*["\047]?(false|no|off|0)))([^a-z0-9_]|$)/) {
         n++
         if (n <= 10) printf "%d:TLS verification is switched off here\n", NR
       }

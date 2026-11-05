@@ -17,7 +17,7 @@ reason for it has gone.
 - Do not set a skip-verification key to true or a verify key to false in a committed file.
   That covers the Kubernetes `insecure-skip-tls-verify`, the `insecureSkipVerify` or
   `insecure_skip_verify` of Go-based clients (Go's field is `InsecureSkipVerify`),
-  `skip_tls_verify`, Vault's `tls_skip_verify`, npm's `strict-ssl`, Node's `rejectUnauthorized`,
+  `skip_tls_verify`, `skip_verify`, Vault's `tls_skip_verify`, npm's `strict-ssl`, Node's `rejectUnauthorized`,
   `sslverify` in yum and git, and the Ansible, Python-client and registry equivalents
   `validate_certs`, `verify_ssl` and `ssl_verify`.
 - Fix the trust chain instead: add the issuing CA to the client's CA bundle, or name it with
