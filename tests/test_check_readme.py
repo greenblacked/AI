@@ -111,7 +111,7 @@ def test_a_commands_section_for_a_plugin_with_none_fails(mini_repo, capsys):
     assert "ships no commands" in out
 
 
-def test_commands_between_subagents_and_the_kit_pass(mini_repo, capsys):
+def test_commands_between_skills_and_the_kit_pass(mini_repo, capsys):
     _plugin_command(mini_repo)
     text = with_commands("| `/sweep` | x |").replace(
         "2 skills, 1 subagent", "2 skills, 1 subagent, 1 command"
