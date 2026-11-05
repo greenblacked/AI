@@ -34,7 +34,11 @@ fi
 # once, whatever its size, so a large unrelated command is never blocked by this hook. Quotes
 # and backslashes are deleted first, as the word scan below deletes them, because the shell
 # joins ter""raform, t'o'fu and ter\raform into the binary name.
-if ! printf '%s' "$command" | tr -d "\"'\\\\" | LC_ALL=C grep -Eq '(^|[^[:alnum:]_])(terraform|tofu)([^[:alnum:]_]|$)'; then
+# The text reaches grep as a here-string, not through a pipe: grep -q quits at its first match,
+# and under pipefail a printf still writing into it would fail the pipeline with SIGPIPE, which
+# the negation reads as "no match" and so allows a large command.
+bare="$(printf '%s' "$command" | tr -d "\"'\\\\")"
+if ! LC_ALL=C grep -Eq '(^|[^[:alnum:]_])(terraform|tofu)([^[:alnum:]_]|$)' <<<"$bare"; then
   exit 0
 fi
 

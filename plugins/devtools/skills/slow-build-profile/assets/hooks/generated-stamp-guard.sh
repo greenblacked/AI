@@ -57,8 +57,11 @@ case "$base" in
 esac
 [ "$generated" -eq 1 ] || exit 0
 
-if printf '%s' "$content" | grep -Eq '[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}(:[0-9]{2})?' ||
-  printf '%s' "$content" | grep -Eq '(^|[^0-9a-fA-F])[0-9a-f]{40}([^0-9a-fA-F]|$)'; then
+# The content reaches grep as a here-string, not through a pipe: grep -q quits at its first
+# match, and under pipefail a printf still writing into it would fail the pipeline with
+# SIGPIPE, which reads as "no match" and would allow a large write.
+if grep -Eq '[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}(:[0-9]{2})?' <<<"$content" ||
+  grep -Eq '(^|[^0-9a-fA-F])[0-9a-f]{40}([^0-9a-fA-F]|$)' <<<"$content"; then
   echo "blocked: a timestamp or git SHA in $base makes every task that reads it rebuild on every run; inject the stamp in a final uncached step instead" >&2
   exit 2
 fi

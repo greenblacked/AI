@@ -55,8 +55,11 @@ esac
 # satisfies the check, in any casing.
 retry_re='(^|[^[:alpha:]])(retr(y|ies|ied|ying)|max_?(retr|attempts))'
 camel_re='[[:alpha:]]Retr(y|ies|ied|ying)'
-if printf '%s' "$text" | grep -Eqi "$retry_re" || printf '%s' "$text" | grep -Eq "$camel_re"; then
-  if ! printf '%s' "$text" | grep -Eqi 'timeout|deadline'; then
+# The text reaches grep as a here-string, not through a pipe: grep -q quits at its first match,
+# and under pipefail a printf still writing into it would fail the pipeline with SIGPIPE, which
+# reads as "no match" and would allow a large text.
+if grep -Eqi "$retry_re" <<<"$text" || grep -Eq "$camel_re" <<<"$text"; then
+  if ! grep -Eqi 'timeout|deadline' <<<"$text"; then
     echo "blocked: this text sets a retry but no timeout or deadline. Set the timeout from the caller's remaining deadline in the same text, and see call-chain-budget.md." >&2
     exit 2
   fi

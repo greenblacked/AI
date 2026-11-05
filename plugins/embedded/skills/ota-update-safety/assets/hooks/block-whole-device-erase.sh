@@ -40,7 +40,10 @@ scrubbed="$(printf '%s' "$command" | tr '[:upper:]' '[:lower:]' |
 sp='[[:space:]]'
 bs='[\\]'
 word_end="(${sp}|\$|[;&|])"
-if printf '%s' "$scrubbed" | grep -Eq \
+# The text reaches grep as a here-string, not through a pipe: grep -q quits at its first match,
+# and under pipefail a printf still writing into it would fail the pipeline with SIGPIPE, which
+# reads as "no match" and would allow a large command.
+if grep -Eq \
   -e "st-flash[^|;&]*${sp}erase${word_end}" \
   -e "nrfjprog[^|;&]*--(eraseall|recover|rbp|rdp)" \
   -e "esptool[^|;&]*[[:space:]_.-]erase[_-]flash" \
@@ -49,7 +52,8 @@ if printf '%s' "$scrubbed" | grep -Eq \
   -e "pyocd[^|;&]*${sp}erase(${sp}[^|;&]*)?${sp}(--chip|--mass|-c)(${sp}|\$|[;&|=])" \
   -e "stm32_programmer_cli[^|;&]*(-e|--erase)${sp}+all" \
   -e "stm32_programmer_cli[^|;&]*-ob[^|;&]*(rdp|wrp|optr)" \
-  -e "openocd[^|&]*(mass_erase|flash${sp}+erase_sector${sp}+0${sp}+0${sp}+last|stm32[a-z0-9]*x${sp}+(lock|option_write|options_write))"; then
+  -e "openocd[^|&]*(mass_erase|flash${sp}+erase_sector${sp}+0${sp}+0${sp}+last|stm32[a-z0-9]*x${sp}+(lock|option_write|options_write))" \
+  <<<"$scrubbed"; then
   echo "blocked: whole-device erase or readout-protection write. Dump flash and option bytes first (for example 'st-flash read dump.bin 0x08000000 <size>' or 'nrfjprog --readcode dump.hex'), keep the dump, then ask for the erase explicitly." >&2
   exit 2
 fi

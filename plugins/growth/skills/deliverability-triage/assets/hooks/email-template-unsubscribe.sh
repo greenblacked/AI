@@ -39,7 +39,9 @@ case "$file_path" in
   *) exit 0 ;;
 esac
 
-if printf '%s' "$content" | grep -qi 'unsubscribe'; then
+# A here-string, not a pipe: grep -q quits at its first match, and under pipefail a printf
+# still writing into it would fail the pipeline with SIGPIPE, which reads as "no unsubscribe".
+if grep -qi 'unsubscribe' <<<"$content"; then
   exit 0
 fi
 echo "blocked: a marketing email template needs an unsubscribe reference (link or List-Unsubscribe). Add one to the content of this write." >&2

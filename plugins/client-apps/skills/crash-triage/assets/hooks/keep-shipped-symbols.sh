@@ -39,8 +39,11 @@ fi
 # fails open. Nothing here needs more than ASCII to match.
 export LC_ALL=C
 
-# A command that names no protected artifact has nothing to protect; allow it at once.
-if ! printf '%s' "$command" | grep -Eq '\.dSYM|mapping\.txt|\.symbols'; then
+# A command that names no protected artifact has nothing to protect; allow it at once. Every
+# grep here reads a here-string, not a pipe: grep -q quits at its first match, and under
+# pipefail a printf still writing into it would fail the pipeline with SIGPIPE, which a
+# negation reads as "no match" and so allows a large command.
+if ! grep -Eq '\.dSYM|mapping\.txt|\.symbols' <<<"$command"; then
   exit 0
 fi
 
@@ -54,7 +57,7 @@ fi
 # Only a deleting verb is refused; reading or copying a symbol file is fine. The verb may be
 # path-qualified (/bin/rm, /usr/bin/unlink) or escaped (\rm) to dodge an alias. It may also be
 # the last word (names piped to xargs, arriving on stdin) or followed by ${IFS}.
-if printf '%s' "$command" | grep -Eq '(^|[[:space:];&|(\\])([^[:space:];&|()]*/)?(rm|unlink)([[:space:]]|$|\$\{?IFS)|find[[:space:]].*-delete'; then
+if grep -Eq '(^|[[:space:];&|(\\])([^[:space:];&|()]*/)?(rm|unlink)([[:space:]]|$|\$\{?IFS)|find[[:space:]].*-delete' <<<"$command"; then
   echo "blocked: shipped-build symbols are needed to symbolicate crashes; archive or upload them instead of deleting" >&2
   exit 2
 fi
