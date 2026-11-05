@@ -902,6 +902,8 @@ RUN_UNITS = {
     "backslashes": "\\",
     "letters": "a",
     "hashes": "#",
+    "comment-opens": "/*",
+    "dashes": "--",
 }
 RUN_WORDS = {
     "tf": "terraform apply",
@@ -928,7 +930,7 @@ def test_every_normalising_hook_has_a_word_for_the_run_tests():
 def test_a_long_run_of_one_character_finishes_in_five_seconds(
     key, unit, shape, mode, bins, scratch
 ):
-    command = RUN_SHAPES[shape](RUN_UNITS[unit] * RUN_LENGTH, RUN_WORDS[key])
+    command = RUN_SHAPES[shape]((RUN_UNITS[unit] * RUN_LENGTH)[:RUN_LENGTH], RUN_WORDS[key])
     stdin = json.dumps({"tool_input": {"command": command}}).encode("utf-8")
     done, spent = run_hook_timed(key, stdin, mode, bins, scratch)
     assert done.returncode in (0, 2), (spent, done.stderr.decode("utf-8", "replace")[:300])

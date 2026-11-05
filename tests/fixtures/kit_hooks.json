@@ -844,5 +844,14 @@
   {"hook": "erase", "name": "done-to-variable-name-has-no-erase", "payload": {"tool_input": {"command": "echo done > $LOG; JLinkExe -CommandFile flash.jlink"}}, "exit": 0},
   {"hook": "ddl", "name": "truncate-a-non-ascii-identifier-is-blocked-byte-wise", "payload": {"tool_input": {"command": "psql -c \"truncate événements\""}}, "exit": 2},
   {"hook": "ddl", "name": "shell-truncate-after-two-tabs-is-allowed", "payload": {"tool_input": {"command": "truncate\t\t-s 0 log.txt"}}, "exit": 0},
-  {"hook": "ddl", "name": "shell-truncate-after-space-and-tab-is-allowed", "payload": {"tool_input": {"command": "truncate \t-s 0 log.txt"}}, "exit": 0}
+  {"hook": "ddl", "name": "shell-truncate-after-space-and-tab-is-allowed", "payload": {"tool_input": {"command": "truncate \t-s 0 log.txt"}}, "exit": 0},
+  {"hook": "ddl", "name": "drop-with-block-comment-between-tokens", "payload": {"tool_input": {"command": "psql -c \"DROP /* retire old metric */ TABLE metrics\""}}, "exit": 2},
+  {"hook": "ddl", "name": "truncate-with-block-comment-between-tokens", "payload": {"tool_input": {"command": "psql -c \"TRUNCATE /* reset metric */ TABLE metrics\""}}, "exit": 2},
+  {"hook": "ddl", "name": "drop-with-line-comment-between-tokens", "payload": {"tool_input": {"command": "psql -c \"DROP -- note\nTABLE metrics\""}}, "exit": 2},
+  {"hook": "ddl", "name": "drop-with-empty-block-comment-as-space", "payload": {"tool_input": {"command": "psql -c \"DROP/**/TABLE metrics\""}}, "exit": 2},
+  {"hook": "ddl", "name": "mysql-drop-with-hash-comment-between-tokens", "payload": {"tool_input": {"command": "mysql -e \"DROP # note\nTABLE metrics\""}}, "exit": 2},
+  {"hook": "ddl", "name": "bq-truncate-with-block-comment", "payload": {"tool_input": {"command": "bq query \"TRUNCATE /*x*/ TABLE d.t\""}}, "exit": 2},
+  {"hook": "ddl", "name": "drop-inside-a-line-comment-fails-closed", "payload": {"tool_input": {"command": "psql -c \"select 1 -- drop table later\""}}, "exit": 2},
+  {"hook": "ddl", "name": "block-comment-literal-in-select-is-allowed", "payload": {"tool_input": {"command": "psql -c \"select '/* x */' as c\""}}, "exit": 0},
+  {"hook": "ddl", "name": "shell-truncate-size-flag-still-allowed-with-comment-words", "payload": {"tool_input": {"command": "truncate -s 0 log.txt"}}, "exit": 0}
 ]
