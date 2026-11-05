@@ -46,63 +46,73 @@ case "$file_path" in
   *) exit 0 ;;
 esac
 
+# Text that holds a marker and is larger than 32 KiB is refused rather than judged: no real
+# edit is near that size, and a hook that outlasts its timeout fails open. The text reaches
+# grep as a here-string, not through a pipe: grep -q quits at its first match, and under
+# pipefail a printf still writing into it would fail the pipeline with SIGPIPE, which reads
+# as "no marker" and would allow a large write.
+if grep -Eq 'Stryker disable|pragma: no mutate|mutants::skip|infection-ignore' <<<"$text"; then
+  if [ "$(printf '%s' "$text" | wc -c)" -gt 32768 ]; then
+    echo "blocked: the text holds a mutation suppression marker and is larger than 32 KiB, which this hook will not judge. Write the suppression in a smaller edit, with its reason in the same edit." >&2
+    exit 2
+  fi
+else
+  exit 0
+fi
+
 # Judged on the written text alone, so for an Edit the reason must be in the same edit.
 # A reason is words in a comment on the same line or the line directly above, or text after
-# the colon on a Stryker line.
-missing=""
-prev=""
-n=0
-while IFS= read -r line || [ -n "$line" ]; do
-  n=$((n + 1))
-  case "$line" in
-    *"Stryker disable"*)
-      rest="${line#*Stryker disable}"
-      case "$rest" in
-        *:*) reason="${rest#*:}" ;;
-        *) reason="" ;;
-      esac
-      if ! printf '%s' "$reason" | grep -Eq '[[:alnum:]]'; then
-        missing="${missing}line ${n}: ${line}"$'\n'
-      fi
-      ;;
-    *"pragma: no mutate"* | *"mutants::skip"* | *"infection-ignore"*)
-      # The reason must come after the marker: code before it on the line is not one, and a
-      # marker suffix such as the "-all" in @infection-ignore-all is part of the marker.
-      after=""
-      for m in "pragma: no mutate" "mutants::skip" "infection-ignore"; do
-        case "$line" in
-          *"$m"*)
-            after="${line#*"$m"}"
-            break
-            ;;
-        esac
-      done
-      same="$(printf '%s' "$after" | sed -E 's/^(-[[:alpha:]]+)*//' | grep -Eo '[[:alpha:]]{2,}' | head -n 1 || true)"
-      # Or a comment line directly above carrying words, that is not itself a marker.
-      above=""
-      lead="${prev#"${prev%%[![:space:]]*}"}"
-      case "$lead" in
-        *"pragma: no mutate"* | *"mutants::skip"* | *"infection-ignore"*) ;;
-        # A Rust attribute (#[inline]) or a shebang is not a comment, and a bare `*` leader counts
-        # only as a docblock line (` * reason`): `*count += 1;` is code.
-        "#["* | "#!"*) ;;
-        "#"* | "//"* | "/*"* | "* "* | "*"$'\t'* | "*")
-          above="$(printf '%s' "$prev" | grep -Eo '[[:alpha:]]{2,}' | head -n 1 || true)"
-          ;;
-      esac
-      if [ -z "$same" ] && [ -z "$above" ]; then
-        missing="${missing}line ${n}: ${line}"$'\n'
-      fi
-      ;;
-  esac
-  prev="$line"
-done <<<"$text"
+# the colon on a Stryker line. One awk pass reads every line, so a marker line costs no
+# process and no expansion of a long line. A character outside ASCII counts as one letter, as it did
+# when grep matched under a UTF-8 locale.
+#   Stryker line: the reason is what follows the first colon after "Stryker disable".
+#   Other marker: the reason must come after the marker (code before it is not one, and a
+#   suffix such as the "-all" in @infection-ignore-all belongs to the marker), or sit in a
+#   comment line directly above that is not itself a marker. A Rust attribute (#[inline]) or
+#   a shebang (#!) is not a comment, and a bare `*` leader counts only as a docblock line
+#   (` * reason`): `*count += 1;` is code.
+missing="$(
+  LC_ALL=C awk '
+    function norm(s) { gsub(/[\300-\375][\200-\277]*/, "a", s); gsub(/[\200-\377]/, "a", s); return s }
+    function words(s) { return norm(s) ~ /[A-Za-z][A-Za-z]/ }
+    function marked(s) {
+      return index(s, "pragma: no mutate") || index(s, "mutants::skip") || index(s, "infection-ignore")
+    }
+    {
+      line = $0
+      if (index(line, "Stryker disable")) {
+        rest = substr(line, index(line, "Stryker disable") + length("Stryker disable"))
+        colon = index(rest, ":")
+        reason = colon ? norm(substr(rest, colon + 1)) : ""
+        if (reason !~ /[A-Za-z0-9]/) printf "line %d: %s\n", NR, line
+      } else if (marked(line)) {
+        m = "pragma: no mutate"
+        at = index(line, m)
+        if (!at) { m = "mutants::skip"; at = index(line, m) }
+        if (!at) { m = "infection-ignore"; at = index(line, m) }
+        after = norm(substr(line, at + length(m)))
+        sub(/^(-[A-Za-z]+)*/, "", after)
+        same = after ~ /[A-Za-z][A-Za-z]/
+        above = 0
+        lead = prev
+        sub(/^[[:space:]]+/, "", lead)
+        two = substr(lead, 1, 2)
+        if (marked(lead) || two == "#[" || two == "#!") {
+        } else if (substr(lead, 1, 1) == "#" || two == "//" || two == "/*" || two == "* " || two == "*\t" || lead == "*") {
+          above = words(prev)
+        }
+        if (!same && !above) printf "line %d: %s\n", NR, line
+      }
+      prev = line
+    }
+  ' <<<"$text"
+)"
 
 if [ -n "$missing" ]; then
   {
     echo "blocked: a mutation suppression needs a reason. Say why the mutant is equivalent or accepted,"
     echo "on the same line or in a comment directly above, within this same write or edit:"
-    printf '%s' "$missing"
+    printf '%s\n' "$missing"
   } >&2
   exit 2
 fi
