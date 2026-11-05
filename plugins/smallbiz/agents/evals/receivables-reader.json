@@ -1,0 +1,22 @@
+[
+  {"query": "here are the invoice register and the payments csv for September, which invoices are paid, part-paid or unpaid", "should_trigger": true},
+  {"query": "match the 240 invoices in invoices-2026-09.csv against bank-receipts.csv and give me the outstanding total, don't paste the rows back", "should_trigger": true},
+  {"query": "i've exported my sales invoices and the payment report from the accounting software, work out what's still owed per client", "should_trigger": true},
+  {"query": "read the receivables export and the receipts export for the quarter and list every part-paid invoice with the balance left", "should_trigger": true},
+  {"query": "doing the receivables step of the month close, the register is 400 rows; read it against the payments file and tell me the overdue count and amount", "should_trigger": true},
+  {"query": "which receipts in this payment export didn't match any invoice in the register", "should_trigger": true},
+  {"query": "two exports attached, invoices and payments, give me total invoiced, total received and total outstanding in each currency", "should_trigger": true},
+  {"query": "reconcile my invoice list csv with what actually landed in the bank this month, one line per unpaid invoice please", "should_trigger": true},
+  {"query": "client paid three invoices with one transfer, check the payment export and tell me which invoices that settled and whether anything is left over", "should_trigger": true},
+  {"query": "go through the ageing export and the cash receipts file and say how many invoices are fully paid, how many partly", "should_trigger": true},
+  {"query": "Acme is 21 days late on invoice 1042, write the firm notice", "should_trigger": false, "expected": "late-payment-chase"},
+  {"query": "walk me through my monthly close: reconcile, categorise, lock the period", "should_trigger": false, "expected": "monthly-bookkeeping-close"},
+  {"query": "the client says the invoice is wrong and refuses to pay, how do i respond", "should_trigger": false, "expected": "invoice-dispute-resolution"},
+  {"query": "what should be on an invoice so it is paid quickly and passes an audit", "should_trigger": false, "expected": "invoice-hygiene"},
+  {"query": "here is twelve months of my credit card and current account exports, what do i spend on and which subscriptions am i paying", "should_trigger": false, "expected": "statement-reader"},
+  {"query": "the aws bill jumped 40% this month, read the cost export and tell me which service did it", "should_trigger": false, "expected": "cost-analyst"},
+  {"query": "forecast my cash for the next 13 weeks from the invoices i have out", "should_trigger": false, "expected": "cashflow-forecast-13-week"},
+  {"query": "how much of each payment should i put aside for tax", "should_trigger": false, "expected": "tax-set-aside"},
+  {"query": "assemble my year-end tax pack from the books for the accountant", "should_trigger": false, "expected": "year-end-tax-pack"},
+  {"query": "write a script that imports a payments csv into postgres and dedupes by reference", "should_trigger": false}
+]
