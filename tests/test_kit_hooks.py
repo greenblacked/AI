@@ -12,7 +12,7 @@ only, because the hooks carry both and they must agree. The environment is minim
 a hook allow everything if a bare `python3 -c` imported it; a case that expects a block
 therefore also proves the stub did not run.
 
-A 2 MB payload per hook must finish in under 5 seconds. A hook that outlasts the hook
+A large payload per hook must finish in under 5 seconds. A hook that outlasts the hook
 timeout fails open, so a hang here is a finding, and the subprocess timeout makes it fail
 only its own case.
 """
@@ -362,6 +362,74 @@ BIG = {
     ],
 }
 
+# A match on the first line of a multi-line input, followed by more than a pipe buffer of further
+# lines. `grep -q` quits at the match and a writer piped into it dies of SIGPIPE, which `pipefail`
+# turns into a failed pipeline; a hook that read that as "no match" allowed the command.
+LINES = "echo padding line here\n" * 40000
+EARLY = {
+    "tf": [
+        (
+            "violation-first-line",
+            lambda: {"command": "terraform apply -auto-approve\n" + LINES},
+            2,
+            {},
+        )
+    ],
+    "kill": [
+        (
+            "violation-first-line",
+            lambda: {"command": "select pg_terminate_backend(pid)\n" + LINES},
+            2,
+            {},
+        )
+    ],
+    "sup": [
+        (
+            "violation-first-line",
+            lambda: {"file_path": "a.py", "content": "x = 1  # pragma: no mutate\n" + LINES},
+            2,
+            {},
+        )
+    ],
+    "sym": [("violation-first-line", lambda: {"command": "rm App.dSYM\n" + LINES}, 2, {})],
+    "erase": [("violation-first-line", lambda: {"command": "st-flash erase\n" + LINES}, 2, {})],
+    "ddl": [("violation-first-line", lambda: {"command": "DROP TABLE t\n" + LINES}, 2, {})],
+    "retry": [
+        (
+            "violation-first-line",
+            lambda: {"file_path": "a.go", "content": "retry()\n" + LINES},
+            2,
+            {},
+        ),
+    ],
+    "gen": [
+        (
+            "violation-first-line",
+            lambda: {"file_path": "src/generated/v.c", "content": "2024-01-02T03:04:05\n" + LINES},
+            2,
+            {},
+        )
+    ],
+    "mail": [
+        (
+            "unsubscribe-first-line",
+            lambda: {"file_path": "emails/marketing/x.html", "content": "unsubscribe\n" + LINES},
+            0,
+            {},
+        )
+    ],
+    "ph": [
+        (
+            "tk-first-line",
+            lambda: {"file_path": "applications/big-first.md"},
+            2,
+            {"applications/big-first.md": "[TK: a]\n" + LINES},
+        )
+    ],
+}
+for _key, _items in EARLY.items():
+    BIG[_key] = BIG[_key] + _items
+
 BIG_CASES = [
     pytest.param(key, name, build, want, files, id=f"{key}-{name}")
     for key, items in BIG.items()
@@ -375,7 +443,7 @@ def test_every_hook_has_a_timing_case():
 
 @pytest.mark.parametrize("mode", MODES)
 @pytest.mark.parametrize(("key", "name", "build", "want", "files"), BIG_CASES)
-def test_a_two_megabyte_payload_finishes_in_five_seconds(
+def test_a_large_payload_finishes_in_five_seconds(
     key, name, build, want, files, mode, bins, scratch
 ):
     for rel, text in files.items():
