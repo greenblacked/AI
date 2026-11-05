@@ -29,6 +29,8 @@ seff JOBID      # contrib tool, not installed everywhere; sacct has the underlyi
 
 If the record is empty, the job ID is wrong, the cluster has accounting off, or the job ran on another cluster of a multi-cluster setup; add `-M CLUSTER` or ask the site before going further.
 
+When the `sacct` dump runs past a screen, or the array has hundreds of logs, hand the saved rows and log files to the `slurm-log-reader` subagent instead of reading them here. It returns the State class, the step row that decided it and the decisive log line, and the dump itself never enters this conversation.
+
 ### 2. Classify by State
 
 `references/state-table.md` has the full table. The decisions:
@@ -89,6 +91,36 @@ Only `sacct`, `seff`, `sstat`, `squeue`, `sinfo`, `grep`, `head`, `tail` and `ls
 **Identical resubmission.** It tests luck, not a hypothesis, and burns queue time.
 
 **Doubling everything.** A larger request waits longer in the queue; size from measurement.
+
+## Project kit
+
+Three opt-in files under this skill's `assets/` keep batch scripts and failure records honest in a
+project. Install them when the project submits its own jobs or keeps a record of failed ones:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/slurm-batch-scripts.md` loads when a `.sbatch` file or a
+  shell script under a `slurm/` directory is read or edited, and asks for an explicit memory
+  request, a measured time limit, per-task log names and a script that does not depend on the
+  submission environment.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/require-memory-request.json`, with its script
+  `${CLAUDE_SKILL_DIR}/assets/hooks/require-memory-request.sh`, reports a written batch script
+  that has `#SBATCH` lines and none requesting `--mem`, `--mem-per-cpu` or `--mem-per-gpu`. It
+  runs after the write, so it feeds the finding back for the next edit and does not stop the
+  write.
+- `${CLAUDE_SKILL_DIR}/assets/templates/failed-job-record.md` is the record to fill in for one
+  failed job or array, matching the Output format above.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/slurm-batch-scripts.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/require-memory-request.sh" .claude/hooks/
+chmod +x .claude/hooks/require-memory-request.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/require-memory-request.json` into
+`.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the
+script first; it runs with your permissions on every matching tool call.
 
 ## Reference files
 
