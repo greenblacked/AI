@@ -568,8 +568,9 @@ runs with your permissions on every matching tool call.
   and refuses what it cannot normalise when the command also names its protected target:
   a `$'...'` string with a backslash (hex and octal escapes), a brace list or range, and a
   variable or substitution where the command word goes (`t=terraform; $t apply`), which it
-  reads directly after a separator or after the common wrappers (`sudo`, `exec`, `command`,
-  `env` and similar) and not after any other wrapper. It
+  reads directly after a separator or after the common wrappers (`sudo`, `exec`, `command`
+  and similar) and not after any other wrapper; `env` is among them only in the symbols,
+  terraform and erase hooks, not in the DDL and backend-kill hooks. It
   refuses with a message saying it could not read the command and that it should be
   written plainly. Indirection through a script file or an interpreter one-liner is still
   out of scope, and each hook's header comment says so rather than imply a guarantee.
