@@ -13,6 +13,7 @@
   {"query": "the server won't boot and drops to emergency mode, help me get it back up", "should_trigger": false, "expected": "boot-failure-recovery"},
   {"query": "explain what constraint=CONSTRAINT_MEMCG means in the oom report and what limit to change", "should_trigger": false, "expected": "oom-kill-forensics"},
   {"query": "the server rebooted by itself overnight, how do i tell a kernel panic from power loss", "should_trigger": false, "expected": "kernel-crash-forensics"},
+  {"query": "we got a vmcore from the kdump after the panic, work out what crashed the kernel and which module is at fault", "should_trigger": false, "expected": "kernel-crash-forensics"},
   {"query": "the CI run failed and the log is 60MB, which triage class is it", "should_trigger": false, "expected": "ci-log-reader"},
   {"query": "the postgres log has hundreds of deadlock detected entries, which patterns repeat and how often", "should_trigger": false, "expected": "deadlock-log-reader"},
   {"query": "my cron job did not fire last night and nothing shows in the journal", "should_trigger": false, "expected": "scheduled-job-debugging"},
