@@ -70,13 +70,14 @@ fi
 # Byte-wise matching (LC_ALL=C): under a UTF-8 locale GNU grep takes quadratic time on the patterns
 # below for a command with a long run of spaces or letters, so a large command outlasts the hook
 # timeout, and a timed-out hook fails open. Upper case is only folded for ASCII, which is all a
-# keyword uses; a byte outside ASCII counts as an identifier start in truncate_re, as a letter did.
+# keyword uses; a byte outside ASCII (not a tab or other control byte) counts as an identifier start
+# in truncate_re, as a letter did.
 export LC_ALL=C
 # Word-bounded and SQL-shaped, so "truncated" and `truncate -s 0 file` pass while
 # `TRUNCATE TABLE t`, `truncate t`, `DROP MATERIALIZED VIEW v`, `DROP SNAPSHOT TABLE t` and
 # `DROP DYNAMIC TABLE t` block.
 drop_re='\<drop[[:space:]]+((external|materialized|snapshot|dynamic|temp|temporary)[[:space:]]+)?(table|view|schema|database|column)\>'
-truncate_re='\<truncate[[:space:]]+(table[[:space:]]+)?([[:alpha:]_"`[\\]|[^[:print:]])'
+truncate_re='\<truncate[[:space:]]+(table[[:space:]]+)?([[:alpha:]_"`[\\]|[^[:print:][:cntrl:]])'
 bq_re='\<bq[[:space:]]+rm\>'
 # A text match cannot read the shell's own spellings, so the command is normalised first: a
 # backslash-newline continuation is joined, the $ of $'..' and $".." is dropped, and quotes and
