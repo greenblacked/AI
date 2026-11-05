@@ -500,5 +500,6 @@
   {"hook": "tf", "name": "ansi-c-quoted-plan-only", "payload": {"tool_input": {"command": "$'terraform' plan"}}, "exit": 0},
   {"hook": "sup", "name": "reasoned-markers-past-32k-under-1m", "payload": {"tool_input": {"file_path": "a.py", "content": {"parts": [["x = 1  # pragma: no mutate because ok\n", 20000]]}}}, "exit": 0},
   {"hook": "sup", "name": "bare-marker-past-32k-under-1m", "payload": {"tool_input": {"file_path": "a.py", "content": {"parts": [["x = 1\n", 20000], "y = 2  # pragma: no mutate\n"]}}}, "exit": 2},
-  {"hook": "sup", "name": "stryker-reasoned-past-32k-under-1m", "payload": {"tool_input": {"file_path": "a.ts", "content": {"parts": [["// Stryker disable next-line all: ok\n", 5000]]}}}, "exit": 0}
+  {"hook": "sup", "name": "stryker-reasoned-past-32k-under-1m", "payload": {"tool_input": {"file_path": "a.ts", "content": {"parts": [["// Stryker disable next-line all: ok\n", 5000]]}}}, "exit": 0},
+  {"hook": "sup", "name": "reason-multiplication-signs", "payload": {"tool_input": {"file_path": "a.py", "content": "x = 1  # pragma: no mutate ×× ÷\n"}}, "exit": 2}
 ]
