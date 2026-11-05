@@ -73,7 +73,7 @@
   {"hook": "tf", "name": "tofu-auto-approve", "payload": {"tool_input": {"command": "tofu apply -auto-approve"}}, "exit": 2},
   {"hook": "tf", "name": "empty-double-quotes-split-word", "payload": {"tool_input": {"command": "ter\"\"raform apply -auto-approve"}}, "exit": 2},
   {"hook": "tf", "name": "single-quotes-split-word", "payload": {"tool_input": {"command": "t'o'fu apply -auto-approve"}}, "exit": 2},
-  {"hook": "tf", "name": "mixed-quotes-split-word", "payload": {"tool_input": {"command": "te\"rra\"'fo'rm apply -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "mixed-quotes-split-word", "payload": {"tool_input": {"command": "ter\"ra\"'fo'rm apply -auto-approve"}}, "exit": 2},
   {"hook": "tf", "name": "backslash-split-word", "payload": {"tool_input": {"command": "ter\\raform apply -auto-approve"}}, "exit": 2},
   {"hook": "tf", "name": "backslash-split-tofu", "payload": {"tool_input": {"command": "to\\fu apply -auto-approve"}}, "exit": 2},
   {"hook": "tf", "name": "quoted-apply-word", "payload": {"tool_input": {"command": "terraform \"apply\" -auto-approve"}}, "exit": 2},
