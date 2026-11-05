@@ -12,7 +12,7 @@ only, because the hooks carry both and they must agree. The environment is minim
 a hook allow everything if a bare `python3 -c` imported it; a case that expects a block
 therefore also proves the stub did not run.
 
-A large payload per hook must finish in under 5 seconds. A hook that outlasts the hook
+A large payload per hook must stay within a CPU budget, set below. A hook that outlasts the hook
 timeout fails open, so a hang here is a finding, and the subprocess timeout makes it fail
 only its own case.
 """
@@ -205,10 +205,20 @@ def run_hook(key, stdin, mode, bins, scratch, timeout):
 # BASELINE_FACTOR times what the same hook spends, on the same machine, on a neutral payload of the
 # same size. Every linear timing case costs at most 2.4 times its baseline; the quadratic erase hook
 # of 08c7086 cost 79 times it on descriptor-copies-128k, so a factor of 8 separates the two on any
-# machine. HOOK_TIMEOUT is Claude Code's default hook timeout: a run past it fails open, so it is
-# the wall-clock limit for a hang.
+# machine for a slowdown that depends on the payload.
+#
+# A slowdown that does not depend on the payload, such as a loop over the command's length, slows
+# the neutral baseline in step and so raises its own budget. That is the one case the factor cannot
+# see, so whenever BASELINE_FACTOR times the baseline exceeds CPU_BUDGET (a hook that slow is the
+# only one whose budget the baseline decides), the hook is also run on the neutral payload at a
+# quarter of the size, and the two must grow by less than GROWTH_LIMIT. Linear growth is about 4
+# even with start-up cost, and quadratic is about 16. Growth with a power below 1.5 (a ratio
+# under GROWTH_LIMIT for four times the input) is not caught; the check separates linear from
+# quadratic and does not prove linearity. HOOK_TIMEOUT is Claude Code's default hook
+# timeout: a run past it fails open, so it is the wall-clock limit for a hang.
 CPU_BUDGET = 5
 BASELINE_FACTOR = 8
+GROWTH_LIMIT = 8
 HOOK_TIMEOUT = 60
 NEUTRAL_LINE = "echo ok\n"
 NEUTRAL_KEYS = ("command", "content", "new_string")
@@ -223,27 +233,44 @@ def run_hook_timed(key, stdin, mode, bins, scratch):
     return done, spent
 
 
-def _neutral(tool_input):
-    """The same payload with each text field replaced by harmless lines of the same length."""
+def _neutral(tool_input, divisor=1):
+    """The same payload with each text field replaced by harmless lines of 1/divisor the length."""
     out = dict(tool_input)
     for name in NEUTRAL_KEYS:
         if isinstance(out.get(name), str):
-            size = len(out[name])
+            size = len(out[name]) // divisor
             out[name] = (NEUTRAL_LINE * (size // len(NEUTRAL_LINE) + 1))[:size]
     return out
 
 
+def _neutral_stdin(tool_input, divisor=1):
+    payload = {"tool_input": _neutral(tool_input, divisor)}
+    return json.dumps(payload, ensure_ascii=False).encode("utf-8")
+
+
 _BASELINES = {}
+_GROWTH = {}
 
 
 def cpu_budget(key, tool_input, mode, bins, scratch):
     """CPU seconds a hook may spend on tool_input on this machine."""
-    stdin = json.dumps({"tool_input": _neutral(tool_input)}, ensure_ascii=False).encode("utf-8")
+    stdin = _neutral_stdin(tool_input)
     # The long-run cases share one neutral payload per hook and mode, so it is measured once.
     cache = (key, mode, stdin)
     if cache not in _BASELINES:
         _BASELINES[cache] = run_hook_timed(key, stdin, mode, bins, scratch)[1]
-    return max(CPU_BUDGET, BASELINE_FACTOR * _BASELINES[cache])
+    baseline = _BASELINES[cache]
+    if BASELINE_FACTOR * baseline > CPU_BUDGET:
+        # The baseline now decides the budget, so check that it is not itself super-linear.
+        if cache not in _GROWTH:
+            quarter = run_hook_timed(key, _neutral_stdin(tool_input, 4), mode, bins, scratch)[1]
+            _GROWTH[cache] = baseline / max(quarter, 0.01)
+        growth = _GROWTH[cache]
+        assert growth < GROWTH_LIMIT, (
+            f"{HOOK_FILES[key]} ({mode}) grows {growth:.1f} times in CPU time for four times the "
+            f"input on a neutral payload ({baseline:.1f} CPU s); linear is about 4, quadratic 16"
+        )
+    return max(CPU_BUDGET, BASELINE_FACTOR * baseline)
 
 
 def _stdin(case):
@@ -911,7 +938,7 @@ def test_every_hook_has_a_timing_case():
 
 @pytest.mark.parametrize("mode", MODES)
 @pytest.mark.parametrize(("key", "name", "build", "want", "files"), BIG_CASES)
-def test_a_large_payload_finishes_in_five_seconds(
+def test_a_large_payload_stays_within_its_cpu_budget(
     key, name, build, want, files, mode, bins, scratch
 ):
     for rel, text in files.items():
@@ -936,6 +963,7 @@ RUN_UNITS = {
     "letters": "a",
     "hashes": "#",
     "comment-opens": "/*",
+    "double-slashes": "//",
     "dashes": "--",
 }
 RUN_WORDS = {
@@ -960,7 +988,7 @@ def test_every_normalising_hook_has_a_word_for_the_run_tests():
 @pytest.mark.parametrize("shape", RUN_SHAPES)
 @pytest.mark.parametrize("unit", RUN_UNITS)
 @pytest.mark.parametrize("key", NORMALISING)
-def test_a_long_run_of_one_character_finishes_in_five_seconds(
+def test_a_long_run_of_one_character_stays_within_its_cpu_budget(
     key, unit, shape, mode, bins, scratch
 ):
     command = RUN_SHAPES[shape]((RUN_UNITS[unit] * RUN_LENGTH)[:RUN_LENGTH], RUN_WORDS[key])
