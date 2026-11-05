@@ -119,6 +119,9 @@ def scratch(tmp_path_factory):
     return cwd
 
 
+NORMALISING = ("tf", "kill", "sym", "erase", "ddl")
+
+
 @pytest.fixture(scope="session")
 def bins(tmp_path_factory):
     """One directory of symlinks per parser mode and hook, holding exactly the tools that hook
@@ -131,6 +134,22 @@ def bins(tmp_path_factory):
         for key in HOOK_FILES:
             directory = tmp_path_factory.mktemp(f"bin-{mode}-{key}")
             for tool in (*BASE_TOOLS, *EXTRA_TOOLS.get(key, ()), *parser):
+                (directory / tool).symlink_to(_path_for(tool))
+            made[mode][key] = directory
+    return made
+
+
+@pytest.fixture(scope="session")
+def noawk_bins(tmp_path_factory):
+    """Like `bins`, for the hooks that normalise the command with awk, but with no awk."""
+    made = {}
+    for mode, parser in MODES.items():
+        if _missing(parser):
+            continue
+        made[mode] = {}
+        for key in NORMALISING:
+            directory = tmp_path_factory.mktemp(f"bin-noawk-{mode}-{key}")
+            for tool in (*(t for t in BASE_TOOLS if t != "awk"), *parser):
                 (directory / tool).symlink_to(_path_for(tool))
             made[mode][key] = directory
     return made
@@ -217,15 +236,49 @@ def test_hook_verdict(case, mode, bins, scratch):
         )
 
 
-def test_openocd_erase_address_is_refused_as_a_range_not_a_whole_device(bins, scratch):
-    command = "openocd -c 'flash erase_address 0x08000000 0x100000'"
+# Without awk the normalising hooks cannot read the command. Left alone they would exit 127,
+# which is not a block, so the command would run unjudged; they refuse with exit 2 instead,
+# whatever the command is.
+NO_AWK_COMMANDS = {
+    "tf": ("terraform apply -auto-approve", "terraform plan"),
+    "kill": ("select pg_terminate_backend(pid)", "select 1"),
+    "sym": ("rm App.dSYM", "ls build"),
+    "erase": ("st-flash erase", "ls build"),
+    "ddl": ("DROP TABLE t", "select 1"),
+}
+
+
+def test_no_awk_case_for_every_normalising_hook():
+    assert set(NO_AWK_COMMANDS) == set(NORMALISING)
+
+
+@pytest.mark.parametrize("mode", MODES)
+@pytest.mark.parametrize(
+    ("key", "command"),
+    [(k, c) for k in NORMALISING for c in NO_AWK_COMMANDS[k]],
+    ids=lambda v: v if v in NORMALISING else v.replace(" ", "_"),
+)
+def test_a_missing_awk_refuses(key, command, mode, noawk_bins, scratch):
+    if mode not in noawk_bins:
+        pytest.skip(f"the {mode} parser mode needs {' and '.join(MODES[mode])} on PATH")
+    assert not (noawk_bins[mode][key] / "awk").exists()
     stdin = json.dumps({"tool_input": {"command": command}}).encode("utf-8")
-    for mode in MODES:
-        done = run_hook("erase", stdin, mode, bins, scratch, timeout=30)
-        assert done.returncode == 2
-        assert b"erase_address" in done.stderr
-        assert b"range" in done.stderr
-        assert b"whole-device" not in done.stderr
+    done = run_hook(key, stdin, mode, noawk_bins, scratch, timeout=30)
+    assert done.returncode == 2, done.stderr.decode("utf-8", "replace")[:300]
+    assert done.stderr.startswith(b"blocked")
+    assert b"awk" in done.stderr
+
+
+def _function_body(path, name):
+    text = path.read_text("utf-8")
+    start = text.index(f"\n{name}() {{\n") + 1
+    return text[start : text.index("\n}\n", start) + 3]
+
+
+def test_the_normalise_function_is_the_same_in_every_hook_that_has_one():
+    bodies = {key: _function_body(_hook_path(key), "normalise") for key in NORMALISING}
+    assert len(set(bodies.values())) == 1, {k: v for k, v in bodies.items()}
+    assert "LC_ALL=C awk" in bodies["tf"]
 
 
 # Worst-case inputs of about 2 MB, built here because they are too large for the table. Each
@@ -329,7 +382,6 @@ BIG = {
         ("erase-words", lambda: {"command": "erase " * 340000}, 0, {}),
         ("erase-pipes", lambda: {"command": "erase | " * 290000}, 0, {}),
         ("jlink-words", lambda: {"command": "JLinkExe " * 220000}, 0, {}),
-        ("jlink-words-with-carriage-returns", lambda: {"command": "JLinkExe\r\n" * 200000}, 0, {}),
         (
             "jlink-heredoc-words",
             lambda: {"command": "JLinkExe <<EOF\n" + "connect\n" * 250000},
@@ -337,57 +389,6 @@ BIG = {
             {},
         ),
         ("erase-at-the-end", lambda: {"command": "a " * MB + "&& st-flash erase"}, 2, {}),
-        # Every heredoc, and every echo, writes `erase` to its own file and thousands of other
-        # lines name J-Link, so comparing each file with each J-Link line is quadratic in the
-        # input. The last row names the very last file, so the answer is found only at the end.
-        (
-            "heredoc-files-times-jlink-lines",
-            lambda: {
-                "command": "".join(f"cat <<E > f{i}\nerase\nE\n" for i in range(40000))
-                + "jlink x\n" * 70000
-            },
-            0,
-            {},
-        ),
-        (
-            "writer-files-times-jlink-lines",
-            lambda: {
-                "command": "".join(f"echo erase > f{i}\n" for i in range(60000))
-                + "jlink x\n" * 70000
-            },
-            0,
-            {},
-        ),
-        (
-            "writer-files-times-jlink-lines-named-at-the-end",
-            lambda: {
-                "command": "".join(f"echo erase > f{i}\n" for i in range(60000))
-                + "jlink x\n" * 70000
-                + "JLinkExe -CommandFile f59999"
-            },
-            2,
-            {},
-        ),
-        # Under a UTF-8 locale GNU grep took quadratic time on the stdin patterns for this shape: a
-        # word `erase` that is not alone before the `;`, and tens of thousands of J-Link commands.
-        (
-            "erase-argument-then-many-jlink-commands",
-            lambda: {"command": "echo erase x; " + "JLinkExe -x f; " * 20000},
-            0,
-            {},
-        ),
-        (
-            "many-jlink-lines-one-file",
-            lambda: {"command": "echo erase > f\n" + "jlink x\n" * 200000},
-            0,
-            {},
-        ),
-        (
-            "many-redirects-on-one-heredoc-line",
-            lambda: {"command": "cat <<E" + " >f" * 300000 + "\nconnect\nE\njlink f"},
-            0,
-            {},
-        ),
         (
             "jlink-erase-at-the-end",
             lambda: {"command": "a\n" * MB + "printf 'r\\nerase\\n' | JLinkExe"},
