@@ -157,6 +157,35 @@ Report a test design in this shape, before writing the tests:
 
 **Conditionals inside a test.** An `if` in a test means it asserts different things on different runs, and the branch that never executes hides a case nobody notices is missing. Split it into two tests.
 
+## Project kit
+
+Three opt-in files under this skill's `assets/` keep a project's tests deterministic. Install them
+when the project has its own test suite and has been bitten by flaky runs or fixed waits:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/test-determinism.md` loads when a test file is read or edited,
+  and asks for an injected clock, seeded randomness, a wait on the condition rather than a fixed
+  sleep, and an I/O seam, with the reason for each.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/no-fixed-sleep-in-tests.json`, with its script
+  `${CLAUDE_SKILL_DIR}/assets/hooks/no-fixed-sleep-in-tests.sh`, reports a written test file that
+  calls `time.sleep(`, `time.Sleep(`, `Thread.sleep(` or `await sleep(` outside a comment and
+  without `sleep-ok` on the line. It runs after the write, so it feeds the finding back for the
+  next edit and does not stop the write.
+- `${CLAUDE_SKILL_DIR}/assets/templates/test-plan.md` is the plan to fill in for one change, matching
+  the Output format above.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/test-determinism.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/no-fixed-sleep-in-tests.sh" .claude/hooks/
+chmod +x .claude/hooks/no-fixed-sleep-in-tests.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/no-fixed-sleep-in-tests.json` into
+`.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the
+script first; it runs with your permissions on every matching tool call.
+
 ## Reference files
 
 - `references/case-selection.md` — read when the cross product of parameters exceeds about twenty cases, or when choosing between a hand-picked table, pairwise selection and a property-based generator.
