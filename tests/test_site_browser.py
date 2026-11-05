@@ -2169,7 +2169,7 @@ def test_below_64rem_the_sections_are_behind_a_menu_that_opens_from_the_keyboard
         )
         assert shown_links == [label for label, _ in site.PAGES + site.ELSEWHERE]
         panel = box(page, ".menu nav")
-        assert panel["left"] >= 0 and panel["right"] <= width
+        assert panel["left"] == 0 and panel["right"] <= width * 0.85
         assert page.evaluate("() => document.documentElement.scrollWidth") <= width
         # Reduced motion is on in this context, so the panel appears without animating.
         assert (
@@ -2188,7 +2188,7 @@ def test_below_64rem_the_sections_are_behind_a_menu_that_opens_from_the_keyboard
 
 
 @pytest.mark.parametrize("width", [375, 768])
-def test_the_menu_opens_with_a_fade_only_when_motion_is_allowed(browser, base_url, width):
+def test_the_menu_slides_in_only_when_motion_is_allowed(browser, base_url, width):
     context = browser.new_context(viewport={"width": width, "height": 800})
     context.route(re.compile("^(?!" + re.escape(base_url) + "/)"), lambda route: route.abort())
     try:
@@ -2201,6 +2201,43 @@ def test_the_menu_opens_with_a_fade_only_when_motion_is_allowed(browser, base_ur
             )
             == "menu-in"
         )
+    finally:
+        context.close()
+
+
+@pytest.mark.parametrize("width", [375, 768])
+def test_the_open_menu_is_a_left_drawer_that_escape_a_backdrop_and_a_link_close(
+    browser, base_url, width
+):
+    context = _phone(browser, base_url, width)
+    try:
+        page = context.new_page()
+        page.goto(base_url + "/")
+        viewport = page.evaluate("() => innerHeight")
+        page.click(".menu summary")
+        panel = box(page, ".menu nav")
+        assert panel["left"] == 0 and panel["right"] <= width * 0.85
+        assert panel["right"] <= 320 and panel["height"] == viewport
+        assert (
+            page.evaluate("() => getComputedStyle(document.documentElement).overflow") == "hidden"
+        )
+        assert page.evaluate("() => document.documentElement.scrollWidth") <= width
+        # The toggle stays reachable above the drawer, so it is also the close control.
+        assert page.evaluate(
+            "() => { const r = document.querySelector('.menu summary span')"
+            ".getBoundingClientRect(); return document.elementFromPoint("
+            "r.left + 2, r.top + r.height / 2).closest('summary') !== null; }"
+        )
+        page.keyboard.press("Escape")
+        assert not page.evaluate("() => document.querySelector('.menu').open")
+        assert page.evaluate("() => document.activeElement.matches('.menu summary')")
+        page.click(".menu summary")
+        page.mouse.click(width - 5, viewport / 2)
+        assert not page.evaluate("() => document.querySelector('.menu').open")
+        page.click(".menu summary")
+        page.click(".menu nav a >> nth=1")
+        page.wait_for_load_state()
+        assert not page.evaluate("() => document.querySelector('.menu').open")
     finally:
         context.close()
 
