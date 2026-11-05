@@ -515,5 +515,15 @@
   {"hook": "game", "name": "data-but-not-json", "payload": {"tool_input": {"file_path": "data/invalid.txt"}}, "exit": 0},
   {"hook": "game", "name": "missing-file", "payload": {"tool_input": {"file_path": "data/missing.json"}}, "exit": 0},
   {"hook": "game", "name": "dash-path-invalid", "payload": {"tool_input": {"file_path": "-x/data/invalid.json"}}, "exit": 2},
-  {"hook": "game", "name": "dash-path-valid", "payload": {"tool_input": {"file_path": "-x/data/valid.json"}}, "exit": 0}
+  {"hook": "game", "name": "dash-path-valid", "payload": {"tool_input": {"file_path": "-x/data/valid.json"}}, "exit": 0},
+  {"hook": "erase", "name": "printf-s-erase-not-first-pipe-jlink", "payload": {"tool_input": {"command": "printf '%s\\n' r erase q | JLinkExe"}}, "exit": 2},
+  {"hook": "erase", "name": "printf-s-erase-pipe-jlink", "payload": {"tool_input": {"command": "printf '%s\\n' erase q | JLinkExe"}}, "exit": 2},
+  {"hook": "erase", "name": "brace-group-erase-pipe-jlink", "payload": {"tool_input": {"command": "{ echo r; echo erase; echo q; } | JLinkExe"}}, "exit": 2},
+  {"hook": "erase", "name": "subshell-list-erase-pipe-jlink", "payload": {"tool_input": {"command": "(echo r; echo erase; echo q; echo exit) | JLinkExe"}}, "exit": 2},
+  {"hook": "erase", "name": "erase-pipe-ampersand-jlink", "payload": {"tool_input": {"command": "echo erase |& JLinkExe"}}, "exit": 2},
+  {"hook": "erase", "name": "printf-erase-pipe-ampersand-jlink", "payload": {"tool_input": {"command": "printf 'r\\nerase\\n' |& JLinkExe"}}, "exit": 2},
+  {"hook": "erase", "name": "grep-erase-docs-then-jlink-bare", "payload": {"tool_input": {"command": "grep -n erase docs.md; JLinkExe"}}, "exit": 0},
+  {"hook": "erase", "name": "grep-erase-docs-and-jlink", "payload": {"tool_input": {"command": "grep -n erase docs.md && JLinkExe -device X"}}, "exit": 0},
+  {"hook": "erase", "name": "grep-erase-docs-pipe-cat-then-jlink", "payload": {"tool_input": {"command": "grep -n erase docs.md | cat; JLinkExe"}}, "exit": 0},
+  {"hook": "erase", "name": "group-without-erase-pipe-jlink", "payload": {"tool_input": {"command": "{ echo r; echo connect; echo q; } | JLinkExe"}}, "exit": 0}
 ]

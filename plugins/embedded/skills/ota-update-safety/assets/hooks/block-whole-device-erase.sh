@@ -65,22 +65,28 @@ bs='[\\]'
 q="[\"']"
 word_end="(${sp}|\$|[;&|)])"
 # A J-Link command can reach the tool on stdin, so `erase` is also matched as a word wherever it
-# starts: after a space, a quote or a literal \n (printf 'r\nerase\nq\n'), and it must be the
-# command that is piped or joined: `erase` directly followed by a pipe, `;` or `&`, with at most
-# a quote, a parenthesis or a redirect to a file in between (echo erase > c.jlink && JLinkExe
-# -CommandFile c.jlink). Text after `erase` is allowed only in the literal \n form, where it is
-# the rest of the script (`erase\nexit\n' | JLinkExe`); anywhere else it means `erase` is an
-# argument of some other command (grep -n erase docs.md; JLinkExe ...) and is not matched.
+# starts: after a space, a quote or a literal \n (printf 'r\nerase\nq\n'). What may follow it
+# depends on how the commands reach J-Link:
+#   - before `;` or `&` it must stand alone, with at most a quote, a parenthesis or a redirect to a
+#     file in between (echo erase > c.jlink && JLinkExe -CommandFile c.jlink). Text after `erase`
+#     there means `erase` is an argument of some other command (grep -n erase docs.md; JLinkExe).
+#   - before a pipe (`|` or `|&`) other words may follow it, because they are the rest of the
+#     script that is piped (printf '%s\n' r erase q | JLinkExe). A pipe carries the output of the
+#     whole left side, so the words in front of it are what J-Link reads.
+#   - in a group, a brace or parenthesis list piped as a whole ({ echo r; echo erase; } | JLinkExe).
+#   - in the literal \n form the rest of the script may follow (`erase\nexit\n' | JLinkExe`).
 # `erased` and `erase_log` are not the word.
 # Real newlines end a command, so the literal-\n form runs on the lines as they are. The other
 # forms run on a view with the newlines turned into spaces, which keeps a multi-line quoted
 # printf, and a pipe at the end of a line, in one command; the heredoc body is read line by line
 # by the awk below, so the text after its delimiter is never part of it.
 flat="$(printf '%s' "$scrubbed" | tr '\n' ' ')"
-stdin_erase_lit="(^|${sp}|${q}|${bs}n)erase${bs}n[^|;&]*(;|&+|\\|)[^;&]*jlink"
-stdin_erase="(^|${sp}|${q}|${bs}n)erase${q}?${sp}*\\)*${sp}*(>>?${sp}*[^[:space:];&|]+${sp}*)?(;|&+|\\|)[^;&]*jlink"
-stdin_erase_sq="'(([^'|;&]*${sp})?)erase(${sp}[^'|;&]*)?'${sp}*\\|[^;&]*jlink"
-stdin_erase_dq="\"(([^\"|;&]*${sp})?)erase(${sp}[^\"|;&]*)?\"${sp}*\\|[^;&]*jlink"
+stdin_erase_lit="(^|${sp}|${q}|${bs}n)erase${bs}n[^|;&]*(;|&+|\\|&?)[^;&]*jlink"
+stdin_erase="(^|${sp}|${q}|${bs}n)erase${q}?${sp}*\\)*${sp}*(>>?${sp}*[^[:space:];&|]+${sp}*)?(;|&+)[^;&]*jlink"
+stdin_erase_pipe="(^|${sp}|${q}|${bs}n)erase((${sp}|${q})[^|;&]*)?\\|&?[^;&]*jlink"
+stdin_erase_group="(^|${sp}|${q}|${bs}n)erase([^[:alnum:]_|{}()][^|{}()]*)?[})]${sp}*\\|&?[^;&]*jlink"
+stdin_erase_sq="'(([^'|;&]*${sp})?)erase(${sp}[^'|;&]*)?'${sp}*\\|&?[^;&]*jlink"
+stdin_erase_dq="\"(([^\"|;&]*${sp})?)erase(${sp}[^\"|;&]*)?\"${sp}*\\|&?[^;&]*jlink"
 hit=0
 if hits "$scrubbed" -E \
   -e "st-flash[^|;&]*${sp}erase${word_end}" \
@@ -92,7 +98,7 @@ if hits "$scrubbed" -E \
   -e "stm32_programmer_cli[^|;&]*-ob[^|;&]*(rdp|wrp|optr)" \
   -e "openocd[^|&]*(mass_erase|flash${sp}+erase_sector${sp}+0${sp}+0${sp}+last|stm32[a-z0-9]*x${sp}+(lock|option_write|options_write))" \
   -e "$stdin_erase_lit" ||
-  hits "$flat" -E -e "$stdin_erase" -e "$stdin_erase_sq" -e "$stdin_erase_dq"; then
+  hits "$flat" -E -e "$stdin_erase" -e "$stdin_erase_pipe" -e "$stdin_erase_group" -e "$stdin_erase_sq" -e "$stdin_erase_dq"; then
   hit=1
 fi
 # A J-Link heredoc (`JLinkExe <<EOF`, `cat <<EOF | JLinkExe`) or here-string (`JLinkExe <<< erase`)
