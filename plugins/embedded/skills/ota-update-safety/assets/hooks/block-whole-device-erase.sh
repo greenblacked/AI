@@ -85,8 +85,10 @@ scrubbed="$(printf '%s' "$lower" | sed -E "$scrub")"
 # a path ($HOME/bin/nrfjprog) is read as the path it ends in. Indirection through a script file
 # or an interpreter one-liner is still out of scope: this hook sees only the command text.
 # Standalone like every hook here, so these two functions are copied rather than sourced.
+# A line continues only when it ends in an odd number of backslashes: `\\` is an escaped backslash and the
+# command ends there. The run is counted from the end, so a long run costs time in its own length only.
 normalise() {
-  LC_ALL=C awk '{ if (sub(/\\$/, "")) { printf "%s", $0; cont = 1; next } print; cont = 0 } END { if (cont) print "" }' |
+  LC_ALL=C awk '{ n = length($0); k = 0; while (k < n && substr($0, n - k, 1) == "\\") k++; if (k % 2) { printf "%s", substr($0, 1, n - 1); cont = 1; next } print; cont = 0 } END { if (cont) print "" }' |
     sed -E "s/[\$][\"']//g" | tr -d "\"'\\\\"
 }
 # unreadable ORIGINAL PLAIN: succeeds when the command uses a spelling that normalise cannot read.

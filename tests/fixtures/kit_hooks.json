@@ -759,5 +759,22 @@
   {"hook": "erase", "name": "nrfjprog-qspichiperase", "payload": {"tool_input": {"command": "nrfjprog --qspichiperase"}}, "exit": 2},
   {"hook": "erase", "name": "nrfjprog-qspieraseall", "payload": {"tool_input": {"command": "nrfjprog --qspieraseall"}}, "exit": 2},
   {"hook": "erase", "name": "nrfjprog-qspisectorerase", "payload": {"tool_input": {"command": "nrfjprog --qspisectorerase"}}, "exit": 0},
-  {"hook": "sym", "name": "ansi-c-escapes-in-a-row-no-artifact", "payload": {"tool_input": {"command": "echo $'\\x41\\x42\\x43\\x44'"}}, "exit": 0}
+  {"hook": "sym", "name": "ansi-c-escapes-in-a-row-no-artifact", "payload": {"tool_input": {"command": "echo $'\\x41\\x42\\x43\\x44'"}}, "exit": 0},
+  {"hook": "tf", "name": "escaped-backslash-ends-the-line-then-guarded-command", "payload": {"tool_input": {"command": "echo x\\\\\nterraform apply -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "four-backslashes-end-the-line-then-guarded-command", "payload": {"tool_input": {"command": "echo x\\\\\\\\\nterraform apply -auto-approve"}}, "exit": 2},
+  {"hook": "sym", "name": "escaped-backslash-ends-the-line-then-guarded-command", "payload": {"tool_input": {"command": "echo x\\\\\nrm -rf App.dSYM"}}, "exit": 2},
+  {"hook": "sym", "name": "four-backslashes-end-the-line-then-guarded-command", "payload": {"tool_input": {"command": "echo x\\\\\\\\\nrm -rf App.dSYM"}}, "exit": 2},
+  {"hook": "ddl", "name": "escaped-backslash-ends-the-line-then-guarded-command", "payload": {"tool_input": {"command": "echo x\\\\\npsql -c 'DROP TABLE t'"}}, "exit": 2},
+  {"hook": "ddl", "name": "four-backslashes-end-the-line-then-guarded-command", "payload": {"tool_input": {"command": "echo x\\\\\\\\\npsql -c 'DROP TABLE t'"}}, "exit": 2},
+  {"hook": "kill", "name": "escaped-backslash-ends-the-line-then-guarded-command", "payload": {"tool_input": {"command": "echo x\\\\\npsql -c 'select pg_terminate_backend(pid) from pg_stat_activity'"}}, "exit": 2},
+  {"hook": "kill", "name": "four-backslashes-end-the-line-then-guarded-command", "payload": {"tool_input": {"command": "echo x\\\\\\\\\npsql -c 'select pg_terminate_backend(pid) from pg_stat_activity'"}}, "exit": 2},
+  {"hook": "erase", "name": "escaped-backslash-ends-the-line-then-guarded-command", "payload": {"tool_input": {"command": "echo x\\\\\nst-flash erase"}}, "exit": 2},
+  {"hook": "erase", "name": "four-backslashes-end-the-line-then-guarded-command", "payload": {"tool_input": {"command": "echo x\\\\\\\\\nst-flash erase"}}, "exit": 2},
+  {"hook": "tf", "name": "even-backslash-line-then-flag-stays-split", "payload": {"tool_input": {"command": "terraform apply tfplan\\\\\n-auto-approve"}}, "exit": 0},
+  {"hook": "sym", "name": "even-backslash-line-then-name-stays-split", "payload": {"tool_input": {"command": "rm -rf build App.dS\\\\\nYM"}}, "exit": 0},
+  {"hook": "ddl", "name": "even-backslash-line-then-sql-stays-split", "payload": {"tool_input": {"command": "psql -c DR\\\\\nOP TABLE t"}}, "exit": 0},
+  {"hook": "kill", "name": "even-backslash-line-then-call-stays-split", "payload": {"tool_input": {"command": "psql -c pg_terminate_\\\\\nbackend(pid)"}}, "exit": 0},
+  {"hook": "erase", "name": "even-backslash-line-then-verb-stays-split", "payload": {"tool_input": {"command": "st-flash \\\\\nerase"}}, "exit": 0},
+  {"hook": "sym", "name": "odd-backslash-line-still-joins", "payload": {"tool_input": {"command": "rm -rf \\\nApp.dSYM"}}, "exit": 2},
+  {"hook": "tf", "name": "three-backslashes-join-after-an-escaped-one", "payload": {"tool_input": {"command": "terraform apply\\\\\\\n -auto-approve"}}, "exit": 2}
 ]
