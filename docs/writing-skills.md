@@ -562,9 +562,15 @@ runs with your permissions on every matching tool call.
   write has already happened: exit 2 only feeds stderr back to the model, which can fix the
   file but cannot be undone by the hook. A kit that must stop a write registers on
   `PreToolUse`.
-- It sees only the command text, so shell indirection (`t=terraform; $t apply`) and a
-  script file the command runs are outside what it can judge, and its comments should say
-  so rather than imply a guarantee.
+- It sees only the command text, and a text match cannot read the shell's own spellings.
+  A hook that judges a shell command therefore normalises it once (deletes quotes and
+  backslashes, drops the `$` of `$'...'`, joins continuation lines) and matches on that,
+  and refuses what it cannot normalise when the command also names its protected target:
+  a `$'...'` string with a backslash (hex and octal escapes), a brace list or range, and a
+  variable or substitution where the command word goes (`t=terraform; $t apply`). It
+  refuses with a message saying it could not read the command and that it should be
+  written plainly. Indirection through a script file or an interpreter one-liner is still
+  out of scope, and each hook's header comment says so rather than imply a guarantee.
 
 A kit's `.sh` makes Cisco flag its anchor skill with `ALLOWED_TOOLS_BASH_VIOLATION`, and
 may make SkillSpector report AE1 `static_parse_limit` there; in the first batch of ten kits
