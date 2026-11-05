@@ -210,8 +210,8 @@ suppressions:
     reason: >-
       The skill's opt-in Project kit ships assets/hooks/decision-rule-because.sh, which the scanner reads as bash the
       skill runs. It is a template the installer copies on purpose: the hook reports, after a write, each decision
-      rule in an interview file that gives no reason, refuses a file over 1 MiB, uses standard tools only, reads one
-      stdin payload and one file, and has no network access, secrets or eval. The skill itself does not run it and
+      rule in a decision-rule sheet that gives no reason, refuses a file over 1 MiB, uses standard tools only, reads
+      one stdin payload and one file, and has no network access, secrets or eval. The skill itself does not run it and
       the allowed-tools grant is not widened.
     expires: 2027-05-02
 

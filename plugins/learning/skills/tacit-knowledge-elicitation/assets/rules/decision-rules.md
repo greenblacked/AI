@@ -1,11 +1,12 @@
 ---
 paths:
-  - "**/interviews/**/*.md"
+  - "**/*decision-rule*.md"
 ---
 
 # Decision rules from expert interviews
 
-Loads when a file under an interviews directory is read or edited. A rule is only useful to the
+Loads when a decision-rule sheet (a Markdown file with decision-rule in its name) is read or
+edited; raw transcripts are left alone. A rule is only useful to the
 next person if they can apply it to a case that does not quite match.
 
 - Write each rule as "If X, look at Y first because Z". X is something a person can observe,

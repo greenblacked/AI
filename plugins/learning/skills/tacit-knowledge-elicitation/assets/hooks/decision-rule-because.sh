@@ -2,17 +2,17 @@
 # Report each decision rule in a written interview file that gives no reason. A rule is a line
 # starting "If " (after any quote, bullet or number marker); it needs the word "because" on that
 # line or on the lines that continue it, up to the next blank line, heading, bullet or rule.
-# Acts on a .md file under an interviews/ directory, or any .md file whose name contains
-# decision-rule. Deterministic: standard tools only, no network, no secrets, nothing is run from
+# Acts only on a decision-rule sheet: a .md file whose name contains decision-rule, wherever it
+# lives. Raw interview transcripts are never read. Deterministic: standard tools only, no network, no secrets, nothing is run from
 # the file.
 #
 # It reads the WRITTEN FILE from disk at tool_input.file_path, because an Edit carries only a
 # fragment. Known limits:
 #   - It runs on PostToolUse, so the write has already happened; exit 2 feeds the findings back to
 #     the model to fix, it cannot undo the write.
-#   - A raw transcript under interviews/ also holds sentences that begin "If " without being rules;
-#     those are reported too. Keep transcripts outside interviews/ or install the hook for the rule
-#     sheets only.
+#   - A transcript holds sentences that begin "If " without being rules, so a file is judged only
+#     when its name contains decision-rule; name the rule sheet that way and keep it apart from
+#     the transcripts.
 #   - Only a capitalised "If" starts a rule; "if", "**If**" and a table cell are not read. The word
 #     "because" is matched in any case, but "since" or "as" are not accepted as a reason.
 #   - A file over 1 MiB is refused unread rather than scanned.
@@ -42,14 +42,9 @@ fi
 # tool is worse than no hook.
 [ -n "$file" ] || exit 0
 
-case "$file" in
-  interviews/*.md | */interviews/*.md) ;;
-  *)
-    case "${file##*/}" in
-      *decision-rule*.md) ;;
-      *) exit 0 ;;
-    esac
-    ;;
+case "${file##*/}" in
+  *decision-rule*.md) ;;
+  *) exit 0 ;;
 esac
 [ -f "$file" ] || exit 0
 
@@ -69,7 +64,7 @@ if [ "$rc" -ne 0 ]; then
 fi
 size="${size//[!0-9]/}"
 if [ "${size:-0}" -gt 1048576 ]; then
-  echo "blocked: $file is larger than 1 MiB, which this hook will not scan for decision rules. Split the interview notes into smaller files and keep the rules in a decision-rule sheet." >&2
+  echo "blocked: $file is larger than 1 MiB, which this hook will not scan for decision rules. Split the sheet into smaller decision-rule files." >&2
   exit 2
 fi
 
