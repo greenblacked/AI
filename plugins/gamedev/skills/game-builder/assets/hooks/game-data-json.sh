@@ -38,9 +38,10 @@ if command -v python3 >/dev/null 2>&1; then
 elif command -v jq >/dev/null 2>&1; then
   # jq reads a leading BOM as a syntax error, but the engines and Python load such a file, so
   # skip exactly one. The path is only ever a redirection target, never an argument, so a name
-  # starting with a dash cannot be read as an option. `input | empty` fails on a file with no
-  # value in it, which is what Python does, where `jq empty` would call it valid; so an empty
-  # file, a BOM-only file and a file with two BOMs are all reported on both paths.
+  # starting with a dash cannot be read as an option. The filter requires exactly one value,
+  # which is what Python and the engines load, where `jq empty` would accept an empty file and
+  # reading only the first value would accept `1 2`; so an empty file, a BOM-only file, a file
+  # with two BOMs and a file holding more than one value are all reported on both paths.
   bom="$(printf '\357\273\277')"
   # A NUL in the first bytes makes bash warn on stderr; the warning is noise here.
   { head3="$(LC_ALL=C head -c 3 < "$file" || true)"; } 2>/dev/null
@@ -51,12 +52,12 @@ elif command -v jq >/dev/null 2>&1; then
       echo "invalid JSON in $file: more than one byte order mark" >&2
       exit 2
     fi
-    err="$(tail -c +4 < "$file" | jq -n 'input | empty' 2>&1)" || {
+    err="$(tail -c +4 < "$file" | jq -n '[inputs] | if length == 1 then empty else error("expected one JSON value, found \(length)") end' 2>&1)" || {
       echo "invalid JSON in $file: $err" >&2
       exit 2
     }
   else
-    err="$(jq -n 'input | empty' < "$file" 2>&1)" || {
+    err="$(jq -n '[inputs] | if length == 1 then empty else error("expected one JSON value, found \(length)") end' < "$file" 2>&1)" || {
       echo "invalid JSON in $file: $err" >&2
       exit 2
     }

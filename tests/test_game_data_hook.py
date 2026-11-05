@@ -79,10 +79,22 @@ def test_invalid_file_with_a_bom_is_still_reported(mode_dir: Path, tmp_path: Pat
     assert result.returncode == 2
 
 
-# An empty file, a BOM-only file and a file with two BOMs are all invalid JSON, on both paths:
-# Python rejects each, and `jq empty` alone would accept the first two.
+# An empty file, a BOM-only file, a file with two BOMs and a file holding more than one value
+# are all invalid JSON, on both paths: Python rejects each, and jq reading only the first value
+# would accept the last three.
 @pytest.mark.parametrize(
-    "content", [b"", b"  \n", BOM, BOM + b"\n", BOM + BOM + b'{"a": 1}'], ids=str
+    "content",
+    [
+        b"",
+        b"  \n",
+        BOM,
+        BOM + b"\n",
+        BOM + BOM + b'{"a": 1}',
+        b"1 2",
+        BOM + b"1 2",
+        b'{"a": 1} x',
+    ],
+    ids=str,
 )
 def test_no_value_or_a_second_bom_is_reported(
     mode_dir: Path, tmp_path: Path, content: bytes
