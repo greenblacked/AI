@@ -9,10 +9,13 @@
 # .yaml, the file is read from disk at tool_input.file_path, so an Edit is judged on the whole file
 # and not on its fragment. One pass tracks each run: or script: key (also as a list item) and the
 # lines indented under it, and reports a line there that has an expression opener followed by one
-# of: github.head_ref, or a github.event field for a pull request title, body, head ref, label or
-# head repository default branch; an issue title or body; a comment, review or review comment body;
-# a discussion title or body; a head commit message or author; a workflow run head branch, display
-# title or head commit message. Comment lines outside a block are skipped. A line inside a block is
+# of: github.head_ref, or a github.event field for a pull request title, body, head ref, label,
+# head repository default branch or head repository description; an issue title or body; a comment,
+# review or review comment body; a discussion title or body; the message, author name or author
+# email of the head commit or of any commit in a push (commits[N] or commits[*]); the name of a
+# page in a wiki event; a workflow run head branch, display title or head commit message. The
+# expression is compared in lower case, because GitHub reads property names without regard to
+# case, so github.event.Pull_Request.TITLE is the same field. Comment lines outside a block are skipped. A line inside a block is
 # judged even when it is a shell comment, because the substitution happens before any shell sees it.
 # A finding exits 2 and names path:line for up to 20 lines; any other file, or none, is allowed.
 #
@@ -21,7 +24,7 @@
 #     can fix the file; the hook cannot undo anything.
 #   - Indirection is invisible: a value carried through inputs, a step output, a matrix entry or an
 #     env: variable that is later expanded again. So are toJSON, bracket spellings of github.event,
-#     commits[N].message, and fields this list does not name. GitLab CI is not read.
+#     and fields this list does not name. GitLab CI is not read.
 #   - An expression is read on its own line. One that spans lines is not seen, and one that reduces
 #     to a boolean, such as a comparison of the title, is flagged although it carries no text.
 #   - A key called run or script outside a step is read as a step; it is flagged only if it
@@ -115,8 +118,20 @@ esac
 rc=0
 verdict="$(
   awk '
+    function wild(expr, w,   a, b, rest, p, q) {
+      a = W1[w]
+      b = W2[w]
+      rest = expr
+      while ((p = index(rest, a)) > 0) {
+        rest = substr(rest, p + length(a))
+        q = index(rest, "]")
+        if (q && substr(rest, q + 1, length(b)) == b) return 1
+      }
+      return 0
+    }
     function check(s,   n, k, j, part, e, expr) {
       if (index(s, "{{") == 0) return 0
+      s = tolower(s)
       n = split(s, P, SEP)
       for (k = 2; k <= n; k++) {
         part = P[k]
@@ -124,6 +139,7 @@ verdict="$(
         expr = e ? substr(part, 1, e - 1) : part
         if (index(expr, "github.") == 0) continue
         for (j = 1; j <= nf; j++) if (index(expr, F[j])) return 1
+        for (j = 1; j <= nw; j++) if (wild(expr, j)) return 1
       }
       return 0
     }
@@ -138,6 +154,7 @@ verdict="$(
       list = list " github.event.pull_request.title github.event.pull_request.body"
       list = list " github.event.pull_request.head.ref github.event.pull_request.head.label"
       list = list " github.event.pull_request.head.repo.default_branch"
+      list = list " github.event.pull_request.head.repo.description"
       list = list " github.event.issue.title github.event.issue.body"
       list = list " github.event.comment.body github.event.review.body"
       list = list " github.event.review_comment.body"
@@ -147,6 +164,16 @@ verdict="$(
       list = list " github.event.workflow_run.head_branch github.event.workflow_run.display_title"
       list = list " github.event.workflow_run.head_commit.message"
       nf = split(list, F, " ")
+      # An entry that carries an index: the text before the bracket and the text after it.
+      nw = 0
+      wl = "commits[|.message commits[|.author.name commits[|.author.email pages[|.page_name"
+      n = split(wl, T, " ")
+      for (j = 1; j <= n; j++) {
+        nw++
+        split(T[j], U, "|")
+        W1[nw] = "github.event." U[1]
+        W2[nw] = U[2]
+      }
     }
     {
       sub(/\r$/, "")

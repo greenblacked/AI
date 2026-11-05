@@ -559,6 +559,15 @@ SCRATCH_FILES = {
         "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.head_ref }}\n"
     ),
     ".github/workflows/dir.yml/.keep": "",
+    ".github/workflows/mixed-case.yml": "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.event.Pull_Request.TITLE }}\n",
+    ".github/workflows/commit-email.yml": "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.event.commits[0].author.email }}\n",
+    ".github/workflows/commit-name.yml": 'jobs:\n  a:\n    steps:\n      - run: |\n          echo "${{ github.event.commits[*].author.name }}"\n',
+    ".github/workflows/head-email.yml": "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.event.head_commit.author.EMAIL }}\n",
+    ".github/workflows/commit-message.yml": "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.event.commits[1].message }}\n",
+    ".github/workflows/page-name.yml": "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.event.pages[0].page_name }}\n",
+    ".github/workflows/repo-description.yml": "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.event.pull_request.head.repo.description }}\n",
+    ".github/workflows/commit-id.yml": "jobs:\n  a:\n    steps:\n      - run: echo ${{ github.event.commits[0].id }} ${{ github.event.commits[0].author.username }}\n",
+    ".github/workflows/commit-email-env.yml": 'jobs:\n  a:\n    steps:\n      - env:\n          E: ${{ github.event.commits[0].author.email }}\n        run: echo "$E"\n',
     # css: flag-viewport-width-css
     "css/bad.css": ".hero {\n  width: 100vw;\n}\n",
     "css/bad-min.css": ".a {\n  min-width: 100dvw !important;\n}\n",
