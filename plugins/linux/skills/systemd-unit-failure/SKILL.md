@@ -38,6 +38,8 @@ journalctl -u UNIT --since "10 min ago" -p warning
 
 Read from the start of the failing attempt, not the tail. For a loop, find the first failure; later ones are consequences. If the journal is empty for a unit that clearly ran, check that logging is not sent elsewhere by `StandardOutput=`.
 
+When the journal or `dmesg` is a saved dump too large to read inline, delegate that read to the `journal-reader` subagent: it returns the one decisive line for the unit, boot or kernel event you name, with its line number, and you carry on from step 3.
+
 ### 3. Reproduce under the unit's real environment
 
 Print what systemd will actually do, then run the same thing in an equivalent transient unit:
@@ -110,6 +112,34 @@ Of the systemd tools only `systemctl --failed`, `systemctl list-timers --all` an
 **Raising StartLimitBurst.** Hides the loop and delays the page.
 
 **Editing the vendor unit.** The next package update silently reverts it.
+
+## Project kit
+
+Three opt-in files under this skill's `assets/` make the discipline stick in a project. Install
+them when the project keeps its own unit files in a repository, or reviews them often:
+
+- `${CLAUDE_SKILL_DIR}/assets/rules/systemd-units.md` loads when a `.service` file or a
+  `.service.d` drop-in is read, and asks for absolute `ExecStart=` paths, drop-ins instead of
+  edits to vendor units, ordering paired with a dependency, and a pause before a restart.
+- `${CLAUDE_SKILL_DIR}/assets/hooks/exec-absolute-path.json`, with its script
+  `${CLAUDE_SKILL_DIR}/assets/hooks/exec-absolute-path.sh`, reports a written unit whose
+  `Exec` line starts a relative path such as `./server`, which systemd fails with 203/EXEC.
+  It runs after the write and feeds the finding back; it cannot undo the write.
+- `${CLAUDE_SKILL_DIR}/assets/templates/unit-failure-report.md` is the report to fill in for
+  one failing unit, matching the output format above.
+
+Run from the root of the project that wants the kit:
+
+```bash
+mkdir -p .claude/rules .claude/hooks
+cp "${CLAUDE_SKILL_DIR}/assets/rules/systemd-units.md" .claude/rules/
+cp "${CLAUDE_SKILL_DIR}/assets/hooks/exec-absolute-path.sh" .claude/hooks/
+chmod +x .claude/hooks/exec-absolute-path.sh
+```
+
+Then merge the `hooks` block of `assets/hooks/exec-absolute-path.json` into
+`.claude/settings.json`, adding to an existing `hooks` block rather than replacing it. Read the
+script first; it runs with your permissions on every matching tool call.
 
 ## Reference files
 

@@ -1,0 +1,22 @@
+[
+  {"query": "i saved journalctl -b -1 to a file, about 300MB. find the line that shows why nginx.service failed to start, just that line", "should_trigger": true},
+  {"query": "here's the dmesg dump from the crashed node. what's the first kernel error before it went down? don't paste the log back", "should_trigger": true},
+  {"query": "this journal export from the failed boot is huge, give me the line where it dropped into emergency mode", "should_trigger": true},
+  {"query": "the support bundle has a 1.2GB journal text file. what exit status did postgresql.service first fail with, one line please", "should_trigger": true},
+  {"query": "find the oom-killer line in this saved dmesg output and tell me which process it killed, i don't want the whole file in the chat", "should_trigger": true},
+  {"query": "journal-2026-11-02.txt is 2GB. which line shows the first start-limit-hit for the worker unit?", "should_trigger": true},
+  {"query": "read the saved journal for the last boot and tell me which unit failed first and quote the line that proves it", "should_trigger": true},
+  {"query": "dmesg -T output from the server is attached. find where the disk threw I/O errors before the reboot", "should_trigger": true},
+  {"query": "i exported the journal with journalctl -o short-iso from a customer box. find why sshd.service exited around 03:12", "should_trigger": true},
+  {"query": "the unit flapped all weekend and the saved journal is enormous; quote only the first failed start of app.service", "should_trigger": true},
+  {"query": "my nginx unit is failing on this box right now, walk me through finding out why", "should_trigger": false, "expected": "systemd-unit-failure"},
+  {"query": "the server won't boot and drops to emergency mode, help me get it back up", "should_trigger": false, "expected": "boot-failure-recovery"},
+  {"query": "explain what constraint=CONSTRAINT_MEMCG means in the oom report and what limit to change", "should_trigger": false, "expected": "oom-kill-forensics"},
+  {"query": "the server rebooted by itself overnight, how do i tell a kernel panic from power loss", "should_trigger": false, "expected": "kernel-crash-forensics"},
+  {"query": "the CI run failed and the log is 60MB, which triage class is it", "should_trigger": false, "expected": "ci-log-reader"},
+  {"query": "the postgres log has hundreds of deadlock detected entries, which patterns repeat and how often", "should_trigger": false, "expected": "deadlock-log-reader"},
+  {"query": "my cron job did not fire last night and nothing shows in the journal", "should_trigger": false, "expected": "scheduled-job-debugging"},
+  {"query": "i cannot ssh into the host any more and the key worked yesterday", "should_trigger": false, "expected": "ssh-access-debugging"},
+  {"query": "/var is 100% full and the journal is the biggest thing in it, what can i delete safely", "should_trigger": false, "expected": "disk-full-triage"},
+  {"query": "write a python function that parses journalctl json output into a dataframe", "should_trigger": false}
+]
