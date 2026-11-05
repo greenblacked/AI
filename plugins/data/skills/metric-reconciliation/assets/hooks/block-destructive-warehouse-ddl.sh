@@ -79,12 +79,15 @@ fi
 # timeout, and a timed-out hook fails open. Upper case is only folded for ASCII, which is all a
 # keyword uses; a byte outside ASCII (not a tab or other control byte) counts as an identifier start
 # in truncate_re, as a letter did.
+# A digit counts as an identifier start too, because MySQL accepts a name such as 1t or 2024_events.
+# The shell utility always takes an option before its file (truncate -s 0 f), so a digit right after
+# the word is still SQL.
 export LC_ALL=C
 # Word-bounded and SQL-shaped, so "truncated" and `truncate -s 0 file` pass while
-# `TRUNCATE TABLE t`, `truncate t`, `DROP MATERIALIZED VIEW v`, `DROP SNAPSHOT TABLE t` and
-# `DROP DYNAMIC TABLE t` block.
+# `TRUNCATE TABLE t`, `truncate t`, `TRUNCATE 1t`, `DROP MATERIALIZED VIEW v`,
+# `DROP SNAPSHOT TABLE t` and `DROP DYNAMIC TABLE t` block.
 drop_re='\<drop[[:space:]]+((external|materialized|snapshot|dynamic|temp|temporary)[[:space:]]+)?(table|view|schema|database|column)\>'
-truncate_re='\<truncate[[:space:]]+(table[[:space:]]+)?([[:alpha:]_"`[\\]|[^[:print:][:cntrl:]])'
+truncate_re='\<truncate[[:space:]]+(table[[:space:]]+)?([[:alnum:]_"`[\\]|[^[:print:][:cntrl:]])'
 bq_re='\<bq([[:space:]]+-[^[:space:]]+)*[[:space:]]+rm\>'
 # A text match cannot read the shell's own spellings, so the command is normalised first: a
 # backslash-newline continuation is joined, the $ of $'..' and $".." is dropped, and quotes and
