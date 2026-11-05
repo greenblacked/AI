@@ -7,9 +7,14 @@
 # before matching, and refuses a command that names a SQL client or a DROP or TRUNCATE in a spelling
 # it cannot read ($'..' escapes, brace expansion, a variable or substitution as the command, which is read right after a separator or after
 # sudo, exec, command and similar wrappers, not after other wrappers) rather
-# than guessing. It also reads the command with SQL comments (/* */ read both as nesting, as PostgreSQL does, and as closing at the first */, as MySQL, Snowflake and BigQuery do; MySQL executable comments /*! */ read as code; --, // and #) replaced by a space,
-# so DROP /* x */ TABLE t blocks, and a comment that names a drop blocks as well. A .sql or script file the command runs is out of scope: the hook cannot see what
-# is in it.
+# than guessing.
+# SQL comments are not parsed: dialects disagree on nesting, on executable comments (/*! */, /*M! */),
+# and on --, // and #, so no text match reads them all. Instead the hook fails closed: a command that
+# has DROP (with a table, view, schema, database or column word anywhere in it) or TRUNCATE (followed
+# by an identifier) as a word and also any comment marker (/*, */, --, # or //) is refused, with a
+# request to write the statement without comments. That also refuses a harmless `truncate -s 0 f # x`
+# and a prose mention in a comment, which is the safe direction. A .sql or script file the command
+# runs is out of scope: the hook cannot see what is in it.
 set -Eeuo pipefail
 
 input="$(cat)"
@@ -130,47 +135,27 @@ fi
 # Newlines become spaces first, so a heredoc with DROP or TRUNCATE on one line and the object
 # on the next is still one statement to the patterns.
 flat="$(printf '%s' "$command" | tr '\n' ' ')"
-# SQL comments count as whitespace in PostgreSQL, MySQL, Snowflake and BigQuery, so DROP /* x */ TABLE t
-# and DROP/**/TABLE t are the statement DROP TABLE t. Dialects disagree on nesting: PostgreSQL
-# counts /* /* */ */ by depth, while MySQL, Snowflake and BigQuery close at the first */, so
-# DROP /* a /* b */ TABLE t is a drop on those three. The hook therefore reads three stripped
-# versions, each one linear awk pass, and refuses if any matches. The first replaces each /* ... */
-# closing at the first */ with one space; the second does the same counting depth; the third also
-# closes at the first */ but keeps the inside of a MySQL executable comment (/*! ... */ and
-# /*!50100 ... */), which MySQL runs, dropping the marker, the version digits and the */. An
-# unterminated comment runs to the end. All three also replace --, // (Snowflake) and # (MySQL) to
-# the end of the line with one space. The # starts a comment wherever it appears, not only after
-# whitespace, because MySQL reads DROP#c as DROP followed by a comment. Each reading can only add
-# refusals, and text inside a comment is read as text on the other readings, so
-# `select 1 -- drop table later` is refused, which is the safe direction.
-strip_comments() {
-  LC_ALL=C awk -v nest="$1" -v ex="$2" '{ n = length($0); i = 1
-    while (i <= n) {
-      c = substr($0, i, 1); d = substr($0, i, 2)
-      if (depth > 0) {
-        if (d == "*/") { depth--; i += 2 } else if (nest == 1 && d == "/*") { depth++; i += 2 } else i++
-        continue
-      }
-      if (ex == 1 && inx == 1 && d == "*/") { inx = 0; printf " "; i += 2; continue }
-      if (ex == 1 && inx == 0 && substr($0, i, 3) == "/*!") {
-        inx = 1; printf " "; i += 3
-        while (substr($0, i, 1) ~ /[0-9]/) i++
-        continue
-      }
-      if (d == "/*") { depth = 1; printf " "; i += 2; continue }
-      if (d == "--" || d == "//" || c == "#") { printf " "; break }
-      printf "%s", c; i++
-    }
-    printf "\n" }'
+# Fail closed on comments. The hook cannot read SQL comments reliably (nesting, MySQL and MariaDB
+# executable comments, and which of --, // and # starts one differ by dialect), so a command with a
+# destructive keyword and any comment marker is refused instead of guessed at. DROP needs an object
+# word somewhere in the command, TRUNCATE a later identifier, as drop_re and truncate_re do. Both
+# the raw and the normalised text are read. A command without a marker is judged by the patterns
+# below alone.
+comment_re='/[*]|[*]/|--|#|//'
+drop_word_re='\<drop\>'
+drop_object_re='\<(table|view|schema|database|column)\>'
+truncate_word_re='\<truncate\>.*(\<[[:alpha:]_]|["`[\\]|[^[:print:][:cntrl:]])'
+comment_unreadable() {
+  hits "$1" -Ei -e "$comment_re" || return 1
+  { hits "$1" -Ei -e "$drop_word_re" && hits "$1" -Ei -e "$drop_object_re"; } ||
+    hits "$1" -Ei -e "$truncate_word_re"
 }
-stripped_flat="$(printf '%s\n' "$plain" | strip_comments 0 0 | tr '\n\r' '  ')"
-stripped_nested="$(printf '%s\n' "$plain" | strip_comments 1 0 | tr '\n\r' '  ')"
-stripped_exec="$(printf '%s\n' "$plain" | strip_comments 0 1 | tr '\n\r' '  ')"
+if comment_unreadable "$flat" || { [ "$plain_flat" != "$flat" ] && comment_unreadable "$plain_flat"; }; then
+  echo "blocked: this hook cannot read SQL comments reliably, and the command has a comment marker (/*, */, --, # or //) beside a DROP or TRUNCATE. Write the statement without comments." >&2
+  exit 2
+fi
 if hits "$flat" -Ei -e "$drop_re" -e "$truncate_re" -e "$bq_re" ||
-  { [ "$plain_flat" != "$flat" ] && hits "$plain_flat" -Ei -e "$drop_re" -e "$truncate_re" -e "$bq_re"; } ||
-  { [ "$stripped_flat" != "$plain_flat" ] && hits "$stripped_flat" -Ei -e "$drop_re" -e "$truncate_re" -e "$bq_re"; } ||
-  { [ "$stripped_nested" != "$stripped_flat" ] && hits "$stripped_nested" -Ei -e "$drop_re" -e "$truncate_re" -e "$bq_re"; } ||
-  { [ "$stripped_exec" != "$stripped_flat" ] && hits "$stripped_exec" -Ei -e "$drop_re" -e "$truncate_re" -e "$bq_re"; }; then
+  { [ "$plain_flat" != "$flat" ] && hits "$plain_flat" -Ei -e "$drop_re" -e "$truncate_re" -e "$bq_re"; }; then
   echo "blocked: destructive warehouse DDL (DROP TABLE/VIEW/SCHEMA/DATABASE/COLUMN, TRUNCATE, bq rm). Rename the object, archive it, and run the drop yourself after the brownout." >&2
   exit 2
 fi

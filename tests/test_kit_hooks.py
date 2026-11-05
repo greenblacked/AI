@@ -679,6 +679,28 @@ BIG = {
         ("drop-words", lambda: {"command": "drop " * 400000}, 0, {}),
         ("multibyte-drop-words", lambda: {"command": "drop é " * 300000}, 0, {}),
         ("drop-at-the-end", lambda: {"command": "x " * MB + "DROP TABLE t"}, 2, {}),
+        # Comment markers beside a drop are refused on sight; long runs of them must stay linear.
+        ("open-comment-run-around-drop", lambda: {"command": "/*" * MB + " DROP TABLE t"}, 2, {}),
+        ("close-comment-run-around-drop", lambda: {"command": "DROP TABLE t " + "*/" * MB}, 2, {}),
+        (
+            "executable-comment-run-around-drop",
+            lambda: {"command": "DROP " + "/*!" * 300000 + " TABLE t"},
+            2,
+            {},
+        ),
+        (
+            "mariadb-comment-run-around-drop",
+            lambda: {"command": "DROP " + "/*M!" * 250000 + " TABLE t"},
+            2,
+            {},
+        ),
+        ("comment-markers-without-drop", lambda: {"command": "/*! */ " * 150000}, 0, {}),
+        (
+            "truncate-words-with-comment",
+            lambda: {"command": "truncate -s 0 " * 70000 + "# c"},
+            2,
+            {},
+        ),
     ],
     "retry": [
         (
