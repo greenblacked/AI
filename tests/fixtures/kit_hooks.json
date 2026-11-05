@@ -687,5 +687,9 @@
   {"hook": "sym", "name": "substitution-in-argument", "payload": {"tool_input": {"command": "cp $(pwd)/App.dSYM /archive"}}, "exit": 0},
   {"hook": "sym", "name": "variable-as-verb-in-subshell", "payload": {"tool_input": {"command": "($v App.dSYM)"}}, "exit": 2},
   {"hook": "sym", "name": "loose-name-with-rm-of-another-file", "payload": {"tool_input": {"command": "rm -f dsym-cache.log"}}, "exit": 0},
-  {"hook": "kill", "name": "function-argument-is-a-variable", "payload": {"tool_input": {"command": "psql -c \"select pg_terminate_backend(123), count($COL) from t\""}}, "exit": 0}
+  {"hook": "kill", "name": "function-argument-is-a-variable", "payload": {"tool_input": {"command": "psql -c \"select pg_terminate_backend(123), count($COL) from t\""}}, "exit": 0},
+  {"hook": "tf", "name": "variable-as-binary-after-assignment-prefix", "payload": {"tool_input": {"command": "A=1 $t apply -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "variable-as-binary-after-sudo", "payload": {"tool_input": {"command": "sudo $t apply -auto-approve"}}, "exit": 2},
+  {"hook": "tf", "name": "substitution-in-assignment-prefix", "payload": {"tool_input": {"command": "X=$(pwd) terraform apply tfplan"}}, "exit": 0},
+  {"hook": "sym", "name": "variable-as-verb-after-assignment-prefix", "payload": {"tool_input": {"command": "A=1 $v App.dSYM"}}, "exit": 2}
 ]
