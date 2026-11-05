@@ -562,6 +562,9 @@ runs with your permissions on every matching tool call.
   write has already happened: exit 2 only feeds stderr back to the model, which can fix the
   file but cannot be undone by the hook. A kit that must stop a write registers on
   `PreToolUse`.
+- It sees only the command text, so shell indirection (`t=terraform; $t apply`) and a
+  script file the command runs are outside what it can judge, and its comments should say
+  so rather than imply a guarantee.
 
 A kit's `.sh` makes Cisco flag its anchor skill with `ALLOWED_TOOLS_BASH_VIOLATION`, and
 may make SkillSpector report AE1 `static_parse_limit` there; in the first batch of ten kits
