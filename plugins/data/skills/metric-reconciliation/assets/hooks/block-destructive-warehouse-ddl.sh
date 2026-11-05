@@ -11,7 +11,7 @@
 # SQL comments are not parsed: dialects disagree on nesting, on executable comments (/*! */, /*M! */),
 # and on --, // and #, so no text match reads them all. Instead the hook fails closed: a command that
 # has DROP (with a table, view, schema, database or column word anywhere in it) or TRUNCATE (followed
-# by an identifier) as a word, or `bq` with `rm`, and also any marker (/*, */, --, #, //, $ or a
+# by an identifier) as a word, or the words `bq` and `rm` anywhere in it, and also any marker (/*, */, --, #, //, $ or a
 # backtick) is refused, with a request to write the statement without comments. `--` counts, so
 # `truncate --size 0 f` is refused while `truncate -s 0 f` passes; that cost is accepted. It also
 # refuses a harmless `truncate -s 0 f # x` and a prose mention in a comment, which is the safe direction. A .sql or script file the command
@@ -85,7 +85,7 @@ export LC_ALL=C
 # `DROP DYNAMIC TABLE t` block.
 drop_re='\<drop[[:space:]]+((external|materialized|snapshot|dynamic|temp|temporary)[[:space:]]+)?(table|view|schema|database|column)\>'
 truncate_re='\<truncate[[:space:]]+(table[[:space:]]+)?([[:alpha:]_"`[\\]|[^[:print:][:cntrl:]])'
-bq_re='\<bq[[:space:]]+rm\>'
+bq_re='\<bq([[:space:]]+-[^[:space:]]+)*[[:space:]]+rm\>'
 # A text match cannot read the shell's own spellings, so the command is normalised first: a
 # backslash-newline continuation is joined, the $ of $'..' and $".." is dropped, and quotes and
 # backslashes are deleted, which makes DR\OP\ TABLE\ t and "DR""OP TABLE t" the statement they
@@ -140,8 +140,9 @@ flat="$(printf '%s' "$command" | tr '\n' ' ')"
 # executable comments, and which of --, // and # starts one differ by dialect), so a command with a
 # destructive keyword and any comment marker is refused instead of guessed at. DROP needs an object
 # word somewhere in the command, TRUNCATE a later identifier, as drop_re and truncate_re do, and
-# `bq` needs `rm` as a word. The keyword patterns here have no left word boundary: a MySQL or
-# MariaDB executable comment puts the keyword right after its version digits (/*!50100DROP TABLE t*/).
+# `bq` needs `rm` as a word anywhere, so `bq load ... && rm f.csv` with a marker is refused too. The
+# keyword and identifier patterns here have no left word boundary: a MySQL or MariaDB executable
+# comment puts the word right after its version digits (/*!50100DROP TABLE t*/, TRUNCATE /*!50100t*/).
 # A $ or a backtick counts as a marker too, because a variable or a substitution inside the SQL text
 # can hide where a word ends or build the object word (DROP $e TABLE t, DROP $(printf T)ABLE t), so
 # with one of those a DROP word alone is enough, without an object word beside it. Both the raw and the normalised text are read. A
@@ -150,7 +151,7 @@ comment_re='/[*]|[*]/|--|#|//|[$]|`'
 subst_re='[$]|`'
 drop_word_re='drop\>'
 drop_object_re='(table|view|schema|database|column)\>'
-truncate_word_re='truncate\>.*(\<[[:alpha:]_]|["`[\\]|[^[:print:][:cntrl:]])'
+truncate_word_re='truncate\>.*([[:alpha:]_]|["`[\\]|[^[:print:][:cntrl:]])'
 comment_unreadable() {
   hits "$1" -Ei -e "$comment_re" || return 1
   { hits "$1" -Ei -e "$drop_word_re" && hits "$1" -Ei -e "$drop_object_re"; } ||
