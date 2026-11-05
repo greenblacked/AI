@@ -1170,5 +1170,8 @@
   {"hook": "dmap", "name": "other-name", "payload": {"tool_input": {"file_path": "dm/noreason/notes.yaml"}}, "exit": 0},
   {"hook": "dmap", "name": "yml-extension", "payload": {"tool_input": {"file_path": "dm/noreason/drift-map.yml"}}, "exit": 0},
   {"hook": "dmap", "name": "missing-file", "payload": {"tool_input": {"file_path": "dm/absent/drift-map.yaml"}}, "exit": 0},
-  {"hook": "dmap", "name": "directory-named-like-the-map", "payload": {"tool_input": {"file_path": "dm/dir/drift-map.yaml"}}, "exit": 0}
+  {"hook": "dmap", "name": "directory-named-like-the-map", "payload": {"tool_input": {"file_path": "dm/dir/drift-map.yaml"}}, "exit": 0},
+  {"hook": "ddl", "name": "truncate-digit-led-identifier-is-blocked", "payload": {"tool_input": {"command": "mysql -e 'TRUNCATE 1t'"}}, "exit": 2},
+  {"hook": "ddl", "name": "truncate-table-digit-led-identifier-is-blocked", "payload": {"tool_input": {"command": "mysql -e 'TRUNCATE TABLE 2024_events'"}}, "exit": 2},
+  {"hook": "ddl", "name": "shell-truncate-size-flag-allowed-beside-digit-rule", "payload": {"tool_input": {"command": "truncate -s 0 app.log"}}, "exit": 0}
 ]
