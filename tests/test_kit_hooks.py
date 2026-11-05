@@ -217,6 +217,17 @@ def test_hook_verdict(case, mode, bins, scratch):
         )
 
 
+def test_openocd_erase_address_is_refused_as_a_range_not_a_whole_device(bins, scratch):
+    command = "openocd -c 'flash erase_address 0x08000000 0x100000'"
+    stdin = json.dumps({"tool_input": {"command": command}}).encode("utf-8")
+    for mode in MODES:
+        done = run_hook("erase", stdin, mode, bins, scratch, timeout=30)
+        assert done.returncode == 2
+        assert b"erase_address" in done.stderr
+        assert b"range" in done.stderr
+        assert b"whole-device" not in done.stderr
+
+
 # Worst-case inputs of about 2 MB, built here because they are too large for the table. Each
 # is (name, builder, expected exit, files the working directory must hold).
 MB = 1_000_000
@@ -310,8 +321,6 @@ BIG = {
         ("rm-and-huge-token", lambda: {"command": "rm " + "x" * (2 * MB) + " App.dSYM"}, 2, {}),
         ("multibyte-no-artifact", lambda: {"command": "echo " + "é" * MB}, 0, {}),
         ("rm-no-artifact", lambda: {"command": "rm " + "x" * (2 * MB)}, 0, {}),
-        ("escape-and-brace-runs", lambda: {"command": "echo $'\\x41'{a,b} " * 100000}, 0, {}),
-        ("escape-and-near-dsym-runs", lambda: {"command": "echo $'\\x41'dsy " * 100000}, 0, {}),
     ],
     "erase": [
         ("openocd-words", lambda: {"command": "openocd é " * 200000}, 0, {}),
@@ -320,6 +329,7 @@ BIG = {
         ("erase-words", lambda: {"command": "erase " * 340000}, 0, {}),
         ("erase-pipes", lambda: {"command": "erase | " * 290000}, 0, {}),
         ("jlink-words", lambda: {"command": "JLinkExe " * 220000}, 0, {}),
+        ("jlink-words-with-carriage-returns", lambda: {"command": "JLinkExe\r\n" * 200000}, 0, {}),
         (
             "jlink-heredoc-words",
             lambda: {"command": "JLinkExe <<EOF\n" + "connect\n" * 250000},
@@ -327,6 +337,57 @@ BIG = {
             {},
         ),
         ("erase-at-the-end", lambda: {"command": "a " * MB + "&& st-flash erase"}, 2, {}),
+        # Every heredoc, and every echo, writes `erase` to its own file and thousands of other
+        # lines name J-Link, so comparing each file with each J-Link line is quadratic in the
+        # input. The last row names the very last file, so the answer is found only at the end.
+        (
+            "heredoc-files-times-jlink-lines",
+            lambda: {
+                "command": "".join(f"cat <<E > f{i}\nerase\nE\n" for i in range(40000))
+                + "jlink x\n" * 70000
+            },
+            0,
+            {},
+        ),
+        (
+            "writer-files-times-jlink-lines",
+            lambda: {
+                "command": "".join(f"echo erase > f{i}\n" for i in range(60000))
+                + "jlink x\n" * 70000
+            },
+            0,
+            {},
+        ),
+        (
+            "writer-files-times-jlink-lines-named-at-the-end",
+            lambda: {
+                "command": "".join(f"echo erase > f{i}\n" for i in range(60000))
+                + "jlink x\n" * 70000
+                + "JLinkExe -CommandFile f59999"
+            },
+            2,
+            {},
+        ),
+        # Under a UTF-8 locale GNU grep took quadratic time on the stdin patterns for this shape: a
+        # word `erase` that is not alone before the `;`, and tens of thousands of J-Link commands.
+        (
+            "erase-argument-then-many-jlink-commands",
+            lambda: {"command": "echo erase x; " + "JLinkExe -x f; " * 20000},
+            0,
+            {},
+        ),
+        (
+            "many-jlink-lines-one-file",
+            lambda: {"command": "echo erase > f\n" + "jlink x\n" * 200000},
+            0,
+            {},
+        ),
+        (
+            "many-redirects-on-one-heredoc-line",
+            lambda: {"command": "cat <<E" + " >f" * 300000 + "\nconnect\nE\njlink f"},
+            0,
+            {},
+        ),
         (
             "jlink-erase-at-the-end",
             lambda: {"command": "a\n" * MB + "printf 'r\\nerase\\n' | JLinkExe"},

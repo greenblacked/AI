@@ -2,7 +2,8 @@
 # Refuse a whole-device erase or readout-protection write from a debug probe. Deterministic: standard tools only, no network, no secrets.
 # It reads the command text and nothing else. It undoes quoting, backslashes and line continuations
 # before matching, and refuses a probe command it cannot read (a $'..' escape, a brace expansion, a
-# variable or substitution in command position) rather than guessing. A script file the command runs
+# variable or substitution in command position, which is read right after a separator or after
+# sudo, exec, command, env and similar wrappers, not after other wrappers) rather than guessing. A script file the command runs
 # and an interpreter one-liner are out of scope: the hook cannot see what they do.
 set -Eeuo pipefail
 
@@ -62,6 +63,11 @@ hits() {
 # `erase)` behind to be matched.
 # The piped J-Link form (echo erase | JLinkExe, printf 'erase\n' | JLinkExe, quoted or not) is
 # matched; openocd may carry `;` inside a quoted -c argument, so its pattern runs to a pipe or &.
+# Byte-wise matching (LC_ALL=C): under a UTF-8 locale GNU grep takes quadratic time on the
+# patterns below for a command with tens of thousands of J-Link commands, so a large command
+# outlasts the hook timeout, and a timed-out hook fails open. Nothing here needs more than ASCII
+# to match, and upper case is only folded for ASCII, which is all a tool name or option uses.
+export LC_ALL=C
 lower="$(printf '%s' "$command" | tr '[:upper:]' '[:lower:]')"
 scrub='s/-(commanderscript|commandfile)[[:space:]=]+[^[:space:];&|)]+//g'
 scrubbed="$(printf '%s' "$lower" | sed -E "$scrub")"
@@ -75,7 +81,7 @@ scrubbed="$(printf '%s' "$lower" | sed -E "$scrub")"
 # What cannot be normalised is refused instead, when the command also names a probe tool or the
 # word erase: a $'..' string with a backslash (hex and octal escapes), a brace expansion with a
 # comma or `..` outside quotes, and a variable, a command substitution or a backtick where the
-# command word goes ($t --eraseall, $(echo st-flash) erase). A variable that is only the start of
+# command word goes (right after a separator, a group opener, then, do or else, or one of the wrappers sudo, command, exec, env, xargs, nohup, time, busybox and builtin, with any NAME=value assignments between; a command run through another wrapper is not read) ($t --eraseall, $(echo st-flash) erase). A variable that is only the start of
 # a path ($HOME/bin/nrfjprog) is read as the path it ends in. Indirection through a script file
 # or an interpreter one-liner is still out of scope: this hook sees only the command text.
 # Standalone like every hook here, so these two functions are copied rather than sourced.
@@ -89,10 +95,17 @@ unreadable() {
   if hits "$1" -E "[\$]'[^']*[\\\\]"; then return 0; fi
   outside="$(printf '%s' "$1" | sed -E "s/'[^']*'|\"[^\"]*\"//g")"
   if hits "$outside" -E '(^|[^$])\{[^{}[:space:]]*(,|\.\.)[^{}[:space:]]*\}'; then return 0; fi
-  cmdpos='(^|[;&|`]|[$][(]|[[:space:]](then|do|else))[[:space:]]*([({][[:space:]]*)*((sudo|command|exec|xargs|nohup|time|busybox|builtin|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*)[[:space:]]+)*([$][A-Za-z_][A-Za-z0-9_]*([^/A-Za-z0-9_]|$)|[$]\{[^}]*\}([^/]|$)|[$][(0-9@*]|`)'
+  cmdpos='(^|[;&|`]|[$][(]|[[:space:]](then|do|else))[[:space:]]*([({][[:space:]]*)*((sudo|command|exec|e[n]v|xargs|nohup|time|busybox|builtin|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*)[[:space:]]+)*([$][A-Za-z_][A-Za-z0-9_]*([^/A-Za-z0-9_]|$)|[$]\{[^}]*\}([^/]|$)|[$][(0-9@*]|`)'
   hits "$(printf '%s' "$2" | tr '\n\r' ';;')" -E "$cmdpos"
 }
-plain="$(printf '%s\n' "$lower" | normalise | sed -E "$scrub")"
+# normalise needs awk. Without it the pipeline below fails with status 127, which is not a block,
+# so the command would run unjudged; refuse instead, because a missing tool is not a reason to allow.
+if [ -n "$command" ] && ! command -v awk >/dev/null 2>&1; then
+  echo "blocked: awk is not installed, so this hook cannot read the command and did not judge it. Install awk (any POSIX awk), or run the command yourself." >&2
+  exit 2
+fi
+plain_ns="$(printf '%s\n' "$lower" | normalise)"
+plain="$(printf '%s\n' "$plain_ns" | sed -E "$scrub")"
 plain_flat="$(printf '%s' "$plain" | tr '\n\r' '  ')"
 if hits "$plain_flat" -E 'nrfjprog|jlink|pyocd|openocd|st-flash|esptool|stm32_programmer_cli|erase|recover' &&
   unreadable "$lower" "$plain"; then
@@ -107,9 +120,11 @@ word_end="(${sp}|\$|[;&|)])"
 # A J-Link command can reach the tool on stdin, so `erase` is also matched as a word wherever it
 # starts: after a space, a quote or a literal \n (printf 'r\nerase\nq\n'). What may follow it
 # depends on how the commands reach J-Link:
-#   - before `;` or `&` it must stand alone, with at most a quote, a parenthesis or a redirect to a
-#     file in between (echo erase > c.jlink && JLinkExe -CommandFile c.jlink). Text after `erase`
-#     there means `erase` is an argument of some other command (grep -n erase docs.md; JLinkExe).
+#   - before `;` or `&` it must stand alone, with at most a quote or a parenthesis in between
+#     (echo erase; JLinkExe). Text after `erase` there means `erase` is an argument of some other
+#     command (grep -n erase docs.md; JLinkExe). An erase written to a file (echo erase > c.jlink,
+#     printf '%s\n' r erase q | tee c.jlink) is not read here: it counts only when a J-Link line
+#     names that file, which the awk below checks, so a file J-Link never reads is not a block.
 #   - before a pipe (`|` or `|&`) other words may follow it, because they are the rest of the
 #     script that is piped (printf '%s\n' r erase q | JLinkExe). A pipe carries the output of the
 #     whole left side, so the words in front of it are what J-Link reads.
@@ -121,26 +136,32 @@ word_end="(${sp}|\$|[;&|)])"
 # printf, and a pipe at the end of a line, in one command; the heredoc body is read line by line
 # by the awk below, so the text after its delimiter is never part of it.
 stdin_erase_lit="(^|${sp}|${q}|${bs}n)erase${bs}n[^|;&]*(;|&+|\\|&?)[^;&]*jlink"
-stdin_erase="(^|${sp}|${q}|${bs}n)erase${q}?${sp}*\\)*${sp}*(>>?${sp}*[^[:space:];&|]+${sp}*)?(;|&+)[^;&]*jlink"
+stdin_erase="(^|${sp}|${q}|${bs}n)erase${q}?${sp}*\\)*${sp}*(;|&+)[^;&]*jlink"
 stdin_erase_pipe="(^|${sp}|${q}|${bs}n)erase((${sp}|${q})[^|;&]*)?\\|&?[^;&]*jlink"
 stdin_erase_group="(^|${sp}|${q}|${bs}n)erase([^[:alnum:]_|{}()][^|{}()]*)?[})]${sp}*\\|&?[^;&]*jlink"
 stdin_erase_sq="'(([^'|;&]*${sp})?)erase(${sp}[^'|;&]*)?'${sp}*\\|&?[^;&]*jlink"
 stdin_erase_dq="\"(([^\"|;&]*${sp})?)erase(${sp}[^\"|;&]*)?\"${sp}*\\|&?[^;&]*jlink"
-# nrfjprog: -e is --eraseall and --chiperase erases the whole flash before --program. pyocd: -m on
-# erase is taken from the task brief, not checked against pyocd's own help (not installed here);
-# `flash --erase chip` is its chip-erase option. openocd: `flash erase_address` erases a range this
-# hook cannot compare with the chip size, so any use of it is refused.
+# nrfjprog: -e is --eraseall, --chiperase erases the whole flash before --program, and the QSPI
+# forms (--qspichiperase, --qspieraseall) erase the external flash; --sectorerase is not matched.
+# pyocd: `erase` takes -c/--chip and --mass for a chip erase (argparse also accepts a unique prefix
+# of a long option, so --ch, --chi, --ma and --mas count; pyocd has no -m), and `flash`/`load` take
+# --erase chip, which may be written -e chip, -echip or -e=chip; --erase sector and -s are not
+# matched. openocd: `mass_erase` is a whole word in every driver (stm32f1x mass_erase 0,
+# nrf5 mass_erase), and erase_sector with the first sector 0 and `last` covers a whole bank.
+# `flash erase_address` is judged separately below, because it erases a range this hook cannot
+# compare with the chip size.
 probe=(
   -e "st-flash[^|;&]*${sp}erase${word_end}"
-  -e "nrfjprog[^|;&]*(${sp}-e${word_end}|--(eraseall|chiperase|recover|rbp|rdp))"
+  -e "nrfjprog[^|;&]*(${sp}-e${word_end}|--(eraseall|chiperase|qspichiperase|qspieraseall|recover|rbp|rdp))"
   -e "esptool[^|;&]*[[:space:]_.-]erase[_-]flash"
   -e "jlink(exe|\.exe)?[^|;&]*(${sp}|${q}|${bs}n)erase(${sp}|\$|[;&|)]|${q}|${bs}n)"
-  -e "pyocd[^|;&]*${sp}erase(${sp}[^|;&]*)?${sp}(--chip|--mass|-c|-m)(${sp}|\$|[;&|=])"
-  -e "pyocd[^|;&]*${sp}(--erase|-e)(${sp}+|=)chip(${sp}|\$|[;&|)])"
+  -e "pyocd[^|;&]*${sp}erase(${sp}[^|;&]*)?${sp}(-c|--ch(ip|i)?|--ma(ss?)?)(${sp}|\$|[;&|=])"
+  -e "pyocd[^|;&]*${sp}(--er(a|as|ase)?(${sp}+|=)|-e(${sp}*|=))chip(${sp}|\$|[;&|)])"
   -e "stm32_programmer_cli[^|;&]*(-e|--erase)${sp}+all"
   -e "stm32_programmer_cli[^|;&]*-ob[^|;&]*(rdp|wrp|optr)"
-  -e "openocd[^|&]*(mass_erase|flash${sp}+erase_sector${sp}+0${sp}+0${sp}+last|flash${sp}+erase_address|stm32[a-z0-9]*x${sp}+(lock|option_write|options_write))"
+  -e "openocd[^|&]*([^[:alnum:]_]mass_erase([^[:alnum:]_]|\$)|flash${sp}+erase_sector${sp}+[^[:space:]]+${sp}+0${sp}+last|stm32[a-z0-9]*x${sp}+(lock|option_write|options_write))"
 )
+range_probe=(-e "openocd[^|&]*flash${sp}+erase_address")
 stdin_forms=(-e "$stdin_erase" -e "$stdin_erase_pipe" -e "$stdin_erase_group" -e "$stdin_erase_sq" -e "$stdin_erase_dq")
 flat="$(printf '%s' "$scrubbed" | tr '\n' ' ')"
 hit=0
@@ -151,26 +172,77 @@ elif [ "$plain" != "$scrubbed" ] &&
   { hits "$plain" -E "${probe[@]}" || hits "$plain_flat" -E "${stdin_forms[@]}"; }; then
   hit=1
 fi
+# A range erase is a different refusal from a whole-device one; it is only looked for when the
+# whole-device patterns found nothing.
+if [ "$hit" -eq 0 ] &&
+  { hits "$scrubbed" -E "${range_probe[@]}" ||
+    { [ "$plain" != "$scrubbed" ] && hits "$plain" -E "${range_probe[@]}"; }; }; then
+  hit=3
+fi
 # A J-Link heredoc (`JLinkExe <<EOF`, `cat <<EOF | JLinkExe`) or here-string (`JLinkExe <<< erase`)
 # is judged by its own lines: the body runs to the delimiter line, and an `erase` after it, or in
 # a later command, is not part of what J-Link reads. The delimiter is the word after `<<`, with
 # an optional `-`, quotes or a backslash taken off it, and it may be any word: <<@@ and <<$'EOF'
-# are read as @@ and EOF. A delimiter that holds a `$` or a backtick, or is missing, cannot be
-# read, so the rest of the command is taken as the body. A body counts when it feeds J-Link:
+# are read as @@ and EOF. The delimiter line is the delimiter and nothing else, as bash reads it:
+# a trailing space or carriage return, or any indent, makes it an ordinary body line, and only
+# `<<-` lets the line start with tabs. A delimiter that holds a `$` or a backtick, or is missing,
+# cannot be read, so the rest of the command is taken as the body. A body counts when it feeds
+# J-Link:
 #   - the heredoc line names J-Link before it or pipes it into J-Link;
 #   - the line ends in a pipe, and the next line after the delimiter names J-Link
 #     (cat <<EOF |, the body, EOF, then JLinkExe);
-#   - the body is written to a file (cat <<EOF > cmds.txt, tee cmds.txt <<EOF) and a line that
+#   - the body is written to a file (cat <<EOF > cmds.txt, tee cmds.txt <<EOF) and a command that
 #     names J-Link names that file too (JLinkExe -CommandFile cmds.txt).
 # A heredoc that feeds something else (cat <<EOF, a body with erase, then JLinkExe on its own)
 # is not part of what J-Link reads.
-if [ "$hit" -eq 0 ]; then
-  heredoc="$(LC_ALL=C awk '
-    function has_erase(s) { return s ~ /(^|[ \t"\047]|\\n)erase([ \t;&|)"\047]|\\n|$)/ }
+# An erase that echo or printf writes to a file (echo erase > c.jlink, printf '%s\n' r erase q >>
+# c.jlink, echo erase | tee c.jlink) counts the same way: when a command that names J-Link names
+# that file, joined by ; or && or only by a line break. Names are compared as whole words, a path
+# by its last component, so a file called a is not found in every command. Each J-Link command
+# is looked at once, with the file names it redirects its own output to taken out, and each
+# file name is looked up in a table, so the work grows with the length of the command and not
+# with the files times the commands.
+jl_scan() {
+  LC_ALL=C awk '
+    function has_erase(s) { return s ~ /(^|[ \t"\047]|\\n)erase([ \t\r;&|)"\047]|\\n|$)/ }
+    function gather(s,   n, k, f, parts) {
+      nt = 0
+      n = split(s, parts, />>?[ \t]*/)
+      for (k = 2; k <= n; k++) {
+        if (match(parts[k], /^[^ \t;&|<>()]+/)) { f = substr(parts[k], 1, RLENGTH); gsub(/["\047\\]/, "", f); if (f != "") tfs[++nt] = f }
+      }
+      n = split(s, parts, /tee[ \t]+(-a[ \t]+)?/)
+      for (k = 2; k <= n; k++) {
+        if (match(parts[k], /^[^ \t;&|<>()]+/)) { f = substr(parts[k], 1, RLENGTH); gsub(/["\047\\]/, "", f); if (f != "") tfs[++nt] = f }
+      }
+    }
+    function addfile(f,   b) {
+      files[f] = 1
+      b = f
+      sub(/^.*\//, "", b)
+      if (b != "") files[b] = 1
+    }
+    function scan(text,   n, k, seg, own, m) {
+      if (index(text, "jlink") == 0 && index(text, "erase") == 0) return
+      n = split(text, segs, /[;&]+/)
+      for (k = 1; k <= n; k++) {
+        seg = segs[k]
+        gather(seg)
+        if (nt > 0 && seg ~ /(^|[ \t({|])(echo|printf)[ \t]/ && has_erase(seg)) {
+          for (m = 1; m <= nt; m++) addfile(tfs[m])
+        }
+        if (index(seg, "jlink")) {
+          own = seg
+          gsub(/>>?[ \t]*[^ \t;&|<>()]+/, " ", own)
+          gsub(/tee[ \t]+(-a[ \t]+)?[^ \t;&|<>()]+/, " ", own)
+          if (index(own, "jlink")) jl[++nj] = own
+        }
+      }
+    }
     function finish(   k) {
       if (body_erase) {
         if (feeds) hit = 1
-        for (k = 1; k <= nt; k++) files[tfs[k]] = 1
+        for (k = 1; k <= nt; k++) addfile(tfs[k])
         if (piped) pend = 1
       }
       inbody = 0
@@ -178,38 +250,24 @@ if [ "$hit" -eq 0 ]; then
     {
       line = $0
       if (inbody) {
+        t = line
         if (delim != "") {
-          t = line
-          sub(/^[ \t]+/, "", t)
-          sub(/[ \t\r]+$/, "", t)
+          if (dash) sub(/^\t+/, "", t)
           if (t == delim) { finish(); next }
         }
         if (has_erase(line)) body_erase = 1
         next
       }
       if (pend) { pend = 0; if (index(line, "jlink")) hit = 1 }
-      if (index(line, "jlink")) jl[++nj] = line
+      scan(line)
       p = index(line, "<<")
       if (!p) next
       feeds = (line ~ /jlink(exe|\.exe)?[^|;&]*<</ || line ~ /<<.*\|&?[^;&]*jlink/)
       rest = substr(line, p + 2)
       if (substr(rest, 1, 1) == "<") { if (feeds && has_erase(substr(rest, 2))) hit = 1; next }
-      nt = 0
-      tmp = line
-      while (match(tmp, />>?[ \t]*[^ \t;&|<>()]+/)) {
-        f = substr(tmp, RSTART, RLENGTH)
-        sub(/^>>?[ \t]*/, "", f)
-        tfs[++nt] = f
-        tmp = substr(tmp, RSTART + RLENGTH)
-      }
-      tmp = line
-      while (match(tmp, /tee[ \t]+(-a[ \t]+)?[^ \t;&|<>()]+/)) {
-        f = substr(tmp, RSTART, RLENGTH)
-        sub(/^tee[ \t]+(-a[ \t]+)?/, "", f)
-        tfs[++nt] = f
-        tmp = substr(tmp, RSTART + RLENGTH)
-      }
+      gather(line)
       piped = (line ~ /\|&?[ \t\r]*\\?[ \t\r]*$/)
+      dash = (substr(rest, 1, 1) == "-")
       sub(/^-/, "", rest)
       sub(/^[ \t]*/, "", rest)
       w = ""
@@ -223,22 +281,43 @@ if [ "$hit" -eq 0 ]; then
     }
     END {
       if (inbody) finish()
-      for (f in files) for (k = 1; k <= nj; k++) if (index(jl[k], f)) hit = 1
+      for (k = 1; k <= nj && !hit; k++) {
+        n = split(jl[k], toks, /[ \t\r"\047=<>@(),:;&|]+/)
+        for (m = 1; m <= n; m++) {
+          if (toks[m] == "") continue
+          if (toks[m] in files) { hit = 1; break }
+          b = toks[m]
+          sub(/^.*\//, "", b)
+          if (b != "" && b in files) { hit = 1; break }
+        }
+      }
       print hit ? "hit" : "none"
     }
-  ' <<<"$lower")" || heredoc="failed"
-  # The awk prints hit or none; no answer means it did not run (the here-string failed to write).
-  case "$heredoc" in
-    hit) hit=1 ;;
-    none) ;;
-    *)
-      echo "blocked: could not scan the command for a J-Link heredoc (awk gave no answer), so it was not judged. Retry; if it repeats, check free space in the temporary directory." >&2
-      exit 2
-      ;;
-  esac
+  ' <<<"$1"
+}
+if [ "$hit" -eq 0 ]; then
+  for source in "$lower" "$plain_ns"; do
+    heredoc="$(jl_scan "$source")" || heredoc="failed"
+    # The awk prints hit or none; no answer means it did not run (the here-string failed to write).
+    case "$heredoc" in
+      hit)
+        hit=1
+        break
+        ;;
+      none) ;;
+      *)
+        echo "blocked: could not scan the command for a J-Link heredoc (awk gave no answer), so it was not judged. Retry; if it repeats, check free space in the temporary directory." >&2
+        exit 2
+        ;;
+    esac
+  done
 fi
 if [ "$hit" -eq 1 ]; then
   echo "blocked: whole-device erase or readout-protection write. Dump flash and option bytes first (for example 'st-flash read dump.bin 0x08000000 <size>' or 'nrfjprog --readcode dump.hex'), keep the dump, then ask for the erase explicitly." >&2
+  exit 2
+fi
+if [ "$hit" -eq 3 ]; then
+  echo "blocked: openocd 'flash erase_address' erases a range, and this hook cannot compare the range with the size of the chip, so it cannot tell a sector from the whole device. Dump flash first (for example 'openocd -c \"flash read_bank 0 dump.bin\"'), keep the dump, erase by sector with 'flash erase_sector', or ask for the erase explicitly." >&2
   exit 2
 fi
 exit 0
